@@ -62,10 +62,10 @@ namespace config
   };  
 
   // Input Types
-  static std::size_t const NUM_INPUT = 1;
+  static std::size_t const NUM_INPUT = 2;
   static std::string const input_strings[NUM_INPUT] = 
-  { "TINKER" };
-  struct input_types { enum T { ILLEGAL=-1, TINKER }; };
+  { "TINKER", "AMBER" };
+  struct input_types { enum T { ILLEGAL=-1, TINKER, AMBER }; };
   // Output Types
   static std::size_t const NUM_OUTPUT = 4;
   static std::string const output_strings[NUM_OUTPUT] = 
@@ -824,6 +824,21 @@ namespace config
     {}
   };
 
+  /**
+   * IO // IO OPTIONS
+   * THIS STRUCT KEEPS TRACK OF ADITIONAL IO-STUFF
+   */
+  struct io
+  {
+    // mdcrd has greater priority than inpcr, inpcrd has greater priority than restrt
+    std::string amber_mdcrd; //Filename
+    std::string amber_mdvel; //Filename
+    std::string amber_inpcrd; //Filename
+    std::string amber_restrt; //Filename
+    bool amber_trajectory_at_constant_pressure; // If true, box coordinates are ambigousily also written to coordinate file. We need to know this.
+    io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
+  };
+
   /*
   
       GBSA
@@ -897,6 +912,7 @@ public:
   config::align			            alignment;
   config::PCA					          PCA;
   config::entropy				        entropy;
+  config::io                    io;
 
   void        check        (void);
   

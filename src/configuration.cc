@@ -1638,6 +1638,46 @@ void config::parse_option (std::string const option, std::string const value_str
     //}
     //
 
+    //IO Options
+    else if (option == "amber_mdcrd")
+    {
+      cv >> Config::set().io.amber_mdcrd;
+    }
+    else if (option == "amber_mdvel")
+    {
+      cv >> Config::set().io.amber_mdvel;
+    }
+    else if (option == "amber_inpcrd")
+    {
+      cv >> Config::set().io.amber_inpcrd;
+    }
+    else if (option == "amber_restrt")
+    {
+      cv >> Config::set().io.amber_restrt;
+    }
+    else if (option == "amber_trajectory_at_constant_pressure")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().io.amber_trajectory_at_constant_pressure = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().io.amber_trajectory_at_constant_pressure = false;
+      }
+    }
+
+    /*NOT IMPLEMENTED AS OF NOW!
+    //I/O Atoms index options
+    else if (option == "atomexclude")
+    {
+      Config::set().general.bool_atomsexclude = true;
+      Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
+    }
+    */
+
   }
 
 

@@ -156,6 +156,7 @@ namespace coords
     namespace formats
     {
       class tinker;
+      class amber;
     }
   }
   namespace output

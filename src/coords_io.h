@@ -9,17 +9,19 @@
 #include <sstream>
 #include "scon_utility.h"
 #include "coords.h"
+#include "configuration.h"
 
 namespace coords
 {
   namespace input
   {
     // format types
-    struct types { enum T { TINKER, PDB }; };
+    struct types { enum T { TINKER, PDB, AMBER }; };
 
     inline types::T get_type (std::string const &str)
     {
       if (str.find("PDB") != str.npos) return types::PDB;
+      else if (str.find("AMBER") != str.npos) return types::AMBER;
       else return types::TINKER;
     }
     // new format creator
@@ -50,11 +52,57 @@ namespace coords
 
     namespace formats
     {
-      class tinker
-        : public coords::input::format
+      class amber : public coords::input::format
       {
       public:
-        Coordinates read (std::string);
+        Coordinates read(std::string);
+      private:
+        //struct sections;
+        static const unsigned int sections_size = 91u;
+        std::string const sections[91] =
+        { "TITLE", "POINTERS", "ATOM_NAME", "CHARGE", "ATOMIC_NUMBER",
+          "MASS", "ATOM_TYPE_INDEX", "NUMBER_EXCLUDED_ATOMS", "NONBONDED_PARM_INDEX", "POLARIZABILITY",
+          "RESIDUE_LABEL", "RESIDUE_POINTER", "BOND_FORCE_CONSTANT", "BOND_EQUIL_VALUE", "ANGLE_FORCE_CONSTANT",
+          "ANGLE_EQUIL_VALUE", "DIHEDRAL_FORCE_CONSTANT", "DIHEDRAL_PERIODICITY", "DIHEDRAL_PHASE", "SCEE_SCALE_FACTOR",
+          "SCNB_SCALE_FACTOR", "SOLTY", "LENNARD_JONES_ACOEF", "LENNARD_JONES_BCOEF", "BONDS_INC_HYDROGEN",
+          "BONDS_WITHOUT_HYDROGEN", "ANGLES_INC_HYDROGEN", "ANGLES_WITHOUT_HYDROGEN", "DIHEDRALS_INC_HYDROGEN", "DIHEDRALS_WITHOUT_HYDROGEN",
+          "EXCLUDED_ATOMS_LIST", "HBOND_ACOEF", "HBOND_BCOEF", "HBCUT", "AMBER_ATOM_TYPE",
+          "TREE_CHAIN_CLASSIFICATION", "JOIN_ARRAY", "IROTAT", "SOLVENT_POINTERS", "ATOMS_PER_MOLECULE",
+          "BOX_DIMENSIONS", "CAP_INFO", "CAP_INFO2", "RADIUS_SET", "RADII",
+          "IPOL" };
+
+        enum section_types 
+        {
+          ILLEGAL = -1,
+          TITLE, POINTERS, ATOM_NAME, CHARGE, ATOMIC_NUMBER,
+          MASS, ATOM_TYPE_INDEX, NUMBER_EXCLUDED_ATOMS, NONBONDED_PARM_INDEX, POLARIZABILITY,
+          RESIDUE_LABEL, RESIDUE_POINTER, BOND_FORCE_CONSTANT, BOND_EQUIL_VALUE, ANGLE_FORCE_CONSTANT,
+          ANGLE_EQUIL_VALUE, DIHEDRAL_FORCE_CONSTANT, DIHEDRAL_PERIODICITY, DIHEDRAL_PHASE, SCEE_SCALE_FACTOR,
+          SCNB_SCALE_FACTOR, SOLTY, LENNARD_JONES_ACOEF, LENNARD_JONES_BCOEF, BONDS_INC_HYDROGEN,
+          BONDS_WITHOUT_HYDROGEN, ANGLES_INC_HYDROGEN, ANGLES_WITHOUT_HYDROGEN, DIHEDRALS_INC_HYDROGEN, DIHEDRALS_WITHOUT_HYDROGEN,
+          EXCLUDED_ATOMS_LIST, HBOND_ACOEF, HBOND_BCOEF, HBCUT, AMBER_ATOM_TYPE,
+          TREE_CHAIN_CLASSIFICATION, JOIN_ARRAY, IROTAT, SOLVENT_POINTERS, ATOMS_PER_MOLECULE,
+          BOX_DIMENSIONS, CAP_INFO, CAP_INFO2, RADIUS_SET, RADII,
+          IPOL
+        };
+		
+
+
+        //Important Stuff
+        std::vector<unsigned int> sectionsPresent;
+        std::vector<unsigned int> bondsWithHydrogen, bondsWithoutHydrogen; // [0] binds to [1], [2] to [3], [4] to [5] and so on....
+        Atoms atoms;
+        Cartesian_Point position;
+        std::string name;
+        unsigned int numberOfAtoms;
+        int pointers_raw[32];
+
+      };
+
+      class tinker : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
       private:
         struct line
         {
@@ -103,8 +151,7 @@ namespace coords
     namespace formats
     {
 
-      class tinker
-        : public output::format
+      class tinker : public output::format
       {
         tinker& operator= (tinker const &);
       public:
