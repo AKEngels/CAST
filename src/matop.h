@@ -11,6 +11,7 @@ Calculations are done using scon::mathmatrix
 
 #pragma once
 #include "scon_mathmatrix.h"
+#include "histogram.h"
 
 typedef scon::mathmatrix<float_type> Matrix_Class;
 
@@ -49,7 +50,7 @@ namespace matop
    * multiplication with "10e-10" (i.e. conversion of Angstrom
    * to meters as distances) is performed.
    */
-  void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true);
+  void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<unsigned int> atomsThatAreUsed = std::vector<unsigned int>());
 
   /**
    * Converts a coords:Coordinates object to a mathmatrix object
@@ -99,11 +100,35 @@ namespace matop
     Matrix_Class transform_3n_nf_trunc_pca(Matrix_Class const& input);
 
     /**
+     * Preparation for PCA, returns eigenvalues and eigenvectors of covariance matrix
+     * as well as pca_modes (columns is frames, rows are modes).
+     *
+     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
+     */
+    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, int rank = 0);
+
+    /**
+     * Writes aproximated probability density of each mode.
+     * Histogramming is used to genereate PD.
+     *
+     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
+     */
+    void output_probability_density(Matrix_Class& pca_modes);
+
+    /**
      * Formatted output of PCA-Modes to file
      *
      * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
      */
-    void output_pca_modes(Matrix_Class const& input);
+    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename = "pca_modes.dat");
+
+    /**
+     * Reads Eigenvectors and PCA-trajectory from correctly formatted file.
+     * File is correctly formatted if it was created using the CAST::matop::output_pca_modes
+     * function.
+     */
+    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string filename = "pca_modes.dat");
+
   }
 
 
