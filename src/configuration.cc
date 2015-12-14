@@ -125,33 +125,34 @@ static T enum_from_iss (std::istringstream & in)
 
 /**
  * This creates an std::vector from range based input (istringstream&)
+ * only works for integer types
  * EXAMPLE: 3-6 -> 3,4,5,6 (sorted)
  */
 template<typename T>
-std::vector<T> configuration_range(std::istringstream& cv)
+std::vector<T> configuration_range_int(std::istringstream& cv)
 {
   bool none_check = false;
   std::vector<T> temp;
   std::vector<std::string> holder;
   while (cv)
   {
-    std::string temp;
-    cv >> temp;
-    holder.push_back(temp);
+    std::string temp2;
+    cv >> temp2;
+    holder.push_back(temp2);
   }
   holder.pop_back();
-  for (int i = 0; i < holder.size(); i++)
+  for (unsigned int i = 0; i < holder.size(); i++)
   {
     if (holder[i] == "none")
     {
       none_check = true;
-      goto NONE_CHECK;
+      //goto NONE_CHECK;
       //break;
     }
     bool i_o_done = false;
     while (!i_o_done)
     {
-      for (int j = 0; j < holder[i].size(); j++)
+      for (unsigned int j = 0; j < holder[i].size(); j++)
       {
         if (holder[i][j] == *"-")
         {
@@ -160,7 +161,7 @@ std::vector<T> configuration_range(std::istringstream& cv)
           {
             if (holder[i][l] == *",") { last_comma = l; break; }
           }
-          for (int l = j; l < holder[i].size(); l++)
+          for (unsigned int l = j; l < holder[i].size(); l++)
           {
             if (holder[i][l] == *",") { next_comma = l; break; }
             else if (l == (holder[i].size() - 1))
@@ -191,7 +192,7 @@ std::vector<T> configuration_range(std::istringstream& cv)
   {
     if (holder[i] == "none") {
       none_check = true;
-      goto NONE_CHECK;
+      //goto NONE_CHECK;
       break;
     }
     int last_comma = -1;
@@ -229,9 +230,34 @@ std::vector<T> configuration_range(std::istringstream& cv)
   }
   if (none_check)
   {
-    NONE_CHECK:
+    //NONE_CHECK:
     std::vector<T> empty;
     temp = empty;
+  }
+  return temp;
+}
+
+/**
+ * This creates an std::vector from range based input (istringstream&)
+ * only works for floating types
+ * Is much simpler than version for integer types, only packs into vector without filling or sorting
+ * EXAMPLE: 3.5,7.8,2 -> 3.5 | 7.8 | 2.0
+ */
+template<typename T>
+std::vector<T> configuration_range_float(std::istringstream& cv)
+{
+  std::vector<T> temp;
+  std::vector<std::string> holder;
+  while (cv)
+  {
+    std::string temp2;
+    cv >> temp2;
+    holder.push_back(temp2);
+  }
+  holder.pop_back();
+  for (int i = 0; i < holder.size(); i++)
+  {
+    temp.push_back(stod(holder[i]));
   }
   return temp;
 }
