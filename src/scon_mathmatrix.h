@@ -47,6 +47,7 @@ CODING CONVENTIONS AS FOLLOWS:
 #include "coords.h"
 typedef coords::float_type float_type;
 typedef int int_type;
+//typedef scon::mathmatrix<float_type> Matrix_Class;
 typedef unsigned int uint_type;
 
 ///////////////////////////////
@@ -115,7 +116,7 @@ namespace scon {
 		/**
 		 * Contructs a diagonal mathmatrix-obj from std::vector<float_type>
 		 */
-		mathmatrix(std::vector<T> const& input) : scon::matrix<T>(input.size(); input.size())
+		mathmatrix(std::vector<T> const& input) : scon::matrix<T>(input.size(), input.size())
 		{
 			for (unsigned int i = 0u; i < input.size(); i++)
 			{
@@ -125,8 +126,7 @@ namespace scon {
 
 		/**
 		 * Copy Constructor, if boolean size_only is set to TRUE
-		 * Only the size of the matrix will be copied (probably
-		 * faster)
+		 * Only the size of the matrix will be copied (faster)
 		 */
 		mathmatrix(mathmatrix const& in, bool size_only = false) : scon::matrix<T>(in.return_rows(), in.return_columns())
 		{
@@ -201,6 +201,25 @@ namespace scon {
 			}
 		};
 
+    /**
+     * Return identity matrix of equal size
+     */
+    mathmatrix return_identity(void)
+    {
+      mathmatrix workobj(*this, true);
+      for (unsigned int i = 0; i < this->return_rows(); i++) {
+        for (unsigned int j = 0; j < this->return_columns(); j++) {
+          if (i == j) {
+            (workobj)(i, j) = 1;
+          }
+          else {
+            (workobj)(i, j) = 0;
+          }
+        }
+      }
+      return workobj;
+    };
+
 		/**
 		 * Returns transposed mathmatrix-obj
 		 */
@@ -221,7 +240,7 @@ namespace scon {
 			}
 			else
 			{
-				mathmatrix temp(this->cols(), this->rows());
+				mathmatrix temp(this->return_cols(), this->return_rows());
 				for (unsigned int i = 0; i < this->return_rows(); i++) {
 					for (unsigned int j = 0; j < this->return_columns(); j++) {
 						 temp(j, i) = (*this)(i, j);
@@ -263,6 +282,22 @@ namespace scon {
 			}
 		};
 
+    /**
+     * Returns mathmatrix-obj where all members are filled with the input
+     */
+    mathmatrix filledwith(T in)
+    {
+      mathmatrix workobj(*this, true);
+      for (unsigned int i = 0; i < this->return_rows(); i++)
+      {
+        for (unsigned int j = 0; j < this->return_columns(); j++)
+        {
+          (workobj)(i, j) = in;
+        }
+      }
+      return workobj;
+    };
+
     void resize(unsigned int rowInput, unsigned int columnInput = 1u)
     {
       this->scon::matrix<T>::resize(rowInput, columnInput);
@@ -280,16 +315,20 @@ namespace scon {
 				throw std::logic_error("Matrix size wrong. Can't Multiply.");
 			}
 			mathmatrix holder(this->return_rows(), in.return_columns());
-			for (unsigned int i = 0; i < holder.return_rows(); i++)
+      mathmatrix temp_in(in);
+#ifdef _OPENMP
+      #pragma omp parallel for firstprivate(temp_in) shared(holder)
+#endif
+			for (int i = 0; i < (int) holder.return_rows(); i++)
 			{
 				for (unsigned int j = 0; j < holder.return_columns(); j++)
 				{
 					T temp_summation = 0.0;
 					for (unsigned int k = 0; k < this->return_columns(); k++)
 					{
-						temp_summation += (*this)(i, k) * in(k, j);
+						temp_summation += (*this)((unsigned int) i, k) * temp_in(k, j);
 					}
-					holder(i, j) = temp_summation;
+					holder((unsigned int) i, j) = temp_summation;
 				}
 			}
 			return holder;
@@ -473,7 +512,7 @@ namespace scon {
 					s_in(i) = scale *g;
 					g = s = scale = 0.0;
 					if (i + 1 <= m && i + 1 != n) {
-						for (k = l - 1; k < n; k++) scale += abs(U_in(i, k));
+						for (k = l - 1; k < n; k++) scale += std::abs(U_in(i, k));
 						if (scale != 0.0) {
 							for (k = l - 1; k < n; k++) {
 								U_in(i, k) /= scale;
@@ -491,7 +530,7 @@ namespace scon {
 							for (k = l - 1; k < n; k++) U_in(i, k) *= scale;
 						}
 					}
-					anorm = std::max(anorm, (std::abs(s_in(i)) + abs(rv1(i))));
+					anorm = std::max(anorm, (std::abs(s_in(i)) + std::abs(rv1(i))));
 				}
 				for (i = n - 1; i >= 0; i--) {
 					if (i < n - 1) {
@@ -530,11 +569,11 @@ namespace scon {
 						flag = true;
 						for (l = k; l >= 0; l--) {
 							nm = l - 1;
-							if (l == 0 || abs(rv1(l)) <= eps*anorm) {
+							if (l == 0 || std::abs(rv1(l)) <= eps*anorm) {
 								flag = false;
 								break;
 							}
-							if (abs(s_in(nm)) <= eps*anorm) break;
+							if (std::abs(s_in(nm)) <= eps*anorm) break;
 						}
 						if (flag) {
 							c = 0.0;
@@ -542,7 +581,7 @@ namespace scon {
 							for (i = l; i<k + 1; i++) {
 								f = s*rv1(i);
 								rv1(i) = c*rv1(i);
-								if (abs(f) <= eps*anorm) break;
+								if (std::abs(f) <= eps*anorm) break;
 								g = s_in(i);
 								h = (std::abs(f) > std::abs(g) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(g) / std::abs(f)), 2)) :
 									(std::abs(g) == 0.0 ? 0.0 : std::abs(g)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(g)), 2))));
@@ -649,7 +688,6 @@ namespace scon {
 		float_type determ() const
 		{
 			//Via Numerical Recipies, LU Decomposition
-			const mathmatrix& aref = *this;
 			mathmatrix lu = *this;
 			const float_type TINY = 1.0e-40;
 			int i, imax, j, k;
@@ -779,7 +817,7 @@ namespace scon {
 			//Old size needs to be kept
 			unsigned int holder = this->return_rows();
 
-			this->resize(this->return_rows() + I_will_be_the_bottom_part.return_rows(), this->cols());
+			this->resize(this->return_rows() + I_will_be_the_bottom_part.return_rows(), this->return_cols());
 
 			//Add "in" to newly ceated space.
 			for (unsigned int i = 0; i < I_will_be_the_bottom_part.return_rows(); i++)
@@ -930,7 +968,7 @@ namespace scon {
 		 */
 		unsigned int return_rows() const
 		{
-			return this->rows();
+			return (unsigned int) this->rows();
 		}
 
 		/**
@@ -938,7 +976,7 @@ namespace scon {
 		 */
 		unsigned int return_columns() const
 		{
-			return this->cols();
+			return (unsigned int) this->cols();
 		}
 
     /**
@@ -946,7 +984,7 @@ namespace scon {
      */
     unsigned int return_cols() const
     {
-      return this->cols();
+      return (unsigned int)this->cols();
     }
 
     /**
@@ -954,7 +992,7 @@ namespace scon {
     */
     unsigned int columns() const
     {
-      return this->cols();
+      return (unsigned int) this->cols();
     }
 
 		/**
@@ -973,7 +1011,7 @@ namespace scon {
 		mathmatrix upper_left_submatrix(unsigned int const& rows_in, unsigned int const& columns_in = 0) const
 		{
 			mathmatrix copied(*this);
-			copied.resize(k, l);
+			copied.resize(rows_in, columns_in);
 			return copied;
 		}
 
@@ -993,8 +1031,8 @@ namespace scon {
 
 			//"Constructor"
 			U_in = *this;
-			V_in.resize(this->cols(), this->cols());
-			s_in.resize(this->cols());
+			V_in.resize(this->return_cols(), this->return_cols());
+			s_in.resize(this->return_cols());
 
 			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
 			int n = int(this->return_cols());
@@ -1007,7 +1045,7 @@ namespace scon {
 				bool flag;
 				int i, its, j, jj, k, l, nm;
 				float_type anorm, c, f, g, h, s, scale, x, y, z;
-				Matrix_Class rv1(n);
+				mathmatrix rv1(n);
 				g = scale = anorm = 0.0;
 				for (i = 0; i < n; i++)
 				{
@@ -1203,7 +1241,7 @@ namespace scon {
 			{
 				int i, j, k, s, inc = 1;
 				float_type sw;
-				Matrix_Class su(m), sv(n);
+				mathmatrix su(m), sv(n);
 				do { inc *= 3; inc++; } while (inc <= n);
 				do
 				{
@@ -1260,7 +1298,7 @@ namespace scon {
 		 *
      * justification: ptr is used for rank because in can represent a
      * bool intrinsically through nullptr and therefore stores information
-     * wether rank should be passed through this function.
+     * weather rank should be passed through this function.
      *
 		 * NOTE: Should we check if this is symmetric? I think we should -> "eig_sym",
 		 * at least once we will do matrix-math internally in CAST.
@@ -1274,7 +1312,7 @@ namespace scon {
 			//this->symmetry_check();
 			//(Although it might slow stuff down considerably.)
 
-			Matrix_Class V;
+			mathmatrix V;
 			this->singular_value_decomposition(eigenvec_in, eigenval_in, V, rank_in);
 		}
 
@@ -1332,7 +1370,7 @@ namespace scon {
 		 */
 		bool operator==(mathmatrix const& in) const
 		{
-			matrix *baseClassPointer = &in;
+			mathmatrix *baseClassPointer = &in;
 			return ((*this) == (*baseClassPointer));
 		}
 
