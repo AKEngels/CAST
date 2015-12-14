@@ -131,7 +131,7 @@ namespace scon
     if (!t.empty())
     {
       auto p = reinterpret_cast<char const *>(t.data());
-      return bst.write(p, t.size()*sizeof(t));
+      return bst.write(p, t.size()*sizeof(Target));
     }
     return bst;
   }

@@ -145,58 +145,62 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       sum2 = 0.0;
       positions.resize(natom);
 
-      //if (mcstep % 10 == 0 && mcstep > 1)
-      //{
+	  move_control = Config::get().neb.MIXED_MOVE;
+	  if (move_control) {
+		  if (mcstep % 10 == 0 && mcstep > 1)
+		  {
 
-       // for (ptrdiff_t j = 0; j < natom; j++){
-        //  randvect();
-        //  factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;
-        //  double rv_p[3];
-        //  v3d RV;
-        //  double abs = 0.0;
+			  for (ptrdiff_t j = 0; j < natom; j++) {
+				  randvect();
+				  factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;
+				  double rv_p[3];
+				  coords::Cartesian_Point RV;
+				  double abs = 0.0;
 
-        //  rv_p[0] = N->tau[opt][j].y() * randvec[2] - N->tau[opt][j].z() * randvec[1];
-        //  rv_p[1] = N->tau[opt][j].z() * randvec[0] - N->tau[opt][j].x() * randvec[2];
-        //  rv_p[2] = N->tau[opt][j].x() * randvec[1] - N->tau[opt][j].y() * randvec[0];
-        //  abs += rv_p[0] * rv_p[0];
-        //  abs += rv_p[1] * rv_p[1];
-        //  abs += rv_p[2] * rv_p[2];
+				  rv_p[0] = N->tau[opt][j].y() * randvec[2] - N->tau[opt][j].z() * randvec[1];
+				  rv_p[1] = N->tau[opt][j].z() * randvec[0] - N->tau[opt][j].x() * randvec[2];
+				  rv_p[2] = N->tau[opt][j].x() * randvec[1] - N->tau[opt][j].y() * randvec[0];
+				  abs += rv_p[0] * rv_p[0];
+				  abs += rv_p[1] * rv_p[1];
+				  abs += rv_p[2] * rv_p[2];
 
-        //  abs = sqrt(abs);
-        //  if (abs == 0.0) abs = 1.0;
-        //  rv_p[0] /= abs;
-        //  rv_p[1] /= abs;
-        //  rv_p[2] /= abs;
+				  abs = sqrt(abs);
+				  if (abs == 0.0) abs = 1.0;
+				  rv_p[0] /= abs;
+				  rv_p[1] /= abs;
+				  rv_p[2] /= abs;
 
-        //  RV.setX(rv_p[0]);
-        //  RV.setY(rv_p[1]);
-        //  RV.setZ(rv_p[2]);
+				  RV.x() = rv_p[0];
+				  RV.y() = rv_p[1];
+				  RV.z() = rv_p[2];
 
-        //  positions[j] = RV;
+				  positions[j] = RV;
 
-       // }
-       // coords::Coordinates temp_perp(*cPtr);
-       // temp_perp.set_pes(positions);
-       // std::cout << "set pes point" << lineend;
-       // perp_point test_perp;
-       // test_perp = perp_point(temp_perp.pes());
-       // move_main(test_perp);
+			  }
+			  coords::Coordinates temp_perp(*cPtr);
+			  temp_perp.set_pes(positions);
+			  std::cout << "set pes point" << lineend;
+			  perp_point test_perp;
+			  test_perp = perp_point(temp_perp.pes());
+			  move_main(test_perp);
 
-       // std::cout << "MINIMUM   " << cPtr->g() << lineend;
+			  std::cout << "MINIMUM   " << cPtr->g() << lineend;
 
-       // positions = cPtr->xyz();
-       // //printmono("TEST_DIHEDRAL_1.xyz", positions, global_image);
-       // MCmin = cPtr->o();
-       // positions = cPtr->xyz();
-       // if (std::abs(MCmin - STARTENERGY) < Config::get().neb.PO_ENERGY_RANGE)
-       // {
-        //  std::cout << "MINIMUM   " << cPtr->g() << lineend;
-        // // printmono("TEST_DIHEDRAL_2.xyz", positions, global_image);
-       // }
-       // move_control = true;
-      //}
-      positions = cPtr->xyz();
-      if (!move_control) {
+			  positions = cPtr->xyz();
+			  //printmono("TEST_DIHEDRAL_1.xyz", positions, global_image);
+			  MCmin = cPtr->o();
+			  positions = cPtr->xyz();
+			  if (std::abs(MCmin - STARTENERGY) < Config::get().neb.PO_ENERGY_RANGE)
+			  {
+				  std::cout << "MINIMUM   " << cPtr->g() << lineend;
+				  // printmono("TEST_DIHEDRAL_2.xyz", positions, global_image);
+			  }
+			  //move_control = true;
+		  }
+		  positions = cPtr->xyz();
+	  }
+	  else
+	  {
         for (ptrdiff_t j = 0; j < natom; j++) {
           randvect();
           factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;

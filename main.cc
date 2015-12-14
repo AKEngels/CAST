@@ -14,6 +14,7 @@
 #include "Path_perp.h"
 #include "reaccoord.h"
 #include "scon_log.h"
+#include "matop.h"
 //#include "gbsa.h"
 #include <omp.h>
 
@@ -236,11 +237,9 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
 
-      //auto const main_histogram_delta;
-      //for (auto const & pes : *ci)
-      //{
-
-      //}
+      scon::matrix<coords::float_type> test(5, 4);
+      test.resize(4u, 4u);
+      test.resize(7u, 8u);
       
       break;
     }
@@ -262,16 +261,16 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::ALIGN:
+    case config::tasks::ADJUST:
       { // alignment / change strucutre
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
-        std::ofstream outputstream(coords::output::filename("_ALIGN").c_str(), std::ios_base::out);
+        std::ofstream outputstream(coords::output::filename("_ADJUSTED").c_str(), std::ios_base::out);
         for (auto const & pes : *ci)
         {
           coords.set_xyz(pes.structure.cartesian);
           coords.to_internal();
-          for (auto const &d : Config::get().alignment.dihedrals)
+          for (auto const &d : Config::get().adjustment.dihedrals)
           {
             std::size_t const di = coords.atoms().intern_of_dihedral(d.a, d.b, d.c, d.d);
             if (di < coords.size() && coords.atoms(di).i_to_a() == d.d)
@@ -454,23 +453,13 @@ int main(int argc, char **argv)
       { // Free energy perturbation
         md::simulation mdObject(coords);
         mdObject.fepinit();
-        //coords.e_head_tostream_short(std::cout);
-        //size_t i(0u);
-        //std::ofstream outputstream(coords::output::filename("_SP").c_str(), std::ios_base::out);
-        //for (auto const & pes : *ci)
-        //{
-        //  coords.set_xyz(pes.structure.cartesian);
-        //  coords.e();
-        //  std::cout << "Structure " << ++i << lineend;
-        //  coords.e_tostream_short(std::cout);
-        //  outputstream << coords;
-        //}
         mdObject.run();
         mdObject.feprun();
         break;
       }
     case config::tasks::UMBRELLA:
       {
+
         Config::set().md.umbrella = true;
         md::simulation mdObject(coords);
         mdObject.umbrella_run();
@@ -569,6 +558,381 @@ int main(int argc, char **argv)
 
 			  break;
 		  }
+    case config::tasks::ALIGN:
+    {
+      /*
+       * THIS TASK ALIGNES A SIMULATION TRAJECTORY
+       *
+       * This task will perform a translational- and rotational fit of the conformations
+       * obtained from a molecular simulation. Furthermore, molecular distance meassures
+       * may be computed afterwards
+       */
+      using namespace matop;
+      using namespace matop::align;
+
+
+      coords::Coordinates coords_ref(coords), coords_temp(coords);
+      auto holder = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+      coords_ref.set_xyz(holder);
+      Matrix_Class ref = matop::transfer_to_matr(coords_ref);
+      //Constructs two coordinate objects and sets reference frame according to INPUTFILE
+
+      double mean_value = 0;
+      std::string *hold_str, *hold_coords_str;
+      hold_str = new std::string[ci->size()];
+      hold_coords_str = new std::string[ci->size()];
+      //Construct and Allocate arrays for stringoutput (necessary for OpenMP)
+
+      if (Config::get().alignment.traj_align_bool)
+      {
+        matop::align::align_center_of_mass(ref, coords_ref);
+        coords_ref.set_xyz(matop::transfer_to_3DRepressentation(ref));
+      }
+      //Perform translational alignment for reference frame
+
+      //OPENMP - NOT working prototype, but very promissing :D
+      #pragma omp parallel for firstprivate(coords, ref) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+      for (unsigned int i = 0; i < ci->size(); i++)
+      {
+        if (i != Config::get().alignment.reference_frame_num)
+        {
+          auto holder2 = ci->PES()[i].structure.cartesian;
+          coords_temp.set_xyz(holder2);
+          Matrix_Class matr_structure = transfer_to_matr(coords_temp);
+          //Create temporary objects for current frame
+
+          if (Config::get().alignment.traj_align_bool)
+          {
+            align_center_of_mass(matr_structure, coords_temp);
+            rotate(matr_structure, ref);
+            //matr_structure = (matr_structure.rotated(ref));
+          }
+          coords_temp.set_xyz(transfer_to_3DRepressentation(matr_structure));
+          //Alignment taking place
+
+          if (Config::get().alignment.traj_print_bool)
+          {
+            if (Config::get().alignment.dist_unit == 0)
+              //RMSD 
+            {
+              std::stringstream hold_distance;
+              hold_distance << "Frame " << i << "/" << ci->size() << " ";
+              hold_distance << "Distance: " << root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz()) << "\n";
+              mean_value += root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz());
+              hold_str[i] = hold_distance.str();
+            }
+            else if (Config::get().alignment.dist_unit == 1)
+              //dRMSD
+            {
+              std::stringstream hold_distance;
+              hold_distance << "Frame " << i << "/" << ci->size() << " ";
+              long double value = drmsd_calc(matr_structure, ref);
+              value = sqrt(double(ci->size()) * (double(ci->size()) + 1) * value);
+              hold_distance << "Distance: " << value << "\n";
+              mean_value += value;
+              hold_str[i] = hold_distance.str();
+            }
+            else if (Config::get().alignment.dist_unit == 2)
+              //Holm&Sander Distance
+            {
+              std::stringstream hold_distance;
+              long double value = holmsander_calc(matr_structure, ref);
+              hold_distance << "Frame " << i << "/" << ci->size() << " " << "Distance: " << value << "\n";
+              mean_value += value;
+              hold_str[i] = hold_distance.str();
+            }
+          }
+          //Molecular distance measure calculation
+
+          std::stringstream hold_coords;
+          coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
+          hold_coords << coords;
+          hold_coords_str[i] = hold_coords.str();
+          //Formatted string-output
+        }
+
+        else if (i == Config::get().alignment.reference_frame_num)
+        {
+          std::stringstream hold_coords;
+          hold_coords << coords_ref;
+          hold_coords_str[i] = hold_coords.str();
+          //Formatted string-output (first to array because of OpenMP parallelization)
+        }
+      }
+
+      std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
+      std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
+      for (unsigned int i = 0; i < ci->size(); i++)
+      {
+        if (Config::get().alignment.traj_print_bool)
+        {
+          distance << hold_str[i];
+        }
+        if (Config::get().alignment.traj_align_bool)
+        {
+          outputstream << hold_coords_str[i];
+        }
+      }
+      distance << "\n";
+      distance << "Mean value: " << (mean_value / (ci->size() - 1)) << "\n";
+      //Formatted string-output
+
+      delete[] hold_str;
+      delete[] hold_coords_str;
+      //Cleaning Up
+
+      std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    	case config::tasks::PCA:
+      {
+        /**
+         * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
+         *
+         * This task will perform a principal component analysis (PCA) on a molecular simulation
+         * trajectory. Prior translational- and rotational fit of the conformations
+         * obtained is possible. Options can be specified in the INPUTFILE.
+         *
+         */
+        using namespace matop;
+        using namespace matop::pca;
+
+
+        coords::Coordinates coords_ref(coords);
+        auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
+        coords_ref.set_xyz(holder);
+        Matrix_Class ref = transfer_to_matr(coords_ref);
+        //Constructs two coordinate objects and sets reference frame according to INPUTFILE
+
+        if (Config::get().PCA.pca_alignment)
+        {
+          align::align_center_of_mass(ref,coords);
+          coords_ref.set_xyz(transfer_to_3DRepressentation(ref));;
+        }
+        //Perform translational alignment for reference frame
+
+        Matrix_Class matrix_aligned;
+        bool has_it_started = false;
+        const unsigned int FRAME_SIZE = unsigned int(ci->size());
+        //Initializing some stuff
+
+        for (unsigned int i = 0; i < FRAME_SIZE; i++)
+        {
+          if ((Config::get().PCA.pca_start_frame_num <= i) && (Config::get().PCA.pca_start_frame_num % Config::get().PCA.pca_offset == i % Config::get().PCA.pca_offset))
+          {
+            auto holder2 = ci->PES()[i].structure.cartesian;
+            coords.set_xyz(holder2);
+            Matrix_Class matr_structure = transfer_to_matr(coords);
+            //Create temporary objects for current frame
+
+            if (Config::get().PCA.pca_alignment)
+            {
+              align::align_center_of_mass(matr_structure, coords); //Alignes center of geometry
+              align::rotate(matr_structure, ref);
+            }
+            //Alignment taking place (if desired)
+
+            if (Config::get().PCA.pca_use_internal)
+            {
+              coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
+              coords.to_internal();
+              matr_structure = transfer_to_matr_internal(coords);
+            }
+            //Calculation of internal coordinates (if desired)
+
+            if (has_it_started)
+            {
+              if (Config::get().PCA.pca_use_internal)
+              {
+                matrix_aligned.append_bottom(transform_3n_nf_internal_pca(matr_structure));
+              }
+              else
+              {
+                matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
+              }
+            }
+            else if (!has_it_started)
+            {
+              if (Config::get().PCA.pca_use_internal)
+              {
+                matrix_aligned = transform_3n_nf_internal_pca(matr_structure);
+              }
+              else
+              {
+                matrix_aligned = transform_3n_nf(matr_structure);
+                if (Config::get().PCA.trunc_atoms_bool)
+                {
+                  matrix_aligned = transform_3n_nf_trunc_pca(matr_structure);
+                }
+              }
+              has_it_started = true;
+            }
+            //Building one huge [frames] x [coordinates] matrix by appending for every frame
+          }
+        }
+
+        matrix_aligned.transpose();
+        // NECESSARY because of implementation details, don't worry about it for now
+        // Matrix is now [coordinates] x [frames] !!! !!!
+        // THIS IS THE CONVENTION FOR USAGE, STICK TO IT!
+
+        if (!Config::get().PCA.pca_use_internal)
+        {
+          coords_ref.set_xyz(holder);
+          massweight(matrix_aligned, coords_ref, false);
+        }
+        //Mass-weightening coordinates if cartesians are used
+
+        if (Config::get().PCA.pca_print_modes)
+        {
+          output_pca_modes(matrix_aligned);
+        }
+        //Formatted string-output
+
+        std::cout << "Everything is done. Have a nice day." << std::endl;
+        break;
+      }
+
+      case config::tasks::ENTROPY:
+      {
+        /**
+         * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
+         *
+         * This task will perform verious configurational or conformational entropy calculations
+         * on a molecular simualtion trajectory. Prior translational- and rotational fit of the
+         * conformations obtained is possible. Options can be specified in the INPUTFILE
+         *
+         */
+        using namespace matop;
+        using namespace matop::entropy;
+
+        coords::Coordinates coords_ref(coords);
+        auto holder = (*ci).PES()[Config::get().entropy.entropy_ref_frame_num].structure.cartesian;
+        coords_ref.set_xyz(holder);
+        Matrix_Class ref = transfer_to_matr(coords_ref);
+        //Initialize the reference frame (for alignment etc)
+
+        if (Config::get().entropy.entropy_alignment)
+        {
+          align::align_center_of_mass(ref,coords_ref);
+        }
+        //Translational alignment of the reference frame
+
+        Matrix_Class matrix_aligned;
+        const unsigned int FRAME_SIZE = unsigned int(ci->size());
+        if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
+        {
+          std::cerr << "Alignment is (in this case) redundant when internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
+          std::cerr << "Continuing anyway...";
+        }
+        //Initializing and checking...
+
+        for (unsigned int i = 0; i < FRAME_SIZE; i++)
+        {
+          // Meet-your-Maker-Note: Keep it like this with the seeminlgy stupid "is it started", please.
+          if (Config::get().entropy.entropy_start_frame_num <= i && (Config::get().entropy.entropy_start_frame_num % Config::get().entropy.entropy_offset == i % Config::get().entropy.entropy_offset))
+          {
+            auto holder2 = ci->PES()[i].structure.cartesian;
+            coords.set_xyz(holder2);
+            Matrix_Class matr_structure = transfer_to_matr(coords);
+            //Initializing current frame
+
+            if (Config::get().entropy.entropy_alignment && !Config::get().entropy.entropy_use_internal)
+            {
+              align::align_center_of_mass(matr_structure, coords); //Alignes center of mass
+              align::rotate(matr_structure, ref); //Rotates
+            }
+            //Translational and rotational alignment
+
+            if (Config::get().entropy.entropy_use_internal)
+            {
+              coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
+              coords.to_internal();
+              matr_structure = transfer_to_matr_internal(coords);
+            }
+            //Conversion to internal coordinates if desired
+
+            if (Config::get().entropy.entropy_start_frame_num < i)
+            {
+              if (Config::get().entropy.entropy_use_internal)
+              {
+                matrix_aligned.append_bottom(transform_3n_nf_internal_entropy(matr_structure));
+              }
+              else
+              {
+                if (Config::get().entropy.entropy_trunc_atoms_bool)
+                {
+                  matrix_aligned = transform_3n_nf_trunc_entropy(matr_structure);
+                }
+                else
+                {
+                  matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
+                }
+              }
+            }
+            else if (Config::get().entropy.entropy_start_frame_num == i)
+            {
+              if (Config::get().entropy.entropy_use_internal)
+              {
+                matrix_aligned = transform_3n_nf_internal_entropy(matr_structure);
+              }
+              else
+              {
+                matrix_aligned = transform_3n_nf(matr_structure);
+                if (Config::get().entropy.entropy_trunc_atoms_bool)
+                {
+                  matrix_aligned = transform_3n_nf_trunc_entropy(matr_structure);
+                }
+              }
+            }
+            //Building one huge [coordinates] x [frames] matrix by appending for every frame
+
+          }
+        }
+        matrix_aligned.transpose();
+        //NECESSARY because of implementation details, don't worry about it for now; rows are DOFs, columns are frames FROM HERE ON!
+
+        if (!Config::get().entropy.entropy_use_internal)
+        {
+          massweight(matrix_aligned, coords_ref, true);
+        }
+        //Mass-weightening cartesian coordinates
+
+        //std::cout << matrix_aligned;
+        for (unsigned int u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
+        {
+          Matrix_Class& workobj = matrix_aligned;
+          int m = Config::get().entropy.entropy_method[u];
+          if (m == 1 || m == 0)
+          {
+            double entropy_value = karplus_wrapper(workobj);
+          }
+          if (m == 2)
+          {
+            double entropy_value = knapp_m_wrapper(workobj);
+          }
+          if (m == 3 || m == 0)
+          {
+            double entropy_value = knapp_wrapper(workobj);
+          }
+          if (m == 4 || m == 0)
+          {
+            double entropy_value = hnizdo_wrapper(workobj);
+          }
+          if (m == 5 || m == 0)
+          {
+            double entropy_value = hnizdo_m_wrapper(workobj);
+          }
+          if (m == 6 || m == 0)
+          {
+            double entropy_value = schlitter_wrapper(workobj);
+          }
+        }
+        //Perform desired calculations
+
+        std::cout << "Everything is done. Have a nice day." << std::endl;
+        break;
+      }
 
     default:
       {

@@ -42,23 +42,23 @@ namespace config
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
   // Tasks
-  static std::size_t const NUM_TASKS = 26;
+  static std::size_t const NUM_TASKS = 29;
   static std::string const task_strings[NUM_TASKS] = 
     {"SP", "GRAD", "TS", "LOCOPT", "RMSD", 
     "MC", "DIMER", "MD", "NEB", "CENTER", 
     "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL", 
-    "DEVTEST", "ALIGN", "UMBRELLA", "FEP", "PATHOPT", 
+    "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT", 
     "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-    "GRID"};
+    "GRID", "ALIGN", "ENTROPY", "PCA" };
   struct tasks 
   { 
     enum T { ILLEGAL=-1, 
     SP, GRAD, TS, LOCOPT, RMSD,
     MC, DIMER, MD, NEB, CENTER, 
     STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
-    DEVTEST, ALIGN, UMBRELLA, FEP, PATHOPT,
+    DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
     PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE, 
-    GRID };
+    GRID, ALIGN, ENTROPY, PCA };
   };  
 
   // Input Types
@@ -298,7 +298,7 @@ namespace config
   std::ostream & operator << (std::ostream &, coords::eqval const &);
   std::ostream & operator << (std::ostream &, coords const &);
 
-  namespace align_conf
+  namespace adjust_conf
   {
     struct dihedral
     {
@@ -307,9 +307,9 @@ namespace config
     };
   }
 
-  struct align
+  struct adjust
   {
-    std::vector<align_conf::dihedral> dihedrals;
+    std::vector<adjust_conf::dihedral> dihedrals;
   };
 
   /*
@@ -729,21 +729,85 @@ namespace config
   struct neb
 	{
 		std::string START_STRUCTURE,FINAL_STRUCTURE,OPTMODE;
-    double SPRINGCONSTANT, TEMPERATURE, MCSTEPSIZE, BIASCONSTANT,
-      VARIATION, NEB_RMSD, PO_ENERGY_RANGE, BOND_PARAM;
-    std::size_t IMAGES, MCITERATION, GLOBALITERATION, CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
-		bool NEB_CONN,CONSTRAINT_GLOBAL;
+		double SPRINGCONSTANT, TEMPERATURE, MCSTEPSIZE, BIASCONSTANT,
+		VARIATION, NEB_RMSD, PO_ENERGY_RANGE, BOND_PARAM;
+        std::size_t IMAGES, MCITERATION, GLOBALITERATION, CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS, NEB_INT_IT, LBFGS_IT;;
+		bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, MIXED_MOVE;
 		neb():
-      OPTMODE("PROJECTED"), 
-      SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5), 
-      BIASCONSTANT(0.1), VARIATION(3.0), NEB_RMSD(0.001), 
-      PO_ENERGY_RANGE(20.0), BOND_PARAM(2.2),
-      IMAGES(12), MCITERATION(100),
-      GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1), 
-      NEB_CONN(false), CONSTRAINT_GLOBAL(false)
+        OPTMODE("PROJECTED"), 
+        SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5), 
+        BIASCONSTANT(0.1), VARIATION(3.0), NEB_RMSD(0.001), 
+        PO_ENERGY_RANGE(20.0), BOND_PARAM(2.2),
+        IMAGES(12), MCITERATION(100),
+        GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),MIXED_MOVE(false),
+        NEB_CONN(false), CONSTRAINT_GLOBAL(false),TAU(true), NEB_INT_IT(1000), LBFGS_IT(4)
 		{}
 	};
 
+  /**
+   * ALIGN // KABSCH ALIGNMENT OF STRUCTURES
+   * THIS TASK REMOVES TRANSLATION AND ROTATION
+   */
+  struct align
+  {
+    unsigned int dist_unit;
+    unsigned int reference_frame_num;
+    bool traj_align_bool;
+    bool traj_print_bool;
+    double holm_sand_r0;
+    //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
+    align(void) : dist_unit(0), traj_align_bool(true), traj_print_bool(true), reference_frame_num(0), holm_sand_r0(20)//, cdist_cutoff(5) 
+    {}
+  };
+
+  /**
+  * PCA // Principal Component Analysis
+  * THIS TASK PERFORMS PCA ON A TRAJECTORY
+  */
+  struct PCA
+  {
+    bool pca_alignment;
+    unsigned int pca_ref_frame_num;
+    unsigned int pca_start_frame_num;
+    bool pca_print_modes;
+    bool remove_dof;
+    bool pca_use_internal;
+    bool trunc_atoms_bool;
+    double trunc_var;
+    unsigned int pca_offset;
+    unsigned int trunc_dim;
+    std::vector<unsigned int> trunc_atoms_num;
+    std::vector<unsigned int> pca_internal_bnd;
+    std::vector<unsigned int> pca_internal_ang;
+    std::vector<unsigned int> pca_internal_dih;
+    PCA(void) : pca_alignment(true), pca_ref_frame_num(0), pca_start_frame_num(0), pca_print_modes(true),
+      remove_dof(true), pca_use_internal(false), trunc_atoms_bool(false), trunc_var(1), trunc_dim(0), pca_offset(1)
+    {}
+  };
+  /**
+  * ENTROPY // Entropy Calculations
+  * THIS TASK PERFORMS CONFIGURATIONAL AND CONFORMATIONAL ENTROPY CACLULATIONS
+  */
+  struct entropy
+  {
+    bool entropy_alignment;
+    double entropy_temp;
+    unsigned int entropy_ref_frame_num;
+    unsigned int entropy_start_frame_num;
+    std::vector<unsigned int> entropy_method;
+    unsigned int entropy_method_knn_k;
+    bool entropy_remove_dof;
+    bool entropy_use_internal;
+    bool entropy_trunc_atoms_bool;
+    unsigned int entropy_offset;
+    std::vector<unsigned int> entropy_internal_bnd;
+    std::vector<unsigned int> entropy_internal_ang;
+    std::vector<unsigned int> entropy_internal_dih;
+    std::vector<unsigned int> entropy_trunc_atoms_num;
+    entropy(void) : entropy_method(1,6u), entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method_knn_k(4),
+      entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1)
+    {}
+  };
 
   /*
   
@@ -814,7 +878,10 @@ public:
   config::dimer                 dimer;
   config::neb					          neb;
   config::generalized_born      gbsa;
-  config::align                 alignment;
+  config::adjust                adjustment;
+  config::align			            alignment;
+  config::PCA					          PCA;
+  config::entropy				        entropy;
 
   void        check        (void);
   

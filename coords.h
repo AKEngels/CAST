@@ -890,6 +890,11 @@ namespace coords
       }
       m_stereo.update(xyz());
     }
+    // add gradients form spherical boundaries
+    void add_sp_gradients(size_type const index, Cartesian_Point const &g)
+    {
+      m_representation.gradient.cartesian[index] += g;
+    }
     void move_atom_to(size_type const index, Cartesian_Point const &p, bool const force_move = false)
     {
       if (!atoms(index).fixed() || force_move)

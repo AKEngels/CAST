@@ -1526,12 +1526,13 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
 }
 
 void coords::bias::Potentials::umbrelladist(Representation_3D const &positions, 
-  Gradients_3D & gradients, std::vector<float_type> &) const
+  Gradients_3D & gradients, std::vector<double> &uout) const
 {
   for (auto const &dist : m_udist)
   {
     coords::Cartesian_Point bv(positions[dist.index[0]] - positions[dist.index[1]]);
     float_type md = geometric_length(bv);
+    uout.push_back(md);
     float_type diff(md - dist.dist);
     //apply half harmonic potential
     float_type dE = dist.force * diff / md;

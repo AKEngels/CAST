@@ -123,6 +123,118 @@ static T enum_from_iss (std::istringstream & in)
   return static_cast<T>(x);
 }
 
+/**
+ * This creates an std::vector from range based input (istringstream&)
+ * EXAMPLE: 3-6 -> 3,4,5,6 (sorted)
+ */
+template<typename T>
+std::vector<T> configuration_range(std::istringstream& cv)
+{
+  bool none_check = false;
+  std::vector<T> temp;
+  std::vector<std::string> holder;
+  while (cv)
+  {
+    std::string temp;
+    cv >> temp;
+    holder.push_back(temp);
+  }
+  holder.pop_back();
+  for (int i = 0; i < holder.size(); i++)
+  {
+    if (holder[i] == "none")
+    {
+      none_check = true;
+      goto NONE_CHECK;
+      //break;
+    }
+    bool i_o_done = false;
+    while (!i_o_done)
+    {
+      for (int j = 0; j < holder[i].size(); j++)
+      {
+        if (holder[i][j] == *"-")
+        {
+          int last_comma = -1, next_comma;
+          for (int l = j; l >= 0; l--)
+          {
+            if (holder[i][l] == *",") { last_comma = l; break; }
+          }
+          for (int l = j; l < holder[i].size(); l++)
+          {
+            if (holder[i][l] == *",") { next_comma = l; break; }
+            else if (l == (holder[i].size() - 1))
+            {
+              next_comma = (int) holder[i].size();
+              break;
+            }
+          }
+          std::string temp_str;
+          int k = stoi(holder[i].substr(last_comma + 1, j - last_comma - 1)) + 1;
+          while (k < stoi(holder[i].substr(j + 1, next_comma - j)))
+          {
+            temp_str.push_back(*",");
+            temp_str.append(std::to_string(k));
+            k++;
+          }
+          temp_str.push_back(*",");
+          holder[i].erase(j, 1);
+          holder[i].insert(j, temp_str);
+          i_o_done = false;
+          break;
+        }
+        if (j == holder[i].size() - 1) { i_o_done = true; }
+      }
+    }
+  }
+  for (int i = 0; i < holder.size(); i++)
+  {
+    if (holder[i] == "none") {
+      none_check = true;
+      goto NONE_CHECK;
+      break;
+    }
+    int last_comma = -1;
+    for (int j = 0; j < holder[i].size(); j++)
+    {
+      if (holder[i][j] == *",")
+      {
+        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma - 1))));
+        last_comma = j;
+      }
+      else if (j == holder[i].size() - 1)
+      {
+        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma))));
+      }
+    }
+  }
+  //Sorting algorithm
+  int size = (int) temp.size();
+  int left = 0;
+  while (left < size)
+  {
+    int min = left;
+    for (int i = (left + 1); i < size; i++)
+    {
+      if (temp[i] < temp[min])
+      {
+        min = i;
+      }
+    }
+
+    T holder2 = temp[min];
+    temp[min] = temp[left];
+    temp[left] = holder2;
+    left += 1;
+  }
+  if (none_check)
+  {
+    NONE_CHECK:
+    std::vector<T> empty;
+    temp = empty;
+  }
+  return temp;
+}
 
 /*
 
@@ -345,7 +457,7 @@ void config::parse_option (std::string const option, std::string const value_str
   else if (option == "verbosity") 
   { 
     cv >> Config::set().general.verbosity;
-    scon::cfg::verbosity = Config::set().general.verbosity;
+    scon::cfg::verbosity = (unsigned int) Config::set().general.verbosity;
   }
 
   //! Task to be performed by CAST
@@ -481,12 +593,22 @@ void config::parse_option (std::string const option, std::string const value_str
 			cv >> Config::set().neb.CONNECT_NEB_NUMBER;
 		else if (option.substr(11, 9) == "-NEB_RMSD")
 			cv >> Config::set().neb.NEB_RMSD;
+		else if (option.substr(11, 8) == "-MIXMOVE")
+			cv >> Config::set().neb.MIXED_MOVE;
 		else if (option.substr(11, 18) == "-CONSTRAINT_GLOBAL")
 			cv >> Config::set().neb.CONSTRAINT_GLOBAL;
 		else if (option.substr(11, 28) == "-CONSTRAINT_NUMBER_DIHEDRALS")
 			cv >> Config::set().neb.NUMBER_OF_DIHEDRALS;
 		else if (option.substr(11, 11) == "-BOND_PARAM")
 			cv >> Config::set().neb.BOND_PARAM;
+		else if (option.substr(11, 4) == "-TAU")
+			cv >> Config::set().neb.TAU;
+		else if (option.substr(11, 11) == "-NEB_INT_IT")
+			cv >> Config::set().neb.NEB_INT_IT;
+		else if (option.substr(11, 13) == "-NEB_LBFGS_IT")
+			cv >> Config::set().neb.LBFGS_IT;
+		else if (option.substr(11, 9) == "-INT_PATH")
+			cv >> Config::set().neb.INT_PATH;
 	}
 
   //! convergence gradient for bfgs
@@ -939,6 +1061,8 @@ void config::parse_option (std::string const option, std::string const value_str
       cv >> Config::set().startopt.ringsearch.generations;
     }
   }
+
+  // TABU SEARCH
   
   else if (option.substr(0,2) == "TS") 
   { 
@@ -960,6 +1084,8 @@ void config::parse_option (std::string const option, std::string const value_str
     }
   }
 
+  //MONTE CARLO
+
   else if (option.substr(0,2) == "MC") 
   { 
     if (option.substr(2,9) == "step_size") 
@@ -979,10 +1105,10 @@ void config::parse_option (std::string const option, std::string const value_str
       Config::set().optimization.global.montecarlo.move 
         = enum_from_iss<config::optimization_conf::mc::move_types::T>(cv);
     }
-	else if (option.substr(2,5) == "scale")
-	{
-		cv >> Config::set().optimization.global.temp_scale;
-	}
+	  else if (option.substr(2,5) == "scale")
+	  {
+		  cv >> Config::set().optimization.global.temp_scale;
+	  }
   }
 
   else if (option.substr(0,2) == "US") 
@@ -1057,16 +1183,16 @@ void config::parse_option (std::string const option, std::string const value_str
     }
   }
 
-  else if (option.substr(0, 5) == "ALIGN")
+  else if (option.substr(0, 5) == "ADJUST")
   {
     if (option.substr(5, 3) == "dih")
     {
-      config::align_conf::dihedral ald;
+      config::adjust_conf::dihedral ald;
       if (cv >> ald.a && cv >> ald.b 
         && cv >> ald.c && cv >> ald.d && cv >> ald.value)
       {
         --ald.a; --ald.b; --ald.c; --ald.d;
-        Config::set().alignment.dihedrals.push_back(ald);
+        Config::set().adjustment.dihedrals.push_back(ald);
       }
     }
   }
@@ -1123,55 +1249,324 @@ void config::parse_option (std::string const option, std::string const value_str
 
   else if (option.substr(0, 4) == "BIAS")
   {
-    if (option.substr(4, 9) == "spherical")
-    {
-      config::biases::spherical buffer;
-      if (cv >> buffer.radius 
-        && cv >> buffer.force 
-        && cv >> buffer.exponent)
-      {
-        Config::set().coords.bias.spherical.push_back(buffer);
-      }
-    }
-    else if (option.substr(4, 5) == "cubic")
-    {
-      config::biases::cubic buffer;
-      if (cv >> buffer.dim
-        && cv >> buffer.force
-        && cv >> buffer.exponent)
-      {
-        Config::set().coords.bias.cubic.push_back(buffer);
-      }
-    }
-    else if (option.substr(4, 3) == "dih")
-    {
-      config::biases::dihedral biasBuffer;
-      if (cv >> biasBuffer.a && cv >> biasBuffer.b
-        && cv >> biasBuffer.c && cv >> biasBuffer.d
-        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
-      {
-        --biasBuffer.a;
-        --biasBuffer.b;
-        --biasBuffer.c;
-        --biasBuffer.d;
-        biasBuffer.forward = bool_from_iss(cv);
-        Config::set().coords.bias.dihedral.push_back(biasBuffer);
-      }
-    }
-    else if (option.substr(4, 4) == "dist")
-    {
-      config::biases::distance biasBuffer;
-      if (cv >> biasBuffer.a && cv >> biasBuffer.b
-        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
-      {
-        --biasBuffer.a;
-        --biasBuffer.b;
-        Config::set().coords.bias.distance.push_back(biasBuffer);
-      }
-    }
+	  if (option.substr(4, 9) == "spherical")
+	  {
+
+		  config::biases::spherical buffer;
+		  if (cv >> buffer.radius
+			  && cv >> buffer.force
+			  && cv >> buffer.exponent)
+		  {
+
+			  Config::set().coords.bias.spherical.push_back(buffer);
+		  }
+	  }
+
+
+	  else if (option.substr(4, 5) == "cubic")
+	  {
+
+		  config::biases::cubic buffer;
+		  if (cv >> buffer.dim
+			  && cv >> buffer.force
+			  && cv >> buffer.exponent)
+		  {
+
+			  Config::set().coords.bias.cubic.push_back(buffer);
+		  }
+	  }
+
+
+	  else if (option.substr(4, 3) == "dih")
+	  {
+
+		  config::biases::dihedral biasBuffer;
+		  if (cv >> biasBuffer.a && cv >> biasBuffer.b
+			  && cv >> biasBuffer.c && cv >> biasBuffer.d
+			  && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+		  {
+
+			  --biasBuffer.a;
+			  --biasBuffer.b;
+			  --biasBuffer.c;
+			  --biasBuffer.d;
+			  biasBuffer.forward = bool_from_iss(cv);
+			  Config::set().coords.bias.dihedral.push_back(biasBuffer);
+		  }
+	  }
+
+
+	  else if (option.substr(4, 4) == "dist")
+	  {
+
+		  config::biases::distance biasBuffer;
+		  if (cv >> biasBuffer.a && cv >> biasBuffer.b
+			  && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+		  {
+
+			  --biasBuffer.a;
+			  --biasBuffer.b;
+			  Config::set().coords.bias.distance.push_back(biasBuffer);
+		  }
+	  }
   }
 
-}
+
+
+    // D U S T I N S T U F F 
+
+    //Trajectory Alignment and Analasys options
+    else if (option == "dist_unit")
+    {
+      cv >> Config::set().alignment.dist_unit;
+    }
+    else if (option == "holm_sand_r0")
+    {
+      cv >> Config::set().alignment.holm_sand_r0;
+    }
+    //else if (option == "cdist_cutoff")
+    //{
+      //cv >> Config::set().alignment.cdist_cutoff;
+    //}
+    else if (option == "ref_frame_num")
+    {
+      cv >> Config::set().alignment.reference_frame_num;
+    }
+    else if (option == "traj_align_bool")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "t" || holder == "T" || holder == "1")
+      {
+        Config::set().alignment.traj_align_bool = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "f" || holder == "F" || holder == "0")
+      {
+        Config::set().alignment.traj_align_bool = false;
+      }
+    }
+    else if (option == "traj_print_bool")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "t" || holder == "T" || holder == "1")
+      {
+        Config::set().alignment.traj_print_bool = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "f" || holder == "F" || holder == "0")
+      {
+        Config::set().alignment.traj_print_bool = false;
+      }
+    }
+    // PCA Options
+    else if (option == "pca_alignment")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.pca_alignment = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.pca_alignment = false;
+      }
+    }
+    else if (option == "pca_print_modes")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.pca_print_modes = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.pca_print_modes = false;
+      }
+    }
+    else if (option == "pca_use_internal")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.pca_use_internal = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.pca_use_internal = false;
+      }
+    }
+
+    else if (option == "pca_trunc_atoms_bool ")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.trunc_atoms_bool = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.trunc_atoms_bool = false;
+      }
+    }
+    else if (option == "pca_trunc_atoms_num" && Config::get().PCA.trunc_atoms_bool)
+    {
+      Config::set().PCA.trunc_atoms_num = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "pca_start_frame_num")
+    {
+      cv >> Config::set().PCA.pca_start_frame_num;
+    }
+    else if (option == "pca_offset")
+    {
+      cv >> Config::set().PCA.pca_offset;
+    }
+    else if (option == "pca_ref_frame_num")
+    {
+      cv >> Config::set().PCA.pca_ref_frame_num;
+    }
+    else if (option == "pca_remove_dof")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.remove_dof = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.remove_dof = false;
+      }
+    }
+    // entropy Options
+    else if (option == "entropy_alignment")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().entropy.entropy_alignment = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().entropy.entropy_alignment = false;
+      }
+    }
+    else if (option == "entropy_use_internal")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().entropy.entropy_use_internal = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().entropy.entropy_use_internal = false;
+      }
+    }
+    else if (option == "entropy_trunc_atoms_bool")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().entropy.entropy_trunc_atoms_bool = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().entropy.entropy_trunc_atoms_bool = false;
+      }
+    }
+    else if (option == "entropy_internal_bnd" && Config::get().entropy.entropy_use_internal)
+    {
+      Config::set().entropy.entropy_internal_bnd = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "entropy_internal_ang" && Config::get().entropy.entropy_use_internal)
+    {
+      Config::set().entropy.entropy_internal_ang = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
+    {
+      Config::set().entropy.entropy_internal_dih = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "pca_internal_bnd" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_bnd = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "pca_internal_ang" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_ang = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_dih = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
+    {
+      Config::set().entropy.entropy_trunc_atoms_num = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "pca_trunc_dim")
+    {
+      cv >> Config::set().PCA.trunc_dim;
+    }
+    else if (option == "pca_trunc_var")
+    {
+      cv >> Config::set().PCA.trunc_var;
+    }
+    else if (option == "entropy_method")
+    {
+      Config::set().entropy.entropy_method = configuration_range<unsigned int>(cv);
+    }
+    else if (option == "entropy_method_knn_k")
+    {
+      cv >> Config::set().entropy.entropy_method_knn_k;
+    }
+    else if (option == "entropy_offset")
+    {
+      cv >> Config::set().entropy.entropy_offset;
+    }
+    else if (option == "entropy_start_frame_num")
+    {
+      cv >> Config::set().entropy.entropy_start_frame_num;
+    }
+    else if (option == "entropy_ref_frame_num")
+    {
+      cv >> Config::set().entropy.entropy_ref_frame_num;
+    }
+    else if (option == "entropy_temp")
+    {
+      cv >> Config::set().entropy.entropy_temp;
+    }
+    else if (option == "entropy_remove_dof")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().entropy.entropy_remove_dof = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().entropy.entropy_remove_dof = false;
+      }
+    }
+    // NOT IMPLEMENTED AS OF NOW!
+    // I/O Atoms index options
+    //else if (option == "atomexclude")
+    //{
+      //Config::set().general.bool_atomsexclude = true;
+      //Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
+    //}
+    //
+
+  }
+
+
+
 
 
 /*
