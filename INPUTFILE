@@ -1,0 +1,671 @@
+####################################
+#                                  #
+#                                  #
+#         CAST CONFIGFILE          #
+#                                  #
+#                                  #
+#################################### 
+
+# Verbosity 
+# Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
+
+verbosity              15
+
+# Cores
+# Number of OpenMP Threads (if compiled with openmp support)
+
+cores                  4
+
+
+####################################
+#                                  #
+#                                  #
+#        I/O: FILES & TYPES        #
+#                                  #
+#                                  #
+#################################### 
+
+# Input file name
+
+name                   cleth_opt.xyz
+
+# Output file name
+
+outname                CLETH_MD
+
+# Input file type
+
+inputtype              TINKER
+
+
+
+
+#################################### 
+#                                  #
+#          PROGRAM TASK            #
+#                                  #
+####################################
+
+# SP                   Single point energy calculation
+# GRAD                 Single point energy calculation
+# LOCOPT               Local optimization using Lib-LBFGS
+# MD                   Molecular dynamics simulation
+# SOLVADD              Solvation using Solvadd
+# MC                   Monte Carlo
+# MCM                  Monte Carlo with minimization
+# CENTER               Center of mass/geometry
+# TS                   Tabu Search (CAST: GOTS)
+# WTINKER              Print Tinker structure (e.g. if started from PDB) (CAST: WRITE)
+# RMSD                 Root mean square deviation
+# DIMER2               Dimer method using cartesian space
+# DIMER3               Dimer method using torsional space
+# NEB                  Nudged elastic band calculation
+# INTERACTION          Dividing the Molecule into two parts and calculate the interaction energy
+# RDF                  Radial distribution of water around specified atom groups
+# INTERNAL             Create Z-Matrix
+# UMBRELLA             Umbrella Sampling
+# PROFILE              Repeated Gradient Calculation of first input structure
+# FEP                  Alchemical transformations using FEP
+
+task                   MD
+
+####################################
+#                                  #
+#        Implicit Solvation        #
+#                                  #
+####################################
+
+# solvmethod : VAC         (default) Vacuum
+#              ONION       Numerical Still method
+#              STILL       Analytical Still method
+#              HCT         HCT method
+#              OBC         OBC method
+#              GRYCUK      Grycuk's method
+#              ACE         ACE method
+# surface    : TINKER      (default) TINKER's accessible surface area calculation
+#              SASASTILL   Still's surface area calculation
+#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
+#
+# ONION should only be combined with GAUSS
+
+solvmethod             VAC
+surface                TINKER
+
+#################################### 
+#                                  #
+#        PROFILE RUNS              #
+#                                  #
+####################################
+#
+# Number of repeated gradient calculations for PROFILE task
+
+profileruns            10
+
+
+####################################
+#                                  #
+#        ENERGY INTERFACES         #
+#                                  #
+####################################
+
+# AMBER                AMBER force field
+# (AMOEBA)               AMOEBA03 force field
+# CHARMM22             CHARMM22 force field
+# OPLSAA               OPLS all atoms force field
+# (TERACHEM)             Terachem MPI Interface
+# (TINKER)               Tinker syscall interface
+# MOPAC                MOAPC2012 syscall Interface
+
+interface              OPLSAA
+
+
+# PARAMETER FILE FOR FF
+# paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
+
+paramfile              oplsaa_mod.prm
+
+
+# Keywords for MOPAC Call
+
+MOPACkey               PM7
+
+
+
+
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
+
+cutoff                 10000.0
+
+
+
+
+####################################
+#                                  #
+#         libLBFGS OPTIONS         #
+#                                  #
+####################################
+
+BFGSgrad               0.0001
+BFGSmaxstep            10000
+
+
+####################################
+#                                  #
+#        SIMULATION OPTIONS        #
+#          (MC, TS, MD)            #
+#                                  #
+####################################
+
+# Simulation Temperature 
+# for TS and MC important for Metropolis Criterion
+# overwritten for MD by MDheatramp
+
+Temperature            298.15
+
+# Save all (minimized) structures 
+# which are within "Erange" kcal/mol from the final global minimum
+
+Erange                 20.0
+
+# Number of iterations in global optimization routine 
+# or number of MD simulation steps
+# overwritten for MD by MDsteps
+
+Iterations             200
+
+# Limit Fallback
+
+Fallbacklimit          200
+
+# use the current local minimum energy for metropolis criterion?
+
+GOmetrolocal           0
+
+
+
+####################################
+#                                  #
+#            MCM OPTIONS           #
+#                                  #
+####################################
+
+# Step size in cartesian space 
+
+MCstep_size            1.4
+
+# Use minimization
+
+MCminimization         1
+
+# Use dihedral (1), cartesian (2) or biased dihedral (0) randomization
+
+MCmovetype             1
+
+# Maximum dihedral deviation
+
+MCmax_dihedral         160.0
+
+
+
+
+####################################
+#                                  #
+#            TS OPTIONS            #
+#                                  #
+###################################
+
+# Do diversification before first TS steps?
+
+TSmc_first             1
+
+# How many TS steps need to fail in finding new minimum before diversification?
+
+TSdivers_threshold      10
+
+# How many diversification steps are applied?
+
+TSdivers_iter          30
+
+
+
+
+####################################
+#                                  #
+#       Periodic Boundaries        #
+#                                  #
+####################################
+
+#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
+
+Periodics              0 40.0 40.0 40.0
+
+
+
+
+####################################
+#                                  #
+#         STARTOPT OPTIONS         #
+#                                  #
+####################################
+
+# startopt type
+# 0                  Ringsearch
+# 1                  Fold
+# 2                  Solvadd [default]
+# 3                  Ringsearch + Solvadd
+# 4                  Fold + Solvadd
+
+SOtype                 0
+
+# startopt structure count
+# number of structures generated by startopt routines
+
+SOstructures           1
+
+
+
+
+####################################
+#                                  #
+#           FOLD OPTIONS           #
+#                                  #
+####################################
+
+# filename
+
+FOLDfile               fold_sequence_file.txt
+
+# Fold helices
+#
+# 0    Alpha [default]
+# 1    3-10 Helix
+
+FOLDhelix              0
+
+# Fold sheets
+#
+# 0                   Beta-parallel [default]
+# 1                   Beta-anti-parallel
+
+FOLDsheet              0
+
+# Fold turns
+#
+# 0                   beta-I [default]
+# 1                   beta-I'
+# 2                   beta-II
+# 3                   beta-II'
+# 4                   beta-VIa
+# 5                   beta-VIb
+# 6                   beta-VIII
+
+FOLDturn               0
+
+
+
+
+####################################
+#                                  #
+#        RINGSEARCH OPTIONS        #
+#                                  #
+####################################
+
+# Number of different structures obtained via ringsearch
+
+RSpool                 25
+
+# Number of different structures for genetic population
+
+RSpopulation           20
+
+# Number of generations the evolution will propagated
+
+RSgenerations          15
+
+# Chance to close a selected ring
+
+RSchance_close         0.75
+
+# chance to apply mutation to an individual
+
+RSchance_mutation      0.40
+
+# decay of weight for an individual with respect to the energetic distance to the individual which is lowest in energy
+
+#RSweight_decay        0.035
+
+RSweight_decay         0.05
+
+# Optimize structures with closed rings without strain afterwards
+
+RSopt_final_closed     1
+
+
+
+
+####################################
+#                                  #
+#          SOLVADD OPTIONS         #
+#                                  #
+####################################
+
+# Hydrogen bond length parameter [default: 1.8]
+
+SAhb                   1.8
+
+# number of desired water molecules [default: 0(=no limit)]
+
+SAlimit                1500
+
+# water boundary type
+#
+# 0    layer [default]
+# 1    sphere
+# 2    box
+
+SAboundary             0
+
+# water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
+
+SAradius               25.0
+
+# force field parameter types of oxygen and hydrogen
+#
+# 53 54   OPLS-AA
+# 101 88   CHARMM
+# 2001 2002  AMBER
+
+SAtypes                53 54
+
+# Intermediate optimizations
+#
+# 0    none
+# 1    each "shell"
+# 2    all waters
+# 3    1+2
+
+SAopt                  0
+
+# fix initial structure
+
+SAfixinit              1
+
+
+
+
+####################################
+#                                  #
+#            MD OPTIONS            #
+#                                  #
+####################################
+
+# Number of Steps
+
+MDsteps                10000
+ 
+# Integrator
+#
+# 0                    Velocity-Verlet
+# 1                    Beeman
+
+MDintegrator           0
+
+# Velocity Scaling
+
+MDveloscale            1
+
+# Thermostat (Nose-Hoover)
+
+MDthermostat           1
+
+# Timestep in picoseconds
+
+MDtimestep             0.001
+
+# Activate Tracking (Log and Snapshots)
+
+MDtrack                1
+
+#
+#   Snapshots
+#
+
+# Number
+MDsnap                 1000
+# Buffer size
+MDsnap_buffer          100
+# Optimize snapshots
+MDsnap_opt             0
+
+# Heating process control
+#
+# MDheat               <step> <temperature at that step>
+# MDheat               2000   293.15
+
+MDheat                 0    0.15
+MDheat                 5000 273.15
+
+#Pressure Control via Berendsen barostat
+#
+MDpress                0
+MDpcompress            0.000046
+MDpdelay               2.0
+MDptarget              1.0
+ 
+# Spehrical boundaries' options
+# 
+# MDspehrical          <Active 0/1> <Radius 1> <Radius 2> <Force 1> <Force 2> <Exp 1> <Exp 2>
+
+#MDspherical            0 34.0 34.1 10.0 10.0 2.0 4.0
+
+# H bond constraints
+#
+# 0                    No Constraints
+# 1                    All Hydrogend Bonds
+# 2                    Specific Hydrogen Bonds
+ 
+MDrattle               0
+
+# Rattle bond specification
+#
+# MDrattlebond         <H index>
+ 
+#MDrattlebond           7 12
+
+# Iteration offset for restart files
+
+MDrestart_offset       5000
+
+# Resume simulation from restart file?
+
+MDresume               0
+
+
+
+
+####################################
+#                                  #
+#            FEP OPTIONS           #
+#                                  #
+####################################
+
+FEPlambda      1.0
+FEPdlambda     0.05
+FEPvdwcouple   1.0
+FEPeleccouple  0.5
+FEPvshift      0.1
+FEPcshift      2.0
+FEPequil       100
+FEPsteps       500
+FEPfreq        1000
+FEPbackward    0
+
+#FEPcoupling  <0> Inter subsystem interactions are scaled <1> inter subsystem interactions are not scaled
+
+FEPcouple   0
+
+
+
+
+####################################
+#                                  #
+#        INTERACTION OPTIONS       #
+#                                  #
+####################################
+
+# The interaction of substructures that are not bound to each other can be calculated
+# IAlimits <Start Index Substructure> <End Index Substructure>
+
+#IAlimits               1 122
+
+
+
+
+####################################
+#                                  #
+#            RDF OPTIONS           #
+#                                  #
+####################################
+
+# Distribution width
+
+RDFwidth               0.5
+
+
+
+
+####################################
+#                                  #
+#            PATH OPTIONS          #
+#                                  #
+####################################
+#
+# File containing the desired path end
+
+PRendfile              PATHREL_END.xyz
+
+# Maximum Energy distance within the path
+
+PRdeltae               0.5
+
+# Maximum structure distance with the path
+
+PRdeltax               0.5
+
+
+
+
+####################################
+#                                  #
+#           DIMER OPTIONS          #
+#                                  #
+####################################
+#
+# Distance between dimer start end endpoint
+
+DIMERdistance          0.001
+
+# Translation type 
+# 0                   simple translation along dimer direction using specified stepsize
+# 1                   conjugate gradient translation
+
+DIMERtrans             1
+
+# Stepsize for dimer translation
+
+DIMERstepsize          3.0
+
+# Convergence criterion for the dimer rotation
+
+DIMERrotconvergence    5.0
+
+# Maximum number of rotation and translation iterations
+
+DIMERmaxit             50 250
+
+
+
+####################################
+#                                  #
+#         UMBRELLA SAMPLING        #
+#                                  #
+####################################
+
+
+# Number of equilibration steps
+USequil             1000
+
+# Offset for taking snapshots
+USsnap                 2
+
+#Torsion restraint (old)
+#UStorsion            1 5 7 9 0.05 0.0
+
+
+####################################
+#                                  #
+#        DIHEDRAL RESTRAINTS       #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential
+#DIHBIAS                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <fix atom 1>
+
+#DIHBIAS                 1 5 7 9 180.0 0.05 0
+#DIHBIAS                2 5 6 9 150.0 5.0  0
+#DIHBIAS                1 2 5 6 150.0 5.0  0
+#DIHBIAS                1 2 5 6 95.0  10.0 0
+
+
+####################################
+#                                  #
+#        DISTANCEL RESTRAINTS      #
+#                                  #
+####################################
+
+#DISTBIAS         <atom 1> <atom 2> <ideal distance> <force> 
+
+#DISTBIAS              1 9 3.0 3.0v
+
+
+
+####################################
+#                                  #
+#       INTERNAL INDEXATION        #
+#                                  #
+####################################
+
+#intdex                7
+#intdex                9
+#intdex                10
+#intdex                11 
+
+
+####################################
+#                                  #
+#          ATOM FIXATIONS          #
+#                                  #
+####################################
+
+# Exclude nonbondeds between two fixed atoms in internal force fields
+
+FIXexclude             0
+
+# Remove rotations of hydrogens from main torsional angles
+
+REMOVEHROT             0
+
+# Fix a range of atoms 
+#FIXrange               <start index> <end index>
+
+#FIXrange               1 411
+
+# Fixation of single atoms
+#ATOMFIX                <INDEX> 
+
+#ATOMFIX                1
+#ATOMFIX                3

@@ -1,0 +1,32 @@
+HEADERS=atomic.h configuration.h coords.h coords_io.h dimer.h energy.h energy_int_aco.h energy_int_mopac.h energy_int_terachem.h error.h evolution.h filemanipulation.h global.h histogram.h lbfgs.h linkedcell.h ls.h md.h mpi_cast.h neb.h optimization_global.h scon_chrono.h scon_iterator.h scon_matrix.h scon_utility.h scon_vect.h startopt.h startopt_solvadd.h tinker_parameters.h tinker_refine.h
+OBJS=configuration.o coords.o coords_io.o dimer.o energy.o energy_int_aco.o energy_int_aco_pot.o energy_int_mopac.o energy_int_terachem.o linkedcell.o main.o md.o mpi_cast.o neb.o optimization.o optimization_mc.o optimization_ts.o pathopt.o scon.o startopt_solvadd.o tinker_parameters.o tinker_refine.o
+
+CC=g++
+C=gcc
+WARN=-Wextra -Wall -pedantic
+DEB=
+MPI=
+CCSTD=-std=c++11
+CSTD=-std=c11
+OPT=-O2
+OMP=
+
+EXE=../../bin/C3.xgcc
+
+FLAGS=$(WARN) $(DEB) $(OMP) $(OPT) $(MPI)
+CCFLAGS=-c $(CCSTD) $(FLAGS)
+CFLAGS=-c $(CSTD) $(FLAGS)
+LFLAGS=$(STD)
+
+CAST: $(HEADERS) $(OBJS)
+	$(CC) $(LFLAGS) $(OBJS) -o $(EXE)
+
+%.o : %.cc
+	$(CC) $(CCFLAGS) $<
+
+%.o : %.c
+	$(C) $(CFLAGS) $<
+
+clean :
+	rm $(OBJS)
+

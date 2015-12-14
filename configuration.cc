@@ -1,0 +1,1601 @@
+#if defined _OPENMP
+  #include <omp.h>
+#endif
+
+#include <fstream>
+#include <stddef.h>
+#include <string>
+#include <stdexcept>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include "scon.h"
+#include "global.h"
+#include "error.h"
+#include "configuration.h"
+#include "filemanipulation.h"
+#include "scon_utility.h"
+
+
+Config * Config::m_instance = nullptr;
+
+
+template<typename T>
+static T clip(T value, T const LOW, T const HIGH)
+{
+  using std::min;
+  using std::max;
+  return min(HIGH, max(LOW, value));
+}
+
+
+template<typename ENUM_T, std::size_t ARR_SIZE> 
+static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
+{
+  for (std::size_t i = 0; i<ARR_SIZE; ++i)
+  {
+    if (S.find(arr[i]) != S.npos) return static_cast<ENUM_T>(i);
+  }
+  return static_cast<ENUM_T>(-1);
+}
+
+
+config::tasks::T Config::getTask (std::string const & S)
+{
+  for (std::size_t i=0; i<config::NUM_TASKS; ++i)
+  {
+    if (S.find(config::task_strings[i]) != S.npos) 
+      return static_cast<config::tasks::T>(i);
+  }
+  return config::tasks::ILLEGAL;
+}
+
+
+config::interface_types::T Config::getInterface(std::string const & S)
+{
+  for (std::size_t i=0; i<config::NUM_INTERFACES; ++i)
+  {
+    if (S.find(config::interface_strings[i]) != S.npos) 
+      return static_cast<config::interface_types::T>(i);
+  }
+  return config::interface_types::ILLEGAL;
+}
+
+config::output_types::T Config::getOutFormat(std::string const & S)
+{
+  for (std::size_t i = 0; i<config::NUM_INTERFACES; ++i)
+  {
+    if (S.find(config::output_strings[i]) != S.npos)
+      return static_cast<config::output_types::T>(i);
+  }
+  return config::output_types::ILLEGAL;
+}
+
+config::solvs::S Config::getSolv(std::string const & S)
+{
+	for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
+	{
+		if (S.find(config::solv_strings[i]) != S.npos)
+			return static_cast<config::solvs::S>(i);
+	}
+	return config::solvs::VAC;
+}
+config::surfs::SA Config::getSurf(std::string const & S)
+{
+	for (std::size_t i = 0; i < config::NUM_SURF; ++i)
+	{
+		if (S.find(config::surf_strings[i]) != S.npos)
+			return static_cast<config::surfs::SA>(i);
+	}
+	return config::surfs::TINKER;
+}
+
+static bool file_exists_readable (std::string filename)
+{
+  std::ofstream teststream(filename.c_str(), std::ios_base::in);
+  return (teststream.is_open() && teststream.good());
+}
+
+
+static bool bool_from_iss (std::istringstream & in)
+{
+  int x;
+  in >> x;
+  return (in && x>0);
+}
+
+
+template<typename T>
+static T from_iss (std::istringstream & in)
+{
+  T x;
+  in >> x;
+  return x;
+}
+
+
+template<typename T>
+static T enum_from_iss (std::istringstream & in)
+{
+  int x;
+  in >> x;
+  return static_cast<T>(x);
+}
+
+
+/*
+
+
+  ########     ###    ########   ######  ######## 
+  ##     ##   ## ##   ##     ## ##    ## ##       
+  ##     ##  ##   ##  ##     ## ##       ##       
+  ########  ##     ## ########   ######  ######   
+  ##        ######### ##   ##         ## ##       
+  ##        ##     ## ##    ##  ##    ## ##       
+  ##        ##     ## ##     ##  ######  ######## 
+
+
+   ######   #######  ##     ## ##       #### ##    ## ######## 
+  ##    ## ##     ## ###   ### ##        ##  ###   ## ##       
+  ##       ##     ## #### #### ##        ##  ####  ## ##       
+  ##       ##     ## ## ### ## ##        ##  ## ## ## ######   
+  ##       ##     ## ##     ## ##        ##  ##  #### ##       
+  ##    ## ##     ## ##     ## ##        ##  ##   ### ##       
+   ######   #######  ##     ## ######## #### ##    ## ######## 
+
+  
+*/
+
+
+std::string config::config_file_from_commandline (std::ptrdiff_t const N, char **V)
+{
+  if (N > 1)
+  {
+    for (std::ptrdiff_t i(1);i<N;++i)
+    {
+      std::string argument(V[i]);
+      if (argument.substr(0U,7U) == "-setup=")
+      {
+        std::string ffile(argument.substr(7U,argument.length()));
+        if (file_exists_readable(ffile)) return ffile;
+      }
+      else if (argument.substr(0U,2U) == "-s" && argument.length() == 2U && N > i+1)
+      {
+        std::string nextArgument(V[i+1]);
+        if (file_exists_readable(nextArgument)) return nextArgument;
+      }
+    }
+  }
+  if (file_exists_readable("CAST.txt")) return std::string("CAST.txt");
+  return std::string("INPUTFILE");
+}
+
+
+void config::parse_command_switches (std::ptrdiff_t const N, char **V)
+{
+  if (N > 1)
+  {
+    for (std::ptrdiff_t i(1U);i<N;++i)
+    {
+      // argument to string
+      std::string argument(V[i]);
+      std::string::size_type const equality_pos(argument.find("="));
+
+      if (argument.substr(0U,1U) == "-" && equality_pos != argument.npos && 
+        argument.length() > (equality_pos+1U))
+      {
+        std::string option(argument.substr(1U, (equality_pos-1U)));
+        std::string value(argument.substr((equality_pos+1U), (argument.length()-equality_pos-1U)));
+        if (value.substr(0U,1U) == "\"")
+        {
+          std::string::size_type const last_quotationmark(argument.find_last_of("\""));
+          if (last_quotationmark == 0U)
+          {
+            bool found_end(false);
+            while (!found_end && (i<(N-1)))
+            {
+              value.append(" ");
+              std::string this_arg(V[++i]);
+              std::string::size_type quot_pos(this_arg.find("\""));
+              if (quot_pos != this_arg.npos) 
+              {
+                value.append(this_arg.substr(0U, quot_pos));
+                found_end = true;
+              } else value.append(this_arg);
+            }
+          }
+          else value = value.substr(1U, last_quotationmark-1U);
+          
+        }
+        config::parse_option(option, value);
+      }
+
+      if (argument.substr(0,2) == "-n" && argument.length() == 2U && N > i+1)
+      {
+        config::parse_option("name", V[++i]);
+      }
+      else if (argument.substr(0,2) == "-p" && argument.length() == 2U && N > i+1)
+      {
+        config::parse_option("paramfile", V[++i]);
+      }
+      else if (argument.substr(0,2) == "-o" && argument.length() == 2U && N > i+1)
+      {
+        config::parse_option("outname", V[++i]);
+      }
+      else if (argument.substr(0,2) == "-t" && argument.length() == 2U && N > i+1)
+      {
+        config::parse_option("task", V[++i]);
+      }
+	    else if (argument.substr(0,6) == "-spack")
+	    {
+        Config::set().energy.spackman.on = true;
+	    }
+      else if (argument.substr(0,5) == "-type" && argument.length() == 5U && N > i+1)
+      {
+        config::parse_option("inputtype", V[++i]);
+      }
+    }
+  }
+
+  std::string::size_type f = Config::set().general.outputFilename.find("%i");
+  if (f != std::string::npos)
+  {
+    Config::set().general.outputFilename =
+      Config::set().general.outputFilename.substr(0, f) +
+      scon::StringFilePath(Config::get().general.inputFilename).base_no_extension() +
+      Config::set().general.outputFilename.substr(f + 2);
+  }
+}
+
+
+void config::startopt_conf::solvadd::set_opt (opt_types::T type) 
+{
+  opt = type;
+}
+
+
+/*
+
+
+########     ###    ########   ######  ######## 
+##     ##   ## ##   ##     ## ##    ## ##       
+##     ##  ##   ##  ##     ## ##       ##       
+########  ##     ## ########   ######  ######   
+##        ######### ##   ##         ## ##       
+##        ##     ## ##    ##  ##    ## ##       
+##        ##     ## ##     ##  ######  ######## 
+
+
+*/
+
+static bool outname_check(int x = 0)
+{ 
+  static int chk = 0;
+  chk += x;
+  return chk < 1;
+}
+
+
+void config::parse_option (std::string const option, std::string const value_string)
+{
+  std::istringstream cv(value_string);
+  if (option == "name")
+  {
+    Config::set().general.inputFilename = value_string;
+    if (outname_check(0))
+    {
+      std::string path = value_string;
+      if (path.front() == '"' && path.back() == '"')
+      {
+        path = path.substr(1u, path.length() - 2U);
+      }
+      scon::FilePath<std::string> in_file_path(path);
+      Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
+    }
+  }
+  else if (option == "outname")
+  {
+    outname_check(1);
+    if (value_string[0] == '+')
+    {
+      Config::set().general.outputFilename += value_string.substr(1);
+    }
+    else
+      Config::set().general.outputFilename = value_string;
+  }
+  
+  //! Parameterfile
+  else if (option == "paramfile") 
+    Config::set().general.paramFilename = value_string;
+
+  //! Input format
+  else if (option == "inputtype") 
+    Config::set().general.input = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
+
+  //! Cutoff radius
+  else if (option == "cutoff") 
+  { 
+    cv >> Config::set().energy.cutoff;
+    Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
+    if (Config::get().energy.periodic)
+    {
+      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
+      if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
+    }
+    Config::set().energy.switchdist = Config::set().energy.cutoff > 8.0 ? Config::set().energy.cutoff - 4.0 : 0.0;
+  }
+  else if (option == "PME")
+  {
+	  cv >> Config::set().energy.pme;
+  }
+  else if (option == "PMEspline")
+  {
+	  cv >> Config::set().energy.pmespline;
+  }
+  else if (option == "PMEthreshold")
+  {
+	  cv >> Config::set().energy.pmetresh;
+  }
+  else if (option == "switchdist") 
+  { 
+    cv >> Config::set().energy.switchdist;
+  }
+
+  else if (option == "verbosity") 
+  { 
+    cv >> Config::set().general.verbosity;
+    scon::cfg::verbosity = Config::set().general.verbosity;
+  }
+
+  //! Task to be performed by CAST
+  else if (option == "task") 
+  { 
+    config::tasks::T task(Config::getTask(value_string));
+    if (task != config::tasks::ILLEGAL) 
+    {
+      Config::set().general.task = task;
+    }
+    else
+    {
+      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_TASKS)) 
+      {
+        Config::set().general.task = static_cast<config::tasks::T>(identifier);
+      }
+    }
+  } 
+
+  //! Methods for implicit solvation
+  else if (option == "solvmethod")
+  {
+	  config::solvs::S solvmethod(Config::getSolv(value_string));
+	  Config::set().general.solvationmethod = solvmethod;
+  }
+  else if (option == "surface")
+  {
+	  config::surfs::SA surfmethod(Config::getSurf(value_string));
+	  Config::set().general.surfacemethod = surfmethod;
+  }
+
+  //! Output type for structures
+  else if (option == "outputtype")
+  {
+    config::output_types::T type(Config::getOutFormat(value_string));
+    if (type != config::output_types::ILLEGAL)
+    {
+      Config::set().general.output = type;
+    }
+    else
+    {
+      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_OUTPUT))
+      {
+        Config::set().general.output = static_cast<config::output_types::T>(identifier);
+      }
+    }
+
+  }
+  //! Energy calculation interface
+  else if (option == "interface")
+  { 
+    interface_types::T inter = Config::getInterface(value_string);
+    if (inter != interface_types::ILLEGAL) 
+    {
+      Config::set().general.energy_interface = inter;
+    }
+    else
+    {
+      std::cout << "Configuration contained illegal interface." << std::endl;
+    }
+  }
+
+  //! Energy calculation interface
+  else if (option == "preinterface")
+  { 
+    interface_types::T inter = Config::getInterface(value_string);
+    Config::set().general.preopt_interface = inter;
+  }
+
+  else if (option == "cores")
+  {
+    #if defined _OPENMP
+      long const T(from_iss<long>(cv));
+      if (T > 0) omp_set_num_threads(T);
+    #endif
+  }
+
+  else if (option == "profileruns")
+  {
+    cv >> Config::set().general.profile_runs;
+  }
+
+  //! Energy range for global optimization tracking
+  else if (option == "Erange")
+  { 
+    Config::set().optimization.global.delta_e = std::abs(from_iss<double>(cv));
+  }
+
+
+	//!SPACKMAN
+	else if (option == "Spackman")
+  {
+    std::size_t a(0U), b(0U);
+    if (cv >> a && cv >> b && cv >> Config::set().energy.spackman.cut)
+    {
+      if (a > 0) Config::set().energy.spackman.on = true;
+      if (b > 0) Config::set().energy.spackman.interp = true;
+    }
+    
+  }
+	else if(option.substr(0,11) == "NEB-PATHOPT")
+	{
+		
+		if(option.substr(11,6) == "-START")
+			Config::set().neb.START_STRUCTURE =value_string;
+		else if(option.substr(11,6) == "-FINAL")
+			Config::set().neb.FINAL_STRUCTURE =value_string;
+		else if(option.substr(11,7) == "-IMAGES")
+			cv >> Config::set().neb.IMAGES;
+		else if(option.substr(11,7) == "-SPRING")
+			cv >> Config::set().neb.SPRINGCONSTANT;
+		else if(option.substr(11,5) == "-TEMP")
+			cv >> Config::set().neb.TEMPERATURE;
+		else if(option.substr(11,5) == "-ITER")
+			cv >> Config::set().neb.MCITERATION;
+		else if(option.substr(11,9) == "-GLOBITER")
+			cv >> Config::set().neb.GLOBALITERATION;
+		else if(option.substr(11,5) == "-MODE")
+			Config::set().neb.OPTMODE = value_string;
+		else if(option.substr(11,13) == "-BIASCONSTANT")
+			cv >> Config::set().neb.BIASCONSTANT;
+		else if (option.substr(11, 7) == "-MAXVAR")
+			cv >> Config::set().neb.VARIATION;
+		else if (option.substr(11, 13) == "-ENERGY_RANGE")
+			cv >> Config::set().neb.PO_ENERGY_RANGE;
+		else if(option.substr(11,9) == "-STEPSIZE")
+			cv >> Config::set().neb.MCSTEPSIZE;
+		else if(option.substr(11,8) == "-NEBCONN")
+			cv >> Config::set().neb.NEB_CONN;
+		else if(option.substr(11,15) == "-NUMBER_NEBCONN")
+			cv >> Config::set().neb.CONNECT_NEB_NUMBER;
+		else if (option.substr(11, 9) == "-NEB_RMSD")
+			cv >> Config::set().neb.NEB_RMSD;
+		else if (option.substr(11, 18) == "-CONSTRAINT_GLOBAL")
+			cv >> Config::set().neb.CONSTRAINT_GLOBAL;
+		else if (option.substr(11, 28) == "-CONSTRAINT_NUMBER_DIHEDRALS")
+			cv >> Config::set().neb.NUMBER_OF_DIHEDRALS;
+		else if (option.substr(11, 11) == "-BOND_PARAM")
+			cv >> Config::set().neb.BOND_PARAM;
+	}
+
+  //! convergence gradient for bfgs
+  else if (option.substr(0,5) == "MOPAC") 
+  { 
+    if (option.substr(5,3) == "key") 
+      Config::set().energy.mopac.command = value_string;
+    else if (option.substr(5,4) == "path") 
+      Config::set().energy.mopac.path = value_string;
+    else if (option.substr(5,6) == "delete") 
+      Config::set().energy.mopac.delete_input = bool_from_iss(cv);
+    else if (option.substr(5, 7) == "version")
+    {
+      Config::set().energy.mopac.version = 
+        enum_type_from_string_arr<
+          config::mopac_ver_type::T, 
+          config::NUM_MOPAC_VERSION
+        >(value_string, config::mopac_ver_string);
+    }
+  }
+
+  //! convergence gradient for bfgs
+  else if (option == "BFGSgrad") 
+    cv >> Config::set().optimization.local.bfgs.grad;
+    
+  //! max number of steps for bfgs
+  else if (option == "BFGSmaxstep") 
+    cv >> Config::set().optimization.local.bfgs.maxstep;
+    
+
+  //! STARTOPT
+  else if (option == "SOtype") 
+  { 
+    Config::set().startopt.type = static_cast<config::startopt::types::T>(from_iss<int>(cv));
+  }
+  //! STARTOPT
+  else if (option == "SOstructures") 
+  { 
+    cv >> Config::set().startopt.number_of_structures;
+  }
+
+
+  //! SIMULATION OPTIONS
+
+  else if (option == "Temperature") 
+  { 
+    double T(from_iss<double>(cv));
+    if (T > 0.0)
+    {
+      Config::set().md.T_init = T;
+      Config::set().md.T_final = T;
+      Config::set().optimization.global.temperature = T;
+    }
+  }
+
+  else if (option == "Tempscale")
+  {
+    Config::set().optimization.global.temp_scale 
+      = clip<double>(from_iss<double>(cv), 0.0, 1.0);
+  }
+
+  else if (option == "Iterations") 
+  {
+    std::size_t const I(from_iss<std::size_t>(cv));
+    if (I > 0U)
+    {
+      Config::set().optimization.global.iterations = I;
+      Config::set().md.num_steps = I;
+    }
+    cv >> Config::set().optimization.global.iterations;
+  }
+
+  ////! FOLD
+  //else if (option.substr(0,4) == "FOLD")
+  //{
+  //  //! file containing foldsequence
+  //  if (option.substr(4,4) == "file") 
+  //  { 
+  //    Config::set().startopt.fold.sequenceFile = value_string;
+  //  }
+  //  //! Helix ID to use
+  //  else if (option.substr(4,5) == "helix") 
+  //  { 
+  //    cv >> Config::set().startopt.fold.helix;
+  //  }
+  //  //! Turn ID to use
+  //  else if (option.substr(4,4) == "turn") 
+  //  { 
+  //    cv >> Config::set().startopt.fold.turn;
+  //  }
+  //  //! Sheet ID to use
+  //  else if (option.substr(4,5) == "sheet") 
+  //  { 
+  //    cv >> Config::set().startopt.fold.sheet;
+  //  }
+  //}
+
+  //! SOLVADD
+  else if (option.substr(0,2) == "SA") 
+  { 
+    //! default hydrogen bond length
+    if (option.substr(2,2) == "hb") 
+    { 
+      cv >> Config::set().startopt.solvadd.defaultLenHB;
+    }
+    //! maximum number of water atoms
+    else if (option.substr(2,5) == "limit") 
+    { 
+      cv >> Config::set().startopt.solvadd.maxNumWater;
+    }
+    //! maximum number of water atoms
+    else if (option.substr(2,8) == "boundary") 
+    { 
+      Config::set().startopt.solvadd.boundary = enum_from_iss<config::startopt_conf::solvadd::boundary_types::T>(cv);
+    }
+    //! maximum distance of water and initial structure
+    else if (option.substr(2,6) == "radius") 
+    { 
+      cv >> Config::set().startopt.solvadd.maxDistance;
+    }
+    //! forcefield types
+    else if (option.substr(2,5) == "types") 
+    { 
+      cv >> Config::set().startopt.solvadd.ffTypeOxygen >> Config::set().startopt.solvadd.ffTypeHydrogen;
+    }
+    else if (option.substr(2,3) == "opt") 
+    {
+      Config::set().startopt.solvadd.set_opt(enum_from_iss<config::startopt_conf::solvadd::opt_types::T>(cv));
+    }
+    else if (option.substr(2,7) == "go_type") 
+    {
+      Config::set().startopt.solvadd.go_type =
+        enum_type_from_string_arr<
+         config::globopt_routine_type::T,
+         config::NUM_GLOBOPT_ROUTINES
+        >(value_string, config::globopt_routines_str);
+    }
+    else if (option.substr(2, 7) == "fixinit")
+    {
+      Config::set().startopt.solvadd.fix_initial = bool_from_iss(cv);
+    }
+  }
+  //! md
+  else if (option.substr(0,2) == "MD") 
+  {
+    if (option.substr(2,5) == "steps") 
+    {
+      cv >> Config::set().md.num_steps;
+    }
+    else if (option.substr(2,10) == "integrator") 
+    {
+      Config::set().md.integrator = enum_from_iss<config::md_conf::integrators::T>(cv);
+    }
+    else if (option.substr(2,5) == "track") 
+    {
+      Config::set().md.track = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 12) == "trace_offset")
+    {
+      cv >> Config::set().md.trace_offset;
+      Config::set().md.trace_offset = 
+        std::max<std::size_t>(Config::get().md.trace_offset, 1u);
+    }
+    else if (option.substr(2, 8) == "snap_opt")
+    {
+      Config::set().md.optimize_snapshots = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 11) == "snap_buffer")
+    {
+      cv >> Config::set().md.max_snap_buffer;
+    }
+    else if (option.substr(2, 5) == "snap")
+    {
+      cv >> Config::set().md.num_snapShots;
+    }
+    else if (option.substr(2,9) == "veloscale") 
+    {
+      cv >> Config::set().md.veloScale;
+    }
+    else if (option.substr(2,10) == "thermostat") 
+    {
+      Config::set().md.hooverHeatBath = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 14) == "restart_offset")
+    {
+      cv >> Config::set().md.restart_offset;
+    }
+    else if (option.substr(2, 13) == "refine_offset")
+    {
+      cv >> Config::set().md.refine_offset;
+    }
+    else if (option.substr(2, 6) == "resume")
+    {
+      Config::set().md.resume = bool_from_iss(cv);
+    }
+    else if (option.substr(2,8) == "timestep") 
+    {
+      cv >> Config::set().md.timeStep;
+    }
+    else if (option.substr(2,5) == "press") 
+    {
+      cv >> Config::set().md.pressure;
+    }
+    else if (option.substr(2,9) == "pcompress") 
+    {
+      cv >> Config::set().md.pcompress;
+    }
+    else if (option.substr(2,6) == "pdelay") 
+    {
+      cv >> Config::set().md.pdelay;
+    }
+    else if (option.substr(2,7) == "ptarget") 
+    {
+      cv >> Config::set().md.ptarget;
+    }
+    else if (option.substr(2, 12) == "pre_optimize")
+    {
+      Config::set().md.pre_optimize = bool_from_iss(cv);
+    }
+    else if (option.substr(2,4) == "heat") 
+    {
+      config::md_conf::config_heat heatconf;
+      if (cv >> heatconf.offset && cv >> heatconf.raise)
+      {
+        Config::set().md.heat_steps.push_back(heatconf);
+        Config::set().md.T_init = Config::get().md.heat_steps.front().raise;
+        Config::set().md.T_final = Config::get().md.heat_steps.back().raise;
+      }
+    } 
+    else if (option.substr(2,9) == "spherical") 
+    {
+      if (bool_from_iss(cv) && cv >> Config::set().md.spherical.r_inner
+        && cv >> Config::set().md.spherical.r_outer
+        && cv >> Config::set().md.spherical.f1
+        && cv >> Config::set().md.spherical.f2
+        && cv >> Config::set().md.spherical.e1
+        && cv >> Config::set().md.spherical.e2)
+      {
+        Config::set().md.spherical.use = true;
+      }
+    }
+    else if (option.substr(2,10) == "rattlebond") 
+    {
+      std::size_t a, b;
+      cv >> a >> b;
+
+      config::md_conf::config_rattle::rattle_constraint_bond rattlebondBuffer;
+      rattlebondBuffer.a = a;
+      rattlebondBuffer.b = b;
+      Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
+    }
+    else if (option.substr(2,6) == "rattle") 
+    {
+      int val(0);
+      if (cv >> val)
+      {
+        Config::set().md.rattle.use = (val != 0);
+        if (val == 2) Config::set().md.rattle.all = false;
+      }
+    }
+    else if (option.substr(2,7) == "rattpar")
+    {
+      cv >> Config::set().md.rattle.ratpar;
+      std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
+    }
+  }
+
+  //! dimer
+
+  else if (option.substr(0,5) == "DIMER") 
+  {
+    if (option.substr(5,14) == "rotconvergence") 
+    {
+      cv >> Config::set().dimer.rotationConvergence;
+    }
+    else if (option.substr(5,8) == "distance") 
+    {
+      cv >> Config::set().dimer.distance;
+    }
+    else if (option.substr(5,5) == "maxit") 
+    {
+      cv >> Config::set().dimer.maxRot >> Config::set().dimer.maxStep;
+    }
+    else if (option.substr(5,8) == "tflimit") 
+    {
+      cv >> Config::set().dimer.trans_F_rot_limit;
+    }
+    //else if (option.substr(5,10) == "trans_type") 
+    //{
+    //  Config::set().dimer.trans_type = enum_from_iss<config::dimer::translation_types::T>(cv);
+    //}
+  }
+
+  else if (option.substr(0,9) == "Periodics")
+  { 
+    Config::set().energy.periodic = bool_from_iss(cv);
+    if (cv >> Config::set().energy.pb_box.x()
+      && cv >> Config::set().energy.pb_box.y()
+      && cv >> Config::set().energy.pb_box.z()
+      && cv >> Config::set().energy.pb_cut)
+    {
+      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
+      if (Config::set().energy.periodic
+        && Config::get().energy.cutoff > min_cut)
+      {
+        Config::set().energy.cutoff = min_cut;
+      }
+    }
+  }
+  else if (option.substr(0, 9) == "Periodicp")
+  {
+    Config::set().energy.periodic_print = bool_from_iss(cv);
+  }
+
+  else if (option.substr(0,3) == "FEP") 
+  {
+    if (option.substr(3,6) == "lambda") 
+    {
+      cv >> Config::set().fep.lambda;
+    }
+    else if (option.substr(3,7) == "dlambda") 
+    {
+      cv >> Config::set().fep.dlambda;
+    }
+    else if (option.substr(3,9) == "vdwcouple") 
+    {
+      cv >> Config::set().fep.vdwcouple;
+    }
+    else if (option.substr(3,10) == "eleccouple") 
+    {
+      cv >> Config::set().fep.eleccouple;
+    }
+    else if (option.substr(3,6) == "vshift") 
+    {
+      cv >> Config::set().fep.ljshift;
+    }
+    else if (option.substr(3,6) == "cshift") 
+    {
+      cv >> Config::set().fep.cshift;
+    }
+    else if (option.substr(3,5) == "equil") 
+    {
+      cv >> Config::set().fep.equil;
+    }
+    else if (option.substr(3,5) == "steps") 
+    {
+      cv >> Config::set().fep.steps;
+    }
+    else if (option.substr(3,4) == "freq") 
+    {
+      cv >> Config::set().fep.freq;
+    }
+    else if (option.substr(3,8) == "backward") 
+    {
+      cv >> Config::set().fep.backward;
+    }
+    else if (option.substr(3,6) == "couple") 
+    {
+      Config::set().fep.couple = bool_from_iss(cv);
+    }
+  }
+
+  else if (option.substr(0, 5) == "COORD")
+  {
+    if (option.substr(5, 7) == "eq_main")
+    {
+      cv >> Config::set().coords.equals.main;
+    }
+    else if (option.substr(5, 6) == "eq_int")
+    {
+      cv >> Config::set().coords.equals.intern;
+    }
+    else if (option.substr(5, 6) == "eq_xyz")
+    {
+      cv >> Config::set().coords.equals.xyz;
+    }
+  }
+
+  else if (option.substr(0,2) == "GO")
+  {
+    if (option.substr(2,10) == "metrolocal") 
+    {
+      Config::set().optimization.global.metropolis_local = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 9) == "main_grid")
+    {
+      cv >> Config::set().optimization.global.grid.main_delta;
+    }
+    else if (option.substr(2, 9) == "precision")
+    {
+      Config::set().optimization.global.precision 
+        = clip<std::size_t>(from_iss<std::size_t>(cv), 4, 30);
+    }
+    else if (option.substr(2, 8) == "startopt")
+    {
+      Config::set().optimization.global.pre_optimize = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 15) == "included_minima")
+    {
+      Config::set().optimization.global.selection.included_minima 
+        = clip<std::size_t>(from_iss<std::size_t>(cv), 1, 50);
+    }
+    else if (option.substr(2, 14) == "fitness_bounds")
+    {
+      if(cv >> Config::set().optimization.global.selection.lin_rank_lower)
+        cv >> Config::set().optimization.global.selection.lin_rank_upper;
+    }
+    else if (option.substr(2, 7) == "fitness")
+    {
+      Config::set().optimization.global.selection.fit_type =
+        enum_type_from_string_arr<
+         config::optimization_conf::sel::fitness_types::T,
+         config::optimization_conf::NUM_FITNESS
+        >(value_string, config::optimization_conf::fitness_strings);
+    }
+    else if (option.substr(2, 10) == "move_dehyd")
+    {
+      Config::set().optimization.global.move_dehydrated = bool_from_iss(cv);
+    }
+    else if (option.substr(2, 14) == "fallback_limit")
+    {
+      cv >> Config::set().optimization.global.fallback_limit;
+    }
+    else if (option.substr(2, 8) == "fallback")
+    {
+      Config::set().optimization.global.fallback =
+        enum_type_from_string_arr<
+          config::optimization_conf::global::fallback_types::T,
+          config::optimization_conf::NUM_FALLBACKS
+        >(value_string, config::optimization_conf::fallback_strings);
+    }
+  }
+
+  else if (option.substr(0,2) == "RS") 
+  { 
+    if (option.substr(2,10) == "bias_force") 
+    {
+      cv >> Config::set().startopt.ringsearch.bias_force;
+    }
+    else if (option.substr(2,12) == "chance_close") 
+    {
+      cv >> Config::set().startopt.ringsearch.chance_close;
+    }
+    else if (option.substr(2,10) == "population") 
+    {
+      cv >> Config::set().startopt.ringsearch.population;
+    }
+    else if (option.substr(2,11) == "generations") 
+    {
+      cv >> Config::set().startopt.ringsearch.generations;
+    }
+  }
+  
+  else if (option.substr(0,2) == "TS") 
+  { 
+    if (option.substr(2,8) == "mc_first") 
+    {
+      Config::set().optimization.global.tabusearch.mcm_first = bool_from_iss(cv);
+    }
+    else if (option.substr(2,16) == "divers_threshold") 
+    {
+      cv >> Config::set().optimization.global.tabusearch.divers_threshold;
+    }
+    else if (option.substr(2, 12) == "divers_limit")
+    {
+      cv >> Config::set().optimization.global.tabusearch.divers_limit;
+    }
+    else if (option.substr(2,11) == "divers_iter") 
+    {
+      cv >> Config::set().optimization.global.tabusearch.divers_iterations;
+    }
+  }
+
+  else if (option.substr(0,2) == "MC") 
+  { 
+    if (option.substr(2,9) == "step_size") 
+    {
+      cv >> Config::set().optimization.global.montecarlo.cartesian_stepsize;
+    }
+    else if (option.substr(2,12) == "max_dihedral") 
+    {
+      cv >> Config::set().optimization.global.montecarlo.dihedral_max_rot;
+    }
+    else if (option.substr(2,12) == "minimization") 
+    {
+      Config::set().optimization.global.montecarlo.minimization = bool_from_iss(cv);
+    }
+    else if (option.substr(2,8) == "movetype") 
+    {
+      Config::set().optimization.global.montecarlo.move 
+        = enum_from_iss<config::optimization_conf::mc::move_types::T>(cv);
+    }
+	else if (option.substr(2,5) == "scale")
+	{
+		cv >> Config::set().optimization.global.temp_scale;
+	}
+  }
+
+  else if (option.substr(0,2) == "US") 
+  {
+    if (option.substr(2,5) == "equil")
+    {
+      cv >> Config::set().md.usequil;
+    }
+    if (option.substr(2,4) == "snap")
+    {
+      cv >> Config::set().md.usoffset;
+    }
+    if (option.substr(2,7) == "torsion") 
+    {
+      config::coords::umbrellas::umbrella_tor ustorBuffer;
+      if (cv >> ustorBuffer.index[0] && cv >> ustorBuffer.index[1]
+        && cv >> ustorBuffer.index[2] && cv >> ustorBuffer.index[3]
+        && cv >> ustorBuffer.force && cv >> ustorBuffer.angle)
+      {
+        --ustorBuffer.index[0];
+        --ustorBuffer.index[1];
+        --ustorBuffer.index[2];
+        --ustorBuffer.index[3];
+        Config::set().coords.bias.utors.push_back(ustorBuffer);
+      }
+    }
+    if (option.substr(2,4) == "dist")
+    {
+      config::coords::umbrellas::umbrella_dist usdistBuffer;
+      if (cv >> usdistBuffer.index[0] && cv >> usdistBuffer.index[1]
+        && cv >> usdistBuffer.force && cv >> usdistBuffer.dist)
+      {
+        --usdistBuffer.index[0];
+        --usdistBuffer.index[1];
+        Config::set().coords.bias.udist.push_back(usdistBuffer);
+      }
+    }
+  }
+
+  //! end file for pathrelaxation
+  else if (option.substr(0,9) == "PRendfile") 
+  { 
+    if (file_exists_readable(value_string.c_str()))
+      Config::set().path.endpointFileName = value_string;
+  }
+  //! max delta E for path relaxation
+  else if (option.substr(0,8) == "PRdeltae") 
+  { 
+    cv >> Config::set().path.maxDeltaE;
+  }
+  //! max delta X for path relaxation
+  else if (option.substr(0,8) == "PRdeltax") 
+  { 
+    cv >> Config::set().path.maxDeltaX;
+  }
+  
+  //! Fixation excluding
+  else if (option.substr(0,10) == "FIXexclude") 
+  { 
+    Config::set().energy.remove_fixed = bool_from_iss(cv);
+  }
+  //! Fixation 
+  else if (option.substr(0,8) == "FIXrange") 
+  { 
+    std::size_t start(0), end(0);
+    if (cv >> start && cv >> end && start > 0 && end > start)
+    {
+      for (std::size_t a(start - 1u); a < end; ++a) 
+      {
+        scon::sorted::insert_unique(Config::set().coords.fixed, a);
+      }
+    }
+  }
+
+  else if (option.substr(0, 5) == "ALIGN")
+  {
+    if (option.substr(5, 3) == "dih")
+    {
+      config::align_conf::dihedral ald;
+      if (cv >> ald.a && cv >> ald.b 
+        && cv >> ald.c && cv >> ald.d && cv >> ald.value)
+      {
+        --ald.a; --ald.b; --ald.c; --ald.d;
+        Config::set().alignment.dihedrals.push_back(ald);
+      }
+    }
+  }
+
+  else if (option.substr(0,7) == "ATOMFIX") 
+  { 
+    scon::sorted::insert_unique(Config::set().coords.fixed,from_iss<std::size_t>(cv)-1u);
+  }
+  //! Connect two atoms internally
+  else if (option.substr(0, 10) == "INTERNconnect")
+  {
+    std::size_t a, b;
+    if (cv >> a && cv >> b)
+    {
+      Config::set().coords.internal.connect[a] = b;
+      Config::set().coords.internal.connect[b] = a;
+    }
+    Config::set().energy.remove_fixed = bool_from_iss(cv);
+  }
+  else if (option.substr(0u, 4u) == "MAIN")
+  {
+    if (option.substr(4u, 9u) == "blacklist")
+    {
+      std::pair<std::size_t, std::size_t> p;
+      if (cv >> p.first && cv >> p.second)
+      {
+        --p.first;
+        --p.second;
+        scon::sorted::insert_unique(Config::set().coords.internal.main_blacklist, p);
+      }
+        
+    } 
+    else if (option.substr(4u, 9u) == "whitelist")
+    {
+      std::pair<std::size_t, std::size_t> p;
+      if (cv >> p.first && cv >> p.second)
+      {
+        --p.first;
+        --p.second;
+        scon::sorted::insert_unique(Config::set().coords.internal.main_whitelist, p);
+      }
+    }
+  }
+
+  else if (option.substr(0,10) == "REMOVEHROT") 
+  { 
+    Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv);
+  }
+
+  else if (option.substr(0, 12) == "REMOVEH2OROT")
+  {
+    Config::set().coords.no_hydrot_mains = bool_from_iss(cv);
+  }
+
+  else if (option.substr(0, 4) == "BIAS")
+  {
+    if (option.substr(4, 9) == "spherical")
+    {
+      config::biases::spherical buffer;
+      if (cv >> buffer.radius 
+        && cv >> buffer.force 
+        && cv >> buffer.exponent)
+      {
+        Config::set().coords.bias.spherical.push_back(buffer);
+      }
+    }
+    else if (option.substr(4, 5) == "cubic")
+    {
+      config::biases::cubic buffer;
+      if (cv >> buffer.dim
+        && cv >> buffer.force
+        && cv >> buffer.exponent)
+      {
+        Config::set().coords.bias.cubic.push_back(buffer);
+      }
+    }
+    else if (option.substr(4, 3) == "dih")
+    {
+      config::biases::dihedral biasBuffer;
+      if (cv >> biasBuffer.a && cv >> biasBuffer.b
+        && cv >> biasBuffer.c && cv >> biasBuffer.d
+        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+      {
+        --biasBuffer.a;
+        --biasBuffer.b;
+        --biasBuffer.c;
+        --biasBuffer.d;
+        biasBuffer.forward = bool_from_iss(cv);
+        Config::set().coords.bias.dihedral.push_back(biasBuffer);
+      }
+    }
+    else if (option.substr(4, 4) == "dist")
+    {
+      config::biases::distance biasBuffer;
+      if (cv >> biasBuffer.a && cv >> biasBuffer.b
+        && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
+      {
+        --biasBuffer.a;
+        --biasBuffer.b;
+        Config::set().coords.bias.distance.push_back(biasBuffer);
+      }
+    }
+  }
+
+}
+
+
+/*
+
+
+  ########     ###    ########   ######  ######## 
+  ##     ##   ## ##   ##     ## ##    ## ##       
+  ##     ##  ##   ##  ##     ## ##       ##       
+  ########  ##     ## ########   ######  ######   
+  ##        ######### ##   ##         ## ##       
+  ##        ##     ## ##    ##  ##    ## ##       
+  ##        ##     ## ##     ##  ######  ######## 
+
+
+  #### ##    ## ########  ##     ## ######## ######## #### ##       ######## 
+   ##  ###   ## ##     ## ##     ##    ##    ##        ##  ##       ##       
+   ##  ####  ## ##     ## ##     ##    ##    ##        ##  ##       ##       
+   ##  ## ## ## ########  ##     ##    ##    ######    ##  ##       ######   
+   ##  ##  #### ##        ##     ##    ##    ##        ##  ##       ##       
+   ##  ##   ### ##        ##     ##    ##    ##        ##  ##       ##       
+  #### ##    ## ##         #######     ##    ##       #### ######## ######## 
+
+
+*/
+
+
+void Config::parse_file (std::string const & filename)
+{
+  LBL_FileReader reader(filename);
+  std::size_t const N(reader.data.size());
+  for (std::size_t i = 0; i < N; i++) 
+  {
+    std::string option_string(reader.data[i].substr(0U, reader.data[i].find_first_of(" ")));
+    std::string value_string(reader.data[i]);
+    value_string.erase(0, value_string.find_first_of(" "));
+    value_string.erase(0, value_string.find_first_not_of(" "));
+    config::parse_option(option_string, value_string);
+  }
+  
+}
+
+
+/*
+    std::string inputFilename, paramFilename, outputFilename;
+    input_types::T input;
+    config::tasks::T task;
+    interface_types::T energy_interface;
+    std::size_t verbosity;
+    bool forcefield;
+*/
+
+
+std::ostream & config::operator<< (std::ostream &strm, general const &g)
+{
+  strm << "Reading structure(s) from '" << g.inputFilename;
+  strm << "' (type: " << config::input_strings[g.input] << ")";
+  strm << " and parameters from '" << g.paramFilename << "'." << '\n';
+  strm << "Energy calculations will be performed using '" << interface_strings[g.energy_interface] << "'." << '\n';
+  return strm;
+}
+
+
+std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
+{
+  strm << "Two structures will be considered to be equal if either" << '\n';
+  strm << " - none of the main torsions differ more then " << equals.main << ", or" << '\n';
+  strm << " - no internal vector (bond, angle, dihedral) differs more than " << equals.intern << ", or" << '\n';
+  strm << " - no xyz position differs more than " << equals.xyz << ", or" << '\n';
+  strm << " - every atom is 'superposed' by an atom with the same atomic number within ";
+  strm << equals.superposition << " angstroms." << '\n';
+  return strm;
+}
+
+std::ostream & config::operator<< (std::ostream &strm, coords const &p)
+{
+  if (p.remove_hydrogen_rot)
+  {
+    strm << "The torsional rotation of a hydrogen atom " 
+      << "will not be considered as main torsion." << '\n';
+  }
+  if (!p.internal.main_blacklist.empty() && p.internal.main_whitelist.empty())
+  {
+    strm << "Torsional rotation axes ";
+    std::size_t k = 1;
+    for (auto const & po : p.internal.main_blacklist)
+    {
+      strm << (k == 1 ? (k%10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
+      ++k;
+    }
+    strm << (p.internal.main_blacklist.size() > 1 ? " are" : " is")
+      << " are not considered as main torsions." << '\n';
+  }
+  else if (!p.internal.main_whitelist.empty())
+  {
+    strm << "Torsional rotation around ax" << (p.internal.main_whitelist.size() > 1 ? "es " : "is ");
+    std::size_t k = 1;
+    for (auto const & po : p.internal.main_whitelist)
+    {
+      strm << (k == 1 ? (k % 10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
+      ++k;
+    }
+    strm << (p.internal.main_whitelist.size() > 1 ? " are" : " is") 
+      << " exclusively considered for main torsions." << '\n';
+  }
+  if (!p.fixed.empty())
+  {
+    strm << p.fixed.size() << " atom" << (p.fixed.size() == 1 ? "" : "s") << " will be fixed:";
+    std::size_t begin(0U), end(0U);
+    for (std::size_t i(0U); i<p.fixed.size(); ++i)
+    {
+      if (i > 0U)
+      {
+        if (p.fixed[i] > (p.fixed[i-1U]+1U))
+        {
+          end = i-1U;
+          if (p.fixed[end] - p.fixed[begin] > 1)
+          {
+            strm << " [" << p.fixed[begin] + 1 << " to " << p.fixed[end] + 1 << "]";
+          }
+          else strm << " " << p.fixed[end];
+          if (i == p.fixed.size()-1U) strm << " " << p.fixed[i]+1;
+          else begin = i;
+        }
+        else if (i == p.fixed.size()-1U)
+        {
+          end = i;
+          if (p.fixed[end]-p.fixed[begin] > 1) strm << " [" 
+            << p.fixed[begin]+1 << " to " << p.fixed[end]+1 << "]";
+          else strm << " " << p.fixed[begin]+1 << " " << p.fixed[end]+1;
+        }
+      }
+      else if (p.fixed.size() == 1)
+      {
+        strm << " " << p.fixed[0] + 1;
+      }
+    }
+    strm << '\n';
+  }
+  
+  if (Config::get().general.task == tasks::UMBRELLA && (!p.umbrella.torsions.empty() || !p.umbrella.distances.empty()))
+  {
+    strm << "Umbrella Sampling with "  << " steps and snapshots every " << p.umbrella.snap_offset << " steps." << '\n';
+    if (!p.umbrella.torsions.empty()) 
+    {
+      strm << "Umbrella torsions:" << '\n';
+      for (auto const & torsion : p.umbrella.torsions) 
+      {
+        strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
+        strm << ". Start: "  << " - End: "  << ". Step: "  << ". "  << '\n';
+      }
+    }
+    if (!p.umbrella.distances.empty()) 
+    {
+      strm << "Umbrella distances:" << '\n';
+      for (auto const & dist : p.umbrella.distances) 
+      {
+        strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
+      }
+    }
+  }
+
+  for (auto const & torsion : p.bias.dihedral)
+  {
+    strm << "Dihedral " << torsion.a+1 << "->" << torsion.b+1 << "->";
+    strm << torsion.c+1 << "->" << torsion.d+1 << " will be forced to be ";
+    strm << torsion.ideal << " deg with force =  " << torsion.force << ".\n";
+  }
+  for (auto const & dist : p.bias.distance)
+  {
+    strm << "Distance " << dist.a << "<->" << dist.b;
+    strm << " will be forced to be ";
+    strm << dist.ideal << " A. Force =  " << dist.force << "\n";
+  }
+  for (auto const & angle : p.bias.angle)
+  {
+    strm << "Angle " << angle.a << "->" << angle.b << "<-" << angle.c;
+    strm << " will be forced to be ";
+    strm << angle.ideal << " A. Force =  " << angle.force << "\n";
+  }
+  for (auto const & sphere : p.bias.spherical)
+  {
+    strm << "Spherical boundary with radius " << sphere.radius;
+    strm << " will be applied; Force =  " << sphere.force;
+    strm << ", Exponent = " << sphere.exponent << "\n";
+  }
+  for (auto const & cube : p.bias.cubic)
+  {
+    strm << "Cubic boundary with box size " << cube.dim;
+    strm << " will be applied; Force =  " << cube.force;
+    strm << ", Exponent = " << cube.exponent << "\n";
+  }
+  return strm;
+}
+
+
+std::ostream & config::operator<< (std::ostream &strm, energy const &p)
+{
+  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switchting to zero starting at " << p.switchdist << " Angstroms) applied." << '\n';
+  else strm << "No cutoff radius applied." << '\n';
+  if (p.remove_fixed)
+  {
+    strm << "Nonbonded terms between fixed atoms will be excluded in internal forcefield calculations." << '\n';
+  }
+  if (p.periodic)
+  {
+    strm << "Periodics box [ x, y, z] " << p.pb_box << " applied." << '\n';
+  }
+  if (p.spackman.on)
+  {
+    strm << "Spackman correction applied." << '\n';
+  }
+  if (Config::get().general.energy_interface == interface_types::MOPAC)
+  {
+    strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'." << '\n';
+  }
+  return strm;
+}
+
+//struct mc
+//{
+//  struct move_types { enum T { DIHEDRAL_OPT, DIHEDRAL, XYZ }; };
+//  // stepsize in cartesian space and temperature
+//  double cartesian_stepsize, dihedral_max_rot;
+//  // move method (cartesian, dihedral or dihedral opt)
+//  move_types::T move;
+//  // use minimization after move (basin hopping / mcm) 
+//  // tracking
+//  bool minimization;
+//  mc (void) : 
+//    cartesian_stepsize(2.0), dihedral_max_rot(160.0), move(move_types::DIHEDRAL_OPT),  
+//    minimization(true)
+//  { }
+//};
+
+//struct ts
+//{
+//  std::size_t divers_iterations, divers_threshold; 
+//  go_types::T divers_optimizer;
+//  bool mcm_first;
+//  ts (void) : 
+//    divers_iterations(30), divers_threshold(25), 
+//    divers_optimizer(go_types::MCM),  mcm_first(false)
+//  { }
+//};
+
+//struct global
+//{
+//  double temperature, temp_scale, delta_e;
+//  ts tabusearch;
+//  mc montecarlo;
+//  std::size_t iterations, fallback_limit;
+//  bool metropolis_global;
+//  global (void) :
+//    temperature(298.15), temp_scale(0.95), delta_e(0.0), 
+//    tabusearch(), montecarlo(), iterations(1000), fallback_limit(20),
+//     metropolis_global(true)
+//  { }
+
+std::ostream& config::optimization_conf::operator<< (std::ostream &strm, sel const &)
+{
+  return strm;
+}
+
+
+std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global const &opt)
+{
+  strm << "At most " << opt.iterations<< " global optimization iterations at " << opt.temperature;
+  strm << "K (multiplied by " << opt.temp_scale << " for each accepted minimum) will be performed." << '\n';
+  strm << "All structures within " << opt.delta_e << " kcal/mol above the lowest minimum will be saved." << '\n';
+  strm << "TabuSearch will use " << opt.tabusearch.divers_iterations << " iterations of";
+  switch (opt.tabusearch.divers_optimizer)
+  {
+  case go_types::MCM:
+    {
+      strm << " MCM";
+      break;
+    }
+  default:
+    {
+      break;
+    }
+  }
+  strm << " (at max. " << opt.tabusearch.divers_limit << " times)";
+  strm << " for diversification after " << opt.tabusearch.divers_threshold << " TS steps failed to accept a minimum." << '\n';
+  strm << "Monte Carlo will be performed by random";
+  switch (opt.montecarlo.move)
+  {
+  case mc::move_types::XYZ:
+    {
+      strm << " cartesian";
+      strm << " (max. distortion " << opt.montecarlo.cartesian_stepsize << " angstroms)";
+      break;
+    }
+  case mc::move_types::DIHEDRAL:
+    {
+      strm << " dihedral";
+      strm << " (max. distortion " << opt.montecarlo.dihedral_max_rot << " degrees)";
+      break;
+    }
+  default:
+    {
+      strm << " dihedral (strained optimization, ";
+      strm << "max. distortion " << opt.montecarlo.dihedral_max_rot << " degrees)";
+      break;
+    }
+  }
+  strm << " movement" << (opt.montecarlo.minimization ? " with" : " without") << " subsequent local optimization." << '\n';
+  if (opt.pre_optimize) strm << "The system will be pre-optimized (startopt) prior to optimization." << '\n';
+  strm << "If the current iteration fails to find a new (accepted) minimum, " << '\n';
+  if (opt.fallback == global::fallback_types::LAST_GLOBAL)
+  {
+    strm << "the routine will use the last minimum as its starting point at most " << opt.fallback_limit << " times." << '\n';
+    strm << "If the limit is reached, the lowest minimum available will be selected." << '\n';
+    strm << "No minimum will be used more than " << opt.fallback_limit << " times." << '\n';
+  }
+  else if (opt.fallback == global::fallback_types::EVOLUTIONARY_SELECTION)
+  {
+    strm << "a new starting point will be selected using roulette selection," << '\n'; 
+    strm << "utilizing a rank-based fitness function among the ";
+    strm << opt.selection.included_minima << " lowest, accepted minima." << '\n';
+    strm << "The minimum which is lowest in energy (rank 1) will have a fitness value of  " << opt.selection.lin_rank_upper;
+    strm << ", while rank " << opt.selection.included_minima << " will have fitness " << opt.selection.lin_rank_lower << '\n';
+    strm << "Fitness interpolation type is '" << fitness_strings[opt.selection.fit_type >= 0 ? opt.selection.fit_type : 0] << "'." << '\n';
+    strm << "No minimum will be selected more than " << opt.fallback_limit << " times, ";
+    strm << " while not more than 100 approaches to find a valid minimum will be performed." << '\n';
+  }
+  else strm << "invalid action is performed." << '\n';
+  return strm;
+}
+
+/*
+struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
+struct opt_types { enum T { NONE, SHELL, TOTAL, TOTAL_SHELL }; };
+double defaultLenHB, maxDistance, water_bond;
+::coords::angle_type water_angle;
+
+std::size_t maxNumWater, ffTypeOxygen, ffTypeHydrogen;
+boundary_types::T boundary;
+opt_types::T opt;
+bool fix_initial, fix_intermediate;
+globopt_routine_type::T go_type;
+solvadd() :
+defaultLenHB(1.79), maxDistance(10.0),
+water_bond(0.95), water_angle(109.5),
+maxNumWater(0), ffTypeOxygen(53), ffTypeHydrogen(54),
+boundary(boundary_types::LAYER), opt(opt_types::SHELL),
+fix_initial(true), fix_intermediate(true),
+go_type(globopt_routine_type::BASINHOPPING)
+{ }
+void set_opt(opt_types::T type);
+*/
+
+std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd const &sa)
+{
+  strm << "SolvAdd will fill ";
+  if (sa.boundary == startopt_conf::solvadd::boundary_types::BOX)
+  {
+    strm << "a water box with a required side length of " << sa.maxDistance << "\n";
+  }
+  else if (sa.boundary == startopt_conf::solvadd::boundary_types::SPHERE)
+  {
+    strm << "a water sphere with a required radius of " << sa.maxDistance << "\n";
+  }
+  else if (sa.boundary == startopt_conf::solvadd::boundary_types::LAYER)
+  {
+    strm << "a water layer with a required thickness of " << sa.maxDistance << "\n";
+  }
+  if (sa.maxNumWater == 0)
+  {
+    strm << "The boundary distance is binding.\n";
+  }
+  else
+  {
+    strm << "The solvation shell will contain " << sa.maxNumWater << " water molecules in the end.\n";
+    strm << "if the boundary does not allow placing all water molecules, the boundary is expanded in steps of 2A.\n";
+  }
+  strm << "The placed water molecules have a bond length of " << sa.water_bond << " A and a bond angle of " << sa.water_angle << " degrees\n";
+  strm << "Oxygen will be FF type " << sa.ffTypeOxygen << " whereas hydrogen will be " << sa.ffTypeHydrogen << "\n";
+  if (sa.opt != startopt_conf::solvadd::opt_types::NONE)
+  {
+    if (sa.opt == startopt_conf::solvadd::opt_types::SHELL || sa.opt == startopt_conf::solvadd::opt_types::TOTAL_SHELL)
+    {
+      strm << "A local optimization will be performed after each iteration ";
+      if (sa.fix_intermediate) strm << "(where the water of the previous iterations will be fixed)";
+      if (sa.opt == startopt_conf::solvadd::opt_types::TOTAL_SHELL)
+      {
+        strm << " and once the hydration is complete";
+      }
+      strm << ".\n";
+    }
+    if (sa.opt == startopt_conf::solvadd::opt_types::TOTAL)
+    {
+      strm << "The system will be relaxed after placing all water molecules.\n";
+    }
+
+    if (sa.fix_initial) strm << "The initial geometry will be fixed.\n";
+  }
+  return strm;
+}
+
+
+std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch const &rso)
+{
+  strm << "Ringsearch will propagate ";
+  strm << rso.population << " individual structures for ";
+  strm << rso.generations << " generations (evolutionary).\n";
+  strm << "The chance to initially close a ring will be " << rso.chance_close;
+  strm << " and a force of " << rso.bias_force << " will be applied to close a ring.\n";
+  return strm;
+}
+
+std::ostream& config::operator<< (std::ostream &strm, startopt const &sopt)
+{
+  if (sopt.type == config::startopt::types::T::RINGSEARCH ||
+      sopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
+  {
+    strm << "Startopt with Ringsearch.\n";
+    strm << sopt.ringsearch;
+  }
+  if (sopt.type == config::startopt::types::T::SOLVADD ||
+      sopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
+  {
+    strm << "Startopt with Solvadd.\n";
+    strm << sopt.solvadd;
+  }
+  return strm;
+}
