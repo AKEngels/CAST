@@ -1398,17 +1398,30 @@ void config::parse_option (std::string const option, std::string const value_str
         Config::set().PCA.pca_alignment = false;
       }
     }
-    else if (option == "pca_print_modes")
+    else if (option == "pca_read_modes")
     {
       std::string holder;
       cv >> holder;
       if (holder == "true" || holder == "True" || holder == "TRUE")
       {
-        Config::set().PCA.pca_print_modes = true;
+        Config::set().PCA.pca_read_modes = true;
       }
       else if (holder == "false" || holder == "False" || holder == "FALSE")
       {
-        Config::set().PCA.pca_print_modes = false;
+        Config::set().PCA.pca_read_modes = false;
+      }
+    }
+    else if (option == "pca_read_vectors")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.pca_read_vectors = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.pca_read_vectors = false;
       }
     }
     else if (option == "pca_use_internal")
@@ -1425,22 +1438,23 @@ void config::parse_option (std::string const option, std::string const value_str
       }
     }
 
-    else if (option == "pca_trunc_atoms_bool ")
+    else if (option == "pca_trunc_atoms_bool")
     {
       std::string holder;
       cv >> holder;
       if (holder == "true" || holder == "True" || holder == "TRUE")
       {
-        Config::set().PCA.trunc_atoms_bool = true;
+        Config::set().PCA.pca_trunc_atoms_bool = true;
+  
       }
       else if (holder == "false" || holder == "False" || holder == "FALSE")
       {
-        Config::set().PCA.trunc_atoms_bool = false;
+        Config::set().PCA.pca_trunc_atoms_bool = false;
       }
     }
-    else if (option == "pca_trunc_atoms_num" && Config::get().PCA.trunc_atoms_bool)
+    else if (option == "pca_trunc_atoms_num" && Config::get().PCA.pca_trunc_atoms_bool)
     {
-      Config::set().PCA.trunc_atoms_num = configuration_range<unsigned int>(cv);
+      Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<unsigned int>(cv);
     }
     else if (option == "pca_start_frame_num")
     {
@@ -1460,14 +1474,69 @@ void config::parse_option (std::string const option, std::string const value_str
       cv >> holder;
       if (holder == "true" || holder == "True" || holder == "TRUE")
       {
-        Config::set().PCA.remove_dof = true;
+        Config::set().PCA.pca_remove_dof = true;
       }
       else if (holder == "false" || holder == "False" || holder == "FALSE")
       {
-        Config::set().PCA.remove_dof = false;
+        Config::set().PCA.pca_remove_dof = false;
       }
     }
+    else if (option == "pca_internal_bnd" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_bnd = configuration_range_int<unsigned int>(cv);
+    }
+    else if (option == "pca_internal_ang" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_ang = configuration_range_int<unsigned int>(cv);
+    }
+    else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
+    {
+      Config::set().PCA.pca_internal_dih = configuration_range_int<unsigned int>(cv);
+    }
+    else if (option == "pca_trunc_dim")
+    {
+      cv >> Config::set().PCA.pca_trunc_dim;
+    }
+    else if (option == "pca_trunc_var")
+    {
+      cv >> Config::set().PCA.pca_trunc_var;
+    }
+    else if (option == "pca_print_probability_density")
+    {
+      std::string holder;
+      cv >> holder;
+      if (holder == "true" || holder == "True" || holder == "TRUE")
+      {
+        Config::set().PCA.pca_print_probability_density = true;
+      }
+      else if (holder == "false" || holder == "False" || holder == "FALSE")
+      {
+        Config::set().PCA.pca_print_probability_density = false;
+      }
+    }
+    else if (option == "pca_histogram_width")
+    {
+      cv >> Config::set().PCA.pca_histogram_width;
+    }
+    else if (option == "pca_histogram_number_of_bins")
+    {
+      cv >> Config::set().PCA.pca_histogram_number_of_bins;
+    }
+    else if (option == "pca_dimensions_for_histogramming")
+    {
+      Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<unsigned int>(cv);
+    }
+    else if (option == "proc_desired_start")
+    {
+      Config::set().PCA.proc_desired_start = configuration_range_float<double>(cv);
+    }
+    else if (option == "proc_desired_stop")
+    {
+      Config::set().PCA.proc_desired_stop = configuration_range_float<double>(cv);
+    }
+
     // entropy Options
+
     else if (option == "entropy_alignment")
     {
       std::string holder;
@@ -1509,43 +1578,23 @@ void config::parse_option (std::string const option, std::string const value_str
     }
     else if (option == "entropy_internal_bnd" && Config::get().entropy.entropy_use_internal)
     {
-      Config::set().entropy.entropy_internal_bnd = configuration_range<unsigned int>(cv);
+      Config::set().entropy.entropy_internal_bnd = configuration_range_int<unsigned int>(cv);
     }
     else if (option == "entropy_internal_ang" && Config::get().entropy.entropy_use_internal)
     {
-      Config::set().entropy.entropy_internal_ang = configuration_range<unsigned int>(cv);
-    }
-    else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
-    {
-      Config::set().entropy.entropy_internal_dih = configuration_range<unsigned int>(cv);
-    }
-    else if (option == "pca_internal_bnd" && Config::get().PCA.pca_use_internal)
-    {
-      Config::set().PCA.pca_internal_bnd = configuration_range<unsigned int>(cv);
-    }
-    else if (option == "pca_internal_ang" && Config::get().PCA.pca_use_internal)
-    {
-      Config::set().PCA.pca_internal_ang = configuration_range<unsigned int>(cv);
-    }
-    else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
-    {
-      Config::set().PCA.pca_internal_dih = configuration_range<unsigned int>(cv);
+      Config::set().entropy.entropy_internal_ang = configuration_range_int<unsigned int>(cv);
     }
     else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
     {
-      Config::set().entropy.entropy_trunc_atoms_num = configuration_range<unsigned int>(cv);
+      Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<unsigned int>(cv);
     }
-    else if (option == "pca_trunc_dim")
+    else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
     {
-      cv >> Config::set().PCA.trunc_dim;
-    }
-    else if (option == "pca_trunc_var")
-    {
-      cv >> Config::set().PCA.trunc_var;
+      Config::set().entropy.entropy_internal_dih = configuration_range_int<unsigned int>(cv);
     }
     else if (option == "entropy_method")
     {
-      Config::set().entropy.entropy_method = configuration_range<unsigned int>(cv);
+      Config::set().entropy.entropy_method = configuration_range_int<unsigned int>(cv);
     }
     else if (option == "entropy_method_knn_k")
     {

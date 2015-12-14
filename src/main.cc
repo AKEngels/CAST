@@ -566,6 +566,8 @@ int main(int argc, char **argv)
        * This task will perform a translational- and rotational fit of the conformations
        * obtained from a molecular simulation. Furthermore, molecular distance meassures
        * may be computed afterwards
+       *
+       * Now even fancier through OpenMP magic
        */
       using namespace matop;
       using namespace matop::align;
@@ -589,12 +591,12 @@ int main(int argc, char **argv)
         coords_ref.set_xyz(matop::transfer_to_3DRepressentation(ref));
       }
       //Perform translational alignment for reference frame
-
-      //OPENMP - NOT working prototype, but very promissing :D
+#ifdef _OPENMP
       #pragma omp parallel for firstprivate(coords, ref) reduction(+:mean_value) shared(hold_coords_str, hold_str)
-      for (unsigned int i = 0; i < ci->size(); i++)
+#endif
+      for (int i = 0; i < (int) ci->size(); i++)
       {
-        if (i != Config::get().alignment.reference_frame_num)
+        if ((unsigned int) i != Config::get().alignment.reference_frame_num)
         {
           auto holder2 = ci->PES()[i].structure.cartesian;
           coords_temp.set_xyz(holder2);
@@ -651,7 +653,7 @@ int main(int argc, char **argv)
           //Formatted string-output
         }
 
-        else if (i == Config::get().alignment.reference_frame_num)
+        else if ((unsigned int) i == Config::get().alignment.reference_frame_num)
         {
           std::stringstream hold_coords;
           hold_coords << coords_ref;
@@ -684,7 +686,7 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    	case config::tasks::PCA:
+    	case config::tasks::PCAgen:
       {
         /**
          * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
@@ -693,101 +695,208 @@ int main(int argc, char **argv)
          * trajectory. Prior translational- and rotational fit of the conformations
          * obtained is possible. Options can be specified in the INPUTFILE.
          *
+         * Further processing can be done via PCAproc - Task
          */
         using namespace matop;
         using namespace matop::pca;
+        
+        Matrix_Class pca_modes, eigenvalues, eigenvectors, matrix_aligned;
 
-
-        coords::Coordinates coords_ref(coords);
-        auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
-        coords_ref.set_xyz(holder);
-        Matrix_Class ref = transfer_to_matr(coords_ref);
-        //Constructs two coordinate objects and sets reference frame according to INPUTFILE
-
-        if (Config::get().PCA.pca_alignment)
+        if (!Config::get().PCA.pca_read_modes)
         {
-          align::align_center_of_mass(ref,coords);
-          coords_ref.set_xyz(transfer_to_3DRepressentation(ref));;
-        }
-        //Perform translational alignment for reference frame
+          coords::Coordinates coords_ref(coords);
+          auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
+          coords_ref.set_xyz(holder);
+          Matrix_Class ref = transfer_to_matr(coords_ref);
+          //Constructs two coordinate objects and sets reference frame according to INPUTFILE
 
-        Matrix_Class matrix_aligned;
-        bool has_it_started = false;
-        const unsigned int FRAME_SIZE = unsigned int(ci->size());
-        //Initializing some stuff
-
-        for (unsigned int i = 0; i < FRAME_SIZE; i++)
-        {
-          if ((Config::get().PCA.pca_start_frame_num <= i) && (Config::get().PCA.pca_start_frame_num % Config::get().PCA.pca_offset == i % Config::get().PCA.pca_offset))
+          if (Config::get().PCA.pca_alignment)
           {
-            auto holder2 = ci->PES()[i].structure.cartesian;
-            coords.set_xyz(holder2);
-            Matrix_Class matr_structure = transfer_to_matr(coords);
-            //Create temporary objects for current frame
+            align::align_center_of_mass(ref, coords);
+            coords_ref.set_xyz(transfer_to_3DRepressentation(ref));;
+          }
+          //Perform translational alignment for reference frame
 
-            if (Config::get().PCA.pca_alignment)
-            {
-              align::align_center_of_mass(matr_structure, coords); //Alignes center of geometry
-              align::rotate(matr_structure, ref);
-            }
-            //Alignment taking place (if desired)
+          bool has_it_started = false;
+          const unsigned int FRAME_SIZE = int(ci->size());
+          //Initializing some stuff
 
-            if (Config::get().PCA.pca_use_internal)
+          for (unsigned int i = 0; i < FRAME_SIZE; i++)
+          {
+            if ((Config::get().PCA.pca_start_frame_num <= i) && ((Config::get().PCA.pca_start_frame_num % Config::get().PCA.pca_offset) == (i % Config::get().PCA.pca_offset)))
             {
-              coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
-              coords.to_internal();
-              matr_structure = transfer_to_matr_internal(coords);
-            }
-            //Calculation of internal coordinates (if desired)
+              auto holder2 = ci->PES()[i].structure.cartesian;
+              coords.set_xyz(holder2);
+              Matrix_Class matr_structure = transfer_to_matr(coords);
+              //Initializing current frame
 
-            if (has_it_started)
-            {
+              if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
+              {
+                align::align_center_of_mass(matr_structure, coords); //Alignes center of mass
+                align::rotate(matr_structure, ref); //Rotates
+              }
+              //Translational and rotational alignment
+
               if (Config::get().PCA.pca_use_internal)
               {
-                matrix_aligned.append_bottom(transform_3n_nf_internal_pca(matr_structure));
+                coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
+                coords.to_internal();
+                matr_structure = transfer_to_matr_internal(coords);
               }
-              else
+              //Conversion to internal coordinates if desired
+
+              if (Config::get().PCA.pca_start_frame_num < i)
               {
-                matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
-              }
-            }
-            else if (!has_it_started)
-            {
-              if (Config::get().PCA.pca_use_internal)
-              {
-                matrix_aligned = transform_3n_nf_internal_pca(matr_structure);
-              }
-              else
-              {
-                matrix_aligned = transform_3n_nf(matr_structure);
-                if (Config::get().PCA.trunc_atoms_bool)
+                if (Config::get().PCA.pca_use_internal)
                 {
-                  matrix_aligned = transform_3n_nf_trunc_pca(matr_structure);
+                  matrix_aligned.append_bottom(transform_3n_nf_internal_pca(matr_structure));
+                }
+                else
+                {
+                  if (Config::get().PCA.pca_trunc_atoms_bool)
+                  {
+                    matrix_aligned.append_bottom(transform_3n_nf_trunc_pca(matr_structure));
+                  }
+                  else
+                  {
+                    matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
+                  }
                 }
               }
-              has_it_started = true;
+              else if (Config::get().PCA.pca_start_frame_num == i)
+              {
+                if (Config::get().PCA.pca_use_internal)
+                {
+                  matrix_aligned = transform_3n_nf_internal_pca(matr_structure);
+                }
+                else
+                {
+                  matrix_aligned = transform_3n_nf(matr_structure);
+                  if (Config::get().PCA.pca_trunc_atoms_bool)
+                  {
+                    matrix_aligned = transform_3n_nf_trunc_pca(matr_structure);
+                  }
+                }
+              }
+              //Building one huge [frames] x [coordinates] matrix by appending for every frame
             }
-            //Building one huge [frames] x [coordinates] matrix by appending for every frame
+          }
+
+          matrix_aligned.transpose();
+          // NECESSARY because of implementation details, don't worry about it for now
+          // Matrix is now [coordinates] x [frames] !!! !!!
+          // THIS IS THE CONVENTION FOR USAGE, STICK TO IT!
+
+          if (!Config::get().PCA.pca_use_internal)
+          {
+            coords_ref.set_xyz(holder);
+            if (!Config::get().PCA.pca_trunc_atoms_bool)
+            {
+              massweight(matrix_aligned, coords_ref, false);
+            }
+            else
+            {
+              massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
+            }
+          }
+          //Mass-weightening coordinates if cartesians are used
+
+          prepare_pca(matrix_aligned, eigenvalues, eigenvectors, pca_modes);
+        }
+
+        if(Config::get().PCA.pca_read_vectors)
+        {
+          readEigenvectorsAndModes(eigenvectors, pca_modes);
+        }
+
+        if (!Config::get().PCA.pca_read_modes)
+        {
+          pca_modes = eigenvectors.transposed() * matrix_aligned;
+        }
+
+        ///////////////////////////////////////
+
+        if (Config::get().PCA.pca_read_vectors)
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat");
+        }
+        else
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes);
+        }
+
+        if (Config::get().PCA.pca_print_probability_density)
+        {
+          output_probability_density(pca_modes);
+        }
+
+        ///////////////////////////////////////
+
+        std::cout << "Everything is done. Have a nice day." << std::endl;
+        break;
+      }
+
+      case config::tasks::PCAproc:
+      {
+        /**
+         * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
+         * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
+         * see also: Task PCAgen
+         */
+
+        using namespace matop;
+        using namespace matop::pca;
+        Matrix_Class eigenvectors, trajectory;
+        std::vector<unsigned int> structuresToBeWrittenToFile;
+        readEigenvectorsAndModes(eigenvectors, trajectory);
+        if ( Config::get().PCA.proc_desired_start.size() > trajectory.return_rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.return_rows() )
+        {
+          std::cerr << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
+        }
+
+
+        for (unsigned int j = 0u; j < trajectory.return_cols(); j++)
+        {
+          bool isStructureInRange = true;
+          for (unsigned int i = 0u; i < trajectory.return_rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), 
+               Config::get().PCA.proc_desired_start.size()); i++)
+          {
+            if (i < Config::get().PCA.proc_desired_start.size())
+            {
+              if (trajectory(i,j) < Config::get().PCA.proc_desired_start[i])
+              {
+                isStructureInRange = false;
+              }
+            }
+            if (i < Config::get().PCA.proc_desired_stop.size())
+            {
+              if (trajectory(i,j) > Config::get().PCA.proc_desired_stop[i])
+              {
+                isStructureInRange = false;
+              }
+            }
+          }
+          if (isStructureInRange)
+          {
+            structuresToBeWrittenToFile.push_back(j);
           }
         }
 
-        matrix_aligned.transpose();
-        // NECESSARY because of implementation details, don't worry about it for now
-        // Matrix is now [coordinates] x [frames] !!! !!!
-        // THIS IS THE CONVENTION FOR USAGE, STICK TO IT!
-
-        if (!Config::get().PCA.pca_use_internal)
+        trajectory = eigenvectors * trajectory;
+        std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
+        for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
         {
-          coords_ref.set_xyz(holder);
-          massweight(matrix_aligned, coords_ref, false);
+          Matrix_Class out_mat(3, trajectory.return_rows() / 3u);
+          for (unsigned int j = 0u; j < trajectory.return_rows(); j = j + 3)
+          {
+            out_mat(0, j / 3u) = trajectory(j, i);
+            out_mat(1, j / 3u) = trajectory(j + 1u, i);
+            out_mat(2, j / 3u) = trajectory(j + 2u, i);
+          }
+          coords::Coordinates out(coords);
+          out.set_xyz(transfer_to_3DRepressentation(out_mat));
+          outstream << out;
         }
-        //Mass-weightening coordinates if cartesians are used
-
-        if (Config::get().PCA.pca_print_modes)
-        {
-          output_pca_modes(matrix_aligned);
-        }
-        //Formatted string-output
 
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
@@ -819,7 +928,7 @@ int main(int argc, char **argv)
         //Translational alignment of the reference frame
 
         Matrix_Class matrix_aligned;
-        const unsigned int FRAME_SIZE = unsigned int(ci->size());
+        const unsigned int FRAME_SIZE = int(ci->size());
         if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
         {
           std::cerr << "Alignment is (in this case) redundant when internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
@@ -862,7 +971,7 @@ int main(int argc, char **argv)
               {
                 if (Config::get().entropy.entropy_trunc_atoms_bool)
                 {
-                  matrix_aligned = transform_3n_nf_trunc_entropy(matr_structure);
+                  matrix_aligned.append_bottom(transform_3n_nf_trunc_entropy(matr_structure));
                 }
                 else
                 {

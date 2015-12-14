@@ -42,14 +42,14 @@ namespace config
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
   // Tasks
-  static std::size_t const NUM_TASKS = 29;
+  static std::size_t const NUM_TASKS = 30;
   static std::string const task_strings[NUM_TASKS] = 
     {"SP", "GRAD", "TS", "LOCOPT", "RMSD", 
     "MC", "DIMER", "MD", "NEB", "CENTER", 
     "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL", 
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT", 
     "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-    "GRID", "ALIGN", "ENTROPY", "PCA" };
+    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc"};
   struct tasks 
   { 
     enum T { ILLEGAL=-1, 
@@ -58,7 +58,7 @@ namespace config
     STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
     DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
     PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE, 
-    GRID, ALIGN, ENTROPY, PCA };
+    GRID, ALIGN, ENTROPY, PCAgen, PCAproc };
   };  
 
   // Input Types
@@ -756,7 +756,7 @@ namespace config
     bool traj_print_bool;
     double holm_sand_r0;
     //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
-    align(void) : dist_unit(0), traj_align_bool(true), traj_print_bool(true), reference_frame_num(0), holm_sand_r0(20)//, cdist_cutoff(5) 
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_bool(true), traj_print_bool(true),  holm_sand_r0(20)//, cdist_cutoff(5) 
     {}
   };
 
@@ -769,21 +769,35 @@ namespace config
     bool pca_alignment;
     unsigned int pca_ref_frame_num;
     unsigned int pca_start_frame_num;
-    bool pca_print_modes;
-    bool remove_dof;
+    bool pca_read_vectors;
+    bool pca_read_modes;
+    bool pca_remove_dof;
     bool pca_use_internal;
-    bool trunc_atoms_bool;
-    double trunc_var;
+    bool pca_trunc_atoms_bool;
+    bool pca_print_probability_density;
+    double pca_trunc_var;
+    double pca_histogram_width;
+    unsigned int pca_histogram_number_of_bins;
     unsigned int pca_offset;
-    unsigned int trunc_dim;
-    std::vector<unsigned int> trunc_atoms_num;
+    unsigned int pca_trunc_dim;
+    std::vector<unsigned int> pca_trunc_atoms_num;
     std::vector<unsigned int> pca_internal_bnd;
     std::vector<unsigned int> pca_internal_ang;
     std::vector<unsigned int> pca_internal_dih;
-    PCA(void) : pca_alignment(true), pca_ref_frame_num(0), pca_start_frame_num(0), pca_print_modes(true),
-      remove_dof(true), pca_use_internal(false), trunc_atoms_bool(false), trunc_var(1), trunc_dim(0), pca_offset(1)
+    std::vector<unsigned int> pca_dimensions_for_histogramming;
+
+    std::vector<double> proc_desired_start;
+    std::vector<double> proc_desired_stop;
+
+    PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
+      pca_remove_dof(true), pca_use_internal(false), pca_trunc_atoms_bool(false), pca_print_probability_density(true),
+      pca_trunc_var(1.), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), pca_trunc_dim(0u),
+      pca_trunc_atoms_num(), pca_internal_bnd(), pca_internal_ang(), pca_internal_dih(), pca_dimensions_for_histogramming(1u),
+      proc_desired_start(), proc_desired_stop()
+       
     {}
   };
+
   /**
   * ENTROPY // Entropy Calculations
   * THIS TASK PERFORMS CONFIGURATIONAL AND CONFORMATIONAL ENTROPY CACLULATIONS
@@ -804,8 +818,9 @@ namespace config
     std::vector<unsigned int> entropy_internal_ang;
     std::vector<unsigned int> entropy_internal_dih;
     std::vector<unsigned int> entropy_trunc_atoms_num;
-    entropy(void) : entropy_method(1,6u), entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method_knn_k(4),
-      entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1)
+    entropy(void) : entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method(1,6u),
+      entropy_method_knn_k(4), entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1),
+      entropy_internal_bnd(), entropy_internal_ang(), entropy_internal_dih(), entropy_trunc_atoms_num()
     {}
   };
 
