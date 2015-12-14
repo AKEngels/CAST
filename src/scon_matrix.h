@@ -534,7 +534,7 @@ namespace scon
     matrix_printer(Matrix const &m) :
       matrix(m),
       margin_left(0), margin_right(0), margin_top(0), margin_bottom(0),
-      fill_left('\0'), fill_right('\0'), spacer('\0'),
+      fill_left(' '), fill_right(' '), spacer(' '),
       print_indices(false)
     {}
     matrix_printer operator() (Matrix const &m) const
