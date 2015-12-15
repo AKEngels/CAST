@@ -260,7 +260,9 @@ namespace histo
    */
   class DimensionalHistogram //Single dimension multiple histograms
   {
-
+    // Users should not care about the private members of this class.
+    // If you need multidimensional histogramming, just use the public member functions,
+    // and voila
   private:
 
     // width and push value
@@ -324,7 +326,7 @@ namespace histo
     }
 
     // Value associated with single bin (value at center of bin)
-    std::vector<T> centerOfSingleBin(std::vector<size_t> bins)
+    std::vector<T> centerOfSingleBin(std::vector<size_t> const& bins)
     {
       std::vector<T> binsOut(bins.size());
       if (binsOut.size() == m_dimensions)
@@ -357,7 +359,9 @@ namespace histo
     }
 
     // Access to the serially stored histogram bin values
-    std::size_t toIterator(std::vector<std::size_t> in)
+    // Justification: Since this class should work for any number of dimensions,
+    // bin data has to be stored serially. This is an N-Dimension to 1D-Mapping.
+    inline std::size_t toIterator(std::vector<std::size_t> const& in)
     {
       if (in.size() == this->dimensions()) 
       {
@@ -376,7 +380,9 @@ namespace histo
     }
 
     //Covert serially stored histogram bin values to dimensional vector
-    std::vector<std::size_t> fromIterator(std::size_t in)
+    // Justification: Since this class should work for any number of dimensions,
+    // bin data has to be stored serially. This is an N-Dimension to 1D-Mapping.
+    inline std::vector<std::size_t> fromIterator(std::size_t in)
     {
       //in std::vec dim 0 is first bin, counting starts at 0.
       std::vector<std::size_t> out;
@@ -394,7 +400,7 @@ namespace histo
         { 
           tempIn = this->numberOfBinsPerDimension(); 
         }
-        else //if (tempIn != this->numberOfBinsPerDimension()) 
+        else
         { 
           tempIn = size_t(float(tempIn) / float(this->numberOfBinsPerDimension())); 
         }
@@ -402,29 +408,26 @@ namespace histo
       return out;
     }
 
-    std::size_t dimensions() const { return m_dimensions; }
-    std::size_t numberOfBinsPerDimension() const { return m_boxcount; }
+    inline std::size_t dimensions() const { return m_dimensions; }
+    inline std::size_t numberOfBinsPerDimension() const { return m_boxcount; }
 
-    // Returns number of elements in bin nr. "box" of histogram nr. "desiredHistogramInSet"
-    std::size_t element(std::vector<size_t> in) const
+    // Returns number of elements in bin associated with (dimensionally stored) "in" 
+    inline std::size_t element(std::vector<size_t> const& in) const
     {
       if (in.size() != m_dimensions || m_boxcount <= 0u)
       {
-        throw "fatal error in histogramming, desired elements have wrong dimension. Talk to your admin.";
+        std::cerr <<   "fatal error in histogramming, desired elements have wrong dimension. Talk to your admin.";
         return 0u;
       }
       else
       {
-        size_t accessIterator = 0;
-        for (unsigned int i = 0u; i < in.size(); i++)
-        {
-          accessIterator += in[i] * pow(m_boxcount, m_dimensions - i - 1);
-        }
-        return m_boxes[accessIterator];
+        return m_boxes[toIterator(in)];
       }
     }
 
-    std::size_t element(std::size_t accessIterator)
+    // Returns number of elements in bin associated with (1D-serial) "accessIterator" 
+    // This should actually never be needed to be called exept fopr debug purposes.
+    inline std::size_t element(std::size_t accessIterator)
     {
       return m_boxes[accessIterator];
     }
@@ -450,7 +453,7 @@ namespace histo
       m_boxes(dimensions, 0u), m_dimensions(dimensions), m_valuecount(0U), m_boxcount(desiredNumberOfBoxes_) {};
 
     // Adds a value "newValue" to the histogram nr. "desiredHistogramInSet"
-    void add_value(std::vector<T> const newValues)
+    inline void add_value(std::vector<T> const newValues)
     {
       // CHeck if value has valid dimensions
       if (newValues.size() <= m_dimensions)
@@ -492,8 +495,6 @@ namespace histo
     // this seems like it actually counts the values and thereby creates the histogram
     void distribute(void)
     {
-      this->setMinMax();
-
       using std::ceil;
       using std::floor;
       for (unsigned int j = 0u; j < m_dimensions; j++)
@@ -530,11 +531,12 @@ namespace histo
       }
 
       // We need m_boxcount^dimension discrete histogram bins, so we resize to this
-      m_boxes.resize((size_t) pow(m_boxcount, m_dimensions));
       //Adjust number of histogram bins
-      m_boxes.assign( (size_t) pow(m_boxcount, m_dimensions), 0u);
+      m_boxes.resize( (size_t) pow(m_boxcount, m_dimensions));
       //Fills the std::vector with "m_boxcount^m_dimension" size_ts with value 0u.
+      m_boxes.assign( (size_t) pow(m_boxcount, m_dimensions), 0u);
 
+      // Now, the actual processing of values takes place.
       std::size_t const numberOfValues = m_values.size();
       for (std::size_t i = 0; i < (size_t) numberOfValues; ++i) // Iterate over the number of values. i is current value.
       {
@@ -547,6 +549,7 @@ namespace histo
       }
     }
 
+    // Write histogrammed data in a format suitable for gnuplotting
     void write(std::string filename)
     {
       std::ofstream stream(filename, std::ios::out);
@@ -560,22 +563,18 @@ namespace histo
         if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines)
         {
           keeperForBlanklines = fromIterator(i)[bins.size() - 2];
-          stream << "\n"; //WEG
+          stream << "\n";
         }
 
         for (unsigned int j = 0u; j < bins.size(); j++)
         {
           stream << std::right << std::setw(13) << bins[j] <<  " ";
         }
-        stream << std::right << std::setw(13) << this->element((size_t)i) << "\n"; //WEG
-
-        //debug
-        auto holder = fromIterator(i);
-
-
+        stream << std::right << std::setw(13) << this->element((size_t)i) << "\n"; 
       }
     }
 
+    //Write sums and means (->auxilary data) to file.
     void writeAuxilaryData(std::string filename)
     {
       std::ofstream stream(filename, std::ios::out);
@@ -653,7 +652,7 @@ namespace histo
         else
         {
           m_max = max(ceil(newValue), m_max);
-          m_min = max(ceil(newValue), m_min);
+          m_min = max(floor(newValue), m_min);
         }
         m_s[desiredHistogramInSet] += newValue;
         m_values[desiredHistogramInSet].push_back(newValue);
