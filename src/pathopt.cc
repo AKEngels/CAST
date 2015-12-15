@@ -17,9 +17,9 @@
 #include <direct.h>
 #include "sys/stat.h"
 #else
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/stat.h>
+//#include <unistd.h>
+//#include <dirent.h>
+//#include <sys/stat.h>
 
 #endif
 
@@ -501,7 +501,7 @@ void pathx::proof_connect()
     std::ostringstream NEB1;
 
     NEB1 << mm;
-
+/*
 #if defined(_MSC_VER)
     _mkdir(NEB1.str().c_str());
     _chdir(NEB1.str().c_str());
@@ -509,7 +509,7 @@ void pathx::proof_connect()
     mkdir(NEB1.str().c_str(), 0777);
     chdir(NEB1.str().c_str());
 #endif
-
+*/
 
 
 
@@ -638,13 +638,13 @@ void pathx::proof_connect()
 
 
     }
-
+/*
 
 #if defined (_MSC_VER)
     _chdir("..");
 #else
     chdir("..");
-#endif
+#endif */
   }
 
 

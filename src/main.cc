@@ -16,15 +16,15 @@
 #include "scon_log.h"
 #include "matop.h"
 //#include "gbsa.h"
-#include <omp.h>
+//#include <omp.h>
 
 
 #if defined(_MSC_VER)
 #include <process.h>
 #define pid_func _getpid
 #else 
-#include <unistd.h>
-#define pid_func getpid
+//#include <unistd.h>
+//#define pid_func getpid
 #endif
 
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     scon::chrono::high_resolution_timer exec_timer, init_timer;
 
     // initialize (old) RNG
-    srand((unsigned int)time(NULL)+pid_func());
+    //srand((unsigned int)time(NULL)+pid_func());
 
     // Parse config file and command line 
     auto config_filename = config::config_file_from_commandline(argc, argv);
