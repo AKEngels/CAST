@@ -18,6 +18,9 @@ EXE=C3.xgcc
 PEXE=C3_omp.xgcc
 
 VPATH=../src
+BUILD=./
+SOURCE=../src/
+
 
 FLAGS=$(WARN) $(DEB) $(OPT) $(MPI) $(OPTCL)
 CCFLAGS=-c $(CCSTD) $(FLAGS)
@@ -30,11 +33,11 @@ CAST: $(OBJS)
 COMP: $(OMPBJS)
 	$(CC) $(LFLAGS) $(OMP) $(OMPBJS) -o $(PEXE)
 
-%.o : %.cc
+$(BUILD)%.o : %.cc
 	$(CC) $(CCFLAGS) $<
 
-%.om : %.cc
-	$(CC) $(OMP) $(CCFLAGS) $< -o $(<:.cc=.om)
+$(BUILD)%.om : %.cc
+	$(CC) $(OMP) $(CCFLAGS) $< -o $(<F:.cc=.om)
 
 %.o : %.c
 	$(C) $(CFLAGS) $<
