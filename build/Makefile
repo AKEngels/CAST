@@ -2,7 +2,7 @@ OBJS=configuration.o coords.o coords_io.o energy.o energy_int_aco.o energy_int_a
 
 OMPBJS=configuration.om coords.om coords_io.om energy.om energy_int_aco.om energy_int_aco_pot.om energy_int_amoeba.om energy_int_amoeba_pot.om energy_int_mopac.om energy_int_terachem.om main.om matop.om md.om mpi_cast.om neb.om optimization.om optimization_grid.om optimization_mc.om optimization_ts.om Path_perp.om pathopt.om pme.om pme_fep.om reaccoord.om scon.om startopt_ringsearch.om startopt_solvadd.om tinker_parameters.om tinker_refine.om
 
-CC=g++-4.7
+CC=g++
 C=gcc
 WARN=-Wextra -Wall -pedantic
 DEB=

@@ -23,10 +23,11 @@
 #include <process.h>
 #define pid_func _getpid
 #else 
-//#include <unistd.h>
-//#define pid_func getpid
+#include <unistd.h>
+#define pid_func getpid
 #endif
 
+//#define CAST_DEBUG_DROP_EXCEPTIONS
 
 
 void apply_startopt(coords::Coordinates & c, coords::Ensemble_PES & e)
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
     scon::chrono::high_resolution_timer exec_timer, init_timer;
 
     // initialize (old) RNG
-    //srand((unsigned int)time(NULL)+pid_func());
+    srand((unsigned int)time(NULL)+pid_func());
 
     // Parse config file and command line 
     auto config_filename = config::config_file_from_commandline(argc, argv);
