@@ -1,0 +1,10 @@
+*.o
+*.om
+*.xgcc
+*.obj
+*.oo
+
+build/*
+!build/Makefile
+!build/make.mpi
+!build/make.gcc
