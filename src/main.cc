@@ -16,7 +16,7 @@
 #include "scon_log.h"
 #include "matop.h"
 //#include "gbsa.h"
-//#include <omp.h>
+#include <omp.h>
 
 
 #if defined(_MSC_VER)
@@ -1061,7 +1061,6 @@ int main(int argc, char **argv)
   catch (std::bad_alloc &)
   {
     std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead." << lineend;
-    throw;
   }
 #else
   catch (std::bad_alloc &)
