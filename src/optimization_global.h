@@ -3,6 +3,7 @@
 #include <vector>
 #include <random>
 #include <string>
+#include <memory>
 #include "coords.h"
 #include "scon_chrono.h"
 #include "scon_log.h"
@@ -21,10 +22,10 @@ namespace optimization
       std::vector<coords::Gradients_Main> main_direction;
       std::vector<coords::Representation_Internal> intern_direction;
       std::vector<coords::Representation_3D> xyz_direction;
-      std::size_t visited;
-      Tabu_Point(void) : visited() {}
-      Tabu_Point(coords::PES_Point const &pes_point) 
-        : pes(pes_point), visited()  
+      std::size_t visited, iteration;
+      Tabu_Point() : visited(0), iteration() {}
+      Tabu_Point(coords::PES_Point const &pes_point, std::size_t const iter = 0) 
+        : pes(pes_point), visited(0), iteration(iter)
       {}
       void swap(Tabu_Point &rhs)
       {
@@ -63,8 +64,7 @@ namespace optimization
       Result_Point() : pes(), it() {}
       Result_Point (std::size_t iteration, coords::PES_Point const & init_pes) : 
         pes(init_pes), it(iteration)
-      {
-      }
+      { }
     };
 
     class result_drain
@@ -88,6 +88,8 @@ namespace optimization
     {
 
       optimizer& operator= (optimizer const &);
+
+      void write_accepted(std::string const &suffix = "");
 
     public:
 
@@ -122,7 +124,7 @@ namespace optimization
       // Optimization function
       virtual bool run(std::size_t const iterations, bool const _reset = false) = 0;
       void write_range(std::string const &suffix = "");
-      virtual ~optimizer() {}
+      virtual ~optimizer() { write_accepted(); }
 
     protected:
 
@@ -148,7 +150,7 @@ namespace optimization
     };
 
     std::ostream & operator<< (std::ostream &, optimizer::min_status::T const &);
-    optimizer * new_divers_optimizer(coords::Coordinates &);
+    std::unique_ptr<optimizer> new_divers_optimizer(coords::Coordinates &);
 
     namespace optimizers
     {
@@ -178,14 +180,16 @@ namespace optimization
         // starter function
         bool run(std::size_t const iterations, bool const _reset = false);
         // move selector
-        void move(coords::Coordinates &);
+        std::size_t move(coords::Coordinates &);
         // cartesian moves
-        void move_xyz(coords::Coordinates &);
+        std::size_t move_xyz(coords::Coordinates &);
         // dihedral moves
-        void move_main(coords::Coordinates &);
+        std::size_t move_main(coords::Coordinates &);
         // constrained dihedral move functions
-        void move_main_strain(coords::Coordinates &);
+        std::size_t move_main_strain(coords::Coordinates &);
         void bias_main_rot(coords::Coordinates &, std::size_t it, coords::angle_type rot);
+        // move water molecules
+        std::size_t move_water(coords::Coordinates &);
       private:
         std::vector<coords::Representation_1D> main_dih_rot_tabu;
 		    bool neb_true;
@@ -195,12 +199,11 @@ namespace optimization
         : public optimizer
       {
       public:
-
-        optimizer * divers_optimizer;
+        std::unique_ptr<optimizer> divers_optimizer;
+        //optimizer * divers_optimizer;
         // ..
         tabuSearch(coords::Coordinates & c, std::string const & output_name = "");
         tabuSearch(coords::Coordinates & c, coords::Ensemble_PES const &p, std::string const & output_name = "");
-        ~tabuSearch(){ if (divers_optimizer) delete divers_optimizer; }
         // run tabu search
         bool run(std::size_t const iterations, bool const _reset = false);
         // perform ascent and descent

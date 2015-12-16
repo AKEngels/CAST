@@ -4,12 +4,14 @@
 #include <cstddef>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 #include "global.h"
 #include "configuration.h"
 #include "scon_linkedcell.h"
 #include "scon_vect.h"
 #include "startopt.h"
+#include "representation.h"
 
 
 namespace startopt
@@ -20,17 +22,36 @@ namespace startopt
 
     struct site
     {
+      // v is site direction
+      // p is site origin
       coords::Cartesian_Point v, p;
+      // atom is origin atom index
       std::size_t atom;
-      bool tabu;
-      site (void) : atom(), tabu(false) {}
+      // donor determines whether atom === H
+      bool tabu, donor;
+      site() : v{}, p{}, atom{}, tabu{ false }, donor{ false } {}
     };
 
     struct water
     {
       coords::Cartesian_Point o, h[2];
-      bool check_geometry(void) const;
+      bool check_geometry() const;
     };
+
+    // build sites
+    std::vector<site> build_hb_sites(coords::Representation_3D const &xyz, 
+      coords::Atoms const &atms, std::vector<bool> const &tabu);
+
+    // remove non-accessible sites
+    std::vector<site> accessible_sites(std::vector<site> const &sites, 
+      coords::Representation_3D const &xyz);
+
+    // fit water into site and return identified position
+    // bool return part tells about success
+    std::pair<bool, water> fit_water_into_site(site const &site, 
+      std::vector<std::size_t> const &atoms_around, 
+      coords::Representation_3D const &xyz,
+      coords::Atoms const &atms);
 
     struct wp_optimum
     {
@@ -71,21 +92,22 @@ namespace startopt
       using cells_type = scon::linked::Cells < coords::float_type,
         coords::Cartesian_Point, coords::Representation_3D > ;
 
-      Solvadd (coords::Coordinates const & init_coords)
+      Solvadd (coords::Coordinates const & init_coords, double const bound = 10.0)
         : Preoptimizer(init_coords), 
         m_init_center(init_coords.center_of_mass()),
-        m_box_max(m_init_center + Config::get().startopt.solvadd.maxDistance/2.0), 
-        m_box_min(m_init_center - Config::get().startopt.solvadd.maxDistance/2.0),
+        m_box_max(m_init_center + bound /2.0),
+        m_box_min(m_init_center - bound /2.0),
         solvated_coords(init_coords), 
         m_solvated_positions(init_coords.xyz()), m_solvated_atoms(), 
         m_solvated_cells(m_solvated_positions, 3.0, 
           Config::get().energy.periodic, 
-          Config::get().energy.periodic ? Config::get().energy.pb_box:coords::Cartesian_Point(),
-          Config::get().energy.periodic ? 0.0 : 5.0),
-        m_init_cells(init_coords.xyz(), Config::get().startopt.solvadd.maxDistance/2.0, 
+          Config::get().energy.periodic ? Config::get().energy.pb_box : coords::Cartesian_Point(),
+          Config::get().energy.periodic ? 1.0 : bound + 5.0),
+        m_init_cells(init_coords.xyz(), std::max(bound/2.0, 4.0),
           Config::get().energy.periodic, 
-          Config::get().energy.periodic ? Config::get().energy.pb_box:coords::Cartesian_Point(), 
-          Config::get().energy.periodic ? 0.0 : Config::get().startopt.solvadd.maxDistance)
+          Config::get().energy.periodic ? Config::get().energy.pb_box : coords::Cartesian_Point(), 
+          Config::get().energy.periodic ? 1.0 : bound + 2.0),
+        m_boundary(bound)
       { }
 
       void generate (coords::Ensemble_PES const & init_ensemble, std::size_t const multiplier);
@@ -108,6 +130,10 @@ namespace startopt
       coords::Atoms              m_solvated_atoms;
       // linked cells obj
       cells_type                 m_solvated_cells, m_init_cells;
+      // links
+      std::unordered_map<std::size_t, std::size_t> m_interlinks;
+      // boundary                
+      double                     m_boundary;
 
       //! Creates all sites from current solvated_coords
       void build_sites (void);

@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <string>
 #include <stdexcept>
+#include <algorithm>
+#include "coords_io.h"
 #include "coords.h"
 #include "optimization_global.h"
 #include "scon_vect.h"
@@ -9,24 +11,18 @@
 #include "configuration.h"
 #include "scon_chrono.h"
 #include "scon.h"
+#include "startopt_solvadd.h"
 
 optimization::global::optimizers::monteCarlo::monteCarlo(
   coords::Coordinates &c, std::string const & output_name, bool mc_in_neb)
   : optimizer(c, output_name), neb_true(mc_in_neb)
-{
-  neb_true = mc_in_neb;
-}
+{ }
 
 optimization::global::optimizers::monteCarlo::monteCarlo(
   coords::Coordinates &c, coords::Ensemble_PES const &p, 
   std::string const & output_name, bool mc_in_neb)
-: optimizer(c, p, false, output_name), neb_true(false)
-{
-	neb_true = false;
-}
-
-
-
+: optimizer(c, p, false, output_name), neb_true(mc_in_neb)
+{ }
 
 bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterations, bool const reset)
 {
@@ -39,14 +35,21 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
   }
   coordobj.set_pes(accepted_minima[min_index].pes);
   init_stereo = coordobj.stereos();
-  // Print header
   std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) + 1);
-  
   std::string const method(std::string("MC").append(Config::get().optimization.global.montecarlo.minimization ? "M " : "  "));
+  std::unique_ptr<std::ofstream> pref, transf, postf;
+  //if (Config::get().optimization.global.track_all)
+  //{
+  //  pref.reset(new std::ofstream{ coords::output::filename("MC_pre").c_str() });
+  //  transf.reset(new std::ofstream{ coords::output::filename("MC_trans").c_str() });
+  //  postf.reset(new std::ofstream{ coords::output::filename("MC_post").c_str() });
+  //}
   for (; i<iterations; ++i)
   {
     scon::chrono::high_resolution_timer step_timer;
+    if (pref && *pref) { *pref << coordobj; }
     // move 
+    std::size_t movecount(0);
     if (Config::get().optimization.global.move_dehydrated)
     {
       std::size_t const current_size(coordobj.size());
@@ -54,13 +57,14 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
       // if dehydrated movement is required
       coords::Coordinates tmp(dehydrate(coordobj));
       // move in dehydrated coord space
-      move(tmp);
+      movecount = move(tmp);
       // set coords to rehydrated version of dehydrated coords
       coordobj = rehydrate(tmp);
       if (coordobj.size() != current_size) throw std::logic_error("Rehydrated coords after dehydrated movement exhibit wrong number of atoms.");
-    } else move(coordobj);
+    } else movecount = move(coordobj);
     coordobj.to_internal();
     coordobj.to_xyz();
+    if (transf && *transf) { *transf << coordobj; }
    // if (coordobj.preoptimize()) coordobj.po();
     // Print Method, Iteration, Start Minimum and Transition energy
 
@@ -86,14 +90,15 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     if (Config::get().optimization.global.montecarlo.minimization)
     {
       ene = coordobj.o();
+      coordobj.to_internal();
+      coordobj.to_xyz();
     }
     // if verbosity < 2 we did not calc the energy yet
     else if (Config::get().general.verbosity < 2U)
     {
       ene = coordobj.e();
     }
-    coordobj.to_internal();
-    coordobj.to_xyz();
+    if (postf && *postf) { *postf << coordobj; }
     // Check whether pes point is to be accepted
     min_status::T status(check_pes_of_coords());
     // Print final energy
@@ -109,7 +114,7 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "(" << std::setprecision(2) << std::showpoint;
-      std::cout << std::fixed << T << " K, " << step_timer << ")" << lineend;
+      std::cout << std::fixed << T << " K, " << step_timer << ", Changed " << movecount << ")" << lineend;
     }
     if (!restore(status))
     {
@@ -125,30 +130,36 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
 }
 
 
-void optimization::global::optimizers::monteCarlo::move(coords::Coordinates &c)
+std::size_t optimization::global::optimizers::monteCarlo::move(coords::Coordinates &c)
 {
+  using config::optimization_conf::mc;
   switch (Config::get().optimization.global.montecarlo.move)
   {
-    case config::optimization_conf::mc::move_types::XYZ:
+    case mc::move_types::XYZ:
     {
-      move_xyz(c);
+      return move_xyz(c);
       break;
     }
-    case config::optimization_conf::mc::move_types::DIHEDRAL:
+    case mc::move_types::DIHEDRAL:
     {
-      move_main(c);
+      return move_main(c);
+      break;
+    }
+    case mc::move_types::WATER:
+    {
+      return move_water(c);
       break;
     }
     default:
     {
-      move_main_strain(c);
+      return move_main_strain(c);
       break;
     }
   }
 }
 
 
-void optimization::global::optimizers::monteCarlo::move_xyz(coords::Coordinates &movecoords)
+std::size_t optimization::global::optimizers::monteCarlo::move_xyz(coords::Coordinates &movecoords)
 {
   const std::size_t N = movecoords.size();
   for (std::size_t ak = 0; ak < N; ++ak)
@@ -161,25 +172,34 @@ void optimization::global::optimizers::monteCarlo::move_xyz(coords::Coordinates 
 
     }
   }
+  return N;
 }
 
 
-void optimization::global::optimizers::monteCarlo::move_main(coords::Coordinates &movecoords)
+std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coordinates &movecoords)
 {
-  std::size_t const N(movecoords.main().size());
-  coords::Representation_Main main_tors(N);
+  auto const n = movecoords.main().size();
+  coords::Representation_Main main_tors(n);
   // choose number of torsions to modify
-  //coords::float_type const NUM_MAINS(static_cast<coords::float_type>(N));
-  std::size_t const NUM_MOD(std::min((static_cast<std::size_t>(-std::log(scon::rand<coords::float_type>(0.0,1.0))) + 1U), N));
+  std::mt19937_64 mte{ std::random_device{}() };
+  auto m = std::geometric_distribution<std::size_t>{ 0.5 }(mte);
+  m = std::min<std::size_t>(m, n);
   // apply those torsions
-  if (Config::get().general.verbosity > 14U) std::cout << "Changing " << NUM_MOD << " of " << N << " mains." << lineend;
-  for (std::size_t ii(0U); ii<NUM_MOD; ++ii)
+  if (Config::get().general.verbosity > 14U)
   {
-    std::size_t K = scon::rand<std::size_t>(0u, N - 1u);
-    coords::float_type const F = scon::rand<coords::float_type>(-Config::get().optimization.global.montecarlo.dihedral_max_rot, 
-                                        Config::get().optimization.global.montecarlo.dihedral_max_rot);
-    if (Config::get().general.verbosity > 14U) std::cout << "Changing main " << K << " by " << F << lineend;
-    main_tors[K] = coords::main_type::from_deg(F);
+    std::cout << "Changing " << m << " of " << n << " mains." << lineend;
+  }
+  auto maxrot = Config::get().optimization.global.montecarlo.dihedral_max_rot;
+  for (std::size_t ii(0U); ii<m; ++ii)
+  {
+    std::size_t kk = scon::rand<std::size_t>(0u, n - 1u);
+    coords::float_type const F = 
+      scon::rand<coords::float_type>(-maxrot, maxrot);
+    if (Config::get().general.verbosity > 14U)
+    {
+      std::cout << "Changing main " << k << " by " << F << lineend;
+    }
+    main_tors[kk] = coords::main_type::from_deg(F);
   }
   // orthogonalize movement to main directions
   for (auto tabu_direction : accepted_minima[min_index].main_direction)
@@ -188,16 +208,29 @@ void optimization::global::optimizers::monteCarlo::move_main(coords::Coordinates
     scon::orthogonalize_to_normal(main_tors, tabu_direction);
     //main_tors.orthogonalize_toNormed(tabu_direction);
   }
-  for (std::size_t ii = 0; ii < N; ++ii)
+  //std::cout << scon::vector_delimeter('\n');
   {
-    movecoords.rotate_main(ii, main_tors[ii]);
+    std::ofstream pref("pre.arc", std::ios::app);
+    pref << movecoords;
   }
+  auto tmpi = movecoords.intern();
+  for (std::size_t ii = 0; ii < n; ++ii)
+  {
+    movecoords.rotate_main(ii, main_tors[ii], false);
+  }
+  //std::cout << (tmpi - movecoords.intern()) << '\n';
   //main_tors.print(cout);
+  //std::cout << movecoords.xyz() << "\n";
   movecoords.to_xyz();
+  {
+    std::ofstream postf("post.arc", std::ios::app);
+    postf << movecoords;
+  }
+  return m;
 }
 
 
-void optimization::global::optimizers::monteCarlo::move_main_strain(coords::Coordinates &movecoords)
+std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coords::Coordinates &movecoords)
 {
   std::size_t const N(movecoords.main().size());
   coords::Representation_Main main_tors(N);
@@ -232,6 +265,7 @@ void optimization::global::optimizers::monteCarlo::move_main_strain(coords::Coor
   //accepted_minima[min_index].main_direction.push_back(scon::normalized(main_tors - movecoords.main()));
   movecoords.potentials().clear();
   movecoords.potentials().append_config();
+  return NUM_MOD;
 }
 
 
@@ -252,4 +286,216 @@ void optimization::global::optimizers::monteCarlo::bias_main_rot(coords::Coordin
     bias.ideal = phi + rot;
     movecoords.potentials().add(bias);
   }
+}
+
+namespace
+{
+  template<class IV>
+  bool molecule_is_moveable_water(IV const &indices, coords::Atoms const &atm)
+  {
+    // more than 3 atoms in molecule? -> not water
+    if (indices.size() != 3u) return false;
+    // any fixed atoms? -> not moveable
+    if (atm.atom(indices[0]).fixed() || 
+      atm.atom(indices[1]).fixed() || 
+      atm.atom(indices[2]).fixed()) return false;
+    std::size_t nh{ 0 }, no{ 0 };
+    for (auto i : indices)
+    {
+      if (atm.atom(i).number() == 1 && nh < 2) ++nh;
+      else if (atm.atom(i).number() == 8 && no < 1) ++no;
+      else return false;
+    }
+    return true;
+  }
+
+  template<class IV, class MV, class D3V>
+  IV remove_burried_waters(
+    IV const &waters, MV const & molecules, D3V const &xyz)
+  {
+    scon::linked::Cells < coords::float_type, coords::Cartesian_Point, 
+      coords::Representation_3D > cells{ xyz, 3.0, false,{}, 3.0 };
+    IV ret;
+    // cycle water molecules
+    for (auto w : waters)
+    { 
+      // obtain geometric center of water molecule
+      auto p = (xyz.at(molecules.at(w).at(0)) + xyz.at(molecules.at(w).at(1)) + xyz.at(molecules.at(w).at(2))) / 3.;
+      bool exposed{ false };
+      // cycle all directions around geomatric center
+      for (double i = 0.0; i < 360.0; i += 4.0)
+      {
+        for (double j = 0.0; j < 360.0; j += 4.0)
+        {
+          auto inc = scon::ang<double>::from_deg(i);
+          auto azi = scon::ang<double>::from_deg(j);
+          auto sini = sin(inc);
+          // get position 2.0 A from center in current direction
+          coords::Cartesian_Point x{ 2.0*sini*cos(azi), 2.0*sini*sin(azi), 2.0*cos(inc) };
+          // translate to make vector originate at p
+          x += p;
+          // get linked cell box of the position
+          auto b = cells.box_of_point(x);
+          exposed = true;
+          // cycle all atoms in adjacent boxes to check for steric interference
+          for (auto n : b.adjacencies())
+          {
+            if (n >= 0)
+            { 
+              auto a = static_cast<std::size_t>(n);
+              // if n is valid atom index
+              if (a >= xyz.size()) continue; 
+              // if atom is not part of current water and nearer than 2.0 A
+              // this direction is "burried"
+              if (a != molecules.at(w).at(0) && a != molecules.at(w).at(1) && 
+                a != molecules.at(w).at(2) && len(xyz[a] - x) < 2.0)
+              {
+                exposed = false;
+                break;
+              }
+            }
+          }
+          // if current water is exposed in current direction we stop 
+          // and add to return vector
+          if (exposed)
+          {
+            ret.push_back(w);
+            exposed = true;
+            break;
+          }
+        }
+        if (exposed)
+        {
+          break;
+        }
+      }
+    }
+    return ret;
+  }
+
+  struct windices
+  {
+    std::size_t h[2], o;
+  };
+
+  template<class MI>
+  windices get_windices(std::size_t const water_mol_index, 
+    MI const & molecules, coords::Atoms const &a)
+  {
+    windices r{};
+    auto const &wm = molecules[water_mol_index];
+
+    if (a.atom(wm[0]).number() == 1u)
+    {
+      r.h[0] = wm[0];
+      if (a.atom(wm[1]).number() == 1u)
+      {
+        r.h[1] = wm[1];
+        r.o = wm[2];
+      }
+      else
+      {
+        r.h[1] = wm[2];
+        r.o = wm[1];
+      }
+    }
+    else 
+    {
+      r.h[0] = wm[1];
+      r.h[1] = wm[2];
+      r.o = wm[0];
+    }
+    return r;
+  }
+
+}
+
+std::size_t optimization::global::optimizers::monteCarlo::move_water(coords::Coordinates &c)
+{
+  auto const n = c.size();
+  std::vector<bool> tabu(n, false);
+  // linked cell object for adjacent atoms
+  scon::linked::Cells < coords::float_type, coords::Cartesian_Point,
+    coords::Representation_3D > cells{ c.xyz(), 3.0, false,{}, 3.0 };
+  // create and screen sites
+  auto sites = startopt::solvadd::accessible_sites(
+    startopt::solvadd::build_hb_sites(c.xyz(), c.atoms(), tabu), c.xyz());
+  if (sites.empty())
+  {
+    throw std::logic_error("Random water movement requires accessible hydrogen bonding sites.");
+  }
+  // shuffle sites
+  std::mt19937_64 mte{ std::random_device{}() };
+  std::shuffle(std::begin(sites), std::end(sites), mte);
+  // get water all molecules
+  std::vector<std::size_t> wmol;
+  for (auto j : scon::index_range(c.molecules()))
+  {
+    if (molecule_is_moveable_water(c.molecules()[j], c.atoms()))
+    { // if molecule is water we add its index to wmol
+      // and its geometric center to wpos
+      wmol.push_back(j);
+    }
+  }
+  if (wmol.empty())
+  {
+    throw std::logic_error("Random water movement requires moveable "
+      "(non fixed) water molecules to be present.");
+  }
+  // remove burried waters to obtain candidates for movement
+  wmol = remove_burried_waters(wmol, c.molecules(), c.xyz());
+  if (wmol.empty())
+  {
+    throw std::logic_error("Random water movement requires unburried "
+      "(free 2 A sphere in 2 A from) water molecules to be present.");
+  }
+  // shuffle water molecules
+  std::shuffle(std::begin(wmol), std::end(wmol), mte);
+  // select number of water molecules to be moved
+  auto m = std::geometric_distribution<std::size_t>{ 
+    Config::get().optimization.global.montecarlo.move_frequency_probability 
+  }(mte);
+  m += 1;
+  m = std::min<std::size_t>(m, wmol.size());
+  // get water atoms to be potentially moved
+  std::vector<std::size_t> potentially_moved_atoms;
+  for (std::size_t j{ 0 }; j < m; ++j)
+  {
+    auto wat = wmol.at(j);
+    scon::sorted::insert_unique(potentially_moved_atoms, c.molecules().at(wat).at(0));
+    scon::sorted::insert_unique(potentially_moved_atoms, c.molecules().at(wat).at(1));
+    scon::sorted::insert_unique(potentially_moved_atoms, c.molecules().at(wat).at(2));
+  }
+  // Print number of moved water molecules
+  std::size_t actually_moved_molecules(0);
+  for (std::size_t j{ 0 }; j < m; ++j)
+  {
+    for (auto & s : sites)
+    {
+      // if site is tabu or site is "part of" moved water 
+      // go on without moving to this site
+      if (s.tabu || scon::sorted::exists(potentially_moved_atoms, s.atom))
+      {
+        continue;
+      }
+      auto b = cells.box_of_point(s.p);
+      auto f = startopt::solvadd::fit_water_into_site(s, 
+      { b.adjacencies().begin(), b.adjacencies().end() }, c.xyz(), c.atoms());
+      if (f.first)
+      {
+        auto wi = get_windices(wmol[j], c.molecules(), c.atoms());
+        //std::cout << "((" << wi.o << "," << wi.h[0] << ", " << wi.h[1] << "))";
+        //std::cout << "Moving " << wi.o << " at " << c.xyz()[wi.o] << " to " << f.second.o << "\n";
+        //std::cout << "Moving " << wi.h[0] << " at " << c.xyz()[wi.h[0]] << " to " << f.second.h[0] << "\n";
+        //std::cout << "Moving " << wi.h[1] << " at " << c.xyz()[wi.h[1]] << " to " << f.second.h[1] << "\n";
+        c.move_atom_to(wi.o, f.second.o);
+        c.move_atom_to(wi.h[0], f.second.h[0]);
+        c.move_atom_to(wi.h[1], f.second.h[1]);
+        s.tabu = true;
+        ++actually_moved_molecules;
+        break;
+      }
+    }
+  }
+  return actually_moved_molecules;
 }

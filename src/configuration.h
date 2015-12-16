@@ -513,16 +513,17 @@ namespace config
 
     struct mc
     {
-      struct move_types { enum T { DIHEDRAL_OPT, DIHEDRAL, XYZ }; };
+      struct move_types { enum T { DIHEDRAL_OPT, DIHEDRAL, XYZ, WATER }; };
       // stepsize in cartesian space and temperature
-      double cartesian_stepsize, dihedral_max_rot;
+      double cartesian_stepsize, dihedral_max_rot, move_frequency_probability;
       // move method (cartesian, dihedral or dihedral opt)
       move_types::T move;
       // use minimization after move (basin hopping / mcm) 
       // tracking
       bool minimization;
-      mc (void) : 
-        cartesian_stepsize(2.0), dihedral_max_rot(120.0), 
+      mc(void) :
+        cartesian_stepsize(2.0), dihedral_max_rot(120.0),
+        move_frequency_probability(0.75),
         move(move_types::DIHEDRAL), minimization(true)
       { }
     };
