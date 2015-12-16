@@ -755,8 +755,9 @@ namespace config
     bool traj_align_bool;
     bool traj_print_bool;
     double holm_sand_r0;
+    std::string align_external_file;
     //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
-    align(void) : dist_unit(0), reference_frame_num(0), traj_align_bool(true), traj_print_bool(true),  holm_sand_r0(20)//, cdist_cutoff(5) 
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_bool(true), traj_print_bool(true),  holm_sand_r0(20), align_external_file()//, cdist_cutoff(5) 
     {}
   };
 

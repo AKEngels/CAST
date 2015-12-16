@@ -573,9 +573,14 @@ int main(int argc, char **argv)
       using namespace matop;
       using namespace matop::align;
 
-
       coords::Coordinates coords_ref(coords), coords_temp(coords);
       auto holder = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+      if (!Config::get().alignment.align_external_file.empty())
+      {
+        std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
+        coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
+        holder = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+      }
       coords_ref.set_xyz(holder);
       Matrix_Class ref = matop::transfer_to_matr(coords_ref);
       //Constructs two coordinate objects and sets reference frame according to INPUTFILE

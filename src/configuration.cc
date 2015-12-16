@@ -1358,6 +1358,10 @@ void config::parse_option (std::string const option, std::string const value_str
     {
       cv >> Config::set().alignment.reference_frame_num;
     }
+    else if (option == "align_external_file")
+    {
+      cv >> Config::set().alignment.align_external_file;
+    }
     else if (option == "traj_align_bool")
     {
       std::string holder;

@@ -683,6 +683,10 @@ traj_align_bool                true
 # Should distance meassures be calculated and printed?
 traj_print_bool                false
 
+
+# Should we align to an external reference structure? If yes, give file name
+align_external_file            reference.xyz
+
 # Reference frame for alignment (using Kabsch algorithm)
 # default is "0"
 ref_frame_num                   110
