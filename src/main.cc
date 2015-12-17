@@ -855,16 +855,17 @@ int main(int argc, char **argv)
         Matrix_Class eigenvectors, trajectory;
         std::vector<unsigned int> structuresToBeWrittenToFile;
         readEigenvectorsAndModes(eigenvectors, trajectory);
-        if ( Config::get().PCA.proc_desired_start.size() > trajectory.return_rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.return_rows() )
+        if ( Config::get().PCA.proc_desired_start.size() > trajectory.rows() || 
+          Config::get().PCA.proc_desired_stop.size() > trajectory.rows() )
         {
           std::cerr << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
         }
 
 
-        for (unsigned int j = 0u; j < trajectory.return_cols(); j++)
+        for (unsigned int j = 0u; j < trajectory.cols(); j++)
         {
           bool isStructureInRange = true;
-          for (unsigned int i = 0u; i < trajectory.return_rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), 
+          for (unsigned int i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), 
                Config::get().PCA.proc_desired_start.size()); i++)
           {
             if (i < Config::get().PCA.proc_desired_start.size())
@@ -892,8 +893,8 @@ int main(int argc, char **argv)
         std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
         for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
         {
-          Matrix_Class out_mat(3, trajectory.return_rows() / 3u);
-          for (unsigned int j = 0u; j < trajectory.return_rows(); j = j + 3)
+          Matrix_Class out_mat(3, trajectory.rows() / 3u);
+          for (unsigned int j = 0u; j < trajectory.rows(); j = j + 3)
           {
             out_mat(0, j / 3u) = trajectory(j, i);
             out_mat(1, j / 3u) = trajectory(j + 1u, i);

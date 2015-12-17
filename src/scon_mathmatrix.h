@@ -37,10 +37,10 @@ CODING CONVENTIONS AS FOLLOWS:
 #include "scon_matrix.h"
 
 
-///////////////////////////////
-//
-//	D E F S 
-//
+/////////////////////////////////
+//                             //
+//	D E F S                    //
+//                             //
 /////////////////////////////////
 
 //typedef scon::matrix<coords::float_type> ArrayType;
@@ -54,23 +54,25 @@ typedef unsigned int uint_type;
 
 
 ///////////////////////////////
-//
-//	F L A G S 
-//
-/////////////////////////////////
+//                           //
+//	F L A G S                //
+//                           //
+///////////////////////////////
 
 // ENABLE DEBUGVIEW? 
 // (became pretty obsolete after removing armadillo matrix library)
-// ->Option to store array data as member of a private std::vector<std::vector<T>> for 
+// -> Option to store array data as member of a private std::vector<std::vector<T>> for 
 // debug pruproses.
 
 //#define DEBUGVIEW
 
 ///////////////////////////////
 namespace scon {
-	template <typename T> class mathmatrix : public scon::matrix<T>
+	template <typename T> 
+  class mathmatrix : public scon::matrix<T>
 	{
   private:
+    using base_type = scon::matrix<T>;
 #ifdef DEBUGVIEW
     std::vector<std::vector<T> > array_debugview_internal;
 #else
@@ -124,17 +126,22 @@ namespace scon {
 			}
 		};
 
+    /**
+     * Default copy constructor
+     */
+    mathmatrix(mathmatrix const&) = default;
+
 		/**
-		 * Copy Constructor, if boolean size_only is set to TRUE
+		 * Second "Copy Constructor", if boolean size_only is set to TRUE
 		 * Only the size of the matrix will be copied (faster)
 		 */
-		mathmatrix(mathmatrix const& in, bool size_only = false) : scon::matrix<T>(in.return_rows(), in.return_columns())
+		mathmatrix(mathmatrix const& in, bool size_only) : scon::matrix<T>(in.rows(), in.cols())
 		{
 			if (!size_only)
 			{
-				for (unsigned int i = 0u; i < in.return_rows(); i++)
+				for (unsigned int i = 0u; i < in.rows(); i++)
 				{
-					for (unsigned int j = 0; j < in.return_columns(); j++)
+					for (unsigned int j = 0; j < in.cols(); j++)
 					{
 						(*this)(i, j) = in(i, j);
 					}
@@ -174,9 +181,9 @@ namespace scon {
 				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
 			}
 			mathmatrix out(*this);
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					out(i, j) = out(i, j) + in(i, j);
 				}
@@ -189,8 +196,8 @@ namespace scon {
 		 */
 		void identity()
 		{
-			for (unsigned int i = 0; i < this->return_rows(); i++) {
-				for (unsigned int j = 0; j < this->return_columns(); j++) {
+			for (unsigned int i = 0; i < this->rows(); i++) {
+				for (unsigned int j = 0; j < this->cols(); j++) {
 					if (i == j) {
 						(*this)(i, j) = 1;
 					}
@@ -207,8 +214,8 @@ namespace scon {
     mathmatrix return_identity(void)
     {
       mathmatrix workobj(*this, true);
-      for (unsigned int i = 0; i < this->return_rows(); i++) {
-        for (unsigned int j = 0; j < this->return_columns(); j++) {
+      for (unsigned int i = 0; i < this->rows(); i++) {
+        for (unsigned int j = 0; j < this->cols(); j++) {
           if (i == j) {
             (workobj)(i, j) = 1;
           }
@@ -228,9 +235,9 @@ namespace scon {
 			if (this->isQuadratic())
 			{
         T temp;
-				for (unsigned int i = 0u; i < this->return_rows(); i++) 
+				for (unsigned int i = 0u; i < this->rows(); i++) 
         {
-					for (unsigned int j = i + 1u; j < this->return_columns(); j++) 
+					for (unsigned int j = i + 1u; j < this->cols(); j++) 
           {
             temp = (*this)(i, j);
 						(*this)(i, j) = (*this)(j, i);
@@ -240,9 +247,9 @@ namespace scon {
 			}
 			else
 			{
-				mathmatrix temp(this->return_cols(), this->return_rows());
-				for (unsigned int i = 0; i < this->return_rows(); i++) {
-					for (unsigned int j = 0; j < this->return_columns(); j++) {
+				mathmatrix temp(this->cols(), this->rows());
+				for (unsigned int i = 0; i < this->rows(); i++) {
+					for (unsigned int j = 0; j < this->cols(); j++) {
 						 temp(j, i) = (*this)(i, j);
 					}
 				}
@@ -273,9 +280,9 @@ namespace scon {
 		 */
 		void fillwith(T in)
 		{
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					(*this)(i, j) = in;
 				}
@@ -288,9 +295,9 @@ namespace scon {
     mathmatrix filledwith(T in)
     {
       mathmatrix workobj(*this, true);
-      for (unsigned int i = 0; i < this->return_rows(); i++)
+      for (unsigned int i = 0; i < this->rows(); i++)
       {
-        for (unsigned int j = 0; j < this->return_columns(); j++)
+        for (unsigned int j = 0; j < this->cols(); j++)
         {
           (workobj)(i, j) = in;
         }
@@ -298,6 +305,9 @@ namespace scon {
       return workobj;
     };
 
+    /**
+     * Resize matrix
+     */
     void resize(unsigned int rowInput, unsigned int columnInput = 1u)
     {
       this->scon::matrix<T>::resize(rowInput, columnInput);
@@ -310,21 +320,21 @@ namespace scon {
 		 */
 		mathmatrix operator* (mathmatrix const& in) const
 		{
-			if (this->return_columns() != in.return_rows())
+			if (this->cols() != in.rows())
 			{
 				throw std::logic_error("Matrix size wrong. Can't Multiply.");
 			}
-			mathmatrix holder(this->return_rows(), in.return_columns());
+			mathmatrix holder(this->rows(), in.cols());
       mathmatrix temp_in(in);
 #ifdef _OPENMP
       #pragma omp parallel for firstprivate(temp_in) shared(holder)
 #endif
-			for (int i = 0; i < (int) holder.return_rows(); i++)
+			for (int i = 0; i < (int) holder.rows(); i++)
 			{
-				for (unsigned int j = 0; j < holder.return_columns(); j++)
+				for (unsigned int j = 0; j < holder.cols(); j++)
 				{
 					T temp_summation = 0.0;
-					for (unsigned int k = 0; k < this->return_columns(); k++)
+					for (unsigned int k = 0; k < this->cols(); k++)
 					{
 						temp_summation += (*this)((unsigned int) i, k) * temp_in(k, j);
 					}
@@ -340,9 +350,9 @@ namespace scon {
 		mathmatrix operator*(T const& in) const
 		{
 			mathmatrix tempCopy(*this);
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					tempCopy(i, j) = in * (*this)(i, j);
 				}
@@ -353,7 +363,7 @@ namespace scon {
     /**
      * Overload copy asignment operator
      */
-    mathmatrix& operator=(mathmatrix& rhs)
+    mathmatrix& operator=(mathmatrix const & rhs)
     {
       matrix<T>::operator=(rhs);
       return (*this);
@@ -368,24 +378,15 @@ namespace scon {
       return (*this);
     }
 
-    /**
-     * Overload copy asignment operator (move stuff)
-     */
-    mathmatrix operator=(const mathmatrix& rhs)
-    {
-      matrix<T>::operator=(rhs);
-      return (*this);
-    }
-
 		/**
 		 * Prints contents to std::cout
 		 */
 		void out() const
 		{
 			std::cout << "\n\n\n\n";
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					std::cout << (*this)(i, j) << " ";
 				}
@@ -440,7 +441,7 @@ namespace scon {
 			}
 			if (this->quadratic())
 			{
-				for (unsigned int i = 1; i < (this->return_rows() + 1); i++)
+				for (unsigned int i = 1; i < (this->rows() + 1); i++)
 				{
 					if (this->upper_left_submatrix(i).det_sign() < 0)
 					{
@@ -691,7 +692,7 @@ namespace scon {
 			mathmatrix lu = *this;
 			const float_type TINY = 1.0e-40;
 			int i, imax, j, k;
-			int n = int(this->return_rows());
+			int n = int(this->rows());
 			std::vector<int> indx(n);
 			float_type big, temp;
 			mathmatrix vv(n, 1u);
@@ -773,14 +774,14 @@ namespace scon {
 		mathmatrix operator-(mathmatrix const& in) const
 		{
 			//Check if sizes match
-			if ((in.rows() != this->rows()) || (in.columns() != this->columns()))
+			if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
 			{
 				throw ("Error in Matrix mathmatrix subtraction, wrong input sizes");
 			}
 			mathmatrix output = *this;
 			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					output(i, j) -= in(i, j);
 				}
@@ -794,9 +795,9 @@ namespace scon {
 		mathmatrix operator/(T const& in) const
 		{
 			mathmatrix tempCopy(*this);
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					tempCopy(i, j) = (*this)(i, j) / in;
 				}
@@ -810,19 +811,19 @@ namespace scon {
 		void append_bottom(const mathmatrix& I_will_be_the_bottom_part)
 		{
 			//if this is transposed, append bottom means append right on underlying obj
-			if (this->return_columns() != I_will_be_the_bottom_part.return_columns())
+			if (this->cols() != I_will_be_the_bottom_part.cols())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
 			//Old size needs to be kept
-			unsigned int holder = this->return_rows();
+			unsigned int holder = this->rows();
 
-			this->resize(this->return_rows() + I_will_be_the_bottom_part.return_rows(), this->return_cols());
+			this->resize(this->rows() + I_will_be_the_bottom_part.rows(), this->cols());
 
 			//Add "in" to newly ceated space.
-			for (unsigned int i = 0; i < I_will_be_the_bottom_part.return_rows(); i++)
+			for (unsigned int i = 0; i < I_will_be_the_bottom_part.rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					(*this)(i + holder, j) = I_will_be_the_bottom_part(i, j);
 				}
@@ -838,22 +839,22 @@ namespace scon {
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
-			this->resize(this->return_rows() + I_will_be_the_top_part.return_rows(), this->cols());
+			this->resize(this->rows() + I_will_be_the_top_part.rows(), this->cols());
 
 			//Move the entries in the parent matrix downward
 			//We count downwards so that we dont overwrite
-			for (unsigned int i = this->return_rows() - 1u; i > 0; i--)
+			for (unsigned int i = this->rows() - 1u; i > 0; i--)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					(*this)(i + I_will_be_the_top_part.rows(), j) = (*this)(i, j);
 				}
 			}
 
 			//Add "I_will_be_the_top_part" to now absolete top space of the parent matrix (this).
-			for (unsigned int i = 0; i < I_will_be_the_top_part.return_rows(); i++)
+			for (unsigned int i = 0; i < I_will_be_the_top_part.rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					(*this)(i, j) = I_will_be_the_top_part(i, j);
 				}
@@ -876,16 +877,16 @@ namespace scon {
 			//We count downwards so that we dont overwrite
 			for (unsigned int j = this->cols() - 1u; j > 0; j--)
 			{
-				for (unsigned int i = 0u; i < this->return_rows(); i++)
+				for (unsigned int i = 0u; i < this->rows(); i++)
 				{
 					(*this)(i, j + I_will_be_the_left_part.cols()) = (*this)(i, j);
 				}
 			}
 
 			//Add "I_will_be_the_left_part" to now absolete top space of the parent matrix (this).
-			for (unsigned int j = 0; j < I_will_be_the_left_part.return_columns(); j++)
+			for (unsigned int j = 0; j < I_will_be_the_left_part.cols(); j++)
 			{
-				for (unsigned int i = 0; i < this->return_rows(); i++)
+				for (unsigned int i = 0; i < this->rows(); i++)
 				{
 					(*this)(i, j) = (*this)(i, j);
 				}
@@ -907,9 +908,9 @@ namespace scon {
 			this->resize(this->rows(), this->cols() + I_will_be_the_right_part.cols());
 
 			//Add "in" to newly created space.
-			for (unsigned int j = 0; j < I_will_be_the_right_part.return_columns(); j++)
+			for (unsigned int j = 0; j < I_will_be_the_right_part.cols(); j++)
 			{
-				for (unsigned int i = 0; i < this->return_rows(); i++)
+				for (unsigned int i = 0; i < this->rows(); i++)
 				{
 					(*this)(i, j + holder) = I_will_be_the_right_part(i, j);
 				}
@@ -922,17 +923,17 @@ namespace scon {
 		 */
 		void shed_rows(unsigned int first_in, unsigned int last_in)
 		{
-			mathmatrix newOne(this->return_rows() - (last_in - first_in + 1u), this->return_columns());
+			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
 			for (unsigned int i = 0u; i < first_in; i++)
 			{
-				for (unsigned int j = 0u; j < this->return_columns(); j++)
+				for (unsigned int j = 0u; j < this->cols(); j++)
 				{
 					newOne(i, j) = (*this)(i, j);
 				}
 			}
-			for (unsigned int i = last_in + 1u; i < this->return_rows(); i++)
+			for (unsigned int i = last_in + 1u; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0u; j < this->return_columns(); j++)
+				for (unsigned int j = 0u; j < this->cols(); j++)
 				{
 					newOne(i - last_in - 1u, j) = (*this)(i, j);
 				}
@@ -945,17 +946,17 @@ namespace scon {
 		 */
 		void shed_cols(unsigned int first_in, unsigned int last_in)
 		{
-			mathmatrix newOne(this->return_rows(), this->return_columns() - (last_in - first_in + 1u));
-			for (unsigned int j = 0u; j < this->return_rows(); j++)
+			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
+			for (unsigned int j = 0u; j < this->rows(); j++)
 			{
 				for (unsigned int i = 0u; i < first_in; i++)
 				{
 					newOne(j, i) = (*this)(j, i);
 				}
 			}
-			for (unsigned int j = 0u; j < this->return_rows(); j++)
+			for (unsigned int j = 0u; j < this->rows(); j++)
 			{
-				for (unsigned int i = last_in + 1u; i < this->return_columns(); i++)
+				for (unsigned int i = last_in + 1u; i < this->cols(); i++)
 				{
 					newOne(j, i - last_in - 1u) = (*this)(j, i);
 				}
@@ -966,34 +967,12 @@ namespace scon {
 		/**
 		 * Returns number of rows
 		 */
-		unsigned int return_rows() const
-		{
-			return (unsigned int) this->rows();
-		}
+    using base_type::rows;
 
 		/**
-		 * Returns numer of columns
+		 * Returns number of columns
 		 */
-		unsigned int return_columns() const
-		{
-			return (unsigned int) this->cols();
-		}
-
-    /**
-     * Returns numer of columns
-     */
-    unsigned int return_cols() const
-    {
-      return (unsigned int)this->cols();
-    }
-
-    /**
-    * Returns numer of columns
-    */
-    unsigned int columns() const
-    {
-      return (unsigned int) this->cols();
-    }
+    using base_type::cols;
 
 		/**
 		 * Returns whether mathmatrix-obj is quadratic
@@ -1010,9 +989,16 @@ namespace scon {
 		 */
 		mathmatrix upper_left_submatrix(unsigned int const& rows_in, unsigned int const& columns_in = 0) const
 		{
-			mathmatrix copied(*this);
-			copied.resize(rows_in, columns_in);
-			return copied;
+      if (rows_in <= this->rows() && columns_in <= this->cols())
+      {
+        mathmatrix copied(*this);
+        copied.resize(rows_in, columns_in);
+        return copied;
+      }
+      else
+      {
+        return *this;
+      }
 		}
 
 		/**
@@ -1031,12 +1017,12 @@ namespace scon {
 
 			//"Constructor"
 			U_in = *this;
-			V_in.resize(this->return_cols(), this->return_cols());
-			s_in.resize(this->return_cols());
+			V_in.resize(this->cols(), this->cols());
+			s_in.resize(this->cols());
 
 			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
-			int n = int(this->return_cols());
-			int m = int(this->return_rows());
+			int n = int(this->cols());
+			int m = int(this->rows());
 
 			float_type eps = std::numeric_limits<float_type>::epsilon();
 
@@ -1331,9 +1317,9 @@ namespace scon {
 		{
 			std::vector <T> temp1(this->cols());
 			std::vector < std::vector <T> > temp2(this->rows(), temp1);
-			for (unsigned int i = 0; i < this->return_rows(); i++)
+			for (unsigned int i = 0; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0; j < this->return_columns(); j++)
+				for (unsigned int j = 0; j < this->cols(); j++)
 				{
 					temp2[i][j] = (*this)(i, j);
 				}
@@ -1350,9 +1336,9 @@ namespace scon {
 #ifdef DEBUGVIEW
 				std::vector <float_type> temp1(this->cols());
 				std::vector < std::vector <float_type> > temp2(this->rows(), temp1);
-				for (unsigned int i = 0; i < this->return_rows(); i++)
+				for (unsigned int i = 0; i < this->rows(); i++)
 				{
-					for (unsigned int j = 0; j < this->return_columns(); j++)
+					for (unsigned int j = 0; j < this->cols(); j++)
 					{
 						temp2[i][j] = (*this)(i, j);
 					}
