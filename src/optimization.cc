@@ -61,11 +61,41 @@ void optimization::global::Tabu_List::clear_above_e (double const minimum, doubl
 }
 
 
-optimization::global::optimizer * optimization::global::new_divers_optimizer (coords::Coordinates & c)
+std::unique_ptr<optimization::global::optimizer>
+optimization::global::new_divers_optimizer(coords::Coordinates & c)
 {
-  return (new optimization::global::optimizers::monteCarlo(c));
+  return std::make_unique<optimization::global::optimizers::monteCarlo>(c);
 }
 
+void optimization::global::optimizer::write_accepted(std::string const & suffix)
+{
+  if (accepted_minima.size() > 0)
+  {
+    std::ofstream final_accepted_log(coords::output::filename(suffix + "_accepted_final", ".log"), std::ios::out);
+    std::ofstream final_accepted_arc(coords::output::filename(suffix + "_accepted_final"), std::ios::out);
+    if (final_accepted_log && final_accepted_arc)
+    {
+      final_accepted_log << std::setw(10) << "Num";
+      final_accepted_log << std::setw(12) << "Iteration";
+      final_accepted_log << std::setw(20) << "Energy";
+      final_accepted_log << std::setw(20) << "Interactions ...\n";
+      std::size_t o = 0;
+      for (auto const & am : accepted_minima)
+      {
+        final_accepted_log << std::setw(10) << ++o;
+        final_accepted_log << std::setw(12) << am.iteration;
+        final_accepted_log << std::setw(20) << am.pes.energy;
+        for (auto && ia : am.pes.ia_matrix)
+        {
+          final_accepted_log << std::setw(20) << ia.energy;
+        }
+        final_accepted_log << '\n';
+        coordobj.set_xyz(am.pes.structure.cartesian, true);
+        final_accepted_arc << coordobj;
+      }
+    }
+  }
+}
 
 
 
