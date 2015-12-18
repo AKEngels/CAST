@@ -10,7 +10,7 @@ namespace matop
 
   Matrix_Class transfer_to_matr(coords::Coordinates const& in)
   {
-    Matrix_Class out_mat((unsigned int)(in.size()), 3u);
+    Matrix_Class out_mat(in.size(), 3u);
     for (unsigned int l = 0; l < (unsigned int) in.size(); l++)
     {
       coords::cartesian_type tempcoord2;
@@ -19,7 +19,7 @@ namespace matop
       out_mat(l, 1) = tempcoord2.y();
       out_mat(l, 2) = tempcoord2.z();
     }
-    return out_mat.transposed();
+    return transposed(out_mat);
   };
 
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
@@ -32,7 +32,7 @@ namespace matop
       out_mat(l, 1) = in.intern(l).inclination().radians();
       out_mat(l, 2) = in.intern(l).azimuth().radians();
     }
-    return out_mat.transposed();
+    return transposed(out_mat);
   };
 
   Matrix_Class transform_coordinates(coords::Coordinates& input)
@@ -126,11 +126,10 @@ namespace matop
   {
     void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, int rank)
     {
-      Matrix_Class cov_matr = (input.transposed());
-      Matrix_Class ones(input.cols(), input.cols());
-      ones.fillwith(1.0);
+      Matrix_Class cov_matr = (transposed(input));
+      Matrix_Class ones(input.cols(), input.cols(), 1.0);
       cov_matr = cov_matr - ones * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
       float_type cov_determ = 0.;
       int *cov_rank = new int;
@@ -581,9 +580,9 @@ namespace matop
     float_type knapp_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols() ).filledwith(1.) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr * (1. / (float_type) input.cols() );
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -632,14 +631,11 @@ namespace matop
 
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
-      Matrix_Class eigenvectors_t(eigenvectors.transposed());
+      Matrix_Class eigenvectors_t(transposed(eigenvectors));
       Matrix_Class pca_modes = eigenvectors_t * input;
-      Matrix_Class entropy_anharmonic(pca_modes.rows());
-      entropy_anharmonic.fillwith(0.0);
-      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows());
-      entropy_mi.fillwith(0.0);
-      Matrix_Class classical_entropy(pca_modes.rows());
-      classical_entropy.fillwith(0.0);
+      Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
+      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
+      Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
       int const size = entropy_anharmonic.rows();
 
 
@@ -765,8 +761,7 @@ namespace matop
     float_type hnizdo_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u);
-      marginal_entropy_storage.fillwith(0.0);
+      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
       float_type distance = knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, 0, 1);
       for (unsigned int k = 1; k < input.cols(); k++)
@@ -808,8 +803,7 @@ namespace matop
     float_type hnizdo_m_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)\n";
-      Matrix_Class marginal_entropy_storage(input.rows());
-      marginal_entropy_storage.fillwith(0.0);
+      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
       for (unsigned int i = 0; i < input.rows(); i++)
@@ -817,7 +811,8 @@ namespace matop
         double distance = 0.0;
         for (unsigned int k = 0; k < input.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(input, 1, Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
+          distance += log(sqrt(knn_distance(input, 1, 
+            Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
         }
         distance /= float_type(input.cols());
 
@@ -851,9 +846,9 @@ namespace matop
     float_type knapp_m_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols()).filledwith(1.) * cov_matr / (float_type)input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = (transposed(input));
+      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr * (1.0 / (float_type)input.cols());
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -904,9 +899,9 @@ namespace matop
     float_type karplus_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.rows() ).filledwith(1.0) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = (transposed(input));
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.rows(), 1. ) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
@@ -926,9 +921,9 @@ namespace matop
     float_type schlitter_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols()).filledwith(1.) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = transposed(input);
+      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
 
       /*
@@ -950,7 +945,7 @@ namespace matop
       */
 
       cov_matr = cov_matr * (1.38064813 * Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.0546 * 1.0546 * 10e-45));
-      cov_matr = cov_matr + Matrix_Class(cov_matr.rows(), cov_matr.cols()).return_identity();
+      cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -1136,19 +1131,18 @@ namespace matop
     void rotate(Matrix_Class& input, Matrix_Class const& ref)
       //LAYER 1
     {
-      Matrix_Class c(input * ref.transposed());
+      Matrix_Class c(input * transposed(ref));
       //Creates Covariance Matrix
 
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit(c.rows(), c.rows()); // Create empty dummy matrix of right size for unitary
-      unit.identity(); // Make identity matrix
+      Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;
       }
-      U.transpose();
+      transpose(U);
       unit = unit * U;
       unit = V * unit;
       input = unit * input;

@@ -788,7 +788,7 @@ int main(int argc, char **argv)
             }
           }
 
-          matrix_aligned.transpose();
+          transpose(matrix_aligned);
           // NECESSARY because of implementation details, don't worry about it for now
           // Matrix is now [coordinates] x [frames] !!! !!!
           // THIS IS THE CONVENTION FOR USAGE, STICK TO IT!
@@ -817,7 +817,7 @@ int main(int argc, char **argv)
 
         if (!Config::get().PCA.pca_read_modes)
         {
-          pca_modes = eigenvectors.transposed() * matrix_aligned;
+          pca_modes = transposed(eigenvectors) * matrix_aligned;
         }
 
         ///////////////////////////////////////
@@ -1005,7 +1005,7 @@ int main(int argc, char **argv)
 
           }
         }
-        matrix_aligned.transpose();
+        transpose(matrix_aligned);
         //NECESSARY because of implementation details, don't worry about it for now; rows are DOFs, columns are frames FROM HERE ON!
 
         if (!Config::get().entropy.entropy_use_internal)
