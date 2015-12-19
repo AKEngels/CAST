@@ -131,6 +131,10 @@ namespace scon {
      */
     mathmatrix(mathmatrix const&) = default;
 
+    // in case you are wondering:
+    // transposed and some more stuff is available as free functions
+    // eg transpose(). We should really decoment the relevant stuff here...
+
 		/**
 		 * Second "Copy Constructor", if boolean size_only is set to TRUE
 		 * Only the size of the matrix will be copied (faster)
@@ -1289,7 +1293,7 @@ namespace scon {
 		 * NOTE: Should we check if this is symmetric? I think we should -> "eig_sym",
 		 * at least once we will do matrix-math internally in CAST.
 		 */
-		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr)
+		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
 		{
 			//On basis of SVD, so take care that your matrix is symmetrical
 			//otherwise, well, you know, shit in -> shit out...
@@ -1353,12 +1357,12 @@ namespace scon {
 
 		/**
 		 * Overload "==" Operator for mathmatrix
-		 */
+		 
 		bool operator==(mathmatrix const& in) const
 		{
 			mathmatrix *baseClassPointer = &in;
 			return ((*this) == (*baseClassPointer));
-		}
+		}*/
 
 	};
 

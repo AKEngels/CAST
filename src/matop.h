@@ -53,6 +53,15 @@ namespace matop
   void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<unsigned int> atomsThatAreUsed = std::vector<unsigned int>());
 
   /**
+  * Undos the massweighting of a single trajectory matrix, only makes sense in
+  * cartesian coordinates, needs additional coords::Coordinates
+  * of structure parsed to get atomic masses. Boolean controls wether
+  * multiplication with "10e-10" (i.e. conversion of Angstrom
+  * to meters as distances) was performed. See also: void massweight(...)
+  */
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<unsigned int> atomsThatAreUsed = std::vector<unsigned int>());
+
+  /**
    * Converts a coords:Coordinates object to a mathmatrix object
    * having the conventional form for single-frame matrices in
    * cartesian coordinates.
@@ -67,6 +76,14 @@ namespace matop
    * mathmatrix(dist/angle/dihedral, atom_nr)
    */
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in);
+
+  /**
+   * Converts a coords:Coordinates object to a mathmatrix object
+   * having the conventional form for single-frame matrices in
+   * internal coordiantes.
+   * mathmatrix(dist/angle/dihedral, atom_nr)
+   */
+  coords::Representation_Internal transfer_to_internalRepressentation(Matrix_Class const& input);
 
 
   /////////////////////////////////////
@@ -120,14 +137,15 @@ namespace matop
      *
      * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
      */
-    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename = "pca_modes.dat");
+    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename = "pca_modes.dat", std::string additionalInformation = "void");
 
     /**
      * Reads Eigenvectors and PCA-trajectory from correctly formatted file.
      * File is correctly formatted if it was created using the CAST::matop::output_pca_modes
      * function.
      */
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string filename = "pca_modes.dat");
+    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename = "pca_modes.dat");
+
 
   }
 

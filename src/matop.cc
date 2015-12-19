@@ -59,6 +59,18 @@ namespace matop
     return tempcoord1;
   }
 
+  coords::Representation_Internal transfer_to_internalRepressentation(Matrix_Class const& input)
+  {
+    coords::Representation_Internal tempcoord1;
+
+    for (unsigned int i = 0; i < input.cols(); i++)
+    {
+      coords::internal_type tempcoord2(input(0, i), scon::ang<float_type>(input(1, i)), scon::ang<float_type>(input(2, i)));
+      tempcoord1.push_back(tempcoord2);
+    }
+    return tempcoord1;
+  }
+
   Matrix_Class transform_3n_nf(Matrix_Class const& input)
   {
     Matrix_Class transformed_matrix(1, (input.rows() * input.cols()));
@@ -116,6 +128,46 @@ namespace matop
     }
   }
 
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<unsigned int> atomsThatAreUsed)
+  {
+    if (atomsThatAreUsed.empty())
+    {
+      for (unsigned int i = 0; i < input.rows(); i = i + 3)
+      {
+        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
+        if (to_meter)
+        {
+          temp *= 10e-10;
+        }
+        for (unsigned int j = 0; j < input.cols(); j++)
+        {
+          for (unsigned int k = 0; k < 3; k++)
+          {
+            (input)(i + k, j) /= temp;
+          }
+        }
+      }
+    }
+    else
+    {
+      for (unsigned int i = 0; i < input.rows(); i = i + 3)
+      {
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
+        if (to_meter)
+        {
+          temp *= 10e-10;
+        }
+        for (unsigned int j = 0; j < input.cols(); j++)
+        {
+          for (unsigned int k = 0; k < 3; k++)
+          {
+            (input)(i + k, j) /= temp;
+          }
+        }
+      }
+    }
+  }
+
   /////////////////////////////////////
   //                              /////
   //    E X C L U S I V E L Y     /////
@@ -135,6 +187,7 @@ namespace matop
       float_type cov_determ = 0.;
       int *cov_rank = new int;
       cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
+      auto debugg = cov_matr.to_std_vector();
       rank = *cov_rank;
       if (rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
       {
@@ -154,7 +207,7 @@ namespace matop
       }
     }
 
-    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename)
+    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename, std::string additionalInformation)
     {
       std::cout << "\nWriting PCA-Modes and Eigenvectors of covariance matrix to file\n";
 
@@ -208,6 +261,7 @@ namespace matop
       pca_modes_stream << eigenvectors << "\n\n\n";
       pca_modes_stream << "Trajectory in PCA - Modes following (columns are frames, rows are modes)\nSize = " << std::setw(10) << pca_modes.rows() << " x " << std::setw(10) << pca_modes.cols() << "\n";
       pca_modes_stream << pca_modes << "\n";
+      pca_modes_stream << "Additional Information following:\n" << additionalInformation << "\n";
     }
 
     Matrix_Class transform_3n_nf_trunc_pca(Matrix_Class const& input)
@@ -396,7 +450,7 @@ namespace matop
       }
     }
 
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string filename)
+    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename)
     {
       std::ifstream pca_modes_stream(filename, std::ios::in);
       std::string line;
@@ -439,6 +493,19 @@ namespace matop
           whitespace = line.find(" ", lastWhitespace + 1u);
 
           trajectory(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
+        }
+      }
+      //Additional options following:
+      if (std::getline(pca_modes_stream, line))
+      {
+        std::getline(pca_modes_stream, line);
+        if (std::getline(pca_modes_stream, line))
+        {
+          additionalInformation = line;
+        }
+        else
+        {
+          std::cerr << "Could not read additional Information from pca_modes file.\n";
         }
       }
     }

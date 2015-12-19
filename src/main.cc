@@ -237,11 +237,6 @@ int main(int argc, char **argv)
       // DEVTEST: Room for Development testing
     case config::tasks::DEVTEST:
     {
-
-      scon::matrix<coords::float_type> test(5, 4);
-      test.resize(4u, 4u);
-      test.resize(7u, 8u);
-      
       break;
     }
     case config::tasks::SP:
@@ -812,7 +807,8 @@ int main(int argc, char **argv)
 
         if(Config::get().PCA.pca_read_vectors)
         {
-          readEigenvectorsAndModes(eigenvectors, pca_modes);
+          std::string iAmNotImportant_YouMayDiscardMe;
+          readEigenvectorsAndModes(eigenvectors, pca_modes, iAmNotImportant_YouMayDiscardMe);
         }
 
         if (!Config::get().PCA.pca_read_modes)
@@ -822,13 +818,41 @@ int main(int argc, char **argv)
 
         ///////////////////////////////////////
 
-        if (Config::get().PCA.pca_read_vectors)
+        std::string additionalInformation;
+        if (Config::get().PCA.pca_use_internal)
         {
-          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat");
+          additionalInformation += "int ";
+          for (unsigned int i = 0u; i < Config::get().PCA.pca_internal_bnd.size(); i++)
+          {
+            additionalInformation += "b" + std::to_string(Config::get().PCA.pca_internal_bnd[i]) + " ";
+          }
+          for (unsigned int i = 0u; i < Config::get().PCA.pca_internal_ang.size(); i++)
+          {
+            additionalInformation += "a" + std::to_string(Config::get().PCA.pca_internal_ang[i]) + " ";
+          }
+          for (unsigned int i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
+          {
+            additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
+          }
         }
         else
         {
-          output_pca_modes(eigenvalues, eigenvectors, pca_modes);
+          additionalInformation += "car ";
+          for (unsigned int i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
+          {
+            additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
+          }
+        }
+
+        ///////////////////////////////////////
+
+        if (Config::get().PCA.pca_read_vectors)
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat", additionalInformation);
+        }
+        else
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes.dat", additionalInformation);
         }
 
         if (Config::get().PCA.pca_print_probability_density)
@@ -845,18 +869,21 @@ int main(int argc, char **argv)
       case config::tasks::PCAproc:
       {
         /**
-         * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
-         * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
-         * see also: Task PCAgen
-         */
+        * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
+        * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
+        * see also: Task PCAgen
+        */
+
+        //TODO: The first structure on output from this task "seems" to be off. Revie plz
 
         using namespace matop;
         using namespace matop::pca;
         Matrix_Class eigenvectors, trajectory;
         std::vector<unsigned int> structuresToBeWrittenToFile;
-        readEigenvectorsAndModes(eigenvectors, trajectory);
-        if ( Config::get().PCA.proc_desired_start.size() > trajectory.rows() || 
-          Config::get().PCA.proc_desired_stop.size() > trajectory.rows() )
+        std::string additionalInformation;
+        readEigenvectorsAndModes(eigenvectors, trajectory, additionalInformation);
+        if (Config::get().PCA.proc_desired_start.size() > trajectory.rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.rows())
+
         {
           std::cerr << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
         }
@@ -865,19 +892,19 @@ int main(int argc, char **argv)
         for (unsigned int j = 0u; j < trajectory.cols(); j++)
         {
           bool isStructureInRange = true;
-          for (unsigned int i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), 
-               Config::get().PCA.proc_desired_start.size()); i++)
+          for (unsigned int i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
+
           {
             if (i < Config::get().PCA.proc_desired_start.size())
             {
-              if (trajectory(i,j) < Config::get().PCA.proc_desired_start[i])
+              if (trajectory(i, j) < Config::get().PCA.proc_desired_start[i])
               {
                 isStructureInRange = false;
               }
             }
             if (i < Config::get().PCA.proc_desired_stop.size())
             {
-              if (trajectory(i,j) > Config::get().PCA.proc_desired_stop[i])
+              if (trajectory(i, j) > Config::get().PCA.proc_desired_stop[i])
               {
                 isStructureInRange = false;
               }
@@ -889,22 +916,203 @@ int main(int argc, char **argv)
           }
         }
 
+        //Undoing PCA
         trajectory = eigenvectors * trajectory;
+
+
         std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
-        for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+
+        // Case: Cartesian Coordinates.
+        if (additionalInformation.substr(0, 3) == "car")
         {
-          Matrix_Class out_mat(3, trajectory.rows() / 3u);
-          for (unsigned int j = 0u; j < trajectory.rows(); j = j + 3)
+
+
+          //Additional Information Processing -> Read "DOFS that were used" from file. Put their identifying numbers in vector.
+          stringstream ss(additionalInformation.substr(4));
+          std::string buffer;
+          std::vector<unsigned int> tokens;
+          std::vector<bool> alreadyFoundStructures(ci->size(), false);
+
+          while (ss >> buffer) tokens.push_back((unsigned int)std::stoi(buffer));
+
+          if (tokens.size() != 0u)
           {
-            out_mat(0, j / 3u) = trajectory(j, i);
-            out_mat(1, j / 3u) = trajectory(j + 1u, i);
-            out_mat(2, j / 3u) = trajectory(j + 2u, i);
+            undoMassweight(trajectory, coords, false, tokens);
+            for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+            {
+              Matrix_Class out_mat(3, trajectory.rows() / 3u);
+              for (unsigned int j = 0u; j < trajectory.rows(); j = j + 3)
+              {
+                out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
+                out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
+                out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
+              }
+              coords::Coordinates current(coords);
+
+              // For every partial (truncated) structure that is inside the user-defined 
+              // range regarding its PCA-Modes,
+              // we now search the matching full structure in the input trajectory.
+              bool structureFound = false;
+              auto structureCartesian = ci->PES()[0].structure.cartesian;
+              int structureNumber = -1;
+
+              for (unsigned int k = 0u; k < ci->size() && !structureFound; k++)
+              {
+                if (alreadyFoundStructures[k]) continue;
+
+                structureCartesian = ci->PES()[k].structure.cartesian; //Current structure
+                structureFound = true;
+                structureNumber = k;
+                // Remeber, we are now iterating over certain atoms (those to which
+                // the PCA was truncated.
+                for (unsigned int l = 0u; l < tokens.size(); l++)
+                {
+                  // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
+                  // is very small, the arbitrary cutoff 2e-4), consider it a match.
+                  // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+                  // Thats why we negate the criterion in the if clause (!)
+                  float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].x()), 2e-4);
+                  float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].y()), 2e-4);
+                  float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].z()), 2e-4);
+
+                  if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l] - 1u].x()) <= xCompare &&
+                    std::abs(out_mat(1, l) - structureCartesian[tokens[l] - 1u].y()) <= yCompare &&
+                    std::abs(out_mat(2, l) - structureCartesian[tokens[l] - 1u].z()) <= zCompare))
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                }
+              }
+              if (structureFound)
+              {
+                // Horray, we found it, now write it out!
+                alreadyFoundStructures[structureNumber] = true;
+                current.set_xyz(structureCartesian);
+                current.to_internal();
+                outstream << current;
+              }
+              else
+              {
+                std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+                std::cerr << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
+              }
+            }
           }
-          coords::Coordinates out(coords);
-          out.set_xyz(transfer_to_3DRepressentation(out_mat));
-          outstream << out;
+          else
+          {
+            // Here, we merely restore the coordinates from the PCA-modes
+            // since no trucnation took plage, and write them out.
+            undoMassweight(trajectory, coords, false);
+            for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+            {
+              Matrix_Class out_mat(3, trajectory.rows() / 3u);
+              for (unsigned int j = 0u; j < trajectory.rows(); j = j + 3)
+              {
+                out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
+                out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
+                out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
+              }
+              coords::Coordinates out(coords);
+              out.set_xyz(transfer_to_3DRepressentation(out_mat));
+              out.to_internal();
+              outstream << out;
+            }
+          }
         }
 
+        // Case: Internal Coordiantes
+        else if (additionalInformation.substr(0, 3) == "int")
+        {
+          // [0]: bond distance tokens, [1]: bond angle tokens [2]: dihedrals tokens.
+          // Here we keep track of which DOFs are to be considered
+          std::vector< std::vector <bool>> tokens(3, std::vector<bool>(coords.atoms().size(), false));
+
+          std::vector<bool> alreadyFoundStructures(ci->size(), false);
+
+          //Additional Information Processing -> Read "DOFS that were used" from file. Store in "tokens".
+          stringstream ss(additionalInformation.substr(4));
+          std::string buffer;
+          // Read the additional information
+          while (ss >> buffer)
+          {
+            if (buffer.substr(0, 1) == "b") tokens[0][(unsigned int)std::stoi(buffer.substr(1))] = true;
+            else if (buffer.substr(0, 1) == "a") tokens[1][(unsigned int)std::stoi(buffer.substr(1))] = true;
+            else if (buffer.substr(0, 1) == "d") tokens[2][(unsigned int)std::stoi(buffer.substr(1))] = true;
+          }
+
+          // This is gonna be complicated. Im sorry.
+          // Iterate over structures chosen from PCA-Ensemble
+          for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+          {
+            bool structureFound = false;
+            auto structureCartesian = ci->PES()[0].structure.cartesian;
+            int structureNumber = -1;
+
+            //Iterate over input strucutures -> find matching structure
+            for (unsigned int k = 0u; k < ci->size() && !structureFound; k++)
+            {
+              if (alreadyFoundStructures[k]) continue;
+              coords.set_internal(ci->PES()[k].structure.intern);
+              unsigned int quicksearch = 0u;
+              structureFound = true;
+              structureNumber = k;
+              //Iterating over atoms, see if they all match
+              for (unsigned int j = 0u; j < tokens[0].size(); j++)
+              {
+                // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
+                // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+                // Thats why we negate the criterion in the if clause (!)
+                if (tokens[0][j] == true)
+                {
+                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].radius()) < 0.001 * std::abs(ci->PES()[k].structure.intern[j].radius())))
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                  quicksearch++;
+                }
+                if (tokens[1][j] == true)
+                {
+                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].inclination().radians()) < 0.001 * std::abs(ci->PES()[k].structure.intern[j].inclination().radians())))
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                  quicksearch++;
+                }
+                if (tokens[2][j] == true)
+                {
+                  float_type compareDih = 0.001 * std::abs(ci->PES()[k].structure.intern[j].azimuth().radians());
+                  auto debug1 = std::acos(trajectory(quicksearch, structuresToBeWrittenToFile[i]));
+                  auto debug2 = cos(ci->PES()[k].structure.intern[j].azimuth().radians());
+                  auto debug3 = sin(ci->PES()[k].structure.intern[j + 1].azimuth().radians());
+                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].azimuth().radians()) < compareDih));
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                  quicksearch++;
+                }
+              }
+
+              //If match was found, write out.
+              if (structureFound)
+              {
+                alreadyFoundStructures[structureNumber] = true;
+                coords.set_internal(ci->PES()[k].structure.intern);
+                coords.to_xyz();
+                outstream << coords;
+              }
+              else
+              {
+                std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+                std::cerr << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
+              }
+            }
+          }
+
+        }
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
