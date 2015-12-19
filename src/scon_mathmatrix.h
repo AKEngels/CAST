@@ -68,7 +68,9 @@ typedef unsigned int uint_type;
 //#define DEBUGVIEW
 
 ///////////////////////////////
-namespace scon {
+namespace scon 
+{
+
 	template <typename T> 
   class mathmatrix : public scon::matrix<T>
 	{
@@ -157,32 +159,6 @@ namespace scon {
 		};
 
     using base_type::resize;
-
-
-		/**
-		 * Overload * for matrix multiplication
-		 *
-		 * DEV-NOTE: MATRIX INTERNALS PRESENT
-		 */
-		mathmatrix operator* (mathmatrix const& in) const
-		{
-      // get reference to base class
-      // (mathmatrix IS a matrix)
-      base_type const & a = *this;
-      base_type const & b = in;
-      // return mathmatrix from multiplication of base types
-      return mathmatrix{ a * b };
-		};
-
-		/**
-		 * Overload * for scalar multiplication
-		 */
-		mathmatrix operator*(T const& in) const
-		{
-      base_type const & a = *this;
-      return mathmatrix{ a*in };
-		};
-
     
 
 		/**
@@ -1118,17 +1094,35 @@ namespace scon {
 
 		}
 
-		/**
-		 * Overload "==" Operator for mathmatrix
-		 */
-		bool operator==(mathmatrix const& in) const
-		{
-      base_type const& a = *this;
-      base_type const& b = in;
-      return a == b;
-		}
-
 	};
+
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (mathmatrix<T> const & a, mathmatrix<U> const &b)
+  {
+    matrix<T> const &ma = a;
+    matrix<U> const &mb = b;
+    return ma*mb;
+  }
+
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (matrix<T> const & a, mathmatrix<U> const &b)
+  {
+    matrix<U> const &mb = b;
+    return a *mb;
+  }
+
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (mathmatrix<T> const & a, matrix<U> const &b)
+  {
+    matrix<T> const &ma = a;
+    return ma * b;
+  }
 
 }
 

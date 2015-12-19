@@ -708,7 +708,7 @@ namespace scon
     // iterate all 
     for (size_type i = 0; i < lhs.rows(); ++i)
     {
-      for (size_type j = 0; j <= lhs.cols(); ++j)
+      for (size_type j = 0; j < lhs.cols(); ++j)
       {
         if (lhs(i, j) != rhs(i, j)) return false;
       }
