@@ -64,7 +64,8 @@ void optimization::global::Tabu_List::clear_above_e (double const minimum, doubl
 std::unique_ptr<optimization::global::optimizer>
 optimization::global::new_divers_optimizer(coords::Coordinates & c)
 {
-  return std::make_unique<optimization::global::optimizers::monteCarlo>(c);
+  return std::unique_ptr<optimization::global::optimizer>{ 
+    new optimization::global::optimizers::monteCarlo(c) };
 }
 
 void optimization::global::optimizer::write_accepted(std::string const & suffix)

@@ -24,7 +24,7 @@ bool startopt::solvadd::water::check_geometry (void) const
   double const d1(std::abs(Config::get().startopt.solvadd.water_bond - len(b1)));
   double const d2(std::abs(Config::get().startopt.solvadd.water_bond - len(b2)));
   double const da(abs((Config::get().startopt.solvadd.water_angle - angle(b1, b2))).degrees());
-  auto const d3{ std::abs(len(h[0]-h[1])) };
+  double const d3{ std::abs(len(h[0]-h[1])) };
   return (d1 > 0.05 || d2 > 0.05 || da > 0.05 || d3 < 1.0) ? false : true;
 }
 
