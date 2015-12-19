@@ -736,9 +736,9 @@ coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index,
 {
   std::size_t const N = xyz.size();
   if (index < N) return xyz[atom(index).i_to_a()];
-  else if (index == N) return coords::Cartesian_Point(0, 0, 0);
-  else if (index == N + 1) return coords::Cartesian_Point(0, 0, 1);
-  else if (index == N + 2) return coords::Cartesian_Point(1, 0, 0);
+  else if (index == N) return coords::Cartesian_Point(1, 0, 0);
+  else if (index == N + 1) return coords::Cartesian_Point(0, 1, 0);
+  else if (index == N + 2) return coords::Cartesian_Point(0, 0, 1);
   else throw std::logic_error("Wrong relative position requested. i > N + 2");
 }
 
