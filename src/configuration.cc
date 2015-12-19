@@ -1985,6 +1985,11 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
       strm << " (max. distortion " << opt.montecarlo.dihedral_max_rot << " degrees)";
       break;
     }
+  case mc::move_types::WATER:
+  {
+    strm << " water";
+    break;
+  }
   default:
     {
       strm << " dihedral (strained optimization, ";

@@ -495,7 +495,7 @@ namespace config
   {
     struct lo_types { enum T { LBFGS=0 }; };
     struct go_types { enum T { MCM, TABU }; };
-    struct go_move  { enum mm { CARTESIAN, DIHEDRAL, DIHEDRAL_OPT }; };
+    //struct go_move  { enum mm { CARTESIAN, DIHEDRAL, DIHEDRAL_OPT }; };
 
     struct lo 
     {
