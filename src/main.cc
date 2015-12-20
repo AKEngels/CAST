@@ -1087,7 +1087,7 @@ int main(int argc, char **argv)
                   auto debug1 = std::acos(trajectory(quicksearch, structuresToBeWrittenToFile[i]));
                   auto debug2 = cos(ci->PES()[k].structure.intern[j].azimuth().radians());
                   auto debug3 = sin(ci->PES()[k].structure.intern[j + 1].azimuth().radians());
-                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].azimuth().radians()) < compareDih));
+                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].azimuth().radians()) < compareDih))
                   {
                     structureFound = false;
                     break;

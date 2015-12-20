@@ -544,6 +544,14 @@ namespace histo
         for (std::size_t h(0U); h < m_dimensions; ++h)
         {
           index[h] = static_cast<std::size_t>(floor((m_values[i][h] - minimum()[h]) / w[h] + p[h]));
+          if (index[h] >= this->numberOfBinsPerDimension())
+          {
+            index[h] = this->numberOfBinsPerDimension() - 1u;
+          }
+          else if (index[h] < 0u)
+          {
+            index[h] = 0u;
+          }
         }
         ++m_boxes[this->toIterator(index)];
       }
@@ -596,7 +604,7 @@ namespace histo
         {
           stream << std::right << std::setw(13) << bins[j] << " ";
         }
-        stream << std::right << std::setw(13) << this->element((size_t)i) / this->m_valuecount << "\n";
+        stream << std::right << std::setw(13) << (double)((double) this->element((size_t)i) / (double) this->m_valuecount) << "\n";
       }
     }
 
