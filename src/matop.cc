@@ -379,40 +379,7 @@ namespace matop
         std::cerr << "Working with 2 dimensions";
         dimensionsToBeUsedInHistogramming.resize(2);
       }
-      else if (dimensionsToBeUsedInHistogramming.size() == 1)
-      {
-        //DUMMY
-        Histograms<float_type> *histograms_p;
-        //Initializing
-        if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
-        {
-          size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
-          histograms_p = new Histograms<float_type>((size_t) pca_modes.rows(), histogramBins);
-        }
-        else if (Config::get().PCA.pca_histogram_width > 0.)
-        {
-          float_type histogramWidth = Config::get().PCA.pca_histogram_number_of_bins;
-          histograms_p = new Histograms<float_type>((size_t) pca_modes.rows(), histogramWidth);
-        }
-        else
-        {
-          throw "Error in output_probability_density, exiting.\n You need to specify either a numbger of histogram bins or a bin width in the inputfile.\n";
-        }
-
-        std::cout << "Starting: Histogramming...";
-        //Filling the histogram
-        for (unsigned int i = 0u; i < pca_modes.rows(); i++)
-        {
-          for (unsigned int j = 0u; j < pca_modes.cols(); j++)
-          {
-            histograms_p->add_value(i, pca_modes(i,j));
-          }
-        }
-        histograms_p->distribute();
-        std::cout << *histograms_p;
-        delete histograms_p;
-      }
-      else if (dimensionsToBeUsedInHistogramming.size() == 2)
+      else
       {
         DimensionalHistogram<float_type> *histograms_p;
         if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
@@ -444,7 +411,7 @@ namespace matop
         }
         
         histograms_p->distribute();
-        histograms_p->write("pca_histograms");
+        histograms_p->writeProbabilityDensity("pca_histograms");
         histograms_p->writeAuxilaryData("pca_histograms_auxdata");
         delete histograms_p;
       }

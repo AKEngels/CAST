@@ -574,6 +574,32 @@ namespace histo
       }
     }
 
+    // Write histogrammed data in a format suitable for gnuplotting
+    // This data will be normated to be a probability density
+    void writeProbabilityDensity(std::string filename)
+    {
+      std::ofstream stream(filename, std::ios::out);
+      stream << std::right << std::setw(13);
+      size_t keeperForBlanklines = 0;
+      for (unsigned int i = 0u; i < m_boxes.size(); i++)
+      {
+
+        std::vector<T> bins = centerOfSingleBin(fromIterator(i));
+
+        if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines)
+        {
+          keeperForBlanklines = fromIterator(i)[bins.size() - 2];
+          stream << "\n";
+        }
+
+        for (unsigned int j = 0u; j < bins.size(); j++)
+        {
+          stream << std::right << std::setw(13) << bins[j] << " ";
+        }
+        stream << std::right << std::setw(13) << this->element((size_t)i) / this->m_valuecount << "\n";
+      }
+    }
+
     //Write sums and means (->auxilary data) to file.
     void writeAuxilaryData(std::string filename)
     {
