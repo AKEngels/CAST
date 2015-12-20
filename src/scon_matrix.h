@@ -156,7 +156,7 @@ namespace scon
     }
 
     // put vector in diagonal: delegate to iterator constructor
-    matrix(std::vector<T> const& input) : 
+    matrix(std::vector<T> const& input)
       : matrix(input.begin(), input.end(), iterator_construct_type{})
     { }
 
