@@ -89,15 +89,10 @@ namespace scon
 		/////                           /////
 		/////////////////////////////////////
 
-    // pull in matrix constructors
-    using base_type::base_type;
 
-    // default constructor
-    mathmatrix() = default;
-
-    // construct from matrix
-    mathmatrix(base_type const &m) : base_type(m) {}
-    mathmatrix(base_type &&m) : base_type(std::move(m)) {}
+    // forward all arguments to matrix constructor
+    template<class ... Args>
+    mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
 
     // pull in range functions
     using base_type::begin;
