@@ -579,6 +579,10 @@ int main(int argc, char **argv)
       {
         std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
         coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
+        if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size())
+        {
+          throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
+        }
         holder = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
       }
       coords_ref.set_xyz(holder);
@@ -598,7 +602,7 @@ int main(int argc, char **argv)
       }
       //Perform translational alignment for reference frame
 #ifdef _OPENMP
-      #pragma omp parallel for firstprivate(coords, ref) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+      #pragma omp parallel for firstprivate(coords, coords_temp, coords_ref, ref) reduction(+:mean_value) shared(hold_coords_str, hold_str)
 #endif
       for (int i = 0; i < (int) ci->size(); i++)
       {
@@ -624,8 +628,8 @@ int main(int argc, char **argv)
               //RMSD 
             {
               std::stringstream hold_distance;
-              hold_distance << "Frame " << i << "/" << ci->size() << " ";
-              hold_distance << "Distance: " << root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz()) << "\n";
+              hold_distance << std::setw(13) << i << " ";
+              hold_distance << std::setw(13) << root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz()) << "\n";
               mean_value += root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz());
               hold_str[i] = hold_distance.str();
             }
@@ -633,10 +637,10 @@ int main(int argc, char **argv)
               //dRMSD
             {
               std::stringstream hold_distance;
-              hold_distance << "Frame " << i << "/" << ci->size() << " ";
+              hold_distance << i << " ";
               long double value = drmsd_calc(matr_structure, ref);
               value = sqrt(double(ci->size()) * (double(ci->size()) + 1) * value);
-              hold_distance << "Distance: " << value << "\n";
+              hold_distance << std::setw(13) << value << "\n";
               mean_value += value;
               hold_str[i] = hold_distance.str();
             }
@@ -645,7 +649,7 @@ int main(int argc, char **argv)
             {
               std::stringstream hold_distance;
               long double value = holmsander_calc(matr_structure, ref);
-              hold_distance << "Frame " << i << "/" << ci->size() << " " << "Distance: " << value << "\n";
+              hold_distance << std::setw(13) << i << " " << value << "\n";
               mean_value += value;
               hold_str[i] = hold_distance.str();
             }
