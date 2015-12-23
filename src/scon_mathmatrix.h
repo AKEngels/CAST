@@ -26,7 +26,11 @@ CODING CONVENTIONS AS FOLLOWS:
 
 */
 
+#ifndef scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_
+#define scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_  
+
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -428,7 +432,7 @@ namespace scon
 		{
 			//Via Numerical Recipies, LU Decomposition
 			mathmatrix lu = *this;
-			const float_type TINY = 1.0e-40;
+			//const float_type TINY = 1.0e-40;
 			int i, imax, j, k;
 			int n = int(this->rows());
 			std::vector<int> indx(n);
@@ -1120,6 +1124,8 @@ namespace scon
   }
 
 }
+
+#endif // scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_
 
 
 

@@ -829,7 +829,7 @@ namespace scon
     for (std::size_t i = 0; i < printer.margin_top; ++i) strm << '\n';
     // Iterate matrix
     typedef typename M::size_type size_type;
-    typedef typename M::row_type::const_iterator row_iterator;
+    //typedef typename M::row_type::const_iterator row_iterator;
 
     for (size_type i = 0; i < printer.matrix.rows(); ++i)
     {

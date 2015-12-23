@@ -188,7 +188,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       }
     }
   }
-  for (int i = 0; i < holder.size(); i++)
+  for (std::size_t i = 0; i < holder.size(); i++)
   {
     if (holder[i] == "none") {
       none_check = true;
@@ -196,7 +196,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       break;
     }
     int last_comma = -1;
-    for (int j = 0; j < holder[i].size(); j++)
+    for (std::size_t j = 0; j < holder[i].size(); j++)
     {
       if (holder[i][j] == *",")
       {
@@ -210,12 +210,12 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     }
   }
   //Sorting algorithm
-  int size = (int) temp.size();
-  int left = 0;
+  std::size_t size = temp.size();
+  std::size_t left = 0;
   while (left < size)
   {
     int min = left;
-    for (int i = (left + 1); i < size; i++)
+    for (std::size_t i = (left + 1); i < size; i++)
     {
       if (temp[i] < temp[min])
       {
@@ -228,12 +228,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     temp[left] = holder2;
     left += 1;
   }
-  if (none_check)
-  {
-    //NONE_CHECK:
-    std::vector<T> empty;
-    temp = empty;
-  }
+  if (none_check) temp = std::vector<T>{ };
   return temp;
 }
 
@@ -255,7 +250,7 @@ std::vector<T> configuration_range_float(std::istringstream& cv)
     holder.push_back(temp2);
   }
   holder.pop_back();
-  for (int i = 0; i < holder.size(); i++)
+  for (std::size_t i = 0; i < holder.size(); i++)
   {
     temp.push_back(stod(holder[i]));
   }

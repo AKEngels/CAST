@@ -163,8 +163,8 @@ void neb::initial(void)
   std::string buffer;
   //getline(final,buffer);
   getline(final,buffer);
-  size_t number;
-  char atom[2];
+  //size_t number;
+  //char atom[2];
   
   /*for (size_t i=0;i<N;i++)
   {
@@ -499,7 +499,7 @@ void neb::opt_mep(ptrdiff_t &count)
 	energies_NEB.resize(num_images);
 	grad_v = 1.0;
 	grad_v_temp = 2.0;
-	int maxit(0U);
+	std::size_t maxit(0U);
 	energies_NEB[0] = this->energies[0];
 	energies_NEB[num_images] = this->energies[num_images];
 
@@ -785,7 +785,7 @@ double neb::g_new(ptrdiff_t im)
 
 	/*for (size_t im = 1; im < num - 1; im++)
 	{*/
-	if (ClimbingImage == true && num_images == CIMaximum){
+	if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum)){
 		double magni = 0.0;
 
 		magni = dot(cPtr->g_xyz(), tau[im]);
@@ -853,11 +853,11 @@ double neb::g_new(ptrdiff_t im)
 
 void neb::calc_shift(void)
 {
-	double diff, gridp;
+	double /*diff, */gridp;
 	VecDoub posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
 	Doub x, y, z, pathlenx(0.0), pathleny(0.0), pathlenz(0.0);
 	double distx(0.0), disty(0.0), distz(0.0);
-	ptrdiff_t laf(0), counter(0);
+	std::size_t laf(0)/*, counter(0)*/;
 	std::vector <double> temp;
 	tempimage_ini = imagi[0];
 	tempimage_final = imagi[num_images - 1];
@@ -876,7 +876,7 @@ void neb::calc_shift(void)
 
 		for (size_t j = 0; j < (num_images); j++){
 
-			diff = (double)j / num_images;
+			//diff = (double)j / num_images;
 
 			image_ini[j][i];
 			posx[j] = imagi[j][i].x();
@@ -901,7 +901,7 @@ void neb::calc_shift(void)
 			laf = 0;
 			gridp = k;
 			size_t jj, it;
-			Doub x, tnm, sumx, sumy, sumz, del, sx, sy, sz, skx0, sky0, skz0, skx, sky, skz;
+			Doub tnm, sumx, sumy, sumz, del, sx, sy, sz, skx0, sky0, skz0, skx, sky, skz;
 			skx0 = abs((splinex.interp(k + 0.00001) - splinex.interp(k)) / 0.00001);
 			skx = abs((splinex.interp((k + 1) + 0.00001) - splinex.interp(k + 1)) / 0.00001);
 			sky0 = abs((spliney.interp(k + 0.00001) - spliney.interp(k)) / 0.00001);
@@ -985,31 +985,19 @@ void neb::calc_shift(void)
 	}
 
 	imagi_test.resize(num_images);
+
 	//name2 << "BETA.xyz";
 	//for (size_t j = 1; j < (num_images - 1); j++){
-
-
-
 	//	for (size_t i = 0; i < this->cPtr->size(); i++){
-
 	//		imagi[j][i].x() += shiftx[i];
 	//		imagi[j][i].y() += shifty[i];
 	//		imagi[j][i].z() += shiftz[i];
-
-
 	//		imagi_test[j].push_back(imagi[j][i]);
 	//		//image_ini[j].push_back(images[i]);
-
-
 	//	}
-
-
-
 	//	
-
 	//	//out << "     " << N << " IMAGE_FINAL: " << "  global counter:  " << num_images << lineend;
 	//	//for (size_t j = 0; j <N; j++) {
-
 	//	//	out << std::right << std::setw(6) << j + 1;
 	//	//	out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
 	//	//	out << std::fixed << std::right << std::setprecision(6) << std::setw(13) << imagi[num_images][j].x();
@@ -1022,17 +1010,10 @@ void neb::calc_shift(void)
 	//	//		out << std::right << std::setw(6) << cPtr->atoms(j).bonds()[n] + 1U;
 	//	//	}
 	//	//	out << lineend;
-
 	//	//}
 	//
-
-
-
 	//	//printmono(name2.str(), imagi_test[j], counter);
-
 	//	//cout << imagi_test[j] << endl;
-
-
 	//}
 
 	std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app),out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
@@ -1041,13 +1022,13 @@ void neb::calc_shift(void)
 	interpol_position.resize(N);
 	temp_int.resize(N);
 	
-	for (ptrdiff_t i = 1; i < num_images - 1; i++)
+	for (std::size_t i = 1; i < num_images - 1; i++)
 	{
 
-		for (ptrdiff_t k = 0; k < laf; k++) {
+		for (std::size_t k = 0; k < laf; k++) {
 			out << "     " << N << " IMAGE: " << k << "  global counter:  " << i << lineend;
 			temp_int.clear();
-			for (size_t j = 0; j < N; j++) {
+			for (std::size_t j = 0; j < N; j++) {
 
 
 
@@ -1138,7 +1119,7 @@ void neb::calc_shift(void)
 
 
 
-double neb::lbfgs_int(std::vector <scon::c3 <float> > t)
+double neb::lbfgs_int(std::vector <scon::c3 <float> > )
 {
 
 

@@ -403,9 +403,9 @@ namespace md
     friend scon::binary_stream<Strm> &
       operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
     {
-      std::array<std::size_t, 9u> const sizes = {sim.P.size(), sim.P_old.size(), 
-        sim.F.size(), sim.F_old.size(), sim.V.size(), sim.M.size(), 
-        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()};
+      std::array<std::size_t, 9u> const sizes = { {sim.P.size(), sim.P_old.size(),
+        sim.F.size(), sim.F_old.size(), sim.V.size(), sim.M.size(),
+        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()} };
       // sizes
       for (auto const & s : sizes) strm << s;
       // logger

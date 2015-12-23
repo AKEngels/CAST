@@ -376,13 +376,14 @@ namespace
   struct windices
   {
     std::size_t h[2], o;
+    windices() : h(), o() {}
   };
 
   template<class MI>
   windices get_windices(std::size_t const water_mol_index, 
     MI const & molecules, coords::Atoms const &a)
   {
-    windices r{};
+    windices r;
     auto const &wm = molecules[water_mol_index];
 
     if (a.atom(wm[0]).number() == 1u)

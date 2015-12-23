@@ -20,7 +20,7 @@ namespace matop
       out_mat(l, 2) = tempcoord2.z();
     }
     return transposed(out_mat);
-  };
+  }
 
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
   {
@@ -33,7 +33,7 @@ namespace matop
       out_mat(l, 2) = in.intern(l).azimuth().radians();
     }
     return transposed(out_mat);
-  };
+  }
 
   Matrix_Class transform_coordinates(coords::Coordinates& input)
   {
@@ -124,7 +124,7 @@ namespace matop
   /////////////////////////////////////
   namespace pca
   {
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, int rank)
+    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& /*pca_modes*/, int rank)
     {
       Matrix_Class cov_matr = (transposed(input));
       Matrix_Class ones(input.cols(), input.cols(), 1.0);
@@ -400,7 +400,7 @@ namespace matop
       std::ifstream pca_modes_stream(filename, std::ios::in);
       std::string line;
       std::getline(pca_modes_stream, line);
-      int dimensions = std::stoi(line.substr(13, 2));
+      //int dimensions = std::stoi(line.substr(13, 2));
       while (line.find("Eigenvectors") == std::string::npos)
       {
         std::getline(pca_modes_stream, line);
@@ -619,7 +619,7 @@ namespace matop
       Matrix_Class alpha_i(pca_frequencies.rows());
       Matrix_Class quantum_entropy(pca_frequencies.rows());
       float_type entropy_sho = 0;
-      for (unsigned int i = 0; i < int(eigenvalues.rows()); i++)
+      for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
         pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
         alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
@@ -636,7 +636,7 @@ namespace matop
       Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
       Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
       Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
-      int const size = entropy_anharmonic.rows();
+      //std::size_t const size = entropy_anharmonic.rows();
 
 
       // II. Calculate Non-Paramteric Entropies

@@ -727,7 +727,7 @@ int main(int argc, char **argv)
           }
           //Perform translational alignment for reference frame
 
-          bool has_it_started = false;
+          //bool has_it_started = false;
           const unsigned int FRAME_SIZE = int(ci->size());
           //Initializing some stuff
 
@@ -1025,27 +1025,27 @@ int main(int argc, char **argv)
           int m = Config::get().entropy.entropy_method[u];
           if (m == 1 || m == 0)
           {
-            double entropy_value = karplus_wrapper(workobj);
+            /*double entropy_value = */karplus_wrapper(workobj);
           }
           if (m == 2)
           {
-            double entropy_value = knapp_m_wrapper(workobj);
+            /*double entropy_value = */knapp_m_wrapper(workobj);
           }
           if (m == 3 || m == 0)
           {
-            double entropy_value = knapp_wrapper(workobj);
+            /*double entropy_value = */knapp_wrapper(workobj);
           }
           if (m == 4 || m == 0)
           {
-            double entropy_value = hnizdo_wrapper(workobj);
+            /*double entropy_value = */hnizdo_wrapper(workobj);
           }
           if (m == 5 || m == 0)
           {
-            double entropy_value = hnizdo_m_wrapper(workobj);
+            /*double entropy_value = */hnizdo_m_wrapper(workobj);
           }
           if (m == 6 || m == 0)
           {
-            double entropy_value = schlitter_wrapper(workobj);
+            /*double entropy_value = */schlitter_wrapper(workobj);
           }
         }
         //Perform desired calculations
