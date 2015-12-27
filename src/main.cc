@@ -636,7 +636,7 @@ int main(int argc, char **argv)
             {
               std::stringstream temporaryStringstream;
               temporaryStringstream << i << " ";
-              long double value = drmsd_calc(coordsTemporaryStructure, coordsReferenceStructure);
+              double value = (double) drmsd_calc(coordsTemporaryStructure, coordsReferenceStructure);
               temporaryStringstream << std::setw(13) << value << "\n";
               mean_value += value;
               hold_str[i] = temporaryStringstream.str();
@@ -645,7 +645,7 @@ int main(int argc, char **argv)
             //Holm&Sander Distance
             {
               std::stringstream temporaryStringstream;
-              long double value = holmsander_calc(coordsTemporaryStructure, coordsReferenceStructure, Config::get().alignment.holm_sand_r0);
+              double value = (double) holmsander_calc(coordsTemporaryStructure, coordsReferenceStructure, Config::get().alignment.holm_sand_r0);
               temporaryStringstream << std::setw(13) << i << " " << value << "\n";
               mean_value += value;
               hold_str[i] = temporaryStringstream.str();

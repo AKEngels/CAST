@@ -146,8 +146,6 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     if (holder[i] == "none")
     {
       none_check = true;
-      //goto NONE_CHECK;
-      //break;
     }
     bool i_o_done = false;
     while (!i_o_done)
@@ -156,7 +154,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       {
         if (holder[i][j] == *"-")
         {
-          int last_comma = -1, next_comma;
+          int last_comma = -1, next_comma = -1;
           for (int l = j; l >= 0; l--)
           {
             if (holder[i][l] == *",") { last_comma = l; break; }
@@ -192,7 +190,6 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
   {
     if (holder[i] == "none") {
       none_check = true;
-      //goto NONE_CHECK;
       break;
     }
     int last_comma = -1;
@@ -201,7 +198,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       if (holder[i][j] == *",")
       {
         temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma - 1))));
-        last_comma = j;
+        last_comma = (int) j;
       }
       else if (j == holder[i].size() - 1)
       {
@@ -214,7 +211,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
   std::size_t left = 0;
   while (left < size)
   {
-    int min = left;
+    size_t min = left;
     for (std::size_t i = (left + 1); i < size; i++)
     {
       if (temp[i] < temp[min])

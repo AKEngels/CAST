@@ -497,9 +497,9 @@ namespace scon
 			//Get determinant
 			if (d != 0.0)
 			{
-				for (int i = 0; i < n; i++)
+				for (int i2 = 0; i2 < n; i2++)
 				{
-					d *= lu(i, i);
+					d *= lu(i2, i2);
 				}
 				return d;
 			}
@@ -558,7 +558,7 @@ namespace scon
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
 			//Old size needs to be kept
-			unsigned int holder = this->rows();
+			size_t holder = this->rows();
 
 			this->resize(this->rows() + I_will_be_the_bottom_part.rows(), this->cols());
 
@@ -663,19 +663,19 @@ namespace scon
 		/**
 		 * Sheds the specified rows from the matrix
 		 */
-		void shed_rows(unsigned int first_in, unsigned int last_in)
+		void shed_rows(size_t first_in, size_t last_in)
 		{
 			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
-			for (unsigned int i = 0u; i < first_in; i++)
+			for (size_t i = 0u; i < first_in; i++)
 			{
-				for (unsigned int j = 0u; j < this->cols(); j++)
+				for (size_t j = 0u; j < this->cols(); j++)
 				{
 					newOne(i, j) = (*this)(i, j);
 				}
 			}
-			for (unsigned int i = last_in + 1u; i < this->rows(); i++)
+			for (size_t i = last_in + 1u; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0u; j < this->cols(); j++)
+				for (size_t j = 0u; j < this->cols(); j++)
 				{
 					newOne(i - last_in - 1u, j) = (*this)(i, j);
 				}
@@ -686,19 +686,19 @@ namespace scon
 		/**
 		 * Sheds the specified columns from the matrix
 		 */
-		void shed_cols(unsigned int first_in, unsigned int last_in)
+		void shed_cols(size_t first_in, size_t last_in)
 		{
 			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
-			for (unsigned int j = 0u; j < this->rows(); j++)
+			for (size_t j = 0u; j < this->rows(); j++)
 			{
-				for (unsigned int i = 0u; i < first_in; i++)
+				for (size_t i = 0u; i < first_in; i++)
 				{
 					newOne(j, i) = (*this)(j, i);
 				}
 			}
-			for (unsigned int j = 0u; j < this->rows(); j++)
+			for (size_t j = 0u; j < this->rows(); j++)
 			{
-				for (unsigned int i = last_in + 1u; i < this->cols(); i++)
+				for (size_t i = last_in + 1u; i < this->cols(); i++)
 				{
 					newOne(j, i - last_in - 1u) = (*this)(j, i);
 				}
@@ -771,7 +771,7 @@ namespace scon
 			//Beginn SVD::decompose()
 			{
 				bool flag;
-				int i, its, j, jj, k, l, nm;
+				int i, its, j, jj, k, l = 0, nm;
 				float_type anorm, c, f, g, h, s, scale, x, y, z;
 				mathmatrix rv1(n);
 				g = scale = anorm = 0.0;

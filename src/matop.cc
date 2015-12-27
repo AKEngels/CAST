@@ -62,7 +62,7 @@ namespace matop
   Matrix_Class transform_3n_nf(Matrix_Class const& input)
   {
     Matrix_Class transformed_matrix(1, (input.rows() * input.cols()));
-    int j = 0;
+    size_t j = 0;
     for (unsigned int i = 0; i < input.cols(); i++)
     {
       for (unsigned int k = 0; k < input.rows(); k++)
@@ -141,7 +141,7 @@ namespace matop
         std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().PCA.pca_remove_dof)
         {
-          int temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
           eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
           eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
         }
@@ -172,7 +172,7 @@ namespace matop
         {
           if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
           {
-            int rows_of_pca_modes2 = pca_modes2.rows();
+            size_t rows_of_pca_modes2 = pca_modes2.rows();
             pca_modes2.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
             eigenvalues.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
             break;
@@ -213,7 +213,7 @@ namespace matop
     {
       //Transform it as necessary
       Matrix_Class transformed_matrix(1u, (unsigned int)( (3 * Config::get().PCA.pca_trunc_atoms_num.size()) ));
-      int j = 0;
+      size_t j = 0;
       unsigned int quicksearch = 0;
       for (unsigned int i = 0; i < input.cols(); i++) //iterate over atoms
       {
@@ -763,11 +763,11 @@ namespace matop
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
-      float_type distance = knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, 0, 1);
+      float_type distance = knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, 1u);
       for (unsigned int k = 1; k < input.cols(); k++)
       {
         //Should be equivalent to the original version but with less costly sqrt:
-        distance *= knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, 0, k);
+        distance *= knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, k);
       }
       distance = std::log(std::sqrt(distance));
 
@@ -958,7 +958,7 @@ namespace matop
     Matrix_Class transform_3n_nf_trunc_entropy(Matrix_Class const& input)
     { // Transform it as necessary
       Matrix_Class transformed_matrix(1u, (unsigned int)((input.rows() * input.cols() - 3 * Config::get().entropy.entropy_trunc_atoms_num.size())));
-      int j = 0;
+      size_t j = 0;
       unsigned int quicksearch = 0;
       for (unsigned int i = 0; i < input.cols(); i++)
       {
@@ -1104,6 +1104,7 @@ namespace matop
     coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
     {
       coords::Coordinates output(inputCoords);
+      if (centerOfMassAlign) centerOfMassAlignment(output);
       kabschAlignment(output, reference);
       return output;
     }
