@@ -565,16 +565,18 @@ int main(int argc, char **argv)
        * THIS TASK ALIGNES A SIMULATION TRAJECTORY
        *
        * This task will perform a translational- and rotational fit of the conformations
-       * obtained from a molecular simulation. Furthermore, molecular distance meassures
-       * may be computed afterwards
+       * obtained from a molecular simulation according to Kabsch's method. 
+       * Furthermore, molecular distance meassures may be computed afterwards
        *
        * Now even fancier through OpenMP magic
        */
       using namespace matop;
       using namespace matop::align;
 
-      coords::Coordinates coords_ref(coords), coords_temp(coords);
-      auto holder = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+      coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
+      auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+
+      //Alignment to external reference frame (different file)
       if (!Config::get().alignment.align_external_file.empty())
       {
         std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
@@ -583,82 +585,76 @@ int main(int argc, char **argv)
         {
           throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
         }
-        holder = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
+        temporaryPESpoint = externalReferenceStructurePtr->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
       }
-      coords_ref.set_xyz(holder);
-      Matrix_Class ref = matop::transfer_to_matr(coords_ref);
       //Constructs two coordinate objects and sets reference frame according to INPUTFILE
+      coordsReferenceStructure.set_xyz(temporaryPESpoint);
+      Matrix_Class matrixReferenceStructure = matop::transfer_to_matr(coordsReferenceStructure);
 
+      //Construct and Allocate arrays for stringoutput (necessary for OpenMP)
       double mean_value = 0;
       std::string *hold_str, *hold_coords_str;
       hold_str = new std::string[ci->size()];
       hold_coords_str = new std::string[ci->size()];
-      //Construct and Allocate arrays for stringoutput (necessary for OpenMP)
 
+      //Perform translational alignment for reference frame
       if (Config::get().alignment.traj_align_bool)
       {
-        matop::align::align_center_of_mass(ref, coords_ref);
-        coords_ref.set_xyz(matop::transfer_to_3DRepressentation(ref));
+        centerOfMassAlignment(coordsReferenceStructure);
       }
-      //Perform translational alignment for reference frame
+
 #ifdef _OPENMP
-      #pragma omp parallel for firstprivate(coords, coords_temp, coords_ref, ref) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+      #pragma omp parallel for firstprivate(coords, coordsReferenceStructure, coordsTemporaryStructure, matrixReferenceStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
 #endif
       for (int i = 0; i < (int) ci->size(); i++)
       {
         if ((unsigned int) i != Config::get().alignment.reference_frame_num)
         {
-          auto holder2 = ci->PES()[i].structure.cartesian;
-          coords_temp.set_xyz(holder2);
-          Matrix_Class matr_structure = transfer_to_matr(coords_temp);
+          auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
+          coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
           //Create temporary objects for current frame
 
           if (Config::get().alignment.traj_align_bool)
           {
-            align_center_of_mass(matr_structure, coords_temp);
-            rotate(matr_structure, ref);
-            //matr_structure = (matr_structure.rotated(ref));
+            kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, true);
           }
-          coords_temp.set_xyz(transfer_to_3DRepressentation(matr_structure));
-          //Alignment taking place
 
           if (Config::get().alignment.traj_print_bool)
           {
             if (Config::get().alignment.dist_unit == 0)
-              //RMSD 
+            //RMSD 
             {
-              std::stringstream hold_distance;
-              hold_distance << std::setw(13) << i << " ";
-              hold_distance << std::setw(13) << root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz()) << "\n";
-              mean_value += root_mean_square_deviation(coords_temp.xyz(), coords_ref.xyz());
-              hold_str[i] = hold_distance.str();
+              std::stringstream temporaryStringstream;
+              double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
+              temporaryStringstream << std::setw(13) << i << " ";
+              temporaryStringstream << std::setw(13) << currentRootMeanSquareDevaition << "\n";
+              mean_value += currentRootMeanSquareDevaition;
+              hold_str[i] = temporaryStringstream.str();
             }
             else if (Config::get().alignment.dist_unit == 1)
-              //dRMSD
+            //dRMSD
             {
-              std::stringstream hold_distance;
-              hold_distance << i << " ";
-              long double value = drmsd_calc(matr_structure, ref);
-              value = sqrt(double(ci->size()) * (double(ci->size()) + 1) * value);
-              hold_distance << std::setw(13) << value << "\n";
+              std::stringstream temporaryStringstream;
+              temporaryStringstream << i << " ";
+              long double value = drmsd_calc(coordsTemporaryStructure, coordsReferenceStructure);
+              temporaryStringstream << std::setw(13) << value << "\n";
               mean_value += value;
-              hold_str[i] = hold_distance.str();
+              hold_str[i] = temporaryStringstream.str();
             }
             else if (Config::get().alignment.dist_unit == 2)
-              //Holm&Sander Distance
+            //Holm&Sander Distance
             {
-              std::stringstream hold_distance;
-              long double value = holmsander_calc(matr_structure, ref);
-              hold_distance << std::setw(13) << i << " " << value << "\n";
+              std::stringstream temporaryStringstream;
+              long double value = holmsander_calc(coordsTemporaryStructure, coordsReferenceStructure, Config::get().alignment.holm_sand_r0);
+              temporaryStringstream << std::setw(13) << i << " " << value << "\n";
               mean_value += value;
-              hold_str[i] = hold_distance.str();
+              hold_str[i] = temporaryStringstream.str();
             }
           }
           //Molecular distance measure calculation
 
           std::stringstream hold_coords;
-          coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
-          hold_coords << coords;
+          hold_coords << coordsTemporaryStructure;
           hold_coords_str[i] = hold_coords.str();
           //Formatted string-output
         }
@@ -666,7 +662,7 @@ int main(int argc, char **argv)
         else if ((unsigned int) i == Config::get().alignment.reference_frame_num)
         {
           std::stringstream hold_coords;
-          hold_coords << coords_ref;
+          hold_coords << coordsReferenceStructure;
           hold_coords_str[i] = hold_coords.str();
           //Formatted string-output (first to array because of OpenMP parallelization)
         }
@@ -696,8 +692,9 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    	case config::tasks::PCAgen:
-      {
+
+    case config::tasks::PCAgen:
+    {
         /**
          * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
          *
@@ -717,15 +714,13 @@ int main(int argc, char **argv)
           coords::Coordinates coords_ref(coords);
           auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
           coords_ref.set_xyz(holder);
-          Matrix_Class ref = transfer_to_matr(coords_ref);
           //Constructs two coordinate objects and sets reference frame according to INPUTFILE
 
+          //Perform translational alignment for reference frame
           if (Config::get().PCA.pca_alignment)
           {
-            align::align_center_of_mass(ref, coords);
-            coords_ref.set_xyz(transfer_to_3DRepressentation(ref));;
+            align::centerOfMassAlignment(coords_ref);
           }
-          //Perform translational alignment for reference frame
 
           //bool has_it_started = false;
           const unsigned int FRAME_SIZE = int(ci->size());
@@ -737,15 +732,15 @@ int main(int argc, char **argv)
             {
               auto holder2 = ci->PES()[i].structure.cartesian;
               coords.set_xyz(holder2);
-              Matrix_Class matr_structure = transfer_to_matr(coords);
               //Initializing current frame
 
               if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
               {
-                align::align_center_of_mass(matr_structure, coords); //Alignes center of mass
-                align::rotate(matr_structure, ref); //Rotates
+                align::centerOfMassAlignment(coords); //Alignes center of mass
+                align::kabschAlignment(coords, coords_ref); //Rotates
               }
               //Translational and rotational alignment
+              Matrix_Class matr_structure = transfer_to_matr(coords);
 
               if (Config::get().PCA.pca_use_internal)
               {
@@ -846,8 +841,8 @@ int main(int argc, char **argv)
         break;
       }
 
-      case config::tasks::PCAproc:
-      {
+    case config::tasks::PCAproc:
+    {
         /**
          * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
          * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
@@ -913,8 +908,8 @@ int main(int argc, char **argv)
         break;
       }
 
-      case config::tasks::ENTROPY:
-      {
+    case config::tasks::ENTROPY:
+    {
         /**
          * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
          *
@@ -926,23 +921,22 @@ int main(int argc, char **argv)
         using namespace matop;
         using namespace matop::entropy;
 
+        //Initialize the reference frame (for alignment etc)
         coords::Coordinates coords_ref(coords);
         auto holder = (*ci).PES()[Config::get().entropy.entropy_ref_frame_num].structure.cartesian;
         coords_ref.set_xyz(holder);
-        Matrix_Class ref = transfer_to_matr(coords_ref);
-        //Initialize the reference frame (for alignment etc)
 
+        //Translational alignment of the reference frame
         if (Config::get().entropy.entropy_alignment)
         {
-          align::align_center_of_mass(ref,coords_ref);
+          align::centerOfMassAlignment(coords_ref);
         }
-        //Translational alignment of the reference frame
 
         Matrix_Class matrix_aligned;
         const unsigned int FRAME_SIZE = int(ci->size());
         if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
         {
-          std::cerr << "Alignment is (in this case) redundant when internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
+          std::cerr << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
           std::cerr << "Continuing anyway...";
         }
         //Initializing and checking...
@@ -954,15 +948,15 @@ int main(int argc, char **argv)
           {
             auto holder2 = ci->PES()[i].structure.cartesian;
             coords.set_xyz(holder2);
-            Matrix_Class matr_structure = transfer_to_matr(coords);
             //Initializing current frame
 
             if (Config::get().entropy.entropy_alignment && !Config::get().entropy.entropy_use_internal)
             {
-              align::align_center_of_mass(matr_structure, coords); //Alignes center of mass
-              align::rotate(matr_structure, ref); //Rotates
+              align::centerOfMassAlignment(coords); //Alignes center of mass
+              align::kabschAlignment(coords, coords_ref); //Rotates
             }
             //Translational and rotational alignment
+            Matrix_Class matr_structure = transfer_to_matr(coords);
 
             if (Config::get().entropy.entropy_use_internal)
             {
@@ -1018,7 +1012,6 @@ int main(int argc, char **argv)
         }
         //Mass-weightening cartesian coordinates
 
-        //std::cout << matrix_aligned;
         for (unsigned int u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
         {
           Matrix_Class& workobj = matrix_aligned;
@@ -1055,8 +1048,8 @@ int main(int argc, char **argv)
       }
 
     default:
-      {
-      }
+    {
+    }
 
     }
     // stop and print task and execution time

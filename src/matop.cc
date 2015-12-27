@@ -1068,69 +1068,56 @@ namespace matop
   /////////////////////////////////////
   namespace align
   {
-    float_type calc_rmsd(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref)
     {
-      unsigned int size = input.cols();
-      float_type temp(0.), temp2(0.), temp3(0.);
-      for (unsigned int i = 0; i < size; i++) {
-        temp = 0;
-        temp3 = 0;
-        for (unsigned int j = 0; j < input.cols(); j++) {
-          temp = (ref(j, i) - (input)(j, i));
-          temp *= temp;
-          temp3 += temp;
-        }
-        temp2 += temp3;
-      }
-      return (sqrt(temp2 / float_type(size)));
-    }
+      if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
-    float_type drmsd_calc(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
-    {
       float_type value = 0;
-      int counter(0);
-      Matrix_Class matr_structure(input);
-      for (unsigned int i = 0; i < input.cols(); i++) {
-        for (unsigned int j = 0; j < i; j++)
+      for (size_t i = 0; i < input.atoms().size(); i++) 
+      {
+        for (size_t j = 0; j < i; j++)
         {
-          float_type holder = sqrt((ref(0, i) - ref(0, j)) * (ref(0, i) - ref(0, j)) + (ref(1, i) - ref(1, j))* (ref(1, i) - ref(1, j)) + (ref(2, i) - ref(2, j))*(ref(2, i) - ref(2, j)));
-          float_type holder2 = sqrt(((input)(0, i) - (input)(0, j)) * ((input)(0, i) - (input)(0, j)) + ((input)(1, i) - (input)(1, j)) * ((input)(1, i) - (input)(1, j)) + ((input)(2, i) - (input)(2, j)) * ((input)(2, i) - (input)(2, j)));
+          float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y())* (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+          float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y())* (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
           value += (holder2 - holder) * (holder2 - holder);
-          counter++;
         }
       }
-      return sqrt(value / counter);
+      return sqrt(value / (double) (input.atoms().size() * (input.atoms().size() + 1u) ) );
     }
 
-    float_type holmsander_calc(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance)
     {
+      if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
+
       float_type value(0);
-      Matrix_Class matr_structure = input;
-      for (unsigned int i = 0; i < input.cols(); i++) {
+      for (unsigned int i = 0; i < input.atoms().size(); i++) {
         for (unsigned int j = 0; j < i; j++)
         {
-          float_type holder = sqrt((ref(0, i) - ref(0, j)) * (ref(0, i) - ref(0, j)) + (ref(1, i) - ref(1, j))* (ref(1, i) - ref(1, j)) + (ref(2, i) - ref(2, j))*(ref(2, i) - ref(2, j)));
-          float_type holder2 = sqrt(((input)(0, i) - (input)(0, j)) * ((input)(0, i) - (input)(0, j)) + ((input)(1, i) - (input)(1, j))* ((input)(1, i) - (input)(1, j)) + ((input)(2, i) - (input)(2, j))*((input)(2, i) - (input)(2, j)));
-          value += abs(holder2 - holder) * exp(-1 * (holder2 + holder)*(holder2 + holder) / (4 * (config::align().holm_sand_r0) * (config::align().holm_sand_r0))) / (holder2 + holder);
+          float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y())* (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+          float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y())* (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
+          value += abs(holder2 - holder) * exp(-1 * (holder2 + holder)*(holder2 + holder) / (4 * holmAndSanderDistance * holmAndSanderDistance)) / (holder2 + holder);
         }
       }
       return value;
     }
 
-    Matrix_Class rotated(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
     {
-      Matrix_Class working_copy(input, false);
-      rotate(working_copy, ref);
-      return working_copy;
+      coords::Coordinates output(inputCoords);
+      kabschAlignment(output, reference);
+      return output;
     }
 
-    void rotate(Matrix_Class& input, Matrix_Class const& ref)
-      //LAYER 1
+    void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
     {
+      if (centerOfMassAlign)
+      {
+        centerOfMassAlignment(inputCoords);
+      }
+
+      Matrix_Class input = transfer_to_matr(inputCoords);
+      Matrix_Class ref = transfer_to_matr(reference);
+
       Matrix_Class c(input * transposed(ref));
       //Creates Covariance Matrix
 
@@ -1146,47 +1133,16 @@ namespace matop
       unit = unit * U;
       unit = V * unit;
       input = unit * input;
+
+      inputCoords.set_xyz(transfer_to_3DRepressentation(input));
     }
 
-    void align_center_of_mass(Matrix_Class& input, coords::Coordinates const& coords_in)
-      //LAYER 1
+    void centerOfMassAlignment(coords::Coordinates& coords_in)
     {
       coords::Cartesian_Point com_ref = coords_in.center_of_mass();
-
-      for (unsigned int i = 0; i < input.cols(); i++)
-      {
-        (input)(0, i) -= com_ref.x();
-        (input)(1, i) -= com_ref.y();
-        (input)(2, i) -= com_ref.z();
-      }
+      coords_in.move_all_by(-com_ref, true);
     }
 
-    void align_center_of_geo(Matrix_Class& input)
-      //LAYER 1
-    {
-      std::cerr << "CAUTION!!!!!! A DEPRECATED FUNCTION IS USED! you used Matrix_Class::align(void) which alignes to center of geometry, better use Matrix_Class::align(coords::coordinates&) which alignes to center of mass! This is the usual procedure!\n";
-      std::vector <float_type> com_ref = center_of_geo(input);
-      for (unsigned int j = 0; j < input.rows(); j++) {
-        for (unsigned int i = 0; i < input.cols(); i++) {
-          (input)(j, i) -= com_ref[j];
-        }
-      }
-    }
-
-    std::vector <float_type> center_of_geo(Matrix_Class const& input)
-      //LAYER 1
-    {
-      std::vector <float_type> output(3, 0.0);
-      float_type mean = 0;
-      for (unsigned int j = 0; j < 3; j++) {
-        mean = 0.0;
-        for (unsigned int i = 0; i < input.rows(); i++) {
-          mean += (input)(i, j);
-        }
-        output[j] = (mean / (float_type(input.rows())));
-      }
-      return output;
-    }
   }
 
 } //END NAMESPACE matop

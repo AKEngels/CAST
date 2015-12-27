@@ -27,7 +27,6 @@ std::ostream& coords::operator<< (std::ostream &stream, internal_relations const
   return stream;
 }
 
-
 std::ostream& coords::operator<< (std::ostream &stream, Atom const & atom)
 {
   stream << atom.m_symbol << " (" << atom.m_number << ", " << atom.m_mass << "):[";
