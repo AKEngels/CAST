@@ -10,7 +10,7 @@ namespace matop
 
   Matrix_Class transfer_to_matr(coords::Coordinates const& in)
   {
-    Matrix_Class out_mat((unsigned int)(in.size()), 3u);
+    Matrix_Class out_mat(in.size(), 3u);
     for (unsigned int l = 0; l < (unsigned int) in.size(); l++)
     {
       coords::cartesian_type tempcoord2;
@@ -19,8 +19,8 @@ namespace matop
       out_mat(l, 1) = tempcoord2.y();
       out_mat(l, 2) = tempcoord2.z();
     }
-    return out_mat.transposed();
-  };
+    return transposed(out_mat);
+  }
 
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
   {
@@ -32,8 +32,8 @@ namespace matop
       out_mat(l, 1) = in.intern(l).inclination().radians();
       out_mat(l, 2) = in.intern(l).azimuth().radians();
     }
-    return out_mat.transposed();
-  };
+    return transposed(out_mat);
+  }
 
   Matrix_Class transform_coordinates(coords::Coordinates& input)
   {
@@ -74,7 +74,7 @@ namespace matop
   Matrix_Class transform_3n_nf(Matrix_Class const& input)
   {
     Matrix_Class transformed_matrix(1, (input.rows() * input.cols()));
-    int j = 0;
+    size_t j = 0;
     for (unsigned int i = 0; i < input.cols(); i++)
     {
       for (unsigned int k = 0; k < input.rows(); k++)
@@ -176,13 +176,12 @@ namespace matop
   /////////////////////////////////////
   namespace pca
   {
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, int rank)
+    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& /*pca_modes*/, int rank)
     {
-      Matrix_Class cov_matr = (input.transposed());
-      Matrix_Class ones(input.cols(), input.cols());
-      ones.fillwith(1.0);
+      Matrix_Class cov_matr = (transposed(input));
+      Matrix_Class ones(input.cols(), input.cols(), 1.0);
       cov_matr = cov_matr - ones * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
       float_type cov_determ = 0.;
       int *cov_rank = new int;
@@ -195,7 +194,7 @@ namespace matop
         std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().PCA.pca_remove_dof)
         {
-          int temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
           eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
           eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
         }
@@ -226,7 +225,7 @@ namespace matop
         {
           if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
           {
-            int rows_of_pca_modes2 = pca_modes2.rows();
+            size_t rows_of_pca_modes2 = pca_modes2.rows();
             pca_modes2.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
             eigenvalues.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
             break;
@@ -268,7 +267,7 @@ namespace matop
     {
       //Transform it as necessary
       Matrix_Class transformed_matrix(1u, (unsigned int)( (3 * Config::get().PCA.pca_trunc_atoms_num.size()) ));
-      int j = 0;
+      size_t j = 0;
       unsigned int quicksearch = 0;
       for (unsigned int i = 0; i < input.cols(); i++) //iterate over atoms
       {
@@ -422,7 +421,7 @@ namespace matop
       std::ifstream pca_modes_stream(filename, std::ios::in);
       std::string line;
       std::getline(pca_modes_stream, line);
-      int dimensions = std::stoi(line.substr(13, 2));
+      //int dimensions = std::stoi(line.substr(13, 2));
       while (line.find("Eigenvectors") == std::string::npos)
       {
         std::getline(pca_modes_stream, line);
@@ -615,9 +614,9 @@ namespace matop
     float_type knapp_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols() ).filledwith(1.) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr * (1. / (float_type) input.cols() );
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -654,7 +653,7 @@ namespace matop
       Matrix_Class alpha_i(pca_frequencies.rows());
       Matrix_Class quantum_entropy(pca_frequencies.rows());
       float_type entropy_sho = 0;
-      for (unsigned int i = 0; i < int(eigenvalues.rows()); i++)
+      for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
         pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
         alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
@@ -666,15 +665,12 @@ namespace matop
 
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
-      Matrix_Class eigenvectors_t(eigenvectors.transposed());
+      Matrix_Class eigenvectors_t(transposed(eigenvectors));
       Matrix_Class pca_modes = eigenvectors_t * input;
-      Matrix_Class entropy_anharmonic(pca_modes.rows());
-      entropy_anharmonic.fillwith(0.0);
-      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows());
-      entropy_mi.fillwith(0.0);
-      Matrix_Class classical_entropy(pca_modes.rows());
-      classical_entropy.fillwith(0.0);
-      int const size = entropy_anharmonic.rows();
+      Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
+      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
+      Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
+      //std::size_t const size = entropy_anharmonic.rows();
 
 
       // II. Calculate Non-Paramteric Entropies
@@ -799,14 +795,13 @@ namespace matop
     float_type hnizdo_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u);
-      marginal_entropy_storage.fillwith(0.0);
+      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
-      float_type distance = knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, 0, 1);
+      float_type distance = knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, 1u);
       for (unsigned int k = 1; k < input.cols(); k++)
       {
         //Should be equivalent to the original version but with less costly sqrt:
-        distance *= knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, 0, k);
+        distance *= knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, k);
       }
       distance = std::log(std::sqrt(distance));
 
@@ -842,8 +837,7 @@ namespace matop
     float_type hnizdo_m_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)\n";
-      Matrix_Class marginal_entropy_storage(input.rows());
-      marginal_entropy_storage.fillwith(0.0);
+      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
       for (unsigned int i = 0; i < input.rows(); i++)
@@ -851,7 +845,8 @@ namespace matop
         double distance = 0.0;
         for (unsigned int k = 0; k < input.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(input, 1, Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
+          distance += log(sqrt(knn_distance(input, 1, 
+            Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
         }
         distance /= float_type(input.cols());
 
@@ -885,9 +880,9 @@ namespace matop
     float_type knapp_m_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols()).filledwith(1.) * cov_matr / (float_type)input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = (transposed(input));
+      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr * (1.0 / (float_type)input.cols());
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -938,9 +933,9 @@ namespace matop
     float_type karplus_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.rows() ).filledwith(1.0) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = (transposed(input));
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.rows(), 1. ) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
@@ -960,9 +955,9 @@ namespace matop
     float_type schlitter_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)\n";
-      Matrix_Class cov_matr = (input.transposed());
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols()).filledwith(1.) * cov_matr / input.cols();
-      cov_matr = cov_matr.transposed() * cov_matr;
+      Matrix_Class cov_matr = transposed(input);
+      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
+      cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
 
       /*
@@ -984,7 +979,7 @@ namespace matop
       */
 
       cov_matr = cov_matr * (1.38064813 * Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.0546 * 1.0546 * 10e-45));
-      cov_matr = cov_matr + Matrix_Class(cov_matr.rows(), cov_matr.cols()).return_identity();
+      cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -997,7 +992,7 @@ namespace matop
     Matrix_Class transform_3n_nf_trunc_entropy(Matrix_Class const& input)
     { // Transform it as necessary
       Matrix_Class transformed_matrix(1u, (unsigned int)((input.rows() * input.cols() - 3 * Config::get().entropy.entropy_trunc_atoms_num.size())));
-      int j = 0;
+      size_t j = 0;
       unsigned int quicksearch = 0;
       for (unsigned int i = 0; i < input.cols(); i++)
       {
@@ -1107,126 +1102,82 @@ namespace matop
   /////////////////////////////////////
   namespace align
   {
-    float_type calc_rmsd(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref)
     {
-      unsigned int size = input.cols();
-      float_type temp(0.), temp2(0.), temp3(0.);
-      for (unsigned int i = 0; i < size; i++) {
-        temp = 0;
-        temp3 = 0;
-        for (unsigned int j = 0; j < input.cols(); j++) {
-          temp = (ref(j, i) - (input)(j, i));
-          temp *= temp;
-          temp3 += temp;
-        }
-        temp2 += temp3;
-      }
-      return (sqrt(temp2 / float_type(size)));
-    }
+      if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
-    float_type drmsd_calc(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
-    {
       float_type value = 0;
-      int counter(0);
-      Matrix_Class matr_structure(input);
-      for (unsigned int i = 0; i < input.cols(); i++) {
-        for (unsigned int j = 0; j < i; j++)
+      for (size_t i = 0; i < input.atoms().size(); i++) 
+      {
+        for (size_t j = 0; j < i; j++)
         {
-          float_type holder = sqrt((ref(0, i) - ref(0, j)) * (ref(0, i) - ref(0, j)) + (ref(1, i) - ref(1, j))* (ref(1, i) - ref(1, j)) + (ref(2, i) - ref(2, j))*(ref(2, i) - ref(2, j)));
-          float_type holder2 = sqrt(((input)(0, i) - (input)(0, j)) * ((input)(0, i) - (input)(0, j)) + ((input)(1, i) - (input)(1, j)) * ((input)(1, i) - (input)(1, j)) + ((input)(2, i) - (input)(2, j)) * ((input)(2, i) - (input)(2, j)));
+          float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y())* (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+          float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y())* (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
           value += (holder2 - holder) * (holder2 - holder);
-          counter++;
         }
       }
-      return sqrt(value / counter);
+      return sqrt(value / (double) (input.atoms().size() * (input.atoms().size() + 1u) ) );
     }
 
-    float_type holmsander_calc(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance)
     {
+      if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
+
       float_type value(0);
-      Matrix_Class matr_structure = input;
-      for (unsigned int i = 0; i < input.cols(); i++) {
+      for (unsigned int i = 0; i < input.atoms().size(); i++) {
         for (unsigned int j = 0; j < i; j++)
         {
-          float_type holder = sqrt((ref(0, i) - ref(0, j)) * (ref(0, i) - ref(0, j)) + (ref(1, i) - ref(1, j))* (ref(1, i) - ref(1, j)) + (ref(2, i) - ref(2, j))*(ref(2, i) - ref(2, j)));
-          float_type holder2 = sqrt(((input)(0, i) - (input)(0, j)) * ((input)(0, i) - (input)(0, j)) + ((input)(1, i) - (input)(1, j))* ((input)(1, i) - (input)(1, j)) + ((input)(2, i) - (input)(2, j))*((input)(2, i) - (input)(2, j)));
-          value += abs(holder2 - holder) * exp(-1 * (holder2 + holder)*(holder2 + holder) / (4 * (config::align().holm_sand_r0) * (config::align().holm_sand_r0))) / (holder2 + holder);
+          float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y())* (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
+          float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y())* (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
+          value += abs(holder2 - holder) * exp(-1 * (holder2 + holder)*(holder2 + holder) / (4 * holmAndSanderDistance * holmAndSanderDistance)) / (holder2 + holder);
         }
       }
       return value;
     }
 
-    Matrix_Class rotated(Matrix_Class const& input, Matrix_Class const& ref)
-      //LAYER 1
+    coords::Coordinates kabschAligned(coords::Coordinates const& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
     {
-      Matrix_Class working_copy(input, false);
-      rotate(working_copy, ref);
-      return working_copy;
+      coords::Coordinates output(inputCoords);
+      if (centerOfMassAlign) centerOfMassAlignment(output);
+      kabschAlignment(output, reference);
+      return output;
     }
 
-    void rotate(Matrix_Class& input, Matrix_Class const& ref)
-      //LAYER 1
+    void kabschAlignment(coords::Coordinates& inputCoords, coords::Coordinates const& reference, bool centerOfMassAlign)
     {
-      Matrix_Class c(input * ref.transposed());
+      if (centerOfMassAlign)
+      {
+        centerOfMassAlignment(inputCoords);
+      }
+
+      Matrix_Class input = transfer_to_matr(inputCoords);
+      Matrix_Class ref = transfer_to_matr(reference);
+
+      Matrix_Class c(input * transposed(ref));
       //Creates Covariance Matrix
 
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit(c.rows(), c.rows()); // Create empty dummy matrix of right size for unitary
-      unit.identity(); // Make identity matrix
+      Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;
       }
-      U.transpose();
+      transpose(U);
       unit = unit * U;
       unit = V * unit;
       input = unit * input;
+
+      inputCoords.set_xyz(transfer_to_3DRepressentation(input));
     }
 
-    void align_center_of_mass(Matrix_Class& input, coords::Coordinates const& coords_in)
-      //LAYER 1
+    void centerOfMassAlignment(coords::Coordinates& coords_in)
     {
       coords::Cartesian_Point com_ref = coords_in.center_of_mass();
-
-      for (unsigned int i = 0; i < input.cols(); i++)
-      {
-        (input)(0, i) -= com_ref.x();
-        (input)(1, i) -= com_ref.y();
-        (input)(2, i) -= com_ref.z();
-      }
+      coords_in.move_all_by(-com_ref, true);
     }
 
-    void align_center_of_geo(Matrix_Class& input)
-      //LAYER 1
-    {
-      std::cerr << "CAUTION!!!!!! A DEPRECATED FUNCTION IS USED! you used Matrix_Class::align(void) which alignes to center of geometry, better use Matrix_Class::align(coords::coordinates&) which alignes to center of mass! This is the usual procedure!\n";
-      std::vector <float_type> com_ref = center_of_geo(input);
-      for (unsigned int j = 0; j < input.rows(); j++) {
-        for (unsigned int i = 0; i < input.cols(); i++) {
-          (input)(j, i) -= com_ref[j];
-        }
-      }
-    }
-
-    std::vector <float_type> center_of_geo(Matrix_Class const& input)
-      //LAYER 1
-    {
-      std::vector <float_type> output(3, 0.0);
-      float_type mean = 0;
-      for (unsigned int j = 0; j < 3; j++) {
-        mean = 0.0;
-        for (unsigned int i = 0; i < input.rows(); i++) {
-          mean += (input)(i, j);
-        }
-        output[j] = (mean / (float_type(input.rows())));
-      }
-      return output;
-    }
   }
 
 } //END NAMESPACE matop

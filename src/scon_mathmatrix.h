@@ -27,12 +27,14 @@ CODING CONVENTIONS AS FOLLOWS:
 */
 
 #pragma once
+
 #include <iostream>
 #include <vector>
 #include <iomanip>
 #include <string>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "scon_matrix.h"
 
@@ -67,7 +69,9 @@ typedef unsigned int uint_type;
 //#define DEBUGVIEW
 
 ///////////////////////////////
-namespace scon {
+namespace scon 
+{
+
 	template <typename T> 
   class mathmatrix : public scon::matrix<T>
 	{
@@ -86,50 +90,32 @@ namespace scon {
 		/////                           /////
 		/////////////////////////////////////
 
-		/**
-		 * Constructs a default mathmatrix-obj with size "0x0"
-	   */
-    mathmatrix(void) {};
 
-		/**
-		 * Constructs a mathmatrix-obj from a vector of float vectors
-		 */
-		mathmatrix(std::vector < std::vector <T> > const& in) : scon::matrix<T>(in.size(), in[0].size())
-		{
-			for (unsigned int i = 0; i < in.size(); i++)
-			{
-				for (unsigned int j = 0; j < in[0].size(); j++)
-				{
-					(*this)(i, j) = in[i][j];
-				}
-			}
-		};
+    // forward all arguments to matrix constructor
+    template<class ... Args>
+    mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
 
-		/**
-		 * Construct a mathmatrix-obj with size Nx1 with N = in ("vector")
-		 */
-		mathmatrix(unsigned int const& in) : scon::matrix<T>(in, 1u) { };
+    // pull in range functions
+    using base_type::begin;
+    using base_type::end;
+    using base_type::cbegin;
+    using base_type::cend;
+    using base_type::rbegin;
+    using base_type::rend;
+    using base_type::crbegin;
+    using base_type::crend;
 
-		/**
-		 * Constructs non-quadratic mathmatrix-obj
-		 */
-		mathmatrix(unsigned int row, unsigned int col) : scon::matrix<T>(row, col) { };
+    // base row and col proxy
+    using base_type::row;
+    using base_type::col;
 
-		/**
-		 * Contructs a diagonal mathmatrix-obj from std::vector<float_type>
-		 */
-		mathmatrix(std::vector<T> const& input) : scon::matrix<T>(input.size(), input.size())
-		{
-			for (unsigned int i = 0u; i < input.size(); i++)
-			{
-				(*this)(i, i) = input[i];
-			}
-		};
+    // element access
+    using base_type::operator();
+    using base_type::operator[];
+    using base_type::operator*=;
 
-    /**
-     * Default copy constructor
-     */
-    mathmatrix(mathmatrix const&) = default;
+    // identity
+    using base_type::identity;
 
     // in case you are wondering:
     // transposed and some more stuff is available as free functions
@@ -139,18 +125,10 @@ namespace scon {
 		 * Second "Copy Constructor", if boolean size_only is set to TRUE
 		 * Only the size of the matrix will be copied (faster)
 		 */
-		mathmatrix(mathmatrix const& in, bool size_only) : scon::matrix<T>(in.rows(), in.cols())
+		mathmatrix(mathmatrix const& in, bool size_only) : 
+      scon::matrix<T>(in.rows(), in.cols())
 		{
-			if (!size_only)
-			{
-				for (unsigned int i = 0u; i < in.rows(); i++)
-				{
-					for (unsigned int j = 0; j < in.cols(); j++)
-					{
-						(*this)(i, j) = in(i, j);
-					}
-				}
-			}
+			if (!size_only) std::copy(in.begin(), in.end(), this->begin());
 		};
 
 		/////////////////////////////////////
@@ -159,21 +137,6 @@ namespace scon {
 		/////                           /////
 		/////////////////////////////////////
 
-		/**
-		 * Returns true if this matrix is quadratic
-		 */
-		inline bool quadratic(void) const
-		{
-			return (this->cols() == this->rows());
-		};
-
-    /**
-     * Returns true if this matrix is quadratic
-     */
-    bool isQuadratic(void) const
-    {
-      return (this->quadratic());
-    };
 
 		/**
 		 * Overload += operator
@@ -195,241 +158,25 @@ namespace scon {
 			return out;
 		};
 
-		/**
-		 * Modify mathmatrix-obj to identity matrix of equal size
-		 */
-		void identity()
-		{
-			for (unsigned int i = 0; i < this->rows(); i++) {
-				for (unsigned int j = 0; j < this->cols(); j++) {
-					if (i == j) {
-						(*this)(i, j) = 1;
-					}
-					else {
-						(*this)(i, j) = 0;
-					}
-				}
-			}
-		};
-
-    /**
-     * Return identity matrix of equal size
-     */
-    mathmatrix return_identity(void)
-    {
-      mathmatrix workobj(*this, true);
-      for (unsigned int i = 0; i < this->rows(); i++) {
-        for (unsigned int j = 0; j < this->cols(); j++) {
-          if (i == j) {
-            (workobj)(i, j) = 1;
-          }
-          else {
-            (workobj)(i, j) = 0;
-          }
-        }
-      }
-      return workobj;
-    };
-
-		/**
-		 * Returns transposed mathmatrix-obj
-		 */
-		void t()
-		{
-			if (this->isQuadratic())
-			{
-        T temp;
-				for (unsigned int i = 0u; i < this->rows(); i++) 
-        {
-					for (unsigned int j = i + 1u; j < this->cols(); j++) 
-          {
-            temp = (*this)(i, j);
-						(*this)(i, j) = (*this)(j, i);
-						(*this)(j, i) = temp;
-					}
-				}
-			}
-			else
-			{
-				mathmatrix temp(this->cols(), this->rows());
-				for (unsigned int i = 0; i < this->rows(); i++) {
-					for (unsigned int j = 0; j < this->cols(); j++) {
-						 temp(j, i) = (*this)(i, j);
-					}
-				}
-				this->swap(temp);
-			}
-		};
-
-		/**
-		 * Returns transposed mathmatrix-obj
-		 */
-		mathmatrix transposed() const
-		{
-			mathmatrix copy(*this);
-			copy.t();
-			return copy;
-		};
-
-		/**
-		 * Transposes mathmatrix-obj
-		 */
-		void transpose()
-		{
-			this->t();
-		};
-
-		/**
-		 * Modifies mathmatrix-obj by filling all mebers the input number
-		 */
-		void fillwith(T in)
-		{
-			for (unsigned int i = 0; i < this->rows(); i++)
-			{
-				for (unsigned int j = 0; j < this->cols(); j++)
-				{
-					(*this)(i, j) = in;
-				}
-			}
-		};
-
-    /**
-     * Returns mathmatrix-obj where all members are filled with the input
-     */
-    mathmatrix filledwith(T in)
-    {
-      mathmatrix workobj(*this, true);
-      for (unsigned int i = 0; i < this->rows(); i++)
-      {
-        for (unsigned int j = 0; j < this->cols(); j++)
-        {
-          (workobj)(i, j) = in;
-        }
-      }
-      return workobj;
-    };
-
-    /**
-     * Resize matrix
-     */
-    void resize(unsigned int rowInput, unsigned int columnInput = 1u)
-    {
-      this->scon::matrix<T>::resize(rowInput, columnInput);
-    }
-
-		/**
-		 * Overload * for matrix multiplication
-		 *
-		 * DEV-NOTE: MATRIX INTERNALS PRESENT
-		 */
-		mathmatrix operator* (mathmatrix const& in) const
-		{
-			if (this->cols() != in.rows())
-			{
-				throw std::logic_error("Matrix size wrong. Can't Multiply.");
-			}
-			mathmatrix holder(this->rows(), in.cols());
-      mathmatrix temp_in(in);
-#ifdef _OPENMP
-      #pragma omp parallel for firstprivate(temp_in) shared(holder)
-#endif
-			for (int i = 0; i < (int) holder.rows(); i++)
-			{
-				for (unsigned int j = 0; j < holder.cols(); j++)
-				{
-					T temp_summation = 0.0;
-					for (unsigned int k = 0; k < this->cols(); k++)
-					{
-						temp_summation += (*this)((unsigned int) i, k) * temp_in(k, j);
-					}
-					holder((unsigned int) i, j) = temp_summation;
-				}
-			}
-			return holder;
-		};
-
-		/**
-		 * Overload * for scalar multiplication
-		 */
-		mathmatrix operator*(T const& in) const
-		{
-			mathmatrix tempCopy(*this);
-			for (unsigned int i = 0; i < this->rows(); i++)
-			{
-				for (unsigned int j = 0; j < this->cols(); j++)
-				{
-					tempCopy(i, j) = in * (*this)(i, j);
-				}
-			}
-			return tempCopy;
-		};
-
-    /**
-     * Overload copy asignment operator
-     */
-    mathmatrix& operator=(mathmatrix const & rhs)
-    {
-      matrix<T>::operator=(rhs);
-      return (*this);
-    }
-
-    /**
-     * Overload copy asignment operator (move stuff)
-     */
-    mathmatrix operator=(mathmatrix&& rhs)
-    {
-      matrix<T>::operator=(rhs);
-      return (*this);
-    }
+    using base_type::resize;
+    
 
 		/**
 		 * Prints contents to std::cout
 		 */
 		void out() const
 		{
-			std::cout << "\n\n\n\n";
-			for (unsigned int i = 0; i < this->rows(); i++)
-			{
-				for (unsigned int j = 0; j < this->cols(); j++)
-				{
-					std::cout << (*this)(i, j) << " ";
-				}
-				std::cout << "\n\n";
-			}
-			std::cout << "\n\n\n\n";
-		};
-
-		/**
-		 * Checks for symmetric matrix
-		 * This could potentially be used together with update() to speed
-		 * up matrix math if this should ever be done in CAST internally
-		 */
-		bool symmetry_check()
-		{
-			if (!this->return_quadratic())
-			{
-				std::cerr << "cannot perform symmetry_check : mathmatrix obj not quadratic";
-				return false;
-			}
-			//Check Symmetry
-			bool checker = true;
-			for (unsigned int i = 0; i < this->rows(); i++)
-			{
-				for (unsigned int j = 0; j < this->columns(); j++)
-					if ((*this)(i, j) != (*this)(i, j))
-					{
-						checker = false;
-						break;
-					}
-			}
-			if (checker)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+      base_type const & a = *this;
+      matrix_printer<base_type> mp(a);
+      // 3 newlines on top
+      mp.margin_top = 3u;
+      // 3 newlines after
+      mp.margin_bottom = 3u;
+      // two newlines after each row
+      mp.fill_right = '\n';
+      mp.margin_right = 1u;
+      // 
+      std::cout << mp;
 		};
 
 		/**
@@ -438,31 +185,23 @@ namespace scon {
 		bool positive_definite_check()
 		{
 			bool positive_definite = true;
-			if (!this->quadratic())
-			{
-				std::cerr << "cannot perform positive_definite_check : mathmatrix obj not quadratic";
-				return false;
-			}
-			if (this->quadratic())
-			{
-				for (unsigned int i = 1; i < (this->rows() + 1); i++)
-				{
-					if (this->upper_left_submatrix(i).det_sign() < 0)
-					{
-						positive_definite = false;
-						break;
-					}
-				}
-			}
-			return positive_definite;
+      if (!is_square(*this)) return false;
+      for (unsigned int i = 1; i < (this->rows() + 1); i++)
+      {
+        if (mathmatrix{ resized(*this, i, i) }.det_sign() < 0)
+        {
+          return false;
+        }
+      }
+			return true;
 		};
 
 		/**
 		 * Returns dign of the determinant (-1 / 1)
 		 */
-		int_type det_sign() const
+		int det_sign() const
 		{
-			return ((this->determ() < 0.) ? -1 : 1);
+			return ((this->determ() < 0) ? -1 : 1);
 		};
 
 		/**
@@ -694,7 +433,7 @@ namespace scon {
 		{
 			//Via Numerical Recipies, LU Decomposition
 			mathmatrix lu = *this;
-			const float_type TINY = 1.0e-40;
+			//const float_type TINY = 1.0e-40;
 			int i, imax, j, k;
 			int n = int(this->rows());
 			std::vector<int> indx(n);
@@ -759,9 +498,9 @@ namespace scon {
 			//Get determinant
 			if (d != 0.0)
 			{
-				for (int i = 0; i < n; i++)
+				for (int i2 = 0; i2 < n; i2++)
 				{
-					d *= lu(i, i);
+					d *= lu(i2, i2);
 				}
 				return d;
 			}
@@ -820,7 +559,7 @@ namespace scon {
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
 			//Old size needs to be kept
-			unsigned int holder = this->rows();
+			size_t holder = this->rows();
 
 			this->resize(this->rows() + I_will_be_the_bottom_part.rows(), this->cols());
 
@@ -925,19 +664,19 @@ namespace scon {
 		/**
 		 * Sheds the specified rows from the matrix
 		 */
-		void shed_rows(unsigned int first_in, unsigned int last_in)
+		void shed_rows(size_t first_in, size_t last_in)
 		{
 			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
-			for (unsigned int i = 0u; i < first_in; i++)
+			for (size_t i = 0u; i < first_in; i++)
 			{
-				for (unsigned int j = 0u; j < this->cols(); j++)
+				for (size_t j = 0u; j < this->cols(); j++)
 				{
 					newOne(i, j) = (*this)(i, j);
 				}
 			}
-			for (unsigned int i = last_in + 1u; i < this->rows(); i++)
+			for (size_t i = last_in + 1u; i < this->rows(); i++)
 			{
-				for (unsigned int j = 0u; j < this->cols(); j++)
+				for (size_t j = 0u; j < this->cols(); j++)
 				{
 					newOne(i - last_in - 1u, j) = (*this)(i, j);
 				}
@@ -948,19 +687,19 @@ namespace scon {
 		/**
 		 * Sheds the specified columns from the matrix
 		 */
-		void shed_cols(unsigned int first_in, unsigned int last_in)
+		void shed_cols(size_t first_in, size_t last_in)
 		{
 			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
-			for (unsigned int j = 0u; j < this->rows(); j++)
+			for (size_t j = 0u; j < this->rows(); j++)
 			{
-				for (unsigned int i = 0u; i < first_in; i++)
+				for (size_t i = 0u; i < first_in; i++)
 				{
 					newOne(j, i) = (*this)(j, i);
 				}
 			}
-			for (unsigned int j = 0u; j < this->rows(); j++)
+			for (size_t j = 0u; j < this->rows(); j++)
 			{
-				for (unsigned int i = last_in + 1u; i < this->cols(); i++)
+				for (size_t i = last_in + 1u; i < this->cols(); i++)
 				{
 					newOne(j, i - last_in - 1u) = (*this)(j, i);
 				}
@@ -1022,7 +761,7 @@ namespace scon {
 			//"Constructor"
 			U_in = *this;
 			V_in.resize(this->cols(), this->cols());
-			s_in.resize(this->cols());
+			s_in.resize(this->cols(), 1u);
 
 			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
 			int n = int(this->cols());
@@ -1033,7 +772,7 @@ namespace scon {
 			//Beginn SVD::decompose()
 			{
 				bool flag;
-				int i, its, j, jj, k, l, nm;
+				int i, its, j, jj, k, l = 0, nm;
 				float_type anorm, c, f, g, h, s, scale, x, y, z;
 				mathmatrix rv1(n);
 				g = scale = anorm = 0.0;
@@ -1354,22 +1093,36 @@ namespace scon {
 #endif
 
 		}
-
-		/**
-		 * Overload "==" Operator for mathmatrix
-		 
-		bool operator==(mathmatrix const& in) const
-		{
-			mathmatrix *baseClassPointer = &in;
-			return ((*this) == (*baseClassPointer));
-		}*/
-
 	};
 
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (mathmatrix<T> const & a, mathmatrix<U> const &b)
+  {
+    matrix<T> const &ma = a;
+    matrix<U> const &mb = b;
+    return ma*mb;
+  }
+
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (matrix<T> const & a, mathmatrix<U> const &b)
+  {
+    matrix<U> const &mb = b;
+    return a *mb;
+  }
+
+  template<class T, class U = T>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    mathmatrix<typename std::common_type<T, U>::type >> ::type
+    operator* (mathmatrix<T> const & a, matrix<U> const &b)
+  {
+    matrix<T> const &ma = a;
+    return ma * b;
+  }
+
 }
-
-
-
-
 
 //END HEADER

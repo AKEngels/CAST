@@ -287,51 +287,37 @@ namespace matop
   namespace align
   {
     /**
-     * Returns rotated mathmatrix-obj according to reference mathmatrix-obj "ref"
-     * using Kabsch's-Algorithm with singular value decomposition
+     * Returns rotated coords-obj according to reference coords-obj "reference"
+     * using Kabsch's-Algorithm
+     *
+     * @centerOfMassAlignment: Should center-of-mass be aligned prior to
+     * rotational alignment? default = true
      */
-    Matrix_Class rotated(Matrix_Class const& input, Matrix_Class const& ref);
+    coords::Coordinates kabschAligned(coords::Coordinates const& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
 
     /**
-     * rotates mathmatrix-obj according to reference mathmatrix-obj "ref"
-     * using Kabsch's-Algorithm with singular value decomposition
+     * rotates coords-obj according to reference coords-obj "ref"
+     * using Kabsch's-Algorithm
+     *
+     * @centerOfMassAlignment: Should center-of-mass be aligned prior to
+     * rotational alignment? default = true
      */
-    void rotate(Matrix_Class& input, Matrix_Class const& ref);
-
-    /**
-     * Aligns mathmatrix-obj to geometric Origin with center of geometry
-     * DEPRECATED: center of mass is used in current implementaitions (as it should be)
-     */
-    void align_center_of_geo(Matrix_Class& input);
-
-    /**
-     * Returns a 3D-Vector of the Center of Geometry in cartesian coordinates
-     * DEPRECATED: center of mass is used in current implementaitions (as it should be)
-     * CAUTION WHEN USING!
-     */
-    std::vector <float_type> center_of_geo(Matrix_Class const& input);
+    void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
 
     /**
      * Aligns mathmatrix-obj's center of mass to Geometric Origin
      * ie.: translational alignment
      */
-    void align_center_of_mass(Matrix_Class& input, coords::Coordinates const&);
+    void centerOfMassAlignment(coords::Coordinates & in);
 
     /**
-     * Returns cRMSD-Value of mathmatrix-obj in accordance to "ref" reference mathmatrix-obj
+     * Returns dRMSD-value of the structure.
      */
-    float_type calc_rmsd(Matrix_Class const& input, Matrix_Class const& ref);
+    float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref);
 
     /**
-    * Returns dRMSD-value of the structure.
-    */
-    float_type drmsd_calc(Matrix_Class const& input, Matrix_Class const& ref);
-
-    /**
-     * Calculates Holm&Sanders Distance of the structure
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
+     * Calculates Holm&Sanders Distance of the structures
      */
-    float_type holmsander_calc(Matrix_Class const& input, Matrix_Class const& ref);
+    float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance = 20);
   }
 }

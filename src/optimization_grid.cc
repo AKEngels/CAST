@@ -21,9 +21,9 @@ optimization::global::optimizers::main_grid::main_grid(coords::Coordinates &c,
   m_done(false)
 {
   std::size_t const n = c.main().size();
-  for (std::size_t k = 0; k < n; ++k)
+  for (std::size_t k2 = 0; k2 < n; ++k2)
   {
-    m_init_offset[k] = static_cast<std::size_t>(std::round(coords::angle_type(c.main()[k]).radians() / m_delta.radians()));
+    m_init_offset[k2] = static_cast<std::size_t>(std::round(coords::angle_type(c.main()[k2]).radians() / m_delta.radians()));
   }
 }
 
@@ -52,9 +52,9 @@ coords::Representation_Main optimization::global::optimizers::main_grid::next_ma
   coords::Representation_Main ret;
   ret.resize(n);
   increase_offset(0u);
-  for (std::size_t k = 0; k < n; ++k)
+  for (std::size_t k2 = 0; k2 < n; ++k2)
   {
-    ret[k] = coords::main_type::from_rad(coords::float_type(m_init_offset[k] + m_offset[k])*m_delta.radians());
+    ret[k2] = coords::main_type::from_rad(coords::float_type(m_init_offset[k2] + m_offset[k2])*m_delta.radians());
   }
   return ret;
 }

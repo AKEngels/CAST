@@ -1,5 +1,3 @@
-#ifndef histogram_774418c7_21fd_4101_a5f2_1c91e51ff62b_h_guard_
-#define histogram_774418c7_21fd_4101_a5f2_1c91e51ff62b_h_guard_  
 #pragma once
 
 #include <vector>
@@ -543,14 +541,12 @@ namespace histo
         std::vector<std::size_t> index(m_dimensions, size_t());
         for (std::size_t h(0U); h < m_dimensions; ++h)
         {
-          index[h] = static_cast<std::size_t>(floor((m_values[i][h] - minimum()[h]) / w[h] + p[h]));
+          auto r = std::floor((m_values[i][h] - minimum()[h]) / w[h] + p[h]);
+          if (r < 0) index[h] = 0u;
+          index[h] = static_cast<std::size_t>(r);
           if (index[h] >= this->numberOfBinsPerDimension())
           {
             index[h] = this->numberOfBinsPerDimension() - 1u;
-          }
-          else if (index[h] < 0u)
-          {
-            index[h] = 0u;
           }
         }
         ++m_boxes[this->toIterator(index)];
@@ -837,4 +833,4 @@ namespace histo
     return stream;
   }
 }
-#endif // histogram_774418c7_21fd_4101_a5f2_1c91e51ff62b_h_guard_
+

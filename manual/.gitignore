@@ -1,0 +1,13 @@
+*.aux
+*.bbl
+*.lof
+*.out
+*.blg
+*.run
+*.xml
+*.gz
+*.pdf
+*.toc
+*-blx.bib
+*.txt
+*.log

@@ -486,7 +486,7 @@ bool optimization::global::optimizer::restore_roulette_selection()
 
 void optimization::global::optimizer::write_range(std::string const & suffix)
 {
-  std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) * 2 + 1);
+  //std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) * 2 + 1);
   std::size_t const M(range_minima.size());
   if (M > 0)
   {

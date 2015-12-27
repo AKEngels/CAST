@@ -4,11 +4,19 @@
 #include <vector>
 #include <algorithm>
 #include <cstddef>
+#include <type_traits>
+#include <iterator>
 
 #include "scon_traits.h"
 #include "scon_iterator.h"
 #include "scon_vect.h"
 
+
+#if !defined(SCON_RESTRICT) && defined(_MSC_VER)
+#define SCON_RESTRICT __restrict
+#elif !defined(SCON_RESTRICT)
+#define SCON_RESTRICT __restrict__
+#endif
 
 namespace scon
 {
@@ -35,11 +43,14 @@ namespace scon
   template<class T>
   using std_vector_wrapper = std::vector < T > ;
 
-  template<class T, bool SYMMETRIC = false, template<class...> class ContainerT = std_vector_wrapper>
+  template<class T, bool SYMMETRIC = false, 
+    template<class...> class ContainerT = std_vector_wrapper>
   class matrix
   {
 
   public: // Basic type interface
+
+    struct iterator_construct_type {};
 
     typedef matrix<T, SYMMETRIC, ContainerT>                  my_type;
     typedef ContainerT<T>                                     container_type;
@@ -89,17 +100,80 @@ namespace scon
 
     /* constructors */
 
-    matrix()
-      : m_data(), ROWS(0), COLS(0)
+    matrix() : m_data(), ROWS(0), COLS(0) { }
+
+    matrix(size_type const rows,
+      size_type const cols)
+      : m_data(rows*cols), ROWS(rows), COLS(cols)
     { }
 
     matrix(size_type const rows,
-      size_type const cols, T const &val = T())
+      size_type const cols, T const &val)
       : m_data(rows*cols, val), ROWS(rows), COLS(cols)
     { }
 
-    // Ownership transfer
+    // create vector, row major
+    matrix(std::size_t const in) : 
+      scon::matrix<T>(in, 1u) { };
 
+    // Use iterator range to form diagonals of new matrix
+    template<class InputIt>
+    matrix(InputIt first, InputIt last, iterator_construct_type)
+      : m_data(static_cast<std::size_t>(std::distance(first, last)),
+        static_cast<std::size_t>(std::distance(first, last))),
+      ROWS(static_cast<std::size_t>(std::distance(first, last))), 
+      COLS(static_cast<std::size_t>(std::distance(first, last)))
+    { 
+      std::size_t index{ 0u };
+      std::for_each(first, last, 
+        [this, &index](decltype(*first) const &val) -> void
+      {
+        (*this)(index, index) = val; 
+        ++index;
+      });
+    }
+
+    // construct from vector of vectors (with size checks)
+    matrix(std::vector<std::vector<T>> const& in)
+    {
+      if (in.empty()) return;
+      auto const n = in.size(), // rows
+        m = in.front().size(); // cols
+      bool same_size{ true };
+      for (std::size_t i = 1u; i < n; ++i)
+      {
+        if (in[i].size() != m)
+          throw std::runtime_error("Size mismatch "
+            "in matrix construction.");
+      }
+      // resize matrix
+      resize(n, m);
+      // copy every submatrix into matrix rows
+      for (std::size_t r = 0u; r < n; ++r)
+      {
+        std::copy(in[r].begin(), in[r].end(), row(r).begin());
+      }
+    }
+
+    // put vector in diagonal: delegate to iterator constructor
+    matrix(std::vector<T> const& input)
+      : matrix(input.begin(), input.end(), iterator_construct_type{})
+    { }
+
+    // create identity matrix
+    static typename std::enable_if<std::is_arithmetic<T>::value, matrix>::type
+      identity(std::size_t const num_rows, std::size_t const num_cols)
+    {
+      matrix r(num_rows, num_cols, T{});
+      auto m = std::min(num_rows, num_cols);
+      for (std::size_t i = 0; i < m; ++i)
+      {
+        r(i, i) = T{ 1 };
+      }
+      return r;
+    }
+
+    // Ownership transfer
     void swap(my_type & rhs)
     {
       if (this != &rhs)
@@ -184,6 +258,10 @@ namespace scon
     reference at (size_type const r, size_type const c) { return m_data.at(COLS*r + c); }
     const_reference at(size_type const r, size_type const c) const { return m_data.at(COLS*r + c); }
 
+    // data access
+    pointer data() { return m_data.data(); }
+    const_pointer data() const { return m_data.data(); }
+
     // Matrix vectors
 
     // Rows
@@ -248,7 +326,143 @@ namespace scon
       return const_diag_type(typename const_diag_type::iterator(m_data.cbegin(), COLS + 1), ROWS);
     }
 
+    matrix& operator*= (T const &val)
+    {
+      // multiply ever element with val
+      for (auto & e : *this)
+      {
+        e *= val;
+      }
+      return *this;
+    }
+
   };
+
+  /*
+
+  math & utils
+
+  */
+
+  // check whether matrix is a square matrix
+  template<class T, template<class...> class C>
+  bool is_square(matrix<T, false, C> const &m)
+  {
+    return m.rows() == m.cols();
+  }
+
+
+  // check whether matrix is a symmetric matrix
+  template<class T, template<class...> class C>
+  bool is_symmetric(matrix<T, false, C> const &m)
+  {
+    if (!is_square(m)) return false;
+    auto const n = m.rows();
+    for (std::size_t i = 0; i < n; ++i)
+    {
+      for (std::size_t j = 0; j < n; ++j)
+      {
+        if (m(i, j) != m(j, i)) return false;
+      }
+    }
+    return true;
+  }
+
+  // transpose matrix
+  template<class T, template<class...> class C>
+  void transpose(matrix<T, false, C> &m)
+  {
+    if (m.rows() == m.cols())
+    {
+      for (std::size_t r = 0; r < m.rows(); ++r)
+      {
+        for (std::size_t c = 0; c < m.cols(); ++c)
+        {
+          std::swap(m(r, c), m(c, r));
+        }
+      }
+    }
+    else
+    {
+      matrix<T, false, C> transposed_m(m.cols(), m.rows());
+      for (std::size_t r = 0; r < m.rows(); ++r)
+      {
+        for (std::size_t c = 0; c < m.cols(); ++c)
+        {
+          transposed_m(c, r) = m(r, c);
+        }
+      }
+      transposed_m.swap(m);
+    }
+  }
+
+
+  // return transposed matrix
+  template<class T, template<class...> class C>
+  matrix<T, false, C> transposed(matrix<T, false, C> const &m)
+  {
+    matrix<T, false, C> t(m);
+    transpose(t);
+    return t;
+  }
+
+
+
+  // matrix multiplication
+  template<class T, class U, template<class...> class C>
+  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
+    scon::matrix<typename std::common_type<T, U>::type >> ::type
+    operator*(scon::matrix<T, false, C> const &a, scon::matrix<U, false, C> const &b)
+  {
+    if (a.empty() || b.empty() || a.cols() != b.rows())
+    {
+      throw std::logic_error("Matrix multiplication dimesion mismatch.");
+    }
+    // create result matrix r
+    scon::matrix<T, false, C> r(a.rows(), b.cols(), 0.0);
+    // make restricted pointer to const data of a
+    T const * SCON_RESTRICT const ap = a.data();
+    // make restricted pointer to const data of b
+    //T const * SCON_RESTRICT const bp = b.data();;
+    // make restricted pointer to data of r
+    T * SCON_RESTRICT const rp = r.data();
+#if defined(_OPENMP)
+#pragma omp parallel
+    { 
+#endif
+      // create matrix copy inside parallel region: thread local
+      scon::matrix<T> const my_b(b);
+      // create restricted pointer to const data of new b
+      T const * SCON_RESTRICT const bp = &my_b(0, 0);
+#if defined(_OPENMP)
+      // avoid signed unsigned mismatch in loop
+      auto ar = static_cast<std::ptrdiff_t>(a.rows());
+#pragma omp for 
+      for (std::ptrdiff_t i = 0; i < ar; ++i)
+#else
+      for (std::size_t i = 0; i < a.rows(); ++i)
+#endif
+      { // loop result rows
+        // pointer to result_row
+        T * SCON_RESTRICT const r_row_p = rp + i*b.cols();
+        for (std::size_t k = 0; k < b.rows(); ++k)
+        { // loop b rows
+          // current multiplicate value from a 
+          auto const a_val = ap[i*a.cols() + k];
+          // create pointer into the current row in b
+          T const * SCON_RESTRICT const b_row_p = bp + k * b.cols();
+          for (std::size_t j = 0; j < b.cols(); ++j)
+          { // loop result cols
+            // add result to element in result row
+            r_row_p[j] += a_val * b_row_p[j];
+          }
+        }
+      }
+#if defined(_OPENMP)
+    }
+#endif
+    return r;
+  }
 
   
 
@@ -387,7 +601,6 @@ namespace scon
     iterator end() { return m_data.end(); }
     const_iterator end() const { return m_data.end(); }
     const_iterator cend() const { return m_data.cend(); }
-
     reverse_iterator rbegin() { return m_data.rbegin(); }
     const_reverse_iterator rbegin() const { return m_data.rbegin(); }
     const_reverse_iterator crbegin() const { return m_data.crbegin(); }
@@ -395,11 +608,11 @@ namespace scon
     const_reverse_iterator rend() const { return m_data.rend(); }
     const_reverse_iterator crend() const { return m_data.crend(); }
 
+    // access operators
     reference operator() (size_type const i) { return m_data[i]; }
     const_reference operator() (size_type const i) const { return m_data[i]; }
     reference operator() (size_type const r, size_type const c) { return m_data[offset(r, c)]; }
     const_reference operator() (size_type const r, size_type const c) const { return m_data[offset(r, c)]; }
-
     reference at(size_type const i) { return m_data.at(i); }
     const_reference at(size_type const i) const { return m_data.at(i); }
     reference at(size_type const r, size_type const c) { return m_data.at(offset(r,c)); }
@@ -463,6 +676,17 @@ namespace scon
       return const_diag_type(typename const_diag_type::iterator(*this, 0, 0), SIZE);
     }
 
+    matrix& operator*= (T const &val)
+    {
+      // multiply ever element with val
+      for (auto & e : *this)
+      {
+        e *= val;
+      }
+      return *this;
+    }
+
+
   };
 
 
@@ -474,14 +698,17 @@ namespace scon
   */
 
 
-  template<class T, bool S1, bool S2>
-  bool operator== (matrix<T, S1> const & lhs, matrix<T, S2> const & rhs)
+  // genral equality comparison
+  // can compare symmetric and with non symmetric
+  template<class T, bool S1, bool S2, template<class...> class C>
+  bool operator== (matrix<T, S1, C> const & lhs, matrix<T, S2, C> const & rhs)
   {
     typedef typename matrix<T, true>::size_type size_type;
     if (lhs.rows() != rhs.rows() || lhs.cols() != rhs.cols()) return false;
+    // iterate all 
     for (size_type i = 0; i < lhs.rows(); ++i)
     {
-      for (size_type j = 0; j <= lhs.cols(); ++j)
+      for (size_type j = 0; j < lhs.cols(); ++j)
       {
         if (lhs(i, j) != rhs(i, j)) return false;
       }
@@ -489,25 +716,48 @@ namespace scon
     return true;
   }
 
+  // specialization for symmetric only matrices.
+  // can avoide half of the comparisons
+  template<class T, template<class...> class C>
+  bool operator== (matrix<T, true, C> const & lhs, matrix<T, true, C> const & rhs)
+  {
+    if (lhs.size() != rhs.size()) return false;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+  }
+
+  // non equality operator
   template<class T, bool S1, bool S2>
   bool operator!= (matrix<T, S1> const & lhs, matrix<T, S2> const & rhs)
   {
     return !(lhs == rhs);
   }
 
-
-  template<class T, bool S>
-  bool operator== (matrix<T, S> const & lhs, matrix<T, S> const & rhs)
+  // scalar multiplication
+  template<class T, bool B, template<class...> class C>
+  matrix<T, B, C> operator* (matrix<T, B, C> m, T const &v)
   {
-    if (lhs.size() != rhs.size()) return false;
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
+    m *= v;
+    return m;
   }
 
-  template<class T, bool S>
-  bool operator!= (matrix<T, S> const & lhs, matrix<T, S> const & rhs)
+  // sym matrix is square by definition
+  template<class T, template<class...> class C>
+  bool is_square(matrix<T, true, C> const &)
   {
-    return !(lhs == rhs);
+    return true;
   }
+  // sym matrix is symmetric by definition
+  template<class T, template<class...> class C>
+  bool is_symmetric(matrix<T, true, C> const &)
+  {
+    return true;
+  }
+
+  // sym matrix is symmetric by definition
+  // transpose does nothing
+  template<class T, template<class...> class C>
+  void transpose(matrix<T, true, C> const &) 
+  { }
 
 
 
@@ -579,13 +829,13 @@ namespace scon
     for (std::size_t i = 0; i < printer.margin_top; ++i) strm << '\n';
     // Iterate matrix
     typedef typename M::size_type size_type;
-    typedef typename M::row_type::const_iterator row_iterator;
+    //typedef typename M::row_type::const_iterator row_iterator;
 
     for (size_type i = 0; i < printer.matrix.rows(); ++i)
     {
-      row_iterator const end = printer.matrix.row(i).cend();
+      auto const end = printer.matrix.row(i).cend();
       printer.stream_fill_left(strm);
-      for (row_iterator it = printer.matrix.row(i).cbegin(); it != end; ++it)
+      for (auto it = printer.matrix.row(i).cbegin(); it != end; ++it)
       {
         strm << std::setw(W) << *it;
         if (printer.spacer != '\0') strm << printer.spacer;

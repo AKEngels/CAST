@@ -1020,6 +1020,6 @@ std::pair<bool, startopt::solvadd::water>
       }
     }
   }
-  return{ false, {} };
+  return{ false, water{} };
 }
 

@@ -1,4 +1,3 @@
-#pragma once
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -525,7 +524,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // IF FAILED!!
     FAILED:
     throw std::logic_error("Reading the structure input file failed.");
-    return Coordinates();
+    //return Coordinates();
   }
   return coord_object;
 }

@@ -146,8 +146,6 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     if (holder[i] == "none")
     {
       none_check = true;
-      //goto NONE_CHECK;
-      //break;
     }
     bool i_o_done = false;
     while (!i_o_done)
@@ -156,7 +154,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       {
         if (holder[i][j] == *"-")
         {
-          int last_comma = -1, next_comma;
+          int last_comma = -1, next_comma = -1;
           for (int l = j; l >= 0; l--)
           {
             if (holder[i][l] == *",") { last_comma = l; break; }
@@ -188,20 +186,19 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
       }
     }
   }
-  for (int i = 0; i < holder.size(); i++)
+  for (std::size_t i = 0; i < holder.size(); i++)
   {
     if (holder[i] == "none") {
       none_check = true;
-      //goto NONE_CHECK;
       break;
     }
     int last_comma = -1;
-    for (int j = 0; j < holder[i].size(); j++)
+    for (std::size_t j = 0; j < holder[i].size(); j++)
     {
       if (holder[i][j] == *",")
       {
         temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma - 1))));
-        last_comma = j;
+        last_comma = (int) j;
       }
       else if (j == holder[i].size() - 1)
       {
@@ -210,12 +207,12 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     }
   }
   //Sorting algorithm
-  int size = (int) temp.size();
-  int left = 0;
+  std::size_t size = temp.size();
+  std::size_t left = 0;
   while (left < size)
   {
-    int min = left;
-    for (int i = (left + 1); i < size; i++)
+    size_t min = left;
+    for (std::size_t i = (left + 1); i < size; i++)
     {
       if (temp[i] < temp[min])
       {
@@ -228,12 +225,7 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
     temp[left] = holder2;
     left += 1;
   }
-  if (none_check)
-  {
-    //NONE_CHECK:
-    std::vector<T> empty;
-    temp = empty;
-  }
+  if (none_check) temp = std::vector<T>{ };
   return temp;
 }
 
@@ -255,7 +247,7 @@ std::vector<T> configuration_range_float(std::istringstream& cv)
     holder.push_back(temp2);
   }
   holder.pop_back();
-  for (int i = 0; i < holder.size(); i++)
+  for (std::size_t i = 0; i < holder.size(); i++)
   {
     temp.push_back(stod(holder[i]));
   }
@@ -1985,6 +1977,11 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
       strm << " (max. distortion " << opt.montecarlo.dihedral_max_rot << " degrees)";
       break;
     }
+  case mc::move_types::WATER:
+  {
+    strm << " water";
+    break;
+  }
   default:
     {
       strm << " dihedral (strained optimization, ";

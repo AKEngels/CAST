@@ -35,6 +35,7 @@ namespace startopt
     struct water
     {
       coords::Cartesian_Point o, h[2];
+      water() : o(), h() {}
       bool check_geometry() const;
     };
 
