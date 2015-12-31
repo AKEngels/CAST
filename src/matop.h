@@ -36,21 +36,13 @@ namespace matop
   Matrix_Class transform_coordinates(coords::Coordinates& input);
 
   /**
-   * Tranforms a (regular) mathmatrix-obj of one frame (xyz, atom_nr)
-   * into a mathmatrix-obj suitable for creating the single-trajectory-matrix
-   * in cartesian coordinates. This is of course a very specific and not
-   * a general transformation.
-   */
-  Matrix_Class transform_3n_nf(Matrix_Class const& input);
-
-  /**
    * Massweightens a single trajectory matrix, only makes sense in
    * cartesian coordinates, needs additional coords::Coordinates
    * of structure parsed to get atomic masses. Boolean controls wether
    * multiplication with "10e-10" (i.e. conversion of Angstrom
    * to meters as distances) is performed.
    */
-  void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<unsigned int> atomsThatAreUsed = std::vector<unsigned int>());
+  void massweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>());
 
   /**
   * Undos the massweighting of a single trajectory matrix, only makes sense in
@@ -59,7 +51,7 @@ namespace matop
   * multiplication with "10e-10" (i.e. conversion of Angstrom
   * to meters as distances) was performed. See also: void massweight(...)
   */
-  void undoMassweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<unsigned int> atomsThatAreUsed = std::vector<unsigned int>());
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const&, bool = true, std::vector<size_t> atomsThatAreUsed = std::vector<size_t>());
 
   /**
    * Converts a coords:Coordinates object to a mathmatrix object
@@ -85,6 +77,12 @@ namespace matop
    */
   coords::Representation_Internal transfer_to_internalRepressentation(Matrix_Class const& input);
 
+  /**
+   * Tranforms a coords object
+   * into a mathmatrix-obj suitable for creating the single-trajectory-matrix (oneliner)
+   * This is of course a very specific and not a general transformation.
+   */
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false);
 
   /////////////////////////////////////
   //                              /////
@@ -95,34 +93,12 @@ namespace matop
   namespace pca
   {
     /**
-     * Tranforms a (regular) mathmatrix-obj of one frame (internals(?), atom_nr)
-     * into a mathmatrix-obj suitable for creating the single-trajectory-matrix
-     * in internal coordinates. This is of course a very specific and not
-     * a general transformation.
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    Matrix_Class transform_3n_nf_internal_pca(Matrix_Class const& input);
-
-    /**
-     * Tranforms a (regular) mathmatrix-obj of one frame into a mathmatrix-obj
-     * suitable for creating the single-trajectory-matrix in PCA task
-     * in cartesian coordinates.
-     * NOTE: This is a different function because the INPUTFILE options
-     * differ although formally the operations in this function are equivalent to
-     * the ones in "transform_3n_nf()"
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    Matrix_Class transform_3n_nf_trunc_pca(Matrix_Class const& input);
-
-    /**
      * Preparation for PCA, returns eigenvalues and eigenvectors of covariance matrix
      * as well as pca_modes (columns is frames, rows are modes).
      *
      * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
      */
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, int rank = 0);
+    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, int rank = 0);
 
     /**
      * Writes aproximated probability density of each mode.
@@ -145,8 +121,6 @@ namespace matop
      * function.
      */
     void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename = "pca_modes.dat");
-
-
   }
 
 
@@ -239,7 +213,7 @@ namespace matop
      * used in the search (example {1, 4, 5}).
      * @param col_querypt Columns index of the query Points.
      */
-    float_type knn_distance(Matrix_Class const& input, unsigned int const& dimension_in, unsigned int const& k_in, std::vector<unsigned int>& row_querypts, unsigned int const& col_querypt);
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_querypts, size_t const& col_querypt);
 
     /**
      * Outputs the !SQUARED! next-neighbor distance in eucledean space
@@ -252,29 +226,7 @@ namespace matop
      * @param row_querypt Row index of the query Point.
      * @param col_querypt Columns index of the query Point.
      */
-    float_type knn_distance(Matrix_Class const& input, unsigned int const& dimension_in, unsigned int const& k_in, unsigned int const& row_querypt, unsigned int const& col_querypt);
-
-    /**
-     * Tranforms a (regular) mathmatrix-obj of one frame (internals(?), atom_nr)
-     * into a mathmatrix-obj suitable for creating the single-trajectory-matrix
-     * in internal coordinates. This is of course a very specific and not
-     * a general transformation.
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    Matrix_Class transform_3n_nf_internal_entropy(Matrix_Class const& input);
-
-    /**
-     * Tranforms a (regular) mathmatrix-obj of one frame into a mathmatrix-obj
-     * suitable for creating the single-trajectory-matrix in Entropy task
-     * in cartesian coordinates.
-     * NOTE: This is a different function because the INPUTFILE options
-     * differ although formally the operations in this function are equivalent to
-     * the ones in "transform_3n_nf()"
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    Matrix_Class transform_3n_nf_trunc_entropy(Matrix_Class const& input);
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_querypt, size_t const& col_querypt);
   }
 
 
