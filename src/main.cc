@@ -759,6 +759,7 @@ int main(int argc, char **argv)
               {
                 if (Config::get().PCA.pca_use_internal)
                 {
+                  //First a little check if the user-specified values are reasonable
                   matrix_aligned = transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
                 }
                 else
@@ -892,6 +893,8 @@ int main(int argc, char **argv)
           }
         }
 
+        if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
+
         //Undoing PCA
         trajectory = eigenvectors * trajectory;
 
@@ -944,13 +947,13 @@ int main(int argc, char **argv)
                   // is very small, the arbitrary cutoff 2e-4), consider it a match.
                   // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
                   // Thats why we negate the criterion in the if clause (!)
-                  float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].x()), 2e-4);
-                  float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].y()), 2e-4);
-                  float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l] - 1u].z()), 2e-4);
+                  float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
+                  float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
+                  float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].z()), 2e-4);
 
-                  if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l] - 1u].x()) <= xCompare &&
-                    std::abs(out_mat(1, l) - structureCartesian[tokens[l] - 1u].y()) <= yCompare &&
-                    std::abs(out_mat(2, l) - structureCartesian[tokens[l] - 1u].z()) <= zCompare))
+                  if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l]].x()) <= xCompare &&
+                    std::abs(out_mat(1, l) - structureCartesian[tokens[l]].y()) <= yCompare &&
+                    std::abs(out_mat(2, l) - structureCartesian[tokens[l]].z()) <= zCompare))
                   {
                     structureFound = false;
                     break;
@@ -1008,7 +1011,7 @@ int main(int argc, char **argv)
           // Read the additional information
           while (ss >> buffer)
           {
-            if (buffer.substr(0, 1) == "d") tokens[(size_t) std::stoi(buffer.substr(1)) - 1] = true;
+            if (buffer.substr(0, 1) == "d") tokens[(size_t) std::stoi(buffer.substr(1))] = true;
           }
 
           // This is gonna be complicated. Im sorry.
@@ -1040,9 +1043,9 @@ int main(int argc, char **argv)
                   auto compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
                   auto compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
                   bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
-                             || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
+                    || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
                   bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
-                             || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
+                    || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
                   //If structures did not match
                   if (!(found1 && found2))
                   {

@@ -155,6 +155,23 @@ namespace matop
 
   Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
   {
+    //First, some range checks
+    if (includedAtoms[includedAtoms.size() - 1] > coords.atoms().size() - 1)
+    {
+      std::cerr << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
+      throw;
+    }
+    if (includedAtoms[0] < 0u)
+    {
+      std::cerr << "You specified a negative truncation number. Stopping." << std::endl;
+      throw;
+    }
+    else if (internalCoordinates && includedAtoms[0] < 3u)
+    {
+      std::cerr << "You specified a dihedral with index < 3. Stopping." << std::endl;
+      throw;
+    }
+
     if (internalCoordinates)
     {
       Matrix_Class transformed_matrix(1u, (includedAtoms.size() * 2));
@@ -168,7 +185,7 @@ namespace matop
         {
           if (Config::get().PCA.pca_internal_dih.size() != 0)
           {
-            if (Config::get().PCA.pca_internal_dih[l] - 1 == i)
+            if (Config::get().PCA.pca_internal_dih[l] == i)
             {
               checker_dih = true;
               quicksearch_dih++;
