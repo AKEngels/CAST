@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
+#include <random>
+#include <algorithm>
 
 #include "atomic.h"
 #include "error.h"
@@ -203,6 +205,9 @@ void startopt::preoptimizers::Solvadd::build_sites (void)
     default: break;
     }
   }
+  std::random_device rd;
+  auto engine = std::default_random_engine{ rd() };
+  std::shuffle(m_sites.begin(), m_sites.end(), engine);
 }
 
 
