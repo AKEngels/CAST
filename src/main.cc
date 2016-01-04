@@ -436,12 +436,6 @@ int main(int argc, char **argv)
           coords.e_tostream_short(std::cout);
         }
         break;
-        coords.e_head_tostream_short(std::cout);
-        coords.o();
-        Config::set().general.trackstream = &dimerstream;
-        coords.dimermethod_dihedral();
-        std::cout << "Optimized energy after transition: " << coords.o() << lineend;
-        break;
       }
     case config::tasks::MD:
       { // Molecular Dynamics
