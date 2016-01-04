@@ -38,7 +38,8 @@ void apply_startopt(coords::Coordinates & c, coords::Ensemble_PES & e)
   std::cout << "-------------------------------------------------" << lineend;
   if (Config::get().startopt.type == config::startopt::types::T::SOLVADD)
   {
-    optimizer = new startopt::preoptimizers::Solvadd(c);
+    optimizer = new startopt::preoptimizers::Solvadd(c, 
+      Config::get().startopt.solvadd.maxDistance);
   }
   else if (Config::get().startopt.type == config::startopt::types::T::RINGSEARCH ||
            Config::get().startopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
@@ -56,7 +57,8 @@ void apply_startopt(coords::Coordinates & c, coords::Ensemble_PES & e)
     if (Config::get().startopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
     {
       std::size_t sa_multi(Config::get().startopt.number_of_structures / optimizer->PES().size());
-      startopt::preoptimizers::Solvadd sa(optimizer->final_coords());
+      startopt::preoptimizers::Solvadd sa(optimizer->final_coords(), 
+        Config::get().startopt.solvadd.maxDistance);
       sa.generate(optimizer->PES(), sa_multi);
       delete optimizer;
       optimizer = &sa;
@@ -249,14 +251,20 @@ int main(int argc, char **argv)
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         //std::ofstream outputstream(coords::output::filename("_SP").c_str(), std::ios_base::out);
+        auto sp_energies_fn = coords::output::filename("SP", ".txt");
+        std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + sp_energies_fn + "' for SP energies.");
         for (auto const & pes : *ci)
         {
+          using namespace std::chrono;
           coords.set_xyz(pes.structure.cartesian);
-          auto start = std::chrono::high_resolution_clock::now();
-          coords.e();
-          std::cout << std::chrono::duration_cast<std::chrono::nanoseconds>
-            (std::chrono::high_resolution_clock::now() - start).count() << " ns\n";
+          auto start = high_resolution_clock::now();
+          auto en = coords.e();
+          auto tim = duration_cast<duration<double>>
+            (high_resolution_clock::now() - start);
+          std::cout << tim.count() << " ns\n";
           std::cout << "Structure " << ++i << lineend;
+          sp_estr << i << ' ' << en << ' ' << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
           //outputstream << coords;
         }
@@ -318,16 +326,27 @@ int main(int argc, char **argv)
     case config::tasks::LOCOPT:
       { // local optimization
         coords.e_head_tostream_short(std::cout);
-        std::ofstream locoptstream(coords::output::filename("_LOCOPT").c_str(), std::ios_base::out);
+        auto lo_structure_fn = coords::output::filename("_LOCOPT");
+        std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
+        if (!locoptstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT structures.");
+        auto lo_energies_fn = coords::output::filename("_LOCOPT", ".txt");
+        std::ofstream loclogstream(lo_energies_fn, std::ios_base::out );
+        if (!loclogstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT energies.");
         std::size_t i(0U);
         for (auto const & pes : *ci)
         {
+          using namespace std::chrono;
+          auto start = high_resolution_clock::now();
           coords.set_xyz(pes.structure.cartesian);
           coords.e();
           std::cout << "Initial: " << ++i << lineend;
           coords.e_tostream_short(std::cout);
+          loclogstream << i << ' ' << coords.pes().energy << ' ';
           coords.o();
-          std::cout << "Post-Opt: " << i << lineend;
+          auto tim = duration_cast<duration<double>>
+            (high_resolution_clock::now() - start);
+          loclogstream << coords.pes().energy << ' ' << tim.count() << '\n';
+          std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)" << '\n';
           coords.e_tostream_short(std::cout);
           locoptstream << coords;
         }
