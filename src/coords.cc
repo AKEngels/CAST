@@ -741,6 +741,44 @@ coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index,
   else throw std::logic_error("Wrong relative position requested. i > N + 2");
 }
 
+void coords::Atoms::c_to_i_light(PES_Point &p) const
+{
+  using scon::dot;
+  using scon::spherical;
+  using scon::geometric_length;
+  std::size_t const N(m_atoms.size());
+  std::size_t const M = main_torsion_indices.size();
+  // Check size
+  if (N != p.structure.cartesian.size())
+    throw std::logic_error("ERR_COORD_internal_INDEXATION");
+  // internal coords & gradients
+  Representation_Internal & intern(p.structure.intern);
+  Gradients_Internal & gintern(p.gradient.intern);
+  // cartesian coords & gradients
+  Representation_3D const & xyz(p.structure.cartesian);
+  Gradients_3D const & gxyz(p.gradient.cartesian);
+  // set correct sizes for internal data vectors
+  intern.resize(N);
+  gintern.resize(N);
+  // Mains
+  p.structure.main.resize(M);
+  p.gradient.main.resize(M);
+  for (std::size_t i(0u); i < N; ++i)
+  {
+    Representation_3D::size_type const ind_i = atom(i).i_to_a();
+    coords::Cartesian_Point const & rel_bond = rel_xyz(atom(i).ibond(), xyz);
+    coords::Cartesian_Point const & rel_angle = rel_xyz(atom(i).iangle(), xyz);
+    coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
+    intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
+  }
+  for (std::size_t j = 0; j < M; ++j)
+  {
+    auto const mti = main_torsion_indices[j];
+    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << lineend;
+    p.structure.main[j] = intern[mti].azimuth();
+  }
+}
+
 void coords::Atoms::c_to_i(PES_Point &p) const
 {
   using scon::dot; 

@@ -336,6 +336,7 @@ namespace coords
     // New Translation
     void i_to_c(PES_Point&) const;
     void c_to_i(PES_Point&) const;
+    void c_to_i_light(PES_Point&) const;
 
     // Helper
 
@@ -1049,6 +1050,7 @@ namespace coords
     { return m_representation.ia_matrix(x, y); }
 
     void to_internal() { m_atoms.c_to_i(m_representation); }
+    void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
 
     void to_xyz()
     {
