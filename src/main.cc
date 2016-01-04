@@ -1026,7 +1026,7 @@ int main(int argc, char **argv)
               coords.set_internal(ci->PES()[k].structure.intern);
               size_t quicksearch = 0u;
               structureFound = true;
-              structureNumber = (int) k;
+              structureNumber = (int)k;
               //Iterating over atoms, see if they all match
               for (size_t j = 0u; j < tokens.size(); j++)
               {
@@ -1056,16 +1056,15 @@ int main(int argc, char **argv)
               if (structureFound)
               {
                 alreadyFoundStructures[structureNumber] = true;
-                coords.set_internal(ci->PES()[k].structure.intern);
-                coords.to_xyz();
+                coords.set_pes( ci->PES()[k]);
                 outstream << coords;
               }
-              else
-              {
-                std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-                std::cerr << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
-              }
             }
+            if (!structureFound)
+            {
+              std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+              std::cerr << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
+            } 
           }
         }
         std::cout << "Everything is done. Have a nice day." << std::endl;
@@ -1199,6 +1198,7 @@ int main(int argc, char **argv)
 
     default:
     {
+
     }
 
     }
