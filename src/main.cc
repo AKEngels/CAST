@@ -788,7 +788,6 @@ int main(int argc, char **argv)
             }
           }
           //Mass-weightening coordinates if cartesians are used
-
           prepare_pca(matrix_aligned, eigenvalues, eigenvectors);
         }
 
@@ -1036,19 +1035,23 @@ int main(int argc, char **argv)
                 // Thats why we negate the criterion in the if clause (!)
                 if (tokens[j] == true)
                 {
-                  float_type compareDih = 0.001 * std::abs(ci->PES()[k].structure.intern[j].azimuth().radians());
-                  auto debug1 = std::acos(trajectory(quicksearch, structuresToBeWrittenToFile[i]));
-                  auto debug2 = cos(ci->PES()[k].structure.intern[j].azimuth().radians());
-                  auto debug3 = sin(ci->PES()[k].structure.intern[j + 1].azimuth().radians());
-                  if (!(std::abs(trajectory(quicksearch, structuresToBeWrittenToFile[i]) - ci->PES()[k].structure.intern[j].azimuth().radians()) < compareDih))
+                  auto compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
+                  auto compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
+                  auto compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
+                  auto compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
+                  bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
+                             || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
+                  bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
+                             || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
+                  //If structures did not match
+                  if (!(found1 && found2))
                   {
                     structureFound = false;
                     break;
                   }
-                  quicksearch++;
+                  quicksearch += 2u;
                 }
               }
-
               //If match was found, write out.
               if (structureFound)
               {
