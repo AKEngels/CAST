@@ -88,6 +88,14 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
   coords::float_type const P, coords::float_type const Ek, coords::float_type const Ep,
   std::vector<coords::float_type> const Eia, coords::Representation_3D const & x)
 {
+  if (iter % 5000u == 0)
+  {
+    if (std::isnan(T) || std::isnan(P) || std::isnan(Ek) || std::isnan(Ep))
+    {
+      std::cerr << "NaN in simulation, please check your input options" << std::endl;
+      throw;
+    }
+  }
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
 }
 
@@ -116,7 +124,7 @@ static inline std::istream::pos_type istream_size_left(std::istream & S)
 // Traces 
 
 
-md::simulation::simulation(coords::Coordinates &coord_object) :
+md::simulation::simulation(coords::Coordinates& coord_object) :
   coordobj(coord_object), 
   logging(coord_object, gap(Config::get().md.num_steps, Config::get().md.num_snapShots)),
   P(coord_object.xyz()), P_old(coord_object.xyz()),
@@ -228,8 +236,6 @@ void md::simulation::integrate(std::size_t const k_init)
       }
   }
 }
-
-
 
 
 // print initial MD conditions before simulation starts
@@ -1027,7 +1033,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
     // save old coordinates
     P_old = coordobj.xyz();
-    // Calculate new positions and hafl step velocities
+    // Calculate new positions and half step velocities
     for (std::size_t i(0U); i < N; ++i)
     {
       // calc acceleration
@@ -1096,7 +1102,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     {
       coordobj.fep.fepdata.back().T = temp;
     }
-    // if requested remove trnaslation and rotation of the system
+    // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
 
     // Logging / Traces
@@ -1314,7 +1320,6 @@ void md::simulation::verletintegrator(std::size_t const k_init)
   }
 }
 
-
 void md::simulation::beemanintegrator(std::size_t const k_init)
 {
   // const values
@@ -1410,6 +1415,7 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
   }
 
 }
+
 // First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)
 {
@@ -1506,6 +1512,7 @@ void md::simulation::rattle_post(void)
   // Add RATTLE contributions to the internal virial tensor
   coordobj.add_to_virial(part_v);
 }
+
 
 void md::simulation::write_restartfile(std::size_t const k)
 {

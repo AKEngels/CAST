@@ -100,8 +100,7 @@ namespace md
       coords::Representation_3D const & x);
 
     template<class Strm>
-    friend scon::binary_stream<Strm> & 
-      operator<< (scon::binary_stream<Strm> &str, Logger const &l)
+    friend scon::binary_stream<Strm> & operator<< (scon::binary_stream<Strm> &str, Logger const &l)
     {
       str << l.snapnum;
       str << l.snap_buffer;
@@ -117,7 +116,6 @@ namespace md
       str >> l.data_buffer;
       return str;
     }
-
 
   };
 
@@ -384,7 +382,7 @@ namespace md
   public:
 
     // construct
-    simulation(coords::Coordinates&);
+    simulation(coords::Coordinates &);
     // start
     void run(bool const restart = true);
     //umbrella sampling
