@@ -551,7 +551,7 @@ void pathx::proof_connect()
     if (Config::get().neb.NEB_CONN == true)
     {
 
-      for (ptrdiff_t j = 0; j < global_path_minima[1].size(); j++)
+      for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
 
       {
         if (global_path_minima[1][j].empty()) continue;
@@ -587,7 +587,7 @@ void pathx::proof_connect()
     }
     else
     {
-      for (ptrdiff_t j = 0; j < global_path_minima[1].size(); j++)
+      for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
 
       {
         if (global_path_minima[1][j].empty()) continue;

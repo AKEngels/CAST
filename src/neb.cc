@@ -13,7 +13,8 @@
 #include "coords.h"
 #include"optimization_global.h"
 
-
+/*CLASS which performs double ended Reaction Path Search by applying the NEB method and adapted
+ approaches like Interpolative Optimization*/
 
 
 ::tinker::parameter::parameters neb::tp;
@@ -38,7 +39,7 @@ neb::~neb(void)
 void neb::preprocess (ptrdiff_t &count, ptrdiff_t const &image)
 {
   std::vector<size_t> image_remember;
-  std::vector<std::vector<int> > atoms_remember;
+  std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
   CIMaximum=0;
   num_images=image;
@@ -68,7 +69,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
 
 
   std::vector<size_t> image_remember;
-  std::vector<std::vector<int> > atoms_remember;
+  std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
   CIMaximum=0;
   ts=true;
@@ -114,7 +115,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image,ptrdiff_t &count, const c
 
 
   std::vector<size_t> image_remember;
-  std::vector<std::vector<int> > atoms_remember;
+  std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
   this->cPtr->mult_struc_counter=file;
   CIMaximum=0;
@@ -299,7 +300,7 @@ void neb::run (ptrdiff_t &count)
 
 
 }
-void neb::run(ptrdiff_t &count, std::vector<size_t>& , std::vector<std::vector<int> >& atoms_remember)
+void neb::run(ptrdiff_t &count, std::vector<size_t>& , std::vector<std::vector<size_t> >& atoms_remember)
 {
 
 	get_energies_grad();
@@ -853,18 +854,18 @@ double neb::g_new(ptrdiff_t im)
 
 void neb::calc_shift(void)
 {
-	double /*diff, */gridp;
+	double diff, gridp;
 	VecDoub posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
 	Doub x, y, z, pathlenx(0.0), pathleny(0.0), pathlenz(0.0);
 	double distx(0.0), disty(0.0), distz(0.0);
-	std::size_t laf(0)/*, counter(0)*/;
+	ptrdiff_t laf(0), counter(0);
 	std::vector <double> temp;
 	tempimage_ini = imagi[0];
 	tempimage_final = imagi[num_images - 1];
 	//std::string name;
 	std::ostringstream name, name2, name3;
-	std::vector <std::vector < std::vector < scon::c3<float> > > > position;
-	scon::c3 <float> pos3;
+	std::vector <std::vector < std::vector < scon::c3<double> > > > position;
+	scon::c3 <double> pos3;
 	std::vector <coords::Cartesian_Point> interpol_position;
 	coords::Representation_3D temp_int;
 	position.resize(this->cPtr->size());
@@ -872,11 +873,11 @@ void neb::calc_shift(void)
 
 
 
-	for (size_t i = 0; i < this->cPtr->size(); i++){
+	for (int i = 0; i < this->cPtr->size(); i++) {
 
-		for (size_t j = 0; j < (num_images); j++){
+		for (int j = 0; j < (num_images); j++) {
 
-			//diff = (double)j / num_images;
+			diff = (double)j / num_images;
 
 			image_ini[j][i];
 			posx[j] = imagi[j][i].x();
@@ -894,14 +895,14 @@ void neb::calc_shift(void)
 		Spline_interp splinez(gridz, posz);
 		position[i].resize(num_images);
 
-		for (size_t k = 0; k < num_images; k++)
+		for (int k = 0; k < num_images; k++)
 
 		{
-			
+
 			laf = 0;
 			gridp = k;
-			size_t jj, it;
-			Doub tnm, sumx, sumy, sumz, del, sx, sy, sz, skx0, sky0, skz0, skx, sky, skz;
+			int jj, it;
+			Doub  tnm, sumx, sumy, sumz, del, sx, sy, sz, skx0, sky0, skz0, skx, sky, skz;
 			skx0 = abs((splinex.interp(k + 0.00001) - splinex.interp(k)) / 0.00001);
 			skx = abs((splinex.interp((k + 1) + 0.00001) - splinex.interp(k + 1)) / 0.00001);
 			sky0 = abs((spliney.interp(k + 0.00001) - spliney.interp(k)) / 0.00001);
@@ -916,7 +917,7 @@ void neb::calc_shift(void)
 			pathlenx = 0.0;
 			pathleny = 0.0;
 			pathlenz = 0.0;
-			for (size_t m = 1; m < 8; m++)
+			for (int m = 1; m < 8; m++)
 			{
 				for (it = 1, jj = 1; jj < m - 1; jj++) it <<= 1;
 
@@ -950,24 +951,24 @@ void neb::calc_shift(void)
 			/*  std::cout << "total_length  " << pathlen/(num_images-2 )<< lineend;
 			std::cout << "new shifted coordinate   "<<imagi[k][i].x() + (pathlen / (num_images - 2)) << lineend;*/
 			std::cout << "K " << k << lineend;
-			
-			while (gridp <= (k+1))
+
+			while (gridp <= (k + 1))
 			{
-			
-			 laf++;
-			 gridp += 0.5;
-			 //std::cout << gridp << endl;
-			 x = splinex.interp(gridp);
-			 y = spliney.interp(gridp);
-			 z = splinez.interp(gridp);
-			 distx += x;
-			 disty += y;
-			 distz += z;
-			 pos3.x() = x;
-			 pos3.y() = y;
-			 pos3.z() = z;
-		     
-			 position[i][k].push_back(pos3);
+
+				laf++;
+				gridp += 0.5;
+				//std::cout << gridp << endl;
+				x = splinex.interp(gridp);
+				y = spliney.interp(gridp);
+				z = splinez.interp(gridp);
+				distx += x;
+				disty += y;
+				distz += z;
+				pos3.x() = x;
+				pos3.y() = y;
+				pos3.z() = z;
+
+				position[i][k].push_back(pos3);
 			}
 			std::cout << lineend;
 			//std::cout << laf << lineend;
@@ -985,19 +986,31 @@ void neb::calc_shift(void)
 	}
 
 	imagi_test.resize(num_images);
-
 	//name2 << "BETA.xyz";
 	//for (size_t j = 1; j < (num_images - 1); j++){
+
+
+
 	//	for (size_t i = 0; i < this->cPtr->size(); i++){
+
 	//		imagi[j][i].x() += shiftx[i];
 	//		imagi[j][i].y() += shifty[i];
 	//		imagi[j][i].z() += shiftz[i];
+
+
 	//		imagi_test[j].push_back(imagi[j][i]);
 	//		//image_ini[j].push_back(images[i]);
+
+
 	//	}
+
+
+
 	//	
+
 	//	//out << "     " << N << " IMAGE_FINAL: " << "  global counter:  " << num_images << lineend;
 	//	//for (size_t j = 0; j <N; j++) {
+
 	//	//	out << std::right << std::setw(6) << j + 1;
 	//	//	out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
 	//	//	out << std::fixed << std::right << std::setprecision(6) << std::setw(13) << imagi[num_images][j].x();
@@ -1010,30 +1023,37 @@ void neb::calc_shift(void)
 	//	//		out << std::right << std::setw(6) << cPtr->atoms(j).bonds()[n] + 1U;
 	//	//	}
 	//	//	out << lineend;
+
 	//	//}
 	//
+
+
+
 	//	//printmono(name2.str(), imagi_test[j], counter);
+
 	//	//cout << imagi_test[j] << endl;
+
+
 	//}
 
-	std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app),out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
+	std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app), out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
 	interpol_position.resize(N);
 	tau_int.resize(N);
 	interpol_position.resize(N);
 	temp_int.resize(N);
-	
-	for (std::size_t i = 1; i < num_images - 1; i++)
+
+	for (ptrdiff_t i = 1; i < ptrdiff_t(num_images - 1); i++)
 	{
 
-		for (std::size_t k = 0; k < laf; k++) {
+		for (ptrdiff_t k = 0; k < laf; k++) {
 			out << "     " << N << " IMAGE: " << k << "  global counter:  " << i << lineend;
 			temp_int.clear();
-			for (std::size_t j = 0; j < N; j++) {
+			for (size_t j = 0; j < N; j++) {
 
 
 
 
-				double abso(0.0);
+				float abso(0.0);
 				/*ofstream off ("energies");*/
 
 
@@ -1054,8 +1074,8 @@ void neb::calc_shift(void)
 				abso += tau_int[j].y()*tau_int[j].y();
 				abso += tau_int[j].z()*tau_int[j].z();
 				abso = sqrt(abso);
-			
-				
+
+
 				if (abso == 0.0) abso = 1.0;
 				tau_int[j].x() = tau_int[j].x() / abso;
 				tau_int[j].y() = tau_int[j].y() / abso;
@@ -1240,7 +1260,7 @@ double neb::g_int(std::vector<scon::c3 <float> > t)
 ************************************************************************
 ***********************************************************************/
 
-void neb::opt_internals(ptrdiff_t &count, const std::vector<std::vector<int> >& atoms_remember){
+void neb::opt_internals(ptrdiff_t &count, const std::vector<std::vector<size_t> >& atoms_remember){
 
 	coords::Ensemble_PES *ep = new coords::Ensemble_PES;
 	std::ostringstream name;
@@ -1302,7 +1322,7 @@ void neb::opt_internals(ptrdiff_t &count, const std::vector<std::vector<int> >& 
 
 }
 
-void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::vector<std::vector<int> >& atoms_remember){
+void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::vector<std::vector<size_t> >& atoms_remember){
 
 	size_t i = 0U, j = 0U, imgs = num_images, atom_iter = 0U;
 
@@ -1314,10 +1334,10 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 	std::vector<std::vector<double> > imgs_x_input, imgs_y_input, imgs_z_input, dist, anglevec, dihedralvec;
 	std::vector<std::vector<std::vector<double> > > dist_all, anglevec_all, dihedralvec_all, compare;
 
-	std::vector<int> int_swap;
-	std::vector<std::vector<int> > bonds, which_bonds;
-	std::vector<std::vector<std::vector<int> > > which_img;
-	std::vector<std::vector<std::vector<std::vector<int> > > > involved_bonds;
+	std::vector<size_t> int_swap;
+	std::vector<std::vector<size_t> > bonds, which_bonds;
+	std::vector<std::vector<std::vector<size_t> > > which_img;
+	std::vector<std::vector<std::vector<std::vector<size_t> > > > involved_bonds;
 
 	std::vector<std::vector<size_t> > i_remember, j_remember, i_remember_all, j_remember_all;
 
@@ -1615,7 +1635,7 @@ void neb::no_torsion(const size_t& image_remember, const std::vector<int>& atoms
 //Function to fixate atoms
 //
 
-void neb::execute_fix(const std::vector<int>& atoms_remember){
+void neb::execute_fix(const std::vector<size_t>& atoms_remember){
 	//std::cout <<"SIZE_exe "<< atoms_remember.size() << endl;
 	for (size_t i = 0U; i<atoms_remember.size(); i++){
 		cPtr->set_fix(atoms_remember[i] - 1,true);
@@ -1624,7 +1644,7 @@ void neb::execute_fix(const std::vector<int>& atoms_remember){
 	}
 }//end execute_fix
 
-void neb::execute_defix(const std::vector<int>& atoms_remember){
+void neb::execute_defix(const std::vector<size_t>& atoms_remember){
 	for (size_t i = 0U; i<atoms_remember.size(); i++){
 		cPtr->set_fix(atoms_remember[i] - 1, false);
 		
@@ -1644,8 +1664,8 @@ void neb::defix_all(){
 //Function to get the biggest change during two images
 //
 void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, const std::vector<std::vector<std::vector<double> > >& anglevec,
-	const std::vector<std::vector<std::vector<double> > >& dihedralvec, std::vector<std::vector<std::vector<double> > >& , std::vector<std::vector<std::vector<int> > >& , std::vector<std::vector<size_t> >& i_remember,
-	std::vector<std::vector<size_t> >& j_remember, std::vector<std::vector<size_t> > & i_remember_all, std::vector<std::vector<size_t> > & j_remember_all){
+	const std::vector<std::vector<std::vector<double> > >& dihedralvec, std::vector<std::vector<std::vector<double> > >&, std::vector<std::vector<std::vector<size_t> > >&, std::vector<std::vector<size_t> >& i_remember,
+	std::vector<std::vector<size_t> >& j_remember, std::vector<std::vector<size_t> > & i_remember_all, std::vector<std::vector<size_t> > & j_remember_all) {
 
 	size_t i = 0U, j = 0U, k = 0U;
 	double double_swap;
@@ -1773,7 +1793,7 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
 
 				if (comp_value_swap[j] > comp_value_swap[j + 1]){
 					swapped = true;
-					int temp_i, temp_j;
+					size_t temp_i, temp_j;
 					double temp_d;
 
 					temp_i = i_temp[j];
@@ -1824,7 +1844,7 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
 //void double_or_not
 //Function to find out if a distance, angle or dihedral is double
 //
-void neb::double_or_not(std::vector<std::vector<std::vector<int> > >& involved_bonds, const std::vector<int>& pivot, const size_t& a, const size_t& b, std::vector<std::vector<double> >& vec){
+void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involved_bonds, const std::vector<size_t>& pivot, const size_t& a, const size_t& b, std::vector<std::vector<double> >& vec) {
 
 	bool all_the_same;
 
@@ -1869,15 +1889,15 @@ bool neb::dihedral_or_not(const int& first_atom, const std::vector<int>& dist, c
 
 }
 
-void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t& atom_iter, std::vector<std::vector<int> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<int> > > >* involved_bonds, std::vector<std::vector<int> >& bonds){
+void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t& atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds){
 
 	double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
 	size_t i, j, k, l;
-	int a, b, c, d;
+	size_t a, b, c, d;
 
-	std::vector<int> int_swap;
-	std::vector<std::vector<int> > dist_int_swap, angle_int_swap, dihedral_int_swap;
-	std::vector<std::vector<std::vector<int> > > dist_int, angle_int, dihedral_int;
+	std::vector<size_t> int_swap;
+	std::vector<std::vector<size_t> > dist_int_swap, angle_int_swap, dihedral_int_swap;
+	std::vector<std::vector<std::vector<size_t> > > dist_int, angle_int, dihedral_int;
 
 	std::vector<double> dist_swap, angle_swap, dihedral_swap;
 
@@ -2047,12 +2067,12 @@ void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std
 //void get_values
 //getting values without searching by just using safed atoms from the former used get_values-function
 //
-void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<int> > > >& involved_bonds, std::vector<std::vector<int> >& which_bonds){
+void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >& involved_bonds, std::vector<std::vector<size_t> >& which_bonds) {
 
 	std::vector<double> dist_swap, angle_swap, dihedral_swap;
 	double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
 	size_t i, j;
-	int a, b;
+	size_t a, b;
 	bool same_atom;
 
 
@@ -2127,12 +2147,12 @@ void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std
 	}
 }
 
-void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<int> >& bonds){
+void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
 	size_t i = 0U, j = 0U, k = 0U, iter = 0U, lenght, start;
 	std::string string_swap;
 	double double_swap;
-	std::vector<int> vec_swap, remember_C, remember;
+	std::vector<size_t> vec_swap, remember_C, remember;
 
 	for (i = 0U; i<bonds.size(); i++){
 
@@ -2186,11 +2206,11 @@ void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<s
 	}
 }
 
-void neb::bond_Sort(std::vector<int>& bonds, const size_t& start, const size_t& length){
+void neb::bond_Sort(std::vector<size_t>& bonds, const size_t& start, const size_t& length){
 
 	size_t i = start, j = length;
-	int int_swap;
-	int mid = bonds[(start + length) / 2];
+	size_t int_swap;
+	size_t mid = bonds[(start + length) / 2];
 
 	while (i <= j){
 		while (bonds[i] < mid) i++;
@@ -2210,9 +2230,9 @@ void neb::bond_Sort(std::vector<int>& bonds, const size_t& start, const size_t& 
 
 }
 
-void neb::bond_Sort(int* a, int* b, int* c, int* d){
+void neb::bond_Sort(size_t* a, size_t* b, size_t* c, size_t* d) {
 
-	int int_swap;
+	size_t int_swap;
 
 	bool again = false;
 
@@ -2237,9 +2257,9 @@ void neb::bond_Sort(int* a, int* b, int* c, int* d){
 	if (again) bond_Sort(a, b, c, d);
 }
 
-void neb::bond_Sort(int* a, int* b, int* c){
+void neb::bond_Sort(size_t* a, size_t* b, size_t* c) {
 
-	int int_swap;
+	size_t int_swap;
 
 	bool again = false;
 
@@ -2258,9 +2278,9 @@ void neb::bond_Sort(int* a, int* b, int* c){
 	if (again) bond_Sort(a, b, c);
 }
 
-void neb::bond_Sort(int* a, int* b){
+void neb::bond_Sort(size_t* a, size_t* b) {
 
-	int int_swap;
+	size_t int_swap;
 
 	if (*a>*b){
 		int_swap = *a;
@@ -2269,11 +2289,11 @@ void neb::bond_Sort(int* a, int* b){
 	}
 }
 
-void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<int> >& bonds){
+void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
 	size_t a = 0U, b = 0U, c = 0U, i = start, j = length;
 	double double_swap;
-	std::vector<int> vector_swap, remember_i, remember_j;
+	std::vector<size_t> vector_swap, remember_i, remember_j;
 	std::string string_swap;
 	std::string mid = name[(start + length) / 2];
 
