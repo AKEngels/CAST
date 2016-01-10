@@ -1450,7 +1450,7 @@ void config::parse_option (std::string const option, std::string const value_str
     }
     else if (option == "pca_trunc_atoms_num" && Config::get().PCA.pca_trunc_atoms_bool)
     {
-      Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<unsigned int>(cv);
+      Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(cv);
     }
     else if (option == "pca_start_frame_num")
     {
@@ -1477,17 +1477,16 @@ void config::parse_option (std::string const option, std::string const value_str
         Config::set().PCA.pca_remove_dof = false;
       }
     }
-    else if (option == "pca_internal_bnd" && Config::get().PCA.pca_use_internal)
-    {
-      Config::set().PCA.pca_internal_bnd = configuration_range_int<unsigned int>(cv);
-    }
-    else if (option == "pca_internal_ang" && Config::get().PCA.pca_use_internal)
-    {
-      Config::set().PCA.pca_internal_ang = configuration_range_int<unsigned int>(cv);
-    }
     else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
     {
-      Config::set().PCA.pca_internal_dih = configuration_range_int<unsigned int>(cv);
+      Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
+      // A little check.
+      // Since array is sorted, we only have to check the highest / lowest value
+      if (Config::get().PCA.pca_internal_dih[0] < 0u)
+      {
+        std::cerr << "You can't specify negative values as dihedrals for PCA. Stopping.\n" << std::endl;
+        throw;
+      }
     }
     else if (option == "pca_trunc_dim")
     {
@@ -1520,7 +1519,7 @@ void config::parse_option (std::string const option, std::string const value_str
     }
     else if (option == "pca_dimensions_for_histogramming")
     {
-      Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<unsigned int>(cv);
+      Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(cv);
     }
     else if (option == "proc_desired_start")
     {
@@ -1572,25 +1571,17 @@ void config::parse_option (std::string const option, std::string const value_str
         Config::set().entropy.entropy_trunc_atoms_bool = false;
       }
     }
-    else if (option == "entropy_internal_bnd" && Config::get().entropy.entropy_use_internal)
-    {
-      Config::set().entropy.entropy_internal_bnd = configuration_range_int<unsigned int>(cv);
-    }
-    else if (option == "entropy_internal_ang" && Config::get().entropy.entropy_use_internal)
-    {
-      Config::set().entropy.entropy_internal_ang = configuration_range_int<unsigned int>(cv);
-    }
     else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
     {
-      Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<unsigned int>(cv);
+      Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<size_t>(cv);
     }
     else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
     {
-      Config::set().entropy.entropy_internal_dih = configuration_range_int<unsigned int>(cv);
+      Config::set().entropy.entropy_internal_dih = configuration_range_int<size_t>(cv);
     }
     else if (option == "entropy_method")
     {
-      Config::set().entropy.entropy_method = configuration_range_int<unsigned int>(cv);
+      Config::set().entropy.entropy_method = configuration_range_int<size_t>(cv);
     }
     else if (option == "entropy_method_knn_k")
     {

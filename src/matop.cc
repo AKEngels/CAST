@@ -11,7 +11,7 @@ namespace matop
   Matrix_Class transfer_to_matr(coords::Coordinates const& in)
   {
     Matrix_Class out_mat(in.size(), 3u);
-    for (unsigned int l = 0; l < (unsigned int) in.size(); l++)
+    for (size_t l = 0; l < in.size(); l++)
     {
       coords::cartesian_type tempcoord2;
       tempcoord2 = in.xyz(l);
@@ -24,7 +24,7 @@ namespace matop
 
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
   {
-    const unsigned int sizer = (unsigned int) in.size();
+    const size_t sizer = in.size();
     Matrix_Class out_mat(sizer, 3u);
     for (size_t l = 0; l < in.size(); l++)
     {
@@ -37,8 +37,8 @@ namespace matop
 
   Matrix_Class transform_coordinates(coords::Coordinates& input)
   {
-	  Matrix_Class output(3, (unsigned int) input.size());
-	  for (size_t l = 0; l < (unsigned int) input.size(); l++)
+	  Matrix_Class output(3, input.size());
+	  for (size_t l = 0; l < input.size(); l++)
 	  {
 		  (output)((l), 0) = input.xyz(l).x();
 		  (output)((l), 1) = input.xyz(l).y();
@@ -51,7 +51,7 @@ namespace matop
   {
     coords::Representation_3D tempcoord1;
 
-    for (unsigned int i = 0; i < input.cols(); i++)
+    for (size_t i = 0; i < input.cols(); i++)
     {
       coords::Cartesian_Point tempcoord2(input(0, i), input(1, i), input(2, i));
       tempcoord1.push_back(tempcoord2);
@@ -59,37 +59,34 @@ namespace matop
     return tempcoord1;
   }
 
-  Matrix_Class transform_3n_nf(Matrix_Class const& input)
+  coords::Representation_Internal transfer_to_internalRepressentation(Matrix_Class const& input)
   {
-    Matrix_Class transformed_matrix(1, (input.rows() * input.cols()));
-    size_t j = 0;
-    for (unsigned int i = 0; i < input.cols(); i++)
+    coords::Representation_Internal tempcoord1;
+
+    for (size_t i = 0; i < input.cols(); i++)
     {
-      for (unsigned int k = 0; k < input.rows(); k++)
-      {
-        transformed_matrix(0, j + k) = input(k, i);
-      }
-      j = j + input.rows();
+      coords::internal_type tempcoord2(input(0, i), scon::ang<float_type>(input(1, i)), scon::ang<float_type>(input(2, i)));
+      tempcoord1.push_back(tempcoord2);
     }
-    return transformed_matrix;
+    return tempcoord1;
   }
 
-  void massweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<unsigned int> atomsThatAreUsed)
+  void massweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<size_t> atomsThatAreUsed)
   //coords are reference coord object to get atomic masses from
   //boolean controls whether coords should also be multiplied with 10e-10 to convert angstrom to meters)
   {
     if (atomsThatAreUsed.empty())
     {
-      for (unsigned int i = 0; i < input.rows(); i = i + 3)
+      for (size_t i = 0; i < input.rows(); i = i + 3)
       {
         double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
         if (to_meter)
         {
           temp *= 10e-10;
         }
-        for (unsigned int j = 0; j < input.cols(); j++)
+        for (size_t j = 0; j < input.cols(); j++)
         {
-          for (unsigned int k = 0; k < 3; k++)
+          for (size_t k = 0; k < 3; k++)
           {
             (input)(i + k, j) *= temp;
           }
@@ -98,20 +95,159 @@ namespace matop
     }
     else
     {
-      for (unsigned int i = 0; i < input.rows(); i = i + 3)
+      for (size_t i = 0; i < input.rows(); i = i + 3)
       {
         double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
         if (to_meter)
         {
           temp *= 10e-10;
         }
-        for (unsigned int j = 0; j < input.cols(); j++)
+        for (size_t j = 0; j < input.cols(); j++)
         {
-          for (unsigned int k = 0; k < 3; k++)
+          for (size_t k = 0; k < 3; k++)
           {
             (input)(i + k, j) *= temp;
           }
         }
+      }
+    }
+  }
+
+  void undoMassweight(Matrix_Class& input, coords::Coordinates const& coords, bool to_meter, std::vector<size_t> atomsThatAreUsed)
+  {
+    if (atomsThatAreUsed.empty())
+    {
+      for (size_t i = 0; i < input.rows(); i = i + 3)
+      {
+        double temp = sqrt(coords.atoms(i / 3u).mass() * 1.6605402 * 10e-27);
+        if (to_meter)
+        {
+          temp *= 10e-10;
+        }
+        for (size_t j = 0; j < input.cols(); j++)
+        {
+          for (size_t k = 0; k < 3; k++)
+          {
+            (input)(i + k, j) /= temp;
+          }
+        }
+      }
+    }
+    else
+    {
+      for (size_t i = 0; i < input.rows(); i = i + 3)
+      {
+        double temp = sqrt(coords.atoms(atomsThatAreUsed[i / 3u]).mass() * 1.6605402 * 10e-27);
+        if (to_meter)
+        {
+          temp *= 10e-10;
+        }
+        for (size_t j = 0; j < input.cols(); j++)
+        {
+          for (size_t k = 0; k < 3; k++)
+          {
+            (input)(i + k, j) /= temp;
+          }
+        }
+      }
+    }
+  }
+
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
+  {
+    //First, some range checks
+    if (includedAtoms[includedAtoms.size() - 1] > coords.atoms().size() - 1)
+    {
+      std::cerr << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
+      throw;
+    }
+    if (includedAtoms[0] < 0u)
+    {
+      std::cerr << "You specified a negative truncation number. Stopping." << std::endl;
+      throw;
+    }
+    else if (internalCoordinates && includedAtoms[0] < 3u)
+    {
+      std::cerr << "You specified a dihedral with index < 3. Stopping." << std::endl;
+      throw;
+    }
+
+    if (internalCoordinates)
+    {
+      Matrix_Class transformed_matrix(1u, (includedAtoms.size() * 2));
+      size_t j = 0;
+      size_t quicksearch_dih = 0;
+      for (size_t i = 0; i < coords.atoms().size(); i++)
+      {
+        size_t keeper = 0;
+        bool checker_dih = false;
+        for (size_t l = quicksearch_dih; l < Config::get().PCA.pca_internal_dih.size(); l++)
+        {
+          if (Config::get().PCA.pca_internal_dih.size() != 0)
+          {
+            if (Config::get().PCA.pca_internal_dih[l] == i)
+            {
+              checker_dih = true;
+              quicksearch_dih++;
+              break;
+            }
+          }
+        }
+        if (checker_dih)
+        {
+          transformed_matrix(0, j + keeper) = cos(coords.intern(i).azimuth().radians());
+          transformed_matrix(0, j + keeper + 1) = sin(coords.intern(i).azimuth().radians());
+          keeper += 2;
+        }
+        j = j + keeper;
+      }
+      return transformed_matrix;
+    }
+    else
+    {
+      if (includedAtoms.size() != 0u)
+      {
+        Matrix_Class transformed_matrix(1u, ((3 * includedAtoms.size())));
+        int j = 0;
+        size_t quicksearch = 0;
+        for (size_t i = 0; i < coords.atoms().size(); i++) //iterate over atoms
+        {
+          bool checker = false;
+          for (size_t l = quicksearch; l < includedAtoms.size(); l++) //iterate over vector of atoms to account for
+          {
+            if (includedAtoms[l] - 1 == i)
+            {
+              checker = true;
+              quicksearch++;
+              break;
+            }
+          }
+          if (checker)
+          {
+            transformed_matrix(0, j + 0u) = coords.xyz(i).x();
+            transformed_matrix(0, j + 1u) = coords.xyz(i).y();
+            transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            j = j + 3u;
+          }
+        }
+        return transformed_matrix;
+      }
+      else
+      {
+        Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
+        int j = 0;
+        for (size_t i = 0; i < coords.atoms().size(); i++)
+        {
+          for (size_t k = 0; k < 3; k++)
+          {
+            //transformed_matrix(0, j + k) = input(k, i);
+            transformed_matrix(0, j + 0u) = coords.xyz(i).x();
+            transformed_matrix(0, j + 1u) = coords.xyz(i).y();
+            transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+          }
+          j = j + 3u;
+        }
+        return transformed_matrix;
       }
     }
   }
@@ -124,7 +260,7 @@ namespace matop
   /////////////////////////////////////
   namespace pca
   {
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& /*pca_modes*/, int rank)
+    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, int rank)
     {
       Matrix_Class cov_matr = (transposed(input));
       Matrix_Class ones(input.cols(), input.cols(), 1.0);
@@ -135,6 +271,7 @@ namespace matop
       int *cov_rank = new int;
       cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
       rank = *cov_rank;
+      delete cov_rank;
       if (rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
       {
         std::cout << "Notice: covariance matrix is singular.\n";
@@ -153,12 +290,12 @@ namespace matop
       }
     }
 
-    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename)
+    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename, std::string additionalInformation)
     {
       std::cout << "\nWriting PCA-Modes and Eigenvectors of covariance matrix to file\n";
 
       double sum_of_all_variances = 0.0;
-      for (unsigned int i = 0; i < eigenvalues.rows(); i++)
+      for (size_t i = 0; i < eigenvalues.rows(); i++)
       {
         sum_of_all_variances += eigenvalues(i);
       }
@@ -168,7 +305,7 @@ namespace matop
         double temporary_sum_of_variances = 0.0;
         Matrix_Class pca_modes2 = pca_modes;
         if (eigenvalues.rows() < 2u) throw("Eigenvalues not initialized, error in truncating PCA values. You are in trouble.");
-        for (unsigned int i = 0u - 1; i < eigenvalues.rows(); i++)
+        for (size_t i = 0u - 1; i < eigenvalues.rows(); i++)
         {
           if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
           {
@@ -207,116 +344,13 @@ namespace matop
       pca_modes_stream << eigenvectors << "\n\n\n";
       pca_modes_stream << "Trajectory in PCA - Modes following (columns are frames, rows are modes)\nSize = " << std::setw(10) << pca_modes.rows() << " x " << std::setw(10) << pca_modes.cols() << "\n";
       pca_modes_stream << pca_modes << "\n";
-    }
-
-    Matrix_Class transform_3n_nf_trunc_pca(Matrix_Class const& input)
-    {
-      //Transform it as necessary
-      Matrix_Class transformed_matrix(1u, (unsigned int)( (3 * Config::get().PCA.pca_trunc_atoms_num.size()) ));
-      size_t j = 0;
-      unsigned int quicksearch = 0;
-      for (unsigned int i = 0; i < input.cols(); i++) //iterate over atoms
-      {
-        bool checker = false;
-        for (unsigned int l = quicksearch; l < Config::get().PCA.pca_trunc_atoms_num.size(); l++) //iterate over vector of atoms to account for
-        {
-          if (Config::get().PCA.pca_trunc_atoms_num[l] - 1 == i)
-          {
-            checker = true;
-            quicksearch++;
-            break;
-          }
-        }
-        if (checker)
-        {
-          for (unsigned int k = 0; k < input.rows(); k++)
-          {
-            transformed_matrix(0, j + k) = (input)(k, i);
-          }
-          j = j + input.rows();
-        }
-      }
-      return transformed_matrix;
-    }
-
-    Matrix_Class transform_3n_nf_internal_pca(Matrix_Class const& input)
-    {
-      // HAS TO BE TESTED NOT TESTED YET but should be functional
-      Matrix_Class out;
-      Matrix_Class transformed_matrix(1u, (unsigned int)((Config::get().PCA.pca_internal_dih.size() * 2 + 2 * Config::get().PCA.pca_internal_ang.size() - Config::get().PCA.pca_internal_bnd.size())));
-      int j = 0;
-      unsigned int quicksearch_dih = 0;
-      unsigned int quicksearch_ang = 0;
-      unsigned int quicksearch_bnd = 0;
-      for (unsigned int i = 0; i < input.cols(); i++)
-      {
-        unsigned int keeper = 0;
-        bool checker_dih = false;
-        bool checker_ang = false;
-        bool checker_bnd = false;
-        for (unsigned int l = quicksearch_dih; l < Config::get().PCA.pca_internal_dih.size(); l++)
-        {
-          if (Config::get().PCA.pca_internal_dih.size() != 0)
-          {
-            if (Config::get().PCA.pca_internal_dih[l] - 1 == i)
-            {
-              checker_dih = true;
-              quicksearch_dih++;
-              break;
-            }
-          }
-        }
-        for (unsigned int l = quicksearch_ang; l < Config::get().entropy.entropy_internal_ang.size(); l++)
-        {
-          if (Config::get().PCA.pca_internal_ang.size() != 0)
-          {
-            if (Config::get().PCA.pca_internal_ang[l] - 1 == i)
-            {
-              checker_ang = true;
-              quicksearch_ang++;
-              break;
-            }
-          }
-        }
-        for (unsigned int l = quicksearch_bnd; l < Config::get().entropy.entropy_internal_bnd.size(); l++)
-        {
-          if (Config::get().PCA.pca_internal_bnd.size() != 0)
-          {
-            if (Config::get().PCA.pca_internal_bnd[l] - 1 == i)
-            {
-              checker_bnd = true;
-              quicksearch_bnd++;
-              break;
-            }
-          }
-        }
-        if (checker_bnd)
-        {
-          transformed_matrix(0, j + keeper) = (input)(0, i);
-          keeper++;
-        }
-        if (checker_ang)
-        {
-          transformed_matrix(0, j + keeper) = cos((input)(1, i));
-          transformed_matrix(0, j + keeper + 1) = sin((input)(1, i));
-          keeper += 2;
-        }
-        if (checker_dih)
-        {
-          transformed_matrix(0, j + keeper) = cos((input)(2, i));
-          transformed_matrix(0, j + keeper + 1) = sin((input)(2, i));
-          keeper += 2;
-        }
-        j = j + keeper;
-      }
-      out = transformed_matrix;
-      return out;
+      pca_modes_stream << "Additional Information following:\n" << additionalInformation << "\n";
     }
 
     void output_probability_density(Matrix_Class& pca_modes)
     {
       using namespace histo;
-      std::vector<unsigned int> dimensionsToBeUsedInHistogramming = Config::get().PCA.pca_dimensions_for_histogramming;
+      std::vector<size_t> dimensionsToBeUsedInHistogramming = Config::get().PCA.pca_dimensions_for_histogramming;
 
       if (dimensionsToBeUsedInHistogramming.size() > 2)
       {
@@ -324,40 +358,7 @@ namespace matop
         std::cerr << "Working with 2 dimensions";
         dimensionsToBeUsedInHistogramming.resize(2);
       }
-      else if (dimensionsToBeUsedInHistogramming.size() == 1)
-      {
-        //DUMMY
-        Histograms<float_type> *histograms_p;
-        //Initializing
-        if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
-        {
-          size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
-          histograms_p = new Histograms<float_type>((size_t) pca_modes.rows(), histogramBins);
-        }
-        else if (Config::get().PCA.pca_histogram_width > 0.)
-        {
-          float_type histogramWidth = Config::get().PCA.pca_histogram_number_of_bins;
-          histograms_p = new Histograms<float_type>((size_t) pca_modes.rows(), histogramWidth);
-        }
-        else
-        {
-          throw "Error in output_probability_density, exiting.\n You need to specify either a numbger of histogram bins or a bin width in the inputfile.\n";
-        }
-
-        std::cout << "Starting: Histogramming...";
-        //Filling the histogram
-        for (unsigned int i = 0u; i < pca_modes.rows(); i++)
-        {
-          for (unsigned int j = 0u; j < pca_modes.cols(); j++)
-          {
-            histograms_p->add_value(i, pca_modes(i,j));
-          }
-        }
-        histograms_p->distribute();
-        std::cout << *histograms_p;
-        delete histograms_p;
-      }
-      else if (dimensionsToBeUsedInHistogramming.size() == 2)
+      else
       {
         DimensionalHistogram<float_type> *histograms_p;
         if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
@@ -368,7 +369,7 @@ namespace matop
         }
         else if (Config::get().PCA.pca_histogram_width > 0.)
         {
-          float_type histogramWidth = Config::get().PCA.pca_histogram_number_of_bins;
+          float_type histogramWidth = Config::get().PCA.pca_histogram_width;
           histograms_p = new DimensionalHistogram<float_type>( (size_t)dimensionsToBeUsedInHistogramming.size(), histogramWidth);
         }
         else
@@ -378,10 +379,10 @@ namespace matop
 
         std::cout << "Starting: Histogramming...";
         //Filling the histogram
-        for (unsigned int j = 0u; j < pca_modes.cols(); j++)
+        for (size_t j = 0u; j < pca_modes.cols(); j++)
         {
           std::vector<float_type> temp(dimensionsToBeUsedInHistogramming.size());
-          for (unsigned int i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
+          for (size_t i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
           {
             temp[i] = pca_modes(dimensionsToBeUsedInHistogramming[i] - 1, j);
           }
@@ -389,13 +390,13 @@ namespace matop
         }
         
         histograms_p->distribute();
-        histograms_p->write("pca_histograms");
+        histograms_p->writeProbabilityDensity("pca_histograms");
         histograms_p->writeAuxilaryData("pca_histograms_auxdata");
         delete histograms_p;
       }
     }
 
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string filename)
+    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename)
     {
       std::ifstream pca_modes_stream(filename, std::ios::in);
       std::string line;
@@ -409,11 +410,11 @@ namespace matop
       std::getline(pca_modes_stream, line);
       eigenvectors.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
 
-      for (unsigned int i = 0u; i < eigenvectors.rows(); i++)
+      for (size_t i = 0u; i < eigenvectors.rows(); i++)
       {
         std::getline(pca_modes_stream, line);
         size_t whitespace = 0u, lastWhitespace = 0u;
-        for (unsigned int j = 0u; j < eigenvectors.cols(); j++)
+        for (size_t j = 0u; j < eigenvectors.cols(); j++)
         {
           lastWhitespace = whitespace;
           whitespace = line.find(" ", lastWhitespace + 1u);
@@ -428,16 +429,29 @@ namespace matop
       std::getline(pca_modes_stream, line);
       trajectory.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
 
-      for (unsigned int i = 0u; i < trajectory.rows(); i++)
+      for (size_t i = 0u; i < trajectory.rows(); i++)
       {
         std::getline(pca_modes_stream, line);
         size_t whitespace = 0u, lastWhitespace = 0u;
-        for (unsigned int j = 0u; j < trajectory.cols(); j++)
+        for (size_t j = 0u; j < trajectory.cols(); j++)
         {
           lastWhitespace = whitespace;
           whitespace = line.find(" ", lastWhitespace + 1u);
 
           trajectory(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
+        }
+      }
+      //Additional options following:
+      if (std::getline(pca_modes_stream, line))
+      {
+        std::getline(pca_modes_stream, line);
+        if (std::getline(pca_modes_stream, line))
+        {
+          additionalInformation = line;
+        }
+        else
+        {
+          std::cerr << "Could not read additional Information from pca_modes file.\n";
         }
       }
     }
@@ -452,7 +466,7 @@ namespace matop
   namespace entropy
   {
 
-    float_type knn_distance(Matrix_Class const& input, unsigned int const& dimension_in, unsigned int const& k_in, unsigned int const& row_queryPt, unsigned int const& col_queryPt)
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_queryPt, size_t const& col_queryPt)
     {
       float_type temp_distance = 0.0;
       float_type hold_distance;
@@ -461,7 +475,7 @@ namespace matop
 
       // This iterates over the "n-th" next neighbors
       // (to get the second next neighbor you have to find the first next neighbor etc. )
-      for (unsigned int i = 0; i < k_in; i++)
+      for (size_t i = 0; i < k_in; i++)
       {
         // Get max() is initial value for distance comparison.
         // This garantues that the first calcualted value is smaller than
@@ -469,7 +483,7 @@ namespace matop
         hold_distance = std::numeric_limits<float_type>::max();
 
         // This iterates over all points in the set
-        for (unsigned int j = 0; j < input.cols(); j++)
+        for (size_t j = 0; j < input.cols(); j++)
         {
           // Of course we cannot count the distance of an member to itself
           // since it is =0.0
@@ -479,7 +493,7 @@ namespace matop
           // to the current point ("j") of each dimensions which equals a 
           // squared distance in euclidean space
           temp_distance = 0.0;
-          for (unsigned int l = 0; l < dimension_in; l++)
+          for (size_t l = 0; l < dimension_in; l++)
           {
             temp_distance += pow((input)(row_queryPt + l, j) - (input)(row_queryPt + l, col_queryPt), 2);
           }
@@ -511,7 +525,7 @@ namespace matop
       return keeper;
     }
 
-    float_type knn_distance(Matrix_Class const& input, unsigned int const& dimension_in, unsigned int const& k_in, std::vector<unsigned int>& row_queryPts, unsigned int const& col_queryPt)
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
     //Will throw if input is wrong
     {
@@ -528,14 +542,14 @@ namespace matop
 
       // This iterates over the "n-th" next neighbors
       // (to get the second next neighbor you have to find the first next neighbor etc. )
-      for (unsigned int i = 0; i < k_in; i++)
+      for (size_t i = 0; i < k_in; i++)
       {
         // Get max() is initial value for distance comparison.
         // This garantues that the first calcualted value is smaller than
         // hold_distance.
         hold_distance = std::numeric_limits<float_type>::max();
 
-        for (unsigned int j = 0; j < input.cols(); j++)
+        for (size_t j = 0; j < input.cols(); j++)
         {
           // Of course we cannot count the distance of an member to itself
           // since it is =0.0
@@ -545,7 +559,7 @@ namespace matop
           // to the current point ("j") of each dimensions which equals a 
           // squared distance in euclidean space
           temp_distance = 0.0;
-          for (unsigned int l = 0; l < dimension_in; l++)
+          for (size_t l = 0; l < dimension_in; l++)
           {
             temp_distance += pow((input)(row_queryPts[l], j) - (input)(row_queryPts[l], col_queryPt), 2);
           }
@@ -597,9 +611,9 @@ namespace matop
         std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << lineend;
         if (Config::get().entropy.entropy_remove_dof)
         {
-          unsigned int temp = (unsigned int)std::max(6, int((cov_matr.rows() - *cov_rank)));
-		      eigenvalues.shed_rows((unsigned int) eigenvalues.rows() - temp, (unsigned int) eigenvalues.rows() - 1u);
-		      eigenvectors.shed_cols((unsigned int) eigenvectors.cols() - temp, (unsigned int) eigenvectors.cols() - 1u);
+          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+		      eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
+		      eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
         }
         else
         {
@@ -641,10 +655,10 @@ namespace matop
 
       // II. Calculate Non-Paramteric Entropies
       // Marginal
-      for (unsigned int i = 0; i < pca_modes.rows(); i++)
+      for (size_t i = 0; i < pca_modes.rows(); i++)
       {
         float_type distance = 0.0;
-        for (unsigned int k = 0; k < pca_modes.cols(); k++)
+        for (size_t k = 0; k < pca_modes.cols(); k++)
         {
           distance += log(sqrt(knn_distance(pca_modes, 1, Config::get().entropy.entropy_method_knn_k, i, k)));
         }
@@ -655,7 +669,7 @@ namespace matop
         temp = 0;
         if (Config::get().entropy.entropy_method_knn_k != 1u)
         {
-          for (unsigned int k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
+          for (size_t k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
           {
             temp += 1.0 / float_type(i);
           }
@@ -666,10 +680,10 @@ namespace matop
         distance = 0;
 
         //MI
-        for (unsigned int j = i + 1; j < pca_modes.rows(); j++)
+        for (size_t j = i + 1; j < pca_modes.rows(); j++)
         {
-          std::vector<unsigned int> query_rows{ i,j };
-          for (unsigned int k = 0; k < pca_modes.cols(); k++)
+          std::vector<size_t> query_rows{ i,j };
+          for (size_t k = 0; k < pca_modes.cols(); k++)
           {
             distance += log(sqrt(knn_distance(pca_modes, 2, Config::get().entropy.entropy_method_knn_k, query_rows, k)));
           }
@@ -681,7 +695,7 @@ namespace matop
           temp2 = 0;
           if (Config::get().entropy.entropy_method_knn_k != 1)
           {
-            for (unsigned int u = 1; u < Config::get().entropy.entropy_method_knn_k; u++)
+            for (size_t u = 1; u < Config::get().entropy.entropy_method_knn_k; u++)
             {
               temp2 += 1.0 / float_type(u);
             }
@@ -693,10 +707,10 @@ namespace matop
         }
       }
 
-      unsigned int counterForLargeNegativeM_I_Terms = 0u;
-      for (unsigned int i = 0; i < entropy_anharmonic.rows(); i++)
+      size_t counterForLargeNegativeM_I_Terms = 0u;
+      for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
-        for (unsigned int j = (i + 1); j < entropy_anharmonic.rows(); j++)
+        for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
           if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) && pca_frequencies(j) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
           {
@@ -723,7 +737,7 @@ namespace matop
       {
         std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)" << lineend;
       }
-      for (unsigned int i = 0; i < entropy_anharmonic.rows(); i++)
+      for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
         if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
         {
@@ -745,10 +759,10 @@ namespace matop
 
       // III. Calculate Difference of Entropies
       double delta_entropy = 0;
-      for (unsigned int i = 0; i < entropy_anharmonic.rows(); i++)
+      for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
         delta_entropy += entropy_anharmonic(i);
-        for (unsigned int j = (i + 1); j < entropy_anharmonic.rows(); j++)
+        for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
           delta_entropy += entropy_mi(i, j);
         }
@@ -763,17 +777,17 @@ namespace matop
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
-      float_type distance = knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, 1u);
-      for (unsigned int k = 1; k < input.cols(); k++)
+      float_type distance = knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, (size_t) 0u, (size_t) 1u);
+      for (size_t k = 1; k < input.cols(); k++)
       {
         //Should be equivalent to the original version but with less costly sqrt:
-        distance *= knn_distance(input, (unsigned int) input.rows(), Config::get().entropy.entropy_method_knn_k, 0u, k);
+        distance *= knn_distance(input,  input.rows(), Config::get().entropy.entropy_method_knn_k, (size_t) 0u, (size_t) k);
       }
       distance = std::log(std::sqrt(distance));
 
       // Calculate Non-Paramteric Entropies (old)
       /*float_type distance = 0.0;
-      for (unsigned int k = 0; k < this->cols(); k++)
+      for (size_t k = 0; k < this->cols(); k++)
       {
       //Should be equivalent to the original version but with less costly sqrt:
       distance += log(sqrt(this->knn_distance(this->rows(), Config::get().entropy.entropy_method_knn_k, 0, k)));
@@ -786,7 +800,7 @@ namespace matop
       temp = 0;
       if (Config::get().entropy.entropy_method_knn_k != 1)
       {
-        for (unsigned int i = 1; i < Config::get().entropy.entropy_method_knn_k; i++)
+        for (size_t i = 1; i < Config::get().entropy.entropy_method_knn_k; i++)
         {
           temp += 1.0 / float_type(i);
         }
@@ -806,13 +820,12 @@ namespace matop
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
-      for (unsigned int i = 0; i < input.rows(); i++)
+      for (size_t i = 0; i < input.rows(); i++)
       {
         double distance = 0.0;
-        for (unsigned int k = 0; k < input.cols(); k++)
+        for (size_t k = 0; k < input.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(input, 1, 
-            Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
+          distance += log(sqrt(knn_distance(input, 1, Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
         }
         distance /= float_type(input.cols());
 
@@ -822,7 +835,7 @@ namespace matop
         temp = 0;
         if (Config::get().entropy.entropy_method_knn_k != 1)
         {
-          for (unsigned int k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
+          for (size_t k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
           {
             temp += 1.0 / float_type(k);
           }
@@ -834,7 +847,7 @@ namespace matop
 
       //Calculate Difference of Entropies
       float_type entropy = 0;
-      for (unsigned int i = 0; i < marginal_entropy_storage.rows(); i++)
+      for (size_t i = 0; i < marginal_entropy_storage.rows(); i++)
       {
         entropy += marginal_entropy_storage(i);
       }
@@ -863,14 +876,14 @@ namespace matop
         std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << lineend;
         if (Config::get().entropy.entropy_remove_dof)
         {
-          unsigned int temp = (unsigned int)std::max(6, int((cov_matr.rows() - *cov_rank)));
-          eigenvalues.shed_rows((unsigned int)(eigenvalues.rows()) - temp, eigenvalues.rows() - 1u);
-          eigenvectors.shed_cols((unsigned int)(eigenvectors.cols()) - temp, eigenvectors.cols() - 1u);
+          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          eigenvalues.shed_rows((eigenvalues.rows()) - temp, eigenvalues.rows() - 1u);
+          eigenvectors.shed_cols((eigenvectors.cols()) - temp, eigenvectors.cols() - 1u);
         }
         else
         {
-		      eigenvalues.shed_rows( (*cov_rank), (unsigned int) (eigenvalues.rows()) - 1u);
-	    	  eigenvectors.shed_cols( (*cov_rank), (unsigned int) (eigenvectors.cols()) - 1u);
+		      eigenvalues.shed_rows( (*cov_rank), (eigenvalues.rows()) - 1u);
+	    	  eigenvectors.shed_cols( (*cov_rank), (eigenvectors.cols()) - 1u);
         }
       }
       else if (Config::get().entropy.entropy_remove_dof)
@@ -885,7 +898,7 @@ namespace matop
       Matrix_Class alpha_i(pca_frequencies.rows());
       Matrix_Class quantum_entropy(pca_frequencies.rows());
       float_type entropy_sho = 0;
-      for (unsigned int i = 0; i < eigenvalues.rows(); i++)
+      for (size_t i = 0; i < eigenvalues.rows(); i++)
       {
         pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
         alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
@@ -954,110 +967,7 @@ namespace matop
       std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
       return entropy_sho;
     }
-	
-    Matrix_Class transform_3n_nf_trunc_entropy(Matrix_Class const& input)
-    { // Transform it as necessary
-      Matrix_Class transformed_matrix(1u, (unsigned int)((input.rows() * input.cols() - 3 * Config::get().entropy.entropy_trunc_atoms_num.size())));
-      size_t j = 0;
-      unsigned int quicksearch = 0;
-      for (unsigned int i = 0; i < input.cols(); i++)
-      {
-        bool checker = false;
-        for (unsigned int l = quicksearch; l < Config::get().PCA.pca_trunc_atoms_num.size(); l++)
-        {
-          if (Config::get().PCA.pca_trunc_atoms_num[l] - 1 == i)
-          {
-            checker = true;
-            quicksearch++;
-            break;
-          }
-        }
-        if (checker)
-        {
-          for (unsigned int k = 0; k < input.rows(); k++)
-          {
-            transformed_matrix(0, j + k) = (input)(k, i);
-          }
-        }
-        j = j + input.rows();
-      }
-      return transformed_matrix;
-    }
 
-    Matrix_Class transform_3n_nf_internal_entropy(Matrix_Class const& input)
-    {
-      // HAS TO BE TESTED NOT TESTED YET but should be functional
-      Matrix_Class out;
-      Matrix_Class transformed_matrix(1u, (unsigned int)((Config::get().entropy.entropy_internal_dih.size() * 2 + Config::get().entropy.entropy_internal_ang.size() * 2 + Config::get().entropy.entropy_internal_bnd.size())));
-      int j = 0;
-      unsigned int quicksearch_dih = 0;
-      unsigned int quicksearch_ang = 0;
-      unsigned int quicksearch_bnd = 0;
-      for (unsigned int i = 0; i < input.cols(); i++)
-      {
-        unsigned int keeper = 0;
-        bool checker_dih = false;
-        bool checker_ang = false;
-        bool checker_bnd = false;
-        if (Config::get().entropy.entropy_internal_dih.size() != 0)
-        {
-          for (unsigned int l = quicksearch_dih; l < Config::get().entropy.entropy_internal_dih.size(); l++)
-          {
-
-            if (Config::get().entropy.entropy_internal_dih[l] - 1 == i)
-            {
-              checker_dih = true;
-              quicksearch_dih++;
-              break;
-            }
-          }
-        }
-        for (unsigned int l = quicksearch_ang; l < Config::get().entropy.entropy_internal_ang.size(); l++)
-        {
-          if (Config::get().entropy.entropy_internal_ang.size() != 0)
-          {
-            if (Config::get().entropy.entropy_internal_ang[l] - 1 == i)
-            {
-              checker_ang = true;
-              quicksearch_ang++;
-              break;
-            }
-          }
-        }
-        for (unsigned int l = quicksearch_bnd; l < Config::get().entropy.entropy_internal_bnd.size(); l++)
-        {
-          if (Config::get().entropy.entropy_internal_bnd.size() != 0)
-          {
-            if (Config::get().entropy.entropy_internal_bnd[l] - 1 == i)
-            {
-              checker_bnd = true;
-              quicksearch_bnd++;
-              break;
-            }
-          }
-        }
-        if (checker_bnd)
-        {
-          transformed_matrix(0, j + keeper) = (input)(0, i);
-          keeper++;
-        }
-        if (checker_ang)
-        {
-          transformed_matrix(0, j + keeper) = cos((input)(1, i));
-          transformed_matrix(0, j + keeper + 1) = sin((input)(1, i));
-          keeper += 2;
-        }
-        if (checker_dih)
-        {
-          transformed_matrix(0, j + keeper) = cos((input)(2, i));
-          transformed_matrix(0, j + keeper + 1) = sin((input)(2, i));
-          keeper += 2;
-        }
-        j = j + keeper;
-      }
-      out = transformed_matrix;
-      return out;
-    }
   }
 
   /////////////////////////////////////
@@ -1090,8 +1000,8 @@ namespace matop
       if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
       float_type value(0);
-      for (unsigned int i = 0; i < input.atoms().size(); i++) {
-        for (unsigned int j = 0; j < i; j++)
+      for (size_t i = 0; i < input.atoms().size(); i++) {
+        for (size_t j = 0; j < i; j++)
         {
           float_type holder = sqrt((ref.xyz(i).x() - ref.xyz(j).x()) * (ref.xyz(i).x() - ref.xyz(j).x()) + (ref.xyz(i).y() - ref.xyz(j).y())* (ref.xyz(i).y() - ref.xyz(j).y()) + (ref.xyz(i).z() - ref.xyz(j).z()) * (ref.xyz(i).z() - ref.xyz(j).z()));
           float_type holder2 = sqrt((input.xyz(i).x() - input.xyz(j).x()) * (input.xyz(i).x() - input.xyz(j).x()) + (input.xyz(i).y() - input.xyz(j).y())* (input.xyz(i).y() - input.xyz(j).y()) + (input.xyz(i).z() - input.xyz(j).z()) * (input.xyz(i).z() - input.xyz(j).z()));
@@ -1143,7 +1053,6 @@ namespace matop
       coords::Cartesian_Point com_ref = coords_in.center_of_mass();
       coords_in.move_all_by(-com_ref, true);
     }
-
   }
 
 } //END NAMESPACE matop

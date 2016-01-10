@@ -26,9 +26,6 @@ CODING CONVENTIONS AS FOLLOWS:
 
 */
 
-#ifndef scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_
-#define scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_  
-
 #pragma once
 
 #include <iostream>
@@ -119,6 +116,10 @@ namespace scon
 
     // identity
     using base_type::identity;
+
+    // in case you are wondering:
+    // transposed and some more stuff is available as free functions
+    // eg transpose(). We should really decoment the relevant stuff here...
 
 		/**
 		 * Second "Copy Constructor", if boolean size_only is set to TRUE
@@ -1031,7 +1032,7 @@ namespace scon
 		 * NOTE: Should we check if this is symmetric? I think we should -> "eig_sym",
 		 * at least once we will do matrix-math internally in CAST.
 		 */
-		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr)
+		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
 		{
 			//On basis of SVD, so take care that your matrix is symmetrical
 			//otherwise, well, you know, shit in -> shit out...
@@ -1092,7 +1093,6 @@ namespace scon
 #endif
 
 		}
-
 	};
 
   template<class T, class U = T>
@@ -1124,11 +1124,5 @@ namespace scon
   }
 
 }
-
-#endif // scon_mathmatrix_7b8ecb38_4b6f_42ed_b59d_672275d0926c_h_guard_
-
-
-
-
 
 //END HEADER

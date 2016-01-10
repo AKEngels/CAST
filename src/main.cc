@@ -14,7 +14,8 @@
 #include "Path_perp.h"
 #include "reaccoord.h"
 #include "scon_log.h"
-#include "matop.h"
+#include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
+#include <deque> //For PCAproc
 //#include "gbsa.h"
 #include <omp.h>
 
@@ -239,11 +240,6 @@ int main(int argc, char **argv)
       // DEVTEST: Room for Development testing
     case config::tasks::DEVTEST:
     {
-
-      scon::matrix<coords::float_type> test(5, 4);
-      test.resize(4u, 4u);
-      test.resize(7u, 8u);
-      
       break;
     }
     case config::tasks::SP:
@@ -621,7 +617,7 @@ int main(int argc, char **argv)
 #endif
       for (int i = 0; i < (int) ci->size(); i++)
       {
-        if ((unsigned int) i != Config::get().alignment.reference_frame_num)
+        if (i != Config::get().alignment.reference_frame_num)
         {
           auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
           coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
@@ -672,7 +668,7 @@ int main(int argc, char **argv)
           //Formatted string-output
         }
 
-        else if ((unsigned int) i == Config::get().alignment.reference_frame_num)
+        else if ( i == Config::get().alignment.reference_frame_num)
         {
           std::stringstream hold_coords;
           hold_coords << coordsReferenceStructure;
@@ -683,7 +679,7 @@ int main(int argc, char **argv)
 
       std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
       std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
-      for (unsigned int i = 0; i < ci->size(); i++)
+      for (size_t i = 0; i < ci->size(); i++)
       {
         if (Config::get().alignment.traj_print_bool)
         {
@@ -736,10 +732,10 @@ int main(int argc, char **argv)
           }
 
           //bool has_it_started = false;
-          const unsigned int FRAME_SIZE = int(ci->size());
+          const size_t FRAME_SIZE = (size_t) ci->size();
           //Initializing some stuff
 
-          for (unsigned int i = 0; i < FRAME_SIZE; i++)
+          for (size_t i = 0; i < FRAME_SIZE; i++)
           {
             if ((Config::get().PCA.pca_start_frame_num <= i) && ((Config::get().PCA.pca_start_frame_num % Config::get().PCA.pca_offset) == (i % Config::get().PCA.pca_offset)))
             {
@@ -753,13 +749,10 @@ int main(int argc, char **argv)
                 align::kabschAlignment(coords, coords_ref); //Rotates
               }
               //Translational and rotational alignment
-              Matrix_Class matr_structure = transfer_to_matr(coords);
 
               if (Config::get().PCA.pca_use_internal)
               {
-                coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
                 coords.to_internal();
-                matr_structure = transfer_to_matr_internal(coords);
               }
               //Conversion to internal coordinates if desired
 
@@ -767,33 +760,24 @@ int main(int argc, char **argv)
               {
                 if (Config::get().PCA.pca_use_internal)
                 {
-                  matrix_aligned.append_bottom(transform_3n_nf_internal_pca(matr_structure));
+                  matrix_aligned.append_bottom(transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
                 }
                 else
                 {
-                  if (Config::get().PCA.pca_trunc_atoms_bool)
-                  {
-                    matrix_aligned.append_bottom(transform_3n_nf_trunc_pca(matr_structure));
-                  }
-                  else
-                  {
-                    matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
-                  }
+                  //Works for full and truncated PCA
+                  matrix_aligned.append_bottom(transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
                 }
               }
               else if (Config::get().PCA.pca_start_frame_num == i)
               {
                 if (Config::get().PCA.pca_use_internal)
                 {
-                  matrix_aligned = transform_3n_nf_internal_pca(matr_structure);
+                  //First a little check if the user-specified values are reasonable
+                  matrix_aligned = transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
                 }
                 else
                 {
-                  matrix_aligned = transform_3n_nf(matr_structure);
-                  if (Config::get().PCA.pca_trunc_atoms_bool)
-                  {
-                    matrix_aligned = transform_3n_nf_trunc_pca(matr_structure);
-                  }
+                  matrix_aligned = transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
                 }
               }
               //Building one huge [frames] x [coordinates] matrix by appending for every frame
@@ -818,13 +802,13 @@ int main(int argc, char **argv)
             }
           }
           //Mass-weightening coordinates if cartesians are used
-
-          prepare_pca(matrix_aligned, eigenvalues, eigenvectors, pca_modes);
+          prepare_pca(matrix_aligned, eigenvalues, eigenvectors);
         }
 
         if(Config::get().PCA.pca_read_vectors)
         {
-          readEigenvectorsAndModes(eigenvectors, pca_modes);
+          std::string iAmNotImportant_YouMayDiscardMe;
+          readEigenvectorsAndModes(eigenvectors, pca_modes, iAmNotImportant_YouMayDiscardMe);
         }
 
         if (!Config::get().PCA.pca_read_modes)
@@ -834,13 +818,33 @@ int main(int argc, char **argv)
 
         ///////////////////////////////////////
 
-        if (Config::get().PCA.pca_read_vectors)
+        std::string additionalInformation;
+        if (Config::get().PCA.pca_use_internal)
         {
-          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat");
+          additionalInformation += "int ";
+          for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
+          {
+            additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
+          }
         }
         else
         {
-          output_pca_modes(eigenvalues, eigenvectors, pca_modes);
+          additionalInformation += "car ";
+          for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
+          {
+            additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
+          }
+        }
+
+        ///////////////////////////////////////
+
+        if (Config::get().PCA.pca_read_vectors)
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat", additionalInformation);
+        }
+        else
+        {
+          output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes.dat", additionalInformation);
         }
 
         if (Config::get().PCA.pca_print_probability_density)
@@ -857,39 +861,40 @@ int main(int argc, char **argv)
     case config::tasks::PCAproc:
     {
         /**
-         * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
-         * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
-         * see also: Task PCAgen
-         */
+        * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
+        * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
+        * see also: Task PCAgen
+        */
+
+        //TODO: The first structure on output from this task "seems" to be off. Revie plz
 
         using namespace matop;
         using namespace matop::pca;
         Matrix_Class eigenvectors, trajectory;
-        std::vector<unsigned int> structuresToBeWrittenToFile;
-        readEigenvectorsAndModes(eigenvectors, trajectory);
-        if ( Config::get().PCA.proc_desired_start.size() > trajectory.rows() || 
-          Config::get().PCA.proc_desired_stop.size() > trajectory.rows() )
+        std::vector<size_t> structuresToBeWrittenToFile;
+        std::string additionalInformation;
+        readEigenvectorsAndModes(eigenvectors, trajectory, additionalInformation);
+        if (Config::get().PCA.proc_desired_start.size() > trajectory.rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.rows())
         {
           std::cerr << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
         }
 
-
-        for (unsigned int j = 0u; j < trajectory.cols(); j++)
+        for (size_t j = 0u; j < trajectory.cols(); j++)
         {
           bool isStructureInRange = true;
-          for (unsigned int i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), 
-               Config::get().PCA.proc_desired_start.size()); i++)
+          for (size_t i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
+
           {
             if (i < Config::get().PCA.proc_desired_start.size())
             {
-              if (trajectory(i,j) < Config::get().PCA.proc_desired_start[i])
+              if (trajectory(i, j) < Config::get().PCA.proc_desired_start[i])
               {
                 isStructureInRange = false;
               }
             }
             if (i < Config::get().PCA.proc_desired_stop.size())
             {
-              if (trajectory(i,j) > Config::get().PCA.proc_desired_stop[i])
+              if (trajectory(i, j) > Config::get().PCA.proc_desired_stop[i])
               {
                 isStructureInRange = false;
               }
@@ -901,22 +906,183 @@ int main(int argc, char **argv)
           }
         }
 
+        if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
+
+        //Undoing PCA
         trajectory = eigenvectors * trajectory;
+
         std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
-        for (unsigned int i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+
+        // Case: Cartesian Coordinates.
+        if (additionalInformation.substr(0, 3) == "car")
         {
-          Matrix_Class out_mat(3, trajectory.rows() / 3u);
-          for (unsigned int j = 0u; j < trajectory.rows(); j = j + 3)
+          //Additional Information Processing -> Read "DOFS that were used" from file. Put their identifying numbers in vector.
+          stringstream ss(additionalInformation.substr(4));
+          std::string buffer;
+          std::vector<size_t> tokens;
+          std::deque<bool> alreadyFoundStructures(ci->size(), false);
+
+          while (ss >> buffer) tokens.push_back((size_t)std::stoi(buffer));
+
+          if (tokens.size() != 0u)
           {
-            out_mat(0, j / 3u) = trajectory(j, i);
-            out_mat(1, j / 3u) = trajectory(j + 1u, i);
-            out_mat(2, j / 3u) = trajectory(j + 2u, i);
+            undoMassweight(trajectory, coords, false, tokens);
+            for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+            {
+              Matrix_Class out_mat(3, trajectory.rows() / 3u);
+              for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
+              {
+                out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
+                out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
+                out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
+              }
+              coords::Coordinates current(coords);
+
+              // For every partial (truncated) structure that is inside the user-defined 
+              // range regarding its PCA-Modes,
+              // we now search the matching full structure in the input trajectory.
+              bool structureFound = false;
+              auto structureCartesian = ci->PES()[0].structure.cartesian;
+              int structureNumber = -1;
+
+              for (size_t k = 0u; k < ci->size() && !structureFound; k++)
+              {
+                if (alreadyFoundStructures[k]) continue;
+
+                structureCartesian = ci->PES()[k].structure.cartesian; //Current structure
+                structureFound = true;
+                structureNumber = (int) k;
+                // Remeber, we are now iterating over certain atoms (those to which
+                // the PCA was truncated.
+                for (size_t l = 0u; l < tokens.size(); l++)
+                {
+                  // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
+                  // is very small, the arbitrary cutoff 2e-4), consider it a match.
+                  // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+                  // Thats why we negate the criterion in the if clause (!)
+                  float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
+                  float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
+                  float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].z()), 2e-4);
+
+                  if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l]].x()) <= xCompare &&
+                    std::abs(out_mat(1, l) - structureCartesian[tokens[l]].y()) <= yCompare &&
+                    std::abs(out_mat(2, l) - structureCartesian[tokens[l]].z()) <= zCompare))
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                }
+              }
+              if (structureFound)
+              {
+                // Horray, we found it, now write it out!
+                alreadyFoundStructures[structureNumber] = true;
+                current.set_xyz(structureCartesian);
+                current.to_internal();
+                outstream << current;
+              }
+              else
+              {
+                std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+                std::cerr << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
+              }
+            }
           }
-          coords::Coordinates out(coords);
-          out.set_xyz(transfer_to_3DRepressentation(out_mat));
-          outstream << out;
+          else
+          {
+            // Here, we merely restore the coordinates from the PCA-modes
+            // since no trucnation took plage, and write them out.
+            undoMassweight(trajectory, coords, false);
+            for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+            {
+              Matrix_Class out_mat(3, trajectory.rows() / 3u);
+              for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
+              {
+                out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
+                out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
+                out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
+              }
+              coords::Coordinates out(coords);
+              out.set_xyz(transfer_to_3DRepressentation(out_mat));
+              out.to_internal();
+              outstream << out;
+            }
+          }
         }
 
+        // Case: Internal Coordiantes
+        else if (additionalInformation.substr(0, 3) == "int")
+        {
+          // [0]: bond distance tokens, [1]: bond angle tokens [2]: dihedrals tokens.
+          // Here we keep track of which DOFs are to be considered
+          std::deque<bool> tokens(coords.atoms().size(), false);
+          std::deque<bool> alreadyFoundStructures(ci->size(), false);
+
+          //Additional Information Processing -> Read "DOFS that were used" from file. Store in "tokens".
+          stringstream ss(additionalInformation.substr(4));
+          std::string buffer;
+          // Read the additional information
+          while (ss >> buffer)
+          {
+            if (buffer.substr(0, 1) == "d") tokens[(size_t) std::stoi(buffer.substr(1))] = true;
+          }
+
+          // This is gonna be complicated. Im sorry.
+          // Iterate over structures chosen from PCA-Ensemble
+          for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+          {
+            bool structureFound = false;
+            //auto structureCartesian = ci->PES()[0].structure.cartesian;
+            int structureNumber = -1;
+
+            //Iterate over input strucutures -> find matching structure
+            for (size_t k = 0u; k < ci->size() && !structureFound; k++)
+            {
+              if (alreadyFoundStructures[k]) continue;
+              coords.set_internal(ci->PES()[k].structure.intern);
+              size_t quicksearch = 0u;
+              structureFound = true;
+              structureNumber = (int)k;
+              //Iterating over atoms, see if they all match
+              for (size_t j = 0u; j < tokens.size(); j++)
+              {
+                // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
+                // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+                // Thats why we negate the criterion in the if clause (!)
+                if (tokens[j] == true)
+                {
+                  auto compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
+                  auto compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
+                  auto compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
+                  auto compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
+                  bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
+                    || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
+                  bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
+                    || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
+                  //If structures did not match
+                  if (!(found1 && found2))
+                  {
+                    structureFound = false;
+                    break;
+                  }
+                  quicksearch += 2u;
+                }
+              }
+              //If match was found, write out.
+              if (structureFound)
+              {
+                alreadyFoundStructures[structureNumber] = true;
+                coords.set_pes( ci->PES()[k]);
+                outstream << coords;
+              }
+            }
+            if (!structureFound)
+            {
+              std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+              std::cerr << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
+            } 
+          }
+        }
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
@@ -946,7 +1112,7 @@ int main(int argc, char **argv)
         }
 
         Matrix_Class matrix_aligned;
-        const unsigned int FRAME_SIZE = int(ci->size());
+        const size_t FRAME_SIZE = int(ci->size());
         if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
         {
           std::cerr << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
@@ -954,7 +1120,7 @@ int main(int argc, char **argv)
         }
         //Initializing and checking...
 
-        for (unsigned int i = 0; i < FRAME_SIZE; i++)
+        for (size_t i = 0; i < FRAME_SIZE; i++)
         {
           // Meet-your-Maker-Note: Keep it like this with the seeminlgy stupid "is it started", please.
           if (Config::get().entropy.entropy_start_frame_num <= i && (Config::get().entropy.entropy_start_frame_num % Config::get().entropy.entropy_offset == i % Config::get().entropy.entropy_offset))
@@ -969,13 +1135,10 @@ int main(int argc, char **argv)
               align::kabschAlignment(coords, coords_ref); //Rotates
             }
             //Translational and rotational alignment
-            Matrix_Class matr_structure = transfer_to_matr(coords);
 
             if (Config::get().entropy.entropy_use_internal)
             {
-              coords.set_xyz(transfer_to_3DRepressentation(matr_structure));
               coords.to_internal();
-              matr_structure = transfer_to_matr_internal(coords);
             }
             //Conversion to internal coordinates if desired
 
@@ -983,33 +1146,22 @@ int main(int argc, char **argv)
             {
               if (Config::get().entropy.entropy_use_internal)
               {
-                matrix_aligned.append_bottom(transform_3n_nf_internal_entropy(matr_structure));
+                matrix_aligned.append_bottom(transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true));
               }
               else
               {
-                if (Config::get().entropy.entropy_trunc_atoms_bool)
-                {
-                  matrix_aligned.append_bottom(transform_3n_nf_trunc_entropy(matr_structure));
-                }
-                else
-                {
-                  matrix_aligned.append_bottom(transform_3n_nf(matr_structure));
-                }
+                matrix_aligned.append_bottom(transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false));
               }
             }
             else if (Config::get().entropy.entropy_start_frame_num == i)
             {
               if (Config::get().entropy.entropy_use_internal)
               {
-                matrix_aligned = transform_3n_nf_internal_entropy(matr_structure);
+                matrix_aligned = transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
               }
               else
               {
-                matrix_aligned = transform_3n_nf(matr_structure);
-                if (Config::get().entropy.entropy_trunc_atoms_bool)
-                {
-                  matrix_aligned = transform_3n_nf_trunc_entropy(matr_structure);
-                }
+                matrix_aligned = transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
               }
             }
             //Building one huge [coordinates] x [frames] matrix by appending for every frame
@@ -1025,10 +1177,10 @@ int main(int argc, char **argv)
         }
         //Mass-weightening cartesian coordinates
 
-        for (unsigned int u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
+        for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
         {
           Matrix_Class& workobj = matrix_aligned;
-          int m = Config::get().entropy.entropy_method[u];
+          int m = (int) Config::get().entropy.entropy_method[u];
           if (m == 1 || m == 0)
           {
             /*double entropy_value = */karplus_wrapper(workobj);
@@ -1062,6 +1214,7 @@ int main(int argc, char **argv)
 
     default:
     {
+
     }
 
     }
