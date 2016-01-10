@@ -29,6 +29,15 @@ energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs, coords::Coordinates *cob
   cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined))
 {
   interface_base::swap(rhs);
+  
+  /** 
+   * This is necessary because the compiler-provided move-constructor for
+   * tinker::refined is sometimes malfunctioning and containing a faulty pointer.
+   * This is a (somewhat dirty) quickfix since I was to lazy to write
+   * a proper, custom move constructor. If you read this message and you have 
+   * nothing to do, you should probably do this :)
+   */
+  this->refined.setCoordsPointer(cobj);
 }
 
 void energy::interfaces::aco::aco_ff::swap (interface_base &rhs)

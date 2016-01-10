@@ -513,6 +513,11 @@ void tinker::refine::refined::refine_nb (coords::Coordinates const &)
   // Todo: build pairs using new-linkedcells (todo: new linkedcells)
 }
 
+void tinker::refine::refined::setCoordsPointer(coords::Coordinates * in)
+{
+  this->coords = in;
+}
+
 void tinker::refine::refined::refine_vdw_h_scale(size_t , size_t )
 {
 	

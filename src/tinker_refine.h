@@ -175,6 +175,14 @@ namespace tinker
 
       refined(void) : coords(DNULL), params(DNULL) {}
 
+      /**
+       * This code is written because of a bug sometimes appearing in windows
+       * during the default compiler-provided move constructor of tinker::refine::refined.
+       * In lieu of writing a custom one, this function is used to update the faulty coords::Coordinates*
+       * in the move constructor of energy::interfaces::aco::aco_ff.
+       */
+      void setCoordsPointer(coords::Coordinates *in);
+
       void refine(coords::Coordinates const &, tinker::parameter::parameters const &);
       void refine_nb(coords::Coordinates const &);
       void refine_vdw_h_scale(size_t a, size_t b);
