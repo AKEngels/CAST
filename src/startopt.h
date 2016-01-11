@@ -38,4 +38,6 @@ namespace startopt
 
   };
 
+  void apply(coords::Coordinates & c, coords::Ensemble_PES & e);
+
 } /* / namespace_startopt */

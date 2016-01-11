@@ -31,47 +31,6 @@
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
 
-void apply_startopt(coords::Coordinates & c, coords::Ensemble_PES & e)
-{
-  startopt::Preoptimizer * optimizer(nullptr);
-  std::size_t multi(Config::get().startopt.number_of_structures / e.size());
-  std::cout << Config::get().startopt;
-  std::cout << "-------------------------------------------------" << lineend;
-  if (Config::get().startopt.type == config::startopt::types::T::SOLVADD)
-  {
-    optimizer = new startopt::preoptimizers::Solvadd(c, 
-      Config::get().startopt.solvadd.maxDistance);
-  }
-  else if (Config::get().startopt.type == config::startopt::types::T::RINGSEARCH ||
-           Config::get().startopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
-  {
-    optimizer = new startopt::preoptimizers::R_evolution(c);
-    multi = Config::get().startopt.ringsearch.population;
-  }
-  //std::cout << c;
-  if (optimizer != nullptr)
-  {
-    // Generate structures using initial preoptimizer (ringsearch or solvadd)
-    //std::cout << "PreGenerate.\n";
-    optimizer->generate(e, (multi > 0u?multi:1u));
-    //std::cout << "PostGenerate.\n";
-    if (Config::get().startopt.type == config::startopt::types::T::RINGSEARCH_SOLVADD)
-    {
-      std::size_t sa_multi(Config::get().startopt.number_of_structures / optimizer->PES().size());
-      startopt::preoptimizers::Solvadd sa(optimizer->final_coords(), 
-        Config::get().startopt.solvadd.maxDistance);
-      sa.generate(optimizer->PES(), sa_multi);
-      delete optimizer;
-      optimizer = &sa;
-    }
-    c.swap(optimizer->final_coords());
-    e = optimizer->PES();
-    if (Config::get().startopt.type != config::startopt::types::T::RINGSEARCH_SOLVADD)
-      delete optimizer;
-  }
-}
-
-
 int main(int argc, char **argv)
 {
 
@@ -374,7 +333,7 @@ int main(int argc, char **argv)
         std::cout << "-------------------------------------------------" << lineend;
         if (Config::get().optimization.global.pre_optimize)
         {
-          apply_startopt(coords, ci->PES());
+          startopt::apply(coords, ci->PES());
         }
         optimization::global::optimizers::tabuSearch gots(coords, ci->PES());
         gots.run(Config::get().optimization.global.iterations, true);
@@ -389,7 +348,7 @@ int main(int argc, char **argv)
         std::cout << "-------------------------------------------------" << lineend;
         if (Config::get().optimization.global.pre_optimize)
         {
-          apply_startopt(coords, ci->PES());
+          startopt::apply(coords, ci->PES());
         }
         optimization::global::optimizers::monteCarlo mc(coords, ci->PES());
         mc.run(Config::get().optimization.global.iterations, true);
@@ -478,7 +437,7 @@ int main(int argc, char **argv)
     case config::tasks::STARTOPT:
       { // Preoptimization
         //std::cout << "PreApply.\n";
-        apply_startopt(coords, ci->PES());
+        startopt::apply(coords, ci->PES());
         //std::cout << "PostApply.\n";
         std::ofstream gstream(coords::output::filename("_SO").c_str());
         for (auto const & pes : ci->PES())
