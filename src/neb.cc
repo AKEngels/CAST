@@ -854,7 +854,7 @@ double neb::g_new(ptrdiff_t im)
 
 void neb::calc_shift(void)
 {
-	double diff, gridp;
+	double diff(0.0), gridp(0.0);
 	VecDoub posx((num_images)), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
 	Doub x, y, z, pathlenx(0.0), pathleny(0.0), pathlenz(0.0);
 	double distx(0.0), disty(0.0), distz(0.0);
