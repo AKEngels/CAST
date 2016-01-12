@@ -34,7 +34,7 @@ pathx::pathx(neb *NEB, coords::Coordinates *c)
   file_dimer = false;
 }
 
-void pathx::pathx_ini(ptrdiff_t image)
+void pathx::pathx_ini()
 {
 
   std::cout << "**************INITIALIZATION OF PATHOPT*************" << lineend;
@@ -79,7 +79,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
   double boltzman = 0.0, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t mciteration = Config::get().neb.MCITERATION;
   ptrdiff_t nancounter = 0, nbad = 0, status;
-  bool foundb = false, l_disp = false;
+  bool  l_disp = false;
   MCSTEPSIZE = Config::get().neb.MCSTEPSIZE;
   std::string output, output3, output4;
 
@@ -242,7 +242,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
       //this->cPtr->g2(N->tau,opt,mcstep,this->N->image_ini);
 
-      MCmin = lbfgs(opt);
+      MCmin = lbfgs();
 
 
 
@@ -701,7 +701,7 @@ bool pathx::testcoord(coords::Representation_3D &coords)
 
 
 
-double pathx::lbfgs(ptrdiff_t imagex)
+double pathx::lbfgs()
 {
 
   using namespace  optimization::local;
@@ -824,15 +824,15 @@ void pathx::printmono(std::string const &name, coords::Representation_3D &print,
 void pathx::move_main(perp_point & direction)
 {
 
-  size_t const N(cPtr->main().size());
+  size_t const NUM(cPtr->main().size());
 
-  coords::Representation_Main main_tors(N), bla(N);
+  coords::Representation_Main main_tors(NUM), bla(NUM);
 
   // choose number of torsions to modify
-  coords::float_type const NUM_MAINS(static_cast<coords::float_type>(N));
-  size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), N));
+  coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
+  size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
   // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << N << " mains." << lineend;
+  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains." << lineend;
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
     size_t const K(static_cast<size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));
@@ -848,7 +848,7 @@ void pathx::move_main(perp_point & direction)
     perp_direction.resize(main_tors.size());
     scon::orthogonalize_to_normal(main_tors, perp_direction);
   }
-  for (size_t i = 0; i < N; ++i)
+  for (size_t i = 0; i < NUM; ++i)
   {
     cPtr->rotate_main(i, main_tors[i]);
   }

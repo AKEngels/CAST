@@ -485,7 +485,7 @@ int main(int argc, char **argv)
           neb nobj(&coords);
           nobj.preprocess(counter, Config::get().neb.IMAGES);
           pathx Pobj(&nobj, &coords);
-          Pobj.pathx_ini(Config::get().neb.IMAGES);
+          Pobj.pathx_ini();
         }
         break;
       }

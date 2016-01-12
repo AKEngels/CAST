@@ -308,7 +308,7 @@ public:
 		{
 			Int i, k;
 			Doub p, qn, sig, un;
-			Int n = y2.size();
+			    n = y2.size();
 			VecDoub u(n - 1);
 			if (yp1 > 0.99e99)
 				y2[0] = u[0] = 0.0;

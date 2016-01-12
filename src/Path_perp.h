@@ -53,7 +53,7 @@ class path_perp
 
 	public:
 
-    double g_new(ptrdiff_t im);
+    double g_new();
 
 	void pathx_ini (void);
     std::string id;
@@ -65,11 +65,9 @@ class path_perp
 
 	path_perp ( coords::Coordinates *c);
 	//pathx (NEB::pathway *NEB, coordinates *c, coordinates_internal *C_I);
-	path_perp (void);
-	path_perp&  operator=    (path_perp);
+
 	coords::Representation_3D minima;
 	double MCEN, Maxvar, MCSTEPSIZE;
-	size_t count,mciteration;
 	ptrdiff_t global_image,global_vibrate,mcit,temp_vibrate,global_run,total_struc_num;
 	double globalenergy;
 

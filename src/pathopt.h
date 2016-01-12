@@ -49,8 +49,7 @@ private:
 
   void proof_connect();
   double g_new(ptrdiff_t im);
-  double lbfgs(ptrdiff_t im);
-  void final(void);
+  double lbfgs();
   void printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t &count);
  
   
@@ -133,28 +132,21 @@ private:
 
 
 public:
-  void pathx_ini(ptrdiff_t image);
+  void pathx_ini();
   std::string id;
   coords::Representation_3D images;
   neb *N;
   neb *NEB;
   coords::Coordinates *c;
   coords::Coordinates *cPtr;
-  /*coordinates_internal *C_INT;
-  coordinates_internal *C_I;*/
-  //coord_bias *B;
-  //coord_bias *Bs;
+
   ptrdiff_t counter, global_imagex;
 
   pathx(neb *NEB, coords::Coordinates *c);
-  //pathx (NEB::pathway *NEB, coordinates *c, coordinates_internal *C_I);
-  pathx(void);
-  pathx&  operator=    (pathx);
   coords::Representation_3D minima;
   std::vector <coords::Representation_3D> global_maxima, global_minima, global_maxima2;
   double MCEN;
   std::vector <double>  energy1, energy2, energy3;
-  size_t count, mciteration;
   ptrdiff_t global_image, global_vibrate, mcit, temp_vibrate, global_run, total_struc_num;
   double globalenergy;
   std::vector <double> rmsd_list;

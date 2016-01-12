@@ -20,7 +20,7 @@ namespace energy
         inline bool factors (double const rr, double & r, double & fQ, double & fV);
       private:
         double const c, s, cc, ss, cs;
-        nb_cutoff& operator=(nb_cutoff const&);
+       
       };
 
       class amoeba_ff
@@ -28,8 +28,7 @@ namespace energy
       {
       public:
         amoeba_ff (coords::Coordinates *cobj);
-		amoeba_ff(coords::Coordinates const &ref);
-		~amoeba_ff(void){};
+	/*	amoeba_ff(coords::Coordinates const &ref);*/
 		size_t alloc_glob;
 		interface_base * clone(coords::Coordinates * coord_object) const;
         interface_base * move (coords::Coordinates * coord_object);
@@ -132,7 +131,8 @@ namespace energy
 		vector <vector<double> > coef;
 		vector <vector<vector<double> > > pij;
 		vector <double> sscat;
-		double aLimes, bLimes, fak, smax;
+		double aLimes, bLimes, smax;
+		size_t fak;
 		vector <double> kappa;
 		vector <size_t>  atomic;
 		vector <vector<double> > fscat;
@@ -244,7 +244,7 @@ namespace energy
         void e_ind (void);
 		inline size_t multipole_sites(void);
 		void rot_matrix(coords::Representation_3D const &pos);
-		std::vector <double> ci, dx, dy, dz, qxx, qyy, qzz, qxy, qxz, qyx, qyz, qzx, qzy;
+		//std::vector <double> ci, dx, dy, dz, qxx, qyy, qzz, qxy, qxz, qyx, qyz, qzx, qzy;
 		std::vector <std::vector <double> > quadro, rp, dipole;
 		std::vector <double> charges;
 		std::vector <std::vector <double> > dem, dep;
@@ -269,7 +269,7 @@ namespace energy
 		std::vector < std::vector <double> > uind, uinp;
 		std::vector < size_t > ipole,xaxis,zaxis,yaxis,axistype;
 		std::vector < std::vector < size_t >  > plrgrp;
-		std::vector <double> pdamp, thole, pscale, dscale, polarity;
+		std::vector <double> pdamp, thole, pscale, dscale, polarity, mscale, uscale;
 		
 		//pair lists for multipoles
 
@@ -308,13 +308,12 @@ namespace energy
 			double &e_c, double &e_v) const;
 		// charge+vdw gradients
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-		inline void g_QV(double const C, double const E, double const R, double const r,
-			double &e_c, double &e_v, double &dE) const;
+		inline void g_QV( double const E, double const R, double const r,
+			 double &e_v, double &dE) const;
 
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-		inline void g_QV_fep(double const C, double const E, double const R, double const r,
-			double const c_out, double const v_out,
-			double &e_c, double &e_v, double &dE) const;
+		inline void g_QV_fep(double const E, double const R, double const r,
+		 double const v_out, double &e_v, double &dE) const;
 
 		// charge+vdw (cutoff, no fep, no periodics)
 
@@ -323,11 +322,11 @@ namespace energy
 			double const fQ, double const fV, double &e_c, double &e_v) const;
 		// charge+vdw gradients
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-		inline void g_QV_cutoff(double const C, double const E, double const R, double const r,
-			double const fQ, double const fV, double &e_c, double &e_v, double &dE) const;
+		inline void g_QV_cutoff( double const E, double const R, double const r,
+			 double const fV, double &e_v, double &dE) const;
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-		inline void g_QV_fep_cutoff(double const C, double const E, double const R, double const r,
-			double const c_out, double const v_out, double const fQ, double const fV, double &e_c, double &e_v, double &dE) const;
+		inline void g_QV_fep_cutoff( double const E, double const R, double const r,
+			double const v_out, double const fV, double &e_v, double &dE) const;
 
 		// pairs functions
 

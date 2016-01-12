@@ -132,7 +132,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
   double boltzman=0.0, kt=1/(0.0019872966*Config::get().neb.TEMPERATURE), trial=(double)rand()/(double)RAND_MAX;
   ptrdiff_t mciteration=Config::get().neb.MCITERATION;
   ptrdiff_t nancounter=0, nbad=0, status;
-  bool foundb=false, l_disp=false;
+  bool  l_disp=false;
   MCSTEPSIZE=Config::get().neb.MCSTEPSIZE;
   global_image=0;
   counter =0;
@@ -408,7 +408,7 @@ struct GradCallBack
     scon::vector< scon::c3 <float> > &g, size_t const, bool & go_on)
   {
       p->cPtr->set_xyz(coords::Representation_3D(x.begin(), x.end()));
-      auto const E = (float)p->g_new(p->global_imagex);
+      auto const E = (float)p->g_new();
       go_on = p->cPtr->integrity();
       p->cPtr->g_xyz();
       g = scon::vector< scon::c3 <float> >(p->cPtr->g_xyz().begin(), p->cPtr->g_xyz().end());
@@ -440,7 +440,7 @@ double path_perp::lbfgs (ptrdiff_t imagex)
 
 
 
-double path_perp::g_new(ptrdiff_t im)
+double path_perp::g_new()
 {
 
 	double cosi,energytemp,pot(0.0),dpot(0.0);

@@ -116,7 +116,7 @@ void reaccoords::bonds_alteration(void)
 	}while(i < bonds_value.size()-refined.bonds().size());
 
 
-	for(size_t i=0;i<cPtr->mult_struc_counter-1;i++)
+	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
 
 			size_t index=0;
@@ -144,7 +144,7 @@ void reaccoords::bonds_alteration(void)
 	for (size_t j=0; j< bonds_diff[0].size();j++)
 	{
 		bond3<<j<<lineend;
-	for(size_t i=0;i<cPtr->mult_struc_counter-1;i++)
+	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
 	bond3<<"  "<<i<<"  "<<bonds_diff[i][j]<<lineend;
 		}
@@ -180,7 +180,7 @@ void reaccoords::angles_alteration(void)
 	}while(i < angles_value.size()-refined.angles().size());
 
 
-	for(size_t i=0;i<cPtr->mult_struc_counter-1;i++)
+	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
 
 			size_t index=0;
@@ -206,7 +206,7 @@ void reaccoords::angles_alteration(void)
 	for (size_t j=0; j< angles_diff[0].size();j++)
 	{
 		angle3<<j<<lineend;
-	for(size_t i=0;i<cPtr->mult_struc_counter-1;i++)
+	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
 	angle3<<"  "<<i<<"  "<<angles_diff[i][j]<<lineend;
 		}

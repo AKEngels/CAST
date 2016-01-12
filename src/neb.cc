@@ -488,11 +488,11 @@ void neb::opt_mep(ptrdiff_t &count)
 
 	
 
-	std::ostringstream energies, name, energies_ini;
-	energies << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter;
+	std::ostringstream energies_out, name, energies_ini;
+	energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter;
 	energies_ini << "ENERGIES_COMPLETE_LIN_" << this->cPtr->mult_struc_counter;
 	std::string temp;
-	temp = energies.str();
+	temp = energies_out.str();
 
 	std::fstream off(temp.c_str(), std::ios::app);
 	temp = energies_ini.str();
@@ -855,10 +855,10 @@ double neb::g_new(ptrdiff_t im)
 void neb::calc_shift(void)
 {
 	double diff, gridp;
-	VecDoub posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
+	VecDoub posx((num_images)), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
 	Doub x, y, z, pathlenx(0.0), pathleny(0.0), pathlenz(0.0);
 	double distx(0.0), disty(0.0), distz(0.0);
-	ptrdiff_t laf(0), counter(0);
+	ptrdiff_t laf(0);
 	std::vector <double> temp;
 	tempimage_ini = imagi[0];
 	tempimage_final = imagi[num_images - 1];
@@ -950,7 +950,7 @@ void neb::calc_shift(void)
 			pathlenz += sz;
 			/*  std::cout << "total_length  " << pathlen/(num_images-2 )<< lineend;
 			std::cout << "new shifted coordinate   "<<imagi[k][i].x() + (pathlen / (num_images - 2)) << lineend;*/
-			std::cout << "K " << k << lineend;
+			/*std::cout << "K " << k << lineend;*/
 
 			while (gridp <= (k + 1))
 			{
@@ -1518,8 +1518,8 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 	for (size_t k = 0U; k<num_images; k++){
 
 
-		for (size_t i = 0U; i<dist_all[k].size(); i++){
-			if (dist_all[k][i].size()>anglevec_all[k][i].size() && dist_all[k][i].size()>dihedralvec_all[k][i].size())for (size_t j = 0U; j<dist_all[k][i].size(); j++){
+		for ( i = 0U; i<dist_all[k].size(); i++){
+			if (dist_all[k][i].size()>anglevec_all[k][i].size() && dist_all[k][i].size()>dihedralvec_all[k][i].size())for ( j = 0U; j<dist_all[k][i].size(); j++){
 				if (dist_all[k][i].size()>j){
 					myfile << std::right << std::setw(10) << name[i][DIST][j] << " ";
 					myfile << std::left << std::setw(10) << dist_all[k][i][j];
@@ -1537,7 +1537,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 				else myfile << std::right << std::setw(21) << " ";
 				myfile << std::endl;
 			}
-			else if (anglevec_all[k][i].size()>dist_all[k][i].size() && anglevec_all[k][i].size()>dihedralvec_all[k][i].size())for (size_t j = 0U; j<anglevec_all[k][i].size(); j++){
+			else if (anglevec_all[k][i].size()>dist_all[k][i].size() && anglevec_all[k][i].size()>dihedralvec_all[k][i].size())for ( j = 0U; j<anglevec_all[k][i].size(); j++){
 				if (dist_all[k][i].size()>j){
 
 					myfile << std::right << std::setw(10) << name[i][DIST][j] << " ";
@@ -1556,7 +1556,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 				else myfile << std::right << std::setw(21) << " ";
 				myfile << std::endl;
 			}
-			else for (size_t j = 0U; j<dihedralvec[i].size(); j++){
+			else for ( j = 0U; j<dihedralvec[i].size(); j++){
 				if (dist[i].size()>j){
 					myfile << std::right << std::setw(10) << name[i][DIST][j] << " ";
 					myfile << std::left << std::setw(10) << dist_all[k][i][j];

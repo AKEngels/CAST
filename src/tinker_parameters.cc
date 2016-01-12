@@ -1231,20 +1231,18 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
 
   for (auto const &i : m_polarizes)
   {
-    std::size_t const a(tmp.contracted_type(i.index, POLARIZE)),
-      b(tmp.contracted_type(i.bonded[0], POLARIZE)),
-      c(tmp.contracted_type(i.bonded[1], POLARIZE)),
-      d(tmp.contracted_type(i.bonded[2], POLARIZE)),
-      e(tmp.contracted_type(i.bonded[3], POLARIZE));
-    if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT) && (e < ACT))
-    {
-      tmp.m_polarizes.push_back(i);
-      tmp.m_polarizes.back().index = a;
-      tmp.m_polarizes.back().bonded[0] = b;
-      tmp.m_polarizes.back().bonded[1] = c;
-      tmp.m_polarizes.back().bonded[2] = d;
-      tmp.m_polarizes.back().bonded[3] = e;
-    }
+	  size_t const a(tmp.contracted_type(i.index, POLARIZE)),
+		  b(tmp.contracted_type(i.bonded[0], POLARIZE)),
+		  c(tmp.contracted_type(i.bonded[1], POLARIZE)),
+		  d(tmp.contracted_type(i.bonded[2], POLARIZE));
+	  if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT) /*&& (e < ACT)*/)
+	  {
+		  tmp.m_polarizes.push_back(i);
+		  tmp.m_polarizes.back().index = a;
+		  tmp.m_polarizes.back().bonded[0] = b;
+		  tmp.m_polarizes.back().bonded[1] = c;
+		  tmp.m_polarizes.back().bonded[2] = d;
+	  }
   }
 
   for (auto const &i : m_strbends)
