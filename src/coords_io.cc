@@ -81,7 +81,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         for (unsigned int i(0U); i < sections_size; ++i)
         {
           // remove "%FORMAT%" and search
-          if (line.substr(6).find(sections[i]) != std::string::npos)
+          if (line.substr(6).find(amber_sections[i]) != std::string::npos)
           {
             sectionsPresent.push_back(i);
             break;
@@ -139,7 +139,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       for (unsigned int i(0U); i < sections_size; ++i)
       {
         // remove "%FLAG%" and search
-        if (line.substr(6).find(sections[i]) != std::string::npos)
+        if (line.substr(6).find(amber_sections[i]) != std::string::npos)
         {
           //Get the format specifier for debug purposes.
           std::getline(config_file_stream, currentSectionFormat);
