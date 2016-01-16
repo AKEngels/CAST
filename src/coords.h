@@ -722,29 +722,6 @@ namespace coords
       }
       else
       {
-        //std::cout << "Internal optimizer used because";
-        //bool _and = false;
-        //if (!m_interface->has_optimizer())
-        //{
-        //  std::cout << " interface has no optimizer";
-        //  _and = true;
-        //}
-        //if (!m_potentials.empty())
-        //{
-        //  std::cout << (_and ? " and" : "") << " bias potentials are present";
-        //  _and = true;
-        //}
-        //if (Config::get().energy.periodic)
-        //{
-        //  std::cout << (_and ? " and" : "") << " periodics are applied";
-        //  _and = true;
-        //}
-        //if (Config::get().general.trackstream)
-        //{
-        //  std::cout << (_and ? " and" : "") << " tracking is enabled";
-        //  _and = true;
-        //}
-        //std::cout << ".\n";
         m_representation.energy = lbfgs();
       }
       m_representation.integrity = m_interface->intact();
@@ -1329,7 +1306,6 @@ namespace coords
   {
     a.swap(b);
   }
-
 }
 
 #endif // coords_h_guard_

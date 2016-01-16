@@ -1102,8 +1102,6 @@ namespace energy
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
           c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // dQ/dr
         dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted
-       // std::cout << "Charge" << std::endl;
-       // std::cout << Q << "   " << dQ << std::endl;
         return Q;
       }
 

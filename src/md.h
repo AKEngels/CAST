@@ -119,34 +119,6 @@ namespace md
 
   };
 
-
-  //struct traces
-  //{
-  //private:
-  //  std::size_t counter, snap_counter;
-  //  std::vector<double> m_T, m_Ek, m_Ep, m_P;
-  //  std::vector<std::vector<double>> m_ia;
-  //  std::vector<bool> m_snapshots;
-  //  std::vector<coords::Representation_3D> m_snap_buffer;
-  //  std::ofstream snapstream, tracestream;
-  //  std::size_t m_snap_offset, m_max_buffer;
-  //  coords::Coordinates & cref;
-  //  traces& operator= (traces const&);
-  //public:
-  //  traces(coords::Coordinates &coords, std::size_t const max_snap_buffer, std::size_t const num_ia);
-  //  ~traces(void) { write(); }
-  //  void write(bool const snaps = true);
-  //  void add (std::size_t const iter, double const T, double const E_kin, double const E_pot,
-  //    std::vector<double> const ia, double const P,
-  //    coords::Representation_3D const * const snap_ptr);
-  //  std::size_t bytesize (void) const;
-  //  void copy_to_buffer (std::vector<char>&) const;
-  //  void deserialize_from_stream (std::istream &);
-  //};
-
-
-
-  //std::ostream& operator<< (std::ostream&, trace const &);
   struct nose_hoover
   {
     double v1, v2, x1, x2;
@@ -160,14 +132,11 @@ namespace md
     //void deserialize_from_stream(std::istream &);
   };
 
-
-
   struct fepvar
   {
     double ein, eout, vin, vout;
     double dein, deout, dvin, dvout;
   };
-
 
   namespace thermostat
   {

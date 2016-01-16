@@ -175,12 +175,6 @@ int main(int argc, char **argv)
       }
     }
 
-    //std::cout << "-------------------------------------------------" << lineend;
-    //std::cout << "Structure:" << lineend;
-    //std::cout << "-------------------------------------------------" << lineend;
-
-    //std::cout << coords;
-
     /*
 
     Tasks
@@ -205,10 +199,9 @@ int main(int argc, char **argv)
       { // singlepoint
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
-        //std::ofstream outputstream(coords::output::filename("_SP").c_str(), std::ios_base::out);
         auto sp_energies_fn = coords::output::filename("SP", ".txt");
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-        if (!sp_estr) throw std::runtime_error("Cannot open '" + sp_energies_fn + "' for SP energies.");
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + sp_energies_fn + "' to write SP energies.");
         for (auto const & pes : *ci)
         {
           using namespace std::chrono;
@@ -221,7 +214,6 @@ int main(int argc, char **argv)
           std::cout << "Structure " << ++i << lineend;
           sp_estr << i << ' ' << en << ' ' << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
-          //outputstream << coords;
         }
         break;
       }
