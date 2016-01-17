@@ -12,6 +12,8 @@ Calculations are done using scon::mathmatrix
 #pragma once
 #include "scon_mathmatrix.h"
 #include "histogram.h"
+#include "coords_io.h"
+#include <deque>
 
 typedef scon::mathmatrix<float_type> Matrix_Class;
 
@@ -273,3 +275,19 @@ namespace matop
     float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance = 20);
   }
 }
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//                    W R A P P E R F U N C T I O N S                 //
+////////////////////////////////////////////////////////////////////////
+void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+
+void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+
+void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+
+void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
