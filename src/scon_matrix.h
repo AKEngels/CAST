@@ -376,7 +376,7 @@ namespace scon
     {
       for (std::size_t r = 0; r < m.rows(); ++r)
       {
-        for (std::size_t c = 0; c < m.cols(); ++c)
+        for (std::size_t c = 0; c < r; ++c)
         {
           std::swap(m(r, c), m(c, r));
         }
