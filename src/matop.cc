@@ -1101,7 +1101,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   }
 
 #ifdef _OPENMP
-#pragma omp parallel for firstprivate(coords, coordsReferenceStructure, coordsTemporaryStructure, matrixReferenceStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+#pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
 #endif
   for (int i = 0; i < (int)ci->size(); i++)
   {
@@ -1204,7 +1204,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     //Perform translational alignment for reference frame
     if (Config::get().PCA.pca_alignment)
     {
-      align::centerOfMassAlignment(coords_ref);
+      ::matop::align::centerOfMassAlignment(coords_ref);
     }
 
     //bool has_it_started = false;
@@ -1221,8 +1221,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
         if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
         {
-          align::centerOfMassAlignment(coords); //Alignes center of mass
-          align::kabschAlignment(coords, coords_ref); //Rotates
+          ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
+          ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
         }
         //Translational and rotational alignment
 
@@ -1236,12 +1236,12 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
         {
           if (Config::get().PCA.pca_use_internal)
           {
-            matrix_aligned.append_bottom(transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
+            matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
           }
           else
           {
             //Works for full and truncated PCA
-            matrix_aligned.append_bottom(transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
+            matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
           }
         }
         else if (Config::get().PCA.pca_start_frame_num == i)
@@ -1249,11 +1249,11 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
           if (Config::get().PCA.pca_use_internal)
           {
             //First a little check if the user-specified values are reasonable
-            matrix_aligned = transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
+            matrix_aligned = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
           }
           else
           {
-            matrix_aligned = transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
+            matrix_aligned = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
           }
         }
         //Building one huge [frames] x [coordinates] matrix by appending for every frame
@@ -1270,11 +1270,11 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       coords_ref.set_xyz(holder);
       if (!Config::get().PCA.pca_trunc_atoms_bool)
       {
-        massweight(matrix_aligned, coords_ref, false);
+        ::matop::massweight(matrix_aligned, coords_ref, false);
       }
       else
       {
-        massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
+        ::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
       }
     }
     //Mass-weightening coordinates if cartesians are used
@@ -1391,7 +1391,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
 
     if (tokens.size() != 0u)
     {
-      undoMassweight(trajectory, coords, false, tokens);
+      ::matop::undoMassweight(trajectory, coords, false, tokens);
       for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
       {
         Matrix_Class out_mat(3, trajectory.rows() / 3u);
@@ -1457,7 +1457,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
     {
       // Here, we merely restore the coordinates from the PCA-modes
       // since no trucnation took plage, and write them out.
-      undoMassweight(trajectory, coords, false);
+      ::matop::undoMassweight(trajectory, coords, false);
       for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
       {
         Matrix_Class out_mat(3, trajectory.rows() / 3u);
@@ -1468,7 +1468,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
           out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
         }
         coords::Coordinates out(coords);
-        out.set_xyz(transfer_to_3DRepressentation(out_mat));
+        out.set_xyz(::matop::transfer_to_3DRepressentation(out_mat));
         out.to_internal();
         outstream << out;
       }
@@ -1563,7 +1563,7 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    //Translational alignment of the reference frame
    if (Config::get().entropy.entropy_alignment)
    {
-     align::centerOfMassAlignment(coords_ref);
+     ::matop::align::centerOfMassAlignment(coords_ref);
    }
 
    Matrix_Class matrix_aligned;
@@ -1586,8 +1586,8 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
        if (Config::get().entropy.entropy_alignment && !Config::get().entropy.entropy_use_internal)
        {
-         align::centerOfMassAlignment(coords); //Alignes center of mass
-         align::kabschAlignment(coords, coords_ref); //Rotates
+         ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
+         ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
        }
        //Translational and rotational alignment
 
@@ -1601,22 +1601,22 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
        {
          if (Config::get().entropy.entropy_use_internal)
          {
-           matrix_aligned.append_bottom(transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true));
+           matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true));
          }
          else
          {
-           matrix_aligned.append_bottom(transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false));
+           matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false));
          }
        }
        else if (Config::get().entropy.entropy_start_frame_num == i)
        {
          if (Config::get().entropy.entropy_use_internal)
          {
-           matrix_aligned = transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
+           matrix_aligned = ::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
          }
          else
          {
-           matrix_aligned = transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
+           matrix_aligned = ::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
          }
        }
        //Building one huge [coordinates] x [frames] matrix by appending for every frame
@@ -1628,7 +1628,7 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
    if (!Config::get().entropy.entropy_use_internal)
    {
-     massweight(matrix_aligned, coords_ref, true);
+     ::matop::massweight(matrix_aligned, coords_ref, true);
    }
    //Mass-weightening cartesian coordinates
 
