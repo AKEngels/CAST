@@ -6,13 +6,12 @@
 #                                  #
 #################################### 
 
-# Verbosity 
-# Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
+# Verbosity
+# Amount of output information from CAST [0-5] (do not use 5)
 
-verbosity              15
+verbosity              2
 
-# Cores
-# Number of OpenMP Threads (if compiled with openmp support)
+# Number of cores to use if OpenMP is enabled
 
 cores                  4
 
@@ -38,6 +37,13 @@ outname                CLETH_MD
 inputtype              TINKER
 
 
+### AMBER I/O OPTIONS
+
+amber_mdcrd            equil_final.crd
+#amber_mdvel
+#amber_inpcrd
+#amber_restrt
+#amber_trajectory_at_constant_pressure
 
 
 #################################### 
@@ -48,29 +54,31 @@ inputtype              TINKER
 
 # SP                   Single point energy calculation
 # GRAD                 Single point energy calculation
-# LOCOPT               Local optimization using Lib-LBFGS
+# LOCOPT               Local optimization using LBFGS
 # MD                   Molecular dynamics simulation
-# SOLVADD              Solvation using Solvadd
+# GOSOL                Combined Solvation + Global Optimization
 # MC                   Monte Carlo
-# MCM                  Monte Carlo with minimization
-# CENTER               Center of mass/geometry
-# TS                   Tabu Search (CAST: GOTS)
-# WTINKER              Print Tinker structure (e.g. if started from PDB) (CAST: WRITE)
-# RMSD                 Root mean square deviation
-# DIMER2               Dimer method using cartesian space
-# DIMER3               Dimer method using torsional space
-# NEB                  Nudged elastic band calculation
-# INTERACTION          Dividing the Molecule into two parts and calculate the interaction energy
-# RDF                  Radial distribution of water around specified atom groups
-# INTERNAL             Create Z-Matrix
+# CENTER               Alignment to Center-of-mass
+# TS                   Tabu Search
+# DIMER                Dimer Method
 # UMBRELLA             Umbrella Sampling
+# NEB                  Nudged elastic band calculation
+# INTERNAL             Create Z-Matrix
+# STARTOPT
 # PROFILE              Repeated Gradient Calculation of first input structure
 # FEP                  Alchemical transformations using FEP
 # ALIGN                Trajectory Alignment (Kabsch algorithm)
 # PCAgen               Principal Component Analysis
+# PCAproc
 # ENTROPY              Configurational and Conformational Entropy Calculations
+# ADJUST
+# GRID
+# PATHOPT
+# PATHSAMPLING
+# REACTIONCOORDINATE
 
-task                   MD
+task                   SP
+
 
 ####################################
 #                                  #
@@ -94,12 +102,13 @@ task                   MD
 solvmethod             VAC
 surface                TINKER
 
+
 #################################### 
 #                                  #
-#        PROFILE RUNS              #
+#        PROFILE                   #
 #                                  #
 ####################################
-#
+
 # Number of repeated gradient calculations for PROFILE task
 
 profileruns            10
@@ -112,11 +121,11 @@ profileruns            10
 ####################################
 
 # AMBER                AMBER force field
-# (AMOEBA)               AMOEBA03 force field
+# AMOEBA               AMOEBA03 force field
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
-# (TERACHEM)             Terachem MPI Interface
-# (TINKER)               Tinker syscall interface
+# TERACHEM             Terachem MPI Interface
+# TINKER               Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
 interface              OPLSAA
@@ -125,13 +134,15 @@ interface              OPLSAA
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa.prm
 
 
 # Keywords for MOPAC Call
 
 MOPACkey               PM7
-
+#MOPACpath
+#MOPACversion
+#MOPACdelete
 
 
 
@@ -144,12 +155,10 @@ MOPACkey               PM7
 cutoff                 10000.0
 
 
-
-
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
-#                                  #
+#            FOR LOCOPT            #
 ####################################
 
 BFGSgrad               0.0001
@@ -189,7 +198,6 @@ Fallbacklimit          200
 GOmetrolocal           0
 
 
-
 ####################################
 #                                  #
 #            MCM OPTIONS           #
@@ -213,8 +221,6 @@ MCmovetype             1
 MCmax_dihedral         160.0
 
 
-
-
 ####################################
 #                                  #
 #            TS OPTIONS            #
@@ -234,8 +240,6 @@ TSdivers_threshold      10
 TSdivers_iter          30
 
 
-
-
 ####################################
 #                                  #
 #       Periodic Boundaries        #
@@ -245,8 +249,6 @@ TSdivers_iter          30
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
 
 Periodics              0 40.0 40.0 40.0
-
-
 
 
 ####################################
@@ -268,136 +270,6 @@ SOtype                 0
 # number of structures generated by startopt routines
 
 SOstructures           1
-
-
-
-
-####################################
-#                                  #
-#           FOLD OPTIONS           #
-#                                  #
-####################################
-
-# filename
-
-FOLDfile               fold_sequence_file.txt
-
-# Fold helices
-#
-# 0    Alpha [default]
-# 1    3-10 Helix
-
-FOLDhelix              0
-
-# Fold sheets
-#
-# 0                   Beta-parallel [default]
-# 1                   Beta-anti-parallel
-
-FOLDsheet              0
-
-# Fold turns
-#
-# 0                   beta-I [default]
-# 1                   beta-I'
-# 2                   beta-II
-# 3                   beta-II'
-# 4                   beta-VIa
-# 5                   beta-VIb
-# 6                   beta-VIII
-
-FOLDturn               0
-
-
-
-
-####################################
-#                                  #
-#        RINGSEARCH OPTIONS        #
-#                                  #
-####################################
-
-# Number of different structures obtained via ringsearch
-
-RSpool                 25
-
-# Number of different structures for genetic population
-
-RSpopulation           20
-
-# Number of generations the evolution will propagated
-
-RSgenerations          15
-
-# Chance to close a selected ring
-
-RSchance_close         0.75
-
-# chance to apply mutation to an individual
-
-RSchance_mutation      0.40
-
-# decay of weight for an individual with respect to the energetic distance to the individual which is lowest in energy
-
-#RSweight_decay        0.035
-
-RSweight_decay         0.05
-
-# Optimize structures with closed rings without strain afterwards
-
-RSopt_final_closed     1
-
-
-
-
-####################################
-#                                  #
-#          SOLVADD OPTIONS         #
-#                                  #
-####################################
-
-# Hydrogen bond length parameter [default: 1.8]
-
-SAhb                   1.8
-
-# number of desired water molecules [default: 0(=no limit)]
-
-SAlimit                1500
-
-# water boundary type
-#
-# 0    layer [default]
-# 1    sphere
-# 2    box
-
-SAboundary             0
-
-# water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
-
-SAradius               25.0
-
-# force field parameter types of oxygen and hydrogen
-#
-# 53 54   OPLS-AA
-# 101 88   CHARMM
-# 2001 2002  AMBER
-
-SAtypes                53 54
-
-# Intermediate optimizations
-#
-# 0    none
-# 1    each "shell"
-# 2    all waters
-# 3    1+2
-
-SAopt                  0
-
-# fix initial structure
-
-SAfixinit              1
-
-
 
 
 ####################################
@@ -488,8 +360,6 @@ MDrestart_offset       5000
 MDresume               0
 
 
-
-
 ####################################
 #                                  #
 #            FEP OPTIONS           #
@@ -512,35 +382,6 @@ FEPbackward    0
 FEPcouple   0
 
 
-
-
-####################################
-#                                  #
-#        INTERACTION OPTIONS       #
-#                                  #
-####################################
-
-# The interaction of substructures that are not bound to each other can be calculated
-# IAlimits <Start Index Substructure> <End Index Substructure>
-
-#IAlimits               1 122
-
-
-
-
-####################################
-#                                  #
-#            RDF OPTIONS           #
-#                                  #
-####################################
-
-# Distribution width
-
-RDFwidth               0.5
-
-
-
-
 ####################################
 #                                  #
 #            PATH OPTIONS          #
@@ -558,8 +399,6 @@ PRdeltae               0.5
 # Maximum structure distance with the path
 
 PRdeltax               0.5
-
-
 
 
 ####################################
@@ -591,13 +430,11 @@ DIMERrotconvergence    5.0
 DIMERmaxit             50 250
 
 
-
 ####################################
 #                                  #
 #         UMBRELLA SAMPLING        #
 #                                  #
 ####################################
-
 
 # Number of equilibration steps
 USequil             1000
@@ -607,45 +444,6 @@ USsnap                 2
 
 #Torsion restraint (old)
 #UStorsion            1 5 7 9 0.05 0.0
-
-
-####################################
-#                                  #
-#        DIHEDRAL RESTRAINTS       #
-#                                  #
-####################################
-
-# Quadratic Dihedral Bias Potential
-#DIHBIAS                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <fix atom 1>
-
-#DIHBIAS                 1 5 7 9 180.0 0.05 0
-#DIHBIAS                2 5 6 9 150.0 5.0  0
-#DIHBIAS                1 2 5 6 150.0 5.0  0
-#DIHBIAS                1 2 5 6 95.0  10.0 0
-
-
-####################################
-#                                  #
-#        DISTANCEL RESTRAINTS      #
-#                                  #
-####################################
-
-#DISTBIAS         <atom 1> <atom 2> <ideal distance> <force> 
-
-#DISTBIAS              1 9 3.0 3.0v
-
-
-
-####################################
-#                                  #
-#       INTERNAL INDEXATION        #
-#                                  #
-####################################
-
-#intdex                7
-#intdex                9
-#intdex                10
-#intdex                11 
 
 
 ####################################
@@ -672,6 +470,8 @@ REMOVEHROT             0
 
 #ATOMFIX                1
 #ATOMFIX                3
+
+
 ####################################
 #                                  #
 #   TRAJECTORY ALIGNMENT OPTIONS   #
@@ -695,15 +495,17 @@ ref_frame_num                   110
 # Desired distance masurement unit for output
 # 0: RMSD (default)
 # 1: dRMSD
-# 2: Hold and Sander Distance
+# 2: Hold and Sander Score
 
 dist_unit                       0
 
-# if Holm and Sander Distance is chosen, pick value for r_c
+# if Holm and Sander Score is chosen, pick value for r_c
 # (contact cutoff distance)
 # default is "20", as in original publication
 
 holm_sand_r0                    5
+
+
 ####################################
 #                                  #
 #       ENTROPY-CALC OPTIONS   	   #
@@ -752,6 +554,8 @@ entropy_trunc_atoms_num           3,4
 entropy_method                    0
 # if entropy_method = 3 || 4 || 5 : specify value for k in kNN-Algorithm (default is 4)
 entropy_method_knn_k              4
+
+
 ####################################
 #                                  #
 #     	PCAgen OPTIONS             #
@@ -761,7 +565,7 @@ entropy_method_knn_k              4
 # Should alignment (Kabsch algorithm, minimizes RMSD) be performed
 # prior to PCA-Analysis? (options: false / true; true is default)
 # pca_ref_frame_num gives reference frame for alignment (default is 0)
-pca_alignment                 true
+pca_alignment                 false
 pca_ref_frame_num             0
 
 # Specify first frame to be used in PCA-Analysis
@@ -772,24 +576,22 @@ pca_start_frame_num           0
 pca_remove_dof                false
 
 # Specify offset value (only every n'th frame will be used in calculations)
-pca_offset                    1
+#pca_offset                    1
 
-# Should PCA-Mode-Coordinates and Eigenvectors be read from file?
-# If true, we are expecting to read Eigenvectors and PCA-Modes from a previously CAST-generated file.
+# Should PCA-Mode-Coordinates and Eigenvalues of the covariance-matrix be written to file?
+# If false, we are expecting to read Eigenvectors and PCA-Modes from a previously CAST-generated file.
 pca_read_vectors              false
 pca_read_modes                false
 
 # Use internal coordinates instead of cartesian coordinates? If yes, should they converted to metric coordinate space?
 # Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
-# "none" also possible
-pca_use_internal              false
-pca_internal_bnd              none
-pca_internal_ang              none
-pca_internal_dih              1
+# "none" also possible. Atom indices start at 0.
+pca_use_internal              true
+pca_internal_dih              3
 
 # Should only specific atoms be used for PCA-Analysis?
 pca_trunc_atoms_bool          false
-pca_trunc_atoms_num           2900-3000
+pca_trunc_atoms_num           1-20
 
 # Optional variance cutoff. PCA Modes are truncated to enough dimensions so that the desired variance is achieved.
 #pca_trunc_var                  20
@@ -797,9 +599,20 @@ pca_trunc_atoms_num           2900-3000
 #pca_trunc_dim                  2
 
 # Print probability density of generated PCA modes?
-pca_print_probability_density  true
+pca_print_probability_density  false
 # If true, specify the number of bins or a bin-width for histogramming the data
 pca_histogram_width              0
 pca_histogram_number_of_bins     10
 pca_dimensions_for_histogramming 1,2
 
+
+####################################
+#                                  #
+#     	PCAproc OPTIONS            #
+#                                  #
+####################################
+
+# Desired range of coordinates as principal components to be written.
+# Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
+proc_desired_start      -5.0
+proc_desired_stop       5.0
