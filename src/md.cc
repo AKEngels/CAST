@@ -304,10 +304,9 @@ void md::simulation::rattlesetup(void)
   //open rattle par file
   std::ifstream ifs;
   ifs.open(Config::get().md.rattle.ratpar.c_str());
-  if (ifs.good()) std::cout << "Opened file!" << std::endl;
+  if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
   if (!ifs.good()) {
     std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
-    exit(1);
     throw;
   }
   // temp vars and vectors;

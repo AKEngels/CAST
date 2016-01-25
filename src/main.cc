@@ -417,7 +417,6 @@ int main(int argc, char **argv)
       }
     case config::tasks::UMBRELLA:
       {
-
         Config::set().md.umbrella = true;
         md::simulation mdObject(coords);
         mdObject.umbrella_run();
