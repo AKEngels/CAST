@@ -308,7 +308,9 @@
 			MOPACversion & Version of MOPAC (2007, 2012) & MOPAC2012\\
 			MOPACdelete & Delete MOPAC temporary files 0=no, 1=yes & 1\\
 
-		\end{tabularx}
+		\end{tabularx}~\\
+		
+		Sometimes, when performing extended calculations such as \ac{MD} Simulations, \ac{MOPAC} calls may fail. For this reason, \ac{CAST} keeps a failcounter. If more than 1000 \ac{MOPAC} calls have failed, \ac{CAST} will abort. This implies that if only a single \ac{MOPAC} call fails, \ac{CAST} will continue. A short error message can in this case be found in the \ac{CAST} output (independent of the verbosity setting).
 
 		%% TeraChem
 		\subsubsection{TeraChem}

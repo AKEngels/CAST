@@ -101,12 +101,9 @@ namespace energy
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
-    //interface_base (void) : 
-    //  m_coords(DNULL), energy(0.0), periodic(false), integrity(true), optimizer(false) 
-    //{ }
     interface_base (coords::Coordinates *coord_pointer) : 
       coords(coord_pointer), periodic(false), integrity(true), 
-      optimizer(false), interactions(false), energy(0.0)
+      optimizer(false), interactions(false), energy(0.0), failcounter(0u)
     { 
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
@@ -122,6 +119,7 @@ namespace energy
       optimizer = other.optimizer;
       internal_optimizer = other.internal_optimizer;
       interactions = other.interactions;
+      failcounter = other.failcounter;
       return *this;
     }
 
@@ -160,8 +158,8 @@ namespace energy
 
     bool intact() const { return integrity; }
 
-    // return 
-    //virtual std::vector<coords::float_type> ec() = 0;
+    // FAILCOUNTER, mainly for MPI and syscall interfaces (MOPAC, TeraChem etc)
+    size_t failcounter;
 
     // Output functions
     virtual void print_E (std::ostream&) const = 0;

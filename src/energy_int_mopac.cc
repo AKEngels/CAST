@@ -449,7 +449,7 @@ namespace
         CloseHandle(pi.hThread);
         return 0;
       }
-      else return 666;
+      else /*if MOPAC call failed*/ return 666;
     #else
       return system(command_line.c_str());
     #endif
@@ -462,33 +462,6 @@ int energy::interfaces::mopac::sysCallInterface::callMopac(void)
 	std::string outstring(id), restring(id);
 	outstring.append(".xyz");
 	restring.append("_sys.out");
-//	if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
-//	{
-//
-//#if defined(_MSC_VER)
-//		std::string mopac_call("\"C:\\Program Files\\mopac\\MOPAC_7.1.exe\"");
-//#else
-//		std::string mopac_call("/apps/mopac/MOPAC_7.1.exe");
-//#endif
-//		mopac_call.append(" ").append(outstring);
-//
-//		return system(mopac_call.c_str());
-//	}
-//	else if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
-//	{
-//
-//#if defined(_MSC_VER)
-//		std::string mopac_call("\"C:\\Program Files\\mopac\\MOPAC7.exe\"");
-//#else
-//		std::string mopac_call("/apps/mopac/MOPAC7");
-//#endif
-//		if (grad_var == true) mopac_call.append("_grad");
-//		mopac_call.append(" ").append(outstring);
-//
-//		return system(mopac_call.c_str());
-//	}
-//	else
-//  {
 		std::string mopac_call(Config::get().energy.mopac.path);
 		mopac_call.append(" ").append(outstring);
 #ifdef _MSC_VER
@@ -496,30 +469,7 @@ int energy::interfaces::mopac::sysCallInterface::callMopac(void)
 #else
     mopac_call.append(" > /dev/null ");
 #endif // _MSC_VER
-		//std::cout << mopac_call << lineend;
 		return mopac_system_call(mopac_call.c_str());
-	//}
-
-	//std::string mopac_call(Config::get().energy.mopac.path);
-
-	//#if defined (_MSC_VER)
-	//  mopac_call.push_back('\0');
-	//  STARTUPINFO si;
-	//  PROCESS_INFORMATION pi;
-	//  ZeroMemory(&si, sizeof(si));
-	//  si.cb = sizeof(si);
-	//  ZeroMemory(&pi, sizeof(pi));
-	// /* if (CreateProcess(NULL, &mopac_call[0], NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-	//  {
-	//    WaitForSingleObject(pi.hProcess, INFINITE);
-	//    CloseHandle(pi.hProcess);
-	//    CloseHandle(pi.hThread);
-	//    return 0;
-	//  }*/
-	// // else return 666;
-	//#else
-	//  return system(command_line.c_str());
-	//#endif
 }
 
 /*
@@ -533,7 +483,17 @@ double energy::interfaces::mopac::sysCallInterface::e(void)
 	grad_var = false;
 	print_mopacInput(false, false, false);
 	if (callMopac() == 0) read_mopacOutput(false, false, false);
-	else throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+  else
+  {
+    ++failcounter;
+    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    if (failcounter > 1000u)
+    {
+      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    }
+  }
 	return energy;
 }
 
@@ -544,7 +504,17 @@ double energy::interfaces::mopac::sysCallInterface::g(void)
 	grad_var = true;
 	print_mopacInput(true, false, false);
 	if (callMopac() == 0) read_mopacOutput(true, false, false);
-	else std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+  else
+  {
+    ++failcounter;
+    std::cerr << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
+    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    if (failcounter > 1000u)
+    {
+      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    }
+  }
 	return energy;
 }
 
@@ -555,7 +525,17 @@ double energy::interfaces::mopac::sysCallInterface::h(void)
 	grad_var = false;
 	print_mopacInput(true, true, false);
 	if (callMopac() == 0) read_mopacOutput(true, true, false);
-	else std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+  else
+  {
+    ++failcounter;
+    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    if (failcounter > 1000u)
+    {
+      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    }
+  }
 	return energy;
 }
 
@@ -566,7 +546,17 @@ double energy::interfaces::mopac::sysCallInterface::o(void)
 	grad_var = false;
 	print_mopacInput(true, false, true);
 	if (callMopac() == 0) read_mopacOutput(true, false, true);
-	else std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+  else
+  {
+    ++failcounter;
+    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    if (failcounter > 1000u)
+    {
+      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+    }
+  }
 	return energy;
 }
 
@@ -601,18 +591,9 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
 	if (endline) S << lineend;
 }
 
-
-
-
 void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }
 
-
-
-
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }
-
-
-
 
 bool energy::interfaces::mopac::sysCallInterface::check_bond_preservation(void) const
 {
