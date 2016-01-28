@@ -102,7 +102,6 @@ task                   SP
 solvmethod             VAC
 surface                TINKER
 
-
 #################################### 
 #                                  #
 #        PROFILE                   #
@@ -130,12 +129,10 @@ profileruns            10
 
 interface              OPLSAA
 
-
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
 paramfile              oplsaa.prm
-
 
 # Keywords for MOPAC Call
 
@@ -143,7 +140,6 @@ MOPACkey               PM7
 #MOPACpath
 #MOPACversion
 #MOPACdelete
-
 
 
 ####################################
@@ -178,24 +174,84 @@ BFGSmaxstep            10000
 
 Temperature            298.15
 
-# Save all (minimized) structures 
-# which are within "Erange" kcal/mol from the final global minimum
-
-Erange                 20.0
-
 # Number of iterations in global optimization routine 
 # or number of MD simulation steps
-# overwritten for MD by MDsteps
+# (overwritten for MD by MDsteps)
 
-Iterations             200
+Iterations             2000
 
-# Limit Fallback
+####################################
+#                                  #
+#           GLOBOPTIONS            #
+#            (MC, TS)              #
+#                                  #
+####################################
 
-Fallbacklimit          200
+# Save all (minimized) structures 
+# which are within "Erange" kcal/mol from the final global minimum
+# default = 0.0
+
+GOerange                 10.0
 
 # use the current local minimum energy for metropolis criterion?
+# default = 0
 
 GOmetrolocal           0
+
+# startopt before starting simulation/optimization?
+# default = 0
+
+GOstartopt             0
+
+# Temperature Scaling Factor applied to the Temperature, 
+# once a new minimum is found during GlobOpt
+# default = 1.0
+
+Tempscale              0.98
+
+# Precision of values printed
+
+GOprecision            6
+
+# Fallback type 
+# 
+# LAST_GLOBAL (default) = fall back to last minimum and then to global minimum if stuck
+# EVOLUTION = select new minimum via evolutionary algorithm if stuck
+
+GOfallback             FITNESS_ROULETTE
+
+# Maximum number of tries from one structure before it is set
+# tabu as a starting point
+# default = 20
+
+GOfallback_limit       500
+
+# Fitness function type for evolutionary fallback
+#
+# LINEAR (default) = linear ranking
+# EXPONENTIAL = exponential ranking
+
+GOfallback_fr_fit              EXPONENTIAL
+
+# Number of minima included in the ranking for evolutionary fallback
+# default = 10
+
+GOfallback_fr_minima    10
+
+# Lower and upper bounardy for fitness value
+# rank 1 is assign second value, rank X 
+# (determined via GOincluded_minima) is assigned the first value
+# default = 0.5 1.0
+
+GOfallback_fr_bounds       0.5 1.0
+
+####################################
+#                                  #
+#           GRID OPTIONS           #
+#                                  #
+####################################
+ 
+GOmain_grid            60.0     
 
 
 ####################################
@@ -218,14 +274,14 @@ MCmovetype             1
 
 # Maximum dihedral deviation
 
-MCmax_dihedral         160.0
+MCmax_dihedral         30.0
 
 
 ####################################
 #                                  #
 #            TS OPTIONS            #
 #                                  #
-###################################
+####################################
 
 # Do diversification before first TS steps?
 
