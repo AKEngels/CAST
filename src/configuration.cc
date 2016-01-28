@@ -692,31 +692,6 @@ void config::parse_option (std::string const option, std::string const value_str
     cv >> Config::set().optimization.global.iterations;
   }
 
-  ////! FOLD
-  //else if (option.substr(0,4) == "FOLD")
-  //{
-  //  //! file containing foldsequence
-  //  if (option.substr(4,4) == "file") 
-  //  { 
-  //    Config::set().startopt.fold.sequenceFile = value_string;
-  //  }
-  //  //! Helix ID to use
-  //  else if (option.substr(4,5) == "helix") 
-  //  { 
-  //    cv >> Config::set().startopt.fold.helix;
-  //  }
-  //  //! Turn ID to use
-  //  else if (option.substr(4,4) == "turn") 
-  //  { 
-  //    cv >> Config::set().startopt.fold.turn;
-  //  }
-  //  //! Sheet ID to use
-  //  else if (option.substr(4,5) == "sheet") 
-  //  { 
-  //    cv >> Config::set().startopt.fold.sheet;
-  //  }
-  //}
-
   //! SOLVADD
   else if (option.substr(0,2) == "SA") 
   { 
@@ -1886,45 +1861,6 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   return strm;
 }
 
-//struct mc
-//{
-//  struct move_types { enum T { DIHEDRAL_OPT, DIHEDRAL, XYZ }; };
-//  // stepsize in cartesian space and temperature
-//  double cartesian_stepsize, dihedral_max_rot;
-//  // move method (cartesian, dihedral or dihedral opt)
-//  move_types::T move;
-//  // use minimization after move (basin hopping / mcm) 
-//  // tracking
-//  bool minimization;
-//  mc (void) : 
-//    cartesian_stepsize(2.0), dihedral_max_rot(160.0), move(move_types::DIHEDRAL_OPT),  
-//    minimization(true)
-//  { }
-//};
-
-//struct ts
-//{
-//  std::size_t divers_iterations, divers_threshold; 
-//  go_types::T divers_optimizer;
-//  bool mcm_first;
-//  ts (void) : 
-//    divers_iterations(30), divers_threshold(25), 
-//    divers_optimizer(go_types::MCM),  mcm_first(false)
-//  { }
-//};
-
-//struct global
-//{
-//  double temperature, temp_scale, delta_e;
-//  ts tabusearch;
-//  mc montecarlo;
-//  std::size_t iterations, fallback_limit;
-//  bool metropolis_global;
-//  global (void) :
-//    temperature(298.15), temp_scale(0.95), delta_e(0.0), 
-//    tabusearch(), montecarlo(), iterations(1000), fallback_limit(20),
-//     metropolis_global(true)
-//  { }
 
 std::ostream& config::optimization_conf::operator<< (std::ostream &strm, sel const &)
 {
