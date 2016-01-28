@@ -443,7 +443,7 @@ namespace config
   struct molecular_dynamics
   {
     double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset;
+    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trace_offset;
     std::vector<md_conf::config_heat> heat_steps;
     md_conf::config_spherical spherical;
     md_conf::config_rattle rattle;
@@ -454,7 +454,7 @@ namespace config
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50), 
       refine_offset(200), restart_offset(5000), usequil(), usoffset(), 
-      heat_steps(), spherical(), rattle(), 
+      trace_offset(1), heat_steps(), spherical(), rattle(), 
       integrator(md_conf::integrators::VERLET), fix(false), 
       hooverHeatBath(true), veloScale(false), fep(false), track(true), 
       silent(false), optimize_snapshots(false), pressure(false), 
@@ -522,7 +522,7 @@ namespace config
       // tracking
       bool minimization;
       mc(void) :
-        cartesian_stepsize(2.0), dihedral_max_rot(120.0),
+        cartesian_stepsize(2.0), dihedral_max_rot(30.0),
         move_frequency_probability(0.75),
         move(move_types::DIHEDRAL), minimization(true)
       { }
@@ -575,11 +575,11 @@ namespace config
     };
 
     static std::size_t const NUM_FALLBACKS = 2;
-    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "EVOLUTION" };
+    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "FITNESS_ROULETTE" };
 
     struct global
     {
-      struct fallback_types { enum T { INVALID = -1, LAST_GLOBAL, EVOLUTIONARY_SELECTION }; };
+      struct fallback_types { enum T { INVALID = -1, LAST_GLOBAL, FITNESS_ROULETTE }; };
       double temperature, temp_scale, delta_e;
       ts tabusearch;
       mc montecarlo;
@@ -592,7 +592,7 @@ namespace config
       global (void) :
         temperature(298.15), temp_scale(1.0), delta_e(0.0), 
         tabusearch(), montecarlo(), iterations(1000), fallback_limit(200), precision(4),
-        fallback(fallback_types::LAST_GLOBAL),
+        fallback(fallback_types::FITNESS_ROULETTE),
         metropolis_local(true), pre_optimize(false), move_dehydrated(false)
       { }
     };
