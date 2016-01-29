@@ -156,12 +156,12 @@ namespace matop
   Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
   {
     //First, some range checks
-    if (includedAtoms[includedAtoms.size() - 1] > coords.atoms().size() - 1)
+    if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size() - 1u)
     {
       std::cout << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
       throw;
     }
-    if (includedAtoms[0] < 0u)
+    if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[0] < 0u)
     {
       std::cout << "You specified a negative truncation number. Stopping." << std::endl;
       throw;
@@ -913,7 +913,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)\n";
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.rows(), 1. ) * cov_matr / input.cols();
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
       float_type entropy = 0.0, cov_determ;
@@ -957,7 +957,7 @@ namespace matop
       std::cout << entropy_new << "\n";
       */
 
-      cov_matr = cov_matr * (1.38064813 * Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.0546 * 1.0546 * 10e-45));
+      cov_matr = cov_matr * (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (6.626070040 /* * 10^-34 Js */ * 6.626070040 * 10e-45));
       cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
       float_type entropy_sho = cov_matr.determ();
 
@@ -1628,7 +1628,14 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
    if (!Config::get().entropy.entropy_use_internal)
    {
-     ::matop::massweight(matrix_aligned, coords_ref, true);
+     if (!Config::get().entropy.entropy_trunc_atoms_bool)
+     {
+       ::matop::massweight(matrix_aligned, coords_ref, true);
+     }
+     else
+     {
+       ::matop::massweight(matrix_aligned, coords_ref, true, Config::get().entropy.entropy_trunc_atoms_num);
+     }
    }
    //Mass-weightening cartesian coordinates
 
