@@ -449,7 +449,7 @@ namespace scon
 						if ((temp = std::abs(lu(i, j))) > big) big = temp;
 					if (big == 0.0)
 					{
-						//std::cerr << "Singular matrix in LUdcmp (->calculation of determinant)";
+						//std::cout << "Singular matrix in LUdcmp (->calculation of determinant)";
 						goto IF_SINGULAR;
 					}
 					vv(i) = 1.0 / big;

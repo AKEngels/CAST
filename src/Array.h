@@ -72,7 +72,7 @@ inline void ArrayExit(const char *x);
 #ifndef __ExternalArrayExit
 inline void ArrayExit(const char *x)
 {
-  std::cerr << _newl << "ERROR: " << x << "." << std::endl;
+  std::cout << _newl << "ERROR: " << x << "." << std::endl;
   exit(1);
 } 
 #endif

@@ -70,7 +70,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     std::getline(config_file_stream, line);
     if (line.substr(1, 7) != std::string("VERSION"))
     {
-      std::cerr << "In reading AMBER prmtop: First Line needs to be %VERSION.\n";
+      std::cout << "In reading AMBER prmtop: First Line needs to be %VERSION.\n";
       throw("In reading AMBER prmtop: First Line needs to be %VERSION.\n");
     }
 
@@ -235,8 +235,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       //If section == ATOM_NAME
       if (!skipPastAtomName && currentSectionID == 2u)
       {
-        std::cerr << "Did not find section AMBER_Atom_Types in .prmtop file!\n";
-        std::cerr << "Continuing, now we will try to get the names from the section ATOM_NAME.\n";
+        std::cout << "Did not find section AMBER_Atom_Types in .prmtop file!\n";
+        std::cout << "Continuing, now we will try to get the names from the section ATOM_NAME.\n";
         for (unsigned int countlines = 0u; countlines < std::ceil(float(numberOfAtoms) / 20.f); countlines++)
         {
           std::getline(config_file_stream, line); // Discard the format specifier
@@ -276,7 +276,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             else if (symbol.substr(0, 1) == "p" || symbol.substr(0, 1) == "P") symbol = "P";
             else
             {
-              std::cerr << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
+              std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
               goto FAILED;
             }
 
@@ -317,7 +317,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             else if (symbol == "IP")
             {
               symbol = "Na";
-              std::cerr << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
+              std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
                 << "AMBER Atom Types webpage (\"http://ambermd.org/antechamber/gaff.html\" or "
                 << "\"http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html\").\n"
                 << "So you need to check if it really IS meant to be sodium.\n"
@@ -343,8 +343,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             //FAILED
             else if (!symbol.empty())
             {
-              std::cerr << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
-              std::cerr << "You should probably go talk to a CAST programmer about this.\n";
+              std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
+              std::cout << "You should probably go talk to a CAST programmer about this.\n";
               goto FAILED;
             }
 
@@ -376,7 +376,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           else if (symbol == "IP")
           {
             symbol = "Na";
-            std::cerr << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
+            std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
               << "AMBER Atom Types webpage (\"http://ambermd.org/antechamber/gaff.html\" or "
               << "\"http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html\").\n"
               << "So you need to check if it really IS meant to be sodium.\n"
@@ -402,8 +402,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           //FAILED
           else if (!symbol.empty())
           {
-            std::cerr << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
-            std::cerr << "You should probably go talk to a CAST programmer about this.\n";
+            std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
+            std::cout << "You should probably go talk to a CAST programmer about this.\n";
             goto FAILED;
           }
 
@@ -449,7 +449,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             {
               if (!(state % 3u == 0))
               {
-                std::cerr << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
+                std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
                 goto FAILED;
               }
               else
@@ -491,23 +491,23 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       }
       else
       {
-        std::cerr << "AMBER trajectories with constant pressure not yet supported, talk to your admin.";
+        std::cout << "AMBER trajectories with constant pressure not yet supported, talk to your admin.";
         goto FAILED;
       }
     }
     else if (!Config::get().io.amber_inpcrd.empty())
     {
-      std::cerr << "Reading from inpcrd not yet supported.";
+      std::cout << "Reading from inpcrd not yet supported.";
       goto FAILED;
     }
     else if (!Config::get().io.amber_restrt.empty())
     {
-      std::cerr << "Reading from restrt not yet supported.";
+      std::cout << "Reading from restrt not yet supported.";
       goto FAILED;
     }
     else
     {
-      std::cerr << "No file containing AMBER coordinates was specified.";
+      std::cout << "No file containing AMBER coordinates was specified.";
       goto FAILED;
     }
 

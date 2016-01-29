@@ -486,11 +486,11 @@ double energy::interfaces::mopac::sysCallInterface::e(void)
   else
   {
     ++failcounter;
-    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
     std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
-      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
       throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     }
   }
@@ -507,11 +507,11 @@ double energy::interfaces::mopac::sysCallInterface::g(void)
   else
   {
     ++failcounter;
-    std::cerr << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
+    std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
     std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
-      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
       throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     }
   }
@@ -528,11 +528,11 @@ double energy::interfaces::mopac::sysCallInterface::h(void)
   else
   {
     ++failcounter;
-    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
     std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
-      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
       throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     }
   }
@@ -549,11 +549,11 @@ double energy::interfaces::mopac::sysCallInterface::o(void)
   else
   {
     ++failcounter;
-    std::cerr << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
+    std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
     std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
-      std::cerr << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
+      std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
       throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     }
   }

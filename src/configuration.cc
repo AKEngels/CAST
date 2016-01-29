@@ -1458,7 +1458,7 @@ void config::parse_option (std::string const option, std::string const value_str
       // Since array is sorted, we only have to check the highest / lowest value
       if (Config::get().PCA.pca_internal_dih[0] < 0u)
       {
-        std::cerr << "You can't specify negative values as dihedrals for PCA. Stopping.\n" << std::endl;
+        std::cout << "You can't specify negative values as dihedrals for PCA. Stopping.\n" << std::endl;
         throw;
       }
     }

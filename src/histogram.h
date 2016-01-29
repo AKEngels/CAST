@@ -337,7 +337,7 @@ namespace histo
       }
       else
       {
-        std::cerr << "fatal error in histogramming! -> centerOfSingleBin(std::vector<size_t> bins)\n";
+        std::cout << "fatal error in histogramming! -> centerOfSingleBin(std::vector<size_t> bins)\n";
         return std::vector<T>();
       }
     }
@@ -372,7 +372,7 @@ namespace histo
       }
       else
       {
-        std::cerr << "ERROR IN DIMENSIONS OF HISTOGRAM!\n" << std::flush;
+        std::cout << "ERROR IN DIMENSIONS OF HISTOGRAM!\n" << std::flush;
         return 0u;
       }
     }
@@ -414,7 +414,7 @@ namespace histo
     {
       if (in.size() != m_dimensions || m_boxcount <= 0u)
       {
-        std::cerr <<   "fatal error in histogramming, desired elements have wrong dimension. Talk to your admin.";
+        std::cout <<   "fatal error in histogramming, desired elements have wrong dimension. Talk to your admin.";
         return 0u;
       }
       else
@@ -486,7 +486,7 @@ namespace histo
       }
       else
       {
-        std::cerr <<  "Fatal ERROR in multidimensional histogramming: add value\n" << std::flush;
+        std::cout <<  "Fatal ERROR in multidimensional histogramming: add value\n" << std::flush;
       }
     }
 
@@ -517,7 +517,7 @@ namespace histo
       }
       else if (m_boxcount == 0)
       {
-        std::cerr << "Severe Error in histogram.h. Stopping.";
+        std::cout << "Severe Error in histogram.h. Stopping.";
         throw;
       }
       else if (m_boxcount > 0)
@@ -773,7 +773,7 @@ namespace histo
       }
       else if (m_boxcount == 0)
       {
-        std::cerr << "Severe Error in histogram.h. Stopping.";
+        std::cout << "Severe Error in histogram.h. Stopping.";
         throw;
       }
       for (std::size_t h(0U); h < m_histograms; ++h)

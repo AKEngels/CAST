@@ -158,17 +158,17 @@ namespace matop
     //First, some range checks
     if (includedAtoms[includedAtoms.size() - 1] > coords.atoms().size() - 1)
     {
-      std::cerr << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
+      std::cout << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
       throw;
     }
     if (includedAtoms[0] < 0u)
     {
-      std::cerr << "You specified a negative truncation number. Stopping." << std::endl;
+      std::cout << "You specified a negative truncation number. Stopping." << std::endl;
       throw;
     }
     else if (internalCoordinates && includedAtoms[0] < 3u)
     {
-      std::cerr << "You specified a dihedral with index < 3. Stopping." << std::endl;
+      std::cout << "You specified a dihedral with index < 3. Stopping." << std::endl;
       throw;
     }
 
@@ -354,8 +354,8 @@ namespace matop
 
       if (dimensionsToBeUsedInHistogramming.size() > 2)
       {
-        std::cerr << "More than 2 dimensions for histogramming is not yet supported!\n";
-        std::cerr << "Working with 2 dimensions";
+        std::cout << "More than 2 dimensions for histogramming is not yet supported!\n";
+        std::cout << "Working with 2 dimensions";
         dimensionsToBeUsedInHistogramming.resize(2);
       }
       else
@@ -451,7 +451,7 @@ namespace matop
         }
         else
         {
-          std::cerr << "Could not read additional Information from pca_modes file.\n";
+          std::cout << "Could not read additional Information from pca_modes file.\n";
         }
       }
     }
@@ -728,7 +728,7 @@ namespace matop
           }
           else
           {
-            std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit" << lineend;
+            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit" << lineend;
             entropy_mi(i, j) = 0.0;
           }
         }
@@ -747,12 +747,12 @@ namespace matop
           if ((entropy_anharmonic(i) / quantum_entropy(i)) < 0.007)
           {
             entropy_anharmonic(i) = 0.0;
-            std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
+            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
           }
         }
         else
         {
-          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit" << lineend;
+          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit" << lineend;
           entropy_anharmonic(i) = 0.0;
         }
       }
@@ -1341,7 +1341,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
   readEigenvectorsAndModes(eigenvectors, trajectory, additionalInformation);
   if (Config::get().PCA.proc_desired_start.size() > trajectory.rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.rows())
   {
-    std::cerr << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
+    std::cout << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
   }
 
   for (size_t j = 0u; j < trajectory.cols(); j++)
@@ -1448,8 +1448,8 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
         }
         else
         {
-          std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-          std::cerr << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
+          std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+          std::cout << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
         }
       }
     }
@@ -1543,8 +1543,8 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
       }
       if (!structureFound)
       {
-        std::cerr << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-        std::cerr << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
+        std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+        std::cout << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
       }
     }
   }
@@ -1570,8 +1570,8 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    const size_t FRAME_SIZE = int(ci->size());
    if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
    {
-     std::cerr << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
-     std::cerr << "Continuing anyway...";
+     std::cout << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";
+     std::cout << "Continuing anyway...";
    }
    //Initializing and checking...
 
