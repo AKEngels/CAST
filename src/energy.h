@@ -103,7 +103,7 @@ namespace energy
 
     interface_base (coords::Coordinates *coord_pointer) : 
       coords(coord_pointer), periodic(false), integrity(true), 
-      optimizer(false), interactions(false), energy(0.0), failcounter(0u)
+      optimizer(false), interactions(false), energy(0.0)
     { 
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
@@ -119,7 +119,6 @@ namespace energy
       optimizer = other.optimizer;
       internal_optimizer = other.internal_optimizer;
       interactions = other.interactions;
-      failcounter = other.failcounter;
       return *this;
     }
 
@@ -157,9 +156,6 @@ namespace energy
     bool has_interactions() const { return interactions; }
 
     bool intact() const { return integrity; }
-
-    // FAILCOUNTER, mainly for MPI and syscall interfaces (MOPAC, TeraChem etc)
-    size_t failcounter;
 
     // Output functions
     virtual void print_E (std::ostream&) const = 0;

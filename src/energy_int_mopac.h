@@ -67,6 +67,9 @@ namespace energy
 				double e_total, e_electron, e_core;
 				std::string id;
 
+				// FAILCOUNTER
+				size_t failcounter;
+
 				/*
 				Mopac sysCall functions
 				*/
