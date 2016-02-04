@@ -1241,7 +1241,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       for (std::size_t a(start - 1u); a < end; ++a)
       {
-        std::cout << "RangeFIXING: " << a << "\n";
+        //std::cout << "RangeFIXING: " << a << "\n";
         scon::sorted::insert_unique(Config::set().coords.fixed, a);
       }
     }
@@ -1250,7 +1250,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 7) == "ATOMFIX")
   {
     auto fixed = from_iss<std::size_t>(cv) - 1u;
-    std::cout << "ATOMIXing: " << fixed << "\n";
+    //std::cout << "ATOMIXing: " << fixed << "\n";
     scon::sorted::insert_unique(Config::set().coords.fixed, fixed);
   }
 
