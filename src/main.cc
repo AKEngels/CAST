@@ -33,8 +33,10 @@
 int main(int argc, char **argv)
 {
 
+#ifdef _MSC_VER
   std::ios::sync_with_stdio(false);
   std::cout.sync_with_stdio(false);
+#endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try

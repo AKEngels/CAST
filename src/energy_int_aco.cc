@@ -10,22 +10,30 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
    : interface_base(cobj) 
 {
   interactions = true;
-  if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
+  if (!tp.valid())
+  {
+    tp.from_file(Config::get().get().general.paramFilename);
+  }
   std::vector<std::size_t> types;
-  for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+  for (auto atom : (*cobj).atoms())
+  {
+    scon::sorted::insert_unique(types, atom.energy_type());
+  }
   cparams = tp.contract(types);
   refined.refine(*cobj, cparams);
 }
 
-energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, coords::Coordinates *cobj)
-  : interface_base(cobj), part_grad(rhs.part_grad), part_energy(rhs.part_energy), 
+energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, 
+  coords::Coordinates *cobj) : interface_base(cobj), 
+  part_grad(rhs.part_grad), part_energy(rhs.part_energy), 
   cparams(rhs.cparams), refined(rhs.refined)
 {
   interface_base::operator=(rhs);
 }
 
-energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs, coords::Coordinates *cobj)
-  : interface_base(cobj), part_grad(std::move(rhs.part_grad)), part_energy(std::move(rhs.part_energy)), 
+energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs, 
+  coords::Coordinates *cobj) : interface_base(cobj), 
+  part_grad(std::move(rhs.part_grad)), part_energy(std::move(rhs.part_energy)), 
   cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined))
 {
   interface_base::swap(rhs);
@@ -118,16 +126,16 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
       }
     }
   }
-  std::size_t const IAS(coords->interactions().size());
-  if (IAS > 0U) 
-  {
-    for (std::size_t i(0U); i<IAS; ++i)
-    {
-      std::stringstream ss;
-      ss << "IA" << i;
-      S << std::right << std::setw(24) << ss.str();
-    }
-  }
+  //std::size_t const IAS(coords->interactions().size());
+  //if (IAS > 0U) 
+  //{
+  //  for (std::size_t i(0U); i<IAS; ++i)
+  //  {
+  //    std::stringstream ss;
+  //    ss << "IA" << i;
+  //    S << std::right << std::setw(24) << ss.str();
+  //  }
+  //}
   S << lineend;
   S << "Count" << lineend;
   S << std::right << std::setw(24) << refined.bonds().size();

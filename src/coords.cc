@@ -756,7 +756,7 @@ void coords::Atoms::c_to_i_light(PES_Point &p) const
   Gradients_Internal & gintern(p.gradient.intern);
   // cartesian coords & gradients
   Representation_3D const & xyz(p.structure.cartesian);
-  Gradients_3D const & gxyz(p.gradient.cartesian);
+  //Gradients_3D const & gxyz(p.gradient.cartesian);
   // set correct sizes for internal data vectors
   intern.resize(N);
   gintern.resize(N);
