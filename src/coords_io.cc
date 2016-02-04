@@ -30,19 +30,19 @@ public:
   }
 };
 
-coords::input::format* coords::input::new_format (void)
+coords::input::format* coords::input::new_format(void)
 {
   switch (Config::get().general.input)
-  { 
-  case config::input_types::TINKER:
-  //TINKER
-    return new formats::tinker;
-    break;
-  case config::input_types::AMBER:
-  //AMBER
-    return new formats::amber;
-    break;
-  default:
+  {
+    case config::input_types::TINKER:
+      //TINKER
+      return new formats::tinker;
+      break;
+    case config::input_types::AMBER:
+      //AMBER
+      return new formats::amber;
+      break;
+    default:
     {
       return new formats::tinker;
     }
@@ -165,17 +165,17 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         numberOfAtoms = std::stoi(line.substr(0, 8));
         for (unsigned int i = 0u; i < 10u; i++)
         {
-          pointers_raw[i + 0u] = std::stoi(line.substr(8u*i, 8));
+          pointers_raw[i + 0u] = std::stoi(line.substr(8u * i, 8));
         }
         std::getline(config_file_stream, line);
         for (unsigned int i = 0u; i < 10u; i++)
         {
-          pointers_raw[i + 10u] = std::stoi(line.substr(8u*i, 8));
+          pointers_raw[i + 10u] = std::stoi(line.substr(8u * i, 8));
         }
         std::getline(config_file_stream, line);
         for (unsigned int i = 0u; i < 10u; i++)
         {
-          pointers_raw[i + 20u] = std::stoi(line.substr(8u*i, 8));
+          pointers_raw[i + 20u] = std::stoi(line.substr(8u * i, 8));
         }
         std::getline(config_file_stream, line);
         pointers_raw[30u] = std::stoi(line.substr(0, 8));
@@ -409,7 +409,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 
           Atom current(symbol);
           atoms.add(current);
-         
+
         }
       }
 
@@ -429,14 +429,14 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // OK, let's now fetch the actual coordinates
     Representation_3D positions;
     positions.reserve(numberOfAtoms); //Reserve space
-    if (! Config::get().io.amber_mdcrd.empty())
+    if (!Config::get().io.amber_mdcrd.empty())
     {
       std::ifstream coord_file_stream(Config::get().io.amber_mdcrd.c_str(), std::ios_base::in);
       // Now, discard the title
       std::getline(coord_file_stream, line);
 
       //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
-      if (! Config::get().io.amber_trajectory_at_constant_pressure)
+      if (!Config::get().io.amber_trajectory_at_constant_pressure)
       {
         unsigned long state = 0u; //Counts each processed floating point number.
         while (std::getline(coord_file_stream, line))
@@ -453,7 +453,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
                 goto FAILED;
               }
               else
-              { 
+              {
                 ///////////////////////////////
                 // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
                 ///////////////////////////////
@@ -474,7 +474,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
               position.z() = std::stod(line.substr(i * 8u, 8u));
               positions.push_back(position);
               //Check if we reached end of structure
-              if ( ((state + 1) / 3) % numberOfAtoms == 0)
+              if (((state + 1) / 3) % numberOfAtoms == 0)
               {
                 input_ensemble.push_back(positions);
                 if (positions.size() != atoms.size())
@@ -529,7 +529,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
   else
   {
     // IF FAILED!!
-    FAILED:
+  FAILED:
     throw std::logic_error("Reading the structure input file failed.");
     //return Coordinates();
   }
@@ -549,13 +549,15 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     std::getline(coord_file_stream, line);
     std::istringstream first_line_stream(line);
     first_line_stream >> N;
-	  //coord_object.m_topology.resize(N);
+    //coord_object.m_topology.resize(N);
     Atoms atoms;
-    if (N == 0U) throw std::logic_error(std::string("ERR_COORD: Expecting no atoms from ").append(file));
+    if (N == 0U) throw std::logic_error("ERR_COORD: Expecting no atoms from '" + file + "'.");
     Representation_3D positions;
     std::vector<std::size_t> index_of_atom(N);
-    bool indexation_not_contiguous(false);
+    bool indexation_not_contiguous(false),
+      has_in_out_subsystems(false);
 
+    // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
     {
       //std::cout << "Line " << i << " mod: " << i%(N+1u) << lineend;
@@ -567,30 +569,32 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
         tinker::line tfl;
         linestream >> tfl;
         Atom atom(tfl.symbol);
-        index_of_atom[tfl.index-1] = positions.size();
-        if (positions.size() != (tfl.index-1)) 
+        index_of_atom[tfl.index - 1] = positions.size();
+        if (positions.size() != (tfl.index - 1))
         {
           indexation_not_contiguous = true;
         }
-    		for (std::size_t j(0u); j<nbmax && tfl.bonds[j] > 0u; ++j) 
-        { 
-          atom.bind_to(tfl.bonds[j] - 1u); 
+        for (std::size_t j(0u); j < nbmax && tfl.bonds[j] > 0u; ++j)
+        {
+          atom.bind_to(tfl.bonds[j] - 1u);
           //coord_object.topo((tfl.bonds[j] - 1u), i - 1); 
         }
-		    positions.push_back(tfl.position);
-        if (scon::find_substr_ci(line, "in") != std::string::npos) 
-        {  
+        positions.push_back(tfl.position);
+        if (scon::find_substr_ci(line, "in") != std::string::npos)
+        {
           atom.set_sub_type(Atom::ST_IN);
           atom.assign_to_system(1u);
+          has_in_out_subsystems = true;
         }
         else if (scon::find_substr_ci(line, "out") != std::string::npos)
         {
           atom.set_sub_type(Atom::ST_OUT);
           atom.assign_to_system(2u);
+          has_in_out_subsystems = true;
         }
         atom.set_energy_type(tfl.tinker_type);
         atoms.add(atom);
-        if (i == N) 
+        if (i == N)
         {
           input_ensemble.push_back(positions);
           positions.clear();
@@ -598,7 +602,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
       }
       else
       {
-        if (i%(N+1u) != 0)
+        if (i % (N + 1u) != 0)
         {
           double x(0), y(0), z(0);
           CAST_SSCANF_COORDS_IO(line.c_str(), "%*lu %*s %lf %lf %lf", &x, &y, &z);
@@ -613,9 +617,9 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           {
             throw std::logic_error("Cannot obtain x,y,z for " + std::to_string(i) + ".");
           }*/
-          if ((i-input_ensemble.size()*(N+1u)) == N)
+          if ((i - input_ensemble.size()*(N + 1u)) == N)
           { // if we are at the end of a structure 
-            if(positions.size() != atoms.size()) 
+            if (positions.size() != atoms.size())
               throw std::logic_error("The size of an additionally provided structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
             positions.clear();
@@ -624,14 +628,32 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
       }
     } // for
 
+    // dividing subsystems
+    if (!has_in_out_subsystems)
+    {
+      auto n_susy = Config::get().coords.subsystems.size();
+      for (std::size_t i = 0; i < n_susy; ++i)
+      {
+        for (auto a : Config::get().coords.subsystems[i])
+        {
+          if (0 < a && a < (N - 1u))
+          {
+            atoms.atom(a - 1u).assign_to_system(i + 1u);
+          }
+        }
+      }
+
+
+    }
+
     if (indexation_not_contiguous)
     {
       std::cout << "Indexation not contiguous. Rebinding atoms." << lineend;
-      for (std::size_t i(0U); i<atoms.size(); ++i)
+      for (std::size_t i(0U); i < atoms.size(); ++i)
       {
         for (auto bonding_partner : atoms.atom(i).bonds())
         {
-          std::cout << "Partner of atom which is now " << i+1 << " detached from " << bonding_partner << " and rebound to " << index_of_atom[bonding_partner] << lineend;
+          std::cout << "Partner of atom which is now " << i + 1 << " detached from " << bonding_partner << " and rebound to " << index_of_atom[bonding_partner] << lineend;
           atoms.atom(i).detach_from(bonding_partner);
           atoms.atom(i).bind_to(index_of_atom[bonding_partner]);
         }
@@ -655,7 +677,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
       coord_object.to_internal_light();
       p = coord_object.pes();
     }
-    
+
   }
   else throw std::logic_error("Reading the structure input file failed.");
   return coord_object;
@@ -664,13 +686,13 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 
 std::ostream& coords::operator<< (std::ostream &stream, coords::Coordinates const & coord)
 {
-  if (Config::get().general.output == config::output_types::TINKER) 
+  if (Config::get().general.output == config::output_types::TINKER)
     stream << coords::output::formats::tinker(coord);
-  else if (Config::get().general.output == config::output_types::XYZ) 
+  else if (Config::get().general.output == config::output_types::XYZ)
     stream << coords::output::formats::xyz(coord);
-  else if (Config::get().general.output == config::output_types::MOLDEN) 
+  else if (Config::get().general.output == config::output_types::MOLDEN)
     stream << coords::output::formats::moldenxyz(coord);
-  else if (Config::get().general.output == config::output_types::ZMATRIX) 
+  else if (Config::get().general.output == config::output_types::ZMATRIX)
     stream << coords::output::formats::zmatrix(coord);
   return stream;
 }
@@ -687,29 +709,29 @@ static void tinker_dummy_to_stream(std::ostream & stream, std::size_t index, coo
   stream << std::right << std::setw(6) << 0 << "\n";
 }
 
-void coords::output::formats::tinker::to_stream (std::ostream & stream) const
+void coords::output::formats::tinker::to_stream(std::ostream & stream) const
 {
   bool const pp = Config::get().energy.periodic && Config::get().energy.periodic_print;
   std::size_t const N(ref.size());
-  stream << (pp ? N+8 : N) << lineend;
+  stream << (pp ? N + 8 : N) << lineend;
   //std::size_t index_width(1), tens(N);
   //while(tens >= 10U)
   //{
   //  tens /= 10U;
   //  ++index_width;
   //}
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
-    stream << std::right << std::setw(6) << i+1U << "  ";
-    stream << std::left  << std::setw(3) << ref.atoms(i).symbol().substr(0U, 2U);
+    stream << std::right << std::setw(6) << i + 1U << "  ";
+    stream << std::left << std::setw(3) << ref.atoms(i).symbol().substr(0U, 2U);
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
     stream << std::right << std::setw(6) << ref.atoms(i).energy_type();
     std::size_t const bSize(ref.atoms(i).bonds().size());
-    for (std::size_t j(0U); j<bSize; ++j)
+    for (std::size_t j(0U); j < bSize; ++j)
     {
-      stream << std::right << std::setw(6) << ref.atoms(i).bonds()[j]+1U;
+      stream << std::right << std::setw(6) << ref.atoms(i).bonds()[j] + 1U;
     }
     if (ref.atoms(i).sub_type() == coords::Atom::sub_types::ST_IN) stream << " IN";
     else if (ref.atoms(i).sub_type() == coords::Atom::sub_types::ST_OUT) stream << " OUT";
@@ -735,7 +757,7 @@ void coords::output::formats::moldenxyz::to_stream(std::ostream & stream) const
   std::size_t const N(ref.size());
   stream << N << lineend;
   stream << "Energy = " << ref.energyinterface()->energy;
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
     stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
@@ -747,153 +769,154 @@ void coords::output::formats::moldenxyz::to_stream(std::ostream & stream) const
 
 void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
 {
-	std::size_t const N(ref.size());
-	for (std::size_t i(0U); i < N; ++i)
+  std::size_t const N(ref.size());
+  for (std::size_t i(0U); i < N; ++i)
 
-	{
-		if (ref.atoms(i).fixed()) {
-			stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-			stream << lineend;
-		}
-		else
-		{
-			stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
-			stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-			stream << lineend;
-		}
-	}
+  {
+    if (ref.atoms(i).fixed()) {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
+      stream << lineend;
+    }
+    else
+    {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
+      stream << lineend;
+    }
+  }
 }
 
-void coords::output::formats::xyz::to_stream (std::ostream & stream) const
+void coords::output::formats::xyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
   //stream << N << lineend;
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
-   /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
-    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-    stream << lineend;*/
-	  if (ref.atoms(i).fixed()) {
-		  stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-		  stream << lineend;
-	  }
-	  else
-	  {
-		  stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
-		  stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-		  stream << lineend;
-	  }
+    /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+     stream << lineend;*/
+    if (ref.atoms(i).fixed())
+    {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
+      stream << lineend;
+    }
+    else
+    {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
+      stream << lineend;
+    }
   }
 }
 
 
-void coords::output::formats::zmatrix::to_stream (std::ostream & stream) const
+void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
   if (stream.good() && N > 0)
   {
     stream << "zmat angstroms" << lineend;
     stream << std::left << std::setw(10) << 1U;
-    stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a()+1;
-    stream << std::left  << std::setw(4)  << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << lineend;
+    stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a() + 1;
+    stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << lineend;
     if (N > 1)
     {
       stream << std::left << std::setw(10) << 2U;
       std::size_t const A = ref.atoms(1u).i_to_a();
-      stream << std::left << std::setw(10) << A+1;
-      stream << std::left  << std::setw(4)  << ref.atoms(A).symbol();
-      stream << std::right  << std::setw(10)  << ref.atoms(1u).ibond()+1;
-      stream << std::right  << std::setw(10)  << "bnd" << 1u;
+      stream << std::left << std::setw(10) << A + 1;
+      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
+      stream << std::right << std::setw(10) << ref.atoms(1u).ibond() + 1;
+      stream << std::right << std::setw(10) << "bnd" << 1u;
       stream << lineend;
     }
     if (N > 2)
     {
       stream << std::left << std::setw(10) << 3U;
       std::size_t const A = ref.atoms(2u).i_to_a();
-      stream << std::left << std::setw(10) << A+1;
-      stream << std::left  << std::setw(4)  << ref.atoms(A).symbol();
-      stream << std::right  << std::setw(10)  <<  ref.atoms(2u).ibond()+1;
-      stream << std::right  << std::setw(10)  << "bnd" << 2u;
-      stream << std::right  << std::setw(10)  <<  ref.atoms(2u).iangle()+1;
-      stream << std::right  << std::setw(10)  << "ang" << 2u;
+      stream << std::left << std::setw(10) << A + 1;
+      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
+      stream << std::right << std::setw(10) << ref.atoms(2u).ibond() + 1;
+      stream << std::right << std::setw(10) << "bnd" << 2u;
+      stream << std::right << std::setw(10) << ref.atoms(2u).iangle() + 1;
+      stream << std::right << std::setw(10) << "ang" << 2u;
       stream << lineend;
     }
 
-    for (std::size_t i=3; i<N; ++i)
+    for (std::size_t i = 3; i < N; ++i)
     {
-      stream << std::left << std::setw(10) << i+1U;
+      stream << std::left << std::setw(10) << i + 1U;
       std::size_t const A = ref.atoms(i).i_to_a();
-      stream << std::left << std::setw(10) << A+1;
-      stream << std::left  << std::setw(4)  << ref.atoms(A).symbol();
-      stream << std::right  << std::setw(10)  <<  ref.atoms(i).ibond()+1;
-      stream << std::right  << std::setw(10)  << "bnd" << i;
-      stream << std::right  << std::setw(10)  <<  ref.atoms(i).iangle()+1;
-      stream << std::right  << std::setw(10)  << "ang" << i;
-      stream << std::right  << std::setw(10)  <<  ref.atoms(i).idihedral()+1;
-      stream << std::right  << std::setw(10)  << "dih" << i;
+      stream << std::left << std::setw(10) << A + 1;
+      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
+      stream << std::right << std::setw(10) << ref.atoms(i).ibond() + 1;
+      stream << std::right << std::setw(10) << "bnd" << i;
+      stream << std::right << std::setw(10) << ref.atoms(i).iangle() + 1;
+      stream << std::right << std::setw(10) << "ang" << i;
+      stream << std::right << std::setw(10) << ref.atoms(i).idihedral() + 1;
+      stream << std::right << std::setw(10) << "dih" << i;
       stream << lineend;
     }
     stream << "variables" << lineend;
     if (N > 1)
     {
-      stream  << "bnd" << std::left  << std::setw(10) << 1u;
-      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6)  << ref.intern(1u).radius();
+      stream << "bnd" << std::left << std::setw(10) << 1u;
+      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(1u).radius();
       stream << lineend;
     }
     if (N > 2)
     {
-      stream  << "bnd" << std::left  << std::setw(10) << 2u;
+      stream << "bnd" << std::left << std::setw(10) << 2u;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(2u).radius();
       stream << lineend;
-      stream  << "ang" << std::left  << std::setw(10) << 2u;
-      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6)  << ref.intern(2u).inclination();
+      stream << "ang" << std::left << std::setw(10) << 2u;
+      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(2u).inclination();
       stream << lineend;
     }
-    for (std::size_t i=3; i<N; ++i)
+    for (std::size_t i = 3; i < N; ++i)
     {
-      stream  << "bnd" << std::left  << std::setw(10) << i;
+      stream << "bnd" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).radius();
       stream << lineend;
-      stream  << "ang" << std::left  << std::setw(10) << i;
+      stream << "ang" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).inclination();
       stream << lineend;
-      stream  << "dih" << std::left  << std::setw(10) << i;
-      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6)  << ref.intern(i).azimuth();
+      stream << "dih" << std::left << std::setw(10) << i;
+      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).azimuth();
       stream << lineend;
     }
     stream << "constants" << lineend;
-    for (std::size_t i=1; i<N; ++i)
+    for (std::size_t i = 1; i < N; ++i)
     {
-      stream  << "g_bnd" << std::left  << std::setw(10) << i;
-      stream << std::right << std::fixed  << std::setw(20) << std::setprecision(6)  << ref.g_intern(i).x();
+      stream << "g_bnd" << std::left << std::setw(10) << i;
+      stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).x();
       stream << lineend;
       if (i > 1)
       {
-        stream  << "g_ang" << std::left  << std::setw(10) << i;
-        stream << std::right << std::fixed << std::setw(20) << std::setprecision(6)  << ref.g_intern(i).y();
+        stream << "g_ang" << std::left << std::setw(10) << i;
+        stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).y();
         stream << lineend;
       }
       if (i > 2)
       {
-        stream  << "g_dih" << std::left  << std::setw(10) << i;
-        stream << std::right << std::fixed << std::setw(20) << std::setprecision(6)  << ref.g_intern(i).z();
+        stream << "g_dih" << std::left << std::setw(10) << i;
+        stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).z();
         stream << lineend;
       }
     }
     stream << "end" << lineend;
-  } 
+  }
   else throw std::runtime_error("ERR_FILE_WRITE: stream bad");
 }
 
@@ -901,7 +924,7 @@ void coords::output::formats::xyz_mopac::to_stream(std::ostream &stream) const
 {
   std::size_t const N(ref.size());
   //stream << N << lineend;
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
     /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
