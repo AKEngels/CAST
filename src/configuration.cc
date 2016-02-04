@@ -1549,13 +1549,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
   {
     Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
-    // A little check.
-    // Since array is sorted, we only have to check the highest / lowest value
-    if (Config::get().PCA.pca_internal_dih[0] < 0u)
-    {
-      std::cout << "You can't specify negative values as dihedrals for PCA. Stopping.\n" << std::endl;
-      throw;
-    }
   }
   else if (option == "pca_trunc_dim")
   {
