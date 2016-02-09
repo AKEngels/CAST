@@ -466,11 +466,15 @@ namespace matop
   namespace entropy
   {
 
-    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_queryPt, size_t const& col_queryPt)
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_queryPt, size_t const& col_queryPt, coords::float_type* buffer)
     {
       float_type temp_distance = 0.0;
       float_type hold_distance;
-      float_type *distanceList = new float_type[k_in];
+      float_type *distanceList = buffer;
+      if (buffer == nullptr)
+      {
+        distanceList = new float_type[k_in];
+      }
       distanceList[0] = std::numeric_limits<float_type>::max();
 
       // This iterates over the "n-th" next neighbors
@@ -521,11 +525,11 @@ namespace matop
         distanceList[i] = hold_distance;
       }
       float_type keeper = distanceList[k_in - 1u];
-      delete[] distanceList;
+      if (buffer == nullptr) delete[] distanceList;
       return keeper;
     }
 
-    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt)
+    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
     //Will throw if input is wrong
     {
@@ -537,7 +541,11 @@ namespace matop
 
       float_type temp_distance;
       float_type hold_distance;
-      float_type *distanceList = new float_type[k_in];
+      float_type *distanceList = buffer;
+      if (buffer == nullptr)
+      {
+        distanceList = new float_type[k_in];
+      }
       distanceList[0] = std::numeric_limits<double>::max();
 
       // This iterates over the "n-th" next neighbors
@@ -587,7 +595,7 @@ namespace matop
         distanceList[i] = hold_distance;
       }
       float_type keeper = distanceList[k_in - 1u];
-      delete[] distanceList;
+      if (buffer == nullptr) delete[] distanceList;
       return keeper;
     }
 
@@ -655,21 +663,25 @@ namespace matop
 
       // II. Calculate Non-Paramteric Entropies
       // Marginal
-      for (size_t i = 0; i < pca_modes.rows(); i++)
+      const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
+      for (int i = 0; i < (int) pca_modes.rows(); i++)
       {
+        float_type* buffer = new float_type[kForKNN];
         float_type distance = 0.0;
-        for (size_t k = 0; k < pca_modes.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(pca_modes, 1, Config::get().entropy.entropy_method_knn_k, i, k)));
+          for (size_t k = 0; k < pca_modes.cols(); k++)
+          {
+            distance += log(sqrt(knn_distance(pca_modes, 1, kForKNN, i, k, buffer)));
+          }
         }
         distance /= float_type(pca_modes.cols());
         float_type temp = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 0.5);
         temp /= tgamma((1 / 2) + 1);
         distance += log(temp);
         temp = 0;
-        if (Config::get().entropy.entropy_method_knn_k != 1u)
+        if (kForKNN != 1u)
         {
-          for (size_t k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
+          for (size_t k = 1; k < kForKNN; k++)
           {
             temp += 1.0 / float_type(i);
           }
@@ -682,10 +694,10 @@ namespace matop
         //MI
         for (size_t j = i + 1; j < pca_modes.rows(); j++)
         {
-          std::vector<size_t> query_rows{ i,j };
+          std::vector<size_t> query_rows{ (size_t) i,j };
           for (size_t k = 0; k < pca_modes.cols(); k++)
           {
-            distance += log(sqrt(knn_distance(pca_modes, 2, Config::get().entropy.entropy_method_knn_k, query_rows, k)));
+            distance += log(sqrt(knn_distance(pca_modes, 2, kForKNN, query_rows, k, buffer)));
           }
 
           distance /= 2 * float_type(pca_modes.cols());
@@ -693,9 +705,9 @@ namespace matop
 
           distance += log(temp2);
           temp2 = 0;
-          if (Config::get().entropy.entropy_method_knn_k != 1)
+          if (kForKNN != 1)
           {
-            for (size_t u = 1; u < Config::get().entropy.entropy_method_knn_k; u++)
+            for (size_t u = 1; u < kForKNN; u++)
             {
               temp2 += 1.0 / float_type(u);
             }
@@ -705,6 +717,7 @@ namespace matop
           entropy_mi(i, j) = distance;
 
         }
+        delete[] buffer;
       }
 
       size_t counterForLargeNegativeM_I_Terms = 0u;
@@ -777,13 +790,15 @@ namespace matop
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
-      float_type distance = knn_distance(input, input.rows(), Config::get().entropy.entropy_method_knn_k, (size_t) 0u, (size_t) 1u);
+      const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
+      float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t) 0u, (size_t) 0u)));
+      float_type* buffer = new float_type[kForKNN];
       for (size_t k = 1; k < input.cols(); k++)
       {
         //Should be equivalent to the original version but with less costly sqrt:
-        distance *= knn_distance(input,  input.rows(), Config::get().entropy.entropy_method_knn_k, (size_t) 0u, (size_t) k);
+        distance += std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)k, buffer)));
       }
-      distance = std::log(std::sqrt(distance));
+      delete[] buffer;
 
       // Calculate Non-Paramteric Entropies (old)
       /*float_type distance = 0.0;
@@ -820,12 +835,14 @@ namespace matop
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
+      const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
       for (size_t i = 0; i < input.rows(); i++)
       {
+        float_type* buffer = new float_type[kForKNN];
         double distance = 0.0;
         for (size_t k = 0; k < input.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(input, 1, Config::get().entropy.entropy_method_knn_k, i, k))); // set eucledean distance to ouptut
+          distance += log(sqrt(knn_distance(input, 1, kForKNN, i, k, buffer))); // set eucledean distance to ouptut
         }
         distance /= float_type(input.cols());
 
@@ -833,9 +850,9 @@ namespace matop
         temp /= tgamma((1 / 2) + 1);
         distance += log(temp);
         temp = 0;
-        if (Config::get().entropy.entropy_method_knn_k != 1)
+        if (kForKNN != 1)
         {
-          for (size_t k = 1; k < Config::get().entropy.entropy_method_knn_k; k++)
+          for (size_t k = 1; k < kForKNN; k++)
           {
             temp += 1.0 / float_type(k);
           }
@@ -843,6 +860,7 @@ namespace matop
         distance -= temp;
         distance += 0.5772156649015328606065;
         marginal_entropy_storage(i) = distance;
+        delete[] buffer;
       }
 
       //Calculate Difference of Entropies
