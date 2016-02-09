@@ -598,8 +598,14 @@ namespace matop
       return keeper;
     }
 
-    float_type knapp_wrapper(Matrix_Class const& input)
+    float_type knapp_wrapper(Matrix_Class const& input_)
     {
+#ifdef _OPENMP
+      Matrix_Class input(input_);
+#else
+      Matrix_Class const& input(input_);
+#endif // _OPENMP
+
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
       cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
@@ -663,6 +669,9 @@ namespace matop
       // II. Calculate Non-Paramteric Entropies
       // Marginal
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
+#ifdef _OPENMP
+#pragma omp parallel for firstprivate(pca_modes, kForKNN) shared(entropy_anharmonic, entropy_mi)
+#endif
       for (int i = 0; i < (int) pca_modes.rows(); i++)
       {
         float_type* buffer = new float_type[kForKNN];
@@ -783,20 +792,37 @@ namespace matop
       return entropy_sho - delta_entropy;
     }
 
-    float_type hnizdo_wrapper(Matrix_Class const& input)
+    float_type hnizdo_wrapper(Matrix_Class const& input_)
     {
+#ifdef _OPENMP
+      Matrix_Class input(input_);
+#else
+      Matrix_Class const& input(input_);
+#endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)" << std::endl;
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
-      float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t) 0u, (size_t) 0u)));
-      float_type* buffer = new float_type[kForKNN];
-      for (size_t k = 1; k < input.cols(); k++)
+      float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)0u)));
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(input, kForKNN) reduction(+:distance)
       {
-        //Should be equivalent to the original version but with less costly sqrt:
-        distance += std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)k, buffer)));
+#endif
+        float_type* buffer = new float_type[kForKNN];
+#ifdef _OPENMP
+#pragma omp for
+#endif
+        for (int k = 1; k < (int) input.cols(); k++)
+        {
+          //Should be equivalent to the original version but with less costly sqrt:
+          //This is the squared distance btw
+          //distance *= knn_distance(input_workobj,  input.rows(), Config::get().entropy.entropy_method_knn_k, (size_t) 0u, (size_t) k);
+          distance += std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)k, buffer)));
+        }
+        delete[] buffer;
+#ifdef _OPENMP
       }
-      delete[] buffer;
+#endif
 
       // Calculate Non-Paramteric Entropies (old)
       /*float_type distance = 0.0;
@@ -827,20 +853,28 @@ namespace matop
       return entropy;
     }
 
-    float_type hnizdo_m_wrapper(Matrix_Class const& input)
+    float_type hnizdo_m_wrapper(Matrix_Class const& input_)
     {
+#ifdef _OPENMP
+      Matrix_Class input(input_);
+#else
+      Matrix_Class const& input(input_);
+#endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)" << std::endl;
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
-      for (size_t i = 0; i < input.rows(); i++)
+#ifdef _OPENMP
+#pragma omp parallel for firstprivate(input, kForKNN) shared(marginal_entropy_storage)
+#endif _OPENMP
+      for (int i = 0; i < (int) input.rows(); i++)
       {
         float_type* buffer = new float_type[kForKNN];
         double distance = 0.0;
         for (size_t k = 0; k < input.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(input, 1, kForKNN, i, k, buffer))); // set eucledean distance to ouptut
+          distance += log(sqrt(knn_distance(input, 1, kForKNN, (size_t) i, k, buffer))); // set eucledean distance to ouptut
         }
         distance /= float_type(input.cols());
 
