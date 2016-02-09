@@ -603,10 +603,6 @@
 	MCM; 87/100; 0 -2.0604e+02; -1.8566e+02; -2.0516e02;
 	R (energy) 1 1 (47.04 K, 3.37s (33701 ticks))
 	\end{lstlisting}
-		
-	%%%% CENTER %%%%
-	\subsection{CENTER - Center of Mass}	
-	This task will align the center-of-mass of each input structure to one another. The structures are translated so that each center-of-mass lies on the origin of the coordinate system. The aligned structures will be written to file. There are no configuration options specifiable for this task.
 	
 	%%%% Dimer Method (DIMER) %%%%
 	\subsection{DIMER - Dimer Method}
@@ -713,7 +709,8 @@
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
 		\hline
-		traj_align_bool & Switch alignment on or off, false = off, true = on & true\\
+		traj_align_translational & Switch translational (= center-of-mass) alignment on or off, false = off, true = on & true\\
+		traj_align_rotational & Switch rotational alignment\supercite{kabsch1, kabsch2} on or off, false = off, true = on & true\\
 		traj_print_bool & Switch output of distance measurement on or off, "false" = off, "true" = on & true\\
 		align_external_file & Get reference structure from different file then to-be-aligned structures. This is the filename. The file has to be in the same folder. & none\\
 		ref_frame_num & Number of reference frame for alignment (if align_external_file is used, this number refers to the therby specified ensemble). First structure is "0" & 0\\

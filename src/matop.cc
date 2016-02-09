@@ -1127,7 +1127,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   hold_coords_str = new std::string[ci->size()];
 
   //Perform translational alignment for reference frame
-  if (Config::get().alignment.traj_align_bool)
+  if (Config::get().alignment.traj_align_translational)
   {
     centerOfMassAlignment(coordsReferenceStructure);
   }
@@ -1143,9 +1143,13 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
       //Create temporary objects for current frame
 
-      if (Config::get().alignment.traj_align_bool)
+      if (Config::get().alignment.traj_align_translational)
       {
-        kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, true);
+        centerOfMassAlignment(coordsTemporaryStructure);
+      }
+      if (Config::get().alignment.traj_align_rotational)
+      {
+        kabschAlignment(coordsTemporaryStructure, coordsReferenceStructure, false);
       }
 
       if (Config::get().alignment.traj_print_bool)
@@ -1205,7 +1209,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     {
       distance << hold_str[i];
     }
-    if (Config::get().alignment.traj_align_bool)
+    if (Config::get().alignment.traj_align_translational || Config::get().alignment.traj_align_rotational)
     {
       outputstream << hold_coords_str[i];
     }

@@ -44,10 +44,10 @@ namespace config
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
   // Tasks
-  static std::size_t const NUM_TASKS = 30;
+  static std::size_t const NUM_TASKS = 29;
   static std::string const task_strings[NUM_TASKS] =
   { "SP", "GRAD", "TS", "LOCOPT", "RMSD",
-  "MC", "DIMER", "MD", "NEB", "CENTER",
+  "MC", "DIMER", "MD", "NEB",
   "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
   "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
   "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
@@ -57,7 +57,7 @@ namespace config
     enum T {
       ILLEGAL = -1,
       SP, GRAD, TS, LOCOPT, RMSD,
-      MC, DIMER, MD, NEB, CENTER,
+      MC, DIMER, MD, NEB, 
       STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
       PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE,
@@ -762,12 +762,13 @@ namespace config
   {
     size_t dist_unit;
     size_t reference_frame_num;
-    bool traj_align_bool;
+    bool traj_align_translational;
+    bool traj_align_rotational;
     bool traj_print_bool;
     double holm_sand_r0;
     std::string align_external_file;
     //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
-    align(void) : dist_unit(0), reference_frame_num(0), traj_align_bool(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()//, cdist_cutoff(5) 
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()//, cdist_cutoff(5) 
     {}
   };
 

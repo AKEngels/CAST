@@ -1423,17 +1423,30 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().alignment.align_external_file;
   }
-  else if (option == "traj_align_bool")
+  else if (option == "traj_align_translational")
   {
     std::string holder;
     cv >> holder;
     if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "t" || holder == "T" || holder == "1")
     {
-      Config::set().alignment.traj_align_bool = true;
+      Config::set().alignment.traj_align_translational = true;
     }
     else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "f" || holder == "F" || holder == "0")
     {
-      Config::set().alignment.traj_align_bool = false;
+      Config::set().alignment.traj_align_translational = false;
+    }
+  }
+  else if (option == "traj_align_rotational")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "t" || holder == "T" || holder == "1")
+    {
+      Config::set().alignment.traj_align_rotational = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "f" || holder == "F" || holder == "0")
+    {
+      Config::set().alignment.traj_align_rotational = false;
     }
   }
   else if (option == "traj_print_bool")

@@ -298,24 +298,6 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::CENTER:
-      { // Center
-      std::ofstream centerstream(coords::output::filename("_CENTER").c_str(), std::ios_base::out);
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.move_all_by(-coords.center_of_mass(), true);
-          coords::float_type maxdist = 0.0;
-          for (auto const & p : coords.xyz())
-          {
-            coords::float_type const l = geometric_length(p);
-            maxdist = l > maxdist ? l : maxdist;
-          }
-          std::cout << "Maximum distance to center is " << maxdist << lineend;
-          centerstream << coords;
-        }
-        break;
-      }
     case config::tasks::TS:
       { // Gradient only tabu search
         std::cout << Config::get().coords.equals;
