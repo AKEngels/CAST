@@ -476,7 +476,6 @@ namespace matop
         distanceList = new float_type[k_in];
       }
       distanceList[0] = std::numeric_limits<float_type>::max();
-
       // This iterates over the "n-th" next neighbors
       // (to get the second next neighbor you have to find the first next neighbor etc. )
       for (size_t i = 0; i < k_in; i++)
@@ -601,7 +600,7 @@ namespace matop
 
     float_type knapp_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)\n";
+      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
       cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
@@ -733,7 +732,6 @@ namespace matop
               if (entropy_mi(i, j) < -1)
               {
                 counterForLargeNegativeM_I_Terms++;
-                //std::cout << "Notice: Large negative M.I. term detected (value: " << entropy_mi(i, j) << "). Check frequency of data sampling." << lineend;
               }
               entropy_mi(i, j) = 0.0;
             }
@@ -787,7 +785,7 @@ namespace matop
 
     float_type hnizdo_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)\n";
+      std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)" << std::endl;
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
 
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
@@ -831,7 +829,7 @@ namespace matop
 
     float_type hnizdo_m_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)\n";
+      std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)" << std::endl;
       Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
 
       //Calculate Non-Paramteric Entropies
@@ -863,7 +861,7 @@ namespace matop
         delete[] buffer;
       }
 
-      //Calculate Difference of Entropies
+      //Calculate sum of of Entropies
       float_type entropy = 0;
       for (size_t i = 0; i < marginal_entropy_storage.rows(); i++)
       {
@@ -876,7 +874,7 @@ namespace matop
 
     float_type knapp_m_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)\n";
+      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
       cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
@@ -929,7 +927,7 @@ namespace matop
 
     float_type karplus_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)\n";
+      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
       cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
@@ -951,29 +949,11 @@ namespace matop
 
     float_type schlitter_wrapper(Matrix_Class const& input)
     {
-      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)\n";
+      std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
       cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
-
-      /*
-      //Alternative method for calculation, is mathematically equivalent
-      arma::Col<float_type> arma_eigenvalues = eig_sym(arma_cov_matr);
-      float_type entropy_new = 1.0;
-      for (int i = 0; i < arma_eigenvalues.n_rows; i++)
-      {
-      std::cout << arma_eigenvalues(i) << "\n";
-      arma_eigenvalues(i) *= 1.38064813 * Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 * 1.054571726 * 10e-45);
-      std::cout << arma_eigenvalues(i) << "\n";
-      entropy_new *= 1 + arma_eigenvalues(i);
-      }
-      std::cout << entropy_new << "\n";
-      entropy_new = log(entropy_new);
-      std::cout << entropy_new << "\n";
-      entropy_new = 0.5 * 1.38064813 * 10e-23;
-      std::cout << entropy_new << "\n";
-      */
 
       cov_matr = cov_matr * (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (6.626070040 /* * 10^-34 Js */ * 6.626070040 * 10e-45));
       cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());

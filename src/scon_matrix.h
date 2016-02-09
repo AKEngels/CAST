@@ -416,7 +416,7 @@ namespace scon
   {
     if (a.empty() || b.empty() || a.cols() != b.rows())
     {
-      throw std::logic_error("Matrix multiplication dimesion mismatch.");
+      throw std::logic_error("Matrix multiplication dimension mismatch.");
     }
     // create result matrix r
     scon::matrix<T, false, C> r(a.rows(), b.cols(), 0.0);
