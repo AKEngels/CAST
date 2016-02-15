@@ -30,48 +30,6 @@ namespace scon
     };
   }
 
-  ///*
-  //
-  //  Transformation Iterator
-
-  //*/
-
-  //template<class Iterator, class Transformation>
-  //class transform_iterator
-  //{
-  //  Transformation m_transform;
-  //  Iterator m_begin;
-
-  //  typedef std::iterator_traits<Iterator> It;
-  //  using my_type = typename std::enable_if<
-  //    std::is_same<typename It::iterator_category,
-  //    std::random_access_iterator_tag>::value,
-  //    transform_iterator<Iterator, Transformation>>::type;
-
-  //public:
-
-  //  Iterator _iter() const { return m_begin: }
-  //  Transformation _transform() const { return m_transform; }
-
-  //  typedef typename It::difference_type   difference_type;
-  //  typedef typename It::iterator_category iterator_category;
-  //  typedef typename It::pointer           pointer;
-  //  typedef typename It::reference         reference;
-  //  typedef typename It::value_type        value_type;
-
-  //  transform_iterator(Iterator iter, Transformation transformation_object)
-  //  {
-
-  //  }
-
-  //};
-
-  //template<class It, class Transformation>
-  //inline transform_iterator<It, Transformation> transformer(It iter, Transformation transform)
-  //{
-
-  //}
-
   /*
 
   Static / compile time stride iterator
@@ -193,7 +151,6 @@ namespace scon
 
   };
 
-
   template<class Iterator>
   class stride_iterator : 
     public std::iterator_traits<Iterator>
@@ -300,6 +257,107 @@ namespace scon
 
     difference_type N, offset;
     Iterator m_begin;
+
+  };
+
+  /*
+  
+  Iterator counting increases
+
+  */
+
+  template<class T>
+  class count_iterator
+  {
+    T value;
+    std::size_t offset;
+
+    using my_type = count_iterator<T>;
+
+  public:
+
+    using iterator_category = std::random_access_iterator_tag;
+    using reference = std::remove_reference_t<T>&;
+    using pointer = std::remove_reference_t<T>*;
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+
+    count_iterator(T& val, std::size_t const i = 0)
+      : value(val), offset(i) {}
+
+    reference operator* () const
+    {
+      return value;
+    }
+    pointer operator->() const
+    {
+      return std::addressof(value);
+    }
+    reference operator[] (difference_type const) const
+    {
+      return value;
+    }
+    // increment and decrement
+    my_type & operator++ ()
+    { // increment then return
+      ++offset;
+      return *this;
+    }
+    my_type & operator-- ()
+    { // decrement then return
+      --offset;
+      return *this;
+    }
+    my_type operator++ (int)
+    { // copy, increment this, return copy
+      my_type ret(*this);
+      ++*this;
+      return ret;
+    }
+    my_type operator-- (int)
+    { // copy, decrement this, return copy
+      my_type ret(*this);
+      --*this;
+      return ret;
+    }
+    // Arithmetics using difference_type
+    my_type & operator+= (difference_type d)
+    {
+      offset += d;
+      return *this;
+    }
+    my_type & operator-= (difference_type d)
+    {
+      return (*this += -d);
+    }
+    my_type operator+ (difference_type d) const
+    {
+      my_type ret(*this);
+      ret += d;
+      return ret;
+    }
+    my_type operator- (difference_type d) const
+    {
+      return this->operator+(-d);
+    }
+
+    // Arithmetics with this type
+    difference_type operator- (my_type const & rhs) const
+    {
+      return offset - rhs.offset;
+    }
+
+    // Comparison
+    bool operator== (my_type const &rhs) const
+    {
+      return std::addressof(value) == std::addressof(rhs.value)
+        && offset == rhs.offset;
+    }
+    bool operator!= (my_type const &rhs) const { return !operator==(rhs); }
+    bool operator<  (my_type const &rhs) const { return offset < rhs.offset; }
+    bool operator>= (my_type const &rhs) const { return !operator<(rhs); }
+    bool operator>  (my_type const &rhs) const { return offset > rhs.offset; }
+    bool operator<= (my_type const &rhs) const { return !operator>(rhs); }
 
   };
 
@@ -617,8 +675,6 @@ namespace scon
     typedef range_proxy<iterator, const_iterator, SIZE> range;
     typedef const_range_proxy<const_iterator, SIZE> const_range;
   };
-
-
 
   struct index_iterator
   {
