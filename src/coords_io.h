@@ -1,7 +1,7 @@
 #pragma once 
 
 #if defined _OPENMP
-  #include <omp.h>
+#include <omp.h>
 #endif
 #include <memory>
 #include <string>
@@ -18,36 +18,36 @@ namespace coords
     // format types
     struct types { enum T { TINKER, PDB, AMBER }; };
 
-    inline types::T get_type (std::string const &str)
+    inline types::T get_type(std::string const &str)
     {
       if (str.find("PDB") != str.npos) return types::PDB;
       else if (str.find("AMBER") != str.npos) return types::AMBER;
       else return types::TINKER;
     }
     // new format creator
-    input::format* new_format (void);
+    input::format* new_format(void);
 
     class format
     {
     protected:
-      format (void) { }
+      format(void) { }
       coords::Ensemble_PES input_ensemble;
     public:
-      virtual ~format (void) { }
+      virtual ~format(void) { }
       // Number of Atoms (N) and Structures (M)
-      std::size_t atoms (void) const { return input_ensemble.size() > 0 ? input_ensemble.back().size() : 0U; }
-      std::size_t size (void) const { return input_ensemble.size(); }
+      std::size_t atoms(void) const { return input_ensemble.size() > 0 ? input_ensemble.back().size() : 0U; }
+      std::size_t size(void) const { return input_ensemble.size(); }
       // Read Structure and return coordinates
-      virtual Coordinates read (std::string) = 0;
+      virtual Coordinates read(std::string) = 0;
       // Get structure i
-      PES_Point structure (std::size_t const i=0u) const { return input_ensemble[i]; }
-      Ensemble_PES const & PES (void) const { return input_ensemble; }
+      PES_Point structure(std::size_t const i = 0u) const { return input_ensemble[i]; }
+      Ensemble_PES const & PES(void) const { return input_ensemble; }
       Ensemble_PES & PES(void) { return input_ensemble; }
       // Iterators
-      Ensemble_PES::iterator begin (void) { return input_ensemble.begin(); }
-      Ensemble_PES::iterator end (void) { return input_ensemble.end(); }
-      Ensemble_PES::const_iterator begin (void) const { return input_ensemble.begin(); }
-      Ensemble_PES::const_iterator end (void) const { return input_ensemble.end(); }
+      Ensemble_PES::iterator begin(void) { return input_ensemble.begin(); }
+      Ensemble_PES::iterator end(void) { return input_ensemble.end(); }
+      Ensemble_PES::const_iterator begin(void) const { return input_ensemble.begin(); }
+      Ensemble_PES::const_iterator end(void) const { return input_ensemble.end(); }
     };
 
     namespace formats
@@ -74,7 +74,7 @@ namespace coords
         //struct sections;
         static const unsigned int sections_size = 91u;
 
-        enum section_types 
+        enum section_types
         {
           ILLEGAL = -1,
           TITLE, POINTERS, ATOM_NAME, CHARGE, ATOMIC_NUMBER,
@@ -88,7 +88,7 @@ namespace coords
           BOX_DIMENSIONS, CAP_INFO, CAP_INFO2, RADIUS_SET, RADII,
           IPOL
         };
-		
+
 
 
         //Important Stuff
@@ -113,17 +113,17 @@ namespace coords
           std::vector<std::size_t> bonds;
           std::size_t index, tinker_type;
           std::string symbol;
-          line (void) 
-            : bonds(7U,0U), index(0U),
+          line(void)
+            : bonds(7U, 0U), index(0U),
             tinker_type(0U) {}
           friend std::istream & operator>> (std::istream &is, line &l)
           {
-            is >> l.index >> l.symbol >> l.position.x() >> l.position.y() >> l.position.z() >> l.tinker_type 
+            is >> l.index >> l.symbol >> l.position.x() >> l.position.y() >> l.position.z() >> l.tinker_type
               >> l.bonds[0u] >> l.bonds[1u] >> l.bonds[2u] >> l.bonds[3u] >> l.bonds[4u] >> l.bonds[5u] >> l.bonds[6u];
             return is;
           }
         };
-        
+
       };
     }
 
@@ -140,9 +140,9 @@ namespace coords
     protected:
       Coordinates const & ref;
       format& operator= (format const &);
-      format (Coordinates const &coord_obj) : ref(coord_obj) {}
+      format(Coordinates const &coord_obj) : ref(coord_obj) {}
     public:
-      virtual void to_stream (std::ostream&) const = 0;
+      virtual void to_stream(std::ostream&) const = 0;
     };
 
     inline std::ostream& operator<< (std::ostream &stream, format const & out_format)
@@ -158,9 +158,9 @@ namespace coords
       {
         tinker& operator= (tinker const &);
       public:
-        tinker (Coordinates const &coord_obj) : output::format(coord_obj) {}
-        void to_stream (std::ostream&) const;
-        static std::string filename (std::string postfix)
+        tinker(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
         {
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".arc")).get_unique_path();
         }
@@ -171,9 +171,9 @@ namespace coords
       {
         xyz& operator= (xyz const &);
       public:
-        xyz (Coordinates const &coord_obj) : output::format(coord_obj) {}
-        void to_stream (std::ostream&) const;
-        static std::string filename (std::string postfix)
+        xyz(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
         {
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
         }
@@ -192,19 +192,19 @@ namespace coords
         }
       };
 
-	  class xyz_mopac7
-		  : public output::format
-	  {
-		  xyz_mopac7 operator= (xyz_mopac7 const &);
-	  public:
-		  xyz_mopac7(Coordinates const &coord_obj) : output::format(coord_obj) {}
-		  void to_stream(std::ostream&) const;
+      class xyz_mopac7
+        : public output::format
+      {
+        xyz_mopac7 operator= (xyz_mopac7 const &);
+      public:
+        xyz_mopac7(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
 
-		  static std::string filename(std::string postfix)
-		  {
-			  return std::string(Config::get().general.outputFilename).append(postfix).append(".xyz");
-		  }
-	  };
+        static std::string filename(std::string postfix)
+        {
+          return std::string(Config::get().general.outputFilename).append(postfix).append(".xyz");
+        }
+      };
       class moldenxyz
         : public output::format
       {
@@ -223,9 +223,9 @@ namespace coords
       {
         tinker& operator= (tinker const &);
       public:
-        zmatrix (Coordinates const &coord_obj) : output::format(coord_obj) {}
-        void to_stream (std::ostream&) const;
-        static std::string filename (std::string postfix)
+        zmatrix(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
         {
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".zm")).get_unique_path();
         }

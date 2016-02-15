@@ -16,12 +16,12 @@ std::ostream& coords::operator<< (std::ostream &stream, internal_relations const
   stream << "]:[Atom: " << inter.atom_of_inter_index << ", Inter: " << inter.inter_of_atom_index << "]:[Follow: ";
   for (std::size_t i = 0; i < inter.follow_ups.size(); ++i)
   {
-    stream << (i != 0?", ":"") << inter.follow_ups[i];
+    stream << (i != 0 ? ", " : "") << inter.follow_ups[i];
   }
   stream << "]:[Dep: ";
   for (std::size_t i = 0; i < inter.dependant_torsions.size(); ++i)
   {
-    stream << (i != 0?", ":"") << inter.dependant_torsions[i];
+    stream << (i != 0 ? ", " : "") << inter.dependant_torsions[i];
   }
   stream << "] Main: " << inter.is_main_torsion << "\n";
   return stream;
@@ -32,19 +32,19 @@ std::ostream& coords::operator<< (std::ostream &stream, Atom const & atom)
   stream << atom.m_symbol << " (" << atom.m_number << ", " << atom.m_mass << "):[";
   for (std::size_t i = 0; i < atom.m_bonds.size(); ++i)
   {
-    stream << (i != 0?", ":"") << atom.m_bonds[i];
+    stream << (i != 0 ? ", " : "") << atom.m_bonds[i];
   }
   stream << "] Sys: " << atom.m_system << ", Type: " << atom.m_etype << ", Sub: " << atom.m_sub_id << '\n';
   stream << "[B,A,D: " << atom.rel_b << ", " << atom.rel_a << ", " << atom.rel_d;
   stream << "]:[Atom: " << atom.atom_of_inter_index << ", Inter: " << atom.inter_of_atom_index << "]:[Follow: ";
   for (std::size_t i = 0; i < atom.follow_ups.size(); ++i)
   {
-    stream << (i != 0?", ":"") << atom.follow_ups[i];
+    stream << (i != 0 ? ", " : "") << atom.follow_ups[i];
   }
   stream << "]:[Dep: ";
   for (std::size_t i = 0; i < atom.dependant_torsions.size(); ++i)
   {
-    stream << (i != 0?", ":"") << atom.dependant_torsions[i];
+    stream << (i != 0 ? ", " : "") << atom.dependant_torsions[i];
   }
   stream << "] Main: " << atom.is_main_torsion << '\n';
   return stream;
@@ -72,27 +72,27 @@ std::ostream& coords::operator<< (std::ostream &stream, Stereo const & stereo)
 
   class PES_Point and helper static function implementations
 
-  ########  ########  ######          ########   #######  #### ##    ## ######## 
-  ##     ## ##       ##    ##         ##     ## ##     ##  ##  ###   ##    ##    
-  ##     ## ##       ##               ##     ## ##     ##  ##  ####  ##    ##    
-  ########  ######    ######          ########  ##     ##  ##  ## ## ##    ##    
-  ##        ##             ##         ##        ##     ##  ##  ##  ####    ##    
-  ##        ##       ##    ##         ##        ##     ##  ##  ##   ###    ##    
-  ##        ########  ######  ####### ##         #######  #### ##    ##    ##  
+  ########  ########  ######          ########   #######  #### ##    ## ########
+  ##     ## ##       ##    ##         ##     ## ##     ##  ##  ###   ##    ##
+  ##     ## ##       ##               ##     ## ##     ##  ##  ####  ##    ##
+  ########  ######    ######          ########  ##     ##  ##  ## ## ##    ##
+  ##        ##             ##         ##        ##     ##  ##  ##  ####    ##
+  ##        ##       ##    ##         ##        ##     ##  ##  ##   ###    ##
+  ##        ########  ######  ####### ##         #######  #### ##    ##    ##
 
 ############################################################################# */
 
 
 
 
-static inline bool in_3d_delta (coords::Representation_3D const &r, 
+static inline bool in_3d_delta(coords::Representation_3D const &r,
   coords::Cartesian_Point const &d)
 {
   std::size_t const N(r.size());
-  for (std::size_t i=0; i<N; ++i)
+  for (std::size_t i = 0; i<N; ++i)
   {
-    if (std::abs(r[i].x()) > d.x() || 
-      std::abs(r[i].y()) > d.y() || 
+    if (std::abs(r[i].x()) > d.x() ||
+      std::abs(r[i].y()) > d.y() ||
       std::abs(r[i].z()) > d.z())
     {
       return false;
@@ -101,20 +101,20 @@ static inline bool in_3d_delta (coords::Representation_3D const &r,
   return true;
 }
 
-static inline bool out_of_angle_delta(coords::angle_type const & a, 
+static inline bool out_of_angle_delta(coords::angle_type const & a,
   coords::angle_type const & l)
 {
   return (a > l || a < -l);
 }
 
-static inline bool in_internal_delta(coords::Representation_Internal const &r, 
+static inline bool in_internal_delta(coords::Representation_Internal const &r,
   coords::internal_type const &d)
 {
   std::size_t const N(r.size());
   for (std::size_t i = 0; i<N; ++i)
   {
-    if (std::abs(r[i].radius()) > d.radius() || 
-      out_of_angle_delta(r[i].inclination(), d.inclination()) || 
+    if (std::abs(r[i].radius()) > d.radius() ||
+      out_of_angle_delta(r[i].inclination(), d.inclination()) ||
       out_of_angle_delta(r[i].azimuth(), d.azimuth()))
     {
       return false;
@@ -124,11 +124,11 @@ static inline bool in_internal_delta(coords::Representation_Internal const &r,
 }
 
 
-static inline bool in_main_delta(coords::Representation_Main const &r, 
+static inline bool in_main_delta(coords::Representation_Main const &r,
   coords::main_type const f)
 {
   std::size_t const N(r.size());
-  for (std::size_t i(0u); i<N; ++i)
+  for (std::size_t i(0u); i < N; ++i)
   {
     if (r[i] > f || r[i] < -f)
     {
@@ -141,7 +141,7 @@ static inline bool in_main_delta(coords::Representation_Main const &r,
 }
 
 
-bool coords::PES_Point::equal_compare (PES_Point const &rhs) const
+bool coords::PES_Point::equal_compare(PES_Point const &rhs) const
 {
   using scon::operator-;
   //std::cout << "Checking delta: ";
@@ -171,44 +171,44 @@ bool coords::PES_Point::equal_compare (PES_Point const &rhs) const
 
 /* ############################################
 
-  class Atom 
+  class Atom
   non-inline implementation
 
-        ###    ########  #######  ##     ## 
-       ## ##      ##    ##     ## ###   ### 
-      ##   ##     ##    ##     ## #### #### 
-     ##     ##    ##    ##     ## ## ### ## 
-     #########    ##    ##     ## ##     ## 
-     ##     ##    ##    ##     ## ##     ## 
-     ##     ##    ##     #######  ##     ## 
+        ###    ########  #######  ##     ##
+       ## ##      ##    ##     ## ###   ###
+      ##   ##     ##    ##     ## #### ####
+     ##     ##    ##    ##     ## ## ### ##
+     #########    ##    ##     ## ##     ##
+     ##     ##    ##    ##     ## ##     ##
+     ##     ##    ##     #######  ##     ##
 
 ############################################ */
 
 
 
 
-coords::Atom::Atom (std::string s)
-  : m_symbol(s), m_number(atomic::atomic_number_by_symbol(s)), 
-  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U), 
+coords::Atom::Atom(std::string s)
+  : m_symbol(s), m_number(atomic::atomic_number_by_symbol(s)),
+  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
   m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 
-coords::Atom::Atom (std::size_t n)
+coords::Atom::Atom(std::size_t n)
   : m_symbol(atomic::symbolMap[n]), m_number(n),
-  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U), 
+  m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
   m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 
-coords::Atom::Atom (double m)
-  : m_symbol(atomic::symbolMap[atomic::atomic_number_by_mass(m)]), 
-    m_number(atomic::atomic_number_by_mass(m)), m_mass(m), m_system(0U), 
-    m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
+coords::Atom::Atom(double m)
+  : m_symbol(atomic::symbolMap[atomic::atomic_number_by_mass(m)]),
+  m_number(atomic::atomic_number_by_mass(m)), m_mass(m), m_system(0U),
+  m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
 { }
 
 
-void coords::Atom::swap (Atom &r)
+void coords::Atom::swap(Atom &r)
 {
   using std::swap;
   swap(rel_b, r.rel_b);
@@ -235,23 +235,23 @@ void coords::Atom::swap (Atom &r)
 
 /* ##############################################
 
-  class Atoms 
+  class Atoms
   non-inline implementation
 
-     ###    ########  #######  ##     ##  ######  
-    ## ##      ##    ##     ## ###   ### ##    ## 
-   ##   ##     ##    ##     ## #### #### ##       
-  ##     ##    ##    ##     ## ## ### ##  ######  
-  #########    ##    ##     ## ##     ##       ## 
-  ##     ##    ##    ##     ## ##     ## ##    ## 
-  ##     ##    ##     #######  ##     ##  ######  
+     ###    ########  #######  ##     ##  ######
+    ## ##      ##    ##     ## ###   ### ##    ##
+   ##   ##     ##    ##     ## #### #### ##
+  ##     ##    ##    ##     ## ## ### ##  ######
+  #########    ##    ##     ## ##     ##       ##
+  ##     ##    ##    ##     ## ##     ## ##    ##
+  ##     ##    ##     #######  ##     ##  ######
 
 ############################################## */
 
 
 
 
-void coords::Atoms::refine ()
+void coords::Atoms::refine()
 {
   refine_internals();
   //refine_followups();
@@ -260,12 +260,12 @@ void coords::Atoms::refine ()
 }
 
 
-bool coords::Atoms::sub_io_transition (std::size_t a, std::size_t b) const
+bool coords::Atoms::sub_io_transition(std::size_t a, std::size_t b) const
 {
-  return ((m_atoms[a].sub_type() == Atom::ST_IN && 
-	   m_atoms[b].sub_type() == Atom::ST_OUT) ||
-      (m_atoms[b].sub_type() == Atom::ST_IN && 
-	    m_atoms[a].sub_type() == Atom::ST_OUT));
+  return ((m_atoms[a].sub_type() == Atom::ST_IN &&
+    m_atoms[b].sub_type() == Atom::ST_OUT) ||
+    (m_atoms[b].sub_type() == Atom::ST_IN &&
+      m_atoms[a].sub_type() == Atom::ST_OUT));
 }
 
 // Helpers for external info for mains
@@ -352,7 +352,7 @@ namespace
 struct Part_of_Ring
 {
   std::vector<bool> atom_is_part_of_ring;
-  Part_of_Ring(std::vector<coords::Atom> const &atms) 
+  Part_of_Ring(std::vector<coords::Atom> const &atms)
     : atom_is_part_of_ring(atms.size(), false)
   {
     std::size_t const N = atms.size();
@@ -369,8 +369,10 @@ struct Part_of_Ring
       }
     }
   }
-  bool operator() (std::size_t const i) 
-  { return atom_is_part_of_ring[i]; }
+  bool operator() (std::size_t const i)
+  {
+    return atom_is_part_of_ring[i];
+  }
 };
 
 //#define PRINT_MAIN_AXIS
@@ -381,7 +383,7 @@ void coords::Atoms::refine_mains()
   std::size_t const N = m_atoms.size();
   Part_of_Ring ringpart(m_atoms);
   // vector saving the atoms which have main torsions attached
-  std::vector<std::size_t> atom_has_main_torsion_attached(N+1U, N+1U);
+  std::vector<std::size_t> atom_has_main_torsion_attached(N + 1U, N + 1U);
   for (auto const & mti : main_torsion_indices)
   {
     if (atom(mti).ibond() <= N)
@@ -389,10 +391,10 @@ void coords::Atoms::refine_mains()
   }
   std::cout << std::boolalpha;
 
-  bool const decoupled_molecules = m_molecules.size() > 1 && 
-    Config::get().coords.decouple_internals && 
+  bool const decoupled_molecules = m_molecules.size() > 1 &&
+    Config::get().coords.decouple_internals &&
     Config::get().coords.internal.main_whitelist.empty();
-  
+
 #ifdef PRINT_MAIN_AXIS
   std::vector<std::size_t> main_axis_atoms;
 #endif
@@ -403,8 +405,8 @@ void coords::Atoms::refine_mains()
       ia = atom(i).iangle(), id = atom(i).idihedral(); // angle internal
     bool saturated_bond = false;
     bool list_allowed = false;
-    bool molecule_rotation = ib >= N || ia >= N || 
-      (ib < N && ia < N && id >= N && atom(atom(ia).i_to_a()).bonds().size() == 1 
+    bool molecule_rotation = ib >= N || ia >= N ||
+      (ib < N && ia < N && id >= N && atom(atom(ia).i_to_a()).bonds().size() == 1
         && atom(atom(ia).i_to_a()).bonds()[0u] == atom(ib).i_to_a());
     bool rotates_no_ringbond = true;
 
@@ -428,10 +430,10 @@ void coords::Atoms::refine_mains()
     // No further internals attached to current
     bool const rotates_single_atom = atom(i).bound_internals().size() < 1u;
     // Is current internal rotating hydrogen?
-    bool const not_only_hydrogen = !rotates_single_atom || 
+    bool const not_only_hydrogen = !rotates_single_atom ||
       atom(atom(i).i_to_a()).number() > 1u;
     // is hydrogen only rotation to be removed?
-    bool const non_removed_rotation = not_only_hydrogen || 
+    bool const non_removed_rotation = not_only_hydrogen ||
       !Config::get().coords.remove_hydrogen_rot;
     //! is this atom fixed?
     bool const not_fixed = !m_atoms[i].ifix();
@@ -444,8 +446,8 @@ void coords::Atoms::refine_mains()
       atom(atom_has_main_torsion_attached[ib]).append_dependant_idihedral(i);
     }
     // Add main if possible
-    if ((molecule_rotation && decoupled_molecules) || 
-      (!molecule_rotation && saturated_bond && non_removed_rotation && list_allowed && 
+    if ((molecule_rotation && decoupled_molecules) ||
+      (!molecule_rotation && saturated_bond && non_removed_rotation && list_allowed &&
         main_does_not_yet_exist && rotates_no_ringbond && not_fixed))
     {
 #ifdef PRINT_MAIN_AXIS
@@ -464,7 +466,7 @@ void coords::Atoms::refine_mains()
   {
     std::cout << "Identified " << main_torsion_indices.size() << " main torsions.\n";
   }
-  
+
 #ifdef PRINT_MAIN_AXIS
   for (std::size_t i = 0; i < N; ++i)
   {
@@ -481,12 +483,12 @@ void coords::Atoms::refine_mains()
   }
   std::cout << "\n";
 #endif
-  
+
 
 }
 
 
-void coords::Atoms::refine_internals ()
+void coords::Atoms::refine_internals()
 {
   // First of all we assume that we do not have any mains
   main_bond_indices.clear();
@@ -497,7 +499,7 @@ void coords::Atoms::refine_internals ()
   std::vector<bool> done(N, false);
   std::size_t current_internal(0u);
   // cycle rest
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
     if (done[i]) continue;
     auto connect_it = Config::get().coords.internal.connect.find(i);
@@ -538,14 +540,14 @@ void coords::Atoms::refine_internals ()
 }
 
 
-void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A, 
+void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
   size_1d &molecule, std::size_t &index_size, std::vector<bool> &done)
 {
   std::size_t const nBound = m_atoms[A].bonds().size();
   //std::cout << "Appending " << nBound << " atoms bound to " << A << "\n";
   for (std::size_t i{ 0U }; i < nBound; ++i)
   {
-    std::size_t index = m_atoms[A].bonds()[i]; 
+    std::size_t index = m_atoms[A].bonds()[i];
     //std::cout << "Bound " << i << " is " << index << "\n";
     if (!done[index])
     {
@@ -555,13 +557,13 @@ void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
       molecule.push_back(index);
       m_atoms[index_size].set_a_of_i(index);
       m_atoms[index].set_i_of_a(index_size);
-      append_atoms(lvl+1, index, molecule, ++index_size, done);
+      append_atoms(lvl + 1, index, molecule, ++index_size, done);
     }
   }
 }
 
 
-void coords::Atoms::get_relatives (std::size_t const i, const std::size_t b)
+void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
 {
   std::size_t const S = size();
   // if i is root, relatives are S / S+1 and S+2
@@ -597,7 +599,7 @@ void coords::Atoms::get_relatives (std::size_t const i, const std::size_t b)
           // if no other internals than b are bound to 
           // bond relative of b we utilize the angle relative anyways
           // iangle should be S or S+1
-          if (atom(b).iangle() > (S + 1))
+          if (atom(b).iangle() >(S + 1))
           {
             throw std::logic_error("Invalid angle partner.");
           }
@@ -608,8 +610,8 @@ void coords::Atoms::get_relatives (std::size_t const i, const std::size_t b)
           // otherwise we use the firste relative that is not b
           atom(i).set_idihedral(
             atom(atom(b).ibond()).bound_internals(0u) == b ?
-              atom(atom(b).ibond()).bound_internals(1u) 
-              : atom(atom(b).ibond()).bound_internals(0u)
+            atom(atom(b).ibond()).bound_internals(1u)
+            : atom(atom(b).ibond()).bound_internals(0u)
             );
         }
       }
@@ -633,8 +635,8 @@ void coords::Atoms::get_relatives (std::size_t const i, const std::size_t b)
         case 2u:
         {
           atom(i).set_iangle(
-            atom(b).bound_internals(0u) == i ? 
-              atom(b).bound_internals(1u) : atom(b).bound_internals(0u)
+            atom(b).bound_internals(0u) == i ?
+            atom(b).bound_internals(1u) : atom(b).bound_internals(0u)
             );
           atom(i).set_idihedral(atom(b).ibond());
           break;
@@ -666,13 +668,13 @@ void coords::Atoms::get_relatives (std::size_t const i, const std::size_t b)
 
 bool coords::Atoms::common_torsion_axis(std::size_t a, std::size_t b, bool & direction) const
 {
-  if ((m_atoms[a].ibond() == m_atoms[b].ibond() && 
+  if ((m_atoms[a].ibond() == m_atoms[b].ibond() &&
     m_atoms[a].iangle() == m_atoms[b].iangle()))
   {
     direction = true;
     return true;
   }
-  else if (m_atoms[a].iangle() == m_atoms[b].ibond() && 
+  else if (m_atoms[a].iangle() == m_atoms[b].ibond() &&
     m_atoms[a].ibond() == m_atoms[b].iangle())
   {
     direction = false;
@@ -688,7 +690,7 @@ bool coords::Atoms::common_bond(std::size_t a, std::size_t b) const
 }
 
 
-void coords::Atoms::refine_subsystems ()
+void coords::Atoms::refine_subsystems()
 {
   m_sub_systems.clear();
   std::size_t const N = m_atoms.size();
@@ -701,7 +703,7 @@ void coords::Atoms::refine_subsystems ()
   std::vector<bool> found(max_sys, false);
   std::vector<std::size_t> map(max_sys);
   std::size_t sys;
-  for (std::size_t i=0; i<N; ++i)
+  for (std::size_t i = 0; i < N; ++i)
   {
     if (!found[atom(i).system()])
     {
@@ -716,12 +718,12 @@ void coords::Atoms::refine_subsystems ()
     }
     m_sub_systems[sys].push_back(i);
     m_atoms[i].assign_to_system(sys);
-    if (m_atoms[i].sub_type() == Atom::ST_IN) 
+    if (m_atoms[i].sub_type() == Atom::ST_IN)
     {
       m_in_exists = true;
       m_sub_in_index = sys;
     }
-    else if (m_atoms[i].sub_type() == Atom::ST_OUT) 
+    else if (m_atoms[i].sub_type() == Atom::ST_OUT)
     {
       m_out_exists = true;
       m_sub_out_index = sys;
@@ -730,7 +732,7 @@ void coords::Atoms::refine_subsystems ()
   if (m_in_exists && m_out_exists) m_sub_io = true;
 }
 
-coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index, 
+coords::Cartesian_Point coords::Atoms::rel_xyz(std::size_t const index,
   coords::Representation_3D const & xyz) const
 {
   std::size_t const N = xyz.size();
@@ -781,7 +783,7 @@ void coords::Atoms::c_to_i_light(PES_Point &p) const
 
 void coords::Atoms::c_to_i(PES_Point &p) const
 {
-  using scon::dot; 
+  using scon::dot;
   using scon::spherical;
   using scon::geometric_length;
   std::size_t const N(m_atoms.size());
@@ -824,10 +826,10 @@ void coords::Atoms::c_to_i(PES_Point &p) const
 
     auto j(i);
     while (j < N)
-    { 
+    {
 
       auto const ind_j = atom(j).i_to_a();
-      
+
       auto const rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
       auto const rel_angle_j = rel_xyz(atom(j).iangle(), xyz);
 
@@ -881,9 +883,9 @@ void coords::Atoms::c_to_i(PES_Point &p) const
         //std::cout << "Rotates: " << rotating << " which is atom " << atom(rotating).i_to_a() << lineend;
         p.gradient.main[j] += gintern[rotating].z();
       }
-      
+
     }
-    
+
   }
 
 }
@@ -1122,7 +1124,7 @@ void coords::Atoms::i_to_c(PES_Point &p) const
 //}
 
 
-bool coords::Atoms::res_is_equal(std::size_t const a, std::size_t const b, 
+bool coords::Atoms::res_is_equal(std::size_t const a, std::size_t const b,
   std::size_t const from_a, std::size_t const from_b, std::size_t depth) const
 {
   // Different atoms (different atomic number) .. do not tend to be equal ;)
@@ -1137,10 +1139,10 @@ bool coords::Atoms::res_is_equal(std::size_t const a, std::size_t const b,
   if (TA != m_atoms[b].bonds().size()) return false;
   size_1d atomicA, atomicB, otherA, otherB;
   // append all atoms bound to a / b that are not source atoms from_a / from_b
-  for (size_1d::size_type i=0; i<TA; ++i)
+  for (size_1d::size_type i = 0; i < TA; ++i)
   {
     std::size_t const bai = m_atoms[a].bonds()[i]; // bond i of a
-    if (bai != from_a) 
+    if (bai != from_a)
     {
       scon::sorted::insert(atomicA, m_atoms[bai].number());
       otherA.push_back(bai);
@@ -1155,14 +1157,14 @@ bool coords::Atoms::res_is_equal(std::size_t const a, std::size_t const b,
   size_1d::size_type const O = otherA.size();
   std::vector<bool> done_b(O, false);
   // cycle all residues i on A
-  for (size_1d::size_type i(0U); i<O; ++i)
+  for (size_1d::size_type i(0U); i < O; ++i)
   {
     // atomicA and B are sorted, so for the same i the should have the same numbers if equal
     if (atomicA[i] != atomicB[i]) return false;
     // we search for a residue j at B that is equal to residue i at A
     // j has to be marked as "not found yet" (done_b[j] = false)
     bool found = false;
-    for (std::vector<bool>::size_type j=0; j<O; ++j)
+    for (std::vector<bool>::size_type j = 0; j < O; ++j)
     {
       if (!done_b[j] && res_is_equal(otherA[i], otherB[j], a, b, depth + 1))
       {
@@ -1241,7 +1243,7 @@ std::size_t coords::Atoms::intern_of_dihedral(std::size_t a,
 }
 
 
-void coords::Atoms::swap (Atoms &r)
+void coords::Atoms::swap(Atoms &r)
 {
   m_atoms.swap(r.m_atoms);
   m_sub_systems.swap(r.m_sub_systems);
@@ -1261,26 +1263,26 @@ void coords::Atoms::swap (Atoms &r)
 
   class Stereo implementation
 
-   ######  ######## ######## ########  ########  #######  
-  ##    ##    ##    ##       ##     ## ##       ##     ## 
-  ##          ##    ##       ##     ## ##       ##     ## 
-   ######     ##    ######   ########  ######   ##     ## 
-        ##    ##    ##       ##   ##   ##       ##     ## 
-  ##    ##    ##    ##       ##    ##  ##       ##     ## 
-   ######     ##    ######## ##     ## ########  #######  
+   ######  ######## ######## ########  ########  #######
+  ##    ##    ##    ##       ##     ## ##       ##     ##
+  ##          ##    ##       ##     ## ##       ##     ##
+   ######     ##    ######   ########  ######   ##     ##
+        ##    ##    ##       ##   ##   ##       ##     ##
+  ##    ##    ##    ##       ##    ##  ##       ##     ##
+   ######     ##    ######## ##     ## ########  #######
 
 ###################################################### */
 
 
 
 
-coords::Stereo::Stereo (Atoms const &atoms, coords::Representation_3D const &xyz)
+coords::Stereo::Stereo(Atoms const &atoms, coords::Representation_3D const &xyz)
   : m_centers()
 {
   using scon::cross;
   std::vector<Atom>::size_type const N = atoms.size();
   m_centers.clear();
-  for (std::size_t i(0U); i<N; ++i)
+  for (std::size_t i(0U); i < N; ++i)
   {
     if (atoms.atom(i).bonds().size() == 4)
     {
@@ -1319,9 +1321,9 @@ void coords::Stereo::update(coords::Representation_3D const &xyz)
   {
     coords::Cartesian_Point crossv(
       cross(xyz[stereo_pair.bonds[1]] - xyz[stereo_pair.bonds[2]],
-            xyz[stereo_pair.bonds[3]] - xyz[stereo_pair.bonds[2]])
+        xyz[stereo_pair.bonds[3]] - xyz[stereo_pair.bonds[2]])
       );
-    float_type const scalar(dot(xyz[stereo_pair.bonds[0]] - 
+    float_type const scalar(dot(xyz[stereo_pair.bonds[0]] -
       xyz[stereo_pair.bonds[2]], crossv));
     stereo_pair.m_dir = !(scalar < 0.0);
   }
@@ -1330,400 +1332,19 @@ void coords::Stereo::update(coords::Representation_3D const &xyz)
 
 
 
-/* ######################################################
 
-
-  ########  ####    ###     ######  
-  ##     ##  ##    ## ##   ##    ## 
-  ##     ##  ##   ##   ##  ##       
-  ########   ##  ##     ##  ######  
-  ##     ##  ##  #########       ## 
-  ##     ##  ##  ##     ## ##    ## 
-  ########  #### ##     ##  ######  
-
-
-###################################################### */
-
-
-
-
-void coords::bias::Potentials::append_config ()
-{
-  m_distances.insert(m_distances.end(), Config::get().coords.bias.distance.begin(), Config::get().coords.bias.distance.end());
-  m_angles.insert(m_angles.end(), Config::get().coords.bias.angle.begin(), Config::get().coords.bias.angle.end());
-  m_dihedrals.insert(m_dihedrals.end(), Config::get().coords.bias.dihedral.begin(), Config::get().coords.bias.dihedral.end());
-  m_utors.insert(m_utors.end(), Config::get().coords.bias.utors.begin(), Config::get().coords.bias.utors.end());
-}
-
-void coords::bias::Potentials::swap(Potentials & rhs)
-{
-  std::swap(b, rhs.b);
-  std::swap(a, rhs.a);
-  std::swap(d, rhs.d);
-  m_dihedrals.swap(rhs.m_dihedrals);
-  m_angles.swap(rhs.m_angles);
-  m_distances.swap(rhs.m_distances);
-  m_spherical.swap(rhs.m_spherical);
-  m_cubic.swap(rhs.m_cubic);
-  m_utors.swap(rhs.m_utors);
-  m_udist.swap(rhs.m_udist);
-}
-
-
-coords::bias::Potentials::Potentials()
-  : b(), a(), d(), s(), c(),
-  m_dihedrals(Config::get().coords.bias.dihedral),
-  m_angles(Config::get().coords.bias.angle),
-  m_distances(Config::get().coords.bias.distance),
-  m_spherical(Config::get().coords.bias.spherical),
-  m_cubic(Config::get().coords.bias.cubic),
-  m_utors(Config::get().coords.bias.utors),
-  m_udist(Config::get().coords.bias.udist)
-{ }
-
-bool coords::bias::Potentials::empty() const
-{
-  return scon::empty(m_dihedrals, m_angles, m_distances,
-    m_spherical, m_cubic, m_utors, m_udist);
-}
-
-double coords::bias::Potentials::apply(Representation_3D const & xyz,
-  Gradients_3D & g_xyz, Cartesian_Point const & center)
-{
-  if (!m_dihedrals.empty()) d = dih(xyz, g_xyz);
-  if (!m_angles.empty()) a = ang(xyz, g_xyz);
-  if (!m_distances.empty()) b = dist(xyz, g_xyz);
-  if (!m_spherical.empty()) s = spherical(xyz, g_xyz, center);
-  if (!m_cubic.empty()) c = cubic(xyz, g_xyz, center);
-  return b+a+d+s+c;
-}
-
-
-void coords::bias::Potentials::umbrellaapply(Representation_3D const & xyz, 
-  Gradients_3D & g_xyz, std::vector<double> &uout){
-  if (!m_utors.empty()) umbrelladih(xyz, g_xyz, uout);
-  if (!m_udist.empty()) umbrelladist(xyz, g_xyz, uout);
-}
-
-static inline double check_angle (double angle)
-{
-  return angle > 180.0 ? -(360.0 - angle) : (angle < -180.0 ? 360.0 + angle : angle);
-}
-
-
-double coords::bias::Potentials::dih (Representation_3D const &positions, Gradients_3D & gradients)
-{
-  float_type E(0.0);
-  using std::abs;
-  using std::atan2;
-  for (auto &dih : m_dihedrals)
-  {
-    std::cout << "Current value: " << dih.value << std::endl;
-
-    coords::r3 const b01(positions[dih.b] - positions[dih.a]);
-    coords::r3 const b12(positions[dih.c] - positions[dih.b]);
-    coords::r3 const b23(positions[dih.d] - positions[dih.c]);
-    coords::r3 const b02(positions[dih.c] - positions[dih.a]);
-    coords::r3 const b13(positions[dih.d] - positions[dih.b]);
-    coords::r3 const t(cross(b01, b12));
-    coords::r3 const u(cross(b12, b23));
-    coords::r3 const tu(cross(t, u));
-
-    coords::float_type const tl2(dot(t,t));
-    coords::float_type const ul2(dot(u, u));
-    coords::float_type const r12(geometric_length(b12));
-    //coords::float_type const norm = r12*geometric_length(tu);
-
-    auto ta = coords::angle_type::from_rad(atan2(geometric_length(tu), dot(t, u)));
-    
-    dih.value = ta;
-
-    auto const torsion((ta - dih.ideal).degrees());
-
-    //auto const tor_rad = torsion*SCON_PI180;
-
-    auto const dE(2.0*dih.force*torsion);
-    auto const tE(dih.force*torsion*torsion);
-
-
-    E += tE;
-
-    std::cout << "Target: " << dih.ideal << ", Is: " << ta << ", delta = " << torsion << ", E = " << tE << "\n";
-
-    // Derivatives
-    auto const dt(cross(t, b12) * (dE / (tl2*r12)));
-    auto const du(cross(u, b12) * (-dE / (ul2*r12)));
-
-    auto const g1 = cross(dt, b12);
-    auto const g2 = cross(b02, dt) + cross(du, b23);
-    auto const g3 = cross(dt, b01) + cross(b13, du);
-    auto const g4 = cross(du, b12);
-
-    std::cout << "  10 XX " << scon::c3_delimeter(' ') << (positions[dih.a] + g1) << " 0\n";
-    std::cout << "  11 XX " << scon::c3_delimeter(' ') << (positions[dih.b] + g2) << " 0\n";
-    std::cout << "  12 XX " << scon::c3_delimeter(' ') << (positions[dih.c] + g3) << " 0\n";
-    std::cout << "  13 XX " << scon::c3_delimeter(' ') << (positions[dih.d] + g4) << " 0\n";
-      
-    gradients[dih.a] += cross(dt, b12);
-    gradients[dih.b] += cross(b02, dt) + cross(du, b23);
-    gradients[dih.c] += cross(dt, b01) + cross(b13, du);
-    gradients[dih.d] += cross(du, b12);
-
-    //std::cout << "dihg " << scon::vector_delimeter('\n') << gradients << "\n";
-
-  }
-  return E;
-}
-
-void coords::bias::Potentials::umbrelladih(Representation_3D const &positions, 
-  Gradients_3D & gradients, std::vector<double> &uout) const
-{
-  using std::abs;
-  for (auto const &dih : m_utors)
-  {
-    float_type dE(0.0), diff(0.0);
-    Cartesian_Point const b01(positions[dih.index[1]] - positions[dih.index[0]]);
-    Cartesian_Point const b12(positions[dih.index[2]] - positions[dih.index[1]]);
-    Cartesian_Point const b23(positions[dih.index[3]] - positions[dih.index[2]]);
-    Cartesian_Point const b02(positions[dih.index[2]] - positions[dih.index[0]]);
-    Cartesian_Point const b13(positions[dih.index[3]] - positions[dih.index[1]]);
-    Cartesian_Point t(cross(b01, b12));
-    Cartesian_Point u(cross(b12, b23));
-    float_type const tl2(dot(t, t));
-    float_type const ul2(dot(u, u));
-    float_type const r12(geometric_length(b12));
-    Cartesian_Point const tu(cross(t, u));
-    float_type torsion = angle(t,u).degrees();
-    float_type const norm = r12*geometric_length(tu);
-    torsion = (abs(norm) > float_type(0) && (dot(b12, tu) / norm) < 0.0) ? -torsion : torsion;
-    // Apply half harmonic bias potential according to torsion value
-    if (dih.angle > 0){
-      if (torsion > 0){
-        uout.push_back(torsion);
-        diff = torsion - dih.angle;
-        dE = dih.force * diff * RATIO180PI;
-      }
-      else{
-        if (((360 + torsion) > 180) && dih.angle > 90)
-        {
-          uout.push_back(torsion + 360);
-        }
-        else uout.push_back(torsion);
-        diff = torsion - dih.angle;
-        if (diff < -180){
-          diff = 360 + diff;
-          dE = dih.force * diff * RATIO180PI;
-        }
-        else{
-          dE = dih.force * diff * RATIO180PI;
-        }
-      }
-    }// end of angle > 0
-    else if (dih.angle < 0){
-      if (torsion < 0){
-        uout.push_back(torsion);
-        diff = torsion - dih.angle;
-        dE = dih.force * diff * RATIO180PI;
-      }
-      else{
-        if (((-360 + torsion) < -180) && dih.angle < -90)
-        {
-          uout.push_back(-360 + torsion);
-        }
-        else  uout.push_back(torsion);
-        diff = torsion - dih.angle;
-        if (diff > 180){
-          diff = 360 - diff;
-          dE = -dih.force * diff * RATIO180PI;
-        }
-        else dE = dih.force * diff * RATIO180PI;
-      }
-    }// end of angle < 0
-    else if (dih.angle == 0){
-      diff = torsion;
-      uout.push_back(torsion);
-      dE = dih.force * diff * RATIO180PI;
-    }
-    // Derivatives
-    t = cross(t, b12);
-    t *= dE / (tl2*r12);
-    u = cross(u, b12);
-    u *= -dE / (ul2*r12);
-    //std::cout << "U W: " << torsion << ", AW: " << diff << ", SOLL: " << dih.angle;
-    //std::cout << "; FORCE: " << dih.force << ", DE: " << dE << ", PW: " << uout.back() << std::endl;
-    //std::cout << dih.index[0] << "   " << dih.index[1] << "   " << dih.index[2] << "   " << dih.index[3] << std::endl;
-    gradients[dih.index[0]] += cross(t, b12);
-    gradients[dih.index[1]] += cross(b02, t) + cross(u, b23);
-    gradients[dih.index[2]] += cross(t, b01) + cross(b13, u);
-    gradients[dih.index[3]] += cross(u, b12);
-    //std::cout << "U GRAD:  " << t.crossd(b12) << "   " << (b02.crossd(t) + u.crossd(b23));
-    //std::cout << "   " << (t.crossd(b01) + b13.crossd(u)) << "  " << u.crossd(b12) << std::endl;
-  }
-
-}
-
-void coords::bias::Potentials::umbrelladist(Representation_3D const &positions, 
-  Gradients_3D & gradients, std::vector<double> &uout) const
-{
-  for (auto const &dist : m_udist)
-  {
-    coords::Cartesian_Point bv(positions[dist.index[0]] - positions[dist.index[1]]);
-    float_type md = geometric_length(bv);
-    uout.push_back(md);
-    float_type diff(md - dist.dist);
-    //apply half harmonic potential
-    float_type dE = dist.force * diff / md;
-    Cartesian_Point gv = bv*dE;
-    gradients[dist.index[0]] += gv; 
-    gradients[dist.index[1]] -= gv;
-  }
-}
-
-double coords::bias::Potentials::dist (Representation_3D const &positions, Gradients_3D &gradients )
-{
-  double E(0.0);
-  for (auto &distance : m_distances){
-    coords::Cartesian_Point bv(positions[distance.a] - positions[distance.b]);
-    double md = geometric_length(bv);
-    distance.value = md;
-    double diff(md - distance.ideal);
-    //apply half harmonic potential
-    E = 0.5 * diff * distance.force;
-    double dE = distance.force * diff / md;
-    Cartesian_Point gv = bv*dE;
-    gradients[distance.a] += gv; 
-    gradients[distance.b] -= gv;
-  }
-  return E;
-}
-
-
-double coords::bias::Potentials::ang (Representation_3D const &, Gradients_3D & )
-{
-  return 0.0;
-}
-
-double coords::bias::Potentials::spherical(Representation_3D const &positions, 
-  Gradients_3D & gradients, Cartesian_Point const & center)
-{
-  using std::max;
-  using std::pow;
-  double E(0.0);
-  std::size_t const N(positions.size());
-  for (auto const & orb : m_spherical)
-  {
-    if (Config::get().general.verbosity > 29)
-    {
-      std::cout << "Applying spherical boundary with radius " << orb.radius;
-      std::cout << " around " << center << " (exponent = " << orb.exponent << ")\n";
-    }
-    for (std::size_t i = 0; i < N; ++i)
-    {
-      Cartesian_Point db = positions[i] - center;
-      double const l = geometric_length(db);
-      if (l < orb.radius)
-      {
-        continue;
-      }
-      double const md = l - orb.radius;
-      db *= md / l;
-      double const e = max(1.0, orb.exponent);
-      double const ene = orb.force * pow(md, e);
-      E += ene;
-      double dE = orb.force * e * pow(md, e - 1.0);
-      db *= dE;
-      if (Config::get().general.verbosity > 49)
-      {
-        std::cout << "Spherical boundary gradient of atom " << i + 1 << " at ";
-        std::cout << positions[i] << " (which is " << l << " from " << center;
-        std::cout << " making delta = " << md << ") is " << db << " with energy " << ene << lineend;
-      }
-      gradients[i] += db;
-    }
-    if (Config::get().general.verbosity > 29)
-    {
-      std::cout << "E = " << E << lineend;
-    }
-  }
-  return E;
-}
-
-double coords::bias::Potentials::cubic(Representation_3D const &positions, 
-  Gradients_3D & gradients, Cartesian_Point const & center)
-{
-  double E(0.0);
-  using scon::abs;
-  std::size_t const N(positions.size());
-  for (auto const & box : m_cubic)
-  {
-    Cartesian_Point const halfdim(box.dim / 2.);
-    if (Config::get().general.verbosity > 29)
-    {
-      std::cout << "Applying cubic boundary with side length " << box.dim;
-      std::cout << " and halfdim " << halfdim << " around " << center;
-      std::cout << " (exponent = " << box.exponent << ")\n";
-    }
-    for (std::size_t i = 0; i < N; ++i)
-    {
-      Cartesian_Point const db = positions[i] - center;
-      Cartesian_Point const delta = scon::abs(db) - scon::abs(halfdim);
-      double const expo = std::max(1.0, box.exponent);
-      double const fexpo = box.force * expo;
-      double energy = double();
-      Cartesian_Point de;
-      if (delta.x() > 0.)
-      {
-        energy += box.force * std::pow(delta.x(), expo);
-        de.x() = (db.x() < 0. ? -fexpo : fexpo) * std::pow(delta.x(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
-        {
-          std::cout << positions[i].x() << " x out of " << center.x();
-          std::cout << " +/- " << halfdim.x() << " by " << delta.x() << " (" << db.x() << ") ";
-        }
-      }
-      if (delta.y() > 0.)
-      {
-        energy += box.force * std::pow(delta.y(), expo);
-        de.y() = (db.y() < 0.?-fexpo:fexpo) * std::pow(delta.y(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
-        {
-          std::cout << positions[i].y() << " y out of " << center.y();
-          std::cout << " +/- " << halfdim.y() << " by " << delta.y() << " (" << db.y() << ") ";
-        }
-      }
-      if (delta.z() > 0.)
-      {
-        energy += box.force * std::pow(delta.z(), expo);
-        de.z() = (db.z() < 0.?-fexpo:fexpo) * std::pow(delta.z(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
-        {
-          std::cout << positions[i].z() << " z out of " << center.z();
-          std::cout << " +/- " << halfdim.z() << " by " << delta.z() << " (" << db.z() << ") ";
-        }
-      }
-      Cartesian_Point const g = delta*de;
-      E += energy;
-      if (Config::get().general.verbosity > 49 && energy > 0.)
-      {
-        std::cout << " E = " << energy << " and grad " << g << lineend;
-      }
-      gradients[i] += g;
-    }
-  }
-  return E;
-}
 
 
 
 /* ################################################################################################
 
- ######   #######   #######  ########  ########  #### ##    ##    ###    ######## ########  ######  
-##    ## ##     ## ##     ## ##     ## ##     ##  ##  ###   ##   ## ##      ##    ##       ##    ## 
-##       ##     ## ##     ## ##     ## ##     ##  ##  ####  ##  ##   ##     ##    ##       ##       
-##       ##     ## ##     ## ########  ##     ##  ##  ## ## ## ##     ##    ##    ######    ######  
-##       ##     ## ##     ## ##   ##   ##     ##  ##  ##  #### #########    ##    ##             ## 
-##    ## ##     ## ##     ## ##    ##  ##     ##  ##  ##   ### ##     ##    ##    ##       ##    ## 
- ######   #######   #######  ##     ## ########  #### ##    ## ##     ##    ##    ########  ######  
+ ######   #######   #######  ########  ########  #### ##    ##    ###    ######## ########  ######
+##    ## ##     ## ##     ## ##     ## ##     ##  ##  ###   ##   ## ##      ##    ##       ##    ##
+##       ##     ## ##     ## ##     ## ##     ##  ##  ####  ##  ##   ##     ##    ##       ##
+##       ##     ## ##     ## ########  ##     ##  ##  ## ## ## ##     ##    ##    ######    ######
+##       ##     ## ##     ## ##   ##   ##     ##  ##  ##  #### #########    ##    ##             ##
+##    ## ##     ## ##     ## ##    ##  ##     ##  ##  ##   ### ##     ##    ##    ##       ##    ##
+ ######   #######   #######  ##     ## ########  #### ##    ## ##     ##    ##    ########  ######
 
 ################################################################################################ */
 
@@ -1805,16 +1426,16 @@ void coords::Coordinates::set_fix(size_t const atom, bool const fix_it)
 }
 
 
-void coords::Coordinates::init_swap_in (Atoms &a, PES_Point &p, bool const update) 
-{ 
+void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update)
+{
   if (a.size() != p.size())
   {
     throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
   }
   energy_valid = false;
-  a.swap(m_atoms); 
+  a.swap(m_atoms);
   m_atoms.refine();
-  p.swap(m_representation); 
+  p.swap(m_representation);
   Stereo(m_atoms, m_representation.structure.cartesian).swap(m_stereo);
   m_representation.ia_matrix.resize(subsystems().size());
   for (auto & interact : m_representation.ia_matrix)
@@ -1822,7 +1443,7 @@ void coords::Coordinates::init_swap_in (Atoms &a, PES_Point &p, bool const updat
     interact.grad.resize(size());
     interact.energy = 0.0;
   }
-  if (update) 
+  if (update)
   {
     std::size_t const N = m_atoms.size(), M = m_atoms.mains().size();
     m_representation.structure.cartesian.resize(N);
@@ -1838,8 +1459,8 @@ void coords::Coordinates::init_swap_in (Atoms &a, PES_Point &p, bool const updat
 }
 
 
-void coords::Coordinates::init_in (Atoms a, PES_Point p, bool const update) 
-{ 
+void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
+{
   init_swap_in(a, p, update);
 }
 
@@ -1847,7 +1468,7 @@ struct OCB
 {
   coords::Coordinates * cp;
   OCB(coords::Coordinates & coordpointer) : cp(&coordpointer) {}
-  float operator() (scon::vector<scon::c3<float>> const & v, 
+  float operator() (scon::vector<scon::c3<float>> const & v,
     scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
   {
     cp->set_xyz(coords::Representation_3D(v.begin(), v.end()), false);
@@ -1864,37 +1485,37 @@ struct OCB
   }
 };
 
-coords::float_type coords::Coordinates::lbfgs ()
+coords::float_type coords::Coordinates::lbfgs()
 {
   using namespace  optimization::local;
   typedef coords::Container<scon::c3<float>> nc3_type;
   // Create optimizer
   auto optimizer = make_lbfgs(
     make_more_thuente(Coords_3d_float_callback(*this))
-  );
+    );
   optimizer.ls.config.ignore_callback_stop = true;
   // Create Point
   using op_type = decltype(optimizer);
   op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
   // Optimize point
-  optimizer.config.max_iterations = 
+  optimizer.config.max_iterations =
     Config::get().optimization.local.bfgs.maxstep;
-  optimizer.config.epsilon = 
+  optimizer.config.epsilon =
     (float)Config::get().optimization.local.bfgs.grad;
   optimizer(x);
   // Get structure, gradients and energy into coords
   m_representation.energy = optimizer.p().f;
-  m_representation.structure.cartesian = 
+  m_representation.structure.cartesian =
     coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
   //g();
   //std::cout << "Ene = " << m_representation.energy << "\n";
-  m_representation.gradient.cartesian = 
+  m_representation.gradient.cartesian =
     coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
   // Output
-  if (Config::get().general.verbosity > 19 || 
+  if (Config::get().general.verbosity > 19 ||
     (optimizer.state() < 0 && Config::get().general.verbosity > 14))
   {
-    std::cout << "Optimization done (status " << optimizer.state() << 
+    std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << lineend;
   }
   if (Config::get().general.verbosity > 19 && integrity())
@@ -1914,23 +1535,23 @@ double coords::Coordinates::prelbfgs()
   // Create optimizer
   auto optimizer = make_lbfgs(
     make_more_thuente(Coords_3d_float_pre_callback(*this))
-  );
+    );
   // Create Point
   using op_type = decltype(optimizer);
   op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
   // Optimize point
   optimizer(x);
   m_representation.energy = x.f;
-  m_representation.structure.cartesian = 
+  m_representation.structure.cartesian =
     coords::Representation_3D(x.x.begin(), x.x.end());
-  m_representation.gradient.cartesian = 
+  m_representation.gradient.cartesian =
     coords::Gradients_3D(x.g.begin(), x.g.end());
   if (Config::get().general.verbosity > 19)
   {
-    std::cout << "Optimization done (status " << optimizer.state() << 
+    std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << lineend;
   }
-    
+
   if (Config::get().general.verbosity > 19 && m_interface->intact())
   {
     std::cout << "Energy after optimization: " << lineend;
@@ -1941,13 +1562,13 @@ double coords::Coordinates::prelbfgs()
 }
 
 coords::Gradients_Main coords::Coordinates::dimermethod_dihedral
-  (std::vector<coords::Gradients_Main> const &D)
+(std::vector<coords::Gradients_Main> const &D)
 {
   if (this->atoms().mains().empty())
   {
     throw std::runtime_error("System does not contain any main dihedrals. Dimermethod cannot be applied.");
   }
-  using Move_T = optimization::CG_DimerMover < Main_Callback > ;
+  using Move_T = optimization::CG_DimerMover < Main_Callback >;
   Main_Callback C(*this);
   Move_T mover(0.1, 1000u);
   coords::Gradients_Main structure;
@@ -1990,7 +1611,7 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass() const
   coords::Cartesian_Point COM;
   std::vector<Atom>::size_type const N(m_atoms.size());
   coords::float_type M(0.0);
-  for (std::vector<Atom>::size_type i(0U); i<N; ++i)
+  for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
     coords::float_type const mass(m_atoms.atom(i).mass());
     M += mass;
@@ -2001,7 +1622,7 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass() const
 }
 
 
-coords::Cartesian_Point coords::Coordinates::center_of_geometry () const
+coords::Cartesian_Point coords::Coordinates::center_of_geometry() const
 {
   std::size_t const N = xyz().size();
   coords::Cartesian_Point p(0);
@@ -2014,11 +1635,11 @@ coords::Cartesian_Point coords::Coordinates::center_of_geometry () const
 }
 
 
-double coords::Coordinates::weight () const
+double coords::Coordinates::weight() const
 {
   std::vector<Atom>::size_type const N(m_atoms.size());
   coords::float_type M(0.0);
-  for (std::vector<Atom>::size_type i(0U); i<N; ++i)
+  for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
     M += m_atoms.atom(i).mass();
   }
@@ -2026,7 +1647,7 @@ double coords::Coordinates::weight () const
 }
 
 
-void coords::Coordinates::e_head_tostream_short(std::ostream &strm, 
+void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
   energy::interface_base const * const ep) const
 {
   if (ep) ep->print_E_head(strm);
@@ -2048,11 +1669,11 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
 }
 
 
-void coords::Coordinates::e_tostream_short(std::ostream &strm, 
+void coords::Coordinates::e_tostream_short(std::ostream &strm,
   energy::interface_base const * const ep) const
 {
   if (ep) ep->print_E_short(strm);
-  else m_interface->print_E_short(strm);
+  else if (m_interface) m_interface->print_E_short(strm);
   if (!m_potentials.empty())
   {
     strm << "Bias Energies: " << lineend;
@@ -2062,11 +1683,12 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_spherical();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << lineend;
   }
+  strm << "Total energy: " << m_representation.energy << "\n";
   strm << lineend;
 }
 
 
-coords::Cartesian_Point coords::Coordinates::center_of_mass_mol (std::size_t index) const
+coords::Cartesian_Point coords::Coordinates::center_of_mass_mol(std::size_t index) const
 {
   if (index >= m_atoms.molecules().size())
   {
@@ -2075,18 +1697,18 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass_mol (std::size_t ind
   coords::Cartesian_Point COM = coords::Cartesian_Point();
   size_2d::size_type const N(m_atoms.molecules()[index].size());
   coords::float_type M = coords::float_type();
-  for (std::vector<Atom>::size_type i(0U); i<N; ++i)
+  for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
     coords::float_type mass(m_atoms.atom(m_atoms.molecules(index, i)).mass());
     M += mass;
     COM += xyz(m_atoms.molecules(index, i))*mass;
   }
-  return COM/M;
+  return COM / M;
 }
 
 
-void coords::Coordinates::set_dih(size_type const int_index, 
-  coords::angle_type const target_angle, 
+void coords::Coordinates::set_dih(size_type const int_index,
+  coords::angle_type const target_angle,
   bool const move_dependants_along, bool const move_fixed_dih)
 {
   if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
@@ -2096,7 +1718,7 @@ void coords::Coordinates::set_dih(size_type const int_index,
     {
       std::size_t int_bond = m_atoms.atom(int_index).ibond();
       size_type const N = m_atoms.atom(int_bond).bound_internals().size();
-      for (size_type i(0u); i<N; ++i)
+      for (size_type i(0u); i < N; ++i)
       {
         m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot;
       }
@@ -2109,8 +1731,8 @@ void coords::Coordinates::set_dih(size_type const int_index,
 }
 
 
-void coords::Coordinates::rotate_dih(size_type const int_index, 
-  coords::angle_type const rot_angle, 
+void coords::Coordinates::rotate_dih(size_type const int_index,
+  coords::angle_type const rot_angle,
   bool const move_dependants_along, bool const move_fixed_dih)
 {
   if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
@@ -2121,7 +1743,7 @@ void coords::Coordinates::rotate_dih(size_type const int_index,
       // atom to which the selected one is attached
       std::size_t int_bond = m_atoms.atom(int_index).ibond();
       size_type const N = m_atoms.atom(int_bond).bound_internals().size();
-      for (size_type i(0u); i<N; ++i)
+      for (size_type i(0u); i < N; ++i)
       {
         m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot_angle;
       }
@@ -2134,15 +1756,15 @@ void coords::Coordinates::rotate_dih(size_type const int_index,
 }
 
 
-void coords::Coordinates::rotate_main(size_type const main_index, 
-  coords::angle_type const rot_angle, 
+void coords::Coordinates::rotate_main(size_type const main_index,
+  coords::angle_type const rot_angle,
   bool const move_dependants_along, bool const move_fixed_dih)
 {
   rotate_dih(m_atoms.intern_of_main_idihedral(main_index), rot_angle, move_dependants_along, move_fixed_dih);
 }
 
 
-void coords::Coordinates::set_all_main(coords::Representation_Main const & new_values, 
+void coords::Coordinates::set_all_main(coords::Representation_Main const & new_values,
   bool const apply_to_xyz, bool const move_dependants_along, bool const move_fixed_dih)
 {
   size_type const N(main().size());
@@ -2152,7 +1774,7 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
   }
   for (size_type i(0u); i<N; ++i)
   {
-    set_dih(m_atoms.intern_of_main_idihedral(i), new_values[i], 
+    set_dih(m_atoms.intern_of_main_idihedral(i), new_values[i],
       move_dependants_along, move_fixed_dih);
     m_representation.structure.main[i] = new_values[i];
   }
@@ -2162,21 +1784,21 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 void coords::Coordinates::periodic_boxjump()
 {
   std::size_t const N(molecules().size());
-  Cartesian_Point const halfbox(Config::get().energy.pb_box/2.0);
+  Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
   for (std::size_t i = 0; i < N; ++i)
   {
     Cartesian_Point tmp_com(-center_of_mass_mol(i));
     //tmp_com /= halfbox;
-    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x() 
+    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x()
       / Config::get().energy.pb_box.x() : float_type(0.);
-    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y() 
+    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y()
       / Config::get().energy.pb_box.y() : float_type(0.);
-    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z() 
+    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z()
       / Config::get().energy.pb_box.z() : float_type(0.);
-    round(tmp_com); 
+    round(tmp_com);
     tmp_com *= Config::get().energy.pb_box;
     for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
-	}
+  }
 }
 
 
@@ -2195,23 +1817,35 @@ bool coords::Coordinates::validate_bonds() const
 }
 
 
-void coords::Coordinates::set_pes(PES_Point const & pes_point, 
+void coords::Coordinates::set_pes(PES_Point const & pes_point,
   bool const overwrite_fixed /*= false*/)
 {
   if (!m_representation.same_size(pes_point))
   {
-    std::cout << "CS: " << (m_representation.structure.cartesian.size() == 
-      pes_point.structure.cartesian.size()) << "\n";
-    std::cout << "CG: " << (m_representation.gradient.cartesian.size() == 
-      pes_point.gradient.cartesian.size()) << "\n";
-    std::cout << "IS: " << (m_representation.structure.intern.size() == 
-      pes_point.structure.intern.size()) << "\n";
-    std::cout << "IG: " << (m_representation.gradient.intern.size() == 
-      pes_point.gradient.intern.size()) << "\n";
-    std::cout << "MS: " << (m_representation.structure.main.size() == 
-      pes_point.structure.main.size()) << "\n";
-    std::cout << "MG: " << (m_representation.gradient.main.size() == 
-      pes_point.gradient.main.size()) << "\n";
+    std::cout << "CS: " << (m_representation.structure.cartesian.size() ==
+      pes_point.structure.cartesian.size()) <<
+      "(" << m_representation.structure.cartesian.size() <<
+      "," << pes_point.structure.cartesian.size() << ")\n";
+    std::cout << "CG: " << (m_representation.gradient.cartesian.size() ==
+      pes_point.gradient.cartesian.size()) <<
+      "(" << m_representation.gradient.cartesian.size() <<
+      "," << pes_point.gradient.cartesian.size() << ")\n";
+    std::cout << "IS: " << (m_representation.structure.intern.size() ==
+      pes_point.structure.intern.size()) <<
+      "(" << m_representation.structure.intern.size() <<
+      "," << pes_point.structure.intern.size() << ")\n";
+    std::cout << "IG: " << (m_representation.gradient.intern.size() ==
+      pes_point.gradient.intern.size()) <<
+      "(" << m_representation.gradient.intern.size() <<
+      "," << pes_point.gradient.intern.size() << ")\n";
+    std::cout << "MS: " << (m_representation.structure.main.size() ==
+      pes_point.structure.main.size()) <<
+      "(" << m_representation.structure.main.size() <<
+      "," << pes_point.structure.main.size() << ")\n";
+    std::cout << "MG: " << (m_representation.gradient.main.size() ==
+      pes_point.gradient.main.size()) <<
+      "(" << m_representation.gradient.main.size() <<
+      "," << pes_point.gradient.main.size() << ")\n";
     throw std::logic_error("Invalid PES size for coordinates.");
   }
   if (overwrite_fixed)
@@ -2245,7 +1879,7 @@ void coords::Coordinates::set_pes(PES_Point const & pes_point,
         m_representation.structure.intern[i] = pes_point.structure.intern[i];
       }
     }
-    std::size_t const MG(pes_point.gradient.main.size()), 
+    std::size_t const MG(pes_point.gradient.main.size()),
       MS(pes_point.structure.main.size());
     m_representation.gradient.main.resize(MG);
     m_representation.structure.main.resize(MS);
@@ -2297,18 +1931,18 @@ void coords::Coordinates::set_pes(PES_Point && pes_point,
     m_representation.structure.cartesian,
     m_representation.gradient.cartesian,
     m_representation.structure.intern,
-    m_representation.gradient.intern) && 
-    scon::equal_size_ranges(pes_point.structure.main, 
-    m_representation.structure.main,
-    pes_point.gradient.main,
-    m_representation.gradient.main);
+    m_representation.gradient.intern) &&
+    scon::equal_size_ranges(pes_point.structure.main,
+      m_representation.structure.main,
+      pes_point.gradient.main,
+      m_representation.gradient.main);
 
   if (!valid_size)
   {
     throw std::logic_error("Invalid moved PES size for coordinates.");
   }
   m_representation.swap(pes_point);
-  m_representation.resize(pes_point.structure.cartesian.size(), 
+  m_representation.resize(pes_point.structure.cartesian.size(),
     pes_point.structure.main.size());
   if (!overwrite_fixed)
   {
@@ -2340,9 +1974,9 @@ void coords::Coordinates::set_pes(PES_Point && pes_point,
   m_stereo.update(xyz());
 }
 
-coords::float_type coords::Internal_Callback::operator() 
-  (scon::vector<coords::float_type> const & v, 
-    scon::vector<coords::float_type>& g, std::size_t const S, bool & go_on)
+coords::float_type coords::Internal_Callback::operator()
+(scon::vector<coords::float_type> const & v,
+  scon::vector<coords::float_type>& g, std::size_t const S, bool & go_on)
 {
   std::size_t i = 0;
   coords::Representation_Internal rin(v.size() / 3);
@@ -2365,7 +1999,7 @@ coords::float_type coords::Internal_Callback::operator()
     g[i++] = e.y();
     g[i++] = e.z();
   }
-  if (Config::get().general.verbosity > 19)
+  if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << lineend;
@@ -2381,7 +2015,7 @@ coords::Gradients_Internal coords::Internal_Callback::from(
   r.reserve(N);
   for (std::size_t i(0u); i < N; ++i)
   {
-    r.emplace_back(v[i].radius(), 
+    r.emplace_back(v[i].radius(),
       v[i].inclination().radians(),
       v[i].azimuth().radians());
   }
@@ -2417,7 +2051,7 @@ coords::float_type coords::Main_Callback::operator() (coords::Gradients_Main con
   cp->to_internal();
   go_on = cp->integrity();
   g = cp->g_main();
-  if (Config::get().general.verbosity > 19)
+  if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << lineend;
@@ -2455,8 +2089,9 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   float E = float(cp->pg());
   go_on = cp->integrity();
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
-  if (Config::get().general.verbosity > 19)
-    std::cout << "Optimization: Energy of step " << S << " is " << E << " integrity " << go_on << lineend;
+  if (Config::get().general.verbosity > 29)
+    std::cout << "Optimization: Energy of step " <<
+    S << " is " << E << " integrity " << go_on << lineend;
   return E;
 }
 
@@ -2486,7 +2121,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   go_on = cp->integrity();
   g = from(cp->g_xyz());
   //*ls << *cp;
-  if (Config::get().general.verbosity > 19)
+  if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << lineend;

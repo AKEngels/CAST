@@ -276,7 +276,7 @@ namespace coords
     void append_atoms(std::size_t const lvl, std::size_t const A, size_1d &molecule, std::size_t &index_size, std::vector<bool> &done);
     //void refine_followups();
     void refine_torsions();
-	bool atom_fixed;
+    bool atom_fixed;
 
     // New stuff
     void refine_mains();
@@ -290,9 +290,9 @@ namespace coords
 
   public:
 
-    Atoms() 
-      : m_sub_in_index(0U), m_sub_out_index(0U), 
-      m_sub_io(false), m_in_exists(false), m_out_exists(false) 
+    Atoms()
+      : m_sub_in_index(0U), m_sub_out_index(0U),
+      m_sub_io(false), m_in_exists(false), m_out_exists(false)
     { }
     std::vector<Atom>::size_type size() const { return m_atoms.size(); }
     void swap(Atoms&);
@@ -344,7 +344,8 @@ namespace coords
     void fix_all(bool const fix_it = true);
     void fix(std::size_t const atom, bool const fix_it = true);
     std::size_t intern_of_dihedral(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
-    friend std::ostream& operator<< (std::ostream &stream, Atoms const & atoms);  };
+    friend std::ostream& operator<< (std::ostream &stream, Atoms const & atoms);
+  };
 
   inline void swap(Atoms &a, Atoms &b)
   {
@@ -462,8 +463,8 @@ namespace coords
       void clear()
       {
         b = a = d = s = c = 0.0;
-        scon::clear(m_dihedrals, m_angles, m_distances, 
-                    m_spherical, m_cubic, m_utors, m_udist);
+        scon::clear(m_dihedrals, m_angles, m_distances,
+          m_spherical, m_cubic, m_utors, m_udist);
       }
 
       double e_dist() const { return b; }
@@ -485,8 +486,8 @@ namespace coords
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
 
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
-                   Cartesian_Point const & center = Cartesian_Point());
-      void umbrellaapply(Representation_3D const & xyz, 
+        Cartesian_Point const & center = Cartesian_Point());
+      void umbrellaapply(Representation_3D const & xyz,
         Representation_3D & g_xyz, std::vector<double> &uout);
 
       void append_config();
@@ -508,9 +509,9 @@ namespace coords
       double dist(Representation_3D const & xyz, Gradients_3D & g_xyz);
       double ang(Representation_3D const & xyz, Gradients_3D & g_xyz);
       double spherical(Representation_3D const & xyz, Gradients_3D & g_xyz,
-                       Cartesian_Point const & center = Cartesian_Point());
+        Cartesian_Point const & center = Cartesian_Point());
       double cubic(Representation_3D const & xyz, Gradients_3D & g_xyz,
-                   Cartesian_Point const & center = Cartesian_Point());
+        Cartesian_Point const & center = Cartesian_Point());
       void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
       void umbrelladist(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
     };
@@ -523,26 +524,26 @@ namespace coords
     std::vector<energy::fepvar> window;
   };
 
- /* struct pme_data
-  {
-    energy::pmevar pmetemp;
-  };*/
+  /* struct pme_data
+   {
+     energy::pmevar pmetemp;
+   };*/
 
-  /* ##################################################################################################
-
-
-
-    ######   #######   #######  ########  ########  #### ##    ##    ###    ######## ########  ######
-   ##    ## ##     ## ##     ## ##     ## ##     ##  ##  ###   ##   ## ##      ##    ##       ##    ##
-   ##       ##     ## ##     ## ##     ## ##     ##  ##  ####  ##  ##   ##     ##    ##       ##
-   ##       ##     ## ##     ## ########  ##     ##  ##  ## ## ## ##     ##    ##    ######    ######
-   ##       ##     ## ##     ## ##   ##   ##     ##  ##  ##  #### #########    ##    ##             ##
-   ##    ## ##     ## ##     ## ##    ##  ##     ##  ##  ##   ### ##     ##    ##    ##       ##    ##
-    ######   #######   #######  ##     ## ########  #### ##    ## ##     ##    ##    ########  ######
+   /* ##################################################################################################
 
 
-   ################################################################################################## */
-  
+
+     ######   #######   #######  ########  ########  #### ##    ##    ###    ######## ########  ######
+    ##    ## ##     ## ##     ## ##     ## ##     ##  ##  ###   ##   ## ##      ##    ##       ##    ##
+    ##       ##     ## ##     ## ##     ## ##     ##  ##  ####  ##  ##   ##     ##    ##       ##
+    ##       ##     ## ##     ## ########  ##     ##  ##  ## ## ## ##     ##    ##    ######    ######
+    ##       ##     ## ##     ## ##   ##   ##     ##  ##  ##  #### #########    ##    ##             ##
+    ##    ## ##     ## ##     ## ##    ##  ##     ##  ##  ##   ### ##     ##    ##    ##       ##    ##
+     ######   #######   #######  ##     ## ########  #### ##    ## ##     ##    ##    ########  ######
+
+
+    ################################################################################################## */
+
   using Tensor = std::array<std::array<float_type, 3u>, 3u>;
 
   typedef Tensor virial_t;
@@ -582,7 +583,7 @@ namespace coords
         if (Config::get().energy.periodic) periodic_boxjump();
         m_representation.energy = p->e();
         m_representation.integrity = p->intact();
-        bias();
+        apply_bias();
         zero_fixed_g();
         return m_representation.energy;
       }
@@ -597,7 +598,7 @@ namespace coords
         if (Config::get().energy.periodic) periodic_boxjump();
         m_representation.energy = p->g();
         m_representation.integrity = p->intact();
-        this->bias();
+        this->apply_bias();
         zero_fixed_g();
         return m_representation.energy;
       }
@@ -608,10 +609,10 @@ namespace coords
 
     fep_data              fep;
 
-	  /*pme_data              pme;*/
+    /*pme_data              pme;*/
 
     bool                  NEB_control, PathOpt_control;
-    
+
     std::size_t                mult_struc_counter;
     //aditional variables for perpendicular g() and o() and NEB
 
@@ -637,14 +638,14 @@ namespace coords
     Coordinates& operator= (Coordinates const & rhs);
     ~Coordinates();
 
-	  void set_fix(size_t const atom, bool const fix_it = true);
-    
+    void set_fix(size_t const atom, bool const fix_it = true);
+
     void clear()
     {
       *this = Coordinates{};
     }
 
-    void bias()
+    void apply_bias()
     {
       if (!m_potentials.empty())
       {
@@ -658,9 +659,9 @@ namespace coords
     void ubias(std::vector<double> &uout)
     {
       if (!m_potentials.uempty())
-        m_potentials.umbrellaapply(m_representation.structure.cartesian, 
-        m_representation.gradient.cartesian, 
-        uout);
+        m_potentials.umbrellaapply(m_representation.structure.cartesian,
+          m_representation.gradient.cartesian,
+          uout);
     }
     //prelim pme function
     //void pme_stuff(int);
@@ -690,13 +691,13 @@ namespace coords
     {
       if (m_preinterface)
       {
-        if (Config::get().general.verbosity > 19) 
+        if (Config::get().general.verbosity > 19)
           std::cout << "Preotimization will be performed." << lineend;
         energy_valid = true;
-        if (m_preinterface->has_optimizer() 
-            && m_potentials.empty() 
-            && !Config::get().energy.periodic 
-            && !Config::get().general.trackstream)
+        if (m_preinterface->has_optimizer()
+          && m_potentials.empty()
+          && !Config::get().energy.periodic
+          && !Config::get().general.trackstream)
         {
           m_representation.energy = m_preinterface->o();
         }
@@ -714,9 +715,9 @@ namespace coords
       if (preoptimize()) po();
       energy_valid = true;
       if (m_interface->has_optimizer()
-          && m_potentials.empty()
-          && !Config::get().energy.periodic
-          && !Config::get().general.trackstream)
+        && m_potentials.empty()
+        && !Config::get().energy.periodic
+        && !Config::get().general.trackstream)
       {
         m_representation.energy = m_interface->o();
       }
@@ -730,7 +731,7 @@ namespace coords
       return m_representation.energy;
     }
 
-    bool preoptimize() const { return m_preinterface?true:false; }
+    bool preoptimize() const { return m_preinterface ? true : false; }
 
     coords::Gradients_Main dimermethod_dihedral(std::vector<coords::Gradients_Main> const &tabu_direction);
     coords::Gradients_Main dimermethod_dihedral()
@@ -781,39 +782,63 @@ namespace coords
     PES_Point & pes() { return m_representation; }
 
     // xyz representation, const
-    Representation_3D const & xyz() const 
-    { return m_representation.structure.cartesian; }
+    Representation_3D const & xyz() const
+    {
+      return m_representation.structure.cartesian;
+    }
     // internal representation, const
-    Representation_Internal const & intern() const 
-    { return m_representation.structure.intern; }
+    Representation_Internal const & intern() const
+    {
+      return m_representation.structure.intern;
+    }
     // Main internal representation, const
-    Representation_Main const & main() const 
-    { return m_representation.structure.main; }
+    Representation_Main const & main() const
+    {
+      return m_representation.structure.main;
+    }
 
     // single position, const
-    cartesian_type const & xyz(size_type index) const 
-    { return m_representation.structure.cartesian[index]; }
+    cartesian_type const & xyz(size_type index) const
+    {
+      return m_representation.structure.cartesian[index];
+    }
     // single internal, const
-    internal_type const & intern(size_type index) const 
-    { return m_representation.structure.intern[index]; }
+    internal_type const & intern(size_type index) const
+    {
+      return m_representation.structure.intern[index];
+    }
     // single main dihedral, const
-    main_type const & main(size_type index) const 
-    { return m_representation.structure.main[index]; }
+    main_type const & main(size_type index) const
+    {
+      return m_representation.structure.main[index];
+    }
 
     // gradient representations
-    Gradients_3D const & g_xyz() const 
-    { return m_representation.gradient.cartesian; }
-    Gradients_Internal const & g_intern() const 
-    { return m_representation.gradient.intern; }
-    Gradients_Main const & g_main() const 
-    { return m_representation.gradient.main; }
+    Gradients_3D const & g_xyz() const
+    {
+      return m_representation.gradient.cartesian;
+    }
+    Gradients_Internal const & g_intern() const
+    {
+      return m_representation.gradient.intern;
+    }
+    Gradients_Main const & g_main() const
+    {
+      return m_representation.gradient.main;
+    }
 
-    cartesian_gradient_type const & g_xyz(size_type const index) const 
-    { return m_representation.gradient.cartesian[index]; }
-    internal_gradient_type const & g_intern(size_type const index) const 
-    { return m_representation.gradient.cartesian[index]; }
-    main_gradient_type const & g_main(size_type const index) const 
-    { return m_representation.gradient.main[index]; }
+    cartesian_gradient_type const & g_xyz(size_type const index) const
+    {
+      return m_representation.gradient.cartesian[index];
+    }
+    internal_gradient_type const & g_intern(size_type const index) const
+    {
+      return m_representation.gradient.cartesian[index];
+    }
+    main_gradient_type const & g_main(size_type const index) const
+    {
+      return m_representation.gradient.main[index];
+    }
 
     size_2d const & subsystems() const { return m_atoms.subsystems(); }
     size_1d const & subsystems(size_type index) const { return m_atoms.subsystems(index); }
@@ -848,20 +873,20 @@ namespace coords
       m_stereo.update(xyz());
     }
     // set new atom coordinates if anisotropic pressure control is enabled
-    void set_atom_aniso(size_type const index, double tvec[3][3], bool const force_move = false){
+    void set_atom_aniso(size_type const index, double tvec[3][3], bool const force_move = false) {
       if (!atoms(index).fixed() || force_move)
       {
         double tcor;
-        tcor = tvec[0][0] * m_representation.structure.cartesian[index].x() + 
-          tvec[0][1] * m_representation.structure.cartesian[index].y() + tvec[0][2] * 
+        tcor = tvec[0][0] * m_representation.structure.cartesian[index].x() +
+          tvec[0][1] * m_representation.structure.cartesian[index].y() + tvec[0][2] *
           m_representation.structure.cartesian[index].z();
         m_representation.structure.cartesian[index].x() = tcor;
-        tcor = tvec[1][0] * m_representation.structure.cartesian[index].x() + 
-          tvec[1][1] * m_representation.structure.cartesian[index].y() + tvec[1][2] * 
+        tcor = tvec[1][0] * m_representation.structure.cartesian[index].x() +
+          tvec[1][1] * m_representation.structure.cartesian[index].y() + tvec[1][2] *
           m_representation.structure.cartesian[index].z();
         m_representation.structure.cartesian[index].y() = tcor;
-        tcor = tvec[2][0] * m_representation.structure.cartesian[index].x() + 
-          tvec[2][1] * m_representation.structure.cartesian[index].y() + tvec[2][2] * 
+        tcor = tvec[2][0] * m_representation.structure.cartesian[index].x() +
+          tvec[2][1] * m_representation.structure.cartesian[index].y() + tvec[2][2] *
           m_representation.structure.cartesian[index].z();
         m_representation.structure.cartesian[index].z() = tcor;
         energy_valid = false;
@@ -910,18 +935,20 @@ namespace coords
     }
 
     // rotate dihedrals
-    void set_dih(size_type const int_index, coords::angle_type const target_angle, 
-                 bool const move_dependants_along = true, bool const move_fixed_dih = false);
-    void rotate_dih(size_type const int_index, coords::angle_type const rot_angle, 
-                    bool const move_dependants_along = true, bool const move_fixed_dih = false);
-    void rotate_main(size_type const main_index, coords::angle_type const rot_angle, 
-                     bool const move_dependants_along = true, bool const move_fixed_dih = false);
-    void set_all_main(Representation_Main const & new_values, bool const aplly_to_xyz = true, 
-                      bool const move_dependants_along = true, bool const move_fixed_dih = false);
+    void set_dih(size_type const int_index, coords::angle_type const target_angle,
+      bool const move_dependants_along = true, bool const move_fixed_dih = false);
+    void rotate_dih(size_type const int_index, coords::angle_type const rot_angle,
+      bool const move_dependants_along = true, bool const move_fixed_dih = false);
+    void rotate_main(size_type const main_index, coords::angle_type const rot_angle,
+      bool const move_dependants_along = true, bool const move_fixed_dih = false);
+    void set_all_main(Representation_Main const & new_values, bool const aplly_to_xyz = true,
+      bool const move_dependants_along = true, bool const move_fixed_dih = false);
 
     // update gradients
-    void update_g_xyz(size_type const index, Cartesian_Point const &p) 
-    { if (!atoms(index).fixed()) m_representation.gradient.cartesian[index] = p; }
+    void update_g_xyz(size_type const index, Cartesian_Point const &p)
+    {
+      if (!atoms(index).fixed()) m_representation.gradient.cartesian[index] = p;
+    }
 
     // sum gradients
     void sum_g_xyz(Gradients_3D const & rep)
@@ -999,32 +1026,54 @@ namespace coords
     {
       out_g_xyz = m_representation.gradient.cartesian;
     }
-    void clear_g_xyz() 
-    { m_representation.gradient.cartesian.assign(size(), Cartesian_Point()); }
+    void clear_g_xyz()
+    {
+      m_representation.gradient.cartesian.assign(size(), Cartesian_Point());
+    }
 
     Atom const & atoms(size_type const index) const
-    { return m_atoms.atom(index); }
-    Atoms const & atoms() const 
-    { return m_atoms; }
+    {
+      return m_atoms.atom(index);
+    }
+    Atoms const & atoms() const
+    {
+      return m_atoms;
+    }
 
-    bias::Potentials & potentials() 
-    { return m_potentials; }
-    bias::Potentials const & potentials() const 
-    { return m_potentials; }
+    bias::Potentials & potentials()
+    {
+      return m_potentials;
+    }
+    bias::Potentials const & potentials() const
+    {
+      return m_potentials;
+    }
 
     // Subsystem interactions
-    sub_ia_matrix_t & interactions() 
-    { return m_representation.ia_matrix; }
-    sub_ia_matrix_t const & interactions() const 
-    { return m_representation.ia_matrix; }
+    sub_ia_matrix_t & interactions()
+    {
+      return m_representation.ia_matrix;
+    }
+    sub_ia_matrix_t const & interactions() const
+    {
+      return m_representation.ia_matrix;
+    }
     sub_ia & interactions(size_type const index)
-    { return m_representation.ia_matrix(index); }
+    {
+      return m_representation.ia_matrix(index);
+    }
     sub_ia const & interactions(size_type const index) const
-    { return m_representation.ia_matrix(index); }
+    {
+      return m_representation.ia_matrix(index);
+    }
     sub_ia & interactions(size_type const x, size_type const y)
-    { return m_representation.ia_matrix(x, y); }
+    {
+      return m_representation.ia_matrix(x, y);
+    }
     sub_ia const & interactions(size_type const x, size_type const y) const
-    { return m_representation.ia_matrix(x, y); }
+    {
+      return m_representation.ia_matrix(x, y);
+    }
 
     void to_internal() { m_atoms.c_to_i(m_representation); }
     void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
@@ -1036,7 +1085,7 @@ namespace coords
       m_stereo.update(xyz());
     }
 
-    bool check_superposition_xyz(Representation_3D const &a, 
+    bool check_superposition_xyz(Representation_3D const &a,
       Representation_3D const &b, double const x = 0.35) const;
 
   };
@@ -1170,7 +1219,7 @@ namespace coords
       return E;
     }
   };
-  
+
   struct cartesian_float_stream_log_drain
   {
     coords::Coordinates * cp;
@@ -1206,7 +1255,7 @@ namespace coords
     internal_float_stream_log_drain(coords::Coordinates & coords,
       std::ostream & stream) : cp(&coords), strm(&stream)
     { }
-    void operator() (optimization::Point<scon::vector<float>, 
+    void operator() (optimization::Point<scon::vector<float>,
       scon::vector<float>, float> & v)
     {
       if (strm && cp)
@@ -1229,7 +1278,7 @@ namespace coords
   };
 
   using internal_log_drain = internal_float_stream_log_drain;
-  using internal_log = scon::vector_offset_buffered_callable< 
+  using internal_log = scon::vector_offset_buffered_callable<
     optimization::Point<scon::vector<float>,
     scon::vector<float>, float>, internal_log_drain >;
 
@@ -1237,7 +1286,7 @@ namespace coords
   {
     coords::Coordinates * cp;
     //std::unique_ptr<std::ofstream> ls;
-    Coords_3d_float_callback(coords::Coordinates & coordpointer) : 
+    Coords_3d_float_callback(coords::Coordinates & coordpointer) :
       cp(&coordpointer)/*, ls(new std::ofstream("st.arc"))*/ { }
     float operator() (scon::vector<scon::c3<float>> const & v,
       scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on);
@@ -1268,7 +1317,7 @@ namespace coords
   struct Internal_Log
   {
 
-    void operator() (optimization::Point<coords::Gradients_Internal, 
+    void operator() (optimization::Point<coords::Gradients_Internal,
       coords::Gradients_Internal, coords::float_type> &);
   };
 
@@ -1295,7 +1344,7 @@ namespace coords
     void operator() (coords::Representation_3D && xyz);
   };
 
-  using offset_buffered_cartesian_logfile = 
+  using offset_buffered_cartesian_logfile =
     scon::vector_offset_buffered_callable<coords::Representation_3D, cartesian_logfile_drain>;
 
   offset_buffered_cartesian_logfile make_buffered_cartesian_log(Coordinates &c,

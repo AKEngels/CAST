@@ -22,7 +22,7 @@
 namespace coords
 {
 
-  template<class T> using Container = scon::vector < T > ;
+  template<class T> using Container = scon::vector < T >;
 
   // which floating point type do we use?
   typedef double float_type;
@@ -36,7 +36,7 @@ namespace coords
   typedef scon::c3<float_type> r3;
   typedef scon::sphericals<float_type> s3;
 
-  
+
 
   /* #############################################
 
@@ -56,7 +56,7 @@ namespace coords
   // 1d, 3d and N*3d points
 
   template<class P, class G>
-  using State = optimization::State < P, G > ;
+  using State = optimization::State < P, G >;
 
   using Cartesian = State < Container<r3>, Container<r3> >;
   using Internal = State < Container<s3>, Container<r3> >;
@@ -67,7 +67,7 @@ namespace coords
     Container<float_type> distances;
     Container<angle_type> angles;
     Container<angle_type> dihedrals;
-    Main_Internal_type () { }
+    Main_Internal_type() { }
     Main_Internal_type(std::size_t const N)
       : distances(N), angles(N), dihedrals(N)
     { }
@@ -87,7 +87,7 @@ namespace coords
     Container<float_type> distances;
     Container<float_type> angles;
     Container<float_type> dihedrals;
-    Main_Internal_gradient () { }
+    Main_Internal_gradient() { }
     Main_Internal_gradient(std::size_t const N)
       : distances(N), angles(N), dihedrals(N)
     { }
@@ -153,17 +153,17 @@ namespace coords
       dot(g1.dihedrals, g2.dihedrals);
   }
 
-  inline float_type dot(Main_Internal::type const &inter, 
+  inline float_type dot(Main_Internal::type const &inter,
     Main_Internal::gradient_type const &grad)
   {
     using scon::dot;
-    return dot(inter.distances, grad.distances) + 
+    return dot(inter.distances, grad.distances) +
       dot(inter.angles, grad.angles) +
       dot(inter.dihedrals, grad.dihedrals);
   }
 
   inline float_type dot(Main_Internal::gradient_type const &grad,
-                        Main_Internal::type const &inter)
+    Main_Internal::type const &inter)
   {
     using scon::dot;
     return dot(inter, grad);
@@ -185,7 +185,7 @@ namespace coords
   ############################################# */
 
   typedef scon::c3<bool> fix3;
-  
+
   struct Main_Internal_fix
   {
     std::vector<bool> distances;
@@ -232,7 +232,7 @@ namespace coords
   typedef std::vector< bool >                     Fixations_Main;
 
   typedef Container<float_type>                   Representation_1D;
-  
+
   // subsystem interaction energy and gradients
   struct sub_ia
   {
@@ -240,7 +240,7 @@ namespace coords
     double energy;
   };
   // interaction matrix
-  typedef scon::matrix<sub_ia,true> sub_ia_matrix_t;
+  typedef scon::matrix<sub_ia, true> sub_ia_matrix_t;
 
   // template<class 
 
@@ -267,7 +267,7 @@ namespace coords
     { }
 
     RepType(Representation_3D && xyz)
-      : cartesian(std::forward<Representation_3D>(xyz)), 
+      : cartesian(std::forward<Representation_3D>(xyz)),
       intern(cartesian.size()), main()
     { }
 
@@ -276,17 +276,17 @@ namespace coords
     { }
 
     RepType(Rep3D && xyz, RepInt && inter, RepMain && maindih)
-      : cartesian(std::forward<Representation_3D>(xyz)), 
-      intern(std::forward<Representation_3D>(inter)), 
+      : cartesian(std::forward<Representation_3D>(xyz)),
+      intern(std::forward<Representation_3D>(inter)),
       main(maindih)
     { }
 
     size_type size() const { return cartesian.size(); }
 
-    void resize(size_type const n, size_type const mains = 0) 
-    { 
-      cartesian.resize(n); 
-      intern.resize(n); 
+    void resize(size_type const n, size_type const mains = 0)
+    {
+      cartesian.resize(n);
+      intern.resize(n);
       main.resize(mains);
     }
 
@@ -304,9 +304,9 @@ namespace coords
       intern.swap(r.intern);
       main.swap(r.main);
     }
-	bool empty(void){
-		return cartesian.empty();
-	}
+    bool empty(void) {
+      return cartesian.empty();
+    }
     Cartesian_Point cartesian_vector(size_type a, size_type b) const
     {
       return (cartesian[a] - cartesian[b]);
@@ -365,18 +365,18 @@ namespace coords
       : structure(), gradient(), energy(), integrity(false)
     { }
     PES_Point(size_type n)
-      : structure(n,0), gradient(n,0), energy(), integrity(false)
+      : structure(n, 0), gradient(n, 0), energy(), integrity(false)
     { }
-    PES_Point(Representation_3D xyz, bool const structure_integrity = true) : 
+    PES_Point(Representation_3D xyz, bool const structure_integrity = true) :
       structure(xyz, Representation_Internal(xyz.size()), Representation_Main()),
       gradient(Gradients_3D(xyz.size()), Gradients_Internal(xyz.size()), Gradients_Main()),
       energy(0.0), integrity(structure_integrity)
     { }
-    PES_Point(double E, 
-            Representation_3D xyz, Gradients_3D xyz_force,
-            Representation_Internal inter, Gradients_Internal inter_force,
-            Representation_Main maindih, Gradients_Main maindih_force, 
-            bool const structure_integrity = true) : 
+    PES_Point(double E,
+      Representation_3D xyz, Gradients_3D xyz_force,
+      Representation_Internal inter, Gradients_Internal inter_force,
+      Representation_Main maindih, Gradients_Main maindih_force,
+      bool const structure_integrity = true) :
       structure(xyz, inter, maindih), gradient(xyz_force, inter_force, maindih_force),
       energy(E), integrity(structure_integrity)
     { }
@@ -385,14 +385,15 @@ namespace coords
       using std::swap;
       structure.swap(rhs.structure);
       gradient.swap(rhs.gradient);
+      ia_matrix.swap(rhs.ia_matrix);
       swap(energy, rhs.energy);
       swap(integrity, rhs.integrity);
     }
     bool equal_compare(PES_Point const &) const;
-	bool empty(void)
-	{
-		return structure.empty();
-	}
+    bool empty(void)
+    {
+      return structure.empty();
+    }
     size_type size(void) const { return structure.size(); }
     void resize(size_type atoms, size_type const mains = 0)
     {
