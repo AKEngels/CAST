@@ -996,6 +996,34 @@ namespace scon
     return { range };
   }
 
+  namespace detail
+  {
+    // termination function
+    template<class T> void apply_unary(T&& value) { }
+    // recursive function for applying all unarys
+    template<class T, class F1, class... UnaryFs>
+    void apply_unary(T&& value, F1 && f, UnaryFs && ... fs)
+    {
+      // using function call syntax
+      std::forward<F1>(f)(std::forward<T>(value));
+      // using c++17 invoke
+      //std::invoke(std::forward<F1>(f), std::forward<T>(value));
+      // recurse and forward value and rest
+      apply_unary(std::forward<T>(value), std::forward<UnaryFs>(fs)...);
+    }
+  }
+
+  template<class Iter, class ... UnaryFs>
+  std::tuple<UnaryFs...> for_each(Iter first, Iter last, UnaryFs&& ... fs)
+  {
+    for (; first != last; ++first)
+    {
+      // forward callable pack to apply
+      detail::apply_unary(*first, std::forward<UnaryFs>(fs)...);
+    }
+    // return callable pack
+    return std::forward_as_tuple(std::forward<UnaryFs>(fs)...);
+  }
 
 }
 
