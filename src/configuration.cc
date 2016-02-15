@@ -624,7 +624,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     long const T(from_iss<long>(cv));
     if (T > 0) omp_set_num_threads(T);
 #endif
-}
+  }
 
   else if (option == "profileruns")
   {
@@ -1083,8 +1083,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(2, 18) == "fallback_fr_bounds")
     {
-      if (cv >> Config::set().optimization.global.selection.lin_rank_lower)
-        cv >> Config::set().optimization.global.selection.lin_rank_upper;
+      if (cv >> Config::set().optimization.global.selection.low_rank_fitness)
+        cv >> Config::set().optimization.global.selection.high_rank_fitness;
     }
     else if (option.substr(2, 15) == "fallback_fr_fit")
     {
@@ -1370,7 +1370,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       if (cv >> biasBuffer.a && cv >> biasBuffer.b
         && cv >> biasBuffer.ideal && cv >> biasBuffer.force)
       {
-
         --biasBuffer.a;
         --biasBuffer.b;
         Config::set().coords.bias.distance.push_back(biasBuffer);
@@ -2027,8 +2026,8 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
     strm << "a new starting point will be selected using roulette selection," << '\n';
     strm << "utilizing a rank-based fitness function among the ";
     strm << opt.selection.included_minima << " lowest, accepted minima." << '\n';
-    strm << "The minimum which is lowest in energy (rank 1) will have a fitness value of  " << opt.selection.lin_rank_upper;
-    strm << ", while rank " << opt.selection.included_minima << " will have fitness " << opt.selection.lin_rank_lower << '\n';
+    strm << "The minimum which is lowest in energy (rank 1) will have a fitness value of  " << opt.selection.high_rank_fitness;
+    strm << ", while rank " << opt.selection.included_minima << " will have fitness " << opt.selection.low_rank_fitness << '\n';
     strm << "Fitness interpolation type is '" << fitness_strings[opt.selection.fit_type >= 0 ? opt.selection.fit_type : 0] << "'." << '\n';
     strm << "No minimum will be selected more than " << opt.fallback_limit << " times, ";
     strm << " while not more than 100 approaches to find a valid minimum will be performed." << '\n';

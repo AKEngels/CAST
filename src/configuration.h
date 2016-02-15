@@ -57,7 +57,7 @@ namespace config
     enum T {
       ILLEGAL = -1,
       SP, GRAD, TS, LOCOPT, RMSD,
-      MC, DIMER, MD, NEB, 
+      MC, DIMER, MD, NEB,
       STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
       PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE,
@@ -558,11 +558,11 @@ namespace config
     struct sel
     {
       struct fitness_types { enum T { INVALID = -1, LINEAR, EXPONENTIAL }; };
-      double lin_rank_lower, lin_rank_upper;
+      double low_rank_fitness, high_rank_fitness;
       std::size_t included_minima;
       fitness_types::T fit_type;
       sel(void) :
-        lin_rank_lower(0.5), lin_rank_upper(1.0),
+        low_rank_fitness(0.5), high_rank_fitness(1.0),
         included_minima(10), fit_type(fitness_types::LINEAR)
       { }
     };
@@ -627,10 +627,12 @@ namespace config
     {
       struct helices { enum { alpha, threeten }; };
       struct sheets { enum { betaAParallel, betaParallel }; };
-      struct turns 
+      struct turns
       {
-        enum { turnBetaIa, turnBetaIb, turnBetaIIa,
-          turnBetaIIb, turnBetaVIa, turnBetaVIb, turnBetaVIII };
+        enum {
+          turnBetaIa, turnBetaIb, turnBetaIIa,
+          turnBetaIIb, turnBetaVIa, turnBetaVIb, turnBetaVIII
+        };
       };
       std::string sequenceFile, outputFile;
       int helix, sheet, turn;

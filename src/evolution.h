@@ -55,6 +55,24 @@ namespace genetic
   namespace selection
   {
 
+    template<class float_type>
+    std::size_t roulette(std::vector<float_type> const &values, float_type sum)
+    {
+      static std::mt19937_64 rng = std::mt19937_64{ std::random_device{}() };
+      using dist_type = std::uniform_real_distribution<float_type>;
+      auto const n = values.size();
+      auto target_value = dist_type{ 0, sum }(rng);
+      auto accu = float_type(0);
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        accu += values[i];
+        if (accu >= target_value) return i;
+      }
+      throw std::logic_error("Roulette selection did not reach target value.");
+    }
+
+
+
     template<class Fitness, class Float = typename Fitness::float_type>
     class Roulette
     {
@@ -134,8 +152,8 @@ namespace genetic
     struct point_mutator<bool>
     {
       bool operator() (bool const &,
-                        bool const & = false,
-                        bool const & = true)
+        bool const & = false,
+        bool const & = true)
       {
         std::mt19937_64 mut_rng = std::mt19937_64(std::random_device()());
         std::uniform_int_distribution<std::size_t> m_dist(0, 1);
@@ -145,9 +163,9 @@ namespace genetic
     template<>
     struct point_mutator<float>
     {
-      float operator() (float const &, 
-                        float const & lower = std::numeric_limits<float>::min(),
-                        float const & upper = std::numeric_limits<float>::max())
+      float operator() (float const &,
+        float const & lower = std::numeric_limits<float>::min(),
+        float const & upper = std::numeric_limits<float>::max())
       {
         std::mt19937_64 mut_rng = std::mt19937_64(std::random_device()());
         std::uniform_real_distribution<float> m_dist(lower, upper);
@@ -168,12 +186,12 @@ namespace genetic
     typedef Float float_type;
     typedef ValueType value_type;
     individuum(std::vector<ValueType> const &values = std::vector<ValueType>(), Mutator const & mutator = Mutator())
-      : m_values(values), m_rng(std::random_device()()), 
+      : m_values(values), m_rng(std::random_device()()),
       m_dist(0u, values.size()),
       m_mutator(mutator), m_health(Float())
     { }
     individuum(std::vector<ValueType> && values, Mutator const & mutator = Mutator())
-      : m_values(std::forward<std::vector<ValueType>>(values)), 
+      : m_values(std::forward<std::vector<ValueType>>(values)),
       m_rng(std::random_device()()),
       m_dist(0u, m_values.size() - 1u),
       m_mutator(mutator), m_health(Float())
@@ -215,9 +233,9 @@ namespace genetic
       }
       for (std::size_t i = 0u; i < len; ++i)
       {
-        typename std::vector<ValueType>::value_type tmp = std::move(m_values[cross_a+i]);
-        m_values[cross_a+i] = std::move(m_values[cross_b+i]);
-        m_values[cross_b+i] = std::move(tmp);
+        typename std::vector<ValueType>::value_type tmp = std::move(m_values[cross_a + i]);
+        m_values[cross_a + i] = std::move(m_values[cross_b + i]);
+        m_values[cross_b + i] = std::move(tmp);
       }
     }
     std::vector<ValueType> const & values() const
@@ -249,7 +267,7 @@ namespace genetic
   }
 
   template<
-    class Individual, 
+    class Individual,
     class Updater,
     class Fitness = ranking::linear<typename Individual::float_type>,
     class Selection = selection::Roulette<Fitness>
@@ -277,12 +295,12 @@ namespace genetic
 
     struct options
     {
-      typename Individual::value_type mutation_lower_bound, 
+      typename Individual::value_type mutation_lower_bound,
         mutation_upper_bound;
       float_type mutation_chance_point, crossing_chance,
         fitness_lower_bound, fitness_upper_bound;
       std::size_t fitness_included_individuals;
-      options() : 
+      options() :
         mutation_lower_bound(), mutation_upper_bound(),
         mutation_chance_point(0.25), crossing_chance(0.15),
         fitness_lower_bound(0.0), fitness_upper_bound(1.0),
@@ -292,14 +310,14 @@ namespace genetic
 
     typedef evolution<Individual, Updater, Fitness, Selection> this_type;
 
-    evolution(std::vector<Individual> const & init_population, 
-              Updater const & updater = Updater(),
-              options const & option_object = options()) :
-      m_parents(init_population), m_children(init_population.size()), 
-      m_rng(std::random_device()()), m_dist(0.0, 1.0), 
-      m_selection(), 
-      m_fitness(option_object.fitness_included_individuals == 0 
-                ? m_parents.size() : option_object.fitness_included_individuals,
+    evolution(std::vector<Individual> const & init_population,
+      Updater const & updater = Updater(),
+      options const & option_object = options()) :
+      m_parents(init_population), m_children(init_population.size()),
+      m_rng(std::random_device()()), m_dist(0.0, 1.0),
+      m_selection(),
+      m_fitness(option_object.fitness_included_individuals == 0
+        ? m_parents.size() : option_object.fitness_included_individuals,
         option_object.fitness_lower_bound,
         option_object.fitness_upper_bound),
       m_update(updater),
@@ -313,7 +331,7 @@ namespace genetic
       sort(m_parents.begin(), m_parents.end());
       for (std::size_t s(0u); s < steps; ++s)
       {
-        
+
         //std::cout << "Parents:\n";
         //for (auto const & v : m_parents) std::cout << "(" << v << "), ";
         //std::cout << "\n";
@@ -369,5 +387,46 @@ namespace genetic
       return ret / static_cast<float_type>(m_parents.size());
     }
   };
+
+
+  //************************************
+  // Method:    evolve
+  // FullName:  genetic::evolve
+  // Access:    public 
+  // Returns:   Vector of individuals after
+  //            generation_count generations of processing
+  // Qualifier: -
+  // Template:  Ind (Type of individual)
+  // Template:  Fitness (Type of fitness functor)
+  // Template:  Mutator (Type of mutation functor)
+  // Template:  Mateor (Type of mating functor)
+  // Parameter: std::vector<Ind> parents (initial population)
+  // Parameter: std::size_t generation_count (number of generations)
+  // Parameter: Fitness && fit (functor returning fitness values for mate functor)
+  //            Paramter: std::vector<Ind>&
+  // Parameter: Mateor && mate (functor mating parents
+  //            Paramter: std::vector<Ind> const & (parent population)
+  //            Paramter : ? (fitness values)
+  // Parameter: Mutator && mutate (mutation functor)
+  //            Paramter: Ind & (individuum to be mutated)
+  //************************************
+
+  template<class Ind, class Fitness, class Mutator, class Mateor>
+  std::vector<Ind> evolve(std::vector<Ind> population, std::size_t n,
+    Fitness && fit, Mateor && mate, Mutator && mutate)
+  {
+    // propagate for 'n' generations
+    for (std::size_t gen = 0; gen < n; ++gen)
+    {
+      auto const g = gen;
+      // build new population with population fitness
+      population = mate(population, fit(population, g), g);
+      // mutate population
+      mutate(population, g);
+    }
+    // apply fitness function once again
+    fit(population, n);
+    return population;
+  }
 
 }

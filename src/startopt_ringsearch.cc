@@ -2,6 +2,9 @@
 #include <string>
 #include <stdexcept>
 #include <random>
+#include <iterator>
+#include <algorithm>
+#include <utility>
 #include "configuration.h"
 #include "atomic.h"
 #include "scon_vect.h"
@@ -11,23 +14,33 @@
 #include "configuration.h"
 #include "scon_utility.h"
 
+/*
 
-startopt::ringsearch::ring::ring (std::size_t const _s) 
+
+  ring class
+
+
+*/
+
+startopt::ringsearch::ring::ring(std::size_t const _s)
   : size(_s), atoms(_s), dihedrals(_s - 3), dihedral_direction(_s - 3)
 { }
 
-startopt::ringsearch::ring::ring (std::size_t const _s, std::vector<std::size_t> _v) : 
-  size(_s), atoms(_v.begin(), _v.begin()+size), dihedrals(size-3), dihedral_direction(size-3) 
+startopt::ringsearch::ring::ring(std::size_t const _s,
+  std::vector<std::size_t> _v) :
+  size(_s), atoms(_v.begin(), _v.begin() + size),
+  dihedrals(size - 3), dihedral_direction(size - 3)
 { }
 
-startopt::ringsearch::ring::ring (ring const &r) : 
-  size(r.size), atoms(r.atoms), dihedrals(r.dihedrals), 
-  dihedral_direction(r.dihedral_direction) 
+startopt::ringsearch::ring::ring(ring const &r) :
+  size(r.size), atoms(r.atoms), dihedrals(r.dihedrals),
+  dihedral_direction(r.dihedral_direction)
 { }
 
-startopt::ringsearch::ring & startopt::ringsearch::ring::operator= (startopt::ringsearch::ring const & r) 
+startopt::ringsearch::ring & startopt::ringsearch::ring::operator= (
+  startopt::ringsearch::ring const & r)
 {
-  if (size==r.size)
+  if (size == r.size)
   {
     atoms = r.atoms;
     dihedrals = r.dihedrals;
@@ -36,26 +49,29 @@ startopt::ringsearch::ring & startopt::ringsearch::ring::operator= (startopt::ri
   return *this;
 }
 
-startopt::ringsearch::Search::Search (coords::Coordinates & coords) : 
-  m_init_xyz(coords.xyz()),
-  m_final_ensemble(),
-  m_coord(coords),
-  m_is_acceptor(coords.size(), false),
-  m_rings(), 
-  m_overlap(),
-  m_ringcontainer(7u)
+/*
+
+
+Search class
+
+
+*/
+
+startopt::ringsearch::Search::Search(coords::Coordinates & coords) :
+  m_init_xyz(coords.xyz()), m_final_ensemble(),
+  m_coord(coords), m_is_acceptor(coords.size(), false),
+  m_rings(), m_overlap(), m_ringcontainer(7u)
 {
   std::size_t const n = m_coord.size();
   for (std::size_t i(0U); i < n; ++i)
   {
     std::size_t const atomic_number_i = m_coord.atoms(i).number();
-    if (atomic_number_i == 1)
+    if (atomic_number_i == 1 &&
+      m_coord.atoms(i).bonds().size() == 1 &&
+      atomic::number_is_heteroatom(
+        m_coord.atoms(m_coord.atoms(i).bonds(0)).number()))
     {
-      if (m_coord.atoms(i).bonds().size() == 1 &&
-          atomic::number_is_heteroatom(m_coord.atoms(m_coord.atoms(i).bonds(0)).number()))
-      {
-        m_donors.push_back(i);
-      }
+      m_donors.push_back(i);
     }
     else if (atomic::number_is_heteroatom(atomic_number_i))
     {
@@ -71,37 +87,41 @@ startopt::ringsearch::Search::~Search()
   m_coord.to_internal();
 }
 
-
-std::size_t startopt::ringsearch::Search::find_rings(void)
+std::size_t startopt::ringsearch::Search::find_rings()
 {
   std::size_t const n = m_coord.size();
   std::vector<bool> tabu_vector(n, false);
   std::size_t const m = m_donors.size();
-  for (std::size_t i = 0; i<m; ++i)
+  for (std::size_t i = 0; i < m; ++i)
   {
     m_ringcontainer[0u] = m_donors[i];
     find_route(m_donors[i], 0u, std::vector<bool>(n, false));
   }
-  if (Config::get().general.verbosity > 19)
+  if (Config::get().general.verbosity > 4)
   {
-    std::cout << "Found " << m_rings.size() << " ring-routes.\n";
-    for (auto const & r : m_rings)
+    std::cout << "Found " << m_rings.size()
+      << " potential rings.\n";
+    if (Config::get().general.verbosity > 9)
     {
-      std::cout << "[" << r.size << "]: ";
-      for (auto const & a : r.atoms)
+      std::cout << "Ring-routes:\n";
+      for (auto const & r : m_rings)
       {
-        std::cout << a << " ";
+        std::cout << "[" << r.size << "]: ";
+        for (auto const & a : r.atoms)
+        {
+          std::cout << a << " ";
+        }
+        std::cout << "\n";
       }
-      std::cout << "\n";
     }
   }
   find_torsions();
   find_overlap();
-
   return m_rings.size();
 }
 
-void startopt::ringsearch::Search::find_route(std::size_t const i, std::size_t const size, std::vector<bool> tabulist)
+void startopt::ringsearch::Search::find_route(std::size_t const i,
+  std::size_t const size, std::vector<bool> tabulist)
 {
   if (size > 5) return;
   tabulist[i] = true;
@@ -118,11 +138,11 @@ void startopt::ringsearch::Search::find_route(std::size_t const i, std::size_t c
   }
 }
 
-
-std::size_t startopt::ringsearch::Search::find_torsion(double &direction, std::size_t const index_b, std::size_t const index_c) const
+std::size_t startopt::ringsearch::Search::find_torsion(double &direction,
+  std::size_t const index_b, std::size_t const index_c) const
 {
   const std::size_t M = m_coord.atoms().mains().size();
-  for (std::size_t i = 0u; i<M; ++i)
+  for (std::size_t i = 0u; i < M; ++i)
   {
     std::size_t const index = m_coord.atoms().intern_of_main_idihedral(i);
     std::size_t const ib = m_coord.atoms(m_coord.atoms(index).ibond()).i_to_a();
@@ -143,10 +163,10 @@ std::size_t startopt::ringsearch::Search::find_torsion(double &direction, std::s
   //return 0;
 }
 
-void startopt::ringsearch::Search::find_torsions(void)
+void startopt::ringsearch::Search::find_torsions()
 {
   const std::size_t M = m_rings.size();
-  for (std::size_t i = 0; i<M; ++i)
+  for (std::size_t i = 0; i < M; ++i)
   {
     m_rings[i].dihedrals[0] = find_torsion(m_rings[i].dihedral_direction[0], m_rings[i].atoms[1], m_rings[i].atoms[2]);
     m_rings[i].dihedrals[1] = find_torsion(m_rings[i].dihedral_direction[1], m_rings[i].atoms[2], m_rings[i].atoms[3]);
@@ -161,20 +181,22 @@ void startopt::ringsearch::Search::find_torsions(void)
   }
 }
 
-void startopt::ringsearch::Search::find_overlap(void)
+void startopt::ringsearch::Search::find_overlap()
 {
   std::size_t const N(m_rings.size()), M = (N*N - N) / 2;
   m_overlap.resize(N, false);
-  for (std::size_t i(0u), row(1u), col(0u); i<M; ++i)
+  for (std::size_t i(0u), row(1u), col(0u); i < M; ++i)
   {
     for (auto dih_a : m_rings[row].dihedrals)
     {
       for (auto dih_b : m_rings[col].dihedrals)
       {
-        std::size_t const rel_a_of_a(m_coord.atoms(dih_a).iangle()), rel_d_of_a(m_coord.atoms(dih_a).idihedral());
-        std::size_t const rel_a_of_b(m_coord.atoms(dih_b).iangle()), rel_d_of_b(m_coord.atoms(dih_b).idihedral());
+        std::size_t const rel_a_of_a(m_coord.atoms(dih_a).iangle()),
+          rel_d_of_a(m_coord.atoms(dih_a).idihedral());
+        std::size_t const rel_a_of_b(m_coord.atoms(dih_b).iangle()),
+          rel_d_of_b(m_coord.atoms(dih_b).idihedral());
         if ((rel_a_of_a == rel_a_of_b && rel_d_of_a == rel_d_of_b)
-            || (rel_a_of_a == rel_d_of_b && rel_d_of_a == rel_a_of_b))
+          || (rel_a_of_a == rel_d_of_b && rel_d_of_a == rel_a_of_b))
         {
           m_overlap(row, col) = true;
         }
@@ -189,29 +211,39 @@ void startopt::ringsearch::Search::find_overlap(void)
   }
 }
 
-void startopt::ringsearch::Search::bias_ring(std::size_t const index, coords::float_type const force)
+void startopt::ringsearch::Search::bias_ring(std::size_t const index,
+  coords::float_type const force)
 {
   if (index < m_rings.size())
   {
     config::biases::dihedral bias;
     bias.force = force;
-    const std::size_t num_dihedrals = m_rings[index].size - 3, ring_dih_index = num_dihedrals - 2;
-    for (std::size_t i = 0; i<num_dihedrals; ++i)
+    auto const num_dihedrals = m_rings[index].size - 3u;
+    auto const ring_dih_index = num_dihedrals - 2u;
+    auto const n_atoms = m_coord.size();
+    for (std::size_t i = 0; i < num_dihedrals; ++i)
     {
       bias.ideal = RING_DIH[ring_dih_index][i];
       bias.a = m_rings[index].atoms[0 + i];
       bias.b = m_rings[index].atoms[1 + i];
       bias.c = m_rings[index].atoms[2 + i];
       bias.d = m_rings[index].atoms[3 + i];
-      m_coord.potentials().add(bias);
+      // if a, b, c and d are valid atoms we add bias
+      if (bias.a < n_atoms && bias.b < n_atoms &&
+        bias.c < n_atoms && bias.d < n_atoms)
+      {
+        m_coord.potentials().add(bias);
+      }
     }
   }
 }
 
-void startopt::ringsearch::Search::bias_rings(std::vector<bool> const &close_it, coords::float_type const force)
+std::vector<std::size_t> startopt::ringsearch::Search::bias_rings(
+  std::vector<bool> const &close_it,
+  coords::float_type const force /*= 0.1*/)
 {
   std::size_t const n = m_rings.size();
-  m_coord.potentials().clear();
+  auto actually_closed = std::vector<std::size_t>{};
   if (close_it.size() == n)
   {
     for (std::size_t i(0u); i < n; ++i)
@@ -227,315 +259,291 @@ void startopt::ringsearch::Search::bias_rings(std::vector<bool> const &close_it,
             break;
           }
         }
-        if (can_be_closed) bias_ring(i, force);
+        if (can_be_closed)
+        {
+          bias_ring(i, force);
+          actually_closed.push_back(i);
+        }
       }
     }
   }
+  return actually_closed;
 }
 
-coords::float_type startopt::ringsearch::Search::energy(std::vector<bool> const &close_it, coords::float_type const force)
+//************************************
+// Method:    energy
+// FullName:  startopt::ringsearch::Search::energy
+// Access:    public 
+// Returns:   coords::float_type 
+//            (energy of relaxated structure with closed rings)
+// Qualifier:
+// Parameter: std::vector<bool> const & close_it 
+//            (list of rings to be closed)
+// Parameter: coords::float_type const force 
+//            (force to be applied for bias potential)
+//************************************
+
+coords::float_type startopt::ringsearch::Search::energy(
+  std::vector<bool> const &close_it,
+  coords::float_type const force)
 {
   // Set original coordinates
   m_coord.set_xyz(m_init_xyz, true);
-  // Imply required bias potentials
-  bias_rings(close_it, force);
+  // Save original bias
+  auto tmp_pot = m_coord.potentials();
+  // Imply required closure bias potentials
+  // returns actually closed rings for checkback
+  /*auto closed_rings = */bias_rings(close_it, force);
   // Optimize with bias in place
   m_coord.o();
-  // Remove bias
-  //std::ofstream x("test.arc");
-  //x << m_coord;
-  m_coord.potentials().clear();
-  // Relaxate
+  // Remove ring closure bias
+  m_coord.potentials().swap(tmp_pot);
+  // Relaxate without artificial bias
   return m_coord.o();
 }
 
-void startopt::ringsearch::Search::save_coords(std::size_t const i)
-{
-  m_coord.to_internal();
-  m_final_ensemble.at(i) = m_coord.pes();
-}
+/*
 
-struct ring_energy
+
+Genetic propagation function
+
+
+*/
+
+namespace
 {
-public:
-  startopt::ringsearch::Search * p;
-  ring_energy(startopt::ringsearch::Search & rso)
-    : p(&rso)
-  { }
-  bool operator() (genetic::individuum<bool> & i, std::size_t const pop_index) const
+
+  struct rings_individual
   {
-    auto E = p->energy(i.values(), Config::get().startopt.ringsearch.bias_force);
-    //std::cout << scon::print_range(i.values(), " ") << ", " << pop_index << ", E = " << E << "\n";
-    i.set_health(E);
-    p->save_coords(pop_index);
+    std::vector<bool> close_state;
+    coords::PES_Point pes;
+    coords::float_type health;
+    rings_individual(std::vector<bool> init_state) :
+      close_state(std::move(init_state)), pes(), health() {}
+    rings_individual(std::size_t n) : close_state(n), pes(), health() {}
+  };
 
-    return p->coords().integrity();
-  }
-};
-
-template<class G>
-static typename G::options options_from_config()
-{
-  typename G::options ret_opt;
-  ret_opt.crossing_chance = Config::get().optimization.global.evolution.chance_crossingover;
-  ret_opt.mutation_chance_point = Config::get().optimization.global.evolution.chance_pointmutation;
-  ret_opt.fitness_lower_bound = Config::get().optimization.global.selection.lin_rank_lower;
-  ret_opt.fitness_upper_bound = Config::get().optimization.global.selection.lin_rank_upper;
-  return ret_opt;
-}
-
-void startopt::ringsearch::Search::genetic_propagation(std::size_t const population, std::size_t const iterations)
-{
-  // individual holding a vector of bool, mutated by default bool mutator with float type from coords
-  typedef genetic::individuum<bool, genetic::mutators::point_mutator<bool>, coords::float_type> ind_type;
-  // rank based, exponential and truncated fitness
-  typedef genetic::ranking::exponential<ind_type::float_type> fitness_type;
-  // evolution type
-  typedef genetic::evolution<ind_type, ring_energy, fitness_type> genetics_type;
-  // Get options from config
-  typedef genetics_type::options genetic_options_type;
-  genetic_options_type opt_obj(options_from_config<genetics_type>());
-  // Generate randomized initial population
-  std::vector<ind_type> init_population;
-  std::mt19937_64 rng = std::mt19937_64(std::random_device()());
-  std::uniform_real_distribution<coords::float_type> p(0, 1);
-  std::size_t const rn = m_rings.size();
-  init_population.reserve(population);
-  for (std::size_t i = 0u; i < population; ++i)
+  template<class Rng>
+  rings_individual randomized_rings_individual(
+    std::size_t const n_rings, Rng & rng)
   {
-    std::vector<bool> closure(rn, false);
-    for (std::size_t j = 0u; j < rn; ++j)
+    rings_individual r{ std::vector<bool>(n_rings, false) };
+    std::generate_n(r.close_state.begin(), r.close_state.size(),
+      [&rng]() -> bool
     {
-      if (p(rng) < Config::get().startopt.ringsearch.chance_close) closure[j] = true;
-    }
-    init_population.push_back(ind_type(closure));
+      return std::bernoulli_distribution{
+        Config::get().startopt.ringsearch.chance_close }(rng);
+    });
+    return r;
   }
-  // Resize coord saving
-  m_final_ensemble.resize(population);
-  // Create energy object
-  ring_energy re_obj(*this);
-  // Create genetics object
-  genetics_type gen_obj(init_population, re_obj, opt_obj);
-  // Propagte population
-  gen_obj.propagate(iterations);
-  
+
+  struct ring_ind_less
+  {
+    bool operator() (rings_individual const &a,
+      rings_individual const &b)
+    {
+      return (a.pes.integrity && !b.pes.integrity) ||
+        a.health < b.health;
+    }
+  };
+
+  template<class Fitness>
+  struct ring_population_fitness
+  {
+    startopt::ringsearch::Search & rso;
+    Fitness fitness;
+    // create object
+    template<class ... Ts>
+    ring_population_fitness(
+      startopt::ringsearch::Search & search_object,
+      Ts&& ... fits)
+      : rso(search_object), fitness(std::forward<Ts>(fits)...) {}
+    std::vector<coords::float_type> operator() (
+      std::vector<rings_individual> & pop, std::size_t const)
+    {
+      auto const n = pop.size();
+      auto values = std::vector<coords::float_type>(pop.size());
+      auto mean = coords::float_type{ 0 };
+      // get health and structures for population
+      for (auto & individual : pop)
+      {
+        // get energy of individual
+        individual.health = rso.energy(individual.close_state,
+          Config::get().startopt.ringsearch.bias_force);
+        mean += individual.health;
+        individual.pes = rso.get_coords().pes();
+      }
+      // sort population by integrity and health
+      std::sort(pop.begin(), pop.end(), ring_ind_less{});
+
+      // Get fitness values
+      auto fitness_values = std::vector<coords::float_type>(n);
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        fitness_values[i] = fitness(i);
+      }
+      // print individuals and energies
+      if (Config::get().general.verbosity > 4)
+      {
+        mean /= n;
+        std::cout << "Mean population energy value = " <<
+          mean << "\n";
+        if (Config::get().general.verbosity > 9)
+        {
+          for (auto & individual : pop)
+          {
+            for (bool s : individual.close_state)
+            {
+              std::cout << (s ? 1 : 0);
+            }
+            std::cout << " " << individual.health << "\n";
+          }
+        }
+      }
+      return fitness_values;
+    }
+  };
+
+  template<class Fitness>
+  ring_population_fitness<Fitness> make_fitness(
+    startopt::ringsearch::Search & search_object,
+    Fitness && fit)
+  {
+    return{ search_object, std::forward<Fitness>(fit) };
+  }
+
 }
 
-//
-//
-//startopt::ringsearch::search::search (coords::Coordinates const  & initial_coordinate) 
-//  : coord_obj(initial_coordinate), N(coord_obj.size()), N_donor(0U), N_acceptor(0U), 
-//  isAcceptor(N, false), isDonor(N, false), ringContainer(7U), overlap(N), initial_representation(N)
-//{
-//
-//  // assign acceptor and donor checkvectors
-//  for (std::size_t i(0U); i<N; ++i)
-//  {
-//    if (coord_obj.atoms(i).bonds().empty()) continue;
-//    std::size_t const ia(coord_obj.atoms(i).number()), na(coord_obj.atoms(coord_obj.atoms(i).bonds(0U)).number());
-//    if (ia == 1U && coord_obj.atoms(i).bonds().size() == 1 &&
-//      (na == 7U || na == 8U || na == 15U || na == 16U))
-//    {
-//      ++N_donor;
-//      isDonor[i] = true;
-//    } 
-//    else if (ia == 7U || ia == 8U || ia == 15U || ia == 16U
-//      || ia == 9U || ia == 17U || ia == 35U || ia == 53U) 
-//    {
-//      ++N_acceptor;
-//      isAcceptor[i] = true;
-//    }
-//  }
-//  coord_obj.to_internal();
-//  initial_representation.cartesian = coord_obj.positions;
-//  initial_representation.intern = coord_obj.internals.coords;
-//}
-//
-//std::size_t startopt::ringsearch::search::findRings (void)
-//{
-//  std::vector<bool> tabu(N);
-//  tabu.assign(N, false);
-//  for (std::size_t i=0; i<N; ++i)
-//  {
-//    if (isDonor[i])
-//    {
-//      ringContainer[0] = i;
-//      routeSearch(i, 0, tabu);
-//    }
-//  }
-//  findTorsions();
-//  findOverlap();
-//  return rings.size();
-//}
-//
-//bool startopt::ringsearch::search::routeSearch (std::size_t i, std::size_t size, std::vector<bool> tabulist)
-//{
-//  if (size > 5) return false;
-//  tabulist[i] = true;
-//  const std::size_t M = coord_obj.topology[i].size(), increased = size+1;
-//  std::size_t bound;
-//  for (auto bound : coord_obj.atoms(i).bonds())
-//  {
-//    ringContainer[increased] = bound;
-//    if (tabulist[bound]) continue;
-//    else if (isAcceptor[bound])
-//    {
-//      // found 7-membered ring
-//      if (increased == 6)
-//      {
-//        rings.push_back(ring(increased+1, ringContainer));
-//        return true;
-//      }
-//      else if (increased == 5 || increased == 4)
-//      {
-//        ringContainer[increased] = bound;
-//        rings.push_back(ring(increased+1, ringContainer));
-//      }
-//    }
-//    routeSearch(bound, increased, tabulist);
-//  }
-//  return true;
-//}
-//
-//void startopt::ringsearch::search::findTorsions (void)
-//{
-//  const std::size_t M = rings.size();
-//  for (std::size_t i=0; i<M; ++i)
-//  {
-//    getTorsion(rings[i].dihedrals[0], rings[i].dihedral_direction[0], rings[i].atoms[1], rings[i].atoms[2]);
-//    getTorsion(rings[i].dihedrals[1], rings[i].dihedral_direction[1], rings[i].atoms[2], rings[i].atoms[3]);
-//    if (rings[i].size > 5) getTorsion(rings[i].dihedrals[2], rings[i].dihedral_direction[2], rings[i].atoms[3], rings[i].atoms[4]);
-//    if (rings[i].size > 6) getTorsion(rings[i].dihedrals[3], rings[i].dihedral_direction[3], rings[i].atoms[4], rings[i].atoms[5]);
-//  }
-//  //coord_obj.write_zMatrix(cout);
-//}
-//
-//double startopt::ringsearch::search::calcTorsion (const std::size_t A, const std::size_t B, const std::size_t C, const std::size_t D) const
-//{
-//  coords::Cartesian_Point temp[6] =
-//  {
-//    coord_obj.xyz(A) - coord_obj.xyz(B),
-//    coord_obj.xyz(C) - coord_obj.xyz(B),
-//    coord_obj.xyz(D) - coord_obj.xyz(C),
-//    coords::Cartesian_Point(), 
-//    coords::Cartesian_Point(),
-//    coords::Cartesian_Point()
-//  };
-//  temp[3] = temp[1U].crossd(temp[0U]);
-//  temp[4] = temp[1U].crossd(temp[2U]);
-//  temp[5] = temp[3U].crossd(temp[4U]);
-//  double torsion = temp[3].angle(temp[4]), norm = len(temp[1])*len(temp[5]);
-//  return (abs(norm) > 1.0e-8 && (dot(temp[1], temp[5])/norm) < 0.0) ? torsion : -torsion;
-//}
-//
-//void startopt::ringsearch::search::getTorsion (std::size_t &torsion_index, double &torsion_dir, const std::size_t indexB, const std::size_t indexC) const
-//{
-//  
-//  const std::size_t M = coord_obj.atoms().mains();
-//  if (M > 3)
-//  {
-//    std::size_t index, rel_indexA, rel_indexB;
-//    std::size_t atomA, atomB;
-//    for (std::size_t i=0; i<M; ++i)
-//    {
-//      index = coord_obj.atoms().intern_of_main_idihedral(i);
-//      atomA = coord_obj.atoms(coord_obj.atoms(index).ibond()).i_to_a();
-//      atomB = coord_obj.atoms(coord_obj.atoms(index).iangle()).i_to_a();
-//      if (indexB == atomA && indexC == atomB)
-//      {
-//        torsion_index = i;
-//        torsion_dir = 1.0;
-//        return;
-//      }
-//      else if (indexB == atomB && indexC == atomA)
-//      {
-//        torsion_index = i;
-//        torsion_dir = -1.0;
-//        return;
-//      }
-//    }
-//  }
-//}
-//
-//void startopt::ringsearch::search::findOverlap (void)
-//{
-//  std::size_t const M(rings.size());
-//  for (std::size_t a(0U); a<M; ++a)
-//  {
-//    for (std::size_t b(a+1U); b<M; ++b)
-//    {
-//      for (auto dih_a : rings[a].dihedrals)
-//      {
-//        for (auto dih_b : rings[b].dihedrals)
-//        {
-//          std::size_t const rel_a_of_a(coord_obj.atoms(dih_a).iangle()), rel_d_of_a(coord_obj.atoms(dih_a).idihedral()); 
-//          std::size_t const rel_a_of_b(coord_obj.atoms(dih_b).iangle()), rel_d_of_b(coord_obj.atoms(dih_b).idihedral());
-//          if ( (rel_a_of_a == rel_a_of_b && rel_d_of_a == rel_d_of_b) 
-//            || (rel_a_of_a == rel_d_of_b && rel_d_of_a == rel_a_of_b) )
-//          {
-//            scon::sorted::insert_unique(overlap[a], b);
-//            scon::sorted::insert_unique(overlap[b], a);
-//          }
-//        }
-//      }
-//    }
-//  }
-//}
-//
-//
-//void startopt::ringsearch::search::closeRing (std::size_t index)
-//{
-//  if (index < rings.size())
-//  {
-//    //cout << "Closing ring " << index << std::endl;
-//    const std::size_t num_dihedrals = rings[index].size-3, ring_dih_index = num_dihedrals-2;
-//    std::size_t maintorsion_index, torsion_index;
-//    double torsion_now, torsion_rotation;
-//    for (std::size_t i=0; i<num_dihedrals; ++i)
-//    {
-//      maintorsion_index = rings[index].dihedrals[i];
-//      torsion_index = coord_obj.internals.main_torsions[maintorsion_index];
-//      torsion_now = calcTorsion(rings[index].atoms[0+i], rings[index].atoms[1+i], rings[index].atoms[2+i], rings[index].atoms[3+i]);
-//      torsion_rotation = RING_DIH[ring_dih_index][i] - torsion_now;
-//      if (torsion_rotation*torsion_now > 0.0 && rings[index].dihedral_direction[i] < 0.0) torsion_rotation *= -1.0;
-//      coord_obj.internals.rotDihedral(torsion_index, torsion_rotation);
-//    }
-//  }
-//}
-//
-//void ringsearch::search::opt_fixRing (std::size_t index)
-//{
-//  if (index < rings.size())
-//  {
-//    closeRing(index);
-//    coord_obj.toCartesian();
-//    coord_obj.fixed.assign(N, false);
-//    for (std::size_t i=0; i<rings[index].size; ++i)
-//    {
-//      coord_obj.fixed[rings[index].atoms[i]] = true;
-//    }
-//    coord_obj.optimization(false);
-//    coord_obj.toInternal();
-//  }
-//}
-//
-//void ringsearch::search::bias_ring (std::size_t index, const double force)
-//{
-//  if (index < rings.size())
-//  {
-//    dihBias biasPotential;
-//    biasPotential.force = force;
-//    biasPotential.type = bias_pot_types::QUADRATIC;
-//    //cout << "Closing ring " << index << std::endl;
-//    const std::size_t num_dihedrals = rings[index].size-3, ring_dih_index = num_dihedrals-2;
-//    for (std::size_t i=0; i<num_dihedrals; ++i)
-//    {
-//      biasPotential.phi = RING_DIH[ring_dih_index][i];
-//      biasPotential.a = rings[index].atoms[0+i];
-//      biasPotential.b = rings[index].atoms[1+i];
-//      biasPotential.c = rings[index].atoms[2+i];
-//      biasPotential.d = rings[index].atoms[3+i];
-//      coord_obj.potentials.dihedrals.push_back(biasPotential);
-//    }
-//  }
-//}
+coords::Ensemble_PES startopt::ringsearch::genetic_propagation(
+  coords::Coordinates & coords, std::size_t const population_count,
+  std::size_t const generation_count)
+{
+  // typedefs
+  using real_dist = std::uniform_real_distribution < coords::float_type >;
+  using int_dist = std::uniform_int_distribution < std::size_t >;
+  using bool_dist = std::bernoulli_distribution;
+  using lin_rank_fitness = genetic::ranking::linear<coords::float_type>;
+  using exp_rank_fitness = genetic::ranking::exponential<coords::float_type>;
+  using ind_type = rings_individual;
+  using pop_type = std::vector<ind_type>;
+  // Mersenne Twister random engine
+  auto rng = std::mt19937_64(std::random_device()());
+  // linear ranking fitness
+  auto lin_rank = lin_rank_fitness{ population_count,
+    Config::get().optimization.global.selection.low_rank_fitness,
+    Config::get().optimization.global.selection.high_rank_fitness };
+  // exponential ranking fitness
+  auto exp_rank = exp_rank_fitness{ population_count,
+    Config::get().optimization.global.selection.low_rank_fitness,
+    Config::get().optimization.global.selection.high_rank_fitness };
+  // Ringsearch object
+  Search rso(coords);
+  // fitness callback
+  auto pop_fitness = make_fitness(rso,
+    [&](std::size_t const i) -> coords::float_type
+  {
+    return Config::get().optimization.global.selection.fit_type ==
+      config::optimization_conf::sel::fitness_types::LINEAR ?
+      lin_rank(i) : exp_rank(i);
+  });
+  // mating callback
+  auto mating = [&](pop_type const &parents,
+    std::vector<coords::float_type> const &fitness_values,
+    std::size_t const) -> pop_type
+  {
+    // calculate sum of fitness values
+    coords::float_type fitness_sum = 0;
+    for (auto && val : fitness_values) fitness_sum += val;
+    // number of individuals
+    auto const n = parents.size();
+    // number of close states
+    auto const m = n > 0 ? parents.front().close_state.size() : 0u;
+    // child population
+    pop_type children;
+    children.reserve(n);
+    children.push_back(parents.at(0u));
+    for (std::size_t i = 1; i < n; ++i)
+    {
+      // create child
+      children.emplace_back(std::vector<bool>(m, false));
+      // select parents
+      auto p1 = genetic::selection::roulette(fitness_values, fitness_sum);
+      auto p2 = genetic::selection::roulette(fitness_values, fitness_sum);
+      // combine child states from parents
+      for (std::size_t j = 0; j < m; ++j)
+      {
+        // fitness weighted pick of parents for state i 
+        auto const pick = real_dist{ 0,
+          fitness_values[p1] + fitness_values[p2] }(rng);
+
+        children.back().close_state[j] = parents.at(
+          pick > fitness_values[p1] ? p1 : p2).close_state[j];
+      }
+    }
+    return children;
+  };
+  // matation callback
+  auto mutating = [&](pop_type & pop, std::size_t const)
+  {
+    auto && go = Config::get().optimization.global;
+    for (auto & i : pop)
+    {
+      // mutate as often as we hit the probability to do so
+      while (bool_dist{ go.evolution.chance_pointmutation }(rng))
+      {
+        // select state j to change
+        auto j = int_dist{ 0, i.close_state.size() - 1u }(rng);
+        // flip state j with 50:50 chance
+        i.close_state.at(j) = bool_dist{}(rng);
+      }
+    }
+  };
+  // initial population
+  auto population = pop_type(population_count,
+    ind_type{ std::vector<bool>(rso.rings().size(), false) });
+  auto const n_rings = rso.rings().size();
+  // generate randomized individuals
+  std::generate_n(population.begin(), population_count, [&]() -> ind_type
+  {
+    return randomized_rings_individual(n_rings, rng);
+  });
+  // evolution
+  population = genetic::evolve(population, generation_count,
+    pop_fitness, mating, mutating);
+  // return ensemble
+  coords::Ensemble_PES pese;
+  pese.reserve(population.size());
+  for (auto & i : population)
+  {
+    pese.emplace_back(std::move(i.pes));
+  }
+  return pese;
+}
+
+/*
+
+
+Preoptimizer class generate function
+
+
+*/
+
+void startopt::preoptimizers::R_evolution::generate(
+  coords::Ensemble_PES const & init_ensemble, std::size_t const m)
+{
+  auto const n = init_ensemble.size();
+  for (std::size_t i = 0u; i < n; ++i)
+  {
+    // set current structure to init_ensemble element i
+    m_final_coords.set_pes(init_ensemble[i]);
+    // propagate m individuals
+    auto en = ringsearch::genetic_propagation(m_final_coords,
+      m, Config::get().startopt.ringsearch.generations);
+    // reserve space for final ensemble
+    //m_ensemble.reserve(m_ensemble.size() + en.size());
+    // move created elements into m_ensemble 
+    m_ensemble.insert(m_ensemble.end(),
+      std::make_move_iterator(en.begin()),
+      std::make_move_iterator(en.end()));
+  }
+}
