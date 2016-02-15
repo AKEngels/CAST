@@ -274,7 +274,9 @@ TSdivers_threshold      10
 
 TSdivers_iter          30
 
+# How often will diversification be applied before termination?
 
+TSdivers_limit         20
 
 
 ####################################
