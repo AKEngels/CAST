@@ -1,5 +1,6 @@
-#include "coords.h"
 #include "atomic.h"
+#include "configuration.h"
+#include "coords_atoms.h"
 
 #include <string>
 #include <cstddef>
