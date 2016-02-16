@@ -400,7 +400,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
     if (!done)
     {
-      if (Config::get().general.verbosity > 9) std::cout << "Mopac calculation was not done." << '\n';
+      if (Config::get().general.verbosity > 9) std::cout << "Mopac calculation was not done.\n";
       //throw std::runtime_error(std::string("IMPROPER MOPAC OUTPUT (CALCULATION NOT FINISHED): ").append(id));
       energy = e_total = e_electron = e_core = 0.0;
       integrity = false;

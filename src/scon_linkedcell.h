@@ -679,7 +679,7 @@ namespace scon
           if (cfg::verbosity > 29U)
           {
             std::cout << "LinkedCells::update for ";
-            std::cout << positions.size() << " elements in boxes of " << edge << " and " << fragments() << " fragments.\n" << '\n';
+            std::cout << positions.size() << " elements in boxes of " << edge << " and " << fragments() << " fragments.\n\n";
           }
           cellofelement.assign(positions.size(), 0u);
           m_links.assign(positions.size(), -1);

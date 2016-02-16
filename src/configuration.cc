@@ -1799,20 +1799,20 @@ std::ostream & config::operator<< (std::ostream &strm, general const &g)
 {
   strm << "Reading structure(s) from '" << g.inputFilename;
   strm << "' (type: " << config::input_strings[g.input] << ")";
-  strm << " and parameters from '" << g.paramFilename << "'." << '\n';
-  strm << "Energy calculations will be performed using '" << interface_strings[g.energy_interface] << "'." << '\n';
+  strm << " and parameters from '" << g.paramFilename << "'.\n";
+  strm << "Energy calculations will be performed using '" << interface_strings[g.energy_interface] << "'.\n";
   return strm;
 }
 
 
 std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
 {
-  strm << "Two structures will be considered to be equal if either" << '\n';
-  strm << " - none of the main torsions differ more then " << equals.main << ", or" << '\n';
-  strm << " - no internal vector (bond, angle, dihedral) differs more than " << equals.intern << ", or" << '\n';
-  strm << " - no xyz position differs more than " << equals.xyz << ", or" << '\n';
+  strm << "Two structures will be considered to be equal if either\n";
+  strm << " - none of the main torsions differ more then " << equals.main << ", or\n";
+  strm << " - no internal vector (bond, angle, dihedral) differs more than " << equals.intern << ", or\n";
+  strm << " - no xyz position differs more than " << equals.xyz << ", or\n";
   strm << " - every atom is 'superposed' by an atom with the same atomic number within ";
-  strm << equals.superposition << " angstroms." << '\n';
+  strm << equals.superposition << " angstroms.\n";
   return strm;
 }
 
@@ -1821,7 +1821,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
   if (p.remove_hydrogen_rot)
   {
     strm << "The torsional rotation of a hydrogen atom "
-      << "will not be considered as main torsion." << '\n';
+      << "will not be considered as main torsion.\n";
   }
   if (!p.internal.main_blacklist.empty() && p.internal.main_whitelist.empty())
   {
@@ -1833,7 +1833,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
       ++k;
     }
     strm << (p.internal.main_blacklist.size() > 1 ? " are" : " is")
-      << " are not considered as main torsions." << '\n';
+      << " are not considered as main torsions.\n";
   }
   else if (!p.internal.main_whitelist.empty())
   {
@@ -1845,7 +1845,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
       ++k;
     }
     strm << (p.internal.main_whitelist.size() > 1 ? " are" : " is")
-      << " exclusively considered for main torsions." << '\n';
+      << " exclusively considered for main torsions.\n";
   }
   if (!p.fixed.empty())
   {
@@ -1879,19 +1879,19 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 
   if (Config::get().general.task == tasks::UMBRELLA && (!p.umbrella.torsions.empty() || !p.umbrella.distances.empty()))
   {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << p.umbrella.snap_offset << " steps." << '\n';
+    strm << "Umbrella Sampling with " << " steps and snapshots every " << p.umbrella.snap_offset << " steps.\n";
     if (!p.umbrella.torsions.empty())
     {
-      strm << "Umbrella torsions:" << '\n';
+      strm << "Umbrella torsions:\n";
       for (auto const & torsion : p.umbrella.torsions)
       {
         strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
-        strm << ". Start: " << " - End: " << ". Step: " << ". " << '\n';
+        strm << ". Start: " << " - End: " << ". Step: " << ". \n";
       }
     }
     if (!p.umbrella.distances.empty())
     {
-      strm << "Umbrella distances:" << '\n';
+      strm << "Umbrella distances:\n";
       for (auto const & dist : p.umbrella.distances)
       {
         strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
@@ -1935,23 +1935,23 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
-  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switchting to zero starting at " << p.switchdist << " Angstroms) applied." << '\n';
-  else strm << "No cutoff radius applied." << '\n';
+  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switchting to zero starting at " << p.switchdist << " Angstroms) applied.\n";
+  else strm << "No cutoff radius applied.\n";
   if (p.remove_fixed)
   {
-    strm << "Nonbonded terms between fixed atoms will be excluded in internal forcefield calculations." << '\n';
+    strm << "Nonbonded terms between fixed atoms will be excluded in internal forcefield calculations.\n";
   }
   if (p.periodic)
   {
-    strm << "Periodics box [ x, y, z] " << p.pb_box << " applied." << '\n';
+    strm << "Periodics box [ x, y, z] " << p.pb_box << " applied.\n";
   }
   if (p.spackman.on)
   {
-    strm << "Spackman correction applied." << '\n';
+    strm << "Spackman correction applied.\n";
   }
   if (Config::get().general.energy_interface == interface_types::MOPAC)
   {
-    strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'." << '\n';
+    strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
   }
   return strm;
 }
@@ -1966,8 +1966,8 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, sel con
 std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global const &opt)
 {
   strm << "At most " << opt.iterations << " global optimization iterations at " << opt.temperature;
-  strm << "K (multiplied by " << opt.temp_scale << " for each accepted minimum) will be performed." << '\n';
-  strm << "All structures within " << opt.delta_e << " kcal/mol above the lowest minimum will be saved." << '\n';
+  strm << "K (multiplied by " << opt.temp_scale << " for each accepted minimum) will be performed.\n";
+  strm << "All structures within " << opt.delta_e << " kcal/mol above the lowest minimum will be saved.\n";
   strm << "TabuSearch will use " << opt.tabusearch.divers_iterations << " iterations of";
   switch (opt.tabusearch.divers_optimizer)
   {
@@ -1982,7 +1982,7 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
     }
   }
   strm << " (at max. " << opt.tabusearch.divers_limit << " times)";
-  strm << " for diversification after " << opt.tabusearch.divers_threshold << " TS steps failed to accept a minimum." << '\n';
+  strm << " for diversification after " << opt.tabusearch.divers_threshold << " TS steps failed to accept a minimum.\n";
   strm << "Monte Carlo will be performed by random";
   switch (opt.montecarlo.move)
   {
@@ -2010,27 +2010,27 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
       break;
     }
   }
-  strm << " movement" << (opt.montecarlo.minimization ? " with" : " without") << " subsequent local optimization." << '\n';
-  if (opt.pre_optimize) strm << "The system will be pre-optimized (startopt) prior to optimization." << '\n';
-  strm << "If the current iteration fails to find a new (accepted) minimum, " << '\n';
+  strm << " movement" << (opt.montecarlo.minimization ? " with" : " without") << " subsequent local optimization.\n";
+  if (opt.pre_optimize) strm << "The system will be pre-optimized (startopt) prior to optimization.\n";
+  strm << "If the current iteration fails to find a new (accepted) minimum, \n";
   if (opt.fallback == global::fallback_types::LAST_GLOBAL)
   {
-    strm << "the routine will use the last minimum as its starting point at most " << opt.fallback_limit << " times." << '\n';
-    strm << "If the limit is reached, the lowest minimum available will be selected." << '\n';
-    strm << "No minimum will be used more than " << opt.fallback_limit << " times." << '\n';
+    strm << "the routine will use the last minimum as its starting point at most " << opt.fallback_limit << " times.\n";
+    strm << "If the limit is reached, the lowest minimum available will be selected.\n";
+    strm << "No minimum will be used more than " << opt.fallback_limit << " times.\n";
   }
   else if (opt.fallback == global::fallback_types::FITNESS_ROULETTE)
   {
-    strm << "a new starting point will be selected using roulette selection," << '\n';
+    strm << "a new starting point will be selected using roulette selection,\n";
     strm << "utilizing a rank-based fitness function among the ";
-    strm << opt.selection.included_minima << " lowest, accepted minima." << '\n';
+    strm << opt.selection.included_minima << " lowest, accepted minima.\n";
     strm << "The minimum which is lowest in energy (rank 1) will have a fitness value of  " << opt.selection.high_rank_fitness;
     strm << ", while rank " << opt.selection.included_minima << " will have fitness " << opt.selection.low_rank_fitness << '\n';
-    strm << "Fitness interpolation type is '" << fitness_strings[opt.selection.fit_type >= 0 ? opt.selection.fit_type : 0] << "'." << '\n';
+    strm << "Fitness interpolation type is '" << fitness_strings[opt.selection.fit_type >= 0 ? opt.selection.fit_type : 0] << "'.\n";
     strm << "No minimum will be selected more than " << opt.fallback_limit << " times, ";
-    strm << " while not more than 100 approaches to find a valid minimum will be performed." << '\n';
+    strm << " while not more than 100 approaches to find a valid minimum will be performed.\n";
   }
-  else strm << "invalid action is performed." << '\n';
+  else strm << "invalid action is performed.\n";
   return strm;
 }
 

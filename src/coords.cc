@@ -426,7 +426,7 @@ coords::float_type coords::Coordinates::lbfgs()
   }
   if (Config::get().general.verbosity > 19 && integrity())
   {
-    std::cout << "Energy after optimization: " << '\n';
+    std::cout << "Energy after optimization: \n";
     e_head_tostream_short(std::cout, energyinterface());
     e_tostream_short(std::cout, energyinterface());
   }
@@ -460,7 +460,7 @@ double coords::Coordinates::prelbfgs()
 
   if (Config::get().general.verbosity > 19 && m_interface->intact())
   {
-    std::cout << "Energy after optimization: " << '\n';
+    std::cout << "Energy after optimization: \n";
     e_head_tostream_short(std::cout, m_interface);
     e_tostream_short(std::cout, m_interface);
   }
@@ -560,12 +560,12 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
   else m_interface->print_E_head(strm);
   if (!m_potentials.empty())
   {
-    strm << "Bias Potentials: " << '\n';
+    strm << "Bias Potentials: \n";
     strm << std::setw(24) << "DIH";
     strm << std::setw(24) << "ANG";
     strm << std::setw(24) << "DIST";
     strm << std::setw(24) << "SPHERICAL";
-    strm << std::setw(24) << "CUBIC" << '\n';
+    strm << std::setw(24) << "CUBIC\n";
     strm << std::setw(24) << m_potentials.dihedrals().size();
     strm << std::setw(24) << m_potentials.angles().size();
     strm << std::setw(24) << m_potentials.distances().size();
@@ -582,7 +582,7 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
   else if (m_interface) m_interface->print_E_short(strm);
   if (!m_potentials.empty())
   {
-    strm << "Bias Energies: " << '\n';
+    strm << "Bias Energies: \n";
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dihedral();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_angle();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dist();

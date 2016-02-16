@@ -247,9 +247,9 @@ void md::simulation::print_init_info(void)
   std::cout << "Molecular dynamics simulation, limited to " << Config::get().md.num_steps;
   std::cout << " steps (representing a time step of " << Config::get().md.timeStep;
   std::cout << " ps each) started, simulating ";
-  if (psec >= 500000.0) std::cout << (psec / 1000000.0) << " microseconds." << '\n';
-  else if (psec >= 500) std::cout << (psec / 1000.0) << " nanoseconds." << '\n';
-  else std::cout << psec << " picoseconds." << '\n';
+  if (psec >= 500000.0) std::cout << (psec / 1000000.0) << " microseconds.\n";
+  else if (psec >= 500) std::cout << (psec / 1000.0) << " nanoseconds.\n";
+  else std::cout << psec << " picoseconds.\n";
   if (!Config::get().md.heat_steps.empty())
   {
     std::cout << "Temperature changes: ";
@@ -264,7 +264,7 @@ void md::simulation::print_init_info(void)
   std::cout << "Nose-Hoover thermostat is " << (Config::get().md.hooverHeatBath ? "active." : "inactive.") << '\n';
   if (Config::get().md.spherical.use)
   {
-    std::cout << "Spherical boundaries will be applied." << '\n';
+    std::cout << "Spherical boundaries will be applied.\n";
     std::cout << "Inner Sphere: (R: " << Config::get().md.spherical.r_inner << ", F: ";
     std::cout << Config::get().md.spherical.f1 << ", E: " << Config::get().md.spherical.e1 << ");";
     std::cout << "Outer Sphere: (R: " << Config::get().md.spherical.r_outer << ", F: ";
@@ -273,10 +273,10 @@ void md::simulation::print_init_info(void)
   if (Config::get().md.rattle.use)
   {
     const std::size_t nr = Config::get().md.rattle.specified_rattle.size();
-    if (Config::get().md.rattle.all) std::cout << "All covalent hydrogen bonds will be fixed" << '\n';
+    if (Config::get().md.rattle.all) std::cout << "All covalent hydrogen bonds will be fixed\n";
     else if (nr > 0)
     {
-      std::cout << "The following covalent hydrogen bonds will be fixed: " << '\n';
+      std::cout << "The following covalent hydrogen bonds will be fixed: \n";
       for (auto const & bond : Config::get().md.rattle.specified_rattle)
       {
         std::cout << "[" << bond.a << ":" << bond.b << "] ";
@@ -782,7 +782,7 @@ void md::simulation::tune_momentum(void)
     coords::Cartesian_Point r(coordobj.xyz(i) - mass_vector);
     V[i] -= cross(velocity_angular, r);
   }
-  if (Config::get().general.verbosity > 99U) std::cout << "Tuned momentum " << '\n';
+  if (Config::get().general.verbosity > 99U) std::cout << "Tuned momentum \n";
 }
 
 // call function for spherical boundary conditions
@@ -790,7 +790,7 @@ void md::simulation::boundary_adjustments()
 {
   if (Config::get().md.spherical.use)
   {
-    if (Config::get().general.verbosity > 99U) std::cout << "Adjusting boundary conditions." << '\n';
+    if (Config::get().general.verbosity > 99U) std::cout << "Adjusting boundary conditions.\n";
     spherical_adjust();
   }
 }
@@ -1010,7 +1010,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
   if (VERBOSE > 0U)
   {
     std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)" << '\n';
+    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
   }
   // Main MD Loop
   auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
@@ -1019,7 +1019,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     bool const HEATED(heat(k));
     if (VERBOSE < 4U && k % split == 0 && k > 1)
     {
-      std::cout << k << " of " << CONFIG.num_steps << " steps completed" << '\n';
+      std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
     // apply half step temperature corrections
@@ -1070,7 +1070,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
     {
-      if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds." << '\n';
+      if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds.\n";
       coordobj.energy_update(true);
     }
     // If spherical boundaries are used apply boundary potential
@@ -1166,7 +1166,7 @@ void md::simulation::verletintegrator(std::size_t const k_init)
   if (VERBOSE > 0U)
   {
     std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)" << '\n';
+    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
   }
   auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
   // Main MD Loop
@@ -1244,7 +1244,7 @@ void md::simulation::verletintegrator(std::size_t const k_init)
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
     {
-      if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds." << '\n';
+      if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds.\n";
       coordobj.energy_update(true);
     }
     // If spherical boundaries are used apply boundary potential

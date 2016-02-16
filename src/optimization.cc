@@ -167,7 +167,7 @@ optimization::global::optimizer::optimizer (
 { 
   if (Config::get().general.verbosity > 1)
   {
-    std::cout << "Evaluating initial structures for global optimization." << '\n';
+    std::cout << "Evaluating initial structures for global optimization.\n";
   }
   std::size_t const N(initial_structures.size());
   std::size_t const iter_size(scon::num_digits(N));
@@ -194,7 +194,7 @@ optimization::global::optimizer::optimizer (
     if (Config::get().general.verbosity > 1)
     {
       std::cout << "Status for initial structure #" << std::setw(iter_size) << std::left << kit + 1 << (minimized ? "" : " (minimized)");
-      std::cout << ": " << S << "(Energy: " << coordobj.pes().energy << ", Minimum Index: " << min_index << ")" << '\n';
+      std::cout << ": " << S << "(Energy: " << coordobj.pes().energy << ", Minimum Index: " << min_index << ")\n";
       if (S == min_status::T::REJECT_BROKEN)
       {
         brokens.push_back(coordobj.xyz());
@@ -289,7 +289,7 @@ void optimization::global::optimizer::header_to_cout()
     std::cout << "Accepted?       ";
     std::cout << std::setw(10) << std::left << "N.Minima";
     std::cout << std::setw(10) << std::left << "N.Range";
-    std::cout << "(Temperature, Timer)" << '\n';
+    std::cout << "(Temperature, Timer)\n";
   }
 }
 

@@ -54,7 +54,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
           std::cout << "No bond parameters found for [Number:" << a+1 << "," << b+1 << "]";
           std::cout << "[Type:" << coords->atoms(a).energy_type() << "," << coords->atoms(b).energy_type() << "]";
           std::cout << "[Type/Class:" << params->type(coords->atoms(a).energy_type(), tinker::BOND, true);
-              std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::BOND, true) << "]" << '\n';
+              std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::BOND, true) << "]\n";
         }
       }
       std::size_t N_c(cobj.atoms(b).bonds().size());
@@ -74,7 +74,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
               std::cout << "[Type:" << coords->atoms(a).energy_type() << "," << coords->atoms(b).energy_type() << "," << coords->atoms(c).energy_type() << "]";
               std::cout << "[Type/Class:" << params->type(coords->atoms(a).energy_type(), tinker::ANGLE, true);
               std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::ANGLE, true);
-              std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::ANGLE, true) << "]" << '\n';
+              std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::ANGLE, true) << "]\n";
             }
             find_urey(a, b, c);
 			find_strbend(a, b, c);
@@ -100,7 +100,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
                 std::cout << "[Type/Class: " << params->type(coords->atoms(a).energy_type(), tinker::TORSION, true);
                 std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::TORSION, true);
                 std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::TORSION, true);
-                std::cout << "," << params->type(coords->atoms(d).energy_type(), tinker::TORSION, true) << "]" << '\n';
+                std::cout << "," << params->type(coords->atoms(d).energy_type(), tinker::TORSION, true) << "]\n";
               }
             }
             // todo find_opbend()
@@ -1057,10 +1057,10 @@ std::ostream& tinker::refine::types::operator<< (std::ostream &stream, imptor co
 
 std::ostream& tinker::refine::types::operator<< (std::ostream &stream, multipole const &bq)
 {
-  stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]" << '\n';
+  stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]\n";
   stream << ":(C: " << (*bq.p_nonrot).charge << ", DP: " << (*bq.p_nonrot).dipole << ")";
   stream << ":(QP: " << (*bq.p_nonrot).quadrupole(0) << " // " << (*bq.p_nonrot).quadrupole(1) << ", " << (*bq.p_nonrot).quadrupole(2) << " //";
-  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")" << '\n';
+  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")\n";
   stream << ":(C: " << bq.p_rot.charge << ", DP: " << bq.p_rot.dipole << ")";
   stream << ":(QP: " << bq.p_rot.quadrupole(0) << " // " << bq.p_rot.quadrupole(1) << ", " << bq.p_rot.quadrupole(2) << " //";
   stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")";

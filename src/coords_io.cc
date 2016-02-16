@@ -647,7 +647,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 
     if (indexation_not_contiguous)
     {
-      std::cout << "Indexation not contiguous. Rebinding atoms." << '\n';
+      std::cout << "Indexation not contiguous. Rebinding atoms.\n";
       for (std::size_t i(0U); i < atoms.size(); ++i)
       {
         for (auto bonding_partner : atoms.atom(i).bonds())
@@ -826,7 +826,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
   std::size_t const N(ref.size());
   if (stream.good() && N > 0)
   {
-    stream << "zmat angstroms" << '\n';
+    stream << "zmat angstroms\n";
     stream << std::left << std::setw(10) << 1U;
     stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a() + 1;
     stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << '\n';
@@ -867,7 +867,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
       stream << std::right << std::setw(10) << "dih" << i;
       stream << '\n';
     }
-    stream << "variables" << '\n';
+    stream << "variables\n";
     if (N > 1)
     {
       stream << "bnd" << std::left << std::setw(10) << 1u;
@@ -895,7 +895,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).azimuth();
       stream << '\n';
     }
-    stream << "constants" << '\n';
+    stream << "constants\n";
     for (std::size_t i = 1; i < N; ++i)
     {
       stream << "g_bnd" << std::left << std::setw(10) << i;
@@ -914,7 +914,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
         stream << '\n';
       }
     }
-    stream << "end" << '\n';
+    stream << "end\n";
   }
   else throw std::runtime_error("ERR_FILE_WRITE: stream bad");
 }

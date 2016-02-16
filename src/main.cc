@@ -62,9 +62,9 @@ int main(int argc, char **argv)
     // Print configuration
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << '\n';
-      std::cout << "Configuration ('" << config_filename << "')" << '\n';
-      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "-------------------------------------------------\n";
+      std::cout << "Configuration ('" << config_filename << "')\n";
+      std::cout << "-------------------------------------------------\n";
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
@@ -90,12 +90,12 @@ int main(int argc, char **argv)
 
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << '\n';
-      std::cout << "Initialization" << '\n';
-      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "-------------------------------------------------\n";
+      std::cout << "Initialization\n";
+      std::cout << "-------------------------------------------------\n";
       std::cout << "Loaded " << ci->size() << " structure" << (ci->size() == 1 ? "" : "s");
       std::cout << ". (" << ci->atoms() << " atom" << (ci->atoms() == 1 ? "" : "s");
-      std::cout << (ci->size() > 1 ? " each" : "") << ")" << '\n';
+      std::cout << (ci->size() > 1 ? " each" : "") << ")\n";
       std::size_t const susysize(coords.subsystems().size());
       if (susysize > 1U)
       {
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "-------------------------------------------------\n";
       std::cout << "Initialization done after " << init_timer << '\n';
     }
     /*
@@ -150,9 +150,9 @@ int main(int argc, char **argv)
     {
       if (Config::get().general.verbosity > 1U)
       {
-        std::cout << "-------------------------------------------------" << '\n';
-        std::cout << "Preoptimization:" << '\n';
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
+        std::cout << "Preoptimization:\n";
+        std::cout << "-------------------------------------------------\n";
       }
       std::size_t i(0);
       for (auto const & pes : *ci)
@@ -179,10 +179,10 @@ int main(int argc, char **argv)
 
     */
 
-    std::cout << "-------------------------------------------------" << '\n';
+    std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
-    std::cout << "' (" << Config::get().general.task << ") computation:" << '\n';
-    std::cout << "-------------------------------------------------" << '\n';
+    std::cout << "' (" << Config::get().general.task << ") computation:\n";
+    std::cout << "-------------------------------------------------\n";
     // start task timer
     scon::chrono::high_resolution_timer task_timer;
     // select task
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
         {
           coords.g();
         }
-        std::cout << "Energy " << '\n';
+        std::cout << "Energy \n";
         coords.e_tostream_short(std::cout);
         break;
       }
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           loclogstream << coords.pes().energy << ' ' << tim.count() << '\n';
-          std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)" << '\n';
+          std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
           coords.e_tostream_short(std::cout);
           locoptstream << coords;
         }
@@ -323,9 +323,9 @@ int main(int argc, char **argv)
     case config::tasks::TS:
       { // Gradient only tabu search
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         if (Config::get().optimization.global.pre_optimize)
         {
           startopt::apply(coords, ci->PES());
@@ -338,9 +338,9 @@ int main(int argc, char **argv)
     case config::tasks::MC:
       { // MonteCarlo
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         if (Config::get().optimization.global.pre_optimize)
         {
           startopt::apply(coords, ci->PES());
@@ -353,9 +353,9 @@ int main(int argc, char **argv)
     case config::tasks::GRID:
       { // Grid Search
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         optimization::global::optimizers::main_grid mc(coords, ci->PES(), 
           Config::get().optimization.global.grid.main_delta);
         mc.run(Config::get().optimization.global.iterations, true);
@@ -446,11 +446,11 @@ int main(int argc, char **argv)
     case config::tasks::GOSOL:
       { // Combined Solvation + Global Optimization
         std::cout << Config::get().startopt.solvadd;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "-------------------------------------------------\n";
         startopt::preoptimizers::GOSol sopt(coords, ci->PES());
         sopt.run(Config::get().startopt.solvadd.maxNumWater);
         break;
@@ -584,7 +584,7 @@ int main(int argc, char **argv)
     }
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
-    std::cout << " took " << task_timer << " to complete." << '\n';
+    std::cout << " took " << task_timer << " to complete.\n";
     std::cout << "Execution of " << config::Programname << " (" << config::Version << ")";
     std::cout << " ended after " << exec_timer << '\n';
 
@@ -593,17 +593,17 @@ int main(int argc, char **argv)
 #if !defined(COMPILEX64)
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead." << '\n';
+    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
   }
 #else
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. Input structure probably too large." << '\n';
+    std::cout << "Memory allocation failure. Input structure probably too large.\n";
   }
 #endif
   catch (std::exception & e)
   {
-    std::cout << "An exception occured. The execution of " << config::Programname << " failed. " << '\n';
+    std::cout << "An exception occured. The execution of " << config::Programname << " failed. \n";
     std::cout << "Error: " << e.what() << '\n';
   }
 #endif

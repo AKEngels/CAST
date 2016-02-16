@@ -262,8 +262,8 @@ void neb::create(ptrdiff_t &count)
       coords::Cartesian_Point const bv(cPtr->xyz(bond.atoms[0]) - cPtr->xyz(bond.atoms[1]));
       coords::float_type const d = len(bv);
       //std::cout << "dist " << d << " ideal " << bond.ideal << '\n';
-      if (d < bond.ideal && (1.0 - d / bond.ideal) > 0.10)   std::cout << "WARNING_1-bond_length not reasonable" << '\n';
-      if (d > bond.ideal && abs(1.0 - (d / bond.ideal)) > 0.10) std::cout << "WARNING_1-bond_length not reasonable" << '\n';
+      if (d < bond.ideal && (1.0 - d / bond.ideal) > 0.10)   std::cout << "WARNING_1-bond_length not reasonable\n";
+      if (d > bond.ideal && abs(1.0 - (d / bond.ideal)) > 0.10) std::cout << "WARNING_1-bond_length not reasonable\n";
 
 
 
@@ -277,8 +277,8 @@ void neb::create(ptrdiff_t &count)
         av2(cPtr->xyz(angle.atoms[2]) - cPtr->xyz(angle.atoms[1]));
       coords::float_type const d(scon::angle(av1, av2).degrees());
       //std::cout << "angle " << d << " ideal " << angle.ideal << '\n';
-      if (d < angle.ideal && (1.0 - d / angle.ideal) > 0.10) std::cout << "WARNING_1_dihedral not reasonable" << '\n';
-      if (d > angle.ideal && abs(1.0 - (d / angle.ideal)) > 0.10) std::cout << "WARNING_2_dihedral not reasonable" << '\n';
+      if (d < angle.ideal && (1.0 - d / angle.ideal) > 0.10) std::cout << "WARNING_1_dihedral not reasonable\n";
+      if (d > angle.ideal && abs(1.0 - (d / angle.ideal)) > 0.10) std::cout << "WARNING_2_dihedral not reasonable\n";
     }
   }
 
@@ -573,8 +573,8 @@ void neb::opt_mep(ptrdiff_t &count)
       off << "MIN         " << min_energies[count] << '\n';
       printmono(name.str(), imagi[0], count);
     }
-    off << "ENERGIE:    " << this->energies[0] << "   START" << '\n';
-    off2 << "ENERGIE:    " << this->energies[0] << "   START" << '\n';
+    off << "ENERGIE:    " << this->energies[0] << "   START\n";
+    off2 << "ENERGIE:    " << this->energies[0] << "   START\n";
 
     for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
     {
@@ -591,8 +591,8 @@ void neb::opt_mep(ptrdiff_t &count)
 
     }
 
-    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL" << '\n';
-    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL" << '\n';
+    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
     print(name.str(), imagi, count);
 
 
@@ -601,8 +601,8 @@ void neb::opt_mep(ptrdiff_t &count)
 
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
 
-    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL" << '\n';
-    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL" << '\n';
+    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {
 

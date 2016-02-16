@@ -86,18 +86,18 @@ void energy::interfaces::amoeba::amoeba_ff::print_E(std::ostream &) const
 
 void energy::interfaces::amoeba::amoeba_ff::print_E_head(std::ostream &S, bool const endline) const
 {
-  S << "Potentials" << '\n';
+  S << "Potentials\n";
   S << std::right << std::setw(24) << "B";
   S << std::right << std::setw(24) << "A";
   S << std::right << std::setw(24) << "U";
-  S << std::right << std::setw(24) << "T" << '\n';
+  S << std::right << std::setw(24) << "T\n";
   S << std::right << std::setw(24) << "V";
   S << std::right << std::setw(24) << "MUL";
   S << std::right << std::setw(24) << "POL";
   S << std::right << std::setw(24) << "OOP";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
-  S << std::right << std::setw(24) << "SUM" << '\n';
+  S << std::right << std::setw(24) << "SUM\n";
   size_t const SSS(coords->subsystems().size());
   if (SSS > 1U)
   {
@@ -122,7 +122,7 @@ void energy::interfaces::amoeba::amoeba_ff::print_E_head(std::ostream &S, bool c
     }
   }
   S << '\n';
-  S << "Count" << '\n';
+  S << "Count\n";
   S << std::right << std::setw(24) << refined.bonds().size();
   S << std::right << std::setw(24) << refined.angles().size();
   S << std::right << std::setw(24) << refined.ureys().size();
@@ -170,20 +170,20 @@ void energy::interfaces::amoeba::amoeba_ff::print_G_tinkerlike(std::ostream &S, 
   size_t const N(coords->size());
   if (!aggregate)
   {
-    S << "Gradients" << '\n';
+    S << "Gradients\n";
     S << std::right << std::setw(24) << "B";
     S << std::right << std::setw(24) << "A";
     S << std::right << std::setw(24) << "U";
     S << std::right << std::setw(24) << "ID";
-    S << std::right << std::setw(24) << "IT" << '\n';
+    S << std::right << std::setw(24) << "IT\n";
     S << std::right << std::setw(24) << "T";
     S << std::right << std::setw(24) << "V+C";
     S << std::right << std::setw(24) << "-";
     S << std::right << std::setw(24) << "-";
-    S << std::right << std::setw(24) << "SUM" << '\n';
+    S << std::right << std::setw(24) << "SUM\n";
     for (size_t i(0u); i < N; ++i)
     {
-      S << i + 1 << "-x" << '\n';
+      S << i + 1 << "-x\n";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[BOND][i].x();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[ANGLE][i].x();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[UREY][i].x();
@@ -195,7 +195,7 @@ void energy::interfaces::amoeba::amoeba_ff::print_G_tinkerlike(std::ostream &S, 
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).x() << '\n';
-      S << i + 1 << "-y" << '\n';
+      S << i + 1 << "-y\n";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[BOND][i].y();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[ANGLE][i].y();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[UREY][i].y();
@@ -207,7 +207,7 @@ void energy::interfaces::amoeba::amoeba_ff::print_G_tinkerlike(std::ostream &S, 
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).y() << '\n';
-      S << i + 1 << "-z" << '\n';
+      S << i + 1 << "-z\n";
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[BOND][i].z();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[ANGLE][i].z();
       S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[UREY][i].z();
@@ -236,7 +236,7 @@ void energy::interfaces::amoeba::amoeba_ff::print_G_tinkerlike(std::ostream &S, 
       p_oop += fabs(part_grad[OPBEND][i].x()) + fabs(part_grad[OPBEND][i].y()) + fabs(part_grad[OPBEND][i].z());
       p_sum += fabs(coords->g_xyz(i).x()) + fabs(coords->g_xyz(i).y()) + fabs(coords->g_xyz(i).z());
     }
-    S << "Agg" << '\n';
+    S << "Agg\n";
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_b;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_a;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_u;

@@ -86,7 +86,7 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
     }
     if (Config::get().general.verbosity > 1U) 
     {
-      std::cout << "(" << std::setprecision(2) << std::showpoint << std::fixed <<  T << " K, " << step_timer << ")" << '\n';
+      std::cout << "(" << std::setprecision(2) << std::showpoint << std::fixed <<  T << " K, " << step_timer << ")\n";
     }
     if (!restore(status) || fails > Config::get().optimization.global.fallback_limit)
     {
@@ -94,14 +94,14 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
       {
         //if (Config::get().general.verbosity > 9U)
         //{
-        //  std::cout << "Diversification." << '\n';
+        //  std::cout << "Diversification.\n";
         //}
         diversification();
         fails = 0;
       }
       else
       {
-        std::cout << "Diversification limit reached. Stop." << '\n';
+        std::cout << "Diversification limit reached. Stop.\n";
         break;
       }
     }

@@ -1995,11 +1995,11 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
 
 
 
-    //std::cout << "TEST6_2" << '\n';
+    //std::cout << "TEST6_2\n";
     for (k = i + 1; k <= alloc; k++) {
       kk = ipole[k] + 1;
       if (kk == 0)continue;
-      //std::cout << "TEST7" << '\n';
+      //std::cout << "TEST7\n";
       xr = positions[kk - 1].x() - positions[ii - 1].x();
       yr = positions[kk - 1].y() - positions[ii - 1].y();
       zr = positions[kk - 1].z() - positions[ii - 1].z();
@@ -2007,7 +2007,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
       /*if (configuration::e.periodic == true){
       boundary(xr, yr, zr);
       }*/
-      /*	std::cout << "TEST8" << '\n';*/
+      /*	std::cout << "TEST8\n";*/
       r2 = xr*xr + yr*yr + zr*zr;
       r = sqrt(r2);
 
@@ -2296,7 +2296,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
     if (eps > epsold) done = true;
     if (iter >= maxiter) done = true;
   }
-  if (eps > poleps) std::cout << "induced dipoles may not converged" << '\n';
+  if (eps > poleps) std::cout << "induced dipoles may not converged\n";
 
   //for (i = 1; i <= alloc; i++){
   //	if (alloc == 0) break;
@@ -2781,7 +2781,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         tempmulti = em;
         temppol = ep;
-        //std::cout << "Test1" << '\n';
+        //std::cout << "Test1\n";
 
               //!intermediate variables for the permanent components
 
@@ -2809,7 +2809,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         ftm2[3] = gf[1] * zr + gf[2] * di[2] + gf[3] * dk[2] + gf[4] * (qkdi[2] - qidk[2]) + gf[5] * qir[2] + gf[6] * qkr[2] + gf[7] * (qiqkr[2] + qkqir[2]);
 
 
-        //std::cout << "Test2" << '\n';
+        //std::cout << "Test2\n";
         //! get the induced force components
 
         ftm2i[1] = gfi[1] * xr + 0.5*(-rr3*ck*(uind[1][i] * psc3 + uinp[1][i] * dsc3) + rr5*sc[4] * (uind[1][i] * psc5 + uinp[1][i] * dsc5) - rr7*sc[6] * (uind[1][i] * psc7 + uinp[1][i] * dsc7))
@@ -2850,7 +2850,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         findmp[3] = temp3 * ddsc3[2] + temp5 * ddsc5[2];
 
 
-        //std::cout << "Test3" << '\n';
+        //std::cout << "Test3\n";
 
 
         //! modifiy induced force for partially excluded interactions
@@ -2916,7 +2916,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
 
 
-        //std::cout << "Test4" << '\n';
+        //std::cout << "Test4\n";
 
         // 	cout << ftm2[2] << endl;
 
@@ -2940,7 +2940,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           frcx[j] = 0.0;
           frcy[j] = 0.0;
         }
-        //std::cout << "Test5" << '\n';
+        //std::cout << "Test5\n";
         ia = zaxis[i] + 1;
         ib = ipole[i] + 1;
         if (ib == 0)continue;
@@ -4037,7 +4037,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
 
           }
-          else { std::cout << "TOO MANY ATOMS IN POLARIZATION GROUP" << '\n'; }
+          else { std::cout << "TOO MANY ATOMS IN POLARIZATION GROUP\n"; }
 
         }
       }

@@ -15,7 +15,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29)
       {
-        std::cout << "Illegal Energy interface." << '\n';
+        std::cout << "Illegal Energy interface.\n";
       }
       return nullptr;
     }  
@@ -23,7 +23,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29)
       {
-        std::cout << "Not (yet) existent energy interface choosen." << '\n';
+        std::cout << "Not (yet) existent energy interface choosen.\n";
       }
       return new energy::interfaces::amoeba::amoeba_ff(cp);
     }
@@ -31,20 +31,20 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29) 
       {
-        std::cout << "Mopac choosen for energy calculations." << '\n';
+        std::cout << "Mopac choosen for energy calculations.\n";
       }
       return new energy::interfaces::mopac::sysCallInterface(cp);
     }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
-      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations." << '\n';
+      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations.\n";
       return new energy::interfaces::terachem::mpiInterface(cp);
     }
 #endif
   default:
     {
-    if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen." << '\n';
+    if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen.\n";
       return new energy::interfaces::aco::aco_ff(cp);
     }
   }

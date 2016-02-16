@@ -284,7 +284,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
     if(testcoord(coord_in)){
       l_disp=false;
     }else{
-      //std::cout << "DISPLACEMENT TOO BIG" << '\n';
+      //std::cout << "DISPLACEMENT TOO BIG\n";
       l_disp=true;
       status = 0;
     }
@@ -321,7 +321,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 
 
     //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-    //if(status == 0) std::cout << "REJECTED STRUCTURE" << '\n';
+    //if(status == 0) std::cout << "REJECTED STRUCTURE\n";
     else if (status == 1)  {
       //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
       MCEN=MCmin;
@@ -340,7 +340,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	 printmono(out_opt,global_path_minima[opt][counter],opt);
 
     }
-    else if (status == 2) /*std::cout << "SAME STRUCTURE" << '\n';*/
+    else if (status == 2) /*std::cout << "SAME STRUCTURE\n";*/
     status=0;
 	
 

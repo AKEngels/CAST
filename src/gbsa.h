@@ -280,7 +280,7 @@ private:
 				oz = OZ(i);
 
 				//Warnmeldung, falls bei einem der Atome OZ = 0 ist
-				if (oz == 0) std::cout << "Warnung: Atom " << i + 1 << " wurde von CAST die Ordnungszahl 0 zugewiesen" << '\n';
+				if (oz == 0) std::cout << "Warnung: Atom " << i + 1 << " wurde von CAST die Ordnungszahl 0 zugewiesen\n";
 
 				switch (oz)
 				{
@@ -459,7 +459,7 @@ private:
 				}
 			}
 			alpha[i] = 1.0 / total;
-			//std::cout << "done" << '\n';
+			//std::cout << "done\n";
 		}
 	};
 	///////////////////////////////////////////////////////////////////////////////////////

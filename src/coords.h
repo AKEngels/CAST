@@ -363,7 +363,7 @@ namespace coords
       if (m_preinterface)
       {
         if (Config::get().general.verbosity > 19)
-          std::cout << "Preotimization will be performed." << '\n';
+          std::cout << "Preotimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()

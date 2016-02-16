@@ -37,7 +37,7 @@ pathx::pathx(neb *NEB, coords::Coordinates *c)
 void pathx::pathx_ini()
 {
 
-  std::cout << "**************INITIALIZATION OF PATHOPT*************" << '\n';
+  std::cout << "**************INITIALIZATION OF PATHOPT*************\n";
 
   natom = cPtr->size();
   nvar = 3 * natom;
@@ -179,7 +179,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			  }
 			  coords::Coordinates temp_perp(*cPtr);
 			  temp_perp.set_pes(positions);
-			  std::cout << "set pes point" << '\n';
+			  std::cout << "set pes point\n";
 			  perp_point test_perp;
 			  test_perp = perp_point(temp_perp.pes());
 			  move_main(test_perp);
@@ -294,7 +294,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
         l_disp = false;
       }
       else {
-        //std::cout << "DISPLACEMENT TOO BIG" << '\n';
+        //std::cout << "DISPLACEMENT TOO BIG\n";
         l_disp = true;
         status = 0;
       }
@@ -337,7 +337,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 
       //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-      //if(status == 0) std::cout << "REJECTED STRUCTURE" << '\n';
+      //if(status == 0) std::cout << "REJECTED STRUCTURE\n";
       else if (status == 1) {
         //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
         MCEN = MCmin;
@@ -359,7 +359,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
         printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
 
       }
-      else if (status == 2) /*std::cout << "SAME STRUCTURE" << '\n';*/
+      else if (status == 2) /*std::cout << "SAME STRUCTURE\n";*/
         status = 0;
 
 
@@ -722,7 +722,7 @@ double pathx::lbfgs()
     std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
   if (Config::get().general.verbosity > 19 && cPtr->integrity())
   {
-    std::cout << "Energy after optimization: " << '\n';
+    std::cout << "Energy after optimization: \n";
     cPtr->e_head_tostream_short(std::cout, cPtr->energyinterface());
     cPtr->e_tostream_short(std::cout, cPtr->energyinterface());
   }
@@ -832,7 +832,7 @@ void pathx::move_main(perp_point & direction)
   coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
   size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
   // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains." << '\n';
+  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
     size_t const K(static_cast<size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));

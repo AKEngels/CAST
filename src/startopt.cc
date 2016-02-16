@@ -8,7 +8,7 @@ void startopt::apply(coords::Coordinates & c, coords::Ensemble_PES & e)
   std::unique_ptr<startopt::Preoptimizer> optimizer;
   std::size_t multi(Config::get().startopt.number_of_structures / e.size());
   std::cout << Config::get().startopt;
-  std::cout << "-------------------------------------------------" << '\n';
+  std::cout << "-------------------------------------------------\n";
   if (Config::get().startopt.type == config::startopt::types::T::SOLVADD)
   {
     optimizer = std::unique_ptr<startopt::Preoptimizer>

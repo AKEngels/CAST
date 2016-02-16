@@ -106,12 +106,12 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "   (" << std::setprecision(2) << std::showpoint;
-      std::cout << std::fixed << T << " K, " << step_timer << ")" << '\n';
+      std::cout << std::fixed << T << " K, " << step_timer << ")\n";
     }
     if (!restore(status))
     {
       if (Config::get().general.verbosity > 1U)
-        std::cout << "Starting point selection limit reached (no non-tabu minimum accessible). Stop." << '\n';
+        std::cout << "Starting point selection limit reached (no non-tabu minimum accessible). Stop.\n";
       break;
     }
   }

@@ -114,13 +114,13 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "(" << std::setprecision(2) << std::showpoint;
-      std::cout << std::fixed << T << " K, " << step_timer << ", Changed " << movecount << ")" << '\n';
+      std::cout << std::fixed << T << " K, " << step_timer << ", Changed " << movecount << ")\n";
     }
     if (!restore(status))
     {
       if (Config::get().general.verbosity > 1U)
       {
-          std::cout << "Starting point selection limit reached (no non-banned minimum accessible). Stop." << '\n';
+          std::cout << "Starting point selection limit reached (no non-banned minimum accessible). Stop.\n";
       }
       break;
     }
@@ -187,7 +187,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
   // apply those torsions
   if (Config::get().general.verbosity > 14U)
   {
-    std::cout << "Changing " << m << " of " << n << " mains." << '\n';
+    std::cout << "Changing " << m << " of " << n << " mains.\n";
   }
   auto maxrot = Config::get().optimization.global.montecarlo.dihedral_max_rot;
   for (std::size_t ii(0U); ii<m; ++ii)
@@ -246,7 +246,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coord
   // apply those torsions
   if (verb > 9U)
   {
-    std::cout << "Changing " << m << " of " << n << " mains." << '\n';
+    std::cout << "Changing " << m << " of " << n << " mains.\n";
   }
   for (std::size_t ii(0U); ii<m; ++ii)
   {
