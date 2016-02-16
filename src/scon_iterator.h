@@ -269,6 +269,7 @@ namespace scon
   template<class T>
   class count_iterator
   {
+
     T value;
     std::size_t offset;
 
@@ -277,8 +278,8 @@ namespace scon
   public:
 
     using iterator_category = std::random_access_iterator_tag;
-    using reference = std::remove_reference_t<T>&;
-    using pointer = std::remove_reference_t<T>*;
+    using reference = typename std::remove_reference<T>::type&;
+    using pointer = typename std::remove_reference<T>::type*;
     using value_type = T;
     using difference_type = std::ptrdiff_t;
 
