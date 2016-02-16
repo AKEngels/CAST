@@ -229,7 +229,7 @@ namespace energy
             av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
             av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
           auto const d(scon::angle(av1, av2).degrees() - angle.ideal);
-          auto const r(d*RATIOPI180);
+          auto const r(d*SCON_PI180);
           E += angle.force*r*r;
           if (abs(d) > 20.0) integrity = false;
         }
@@ -251,7 +251,7 @@ namespace energy
             av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
             av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
           auto const d = scon::angle(av1, av2).degrees() - angle.ideal;
-          auto const r = d*RATIOPI180;
+          auto const r = d*SCON_PI180;
           /*std::cout << angle.atoms[0] << ", " << angle.atoms[1] << ", " << angle.atoms[2] << "\n";
           std::cout << "Delta deg: " << d << ", delta rad: " << r << ", ideal: " << angle.ideal << ", force = " << angle.force << '\n';
           std::cout << scon::angle(av1, av2).degrees() << "; " << angle.force*r*r << "\n";*/
@@ -626,8 +626,8 @@ namespace energy
           for (std::size_t j(0U); j < imptor.p.number; ++j)
           {
             std::size_t const k = imptor.p.order[j];
-            coords::float_type c(std::cos(imptor.p.ideal[j] * RATIOPI180)),
-              s(std::sin(imptor.p.ideal[j] * RATIOPI180));
+            coords::float_type c(std::cos(imptor.p.ideal[j] * SCON_PI180)),
+              s(std::sin(imptor.p.ideal[j] * SCON_PI180));
             c = c > 1.0 ? 1.0 : c < -1.0 ? -1.0 : c;
             s = s > 1.0 ? 1.0 : s < -1.0 ? -1.0 : s;
             E += imptor.p.force[j] * (1.0 + (cos[k]*c + sin[k]*s));
@@ -695,8 +695,8 @@ namespace energy
           for (std::size_t j(0U); j < imptor.p.number; ++j)
           {
             std::size_t const k = imptor.p.order[j];
-            coords::float_type c(std::cos(imptor.p.ideal[j]*RATIOPI180)), 
-              s(std::sin(imptor.p.ideal[j]*RATIOPI180));
+            coords::float_type c(std::cos(imptor.p.ideal[j]*SCON_PI180)), 
+              s(std::sin(imptor.p.ideal[j]*SCON_PI180));
             c = c > 1.0 ? 1.0 : c < -1.0 ? -1.0 : c;
             s = s > 1.0 ? 1.0 : s < -1.0 ? -1.0 : s;
 
@@ -921,12 +921,12 @@ namespace energy
             coords::float_type const cosine(min(1.0, max(-1.0, (dot(t, u)/rtru))));
             coords::float_type const sine(dot(cb, tu)/(rcb*rtru));
             coords::float_type const angle(sine < 0.0 ? 
-              -acos(cosine)*RATIO180PI : acos(cosine)*RATIO180PI);
+              -acos(cosine)*SCON_180PI : acos(cosine)*SCON_180PI);
             coords::float_type da((abs(angle+improper.p.ideal[0U]) < abs(angle-improper.p.ideal[0U])) ? 
               angle+improper.p.ideal[0U] : angle-improper.p.ideal[0U]);
             if (da > 180.0) da -= 360.0;
             if (da < -180.0) da += 360.0;
-            da *= RATIOPI180;
+            da *= SCON_PI180;
             coords::float_type dE = improper.p.force[0]*da;
             E += dE*da;
             dE *= 2.0;
@@ -987,7 +987,7 @@ namespace energy
 
 		  //solvate.get_E();
 
-		  //std::cout << lineend << lineend << "           Implicit solvation interactions: " << solvate.interactions << lineend << lineend;
+		  //std::cout << '\n' << '\n' << "           Implicit solvation interactions: " << solvate.interactions << '\n' << '\n';
 
 		  //return solvate.ES;
       return coords::float_type(0);

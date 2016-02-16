@@ -38,7 +38,7 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
   }
   coordobj.set_pes(accepted_minima[min_index].pes);
   init_stereo = coordobj.stereos();
-  std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) + 1);
+  std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
 
   
   if (Config::get().optimization.global.tabusearch.mcm_first) diversification();
@@ -86,7 +86,7 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
     }
     if (Config::get().general.verbosity > 1U) 
     {
-      std::cout << "(" << std::setprecision(2) << std::showpoint << std::fixed <<  T << " K, " << step_timer << ")" << lineend;
+      std::cout << "(" << std::setprecision(2) << std::showpoint << std::fixed <<  T << " K, " << step_timer << ")" << '\n';
     }
     if (!restore(status) || fails > Config::get().optimization.global.fallback_limit)
     {
@@ -94,14 +94,14 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
       {
         //if (Config::get().general.verbosity > 9U)
         //{
-        //  std::cout << "Diversification." << lineend;
+        //  std::cout << "Diversification." << '\n';
         //}
         diversification();
         fails = 0;
       }
       else
       {
-        std::cout << "Diversification limit reached. Stop." << lineend;
+        std::cout << "Diversification limit reached. Stop." << '\n';
         break;
       }
     }

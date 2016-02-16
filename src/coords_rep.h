@@ -6,7 +6,6 @@
 #include <cstddef>
 #include <utility>
 
-#include "global.h"
 #include "ls.h"
 #include "scon_angle.h"
 #include "scon_spherical.h"
@@ -21,6 +20,8 @@
 
 namespace coords
 {
+
+  class Coordinates;
 
   template<class T> using Container = scon::vector < T >;
 
@@ -315,11 +316,11 @@ namespace coords
     friend inline std::ostream& operator<< (std::ostream &stream, RepType<Rep3D, RepInt, RepMain> const & rep)
     {
       stream << "C:";
-      for (auto const & e : rep.cartesian) stream << e << lineend;
+      for (auto const & e : rep.cartesian) stream << e << '\n';
       stream << "I:";
-      for (auto const & e : rep.intern) stream << e << lineend;
+      for (auto const & e : rep.intern) stream << e << '\n';
       stream << "M:";
-      for (auto const & e : rep.main) stream << e << lineend;
+      for (auto const & e : rep.main) stream << e << '\n';
       return stream;
     }
 

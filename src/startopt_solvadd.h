@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#include "global.h"
 #include "configuration.h"
 #include "scon_linkedcell.h"
 #include "scon_vect.h"

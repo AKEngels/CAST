@@ -13,6 +13,7 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 #include "coords_io.h"
 #include "configuration.h"
 #include "startopt_solvadd.h"
+#include "scon_utility.h"
 
 
 bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point) const
@@ -166,10 +167,10 @@ optimization::global::optimizer::optimizer (
 { 
   if (Config::get().general.verbosity > 1)
   {
-    std::cout << "Evaluating initial structures for global optimization." << lineend;
+    std::cout << "Evaluating initial structures for global optimization." << '\n';
   }
   std::size_t const N(initial_structures.size());
-  std::size_t const iter_size(num_digits(N));
+  std::size_t const iter_size(scon::num_digits(N));
   coords::Ensemble_3d brokens;
   for (std::size_t kit = 0; kit < N; ++kit)
   {
@@ -193,7 +194,7 @@ optimization::global::optimizer::optimizer (
     if (Config::get().general.verbosity > 1)
     {
       std::cout << "Status for initial structure #" << std::setw(iter_size) << std::left << kit + 1 << (minimized ? "" : " (minimized)");
-      std::cout << ": " << S << "(Energy: " << coordobj.pes().energy << ", Minimum Index: " << min_index << ")" << lineend;
+      std::cout << ": " << S << "(Energy: " << coordobj.pes().energy << ", Minimum Index: " << min_index << ")" << '\n';
       if (S == min_status::T::REJECT_BROKEN)
       {
         brokens.push_back(coordobj.xyz());
@@ -202,7 +203,7 @@ optimization::global::optimizer::optimizer (
   }
   if (Config::get().general.verbosity > 1)
   {
-    std::cout << lineend;
+    std::cout << '\n';
   }
   if (!brokens.empty())
   {
@@ -275,7 +276,8 @@ optimization::global::optimizer::min_status::T optimization::global::optimizer::
 
 void optimization::global::optimizer::header_to_cout()
 {
-  std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) + 1);
+  std::size_t const iter_size(scon::num_digits(
+    Config::get().optimization.global.iterations) + 1);
   if (Config::get().general.verbosity > 1U)
   {
     std::cout << "M   ";
@@ -287,7 +289,7 @@ void optimization::global::optimizer::header_to_cout()
     std::cout << "Accepted?       ";
     std::cout << std::setw(10) << std::left << "N.Minima";
     std::cout << std::setw(10) << std::left << "N.Range";
-    std::cout << "(Temperature, Timer)" << lineend;
+    std::cout << "(Temperature, Timer)" << '\n';
   }
 }
 
@@ -336,20 +338,24 @@ void optimization::global::optimizer::setTemp (const double temp)
   kT = optimization::global::k*T;
 }
 
+namespace
+{
+  
+}
 
 bool optimization::global::optimizer::accept (double const E) const
 {
   using std::abs;
-  using std::exp;
   // Nan or anything? DO not accept!
   if (E != E) return false;
   double const E0(Config::get().optimization.global.metropolis_local ? 
     accepted_minima[min_index].pes.energy : accepted_minima[gmin_index].pes.energy);
   // More than two orders of magnitude difference?
   // Pobably not sane...
-  if ((abs(E) / abs(E0)) > 100.0) return false;
+  if ((std::abs(E) / std::abs(E0)) > 100.0) return false;
   // R[0,1) < e^((E0-E)/kT) ?
-  return d_rand() < exp(-(E-E0)/kT);
+  auto rand01 = scon::random::threaded_rand(std::uniform_real_distribution<double>{});
+  return rand01 < std::exp(-(E-E0)/kT);
 }
 
 
@@ -486,7 +492,6 @@ bool optimization::global::optimizer::restore_roulette_selection()
 
 void optimization::global::optimizer::write_range(std::string const & suffix)
 {
-  //std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) * 2 + 1);
   std::size_t const M(range_minima.size());
   if (M > 0)
   {

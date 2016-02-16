@@ -1,5 +1,5 @@
 #include "reaccoord.h"
-
+#include "scon_angle.h"
 
 ::tinker::parameter::parameters reaccoords::tp;
 
@@ -80,7 +80,7 @@ void reaccoords::angles(void)
             av2(cPtr->xyz(angle.atoms[2]) - cPtr->xyz(angle.atoms[1]));
           double const d(scon::angle_refined(av1, av2).degrees());
 		      angles_value.push_back(d);
-          //double const r(d*RATIOPI180);
+          //double const r(d*SCON_PI180);
 	 }
 }
 
@@ -97,7 +97,7 @@ void reaccoords::bonds_alteration(void)
 	if(!bonds_value.empty()){
 	for (auto bond : refined.bonds())
         {
-			bond1<<"  index  :"<<k<<"   Atom 1   : "<<bond.atoms[0]+1<<"  Atom 2   : "<<bond.atoms[1]+1<<lineend;
+			bond1<<"  index  :"<<k<<"   Atom 1   : "<<bond.atoms[0]+1<<"  Atom 2   : "<<bond.atoms[1]+1<<'\n';
 			k++;
 		}
 
@@ -107,7 +107,7 @@ void reaccoords::bonds_alteration(void)
 		
 		for (size_t j=0;j<refined.bonds().size();j++){
 
-		/*std::cout<<"i  "<<i+j<<" i+ "<<i+j+refined.bonds().size()<<"    "<<bonds_value[i+j]-bonds_value[i+j+refined.bonds().size()]<<lineend;
+		/*std::cout<<"i  "<<i+j<<" i+ "<<i+j+refined.bonds().size()<<"    "<<bonds_value[i+j]-bonds_value[i+j+refined.bonds().size()]<<'\n';
 */
 			bonds_diff[i/refined.bonds().size()].push_back(abs(bonds_value[i+j]-bonds_value[i+j+refined.bonds().size()]));
 			
@@ -123,7 +123,7 @@ void reaccoords::bonds_alteration(void)
 			double max=abs(bonds_diff[i][0]);
 			
 			if (bonds_diff[i].empty()) continue;
-			/*bond3<<i<<lineend;*/
+			/*bond3<<i<<'\n';*/
 			for (size_t j=0; j< bonds_diff[i].size();j++)
 				{
 					
@@ -137,16 +137,16 @@ void reaccoords::bonds_alteration(void)
 						}
 
 				}
-			bond2<<"INDEX  "<<index<<"max "<<max<<lineend; 
+			bond2<<"INDEX  "<<index<<"max "<<max<<'\n'; 
 			
 		}
 	
 	for (size_t j=0; j< bonds_diff[0].size();j++)
 	{
-		bond3<<j<<lineend;
+		bond3<<j<<'\n';
 	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
-	bond3<<"  "<<i<<"  "<<bonds_diff[i][j]<<lineend;
+	bond3<<"  "<<i<<"  "<<bonds_diff[i][j]<<'\n';
 		}
 	}
 	}
@@ -154,7 +154,7 @@ void reaccoords::bonds_alteration(void)
 
 void reaccoords::angles_alteration(void)
 {
-	std::cout<<angles_value.size()<<lineend;
+	std::cout<<angles_value.size()<<'\n';
 	angles_diff.resize(refined.angles().size());
 	size_t i(0),k(0);
 	std::fstream angle1("ANGLE_LIST.dat",std::ios::app),angle2("ANGLE_MAX.dat",std::ios::app),angle3("COMPLETE_ANGLE_LIST.dat",std::ios::app);
@@ -164,7 +164,7 @@ void reaccoords::angles_alteration(void)
 
 	for (auto angle : refined.angles())
         {
-			angle1<<"  index  :"<<k<<"   Atom 1   : "<<angle.atoms[0]+1<<"  Atom 2   : "<<angle.atoms[1]+1<<"  Atom 3   : "<<angle.atoms[2]+1<<lineend;
+			angle1<<"  index  :"<<k<<"   Atom 1   : "<<angle.atoms[0]+1<<"  Atom 2   : "<<angle.atoms[1]+1<<"  Atom 3   : "<<angle.atoms[2]+1<<'\n';
 			k++;
 		}
 
@@ -173,7 +173,7 @@ void reaccoords::angles_alteration(void)
 		
 		for (size_t j=0;j<refined.angles().size();j++){
 
-		//std::cout<<"i  "<<i+j<<" i+ "<<i+j+refined.angles().size()<<"    "<<angles_value[i+j]-angles_value[i+j+refined.angles().size()]<<lineend;
+		//std::cout<<"i  "<<i+j<<" i+ "<<i+j+refined.angles().size()<<"    "<<angles_value[i+j]-angles_value[i+j+refined.angles().size()]<<'\n';
 		angles_diff[i/refined.angles().size()].push_back(abs(angles_value[i+j]-angles_value[i+j+refined.angles().size()]));
 		}
 		i+=refined.angles().size();
@@ -200,15 +200,15 @@ void reaccoords::angles_alteration(void)
 						}
 
 				}
-			angle2<<"INDEX  "<<index<<"max "<<max<<lineend; 
+			angle2<<"INDEX  "<<index<<"max "<<max<<'\n'; 
 		}
 
 	for (size_t j=0; j< angles_diff[0].size();j++)
 	{
-		angle3<<j<<lineend;
+		angle3<<j<<'\n';
 	for( i=0;i<cPtr->mult_struc_counter-1;i++)
 		{
-	angle3<<"  "<<i<<"  "<<angles_diff[i][j]<<lineend;
+	angle3<<"  "<<i<<"  "<<angles_diff[i][j]<<'\n';
 		}
 	}
 	}

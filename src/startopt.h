@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include "global.h"
 #include "coords.h"
 
 namespace startopt

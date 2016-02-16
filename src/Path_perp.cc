@@ -104,7 +104,7 @@ path_perp::path_perp (coords::Coordinates *c)
 void path_perp::pathx_ini()
 {
   
-  std::cout << "**************INITIALIZATION OF PERPENDICULAR SEARCH*************"<<lineend;
+  std::cout << "**************INITIALIZATION OF PERPENDICULAR SEARCH*************"<<'\n';
   natom=cPtr->size();
   nvar=3*natom;
   image1.resize(natom);
@@ -247,7 +247,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	//break;
     if(MCmin != MCmin){
       nancounter++;
-      //std::cout << "***size of counter***:  "<<nancounter << lineend;
+      //std::cout << "***size of counter***:  "<<nancounter << '\n';
   
 	  cPtr->set_xyz(coord_in);
       if(nancounter>10) break;
@@ -284,7 +284,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
     if(testcoord(coord_in)){
       l_disp=false;
     }else{
-      //std::cout << "DISPLACEMENT TOO BIG" << lineend;
+      //std::cout << "DISPLACEMENT TOO BIG" << '\n';
       l_disp=true;
       status = 0;
     }
@@ -321,13 +321,13 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 
 
     //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-    //if(status == 0) std::cout << "REJECTED STRUCTURE" << lineend;
+    //if(status == 0) std::cout << "REJECTED STRUCTURE" << '\n';
     else if (status == 1)  {
-      //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<lineend;
+      //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
       MCEN=MCmin;
      // writetinker(output,opt);
       global_image=opt;
-	  output2 <<mcstep <<"    "<< opt <<"    "<< MCEN << lineend;
+	  output2 <<mcstep <<"    "<< opt <<"    "<< MCEN << '\n';
 	 
 	  counter++;
 	 
@@ -340,7 +340,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	 printmono(out_opt,global_path_minima[opt][counter],opt);
 
     }
-    else if (status == 2) /*std::cout << "SAME STRUCTURE" << lineend;*/
+    else if (status == 2) /*std::cout << "SAME STRUCTURE" << '\n';*/
     status=0;
 	
 
@@ -429,11 +429,11 @@ double path_perp::lbfgs (ptrdiff_t imagex)
   optimizer(point);
   if (Config::get().general.verbosity > 4 && optimizer.state() != status::SUCCESS)
   {
-    std::cout << "Optimization returned " << optimizer.state() << lineend;
+    std::cout << "Optimization returned " << optimizer.state() << '\n';
   }
   if (Config::get().general.verbosity > 5)
   {
-    std::cout << "Optimization done. Evaluations:" << optimizer.iter() << lineend;
+    std::cout << "Optimization done. Evaluations:" << optimizer.iter() << '\n';
   }
   return point.f;
 }
@@ -501,7 +501,7 @@ void path_perp::printmono(std::string const &name, coords::Representation_3D &pr
   std::string temp;
 
 
-  out << "     " << natom << "  global counter:  "<<count <<lineend;
+  out << "     " << natom << "  global counter:  "<<count <<'\n';
   for(ptrdiff_t j = 0; j <natom ;j++){
 
     out << std::right << std::setw(6) << j+1;
@@ -515,7 +515,7 @@ void path_perp::printmono(std::string const &name, coords::Representation_3D &pr
     {
       out << std::right << std::setw(6) << cPtr->atoms(j).bonds()[n]+1U;
     }
-    out << lineend;
+    out << '\n';
 
   }
 

@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <memory>
-#include "global.h"
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
@@ -34,8 +33,8 @@ int main(int argc, char **argv)
 {
 
 #ifdef _MSC_VER
-  std::ios::sync_with_stdio(false);
-  std::cout.sync_with_stdio(false);
+  //std::ios::sync_with_stdio(false);
+  //std::cout.sync_with_stdio(false);
 #endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
@@ -63,9 +62,9 @@ int main(int argc, char **argv)
     // Print configuration
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << lineend;
-      std::cout << "Configuration ('" << config_filename << "')" << lineend;
-      std::cout << "-------------------------------------------------" << lineend;
+      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "Configuration ('" << config_filename << "')" << '\n';
+      std::cout << "-------------------------------------------------" << '\n';
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
@@ -91,12 +90,12 @@ int main(int argc, char **argv)
 
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << lineend;
-      std::cout << "Initialization" << lineend;
-      std::cout << "-------------------------------------------------" << lineend;
+      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "Initialization" << '\n';
+      std::cout << "-------------------------------------------------" << '\n';
       std::cout << "Loaded " << ci->size() << " structure" << (ci->size() == 1 ? "" : "s");
       std::cout << ". (" << ci->atoms() << " atom" << (ci->atoms() == 1 ? "" : "s");
-      std::cout << (ci->size() > 1 ? " each" : "") << ")" << lineend;
+      std::cout << (ci->size() > 1 ? " each" : "") << ")" << '\n';
       std::size_t const susysize(coords.subsystems().size());
       if (susysize > 1U)
       {
@@ -106,7 +105,7 @@ int main(int argc, char **argv)
           std::size_t const atms(coords.subsystems(i).size());
           std::cout << "[#" << i + 1 << " with " << atms << " atom" << (atms == 1 ? ".]" : "s.]");
         }
-        std::cout << lineend;
+        std::cout << '\n';
       }
     }
     // ... 
@@ -139,8 +138,8 @@ int main(int argc, char **argv)
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------" << lineend;
-      std::cout << "Initialization done after " << init_timer << lineend;
+      std::cout << "-------------------------------------------------" << '\n';
+      std::cout << "Initialization done after " << init_timer << '\n';
     }
     /*
 
@@ -151,9 +150,9 @@ int main(int argc, char **argv)
     {
       if (Config::get().general.verbosity > 1U)
       {
-        std::cout << "-------------------------------------------------" << lineend;
-        std::cout << "Preoptimization:" << lineend;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
+        std::cout << "Preoptimization:" << '\n';
+        std::cout << "-------------------------------------------------" << '\n';
       }
       std::size_t i(0);
       for (auto const & pes : *ci)
@@ -162,13 +161,13 @@ int main(int argc, char **argv)
         coords.pe();
         if (Config::get().general.verbosity > 1U)
         {
-          std::cout << "Preoptimization initial: " << ++i << lineend;
+          std::cout << "Preoptimization initial: " << ++i << '\n';
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
         coords.po();
         if (Config::get().general.verbosity > 1U)
         {
-          std::cout << "Preoptimization post-opt: " << i << lineend;
+          std::cout << "Preoptimization post-opt: " << i << '\n';
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
       }
@@ -180,10 +179,10 @@ int main(int argc, char **argv)
 
     */
 
-    std::cout << "-------------------------------------------------" << lineend;
+    std::cout << "-------------------------------------------------" << '\n';
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
-    std::cout << "' (" << Config::get().general.task << ") computation:" << lineend;
-    std::cout << "-------------------------------------------------" << lineend;
+    std::cout << "' (" << Config::get().general.task << ") computation:" << '\n';
+    std::cout << "-------------------------------------------------" << '\n';
     // start task timer
     scon::chrono::high_resolution_timer task_timer;
     // select task
@@ -192,6 +191,29 @@ int main(int argc, char **argv)
       // DEVTEST: Room for Development testing
     case config::tasks::DEVTEST:
     {
+      //auto lo_structure_fn = coords::output::filename("_ia1-sorted");
+      //std::ofstream sortedstream(lo_structure_fn, std::ios_base::out);
+      //coords::Ensemble_PES pese;
+      //for (auto const & pes : *ci)
+      //{
+      //  coords.set_xyz(pes.structure.cartesian);
+      //  coords.g();
+      //  pese.push_back(coords.pes());
+      //}
+      //auto sorter = [](coords::PES_Point const &a,
+      //  coords::PES_Point const &b) -> bool
+      //{
+      //  return a.ia_matrix.at(1u).energy < b.ia_matrix.at(1u).energy;
+      //};
+      //std::sort(pese.begin(), pese.end(), sorter);
+      //for (auto const & pe : pese)
+      //{
+      //  //std::cout << std::setw(16) << pe.ia_matrix.at(1u).energy
+      //  //  << std::setw(16) << pe.energy << "\n";
+      //  coords.set_xyz(pe.structure.cartesian);
+      //  sortedstream << coords;
+      //}
+      auto pes = startopt::ringsearch::genetic_propagation(coords, 10, 20);
       break;
     }
     case config::tasks::SP:
@@ -210,7 +232,7 @@ int main(int argc, char **argv)
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           std::cout << tim.count() << " ns\n";
-          std::cout << "Structure " << ++i << lineend;
+          std::cout << "Structure " << ++i << '\n';
           sp_estr << i << ' ' << en << ' ' << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
         }
@@ -236,7 +258,7 @@ int main(int argc, char **argv)
           }
           coords.to_xyz();
           coords.e();
-          std::cout << "Structure " << ++i << lineend;
+          std::cout << "Structure " << ++i << '\n';
           coords.e_tostream_short(std::cout);
           outputstream << coords;
         }
@@ -251,7 +273,7 @@ int main(int argc, char **argv)
         {
           coords.set_xyz(pes.structure.cartesian);
           coords.g();
-          std::cout << "Structure " << ++i << lineend;
+          std::cout << "Structure " << ++i << '\n';
           coords.e_tostream_short(std::cout);
           coords.energyinterface()->print_G_tinkerlike(gstream);
         }
@@ -265,7 +287,7 @@ int main(int argc, char **argv)
         {
           coords.g();
         }
-        std::cout << "Energy " << lineend;
+        std::cout << "Energy " << '\n';
         coords.e_tostream_short(std::cout);
         break;
       }
@@ -285,7 +307,7 @@ int main(int argc, char **argv)
           auto start = high_resolution_clock::now();
           coords.set_xyz(pes.structure.cartesian);
           coords.e();
-          std::cout << "Initial: " << ++i << lineend;
+          std::cout << "Initial: " << ++i << '\n';
           coords.e_tostream_short(std::cout);
           loclogstream << i << ' ' << coords.pes().energy << ' ';
           coords.o();
@@ -301,9 +323,9 @@ int main(int argc, char **argv)
     case config::tasks::TS:
       { // Gradient only tabu search
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         if (Config::get().optimization.global.pre_optimize)
         {
           startopt::apply(coords, ci->PES());
@@ -316,9 +338,9 @@ int main(int argc, char **argv)
     case config::tasks::MC:
       { // MonteCarlo
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         if (Config::get().optimization.global.pre_optimize)
         {
           startopt::apply(coords, ci->PES());
@@ -331,9 +353,9 @@ int main(int argc, char **argv)
     case config::tasks::GRID:
       { // Grid Search
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         optimization::global::optimizers::main_grid mc(coords, ci->PES(), 
           Config::get().optimization.global.grid.main_delta);
         mc.run(Config::get().optimization.global.iterations, true);
@@ -355,9 +377,9 @@ int main(int argc, char **argv)
             std::size_t const angle_intern(coords.atoms(j).iangle());
             std::cout << "Main " << i << " along " << coords.atoms(bound_intern).i_to_a();
             std::cout << " and " << coords.atoms(angle_intern).i_to_a();
-            std::cout << " : " << coords.main(i) << lineend;
+            std::cout << " : " << coords.main(i) << '\n';
           }
-          for (auto const & e : coords.main()) std::cout << e << lineend;
+          for (auto const & e : coords.main()) std::cout << e << '\n';
         }
         break;
       }
@@ -371,15 +393,15 @@ int main(int argc, char **argv)
           coords.set_xyz(pes.structure.cartesian);
           coords.o();
           dimerstream << coords;
-          std::cout << "Pre-Dimer Minimum" << ++i << lineend;
+          std::cout << "Pre-Dimer Minimum" << ++i << '\n';
           coords.e_tostream_short(std::cout);
           coords.dimermethod_dihedral();
           dimerstream << coords;
-          std::cout << "Dimer Transition" << i << lineend;
+          std::cout << "Dimer Transition" << i << '\n';
           coords.e_tostream_short(std::cout);
           coords.o();
           dimerstream << coords;
-          std::cout << "Post-Dimer Minimum" << i << lineend;
+          std::cout << "Post-Dimer Minimum" << i << '\n';
           coords.e_tostream_short(std::cout);
         }
         break;
@@ -424,11 +446,11 @@ int main(int argc, char **argv)
     case config::tasks::GOSOL:
       { // Combined Solvation + Global Optimization
         std::cout << Config::get().startopt.solvadd;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------" << lineend;
+        std::cout << "-------------------------------------------------" << '\n';
         startopt::preoptimizers::GOSol sopt(coords, ci->PES());
         sopt.run(Config::get().startopt.solvadd.maxNumWater);
         break;
@@ -490,7 +512,7 @@ int main(int argc, char **argv)
 			   {
 				  coords2.mult_struc_counter++;
 				  coords2.set_xyz(pes.structure.cartesian);
-          RMSD << "RMSD : " << scon::root_mean_square_deviation(coords2.xyz(), coords.xyz()) << lineend;
+          RMSD << "RMSD : " << scon::root_mean_square_deviation(coords2.xyz(), coords.xyz()) << '\n';
 
 			   }
 			   
@@ -561,28 +583,28 @@ int main(int argc, char **argv)
 
     }
     // stop and print task and execution time
-    std::cout << lineend << "Task " << config::task_strings[Config::get().general.task];
-    std::cout << " took " << task_timer << " to complete." << lineend;
+    std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
+    std::cout << " took " << task_timer << " to complete." << '\n';
     std::cout << "Execution of " << config::Programname << " (" << config::Version << ")";
-    std::cout << " ended after " << exec_timer << lineend;
+    std::cout << " ended after " << exec_timer << '\n';
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
 #if !defined(COMPILEX64)
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead." << lineend;
+    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead." << '\n';
   }
 #else
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. Input structure probably too large." << lineend;
+    std::cout << "Memory allocation failure. Input structure probably too large." << '\n';
   }
 #endif
   catch (std::exception & e)
   {
-    std::cout << "An exception occured. The execution of " << config::Programname << " failed. " << lineend;
-    std::cout << "Error: " << e.what() << lineend;
+    std::cout << "An exception occured. The execution of " << config::Programname << " failed. " << '\n';
+    std::cout << "Error: " << e.what() << '\n';
   }
 #endif
   return 0;

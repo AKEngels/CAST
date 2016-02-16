@@ -24,9 +24,7 @@ namespace coords
       else if (str.find("AMBER") != str.npos) return types::AMBER;
       else return types::TINKER;
     }
-    // new format creator
-    input::format* new_format(void);
-
+    
     class format
     {
     protected:
@@ -49,6 +47,9 @@ namespace coords
       Ensemble_PES::const_iterator begin(void) const { return input_ensemble.begin(); }
       Ensemble_PES::const_iterator end(void) const { return input_ensemble.end(); }
     };
+
+    // new format creator
+    input::format* new_format(void);
 
     namespace formats
     {

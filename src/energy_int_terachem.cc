@@ -11,7 +11,6 @@
 #include <stdexcept>
 #include <climits>
 
-#include "error.h"
 #include "atomic.h"
 
 #include "filemanipulation.h"
@@ -28,7 +27,7 @@ bool energy::interfaces::terachem::mpiInterface::option_init_done(false);
 
 void energy::interfaces::terachem::mpiInterface::init_terachem (void) 
 {
-  if(Config::get().general.verbosity > 1) std::cout << "Reading TeraChem options from 'CAST_TERACHEM_OPTIONS.txt'." << lineend;
+  if(Config::get().general.verbosity > 1) std::cout << "Reading TeraChem options from 'CAST_TERACHEM_OPTIONS.txt'." << '\n';
   LBL_FileReader options("CAST_TERACHEM_OPTIONS.txt");
   std::string option_string;
   for (std::size_t i(0U); i < options.data.size() && i < 100; i+=2)
@@ -51,8 +50,8 @@ void energy::interfaces::terachem::mpiInterface::init_terachem (void)
   {
     std::cout << "OptBuffer x " << option_buffer.size() << ":";
     for (auto p : option_buffer) std::cout << p;
-    std::cout << lineend;
-    std::cout << (options.data.size()/2) << " options transfered to TeraChem." << lineend;
+    std::cout << '\n';
+    std::cout << (options.data.size()/2) << " options transfered to TeraChem." << '\n';
   }
   mpiInterface::option_init_done = true;
 }
@@ -86,9 +85,9 @@ energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * 
       if (smb.length() > 1) char_buffer[Q+1] = smb[1];
     }
     // send number of atoms and atom symbols for initial orbital checks
-    if (Config::get().general.verbosity > 19) std::cout << "Sending initial number of atoms to TeraChem." << lineend;
+    if (Config::get().general.verbosity > 19) std::cout << "Sending initial number of atoms to TeraChem." << '\n';
     mpiInterface::mpo.send(num_atoms,  0, 2);
-    if (Config::get().general.verbosity > 19) std::cout << "Sending initial atom symbols to TeraChem." << lineend;
+    if (Config::get().general.verbosity > 19) std::cout << "Sending initial atom symbols to TeraChem." << '\n';
     mpiInterface::mpo.send(char_buffer, 0, 2);
   }
   optimizer = true;
@@ -160,14 +159,14 @@ void energy::interfaces::terachem::mpiInterface::mpi_send_data (const int tag)
     coords_buffer[P+2U] = coords->xyz(i).z();
   }
   // send number of atoms
-  if (Config::get().general.verbosity > 19) std::cout << "Sending Number of atoms to TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Sending Number of atoms to TeraChem." << '\n';
   mpiInterface::mpo.send(num_atoms,  0, tag);
   // send atom symbols
-  if (Config::get().general.verbosity > 19) std::cout << "Sending atom symbols to TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Sending atom symbols to TeraChem." << '\n';
   mpiInterface::mpo.send(char_buffer, 0, tag);
   // send coordinates
-  if (Config::get().general.verbosity > 19) std::cout << "Sending coords to TeraChem." << lineend;
-  //for (auto coord : coords_buffer) std::cout << coord << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Sending coords to TeraChem." << '\n';
+  //for (auto coord : coords_buffer) std::cout << coord << '\n';
   mpiInterface::mpo.send(coords_buffer, 0, tag);
   qm_population_charges.resize(N);
 }
@@ -175,23 +174,23 @@ void energy::interfaces::terachem::mpiInterface::mpi_send_data (const int tag)
 // MPI recieve calculated data
 void energy::interfaces::terachem::mpiInterface::mpi_recv_energy (void)
 {
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving energy from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving energy from TeraChem." << '\n';
   mpiInterface::mpo.recv(energy, MPI_ANY_SOURCE, MPI_ANY_TAG);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieved energy with tag " << mpiInterface::mpo.status().MPI_TAG << " from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieved energy with tag " << mpiInterface::mpo.status().MPI_TAG << " from TeraChem." << '\n';
   if (mpiInterface::mpo.status().MPI_TAG == 1) 
   {
     integrity = false;
     return;
   }
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving QM population charges from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving QM population charges from TeraChem." << '\n';
   mpiInterface::mpo.recv(qm_population_charges, MPI_ANY_SOURCE, MPI_ANY_TAG);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieved QM population charges from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieved QM population charges from TeraChem." << '\n';
   std::vector<double> buffer(4);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving QM dipole from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving QM dipole from TeraChem." << '\n';
   mpiInterface::mpo.recv(buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving MM dipole from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving MM dipole from TeraChem." << '\n';
   mpiInterface::mpo.recv(buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving TOT dipole from TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving TOT dipole from TeraChem." << '\n';
   mpiInterface::mpo.recv(buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
 }
 
@@ -199,7 +198,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_gradients (void)
 {
   std::size_t const N = coords->size();
   std::vector<double> grad_buffer(N*3U, 0.0);
-  if (Config::get().general.verbosity > 19) std::cout << "Recieving gradients." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Recieving gradients." << '\n';
   mpiInterface::mpo.recv(grad_buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
   if (mpiInterface::mpo.status().MPI_TAG == 1) throw std::runtime_error("ERR_ENERGY_TERACHEM : SCF did not converge");
   for (std::size_t i=0; i<N; ++i) 
@@ -213,7 +212,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_positions (void)
 {
   std::size_t const N = coords->size();
   std::vector<double> pos_buffer(N*3U, 0.0);
-  if (Config::get().general.verbosity > 49) std::cout << "Recieving positions." << lineend;
+  if (Config::get().general.verbosity > 49) std::cout << "Recieving positions." << '\n';
   mpiInterface::mpo.recv(pos_buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
   for (std::size_t i(0U); i<N; ++i)
   {
@@ -232,11 +231,11 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_positions (void)
 coords::float_type energy::interfaces::terachem::mpiInterface::e (void)
 {
   integrity = true;
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for engery call to -> TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for engery call to -> TeraChem." << '\n';
   mpi_send_data(2);
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 for engery call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 for engery call from <- TeraChem." << '\n';
   mpi_recv_energy();
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 2 for engery call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 2 for engery call from <- TeraChem." << '\n';
   mpi_recv_gradients();
   return energy;
 }
@@ -245,11 +244,11 @@ coords::float_type energy::interfaces::terachem::mpiInterface::e (void)
 coords::float_type energy::interfaces::terachem::mpiInterface::g (void)
 {
   integrity = true;
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for gradient call to -> TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for gradient call to -> TeraChem." << '\n';
   mpi_send_data(2);
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 for gradient call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 for gradient call from <- TeraChem." << '\n';
   mpi_recv_energy();
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 2 for gradient call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 2 for gradient call from <- TeraChem." << '\n';
   mpi_recv_gradients();
   return energy;
 }
@@ -265,13 +264,13 @@ coords::float_type energy::interfaces::terachem::mpiInterface::h (void)
 coords::float_type energy::interfaces::terachem::mpiInterface::o (void)
 {
   integrity = true;
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for opt call to -> TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer for opt call to -> TeraChem." << '\n';
   mpi_send_data(3);
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 (recv energy) for opt call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 1 (recv energy) for opt call from <- TeraChem." << '\n';
   mpi_recv_energy();
-  //if (Config::get().general.verbosity > 49) std::cout << "Data transfer 2 (recv gradients) for opt call from <- TeraChem." << lineend;
+  //if (Config::get().general.verbosity > 49) std::cout << "Data transfer 2 (recv gradients) for opt call from <- TeraChem." << '\n';
   //mpi_recv_gradients();
-  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 3 (recv positions) for opt call from <- TeraChem." << lineend;
+  if (Config::get().general.verbosity > 19) std::cout << "Data transfer 3 (recv positions) for opt call from <- TeraChem." << '\n';
   mpi_recv_positions();
   return energy;
 }

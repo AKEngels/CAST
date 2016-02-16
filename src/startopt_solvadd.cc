@@ -10,7 +10,6 @@
 #include <algorithm>
 
 #include "atomic.h"
-#include "error.h"
 #include "startopt_solvadd.h"
 #include "scon_chrono.h"
 #include "scon_utility.h"

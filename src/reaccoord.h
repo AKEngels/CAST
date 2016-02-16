@@ -3,7 +3,6 @@
 #include <string>
 #include <utility> 
 #include "configuration.h"
-#include "global.h"
 #include "energy.h"
 #include "scon_vect.h"
 #include "scon_utility.h"

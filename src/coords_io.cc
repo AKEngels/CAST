@@ -7,7 +7,6 @@
 #include <cstddef>
 #include <cstdio>
 #include "atomic.h"
-#include "global.h"
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_utility.h"
@@ -560,7 +559,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
     {
-      //std::cout << "Line " << i << " mod: " << i%(N+1u) << lineend;
+      //std::cout << "Line " << i << " mod: " << i%(N+1u) << '\n';
       //std::istringstream linestream(line);
       if (i <= N)
       {
@@ -648,12 +647,12 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 
     if (indexation_not_contiguous)
     {
-      std::cout << "Indexation not contiguous. Rebinding atoms." << lineend;
+      std::cout << "Indexation not contiguous. Rebinding atoms." << '\n';
       for (std::size_t i(0U); i < atoms.size(); ++i)
       {
         for (auto bonding_partner : atoms.atom(i).bonds())
         {
-          std::cout << "Partner of atom which is now " << i + 1 << " detached from " << bonding_partner << " and rebound to " << index_of_atom[bonding_partner] << lineend;
+          std::cout << "Partner of atom which is now " << i + 1 << " detached from " << bonding_partner << " and rebound to " << index_of_atom[bonding_partner] << '\n';
           atoms.atom(i).detach_from(bonding_partner);
           atoms.atom(i).bind_to(index_of_atom[bonding_partner]);
         }
@@ -713,7 +712,7 @@ void coords::output::formats::tinker::to_stream(std::ostream & stream) const
 {
   bool const pp = Config::get().energy.periodic && Config::get().energy.periodic_print;
   std::size_t const N(ref.size());
-  stream << (pp ? N + 8 : N) << lineend;
+  stream << (pp ? N + 8 : N) << '\n';
   //std::size_t index_width(1), tens(N);
   //while(tens >= 10U)
   //{
@@ -735,7 +734,7 @@ void coords::output::formats::tinker::to_stream(std::ostream & stream) const
     }
     if (ref.atoms(i).sub_type() == coords::Atom::sub_types::ST_IN) stream << " IN";
     else if (ref.atoms(i).sub_type() == coords::Atom::sub_types::ST_OUT) stream << " OUT";
-    stream << lineend;
+    stream << '\n';
   }
   if (pp)
   {
@@ -755,7 +754,7 @@ void coords::output::formats::tinker::to_stream(std::ostream & stream) const
 void coords::output::formats::moldenxyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
-  stream << N << lineend;
+  stream << N << '\n';
   stream << "Energy = " << ref.energyinterface()->energy;
   for (std::size_t i(0U); i < N; ++i)
   {
@@ -763,7 +762,7 @@ void coords::output::formats::moldenxyz::to_stream(std::ostream & stream) const
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-    stream << lineend;
+    stream << '\n';
   }
 }
 
@@ -778,7 +777,7 @@ void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-      stream << lineend;
+      stream << '\n';
     }
     else
     {
@@ -786,7 +785,7 @@ void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-      stream << lineend;
+      stream << '\n';
     }
   }
 }
@@ -794,21 +793,21 @@ void coords::output::formats::xyz_mopac7::to_stream(std::ostream & stream) const
 void coords::output::formats::xyz::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
-  //stream << N << lineend;
+  //stream << N << '\n';
   for (std::size_t i(0U); i < N; ++i)
   {
     /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-     stream << lineend;*/
+     stream << '\n';*/
     if (ref.atoms(i).fixed())
     {
       stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-      stream << lineend;
+      stream << '\n';
     }
     else
     {
@@ -816,7 +815,7 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-      stream << lineend;
+      stream << '\n';
     }
   }
 }
@@ -827,10 +826,10 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
   std::size_t const N(ref.size());
   if (stream.good() && N > 0)
   {
-    stream << "zmat angstroms" << lineend;
+    stream << "zmat angstroms" << '\n';
     stream << std::left << std::setw(10) << 1U;
     stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a() + 1;
-    stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << lineend;
+    stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << '\n';
     if (N > 1)
     {
       stream << std::left << std::setw(10) << 2U;
@@ -839,7 +838,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
       stream << std::left << std::setw(4) << ref.atoms(A).symbol();
       stream << std::right << std::setw(10) << ref.atoms(1u).ibond() + 1;
       stream << std::right << std::setw(10) << "bnd" << 1u;
-      stream << lineend;
+      stream << '\n';
     }
     if (N > 2)
     {
@@ -851,7 +850,7 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
       stream << std::right << std::setw(10) << "bnd" << 2u;
       stream << std::right << std::setw(10) << ref.atoms(2u).iangle() + 1;
       stream << std::right << std::setw(10) << "ang" << 2u;
-      stream << lineend;
+      stream << '\n';
     }
 
     for (std::size_t i = 3; i < N; ++i)
@@ -866,56 +865,56 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
       stream << std::right << std::setw(10) << "ang" << i;
       stream << std::right << std::setw(10) << ref.atoms(i).idihedral() + 1;
       stream << std::right << std::setw(10) << "dih" << i;
-      stream << lineend;
+      stream << '\n';
     }
-    stream << "variables" << lineend;
+    stream << "variables" << '\n';
     if (N > 1)
     {
       stream << "bnd" << std::left << std::setw(10) << 1u;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(1u).radius();
-      stream << lineend;
+      stream << '\n';
     }
     if (N > 2)
     {
       stream << "bnd" << std::left << std::setw(10) << 2u;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(2u).radius();
-      stream << lineend;
+      stream << '\n';
       stream << "ang" << std::left << std::setw(10) << 2u;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(2u).inclination();
-      stream << lineend;
+      stream << '\n';
     }
     for (std::size_t i = 3; i < N; ++i)
     {
       stream << "bnd" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).radius();
-      stream << lineend;
+      stream << '\n';
       stream << "ang" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).inclination();
-      stream << lineend;
+      stream << '\n';
       stream << "dih" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.intern(i).azimuth();
-      stream << lineend;
+      stream << '\n';
     }
-    stream << "constants" << lineend;
+    stream << "constants" << '\n';
     for (std::size_t i = 1; i < N; ++i)
     {
       stream << "g_bnd" << std::left << std::setw(10) << i;
       stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).x();
-      stream << lineend;
+      stream << '\n';
       if (i > 1)
       {
         stream << "g_ang" << std::left << std::setw(10) << i;
         stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).y();
-        stream << lineend;
+        stream << '\n';
       }
       if (i > 2)
       {
         stream << "g_dih" << std::left << std::setw(10) << i;
         stream << std::right << std::fixed << std::setw(20) << std::setprecision(6) << ref.g_intern(i).z();
-        stream << lineend;
+        stream << '\n';
       }
     }
-    stream << "end" << lineend;
+    stream << "end" << '\n';
   }
   else throw std::runtime_error("ERR_FILE_WRITE: stream bad");
 }
@@ -923,20 +922,20 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
 void coords::output::formats::xyz_mopac::to_stream(std::ostream &stream) const
 {
   std::size_t const N(ref.size());
-  //stream << N << lineend;
+  //stream << N << '\n';
   for (std::size_t i(0U); i < N; ++i)
   {
     /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-    stream << lineend;*/
+    stream << '\n';*/
     if (ref.atoms(i).fixed()) {
       stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " +0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " +0";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " +0";
-      stream << lineend;
+      stream << '\n';
     }
     else
     {
@@ -944,7 +943,7 @@ void coords::output::formats::xyz_mopac::to_stream(std::ostream &stream) const
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " +1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " +1";
       stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " +1";
-      stream << lineend;
+      stream << '\n';
     }
   }
 }

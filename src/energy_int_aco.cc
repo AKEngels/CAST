@@ -100,18 +100,18 @@ void energy::interfaces::aco::aco_ff::print_E (std::ostream &) const
 
 void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const endline) const
 {
-  S << "Potentials" << lineend;
+  S << "Potentials" << '\n';
   S << std::right << std::setw(24) << "B";
   S << std::right << std::setw(24) << "A";
   S << std::right << std::setw(24) << "U";
   S << std::right << std::setw(24) << "ID";
-  S << std::right << std::setw(24) << "IT" << lineend;
+  S << std::right << std::setw(24) << "IT" << '\n';
   S << std::right << std::setw(24) << "T";
   S << std::right << std::setw(24) << "V";
   S << std::right << std::setw(24) << "C";
   S << std::right << std::setw(24) << "SOLV";
   S << std::right << std::setw(24) << "-";
-  S << std::right << std::setw(24) << "SUM" << lineend;
+  S << std::right << std::setw(24) << "SUM" << '\n';
   std::size_t const SSS(coords->subsystems().size());
   if (SSS > 1U)
   {
@@ -136,13 +136,13 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
   //    S << std::right << std::setw(24) << ss.str();
   //  }
   //}
-  S << lineend;
-  S << "Count" << lineend;
+  S << '\n';
+  S << "Count" << '\n';
   S << std::right << std::setw(24) << refined.bonds().size();
   S << std::right << std::setw(24) << refined.angles().size();
   S << std::right << std::setw(24) << refined.ureys().size();
   S << std::right << std::setw(24) << refined.impropers().size();
-  S << std::right << std::setw(24) << refined.imptors().size() << lineend;
+  S << std::right << std::setw(24) << refined.imptors().size() << '\n';
   S << std::right << std::setw(24) << refined.torsions().size();
   std::size_t ia(refined.ia_count());
   S << std::right << std::setw(24) << ia;
@@ -150,7 +150,7 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
-  if (endline) S << lineend;
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const endline) const
@@ -160,7 +160,7 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::ANGLE];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::UREY];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::IMPROPER];
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::IMPTORSION] << lineend;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::IMPTORSION] << '\n';
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::TORSION];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::VDW];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::CHARGE];
@@ -170,13 +170,13 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
   std::size_t const IAS(coords->interactions().size());
   if (IAS > 0U) 
   {
-    S << lineend << std::right << std::setw(24) << "SubSystem IA:";
+    S << '\n' << std::right << std::setw(24) << "SubSystem IA:";
     for (std::size_t i(0U); i<IAS; ++i)
     {
       S << std::right << std::setw(24) << coords->interactions(i).energy;
     }
   }
-  if (endline) S << lineend;
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::aco::aco_ff::print_G_tinkerlike (std::ostream &S, bool const aggregate) const
@@ -184,52 +184,52 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike (std::ostream &S, bool 
   std::size_t const N(coords->size());
   if (!aggregate)
   {
-    S << "Gradients" << lineend;
+    S << "Gradients" << '\n';
     S << std::right << std::setw(24) << "B";
     S << std::right << std::setw(24) << "A";
     S << std::right << std::setw(24) << "U";
     S << std::right << std::setw(24) << "ID";
-    S << std::right << std::setw(24) << "IT" << lineend;
+    S << std::right << std::setw(24) << "IT" << '\n';
     S << std::right << std::setw(24) << "T";
     S << std::right << std::setw(24) << "V+C";
     S << std::right << std::setw(24) << "-";
     S << std::right << std::setw(24) << "-";
-    S << std::right << std::setw(24) << "SUM" << lineend;
+    S << std::right << std::setw(24) << "SUM" << '\n';
     for (std::size_t i(0u); i<N; ++i)
     {
-        S << i+1 << "-x" << lineend;
+        S << i+1 << "-x" << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::BOND][i].x();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::ANGLE][i].x();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::UREY][i].x();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].x();
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].x() << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].x() << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].x();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].x();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).x() << lineend;
-        S << i+1 << "-y" << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).x() << '\n';
+        S << i+1 << "-y" << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::BOND][i].y();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::ANGLE][i].y();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::UREY][i].y();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].y();
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].y() << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].y() << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].y();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].y();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).y() << lineend;
-        S << i+1 << "-z" << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).y() << '\n';
+        S << i+1 << "-z" << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::BOND][i].z();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::ANGLE][i].z();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::UREY][i].z();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPROPER][i].z();
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].z() << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::IMPTORSION][i].z() << '\n';
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::TORSION][i].z();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << part_grad[types::VDWC][i].z();
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
         S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
-        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).z() << lineend;
+        S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << coords->g_xyz(i).z() << '\n';
     }
   }
   else
@@ -246,17 +246,17 @@ void energy::interfaces::aco::aco_ff::print_G_tinkerlike (std::ostream &S, bool 
       p_vdwc += fabs(part_grad[types::VDWC][i].x()) + fabs(part_grad[types::VDWC][i].y()) + fabs(part_grad[types::VDWC][i].z());
       p_sum += fabs(coords->g_xyz(i).x()) + fabs(coords->g_xyz(i).y()) + fabs(coords->g_xyz(i).z());
     }
-    S << "Agg" << lineend;
+    S << "Agg" << '\n';
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_b;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_a;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_u;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_im;
-    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_it << lineend;
+    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_it << '\n';
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_t;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_vdwc;
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
     S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << "-";
-    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_sum << lineend;
+    S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << p_sum << '\n';
   }
 }
 

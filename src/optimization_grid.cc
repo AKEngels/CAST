@@ -12,11 +12,11 @@
 #include "scon_chrono.h"
 #include "scon.h"
 
-optimization::global::optimizers::main_grid::main_grid(coords::Coordinates &c, 
+optimization::global::optimizers::main_grid::main_grid(coords::Coordinates &c,
   coords::Ensemble_PES const &p, coords::angle_type const delta_grid)
-  : optimizer(c,p), m_delta(delta_grid),
-  m_num_offsets(static_cast<std::size_t>(coords::float_type(360) / delta_grid.degrees())+1u),
-  m_offset(c.main().size(), 0u), 
+  : optimizer(c, p), m_delta(delta_grid),
+  m_num_offsets(static_cast<std::size_t>(coords::float_type(360) / delta_grid.degrees()) + 1u),
+  m_offset(c.main().size(), 0u),
   m_init_offset(c.main().size(), 0u),
   m_done(false)
 {
@@ -64,8 +64,8 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
 {
   coordobj.set_pes(accepted_minima[min_index].pes);
   header_to_cout();
-  std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) + 1);
-  while (!m_done && i++<iterations)
+  std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
+  while (!m_done && i++ < iterations)
   {
     scon::chrono::high_resolution_timer step_timer;
     coordobj.set_all_main(next_main_from_offset());
@@ -106,12 +106,12 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "   (" << std::setprecision(2) << std::showpoint;
-      std::cout << std::fixed << T << " K, " << step_timer << ")" << lineend;
+      std::cout << std::fixed << T << " K, " << step_timer << ")" << '\n';
     }
     if (!restore(status))
     {
       if (Config::get().general.verbosity > 1U)
-        std::cout << "Starting point selection limit reached (no non-tabu minimum accessible). Stop." << lineend;
+        std::cout << "Starting point selection limit reached (no non-tabu minimum accessible). Stop." << '\n';
       break;
     }
   }

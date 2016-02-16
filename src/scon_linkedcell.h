@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <limits>
 #include <utility>
-#include "global.h"
 #include "scon.h"
 #include "scon_vect.h"
 #include "scon_utility.h"
@@ -680,7 +679,7 @@ namespace scon
           if (cfg::verbosity > 29U)
           {
             std::cout << "LinkedCells::update for ";
-            std::cout << positions.size() << " elements in boxes of " << edge << " and " << fragments() << " fragments.\n" << lineend;
+            std::cout << positions.size() << " elements in boxes of " << edge << " and " << fragments() << " fragments.\n" << '\n';
           }
           cellofelement.assign(positions.size(), 0u);
           m_links.assign(positions.size(), -1);

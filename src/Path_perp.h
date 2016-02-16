@@ -1,4 +1,3 @@
-#include "error.h"
 #include <vector>
 #include "coords.h"
 #include <ostream>

@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include "energy_int_amoeba.h"
+#include "scon_angle.h"
 #include "configuration.h"
 #include "scon_utility.h"
 #include "scon_c3.h"
@@ -137,10 +138,10 @@ void energy::interfaces::amoeba::amoeba_ff::calc(void)
   if (Config::get().energy.spackman.on)
   {
 
-	  if (Config::get().energy.spackman.interp) part_energy[SHORTRANGE] = Spackman_energy_analytical();
+    if (Config::get().energy.spackman.interp) part_energy[SHORTRANGE] = Spackman_energy_analytical();
 
 
-	  else part_energy[SHORTRANGE] = Spackman_Energy();
+    else part_energy[SHORTRANGE] = Spackman_Energy();
 
   }
 
@@ -286,8 +287,8 @@ namespace energy
             av1(coords->xyz(ang13.atoms[0]) - coords->xyz(ang13.atoms[1])),
             av2(coords->xyz(ang13.atoms[2]) - coords->xyz(ang13.atoms[1]));
           coords::float_type const d(scon::angle(av1, av2).degrees() - ang13.ideal);
-          coords::float_type const r(d*RATIOPI180);
-          E += (RATIOPI180*RATIOPI180)*ang13.force*d*d*(1.0 - 0.014*d + 5.60E-05*(d*d) - 7.0E-07*(d*d*d) + 2.2E-08*(d*d*d*d));
+          coords::float_type const r(d*SCON_PI180);
+          E += (SCON_PI180*SCON_PI180)*ang13.force*d*d*(1.0 - 0.014*d + 5.60E-05*(d*d) - 7.0E-07*(d*d*d) + 2.2E-08*(d*d*d*d));
 
           if (std::abs(d) > 30.0) integrity = false;
         }
@@ -306,8 +307,8 @@ namespace energy
             av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
           double d = scon::angle(av1, av2).degrees();
           d -= angle.ideal;
-          E += (RATIOPI180*RATIOPI180)*angle.force*d*d*(1.0 - 0.014*d + 5.60E-05*(d*d) - 7.0E-07*(d*d*d) + 2.2E-08*(d*d*d*d));
-          double dE = (RATIOPI180*RATIOPI180)*angle.force*d*RATIO180PI*(2.0 + (3.0*(-0.014*d)) + 4.0*5.60E-05*(d*d) + 5.0*-7.0E-07*(d*d*d) + 6.0*2.2E-08*(d*d*d*d));
+          E += (SCON_PI180*SCON_PI180)*angle.force*d*d*(1.0 - 0.014*d + 5.60E-05*(d*d) - 7.0E-07*(d*d*d) + 2.2E-08*(d*d*d*d));
+          double dE = (SCON_PI180*SCON_PI180)*angle.force*d*SCON_180PI*(2.0 + (3.0*(-0.014*d)) + 4.0*5.60E-05*(d*d) + 5.0*-7.0E-07*(d*d*d) + 6.0*2.2E-08*(d*d*d*d));
           coords::Cartesian_Point cv(av1);
           cv = cross(cv, av2);
           double const cvl(len(cv));
@@ -772,7 +773,7 @@ namespace energy
           if (rdb2 != 0.0 && cc != 0.0) {
             bkk2 = rdb2 - ee*ee / cc;
             cosi = sqrt(bkk2 / rdb2);
-            cosi = acos(cosi) * 180 / PI;
+            cosi = acos(cosi) * 180 / SCON_PI;
             dt = cosi;
 
             dt2 = dt*dt;
@@ -814,7 +815,7 @@ namespace energy
         double term, dccdxia, dccdyia, dccdzia, dccdxic, dccdyic, dccdzic, dccdxid, dccdyid, dccdzid;
         auto const & positions = coords->xyz();
         coords::Cartesian_Point bv, b, gv;
-		double radian = 180 / PI;
+        double radian = 180 / SCON_PI;
 
         double E(0.0);
         for (auto opbends : refined.opbends())
@@ -838,7 +839,7 @@ namespace energy
           xia = positions[ia].x();
           yia = positions[ia].y();
           zia = positions[ia].z();
-          //std::cout << ia << "   " << ib << "  " << ic << "  " << id << lineend;
+          //std::cout << ia << "   " << ib << "  " << ic << "  " << id << '\n';
           xib = positions[ib].x();
           yib = positions[ib].y();
           zib = positions[ib].z();
@@ -882,7 +883,7 @@ namespace energy
           if (rdb2 != 0.0 && cc != 0.0) {
             bkk2 = rdb2 - ee*ee / cc;
             cosi = sqrt(bkk2 / rdb2);
-            cosi = acos(cosi) * 180 / PI;
+            cosi = acos(cosi) * 180 / SCON_PI;
             dt = cosi;
 
             dt2 = dt*dt;
@@ -1170,8 +1171,8 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV
-        ( double const E, double const R, double const d,
-         double &e_v, double &dE) const
+        (double const E, double const R, double const d,
+          double &e_v, double &dE) const
       {
         double  dV(0.0);
         //e_c += gQ(C, d, dQ);
@@ -1182,7 +1183,7 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_fep
-        ( double const E, double const R, double const d,
+        (double const E, double const R, double const d,
           double const v_io,
           double &e_v, double &dE) const
       {
@@ -1205,19 +1206,19 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_cutoff
-        ( double const E, double const R, double const d,
+        (double const E, double const R, double const d,
           double const fV,
           double &e_v, double &dE) const
       {
         double  dV(0.0);
         //e_c += gQ(C, d, dQ)*fQ;
         e_v += gV<RT>(E, R, d, dV)*fV;
-        dE =  dV*fV*d;
+        dE = dV*fV*d;
       }
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_fep_cutoff
-        ( double const E, double const R, double const d,
+        (double const E, double const R, double const d,
           double const v_out, double const fV, double &e_v, double &dE) const
       {
         double/* dQ,*/ dV;
@@ -1339,11 +1340,11 @@ namespace energy
 
 
           coords::float_type r = len(b), dE(0.0);
-          //std::cout << r << lineend;
+          //std::cout << r << '\n';
           // std::cout << "Atoms: " << std::endl;
           // std::cout << pair.a + 1 << "  " << pair.b + 1 << std::endl;
 
-          g_QV<RT>( p.E, p.R, r, e_v, dE);
+          g_QV<RT>(p.E, p.R, r, e_v, dE);
           b *= dE;
           //charge_vector[pair.a] +=eQ(p.C,r)/r;
           //charge_vector[pair.b] +=eQ(p.C,r)/r;
@@ -1442,24 +1443,24 @@ namespace energy
             double fQ(0.0), fV(0.0);
             double r(0.0);
             if (!cutob.factors(rr, r, fQ, fV)) continue;
-            g_QV_fep_cutoff<RT>( p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), fV, V, dE);
+            g_QV_fep_cutoff<RT>(p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), fV, V, dE);
             double trash(0.0);
-            g_QV_fep_cutoff<RT>( p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), fV, e_vdw_dl, trash);
+            g_QV_fep_cutoff<RT>(p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), fV, e_vdw_dl, trash);
           }
           else
           {
             if (Config::get().energy.cutoff < 1000.0) {
               double fV(0.0);
               double r(0.0);
-              g_QV_fep_cutoff<RT>( p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), fV, V, dE);
+              g_QV_fep_cutoff<RT>(p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), fV, V, dE);
               double trash(0.0);
-              g_QV_fep_cutoff<RT>( p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), fV, e_vdw_dl, trash);
+              g_QV_fep_cutoff<RT>(p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), fV, e_vdw_dl, trash);
             }
             else {
               double const r = sqrt(rr);
-              g_QV_fep<RT>( p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), V, dE);
+              g_QV_fep<RT>(p.E, p.R, r, (ALCH_OUT ? fep.vin : fep.vout), V, dE);
               double trash(0.0);
-              g_QV_fep<RT>( p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), e_vdw_dl, trash);
+              g_QV_fep<RT>(p.E, p.R, r, (ALCH_OUT ? fep.dvin : fep.dvout), e_vdw_dl, trash);
             }
           }
           dist = b;
@@ -1959,10 +1960,10 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
       dscale[ipole[j] + 1] = 1.0;
 
     }
-    //std::cout << "n13.size" << n13[ii] << lineend;
+    //std::cout << "n13.size" << n13[ii] << '\n';
     for (j = 1; j <= n13[ii]; j++) {
       pscale[i13[j][ii]] = pscale3;
-      //std::cout << "i13 " << i13[j][ii] << " " << pscale3<< lineend;
+      //std::cout << "i13 " << i13[j][ii] << " " << pscale3<< '\n';
 
     }
     for (j = 1; j <= n14[ii]; j++) {
@@ -1994,11 +1995,11 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
 
 
 
-    //std::cout << "TEST6_2" << lineend;
+    //std::cout << "TEST6_2" << '\n';
     for (k = i + 1; k <= alloc; k++) {
       kk = ipole[k] + 1;
       if (kk == 0)continue;
-      //std::cout << "TEST7" << lineend;
+      //std::cout << "TEST7" << '\n';
       xr = positions[kk - 1].x() - positions[ii - 1].x();
       yr = positions[kk - 1].y() - positions[ii - 1].y();
       zr = positions[kk - 1].z() - positions[ii - 1].z();
@@ -2006,7 +2007,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
       /*if (configuration::e.periodic == true){
       boundary(xr, yr, zr);
       }*/
-      /*	std::cout << "TEST8" << lineend;*/
+      /*	std::cout << "TEST8" << '\n';*/
       r2 = xr*xr + yr*yr + zr*zr;
       r = sqrt(r2);
 
@@ -2029,12 +2030,12 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
         qkyz = rp[9][k];
         qkzz = rp[12][k];
 
-        /*	     std::cout << ci << lineend;
-        std::cout << diy << lineend;
-        std::cout << dix << lineend;
-        std::cout << diz << lineend;
-        std::cout << qixy <<lineend;
-        std::cout << qixx << lineend;*/
+        /*	     std::cout << ci << '\n';
+        std::cout << diy << '\n';
+        std::cout << dix << '\n';
+        std::cout << diz << '\n';
+        std::cout << qixy <<'\n';
+        std::cout << qixx << '\n';*/
 
         scale3 = 1.0;
         scale5 = 1.0;
@@ -2042,7 +2043,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
 
         damp = pdi * pdamp[k];
 
-        /*	std::cout << "damp  " << damp << lineend;*/
+        /*	std::cout << "damp  " << damp << '\n';*/
 
         if (damp != 0.0) {
           pgamma = std::min(pti, thole[k]);
@@ -2094,7 +2095,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
           field[j][k] = field[j][k] + fkd[j - 1] * dscale[kk];
           fieldp[j][i] = fieldp[j][i] + fid[j - 1] * pscale[kk];
           fieldp[j][k] = fieldp[j][k] + fkd[j - 1] * pscale[kk];
-          //std::cout << dscale[kk] << lineend;
+          //std::cout << dscale[kk] << '\n';
 
         }
 
@@ -2159,7 +2160,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
 
       for (j = 1; j <= np11[ii]; j++) {
         dscale[ip11[j][ii]] = uscale1;
-        //std::cout << ip11[j][ii] << "  " << uscale1 << lineend;
+        //std::cout << ip11[j][ii] << "  " << uscale1 << '\n';
       }
       for (j = 1; j <= np12[ii]; j++) {
         dscale[ip12[j][ii]] = uscale2;
@@ -2295,13 +2296,13 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
     if (eps > epsold) done = true;
     if (iter >= maxiter) done = true;
   }
-  if (eps > poleps) std::cout << "induced dipoles may not converged" << lineend;
+  if (eps > poleps) std::cout << "induced dipoles may not converged" << '\n';
 
   //for (i = 1; i <= alloc; i++){
   //	if (alloc == 0) break;
   //	for (j = 1; j <= 3; j++){
-  //		std::cout << field[j][i] << lineend;
-  //		std::cout << fieldp[j][i] << lineend;
+  //		std::cout << field[j][i] << '\n';
+  //		std::cout << fieldp[j][i] << '\n';
   //	}
   //}
 
@@ -2390,7 +2391,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
     dscale[i] = 1.0;
     uscale[i] = 1.0;
   }
-  //std::cout << "ANFANG  " << N << lineend;
+  //std::cout << "ANFANG  " << N << '\n';
   for (i = 1; i <= N - 1; i++) {
     if (N == 0) break;
 
@@ -2563,7 +2564,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         dixdk[0] = di[1] * dk[2] - di[2] * dk[1];
         dixdk[1] = di[2] * dk[0] - di[0] * dk[2];
         dixdk[2] = di[0] * dk[1] - di[1] * dk[0];
-        //std::cout << dixdk[0] << lineend;
+        //std::cout << dixdk[0] << '\n';
         dixuk[0] = di[1] * uind[3][k] - di[2] * uind[2][k];
         dixuk[1] = di[2] * uind[1][k] - di[0] * uind[3][k];
         dixuk[2] = di[0] * uind[2][k] - di[1] * uind[1][k];
@@ -2579,7 +2580,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         dkxuip[0] = dk[1] * uinp[3][i] - dk[2] * uinp[2][i];
         dkxuip[1] = dk[2] * uinp[1][i] - dk[0] * uinp[3][i];
         dkxuip[2] = dk[0] * uinp[2][i] - dk[1] * uinp[1][i];
-        /*std::cout << dixdk[0] << lineend;*/
+        /*std::cout << dixdk[0] << '\n';*/
         //
 
         dixr[0] = di[1] * zr - di[2] * yr;
@@ -2780,7 +2781,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         tempmulti = em;
         temppol = ep;
-        //std::cout << "Test1" << lineend;
+        //std::cout << "Test1" << '\n';
 
               //!intermediate variables for the permanent components
 
@@ -2808,7 +2809,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         ftm2[3] = gf[1] * zr + gf[2] * di[2] + gf[3] * dk[2] + gf[4] * (qkdi[2] - qidk[2]) + gf[5] * qir[2] + gf[6] * qkr[2] + gf[7] * (qiqkr[2] + qkqir[2]);
 
 
-        //std::cout << "Test2" << lineend;
+        //std::cout << "Test2" << '\n';
         //! get the induced force components
 
         ftm2i[1] = gfi[1] * xr + 0.5*(-rr3*ck*(uind[1][i] * psc3 + uinp[1][i] * dsc3) + rr5*sc[4] * (uind[1][i] * psc5 + uinp[1][i] * dsc5) - rr7*sc[6] * (uind[1][i] * psc7 + uinp[1][i] * dsc7))
@@ -2849,7 +2850,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         findmp[3] = temp3 * ddsc3[2] + temp5 * ddsc5[2];
 
 
-        //std::cout << "Test3" << lineend;
+        //std::cout << "Test3" << '\n';
 
 
         //! modifiy induced force for partially excluded interactions
@@ -2890,7 +2891,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         //! handle the case were scaling is used
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
           ftm2[j] = f * ftm2[j] * mscale[kk];
           ftm2i[j] = f * ftm2i[j];
           ttm2[j] = f * ttm2[j] * mscale[kk];
@@ -2915,7 +2916,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
 
 
-        //std::cout << "Test4" << lineend;
+        //std::cout << "Test4" << '\n';
 
         // 	cout << ftm2[2] << endl;
 
@@ -2923,7 +2924,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         std::vector <double> frcx(4), frcy(4), frcz(4);
         ptrdiff_t ia, ic, ib, id;
-		std::vector<double> u(4), v(4), w(4), r(4), s(4), t(4), t1(4), t2(4);
+        std::vector<double> u(4), v(4), w(4), r(4), s(4), t(4), t1(4), t2(4);
         std::vector<double> uv(4), uw(4), vw(4), ur(4), us(4), vs(4), ws(4);
         double du(0.0), dv(0.0), dw(0.0), usiz(0.0), vsiz(0.0), wsiz(0.0), rsiz(0.0), ssiz(0.0);
         double t1siz(0.0), t2siz(0.0), uvsiz(0.0), uwsiz(0.0), vwsiz(0.0), ursiz(0.0), ussiz(0.0), vssiz(0.0), wssiz(0.0);
@@ -2933,13 +2934,13 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
 
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
 
           frcz[j] = 0.0;
           frcx[j] = 0.0;
           frcy[j] = 0.0;
         }
-        //std::cout << "Test5" << lineend;
+        //std::cout << "Test5" << '\n';
         ia = zaxis[i] + 1;
         ib = ipole[i] + 1;
         if (ib == 0)continue;
@@ -2979,7 +2980,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (vsiz == 0.0) vsiz = 1.0;
         if (wsiz == 0.0) wsiz = 1.0;
         // 	cout<< usiz << endl;
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
           u[j] = u[j] / usiz;
           v[j] = v[j] / vsiz;
           w[j] = w[j] / wsiz;
@@ -3001,7 +3002,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           if (ssiz == 0.0) ssiz = 1.0;
 
 
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             r[j] = r[j] / rsiz;
             s[j] = s[j] / ssiz;
           }
@@ -3027,7 +3028,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (uwsiz == 0.0) uwsiz = 1.0;
         if (vwsiz == 0.0) vwsiz = 1.0;
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
           uv[j] = uv[j] / uvsiz;
           uw[j] = uw[j] / uwsiz;
           vw[j] = vw[j] / vwsiz;
@@ -3057,7 +3058,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           if (ussiz == 0.0) ussiz = 1.0;
           if (vssiz == 0.0) vssiz = 1.0;
           if (wssiz == 0.0) wssiz = 1.0;
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             ur[j] = ur[j] / ursiz;
             us[j] = us[j] / ussiz;
             vs[j] = vs[j] / vssiz;
@@ -3086,7 +3087,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         //!compute the projection of v and w onto the ru-plane
 
         if (axistype[i] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             t1[j] = v[j] - s[j] * vscos;
             t2[j] = w[j] - s[j] * wscos;
           }
@@ -3094,7 +3095,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           t2siz = sqrt(t2[1] * t2[1] + t2[2] * t2[2] + t2[3] * t2[3]);
           if (t1siz == 0.0) t1siz = 1.0;
           if (t2siz == 0.0) t2siz = 1.0;
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             t1[j] = t1[j] / t1siz;
             t2[j] = t2[j] / t2siz;
           }
@@ -3117,7 +3118,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         }
         //! force distribution for the z-only local coordinate frame	
         if (axistype[i] == 1) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dem[j][ia] = dem[j][ia] + du;
             dem[j][ib] = dem[j][ib] - du;
@@ -3125,7 +3126,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           //! force distribution for the z-thenx local coordinate method    
         }
         else if (axistype[i] == 2) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin);
             dem[j][ia] = dem[j][ia] + du;
@@ -3139,7 +3140,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 3) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + 0.5*uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin) + 0.5*vw[j] * dphidw / vsiz;
             dem[j][ia] = dem[j][ia] + du;
@@ -3152,7 +3153,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = ur[j] * dphidr / (usiz*ursin) + us[j] * dphids / usiz;
             dv = (vssin*s[j] - vscos*t1[j])*dphidu / (vsiz*(ut1sin + ut2sin));
             dw = (wssin*s[j] - wscos*t2[j]) *dphidu / (wsiz*(ut1sin + ut2sin));
@@ -3166,7 +3167,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 5) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uw[j] * dphidw / (usiz*uwsin) + uv[j] * dphidv / (usiz*uvsin) - uw[j] * dphidu / (usiz * uwsin) - uv[j] * dphidu / (usiz*uvsin);
             dv = vw[j] * dphidw / (vsiz*vwsin) - uv[j] * dphidu / (vsiz*uvsin) - vw[j] * dphidv / (vsiz * vwsin) + uv[j] * dphidv / (vsiz*uvsin);
             dw = -uw[j] * dphidu / (wsiz*uwsin) - vw[j] * dphidv / (wsiz * vwsin) + uw[j] * dphidw / (wsiz*uwsin) + vw[j] * dphidw / (wsiz*vwsin);
@@ -3198,7 +3199,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         //! force distribution for the z-only local coordinate frame	
         if (axistype[i] == 1) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dep[j][ia] = dep[j][ia] + du;
             dep[j][ib] = dep[j][ib] - du;
@@ -3207,7 +3208,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           //! force distribution for the z-thenx local coordinate method    
         }
         else if (axistype[i] == 2) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin);
 
@@ -3222,7 +3223,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 3) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + 0.5*uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin) + 0.5*vw[j] * dphidw / vsiz;
 
@@ -3237,7 +3238,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = ur[j] * dphidr / (usiz*ursin) + us[j] * dphids / usiz;
             dv = (vssin*s[j] - vscos*t1[j])*dphidu / (vsiz*(ut1sin + ut2sin));
             dw = (wssin*s[j] - wscos*t2[j]) *dphidu / (wsiz*(ut1sin + ut2sin));
@@ -3251,7 +3252,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[i] == 5) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uw[j] * dphidw / (usiz*uwsin) + uv[j] * dphidv / (usiz*uvsin) - uw[j] * dphidu / (usiz * uwsin) - uv[j] * dphidu / (usiz*uvsin);
             dv = vw[j] * dphidw / (vsiz*vwsin) - uv[j] * dphidu / (vsiz*uvsin) - vw[j] * dphidv / (vsiz * vwsin) + uv[j] * dphidv / (vsiz*uvsin);
             dw = -uw[j] * dphidu / (wsiz*uwsin) - vw[j] * dphidv / (wsiz * vwsin) + uw[j] * dphidw / (wsiz*uwsin) + vw[j] * dphidw / (wsiz*vwsin);
@@ -3298,7 +3299,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         // 	tempi=i;
         // 	i=k;
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
 
           frczk[j] = 0.0;
           frcxk[j] = 0.0;
@@ -3344,7 +3345,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (vsiz == 0.0) vsiz = 1.0;
         if (wsiz == 0.0) wsiz = 1.0;
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
           u[j] = u[j] / usiz;
           v[j] = v[j] / vsiz;
           w[j] = w[j] / wsiz;
@@ -3366,7 +3367,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           if (rsiz == 0.0) rsiz = 1.0;
           if (ssiz == 0.0) ssiz = 1.0;
 
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             r[j] = r[j] / rsiz;
             s[j] = s[j] / ssiz;
           }
@@ -3392,7 +3393,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (uwsiz == 0.0) uwsiz = 1.0;
         if (vwsiz == 0.0) vwsiz = 1.0;
 
-        for ( j = 1; j <= 3; j++) {
+        for (j = 1; j <= 3; j++) {
           uv[j] = uv[j] / uvsiz;
           uw[j] = uw[j] / uwsiz;
           vw[j] = vw[j] / vwsiz;
@@ -3423,7 +3424,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           if (vssiz == 0.0) vssiz = 1.0;
           if (wssiz == 0.0) wssiz = 1.0;
 
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             ur[j] = ur[j] / ursiz;
             us[j] = us[j] / ussiz;
             vs[j] = vs[j] / vssiz;
@@ -3452,7 +3453,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         //!compute the projection of v and w onto the ru-plane
 
         if (axistype[k] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             t1[j] = v[j] - s[j] * vscos;
             t2[j] = w[j] - s[j] * wscos;
           }
@@ -3462,7 +3463,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           if (t1siz == 0.0) t1siz = 1.0;
           if (t2siz == 0.0) t2siz = 1.0;
 
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             t1[j] = t1[j] / t1siz;
             t2[j] = t2[j] / t2siz;
           }
@@ -3485,7 +3486,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         }
         //! force distribution for the z-only local coordinate frame	
         if (axistype[k] == 1) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dem[j][ia] = dem[j][ia] + du;
             dem[j][ib] = dem[j][ib] - du;
@@ -3493,7 +3494,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           //! force distribution for the z-thenx local coordinate method    
         }
         else if (axistype[k] == 2) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin);
             dem[j][ia] = dem[j][ia] + du;
@@ -3506,7 +3507,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 3) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + 0.5*uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin) + 0.5*vw[j] * dphidw / vsiz;
             dem[j][ia] = dem[j][ia] + du;
@@ -3519,7 +3520,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = ur[j] * dphidr / (usiz*ursin) + us[j] * dphids / usiz;
             dv = (vssin*s[j] - vscos*t1[j])*dphidu / (vsiz*(ut1sin + ut2sin));
             dw = (wssin*s[j] - wscos*t2[j]) *dphidu / (wsiz*(ut1sin + ut2sin));
@@ -3533,7 +3534,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 5) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uw[j] * dphidw / (usiz*uwsin) + uv[j] * dphidv / (usiz*uvsin) - uw[j] * dphidu / (usiz * uwsin) - uv[j] * dphidu / (usiz*uvsin);
             dv = vw[j] * dphidw / (vsiz*vwsin) - uv[j] * dphidu / (vsiz*uvsin) - vw[j] * dphidv / (vsiz * vwsin) + uv[j] * dphidv / (vsiz*uvsin);
             dw = -uw[j] * dphidu / (wsiz*uwsin) - vw[j] * dphidv / (wsiz * vwsin) + uw[j] * dphidw / (wsiz*uwsin) + vw[j] * dphidw / (wsiz*vwsin);
@@ -3565,7 +3566,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
         //! force distribution for the z-only local coordinate frame	
         if (axistype[k] == 1) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dep[j][ia] = dep[j][ia] + du;
             dep[j][ib] = dep[j][ib] - du;
@@ -3573,7 +3574,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           //! force distribution for the z-thenx local coordinate method    
         }
         else if (axistype[k] == 2) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin);
             dep[j][ia] = dep[j][ia] + du;
@@ -3586,7 +3587,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 3) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uv[j] * dphidv / (usiz*uvsin) + 0.5*uw[j] * dphidw / usiz;
             dv = -uv[j] * dphidu / (vsiz*uvsin) + 0.5*vw[j] * dphidw / vsiz;
             dep[j][ia] = dep[j][ia] + du;
@@ -3599,7 +3600,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 4) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = ur[j] * dphidr / (usiz*ursin) + us[j] * dphids / usiz;
             dv = (vssin*s[j] - vscos*t1[j])*dphidu / (vsiz*(ut1sin + ut2sin));
             dw = (wssin*s[j] - wscos*t2[j]) *dphidu / (wsiz*(ut1sin + ut2sin));
@@ -3613,7 +3614,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
           }
         }
         else if (axistype[k] == 5) {
-          for ( j = 1; j <= 3; j++) {
+          for (j = 1; j <= 3; j++) {
             du = uw[j] * dphidw / (usiz*uwsin) + uv[j] * dphidv / (usiz*uvsin) - uw[j] * dphidu / (usiz * uwsin) - uv[j] * dphidu / (usiz*uvsin);
             dv = vw[j] * dphidw / (vsiz*vwsin) - uv[j] * dphidu / (vsiz*uvsin) - vw[j] * dphidv / (vsiz * vwsin) + uv[j] * dphidv / (vsiz*uvsin);
             dw = -uw[j] * dphidu / (wsiz*uwsin) - vw[j] * dphidv / (wsiz * vwsin) + uw[j] * dphidw / (wsiz*uwsin) + vw[j] * dphidw / (wsiz*vwsin);
@@ -3788,7 +3789,7 @@ size_t energy::interfaces::amoeba::amoeba_ff::multipole_sites(void)
 
   //for (auto polaxes : cparams.polarizes())
   //{
-  //	std::cout << polaxes.bond_index[0] << lineend;
+  //	std::cout << polaxes.bond_index[0] << '\n';
   //}
 
 
@@ -3804,7 +3805,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_vdw_h_bonds(std::vector< ::ti
   scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params)
 {
 
- 
+
 
   std::vector<double> reduce(coords->xyz().size());
 
@@ -3877,20 +3878,20 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
   mask.resize(alloc_glob + 50);
   keep.resize(alloc_glob + 50);
 
-  
+
 
   //!1-3 attached atom list for multipoles
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     n13[i] = 0;
     /* cout << C->topology[i-1].V[1]+1<<endl;*/
     for (size_t j = 0; j < coords->atoms(i - 1).bonds().size(); j++) {
       jj = coords->atoms(i - 1).bonds()[j] + 1;
-      //	std::cout << i12[i].size() << lineend;
+      //	std::cout << i12[i].size() << '\n';
 
       for (size_t k = 0; k < coords->atoms(jj - 1).bonds().size(); k++) {
 
         kk = coords->atoms(jj - 1).bonds()[k] + 1;
-        //std::cout << kk << lineend;
+        //std::cout << kk << '\n';
         if (kk == i)continue;
 
         for (size_t m = 0; m < coords->atoms(i - 1).bonds().size(); m++) {
@@ -3901,7 +3902,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
         n13[i] = n13[i] + 1;
 
         i13[n13[i]][i] = kk;
-        //std::cout << " n13 " << n13[i] << " i13  " << i13[n13[i]][i]<<lineend;
+        //std::cout << " n13 " << n13[i] << " i13  " << i13[n13[i]][i]<<'\n';
 
       }
     }
@@ -3920,7 +3921,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
 
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     n14[i] = 0;
     for (size_t j = 1; j <= n13[i]; j++) {
       jj = i13[j][i];
@@ -3964,7 +3965,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
 
   control_seq = false;
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     n15[i] = 0;
     for (size_t j = 1; j <= n14[i]; j++) {
       jj = i14[j][i];
@@ -4011,7 +4012,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
   //! assign direct list
   maxval = 8;
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     np11[i] = 1;
     ip11[1][i] = i;
     it = coords->atoms(i - 1).energy_type();
@@ -4020,13 +4021,13 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
     for (size_t j = 0; j < coords->atoms(i - 1).bonds().size(); j++) {
       jj = coords->atoms(i - 1).bonds()[j] + 1;
       jt = coords->atoms(jj - 1).energy_type();
-      /*std::cout << "jj " << jj << " jt" << jt << lineend;*/
+      /*std::cout << "jj " << jj << " jt" << jt << '\n';*/
 
       for (size_t k = 0; k < 3; k++) {
 
         //kk = plrgrp[k][it-1];
 
-        //std::cout << plrgrp[k][i-1] << lineend;
+        //std::cout << plrgrp[k][i-1] << '\n';
         if (plrgrp[k][i - 1] == 0) break;
         if (plrgrp[k][i - 1] == jt) {
           np11[i]++;
@@ -4036,7 +4037,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
 
           }
-          else { std::cout << "TOO MANY ATOMS IN POLARIZATION GROUP" << lineend; }
+          else { std::cout << "TOO MANY ATOMS IN POLARIZATION GROUP" << '\n'; }
 
         }
       }
@@ -4049,16 +4050,16 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
   //!find any group members
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     list[i] = 0;
   }
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
 
     done = false;
     start = 1;
     stop = np11[i];
-    //std::cout << np11[i] << lineend;
+    //std::cout << np11[i] << '\n';
     for (size_t j = start; j <= stop; j++) {
       jj = ip11[j][i];
 
@@ -4068,7 +4069,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
         for (size_t k = 1; k <= np11[i]; k++) {
           ip11[k][i] = ip11[k][jj];
-          //std::cout << ip11[k][i] << lineend;
+          //std::cout << ip11[k][i] << '\n';
         }
       }
       else { list[jj] = i; }
@@ -4113,10 +4114,10 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
   }
 
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     mask[i] = 0;
   }
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     nlist = 0;
     for (size_t j = 1; j <= np11[i]; j++) {
       jj = ip11[j][i];
@@ -4133,7 +4134,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
       for (size_t k = 0; k < coords->atoms(jj - 1).bonds().size(); k++) {
         kk = coords->atoms(jj - 1).bonds()[k] + 1;
 
-        //std::cout << kk << lineend;
+        //std::cout << kk << '\n';
         if (mask[kk] != i) {
           nkeep++;
           keep[nkeep] = kk;
@@ -4156,7 +4157,7 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
       np12[i] = nlist;
       for (size_t j = 1; j <= nlist; j++) {
         ip12[j][i] = list[j];
-        //std::cout << ip12[j][i] << lineend;
+        //std::cout << ip12[j][i] << '\n';
 
       }
 
@@ -4175,10 +4176,10 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
   //!!!!!
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     mask[i] = 0;
   }
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     for (size_t j = 1; j <= np11[i]; j++) {
       jj = ip11[j][i];
       mask[jj] = i;
@@ -4221,10 +4222,10 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
   }
 
 
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     mask[i] = 0;
   }
-  for ( i = 1; i <= n_atom; i++) {
+  for (i = 1; i <= n_atom; i++) {
     for (size_t j = 1; j <= np11[i]; j++) {
       jj = ip11[j][i];
       mask[jj] = i;
@@ -4299,9 +4300,9 @@ void energy::interfaces::amoeba::amoeba_ff::rot_matrix(coords::Representation_3D
     for (auto mult : axes)
     {
 
-      //std::cout <<pos[mult.center].x() << "   " << pos[mult.center].y() << "   " <<pos[mult.center].z() << lineend;
-      //std::cout << mult.p_rot.axt << lineend;
-      
+      //std::cout <<pos[mult.center].x() << "   " << pos[mult.center].y() << "   " <<pos[mult.center].z() << '\n';
+      //std::cout << mult.p_rot.axt << '\n';
+
       switch (mult.p_rot.axt)
       {
 
@@ -4428,12 +4429,12 @@ void energy::interfaces::amoeba::amoeba_ff::rot_matrix(coords::Representation_3D
 
           }
           else {
-            for ( k = 1; k < 4; k++) {
+            for (k = 1; k < 4; k++) {
 
               for (size_t m = 1; m < 4; m++) {
 
                 r2[i][j] = r2[i][j] + (am2[i - 1][k - 1] * am2[j - 1][m - 1] * m2[k][m]);
-                //std::cout << am2[i - 1][k - 1] << lineend;
+                //std::cout << am2[i - 1][k - 1] << '\n';
               }
             }
           }
@@ -5500,7 +5501,7 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_Energy() {
   }
 
 
-  en = ((qsum + ((2.0*esum) / PI))*coulomb);
+  en = ((qsum + ((2.0*esum) / SCON_PI))*coulomb);
   // 	 cout<<end-start<<"SP-energy"<<endl;
   energy_short = en;
 
@@ -5537,7 +5538,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_GRAD() {
 
   smax = 10.0;
   aLimes = 0.0;
-  bLimes = smax * 4 * PI;
+  bLimes = smax * 4 * SCON_PI;
 
 
 
@@ -5599,7 +5600,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_GRAD() {
     esum = e;
 
     qsum = q;
-    e = ((qsum + ((2.0*esum) / PI))*coulomb);
+    e = ((qsum + ((2.0*esum) / SCON_PI))*coulomb);
 
 
     xgrad = e * (distx / dist_2);

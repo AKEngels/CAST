@@ -1,6 +1,4 @@
 #include <stdexcept>
-#include "global.h"
-#include "error.h"
 #include "configuration.h"
 #include "energy.h"
 #include "energy_int_aco.h"
@@ -17,7 +15,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29)
       {
-        std::cout << "Illegal Energy interface." << lineend;
+        std::cout << "Illegal Energy interface." << '\n';
       }
       return nullptr;
     }  
@@ -25,7 +23,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29)
       {
-        std::cout << "Not (yet) existent energy interface choosen." << lineend;
+        std::cout << "Not (yet) existent energy interface choosen." << '\n';
       }
       return new energy::interfaces::amoeba::amoeba_ff(cp);
     }
@@ -33,20 +31,20 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     {
       if (Config::get().general.verbosity > 29) 
       {
-        std::cout << "Mopac choosen for energy calculations." << lineend;
+        std::cout << "Mopac choosen for energy calculations." << '\n';
       }
       return new energy::interfaces::mopac::sysCallInterface(cp);
     }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
-      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations." << lineend;
+      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations." << '\n';
       return new energy::interfaces::terachem::mpiInterface(cp);
     }
 #endif
   default:
     {
-    if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen." << lineend;
+    if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen." << '\n';
       return new energy::interfaces::aco::aco_ff(cp);
     }
   }
@@ -79,7 +77,7 @@ void energy::interface_base::swap (interface_base &other)
 
 void energy::interface_base::to_stream (std::ostream &stream) const
 {
-  stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << lineend;
-  stream << "Periodics:  Max: " << pb_max << ", Min: " << pb_min << ", Dim: " << pb_dim << lineend;
+  stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << '\n';
+  stream << "Periodics:  Max: " << pb_max << ", Min: " << pb_min << ", Dim: " << pb_dim << '\n';
 }
 

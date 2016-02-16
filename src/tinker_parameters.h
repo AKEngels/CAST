@@ -7,7 +7,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include "global.h"
+#include "scon_angle.h"
 #include "scon_matrix.h"
 #include "scon_tsqcmatrix.h"
 #include "scon_vect.h"
@@ -188,7 +188,7 @@ namespace tinker
       double electric;
 
       global (void) 
-        : angleunit(RATIOPI180*RATIOPI180), bondunit(1.0), torsionunit(1.0), dielectric(1.0), electric(332.06)
+        : angleunit(SCON_PI180*SCON_PI180), bondunit(1.0), torsionunit(1.0), dielectric(1.0), electric(332.06)
       {
         vdw_scale.use[0u] = vdw_scale.use[1u] = vdw_scale.use[2u] = false; // do not use vdw 11,12,13 per default
         vdw_scale.value[0u] = vdw_scale.value[1u] = vdw_scale.value[2u] = 0.0; // do not use vdw 11,12,13 per default

@@ -6,7 +6,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <utility>
-#include "error.h"
 #include "atomic.h"
 #include "energy_int_mopac.h"
 #include "configuration.h"
@@ -114,7 +113,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         str_t1 = Config::get().energy.mopac.command.substr(0, found + 1);
         str_t2 = Config::get().energy.mopac.command.substr(found + 1);
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
-        out_file << (hess ? "HESSIAN " : " ") << str_t1 << lineend;
+        out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
       }
       else
@@ -138,8 +137,8 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       out_file << " THREADS=1";
 #endif 
     }
-    out_file << lineend;
-    out_file << lineend << lineend;
+    out_file << '\n';
+    out_file << '\n' << '\n';
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7 || Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
       out_file << coords::output::formats::xyz_mopac7(*coords);
@@ -237,30 +236,27 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "Index " << i << " does not match line index " << j - 1 << lineend;
+              if (Config::get().general.verbosity > 9) std::cout << "Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
             }
             std::getline(in_file, buffer);
             std::istringstream bss_y(buffer);
             bss_y >> tx >> j >> sx[0] >> sx[1] >> p.y() >> g.y();
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << lineend;
+              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
             }
             std::getline(in_file, buffer);
             std::istringstream bss_z(buffer);
             bss_z >> tx >> j >> sx[0] >> sx[1] >> p.z() >> g.z();
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << lineend;
+              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
             }
 
 
@@ -274,16 +270,15 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
               std::size_t tx;
               std::string sx[3];
               bss_x >> tx >> j >> sx[0] >> sx[1] >> sx[2] >> p.x() >> g.x();
-              // 						std::cout << g.x() << lineend;
+              // 						std::cout << g.x() << '\n';
               /*if (i != (j - 1) && Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
               {
 
               integrity = false;
               if(sx[2] == "X") {g_tmp[j-1].x()=g.x();}
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << lineend;
+                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -300,10 +295,9 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
               integrity = false;
               if(sx[2] == "Y") {g_tmp[j-1].y()=g.y();}
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << lineend;
+                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -319,10 +313,9 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
               integrity = false;
               if(sx[2] == "Z") {g_tmp[j-1].z()=g.z();}
-              //throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_OUTPUT_ERROR].c_str());
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << lineend;
+                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -378,7 +371,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
           std::getline(in_file, buffer);
         }
 
-        /*  std::cout << "BUFFER " << buffer << lineend;*/
+        /*  std::cout << "BUFFER " << buffer << '\n';*/
         for (std::size_t i = 0; i < coords->size(); ++i)
         {
           std::size_t tx;
@@ -407,7 +400,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
     if (!done)
     {
-      if (Config::get().general.verbosity > 9) std::cout << "Mopac calculation was not done." << lineend;
+      if (Config::get().general.verbosity > 9) std::cout << "Mopac calculation was not done." << '\n';
       //throw std::runtime_error(std::string("IMPROPER MOPAC OUTPUT (CALCULATION NOT FINISHED): ").append(id));
       energy = e_total = e_electron = e_core = 0.0;
       integrity = false;
@@ -522,11 +515,10 @@ double energy::interfaces::mopac::sysCallInterface::g(void)
   {
     ++failcounter;
     std::cout << "MOPAC call failed. " << failcounter << " MOPAC calls have failed so far.\n";
-    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
       std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+      throw std::runtime_error("MOPAC call failed.");
     }
   }
   return energy;
@@ -543,11 +535,10 @@ double energy::interfaces::mopac::sysCallInterface::h(void)
   {
     ++failcounter;
     std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
       std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+      throw std::runtime_error("MOPAC call failed.");
     }
   }
   return energy;
@@ -564,11 +555,10 @@ double energy::interfaces::mopac::sysCallInterface::o(void)
   {
     ++failcounter;
     std::cout << "MOPAC call failed. A total of " << failcounter << " MOPAC calls have failed so far.\n";
-    std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
     if (failcounter > 1000u)
     {
       std::cout << "More than 1000 MOPAC calls have failed. Aborting." << std::endl;
-      throw std::runtime_error(ERR_STR_MAP[MOS_ERR_ENERGY_MOPAC_DNF].c_str());
+      throw std::runtime_error("MOPAC call failed.");
     }
   }
   return energy;
@@ -584,7 +574,7 @@ void energy::interfaces::mopac::sysCallInterface::print_E(std::ostream &S) const
   S << "Electronic Energy: ";
   S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_electron;
   S << "Core-Core Energy:  ";
-  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_core << lineend;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_core << '\n';
 }
 
 void energy::interfaces::mopac::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const
@@ -593,7 +583,7 @@ void energy::interfaces::mopac::sysCallInterface::print_E_head(std::ostream &S, 
   S << std::right << std::setw(16) << "TOT";
   S << std::right << std::setw(16) << "EL";
   S << std::right << std::setw(16) << "CORE";
-  if (endline) S << lineend;
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
@@ -602,7 +592,7 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_total;
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_electron;
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_core;
-  if (endline) S << lineend;
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }

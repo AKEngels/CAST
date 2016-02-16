@@ -37,7 +37,7 @@ pathx::pathx(neb *NEB, coords::Coordinates *c)
 void pathx::pathx_ini()
 {
 
-  std::cout << "**************INITIALIZATION OF PATHOPT*************" << lineend;
+  std::cout << "**************INITIALIZATION OF PATHOPT*************" << '\n';
 
   natom = cPtr->size();
   nvar = 3 * natom;
@@ -179,12 +179,12 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			  }
 			  coords::Coordinates temp_perp(*cPtr);
 			  temp_perp.set_pes(positions);
-			  std::cout << "set pes point" << lineend;
+			  std::cout << "set pes point" << '\n';
 			  perp_point test_perp;
 			  test_perp = perp_point(temp_perp.pes());
 			  move_main(test_perp);
 
-			  std::cout << "MINIMUM   " << cPtr->g() << lineend;
+			  std::cout << "MINIMUM   " << cPtr->g() << '\n';
 
 			  positions = cPtr->xyz();
 			  //printmono("TEST_DIHEDRAL_1.xyz", positions, global_image);
@@ -192,7 +192,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			  positions = cPtr->xyz();
 			  if (std::abs(MCmin - STARTENERGY) < Config::get().neb.PO_ENERGY_RANGE)
 			  {
-				  std::cout << "MINIMUM   " << cPtr->g() << lineend;
+				  std::cout << "MINIMUM   " << cPtr->g() << '\n';
 				  // printmono("TEST_DIHEDRAL_2.xyz", positions, global_image);
 			  }
 			  //move_control = true;
@@ -254,7 +254,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       //break;
       if (MCmin != MCmin) {
         nancounter++;
-        //std::cout << "***size of counter***:  "<<nancounter << lineend;
+        //std::cout << "***size of counter***:  "<<nancounter << '\n';
         status = 0;
         nbad++;
         cPtr->set_xyz(coord_in);
@@ -294,7 +294,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
         l_disp = false;
       }
       else {
-        //std::cout << "DISPLACEMENT TOO BIG" << lineend;
+        //std::cout << "DISPLACEMENT TOO BIG" << '\n';
         l_disp = true;
         status = 0;
       }
@@ -337,16 +337,16 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 
       //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-      //if(status == 0) std::cout << "REJECTED STRUCTURE" << lineend;
+      //if(status == 0) std::cout << "REJECTED STRUCTURE" << '\n';
       else if (status == 1) {
-        //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<lineend;
+        //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
         MCEN = MCmin;
         // writetinker(output,opt);
         global_image = opt;
         std::ostringstream struc_opt;
         struc_opt << "PATHOPT_STRUCTURES_" << opt << ".xyz";
 
-        output2 << mcstep << "    " << opt << "    " << MCEN << lineend;
+        output2 << mcstep << "    " << opt << "    " << MCEN << '\n';
 
         counter++;
 
@@ -359,7 +359,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
         printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
 
       }
-      else if (status == 2) /*std::cout << "SAME STRUCTURE" << lineend;*/
+      else if (status == 2) /*std::cout << "SAME STRUCTURE" << '\n';*/
         status = 0;
 
 
@@ -487,7 +487,7 @@ void pathx::proof_connect()
 
    //	  }
 
-   //	  rmsd_mat << lineend;
+   //	  rmsd_mat << '\n';
    //  }
 
 
@@ -602,10 +602,10 @@ void pathx::proof_connect()
 
         printmono(img.str().c_str(), tempstart, j);
         cPtr->set_xyz(tempstart);
-        energy << cPtr->g() << lineend;
+        energy << cPtr->g() << '\n';
         printmono(img.str().c_str(), global_path_minima[1][j], j);
         cPtr->set_xyz(global_path_minima[1][j]);
-        energy << cPtr->g() << lineend;
+        energy << cPtr->g() << '\n';
 
         tempcount = 0;
         tempproff = false;
@@ -617,7 +617,7 @@ void pathx::proof_connect()
           // if(global_path_minima[(i-tempcount)+1][PARTNER[(i-tempcount)+1][jj]].empty()){/*tempcount++;*/ tempproff=true;continue;}
           printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
           cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
-          energy << cPtr->g() << lineend;
+          energy << cPtr->g() << '\n';
           jj = PARTNER[i - tempcount][jj];
 
           tempproff = false;
@@ -628,7 +628,7 @@ void pathx::proof_connect()
 
         printmono(img.str().c_str(), tempstart2, j);
         cPtr->set_xyz(tempstart2);
-        energy << cPtr->g() << lineend;
+        energy << cPtr->g() << '\n';
       }
 
 
@@ -719,10 +719,10 @@ double pathx::lbfgs()
   
 
   if (Config::get().general.verbosity > 9 || (optimizer.state() < 0 && Config::get().general.verbosity > 9))
-    std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << lineend;
+    std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
   if (Config::get().general.verbosity > 19 && cPtr->integrity())
   {
-    std::cout << "Energy after optimization: " << lineend;
+    std::cout << "Energy after optimization: " << '\n';
     cPtr->e_head_tostream_short(std::cout, cPtr->energyinterface());
     cPtr->e_tostream_short(std::cout, cPtr->energyinterface());
   }
@@ -798,7 +798,7 @@ void pathx::printmono(std::string const &name, coords::Representation_3D &print,
   std::string temp;
 
 
-  out << "     " << natom << "  global counter:  " << count << lineend;
+  out << "     " << natom << "  global counter:  " << count << '\n';
   for (ptrdiff_t j = 0; j < natom; j++) {
 
     out << std::right << std::setw(6) << j + 1;
@@ -812,7 +812,7 @@ void pathx::printmono(std::string const &name, coords::Representation_3D &print,
     {
       out << std::right << std::setw(6) << cPtr->atoms(j).bonds()[n] + 1U;
     }
-    out << lineend;
+    out << '\n';
 
   }
 
@@ -832,13 +832,13 @@ void pathx::move_main(perp_point & direction)
   coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
   size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
   // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains." << lineend;
+  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains." << '\n';
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
     size_t const K(static_cast<size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));
     coords::float_type const F = scon::rand<coords::float_type>(-Config::get().optimization.global.montecarlo.dihedral_max_rot,
       Config::get().optimization.global.montecarlo.dihedral_max_rot);
-    if (Config::get().general.verbosity > 9U) std::cout << "Changing main " << K << " by " << F << lineend;
+    if (Config::get().general.verbosity > 9U) std::cout << "Changing main " << K << " by " << F << '\n';
     main_tors[K] = coords::main_type::from_deg(F);
   }
   // orthogonalize movement to main directions

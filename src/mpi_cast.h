@@ -1,7 +1,5 @@
 #pragma once
 
-#include "global.h"
-
 #if defined(USE_MPI)
 
 #include <string>

@@ -8,7 +8,6 @@
 #include <array>
 #include <iterator>
 
-#include "global.h"
 #include "coords.h"
 #include "histogram.h"
 #include "scon_vect.h"

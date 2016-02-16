@@ -7,7 +7,6 @@
 #include <cmath>
 #include <algorithm>
 
-#include "global.h"
 #include "configuration.h"
 #include "scon_vect.h"
 #include "tinker_parameters.h"
@@ -281,7 +280,7 @@ private:
 				oz = OZ(i);
 
 				//Warnmeldung, falls bei einem der Atome OZ = 0 ist
-				if (oz == 0) std::cout << "Warnung: Atom " << i + 1 << " wurde von CAST die Ordnungszahl 0 zugewiesen" << lineend;
+				if (oz == 0) std::cout << "Warnung: Atom " << i + 1 << " wurde von CAST die Ordnungszahl 0 zugewiesen" << '\n';
 
 				switch (oz)
 				{
@@ -460,7 +459,7 @@ private:
 				}
 			}
 			alpha[i] = 1.0 / total;
-			//std::cout << "done" << lineend;
+			//std::cout << "done" << '\n';
 		}
 	};
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -1959,30 +1958,30 @@ public:
 	// Ein-/Ausgabe Routinen   /////////////////////////////////////////////////////////////////////////////////////////////////////////
 	void write()
 	{
-		std::cout << lineend << "   Born-Radien der Atome nach der \""<< method<<"\"-Methode [A]:" << lineend << lineend;
+		std::cout << '\n' << "   Born-Radien der Atome nach der \""<< method<<"\"-Methode [A]:" << '\n' << '\n';
 		for (size_t i = 0; i < alpha.size(); ++i)
-			std::cout << "      a_" << std::setw(6) << std::left << i + 1 << " = " << std::setw(20) << std::right << alpha[i] << lineend;
+			std::cout << "      a_" << std::setw(6) << std::left << i + 1 << " = " << std::setw(20) << std::right << alpha[i] << '\n';
 	};
 
 	void write_ES()
 	{
-		std::cout << lineend << "   Solvatisierungsenergie:   ES = " << ES<<lineend<<lineend;
+		std::cout << '\n' << "   Solvatisierungsenergie:   ES = " << ES<<'\n'<<'\n';
 		for (size_t i = 0; i < AES.size(); ++i)
 		{
-			std::cout << "      AES[" << i + 1 << "] \t= " << AES[i] << lineend;
+			std::cout << "      AES[" << i + 1 << "] \t= " << AES[i] << '\n';
 		}
 
 		if (DERIV == 1)
 		{
-			std::cout <<lineend<< "   Ableitungen der Bornradien:" << lineend << lineend;
+			std::cout <<'\n'<< "   Ableitungen der Bornradien:" << '\n' << '\n';
 			for (size_t i = 0; i < N; ++i)
-				std::cout << "      drbb(" << i + 1 << ")\t = " << dalpha[i] << lineend;
-			std::cout <<lineend<< "   Ableitungen der Energien der Atome nach kartesischen Koordinaten:" << lineend << lineend;
+				std::cout << "      drbb(" << i + 1 << ")\t = " << dalpha[i] << '\n';
+			std::cout <<'\n'<< "   Ableitungen der Energien der Atome nach kartesischen Koordinaten:" << '\n' << '\n';
 			for (size_t i = 0; i < N; ++i)
 			{
 				std::cout << "      dAES_x(" << i + 1 << ")= " << dAES[i].x() <<
 					"   \t dAES_y(" << i + 1 << ")= " << dAES[i].y() <<
-					"   \t dAES_z(" << i + 1 << ")= " << dAES[i].z() << lineend;
+					"   \t dAES_z(" << i + 1 << ")= " << dAES[i].z() << '\n';
 			}
 		}
 	};
@@ -1993,59 +1992,59 @@ public:
 
 		out.open(outputfilename);
 
-		out << lineend
-			<< "GB/SA" << lineend << lineend
-			<< "   Methode               : " << method << lineend
-			<< "   Oberflächenberechnung : " << surface << lineend
-			<< "   Radien der Atome      : " << rsolv << lineend << lineend
-			<< "   Topologiedatei   : " << top_file << lineend
-			<< "   Koordinatendatei : " << coord_file << lineend << lineend;
+		out << '\n'
+			<< "GB/SA" << '\n' << '\n'
+			<< "   Methode               : " << method << '\n'
+			<< "   Oberflächenberechnung : " << surface << '\n'
+			<< "   Radien der Atome      : " << rsolv << '\n' << '\n'
+			<< "   Topologiedatei   : " << top_file << '\n'
+			<< "   Koordinatendatei : " << coord_file << '\n' << '\n';
 
-		out << "Radien der solvatisierten Atome [A]:" << lineend << lineend;
+		out << "Radien der solvatisierten Atome [A]:" << '\n' << '\n';
 		for (size_t i = 0; i < R_solv.size(); ++i)
 		{
-			out << "   " << "r_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << R_solv[i] << lineend;
+			out << "   " << "r_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << R_solv[i] << '\n';
 		}
 
 		if ((METHOD == STILL) || (METHOD == ACE))
 		{
-			out << lineend << "Volumina der solvatisierten Atome [A^3]:" << lineend << lineend;
+			out << '\n' << "Volumina der solvatisierten Atome [A^3]:" << '\n' << '\n';
 			for (size_t i = 0; i < V_solv.size(); ++i)
 			{
-				out << "   " << "V_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << V_solv[i] << lineend;
+				out << "   " << "V_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << V_solv[i] << '\n';
 			}
 		}
 
 		if ((method == "HCT") || (method == "OBC") || (method == "GRYCUK"))
 		{
 			for (size_t i = 0; i < S_HCT.size(); ++i)
-				out << "   " << "SHCT(" << std::setw(7) << std::left << i + 1 << ") \t= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << S_HCT[i] << lineend;
+				out << "   " << "SHCT(" << std::setw(7) << std::left << i + 1 << ") \t= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << S_HCT[i] << '\n';
 		}
 
-		out << lineend << "Born-Radien der solvatisierten Atome [A]:" << lineend << lineend;
+		out << '\n' << "Born-Radien der solvatisierten Atome [A]:" << '\n' << '\n';
 		for (size_t i = 0; i < alpha.size(); ++i)
 		{
-			out << "   " << "a_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << alpha[i] << lineend;
+			out << "   " << "a_" << std::setw(7) << std::left << i + 1 << "= " << std::setw(20) << std::right << std::fixed << std::setprecision(20) << alpha[i] << '\n';
 		}
 
-		out << lineend << "Solvatisierungsenergie:   ES = " << ES << lineend<<lineend;
-		out << lineend << "Solvatisierungsenergie der einzelnen Atome:" << lineend << lineend;
+		out << '\n' << "Solvatisierungsenergie:   ES = " << ES << '\n'<<'\n';
+		out << '\n' << "Solvatisierungsenergie der einzelnen Atome:" << '\n' << '\n';
 		for (size_t i = 0; i < AES.size(); ++i)
 		{
-			out << "   AES[" << i + 1 << "]  \t= " << AES[i] << lineend;
+			out << "   AES[" << i + 1 << "]  \t= " << AES[i] << '\n';
 		}
 
 		if (DERIV == 1)
 		{
-			out << lineend << "Ableitungen der Bornradien:" << lineend << lineend;
+			out << '\n' << "Ableitungen der Bornradien:" << '\n' << '\n';
 			for (size_t i = 0; i < N; ++i)
-				out << "   drbb(" << i + 1 << ")   \t = " << dalpha[i] << lineend;
-			out << lineend << "Ableitungen der Energien der Atome nach kartesischen Koordinaten:" << lineend << lineend;
+				out << "   drbb(" << i + 1 << ")   \t = " << dalpha[i] << '\n';
+			out << '\n' << "Ableitungen der Energien der Atome nach kartesischen Koordinaten:" << '\n' << '\n';
 			for (size_t i = 0; i < N; ++i)
 			{
 				out << "   dAES_x(" << i + 1 << ")  \t= " << dAES[i].x() <<
 					"   \t dAES_y(" << i + 1 << ")  \t= " << dAES[i].y() <<
-					"   \t dAES_z(" << i + 1 << ")  \t= " << dAES[i].z() << lineend;
+					"   \t dAES_z(" << i + 1 << ")  \t= " << dAES[i].z() << '\n';
 			}
 		}
 

@@ -7,7 +7,6 @@ MOPAC Interface
 #include <vector>
 #include <string>
 
-#include "global.h"
 #include "energy.h"
 
 

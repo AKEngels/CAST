@@ -339,7 +339,7 @@ void coords::Atoms::refine_internals()
     if (done[i]) continue;
     auto connect_it = Config::get().coords.internal.connect.find(i);
     std::size_t j = 0;
-    //std::cout << "Atom " << i << " begins new molecule with internal " << current_internal << lineend;
+    //std::cout << "Atom " << i << " begins new molecule with internal " << current_internal << '\n';
     //// If current internal is not done yet we have a new molecule
     //// Internals of new molcules are always "main" coordinates
     //if (current_internal != 0 || Config::get().coords.decouple_internals)
@@ -611,7 +611,7 @@ void coords::Atoms::c_to_i_light(PES_Point &p) const
   for (std::size_t j = 0; j < M; ++j)
   {
     auto const mti = main_torsion_indices[j];
-    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << lineend;
+    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << '\n';
     p.structure.main[j] = intern[mti].azimuth();
   }
 }
@@ -709,13 +709,13 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   for (std::size_t j = 0; j < M; ++j)
   {
     auto const mti = main_torsion_indices[j];
-    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << lineend;
+    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << '\n';
     p.structure.main[j] = intern[mti].azimuth();
     if (atom(mti).ibond() < N)
     {
       for (auto const rotating : atom(atom(mti).ibond()).bound_internals())
       {
-        //std::cout << "Rotates: " << rotating << " which is atom " << atom(rotating).i_to_a() << lineend;
+        //std::cout << "Rotates: " << rotating << " which is atom " << atom(rotating).i_to_a() << '\n';
         p.gradient.main[j] += gintern[rotating].z();
       }
 

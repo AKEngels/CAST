@@ -2,7 +2,6 @@
 #include <array>
 #include <vector>
 #include <ostream>
-#include "global.h"
 #include "tinker_parameters.h"
 #include "scon_matrix.h"
 
@@ -173,7 +172,7 @@ namespace tinker
 
       enum rel { R11, R12, R13, R14, R15, R1N };
 
-      refined(void) : coords(DNULL), params(DNULL) {}
+      refined() : coords(), params() {}
 
       /**
        * This code is written because of a bug sometimes appearing in windows

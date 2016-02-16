@@ -255,6 +255,17 @@ namespace scon
     return size_2d(begin(object), end(object));
   }
 
+  template <class T>
+  inline std::size_t num_digits(T number)
+  {
+    std::size_t digits(0);
+    while (number) {
+      number /= 10;
+      ++digits;
+    }
+    return digits;
+  }
+
   template<class U, class T>
   void static_transform(T const &v, U & t)
   {
@@ -579,11 +590,23 @@ namespace scon
   struct random
   {
 #if defined(SCON_CC11_THREAD)
+
+    template<class T>
+    inline std::mt19937_64 threaded_mt_engine(T x)
+    {
+      static std::mutex mtx;
+      static std::random_device r;
+      static auto mt = std::mt19937_64{
+        std::seed_seq{ r(), r(), r(), r(), r(), r() } };
+      std::unique_lock<std::mutex> lock(mtx);
+      std::seed_seq seq{ mt(), mt(), mt(), mt(), x };
+      return std::mt19937_64{ seq };
+    }
+
     template<typename D>
     static typename D::result_type rand(D dist)
     {
-      static std::mt19937_64 lrng 
-        = std::mt19937_64(std::random_device()());
+      static auto lrng = std::mt19937_64{ std::random_device{}() };
       return dist(lrng);
     }
     template<class Distribution>
@@ -591,7 +614,7 @@ namespace scon
       threaded_rand(Distribution dist)
     {
       static thread_local std::mt19937_64 tlrng = 
-        std::mt19937_64(std::random_device()() + 
+        std::mt19937_64(std::random_device{}() +
         std::hash<std::thread::id>()(std::this_thread::get_id()));
       return dist(tlrng);
     }

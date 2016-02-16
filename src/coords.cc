@@ -422,11 +422,11 @@ coords::float_type coords::Coordinates::lbfgs()
     (optimizer.state() < 0 && Config::get().general.verbosity > 14))
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
-      "). Evaluations:" << optimizer.iter() << lineend;
+      "). Evaluations:" << optimizer.iter() << '\n';
   }
   if (Config::get().general.verbosity > 19 && integrity())
   {
-    std::cout << "Energy after optimization: " << lineend;
+    std::cout << "Energy after optimization: " << '\n';
     e_head_tostream_short(std::cout, energyinterface());
     e_tostream_short(std::cout, energyinterface());
   }
@@ -455,12 +455,12 @@ double coords::Coordinates::prelbfgs()
   if (Config::get().general.verbosity > 19)
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
-      "). Evaluations:" << optimizer.iter() << lineend;
+      "). Evaluations:" << optimizer.iter() << '\n';
   }
 
   if (Config::get().general.verbosity > 19 && m_interface->intact())
   {
-    std::cout << "Energy after optimization: " << lineend;
+    std::cout << "Energy after optimization: " << '\n';
     e_head_tostream_short(std::cout, m_interface);
     e_tostream_short(std::cout, m_interface);
   }
@@ -560,17 +560,17 @@ void coords::Coordinates::e_head_tostream_short(std::ostream &strm,
   else m_interface->print_E_head(strm);
   if (!m_potentials.empty())
   {
-    strm << "Bias Potentials: " << lineend;
+    strm << "Bias Potentials: " << '\n';
     strm << std::setw(24) << "DIH";
     strm << std::setw(24) << "ANG";
     strm << std::setw(24) << "DIST";
     strm << std::setw(24) << "SPHERICAL";
-    strm << std::setw(24) << "CUBIC" << lineend;
+    strm << std::setw(24) << "CUBIC" << '\n';
     strm << std::setw(24) << m_potentials.dihedrals().size();
     strm << std::setw(24) << m_potentials.angles().size();
     strm << std::setw(24) << m_potentials.distances().size();
     strm << std::setw(24) << m_potentials.sphericals().size();
-    strm << std::setw(24) << m_potentials.cubic().size() << lineend;
+    strm << std::setw(24) << m_potentials.cubic().size() << '\n';
   }
 }
 
@@ -582,15 +582,15 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
   else if (m_interface) m_interface->print_E_short(strm);
   if (!m_potentials.empty())
   {
-    strm << "Bias Energies: " << lineend;
+    strm << "Bias Energies: " << '\n';
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dihedral();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_angle();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_dist();
     strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_spherical();
-    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << lineend;
+    strm << std::setw(24) << std::fixed << std::setprecision(8) << m_potentials.e_cubic() << '\n';
   }
   strm << "Total energy: " << m_representation.energy << "\n";
-  strm << lineend;
+  strm << '\n';
 }
 
 
@@ -908,7 +908,7 @@ coords::float_type coords::Internal_Callback::operator()
   if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
-    std::cout << " is " << E << " integrity " << go_on << lineend;
+    std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
 }
@@ -960,7 +960,7 @@ coords::float_type coords::Main_Callback::operator() (coords::Gradients_Main con
   if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
-    std::cout << " is " << E << " integrity " << go_on << lineend;
+    std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
 }
@@ -997,7 +997,7 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
   if (Config::get().general.verbosity > 29)
     std::cout << "Optimization: Energy of step " <<
-    S << " is " << E << " integrity " << go_on << lineend;
+    S << " is " << E << " integrity " << go_on << '\n';
   return E;
 }
 
@@ -1030,7 +1030,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   if (Config::get().general.verbosity > 29)
   {
     std::cout << "Optimization: Energy of step " << S;
-    std::cout << " is " << E << " integrity " << go_on << lineend;
+    std::cout << " is " << E << " integrity " << go_on << '\n';
     //std::cout << "totg " << scon::vector_delimeter('\n') << g << "\n";
   }
   return E;

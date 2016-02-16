@@ -18,7 +18,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
   clear();
   // get nonbonded parameter matrices
   m_vdwc_matrices = pobj.vdwc_matrices();
-  //std::cout<<"REFINE"<<lineend;
+  //std::cout<<"REFINE"<<'\n';
   std::size_t const N_a(cobj.atoms().size());
   m_removes.resize(N_a);
   m_red_types.resize(N_a);
@@ -54,7 +54,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
           std::cout << "No bond parameters found for [Number:" << a+1 << "," << b+1 << "]";
           std::cout << "[Type:" << coords->atoms(a).energy_type() << "," << coords->atoms(b).energy_type() << "]";
           std::cout << "[Type/Class:" << params->type(coords->atoms(a).energy_type(), tinker::BOND, true);
-              std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::BOND, true) << "]" << lineend;
+              std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::BOND, true) << "]" << '\n';
         }
       }
       std::size_t N_c(cobj.atoms(b).bonds().size());
@@ -74,7 +74,7 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
               std::cout << "[Type:" << coords->atoms(a).energy_type() << "," << coords->atoms(b).energy_type() << "," << coords->atoms(c).energy_type() << "]";
               std::cout << "[Type/Class:" << params->type(coords->atoms(a).energy_type(), tinker::ANGLE, true);
               std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::ANGLE, true);
-              std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::ANGLE, true) << "]" << lineend;
+              std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::ANGLE, true) << "]" << '\n';
             }
             find_urey(a, b, c);
 			find_strbend(a, b, c);
@@ -100,13 +100,13 @@ void tinker::refine::refined::refine (coords::Coordinates const &cobj,
                 std::cout << "[Type/Class: " << params->type(coords->atoms(a).energy_type(), tinker::TORSION, true);
                 std::cout << "," << params->type(coords->atoms(b).energy_type(), tinker::TORSION, true);
                 std::cout << "," << params->type(coords->atoms(c).energy_type(), tinker::TORSION, true);
-                std::cout << "," << params->type(coords->atoms(d).energy_type(), tinker::TORSION, true) << "]" << lineend;
+                std::cout << "," << params->type(coords->atoms(d).energy_type(), tinker::TORSION, true) << "]" << '\n';
               }
             }
             // todo find_opbend()
 			if (!find_opbend(a, b, c, d))
 			{
-				//std::cout << "No oopb parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]"<<lineend;
+				//std::cout << "No oopb parameters found for [Number:" << a + 1 << "," << b + 1 << "," << c + 1 << "," << d + 1 << "]"<<'\n';
 
 			}
           }
@@ -535,7 +535,7 @@ void tinker::refine::refined::refine_vdw_h_scale(size_t , size_t )
 	//	//{
 	//	//	t.h_scale[0]= i.rf;
 	//	//	
-	//	//	std::cout << "check_scale2 " << t.h_scale[0] << lineend;
+	//	//	std::cout << "check_scale2 " << t.h_scale[0] << '\n';
 	//	//	m_1d_nbpairs.push_back(t);
 	//	//	//break;
 	//	//}
@@ -543,7 +543,7 @@ void tinker::refine::refined::refine_vdw_h_scale(size_t , size_t )
 	//	//{
 	//	//	t.h_scale[1] = i.rf;
 
-	//	//	std::cout << "check_scale2 " << t.h_scale[1] << lineend;
+	//	//	std::cout << "check_scale2 " << t.h_scale[1] << '\n';
 	//	//	m_1d_nbpairs.push_back(t);
 	//		//break;
 	//	//t.h_scale[0] = i.rf;
@@ -725,7 +725,7 @@ void tinker::refine::refined::refine_mp(void)
 	refine::types::multipole refined_multipole;
 
 	refined_multipole.npole = 0;
-	std::cout << "NUMBER_ATOMS " << N << lineend;
+	std::cout << "NUMBER_ATOMS " << N << '\n';
 	for (size_t a(0U); a<N; ++a)
 	{
 		std::size_t const type_of_a(params->type(coords->atoms(a).energy_type(), tinker::MULTIPOLE));
@@ -1057,10 +1057,10 @@ std::ostream& tinker::refine::types::operator<< (std::ostream &stream, imptor co
 
 std::ostream& tinker::refine::types::operator<< (std::ostream &stream, multipole const &bq)
 {
-  stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]" << lineend;
+  stream << "MP:[" << bq.center << "<.>" << bq.axes.z() << "<.>" << bq.axes.x() << "<.>" << bq.axes.y() << "]" << '\n';
   stream << ":(C: " << (*bq.p_nonrot).charge << ", DP: " << (*bq.p_nonrot).dipole << ")";
   stream << ":(QP: " << (*bq.p_nonrot).quadrupole(0) << " // " << (*bq.p_nonrot).quadrupole(1) << ", " << (*bq.p_nonrot).quadrupole(2) << " //";
-  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")" << lineend;
+  stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")" << '\n';
   stream << ":(C: " << bq.p_rot.charge << ", DP: " << bq.p_rot.dipole << ")";
   stream << ":(QP: " << bq.p_rot.quadrupole(0) << " // " << bq.p_rot.quadrupole(1) << ", " << bq.p_rot.quadrupole(2) << " //";
   stream << "" << bq.p_rot.quadrupole(3) << ", " << bq.p_rot.quadrupole(4) << ", " << bq.p_rot.quadrupole(5) << ")";

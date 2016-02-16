@@ -35,7 +35,7 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
   }
   coordobj.set_pes(accepted_minima[min_index].pes);
   init_stereo = coordobj.stereos();
-  std::size_t const iter_size(num_digits(Config::get().optimization.global.iterations) + 1);
+  std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
   std::string const method(std::string("MC").append(Config::get().optimization.global.montecarlo.minimization ? "M " : "  "));
   std::unique_ptr<std::ofstream> pref, transf, postf;
   //if (Config::get().optimization.global.track_all)
@@ -114,13 +114,13 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "(" << std::setprecision(2) << std::showpoint;
-      std::cout << std::fixed << T << " K, " << step_timer << ", Changed " << movecount << ")" << lineend;
+      std::cout << std::fixed << T << " K, " << step_timer << ", Changed " << movecount << ")" << '\n';
     }
     if (!restore(status))
     {
       if (Config::get().general.verbosity > 1U)
       {
-          std::cout << "Starting point selection limit reached (no non-banned minimum accessible). Stop." << lineend;
+          std::cout << "Starting point selection limit reached (no non-banned minimum accessible). Stop." << '\n';
       }
       break;
     }
@@ -181,13 +181,13 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
   auto const n = movecoords.main().size();
   coords::Representation_Main main_tors(n);
   // choose number of torsions to modify
-  std::mt19937_64 mte{ std::random_device{}() };
-  auto m = std::geometric_distribution<std::size_t>{ 0.5 }(mte);
+  auto dist = std::geometric_distribution<std::size_t>{ 0.5 };
+  auto m = scon::random::threaded_rand(dist);
   m = std::min<std::size_t>(m, n);
   // apply those torsions
   if (Config::get().general.verbosity > 14U)
   {
-    std::cout << "Changing " << m << " of " << n << " mains." << lineend;
+    std::cout << "Changing " << m << " of " << n << " mains." << '\n';
   }
   auto maxrot = Config::get().optimization.global.montecarlo.dihedral_max_rot;
   for (std::size_t ii(0U); ii<m; ++ii)
@@ -197,7 +197,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
       scon::rand<coords::float_type>(-maxrot, maxrot);
     if (Config::get().general.verbosity > 14U)
     {
-      std::cout << "Changing main " << k << " by " << F << lineend;
+      std::cout << "Changing main " << k << " by " << F << '\n';
     }
     main_tors[kk] = coords::main_type::from_deg(F);
   }
@@ -232,31 +232,52 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
 
 std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coords::Coordinates &movecoords)
 {
-  std::size_t const N(movecoords.main().size());
-  coords::Representation_Main main_tors(N);
+  auto max_rot = std::abs(
+    Config::get().optimization.global.montecarlo.dihedral_max_rot);
+  auto const & verb = Config::get().general.verbosity;
+  auto const n = movecoords.main().size();
+  coords::Representation_Main main_tors(n);
+  // distributions
+  auto select_distribution = std::uniform_int_distribution<std::size_t>{ 0, n-1u };
+  auto rot_distribution = std::uniform_real_distribution<coords::float_type>{ -max_rot, max_rot };
   // choose number of torsions to modify
-  coords::float_type const NUM_MAINS(static_cast<coords::float_type>(N));
-  std::size_t const NUM_MOD(std::min((static_cast<std::size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), N));
+  auto m = std::min<std::size_t>(
+    scon::random::threaded_rand(std::geometric_distribution<std::size_t>{ 0.5 }), n);
   // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << N << " mains." << lineend;
-  for (std::size_t ii(0U); ii<NUM_MOD; ++ii)
+  if (verb > 9U)
   {
-    std::size_t const K(static_cast<std::size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));
-    coords::float_type const F(Config::get().optimization.global.montecarlo.dihedral_max_rot*((d_rand()*2.0) - 1.0));
-    if (Config::get().general.verbosity > 9U) std::cout << "Changing main " << K << " by " << F << lineend;
-    main_tors[K] = coords::main_type::from_deg(F);
+    std::cout << "Changing " << m << " of " << n << " mains." << '\n';
   }
-  // orthogonalize movement to main directions
-  for (auto tabu_direction : accepted_minima[min_index].main_direction)
+  for (std::size_t ii(0U); ii<m; ++ii)
   {
-    tabu_direction.resize(main_tors.size());
-    scon::orthogonalize_to_normal(main_tors, tabu_direction);
-    //main_tors.orthogonalize_toNormed(tabu_direction);
+    // obtain random rotation
+    auto rotation = scon::random::threaded_rand(rot_distribution);
+    // get angle type from rotation
+    auto rot_main = coords::main_type::from_deg(rotation);
+    // select id of main to be modified by 'rotation' degrees
+    auto o = scon::random::threaded_rand(select_distribution);
+    if (verb > 9U)
+    {
+      std::cout << "Changing main " << o << " by " << rot_main << '\n';
+    }
+    // set main k to be rotated by 'rot_main'
+    main_tors[o] = rot_main;
   }
-  // add bias potentials to main torsions and dependant torsions to be current value + main_tors[i]
-  for (std::size_t ii(0U); ii<N; ++ii)
+  //// orthogonalize movement to main directions
+  //for (auto tabu_direction : accepted_minima[min_index].main_direction)
+  //{
+  //  tabu_direction.resize(main_tors.size());
+  //  scon::orthogonalize_to_normal(main_tors, tabu_direction);
+  //  //main_tors.orthogonalize_toNormed(tabu_direction);
+  //}
+  // add bias potentials to main torsions 
+  // and dependant torsions to be current value + main_tors[i]
+  for (std::size_t ii(0U); ii<n; ++ii)
   {
-    if (abs(main_tors[ii]) > coords::main_type::from_deg(0)) bias_main_rot(movecoords, ii, main_tors[ii]);
+    if (abs(main_tors[ii]) > coords::main_type::from_deg(0))
+    {
+      bias_main_rot(movecoords, ii, main_tors[ii]);
+    }
   }
   // optimize using biased potentials
   movecoords.o();
@@ -265,7 +286,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coord
   //accepted_minima[min_index].main_direction.push_back(scon::normalized(main_tors - movecoords.main()));
   movecoords.potentials().clear();
   movecoords.potentials().append_config();
-  return NUM_MOD;
+  return m;
 }
 
 

@@ -8,7 +8,6 @@
 #include <memory>
 #include <string>
 //#include <fftw3.h>
-#include "global.h"
 #include "coords_rep.h"
 //#include "Array.h"
 //#include "Complex.h"

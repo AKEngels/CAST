@@ -12,8 +12,6 @@
 #include <cmath>
 #include <cctype>
 #include "scon.h"
-#include "global.h"
-#include "error.h"
 #include "configuration.h"
 #include "filemanipulation.h"
 #include "scon_utility.h"

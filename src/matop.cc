@@ -1,5 +1,6 @@
 #include "matop.h"
-
+#include "scon_angle.h"
+#include <stdexcept>
 namespace matop
 {
   /////////////////////////////////////
@@ -158,18 +159,11 @@ namespace matop
     //First, some range checks
     if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size() - 1u)
     {
-      std::cout << "You specified a truncation number that is greater than the total number of atoms. Stopping." << std::endl;
-      throw;
-    }
-    if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[0] < 0u)
-    {
-      std::cout << "You specified a negative truncation number. Stopping." << std::endl;
-      throw;
+      throw std::runtime_error("Truncation number is greater than the total number of atoms.");
     }
     else if (internalCoordinates && includedAtoms[0] < 3u)
     {
-      std::cout << "You specified a dihedral with index < 3. Stopping." << std::endl;
-      throw;
+      throw std::runtime_error("Dihedral with index < 3 specified.");
     }
 
     if (internalCoordinates)
@@ -620,8 +614,8 @@ namespace matop
       //Remove Eigenvalues that should be zero if cov_matr is singular
       if ((*cov_rank < (int) eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
       {
-        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues." << lineend;
-        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << lineend;
+        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues." << '\n';
+        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << '\n';
         if (Config::get().entropy.entropy_remove_dof)
         {
           size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
@@ -653,8 +647,8 @@ namespace matop
         quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
         entropy_sho += quantum_entropy(i);
       }
-      std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << lineend;
-      std::cout << "Starting corrections for anharmonicity and M.I... " << lineend;
+      std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << '\n';
+      std::cout << "Starting corrections for anharmonicity and M.I... " << '\n';
 
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
@@ -748,14 +742,14 @@ namespace matop
           }
           else
           {
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit" << lineend;
+            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit" << '\n';
             entropy_mi(i, j) = 0.0;
           }
         }
       }
       if (counterForLargeNegativeM_I_Terms > 0u)
       {
-        std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)" << lineend;
+        std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)" << '\n';
       }
       for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
@@ -772,7 +766,7 @@ namespace matop
         }
         else
         {
-          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit" << lineend;
+          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit" << '\n';
           entropy_anharmonic(i) = 0.0;
         }
       }
@@ -787,8 +781,8 @@ namespace matop
           delta_entropy += entropy_mi(i, j);
         }
       }
-      std::cout << "Correction for entropy: " << delta_entropy << " cal / (mol * K)" << lineend;
-      std::cout << "Entropy after correction: " << entropy_sho - delta_entropy << " cal / (mol * K)" << lineend;
+      std::cout << "Correction for entropy: " << delta_entropy << " cal / (mol * K)" << '\n';
+      std::cout << "Entropy after correction: " << entropy_sho - delta_entropy << " cal / (mol * K)" << '\n';
       return entropy_sho - delta_entropy;
     }
 
@@ -848,7 +842,7 @@ namespace matop
       distance += 0.5772156649015328606065;
 
       float_type entropy = distance;
-      std::cout << "entropy (dimensionless): " << entropy << lineend;
+      std::cout << "entropy (dimensionless): " << entropy << '\n';
       std::cout << "entropy: " << entropy * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)" << "\n";
       return entropy;
     }
@@ -901,7 +895,7 @@ namespace matop
       {
         entropy += marginal_entropy_storage(i);
       }
-      std::cout << "entropy (dimensionless): " << entropy << lineend;
+      std::cout << "entropy (dimensionless): " << entropy << '\n';
       std::cout << "entropy: " << entropy * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)" << "\n";
       return entropy;
     }
@@ -922,8 +916,8 @@ namespace matop
       //Remove Eigenvalues that should be zero if cov_matr is singular
       if (( *cov_rank < (int) eigenvalues.rows() ) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
       {
-        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues." << lineend;
-        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << lineend;
+        std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues." << '\n';
+        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << "." << '\n';
         if (Config::get().entropy.entropy_remove_dof)
         {
           size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
@@ -955,7 +949,7 @@ namespace matop
         quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
         entropy_sho += quantum_entropy(i);
       }
-      std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << lineend;
+      std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << '\n';
       return entropy_sho;
     }
 
@@ -973,7 +967,7 @@ namespace matop
       }
       else if (cov_determ != 0)
       {
-        entropy = log(pow(2 * PI, int(input.rows())) * cov_determ);
+        entropy = log(pow(2 * SCON_PI, int(input.rows())) * cov_determ);
         entropy += (input.rows());
         entropy *= 1.380648813 * 6.02214129 * 0.239005736;
         std::cout << "Entropy in classical QH-approximation: " << entropy << " cal / (mol * K)" << std::endl;

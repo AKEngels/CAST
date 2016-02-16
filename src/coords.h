@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <memory>
 
-#include "global.h"
 #include "configuration.h"
 #include "energy.h"
 #include "scon_vect.h"
@@ -364,7 +363,7 @@ namespace coords
       if (m_preinterface)
       {
         if (Config::get().general.verbosity > 19)
-          std::cout << "Preotimization will be performed." << lineend;
+          std::cout << "Preotimization will be performed." << '\n';
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
@@ -797,7 +796,7 @@ namespace coords
       if (Config::get().general.verbosity > 19)
       {
         std::cout << "Optimization: Energy of step " << S;
-        std::cout << " is " << E << " integrity " << go_on << lineend;
+        std::cout << " is " << E << " integrity " << go_on << '\n';
       }
       return E;
     }
@@ -885,7 +884,7 @@ namespace coords
       if (Config::get().general.verbosity > 19)
       {
         std::cout << "Optimization: Energy of step " << S;
-        std::cout << " is " << E << " integrity " << go_on << lineend;
+        std::cout << " is " << E << " integrity " << go_on << '\n';
         std::cout << "|g| = " << scon::geometric_length(g) << "\n";
       }
       return E;

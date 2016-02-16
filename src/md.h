@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "configuration.h"
-#include "global.h"
+#include "coords.h"
 #include "scon_vect.h"
 #include "scon_serialization.h"
 #include "scon_log.h"

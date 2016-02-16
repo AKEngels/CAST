@@ -1,4 +1,6 @@
 #include "coords.h"
+#include "scon_angle.h"
+
 
 #include <algorithm>
 #include <cmath>
@@ -173,7 +175,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
       if (torsion > 0) {
         uout.push_back(torsion);
         diff = torsion - dih.angle;
-        dE = dih.force * diff * RATIO180PI;
+        dE = dih.force * diff * SCON_180PI;
       }
       else {
         if (((360 + torsion) > 180) && dih.angle > 90)
@@ -184,10 +186,10 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
         diff = torsion - dih.angle;
         if (diff < -180) {
           diff = 360 + diff;
-          dE = dih.force * diff * RATIO180PI;
+          dE = dih.force * diff * SCON_180PI;
         }
         else {
-          dE = dih.force * diff * RATIO180PI;
+          dE = dih.force * diff * SCON_180PI;
         }
       }
     }// end of angle > 0
@@ -195,7 +197,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
       if (torsion < 0) {
         uout.push_back(torsion);
         diff = torsion - dih.angle;
-        dE = dih.force * diff * RATIO180PI;
+        dE = dih.force * diff * SCON_180PI;
       }
       else {
         if (((-360 + torsion) < -180) && dih.angle < -90)
@@ -206,15 +208,15 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
         diff = torsion - dih.angle;
         if (diff > 180) {
           diff = 360 - diff;
-          dE = -dih.force * diff * RATIO180PI;
+          dE = -dih.force * diff * SCON_180PI;
         }
-        else dE = dih.force * diff * RATIO180PI;
+        else dE = dih.force * diff * SCON_180PI;
       }
     }// end of angle < 0
     else if (dih.angle == 0) {
       diff = torsion;
       uout.push_back(torsion);
-      dE = dih.force * diff * RATIO180PI;
+      dE = dih.force * diff * SCON_180PI;
     }
     // Derivatives
     t = cross(t, b12);
@@ -309,13 +311,13 @@ double coords::bias::Potentials::spherical(Representation_3D const &positions,
       {
         std::cout << "Spherical boundary gradient of atom " << i + 1 << " at ";
         std::cout << positions[i] << " (which is " << l << " from " << center;
-        std::cout << " making delta = " << md << ") is " << db << " with energy " << ene << lineend;
+        std::cout << " making delta = " << md << ") is " << db << " with energy " << ene << '\n';
       }
       gradients[i] += db;
     }
     if (Config::get().general.verbosity > 29)
     {
-      std::cout << "E = " << E << lineend;
+      std::cout << "E = " << E << '\n';
     }
   }
   return E;
@@ -378,7 +380,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       E += energy;
       if (Config::get().general.verbosity > 49 && energy > 0.)
       {
-        std::cout << " E = " << energy << " and grad " << g << lineend;
+        std::cout << " E = " << energy << " and grad " << g << '\n';
       }
       gradients[i] += g;
     }
