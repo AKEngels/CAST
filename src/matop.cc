@@ -1244,52 +1244,46 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     const size_t FRAME_SIZE = (size_t)ci->size();
     //Initializing some stuff
 
-    for (size_t i = 0; i < FRAME_SIZE; i++)
+    //Prepare size of huge coordinates / frames matrix
+    if (Config::get().PCA.pca_use_internal)
     {
-      if ((Config::get().PCA.pca_start_frame_num <= i) && ((Config::get().PCA.pca_start_frame_num % Config::get().PCA.pca_offset) == (i % Config::get().PCA.pca_offset)))
+      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_internal_dih.size() * 2u);
+    }
+    else if (Config::get().PCA.pca_trunc_atoms_bool)
+    {
+      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
+    } 
+    else
+    {
+      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
+    }
+
+    /* j counts the (truncated) matrix access, i the frames in ci */
+    {
+      size_t j = 0;
+      if (Config::get().PCA.pca_use_internal)        //Conversion to internal coordinates if desired
       {
-        auto holder2 = ci->PES()[i].structure.cartesian;
-        coords.set_xyz(holder2);
-        //Initializing current frame
-
-        if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
+        for (size_t i = Config::get().PCA.pca_start_frame_num; i < ci->size(); ++j, i += Config::get().PCA.pca_offset)
         {
-          ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
-          ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
-        }
-        //Translational and rotational alignment
-
-        if (Config::get().PCA.pca_use_internal)
-        {
+          auto holder2 = ci->PES()[i].structure.cartesian;
+          coords.set_xyz(holder2);
           coords.to_internal();
+          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
         }
-        //Conversion to internal coordinates if desired
-
-        if (Config::get().PCA.pca_start_frame_num < i)
+      }
+      else
+      {
+        for (size_t i = Config::get().PCA.pca_start_frame_num; i < ci->size(); ++j, i += Config::get().PCA.pca_offset)
         {
-          if (Config::get().PCA.pca_use_internal)
+          auto holder2 = ci->PES()[i].structure.cartesian;
+          coords.set_xyz(holder2);
+          if (Config::get().PCA.pca_alignment)        //Translational and rotational alignment
           {
-            matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true));
+            ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
+            ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          else
-          {
-            //Works for full and truncated PCA
-            matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false));
-          }
+          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
         }
-        else if (Config::get().PCA.pca_start_frame_num == i)
-        {
-          if (Config::get().PCA.pca_use_internal)
-          {
-            //First a little check if the user-specified values are reasonable
-            matrix_aligned = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
-          }
-          else
-          {
-            matrix_aligned = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
-          }
-        }
-        //Building one huge [frames] x [coordinates] matrix by appending for every frame
       }
     }
 
