@@ -1527,7 +1527,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().PCA.pca_trunc_atoms_bool = false;
     }
   }
-  else if (option == "pca_trunc_atoms_num" && Config::get().PCA.pca_trunc_atoms_bool)
+  else if (option == "pca_trunc_atoms_num")
   {
     Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(cv);
   }

@@ -1222,6 +1222,9 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
   using namespace matop;
   using namespace matop::pca;
 
+  //First, adjust number of truncated atoms to be used to zero, in case truncation is not to be used (duh)
+  if (!Config::get().PCA.pca_trunc_atoms_bool) Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>();
+
   Matrix_Class pca_modes, eigenvalues, eigenvectors, matrix_aligned;
 
   if (!Config::get().PCA.pca_read_modes)
