@@ -269,7 +269,7 @@ namespace matop
       if (rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
       {
         std::cout << "Notice: covariance matrix is singular.\n";
-        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+        std::cout << "Details: rank of covariance matrix is " << rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().PCA.pca_remove_dof)
         {
           size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
