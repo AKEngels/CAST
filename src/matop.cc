@@ -272,7 +272,7 @@ namespace matop
         std::cout << "Details: rank of covariance matrix is " << rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().PCA.pca_remove_dof)
         {
-          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          size_t temp = std::max(6, int((cov_matr.rows() - rank)));
           eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
           eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
         }
@@ -633,7 +633,7 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-
+      delete cov_rank; 
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows());
@@ -935,7 +935,7 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-
+      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows());
@@ -1263,7 +1263,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       size_t j = 0;
       if (Config::get().PCA.pca_use_internal)        //Conversion to internal coordinates if desired
       {
-        for (size_t i = Config::get().PCA.pca_start_frame_num; i < ci->size(); ++j, i += Config::get().PCA.pca_offset)
+        for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
         {
           auto holder2 = ci->PES()[i].structure.cartesian;
           coords.set_xyz(holder2);
@@ -1273,7 +1273,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       }
       else
       {
-        for (size_t i = Config::get().PCA.pca_start_frame_num; i < ci->size(); ++j, i += Config::get().PCA.pca_offset)
+        for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
         {
           auto holder2 = ci->PES()[i].structure.cartesian;
           coords.set_xyz(holder2);
