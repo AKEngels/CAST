@@ -1240,34 +1240,32 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       ::matop::align::centerOfMassAlignment(coords_ref);
     }
 
-    //bool has_it_started = false;
     const size_t FRAME_SIZE = (size_t)ci->size();
     //Initializing some stuff
 
     //Prepare size of huge coordinates / frames matrix
     if (Config::get().PCA.pca_use_internal)
     {
-      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_internal_dih.size() * 2u);
+      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_internal_dih.size() * 2u);
     }
     else if (Config::get().PCA.pca_trunc_atoms_bool)
     {
-      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
+      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
     } 
     else
     {
-      matrix_aligned = Matrix_Class((unsigned int) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
+      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
     }
 
     /* j counts the (truncated) matrix access, i the frames in ci */
     {
       size_t j = 0;
-      if (Config::get().PCA.pca_use_internal)        //Conversion to internal coordinates if desired
+      if (Config::get().PCA.pca_use_internal)
       {
         for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
         {
           auto holder2 = ci->PES()[i].structure.cartesian;
           coords.set_xyz(holder2);
-          coords.to_internal();
           matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
         }
       }
@@ -1483,7 +1481,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
     else
     {
       // Here, we merely restore the coordinates from the PCA-modes
-      // since no trucnation took plage, and write them out.
+      // since no truncation took place, and write them out.
       ::matop::undoMassweight(trajectory, coords, false);
       for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
       {
@@ -1543,10 +1541,10 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
           // Thats why we negate the criterion in the if clause (!)
           if (tokens[j] == true)
           {
-            auto compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
-            auto compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
-            auto compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
-            auto compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
+            float_type compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
+            float_type compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
+            float_type compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
+            float_type compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
             bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
               || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
             bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
@@ -1582,6 +1580,9 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    using namespace matop;
    using namespace matop::entropy;
 
+   //First, adjust number of truncated atoms to be used to zero, in case truncation is not to be used (duh)
+   if (!Config::get().entropy.entropy_trunc_atoms_bool) Config::set().entropy.entropy_trunc_atoms_num = std::vector<size_t>();
+
    //Initialize the reference frame (for alignment etc)
    coords::Coordinates coords_ref(coords);
    auto holder = (*ci).PES()[Config::get().entropy.entropy_ref_frame_num].structure.cartesian;
@@ -1602,54 +1603,50 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    }
    //Initializing and checking...
 
-   for (size_t i = 0; i < FRAME_SIZE; i++)
+   if (Config::get().entropy.entropy_use_internal)
    {
-     // Meet-your-Maker-Note: Keep it like this with the seeminlgy stupid "is it started", please.
-     if (Config::get().entropy.entropy_start_frame_num <= i && (Config::get().entropy.entropy_start_frame_num % Config::get().entropy.entropy_offset == i % Config::get().entropy.entropy_offset))
+     matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().entropy.entropy_start_frame_num) / Config::get().entropy.entropy_offset), \
+       Config::get().entropy.entropy_internal_dih.size() * 2u);
+   }
+   else if (Config::get().entropy.entropy_trunc_atoms_bool)
+   {
+     matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().entropy.entropy_start_frame_num) / Config::get().entropy.entropy_offset), \
+       Config::get().entropy.entropy_trunc_atoms_num.size() * 3u);
+   }
+   else
+   {
+     matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().entropy.entropy_start_frame_num) / Config::get().entropy.entropy_offset), \
+       coords.atoms().size() * 3u);
+   }
+
+   /* j counts the (truncated) matrix access, i the frames in ci */
+   {
+     size_t j = 0;
+     if (Config::get().entropy.entropy_use_internal)        //Conversion to internal coordinates if desired
      {
-       auto holder2 = ci->PES()[i].structure.cartesian;
-       coords.set_xyz(holder2);
-       //Initializing current frame
-
-       if (Config::get().entropy.entropy_alignment && !Config::get().entropy.entropy_use_internal)
+       for (size_t i = Config::get().entropy.entropy_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().entropy.entropy_offset)
        {
-         ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
-         ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
+         auto holder2 = ci->PES()[i].structure.cartesian;
+         coords.set_xyz(holder2);
+         matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
        }
-       //Translational and rotational alignment
-
-       if (Config::get().entropy.entropy_use_internal)
+     }
+     else
+     {
+       for (size_t i = Config::get().entropy.entropy_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().entropy.entropy_offset)
        {
-         coords.to_internal();
+         auto holder2 = ci->PES()[i].structure.cartesian;
+         coords.set_xyz(holder2);
+         if (Config::get().entropy.entropy_alignment)        //Translational and rotational alignment
+         {
+           ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
+           ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
+         }
+         matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
        }
-       //Conversion to internal coordinates if desired
-
-       if (Config::get().entropy.entropy_start_frame_num < i)
-       {
-         if (Config::get().entropy.entropy_use_internal)
-         {
-           matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true));
-         }
-         else
-         {
-           matrix_aligned.append_bottom(::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false));
-         }
-       }
-       else if (Config::get().entropy.entropy_start_frame_num == i)
-       {
-         if (Config::get().entropy.entropy_use_internal)
-         {
-           matrix_aligned = ::matop::transformToOneline(coords, Config::get().entropy.entropy_internal_dih, true);
-         }
-         else
-         {
-           matrix_aligned = ::matop::transformToOneline(coords, Config::get().entropy.entropy_trunc_atoms_num, false);
-         }
-       }
-       //Building one huge [coordinates] x [frames] matrix by appending for every frame
-
      }
    }
+
    transpose(matrix_aligned);
    //NECESSARY because of implementation details, don't worry about it for now; rows are DOFs, columns are frames FROM HERE ON!
 
