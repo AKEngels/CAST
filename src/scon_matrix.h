@@ -14,7 +14,7 @@
 
 #if !defined(SCON_RESTRICT) && defined(_MSC_VER)
 #define SCON_RESTRICT __restrict
-#elif !defined(SCON_RESTRICT)
+#elif !defined(SCON_RESTRICT) && defined(__GNUG__)
 #define SCON_RESTRICT __restrict__
 #endif
 
@@ -368,6 +368,25 @@ namespace scon
     return true;
   }
 
+  template<class T, template<class...> class C>
+  scon::matrix<T> transposed(matrix<T, false, C> const &A)
+  {
+    auto const N = A.rows();
+    auto const M = A.cols();
+    auto B = scon::matrix<T>(M, N);
+#if defined(_OPENMP)
+    auto const oll = static_cast<std::ptrdiff_t>(N*M);
+#pragma omp parallel for
+    for (std::ptrdiff_t n = 0; n < oll; ++n)
+#else
+    for (std::size_t n = 0; n < N*M; ++n)
+#endif
+    {
+      B(n) = A(M * (n % N) + (n / N));
+    }
+    return B;
+  }
+
   // transpose matrix
   template<class T, template<class...> class C>
   void transpose(matrix<T, false, C> &m)
@@ -384,29 +403,9 @@ namespace scon
     }
     else
     {
-      matrix<T, false, C> transposed_m(m.cols(), m.rows());
-      for (std::size_t r = 0; r < m.rows(); ++r)
-      {
-        for (std::size_t c = 0; c < m.cols(); ++c)
-        {
-          transposed_m(c, r) = m(r, c);
-        }
-      }
-      transposed_m.swap(m);
+      m.swap(transposed(m));
     }
   }
-
-
-  // return transposed matrix
-  template<class T, template<class...> class C>
-  matrix<T, false, C> transposed(matrix<T, false, C> const &m)
-  {
-    matrix<T, false, C> t(m);
-    transpose(t);
-    return t;
-  }
-
-
 
   // matrix multiplication
   template<class T, class U, template<class...> class C>
@@ -855,6 +854,218 @@ namespace scon
     typedef matrix_printer< scon::matrix<T,B> > p_type;
     strm << p_type(matrix);
     return strm;
+  }
+
+
+  template<class T>
+  struct LU_decomp
+  {
+
+    scon::matrix<T> lu;
+    std::vector<std::size_t> P;
+    typename std::enable_if<
+      std::is_floating_point<T>::value, T>::type d;
+
+    // construction
+
+    LU_decomp(scon::matrix<T> const &A)
+      : lu(A), P(A.rows()), d(1)
+    {
+      // check proper dimensionality
+      if (A.rows() != A.cols())
+        throw std::logic_error("LU decompostion requires square matrix.");
+      // setup
+      auto const tiny = T{ 1.e-40 };
+      auto const n = A.rows();
+      auto vv = std::vector<T>(n);
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        auto b = T{};
+        for (std::size_t j = 0; j < n; ++j)
+        {
+          b = std::max(b, std::abs(lu(i, j)));
+        }
+        if (b == T{})
+          throw std::runtime_error("Singular matrix in LU decompostion.");
+        vv[i] = T{ 1 } / b;
+      }
+
+      for (std::size_t k = 0; k < n; ++k)
+      {
+        auto b = T{};
+        std::size_t imax = k;
+        for (std::size_t i = k; i < n; ++i)
+        {
+          auto tmp = vv[i] * std::abs(lu(i, k));
+          if (tmp > b)
+          {
+            b = tmp;
+            imax = i;
+          }
+        }
+        if (k != imax)
+        {
+          for (std::size_t j = 0; j < n; ++j)
+          {
+            std::swap(lu(imax, j), lu(k, j));
+          }
+          d = -d;
+          vv[imax] = vv[k];
+        }
+        P[k] = imax;
+        if (lu(k, k) == T{}) lu[k][k] = tiny;
+
+        for (std::size_t i = k + 1; i < n; ++i)
+        {
+          auto tmp = lu(i, k) /= lu(k, k);
+          for (std::size_t j = k + 1; j < n; ++j)
+          {
+            lu(i, j) -= tmp*lu(k, j);
+          }
+        }
+
+      }
+
+    }
+
+    // return L and U
+
+    scon::matrix<T> L() const
+    {
+      scon::matrix<T> l(lu);
+      auto const n = l.rows();
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        for (std::size_t j = i; j < n; ++j)
+        {
+          l(i, j) = (i == j) ? T{ 1 } : T{ 0 };
+        }
+      }
+      return l;
+    }
+    scon::matrix<T> U() const
+    {
+      scon::matrix<T> u(lu);
+      auto const n = u.rows();
+      for (std::size_t i = 1; i < n; ++i)
+      {
+        for (std::size_t j = 0; j < i; ++j)
+        {
+          u(i, j) = T{ 0 };
+        }
+      }
+      return u;
+    }
+
+    // determinant of creation matrix A
+    T determinant() const
+    {
+      auto r = d;
+      auto const n = lu.rows();
+      for (std::size_t i = 0; i < n; ++i) r *= lu(i, i);
+      return r;
+    }
+
+    // solve linear equation set
+    // A * x = b (param = b, return = x)
+    std::vector<T> solve(std::vector<T> const &b) const
+    {
+      auto n = lu.rows();
+      if (n != b.size())
+        throw std::out_of_range("LU decompostion solve() got wrong vector size.");
+      auto x = b;
+      auto ii = std::size_t{};
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        auto ip = P[i];
+        auto sum = x[ip];
+        if (ii != std::size_t{})
+        {
+          for (std::size_t j = ii - 1; j < i; ++j)
+          {
+            sum -= lu(i, j)*x[j];
+          }
+        }
+        else if (sum != T{}) ii = i + 1u;
+        x[i] = sum;
+      }
+      auto const i_init = static_cast<std::ptrdiff_t>(n - 1u);
+      for (auto i = i_init; i >= 0; --i)
+      {
+        auto sum = x[i];
+        auto const j_init = static_cast<std::size_t>(i + 1);
+        for (auto j = j_init; j < n; ++j)
+        {
+          sum -= lu(i, j)*x[j];
+        }
+        x[i] = sum / lu(i, i);
+      }
+      return x;
+    }
+
+    // solve multiple linear equation sets
+    // A * X = B
+    scon::matrix<T> solve(scon::matrix<T> const &b) const
+    {
+      auto const n = lu.rows();
+      auto const m = b.cols();
+      if (n != b.rows())
+        throw std::out_of_range("LU decompostion solve() got wrong matrix size.");
+      // result matrix
+      auto x = scon::matrix<T>(n, m);
+      auto xx = std::vector<T>(n, T{});
+      for (std::size_t j = 0; j < m; ++j)
+      {
+        for (std::size_t i = 0; i < n; ++i) xx[i] = b(i, j);
+        xx = solve(xx);
+        for (std::size_t i = 0; i < n; ++i) x(i, j) = xx[i];
+      }
+      return x;
+    }
+
+
+    // get inverse of creation matrix
+    scon::matrix<T> inverse() const
+    {
+      auto const n = lu.rows();
+      auto inv_mat = scon::matrix<T>(n, n, T{});
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        inv_mat(i, i) = T{ 1 };
+      }
+      return solve(inv_mat);
+    }
+
+  };
+
+  template<class T>
+  LU_decomp<T> LU_decompose(scon::matrix<T> const &m)
+  {
+    return{ m };
+  }
+
+  template<class T>
+  T determinant(scon::matrix<T> const &A)
+  {
+    return LU_decompose(A).determinant();
+  }
+
+  template<class T>
+  T determinant(LU_decomp<T> const &LU)
+  {
+    return LU.determinant();
+  }
+
+  template<class T>
+  scon::matrix<T> inverse(scon::matrix<T> const &A)
+  {
+    return LU_decompose(A).inverse();
+  }
+
+  template<class T>
+  scon::matrix<T> inverse(LU_decomp<T> const &LU)
+  {
+    return LU.inverse();
   }
 
 }
