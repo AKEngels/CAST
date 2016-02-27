@@ -403,7 +403,8 @@ namespace scon
     }
     else
     {
-      m.swap(transposed(m));
+      auto t = transposed(m);
+      m.swap(t);
     }
   }
 
