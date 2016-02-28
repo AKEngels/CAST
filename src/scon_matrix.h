@@ -464,7 +464,52 @@ namespace scon
     return r;
   }
 
-  
+  namespace detail
+  {
+
+    template<class T, bool B, template<class...> class C, class It>
+    typename std::enable_if < std::is_arithmetic<T>::value,
+      C<T>>::type
+      matrix_mul_range(scon::matrix<T, B, C> const &A, 
+        It col_first, It col_last)
+    {
+      auto const n = A.rows();
+      auto const m = A.cols();
+      auto const rl = static_cast<std::size_t>(
+        std::distance(col_first, col_last));
+      if (rl != m)
+        throw std::out_of_range("Improper sized column range for multiplication.");
+      auto r = C<T>(n, T{});
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        for (std::size_t j = 0; j < m; ++j)
+        {
+          r[i] += A(i, j) * *(col_first + j);
+        }
+      }
+      return r;
+    }
+
+    template<class T> struct is_matrix : std::false_type {};
+
+    template<class T, bool b, template<class...> class C> 
+    struct is_matrix < matrix<T, b, C> > : std::true_type {};
+
+  }
+
+
+
+  // matrix vector multiplication
+  template<class T, bool B, template<class...> class C, class U>
+  typename std::enable_if <
+    std::is_arithmetic<T>::value && scon::is_range<U>::value
+    && !detail::is_matrix<U>::value, C<T>>::type
+    operator*(scon::matrix<T, B, C> const &a, U &&b)
+  {
+    using std::begin;
+    using std::end;
+    return detail::matrix_mul_range(a, begin(b), end(b));
+  }
 
   template<class T, template<class...> class ContainerT>
   class matrix<T, true, ContainerT>
@@ -893,8 +938,8 @@ namespace scon
 
       for (std::size_t k = 0; k < n; ++k)
       {
-        auto b = T{};
-        std::size_t imax = k;
+        auto b = T{0};
+        auto imax = k;
         for (std::size_t i = k; i < n; ++i)
         {
           auto tmp = vv[i] * std::abs(lu(i, k));
@@ -980,7 +1025,8 @@ namespace scon
       {
         auto ip = P[i];
         auto sum = x[ip];
-        if (ii != std::size_t{})
+        x[ip] = x[i];
+        if (ii != std::size_t{0})
         {
           for (std::size_t j = ii - 1; j < i; ++j)
           {
@@ -1029,7 +1075,7 @@ namespace scon
     scon::matrix<T> inverse() const
     {
       auto const n = lu.rows();
-      auto inv_mat = scon::matrix<T>(n, n, T{});
+      auto inv_mat = scon::matrix<T>(n, n, T{ 0 });
       for (std::size_t i = 0; i < n; ++i)
       {
         inv_mat(i, i) = T{ 1 };
