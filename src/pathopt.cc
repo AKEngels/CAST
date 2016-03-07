@@ -201,6 +201,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 	  }
 	  else
 	  {
+		  positions = cPtr->xyz();
         for (ptrdiff_t j = 0; j < natom; j++) {
           randvect();
           factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;
