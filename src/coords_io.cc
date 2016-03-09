@@ -604,7 +604,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
         if (i % (N + 1u) != 0)
         {
           double x(0), y(0), z(0);
-          CAST_SSCANF_COORDS_IO(line.c_str(), "%*lu %*s %lf %lf %lf", &x, &y, &z);
+          CAST_SSCANF_COORDS_IO(line.c_str(), "%*u %*s %lf %lf %lf", &x, &y, &z);
           positions.emplace_back(x, y, z);
           /*std::size_t curr_ind{ 0 };
           std::string curr_sym;
