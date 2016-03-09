@@ -576,6 +576,23 @@ namespace scon
     iterator const m_begin;
     size_type const m_size;
 
+    template<class X>
+    void assign_from(X && rhs)
+    {
+      using std::begin;
+      using std::end;
+      auto first = begin(rhs);
+      auto last = end(rhs);
+      if (size() != std::distance(first, last))
+        throw std::logic_error("range_proxy assignment size mismatch");
+      // copy if reference is given (lvalue, const value)
+      // move if rvalue is passed
+      if (std::is_reference<X>::value)
+        std::copy(first, last, this->begin());
+      else
+        std::move(first, last, this->begin());
+    }
+
   public:
 
     range_proxy(iterator const & iter,
@@ -583,21 +600,32 @@ namespace scon
       : m_begin(iter), m_size(size)
     { }
 
+    range_proxy(iterator const & first,
+      iterator const & last)
+      : m_begin(first), m_size(static_cast<size_type>(
+        std::distance(first,last)))
+    { }
+
+    range_proxy(range_proxy const &) = default;
+    range_proxy(range_proxy &&) = default;
+
     template<class X>
-    range_proxy& operator= (X const & rhs)
+    range_proxy& operator= (X && rhs)
     {
-      using std::begin;
-      using std::end;
-      using std::copy;
-      if (size() != rhs.size())
-        throw std::logic_error("range_proxy_assignment size mismatch");
-      copy(begin(rhs), end(rhs), this->begin());
+      assign_from(std::forward<X>(rhs));
       return *this;
     }
 
     range_proxy& operator= (range_proxy const & rhs)
     { // call templated version explicitly
-      return this->operator=<range_proxy>(rhs);
+      assign_from(rhs);
+      return *this;
+    }
+
+    range_proxy& operator= (range_proxy && rhs)
+    { // call templated version explicitly
+      assign_from(std::move(rhs));
+      return *this;
     }
 
     // range
@@ -654,6 +682,14 @@ namespace scon
     const_reference operator[] (size_type const index) const
     {
       return *(cbegin() + index);
+    }
+
+    void swap(my_type &other)
+    {
+      if (size() != other.size())
+        throw std::out_of_range("Swapping range proxys"
+          " requires equal sized ranges");
+      std::swap_ranges(this->begin(), this->end(), other.begin());
     }
 
     bool operator== (my_type const &other) const

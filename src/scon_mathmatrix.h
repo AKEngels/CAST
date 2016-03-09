@@ -1095,6 +1095,12 @@ namespace scon
 		}
 	};
 
+  namespace detail
+  {
+    template<class T>
+    struct is_matrix<mathmatrix<T>> : std::true_type {};
+  }
+
   template<class T, class U = T>
   typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
     mathmatrix<typename std::common_type<T, U>::type >> ::type

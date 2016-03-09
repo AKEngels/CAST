@@ -492,18 +492,18 @@ namespace scon
 
     template<class T> struct is_matrix : std::false_type {};
 
-    template<class T, bool b, template<class...> class C> 
+    template<class T, bool b, template<class...> class C>
     struct is_matrix < matrix<T, b, C> > : std::true_type {};
 
   }
-
-
 
   // matrix vector multiplication
   template<class T, bool B, template<class...> class C, class U>
   typename std::enable_if <
     std::is_arithmetic<T>::value && scon::is_range<U>::value
-    && !detail::is_matrix<U>::value, C<T>>::type
+    && !detail::is_matrix<typename std::remove_reference<U>::type>::value 
+    && !std::is_base_of<matrix<T, B, C>, typename std::remove_reference<U>::type>::value && 
+    !std::is_base_of<matrix<range_value<U>>, U>::value, C<T>>::type
     operator*(scon::matrix<T, B, C> const &a, U &&b)
   {
     using std::begin;
