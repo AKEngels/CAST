@@ -1005,18 +1005,28 @@ namespace scon
     using std::end;
     struct range_indexer
     {
-      std::size_t d;
+      std::size_t f, l;
       template<class R>
-      range_indexer(R &r) : d(static_cast<std::size_t>(std::distance(begin(r), end(r)))) {}
+      range_indexer(R &r) : f(0u), 
+      l(static_cast<std::size_t>(std::distance(begin(r), end(r)))) {}
+      range_indexer(std::size_t const start_index, 
+        std::size_t const end_index) : f(start_index), l(end_index)
+      { }
     };
-    inline scon::index_iterator begin(range_indexer const &) { return{0}; }
-    inline scon::index_iterator end(range_indexer const &ri) { return{ ri.d }; }
+    inline scon::index_iterator begin(range_indexer const &ri) { return{ ri.f }; }
+    inline scon::index_iterator end(range_indexer const &ri) { return{ ri.l }; }
   }
 
   template<class T>
   inline range_index_detail::range_indexer index_range(T &range)
   {
     return { range };
+  }
+
+  inline range_index_detail::range_indexer index_range(
+    std::size_t const first, std::size_t const last)
+  {
+    return{ first, last };
   }
 
   namespace detail
