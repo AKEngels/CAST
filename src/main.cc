@@ -218,6 +218,7 @@ int main(int argc, char **argv)
           sp_estr << " WW" << ++i;
         }
         sp_estr << " t\n";
+        i = 0;
         for (auto const & pes : *ci)
         {
           using namespace std::chrono;
