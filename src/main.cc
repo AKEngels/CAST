@@ -88,6 +88,16 @@ int main(int argc, char **argv)
 	  //GB::born::SET_METHOD();
 	  //GB::born::SET_SURFACE();
 
+    auto sys_mass = [](coords::Coordinates &sys) -> double
+    {
+      double m = 0;
+      for (auto && a : sys.atoms())
+      {
+        m += a.mass();
+      }
+      return m;
+    };
+
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "-------------------------------------------------\n";
@@ -95,6 +105,7 @@ int main(int argc, char **argv)
       std::cout << "-------------------------------------------------\n";
       std::cout << "Loaded " << ci->size() << " structure" << (ci->size() == 1 ? "" : "s");
       std::cout << ". (" << ci->atoms() << " atom" << (ci->atoms() == 1 ? "" : "s");
+      std::cout << " and " << sys_mass(coords) << " g/mol";
       std::cout << (ci->size() > 1 ? " each" : "") << ")\n";
       std::size_t const susysize(coords.subsystems().size());
       if (susysize > 1U)
@@ -191,38 +202,22 @@ int main(int argc, char **argv)
       // DEVTEST: Room for Development testing
     case config::tasks::DEVTEST:
     {
-      //auto lo_structure_fn = coords::output::filename("_ia1-sorted");
-      //std::ofstream sortedstream(lo_structure_fn, std::ios_base::out);
-      //coords::Ensemble_PES pese;
-      //for (auto const & pes : *ci)
-      //{
-      //  coords.set_xyz(pes.structure.cartesian);
-      //  coords.g();
-      //  pese.push_back(coords.pes());
-      //}
-      //auto sorter = [](coords::PES_Point const &a,
-      //  coords::PES_Point const &b) -> bool
-      //{
-      //  return a.ia_matrix.at(1u).energy < b.ia_matrix.at(1u).energy;
-      //};
-      //std::sort(pese.begin(), pese.end(), sorter);
-      //for (auto const & pe : pese)
-      //{
-      //  //std::cout << std::setw(16) << pe.ia_matrix.at(1u).energy
-      //  //  << std::setw(16) << pe.energy << "\n";
-      //  coords.set_xyz(pe.structure.cartesian);
-      //  sortedstream << coords;
-      //}
-      auto pes = startopt::ringsearch::genetic_propagation(coords, 10, 20);
       break;
     }
     case config::tasks::SP:
       { // singlepoint
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
-        auto sp_energies_fn = coords::output::filename("SP", ".txt");
+        auto sp_energies_fn = coords::output::filename("_SP", ".txt");
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-        if (!sp_estr) throw std::runtime_error("Cannot open '" + sp_energies_fn + "' to write SP energies.");
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+          sp_energies_fn + "' to write SP energies.");
+        sp_estr << "# E";
+        for (auto && ia : coords.interactions())
+        {
+          sp_estr << " WW" << ++i;
+        }
+        sp_estr << " t\n";
         for (auto const & pes : *ci)
         {
           using namespace std::chrono;
@@ -231,9 +226,13 @@ int main(int argc, char **argv)
           auto en = coords.e();
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
-          std::cout << tim.count() << " ns\n";
-          std::cout << "Structure " << ++i << '\n';
-          sp_estr << i << ' ' << en << ' ' << tim.count() << '\n';
+          std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+          sp_estr << i << ' ' << en;
+          for (auto && ia : coords.pes().ia_matrix)
+          {
+            sp_estr << ' ' << ia.energy;
+          }
+          sp_estr << ' ' << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
         }
         break;
