@@ -111,7 +111,7 @@ namespace statistics
         _detail::accum<T>{}).sum / static_cast<T>(sample.size());
       auto sd = std::for_each(sample.begin(), sample.end(), _detail::ssd<T>{av}).result;
       auto sd4 = sd*sd; // ^2
-      sd4 = sd*sd; // ^4
+      sd4 = sd4*sd4; // ^4
       return std::pow(T{ 4 } *sd4 * sd / (T{ 3 } *static_cast<T>(sample.size())), T{ 1 } / T{ 5 });
     }
   }
