@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 
     auto short_ene_stream = [](
       coords::Coordinates const &coords, 
-      std::ostream &strm, std::streamsize const w = 16)
+      std::ostream &strm, std::streamsize const w)
     {
       strm << std::setw(w) << coords.pes().energy;
       for (auto && ia : coords.pes().ia_matrix)
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 
     auto short_ene_stream_h = [](
       coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w = 16)
+      std::ostream &strm, std::streamsize const w)
     {
       strm << std::setw(w) << "Energy";
       auto const n = coords.pes().ia_matrix.size();
