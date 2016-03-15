@@ -183,6 +183,35 @@ int main(int argc, char **argv)
         }
       }
     }
+    
+    /*
+    
+      Energy print 
+
+    */
+
+    auto short_ene_stream = [](
+      coords::Coordinates const &coords, 
+      std::ostream &strm, std::streamsize const w = 16)
+    {
+      strm << std::setw(w) << coords.pes().energy;
+      for (auto && ia : coords.pes().ia_matrix)
+      {
+        strm << std::setw(w) << ia.energy;
+      }
+    };
+
+    auto short_ene_stream_h = [](
+      coords::Coordinates const &coords,
+      std::ostream &strm, std::streamsize const w = 16)
+    {
+      strm << std::setw(w) << "Energy";
+      auto const n = coords.pes().ia_matrix.size();
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        strm << std::setw(w) << ("WW" + std::to_string(i));
+      }
+    };
 
     /*
 
@@ -212,28 +241,21 @@ int main(int argc, char **argv)
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
         if (!sp_estr) throw std::runtime_error("Cannot open '" + 
           sp_energies_fn + "' to write SP energies.");
-        sp_estr << "# E";
-        for (auto && ia : coords.interactions())
-        {
-          sp_estr << " WW" << ++i;
-        }
-        sp_estr << " t\n";
+        sp_estr << std::setw(16) << "#";
+        short_ene_stream_h(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << 't';
+        sp_estr << '\n';
         i = 0;
         for (auto const & pes : *ci)
         {
           using namespace std::chrono;
           coords.set_xyz(pes.structure.cartesian);
           auto start = high_resolution_clock::now();
-          auto en = coords.e();
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-          sp_estr << i << ' ' << en;
-          for (auto && ia : coords.pes().ia_matrix)
-          {
-            sp_estr << ' ' << ia.energy;
-          }
-          sp_estr << ' ' << tim.count() << '\n';
+          short_ene_stream(coords, sp_estr, 16);
+          sp_estr << std::setw(16) << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
         }
         break;
@@ -300,6 +322,11 @@ int main(int argc, char **argv)
         auto lo_energies_fn = coords::output::filename("_LOCOPT", ".txt");
         std::ofstream loclogstream(lo_energies_fn, std::ios_base::out );
         if (!loclogstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT energies.");
+        loclogstream << std::setw(16) << "#";
+        short_ene_stream_h(coords, loclogstream, 16);
+        short_ene_stream_h(coords, loclogstream, 16);
+        loclogstream << std::setw(16) << "t";
+        loclogstream << '\n';
         std::size_t i(0U);
         for (auto const & pes : *ci)
         {
@@ -309,11 +336,13 @@ int main(int argc, char **argv)
           coords.e();
           std::cout << "Initial: " << ++i << '\n';
           coords.e_tostream_short(std::cout);
-          loclogstream << i << ' ' << coords.pes().energy << ' ';
+          loclogstream << std::setw(16) << i;
+          short_ene_stream(coords, loclogstream, 16);
           coords.o();
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
-          loclogstream << coords.pes().energy << ' ' << tim.count() << '\n';
+          short_ene_stream(coords, loclogstream, 16);
+          loclogstream << std::setw(16) << tim.count() << '\n';
           std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
           coords.e_tostream_short(std::cout);
           locoptstream << coords;
