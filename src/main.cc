@@ -251,6 +251,7 @@ int main(int argc, char **argv)
           using namespace std::chrono;
           coords.set_xyz(pes.structure.cartesian);
           auto start = high_resolution_clock::now();
+          coords.e();
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
