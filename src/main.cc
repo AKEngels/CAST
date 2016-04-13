@@ -255,7 +255,6 @@ int main(int argc, char **argv)
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-          sp_estr << std::setw(16) << i;
           short_ene_stream(coords, sp_estr, 16);
           sp_estr << std::setw(16) << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
