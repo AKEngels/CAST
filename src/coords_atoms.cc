@@ -1098,7 +1098,7 @@ size_t coords::Atoms::getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) co
   size_t counter = 0u;
   for (size_t i = 0u; i < this->size(); i++)
   {
-    if (this->m_atoms[i].number() == 1u) counter++;
+    if (this->m_atoms[i].number() == searchedNumber) counter++;
   }
   return counter;
 }
