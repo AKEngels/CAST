@@ -312,11 +312,15 @@ namespace coords
     bool sub_io() const { return m_sub_io; }
     bool sub_io_transition(std::size_t a, std::size_t b) const;
     //bool valid_sub_ia (std::size_t a, std::size_t b) const { return }
+
     // internal stuff
     std::size_t intern_of_main_idihedral(std::size_t index) const { return main_torsion_indices[index]; }
     size_1d const & mains() const { return main_torsion_indices; }
+
     // stereo stuff
     bool res_is_equal(std::size_t a, std::size_t b, std::size_t from_a, std::size_t from_b, std::size_t deepth) const;
+    
+    // DEPRECATED
     // internal to cartesian et vice versa
     //void internal_to_cartesian(PES_Point&) const;
     //void cartesian_to_internal(PES_Point&) const;
@@ -327,8 +331,7 @@ namespace coords
     void c_to_i_light(PES_Point&) const;
 
     // Helper
-
-    //void update_int_from_xyz_movement(std::size_t index, PES_Point&);
+    size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;
     void fix_all(bool const fix_it = true);
     void fix(std::size_t const atom, bool const fix_it = true);
     std::size_t intern_of_dihedral(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
