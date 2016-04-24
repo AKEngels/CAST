@@ -1,6 +1,6 @@
+// For more information see matop.h
+
 #include "matop.h"
-#include "scon_angle.h"
-#include <stdexcept>
 namespace matop
 {
   /////////////////////////////////////
@@ -154,10 +154,10 @@ namespace matop
     }
   }
 
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates, bool ignoreHydrogen)
   {
     //First, some range checks
-    if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size() - 1u)
+    if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size())
     {
       throw std::runtime_error("Truncation number is greater than the total number of atoms.");
     }
@@ -201,7 +201,7 @@ namespace matop
     {
       if (includedAtoms.size() != 0u)
       {
-        Matrix_Class transformed_matrix(1u, ((3 * includedAtoms.size())));
+        Matrix_Class transformed_matrix(1u, (3 * (includedAtoms.size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u)) ));
         int j = 0;
         size_t quicksearch = 0;
         for (size_t i = 0; i < coords.atoms().size(); i++) //iterate over atoms
@@ -211,6 +211,9 @@ namespace matop
           {
             if (includedAtoms[l] - 1 == i)
             {
+              //ignoreHydrogens
+              if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
+              
               checker = true;
               quicksearch++;
               break;
@@ -1250,7 +1253,19 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     }
     else if (Config::get().PCA.pca_trunc_atoms_bool)
     {
-      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
+      if (!Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
+      {
+        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
+          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
+            Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
+      }
+      else
+      {
+        size_t numberOfHydrogen = coords.atoms().getNumberOfAtomsWithAtomicNumber(1u);
+        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
+          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
+            Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size() - numberOfHydrogen) * 3u);
+      }
     } 
     else
     {
@@ -1280,7 +1295,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
             ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
             ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false);
+          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen;
+          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen);
         }
       }
     }

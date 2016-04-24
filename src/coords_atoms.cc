@@ -1091,3 +1091,14 @@ void coords::Atoms::swap(Atoms &r)
   std::swap(m_in_exists, r.m_in_exists);
   std::swap(m_out_exists, r.m_out_exists);
 }
+
+size_t coords::Atoms::getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const
+{
+  // Find number of atoms
+  size_t counter = 0u;
+  for (size_t i = 0u; i < this->size(); i++)
+  {
+    if (this->m_atoms[i].number() == searchedNumber) counter++;
+  }
+  return counter;
+}

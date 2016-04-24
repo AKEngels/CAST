@@ -14,6 +14,8 @@ Calculations are done using scon::mathmatrix
 #include "histogram.h"
 #include "coords_io.h"
 #include <deque>
+#include "scon_angle.h"
+#include <stdexcept>
 
 typedef scon::mathmatrix<float_type> Matrix_Class;
 
@@ -84,7 +86,7 @@ namespace matop
    * into a mathmatrix-obj suitable for creating the single-trajectory-matrix (oneliner)
    * This is of course a very specific and not a general transformation.
    */
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false);
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false, bool ignoreHydrogen = false);
 
   /////////////////////////////////////
   //                              /////
@@ -253,24 +255,32 @@ namespace matop
      * rotates coords-obj according to reference coords-obj "ref"
      * using Kabsch's-Algorithm
      *
-     * @centerOfMassAlignment: Should center-of-mass be aligned prior to
-     * rotational alignment? default = true
+     * @param centerOfMassAlignment: Should center-of-mass be aligned prior to rotational alignment? default = true
+     * (this calls "centerOfMassAlignment" function before actual alignment procedure)
      */
     void kabschAlignment(coords::Coordinates& input, coords::Coordinates const& reference, bool centerOfMassAlign = true);
 
     /**
-     * Aligns mathmatrix-obj's center of mass to Geometric Origin
+     * Aligns mathmatrix-obj's center of mass to origin of coordinate system
      * ie.: translational alignment
      */
     void centerOfMassAlignment(coords::Coordinates & in);
 
     /**
-     * Returns dRMSD-value of the structure.
+     * Returns dRMSD-value of the structure in respect to the reference structure.
+     *
+     * @param input: Input Structure
+     * @param ref: Reference Structure
      */
     float_type drmsd_calc(coords::Coordinates const& input, coords::Coordinates const& ref);
 
     /**
      * Calculates Holm&Sanders Distance of the structures
+     *
+     * @param input: Input Structure
+     * @param ref: Reference Structure
+     * @param holAndSanderDistance: Holm & Sander Distance, unique parameter for this distance metric, see original publication
+     *
      */
     float_type holmsander_calc(coords::Coordinates const& input, coords::Coordinates const& ref, double holmAndSanderDistance = 20);
   }
@@ -284,6 +294,12 @@ namespace matop
 ////////////////////////////////////////////////////////////////////////
 //                    W R A P P E R F U N C T I O N S                 //
 ////////////////////////////////////////////////////////////////////////
+
+/**
+ * These functions are called from main and perform the operations necessary
+ * for their respective task. They read from the Config-(INPUTFILE)-Options.
+ */
+
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
 void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);

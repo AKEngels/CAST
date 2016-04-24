@@ -437,13 +437,16 @@ namespace
   {
 #if defined (_MSC_VER)
     // get a modifiable character sequence of the command: 
-    std::vector<char> cmdl(command_line.c_str(), command_line.c_str() + command_line.length() + 1u);
+    std::wstring wide_cmd(command_line.begin(), command_line.end());
+    std::vector<wchar_t> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
+    //std::vector<char> cmdl(command_line.c_str(), command_line.c_str() + command_line.length() + 1u);
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));
     si.cb = sizeof(si);
     ZeroMemory(&pi, sizeof(pi));
-    if (CreateProcess(NULL, cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+
+    if (CreateProcess(NULL, w_cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
     {
       WaitForSingleObject(pi.hProcess, INFINITE);
       CloseHandle(pi.hProcess);

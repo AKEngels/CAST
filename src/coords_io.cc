@@ -53,12 +53,19 @@ coords::input::format* coords::input::new_format(void)
 // Since AMBER Stores actual coordinates in a seperate file, this procedure will
 // read from the config-namespace. We search for the name of a possibly existing second file
 // containing the raw coordinates. Pay attantion to this!
+//////////////////////////////
+/////
+///// This whole section needs to be rewritten cleanly ASAP
+///// I dont know if I was like drunk when I wrote this, but, omg, convoluted as sh*t.
+///// In case anyone has to dig through this, I am terribly sorry.
+/////
+//////////////////////////////
 coords::Coordinates coords::input::formats::amber::read(std::string file)
 {
   Coordinates coord_object;
   std::ifstream config_file_stream(file.c_str(), std::ios_base::in);
   std::string line;
-  std::cout << "NOTE: You are specifiying AMBER-Files as input.\n This feature is highly, let me repeated that, HIGHLY experimental in CAST\n";
+  std::cout << "NOTE: You are specifiying AMBER-Files as input.\n This feature is highly, let me repeated that, HIGHLY experimental in CAST.\n";
   std::cout << "All that fancy AMBER-stuff like residues and such is OMITTED. We collect only the atoms and their positions.\n";
   std::cout << "Keep in mind: If anything breaks, you get to keep all the pieces!\n";
 
@@ -140,6 +147,12 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         // remove "%FLAG%" and search
         if (line.substr(6).find(amber_sections[i]) != std::string::npos)
         {
+          //Special case, we should get rid of this really fcking soon omg -.-'
+          //It is by design because of the find function
+          if (line.substr(6, 9) == "SOLVENT_P") {
+            currentSectionID = 666; break; // this... is... just... horrible
+          }
+
           //Get the format specifier for debug purposes.
           std::getline(config_file_stream, currentSectionFormat);
           currentSectionID = i;
@@ -273,6 +286,12 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             else if (symbol.substr(0, 1) == "n" || symbol.substr(0, 1) == "N") symbol = "N";
             else if (symbol.substr(0, 1) == "s" || symbol.substr(0, 1) == "S") symbol = "S";
             else if (symbol.substr(0, 1) == "p" || symbol.substr(0, 1) == "P") symbol = "P";
+
+            //Weird stuff
+
+            //3C 2C 1C
+            else if (symbol.substr(1, 1) == "c" || symbol.substr(1, 1) == "C") symbol = "C";
+
             else
             {
               std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
@@ -338,11 +357,16 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             else if (symbol.substr(0, 1) == "s" || symbol.substr(0, 1) == "S") symbol = "S";
             else if (symbol.substr(0, 1) == "p" || symbol.substr(0, 1) == "P") symbol = "P";
 
+            //Weird stuff
+            
+            //3C 2C 1C
+            else if (symbol.substr(1, 1) == "c" || symbol.substr(1, 1) == "C") symbol = "C";
+
             //Maybe we are already done?
             //FAILED
             else if (!symbol.empty())
             {
-              std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
+              std::cout << "Could not identify AMBER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
               std::cout << "You should probably go talk to a CAST programmer about this.\n";
               goto FAILED;
             }
@@ -401,7 +425,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           //FAILED
           else if (!symbol.empty())
           {
-            std::cout << "Could not identify AMER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
+            std::cout << "Could not identify AMBER_ATOM_TYPE: " << line.substr(i * 4u, 4u) << "\nstopping!\n";
             std::cout << "You should probably go talk to a CAST programmer about this.\n";
             goto FAILED;
           }
@@ -418,11 +442,11 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // Good thing we kept track of this with our two std::vector members
     for (unsigned int i = 0u; i < bondsWithHydrogen.size(); i = i + 2u)
     {
-      atoms.atom(i).bind_to(i + 1u);
+      atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
     }
     for (unsigned int i = 0u; i < bondsWithoutHydrogen.size(); i = i + 2u)
     {
-      atoms.atom(i).bind_to(i + 1u);
+      atoms.atom(bondsWithoutHydrogen[i] - 1u).bind_to(bondsWithoutHydrogen[i + 1u] - 1u);
     }
 
     // OK, let's now fetch the actual coordinates
@@ -434,64 +458,61 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       // Now, discard the title
       std::getline(coord_file_stream, line);
 
-      //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
-      if (!Config::get().io.amber_trajectory_at_constant_pressure)
+      unsigned long state = 0u; //Counts each processed floating point number.
+      while (std::getline(coord_file_stream, line))
       {
-        unsigned long state = 0u; //Counts each processed floating point number.
-        while (std::getline(coord_file_stream, line))
+        // A line has 10 members in the format
+        for (unsigned int i = 0; i < 10u; state++, i++)
         {
-          // A line has 10 members in the format
-          for (unsigned int i = 0; i < 10u; state++, i++)
+          // Needed: Check if substr is empty
+          if (line.substr(i * 8u, 8u).empty())
           {
-            // Needed: Check if substr is empty
-            if (line.substr(i * 8u, 8u).empty())
+            if (!(state % 3u == 0))
             {
-              if (!(state % 3u == 0))
-              {
-                std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
-                goto FAILED;
-              }
-              else
-              {
-                ///////////////////////////////
-                // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
-                ///////////////////////////////
-                goto DONE;
-              }
+              std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
+              goto FAILED;
             }
+            else
+            {
+              ///////////////////////////////
+              // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
+              ///////////////////////////////
+              goto DONE;
+            }
+          }
+          if (state % 3u == 0)
+          {
+            position.x() = std::stod(line.substr(i * 8u, 8u));
+          }
+          else if (state % 3u == 1)
+          {
+            position.y() = std::stod(line.substr(i * 8u, 8u));
+          }
+          else if (state % 3u == 2)
+          {
+            position.z() = std::stod(line.substr(i * 8u, 8u));
+            positions.push_back(position);
+            //Check if we reached end of structure, conditional is true if yes
+            if (((state + 1) / 3) % numberOfAtoms == 0)
+            {
+              input_ensemble.push_back(positions);
+              if (positions.size() != atoms.size())
+              {
+                throw std::logic_error("The size of an provided structure does not match the number of atoms.");
+              }
+              positions.clear();
+              state++;
 
-            if (state % 3u == 0)
-            {
-              position.x() = std::stod(line.substr(i * 8u, 8u));
-            }
-            else if (state % 3u == 1)
-            {
-              position.y() = std::stod(line.substr(i * 8u, 8u));
-            }
-            else if (state % 3u == 2)
-            {
-              position.z() = std::stod(line.substr(i * 8u, 8u));
-              positions.push_back(position);
-              //Check if we reached end of structure
-              if (((state + 1) / 3) % numberOfAtoms == 0)
+              //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
+              if (Config::get().io.amber_trajectory_at_constant_pressure)
               {
-                input_ensemble.push_back(positions);
-                if (positions.size() != atoms.size())
-                {
-                  throw std::logic_error("The size of an provided structure does not match the number of atoms.");
-                }
-                positions.clear();
-                state++;
-                break;
+                // Discard line containing box size
+                std::getline(coord_file_stream, line);
               }
+              break;
             }
           }
         }
-      }
-      else
-      {
-        std::cout << "AMBER trajectories with constant pressure not yet supported, talk to your admin.";
-        goto FAILED;
       }
     }
     else if (!Config::get().io.amber_inpcrd.empty())

@@ -750,7 +750,7 @@ namespace scon
 		 * is automatically calculated during our SVD-decomposition, a variable "rank"
 		 * may be specified where the calculated rank may be stored for future use.
      *
-     * justification: ptr is used for rank because in can represent a
+     * justification: ptr is used for rank because it can represent a
      * bool intrinsically through nullptr and therefore stores information
      * wether rank should be passed through this function.
 		 */
