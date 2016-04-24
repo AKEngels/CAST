@@ -5,6 +5,8 @@
 *.oo
 
 build/*
-!build/Makefile
-!build/make.mpi
-!build/make.gcc
+!build/premake5.exe
+!build/premake5.lua
+project/*
+!project/Makefile
+!project/CAST.make
