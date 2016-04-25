@@ -16,7 +16,7 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 #include "scon_utility.h"
 
 
-bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point) const
+bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point, coords::Coordinates const &co) const
 {
   if (empty() || point.energy < (front().pes.energy-1.0)) 
   {
@@ -32,7 +32,7 @@ bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point) cons
   {
     if ((*this)[i].pes.energy < high_bound && (*this)[i].pes.energy > low_bound)
     {
-      if ((*this)[i].pes.equal_compare(point))
+      if (co.equal_structure((*this)[i].pes, point))
       {
         return true;
       }
@@ -243,7 +243,7 @@ optimization::global::optimizer::min_status::T optimization::global::optimizer::
     else return min_status::T::REJECT_ENERGY;
   }
   else return min_status::T::REJECT_BROKEN;
-  if (!tabulist.tabu(coordobj.pes()) && 
+  if (!tabulist.tabu(coordobj.pes(), coordobj) && 
     !tabulist.has_superposition(coordobj.pes(), coordobj))
   {
     return new_minimum();
@@ -523,12 +523,14 @@ void optimization::global::optimizer::write_range(std::string const & suffix)
 
 void optimization::global::optimizer::updateRange (coords::PES_Point const &p)
 {
-  while (!range_minima.empty() && (range_minima.back().pes.energy - accepted_minima[gmin_index].pes.energy) > Config::get().optimization.global.delta_e)
+  while (!range_minima.empty() && (range_minima.back().pes.energy - 
+    accepted_minima[gmin_index].pes.energy) > 
+    Config::get().optimization.global.delta_e)
   {
     range_minima.pop_back();
     range_iteration.pop_back();
   }
-  if (!range_tabu.tabu(p))
+  if (!range_tabu.tabu(p, coordobj))
   {
     if (range_minima.empty()) 
     {

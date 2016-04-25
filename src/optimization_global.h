@@ -38,8 +38,6 @@ namespace optimization
       operator coords::PES_Point () const { return pes; }
     };
 
-    inline bool operator== (const Tabu_Point& lhs, const Tabu_Point& rhs) { return lhs.pes.equal_compare(rhs.pes); }
-    inline bool operator!= (const Tabu_Point& lhs, const Tabu_Point& rhs) { return !operator==(lhs, rhs); }
     inline bool operator<  (const Tabu_Point& lhs, const Tabu_Point& rhs) { return lhs.pes.energy < rhs.pes.energy; }
     inline bool operator>  (const Tabu_Point& lhs, const Tabu_Point& rhs) { return  operator< (rhs, lhs); }
     inline bool operator<= (const Tabu_Point& lhs, const Tabu_Point& rhs) { return !operator> (lhs, rhs); }
@@ -49,7 +47,7 @@ namespace optimization
       : public std::vector<Tabu_Point>
     {
       typedef std::vector<Tabu_Point> base_type;
-      bool tabu(coords::PES_Point const &) const;
+      bool tabu(coords::PES_Point const &, coords::Coordinates const &) const;
       bool has_superposition(coords::PES_Point const &, coords::Coordinates const &) const;
       void clear_above_e(coords::float_type const minimum, coords::float_type const kT);
     };
