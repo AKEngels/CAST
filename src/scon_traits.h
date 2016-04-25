@@ -175,35 +175,28 @@ namespace scon
   // Construction and conversion traits
 
   template<typename T, typename... Args>
-  struct is_perfectly_convertible_from : 
-    std::is_constructible<T, Args...> 
-  {};
+  struct is_convertible_from : 
+    std::is_constructible<T, Args...> {};
 
   template<typename T, typename U>
-  struct is_perfectly_convertible_from<T, U> : 
-    std::is_convertible<U, T> 
-  {};
+  struct is_convertible_from<T, U> :
+    std::is_convertible<U, T> {};
 
   template<typename T, typename U>
-  struct is_perfectly_constructible :
-    Boolean < 
-      And <
-        std::is_constructible<T, U>::value,
-        Not<std::is_convertible<U, T>>::value
-      >::value 
-    >
-  {};
+  struct is_explicitly_constructible :
+    Boolean<std::is_constructible<T, U>::value && 
+    !std::is_convertible<U, T>::value> {};
 
 
 }
 
 #define SCON_PERFECT_FORWARDING_WRAPPER_CONSTRUCTORS(classname, wrapped_type, wrapped_name) \
 template<typename... Args, \
-  scon::EnableIf< scon::is_perfectly_convertible_from< wrapped_type , Args... > >  = 0 > \
+  scon::EnableIf< scon::is_convertible_from< wrapped_type , Args... > >  = 0 > \
 classname (Args&&... args) : wrapped_name (std::forward<Args>(args)...) { } \
 \
 template<typename T,\
-  scon::EnableIf< scon::is_perfectly_constructible< wrapped_type , T > >  = 0>\
+  scon::EnableIf< scon::is_explicitly_constructible< wrapped_type , T > >  = 0>\
 explicit classname (T&& arg) : wrapped_name (std::forward<T>(arg)) { }\
 \
 template<class T,\
