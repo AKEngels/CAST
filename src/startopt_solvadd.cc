@@ -29,8 +29,35 @@ bool startopt::solvadd::water::check_geometry (void) const
   return (d1 > 0.05 || d2 > 0.05 || da > 0.05 || d3 < 1.0) ? false : true;
 }
 
+namespace
+{
+  double ratio(std::size_t const num_atoms, std::size_t const num_water)
+  {
+    auto const n_pp = (num_atoms*num_atoms - num_atoms) / 2;
+    auto const n_ww = (9 * num_water*num_water - 3 * num_water) / 2;
+    auto n_wp = num_atoms*num_water * 3;
+    return (static_cast<double>(n_wp - n_ww) / static_cast<double>(n_pp + n_ww + n_wp));
+  }
+}
 
-void startopt::preoptimizers::Solvadd::generate (coords::Ensemble_PES const & init_ensemble, std::size_t const multiplier)
+std::size_t startopt::solvadd::num_w_max_w_solute_ia(
+  std::size_t const a)
+{
+  std::size_t w(0u);
+  auto rat = ratio(a, w);
+  auto rat_next = ratio(a, w + 1u);
+  while (rat_next > rat)
+  {
+    rat = rat_next;
+    ++w;
+    rat_next = ratio(a, w + 1u);
+  }
+  return w;
+}
+
+
+void startopt::preoptimizers::Solvadd::generate (
+  coords::Ensemble_PES const & init_ensemble, std::size_t const multiplier)
 {
   std::size_t const init_ensemble_size(init_ensemble.size());
   std::size_t const pre_per_structure(multiplier > 0u ? multiplier : 1u);

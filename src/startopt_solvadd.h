@@ -53,6 +53,8 @@ namespace startopt
       coords::Representation_3D const &xyz,
       coords::Atoms const &atms);
 
+    std::size_t num_w_max_w_solute_ia(std::size_t const atoms);
+
     struct wp_optimum
     {
     private:
@@ -73,7 +75,14 @@ namespace startopt
       operator std::size_t (void) const
       {
         std::size_t w(0u);
-        while (ratio(w+1) > ratio(w)) ++w;
+        auto rat = ratio(w);
+        auto rat_next = ratio(w + 1u);
+        while (rat_next > rat)
+        {
+          rat = rat_next;
+          ++w;
+          rat_next = ratio(w + 1u);
+        }
         return w;
       }
     };
