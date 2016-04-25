@@ -14,23 +14,24 @@
 #include <fstream>
 #include <map>
 #include <utility>
+#include <array>
 #include "scon_vect.h"
 #include "coords_rep.h"
 
 namespace config
 {
 
-  template<typename T>
-  inline T from_string(std::string const &str)
+  template<typename T, class CharT, class TraitT, class AllocT>
+  inline T from_string(std::basic_string<CharT, TraitT, AllocT> const &str)
   {
     T tmp;
-    std::istringstream is(str);
+    std::basic_istringstream<CharT, TraitT, AllocT> is(str);
     is >> tmp;
     return tmp;
   }
 
-  template<typename T>
-  inline T from_iss(std::istringstream & is)
+  template<typename T, class CharT, class TraitT, class AllocT>
+  inline T from_iss(std::basic_istringstream<CharT, TraitT, AllocT> & is)
   {
     T tmp;
     is >> tmp;
@@ -43,18 +44,23 @@ namespace config
   // Program Name and Version
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
+
   // Tasks
   static std::size_t const NUM_TASKS = 29;
-  static std::string const task_strings[NUM_TASKS] =
-  { "SP", "GRAD", "TS", "LOCOPT", "RMSD",
-  "MC", "DIMER", "MD", "NEB",
-  "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
-  "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-  "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-  "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc" };
+  static std::string const 
+    task_strings[NUM_TASKS] =
+  { 
+    "SP", "GRAD", "TS", "LOCOPT", "RMSD",
+    "MC", "DIMER", "MD", "NEB",
+    "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
+    "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
+    "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
+    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc" 
+  };
   struct tasks
   {
-    enum T {
+    enum T 
+    { 
       ILLEGAL = -1,
       SP, GRAD, TS, LOCOPT, RMSD,
       MC, DIMER, MD, NEB,
@@ -67,51 +73,127 @@ namespace config
 
   // Input Types
   static std::size_t const NUM_INPUT = 2;
-  static std::string const input_strings[NUM_INPUT] =
-  { "TINKER", "AMBER" };
-  struct input_types { enum T { ILLEGAL = -1, TINKER, AMBER }; };
+  static std::string const 
+    input_strings[NUM_INPUT] =
+  { 
+    "TINKER", "AMBER" 
+  };
+  struct input_types 
+  { 
+    enum T 
+    { 
+      ILLEGAL = -1, 
+      TINKER, AMBER 
+    }; 
+  };
+
   // Output Types
   static std::size_t const NUM_OUTPUT = 4;
-  static std::string const output_strings[NUM_OUTPUT] =
-  { "TINKER", "XYZ", "MOLDEN", "ZMATRIX" };
-  struct output_types { enum T { ILLEGAL = -1, TINKER, XYZ, MOLDEN, ZMATRIX }; };
+  static std::string const 
+    output_strings[NUM_OUTPUT] =
+  { 
+    "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
+  };
+  struct output_types 
+  { 
+    enum T 
+    {
+      ILLEGAL = -1, 
+      TINKER, XYZ, MOLDEN, ZMATRIX
+    };
+  };
+
   // Interface Types
   static std::size_t const NUM_INTERFACES = 6;
-  static std::string const interface_strings[NUM_INTERFACES] =
-  { "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" };
-  struct interface_types { enum T { ILLEGAL = -1, AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC }; };
+  static std::string const 
+    interface_strings[NUM_INTERFACES] =
+  { 
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
+  };
+  struct interface_types 
+  { 
+    enum T 
+    { 
+      ILLEGAL = -1, 
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC 
+    }; 
+  };
+
   // Mopac Versions
   static std::size_t const NUM_MOPAC_VERSION = 4;
-  static std::string const mopac_ver_string[NUM_MOPAC_VERSION] = { "2012", "2012MT", "7", "AVOID_HB" };
-  struct mopac_ver_type { enum T { ILLEGAL = -1, MOPAC2012, MOPAC2012MT, MOPAC7, MOPAC7_HB }; };
+  static std::string const 
+    mopac_ver_string[NUM_MOPAC_VERSION] = 
+  { 
+    "2012", "2012MT", "7", "AVOID_HB" 
+  };
+  struct mopac_ver_type 
+  { 
+    enum T 
+    { 
+      ILLEGAL = -1, 
+      MOPAC2012, MOPAC2012MT, MOPAC7, MOPAC7_HB 
+    }; 
+  };
+
   // Global optimization routines
   static std::size_t const NUM_GLOBOPT_ROUTINES = 2;
-  static std::string const globopt_routines_str[NUM_GLOBOPT_ROUTINES] =
-  { "TS", "BH" };
-  struct globopt_routine_type { enum T { ILLEGAL = -1, TABUSEARCH, BASINHOPPING }; };
+  static std::string const 
+    globopt_routines_str[NUM_GLOBOPT_ROUTINES] =
+  { 
+    "TS", "BH" 
+  };
+  struct globopt_routine_type 
+  {
+    enum T 
+    { 
+      ILLEGAL = -1, 
+      TABUSEARCH, BASINHOPPING 
+    }; 
+  };
+
   // Implicit solvation method types
   static std::size_t const NUM_SOLV = 7;
-  static std::string const solv_strings[NUM_SOLV] =
-  { "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" };
+  static std::string const 
+    solv_strings[NUM_SOLV] =
+  { 
+    "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
+  };
   struct solvs
   {
-    enum S { ILLEGAL = -1, VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION };
+    enum S 
+    {
+      ILLEGAL = -1, 
+      VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
+    };
   };
   // implicit solvation surface types
   static std::size_t const NUM_SURF = 3;
-  static std::string const surf_strings[NUM_SURF] =
-  { "TINKER", "SASASTILL", "GAUSS" };
+  static std::string const 
+    surf_strings[NUM_SURF] =
+  { 
+    "TINKER", "SASASTILL", "GAUSS" 
+  };
   struct surfs
   {
-    enum SA { ILLEGAL = -1, TINKER, SASASTILL, GAUSS };
+    enum SA 
+    { 
+      ILLEGAL = -1, 
+      TINKER, SASASTILL, GAUSS 
+    };
   };
 
-  template<class enum_type, std::size_t SIZE>
-  inline enum_type enum_from_string(std::string const valarray[SIZE], std::string const & value)
+  template<class enum_type, std::size_t SIZE, 
+    class CharT, class TraitT, class AllocT>
+  inline enum_type enum_from_string(
+    std::basic_string<CharT, TraitT, AllocT> const valarray[SIZE], 
+    std::basic_string<CharT, TraitT, AllocT> const & value)
   {
     for (std::size_t i(0U); i < SIZE; ++i)
     {
-      if (value == valarray[i]) return static_cast<enum_type>(i);
+      if (value == valarray[i])
+      {
+        return static_cast<enum_type>(i);
+      }
     }
     return static_cast<enum_type>(-1);
   }
@@ -119,7 +201,8 @@ namespace config
 
   struct requirements
   {
-    bool req_parameter, got_input_structure, got_energy_interface, got_parameters, config_file, got_task;
+    bool req_parameter, got_input_structure, 
+      got_energy_interface, got_parameters, config_file, got_task;
     requirements(void) :
       req_parameter(true), got_input_structure(false), got_energy_interface(false),
       got_parameters(false), config_file(false), got_task(false)
@@ -141,7 +224,8 @@ namespace config
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
-      task(config::tasks::SP), energy_interface(interface_types::OPLSAA), preopt_interface(interface_types::ILLEGAL),
+      task(config::tasks::SP), energy_interface(interface_types::OPLSAA), 
+      preopt_interface(interface_types::ILLEGAL),
       verbosity(1U), profile_runs(10U), trackstream(nullptr),
       solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), forcefield(true)
     { }
@@ -885,6 +969,7 @@ namespace config
 
 class Config
 {
+
 public:
 
   Config(std::string const &filename)
@@ -937,19 +1022,7 @@ public:
 
 private:
 
-
-
   void parse_file(std::string const &filename);
   static Config * m_instance;
-
-  /*
-     ######   #######  ##     ## ##     ##    ###    ##    ## ########  ##       #### ##    ## ########
-    ##    ## ##     ## ###   ### ###   ###   ## ##   ###   ## ##     ## ##        ##  ###   ## ##
-    ##       ##     ## #### #### #### ####  ##   ##  ####  ## ##     ## ##        ##  ####  ## ##
-    ##       ##     ## ## ### ## ## ### ## ##     ## ## ## ## ##     ## ##        ##  ## ## ## ######
-    ##       ##     ## ##     ## ##     ## ######### ##  #### ##     ## ##        ##  ##  #### ##
-    ##    ## ##     ## ##     ## ##     ## ##     ## ##   ### ##     ## ##        ##  ##   ### ##
-     ######   #######  ##     ## ##     ## ##     ## ##    ## ########  ######## #### ##    ## ########
-  */
 
 };
