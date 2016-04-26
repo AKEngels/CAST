@@ -48,7 +48,7 @@ private:
 
   void proof_connect();
   double g_new(ptrdiff_t im);
-  double lbfgs();
+  double lbfgs(ptrdiff_t imagex);
   void printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t &count);
  
   
@@ -111,18 +111,20 @@ private:
 
   struct GradCallBack
   {
+	  pathx *po;
     GradCallBack(pathx & path_object)
       : po(&path_object)
     { }
-    pathx * po;
+    
     float operator() (scon::vector<scon::c3<float>> const &x,
       scon::vector<scon::c3<float>> &g, size_t const, bool & go_on)
     {
-      using c3fv = scon::vector < scon::c3<float> > ;
-      po->cPtr->set_xyz(std::move(scon::explicit_transform<coords::Representation_3D>(x)));
+      using ot = scon::vector < scon::c3<float> > ;
+	  using ct = coords::Representation_3D;
+      po->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
       auto const E = static_cast<float>(po->g_new(po->global_imagex));
       go_on = po->cPtr->integrity();
-      g = std::move(scon::explicit_transform<c3fv>(x));
+      g = std::move(scon::explicit_transform<ot>(po->cPtr->g_xyz()));
       return E;
     }
   };

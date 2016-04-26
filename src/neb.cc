@@ -50,7 +50,7 @@ void neb::preprocess(ptrdiff_t &count, ptrdiff_t const &image)
   image_ini.resize(num_images + N);
   imagederiv.resize(num_images + N);
   tau.resize(num_images + N);
-  images_initial.resize(N);
+  images_initial.clear();
   images.resize(N);
   tempimage_final.resize(num_images + N);
   tempimage_ini.resize(num_images + N);
@@ -88,7 +88,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   ts_pathstruc.resize(start.size() + num_images);
   image_ini.resize(start.size() + num_images);
   imagederiv.resize(start.size() + num_images);
-  images_initial.resize(N);
+  images_initial.clear();
   images.resize(N);
   tempimage_final.resize(N + num_images);
   tempimage_ini.resize(N + num_images);
@@ -129,13 +129,12 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   tau.clear();
   images.clear();
   ClimbingImage = true;
-
   imagi.resize(start.size() + num_images);
   ts_pathstruc.resize(start.size() + num_images);
   image_ini.resize(start.size() + num_images);
   imagederiv.resize(start.size() + num_images);
-  images_initial.resize(N);
-  images.resize(N);
+  images_initial.clear();
+  //images.resize(N);
   tempimage_final.resize(N + num_images);
   tempimage_ini.resize(N + num_images);
   energies.resize(start.size() + num_images);
@@ -157,27 +156,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
 void neb::initial(void)
 
 {
-
-  images_initial = cPtr->xyz();
   imagi[0] = cPtr->xyz();
-  std::ifstream final(Config::get().neb.START_STRUCTURE.c_str());
-  std::string buffer;
-  //getline(final,buffer);
-  getline(final, buffer);
-  //size_t number;
-  //char atom[2];
-
-  /*for (size_t i=0;i<N;i++)
-  {
-    getline(final,buffer);
-    std::istringstream line_coord(buffer);
-    line_coord >>number>>atom >> images[i].x() >> images[i].y() >> images[i].z() ;
-    imagi[0].push_back(images[i]);
-
-  }*/
-
-  images_initial = imagi[0];
-
 }
 
 void neb::final(void)
@@ -185,10 +164,9 @@ void neb::final(void)
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
   std::string buffer;
   getline(final, buffer);
-  //getline(final,buffer);
   size_t number;
-  char atom[2];
-  coords::Cartesian_Point cog1, cog2, tempcoord;
+  char atom[2]; 
+ 
 
   for (size_t i = 0; i < N; i++)
   {
@@ -219,69 +197,65 @@ void neb::final(const coords::Representation_3D &fi)
     imagi[num_images - 1].push_back(fi[i]);
   }
 }
+
 void neb::create(ptrdiff_t &count)
 {
 
-  double diff;
   tempimage_ini = imagi[0];
   tempimage_final = imagi[num_images - 1];
-  //std::string name;
-  std::ostringstream name, name2, name3;
-  // off << tempimage_final << endl;
+  std::ostringstream name;
   name << "IMAGES_INI" << cPtr->mult_struc_counter << ".xyz";
-
-
-
   cPtr->set_xyz(imagi[0]);
   cPtr->to_internal();
   tempimage_ini = cPtr->xyz();
-
   cPtr->set_xyz(imagi[num_images - 1]);
   cPtr->to_internal();
   tempimage_final = cPtr->xyz();
 
   for (size_t j = 1; j < (num_images - 1); j++) {
 
-    diff = (double)j / num_images;
+	  double diff = (double)j / num_images;
 
-    for (size_t i = 0; i < this->cPtr->size(); i++) {
+	  for (size_t i = 0; i < this->cPtr->size(); i++) {
 
-      images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
-      images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
-      images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
-
-
-      imagi[j].push_back(images[i]);
-      image_ini[j].push_back(images[i]);
-
-    }
-    cPtr->set_xyz(imagi[j]);
-
-    for (auto const & bond : refined.bonds())
-    {
-      coords::Cartesian_Point const bv(cPtr->xyz(bond.atoms[0]) - cPtr->xyz(bond.atoms[1]));
-      coords::float_type const d = len(bv);
-      //std::cout << "dist " << d << " ideal " << bond.ideal << '\n';
-      if (d < bond.ideal && (1.0 - d / bond.ideal) > 0.10)   std::cout << "WARNING_1-bond_length not reasonable\n";
-      if (d > bond.ideal && abs(1.0 - (d / bond.ideal)) > 0.10) std::cout << "WARNING_1-bond_length not reasonable\n";
+		  images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
+		  images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
+		  images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
 
 
+		  imagi[j].push_back(images[i]);
+		  image_ini[j].push_back(images[i]);
+		  images_initial.push_back(images[i]);
+
+	  }
+
+	  if (Config::get().general.verbosity > 4)
+	  {
+		  cPtr->set_xyz(imagi[j]);
+
+		  for (auto const & bond : refined.bonds())
+		  {
+			  coords::Cartesian_Point const bv(cPtr->xyz(bond.atoms[0]) - cPtr->xyz(bond.atoms[1]));
+			  coords::float_type const d = len(bv);
+			  if (d < bond.ideal && (1.0 - d / bond.ideal) > 0.10)   std::cout << "WARNING_1-bond_length not reasonable\n";
+			  if (d > bond.ideal && abs(1.0 - (d / bond.ideal)) > 0.10) std::cout << "WARNING_1-bond_length not reasonable\n";
 
 
-    }
 
-    for (auto const & angle : refined.angles())
-    {
-      coords::Cartesian_Point const
-        av1(cPtr->xyz(angle.atoms[0]) - cPtr->xyz(angle.atoms[1])),
-        av2(cPtr->xyz(angle.atoms[2]) - cPtr->xyz(angle.atoms[1]));
-      coords::float_type const d(scon::angle(av1, av2).degrees());
-      //std::cout << "angle " << d << " ideal " << angle.ideal << '\n';
-      if (d < angle.ideal && (1.0 - d / angle.ideal) > 0.10) std::cout << "WARNING_1_dihedral not reasonable\n";
-      if (d > angle.ideal && abs(1.0 - (d / angle.ideal)) > 0.10) std::cout << "WARNING_2_dihedral not reasonable\n";
-    }
+
+		  }
+
+		  for (auto const & angle : refined.angles())
+		  {
+			  coords::Cartesian_Point const
+				  av1(cPtr->xyz(angle.atoms[0]) - cPtr->xyz(angle.atoms[1])),
+				  av2(cPtr->xyz(angle.atoms[2]) - cPtr->xyz(angle.atoms[1]));
+			  coords::float_type const d(scon::angle(av1, av2).degrees());
+			  if (d < angle.ideal && (1.0 - d / angle.ideal) > 0.10) std::cout << "WARNING_1_dihedral not reasonable\n";
+			  if (d > angle.ideal && abs(1.0 - (d / angle.ideal)) > 0.10) std::cout << "WARNING_2_dihedral not reasonable\n";
+		  }
+	  }
   }
-
   if (Config::get().neb.INT_PATH) calc_shift();
   print(name.str(), imagi, count);
 
@@ -294,64 +268,41 @@ void neb::create(ptrdiff_t &count)
 void neb::run(ptrdiff_t &count)
 {
 
-  get_energies_grad();
-  calc_tau();
-  opt_mep(count);
-
+  calc_tau(); 
+  lbfgs(count);
+  opt_io(count);
 
 }
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
-{
-
-  get_energies_grad();
+{  
   calc_tau();
-  opt_mep(count);
-
+  opt_io(count);
   internal_execute(imagi, atoms_remember);
-
   //no_torsion(image_remember[DIHEDRAL],atoms_remember[DIHEDRAL]);
-
   opt_internals(count, atoms_remember);
-
   //internal_execute(imagi,image_remember,atoms_remember);
-
 }
 
 
 
-void neb::get_energies_grad(void)
+void neb::get_energies(void)
 {
 
   for (size_t i = 0; i < num_images; i++)
   {
-
     cPtr->set_xyz(imagi[i]);
-
     energies[i] = cPtr->g();
-    if (i > 0) {
-      if (energies[i] > energies[i - 1]) CIMaximum = i;
-    }
-    for (size_t k = 0; k < N; k++) {
-
-      images[k] = cPtr->g_xyz(k);
-
-
-      imagederiv[i].push_back(images[k]);
-    }
-
-
-
+    if (energies[i] > energies[i - 1] && i > 0 ) CIMaximum = i;
   }
 
-  // cout << "maximum energy image is: " << CIMaximum+1 << endl;
+   if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum <<"\n";
 }
 
 void neb::calc_tau(void)
 {
-  double Em1, Ep1, Emax, Emin, abso(0.0);
-  /*ofstream off ("energies");*/
-
-
+	
+  double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 }, abso{0.0 };
+  get_energies();
   for (size_t i = 1; i < num_images - 1; i++) {
 
     if (Config::get().neb.TAU == false)
@@ -374,7 +325,7 @@ void neb::calc_tau(void)
     }
     else
     {
-
+	  
       EnergyPml = 0.0;
       EnergyPpl = 0.0;
 
@@ -482,11 +433,8 @@ void neb::calc_tau(void)
   }
 }
 
-void neb::opt_mep(ptrdiff_t &count)
+void neb::opt_io(ptrdiff_t &count)
 {
-
-
-
 
 
   std::ostringstream energies_out, name, energies_ini;
@@ -494,108 +442,49 @@ void neb::opt_mep(ptrdiff_t &count)
   energies_ini << "ENERGIES_COMPLETE_LIN_" << this->cPtr->mult_struc_counter;
   std::string temp;
   temp = energies_out.str();
-
   std::fstream off(temp.c_str(), std::ios::app);
   temp = energies_ini.str();
   std::fstream off2(temp.c_str(), std::ios::app);
   energies_NEB.resize(num_images);
-  grad_v = 1.0;
-  grad_v_temp = 2.0;
-  std::size_t maxit(0U);
   energies_NEB[0] = this->energies[0];
   energies_NEB[num_images] = this->energies[num_images];
 
-  while (std::abs(grad_v - grad_v_temp) > Config::get().neb.NEB_RMSD && maxit < Config::get().neb.NEB_INT_IT) {
-
-    grad_v_temp = grad_v;
-    maxit++;
-    calc_tau();
-
-    if (reversed == true)
-    {
-
-
-      for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
-      {
-
-
-        cPtr->set_xyz(imagi[imagecount]);
-
-        energies_NEB[imagecount] = lbfgs(imagecount);
-
-        imagi[imagecount] = cPtr->xyz();
-
-        grad_v += grad_v;
-
-      }
-
-
-
-    }
-    else {
-
-
-      for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
-      {
-
-
-
-
-        cPtr->set_xyz(imagi[imagecount]);
-
-        energies_NEB[imagecount] = lbfgs(imagecount);
-
-        imagi[imagecount] = cPtr->xyz();
-
-        grad_v += grad_v;
-
-
-      }
-
-
-
-
-    }
-
-
-    grad_v /= (num_images - 2);
-
-  }
-
-
-
+ 
   if (reversed == true)
   {
-    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
-    if (ts == true)
-    {
-      off << "TS          " << ts_energies[count] << '\n';
-      off << "MIN         " << min_energies[count] << '\n';
-      printmono(name.str(), imagi[0], count);
-    }
-    off << "ENERGIE:    " << this->energies[0] << "   START\n";
-    off2 << "ENERGIE:    " << this->energies[0] << "   START\n";
 
-    for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
-    {
+	
+		  name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
+		  if (ts == true)
+		  {
+			  off << "TS          " << ts_energies[count] << '\n';
+			  off << "MIN         " << min_energies[count] << '\n';
+			  printmono(name.str(), imagi[0], count);
+		  }
+		  off << "ENERGIE:    " << this->energies[0] << "   START\n";
+		  off2 << "ENERGIE:    " << this->energies[0] << "   START\n";
 
-      cPtr->set_xyz(imagi[imagecount]);
+		  for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
+		  {
 
-
-
-
-
-      off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-      off2 << "ENERGIE:    " << this->energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+			  cPtr->set_xyz(imagi[imagecount]);
 
 
-    }
-
-    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
-    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
-    print(name.str(), imagi, count);
 
 
+
+			  off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+			  off2 << "ENERGIE:    " << this->energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+
+
+		  }
+
+		  off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+		  off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+		  print(name.str(), imagi, count);
+
+
+	  
   }
   else {
 
@@ -732,6 +621,7 @@ double neb::lbfgs(ptrdiff_t imagex)
 
 
   using namespace  optimization::local;
+  energies_NEB.resize(num_images);
   //typedef coords::Container<scon::c3<float>> nc3_type;
   // Create optimizer
   global_imagex = imagex;
@@ -742,23 +632,17 @@ double neb::lbfgs(ptrdiff_t imagex)
   //optimizer.ls.config.ignore_callback_stop = true;
   // Create Point
   using op_type = decltype(optimizer);
-  op_type::point_type x(scon::explicit_transform<op_type::rep_type>(cPtr->xyz()));
+  op_type::point_type x(scon::explicit_transform<op_type::rep_type>(images_initial));
   // Optimize point
-  //optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
-  optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
+  optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
+  //optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
   optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
   optimizer(x);
-
-
-
-
 
   if (Config::get().general.verbosity > 4)
   {
     std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
   }
-
-  //cPtr->set_xyz(scon::explicit_transform<coords::Representation_3D>(x.x));
 
   return cPtr->g();
 }
@@ -770,8 +654,8 @@ double neb::g_new(ptrdiff_t im)
 
   //coords::Gradients_3D g;
   std::vector <coords::Representation_3D> temp(N);
-  double Rp1mag, Rm1mag, energytemp;
-  energytemp = this->cPtr->g();
+  double Rp1mag, Rm1mag, energytemp(0.0);
+  /*energytemp = this->cPtr->g();*/
 
   /* std::cout << "g vor neb: " << cPtr->g_xyz();
   std::cout<<energytemp<<'\n';*/
@@ -779,76 +663,80 @@ double neb::g_new(ptrdiff_t im)
   Rm1.resize(num_images + cPtr->size());
   Fvertical.resize(num_images + cPtr->size());
   Fpar.resize(num_images + cPtr->size());
+  
   //g.resize(cPtr->size());
 
   for (size_t i = 0; i < Fpar.size(); i++) {
     Fpar[i].resize(cPtr->size());
   }
+  calc_tau();
+  grad_tot.clear();
+  //system("Pause");
 
-  /*for (size_t im = 1; im < num - 1; im++)
-  {*/
-  if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum)) {
-    double magni = 0.0;
+  for (size_t im = 1; im < num_images - 1; im++)
+  {
+		imagi[im].clear();
+		for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
+	 
+		cPtr->set_xyz(imagi[im]);
+		energies_NEB[im] = energytemp = this->cPtr->g();
+		energytemp += energytemp;
+		if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum)) 
+			{
+				double magni = 0.0;
+				magni = dot(cPtr->g_xyz(), tau[im]);
 
-    magni = dot(cPtr->g_xyz(), tau[im]);
+				if (len(tau[im]) == 0.0) { magni = 0.0; }
+				else { magni = magni / len(tau[im]); }
+				for (size_t i = 0; i < cPtr->size(); i++) cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
+			}
+		else 
+			{
+				tauderiv = dot(cPtr->g_xyz(), tau[im]);
+				if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
+				else { tauderiv /= len(tau[im]); }
 
-    if (len(tau[im]) == 0.0) { magni = 0.0; }
-    else { magni = magni / len(tau[im]); }
-    for (size_t i = 0; i < cPtr->size(); i++)
-    {
-      cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
-    }
+				for (size_t j = 0; j < cPtr->size(); j++) 
+					{
+
+						Rm1[j].x() = imagi[im - 1][j].x() - imagi[im][j].x();
+						Rm1[j].y() = imagi[im - 1][j].y() - imagi[im][j].y();
+						Rm1[j].z() = imagi[im - 1][j].z() - imagi[im][j].z();
+
+						Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
+						Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
+						Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
+					}
+				Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
+				Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
 
 
+				for (size_t i = 0; i < cPtr->size(); i++)
+					{
+						Fvertical[i].x() = cPtr->g_xyz(i).x() - tauderiv * tau[im][i].x();
+						Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
+						Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
+
+						Fpar[im][i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
+						Fpar[im][i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
+						Fpar[im][i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+
+					}
+
+
+			}
+
+	 for (size_t j = 0; j < cPtr->size(); j++) 
+		{
+
+			auto const g = Fvertical[j] + Fpar[im][j];
+			cPtr->update_g_xyz(j, g);
+			grad_tot.push_back(g);
+
+		}
 
   }
-  else {
 
-    tauderiv = dot(cPtr->g_xyz(), tau[im]);
-    if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
-    else { tauderiv /= len(tau[im]); }
-
-    for (size_t j = 0; j < cPtr->size(); j++) {
-
-      Rm1[j].x() = imagi[im - 1][j].x() - imagi[im][j].x();
-      Rm1[j].y() = imagi[im - 1][j].y() - imagi[im][j].y();
-      Rm1[j].z() = imagi[im - 1][j].z() - imagi[im][j].z();
-
-      Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
-      Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
-      Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
-    }
-    Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
-    Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
-
-
-    for (size_t i = 0; i < cPtr->size(); i++) {
-      Fvertical[i].x() = cPtr->g_xyz(i).x() - tauderiv * tau[im][i].x();
-      Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
-      Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
-
-      Fpar[im][i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
-      Fpar[im][i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
-      Fpar[im][i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
-
-    }
-
-
-  }
-
-
-  double fparvx(0), fparvy(0), fparvz(0);
-  for (size_t j = 0; j < cPtr->size(); j++) {
-
-    auto const g = Fvertical[j] + Fpar[im][j];
-
-    cPtr->update_g_xyz(j, g);
-    fparvx += g.x();
-    fparvy += g.y();
-    fparvz += g.z();
-  }
-  //}
-  grad_v = (fparvx + fparvy + fparvz) / cPtr->size();
 
   return energytemp;
 }

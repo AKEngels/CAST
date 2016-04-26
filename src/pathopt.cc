@@ -75,10 +75,11 @@ void pathx::pathx_ini()
 void pathx::MCM_NEB(ptrdiff_t opt)
 {
   Maxvar = Config::get().neb.VARIATION;
-  double MCmin, MCpmin, MCgmin, factor;
+  double MCmin, MCgmin, factor,MCpmin;
+  std::vector <double> MCpmin_vec;
   double boltzman = 0.0, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t mciteration = Config::get().neb.MCITERATION;
-  ptrdiff_t nancounter = 0, nbad = 0, status;
+  ptrdiff_t nancounter = 0, nbad = 0, status = 0;
   bool  l_disp = false;
   MCSTEPSIZE = Config::get().neb.MCSTEPSIZE;
   std::string output, output3, output4;
@@ -126,11 +127,8 @@ void pathx::MCM_NEB(ptrdiff_t opt)
     /* rmsd_cartesian(global_maxima2,global_image); */
 //CALCULATE SP ENERGY
     MCmin = cPtr->g();
-
-
-
     MCgmin = MCmin;
-    MCpmin = MCmin;
+	MCpmin = MCmin;
 
 
     //ITERATIONS
@@ -139,7 +137,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
       bool move_control(false);
       coord_last = cPtr->xyz();
-
+	  MCpmin_vec.push_back(MCmin);
 
       sum = 0.0;
       sum2 = 0.0;
@@ -152,7 +150,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 			  for (ptrdiff_t j = 0; j < natom; j++) {
 				  randvect();
-				  factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;
+				  factor = MCSTEPSIZE * scon::rand<coords::float_type>(0, 1);
 				  double rv_p[3];
 				  coords::Cartesian_Point RV;
 				  double abs = 0.0;
@@ -178,7 +176,10 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 			  }
 			  coords::Coordinates temp_perp(*cPtr);
-			  temp_perp.set_pes(positions);
+			  std::cout <<"t1 "<< cPtr->pes().size() << "\n";
+			   std::cout << positions.size() << "\n";
+			  temp_perp.set_xyz(positions);
+			 
 			  std::cout << "set pes point\n";
 			  perp_point test_perp;
 			  test_perp = perp_point(temp_perp.pes());
@@ -188,14 +189,14 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 			  positions = cPtr->xyz();
 			  //printmono("TEST_DIHEDRAL_1.xyz", positions, global_image);
-			  MCmin = cPtr->o();
+			  //MCmin = cPtr->o();
 			  positions = cPtr->xyz();
 			  if (std::abs(MCmin - STARTENERGY) < Config::get().neb.PO_ENERGY_RANGE)
 			  {
-				  std::cout << "MINIMUM   " << cPtr->g() << '\n';
+				  //std::cout << "MINIMUM   " << cPtr->g() << '\n';
 				  // printmono("TEST_DIHEDRAL_2.xyz", positions, global_image);
 			  }
-			  //move_control = true;
+			  move_control = true;
 		  }
 		  positions = cPtr->xyz();
 	  }
@@ -242,127 +243,116 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       this->cPtr->NEB_control = false;
 
       //this->cPtr->g2(N->tau,opt,mcstep,this->N->image_ini);
-
-      MCmin = lbfgs();
-
-
-
-
-      ///writetinker(output4,opt);
-      //this->cPtr->biascontrol=false;
-      //out2d <<opt<<"     "<<mcstep<<"     "<<MCmin<<endl;
-
-      //break;
-      if (MCmin != MCmin) {
-        nancounter++;
-        //std::cout << "***size of counter***:  "<<nancounter << '\n';
-        status = 0;
-        nbad++;
-        cPtr->set_xyz(coord_in);
-        if (nancounter > 10) break;
-      }
-      //TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
-      if (MCmin < (-1.5*std::abs(STARTENERGY))) {
-        MCmin = 1000000.00;
-        nbad++;
-      }
+	  MCmin = lbfgs(opt);
+	 
+  
+if (MCmin != MCmin) {
+	nancounter++;
+	//std::cout << "***size of counter***:  "<<nancounter << lineend;
+	status = 0;
+	nbad++;
+	cPtr->set_xyz(coord_in);
+	if (nancounter>10) break;
+}
+//TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
+if (MCmin < (-1.5*std::abs(STARTENERGY))) {
+	MCmin = 1000000.00;
+	nbad++;
+}
 
 
-      //METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
-      if (abs(MCmin - MCpmin) <= 0.01) {
-        nbad = 0;
-        status = 2; //!same minimum
-        MCpmin = MCmin;
-      }
-      else if (MCmin < MCpmin) {
-        nbad = 0;
-        status = 1; //accepted as next minimum
-        MCpmin = MCmin;
-      }
-      else {
-        nbad = 0;
-        boltzman = exp(-kt*(MCmin - MCpmin));
-        trial = (double)rand() / (double)RAND_MAX;
-        if (boltzman < trial) {
-          status = 0;
-        }
-        else {
-          status = 1;
-          MCpmin = MCmin;
-        }
-      }
-      if (testcoord(coord_in)) {
-        l_disp = false;
-      }
-      else {
-        //std::cout << "DISPLACEMENT TOO BIG\n";
-        l_disp = true;
-        status = 0;
-      }
-
-      //if(MCmin > (1.5*std::abs(STARTENERGY)) || std::abs(MCmin) == INFINITY || MCmin == NAN){
-     //     MCmin = 1000000.00;
-      //  status=0;
-     //     nbad++;
-     //   }
-
-      if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) {
-        MCmin = 1000000.00;
-        status = 0;
-        nbad++;
-      }
-
-      //SAVE ENERGY OF NEXT GLOBAL MINIMUM
-      if ((MCmin < MCgmin) && status == 1) {
-
-        coord_glob = cPtr->xyz();
-        MCgmin = MCmin;
-      }
-      //RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+//METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
+for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
 
 
-      if (nbad > 3) {
+if (status == 2) {
+	nbad = 0;
+	            //!same minimum
+	MCpmin_vec[mcstep] = MCmin;
+	//MCmin = MCpmin_vec[mcstep];
+}
+else if (MCmin < MCpmin_vec[mcstep]) {
+	nbad = 0;
+	status = 1; //accepted as next minimum
+	MCpmin_vec[mcstep] = MCmin;
+}
+else {
+	nbad = 0;
+	boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
+	trial = (double)rand() / (double)RAND_MAX;
+	if (boltzman < trial) {
+		status = 0;
+	}
+	else {
+		status = 1;
+		MCpmin_vec[mcstep] = MCmin;
+	}
+}
+if (testcoord(coord_in)) {
+	l_disp = false;
+}
+else {
+	//std::cout << "DISPLACEMENT TOO BIG" << lineend;
+	l_disp = true;
+	status = 0;
+}
+
+if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) {
+	MCmin = 1000000.00;
+	status = 0;
+	nbad++;
+}
+
+//SAVE ENERGY OF NEXT GLOBAL MINIMUM
+if ((MCmin < MCgmin) && status == 1) {
+
+	coord_glob = cPtr->xyz();
+	MCgmin = MCmin;
+}
+//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+
+
+if (nbad>3) {
 
 
 
-        nbad = 0;
+	nbad = 0;
 
-        cPtr->set_xyz(coord_glob);
-      }
-      //RESTORE COORDS FROM PREVIOUS ITERATION
-      else if (status != 1) {
+	cPtr->set_xyz(coord_glob);
+}
+//RESTORE COORDS FROM PREVIOUS ITERATION
+else if (status != 1) {
 
-        cPtr->set_xyz(coord_last);
-      }
+	cPtr->set_xyz(coord_last);
+}
 
 
 
-      //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-      //if(status == 0) std::cout << "REJECTED STRUCTURE\n";
-      else if (status == 1) {
-        //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
-        MCEN = MCmin;
-        // writetinker(output,opt);
-        global_image = opt;
-        std::ostringstream struc_opt;
-        struc_opt << "PATHOPT_STRUCTURES_" << opt << ".xyz";
+//std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
+//if(status == 0) std::cout << "REJECTED STRUCTURE" << lineend;
+else if (status == 1) {
+	//std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<lineend;
+	MCEN = MCmin;
+	// writetinker(output,opt);
+	global_image = opt;
+	std::ostringstream struc_opt;
+	struc_opt << "PATHOPT_STRUCTURES_" << opt << ".xyz";
 
-        output2 << mcstep << "    " << opt << "    " << MCEN << '\n';
+	output2 << mcstep << "    " << opt << "    " << MCEN << "\n";
 
-        counter++;
+	counter++;
 
-        global_path_minima_energy[opt][counter] = MCEN;
-        for (ptrdiff_t i = 0; i < natom; i++) {
-          global_path_minima[opt][counter].push_back(cPtr->xyz(i));
+	global_path_minima_energy[opt][counter] = MCEN;
+	for (ptrdiff_t i = 0; i<natom; i++) {
+		global_path_minima[opt][counter].push_back(cPtr->xyz(i));
 
-        }
+	}
 
-        printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
+	printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
 
-      }
-      else if (status == 2) /*std::cout << "SAME STRUCTURE\n";*/
-        status = 0;
-
+}
+else if (status == 2) /*std::cout << "SAME STRUCTURE" << lineend;*/
+status = 0;
 
     }
 
@@ -469,31 +459,6 @@ void pathx::proof_connect()
 
   }
 
-  // ptrdiff_t ii(0), jj(0), kk(0);
-
-  //// std::ofstream rmsd_mat("RMSD_matrix.dat", std::ios_base::out);
-  // for (ii = 1; ii < temp_image - 1; ii++)
-  // {
-   //  std::ostringstream rmsd_mat_name;
-   //  rmsd_mat_name << "RMSD_matrix_" << ii << ".dat";
-   //  std::ofstream rmsd_mat(rmsd_mat_name.str().c_str(), std::ios_base::out);
-
-   //  for (jj = 0; jj < RMSD[ii].size(); jj++)
-   //  {
-   //	  for (kk = 0; kk < RMSD[ii][jj].size(); kk++)
-   //	  {
-
-   //		  rmsd_mat << std::fixed << std::showpoint << std::right << std::setw(4)<<"   " << std::setprecision(5) << RMSD[ii][jj][kk];
-
-
-   //	  }
-
-   //	  rmsd_mat << '\n';
-   //  }
-
-
-  // }
-
 
 
   for (size_t mm = 1; mm < 4; mm++) {
@@ -536,7 +501,7 @@ void pathx::proof_connect()
 
         }
 
-        PARTNER[i][j] = (index + 1 + (mm - 1));
+        PARTNER[i][j] = (index + (mm - 1));
         RMSD[i][j].erase(RMSD[i][j].begin() + index);
 
 
@@ -683,7 +648,7 @@ bool pathx::testcoord(coords::Representation_3D &coords)
 
   for (size_t i = 0; i<cPtr->size(); i++) {
 
-    if (abs(cPtr->xyz(i).x() - coords[i].x())   > Maxvar) return false;
+    if (abs(cPtr->xyz(i).x() - coords[i].x()) > Maxvar) return false;
     if (abs(cPtr->xyz(i).y() - coords[i].y()) > Maxvar) return false;
     if (abs(cPtr->xyz(i).z() - coords[i].z()) > Maxvar) return false;
 
@@ -702,31 +667,36 @@ bool pathx::testcoord(coords::Representation_3D &coords)
 
 
 
-double pathx::lbfgs()
+double pathx::lbfgs(ptrdiff_t imagex)
 {
 
-  using namespace  optimization::local;
-  using nc3_type = coords::Container<scon::c3<float>>;
-  // create optimizer and set options
-  auto optimizer = make_lbfgs(make_more_thuente(coords::Coords_3d_float_callback(*cPtr)));
-  optimizer.ls.config.ignore_callback_stop = true;
-  optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
-  optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
-  // create and optimize point
-  using op_type = decltype(optimizer);
-  op_type::point_type x(nc3_type(cPtr->xyz().begin(), cPtr->xyz().end()));
-  optimizer(x);
+	using namespace  optimization::local;
+	//typedef coords::Container<scon::c3<float>> nc3_type;
+	// Create optimizer
+	global_imagex = imagex;
+	coords::Cartesian_Point g;
+	auto optimizer = make_lbfgs(
+		make_more_thuente(GradCallBack(*this))
+	);
+	//optimizer.ls.config.ignore_callback_stop = true;
+	// Create Point
+	using op_type = decltype(optimizer);
+	op_type::point_type x(scon::explicit_transform<op_type::rep_type>(cPtr->xyz()));
+	// Optimize point
+	optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
+	//optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
+	optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
+	optimizer(x);
 
-  
+	if (Config::get().general.verbosity > 4)
+	{
+		std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
+	}
 
-  if (Config::get().general.verbosity > 9 || (optimizer.state() < 0 && Config::get().general.verbosity > 9))
-    std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
-  if (Config::get().general.verbosity > 19 && cPtr->integrity())
-  {
-    std::cout << "Energy after optimization: \n";
-    cPtr->e_head_tostream_short(std::cout, cPtr->energyinterface());
-    cPtr->e_tostream_short(std::cout, cPtr->energyinterface());
-  }
+
+ 
+
+
   return optimizer.p().f;
 }
 
@@ -744,10 +714,12 @@ double pathx::g_new(ptrdiff_t im)
     {
 
       auto L = scon::geometric_length(N->tau[im][i]);
+	
 
       if (L != 0.0)
       {
         cosi = (cPtr->g_xyz(i).x()*N->tau[im][i].x() + cPtr->g_xyz(i).y()*N->tau[im][i].y() + cPtr->g_xyz(i).z()*N->tau[im][i].z()) / (L * L);
+	
       }
       else
       {

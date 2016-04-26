@@ -439,7 +439,7 @@ namespace
     // get a modifiable character sequence of the command: 
     std::wstring wide_cmd(command_line.begin(), command_line.end());
     std::vector<wchar_t> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
-    //std::vector<char> cmdl(command_line.c_str(), command_line.c_str() + command_line.length() + 1u);
+    //std::vector<char> w_cmdl(command_line.c_str(), command_line.c_str() + command_line.length() + 1u);
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));

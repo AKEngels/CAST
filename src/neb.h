@@ -42,7 +42,7 @@ public:
   ::tinker::refine::refined refined;
 
 
-  coords::Representation_3D images_initial;
+  coords::Representation_3D images_initial,grad_tot;
   coords::Representation_3D images, tempimage_final, tempimage_ini, Rm1, Rp1, Fvertical;
   std::vector <coords::Representation_3D> imagi, imagederiv, tau, image_ini, Fpar, imagi_test;
   coords::Representation_3D ts_pathstruc;
@@ -62,9 +62,9 @@ public:
   void initial(const coords::Representation_3D &start);
   void final(const coords::Representation_3D &fi);
   void create(ptrdiff_t &count);
-  void get_energies_grad(void);
+  void get_energies(void);
   void calc_tau(void);
-  void opt_mep(ptrdiff_t &count);
+  void opt_io(ptrdiff_t &count);
   void print(std::string const&, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void print_rev(std::string const &, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t &);
@@ -114,10 +114,11 @@ public:
       using ot = scon::vector< scon::c3<float> >;
 
       using ct = coords::Representation_3D;
-      p->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
+      //p->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
+	  p->images_initial = scon::explicit_transform<ct>(x);
       float E = static_cast<float>(p->g_new(p->global_imagex));
       go_on = p->cPtr->integrity();
-      g = scon::explicit_transform<ot>(p->cPtr->g_xyz());
+      g = scon::explicit_transform<ot>(p->grad_tot);
       return E;
     }
   };
