@@ -390,7 +390,7 @@ namespace coords
       swap(energy, rhs.energy);
       swap(integrity, rhs.integrity);
     }
-    bool equal_compare(PES_Point const &) const;
+    //bool equal_compare(PES_Point const &) const;
     bool empty(void)
     {
       return structure.empty();
@@ -427,8 +427,8 @@ namespace coords
   };
 
   inline void swap(PES_Point &a, PES_Point &b) { a.swap(b); }
-  inline bool operator== (const PES_Point& lhs, const PES_Point& rhs) { return lhs.equal_compare(rhs); }
-  inline bool operator!= (const PES_Point& lhs, const PES_Point& rhs) { return !operator==(lhs, rhs); }
+  //inline bool operator== (const PES_Point& lhs, const PES_Point& rhs) { return lhs.equal_compare(rhs); }
+  //inline bool operator!= (const PES_Point& lhs, const PES_Point& rhs) { return !operator==(lhs, rhs); }
   inline bool operator<  (const PES_Point& lhs, const PES_Point& rhs) { return lhs.energy < rhs.energy; }
   inline bool operator>(const PES_Point& lhs, const PES_Point& rhs) { return  operator< (rhs, lhs); }
   inline bool operator<= (const PES_Point& lhs, const PES_Point& rhs) { return !operator> (lhs, rhs); }

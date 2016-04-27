@@ -17,7 +17,7 @@
  approaches like Interpolative Optimization*/
 
 
-::tinker::parameter::parameters neb::tp;
+
 
 
 neb::neb(coords::Coordinates *cptr)
@@ -25,17 +25,8 @@ neb::neb(coords::Coordinates *cptr)
   cPtr = cptr;
   reversed = false;
 
-
-  if (!tp.valid()) tp.from_file(Config::get().get().general.paramFilename);
-  std::vector<size_t> types;
-  for (auto atom : (*cptr).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
-  cparams = tp.contract(types);
-  refined.refine(*cptr, cparams);
 }
 
-neb::~neb(void)
-{
-}
 void neb::preprocess(ptrdiff_t &count, ptrdiff_t const &image)
 {
   std::vector<size_t> image_remember;
@@ -46,15 +37,15 @@ void neb::preprocess(ptrdiff_t &count, ptrdiff_t const &image)
   ts = false;
   ClimbingImage = true;
   reversed = true;
-  imagi.resize(num_images + N);
-  image_ini.resize(num_images + N);
-  imagederiv.resize(num_images + N);
-  tau.resize(num_images + N);
+  imagi.resize(num_images);
+  image_ini.resize(num_images);
+  imagederiv.resize(num_images);
+  tau.resize(num_images);
   images_initial.clear();
   images.resize(N);
-  tempimage_final.resize(num_images + N);
-  tempimage_ini.resize(num_images + N);
-  energies.resize(num_images + N);
+  tempimage_final.resize(num_images);
+  tempimage_ini.resize(num_images);
+  energies.resize(num_images);
   springconstant = Config::get().neb.SPRINGCONSTANT;
   initial();
   final();
@@ -182,10 +173,10 @@ void neb::initial(const coords::Representation_3D &start)
 
 {
 
-
+	
   for (size_t i = 0; i < cPtr->size(); i++)
   {
-    imagi[0].push_back(start[i]);
+	  imagi[0].push_back(start[i]);
   }
 
 }
@@ -229,35 +220,10 @@ void neb::create(ptrdiff_t &count)
 
 	  }
 
-	  if (Config::get().general.verbosity > 4)
-	  {
-		  cPtr->set_xyz(imagi[j]);
-
-		  for (auto const & bond : refined.bonds())
-		  {
-			  coords::Cartesian_Point const bv(cPtr->xyz(bond.atoms[0]) - cPtr->xyz(bond.atoms[1]));
-			  coords::float_type const d = len(bv);
-			  if (d < bond.ideal && (1.0 - d / bond.ideal) > 0.10)   std::cout << "WARNING_1-bond_length not reasonable\n";
-			  if (d > bond.ideal && abs(1.0 - (d / bond.ideal)) > 0.10) std::cout << "WARNING_1-bond_length not reasonable\n";
-
-
-
-
-		  }
-
-		  for (auto const & angle : refined.angles())
-		  {
-			  coords::Cartesian_Point const
-				  av1(cPtr->xyz(angle.atoms[0]) - cPtr->xyz(angle.atoms[1])),
-				  av2(cPtr->xyz(angle.atoms[2]) - cPtr->xyz(angle.atoms[1]));
-			  coords::float_type const d(scon::angle(av1, av2).degrees());
-			  if (d < angle.ideal && (1.0 - d / angle.ideal) > 0.10) std::cout << "WARNING_1_dihedral not reasonable\n";
-			  if (d > angle.ideal && abs(1.0 - (d / angle.ideal)) > 0.10) std::cout << "WARNING_2_dihedral not reasonable\n";
-		  }
-	  }
+	 
   }
   if (Config::get().neb.INT_PATH) calc_shift();
-  print(name.str(), imagi, count);
+  //print(name.str(), imagi, count);
 
 }
 
@@ -446,8 +412,8 @@ void neb::opt_io(ptrdiff_t &count)
   temp = energies_ini.str();
   std::fstream off2(temp.c_str(), std::ios::app);
   energies_NEB.resize(num_images);
-  energies_NEB[0] = this->energies[0];
-  energies_NEB[num_images] = this->energies[num_images];
+  //energies_NEB[0] = this->energies[0];
+  //energies_NEB[num_images] = this->energies[num_images];
 
  
   if (reversed == true)
@@ -461,26 +427,23 @@ void neb::opt_io(ptrdiff_t &count)
 			  off << "MIN         " << min_energies[count] << '\n';
 			  printmono(name.str(), imagi[0], count);
 		  }
-		  off << "ENERGIE:    " << this->energies[0] << "   START\n";
-		  off2 << "ENERGIE:    " << this->energies[0] << "   START\n";
+		  off << "ENERGIE:    " << energies[0] << "   START\n";
+		  off2 << "ENERGIE:    " <<energies[0] << "   START\n";
 
 		  for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
 		  {
 
-			  cPtr->set_xyz(imagi[imagecount]);
-
-
-
+			  //cPtr->set_xyz(imagi[imagecount]);
 
 
 			  off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-			  off2 << "ENERGIE:    " << this->energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+			  //off2 << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
 
 
 		  }
 
-		  off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
-		  off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+		  off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+		  //off2 << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
 		  print(name.str(), imagi, count);
 
 
@@ -490,8 +453,8 @@ void neb::opt_io(ptrdiff_t &count)
 
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
 
-    off << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
-    off2 << "ENERGIE:    " << this->energies[num_images - 1] << "   FINAL\n";
+    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    //off2 << "ENERGIE:    " <<energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {
 
@@ -504,7 +467,7 @@ void neb::opt_io(ptrdiff_t &count)
 
 
       off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-      off2 << "ENERGIE:    " << this->energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+      //off2 << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
 
     }
 
@@ -652,13 +615,8 @@ double neb::lbfgs(ptrdiff_t imagex)
 double neb::g_new(ptrdiff_t im)
 {
 
-  //coords::Gradients_3D g;
   std::vector <coords::Representation_3D> temp(N);
   double Rp1mag, Rm1mag, energytemp(0.0);
-  /*energytemp = this->cPtr->g();*/
-
-  /* std::cout << "g vor neb: " << cPtr->g_xyz();
-  std::cout<<energytemp<<'\n';*/
   Rp1.resize(num_images + cPtr->size());
   Rm1.resize(num_images + cPtr->size());
   Fvertical.resize(num_images + cPtr->size());

@@ -437,9 +437,15 @@ namespace
   {
 #if defined (_MSC_VER)
     // get a modifiable character sequence of the command: 
-    std::wstring wide_cmd(command_line.begin(), command_line.end());
-    std::vector<wchar_t> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
-    //std::vector<char> w_cmdl(command_line.c_str(), command_line.c_str() + command_line.length() + 1u);
+#if defined _UNICODE
+    using cur_char = wchar_t;
+    using cur_string = std::wstring;
+#else
+    using cur_char = char;
+    using cur_string = std::string;
+#endif
+    cur_string wide_cmd(command_line.begin(), command_line.end());
+    std::vector<cur_char> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
     ZeroMemory(&si, sizeof(si));

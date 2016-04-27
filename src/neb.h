@@ -33,13 +33,7 @@ public:
   coords::Coordinates coords_neb;
   neb(coords::Coordinates *c);
   optimization::global::optimizers::monteCarlo* mc;
-  neb(const std::size_t);
-
-  ~neb(void);
-
-  static ::tinker::parameter::parameters tp;
-  ::tinker::parameter::parameters cparams;
-  ::tinker::refine::refined refined;
+  //neb(const std::size_t);
 
 
   coords::Representation_3D images_initial,grad_tot;

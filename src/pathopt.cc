@@ -79,7 +79,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
   std::vector <double> MCpmin_vec;
   double boltzman = 0.0, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t mciteration = Config::get().neb.MCITERATION;
-  ptrdiff_t nancounter = 0, nbad = 0, status = 0;
+  ptrdiff_t nancounter = 0, nbad = 0, status;
   bool  l_disp = false;
   MCSTEPSIZE = Config::get().neb.MCSTEPSIZE;
   std::string output, output3, output4;
@@ -92,9 +92,9 @@ void pathx::MCM_NEB(ptrdiff_t opt)
   double sum, sum2;
   coords::Representation_3D tempstart, tempstart2, coord_in, coord_glob, coord_last;
 
-  global_path_minima.resize(N->num_images);
-  global_path_minima_temp.resize(N->num_images);
-  global_path_minima_energy.resize(N->num_images);
+  global_path_minima.resize(N->num_images+natom);
+  global_path_minima_temp.resize(N->num_images+natom);
+  global_path_minima_energy.resize(N->num_images+natom);
 
 
 
@@ -244,7 +244,11 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
       //this->cPtr->g2(N->tau,opt,mcstep,this->N->image_ini);
 	  MCmin = lbfgs(opt);
-	 
+     std::cout << "Min "<<MCmin <<"\n";
+
+	  
+
+
   
 if (MCmin != MCmin) {
 	nancounter++;
@@ -255,14 +259,14 @@ if (MCmin != MCmin) {
 	if (nancounter>10) break;
 }
 //TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
-if (MCmin < (-1.5*std::abs(STARTENERGY))) {
+if (MCmin< (-1.5*std::abs(STARTENERGY))) {
 	MCmin = 1000000.00;
 	nbad++;
 }
 
 
 //METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
-for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
+for (auto mp : MCpmin_vec) { /*std::cout << abs(MCmin - mp) << "\n";*/ if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
 
 
 if (status == 2) {
@@ -459,6 +463,31 @@ void pathx::proof_connect()
 
   }
 
+  // ptrdiff_t ii(0), jj(0), kk(0);
+
+  //// std::ofstream rmsd_mat("RMSD_matrix.dat", std::ios_base::out);
+  // for (ii = 1; ii < temp_image - 1; ii++)
+  // {
+   //  std::ostringstream rmsd_mat_name;
+   //  rmsd_mat_name << "RMSD_matrix_" << ii << ".dat";
+   //  std::ofstream rmsd_mat(rmsd_mat_name.str().c_str(), std::ios_base::out);
+
+   //  for (jj = 0; jj < RMSD[ii].size(); jj++)
+   //  {
+   //	  for (kk = 0; kk < RMSD[ii][jj].size(); kk++)
+   //	  {
+
+   //		  rmsd_mat << std::fixed << std::showpoint << std::right << std::setw(4)<<"   " << std::setprecision(5) << RMSD[ii][jj][kk];
+
+
+   //	  }
+
+   //	  rmsd_mat << '\n';
+   //  }
+
+
+  // }
+
 
 
   for (size_t mm = 1; mm < 4; mm++) {
@@ -548,6 +577,7 @@ void pathx::proof_connect()
         reverse = true;
         /*if(tempcount < temp_image-2) N->preprocess(j,image,j,global_path_minima[tempcount+1][j],tempstart2,reverse);*/
         /*if(tempproff=true) {N->preprocess(j,image,i,global_path_minima[tempcount+1][j],tempstart2,reverse);}*/
+		if (global_path_minima[i - tempcount][jj].size() == 0)continue;
         N->preprocess(j, image, j, global_path_minima[i - tempcount][jj], tempstart2, reverse);
       }
     }

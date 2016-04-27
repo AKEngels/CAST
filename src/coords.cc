@@ -68,102 +68,6 @@ std::ostream& coords::operator<< (std::ostream &stream, Stereo const & stereo)
   return stream;
 }
 
-/* #############################################################################
-
-  class PES_Point and helper static function implementations
-
-  ########  ########  ######          ########   #######  #### ##    ## ########
-  ##     ## ##       ##    ##         ##     ## ##     ##  ##  ###   ##    ##
-  ##     ## ##       ##               ##     ## ##     ##  ##  ####  ##    ##
-  ########  ######    ######          ########  ##     ##  ##  ## ## ##    ##
-  ##        ##             ##         ##        ##     ##  ##  ##  ####    ##
-  ##        ##       ##    ##         ##        ##     ##  ##  ##   ###    ##
-  ##        ########  ######  ####### ##         #######  #### ##    ##    ##
-
-############################################################################# */
-
-
-static inline bool in_3d_delta(coords::Representation_3D const &r,
-  coords::Cartesian_Point const &d)
-{
-  std::size_t const N(r.size());
-  for (std::size_t i = 0; i<N; ++i)
-  {
-    if (std::abs(r[i].x()) > d.x() ||
-      std::abs(r[i].y()) > d.y() ||
-      std::abs(r[i].z()) > d.z())
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-static inline bool out_of_angle_delta(coords::angle_type const & a,
-  coords::angle_type const & l)
-{
-  return (a > l || a < -l);
-}
-
-static inline bool in_internal_delta(coords::Representation_Internal const &r,
-  coords::internal_type const &d)
-{
-  std::size_t const N(r.size());
-  for (std::size_t i = 0; i<N; ++i)
-  {
-    if (std::abs(r[i].radius()) > d.radius() ||
-      out_of_angle_delta(r[i].inclination(), d.inclination()) ||
-      out_of_angle_delta(r[i].azimuth(), d.azimuth()))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-static inline bool in_main_delta(coords::Representation_Main const &r,
-  coords::main_type const f)
-{
-  std::size_t const N(r.size());
-  for (std::size_t i(0u); i < N; ++i)
-  {
-    if (r[i] > f || r[i] < -f)
-    {
-      //std::cout << "Structure not the same cause main delta ";
-      //std::cout << i << " is " << r[i] << " which is bigger than " << f << "\n";
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool coords::PES_Point::equal_compare(PES_Point const &rhs) const
-{
-  using scon::operator-;
-  //std::cout << "Checking delta: ";
-  //std::cout << "M: " << structure.main << "\n";
-  //std::cout << "RM: " << rhs.structure.main << "\n";
-  auto main_delta = structure.main - rhs.structure.main;
-  if (in_main_delta(main_delta, Config::get().coords.equals.main))
-  {
-    return true;
-  }
-  else if (in_internal_delta(structure.intern - rhs.structure.intern,
-    Config::get().coords.equals.intern))
-  {
-    return true;
-  }
-  else if (in_3d_delta(structure.cartesian - rhs.structure.cartesian,
-    Config::get().coords.equals.xyz))
-  {
-    return true;
-  }
-  //std::cout << "MAINDELTA: " << scon::vector_delimeter(' ') << main_delta << "\n";
-  return false;
-}
-
 
 /* ######################################################
 
@@ -880,6 +784,119 @@ void coords::Coordinates::set_pes(PES_Point && pes_point,
   m_stereo.update(xyz());
 }
 
+/* #############################################################################
+
+class PES_Point and helper static function implementations
+
+########  ########  ######          ########   #######  #### ##    ## ########
+##     ## ##       ##    ##         ##     ## ##     ##  ##  ###   ##    ##
+##     ## ##       ##               ##     ## ##     ##  ##  ####  ##    ##
+########  ######    ######          ########  ##     ##  ##  ## ## ##    ##
+##        ##             ##         ##        ##     ##  ##  ##  ####    ##
+##        ##       ##    ##         ##        ##     ##  ##  ##   ###    ##
+##        ########  ######  ####### ##         #######  #### ##    ##    ##
+
+############################################################################# */
+
+namespace
+{
+  bool in_3d_delta(coords::Representation_3D const &r,
+    coords::Cartesian_Point const &d)
+  {
+    std::size_t const N(r.size());
+    for (std::size_t i = 0; i<N; ++i)
+    {
+      if (std::abs(r[i].x()) > d.x() ||
+        std::abs(r[i].y()) > d.y() ||
+        std::abs(r[i].z()) > d.z())
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool out_of_angle_delta(coords::angle_type const & a,
+    coords::angle_type const & l)
+  {
+    return (a > l || a < -l);
+  }
+
+}
+
+bool coords::Coordinates::equal_structure(coords::PES_Point const & a, 
+  coords::PES_Point const & b, 
+  coords::main_type const md, 
+  coords::internal_type const & id, 
+  coords::Cartesian_Point const & cd) const
+{
+  using scon::operator-;
+  auto const N = size();
+  if (Config::get().coords.decouple_internals)
+  {
+    throw std::runtime_error("decouple_internals option "
+      "may not be present to compare structure equality");
+  }
+  // Check main structure equality
+  {
+    bool equal = true;
+    std::size_t i = 0;
+    for (auto && d : (a.structure.main - b.structure.main))
+    {
+      // main only relevant if relative to atom (internal structure)
+      auto in_of_main = m_atoms.intern_of_main_idihedral(i);
+      auto rel_d = m_atoms.atom(in_of_main).idihedral();
+      auto relevant = rel_d < N;
+      if (relevant && (d > md || d < md))
+      {
+        equal = false;
+        break;
+      }
+      ++i;
+    }
+    if (equal) return true;
+  }
+  // Check internal structure equality
+  {
+    bool equal = true;
+    std::size_t i = 0;
+    for (auto && d : (a.structure.intern - b.structure.intern))
+    {
+      auto rel_b = m_atoms.atom(i).ibond();
+      auto rel_a = m_atoms.atom(i).iangle();
+      auto rel_d = m_atoms.atom(i).idihedral();
+      auto relevant = rel_b < N && rel_a < N && rel_d < N;
+      if (relevant && (std::abs(d.radius()) > id.radius() ||
+        out_of_angle_delta(d.inclination(), id.inclination()) ||
+        out_of_angle_delta(d.azimuth(), id.azimuth())))
+      {
+        equal = false;
+        break;
+      }
+      ++i;
+    }
+    if (equal) return true;
+  }
+  {
+    bool equal = true;
+    std::size_t i = 0;
+    for (auto && r : (a.structure.cartesian - b.structure.cartesian))
+    {
+      if (std::abs(r.x()) > cd.x() ||
+        std::abs(r.y()) > cd.y() ||
+        std::abs(r.z()) > cd.z())
+      {
+        equal = false;
+        break;
+      }
+      ++i;
+    }
+    if (equal) return true;
+  }
+
+  return false;
+}
+
 coords::float_type coords::Internal_Callback::operator()
 (scon::vector<coords::float_type> const & v,
   scon::vector<coords::float_type>& g, std::size_t const S, bool & go_on)
@@ -1035,6 +1052,8 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   }
   return E;
 }
+
+
 
 
 //##################################################################################
