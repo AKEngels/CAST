@@ -223,7 +223,7 @@ void neb::create(ptrdiff_t &count)
 	 
   }
   if (Config::get().neb.INT_PATH) calc_shift();
-  //print(name.str(), imagi, count);
+
 
 }
 

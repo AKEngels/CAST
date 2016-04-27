@@ -29,16 +29,12 @@ pathx::pathx(neb *NEB, coords::Coordinates *c)
   N = NEB;
   cPtr = c;
   global_image = 0;
-  global_run = 0;
-  total_struc_num = 0;
-  file_dimer = false;
 }
 
 void pathx::pathx_ini()
 {
 
   std::cout << "**************INITIALIZATION OF PATHOPT*************\n";
-
   natom = cPtr->size();
   nvar = 3 * natom;
   global_minima.resize(this->N->num_images);
@@ -47,25 +43,13 @@ void pathx::pathx_ini()
   ptrdiff_t temp_image;
   temp_image = N->num_images;
   counter = 0;
-
-
-
   for (ptrdiff_t i = 1; i < temp_image - 1; i++)
   {
-
     N->num_images = temp_image;
-    globalenergy = N->energies[0];
-
     cPtr->set_xyz(N->imagi[i]);
-
     MCM_NEB(i);
-    global_run++;
-
   }
-
-
   proof_connect();
-
 }
 
 
@@ -90,20 +74,13 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
   std::ofstream output2("PATHOPT_BASIN_ENERGIES", std::ios::app);
   double sum, sum2;
-  coords::Representation_3D tempstart, tempstart2, coord_in, coord_glob, coord_last;
+  coords::Representation_3D  coord_in, coord_glob, coord_last;
 
   global_path_minima.resize(N->num_images+natom);
   global_path_minima_temp.resize(N->num_images+natom);
   global_path_minima_energy.resize(N->num_images+natom);
 
 
-
-
-
-
-
-  tempstart = N->imagi[0];
-  tempstart2 = N->imagi[N->num_images - 1];
 
 
 
@@ -124,8 +101,8 @@ void pathx::MCM_NEB(ptrdiff_t opt)
     coord_glob = cPtr->xyz();
 
 
-    /* rmsd_cartesian(global_maxima2,global_image); */
-//CALCULATE SP ENERGY
+
+	//CALCULATE SP ENERGY
     MCmin = cPtr->g();
     MCgmin = MCmin;
 	MCpmin = MCmin;
@@ -140,17 +117,18 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 	  MCpmin_vec.push_back(MCmin);
 
       sum = 0.0;
-      sum2 = 0.0;
+	  sum2 = 0.0;
+	  positions.clear();
       positions.resize(natom);
+	
 
 	  move_control = Config::get().neb.MIXED_MOVE;
-	  if (move_control) {
-		  if (mcstep % 10 == 0 && mcstep > 1)
+	  if (move_control && (mcstep % 10 == 0 && mcstep > 1)) 
 		  {
 
 			  for (ptrdiff_t j = 0; j < natom; j++) {
 				  randvect();
-				  factor = MCSTEPSIZE * scon::rand<coords::float_type>(0, 1);
+				  factor = MCSTEPSIZE * (double)rand() / (double)RAND_MAX;
 				  double rv_p[3];
 				  coords::Cartesian_Point RV;
 				  double abs = 0.0;
@@ -176,29 +154,13 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
 			  }
 			  coords::Coordinates temp_perp(*cPtr);
-			  std::cout <<"t1 "<< cPtr->pes().size() << "\n";
-			   std::cout << positions.size() << "\n";
 			  temp_perp.set_xyz(positions);
-			 
-			  std::cout << "set pes point\n";
 			  perp_point test_perp;
 			  test_perp = perp_point(temp_perp.pes());
 			  move_main(test_perp);
-
-			  std::cout << "MINIMUM   " << cPtr->g() << '\n';
-
 			  positions = cPtr->xyz();
-			  //printmono("TEST_DIHEDRAL_1.xyz", positions, global_image);
-			  //MCmin = cPtr->o();
-			  positions = cPtr->xyz();
-			  if (std::abs(MCmin - STARTENERGY) < Config::get().neb.PO_ENERGY_RANGE)
-			  {
-				  //std::cout << "MINIMUM   " << cPtr->g() << '\n';
-				  // printmono("TEST_DIHEDRAL_2.xyz", positions, global_image);
-			  }
-			  move_control = true;
-		  }
-		  positions = cPtr->xyz();
+			  //cPtr->o();
+			  positions = cPtr->xyz();	  
 	  }
 	  else
 	  {
@@ -231,12 +193,8 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
         }
       }
-      //
-      // 
-      //  //move_main(move_main_directions);
+ 
       cPtr->set_xyz(positions);
-      ////
-      // 
 
       this->cPtr->mult_struc_counter = 0;
       //this->cPtr->biascontrol=true;
@@ -244,128 +202,110 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
       //this->cPtr->g2(N->tau,opt,mcstep,this->N->image_ini);
 	  MCmin = lbfgs(opt);
-     std::cout << "Min "<<MCmin <<"\n";
-
-	  
-
-
   
-if (MCmin != MCmin) {
-	nancounter++;
-	//std::cout << "***size of counter***:  "<<nancounter << lineend;
-	status = 0;
-	nbad++;
-	cPtr->set_xyz(coord_in);
-	if (nancounter>10) break;
-}
-//TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
-if (MCmin< (-1.5*std::abs(STARTENERGY))) {
-	MCmin = 1000000.00;
-	nbad++;
-}
-
-
-//METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
-for (auto mp : MCpmin_vec) { /*std::cout << abs(MCmin - mp) << "\n";*/ if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
-
-
-if (status == 2) {
-	nbad = 0;
-	            //!same minimum
-	MCpmin_vec[mcstep] = MCmin;
-	//MCmin = MCpmin_vec[mcstep];
-}
-else if (MCmin < MCpmin_vec[mcstep]) {
-	nbad = 0;
-	status = 1; //accepted as next minimum
-	MCpmin_vec[mcstep] = MCmin;
-}
-else {
-	nbad = 0;
-	boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
-	trial = (double)rand() / (double)RAND_MAX;
-	if (boltzman < trial) {
+	if (MCmin != MCmin) 
+	{
+	
+		nancounter++;
+		//std::cout << "***size of counter***:  "<<nancounter << lineend;
 		status = 0;
+		nbad++;
+		cPtr->set_xyz(coord_in);
+		if (nancounter>10) break;
 	}
-	else {
-		status = 1;
+	//TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
+	if (MCmin< (-1.5*std::abs(STARTENERGY))) 
+	{
+		MCmin = 1000000.00;
+		nbad++;
+	}
+
+
+	//METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
+	for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
+
+
+	if (status == 2) 
+	{
+		nbad = 0;
+	    //!same minimum
 		MCpmin_vec[mcstep] = MCmin;
 	}
-}
-if (testcoord(coord_in)) {
-	l_disp = false;
-}
-else {
-	//std::cout << "DISPLACEMENT TOO BIG" << lineend;
-	l_disp = true;
-	status = 0;
-}
-
-if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) {
-	MCmin = 1000000.00;
-	status = 0;
-	nbad++;
-}
-
-//SAVE ENERGY OF NEXT GLOBAL MINIMUM
-if ((MCmin < MCgmin) && status == 1) {
-
-	coord_glob = cPtr->xyz();
-	MCgmin = MCmin;
-}
-//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
-
-
-if (nbad>3) {
-
-
-
-	nbad = 0;
-
-	cPtr->set_xyz(coord_glob);
-}
-//RESTORE COORDS FROM PREVIOUS ITERATION
-else if (status != 1) {
-
-	cPtr->set_xyz(coord_last);
-}
-
-
-
-//std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
-//if(status == 0) std::cout << "REJECTED STRUCTURE" << lineend;
-else if (status == 1) {
-	//std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<lineend;
-	MCEN = MCmin;
-	// writetinker(output,opt);
-	global_image = opt;
-	std::ostringstream struc_opt;
-	struc_opt << "PATHOPT_STRUCTURES_" << opt << ".xyz";
-
-	output2 << mcstep << "    " << opt << "    " << MCEN << "\n";
-
-	counter++;
-
-	global_path_minima_energy[opt][counter] = MCEN;
-	for (ptrdiff_t i = 0; i<natom; i++) {
-		global_path_minima[opt][counter].push_back(cPtr->xyz(i));
-
+	else if (MCmin < MCpmin_vec[mcstep])
+	{
+		nbad = 0;
+		status = 1; //accepted as next minimum
+		MCpmin_vec[mcstep] = MCmin;
+	}
+	else 
+	{
+		nbad = 0;
+		boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
+		trial = (double)rand() / (double)RAND_MAX;
+		if (boltzman < trial)
+		{
+			status = 0;
+		}
+		else
+		{
+			status = 1;
+			MCpmin_vec[mcstep] = MCmin;
+		}
+	}
+	if (testcoord(coord_in)) 
+	{
+		l_disp = false;
+	}
+	else
+	{
+		//std::cout << "DISPLACEMENT TOO BIG" << lineend;
+		l_disp = true;
+		status = 0;
 	}
 
+	if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) 
+	{
+		MCmin = 1000000.00;
+		status = 0;
+		nbad++;
+	}
+	//SAVE ENERGY OF NEXT GLOBAL MINIMUM
+	if ((MCmin < MCgmin) && status == 1) 
+	{
+		coord_glob = cPtr->xyz();
+		MCgmin = MCmin;
+	}
+	//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+	if (nbad>3)
+	{
+		nbad = 0;
+		cPtr->set_xyz(coord_glob);
+	}
+	//RESTORE COORDS FROM PREVIOUS ITERATION
+	else if (status != 1)
+	{
+		cPtr->set_xyz(coord_last);
+	}
+	//std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
+	//if(status == 0) std::cout << "REJECTED STRUCTURE" << lineend;
+	else if (status == 1) 
+	{
+		MCEN = MCmin;
+		global_image = opt;
+		std::ostringstream struc_opt;
+		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".xyz";
+		output2 << mcstep << "    " << opt << "    " << MCEN << "\n";
+		counter++;
+		global_path_minima_energy[opt][counter] = MCEN;
+		for (ptrdiff_t i = 0; i<natom; i++)
+		{
+			global_path_minima[opt][counter].push_back(cPtr->xyz(i));
+		}
 	printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
-
-}
-else if (status == 2) /*std::cout << "SAME STRUCTURE" << lineend;*/
-status = 0;
-
+	}
+	else if (status == 2) status = 0;
     }
-
   }
-
-
-
-
-
 }
 
 
@@ -390,8 +330,6 @@ void pathx::proof_connect()
   TABU.resize(N->num_images);
   RMSD.resize(N->num_images);
 
-
-
   for (size_t l = 0; l < RMSD.size(); l++)RMSD[l].resize(Config::get().neb.MCITERATION*(Config::get().neb.GLOBALITERATION));
   for (size_t l = 0; l < PARTNER.size(); l++)PARTNER[l].resize(Config::get().neb.MCITERATION*(Config::get().neb.GLOBALITERATION));
   for (size_t l = 0; l < TABU.size(); l++)TABU[l].resize(Config::get().neb.MCITERATION*(Config::get().neb.GLOBALITERATION));
@@ -400,7 +338,7 @@ void pathx::proof_connect()
   bool reverse(false);
   coords::Representation_3D tempstart, tempstart2;
   tempstart = N->imagi[0];
-  tempstart2 = N->imagi[N->num_images - 1];
+  tempstart2 = N->imagi[N->num_images-1];
 
   coord1.clear();
   coord2.clear();
@@ -462,32 +400,6 @@ void pathx::proof_connect()
     }
 
   }
-
-  // ptrdiff_t ii(0), jj(0), kk(0);
-
-  //// std::ofstream rmsd_mat("RMSD_matrix.dat", std::ios_base::out);
-  // for (ii = 1; ii < temp_image - 1; ii++)
-  // {
-   //  std::ostringstream rmsd_mat_name;
-   //  rmsd_mat_name << "RMSD_matrix_" << ii << ".dat";
-   //  std::ofstream rmsd_mat(rmsd_mat_name.str().c_str(), std::ios_base::out);
-
-   //  for (jj = 0; jj < RMSD[ii].size(); jj++)
-   //  {
-   //	  for (kk = 0; kk < RMSD[ii][jj].size(); kk++)
-   //	  {
-
-   //		  rmsd_mat << std::fixed << std::showpoint << std::right << std::setw(4)<<"   " << std::setprecision(5) << RMSD[ii][jj][kk];
-
-
-   //	  }
-
-   //	  rmsd_mat << '\n';
-   //  }
-
-
-  // }
-
 
 
   for (size_t mm = 1; mm < 4; mm++) {
@@ -572,7 +484,7 @@ void pathx::proof_connect()
 
         }
         /*if(global_path_minima[i-tempcount][jj].empty()) continue ;*/
-      /*if(tempproff==true)continue;*/
+        /*if(tempproff==true)continue;*/
 
         reverse = true;
         /*if(tempcount < temp_image-2) N->preprocess(j,image,j,global_path_minima[tempcount+1][j],tempstart2,reverse);*/
