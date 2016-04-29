@@ -16,43 +16,35 @@
 /*CLASS which performs double ended Reaction Path Search by applying the NEB method and adapted
  approaches like Interpolative Optimization*/
 
-
-
-
-
 neb::neb(coords::Coordinates *cptr)
 {
   cPtr = cptr;
-  reversed = false;
-
+  reversed = true;
+  CIMaximum = 0;
+  num_images = Config::get().neb.IMAGES;
+  ClimbingImage = true;
+  springconstant = Config::get().neb.SPRINGCONSTANT;
 }
 
-void neb::preprocess(ptrdiff_t &count, ptrdiff_t const &image)
+void neb::preprocess(ptrdiff_t &count)
 {
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
-  CIMaximum = 0;
-  num_images = image;
   ts = false;
-  ClimbingImage = true;
-  reversed = true;
   imagi.resize(num_images);
   image_ini.resize(num_images);
-  imagederiv.resize(num_images);
   tau.resize(num_images);
   images_initial.clear();
   images.resize(N);
   tempimage_final.resize(num_images);
   tempimage_ini.resize(num_images);
   energies.resize(num_images);
-  springconstant = Config::get().neb.SPRINGCONSTANT;
   initial();
   final();
   create(count);
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
-  controlrun = true;
 }
 
 void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path)
@@ -62,23 +54,19 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
-  CIMaximum = 0;
   ts = true;
   reversed = reverse;
   num_images = image;
   imagi.clear();
   image_ini.clear();
-  imagederiv.clear();
   energies.clear();
   tau.clear();
   images.clear();
-  ClimbingImage = true;
   ts_energies.resize(ts_energy.size());
   min_energies.resize(min_energy.size());
   imagi.resize(start.size() + num_images);
   ts_pathstruc.resize(start.size() + num_images);
   image_ini.resize(start.size() + num_images);
-  imagederiv.resize(start.size() + num_images);
   images_initial.clear();
   images.resize(N);
   tempimage_final.resize(N + num_images);
@@ -87,17 +75,11 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   ts_energies = ts_energy;
   min_energies = min_energy;
   ts_pathstruc = ts_path;
-  springconstant = Config::get().neb.SPRINGCONSTANT;
   initial(start);
   final(fi);
   create(count);
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
-  controlrun = true;
-
-
-
-
 
 }
 
@@ -115,7 +97,6 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   num_images = image;
   imagi.clear();
   image_ini.clear();
-  imagederiv.clear();
   energies.clear();
   tau.clear();
   images.clear();
@@ -123,9 +104,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   imagi.resize(start.size() + num_images);
   ts_pathstruc.resize(start.size() + num_images);
   image_ini.resize(start.size() + num_images);
-  imagederiv.resize(start.size() + num_images);
   images_initial.clear();
-  //images.resize(N);
   tempimage_final.resize(N + num_images);
   tempimage_ini.resize(N + num_images);
   energies.resize(start.size() + num_images);
@@ -135,12 +114,6 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   create(count);
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
-  controlrun = true;
-
-
-
-
-
 }
 
 
@@ -195,7 +168,7 @@ void neb::create(ptrdiff_t &count)
   tempimage_ini = imagi[0];
   tempimage_final = imagi[num_images - 1];
   std::ostringstream name;
-  name << "IMAGES_INI" << cPtr->mult_struc_counter << ".xyz";
+  name << "IMAGES_INI" << cPtr->mult_struc_counter << ".dat";
   cPtr->set_xyz(imagi[0]);
   cPtr->to_internal();
   tempimage_ini = cPtr->xyz();
@@ -235,13 +208,14 @@ void neb::run(ptrdiff_t &count)
 {
 
   calc_tau(); 
-  lbfgs(count);
+  lbfgs();
   opt_io(count);
 
 }
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
 {  
   calc_tau();
+  lbfgs();
   opt_io(count);
   internal_execute(imagi, atoms_remember);
   //no_torsion(image_remember[DIHEDRAL],atoms_remember[DIHEDRAL]);
@@ -402,25 +376,14 @@ void neb::calc_tau(void)
 void neb::opt_io(ptrdiff_t &count)
 {
 
-
   std::ostringstream energies_out, name, energies_ini;
-  energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter;
-  energies_ini << "ENERGIES_COMPLETE_LIN_" << this->cPtr->mult_struc_counter;
+  energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter <<".dat";
   std::string temp;
   temp = energies_out.str();
   std::fstream off(temp.c_str(), std::ios::app);
-  temp = energies_ini.str();
-  std::fstream off2(temp.c_str(), std::ios::app);
-  energies_NEB.resize(num_images);
-  //energies_NEB[0] = this->energies[0];
-  //energies_NEB[num_images] = this->energies[num_images];
-
- 
   if (reversed == true)
   {
-
-	
-		  name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
+		  name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
 		  if (ts == true)
 		  {
 			  off << "TS          " << ts_energies[count] << '\n';
@@ -428,47 +391,29 @@ void neb::opt_io(ptrdiff_t &count)
 			  printmono(name.str(), imagi[0], count);
 		  }
 		  off << "ENERGIE:    " << energies[0] << "   START\n";
-		  off2 << "ENERGIE:    " <<energies[0] << "   START\n";
 
 		  for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
 		  {
-
-			  //cPtr->set_xyz(imagi[imagecount]);
-
-
-			  off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-			  //off2 << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-
-
+			 off << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+			//off2 << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
 		  }
 
 		  off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
 		  //off2 << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
-		  print(name.str(), imagi, count);
-
-
-	  
+		  print(name.str(), imagi, count);  
   }
-  else {
+  else 
+  {
 
-    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".xyz";
+    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
 
     off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
     //off2 << "ENERGIE:    " <<energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {
-
-
-
       cPtr->set_xyz(imagi[imagecount]);
-
-
-
-
-
       off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
       //off2 << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-
     }
 
     print_rev(name.str(), imagi, count);
@@ -579,7 +524,7 @@ void neb::printmono(std::string const &name, coords::Representation_3D &print, p
 
 
 
-double neb::lbfgs(ptrdiff_t imagex)
+double neb::lbfgs()
 {
 
 
@@ -587,7 +532,6 @@ double neb::lbfgs(ptrdiff_t imagex)
   energies_NEB.resize(num_images);
   //typedef coords::Container<scon::c3<float>> nc3_type;
   // Create optimizer
-  global_imagex = imagex;
   coords::Cartesian_Point g;
   auto optimizer = make_lbfgs(
     make_more_thuente(GradCallBack(*this))
@@ -612,25 +556,16 @@ double neb::lbfgs(ptrdiff_t imagex)
 
 
 
-double neb::g_new(ptrdiff_t im)
+double neb::g_new()
 {
 
-  std::vector <coords::Representation_3D> temp(N);
-  double Rp1mag, Rm1mag, energytemp(0.0);
-  Rp1.resize(num_images + cPtr->size());
-  Rm1.resize(num_images + cPtr->size());
-  Fvertical.resize(num_images + cPtr->size());
-  Fpar.resize(num_images + cPtr->size());
-  
-  //g.resize(cPtr->size());
-
-  for (size_t i = 0; i < Fpar.size(); i++) {
-    Fpar[i].resize(cPtr->size());
-  }
+  double Rp1mag(0.0), Rm1mag(0.0), energytemp(0.0);
+  Rp1.resize(cPtr->size());
+  Rm1.resize(cPtr->size());
+  Fvertical.resize(cPtr->size());
+  Fpar.resize(cPtr->size());
   calc_tau();
   grad_tot.clear();
-  //system("Pause");
-
   for (size_t im = 1; im < num_images - 1; im++)
   {
 		imagi[im].clear();
@@ -675,9 +610,9 @@ double neb::g_new(ptrdiff_t im)
 						Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
 						Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
 
-						Fpar[im][i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
-						Fpar[im][i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
-						Fpar[im][i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+						Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
+						Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
+						Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
 
 					}
 
@@ -687,7 +622,7 @@ double neb::g_new(ptrdiff_t im)
 	 for (size_t j = 0; j < cPtr->size(); j++) 
 		{
 
-			auto const g = Fvertical[j] + Fpar[im][j];
+			auto const g = Fvertical[j] + Fpar[j];
 			cPtr->update_g_xyz(j, g);
 			grad_tot.push_back(g);
 
@@ -787,24 +722,16 @@ void neb::calc_shift(void)
         sx = 0.5*(sx + ((k + 1) - k)*sumx / tnm);
         sy = 0.5*(sy + ((k + 1) - k)*sumy / tnm);
         sz = 0.5*(sz + ((k + 1) - k)*sumz / tnm);
-
-
-
       }
-      //std::cout << "i  " << i << "k  " << k << "  Wertx:     " << abs(sx) << "  Werty:     " << abs(sy) << "  Wertz:     " << abs(sz) << '\n';
       pathlenx += sx;
       pathleny += sy;
       pathlenz += sz;
-      /*  std::cout << "total_length  " << pathlen/(num_images-2 )<< '\n';
-      std::cout << "new shifted coordinate   "<<imagi[k][i].x() + (pathlen / (num_images - 2)) << '\n';*/
-      /*std::cout << "K " << k << '\n';*/
 
       while (gridp <= (k + 1))
       {
 
         laf++;
         gridp += 0.5;
-        //std::cout << gridp << endl;
         x = splinex.interp(gridp);
         y = spliney.interp(gridp);
         z = splinez.interp(gridp);
@@ -817,71 +744,15 @@ void neb::calc_shift(void)
 
         position[i][k].push_back(pos3);
       }
-      std::cout << '\n';
-      //std::cout << laf << '\n';
-
       distx /= laf;
       disty /= laf;
       distz /= laf;
-      //std::cout << distx << "  " << disty << "   " << distz << '\n';
     }
     shiftx[i] = pathlenx / (num_images - 2);
     shifty[i] = pathleny / (num_images - 2);
     shiftz[i] = pathlenz / (num_images - 2);
 
-    //cout << " shift x :  " << shiftx[i] << " shift y :  " << shifty[i] << " shift x :  " << shiftz[i] << '\n';
   }
-
-  imagi_test.resize(num_images);
-  //name2 << "BETA.xyz";
-  //for (size_t j = 1; j < (num_images - 1); j++){
-
-
-
-  //	for (size_t i = 0; i < this->cPtr->size(); i++){
-
-  //		imagi[j][i].x() += shiftx[i];
-  //		imagi[j][i].y() += shifty[i];
-  //		imagi[j][i].z() += shiftz[i];
-
-
-  //		imagi_test[j].push_back(imagi[j][i]);
-  //		//image_ini[j].push_back(images[i]);
-
-
-  //	}
-
-
-
-  //	
-
-  //	//out << "     " << N << " IMAGE_FINAL: " << "  global counter:  " << num_images << '\n';
-  //	//for (size_t j = 0; j <N; j++) {
-
-  //	//	out << std::right << std::setw(6) << j + 1;
-  //	//	out << std::left << "  " << std::setw(12) << cPtr->atoms(j).symbol().substr(0U, 2U);
-  //	//	out << std::fixed << std::right << std::setprecision(6) << std::setw(13) << imagi[num_images][j].x();
-  //	//	out << std::fixed << std::right << std::setprecision(6) << std::setw(12) << imagi[num_images][j].y();
-  //	//	out << std::fixed << std::right << std::setprecision(6) << std::setw(12) << imagi[num_images][j].z();
-  //	//	out << std::right << std::setw(6) << cPtr->atoms(j).energy_type();
-  //	//	size_t const bSize(cPtr->atoms(j).bonds().size());
-  //	//	for (size_t n(0U); n<bSize; ++n)
-  //	//	{
-  //	//		out << std::right << std::setw(6) << cPtr->atoms(j).bonds()[n] + 1U;
-  //	//	}
-  //	//	out << '\n';
-
-  //	//}
-  //
-
-
-
-  //	//printmono(name2.str(), imagi_test[j], counter);
-
-  //	//cout << imagi_test[j] << endl;
-
-
-  //}
 
   std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app), out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
   interpol_position.resize(N);

@@ -23,32 +23,25 @@ using namespace scon;
 class neb
 {
 public:
-  bool controlrun, ts, reversed, ClimbingImage;
+  bool ts, reversed, ClimbingImage;
 
   neb(void);
 
   coords::Coordinates *cPtr;
-  //coords::Coordinates const * coords;
   coords::Atoms atoms_neb;
-  coords::Coordinates coords_neb;
   neb(coords::Coordinates *c);
   optimization::global::optimizers::monteCarlo* mc;
-  //neb(const std::size_t);
 
-
-  coords::Representation_3D images_initial,grad_tot;
-  coords::Representation_3D images, tempimage_final, tempimage_ini, Rm1, Rp1, Fvertical;
-  std::vector <coords::Representation_3D> imagi, imagederiv, tau, image_ini, Fpar, imagi_test;
+  std::vector <coords::Representation_3D> imagi, imagederiv, tau, image_ini;
   coords::Representation_3D ts_pathstruc;
-  std::vector <coords::Representation_3D > NEB_force;
   std::vector <scon::c3 <float> > tau_int;
-  std::vector <double> energies, ts_energies, min_energies, energies_NEB;
+  std::vector <double> energies, ts_energies, min_energies,energies_NEB;
   double grad_v, grad_v_temp;
   size_t N, num_images, global_imagex;
 
 
   void run(ptrdiff_t &count);
-  void preprocess(ptrdiff_t &count, ptrdiff_t const &image);
+  void preprocess(ptrdiff_t &count);
   void preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path);
   void preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, bool reverse);
   void initial(void);
@@ -62,7 +55,7 @@ public:
   void print(std::string const&, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void print_rev(std::string const &, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t &);
-  double g_new(ptrdiff_t im);
+  double g_new();
   double g_int(std::vector <scon::c3 <float> >  tx);
   void calc_shift(void);
 
@@ -95,7 +88,7 @@ public:
   void defix_all(void);
   void opt_internals(ptrdiff_t &count, const std::vector<std::vector<size_t> >& atoms_remember);
 
-  double lbfgs(ptrdiff_t imagex);
+  double lbfgs();
   double lbfgs_int(std::vector <scon::c3 <float> > t);
 
   struct GradCallBack
@@ -110,7 +103,7 @@ public:
       using ct = coords::Representation_3D;
       //p->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
 	  p->images_initial = scon::explicit_transform<ct>(x);
-      float E = static_cast<float>(p->g_new(p->global_imagex));
+      float E = static_cast<float>(p->g_new());
       go_on = p->cPtr->integrity();
       g = scon::explicit_transform<ot>(p->grad_tot);
       return E;
@@ -359,6 +352,8 @@ private:
   ptrdiff_t nvar;
   ptrdiff_t CIMaximum;
 
+  coords::Representation_3D images_initial, grad_tot;
+  coords::Representation_3D images, tempimage_final, tempimage_ini, Rm1, Rp1, Fvertical, Fpar;
 
 };
 

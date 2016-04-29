@@ -494,7 +494,7 @@ int main(int argc, char **argv)
           coords.set_xyz(pes.structure.cartesian);
           coords.mult_struc_counter++;
           neb nobj(&coords);
-          nobj.preprocess(counter, Config::get().neb.IMAGES);
+          nobj.preprocess(counter);
         }
         break;
       }
@@ -507,7 +507,7 @@ int main(int argc, char **argv)
           coords.set_xyz(pes.structure.cartesian);
           coords.mult_struc_counter++;
           neb nobj(&coords);
-          nobj.preprocess(counter, Config::get().neb.IMAGES);
+          nobj.preprocess(counter);
           pathx Pobj(&nobj, &coords);
           Pobj.pathx_ini();
         }
