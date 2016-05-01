@@ -1783,6 +1783,16 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 void Config::parse_file(std::string const & filename)
 {
+  // First, check if file exists and is readable by opening a stream
+  {
+    std::ifstream streamTestIfFileIsReadable(filename);
+    if (! streamTestIfFileIsReadable.good())
+    {
+      throw std::runtime_error("Error in parsing file: File with name \"" + filename + "\" could not be opened!");
+    }
+    streamTestIfFileIsReadable.close();
+  }
+
   auto data = LBL_FileReader(filename).data;
   std::size_t const N(data.size());
   for (std::size_t i = 0; i < N; i++)
