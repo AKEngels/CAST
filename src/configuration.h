@@ -881,6 +881,7 @@ namespace config
     size_t pca_trunc_dim;
     std::vector<size_t> pca_trunc_atoms_num;
     std::vector<size_t> pca_internal_dih;
+    bool pca_internal_ignore_hydrogen;
     std::vector<size_t> pca_dimensions_for_histogramming;
     std::vector<double> proc_desired_start;
     std::vector<double> proc_desired_stop;
@@ -888,7 +889,7 @@ namespace config
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
       pca_remove_dof(true), pca_use_internal(false), pca_trunc_atoms_bool(false), pca_trunc_atoms_ignore_hydrogen(false),
       pca_print_probability_density(true), pca_trunc_var(1.), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
-      pca_trunc_dim(0u), pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(1u),
+      pca_trunc_dim(0u), pca_trunc_atoms_num(), pca_internal_dih(), pca_internal_ignore_hydrogen(false), pca_dimensions_for_histogramming(1u),
       proc_desired_start(), proc_desired_stop()
 
     {}

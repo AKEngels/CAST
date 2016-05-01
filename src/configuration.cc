@@ -1574,6 +1574,19 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
   }
+  else if (option == "pca_internal_ignore_hydrogen")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().PCA.pca_internal_ignore_hydrogen = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().PCA.pca_internal_ignore_hydrogen = false;
+    }
+  }
   else if (option == "pca_trunc_dim")
   {
     cv >> Config::set().PCA.pca_trunc_dim;
