@@ -536,15 +536,14 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     if (input_ensemble.empty()) throw std::logic_error("No structures found.");
     coords::PES_Point x(input_ensemble[0u]);
     coord_object.init_swap_in(atoms, x);
-    //i do not know what this is for.
-    //however, it slows io down considerably. Thats why we are not doing it (whatever it is) atm.
-    /*for (auto & p : input_ensemble)
+
+    for (auto & p : input_ensemble)
     {
       p.gradient.cartesian.resize(p.structure.cartesian.size());
       coord_object.set_xyz(p.structure.cartesian);
-      coord_object.to_internal();
+      coord_object.to_internal_light();
       p = coord_object.pes();
-    }*/
+    }
   }
   else
   {
