@@ -65,7 +65,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
   Coordinates coord_object;
   std::ifstream config_file_stream(file.c_str(), std::ios_base::in);
   std::string line;
-  std::cout << "NOTE: You are specifiying AMBER-Files as input.\n This feature is highly, let me repeated that, HIGHLY experimental in CAST.\n";
+  std::cout << "NOTE: You are specifiying AMBER-Files as input.\nThis feature is highly, let me repeat that, HIGHLY experimental in CAST.\n";
   std::cout << "All that fancy AMBER-stuff like residues and such is OMITTED. We collect only the atoms and their positions.\n";
   std::cout << "Keep in mind: If anything breaks, you get to keep all the pieces!\n";
 

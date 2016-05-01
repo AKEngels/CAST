@@ -95,7 +95,7 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
     if (std::isnan(T) || std::isnan(P) || std::isnan(Ek) || std::isnan(Ep))
     {
       std::cout << "NaN in simulation, please check your input options" << std::endl;
-      throw;
+      throw std::logic_error("NaN in simulation, please check your input options");
     }
   }
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));

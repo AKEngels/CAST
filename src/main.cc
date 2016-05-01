@@ -77,7 +77,7 @@ int main(int argc, char **argv)
     */
 
     // read coordinate input file
-
+    // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     
     //coords::input::format * ci(coords::input::new_format());
@@ -88,6 +88,7 @@ int main(int argc, char **argv)
 	  //GB::born::SET_METHOD();
 	  //GB::born::SET_SURFACE();
 
+    // Define Function to output molar mass of a coords object
     auto sys_mass = [](coords::Coordinates &sys) -> double
     {
       double m = 0;
@@ -98,6 +99,7 @@ int main(int argc, char **argv)
       return m;
     };
 
+    // Print "Header"
     if (Config::get().general.verbosity > 1U)
     {
       std::cout << "-------------------------------------------------\n";
@@ -119,7 +121,9 @@ int main(int argc, char **argv)
         std::cout << '\n';
       }
     }
-    // ... 
+    
+    // If Periodic Boundry Conditions are used, translate all structures
+    // so that their center of mass is on the origin of the coordinate system
     if (Config::get().energy.periodic)
     {
       for (auto & pes : *ci)
