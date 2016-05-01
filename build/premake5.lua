@@ -42,7 +42,7 @@ project "CAST"
 		linkoptions { "-fopenmp" }
 		filter { "options:mpi" }
 			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", "-DTERACHEM_MPI" }
-		filter {}
+		filter { "action:gmake" }
 		buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
 		filter { "configurations:Release" }
 			removefiles { "../src/tests/**.cc", "./src/test/**.h"}
