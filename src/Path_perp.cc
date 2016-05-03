@@ -29,16 +29,16 @@ void path_perp::initial(void)
 
  /* images_initial = cPtr->xyz();
   imagi[0] = cPtr->xyz();*/
-  std::ifstream final (Config::get().neb.START_STRUCTURE.c_str());
+  std::ifstream initial (Config::get().general.inputFilename);
   std::string buffer;
   //getline(final,buffer);
-  getline(final,buffer);
+  getline(initial,buffer);
   size_t number;
   char atom[2];
   
   for (size_t i=0;i<cPtr->size();i++)
   {
-    getline(final,buffer);
+    getline(initial,buffer);
     std::istringstream line_coord(buffer);
     line_coord >>number>>atom >> image1[i].x() >> image1[i].y() >> image1[i].z() ;
    	
@@ -193,7 +193,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	  sum2=0.0;
 	 
 	
-	 positions = cPtr->xyz();
+	  positions = cPtr->xyz();
 	  for(ptrdiff_t j=0; j<natom;j++){
       randvect();
       factor = MCSTEPSIZE * (double)rand()/(double)RAND_MAX;

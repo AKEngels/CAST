@@ -643,52 +643,48 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 11) == "NEB-PATHOPT")
   {
 
-    if (option.substr(11, 6) == "-START")
-      Config::set().neb.START_STRUCTURE = value_string;
-    else if (option.substr(11, 6) == "-FINAL")
-      Config::set().neb.FINAL_STRUCTURE = value_string;
-    else if (option.substr(11, 7) == "-IMAGES")
-      cv >> Config::set().neb.IMAGES;
-    else if (option.substr(11, 7) == "-SPRING")
-      cv >> Config::set().neb.SPRINGCONSTANT;
-    else if (option.substr(11, 5) == "-TEMP")
-      cv >> Config::set().neb.TEMPERATURE;
-    else if (option.substr(11, 5) == "-ITER")
-      cv >> Config::set().neb.MCITERATION;
-    else if (option.substr(11, 9) == "-GLOBITER")
-      cv >> Config::set().neb.GLOBALITERATION;
-    else if (option.substr(11, 5) == "-MODE")
-      Config::set().neb.OPTMODE = value_string;
-    else if (option.substr(11, 13) == "-BIASCONSTANT")
-      cv >> Config::set().neb.BIASCONSTANT;
-    else if (option.substr(11, 7) == "-MAXVAR")
-      cv >> Config::set().neb.VARIATION;
-    else if (option.substr(11, 13) == "-ENERGY_RANGE")
-      cv >> Config::set().neb.PO_ENERGY_RANGE;
-    else if (option.substr(11, 9) == "-STEPSIZE")
-      cv >> Config::set().neb.MCSTEPSIZE;
-    else if (option.substr(11, 8) == "-NEBCONN")
-      cv >> Config::set().neb.NEB_CONN;
-    else if (option.substr(11, 15) == "-NUMBER_NEBCONN")
-      cv >> Config::set().neb.CONNECT_NEB_NUMBER;
-    else if (option.substr(11, 9) == "-NEB_RMSD")
-      cv >> Config::set().neb.NEB_RMSD;
-    else if (option.substr(11, 8) == "-MIXMOVE")
-      cv >> Config::set().neb.MIXED_MOVE;
-    else if (option.substr(11, 18) == "-CONSTRAINT_GLOBAL")
-      cv >> Config::set().neb.CONSTRAINT_GLOBAL;
-    else if (option.substr(11, 28) == "-CONSTRAINT_NUMBER_DIHEDRALS")
-      cv >> Config::set().neb.NUMBER_OF_DIHEDRALS;
-    else if (option.substr(11, 11) == "-BOND_PARAM")
-      cv >> Config::set().neb.BOND_PARAM;
-    else if (option.substr(11, 4) == "-TAU")
-      cv >> Config::set().neb.TAU;
-    else if (option.substr(11, 11) == "-NEB_INT_IT")
-      cv >> Config::set().neb.NEB_INT_IT;
-    else if (option.substr(11, 13) == "-NEB_LBFGS_IT")
-      cv >> Config::set().neb.LBFGS_IT;
-    else if (option.substr(11, 9) == "-INT_PATH")
-      cv >> Config::set().neb.INT_PATH;
+	  if (option.substr(11, 6) == "-FINAL")
+		  Config::set().neb.FINAL_STRUCTURE = value_string;
+	  else if (option.substr(11, 7) == "-IMAGES")
+		  cv >> Config::set().neb.IMAGES;
+	  else if (option.substr(11, 7) == "-SPRING")
+		  cv >> Config::set().neb.SPRINGCONSTANT;
+	  else if (option.substr(11, 5) == "-TEMP")
+		  cv >> Config::set().neb.TEMPERATURE;
+	  else if (option.substr(11, 5) == "-ITER")
+		  cv >> Config::set().neb.MCITERATION;
+	  else if (option.substr(11, 9) == "-GLOBITER")
+		  cv >> Config::set().neb.GLOBALITERATION;
+	  else if (option.substr(11, 5) == "-MODE")
+		  Config::set().neb.OPTMODE = value_string;
+	  else if (option.substr(11, 13) == "-BIASCONSTANT")
+		  cv >> Config::set().neb.BIASCONSTANT;
+	  else if (option.substr(11, 7) == "-MAXVAR")
+		  cv >> Config::set().neb.VARIATION;
+	  else if (option.substr(11, 13) == "-ENERGY_RANGE")
+		  cv >> Config::set().neb.PO_ENERGY_RANGE;
+	  else if (option.substr(11, 9) == "-STEPSIZE")
+		  cv >> Config::set().neb.MCSTEPSIZE;
+	  else if (option.substr(11, 8) == "-NEBCONN")
+		  cv >> Config::set().neb.NEB_CONN;
+	  else if (option.substr(11, 15) == "-NUMBER_NEBCONN")
+		  cv >> Config::set().neb.CONNECT_NEB_NUMBER;
+	  else if (option.substr(11, 8) == "-MIXMOVE")
+		  cv >> Config::set().neb.MIXED_MOVE;
+	  else if (option.substr(11, 18) == "-CONSTRAINT_GLOBAL")
+		  cv >> Config::set().neb.CONSTRAINT_GLOBAL;
+	  else if (option.substr(11, 28) == "-CONSTRAINT_NUMBER_DIHEDRALS")
+		  cv >> Config::set().neb.NUMBER_OF_DIHEDRALS;
+	  else if (option.substr(11, 11) == "-BOND_PARAM")
+		  cv >> Config::set().neb.BOND_PARAM;
+	  else if (option.substr(11, 4) == "-TAU")
+		  cv >> Config::set().neb.TAU;
+	  else if (option.substr(11, 9) == "-INT_PATH")
+		  cv >> Config::set().neb.INT_PATH;
+	  else if (option.substr(11, 9) == "-CLIMBING")
+		  cv >> Config::set().neb.CLIMBING;
+	  else if (option.substr(11, 7) == "-INT_IT")
+		  cv >> Config::set().neb.INT_IT;
   }
 
   //! convergence gradient for bfgs

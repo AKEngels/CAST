@@ -132,21 +132,21 @@ public:
 
   {
     int n, mm, jsav, cor, dj;
-    const Doub *xx, *yy;
-    Base_interp(VecDoub_I &x, const Doub *y, int m)
-      : n(x.size()), mm(m), jsav(0), cor(0), xx(&x[0]), yy(y) {
-      dj = MIN(1, (int)pow((Doub)n, 0.25));
+    const double *xx, *yy;
+    Base_interp(const std::vector<double> &x, const double *y, int m)
+      : n(int(x.size())), mm(m), jsav(0), cor(0), xx(&x[0]), yy(y) {
+      dj = MIN(1, (int)pow((double)n, 0.25));
     }
 
 
 
 
-    Doub interp(Doub x) {
+    double interp(double x) {
       int j1o = cor ? hunt(x) : locate(x);
       return rawinterp(j1o, x);
     }
 
-    int locate(const Doub x)
+    int locate(const double x)
 
     {
       int ju, jm, j1;
@@ -166,7 +166,7 @@ public:
       return MAX(0, MIN(n - mm, j1 - ((mm - 2) >> 1)));
     }
 
-    int hunt(const Doub x)
+    int hunt(const double x)
     {
       int j1 = jsav, jm, ju, inc = 1;
       if (n < 2 || mm<2 || mm > n) throw ("hunt size error");
@@ -212,7 +212,7 @@ public:
       return MAX(0, MIN(n - mm, j1 - ((mm - 2) >> 1)));
     }
 
-    Doub virtual rawinterp(int j1o, Doub x) = 0;
+    double virtual rawinterp(int j1o, double x) = 0;
 
 
   };
@@ -220,27 +220,20 @@ public:
   struct Poly_interp : Base_interp
   {
 
-    Doub dy;
-    Poly_interp(VecDoub_I &xv, VecDoub_I &yv, int m)
+    double dy;
+    Poly_interp(const std::vector<double> &xv, const std::vector<double>  &yv, int m)
       : Base_interp(xv, &yv[0], m), dy(0.) {}
 
 
 
 
-    Doub rawinterp(int j1, Doub x)
-
-
+    double rawinterp(int j1, double x)
     {
 
-
-
-
-
-
       int i, m, ns = 0;
-      Doub y, den, dif, dift, ho, hp, w;
-      const Doub *xa = &xx[j1], *ya = &yy[j1];
-      VecDoub c(mm), d(mm);
+      double y, den, dif, dift, ho, hp, w;
+      const double *xa = &xx[j1], *ya = &yy[j1];
+      std::vector<double> c(mm), d(mm);
       dif = abs(x - xa[0]);
       for (i = 0; i < mm; i++) {
         if ((dift = abs(x - xa[i])) < dif) {
@@ -272,15 +265,15 @@ public:
 
   struct Spline_interp : Base_interp
   {
-    VecDoub y2;
+    std::vector<double> y2;
 
-    Spline_interp(VecDoub_I &xv, VecDoub_I &yv, Doub yp1 = 1.e99, Doub ypn = 1.e99)
+    Spline_interp(const std::vector<double> &xv, const std::vector<double> &yv, double yp1 = 1.e99, double ypn = 1.e99)
       : Base_interp(xv, &yv[0], 2), y2(xv.size())
     {
       sety2(&xv[0], &yv[0], yp1, ypn);
     }
 
-    Spline_interp(VecDoub_I &xv, const Doub *yv, Doub yp1 = 1.e99, Doub ypn = 1.e99)
+    Spline_interp(const std::vector<double> &xv, const double *yv, double yp1 = 1.e99, double ypn = 1.e99)
       : Base_interp(xv, yv, 2), y2(xv.size())
     {
       sety2(&xv[0], yv, yp1, ypn);
@@ -292,12 +285,12 @@ public:
 
 
 
-    void sety2(const Doub *xv, const Doub *yv, Doub yp1, Doub ypn)
+    void sety2(const double *xv, const double *yv, double yp1, double ypn)
     {
       Int i, k;
-      Doub p, qn, sig, un;
-      n = y2.size();
-      VecDoub u(n - 1);
+      double p, qn, sig, un;
+      n = int(y2.size());
+      std::vector<double> u(n - 1);
       if (yp1 > 0.99e99)
         y2[0] = u[0] = 0.0;
       else {
@@ -321,10 +314,10 @@ public:
       for (k = n - 2; k >= 0; k--)
         y2[k] = y2[k] * y2[k + 1] + u[k];
     }
-    Doub rawinterp(Int jl, Doub x)
+    Doub rawinterp(Int jl, double x)
     {
       Int klo = jl, khi = jl + 1;
-      Doub y, h, b, a;
+      double y, h, b, a;
       h = xx[khi] - xx[klo];
       if (h == 0.0) throw("Bad input to routine splint");
       a = (xx[khi] - x) / h;

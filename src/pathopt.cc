@@ -59,7 +59,7 @@ void pathx::pathx_ini()
 void pathx::MCM_NEB(ptrdiff_t opt)
 {
   Maxvar = Config::get().neb.VARIATION;
-  double MCmin, MCgmin, factor,MCpmin;
+  double MCmin, MCgmin, factor, MCpmin;
   std::vector <double> MCpmin_vec;
   double boltzman = 0.0, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t mciteration = Config::get().neb.MCITERATION;
