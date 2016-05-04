@@ -15,8 +15,8 @@ class pathx
 {
 private:
   double randvec[3];
-  ptrdiff_t nvar, natom;
-  double Maxvar, MCSTEPSIZE;
+  double maxvar, mcstepsize;
+  ptrdiff_t mciteration;
   double STARTENERGY, ENDENERGY, MCEN;
   std::vector<double>  MCcoordglob, MCcoordlast, MCcoordin;
   std::vector <std::vector <double> > global_path_minima_energy;

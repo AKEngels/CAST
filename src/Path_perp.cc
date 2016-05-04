@@ -22,6 +22,11 @@
 #endif
 
 
+path_perp::path_perp(coords::Coordinates *c)
+{
+	cPtr = c;
+	file_dimer = false;
+}
 
 void path_perp::initial(void)
 
@@ -71,44 +76,27 @@ void path_perp::calc_tau (void)
 	double abso(0.0);
 	tau.resize(cPtr->size());
 	   for (size_t j=0; j<cPtr->size(); j++){
-
-			
-
           tau[j].x() = (image2[j].x() -image1[j].x());
-          tau[j].y() = (image2[j].x() -image1[j].x());
-          tau[j].z() = (image2[j].x() -image1[j].x());				
-         
-		  
-          abso+=tau[j].x()*tau[j].x();
-		  abso+=tau[j].y()*tau[j].y();
-	      abso+=tau[j].z()*tau[j].z();
-	      abso=sqrt(abso);
-			 if(abso == 0.0) abso=1.0;
-	      tau[j].x()=tau[j].x() /abso;
-	      tau[j].y()=tau[j].y() /abso;
-	      tau[j].z()=tau[j].z() /abso;
+          tau[j].y() = (image2[j].y() -image1[j].y());
+          tau[j].z() = (image2[j].z() -image1[j].z());						  
+		  abso = 0.0;
+		  if (tau[j].x() - tau[j].x() != 0) tau[j].x() = 0.0;
+		  if (tau[j].y() - tau[j].y() != 0) tau[j].y() = 0.0;
+		  if (tau[j].z() - tau[j].z() != 0) tau[j].z() = 0.0;
+		  abso = len(tau[j]);
+		  if (abso != 0.0) normalize(tau[j]);
 
         }	
 }
 
-path_perp::path_perp (coords::Coordinates *c) 
-{
- 
-  cPtr = c;
-  global_image=0;
-  global_run=0;
-  total_struc_num=0;
-  file_dimer=false;
-}
+
 
 void path_perp::pathx_ini()
 {
   
   std::cout << "**************INITIALIZATION OF PERPENDICULAR SEARCH*************"<<'\n';
-  natom=cPtr->size();
-  nvar=3*natom;
-  image1.resize(natom);
-  image2.resize(natom);
+  image1.resize(cPtr->size());
+  image2.resize(cPtr->size());
   initial();
   final();
   calc_tau();
@@ -128,19 +116,18 @@ void path_perp::pathx_ini()
 void path_perp::MCM_NEB(ptrdiff_t opt)
 {
   Maxvar=Config::get().neb.VARIATION;
+  std::vector <double> MCpmin_vec;
   double MCmin,MCpmin,MCgmin,factor;
   double boltzman=0.0, kt=1/(0.0019872966*Config::get().neb.TEMPERATURE), trial=(double)rand()/(double)RAND_MAX;
   ptrdiff_t mciteration=Config::get().neb.MCITERATION;
   ptrdiff_t nancounter=0, nbad=0, status;
   bool  l_disp=false;
   MCSTEPSIZE=Config::get().neb.MCSTEPSIZE;
-  global_image=0;
   counter =0;
-  std::string out_opt("PATHOPT_BASIN_OPT_STRUCTURES");
+  std::string out_opt("PATHOPT_PERP_SAMPLE_STRUCTURES");
   coords::Representation_3D positions;
 
-  std::ofstream output2("PATHOPT_BASIN_ENERGIES",std::ios::app);
-  double sum,sum2;
+  std::ofstream output2("PATHOPT_PERP_SAMPLE_ENERGIES.dat",std::ios::app);
   coords::Representation_3D tempstart,tempstart2,coord_in,coord_glob,coord_last;
 
   global_path_minima.resize(2);
@@ -167,9 +154,6 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 
 	coord_in = cPtr->xyz();
 	coord_glob = cPtr->xyz();
-
-
-   /* rmsd_cartesian(global_maxima2,global_image); */
   //CALCULATE SP ENERGY
   MCmin=cPtr->g();
 
@@ -183,46 +167,33 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 
   for (ptrdiff_t mcstep=0; mcstep<=mciteration;mcstep++){
 
-	  std::cout<<"#";
 	  coord_last = cPtr->xyz();
 
-  
-
-	 
-	  sum=0.0;
-	  sum2=0.0;
-	 
+	  MCpmin_vec.push_back(MCmin);
 	
 	  positions = cPtr->xyz();
-	  for(ptrdiff_t j=0; j<natom;j++){
-      randvect();
-      factor = MCSTEPSIZE * (double)rand()/(double)RAND_MAX;
-      double rv_p[3];
-	  coords::Cartesian_Point RV;
-      double abs=0.0;
-	 
-	 
-
-
-	 
-      rv_p[0] = tau[j].y() * this->cPtr->g_xyz(j).z() - tau[j].z() *this->cPtr->g_xyz(j).y();
-      rv_p[1] = tau[j].z() * this->cPtr->g_xyz(j).x() - tau[j].x() *this->cPtr->g_xyz(j).z();
-      rv_p[2] = tau[j].x() * this->cPtr->g_xyz(j).y() - tau[j].y() *this->cPtr->g_xyz(j).x();
-      abs += rv_p[0]*rv_p[0];
-      abs += rv_p[1]*rv_p[1];
-      abs += rv_p[2]*rv_p[2];
-
-      abs= sqrt(abs);
-	  if(abs== 0.0) abs=1.0;
-      rv_p[0] /= abs;
-      rv_p[1] /= abs;
-      rv_p[2] /= abs;
-
-	 RV.x() = (factor*rv_p[0]);
-	 RV.y() = (factor*rv_p[1]);
-	 RV.z() = (factor*rv_p[2]);
-	
-	 positions[j] += RV;
+	  for(size_t j=0; j < cPtr->size();j++)
+	  {
+		randvect();
+		factor = MCSTEPSIZE * (double)rand()/(double)RAND_MAX;
+		double rv_p[3];
+		coords::Cartesian_Point RV;
+		double abs=0.0; 
+		rv_p[0] = tau[j].y() * this->cPtr->g_xyz(j).z() - tau[j].z() *this->cPtr->g_xyz(j).y();
+		rv_p[1] = tau[j].z() * this->cPtr->g_xyz(j).x() - tau[j].x() *this->cPtr->g_xyz(j).z();
+		rv_p[2] = tau[j].x() * this->cPtr->g_xyz(j).y() - tau[j].y() *this->cPtr->g_xyz(j).x();
+		abs += rv_p[0]*rv_p[0];
+		abs += rv_p[1]*rv_p[1];
+		abs += rv_p[2]*rv_p[2];
+		abs= sqrt(abs);
+		if(abs == 0.0) abs=1.0;
+		rv_p[0] /= abs;
+		rv_p[1] /= abs;
+		rv_p[2] /= abs;
+		RV.x() = (factor*rv_p[0]);
+		RV.y() = (factor*rv_p[1]);
+		RV.z() = (factor*rv_p[2]);	
+		positions[j] += RV;
  
     }
 
@@ -240,85 +211,89 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	 
 	 	
 
-	///writetinker(output4,opt);
-	//this->cPtr->biascontrol=false;
-	//out2d <<opt<<"     "<<mcstep<<"     "<<MCmin<<endl;
+	if (MCmin != MCmin)
+	{
 
-	//break;
-    if(MCmin != MCmin){
-      nancounter++;
-      //std::cout << "***size of counter***:  "<<nancounter << '\n';
-  
-	  cPtr->set_xyz(coord_in);
-      if(nancounter>10) break;
-    }
-    //TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
-    if(MCmin< -10000.00){
-      MCmin = 10000.00;
-      nbad++;
-    }
-
-	
-    //METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
-    if(abs(MCmin - MCpmin) <= 0.001) {
-      nbad=0;
-      status=2; //!same minimum
-      MCpmin= MCmin;
-    }else if(MCmin < MCpmin){
-      nbad=0;
-      status=1; //accepted as next minimum
-      MCpmin=MCmin;
-    }
-    else{
-      nbad = 0;
-      boltzman = exp(-kt*(MCmin-MCpmin));
-      trial = (double)rand()/(double)RAND_MAX;
-      if(boltzman < trial){
-        status = 0;
-      }
-      else{
-        status = 1;
-        MCpmin=MCmin;
-      }
-    }
-    if(testcoord(coord_in)){
-      l_disp=false;
-    }else{
-      //std::cout << "DISPLACEMENT TOO BIG\n";
-      l_disp=true;
-      status = 0;
-    }
-
-	if(MCmin > 1000000.00){
-      MCmin = 1000000.00;
-	  status=0;
-      nbad++;
-    }
-
-    //SAVE ENERGY OF NEXT GLOBAL MINIMUM
-    if((MCmin < MCgmin) && status==1){
-
-	  coord_glob=cPtr->xyz();
-      MCgmin=MCmin;
-    }
-    //RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+		nancounter++;
+		//std::cout << "***size of counter***:  "<<nancounter << lineend;
+		status = 0;
+		nbad++;
+		cPtr->set_xyz(coord_in);
+		if (nancounter>10) break;
+	}
+	//TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
+	if (MCmin< (-1.5*std::abs(STARTENERGY)))
+	{
+		MCmin = 1000000.00;
+		nbad++;
+	}
 
 
-    if(nbad>3){
+	//METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
+	for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001) status = 2; nbad = 0; }
 
 
+	if (status == 2)
+	{
+		nbad = 0;
+		//!same minimum
+		MCpmin_vec[mcstep] = MCmin;
+	}
+	else if (MCmin < MCpmin_vec[mcstep])
+	{
+		nbad = 0;
+		status = 1; //accepted as next minimum
+		MCpmin_vec[mcstep] = MCmin;
+	}
+	else
+	{
+		nbad = 0;
+		boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
+		trial = (double)rand() / (double)RAND_MAX;
+		if (boltzman < trial)
+		{
+			status = 0;
+		}
+		else
+		{
+			status = 1;
+			MCpmin_vec[mcstep] = MCmin;
+		}
+	}
+	if (testcoord(coord_in))
+	{
+		l_disp = false;
+	}
+	else
+	{
+		//std::cout << "DISPLACEMENT TOO BIG" << lineend;
+		l_disp = true;
+		status = 0;
+	}
 
-      nbad=0;
-   
-	  cPtr->set_xyz(coord_glob);
-    }
-    //RESTORE COORDS FROM PREVIOUS ITERATION
-    else if(status != 1){
- 
+	if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY)
+	{
+		MCmin = 1000000.00;
+		status = 0;
+		nbad++;
+	}
+	//SAVE ENERGY OF NEXT GLOBAL MINIMUM
+	if ((MCmin < MCgmin) && status == 1)
+	{
+		coord_glob = cPtr->xyz();
+		MCgmin = MCmin;
+	}
+	//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+	if (nbad>3)
+	{
+		nbad = 0;
+		cPtr->set_xyz(coord_glob);
+	}
+	//RESTORE COORDS FROM PREVIOUS ITERATION
+	else if (status != 1)
+	{
 		cPtr->set_xyz(coord_last);
-    }
-
-
+	}
 
     //std::cout << "ITERATION: " << mcstep << "    Current ENERGY: "<<MCmin <<"      " << " global MINIMUM" << MCgmin;
     //if(status == 0) std::cout << "REJECTED STRUCTURE\n";
@@ -326,13 +301,12 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
       //std::cout << "     ACCEPT(B:T)" << boltzman << ":" << trial<<'\n';
       MCEN=MCmin;
      // writetinker(output,opt);
-      global_image=opt;
 	  output2 <<mcstep <<"    "<< opt <<"    "<< MCEN << '\n';
 	 
 	  counter++;
 	 
 		global_path_minima_energy[opt][counter]=MCEN;
-     for (ptrdiff_t i=0; i<natom;i++){
+     for (size_t i=0; i< cPtr->size();i++){
 		  global_path_minima[opt][counter].push_back(cPtr->xyz(i));
 
 	 }
@@ -501,8 +475,8 @@ void path_perp::printmono(std::string const &name, coords::Representation_3D &pr
   std::string temp;
 
 
-  out << "     " << natom << "  global counter:  "<<count <<'\n';
-  for(ptrdiff_t j = 0; j <natom ;j++){
+  out << "     " << cPtr->size() << "  global counter:  "<<count <<'\n';
+  for(size_t j = 0; j <cPtr->size() ;j++){
 
     out << std::right << std::setw(6) << j+1;
     out << std::left << "  " << std::setw(12)<<cPtr->atoms(j).symbol().substr(0U, 2U);	

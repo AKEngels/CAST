@@ -598,9 +598,9 @@ void neb::calc_shift(void)
   std::vector <coords::Cartesian_Point> interpol_position{ N };
   coords::Representation_3D temp_int;
  
-  for (int i = 0; i < this->cPtr->size(); i++) {
+  for (size_t i = 0; i < this->cPtr->size(); i++) {
 
-    for (int j = 0; j < (num_images); j++) {
+    for (size_t j = 0; j < (num_images); j++) {
 
       diff = (double)j / num_images;
 
@@ -620,7 +620,7 @@ void neb::calc_shift(void)
     Spline_interp splinez(gridz, posz);
     position[i].resize(num_images);
 
-    for (int k = 0; k < num_images; k++)
+    for (size_t k = 0; k < num_images; k++)
 
     {
 
@@ -669,7 +669,7 @@ void neb::calc_shift(void)
 		 //pathleny += sy;
 		 //pathlenz += sz;
 	  laf = 0;
-	  gridp = k;
+	  gridp = double(k);
       while (gridp <= (k + 1))
       {
 
