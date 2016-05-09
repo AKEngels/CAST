@@ -296,6 +296,8 @@ void coords::Atoms::refine_mains()
 #endif
       atom_has_main_torsion_attached[ib] = i;
       scon::sorted::insert_unique(main_torsion_indices, i);
+      m_atoms[i].make_main_idihedral(
+        scon::sorted::find(main_torsion_indices, i));
     }
 
   }
