@@ -48,7 +48,7 @@ public:
   void final(void);
   void initial(const coords::Representation_3D &start);
   void final(const coords::Representation_3D &fi);
-  void create(ptrdiff_t &count);
+  void create();
   void get_energies(void);
   void calc_tau(void);
   void opt_io(ptrdiff_t &count);
@@ -328,11 +328,6 @@ public:
     }
 
   };
-
-
-
-
-
 
 
 
