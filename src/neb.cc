@@ -48,13 +48,13 @@ void neb::preprocess(ptrdiff_t &count)
   if (Config::get().neb.IDPP)
   {
 	  idpp_prep();
-	  create(count);
+	  create();
 	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
 	  else run(count);
   }
   else
   {
-	  create(count);
+	  create();
 	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
 	  else run(count);
   }
@@ -90,7 +90,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   ts_pathstruc = ts_path;
   initial(start);
   final(fi);
-  create(count);
+  create();
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
 
@@ -122,7 +122,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   springconstant = Config::get().neb.SPRINGCONSTANT;
   initial(start);
   final(fi);
-  create(count);
+  create();
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
 }
@@ -167,7 +167,7 @@ void neb::final(const coords::Representation_3D &fi)
   }
 }
 
-void neb::create(ptrdiff_t &count)
+void neb::create()
 {
 
   tempimage_ini = imagi[0];
@@ -736,7 +736,7 @@ void neb::calc_shift(void)
 {
   double diff{ 0.0 }, gridp{ 0.0 };
   std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
-  double x{0.0}, y{0.0}, z{0.0}, pathlenx{0.0}, pathleny{0.0}, pathlenz{0.0};
+  double x{0.0}, y{0.0}, z{0.0};
   double distx{0.0}, disty{0.0}, distz{0.0};
   ptrdiff_t laf{0};
   std::vector <std::vector < std::vector < scon::c3<double> > > > position{ N };
