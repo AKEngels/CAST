@@ -685,6 +685,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.CLIMBING;
 	  else if (option.substr(11, 7) == "-INT_IT")
 		  cv >> Config::set().neb.INT_IT;
+	  else if (option.substr(11, 9) == "-NEB-IDPP")
+		  cv >> Config::set().neb.IDPP;
   }
 
   //! convergence gradient for bfgs

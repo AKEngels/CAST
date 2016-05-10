@@ -14,9 +14,9 @@
 #include "optimization_global.h"
 #include <math.h>
 #include <algorithm>
-#include<cmath>
-#include<fstream>
-#include<iomanip>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
 #include "nr3.h"
 
 using namespace scon;
@@ -39,6 +39,36 @@ public:
   double grad_v, grad_v_temp;
   size_t N, num_images, global_imagex;
 
+  // IDPP start
+  coords::Representation_3D start_structure, final_structure;
+
+  void idpp_prep();
+
+  template<typename ContainerIt, typename Result>
+  void concatenate(ContainerIt&, ContainerIt&, Result&);
+
+  template<typename T>
+  using dist_T = std::vector<std::vector<T>>;
+
+  template<typename T>
+  dist_T<T> euclid_dist(coords::Representation_3D const&);
+
+  std::vector<coords::Representation_3D> bond_dir(coords::Representation_3D const&);
+
+  template<typename T, typename Euclid>
+  std::vector<T> interpol_dist(Euclid&, Euclid&, size_t const);
+
+  template<typename T, typename Euclid>
+  coords::Representation_3D idpp_gradients(std::vector<coords::Representation_3D> const&,
+	  Euclid&, Euclid&, size_t const);
+
+private:
+	std::vector<coords::Representation_3D> bond_st;
+	coords::Representation_3D Fidpp;
+	std::vector<std::vector<double>> eu_st, eu_fi;
+	// IDPP end
+
+public:
 
   void run(ptrdiff_t &count);
   void preprocess(ptrdiff_t &count);

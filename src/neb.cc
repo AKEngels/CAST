@@ -8,10 +8,13 @@
 #include <iomanip>
 #include <iostream>
 #include <fstream>
+#include <iterator>  
+#include <algorithm>  
+#include <utility>
 #include "ls.h"
 #include "lbfgs.h"
 #include "coords.h"
-#include"optimization_global.h"
+#include "optimization_global.h"
 
 /*CLASS which performs double ended Reaction Path Search by applying the NEB method and adapted
  approaches like Interpolative Optimization*/
@@ -42,9 +45,19 @@ void neb::preprocess(ptrdiff_t &count)
   energies.resize(num_images);
   initial();
   final();
-  create(count);
-  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-  else run(count);
+  if (Config::get().neb.IDPP)
+  {
+	  idpp_prep();
+	  create(count);
+	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+	  else run(count);
+  }
+  else
+  {
+	  create(count);
+	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+	  else run(count);
+  }
 }
 
 void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path)
@@ -340,9 +353,131 @@ void neb::calc_tau(void)
 
       }
     }
-
   }
 }
+
+// IDPP start  
+void neb::idpp_prep()
+{
+	start_structure = cPtr->xyz();
+	final_structure = imagi.back();
+	bond_st = bond_dir(start_structure);
+	eu_st = euclid_dist<double>(start_structure);
+	eu_fi = euclid_dist<double>(final_structure);
+}
+
+template<typename ContainerIt, typename Result>
+void neb::concatenate(ContainerIt& st, ContainerIt& fi, Result& res)
+{
+	while (st != fi)
+	{
+		res = std::move(st->begin(), st->end(), res);
+		st++;
+	}
+}
+
+template<typename T>
+neb::dist_T<T> neb::euclid_dist(coords::Representation_3D const& struc)
+{
+	dist_T<T> result;
+	std::vector<T> dist;
+	for (auto& i : struc)
+	{
+		dist.clear();
+		for (auto& s : struc)
+		{
+			auto f{ (i - s)*(i - s) };
+			auto d(std::sqrt(f.x() + f.y() + f.z()));
+			if (d != 0.0) dist.push_back(d);
+			else continue;
+		}
+		result.push_back(dist);
+	}
+	return result;
+}
+
+std::vector<coords::Representation_3D> neb::bond_dir(coords::Representation_3D const& struc)
+{
+	coords::Representation_3D direction;
+	std::vector<coords::Representation_3D> all_directions;
+	for (auto& i : struc)
+	{
+		direction.clear();
+		for (auto& s : struc)
+		{
+			auto f{ s - i };
+			auto d{ f.x() + f.y() + f.z() };
+			if (d != 0.0) direction.push_back(f);
+			else continue;
+		}
+		all_directions.push_back(direction);
+	}
+	return all_directions;
+}
+
+template<typename T, typename Euclid>
+std::vector<T> neb::interpol_dist(Euclid& st, Euclid& fi, size_t const img_no)
+{
+	/*if (!std::all_of(st.cbegin(), st.cend(),
+	[&](auto const& x) {return x.size() == st.front().size(); }))
+	throw ("Size error!");
+
+	if (!std::all_of(fi.cbegin(), fi.cend(),
+	[&](auto const& x) {return x.size() == fi.front().size(); }))
+	throw ("Size error!");*/
+
+	std::vector<T> di_st, di_fi;
+	di_st.reserve(st.size()*(st.size() - 1));
+	di_fi.reserve(fi.size()*(fi.size() - 1));
+	concatenate(st.begin(), st.end(), std::back_inserter(di_st));
+	concatenate(fi.begin(), fi.end(), std::back_inserter(di_fi));
+	auto st_it{ di_st.cbegin() };
+	auto fi_it{ di_fi.cbegin() };
+	std::vector<T> result;
+	for (; st_it != di_st.cend() && fi_it != di_fi.cend(); ++st_it, ++fi_it)
+	{
+		auto s{ *st_it + ((double)img_no / (num_images - 1)) * (*fi_it - *st_it) };
+		result.push_back(s);
+	}
+	return result;
+}
+
+template<typename T, typename Euclid>
+coords::Representation_3D neb::idpp_gradients(std::vector<coords::Representation_3D> const& bond_st,
+	Euclid& st, Euclid& fi, size_t const im_no)
+{
+	auto interp_di{ interpol_dist<double, dist_T<double>>(st, fi, im_no) };
+	coords::Representation_3D all_grad;
+	auto bond_it{ bond_st.cbegin() };
+	auto euclid_it{ st.cbegin() };
+	auto interp_it{ interp_di.cbegin() };
+	std::vector<scon::c3<coords::float_type>> dummy;
+	for (; bond_it != bond_st.cend() && euclid_it != st.cend()
+		&& interp_it != interp_di.cend(); ++bond_it, ++euclid_it, ++interp_it)
+	{
+		dummy.clear();
+		scon::c3<coords::float_type> dummy_sum{ 0.0, 0.0, 0.0 };
+		std::vector<scon::c3<coords::float_type>> bonds{ *bond_it };
+		std::vector<T> eu_dist{ *euclid_it };
+		std::vector<T> interp_dist{ *interp_it };
+		auto b_it{ bonds.cbegin() };
+		auto eu_it{ eu_dist.cbegin() };
+		auto ip_it{ interp_dist.cbegin() };
+		for (; b_it != bonds.cend() && eu_it != eu_dist.cend()
+			&& ip_it != interp_dist.cend(); ++b_it, ++eu_it, ++ip_it)
+		{
+			auto s{ (*b_it / *eu_it) * (((*ip_it - 2.0 * *eu_it)
+				* (*ip_it - *eu_it)) / std::pow(*eu_it, 5.0)) };
+			dummy.push_back(s);
+		}
+		for (auto i : dummy) { dummy_sum += i; }
+		scon::c3<coords::float_type> dummy_sum_mult{ (-2.0)*dummy_sum.x(),
+			(-2.0)*dummy_sum.y(), (-2.0)*dummy_sum.z() };
+		all_grad.push_back(dummy_sum_mult);
+	}
+	return all_grad;
+}
+//IDPP end  
 
 void neb::opt_io(ptrdiff_t &count)
 {
@@ -513,12 +648,12 @@ double neb::lbfgs()
 
 double neb::g_new()
 {
-
   double Rp1mag{ 0.0 }, Rm1mag{ 0.0 }, energytemp{ 0.0 };
   Rp1.resize(cPtr->size());
   Rm1.resize(cPtr->size());
   Fvertical.resize(cPtr->size());
   Fpar.resize(cPtr->size());
+  if (Config::get().neb.IDPP) Fidpp.resize(cPtr->size());
   grad_tot.clear();
   calc_tau();
   for (size_t im = 1; im < num_images - 1; im++)
@@ -569,16 +704,27 @@ double neb::g_new()
 						Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
 						Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
 
+						if (Config::get().neb.IDPP)
+						{
+							Fidpp = idpp_gradients<double, dist_T<double>>(bond_st, eu_st, eu_fi, im);
+						}
 					}
 			}
 
 	 for (size_t j = 0; j < cPtr->size(); j++) 
 		{
-
-			auto const g = Fvertical[j] + Fpar[j];
-			cPtr->update_g_xyz(j, g);
-			grad_tot.push_back(g);
-
+			if (Config::get().neb.IDPP)
+			{
+				auto const g = Fvertical[j] + Fpar[j] + Fidpp[j];
+				cPtr->update_g_xyz(j, g);
+				grad_tot.push_back(g);
+			}
+			else
+			{
+				auto const g = Fvertical[j] + Fpar[j];
+				cPtr->update_g_xyz(j, g);
+				grad_tot.push_back(g);
+			}
 		}
 
   }
