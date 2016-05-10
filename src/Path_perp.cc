@@ -120,7 +120,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
   double MCmin,MCpmin,MCgmin,factor;
   double boltzman=0.0, kt=1/(0.0019872966*Config::get().neb.TEMPERATURE), trial=(double)rand()/(double)RAND_MAX;
   ptrdiff_t mciteration=Config::get().neb.MCITERATION;
-  ptrdiff_t nancounter{ 0 }, nbad{ 0 }, status{ 0 };
+  ptrdiff_t nancounter=0, nbad=0, status;
   bool  l_disp=false;
   MCSTEPSIZE=Config::get().neb.MCSTEPSIZE;
   counter =0;
