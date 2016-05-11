@@ -1161,7 +1161,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 #ifdef _OPENMP
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
 #endif
-  for (int i = 0; i < (int)ci->size(); i++)
+  for (std::size_t i = 0; i < ci->size(); ++i)
   {
     if (i != Config::get().alignment.reference_frame_num)
     {
@@ -1272,7 +1272,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       ::matop::align::centerOfMassAlignment(coords_ref);
     }
 
-    const size_t FRAME_SIZE = (size_t)ci->size();
+    //const size_t FRAME_SIZE = (size_t)ci->size();
     //Initializing some stuff
 
     //Prepare size of huge coordinates / frames matrix
@@ -1696,7 +1696,7 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    }
 
    Matrix_Class matrix_aligned;
-   const size_t FRAME_SIZE = int(ci->size());
+   //const size_t FRAME_SIZE = int(ci->size());
    if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
    {
      std::cout << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";

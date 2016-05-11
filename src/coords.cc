@@ -800,22 +800,6 @@ class PES_Point and helper static function implementations
 
 namespace
 {
-  bool in_3d_delta(coords::Representation_3D const &r,
-    coords::Cartesian_Point const &d)
-  {
-    std::size_t const N(r.size());
-    for (std::size_t i = 0; i<N; ++i)
-    {
-      if (std::abs(r[i].x()) > d.x() ||
-        std::abs(r[i].y()) > d.y() ||
-        std::abs(r[i].z()) > d.z())
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
   bool out_of_angle_delta(coords::angle_type const & a,
     coords::angle_type const & l)
   {
