@@ -65,6 +65,7 @@ inputtype              TINKER
 # PROFILE              Repeated Gradient Calculation of first input structure
 # GOSOL                Globally optimized solvation
 # GRID                 Grid Search
+# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
 task                   SP
 
@@ -136,6 +137,77 @@ switchdist             10.0
 
 BFGSgrad               0.0001
 BFGSmaxstep            5000
+
+
+###################################
+#				  #
+#      NEB & PATHOPT OPTIONS      #
+#				  #
+###################################
+
+# Second structure for double-ended search
+NEB-PATHOPT-FINAL input.xyz
+
+# Number of NEB images
+NEB-PATHOPT-IMAGES 12
+
+# Force constant in kcal/molA^2 for NEB calculation defining the force component along the connecting band
+NEB-PATHOPT-SPRING 1.0
+
+# Climbing image in NEB 0/1 (off/on)
+NEB-PATHOPT-CLIMBING 1
+
+# Standard tau or improved tau method in NEB 0/1 (standard/improved)
+NEB-PATHOPT-TAU 1
+
+# Definition of the Temperature settings for the Monte Carlo run
+NEB-PATHOPT-TEMP 298.15
+
+# MCM iterations in Pathopt
+NEB-PATHOPT-ITER 60
+
+# Number of multiple MCM simulations
+NEB-PATHOPT-GLOBITER 1
+
+# Optimization mode BIAS/GRADIENT Projection
+NEB-PATHOPT-MODE PROJECTED
+
+# Bias constant (Pathopt)
+NEB-PATHOPT-BIASCONSTANT 0.1
+
+# Maximum displacement in Angstrom for accepted coordinates in MCM 
+NEB-PATHOPT-MAXVAR 3.0
+
+# Maximum energy range in kcal/mol for MCM in Pathopt
+NEB-PATHOPT-ENERGY_RANGE 20.0
+
+# MCM stepsize in Angstrom
+NEB-PATHOPT-STEPSIZE 1.4
+
+# Move strategy by applying dihedral changes at several steps of MCM 0/1 (off/on)
+NEB-PATHOPT-MIXMOVE 0 
+
+# Using NEB connection within Pathopt 0/1 (off/on) 
+NEB-PATHOPT-NEBCONN 0
+
+# Number of NEB images within Pathopt-NEB connection procedure
+NEB-PATHOPT-NEBCONN_NUMBER 12
+
+# Constraint global optimization (MCM standard) by fixation of
+# dihedrals which change the most during NEB
+NEB-PATHOPT-CONSTRAINT_GLOBAL 0
+
+# Number of dihedrals within constraint global optimization 
+# (MCM standard) which should be fixed along the NEB path
+NEB-PATHOPT-CONSTRAINT_NUMBER_DIHEDRALS 1
+
+# Interpolation via spline method between the linear constructed NEB pathway
+# by locally optimizing with perpendicular force projection 0/1 (off/on) 
+NEB-PATHOPT-INT_PATH 0
+
+#step size of interpolated images via spline interpolation approach
+NEB-PATHOPT-INT_IT 0.5
+
 
 
 ####################################

@@ -18,7 +18,8 @@
 
 #endif
 
-pathx::pathx(neb *NEB, coords::Coordinates *c)
+
+pathx::pathx(neb *NEB, coords::Coordinates *c) :_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
   N = NEB;
   cPtr = c;
@@ -51,7 +52,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 
   double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };
   std::vector <double> MCpmin_vec;
-  double boltzman {0.0}, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
+  double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
   bool  l_disp (false);
   global_image = 0;
@@ -181,7 +182,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
      //METROPOLIS MONTE CARLO CRITERIUM
 	 {
 		nbad = 0;
-		boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
+		boltzman = exp(-_KT_*(MCmin - MCpmin_vec[mcstep]));
 		trial = (double)rand() / (double)RAND_MAX;
 		if (boltzman < trial)
 		{
@@ -266,17 +267,15 @@ void pathx::proof_connect()
 	bool reverse(false);
 	coords::Representation_3D tempstart{ N->imagi[0] }, tempstart2{ N->imagi[N->num_images - 1] };
 	coord1.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
-	coord2.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
+	coord2.init_in(cPtr->atoms(), N->imagi[0], true);
 	//CENTER OF GEOMETRY ALIGNMENT
 	for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 	{
 		N->num_images = temp_image;
-		coord2.set_xyz(N->imagi[0]);
 		cog2 = coord2.center_of_geometry();
 		for (size_t j = 0; j < global_path_minima[i].size(); j++)
 		{
 			if (global_path_minima[i][j].size() == 0) continue;
-			//coord1.init_in(cPtr->atoms(), coords::PES_Point(global_path_minima[i][j]), true);
 			coord1.set_xyz(global_path_minima[i][j]);
 			cog1 = coord1.center_of_geometry();
 			for (size_t l = 0; l < global_path_minima[i][j].size(); l++)
@@ -304,6 +303,9 @@ void pathx::proof_connect()
 			}
 		}
 	 //LOOP OVER THE FIRST NEXT UP TO THE THIRD NEAREST NEIGHBORS
+	 size_t arrhenius_counter(0U);
+	 double arrhenius(0.0);
+	 ofstream arrhenius_file("arrhenius_global.dat", ios::app);
 	 for (size_t mm = 1; mm < 4; mm++) 
 	 {
 		std::ostringstream NEB1;
@@ -372,6 +374,7 @@ void pathx::proof_connect()
 			{
 				for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
 				{
+					std::vector <double> energy_connect;
 					if (global_path_minima[1][j].empty()) continue;
 					reverse = false;
 					std::ostringstream en, img;
@@ -380,10 +383,12 @@ void pathx::proof_connect()
 					std::ofstream energy(en.str().c_str(), std::ios::app);
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << energy_connect[0] << '\n';
 					printmono(img.str().c_str(), global_path_minima[1][j], j);
 					cPtr->set_xyz(global_path_minima[1][j]);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << energy_connect[1] << '\n';
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
@@ -393,13 +398,20 @@ void pathx::proof_connect()
 						if (global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]].empty()) continue;
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
-						energy << cPtr->g() << '\n';
+						energy_connect.push_back(cPtr->g());
+						energy << energy_connect[i+1] << '\n';
 						jj = PARTNER[i - tempcount][jj];
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
 					cPtr->set_xyz(tempstart2);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << energy_connect.back() << '\n';
+					energy << "Barrier_rel to start: "<< *max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]<<'\n';
+					energy << "RATE via Arrhenius: " << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
+					arrhenius += exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_));
+					arrhenius_counter++;
+					arrhenius_file << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
 				}
 			}
 #if defined (_MSC_VER)
@@ -408,6 +420,7 @@ void pathx::proof_connect()
     chdir("..");
 #endif
   }
+  arrhenius_file << arrhenius/arrhenius_counter << '\n';
 }
 
 

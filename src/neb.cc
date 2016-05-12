@@ -728,7 +728,6 @@ double neb::g_new()
 		}
 
   }
-
   return energytemp;
 }
 

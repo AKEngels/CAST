@@ -19,6 +19,7 @@ private:
   ptrdiff_t mciteration;
   double STARTENERGY, ENDENERGY, MCEN;
   std::vector<double>  MCcoordglob, MCcoordlast, MCcoordin;
+  const double _KT_;
   std::vector <std::vector <double> > global_path_minima_energy;
   std::vector < std::vector <coords::Representation_3D> >  global_path_minima, global_path_minima_temp;
 
