@@ -197,12 +197,14 @@ void neb::create()
       images_initial.push_back(images[i]);
 
     }
-
-
   }
+
+  std::ostringstream na;
+  na << "IMAGES_START" << this->cPtr->mult_struc_counter << ".arc";
+  std::ptrdiff_t s{ 0 };
+  print(na.str(), imagi, s);
+
   if (Config::get().neb.INT_PATH) calc_shift();
-
-
 }
 
 
@@ -444,9 +446,9 @@ std::vector<T> neb::interpol_dist(Euclid& st, Euclid& fi, size_t const img_no)
 
 template<typename T, typename Euclid>
 coords::Representation_3D neb::idpp_gradients(std::vector<coords::Representation_3D> const& bond_st,
-  Euclid& st, Euclid& fi, size_t const im_no)
+	Euclid& start, Euclid& st, Euclid& fi, size_t const im_no)
 {
-  auto interp_di{ interpol_dist<double, dist_T<double>>(st, fi, im_no) };
+  auto interp_di{ interpol_dist<double, dist_T<double>>(start, fi, im_no) };
   coords::Representation_3D all_grad;
   auto bond_it{ bond_st.cbegin() };
   auto euclid_it{ st.cbegin() };
@@ -703,12 +705,13 @@ double neb::g_new()
         Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
         Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
         Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
-
-        if (Config::get().neb.IDPP)
-        {
-          Fidpp = idpp_gradients<double, dist_T<double>>(bond_st, eu_st, eu_fi, im);
-        }
       }
+	  if (Config::get().neb.IDPP)
+	  {
+		  auto bond_dummy{ bond_dir(imagi[im]) };
+		  auto eu_dummy{ euclid_dist<double>(imagi[im]) };
+		  Fidpp = idpp_gradients<double, dist_T<double>>(bond_dummy, eu_st, eu_dummy, eu_fi, im);
+	  }
     }
 
     for (size_t j = 0; j < cPtr->size(); j++)
@@ -728,7 +731,6 @@ double neb::g_new()
     }
 
   }
-
   return energytemp;
 }
 
