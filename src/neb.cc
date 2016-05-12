@@ -47,16 +47,16 @@ void neb::preprocess(ptrdiff_t &count)
   final();
   if (Config::get().neb.IDPP)
   {
-	  idpp_prep();
-	  create();
-	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-	  else run(count);
+    idpp_prep();
+    create();
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
   }
   else
   {
-	  create();
-	  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-	  else run(count);
+    create();
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
   }
 }
 
@@ -140,7 +140,7 @@ void neb::final(void)
   std::string buffer;
   getline(final, buffer);
   size_t number;
-  char atom[2]; 
+  char atom[2];
   for (size_t i = 0; i < N; i++)
   {
     getline(final, buffer);
@@ -152,10 +152,10 @@ void neb::final(void)
 
 void neb::initial(const coords::Representation_3D &start)
 
-{	
+{
   for (size_t i = 0; i < cPtr->size(); i++)
   {
-	imagi[0].push_back(start[i]);
+    imagi[0].push_back(start[i]);
   }
 }
 
@@ -163,7 +163,7 @@ void neb::final(const coords::Representation_3D &fi)
 {
   for (size_t i = 0; i < cPtr->size(); i++)
   {
-	imagi[num_images - 1].push_back(fi[i]);
+    imagi[num_images - 1].push_back(fi[i]);
   }
 }
 
@@ -183,26 +183,28 @@ void neb::create()
 
   for (size_t j = 1; j < (num_images - 1); j++) {
 
-	  double diff = (double)j / num_images;
+    double diff = (double)j / num_images;
 
-	  for (size_t i = 0; i < this->cPtr->size(); i++) {
+    for (size_t i = 0; i < this->cPtr->size(); i++) {
 
-		  images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
-		  images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
-		  images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
+      images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
+      images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
+      images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
 
 
-		  imagi[j].push_back(images[i]);
-		  image_ini[j].push_back(images[i]);
-		  images_initial.push_back(images[i]);
+      imagi[j].push_back(images[i]);
+      image_ini[j].push_back(images[i]);
+      images_initial.push_back(images[i]);
 
-	  }
-
-	 
+    }
   }
+
+  std::ostringstream na;
+  na << "IMAGES_START" << this->cPtr->mult_struc_counter << ".arc";
+  std::ptrdiff_t s{ 0 };
+  print(na.str(), imagi, s);
+
   if (Config::get().neb.INT_PATH) calc_shift();
-
-
 }
 
 
@@ -212,13 +214,13 @@ void neb::create()
 void neb::run(ptrdiff_t &count)
 {
 
-  calc_tau(); 
+  calc_tau();
   lbfgs();
   opt_io(count);
 
 }
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
-{  
+{
   calc_tau();
   lbfgs();
   opt_io(count);
@@ -237,15 +239,15 @@ void neb::get_energies(void)
   {
     cPtr->set_xyz(imagi[i]);
     energies[i] = cPtr->g();
-    if (energies[i] > energies[i - 1] && i > 0 ) CIMaximum = i;
+    if (energies[i] > energies[i - 1] && i > 0) CIMaximum = i;
   }
 
-   if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum <<"\n";
+  if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum << "\n";
 }
 
 void neb::calc_tau(void)
 {
-	
+
   double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 }, abso{ 0.0 };
   get_energies();
   for (size_t i = 1; i < num_images - 1; i++) {
@@ -257,17 +259,17 @@ void neb::calc_tau(void)
         images[j].y() = imagi[i][j].y() - imagi[i - 1][j].y() / abs(imagi[i][j].y() - imagi[i - 1][j].y()) + (imagi[i + 1][j].y() - imagi[i][j].y()) / abs(imagi[i + 1][j].y() - imagi[i][j].y());
         images[j].z() = imagi[i][j].z() - imagi[i - 1][j].z() / abs(imagi[i][j].z() - imagi[i - 1][j].z()) + (imagi[i + 1][j].z() - imagi[i][j].z()) / abs(imagi[i + 1][j].z() - imagi[i][j].z());
         abso = 0.0;
-		if (images[j].x() - images[j].x() != 0 ) images[j].x() = 0.0;
-		if (images[j].y() - images[j].y() != 0 ) images[j].y() = 0.0;
-		if (images[j].z() - images[j].z() != 0 ) images[j].z() = 0.0;
+        if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+        if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+        if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
         tau[i].push_back(images[j]);
-		abso=len(tau[i][j]);
+        abso = len(tau[i][j]);
         if (abso != 0.0) normalize(tau[i][j]);
       }
     }
     else
     {
-	  
+
       EnergyPml = 0.0;
       EnergyPpl = 0.0;
 
@@ -285,12 +287,12 @@ void neb::calc_tau(void)
             images[j].x() = (imagi[i][j].x() - imagi[i - 1][j].x());
             images[j].y() = (imagi[i][j].y() - imagi[i - 1][j].y());
             images[j].z() = (imagi[i][j].z() - imagi[i - 1][j].z());
-			if (images[j].x() != images[j].x()) images[j].x() = 0.0;
-			if (images[j].y() != images[j].y()) images[j].y() = 0.0;
-			if (images[j].z() != images[j].z()) images[j].z() = 0.0;
-			tau[i].push_back(images[j]);
-			abso = len(tau[i][j]);
-			if (abso != 0.0) normalize(tau[i][j]);
+            if (images[j].x() != images[j].x()) images[j].x() = 0.0;
+            if (images[j].y() != images[j].y()) images[j].y() = 0.0;
+            if (images[j].z() != images[j].z()) images[j].z() = 0.0;
+            tau[i].push_back(images[j]);
+            abso = len(tau[i][j]);
+            if (abso != 0.0) normalize(tau[i][j]);
           }
         }
         else {
@@ -301,12 +303,12 @@ void neb::calc_tau(void)
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x());
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y());
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z());
-			if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
-			if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
-			if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-			tau[i].push_back(images[j]);
-			abso = len(tau[i][j]);
-			if (abso != 0.0) normalize(tau[i][j]);
+            if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+            if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+            if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
+            tau[i].push_back(images[j]);
+            abso = len(tau[i][j]);
+            if (abso != 0.0) normalize(tau[i][j]);
 
           }
         }
@@ -324,12 +326,12 @@ void neb::calc_tau(void)
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emin + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emax;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emin + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emax;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emin + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emax;
-			if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
-			if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
-			if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-			tau[i].push_back(images[j]);
-			abso = len(tau[i][j]);
-			if (abso != 0.0) normalize(tau[i][j]);
+            if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+            if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+            if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
+            tau[i].push_back(images[j]);
+            abso = len(tau[i][j]);
+            if (abso != 0.0) normalize(tau[i][j]);
           }
 
         }
@@ -342,12 +344,12 @@ void neb::calc_tau(void)
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emax + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emin;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emax + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emin;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emax + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emin;
-			if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
-			if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
-			if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-			tau[i].push_back(images[j]);
-			abso = len(tau[i][j]);
-			if (abso != 0.0) normalize(tau[i][j]);
+            if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+            if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+            if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
+            tau[i].push_back(images[j]);
+            abso = len(tau[i][j]);
+            if (abso != 0.0) normalize(tau[i][j]);
           }
         }
 
@@ -359,123 +361,123 @@ void neb::calc_tau(void)
 // IDPP start  
 void neb::idpp_prep()
 {
-	start_structure = cPtr->xyz();
-	final_structure = imagi.back();
-	bond_st = bond_dir(start_structure);
-	eu_st = euclid_dist<double>(start_structure);
-	eu_fi = euclid_dist<double>(final_structure);
+  start_structure = cPtr->xyz();
+  final_structure = imagi.back();
+  bond_st = bond_dir(start_structure);
+  eu_st = euclid_dist<double>(start_structure);
+  eu_fi = euclid_dist<double>(final_structure);
 }
 
 template<typename ContainerIt, typename Result>
-void neb::concatenate(ContainerIt& st, ContainerIt& fi, Result& res)
+void neb::concatenate(ContainerIt st, ContainerIt fi, Result res)
 {
-	while (st != fi)
-	{
-		res = std::move(st->begin(), st->end(), res);
-		st++;
-	}
+  while (st != fi)
+  {
+    res = std::move(st->begin(), st->end(), res);
+    ++st;
+  }
 }
 
 template<typename T>
 neb::dist_T<T> neb::euclid_dist(coords::Representation_3D const& struc)
 {
-	dist_T<T> result;
-	std::vector<T> dist;
-	for (auto& i : struc)
-	{
-		dist.clear();
-		for (auto& s : struc)
-		{
-			auto f{ (i - s)*(i - s) };
-			auto d(std::sqrt(f.x() + f.y() + f.z()));
-			if (d != 0.0) dist.push_back(d);
-			else continue;
-		}
-		result.push_back(dist);
-	}
-	return result;
+  dist_T<T> result;
+  std::vector<T> dist;
+  for (auto& i : struc)
+  {
+    dist.clear();
+    for (auto& s : struc)
+    {
+      auto f{ (i - s)*(i - s) };
+      auto d(std::sqrt(f.x() + f.y() + f.z()));
+      if (d != 0.0) dist.push_back(d);
+      else continue;
+    }
+    result.push_back(dist);
+  }
+  return result;
 }
 
 std::vector<coords::Representation_3D> neb::bond_dir(coords::Representation_3D const& struc)
 {
-	coords::Representation_3D direction;
-	std::vector<coords::Representation_3D> all_directions;
-	for (auto& i : struc)
-	{
-		direction.clear();
-		for (auto& s : struc)
-		{
-			auto f{ s - i };
-			auto d{ f.x() + f.y() + f.z() };
-			if (d != 0.0) direction.push_back(f);
-			else continue;
-		}
-		all_directions.push_back(direction);
-	}
-	return all_directions;
+  coords::Representation_3D direction;
+  std::vector<coords::Representation_3D> all_directions;
+  for (auto& i : struc)
+  {
+    direction.clear();
+    for (auto& s : struc)
+    {
+      auto f{ s - i };
+      auto d{ f.x() + f.y() + f.z() };
+      if (d != 0.0) direction.push_back(f);
+      else continue;
+    }
+    all_directions.push_back(direction);
+  }
+  return all_directions;
 }
 
 template<typename T, typename Euclid>
 std::vector<T> neb::interpol_dist(Euclid& st, Euclid& fi, size_t const img_no)
 {
-	/*if (!std::all_of(st.cbegin(), st.cend(),
-	[&](auto const& x) {return x.size() == st.front().size(); }))
-	throw ("Size error!");
+  /*if (!std::all_of(st.cbegin(), st.cend(),
+  [&](auto const& x) {return x.size() == st.front().size(); }))
+  throw ("Size error!");
 
-	if (!std::all_of(fi.cbegin(), fi.cend(),
-	[&](auto const& x) {return x.size() == fi.front().size(); }))
-	throw ("Size error!");*/
+  if (!std::all_of(fi.cbegin(), fi.cend(),
+  [&](auto const& x) {return x.size() == fi.front().size(); }))
+  throw ("Size error!");*/
 
-	std::vector<T> di_st, di_fi;
-	di_st.reserve(st.size()*(st.size() - 1));
-	di_fi.reserve(fi.size()*(fi.size() - 1));
-	concatenate(st.begin(), st.end(), std::back_inserter(di_st));
-	concatenate(fi.begin(), fi.end(), std::back_inserter(di_fi));
-	auto st_it{ di_st.cbegin() };
-	auto fi_it{ di_fi.cbegin() };
-	std::vector<T> result;
-	for (; st_it != di_st.cend() && fi_it != di_fi.cend(); ++st_it, ++fi_it)
-	{
-		auto s{ *st_it + ((double)img_no / (num_images - 1)) * (*fi_it - *st_it) };
-		result.push_back(s);
-	}
-	return result;
+  std::vector<T> di_st, di_fi;
+  di_st.reserve(st.size()*(st.size() - 1));
+  di_fi.reserve(fi.size()*(fi.size() - 1));
+  concatenate(st.begin(), st.end(), std::back_inserter(di_st));
+  concatenate(fi.begin(), fi.end(), std::back_inserter(di_fi));
+  auto st_it{ di_st.cbegin() };
+  auto fi_it{ di_fi.cbegin() };
+  std::vector<T> result;
+  for (; st_it != di_st.cend() && fi_it != di_fi.cend(); ++st_it, ++fi_it)
+  {
+    auto s{ *st_it + ((double)img_no / (num_images - 1)) * (*fi_it - *st_it) };
+    result.push_back(s);
+  }
+  return result;
 }
 
 template<typename T, typename Euclid>
 coords::Representation_3D neb::idpp_gradients(std::vector<coords::Representation_3D> const& bond_st,
-	Euclid& st, Euclid& fi, size_t const im_no)
+	Euclid& start, Euclid& st, Euclid& fi, size_t const im_no)
 {
-	auto interp_di{ interpol_dist<double, dist_T<double>>(st, fi, im_no) };
-	coords::Representation_3D all_grad;
-	auto bond_it{ bond_st.cbegin() };
-	auto euclid_it{ st.cbegin() };
-	auto interp_it{ interp_di.cbegin() };
-	std::vector<scon::c3<coords::float_type>> dummy;
-	for (; bond_it != bond_st.cend() && euclid_it != st.cend()
-		&& interp_it != interp_di.cend(); ++bond_it, ++euclid_it, ++interp_it)
-	{
-		dummy.clear();
-		scon::c3<coords::float_type> dummy_sum{ 0.0, 0.0, 0.0 };
-		std::vector<scon::c3<coords::float_type>> bonds{ *bond_it };
-		std::vector<T> eu_dist{ *euclid_it };
-		std::vector<T> interp_dist{ *interp_it };
-		auto b_it{ bonds.cbegin() };
-		auto eu_it{ eu_dist.cbegin() };
-		auto ip_it{ interp_dist.cbegin() };
-		for (; b_it != bonds.cend() && eu_it != eu_dist.cend()
-			&& ip_it != interp_dist.cend(); ++b_it, ++eu_it, ++ip_it)
-		{
-			auto s{ (*b_it / *eu_it) * (((*ip_it - 2.0 * *eu_it)
-				* (*ip_it - *eu_it)) / std::pow(*eu_it, 5.0)) };
-			dummy.push_back(s);
-		}
-		for (auto i : dummy) { dummy_sum += i; }
-		scon::c3<coords::float_type> dummy_sum_mult{ (-2.0)*dummy_sum.x(),
-			(-2.0)*dummy_sum.y(), (-2.0)*dummy_sum.z() };
-		all_grad.push_back(dummy_sum_mult);
-	}
-	return all_grad;
+  auto interp_di{ interpol_dist<double, dist_T<double>>(start, fi, im_no) };
+  coords::Representation_3D all_grad;
+  auto bond_it{ bond_st.cbegin() };
+  auto euclid_it{ st.cbegin() };
+  auto interp_it{ interp_di.cbegin() };
+  std::vector<scon::c3<coords::float_type>> dummy;
+  for (; bond_it != bond_st.cend() && euclid_it != st.cend()
+    && interp_it != interp_di.cend(); ++bond_it, ++euclid_it, ++interp_it)
+  {
+    dummy.clear();
+    scon::c3<coords::float_type> dummy_sum{ 0.0, 0.0, 0.0 };
+    std::vector<scon::c3<coords::float_type>> bonds{ *bond_it };
+    std::vector<T> eu_dist{ *euclid_it };
+    std::vector<T> interp_dist{ *interp_it };
+    auto b_it{ bonds.cbegin() };
+    auto eu_it{ eu_dist.cbegin() };
+    auto ip_it{ interp_dist.cbegin() };
+    for (; b_it != bonds.cend() && eu_it != eu_dist.cend()
+      && ip_it != interp_dist.cend(); ++b_it, ++eu_it, ++ip_it)
+    {
+      auto s{ (*b_it / *eu_it) * (((*ip_it - 2.0 * *eu_it)
+        * (*ip_it - *eu_it)) / std::pow(*eu_it, 5.0)) };
+      dummy.push_back(s);
+    }
+    for (auto i : dummy) { dummy_sum += i; }
+    scon::c3<coords::float_type> dummy_sum_mult{ (-2.0)*dummy_sum.x(),
+      (-2.0)*dummy_sum.y(), (-2.0)*dummy_sum.z() };
+    all_grad.push_back(dummy_sum_mult);
+  }
+  return all_grad;
 }
 //IDPP end  
 
@@ -483,43 +485,43 @@ void neb::opt_io(ptrdiff_t &count)
 {
 
   std::ostringstream energies_out, name;
-  energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter <<".dat";
+  energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter << ".dat";
   std::string temp{ energies_out.str() };
   std::fstream off(temp.c_str(), std::ios::app);
   if (reversed == true)
   {
-		  name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
-		  if (ts == true)
-		  {
-			  off << "TS          " << ts_energies[count] << '\n';
-			  off << "MIN         " << min_energies[count] << '\n';
-			  printmono(name.str(), imagi[0], count);
-		  }
-		  off << "ENERGIE:    " << energies[0] << "   START\n";
-		  for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
-		  {
-			 off << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-		  }
-		  off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
-		  print(name.str(), imagi, count);  
+    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+    if (ts == true)
+    {
+      off << "TS          " << ts_energies[count] << '\n';
+      off << "MIN         " << min_energies[count] << '\n';
+      printmono(name.str(), imagi[0], count);
+    }
+    off << "ENERGIE:    " << energies[0] << "   START\n";
+    for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
+    {
+      off << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+    }
+    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    print(name.str(), imagi, count);
   }
-  else 
+  else
   {
-		 name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
-		 off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
-		 for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
-		 {
-			 cPtr->set_xyz(imagi[imagecount]);
-			 off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
-		 }
+    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
+    {
+      cPtr->set_xyz(imagi[imagecount]);
+      off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+    }
 
-		print_rev(name.str(), imagi, count);
-		if (ts == true)
-		{
-			off << "MIN         " << min_energies[count] << '\n';
-			off << "TS          " << ts_energies[count] << '\n';
-			printmono(name.str(), ts_pathstruc, count);
-		}
+    print_rev(name.str(), imagi, count);
+    if (ts == true)
+    {
+      off << "MIN         " << min_energies[count] << '\n';
+      off << "TS          " << ts_energies[count] << '\n';
+      printmono(name.str(), ts_pathstruc, count);
+    }
   }
 }
 
@@ -625,7 +627,7 @@ double neb::lbfgs()
   coords::Cartesian_Point g;
   auto optimizer = make_lbfgs(
     make_more_thuente(GradCallBack(*this))
-    );
+  );
   //optimizer.ls.config.ignore_callback_stop = true;
   // Create Point
   using op_type = decltype(optimizer);
@@ -658,74 +660,75 @@ double neb::g_new()
   calc_tau();
   for (size_t im = 1; im < num_images - 1; im++)
   {
-		imagi[im].clear();
-		for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
-	 
-		cPtr->set_xyz(imagi[im]);
-		energies_NEB[im] = energytemp = this->cPtr->g();
-		energytemp += energytemp;
-		if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum)) 
-			{
-				double magni = 0.0;
-				magni = dot(cPtr->g_xyz(), tau[im]);
+    imagi[im].clear();
+    for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
 
-				if (len(tau[im]) == 0.0) { magni = 0.0; }
-				else { magni = magni / len(tau[im]); }
-				for (size_t i = 0; i < cPtr->size(); i++) cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
-			}
-		else 
-			{
-				tauderiv = dot(cPtr->g_xyz(), tau[im]);
-				if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
-				else { tauderiv /= len(tau[im]); }
-				if (tauderiv != tauderiv) tauderiv = 0.0;
-				for (size_t j = 0; j < cPtr->size(); j++) 
-					{
+    cPtr->set_xyz(imagi[im]);
+    energies_NEB[im] = energytemp = this->cPtr->g();
+    energytemp += energytemp;
+    if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum))
+    {
+      double magni = 0.0;
+      magni = dot(cPtr->g_xyz(), tau[im]);
 
-						Rm1[j].x() = imagi[im - 1][j].x() - imagi[im][j].x();
-						Rm1[j].y() = imagi[im - 1][j].y() - imagi[im][j].y();
-						Rm1[j].z() = imagi[im - 1][j].z() - imagi[im][j].z();
+      if (len(tau[im]) == 0.0) { magni = 0.0; }
+      else { magni = magni / len(tau[im]); }
+      for (size_t i = 0; i < cPtr->size(); i++) cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
+    }
+    else
+    {
+      tauderiv = dot(cPtr->g_xyz(), tau[im]);
+      if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
+      else { tauderiv /= len(tau[im]); }
+      if (tauderiv != tauderiv) tauderiv = 0.0;
+      for (size_t j = 0; j < cPtr->size(); j++)
+      {
 
-						Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
-						Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
-						Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
-					}
-				Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
-				Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
-				if (Rm1mag != Rm1mag) Rm1mag = 0.0;
-				if (Rp1mag != Rp1mag) Rp1mag = 0.0;
-				for (size_t i = 0; i < cPtr->size(); i++)
-					{
-						Fvertical[i].x() = cPtr->g_xyz(i).x() - tauderiv * tau[im][i].x();
-						Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
-						Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
+        Rm1[j].x() = imagi[im - 1][j].x() - imagi[im][j].x();
+        Rm1[j].y() = imagi[im - 1][j].y() - imagi[im][j].y();
+        Rm1[j].z() = imagi[im - 1][j].z() - imagi[im][j].z();
 
-						Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
-						Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
-						Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+        Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
+        Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
+        Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
+      }
+      Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
+      Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
+      if (Rm1mag != Rm1mag) Rm1mag = 0.0;
+      if (Rp1mag != Rp1mag) Rp1mag = 0.0;
+      for (size_t i = 0; i < cPtr->size(); i++)
+      {
+        Fvertical[i].x() = cPtr->g_xyz(i).x() - tauderiv * tau[im][i].x();
+        Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
+        Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
 
-						if (Config::get().neb.IDPP)
-						{
-							Fidpp = idpp_gradients<double, dist_T<double>>(bond_st, eu_st, eu_fi, im);
-						}
-					}
-			}
+        Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
+        Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
+        Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+      }
+	  if (Config::get().neb.IDPP)
+	  {
+		  auto bond_dummy{ bond_dir(imagi[im]) };
+		  auto eu_dummy{ euclid_dist<double>(imagi[im]) };
+		  Fidpp = idpp_gradients<double, dist_T<double>>(bond_dummy, eu_st, eu_dummy, eu_fi, im);
+	  }
+    }
 
-	 for (size_t j = 0; j < cPtr->size(); j++) 
-		{
-			if (Config::get().neb.IDPP)
-			{
-				auto const g = Fvertical[j] + Fpar[j] + Fidpp[j];
-				cPtr->update_g_xyz(j, g);
-				grad_tot.push_back(g);
-			}
-			else
-			{
-				auto const g = Fvertical[j] + Fpar[j];
-				cPtr->update_g_xyz(j, g);
-				grad_tot.push_back(g);
-			}
-		}
+    for (size_t j = 0; j < cPtr->size(); j++)
+    {
+      if (Config::get().neb.IDPP)
+      {
+        auto const g = Fvertical[j] + Fpar[j] + Fidpp[j];
+        cPtr->update_g_xyz(j, g);
+        grad_tot.push_back(g);
+      }
+      else
+      {
+        auto const g = Fvertical[j] + Fpar[j];
+        cPtr->update_g_xyz(j, g);
+        grad_tot.push_back(g);
+      }
+    }
 
   }
   return energytemp;
@@ -735,17 +738,17 @@ void neb::calc_shift(void)
 {
   double diff{ 0.0 }, gridp{ 0.0 };
   std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
-  double x{0.0}, y{0.0}, z{0.0};
-  double distx{0.0}, disty{0.0}, distz{0.0};
-  ptrdiff_t laf{0};
+  double x{ 0.0 }, y{ 0.0 }, z{ 0.0 };
+  double distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
+  std::ptrdiff_t laf{ 0 };
   std::vector <std::vector < std::vector < scon::c3<double> > > > position{ N };
   scon::c3 <double> pos3(0.0);
   std::vector <coords::Cartesian_Point> interpol_position{ N };
   coords::Representation_3D temp_int;
- 
-  for (size_t i = 0; i < this->cPtr->size(); i++) {
 
-    for (size_t j = 0; j < (num_images); j++) {
+  for (std::size_t i = 0; i < this->cPtr->size(); i++) {
+
+    for (std::size_t j = 0; j < (num_images); j++) {
 
       diff = (double)j / num_images;
 
@@ -769,52 +772,52 @@ void neb::calc_shift(void)
 
     {
 
-      
-		//int jj { 0 }, it{ 0 };
-		//double  tnm { 0.0 }, sumx { 0.0 }, sumy{ 0.0 }, sumz{ 0.0 }, del{ 0.0 };
-		//double skx0 { abs((splinex.interp(k + 0.00001) - splinex.interp(k)) / 0.00001) };
-		//double skx { abs((splinex.interp((k + 1) + 0.00001) - splinex.interp(k + 1)) / 0.00001) };
-		//double sky0 { abs((spliney.interp(k + 0.00001) - spliney.interp(k)) / 0.00001) };
-		//double sky { abs((spliney.interp((k + 1) + 0.00001) - spliney.interp(k + 1)) / 0.00001) };
-		//double skz0 { abs((splinez.interp(k + 0.00001) - splinez.interp(k)) / 0.00001) };
-		//double skz { abs((splinez.interp((k + 1) + 0.00001) - splinez.interp(k + 1)) / 0.00001) };
-        //double s { 0.5*((k + 1) - k)*(splinex.interp(k + 1) + splinex.interp(k)) };
-		//double sx { 0.5*((k + 1) - k)*(skx + skx0) };
-		//double sy { 0.5*((k + 1) - k)*(sky + sky0) };
-		//double sz { 0.5*((k + 1) - k)*(skz + skz0) };
 
-		//   pathlenx = 0.0;
-		//   pathleny = 0.0;
-		//   pathlenz = 0.0;
-		//for (int m = 1; m < 8; m++)
-		//{
-		//	for (it = 1, jj = 1; jj < m - 1; jj++) it <<= 1;
+      //int jj { 0 }, it{ 0 };
+      //double  tnm { 0.0 }, sumx { 0.0 }, sumy{ 0.0 }, sumz{ 0.0 }, del{ 0.0 };
+      //double skx0 { abs((splinex.interp(k + 0.00001) - splinex.interp(k)) / 0.00001) };
+      //double skx { abs((splinex.interp((k + 1) + 0.00001) - splinex.interp(k + 1)) / 0.00001) };
+      //double sky0 { abs((spliney.interp(k + 0.00001) - spliney.interp(k)) / 0.00001) };
+      //double sky { abs((spliney.interp((k + 1) + 0.00001) - spliney.interp(k + 1)) / 0.00001) };
+      //double skz0 { abs((splinez.interp(k + 0.00001) - splinez.interp(k)) / 0.00001) };
+      //double skz { abs((splinez.interp((k + 1) + 0.00001) - splinez.interp(k + 1)) / 0.00001) };
+          //double s { 0.5*((k + 1) - k)*(splinex.interp(k + 1) + splinex.interp(k)) };
+      //double sx { 0.5*((k + 1) - k)*(skx + skx0) };
+      //double sy { 0.5*((k + 1) - k)*(sky + sky0) };
+      //double sz { 0.5*((k + 1) - k)*(skz + skz0) };
 
-		 //	tnm = it;
-		 //	if (tnm == 0)tnm = 1;
-		 //	del = ((k + 1) - k) / tnm;
-		 //	x = k + 0.5*del;
-		 //  /* std::cout << "tnm  " << x<< '\n';*/
-		 //  for (sumx = 0.0, sumy = 0.0, sumz = 0.0, jj = 0; jj < it; jj++, x += del)
-		 //  {
-		 //    skx = abs((splinex.interp(x + 0.00001) - splinex.interp(x)) / 0.00001);
-		 //    sky = abs((spliney.interp(x + 0.00001) - spliney.interp(x)) / 0.00001);
-		 //    skz = abs((splinez.interp(x + 0.00001) - splinez.interp(x)) / 0.00001);
+      //   pathlenx = 0.0;
+      //   pathleny = 0.0;
+      //   pathlenz = 0.0;
+      //for (int m = 1; m < 8; m++)
+      //{
+      //	for (it = 1, jj = 1; jj < m - 1; jj++) it <<= 1;
 
-		 //    sumx += skx;
-		 //    sumy += sky;
-		 //    sumz += skz;
+       //	tnm = it;
+       //	if (tnm == 0)tnm = 1;
+       //	del = ((k + 1) - k) / tnm;
+       //	x = k + 0.5*del;
+       //  /* std::cout << "tnm  " << x<< '\n';*/
+       //  for (sumx = 0.0, sumy = 0.0, sumz = 0.0, jj = 0; jj < it; jj++, x += del)
+       //  {
+       //    skx = abs((splinex.interp(x + 0.00001) - splinex.interp(x)) / 0.00001);
+       //    sky = abs((spliney.interp(x + 0.00001) - spliney.interp(x)) / 0.00001);
+       //    skz = abs((splinez.interp(x + 0.00001) - splinez.interp(x)) / 0.00001);
 
-		 //  }
-		 //  sx = 0.5*(sx + ((k + 1) - k)*sumx / tnm);
-		 //  sy = 0.5*(sy + ((k + 1) - k)*sumy / tnm);
-		 //  sz = 0.5*(sz + ((k + 1) - k)*sumz / tnm);
-		 //}
-		 //pathlenx += sx;
-		 //pathleny += sy;
-		 //pathlenz += sz;
-	  laf = 0;
-	  gridp = double(k);
+       //    sumx += skx;
+       //    sumy += sky;
+       //    sumz += skz;
+
+       //  }
+       //  sx = 0.5*(sx + ((k + 1) - k)*sumx / tnm);
+       //  sy = 0.5*(sy + ((k + 1) - k)*sumy / tnm);
+       //  sz = 0.5*(sz + ((k + 1) - k)*sumz / tnm);
+       //}
+       //pathlenx += sx;
+       //pathleny += sy;
+       //pathlenz += sz;
+      laf = 0;
+      gridp = double(k);
       while (gridp <= (k + 1))
       {
 
@@ -842,16 +845,17 @@ void neb::calc_shift(void)
 
   }
 
-  std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app), out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
+  std::ofstream out("INTERPOL_preopt.arc", std::ios::app), out2("INTERPOL_opt.arc", std::ios::app),
+    out3("ENERGY_INT_PREOPT.dat", std::ios::app), out4("ENERGY_INT_OPT.dat", std::ios::app);
   interpol_position.resize(N);
   tau_int.resize(N);
   interpol_position.resize(N);
   temp_int.resize(N);
 
-  for (ptrdiff_t i = 1; i < ptrdiff_t(num_images - 1); i++)
+  for (std::ptrdiff_t i = 1; i < std::ptrdiff_t(num_images - 1); i++)
   {
 
-    for (ptrdiff_t k = 0; k < laf; k++) {
+    for (std::ptrdiff_t k = 0; k < laf; k++) {
       out << "     " << N << " IMAGE: " << k << "  global counter:  " << i << '\n';
       temp_int.clear();
       for (size_t j = 0; j < N; j++) {
@@ -868,11 +872,11 @@ void neb::calc_shift(void)
         tau_int[j].y() = float(position[j][i][k].y() - position[j][i - 1][k].y() / abs(position[j][i][k].y() - position[j][i - 1][k].y()) + (position[j][i + 1][k].y() - position[j][i][k].y()) / abs(position[j][i + 1][k].y() - position[j][i][k].y()));
         tau_int[j].z() = float(position[j][i][k].z() - position[j][i - 1][k].z() / abs(position[j][i][k].z() - position[j][i - 1][k].z()) + (position[j][i + 1][k].z() - position[j][i][k].z()) / abs(position[j][i + 1][k].z() - position[j][i][k].z()));
         abso = 0.0;
-		if (tau_int[j].x() - tau_int[j].x() != 0) tau_int[j].x() = 0.0;
-		if (tau_int[j].y() - tau_int[j].y() != 0) tau_int[j].y() = 0.0;
-		if (tau_int[j].z() - tau_int[j].z() != 0) tau_int[j].z() = 0.0;
-		abso = len(tau_int[j]);
-		if (abso != 0.0) normalize(tau_int[j]);
+        if (tau_int[j].x() - tau_int[j].x() != 0) tau_int[j].x() = 0.0;
+        if (tau_int[j].y() - tau_int[j].y() != 0) tau_int[j].y() = 0.0;
+        if (tau_int[j].z() - tau_int[j].z() != 0) tau_int[j].z() = 0.0;
+        abso = len(tau_int[j]);
+        if (abso != 0.0) normalize(tau_int[j]);
         interpol_position[j].x() = position[j][i][k].x();
         interpol_position[j].y() = position[j][i][k].y();
         interpol_position[j].z() = position[j][i][k].z();
@@ -938,7 +942,7 @@ double neb::lbfgs_int(std::vector <scon::c3 <float> >)
   coords::Cartesian_Point g;
   auto optimizer = make_lbfgs(
     make_more_thuente(GradCallBack_int(*this))
-    );
+  );
   //optimizer.ls.config.ignore_callback_stop = true;
   // Create Point
   using op_type = decltype(optimizer);
@@ -1038,7 +1042,7 @@ double neb::g_int(std::vector<scon::c3 <float> > t)
 ************************************************************************
 ***********************************************************************/
 
-void neb::opt_internals(ptrdiff_t &count, const std::vector<std::vector<size_t> >& atoms_remember) {
+void neb::opt_internals(std::ptrdiff_t &count, const std::vector<std::vector<size_t> >& atoms_remember) {
 
   coords::Ensemble_PES *ep = new coords::Ensemble_PES;
   std::ostringstream name;
@@ -1293,11 +1297,11 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
   myfile.open("Internals.txt");
 
 
-  for (size_t k = 0U; k<num_images; k++) {
+  for (size_t k = 0U; k < num_images; k++) {
 
 
-    for (i = 0U; i<dist_all[k].size(); i++) {
-      if (dist_all[k][i].size()>anglevec_all[k][i].size() && dist_all[k][i].size()>dihedralvec_all[k][i].size())for (j = 0U; j < dist_all[k][i].size(); j++) {
+    for (i = 0U; i < dist_all[k].size(); i++) {
+      if (dist_all[k][i].size() > anglevec_all[k][i].size() && dist_all[k][i].size() > dihedralvec_all[k][i].size())for (j = 0U; j < dist_all[k][i].size(); j++) {
         if (dist_all[k][i].size() > j) {
           myfile << std::right << std::setw(10) << name[i][DIST][j] << " ";
           myfile << std::left << std::setw(10) << dist_all[k][i][j];
@@ -1334,8 +1338,8 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
         else myfile << std::right << std::setw(21) << " ";
         myfile << std::endl;
       }
-      else for (j = 0U; j<dihedralvec[i].size(); j++) {
-        if (dist[i].size()>j) {
+      else for (j = 0U; j < dihedralvec[i].size(); j++) {
+        if (dist[i].size() > j) {
           myfile << std::right << std::setw(10) << name[i][DIST][j] << " ";
           myfile << std::left << std::setw(10) << dist_all[k][i][j];
         }
@@ -1536,14 +1540,14 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
     j_temp.clear();
 
     for (j = 0U; j < dihedralvec[i].size(); j++) {
-      for (k = 0U; k<dihedralvec[i][j].size(); k++) {
-        if ((dihedralvec[i][j][k]<0.0&&dihedralvec[i + 1][j][k]<0.0) || (dihedralvec[i][j][k]>0.0&&dihedralvec[i + 1][j][k]>0.0)) {
+      for (k = 0U; k < dihedralvec[i][j].size(); k++) {
+        if ((dihedralvec[i][j][k] < 0.0&&dihedralvec[i + 1][j][k] < 0.0) || (dihedralvec[i][j][k] > 0.0&&dihedralvec[i + 1][j][k] > 0.0)) {
           comp_value_swap.push_back(fabs(fabs(dihedralvec[i][j][k]) - fabs(dihedralvec[i + 1][j][k])));
           i_temp.push_back(j);
           j_temp.push_back(k);
         }
         else {
-          if (fabs(dihedralvec[i][j][k]) + fabs(dihedralvec[i + 1][j][k])>180.0) {
+          if (fabs(dihedralvec[i][j][k]) + fabs(dihedralvec[i + 1][j][k]) > 180.0) {
             comp_value_swap.push_back(360.0 - fabs(dihedralvec[i][j][k]) - fabs(dihedralvec[i + 1][j][k]));
             i_temp.push_back(j);
             j_temp.push_back(k);
@@ -1558,7 +1562,7 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
     }
 
     for (j = 0U; j < comp_value_swap.size(); j++) {
-      if ((int)comp_value_swap[j]>0) myfile << "Image " << i + 1 << " to " << i + 2 << ": " << (int)comp_value_swap[j] << std::endl;
+      if ((int)comp_value_swap[j] > 0) myfile << "Image " << i + 1 << " to " << i + 2 << ": " << (int)comp_value_swap[j] << std::endl;
     }
 
     double_swap = comp_value_swap[0];
@@ -2014,13 +2018,13 @@ void neb::bond_Sort(size_t* a, size_t* b, size_t* c, size_t* d) {
 
   bool again = false;
 
-  if (*a>*b) {
+  if (*a > *b) {
     int_swap = *a;
     *a = *b;
     *b = int_swap;
     again = true;
   }
-  else if (*b>*c) {
+  else if (*b > *c) {
     int_swap = *b;
     *b = *c;
     *c = int_swap;

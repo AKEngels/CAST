@@ -45,7 +45,7 @@ public:
   void idpp_prep();
 
   template<typename ContainerIt, typename Result>
-  void concatenate(ContainerIt&, ContainerIt&, Result&);
+  void concatenate(ContainerIt, ContainerIt, Result);
 
   template<typename T>
   using dist_T = std::vector<std::vector<T>>;
@@ -60,7 +60,7 @@ public:
 
   template<typename T, typename Euclid>
   coords::Representation_3D idpp_gradients(std::vector<coords::Representation_3D> const&,
-	  Euclid&, Euclid&, size_t const);
+	  Euclid&, Euclid&, Euclid&, size_t const);
 
 private:
 	std::vector<coords::Representation_3D> bond_st;
