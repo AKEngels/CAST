@@ -283,7 +283,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             {
               symbol = "Cu";
             }
-            else if (symbol == "C�") symbol = "Co";
             else if (symbol == "IM") symbol = "Cl";
             else if (symbol == "QC") symbol = "Cs";
             else if (symbol == "QK") symbol = "K";
@@ -357,7 +356,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           {
             symbol = "Cu";
           }
-          else if (symbol == "C�") symbol = "Co";
           else if (symbol == "IM") symbol = "Cl";
           else if (symbol == "QC") symbol = "Cs";
           else if (symbol == "QK") symbol = "K";
