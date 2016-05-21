@@ -20,7 +20,7 @@ newoption {
 }
 
 workspace "CAST"
-	configurations { "Debug", "Release", "Testing" }
+	configurations { "Debug", "Release", "Testing", "Armadillo_Release" }
     location "../project"
    	platforms { "x86", "x64"}
 	filter { "platforms:x86" }
@@ -80,9 +80,23 @@ project "CAST"
 			optimize "Full"
 			flags { "LinkTimeOptimization" }
 		filter { "configurations:Release",  "platforms:x86", "action:vs2015"}
-		targetname "CAST_win_x86_release"
+			targetname "CAST_win_x86_release"
 		filter { "configurations:Release",  "platforms:x64", "action:vs2015"}
-		targetname "CAST_win_x64_release"		
+			targetname "CAST_win_x64_release"	
+
+		filter { "configurations:Armadillo_Release"}
+			includedirs { "../includes/armadillo/"}
+			libdirs { "../libs/" }
+			links { "blas_win64_MT", "lapack_win64_MT" }
+			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
+			optimize "Full"
+			defines { "USE_ARMADILLO" }
+			flags { "LinkTimeOptimization" }
+		filter { "configurations:Armadillo_Release",  "platforms:x86", "action:vs2015"}
+			targetname "CAST_win_x86_release_lapack"
+		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
+			targetname "CAST_win_x64_release_lapack"
+		
 		
 		filter { "configurations:Testing" }
 			optimize "Debug"

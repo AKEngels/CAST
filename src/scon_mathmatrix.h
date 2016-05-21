@@ -1,7 +1,7 @@
 /**
 CAST 3
 scon_mathmatrix.h
-Purpose: Enabling matrix calculations
+Purpose: Enabling matrix calculations. Uses Armadillo for enhanced speed when available. Otherwise uses slow internal routines.
 
 @author Dustin Kaiser
 @version 2.0
@@ -26,6 +26,7 @@ CODING CONVENTIONS AS FOLLOWS:
 
 */
 
+
 #pragma once
 
 #include <iostream>
@@ -35,9 +36,11 @@ CODING CONVENTIONS AS FOLLOWS:
 #include <cmath>
 #include <limits>
 #include <utility>
-
 #include "scon_matrix.h"
 
+#ifdef USE_ARMADILLO
+#include <armadillo>
+#endif
 
 /////////////////////////////////
 //                             //
@@ -50,7 +53,7 @@ CODING CONVENTIONS AS FOLLOWS:
 typedef coords::float_type float_type;
 typedef int int_type;
 //typedef scon::mathmatrix<float_type> Matrix_Class;
-typedef unsigned int uint_type;
+typedef size_t uint_type;
 
 ///////////////////////////////
 
@@ -73,10 +76,13 @@ namespace scon
 {
 
 	template <typename T> 
-  class mathmatrix : public scon::matrix<T>
+  class mathmatrix 
+    : public scon::matrix<T>
 	{
   private:
+
     using base_type = scon::matrix<T>;
+
 #ifdef DEBUGVIEW
     std::vector<std::vector<T> > array_debugview_internal;
 #else
@@ -89,7 +95,6 @@ namespace scon
 		/////  C O N S T R U C T O R S  /////
 		/////                           /////
 		/////////////////////////////////////
-
 
     // forward all arguments to matrix constructor
     template<class ... Args>
@@ -125,8 +130,8 @@ namespace scon
 		 * Second "Copy Constructor", if boolean size_only is set to TRUE
 		 * Only the size of the matrix will be copied (faster)
 		 */
-		mathmatrix(mathmatrix const& in, bool size_only) : 
-      scon::matrix<T>(in.rows(), in.cols())
+		mathmatrix(mathmatrix const& in, bool size_only) 
+      : scon::matrix<T>(in.rows(), in.cols())
 		{
 			if (!size_only) std::copy(in.begin(), in.end(), this->begin());
 		};
@@ -756,6 +761,7 @@ namespace scon
 		 */
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
+#ifndef USE_ARMADILLO
 			//Rewritten from NumRecipies
 
 			//"Constructor"
@@ -1015,6 +1021,27 @@ namespace scon
       {
         *rank = nr;
       }
+#else
+arma::Mat<float_type> matrix(U_in.rows(), U_in.cols()), v, u;
+for (size_t i = 0; i < U_in.rows(); i++)
+{
+  for (size_t j = 0; j < U_in.cols(); j++)
+  {
+    matrix(i, j) = U_in(i, j);
+  }
+}
+arma::Col<float_type> s;
+svd_econ(matrix, s, v, u);
+for (size_t i = 0; i < U_in.rows(); i++)
+{
+  for (size_t j = 0; j < U_in.cols(); j++)
+  {
+    U_in(i, j) = u(i, j);
+    V_in(i, j) = v(i, j);
+  }
+  s_in(i) = s(i);
+}
+#endif
 		}
 
 		/**
