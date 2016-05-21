@@ -1130,6 +1130,10 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   using namespace matop::align;
 
   coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
+
+  // Check if reference structure is in range
+  if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+
   auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 
   //Alignment to external reference frame (different file)
@@ -1235,10 +1239,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     {
       distance << hold_str[i];
     }
-    if (Config::get().alignment.traj_align_translational || Config::get().alignment.traj_align_rotational)
-    {
-      outputstream << hold_coords_str[i];
-    }
+    outputstream << hold_coords_str[i];
   }
   distance << "\n";
   distance << "Mean value: " << (mean_value / (double) (ci->size() - 1)) << "\n";
