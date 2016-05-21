@@ -20,7 +20,7 @@ newoption {
 }
 
 workspace "CAST"
-	configurations { "Debug", "Release", "Testing", "Armadillo_Release" }
+	configurations { "Debug", "Release", "Testing", "Armadillo_Release", "Armadillo_Debug" }
     location "../project"
    	platforms { "x86", "x64"}
 	filter { "platforms:x86" }
@@ -96,7 +96,21 @@ project "CAST"
 			targetname "CAST_win_x86_release_lapack"
 		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
 			targetname "CAST_win_x64_release_lapack"
-		
+
+		filter { "configurations:Armadillo_Debug"}
+			includedirs { "../includes/armadillo/"}
+			libdirs { "../libs/" }
+			links { "blas_win64_MT", "lapack_win64_MT" }
+			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
+			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
+			optimize "Debug"
+			flags { "Symbols" }
+			defines { "USE_ARMADILLO" }
+		filter { "configurations:Armadillo_Release",  "platforms:x86", "action:vs2015"}
+			targetname "CAST_win_x86_release_lapack"
+		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
+			targetname "CAST_win_x64_release_lapack"
+			
 		
 		filter { "configurations:Testing" }
 			optimize "Debug"
