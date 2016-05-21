@@ -410,10 +410,13 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     for (unsigned int i = 0u; i < bondsWithHydrogen.size(); i = i + 2u)
     {
       atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
+      atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
+
     }
     for (unsigned int i = 0u; i < bondsWithoutHydrogen.size(); i = i + 2u)
     {
       atoms.atom(bondsWithoutHydrogen[i] - 1u).bind_to(bondsWithoutHydrogen[i + 1u] - 1u);
+      atoms.atom(bondsWithoutHydrogen[i + 1u] - 1u).bind_to(bondsWithoutHydrogen[i] - 1u);
     }
 
     // OK, let's now fetch the actual coordinates
