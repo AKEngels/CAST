@@ -761,14 +761,12 @@ namespace scon
 		 */
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
+      //"Constructor"
+      U_in = *this;
+      V_in.resize(this->cols(), this->cols());
+      s_in.resize(this->cols(), 1u);
 #ifndef USE_ARMADILLO
 			//Rewritten from NumRecipies
-
-			//"Constructor"
-			U_in = *this;
-			V_in.resize(this->cols(), this->cols());
-			s_in.resize(this->cols(), 1u);
-
 			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
 			int n = int(this->cols());
 			int m = int(this->rows());
@@ -1031,7 +1029,7 @@ for (size_t i = 0; i < U_in.rows(); i++)
   }
 }
 arma::Col<float_type> s;
-svd_econ(matrix, s, v, u);
+if(!svd_econ(matrix, s, v, u)) throw std::runtime_error("Error in armadillo SVD: failed.");
 for (size_t i = 0; i < U_in.rows(); i++)
 {
   for (size_t j = 0; j < U_in.cols(); j++)
@@ -1040,6 +1038,8 @@ for (size_t i = 0; i < U_in.rows(); i++)
     V_in(i, j) = v(i, j);
   }
   s_in(i) = s(i);
+
+  if (rank != nullptr) *rank = arma::rank(s);
 }
 #endif
 		}
