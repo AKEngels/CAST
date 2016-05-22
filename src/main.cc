@@ -610,6 +610,83 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
+    case config::tasks::REMOVE_EXPLICIT_WATER:
+      {
+        /**
+        * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
+        *
+        */
+
+        std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
+        std::string* hold_str = new std::string[ci->size()];
+#ifdef _OPENMP
+//#pragma omp parallel for firstprivate(coords) shared(hold_str)
+#endif
+        for (int iter = 0; iter < ci->size(); ++iter)
+        {
+          auto holder = ci->PES()[iter].structure.cartesian;
+          coords.set_xyz(holder);
+
+          std::vector<size_t> atomsToBePurged;
+          coords::Atoms truncAtoms;
+          coords::Representation_3D positions;
+          for (size_t i = 0u; i < coords.atoms().size(); i++)
+          {
+            coords::Atom atom(coords.atoms().atom(i));
+            if (atom.number() != 8u && atom.number() != 1u)
+            {
+              truncAtoms.add(atom);
+              positions.push_back(coords.xyz(i));
+            }
+            else if (atom.number() == 1u)
+            {
+              // Check if hydrogen is bound to something else than Oxygen
+              bool checker = true;
+              for (size_t j = 0u; j < atom.bonds().size(); j++)
+              {
+                if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
+              }
+              if (checker)
+              {
+                truncAtoms.add(atom);
+                positions.push_back(coords.xyz(i));
+              }
+            }
+            else if (atom.number() == 8u)
+            {
+              //checker checks if only hydrogens are bound to this current oxygen
+              bool checker = true;
+              for (size_t j = 0u; j < atom.bonds().size(); j++)
+              {
+                if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
+              }
+              if (!checker)
+              {
+                truncAtoms.add(atom);
+                positions.push_back(coords.xyz(i));
+                for (auto const& bond : atom.bonds())
+                {
+                  if (coords.atoms().atom(bond).number() == 1u)
+                  {
+                    truncAtoms.add(coords.atoms().atom(bond));
+                    positions.push_back(coords.xyz(bond));
+                  }
+                }
+              }
+            }
+          }
+          coords::Coordinates newCoords;
+          coords::PES_Point x(positions);
+          newCoords.init_in(truncAtoms, x);
+          std::stringstream temporaryStringstream;
+          temporaryStringstream << newCoords;
+          hold_str[iter] = temporaryStringstream.str();
+        }
+        for (size_t i = 0; i < ci->size(); i++)
+        {
+          out << hold_str[i];
+        }
+      }
     default:
       {
       
