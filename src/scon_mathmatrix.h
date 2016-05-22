@@ -1029,7 +1029,7 @@ for (size_t i = 0; i < U_in.rows(); i++)
   }
 }
 arma::Col<float_type> s;
-if(!svd_econ(matrix, s, v, u)) throw std::runtime_error("Error in armadillo SVD: failed.");
+if(!svd_econ(u, s, v, matrix)) throw std::runtime_error("Error in armadillo SVD: failed.");
 for (size_t i = 0; i < U_in.rows(); i++)
 {
   for (size_t j = 0; j < U_in.cols(); j++)
@@ -1062,14 +1062,38 @@ for (size_t i = 0; i < U_in.rows(); i++)
 		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
 		{
 			//On basis of SVD, so take care that your matrix is symmetrical
-			//otherwise, well, you know, shit in -> shit out...
 
 			//And if you are unsure about your symmetry, try this beforehand:
 			//this->symmetry_check();
 			//(Although it might slow stuff down considerably.)
-
+#ifndef USE_ARMADILLO
 			mathmatrix V;
 			this->singular_value_decomposition(eigenvec_in, eigenval_in, V, rank_in);
+#else
+      eigenvec_in.resize(this->cols(), this->cols());
+      eigenval_in.resize(this->cols(), 1u);
+      arma::Mat<float_type> matrix((*this).rows(), (*this).cols()), v, u;
+      for (size_t i = 0; i < (*this).rows(); i++)
+      {
+        for (size_t j = 0; j < (*this).cols(); j++)
+        {
+          matrix(i, j) = (*this)(i, j);
+        }
+      }
+      arma::Col<float_type> s;
+      eig_sym(s, v, matrix);
+      for (size_t i = 0; i < (*this).rows(); i++)
+      {
+        for (size_t j = 0; j < (*this).cols(); j++)
+        {
+          //eigenvec_in((*this).rows() - i - 1u, j) = v(i, j);
+          eigenvec_in(i, (*this).cols() - j - 1u) = v(i, j);
+
+        }
+        eigenval_in((*this).rows() - i - 1u) = s(i);
+      }
+      if (rank_in != nullptr) *rank_in = arma::rank(s);
+#endif
 		}
 
 		/////////////////////////////////////
