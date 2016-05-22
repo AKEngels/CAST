@@ -1,6 +1,29 @@
+
+//////////   //////////   //////////   ////////// 
+//           //      //   //               //
+//           //      //   //               //
+//           //      //   //////////       //
+//           //////////           //       //
+//           //      //           //       //
+//           //      //           //       //
+//////////   //      //   //////////       //
+
+//////////////////////////
+//                      //
+//       L I B S        //
+//                      //
+//////////////////////////
 #include <cstdlib>
 #include <fstream>
 #include <memory>
+#include <omp.h>
+
+
+//////////////////////////
+//                      //
+//    H E A D E R S     //
+//                      //
+//////////////////////////
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
@@ -17,7 +40,13 @@
 //#include "gbsa.h"
 #include <omp.h>
 
-
+//////////////////////////
+//                      //
+//  R A N D O M         //
+//  N U M B E R         //
+//  G E N E R A T O R   //
+//                      //
+//////////////////////////
 #if defined(_MSC_VER)
 #include <process.h>
 #define pid_func _getpid
