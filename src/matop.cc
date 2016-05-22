@@ -230,7 +230,18 @@ namespace matop
     {
       if (includedAtoms.size() != 0u)
       {
-        Matrix_Class transformed_matrix(1u, (3 * (includedAtoms.size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u)) ));
+        Matrix_Class transformed_matrix;
+        if (ignoreHydrogen)
+        {
+          size_t counter = 0u;
+          for (size_t i = 0u; i < includedAtoms.size(); i++)
+          {
+            if (coords.atoms().atom(includedAtoms[i] - 1).number() == 1u) counter++;
+          }
+          transformed_matrix = Matrix_Class(1u, (3 * (includedAtoms.size() - counter)));
+        }
+        else transformed_matrix = Matrix_Class(1u, (3 * includedAtoms.size()));
+
         int j = 0;
         size_t quicksearch = 0;
         for (size_t i = 0; i < coords.atoms().size(); i++) //iterate over atoms
@@ -260,20 +271,22 @@ namespace matop
       }
       else
       {
-        Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
-        int j = 0;
-        for (size_t i = 0; i < coords.atoms().size(); i++)
-        {
-          for (size_t k = 0; k < 3; k++)
+          Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
+          if (ignoreHydrogen) transformed_matrix = Matrix_Class(1u, (3 * (coords.atoms().size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u))));
+          int j = 0;
+          for (size_t i = 0; i < coords.atoms().size(); i++)
           {
-            //transformed_matrix(0, j + k) = input(k, i);
-            transformed_matrix(0, j + 0u) = coords.xyz(i).x();
-            transformed_matrix(0, j + 1u) = coords.xyz(i).y();
-            transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            if (ignoreHydrogen && coords.atoms().atom(i).number() == 1u) continue;
+            for (size_t k = 0; k < 3; k++)
+            {
+              //transformed_matrix(0, j + k) = input(k, i);
+              transformed_matrix(0, j + 0u) = coords.xyz(i).x();
+              transformed_matrix(0, j + 1u) = coords.xyz(i).y();
+              transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            }
+            j = j + 3u;
           }
-          j = j + 3u;
-        }
-        return transformed_matrix;
+          return transformed_matrix;
       }
     }
   }
@@ -1319,7 +1332,12 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       }
       else
       {
-        size_t numberOfHydrogen = coords.atoms().getNumberOfAtomsWithAtomicNumber(1u);
+        size_t counter = 0u;
+        for (size_t i = 0u; i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
+        {
+          if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u) counter++;
+        }
+        size_t numberOfHydrogen = counter;
         matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
           ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
             Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size() - numberOfHydrogen) * 3u);
@@ -1354,8 +1372,9 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
             ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
             ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen;
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen);
+          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen && Config::get().PCA.pca_trunc_atoms_bool;
+          if(Config::get().PCA.pca_trunc_atoms_bool) matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen).row(0u);
+          else matrix_aligned.row(j) = ::matop::transformToOneline(coords, std::vector<size_t>(), false, ignoreHydrogen).row(0u);
         }
       }
     }
