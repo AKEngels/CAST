@@ -230,7 +230,18 @@ namespace matop
     {
       if (includedAtoms.size() != 0u)
       {
-        Matrix_Class transformed_matrix(1u, (3 * (includedAtoms.size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u)) ));
+        Matrix_Class transformed_matrix;
+        if (ignoreHydrogen)
+        {
+          size_t counter = 0u;
+          for (size_t i = 0u; i < includedAtoms.size(); i++)
+          {
+            if (coords.atoms().atom(includedAtoms[i] - 1).number() == 1u) counter++;
+          }
+          transformed_matrix = Matrix_Class(1u, (3 * (includedAtoms.size() - counter)));
+        }
+        else transformed_matrix = Matrix_Class(1u, (3 * includedAtoms.size()));
+
         int j = 0;
         size_t quicksearch = 0;
         for (size_t i = 0; i < coords.atoms().size(); i++) //iterate over atoms
@@ -242,7 +253,7 @@ namespace matop
             {
               //ignoreHydrogens
               if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
-              
+
               checker = true;
               quicksearch++;
               break;
@@ -260,20 +271,22 @@ namespace matop
       }
       else
       {
-        Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
-        int j = 0;
-        for (size_t i = 0; i < coords.atoms().size(); i++)
-        {
-          for (size_t k = 0; k < 3; k++)
+          Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
+          if (ignoreHydrogen) transformed_matrix = Matrix_Class(1u, (3 * (coords.atoms().size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u))));
+          int j = 0;
+          for (size_t i = 0; i < coords.atoms().size(); i++)
           {
-            //transformed_matrix(0, j + k) = input(k, i);
-            transformed_matrix(0, j + 0u) = coords.xyz(i).x();
-            transformed_matrix(0, j + 1u) = coords.xyz(i).y();
-            transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            if (ignoreHydrogen && coords.atoms().atom(i).number() == 1u) continue;
+            for (size_t k = 0; k < 3; k++)
+            {
+              //transformed_matrix(0, j + k) = input(k, i);
+              transformed_matrix(0, j + 0u) = coords.xyz(i).x();
+              transformed_matrix(0, j + 1u) = coords.xyz(i).y();
+              transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            }
+            j = j + 3u;
           }
-          j = j + 3u;
-        }
-        return transformed_matrix;
+          return transformed_matrix;
       }
     }
   }
@@ -414,7 +427,7 @@ namespace matop
           }
           histograms_p->add_value(temp);
         }
-        
+
         histograms_p->distribute();
         histograms_p->writeProbabilityDensity("pca_histograms");
         histograms_p->writeAuxilaryData("pca_histograms_auxdata");
@@ -519,7 +532,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -589,7 +602,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -665,7 +678,7 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-      delete cov_rank; 
+      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows());
@@ -1041,7 +1054,7 @@ namespace matop
       if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
       float_type value = 0;
-      for (size_t i = 0; i < input.atoms().size(); i++) 
+      for (size_t i = 0; i < input.atoms().size(); i++)
       {
         for (size_t j = 0; j < i; j++)
         {
@@ -1130,6 +1143,10 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   using namespace matop::align;
 
   coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
+
+  // Check if reference structure is in range
+  if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+
   auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 
   //Alignment to external reference frame (different file)
@@ -1159,9 +1176,12 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   }
 
 #ifdef _OPENMP
+  auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+  for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+  for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
-  for (int i = 0; i < (int) ci->size(); ++i)
   {
     if (i != Config::get().alignment.reference_frame_num)
     {
@@ -1181,7 +1201,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       if (Config::get().alignment.traj_print_bool)
       {
         if (Config::get().alignment.dist_unit == 0)
-          //RMSD 
+          //RMSD
         {
           std::stringstream temporaryStringstream;
           double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
@@ -1235,10 +1255,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     {
       distance << hold_str[i];
     }
-    if (Config::get().alignment.traj_align_translational || Config::get().alignment.traj_align_rotational)
-    {
-      outputstream << hold_coords_str[i];
-    }
+    outputstream << hold_coords_str[i];
   }
   distance << "\n";
   distance << "Mean value: " << (mean_value / (double) (ci->size() - 1)) << "\n";
@@ -1296,8 +1313,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
           }
         }
 
-        matrix_aligned = 
-          Matrix_Class((size_t) /* explicitly casting to round down */ 
+        matrix_aligned =
+          Matrix_Class((size_t) /* explicitly casting to round down */
             ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset),
             countIncludedDihedrals * 2u);
 
@@ -1318,12 +1335,17 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       }
       else
       {
-        size_t numberOfHydrogen = coords.atoms().getNumberOfAtomsWithAtomicNumber(1u);
+        size_t counter = 0u;
+        for (size_t i = 0u; i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
+        {
+          if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u) counter++;
+        }
+        size_t numberOfHydrogen = counter;
         matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
           ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
             Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size() - numberOfHydrogen) * 3u);
       }
-    } 
+    }
     else
     {
       matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
@@ -1336,8 +1358,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       {
         for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
         {
-          auto holder2 = ci->PES()[i].structure.cartesian;
-          coords.set_xyz(holder2);
+          auto holder2 = ci->PES()[i].structure.intern;
+          coords.set_internal(holder2);
           bool ignoreHydrogen = Config::get().PCA.pca_internal_ignore_hydrogen;
           matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true, ignoreHydrogen);
         }
@@ -1353,8 +1375,9 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
             ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
             ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen;
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen);
+          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen && Config::get().PCA.pca_trunc_atoms_bool;
+          if(Config::get().PCA.pca_trunc_atoms_bool) matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen).row(0u);
+          else matrix_aligned.row(j) = ::matop::transformToOneline(coords, std::vector<size_t>(), false, ignoreHydrogen).row(0u);
         }
       }
     }
@@ -1529,7 +1552,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
         }
         coords::Coordinates current(coords);
 
-        // For every partial (truncated) structure that is inside the user-defined 
+        // For every partial (truncated) structure that is inside the user-defined
         // range regarding its PCA-Modes,
         // we now search the matching full structure in the input trajectory.
         bool structureFound = false;
@@ -1549,7 +1572,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
           {
             // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
             // is very small, the arbitrary cutoff 2e-4), consider it a match.
-            // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+            // However, we look for "not-matching" and break the loop. If everything matches, we continue.
             // Thats why we negate the criterion in the if clause (!)
             float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
             float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
@@ -1638,7 +1661,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
         for (size_t j = 0u; j < tokens.size(); j++)
         {
           // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
-          // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+          // However, we look for "not-matching" and break the loop. If everything matches, we continue.
           // Thats why we negate the criterion in the if clause (!)
           if (tokens[j] == true)
           {

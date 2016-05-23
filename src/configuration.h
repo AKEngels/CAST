@@ -46,7 +46,7 @@ namespace config
   static std::string const Version("3.2.0.1.0.0dev");
 
   // Tasks
-  static std::size_t const NUM_TASKS = 29;
+  static std::size_t const NUM_TASKS = 30;
   static std::string const 
     task_strings[NUM_TASKS] =
   { 
@@ -55,7 +55,8 @@ namespace config
     "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
     "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc" 
+    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc",
+    "REMOVE_EXPLICIT_WATER"
   };
   struct tasks
   {
@@ -67,7 +68,8 @@ namespace config
       STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
       PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE,
-      GRID, ALIGN, ENTROPY, PCAgen, PCAproc
+      GRID, ALIGN, ENTROPY, PCAgen, PCAproc,
+      REMOVE_EXPLICIT_WATER
     };
   };
 
