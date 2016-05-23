@@ -1176,9 +1176,12 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   }
 
 #ifdef _OPENMP
+  auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+  for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+  for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
-  for (int i = 0; i < ci->size(); ++i)
   {
     if (i != Config::get().alignment.reference_frame_num)
     {

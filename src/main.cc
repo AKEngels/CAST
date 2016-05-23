@@ -649,9 +649,12 @@ int main(int argc, char **argv)
         std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
         std::string* hold_str = new std::string[ci->size()];
 #ifdef _OPENMP
-//#pragma omp parallel for firstprivate(coords) shared(hold_str)
+        auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
+#pragma omp parallel for firstprivate(coords) shared(hold_str)
+        for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
+#else
+        for (std::size_t iter = 0; iter < ci->size(); ++iter)
 #endif
-        for (int iter = 0; iter < ci->size(); ++iter)
         {
           auto holder = ci->PES()[iter].structure.cartesian;
           coords.set_xyz(holder);
