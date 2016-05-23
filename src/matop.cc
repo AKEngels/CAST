@@ -1358,8 +1358,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       {
         for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
         {
-          auto holder2 = ci->PES()[i].structure.cartesian;
-          coords.set_xyz(holder2);
+          auto holder2 = ci->PES()[i].structure.intern;
+          coords.set_internal(holder2);
           bool ignoreHydrogen = Config::get().PCA.pca_internal_ignore_hydrogen;
           matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true, ignoreHydrogen);
         }
