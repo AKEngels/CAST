@@ -260,6 +260,7 @@ namespace matop
   {
     void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, int rank)
     {
+      if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
       Matrix_Class cov_matr = (transposed(input));
       Matrix_Class ones(input.cols(), input.cols(), 1.0);
       cov_matr = cov_matr - ones * cov_matr / input.cols();
@@ -1134,7 +1135,11 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     centerOfMassAlignment(coordsReferenceStructure);
   }
 
+  // Output text
+  if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
+
 #ifdef _OPENMP
+  if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
   auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
   for (std::ptrdiff_t i = 0; i < n_omp; ++i)
@@ -1208,6 +1213,9 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 
   std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
   std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
+
+  if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
+
   for (size_t i = 0; i < ci->size(); i++)
   {
     if (Config::get().alignment.traj_print_bool)
@@ -1237,6 +1245,8 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
   if (!Config::get().PCA.pca_read_modes)
   {
+    if (Config::get().general.verbosity > 2U) std::cout << "Starting preparations for transformation of trajectory into principal components.\n";
+
     coords::Coordinates coords_ref(coords);
     auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
     coords_ref.set_xyz(holder);
@@ -1253,8 +1263,10 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     // especially if hydrogens should be omitted
     if (Config::get().PCA.pca_use_internal)
     {
+      if (Config::get().general.verbosity > 2U) std::cout << "Using dihedral angles.\n";
       if (Config::get().PCA.pca_internal_ignore_hydrogen)
       {
+        if (Config::get().general.verbosity > 2U) std::cout << "Excluding dihedrals involving hydrogen.\n";
         int sizeOfVector = static_cast<int>(Config::get().PCA.pca_internal_dih.size());
         for (int i = 0u; i < sizeOfVector; i++)
         {
@@ -1277,12 +1289,15 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     {
       if (!Config::get().PCA.pca_trunc_atoms_bool)
       {
+        if (Config::get().general.verbosity > 2U) std::cout << "Using all cartesian coordinates.\n";
         Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>(coords.atoms().size());
         // Fill with 0, 1, 2,..., .
         std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1); 
       }
+      else if (Config::get().general.verbosity > 2U) std::cout << "Using truncated cartesian coordinates.\n";
       if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
       {
+        if (Config::get().general.verbosity > 2U) std::cout << "Excluding hydrogen atoms.\n";
         int sizeOfVector = static_cast<int>(Config::get().PCA.pca_trunc_atoms_num.size());
         for (int i = 0u; i < sizeOfVector; i++)
         {
@@ -1350,6 +1365,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
   
   if (Config::get().PCA.pca_read_vectors)
   {
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file pca_modes.dat .\n";
     std::string iAmNotImportant_YouMayDiscardMe;
     readEigenvectorsAndModes(eigenvectors, pca_modes, iAmNotImportant_YouMayDiscardMe);
   }
@@ -1381,6 +1397,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
   ///////////////////////////////////////
 
+  if (Config::get().general.verbosity > 2U) std::cout << "Writing PCA modes, eigenvalues and eigenvectors to file.\n";
   if (Config::get().PCA.pca_read_vectors)
   {
     output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat", additionalInformation);
@@ -1392,6 +1409,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
 
   if (Config::get().PCA.pca_print_probability_density)
   {
+    if (Config::get().general.verbosity > 2U) std::cout << "Writing histogram data to file.\n";
     output_probability_density(pca_modes);
   }
 
@@ -1439,6 +1457,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
   }
 
   if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
+  if (Config::get().general.verbosity > 2u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
 
   //Undoing PCA
   trajectory = eigenvectors * trajectory;
