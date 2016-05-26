@@ -86,7 +86,7 @@ namespace matop
    * into a mathmatrix-obj suitable for creating the single-trajectory-matrix (oneliner)
    * This is of course a very specific and not a general transformation.
    */
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false, bool ignoreHydrogen = false);
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false);
 
   /////////////////////////////////////
   //                              /////

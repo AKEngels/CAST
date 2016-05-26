@@ -154,7 +154,7 @@ namespace matop
     }
   }
 
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates, bool ignoreHydrogen)
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
   {
     //First, some range checks
     if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size())
@@ -170,25 +170,6 @@ namespace matop
     {
       // Matrix Size
       Matrix_Class transformed_matrix(1u, (includedAtoms.size() * 2));
-      if (ignoreHydrogen)
-      {
-        size_t countIncludedDihedrals = 0u;
-        for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
-        {
-          if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
-          {
-            continue;
-          }
-          else
-          {
-            countIncludedDihedrals++;
-          }
-        }
-        transformed_matrix = Matrix_Class(1u, (countIncludedDihedrals * 2));
-      }
 
       size_t j = 0;
       size_t quicksearch_dih = 0;
@@ -204,14 +185,6 @@ namespace matop
             {
               checker_dih = true;
               quicksearch_dih++;
-              // If ignore Hydrogen, check if dihedral includes hydrogen
-              if (ignoreHydrogen)
-              {
-                if (coords.atoms(i).number() == 1u
-                  || coords.atoms(coords.atoms(i).ibond()).number() == 1u
-                  || coords.atoms(coords.atoms(i).iangle()).number() == 1u
-                  || coords.atoms(coords.atoms(i).idihedral()).number() == 1u) checker_dih = false;
-              }
               break;
             }
           }
@@ -231,16 +204,7 @@ namespace matop
       if (includedAtoms.size() != 0u)
       {
         Matrix_Class transformed_matrix;
-        if (ignoreHydrogen)
-        {
-          size_t counter = 0u;
-          for (size_t i = 0u; i < includedAtoms.size(); i++)
-          {
-            if (coords.atoms().atom(includedAtoms[i] - 1).number() == 1u) counter++;
-          }
-          transformed_matrix = Matrix_Class(1u, (3 * (includedAtoms.size() - counter)));
-        }
-        else transformed_matrix = Matrix_Class(1u, (3 * includedAtoms.size()));
+        transformed_matrix = Matrix_Class(1u, (3 * includedAtoms.size()));
 
         int j = 0;
         size_t quicksearch = 0;
@@ -251,9 +215,6 @@ namespace matop
           {
             if (includedAtoms[l] - 1 == i)
             {
-              //ignoreHydrogens
-              if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
-              
               checker = true;
               quicksearch++;
               break;
@@ -272,11 +233,9 @@ namespace matop
       else
       {
           Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
-          if (ignoreHydrogen) transformed_matrix = Matrix_Class(1u, (3 * (coords.atoms().size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u))));
           int j = 0;
           for (size_t i = 0; i < coords.atoms().size(); i++)
           {
-            if (ignoreHydrogen && coords.atoms().atom(i).number() == 1u) continue;
             for (size_t k = 0; k < 3; k++)
             {
               //transformed_matrix(0, j + k) = input(k, i);
@@ -1284,71 +1243,60 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     //Constructs two coordinate objects and sets reference frame according to INPUTFILE
 
     //Perform translational alignment for reference frame
-    if (Config::get().PCA.pca_alignment)
+    if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
     {
       ::matop::align::centerOfMassAlignment(coords_ref);
     }
 
-    //const size_t FRAME_SIZE = (size_t)ci->size();
-    //Initializing some stuff
-
-    //Prepare size of huge coordinates / frames matrix
+    // truncate internal coordinates "PCA.pca_internal_dih" 
+    // or cartesians "PCA.pca_trunc_atoms" respectively
+    // especially if hydrogens should be omitted
     if (Config::get().PCA.pca_use_internal)
     {
       if (Config::get().PCA.pca_internal_ignore_hydrogen)
       {
-        size_t countIncludedDihedrals = 0u;
-        for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
+        int sizeOfVector = static_cast<int>(Config::get().PCA.pca_internal_dih.size());
+        for (int i = 0u; i < sizeOfVector; i++)
         {
           if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
             || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
             || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
             || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
           {
-            continue;
-          }
-          else
-          {
-            countIncludedDihedrals++;
+            Config::set().PCA.pca_internal_dih.erase(Config::get().PCA.pca_internal_dih.begin() + i);
+            sizeOfVector--;
+            i--;
           }
         }
-
-        matrix_aligned = 
-          Matrix_Class((size_t) /* explicitly casting to round down */ 
-            ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset),
-            countIncludedDihedrals * 2u);
-
       }
-      else
-      {
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_internal_dih.size() * 2u);
-
-      }
+      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ (
+        (ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset),
+        Config::get().PCA.pca_internal_dih.size() * 2u);
     }
-    else if (Config::get().PCA.pca_trunc_atoms_bool)
-    {
-      if (!Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
-      {
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
-          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
-            Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
-      }
-      else
-      {
-        size_t counter = 0u;
-        for (size_t i = 0u; i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
-        {
-          if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u) counter++;
-        }
-        size_t numberOfHydrogen = counter;
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
-          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
-            Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size() - numberOfHydrogen) * 3u);
-      }
-    } 
     else
     {
-      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
+      if (!Config::get().PCA.pca_trunc_atoms_bool)
+      {
+        Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>(coords.atoms().size());
+        // Fill with 0, 1, 2,..., .
+        std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1); 
+      }
+      if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
+      {
+        int sizeOfVector = static_cast<int>(Config::get().PCA.pca_trunc_atoms_num.size());
+        for (int i = 0u; i < sizeOfVector; i++)
+        {
+          if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u)
+          {
+            Config::set().PCA.pca_trunc_atoms_num.erase(Config::get().PCA.pca_trunc_atoms_num.begin() + i);
+            sizeOfVector--;
+            i--;
+          }
+        }
+      }
+      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
+        ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
+        Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size()) * 3u);
     }
 
     /* j counts the (truncated) matrix access, i the frames in ci */
@@ -1360,8 +1308,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
         {
           auto holder2 = ci->PES()[i].structure.intern;
           coords.set_internal(holder2);
-          bool ignoreHydrogen = Config::get().PCA.pca_internal_ignore_hydrogen;
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true, ignoreHydrogen);
+          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true);
         }
       }
       else
@@ -1375,9 +1322,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
             ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
             ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
           }
-          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen && Config::get().PCA.pca_trunc_atoms_bool;
-          if(Config::get().PCA.pca_trunc_atoms_bool) matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen).row(0u);
-          else matrix_aligned.row(j) = ::matop::transformToOneline(coords, std::vector<size_t>(), false, ignoreHydrogen).row(0u);
+          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false).row(0u);
         }
       }
     }
@@ -1402,7 +1347,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     //Mass-weightening coordinates if cartesians are used
     prepare_pca(matrix_aligned, eigenvalues, eigenvectors);
   }
-
+  
   if (Config::get().PCA.pca_read_vectors)
   {
     std::string iAmNotImportant_YouMayDiscardMe;
@@ -1415,49 +1360,22 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
   }
 
   ///////////////////////////////////////
-
+  // Build the additional information string which is necessary for string i/o in PCAproc task
   std::string additionalInformation;
   if (Config::get().PCA.pca_use_internal)
   {
     additionalInformation += "int ";
     for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
     {
-      if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
-      {
-        if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
-        {
-          continue;
-        }
-        else
-        {
-          additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
-        }
-      }
-      else
-      {
-        additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
-      }
+      additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
     }
   }
   else
   {
     additionalInformation += "car ";
-    if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen) // If hydrogens are to be ignored
+    for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
     {
-      for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
-      {
-        if(coords.atoms(i).number() != 1u) additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
-      }
-    }
-    else
-    {
-      for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
-      {
-        additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
-      }
+      additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
     }
   }
 
