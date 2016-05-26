@@ -436,6 +436,17 @@ namespace scon
 		 */
 		float_type determ() const
 		{
+#ifdef USE_ARMADILLO
+			arma::Mat<float_type> matrix(this->rows(), this->cols());
+			for (size_t i = 0; i < this->rows(); i++)
+			{
+				for (size_t j = 0; j < this->cols(); j++)
+				{
+					matrix(i, j) = (*this)(i, j);
+				}
+			}
+			return static_cast<float_type>(det(matrix));
+#else
 			//Via Numerical Recipies, LU Decomposition
 			mathmatrix lu = *this;
 			//const float_type TINY = 1.0e-40;
@@ -514,6 +525,7 @@ namespace scon
 				IF_SINGULAR:
 				return 0u;
 			}
+#endif
 		}
 
 		/**
