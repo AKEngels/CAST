@@ -184,11 +184,12 @@ namespace tinker
       double angleunit;
       double bondunit;
       double torsionunit;
+      double imptorunit;
       double dielectric;
       double electric;
 
       global (void) 
-        : angleunit(SCON_PI180*SCON_PI180), bondunit(1.0), torsionunit(1.0), dielectric(1.0), electric(332.06)
+        : angleunit(SCON_PI180*SCON_PI180), bondunit(1.0), torsionunit(1.0), imptorunit(1.0), dielectric(1.0), electric(332.06)
       {
         vdw_scale.use[0u] = vdw_scale.use[1u] = vdw_scale.use[2u] = false; // do not use vdw 11,12,13 per default
         vdw_scale.value[0u] = vdw_scale.value[1u] = vdw_scale.value[2u] = 0.0; // do not use vdw 11,12,13 per default
@@ -486,6 +487,7 @@ namespace tinker
 	  std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
 
       double torsionunit (void) const { return m_general.torsionunit; }
+      double imptorunit(void) const { return m_general.imptorunit; }
       double angleunit (void) const { return m_general.angleunit; }
       double bondunit (void) const { return m_general.bondunit; }
 

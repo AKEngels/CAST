@@ -251,7 +251,7 @@ tinker::parameter::torsion::torsion (std::string const &line)
 
 bool tinker::parameter::torsion::empty (void) const
 {
-  return !((fabs(force[0]) > 0.0) || (fabs(force[1]) > 0.0) || (fabs(force[2]) > 0.0));
+  return !((fabs(force[0]) > 0.0) || (fabs(force[1]) > 0.0) || (fabs(force[2]) > 0.0) || (fabs(force[3]) > 0.0));
 }
 
 
@@ -964,8 +964,11 @@ void tinker::parameter::parameters::parse_lines (std::vector<std::string> const 
       }
     case 'i':
       {
-        if (str_match_begin(line, "imptors")) m_imptors.push_back(line);
-        else if (str_match_begin(line, "improper")) m_impropers.push_back(line);
+        if (!check_string_put(line, "imptorunit", m_general.imptorunit))
+        {
+          if (str_match_begin(line, "imptors")) m_imptors.push_back(line);
+          else if (str_match_begin(line, "improper")) m_impropers.push_back(line);
+        }
         break;
       }
     case 'm':

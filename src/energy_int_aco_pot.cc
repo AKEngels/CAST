@@ -465,8 +465,6 @@ namespace energy
         using std::sqrt;
         using std::abs;
         coords::float_type E(0.0);
-        //coords::float_type vxx, vyx, vzx, vyy, vzy, vzz;
-        //coords::Cartesian_Point vir1, vir2, vir3, vir4;
         for (auto const & torsion : refined.torsions())
         {
 
@@ -695,20 +693,19 @@ namespace energy
           for (std::size_t j(0U); j < imptor.p.number; ++j)
           {
             std::size_t const k = imptor.p.order[j];
+            coords::float_type F = imptor.p.force[j] * cparams.imptorunit();
             coords::float_type c(std::cos(imptor.p.ideal[j]*SCON_PI180)), 
               s(std::sin(imptor.p.ideal[j]*SCON_PI180));
             c = c > 1.0 ? 1.0 : c < -1.0 ? -1.0 : c;
             s = s > 1.0 ? 1.0 : s < -1.0 ? -1.0 : s;
 
-            tE += imptor.p.force[j] * (1.0 + (cos[k]*c + sin[k]*s));
-            dE += static_cast<coords::float_type>(k) * imptor.p.force[j] * (cos[k]*s - sin[k]*c);
+            tE += F * (1.0 + (cos[k]*c + sin[k]*s));
+            dE += static_cast<coords::float_type>(k) * F * (cos[k]*s - sin[k]*c);
 
             //std::cout << "vcs" << k << " " << imptor.p.force[j] << " " << c << " " << s << "\n";
             //std::cout << "p" << k << " " << (1.0 + (cos[k] * c + sin[k] * s)) << '\n';
             //std::cout << "dp" << k << " " << (static_cast<coords::float_type>(k) * (cos[k] * s - sin[k] * c)) << '\n';
           }
-          tE *= 0.5;
-          dE *= 0.5;
           E += tE;
 
           //std::cout << "E " << tE << '\n';
