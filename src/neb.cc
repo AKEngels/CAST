@@ -37,11 +37,9 @@ void neb::preprocess(ptrdiff_t &count)
   ts = false;
   imagi.resize(num_images);
   image_ini.resize(num_images);
-  tau.resize(num_images);
+  tau.resize(num_images+1);
   images_initial.clear();
   images.resize(N);
-  tempimage_final.resize(num_images);
-  tempimage_ini.resize(num_images);
   energies.resize(num_images);
   initial();
   final();
@@ -82,8 +80,6 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   image_ini.resize(num_images);
   images_initial.clear();
   images.resize(N);
-  tempimage_final.resize(num_images);
-  tempimage_ini.resize(num_images);
   energies.resize(num_images);
   ts_energies = ts_energy;
   min_energies = min_energy;
@@ -116,8 +112,8 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   ts_pathstruc.resize(num_images);
   image_ini.resize(num_images);
   images_initial.clear();
-  tempimage_final.resize(num_images);
-  tempimage_ini.resize(num_images);
+  tempimage_final.resize(N);
+  tempimage_ini.resize(N);
   energies.resize(num_images);
   springconstant = Config::get().neb.SPRINGCONSTANT;
   initial(start);
@@ -209,25 +205,31 @@ void neb::create()
 
 
 
-
+ 
 
 void neb::run(ptrdiff_t &count)
 {
 
-  calc_tau();
+ 
   lbfgs();
   opt_io(count);
+  for (size_t t = 0; t < num_images;t++) tau[t].clear();
+  calc_tau();
+  for(auto ts : tau[1]) tau[0].push_back(ts);
+  for (auto te : tau[num_images-2])tau[num_images-1].push_back(te);
+
 
 }
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
 {
-  calc_tau();
   lbfgs();
   opt_io(count);
   internal_execute(imagi, atoms_remember);
   //no_torsion(image_remember[DIHEDRAL],atoms_remember[DIHEDRAL]);
   opt_internals(count, atoms_remember);
   //internal_execute(imagi,image_remember,atoms_remember);
+  for (size_t t = 0; t < num_images; t++) tau[t].clear();
+  calc_tau();
 }
 
 
@@ -251,7 +253,7 @@ void neb::calc_tau(void)
   double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 }, abso{ 0.0 };
   get_energies();
   for (size_t i = 1; i < num_images - 1; i++) {
-
+	  
     if (Config::get().neb.TAU == false)
     {
       for (size_t j = 0; j < N; j++) {
@@ -262,7 +264,7 @@ void neb::calc_tau(void)
         if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
         if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
         if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-        tau[i].push_back(images[j]);
+		tau[i].push_back(images[j]);
         abso = len(tau[i][j]);
         if (abso != 0.0) normalize(tau[i][j]);
       }
@@ -355,6 +357,7 @@ void neb::calc_tau(void)
 
       }
     }
+	//std::cout << tau[i].size()<<'\n';
   }
 }
 
@@ -728,9 +731,11 @@ double neb::g_new()
         cPtr->update_g_xyz(j, g);
         grad_tot.push_back(g);
       }
+	/*  tau[im].clear();*/
     }
 
   }
+  
   return energytemp;
 }
 
