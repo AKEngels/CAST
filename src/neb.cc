@@ -215,7 +215,7 @@ void neb::run(ptrdiff_t &count)
   opt_io(count);
   for (size_t t = 0; t < num_images;t++) tau[t].clear();
   calc_tau();
-  for(auto ts : tau[1]) tau[0].push_back(ts);
+  for(auto tx : tau[1]) tau[0].push_back(tx);
   for (auto te : tau[num_images-2])tau[num_images-1].push_back(te);
 
 
