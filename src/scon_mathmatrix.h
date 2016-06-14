@@ -72,8 +72,6 @@ typedef size_t uint_type;
 #endif
 
 ///////////////////////////////
-namespace scon 
-{
 	template <typename T> 
   class mathmatrix 
 #ifndef USE_ARMADILLO
@@ -140,7 +138,9 @@ namespace scon
     // element access
     using base_type::operator();
     using base_type::operator[];
+#ifndef USE_ARMADILLO
     using base_type::operator*=;
+#endif
 
     // identity
 #ifndef USE_ARMADILLO
@@ -568,6 +568,7 @@ namespace scon
 			//Check if sizes match
 			if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
 			{
+        std::cout << "Error in Matrix mathmatrix subtraction, wrong input sizes" << std::endl;
 				throw ("Error in Matrix mathmatrix subtraction, wrong input sizes");
 			}
 			mathmatrix output = *this;
@@ -810,6 +811,13 @@ namespace scon
         return *this;
       }
 		}
+
+    mathmatrix operator*(mathmatrix const& in) const
+    {
+      arma::Mat<T> const& a = *this;
+      arma::Mat<T> const& b = in;
+      return mathmatrix(a*b);
+    };
 
 		/**
 		 * Performs singular value decomposition on *this and writes results
@@ -1184,18 +1192,18 @@ for (size_t i = 0; i < U_in.rows(); i++)
   //FREE FUNCTIONS
 #ifdef USE_ARMADILLO
   template<typename T>
-  scon::mathmatrix<T> transposed(mathmatrix<T> const& in)
+  mathmatrix<T> transposed(mathmatrix<T> const& in)
   {
-    return scon::mathmatrix<T>(in.t());
+    return mathmatrix<T>(in.t());
   };
 
   template<typename T>
   void transpose(mathmatrix<T>& in)
   {
-    in = scon::transposed(in);
+    in = transposed(in);
   };
-#endif
-#ifndef USE_ARMADILLO
+
+#else
   namespace detail
   {
     template<class T>
@@ -1229,8 +1237,6 @@ for (size_t i = 0; i < U_in.rows(); i++)
     matrix<T> const &ma = a;
     return ma * b;
   }
-
 #endif
 
-  }
 //END HEADER

@@ -3,7 +3,7 @@ CAST 3
 matop.h
 Purpose: 
 Specific algorithms for specific problems are placed here.
-Calculations are done using scon::mathmatrix
+Calculations are done using mathmatrix
 
 @author Dustin Kaiser
 @version 2.0
@@ -17,7 +17,7 @@ Calculations are done using scon::mathmatrix
 #include "scon_angle.h"
 #include <stdexcept>
 
-typedef scon::mathmatrix<float_type> Matrix_Class;
+typedef mathmatrix<float_type> Matrix_Class;
 
 namespace matop
 {
