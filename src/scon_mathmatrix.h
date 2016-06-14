@@ -1132,9 +1132,15 @@ for (size_t i = 0; i < U_in.rows(); i++)
       eigenvec_in.resize(this->cols(), this->cols());
       eigenval_in.resize(this->cols(), 1u);
       arma::Col<float_type> s;
-      eig_sym(s, eigenvec_in, *this);
+      arma::Mat<float_type> eigVecUnordered(eigenvec_in.rows(), eigenvec_in.cols());
+      eig_sym(s, eigVecUnordered, *this);
+
       for (size_t i = 0; i < (*this).rows(); i++)
       {
+        for (size_t j = 0; j < (*this).cols(); j++)
+        {
+          eigenvec_in(i, (*this).cols() - j - 1u) = eigVecUnordered(i, j);
+        }
         eigenval_in((*this).rows() - i - 1u) = s(i);
       }
       if (rank_in != nullptr) *rank_in = arma::rank(s);
