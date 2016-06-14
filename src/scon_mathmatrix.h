@@ -1207,6 +1207,7 @@ for (size_t i = 0; i < U_in.rows(); i++)
   };
 
 #else
+  using namespace scon;
   //namespace detail
   //{
   //  template<class T>
