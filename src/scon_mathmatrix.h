@@ -3,8 +3,11 @@ CAST 3
 scon_mathmatrix.h
 Purpose: Enabling matrix calculations. Uses Armadillo for enhanced speed when available. Otherwise uses slow internal routines.
 
+Works on either internal scon::matrix types or arma::Mat types if 
+the flag USE_ARMADILLO is specified
+
 @author Dustin Kaiser
-@version 2.0
+@version 3.0
 */
 
 /*
@@ -17,30 +20,15 @@ mathmatrix(foo,1) == mathmatrix(foo) for single row vectors and such
 
 */
 
-/* 
+/*
 CODING CONVENTIONS AS FOLLOWS:
 
-- Wraps underlying abstract matrix-obj of the "scon_matrix.h" - kind
+- Wraps underlying abstract matrix-obj of the "scon_matrix.h" - kind or arma::Mat kind
 - There might be still some ambigous stuff going on regarding types.
-- If it breaks you get to keep all the peaces,
 
 */
 
 
-#pragma once
-
-#include <iostream>
-#include <vector>
-#include <iomanip>
-#include <string>
-#include <cmath>
-#include <limits>
-#include <utility>
-#include "scon_matrix.h"
-
-#ifdef USE_ARMADILLO
-#include <armadillo>
-#endif
 
 /////////////////////////////////
 //                             //
@@ -48,15 +36,12 @@ CODING CONVENTIONS AS FOLLOWS:
 //                             //
 /////////////////////////////////
 
-//typedef scon::matrix<coords::float_type> ArrayType;
 #include "coords.h"
 typedef coords::float_type float_type;
 typedef int int_type;
-//typedef scon::mathmatrix<float_type> Matrix_Class;
 typedef size_t uint_type;
 
 ///////////////////////////////
-
 
 ///////////////////////////////
 //                           //
@@ -71,17 +56,39 @@ typedef size_t uint_type;
 
 //#define DEBUGVIEW
 
+#pragma once
+#include <iostream>
+#include <vector>
+#include <iomanip>
+#include <string>
+#include <cmath>
+#include <limits>
+#include <utility>
+
+#ifdef USE_ARMADILLO
+#include <armadillo>
+#else
+#include "scon_matrix.h"
+#endif
+
 ///////////////////////////////
 namespace scon 
 {
-
 	template <typename T> 
   class mathmatrix 
+#ifndef USE_ARMADILLO
     : public scon::matrix<T>
+#else
+    : public arma::Mat<T>
+#endif
+
 	{
   private:
-
+#ifndef USE_ARMADILLO
     using base_type = scon::matrix<T>;
+#else
+    using base_type = arma::Mat<T>;
+#endif
 
 #ifdef DEBUGVIEW
     std::vector<std::vector<T> > array_debugview_internal;
@@ -97,10 +104,25 @@ namespace scon
 		/////////////////////////////////////
 
     // forward all arguments to matrix constructor
+#ifndef USE_ARMADILLO
     template<class ... Args>
     mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
+#else
+    mathmatrix() : arma::Mat<T>() {};
+    mathmatrix(size_t rows) : arma::Mat<T>(rows, 1u) {};
+    mathmatrix(size_t rows, size_t cols) : arma::Mat<T>(rows, cols) {};
+    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) {};
+    mathmatrix(size_t rows, size_t cols, T fill) : arma::Mat<T>(rows, cols) 
+    {
+      for (size_t i = 0u; i < rows; i++)
+        for (size_t j = 0u; j < cols; j++)
+          (*this)(i, j) = fill;
+    };
+
+#endif
 
     // pull in range functions
+#ifndef USE_ARMADILLO
     using base_type::begin;
     using base_type::end;
     using base_type::cbegin;
@@ -109,6 +131,7 @@ namespace scon
     using base_type::rend;
     using base_type::crbegin;
     using base_type::crend;
+#endif
 
     // base row and col proxy
     using base_type::row;
@@ -120,21 +143,25 @@ namespace scon
     using base_type::operator*=;
 
     // identity
+#ifndef USE_ARMADILLO
     using base_type::identity;
+#else
+    static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
+      identity(std::size_t const num_rows, std::size_t const num_cols)
+    {
+      mathmatrix r(num_rows, num_cols, T{});
+      auto m = std::min(num_rows, num_cols);
+      for (std::size_t i = 0; i < m; ++i)
+      {
+        r(i, i) = T{ 1 };
+      }
+      return r;
+    }
+#endif
 
     // in case you are wondering:
     // transposed and some more stuff is available as free functions
     // eg transpose(). We should really decoment the relevant stuff here...
-
-		/**
-		 * Second "Copy Constructor", if boolean size_only is set to TRUE
-		 * Only the size of the matrix will be copied (faster)
-		 */
-		mathmatrix(mathmatrix const& in, bool size_only) 
-      : scon::matrix<T>(in.rows(), in.cols())
-		{
-			if (!size_only) std::copy(in.begin(), in.end(), this->begin());
-		};
 
 		/////////////////////////////////////
 		/////                           /////
@@ -152,6 +179,9 @@ namespace scon
 			{
 				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
 			}
+#ifdef USE_ARMADILLO
+      return (mathmatrix(*this + in));
+#else
 			mathmatrix out(*this);
 			for (unsigned int i = 0; i < this->rows(); i++)
 			{
@@ -161,6 +191,7 @@ namespace scon
 				}
 			}
 			return out;
+#endif
 		};
 
     using base_type::resize;
@@ -171,6 +202,7 @@ namespace scon
 		 */
 		void out() const
 		{
+#ifndef USE_ARMADILLO
       base_type const & a = *this;
       matrix_printer<base_type> mp(a);
       // 3 newlines on top
@@ -182,6 +214,10 @@ namespace scon
       mp.margin_right = 1u;
       // 
       std::cout << mp;
+#else
+      arma::Mat<T>* ptr = *this;
+      std::cout << *ptr;
+#endif
 		};
 
 		/**
@@ -212,8 +248,11 @@ namespace scon
 		/**
 		 * Returns rank of the underlying matrix
 		 */
-		unsigned int rank() const
+		size_t rank() const
 		{
+#ifdef USE_ARMADILLO
+      return static_cast<size_t>(rank(*this));
+#else
 			//Rewritten from NumRecipies, SVD
 
 			//"Constructor"
@@ -429,6 +468,7 @@ namespace scon
 			int j, nr = 0;
 			for (j = 0; j<n; j++) if (s_in(j) > tsh) nr++;
 			return nr;
+#endif
 		};
 
 		/**
@@ -437,15 +477,7 @@ namespace scon
 		float_type determ() const
 		{
 #ifdef USE_ARMADILLO
-			arma::Mat<float_type> matrix(this->rows(), this->cols());
-			for (size_t i = 0; i < this->rows(); i++)
-			{
-				for (size_t j = 0; j < this->cols(); j++)
-				{
-					matrix(i, j) = (*this)(i, j);
-				}
-			}
-			return static_cast<float_type>(det(matrix));
+			return static_cast<float_type>(det(*this));
 #else
 			//Via Numerical Recipies, LU Decomposition
 			mathmatrix lu = *this;
@@ -580,7 +612,7 @@ namespace scon
 
 			this->resize(this->rows() + I_will_be_the_bottom_part.rows(), this->cols());
 
-			//Add "in" to newly ceated space.
+			//Add "in" to newly created space.
 			for (unsigned int i = 0; i < I_will_be_the_bottom_part.rows(); i++)
 			{
 				for (unsigned int j = 0; j < this->cols(); j++)
@@ -727,19 +759,37 @@ namespace scon
 		/**
 		 * Returns number of rows
 		 */
+#ifndef USE_ARMADILLO
     using base_type::rows;
+#else
+    size_t rows() const
+    {
+      return this->n_rows;
+    }
+#endif
 
 		/**
 		 * Returns number of columns
 		 */
+#ifndef USE_ARMADILLO
     using base_type::cols;
+#else
+    size_t cols() const
+    {
+      return this->n_cols;
+    }
+#endif
 
 		/**
 		 * Returns whether mathmatrix-obj is quadratic
 		 */
 		bool return_quadratic() const
 		{
+#ifndef USE_ARMADILLO
 			return this->quadratic();
+#else
+      return this->rows() == this->cols();
+#endif
 		}
 
 		/**
@@ -774,7 +824,6 @@ namespace scon
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
       //"Constructor"
-      U_in = *this;
       V_in.resize(this->cols(), this->cols());
       s_in.resize(this->cols(), 1u);
 #ifndef USE_ARMADILLO
@@ -1032,23 +1081,10 @@ namespace scon
         *rank = nr;
       }
 #else
-arma::Mat<float_type> matrix(U_in.rows(), U_in.cols()), v, u;
-for (size_t i = 0; i < U_in.rows(); i++)
-{
-  for (size_t j = 0; j < U_in.cols(); j++)
-  {
-    matrix(i, j) = U_in(i, j);
-  }
-}
 arma::Col<float_type> s;
-if(!svd_econ(u, s, v, matrix)) throw std::runtime_error("Error in armadillo SVD: failed.");
+if(!svd_econ(U_in, s, V_in, *this)) throw std::runtime_error("Error in armadillo SVD: failed.");
 for (size_t i = 0; i < U_in.rows(); i++)
 {
-  for (size_t j = 0; j < U_in.cols(); j++)
-  {
-    U_in(i, j) = u(i, j);
-    V_in(i, j) = v(i, j);
-  }
   s_in(i) = s(i);
 
   if (rank != nullptr) *rank = arma::rank(s);
@@ -1084,24 +1120,10 @@ for (size_t i = 0; i < U_in.rows(); i++)
 #else
       eigenvec_in.resize(this->cols(), this->cols());
       eigenval_in.resize(this->cols(), 1u);
-      arma::Mat<float_type> matrix((*this).rows(), (*this).cols()), v, u;
-      for (size_t i = 0; i < (*this).rows(); i++)
-      {
-        for (size_t j = 0; j < (*this).cols(); j++)
-        {
-          matrix(i, j) = (*this)(i, j);
-        }
-      }
       arma::Col<float_type> s;
-      eig_sym(s, v, matrix);
+      eig_sym(s, eigenvec_in, *this);
       for (size_t i = 0; i < (*this).rows(); i++)
       {
-        for (size_t j = 0; j < (*this).cols(); j++)
-        {
-          //eigenvec_in((*this).rows() - i - 1u, j) = v(i, j);
-          eigenvec_in(i, (*this).cols() - j - 1u) = v(i, j);
-
-        }
         eigenval_in((*this).rows() - i - 1u) = s(i);
       }
       if (rank_in != nullptr) *rank_in = arma::rank(s);
@@ -1158,6 +1180,22 @@ for (size_t i = 0; i < U_in.rows(); i++)
 		}
 	};
 
+
+  //FREE FUNCTIONS
+#ifdef USE_ARMADILLO
+  template<typename T>
+  scon::mathmatrix<T> transposed(mathmatrix<T> const& in)
+  {
+    return scon::mathmatrix<T>(in.t());
+  };
+
+  template<typename T>
+  void transpose(mathmatrix<T>& in)
+  {
+    in = scon::transposed(in);
+  };
+#endif
+#ifndef USE_ARMADILLO
   namespace detail
   {
     template<class T>
@@ -1192,6 +1230,7 @@ for (size_t i = 0; i < U_in.rows(); i++)
     return ma * b;
   }
 
-}
+#endif
 
+  }
 //END HEADER
