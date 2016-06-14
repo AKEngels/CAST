@@ -42,9 +42,7 @@ void pathx::pathx_ini()
     N->num_images = temp_image;
     cPtr->set_xyz(N->imagi[i]);
     MCM_NEB(i);
-	//for (size_t n = 0; n < cPtr->size(); n++) {
-	//	std::cout << N->tau[temp_image][n].x() << '\n';
-	//}
+	
   }
   proof_connect();
 }
@@ -151,6 +149,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
 	  MCmin = lbfgs(opt);
+	  if(Config::get().general.verbosity > 15) std::cout << "MCM energy of step "<<mcstep<<" is "<<MCmin<<'\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
@@ -499,7 +498,7 @@ double pathx::lbfgs(ptrdiff_t imagex)
 //MODIFICATION OF GRADIENT CALCULATION
 double pathx::g_new(ptrdiff_t im)
 {
-  double cosi(0.0), cosi2(0.0),energytemp(0.0), pot(0.0), dpot(0.0),kappa(0.0);
+  double cosi(0.0), energytemp(0.0), pot(0.0), dpot(0.0);
   coords::Cartesian_Point rv_p, rv_n;
   energytemp = cPtr->g();
   if (Config::get().neb.OPTMODE == "PROJECTED")
@@ -542,40 +541,7 @@ double pathx::g_new(ptrdiff_t im)
       cPtr->update_g_xyz(i, rv_p);
     }
 
-    cosi = 0.0;
-  }
-  else if (Config::get().neb.OPTMODE == "MAXFLUX")
-  {
-	  double beta{ 1 / (Config::get().neb.TEMPERATURE*_KT_) };
-	  for (size_t i = 0; i < cPtr->size(); i++)
-	  {
-		  auto L = scon::geometric_length(N->tau[im][i]);
-		  if (L != 0.0)
-		  {
-			  cosi = (cPtr->g_xyz(i).x()*N->tau[im][i].x() + cPtr->g_xyz(i).y()*N->tau[im][i].y() + cPtr->g_xyz(i).z()*N->tau[im][i].z()) / (L * L);
-			  cosi2 = (cPtr->xyz(i).x()*N->tau[im][i].x() + cPtr->xyz(i).y()*N->tau[im][i].y() + cPtr->xyz(i).z()*N->tau[im][i].z()) / (L * L);
-		  }
-		  else
-		  {
-			  cosi = 0.0;
-			  cosi2 = 0.0;
-		  }
-		  if (cosi2 != cosi2)cosi2 = 0.0;
-		  rv_n.x() = cPtr->xyz(i).x() - (cosi2 * N->tau[im][i].x());
-		  rv_n.y() = cPtr->xyz(i).y() - (cosi2 * N->tau[im][i].y());
-		  rv_n.z() = cPtr->xyz(i).z() - (cosi2 * N->tau[im][i].z());
-
-		  kappa = acos(dot(N->tau[im - 1][i], N->tau[im + 1][i])) / (len(N->imagi[im][i] - N->imagi[im - 1][i]) + len(N->imagi[im + 1][i] - N->imagi[im][i]));
-
-		  rv_p.x() = (cPtr->g_xyz(i).x() - (cosi * N->tau[im][i].x())) - (kappa / beta*rv_n.x());
-		  rv_p.y() = (cPtr->g_xyz(i).y() - (cosi * N->tau[im][i].y())) - (kappa / beta*rv_n.y());
-		  rv_p.x() = (cPtr->g_xyz(i).z() - (cosi * N->tau[im][i].z())) - (kappa / beta*rv_n.z());
-
-		  cPtr->update_g_xyz(i, rv_p);
-	  }
-
-  }
-	  
+  }	  
   return energytemp;
 }
 

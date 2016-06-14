@@ -687,6 +687,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.INT_IT;
 	  else if (option.substr(11, 9) == "-NEB-IDPP")
 		  cv >> Config::set().neb.IDPP;
+	  else if (option.substr(11, 8) == "-MAXFLUX")
+		  cv >> Config::set().neb.MAXFLUX;
   }
 
   //! convergence gradient for bfgs

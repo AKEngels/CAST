@@ -86,8 +86,10 @@ public:
   void print_rev(std::string const &, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t &);
   double g_new();
+  double g_new_maxflux();
   double g_int(std::vector <scon::c3 <float> >  tx);
   void calc_shift(void);
+  double dot_uneq(coords::Representation_3D const &a, coords::Representation_3D const &b);
 
   //Julians implementation
   void run(ptrdiff_t &count, std::vector<size_t>& image_remember, std::vector<std::vector<size_t> >& atoms_remember);
@@ -120,6 +122,7 @@ public:
 
   double lbfgs();
   double lbfgs_int(std::vector <scon::c3 <float> > t);
+  double lbfgs_maxflux();
 
   struct GradCallBack
   {
@@ -138,6 +141,25 @@ public:
       g = scon::explicit_transform<ot>(p->grad_tot);
       return E;
     }
+  };
+
+  struct GradCallBackMaxFlux
+  {
+	  neb * p;
+	  GradCallBackMaxFlux(neb & nebo) : p(&nebo) {}
+	  float operator() (scon::vector< scon::c3<float> > const &x,
+		  scon::vector< scon::c3<float> > &g, size_t const, bool & go_on)
+	  {
+		  using ot = scon::vector< scon::c3<float> >;
+
+		  using ct = coords::Representation_3D;
+		  //p->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
+		  p->images_initial = scon::explicit_transform<ct>(x);
+		  float E = static_cast<float>(p->g_new_maxflux());
+		  go_on = p->cPtr->integrity();
+		  g = scon::explicit_transform<ot>(p->grad_tot);
+		  return E;
+	  }
   };
 
   struct GradCallBack_int
@@ -365,6 +387,7 @@ private:
   double springconstant;
   double tauderiv;
   double EnergyPml, EnergyPpl;
+  const double _KT_;
 
   ptrdiff_t natoms;
   ptrdiff_t nvar;

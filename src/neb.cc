@@ -19,7 +19,7 @@
 /*CLASS which performs double ended Reaction Path Search by applying the NEB method and adapted
  approaches like Interpolative Optimization*/
 
-neb::neb(coords::Coordinates *cptr)
+neb::neb(coords::Coordinates *cptr):_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
   cPtr = cptr;
   reversed = true;
@@ -37,7 +37,7 @@ void neb::preprocess(ptrdiff_t &count)
   ts = false;
   imagi.resize(num_images);
   image_ini.resize(num_images);
-  tau.resize(num_images+1);
+  tau.resize(num_images);
   images_initial.clear();
   images.resize(N);
   energies.resize(num_images);
@@ -136,7 +136,7 @@ void neb::final(void)
   std::string buffer;
   getline(final, buffer);
   size_t number;
-  char atom[2];
+  char atom[3];
   for (size_t i = 0; i < N; i++)
   {
     getline(final, buffer);
@@ -210,14 +210,16 @@ void neb::create()
 void neb::run(ptrdiff_t &count)
 {
 
- 
-  lbfgs();
-  opt_io(count);
-  for (size_t t = 0; t < num_images;t++) tau[t].clear();
   calc_tau();
-  for(auto tx : tau[1]) tau[0].push_back(tx);
-  for (auto te : tau[num_images-2])tau[num_images-1].push_back(te);
-
+  for (auto tx : tau[1]) tau[0].push_back(tx);
+  for (auto te : tau[num_images - 2])tau[num_images - 1].push_back(te);
+  if (Config::get().neb.MAXFLUX) lbfgs_maxflux();
+  else lbfgs();
+  tau[0].clear();
+  tau[num_images - 1].clear();
+  for (auto tx : tau[1]) tau[0].push_back(tx);
+  for (auto te : tau[num_images - 2])tau[num_images - 1].push_back(te);
+  opt_io(count);
 
 }
 void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<size_t> >& atoms_remember)
@@ -241,7 +243,6 @@ void neb::get_energies(void)
   {
     cPtr->set_xyz(imagi[i]);
     energies[i] = cPtr->g();
-    if (energies[i] > energies[i - 1] && i > 0) CIMaximum = i;
   }
 
   if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum << "\n";
@@ -250,23 +251,21 @@ void neb::get_energies(void)
 void neb::calc_tau(void)
 {
 
-  double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 }, abso{ 0.0 };
+  double Em1{ 0.0 }, Ep1{ 0.0 }, Emax{ 0.0 }, Emin{ 0.0 };
   get_energies();
   for (size_t i = 1; i < num_images - 1; i++) {
-	  
+	if (energies[i] > energies[i - 1]) CIMaximum = i;
     if (Config::get().neb.TAU == false)
     {
-      for (size_t j = 0; j < N; j++) {
+      for (size_t j = 0; j < N; j++)
+	  {
         images[j].x() = imagi[i][j].x() - imagi[i - 1][j].x() / abs(imagi[i][j].x() - imagi[i - 1][j].x()) + (imagi[i + 1][j].x() - imagi[i][j].x()) / abs(imagi[i + 1][j].x() - imagi[i][j].x());
         images[j].y() = imagi[i][j].y() - imagi[i - 1][j].y() / abs(imagi[i][j].y() - imagi[i - 1][j].y()) + (imagi[i + 1][j].y() - imagi[i][j].y()) / abs(imagi[i + 1][j].y() - imagi[i][j].y());
         images[j].z() = imagi[i][j].z() - imagi[i - 1][j].z() / abs(imagi[i][j].z() - imagi[i - 1][j].z()) + (imagi[i + 1][j].z() - imagi[i][j].z()) / abs(imagi[i + 1][j].z() - imagi[i][j].z());
-        abso = 0.0;
         if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
         if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
         if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-		tau[i].push_back(images[j]);
-        abso = len(tau[i][j]);
-        if (abso != 0.0) normalize(tau[i][j]);
+		tau[i].push_back(images[j]);		
       }
     }
     else
@@ -280,12 +279,12 @@ void neb::calc_tau(void)
       if (energies[i + 1] > energies[i]) EnergyPpl = energies[i + 1];
       else EnergyPpl = energies[i];
 
-      if (EnergyPml != EnergyPml) {
-        if (EnergyPml > EnergyPpl) {
+      if (EnergyPml != EnergyPml) 
+	  {
+        if (EnergyPml > EnergyPpl) 
+		{
 
           for (size_t j = 0; j < N; j++) {
-
-            abso = 0.0;
             images[j].x() = (imagi[i][j].x() - imagi[i - 1][j].x());
             images[j].y() = (imagi[i][j].y() - imagi[i - 1][j].y());
             images[j].z() = (imagi[i][j].z() - imagi[i - 1][j].z());
@@ -293,14 +292,12 @@ void neb::calc_tau(void)
             if (images[j].y() != images[j].y()) images[j].y() = 0.0;
             if (images[j].z() != images[j].z()) images[j].z() = 0.0;
             tau[i].push_back(images[j]);
-            abso = len(tau[i][j]);
-            if (abso != 0.0) normalize(tau[i][j]);
           }
         }
         else {
           for (size_t j = 0; j < N; j++) {
 
-            abso = 0.0;
+          
 
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x());
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y());
@@ -309,31 +306,28 @@ void neb::calc_tau(void)
             if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
             if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
             tau[i].push_back(images[j]);
-            abso = len(tau[i][j]);
-            if (abso != 0.0) normalize(tau[i][j]);
 
           }
         }
       }
-      else {
+      else 
+	  {
         Em1 = energies[i - 1] - energies[i];
         Ep1 = energies[i + 1] - energies[i];
 
         Emin = std::min(abs(Ep1), abs(Em1));
         Emax = std::max(abs(Ep1), abs(Em1));
 
-        if (Em1 > Ep1) {
+        if (Em1 > Ep1) 
+		{
           for (size_t j = 0; j < N; j++) {
-            abso = 0.0;
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emin + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emax;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emin + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emax;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emin + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emax;
-            if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
-            if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
-            if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-            tau[i].push_back(images[j]);
-            abso = len(tau[i][j]);
-            if (abso != 0.0) normalize(tau[i][j]);
+			if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
+			if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
+			if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
+			tau[i].push_back(images[j]);
           }
 
         }
@@ -342,23 +336,32 @@ void neb::calc_tau(void)
         else {
           for (size_t j = 0; j < N; j++) {
 
-            abso = 0.0;
+            
             images[j].x() = (imagi[i + 1][j].x() - imagi[i][j].x()) * Emax + (imagi[i][j].x() - imagi[i - 1][j].x()) * Emin;
             images[j].y() = (imagi[i + 1][j].y() - imagi[i][j].y()) * Emax + (imagi[i][j].y() - imagi[i - 1][j].y()) * Emin;
             images[j].z() = (imagi[i + 1][j].z() - imagi[i][j].z()) * Emax + (imagi[i][j].z() - imagi[i - 1][j].z()) * Emin;
             if (images[j].x() - images[j].x() != 0) images[j].x() = 0.0;
             if (images[j].y() - images[j].y() != 0) images[j].y() = 0.0;
             if (images[j].z() - images[j].z() != 0) images[j].z() = 0.0;
-            tau[i].push_back(images[j]);
-            abso = len(tau[i][j]);
-            if (abso != 0.0) normalize(tau[i][j]);
+            tau[i].push_back(images[j]);				
           }
         }
 
       }
+
     }
-	//std::cout << tau[i].size()<<'\n';
+	for (size_t j = 0; j < N; j++) 
+	{
+		if (len(tau[i][j]) != 0.0)
+		{
+			tau[i][j].x() /= len(tau[i][j]);
+			tau[i][j].y() /= len(tau[i][j]);
+			tau[i][j].z() /= len(tau[i][j]);
+		}
+	}
+
   }
+
 }
 
 // IDPP start  
@@ -649,7 +652,34 @@ double neb::lbfgs()
   return cPtr->g();
 }
 
+double neb::lbfgs_maxflux()
+{
 
+	using namespace  optimization::local;
+	energies_NEB.resize(num_images);
+	//typedef coords::Container<scon::c3<float>> nc3_type;
+	// Create optimizer
+	coords::Cartesian_Point g;
+	auto optimizer = make_lbfgs(
+		make_more_thuente(GradCallBackMaxFlux(*this))
+	);
+	//optimizer.ls.config.ignore_callback_stop = true;
+	// Create Point
+	using op_type = decltype(optimizer);
+	op_type::point_type x(scon::explicit_transform<op_type::rep_type>(images_initial));
+	// Optimize point
+	optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
+	//optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
+	optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
+	optimizer(x);
+
+	if (Config::get().general.verbosity > 4)
+	{
+		std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
+	}
+
+	return cPtr->g();
+}
 
 double neb::g_new()
 {
@@ -660,9 +690,14 @@ double neb::g_new()
   Fpar.resize(cPtr->size());
   if (Config::get().neb.IDPP) Fidpp.resize(cPtr->size());
   grad_tot.clear();
+ 
   calc_tau();
+  
+
+
   for (size_t im = 1; im < num_images - 1; im++)
   {
+	
     imagi[im].clear();
     for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
 
@@ -672,16 +707,17 @@ double neb::g_new()
     if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum))
     {
       double magni = 0.0;
-      magni = dot(cPtr->g_xyz(), tau[im]);
-
+      magni = dot_uneq(cPtr->g_xyz(), tau[im]);
       if (len(tau[im]) == 0.0) { magni = 0.0; }
       else { magni = magni / len(tau[im]); }
       for (size_t i = 0; i < cPtr->size(); i++) cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
     }
     else
     {
-      tauderiv = dot(cPtr->g_xyz(), tau[im]);
-      if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
+
+      tauderiv = dot_uneq(cPtr->g_xyz(), tau[im]);
+
+	  if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
       else { tauderiv /= len(tau[im]); }
       if (tauderiv != tauderiv) tauderiv = 0.0;
       for (size_t j = 0; j < cPtr->size(); j++)
@@ -694,6 +730,7 @@ double neb::g_new()
         Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
         Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
         Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
+		
       }
       Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
       Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
@@ -708,6 +745,7 @@ double neb::g_new()
         Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
         Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
         Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+
       }
 	  if (Config::get().neb.IDPP)
 	  {
@@ -730,22 +768,119 @@ double neb::g_new()
         auto const g = Fvertical[j] + Fpar[j];
         cPtr->update_g_xyz(j, g);
         grad_tot.push_back(g);
+		
       }
-	/*  tau[im].clear();*/
+	 
     }
-
+	
   }
   
   return energytemp;
 }
 
+double neb::g_new_maxflux()
+{
+	double Rp1mag{ 0.0 }, Rm1mag{ 0.0 }, energytemp{ 0.0 }, cosi2{ 0.0 }, kappa{ 0.0 };
+	coords::Cartesian_Point rv_p, rv_n;
+	Rp1.resize(cPtr->size());
+	Rm1.resize(cPtr->size());
+	Fvertical.resize(cPtr->size());
+	Fpar.resize(cPtr->size());
+	grad_tot.clear();
+	calc_tau();
+	for (size_t im = 1; im < num_images - 1; im++)
+	{
+		imagi[im].clear();
+		for (size_t kk = (im - 1)*cPtr->size(); kk < im * cPtr->size(); kk++)  imagi[im].push_back(images_initial[kk]);
+
+		cPtr->set_xyz(imagi[im]);
+		energies_NEB[im] = energytemp = this->cPtr->g();
+		energytemp += energytemp;
+		if (ClimbingImage == true && num_images == static_cast<decltype(num_images)>(CIMaximum))
+		{
+			double magni = 0.0;
+			magni = dot_uneq(cPtr->g_xyz(), tau[im]);
+
+			if (len(tau[im]) == 0.0) { magni = 0.0; }
+			else { magni = magni / len(tau[im]); }
+			for (size_t i = 0; i < cPtr->size(); i++) cPtr->update_g_xyz(i, cPtr->g_xyz(i) - tau[im][i] * magni*2.0);
+		}
+		else
+		{
+			tauderiv = dot_uneq(cPtr->g_xyz(), tau[im]);
+			if (len(tau[im]) == 0.0) { tauderiv = 0.0; }
+			else { tauderiv /= len(tau[im]); }
+			if (tauderiv != tauderiv) tauderiv = 0.0;
+			for (size_t j = 0; j < cPtr->size(); j++)
+			{
+
+				Rm1[j].x() = imagi[im - 1][j].x() - imagi[im][j].x();
+				Rm1[j].y() = imagi[im - 1][j].y() - imagi[im][j].y();
+				Rm1[j].z() = imagi[im - 1][j].z() - imagi[im][j].z();
+
+				Rp1[j].x() = imagi[im + 1][j].x() - imagi[im][j].x();
+				Rp1[j].y() = imagi[im + 1][j].y() - imagi[im][j].y();
+				Rp1[j].z() = imagi[im + 1][j].z() - imagi[im][j].z();
+			}
+			Rm1mag = len(imagi[im - 1]) - len(imagi[im]);
+			Rp1mag = len(imagi[im + 1]) - len(imagi[im]);
+			if (Rm1mag != Rm1mag) Rm1mag = 0.0;
+			if (Rp1mag != Rp1mag) Rp1mag = 0.0;
+			for (size_t i = 0; i < cPtr->size(); i++)
+			{
+				Fvertical[i].x() = cPtr->g_xyz(i).x() - tauderiv * tau[im][i].x();
+				Fvertical[i].y() = cPtr->g_xyz(i).y() - tauderiv * tau[im][i].y();
+				Fvertical[i].z() = cPtr->g_xyz(i).z() - tauderiv * tau[im][i].z();
+
+				Fpar[i].x() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].x();
+				Fpar[i].y() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].y();
+				Fpar[i].z() = springconstant * (Rp1mag - Rm1mag) * tau[im][i].z();
+				
+			}
+		
+		}
+
+		
+		for (size_t i = 0; i < cPtr->size(); i++)
+		{
+			auto L = scon::geometric_length(tau[im][i]);
+			if (L != 0.0)
+			{
+				cosi2 = (cPtr->xyz(i).x()*tau[im][i].x() + cPtr->xyz(i).y()*tau[im][i].y() + cPtr->xyz(i).z()*tau[im][i].z()) / (L * L);
+			}
+			else
+			{
+				cosi2 = 0.0;
+			}
+			if (cosi2 != cosi2)cosi2 = 0.0;
+			rv_n.x() = cPtr->xyz(i).x() - (cosi2 * tau[im][i].x());
+			rv_n.y() = cPtr->xyz(i).y() - (cosi2 * tau[im][i].y());
+			rv_n.z() = cPtr->xyz(i).z() - (cosi2 * tau[im][i].z());
+
+			kappa = acos(dot(tau[im - 1][i], tau[im + 1][i])) / (len(imagi[im][i] - imagi[im - 1][i]) + len(imagi[im + 1][i] - imagi[im][i]));
+			if (kappa != kappa)kappa = 0.0;
+			rv_p.x() =  (kappa / _KT_ )*rv_n.x();
+			rv_p.y() =  (kappa / _KT_ )*rv_n.y();
+			rv_p.x() =  (kappa / _KT_ )*rv_n.z();
+
+			auto const g = Fpar[i] + Fvertical[i] - rv_p;
+			cPtr->update_g_xyz(i, g);
+			grad_tot.push_back(g);
+		}
+		
+	}
+
+	return energytemp;
+}
+
 void neb::calc_shift(void)
 {
-  double diff{ 0.0 }, gridp{ 0.0 };
-  std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images), gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
-  double x{ 0.0 }, y{ 0.0 }, z{ 0.0 };
-  double distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
   std::ptrdiff_t laf{ 0 };
+  double diff{ 0.0 }, gridp{ 0.0 },
+	  x{ 0.0 }, y{ 0.0 }, z{ 0.0 },
+	  distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
+  std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images),
+	  gridz(num_images), shiftx(cPtr->size()), shifty(cPtr->size()), shiftz(cPtr->size());
   std::vector <std::vector < std::vector < scon::c3<double> > > > position{ N };
   scon::c3 <double> pos3(0.0);
   std::vector <coords::Cartesian_Point> interpol_position{ N };
@@ -873,9 +1008,12 @@ void neb::calc_shift(void)
 
 
 
-        tau_int[j].x() = float(position[j][i][k].x() - position[j][i - 1][k].x() / abs(position[j][i][k].x() - position[j][i - 1][k].x()) + (position[j][i + 1][k].x() - position[j][i][k].x()) / abs(position[j][i + 1][k].x() - position[j][i][k].x()));
-        tau_int[j].y() = float(position[j][i][k].y() - position[j][i - 1][k].y() / abs(position[j][i][k].y() - position[j][i - 1][k].y()) + (position[j][i + 1][k].y() - position[j][i][k].y()) / abs(position[j][i + 1][k].y() - position[j][i][k].y()));
-        tau_int[j].z() = float(position[j][i][k].z() - position[j][i - 1][k].z() / abs(position[j][i][k].z() - position[j][i - 1][k].z()) + (position[j][i + 1][k].z() - position[j][i][k].z()) / abs(position[j][i + 1][k].z() - position[j][i][k].z()));
+        tau_int[j].x() = float(position[j][i][k].x() - position[j][i - 1][k].x() / abs(position[j][i][k].x() - position[j][i - 1][k].x()) 
+			+ (position[j][i + 1][k].x() - position[j][i][k].x()) / abs(position[j][i + 1][k].x() - position[j][i][k].x()));
+        tau_int[j].y() = float(position[j][i][k].y() - position[j][i - 1][k].y() / abs(position[j][i][k].y() - position[j][i - 1][k].y())
+			+ (position[j][i + 1][k].y() - position[j][i][k].y()) / abs(position[j][i + 1][k].y() - position[j][i][k].y()));
+        tau_int[j].z() = float(position[j][i][k].z() - position[j][i - 1][k].z() / abs(position[j][i][k].z() - position[j][i - 1][k].z())
+			+ (position[j][i + 1][k].z() - position[j][i][k].z()) / abs(position[j][i + 1][k].z() - position[j][i][k].z()));
         abso = 0.0;
         if (tau_int[j].x() - tau_int[j].x() != 0) tau_int[j].x() = 0.0;
         if (tau_int[j].y() - tau_int[j].y() != 0) tau_int[j].y() = 0.0;
@@ -1026,6 +1164,18 @@ double neb::g_int(std::vector<scon::c3 <float> > t)
     cosi = 0.0;
   }
   return energytemp;
+}
+
+double neb::dot_uneq (coords::Representation_3D const &a, coords::Representation_3D const &b)
+{
+	double temp(0.0);
+	for (size_t i=0; i < a.size(); i++)
+	{
+		temp += a[i].x()*b[i].x();
+		temp += a[i].y()*b[i].y();
+		temp += a[i].z()*b[i].z();
+	}
+	return temp;
 }
 
 
