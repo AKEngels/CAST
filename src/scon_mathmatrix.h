@@ -812,12 +812,14 @@ typedef size_t uint_type;
       }
 		}
 
+#ifdef USE_ARMADILLO
     mathmatrix operator*(mathmatrix const& in) const
     {
       arma::Mat<T> const& a = *this;
       arma::Mat<T> const& b = in;
       return mathmatrix(a*b);
     };
+#endif
 
 		/**
 		 * Performs singular value decomposition on *this and writes results
@@ -832,6 +834,7 @@ typedef size_t uint_type;
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
       //"Constructor"
+      U_in = *this;
       V_in.resize(this->cols(), this->cols());
       s_in.resize(this->cols(), 1u);
 #ifndef USE_ARMADILLO
@@ -1204,18 +1207,18 @@ for (size_t i = 0; i < U_in.rows(); i++)
   };
 
 #else
-  namespace detail
-  {
-    template<class T>
-    struct is_matrix<mathmatrix<T>> : std::true_type {};
-  }
+  //namespace detail
+  //{
+  //  template<class T>
+  //  struct is_matrix<mathmatrix<T>> : std::true_type {};
+  //}
 
   template<class T, class U = T>
   typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
     mathmatrix<typename std::common_type<T, U>::type >> ::type
     operator* (mathmatrix<T> const & a, mathmatrix<U> const &b)
   {
-    matrix<T> const &ma = a;
+    scon::matrix<T> const &ma = a;
     matrix<U> const &mb = b;
     return ma*mb;
   }
