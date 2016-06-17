@@ -39,6 +39,7 @@
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 //#include "gbsa.h"
 #include <omp.h>
+#include "PCA.h"
 
 //////////////////////////
 //                      //
@@ -611,6 +612,22 @@ int main(int argc, char **argv)
          * Further processing can be done via PCAproc - Task
          */
         pca_gen(ci, coords);
+		pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+		if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
+		{
+			pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+			pcaptr->generatePCAEigenvectorsFromCoordinates();
+			pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+		}
+		else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+		else
+		{
+			pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+			if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+			else if (Config::get().PCA.pca_read_vectors) pcaptr->readEigenvectors("pca_modes.dat");
+			pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+		}
+		delete pcaptr;
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
