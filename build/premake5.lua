@@ -7,10 +7,10 @@
 -- Build for windows: "premake5 vs2015"
 -- Open CAST.sln in project/
 --
--- Build for Linux on ECPC without MPI: "premake5 gmake" 
+-- Build for Linux on ECPC without MPI: "premake5 gmake"
 -- Run "make config=release_x64 CXX=g++-5" in project/
 --
--- Build for Linux on ECPC wit MPI: "premake5 gmake --mpi" 
+-- Build for Linux on ECPC wit MPI: "premake5 gmake --mpi"
 -- Run "make config=release_x64 CXX=mpic++" in project/
 --
 
@@ -34,33 +34,33 @@ project "CAST"
 	language "C++"
 	targetdir "../build/"
 	files { "../src/**.h", "../src/**.cc" }
-	
+
 	vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/**.cc"}
 
 
-	configuration "gmake" 
+	configuration "gmake"
 		linkoptions { "-fopenmp" }
 		filter { "options:mpi" }
 			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", "-DTERACHEM_MPI" }
 		filter { "action:gmake" }
-		buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
-		filter { "configurations:Release" }
+		  buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
+		filter { "configurations:Release", "action:gmake" }
 			removefiles { "../src/tests/**.cc", "./src/test/**.h"}
 			optimize "Full"
 		filter { "configurations:Release",  "platforms:x86", "action:gmake"}
-		targetname "CAST_linux_x86_release"	
+		targetname "CAST_linux_x86_release"
 		filter { "configurations:Release",  "platforms:x64", "action:gmake"}
-		targetname "CAST_linux_x64_release"	
-		
-		filter { "configurations:Testing" }
+		targetname "CAST_linux_x64_release"
+
+		filter { "configurations:Testing", "action:gmake" }
 			optimize "Debug"
 			defines { "GOOGLE_MOCK" }
 		filter { "configurations:Testing",  "platforms:x86", "action:gmake"}
-		targetname "CAST_linux_x86_testing"	
+			targetname "CAST_linux_x86_testing"
 		filter { "configurations:Testing",  "platforms:x64", "action:gmake"}
-		targetname "CAST_linux_x64_testing"			
-		
-		filter { "configurations:Debug" }
+		  targetname "CAST_linux_x64_testing"
+
+		filter { "configurations:Debug", "action:gmake" }
 			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
 			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
 			optimize "Debug"
@@ -68,23 +68,50 @@ project "CAST"
 		filter { "configurations:Debug",  "platforms:x86", "action:gmake"}
 		targetname "CAST_linux_x86_debug"
 		filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
-		targetname "CAST_linux_x64_debug"	
-		
+		targetname "CAST_linux_x64_debug"
+
+    filter { "configurations:Armadillo_Debug", "action:gmake" }
+			includedirs { "../includes/armadillo/"}
+      buildoptions { "-I ~/buildCurrentCAST/external -DARMA_DONT_USE_WRAPPER -lgfortran" }
+			linkoptions { "/home/dustin/buildCurrentCAST/./link/lib/libopenblas.a -I /home/dustin/buildCurrentCAST/./external -DARMA_DONT_USE_WRAPPER /home/dustin/buildCurrentCAST/external/liblapack.a -lgfortran" }
+			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
+			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
+			optimize "Debug"
+			flags { "Symbols" }
+			defines { "USE_ARMADILLO" }
+		filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:gmake"}
+			targetname "CAST_linux_x64_armadillo_debug"
+		filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
+			targetname "CAST_linux_x64_armadillo_debug"
+
+    filter { "configurations:Armadillo_Release", "action:gmake" }
+  		includedirs { "../includes/armadillo/"}
+      buildoptions { "-I ~/buildCurrentCAST/external -DARMA_DONT_USE_WRAPPER -lgfortran" }
+  		linkoptions { "/home/dustin/buildCurrentCAST/./link/lib/libopenblas.a -I /home/dustin/buildCurrentCAST/./external -DARMA_DONT_USE_WRAPPER /home/dustin/buildCurrentCAST/external/liblapack.a -lgfortran" }
+  		removefiles { "./src/tests/**.cc", "./src/test/**.h"}
+  		optimize "Full"
+			flags { "LinkTimeOptimization" }
+  		defines { "USE_ARMADILLO" }
+  	filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:gmake"}
+  		targetname "CAST_linux_x64_armadillo_release"
+  	filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
+  		targetname "CAST_linux_x64_armadillo_release"
+
 	configuration "vs2015"
-		targetname "CAST.exe" 
+		targetname "CAST.exe"
 		buildoptions { "/openmp" }
 		flags { "MultiProcessorCompile" }
 
-		filter { "configurations:Release" }
+		filter { "configurations:Release", "action:vs2015" }
 			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
 			optimize "Full"
 			flags { "LinkTimeOptimization" }
 		filter { "configurations:Release",  "platforms:x86", "action:vs2015"}
 			targetname "CAST_win_x86_release"
 		filter { "configurations:Release",  "platforms:x64", "action:vs2015"}
-			targetname "CAST_win_x64_release"	
+			targetname "CAST_win_x64_release"
 
-		filter { "configurations:Armadillo_Release"}
+		filter { "configurations:Armadillo_Release", "action:vs2015"}
 			includedirs { "../includes/armadillo/"}
 			libdirs { "../libs/" }
 			links { "blas_win64_MT", "lapack_win64_MT" }
@@ -97,7 +124,7 @@ project "CAST"
 		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
 			targetname "CAST_win_x64_release_lapack"
 
-		filter { "configurations:Armadillo_Debug"}
+		filter { "configurations:Armadillo_Debug", "action:vs2015"}
 			includedirs { "../includes/armadillo/"}
 			libdirs { "../libs/" }
 			links { "blas_win64_MT", "lapack_win64_MT" }
@@ -110,17 +137,17 @@ project "CAST"
 			targetname "CAST_win_x86_release_lapack"
 		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
 			targetname "CAST_win_x64_release_lapack"
-			
-		
-		filter { "configurations:Testing" }
+
+
+		filter { "configurations:Testing", "action:vs2015" }
 			optimize "Debug"
 			defines { "GOOGLE_MOCK" }
 		filter { "configurations:Testing",  "platforms:x86", "action:vs2015"}
 		targetname "CAST_win_x86_testing"
 		filter { "configurations:Testing",  "platforms:x64", "action:vs2015"}
-		targetname "CAST_win_x64_testing"	
-			
-		filter { "configurations:Debug" }
+		targetname "CAST_win_x64_testing"
+
+		filter { "configurations:Debug", "action:vs2015" }
 			removefiles { "./src/tests/**.cc", "./src/test/**.h"}
 			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
 			optimize "Debug"
@@ -128,4 +155,4 @@ project "CAST"
 		filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
 		targetname "CAST_win_x86_debug"
 		filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
-		targetname "CAST_win_x64_debug"	
+		targetname "CAST_win_x64_debug"
