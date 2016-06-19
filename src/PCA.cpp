@@ -150,37 +150,6 @@ namespace pca
 		delete cov_rank;
 	}
 
-	/*void PrincipalComponentRepresentation::generatePCAModesAndEigenvectors()
-	{
-		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
-		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
-		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
-		cov_matr = cov_matr - ones * cov_matr / this->coordinatesMatrix.cols();
-		cov_matr = transposed(cov_matr) * cov_matr;
-		cov_matr = cov_matr / this->coordinatesMatrix.cols();
-		float_type cov_determ = 0.;
-		int *cov_rank = new int;
-		cov_matr.eigensym(this->eigenvalues, this->eigenvectors, cov_rank);
-		if (*cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
-		{
-			std::cout << "Notice: covariance matrix is singular.\n";
-			std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-			if (Config::get().PCA.pca_remove_dof)
-			{
-				size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
-				eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
-				eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
-			}
-		}
-		else if (Config::get().PCA.pca_remove_dof)
-		{
-			eigenvectors.shed_cols(eigenvalues.rows() - 6, eigenvalues.rows() - 1);
-			eigenvalues.shed_rows(eigenvectors.cols() - 6, eigenvectors.cols() - 1);
-		}
-		delete cov_rank;
-		this->modes = transposed(eigenvectors) * this->coordinatesMatrix;
-	}*/
-
 	void PrincipalComponentRepresentation::generatePCAModesFromPCAEigenvectorsAndCoordinates()
 	{
 		this->modes = transposed(eigenvectors) * this->coordinatesMatrix;
@@ -379,8 +348,8 @@ namespace pca
 			}
 
 			histograms_p->distribute();
-			histograms_p->writeProbabilityDensity("pca_histograms");
-			histograms_p->writeAuxilaryData("pca_histograms_auxdata");
+			histograms_p->writeProbabilityDensity(filename);
+			histograms_p->writeAuxilaryData("auxdata_" + filename);
 			delete histograms_p;
 		}
 	}
@@ -397,4 +366,33 @@ namespace pca
 		this->readModes(filenameOfPCAModesFile);
 		this->readEigenvectors(filenameOfPCAModesFile);
 	}
+
+  void PrincipalComponentRepresentation::writeStocksDelta(std::string const& filename)
+  {
+    std::ofstream stream(filename, std::ios::out);
+    stream << "Stock's Delta; see DOI 10.1063/1.2746330\n\n";
+    if (Config::get().PCA.pca_use_internal)
+    {
+
+    }
+    else
+    {
+      for (size_t i = 0u; i < this->modes.rows(); i++)
+      {
+        stream << "PCA Mode " << i << ":\n";
+        for (size_t j = 0u; j < 3u * Config::get().PCA.pca_trunc_atoms_num.size(); j+=3u)
+        {
+          stream << "Atom " << std::setw(6) << Config::get().PCA.pca_trunc_atoms_num[j/3u] << std::setw(0) << ": ";
+
+          float_type delta = 
+            this->eigenvectors(i, j) * this->eigenvectors(i, j) + 
+            this->eigenvectors(i, j + 1) * this->eigenvectors(i, j + 1) + 
+            this->eigenvectors(i, j + 2) * this->eigenvectors(i, j + 2);
+
+          stream << std::setw(10) << delta << std::setw(0) << "\n";
+        }
+        stream << "------------------------------\n";
+      }
+    }
+  }
 }

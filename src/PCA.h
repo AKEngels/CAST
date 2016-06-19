@@ -12,11 +12,10 @@ namespace pca
 
 		void writePCAModesFile(std::string const& filename = "pca_modes.dat");
 		void writeHistogrammedProbabilityDensity(std::string const& filename = "pca_histogrammed.dat");
-		//void writeStocksDelta();
+		void writeStocksDelta(std::string const& filename = "pca_stocksdelta.dat");
 		void readEigenvectors(std::string const& filename = "pca_modes.dat");
-		void readModes(std::string const& filename = "pca_modes.dat");
+		void readModes(std::string const& filename = "pca_modes2.dat");
 		void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-		//void generatePCAModesAndEigenvectors();
 		void generatePCAEigenvectorsFromCoordinates();
 		void generatePCAModesFromPCAEigenvectorsAndCoordinates();
 	private:

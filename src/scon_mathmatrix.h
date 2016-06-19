@@ -432,7 +432,7 @@ namespace scon
 		float_type determ() const
 		{
       if (Config::get().general.verbosity > 3U)
-        std::cout << "Starting singular value decomposition of " << this->rows() << " x " << this->cols() << "matrix." << std::endl;
+        std::cout << "Starting LU decomposition of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
 
 			//Via Numerical Recipies, LU Decomposition
 			mathmatrix lu = *this;
@@ -759,14 +759,14 @@ namespace scon
 		 */
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
-
+      U_in = *this;
       if (Config::get().general.verbosity > 3U) 
-        std::cout << "Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << "matrix." << std::endl;
+        std::cout << "Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << " matrix." << std::endl;
 
 			//Rewritten from NumRecipies
 
 			//"Constructor"
-			U_in = *this;
+
 			V_in.resize(this->cols(), this->cols());
 			s_in.resize(this->cols(), 1u);
 
