@@ -56,25 +56,34 @@
 #define pid_func getpid
 #endif
 
+
+// Enable this define to drop exceptions
+//
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
 
 int main(int argc, char **argv)
 {
 
-#ifdef _MSC_VER
-  //std::ios::sync_with_stdio(false);
-  //std::cout.sync_with_stdio(false);
-#endif
+  // Where does this code come from?
+  // Why is it here, is it necessary for MOPAC Interface maybe?
+  // Please have a look at this
+  //  
+  //#ifdef _MSC_VER
+  //  //std::ios::sync_with_stdio(false);
+  //  //std::cout.sync_with_stdio(false);
+  //#endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
   {
 #endif
 
-    /*
-    Preparation
-    */
+    //////////////////////////
+    //                      //
+    //      Preparation     //
+    //                      //
+    //////////////////////////
 
     std::cout << scon::c3_delimeter(',');
 
@@ -100,24 +109,6 @@ int main(int argc, char **argv)
       std::cout << Config::get().energy;
     }
 
-    /*
-
-    Initialization
-
-    */
-
-    // read coordinate input file
-    // "ci" contains all the input structures
-    std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-    
-    //coords::input::format * ci(coords::input::new_format());
-    coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-
-	  // setting the methods for implicit solvation
-	  //GB::born::set(coords);
-	  //GB::born::SET_METHOD();
-	  //GB::born::SET_SURFACE();
-
     // Define Function to output molar mass of a coords object
     auto sys_mass = [](coords::Coordinates &sys) -> double
     {
@@ -128,6 +119,50 @@ int main(int argc, char **argv)
       }
       return m;
     };
+
+
+    // Energy print functions
+    auto short_ene_stream = [](
+      coords::Coordinates const &coords,
+      std::ostream &strm, std::streamsize const w)
+    {
+      strm << std::setw(w) << coords.pes().energy;
+      for (auto && ia : coords.pes().ia_matrix)
+      {
+        strm << std::setw(w) << ia.energy;
+      }
+    };
+
+    auto short_ene_stream_h = [](
+      coords::Coordinates const &coords,
+      std::ostream &strm, std::streamsize const w)
+    {
+      strm << std::setw(w) << "Energy";
+      auto const n = coords.pes().ia_matrix.size();
+      for (std::size_t i = 0; i < n; ++i)
+      {
+        strm << std::setw(w) << ("WW" + std::to_string(i));
+      }
+    };
+
+    //////////////////////////
+    //                      //
+    //    Initialization    //
+    //                      //
+    //////////////////////////
+
+    // read coordinate input file
+    // "ci" contains all the input structures
+    std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+    
+    //coords::input::format * ci(coords::input::new_format());
+    coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
+
+	  // setting the methods for implicit solvation
+    // Currently broken
+	  //GB::born::set(coords);
+	  //GB::born::SET_METHOD();
+	  //GB::born::SET_SURFACE();
 
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
@@ -165,19 +200,19 @@ int main(int argc, char **argv)
     }
 
 
-	// Initialize PME STUFF
-	/* if (Config::get().energy.pme == true)
-	{
-	if (Config::get().energy.periodic == false)
-	{
-	std::cout << "PME can only be used with Periodic Boundary Conditions! Check your INPUTFILE!" << std::endl;
-	exit(0);
-	}
-	std::cout << "Initializing PME parameters" << std::endl;
-	int size = coords.size();
-	coords.pme_stuff(size);
-	}*/
-
+	  // Initialize PME STUFF
+    // Currently broken
+	  /* if (Config::get().energy.pme == true)
+	  {
+	  if (Config::get().energy.periodic == false)
+	  {
+	  std::cout << "PME can only be used with Periodic Boundary Conditions! Check your INPUTFILE!" << std::endl;
+	  exit(0);
+	  }
+	  std::cout << "Initializing PME parameters" << std::endl;
+	  int size = coords.size();
+	  coords.pme_stuff(size);
+	  }*/
 
 
     // stop and print initialization time
@@ -186,11 +221,13 @@ int main(int argc, char **argv)
       std::cout << "-------------------------------------------------\n";
       std::cout << "Initialization done after " << init_timer << '\n';
     }
-    /*
 
-    Preoptimization
+    //////////////////////////
+    //                      //
+    //    Preoptimization   //
+    //                      //
+    //////////////////////////
 
-    */
     if (coords.preoptimize())
     {
       if (Config::get().general.verbosity > 1U)
@@ -218,57 +255,34 @@ int main(int argc, char **argv)
       }
     }
     
-    /*
-    
-      Energy print 
 
-    */
+    //////////////////////////
+    //                      //
+    //       T A S K S      //
+    //                      //
+    //////////////////////////
 
-    auto short_ene_stream = [](
-      coords::Coordinates const &coords, 
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << coords.pes().energy;
-      for (auto && ia : coords.pes().ia_matrix)
-      {
-        strm << std::setw(w) << ia.energy;
-      }
-    };
-
-    auto short_ene_stream_h = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << "Energy";
-      auto const n = coords.pes().ia_matrix.size();
-      for (std::size_t i = 0; i < n; ++i)
-      {
-        strm << std::setw(w) << ("WW" + std::to_string(i));
-      }
-    };
-
-    /*
-
-    Tasks
-
-    */
-
+    // print which task
     std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
     std::cout << "' (" << Config::get().general.task << ") computation:\n";
     std::cout << "-------------------------------------------------\n";
+
     // start task timer
     scon::chrono::high_resolution_timer task_timer;
+
     // select task
     switch (Config::get().general.task)
     {
-      // DEVTEST: Room for Development testing
-    case config::tasks::DEVTEST:
-    {
-      break;
-    }
-    case config::tasks::SP:
-      { // singlepoint
+      
+      case config::tasks::DEVTEST:
+      {
+        // DEVTEST: Room for Development testing
+        break;
+      }
+      case config::tasks::SP:
+      { 
+        // singlepoint calculation
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         auto sp_energies_fn = coords::output::filename("_SP", ".txt");
@@ -295,8 +309,9 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::ADJUST:
-      { // alignment / change strucutre
+      case config::tasks::ADJUST:
+      { 
+        // alignment / change strucutre
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         std::ofstream outputstream(coords::output::filename("_ADJUSTED").c_str(), std::ios_base::out);
@@ -321,8 +336,9 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::GRAD:
-      { // gradients 
+      case config::tasks::GRAD:
+      { 
+        // calculate gradient
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         std::ofstream gstream(coords::output::filename("_GRAD", ".txt").c_str());
@@ -336,8 +352,9 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::PROFILE:
-      { // gradient profiling 
+      case config::tasks::PROFILE:
+      { 
+        // gradient profiling 
         coords.e_head_tostream_short(std::cout);
         coords.set_xyz((*ci).PES()[0].structure.cartesian);
         for (std::size_t i(0U); i < Config::get().general.profile_runs; ++i)
@@ -348,8 +365,9 @@ int main(int argc, char **argv)
         coords.e_tostream_short(std::cout);
         break;
       }
-    case config::tasks::LOCOPT:
-      { // local optimization
+      case config::tasks::LOCOPT:
+      { 
+        // local optimization
         coords.e_head_tostream_short(std::cout);
         auto lo_structure_fn = coords::output::filename("_LOCOPT");
         std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
@@ -384,8 +402,9 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::TS:
-      { // Gradient only tabu search
+      case config::tasks::TS:
+      { 
+        // Gradient only tabu search
         std::cout << Config::get().coords.equals;
         std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
@@ -399,8 +418,9 @@ int main(int argc, char **argv)
         gots.write_range("_TS");
         break;
       }
-    case config::tasks::MC:
-      { // MonteCarlo
+      case config::tasks::MC:
+      { 
+        // MonteCarlo Simulation
         std::cout << Config::get().coords.equals;
         std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
@@ -414,8 +434,9 @@ int main(int argc, char **argv)
         mc.write_range("_MCM");
         break;
       }
-    case config::tasks::GRID:
-      { // Grid Search
+      case config::tasks::GRID:
+      { 
+        // Grid Search
         std::cout << Config::get().coords.equals;
         std::cout << "-------------------------------------------------\n";
         std::cout << Config::get().optimization.global;
@@ -426,8 +447,9 @@ int main(int argc, char **argv)
         mc.write_range("_GRID");
         break;
       }
-    case config::tasks::INTERNAL:
-      { // Internal
+      case config::tasks::INTERNAL:
+      { 
+        // Explicitly shows CAST conversion to internal coordiantes
         for (auto const & pes : *ci)
         {
           coords.set_xyz(pes.structure.cartesian);
@@ -447,8 +469,9 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::DIMER:
-      { // Dimer
+      case config::tasks::DIMER:
+      { 
+        // Dimer method
         coords.e_head_tostream_short(std::cout);
         std::size_t i(0U);
         std::ofstream dimerstream(coords::output::filename("_DIMERTRANS").c_str(), std::ios_base::out);
@@ -470,30 +493,34 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::MD:
-      { // Molecular Dynamics
+      case config::tasks::MD:
+      { 
+        // Molecular Dynamics Simulation
         if (Config::get().md.pre_optimize) coords.o();
         md::simulation mdObject(coords);
         mdObject.run();
         break;
       }
-    case config::tasks::FEP:
-      { // Free energy perturbation
+      case config::tasks::FEP:
+      { 
+        // Free energy perturbation
         md::simulation mdObject(coords);
         mdObject.fepinit();
         mdObject.run();
         mdObject.feprun();
         break;
       }
-    case config::tasks::UMBRELLA:
+      case config::tasks::UMBRELLA:
       {
+        // Umbrella Sampling
         Config::set().md.umbrella = true;
         md::simulation mdObject(coords);
         mdObject.umbrella_run();
         break;
       }
-    case config::tasks::STARTOPT:
-      { // Preoptimization
+      case config::tasks::STARTOPT:
+      { 
+        // Preoptimization
         //std::cout << "PreApply.\n";
         startopt::apply(coords, ci->PES());
         //std::cout << "PostApply.\n";
@@ -507,7 +534,7 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::GOSOL:
+      case config::tasks::GOSOL:
       { // Combined Solvation + Global Optimization
         std::cout << Config::get().startopt.solvadd;
         std::cout << "-------------------------------------------------\n";
@@ -519,7 +546,7 @@ int main(int argc, char **argv)
         sopt.run(Config::get().startopt.solvadd.maxNumWater);
         break;
       }
-    case config::tasks::NEB:
+      case config::tasks::NEB:
       {
         std::ptrdiff_t counter = 0;
         coords::Coordinates const coord_obj(coords);
@@ -532,7 +559,7 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::PATHOPT:
+      case config::tasks::PATHOPT:
       {
         std::ptrdiff_t counter = 0;
         coords::Coordinates const coord_obj(coords);
@@ -547,14 +574,14 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::PATHSAMPLING:
+      case config::tasks::PATHSAMPLING:
       {
         coords::Coordinates const coord_obj(coords);
         path_perp path_perpobj(&coords);
         path_perpobj.pathx_ini();
 			  break;
 		  }
-	  case config::tasks::REACTIONCOORDINATE:
+	    case config::tasks::REACTIONCOORDINATE:
 		  {
 			  coords::Coordinates coords2(coords),coords3(coords);
 			  reaccoords reac_obj(&coords,&coords2);
@@ -585,7 +612,7 @@ int main(int argc, char **argv)
 
 			  break;
 		  }
-    case config::tasks::ALIGN:
+      case config::tasks::ALIGN:
       {
         /*
          * THIS TASK ALIGNES A SIMULATION TRAJECTORY
@@ -600,7 +627,7 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
-    case config::tasks::PCAgen:
+      case config::tasks::PCAgen:
       {
         /**
          * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
@@ -637,7 +664,7 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
-    case config::tasks::PCAproc:
+      case config::tasks::PCAproc:
       {
         /**
          * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
@@ -648,7 +675,7 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
-    case config::tasks::ENTROPY:
+      case config::tasks::ENTROPY:
       {
         /**
          * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
@@ -662,7 +689,7 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
-    case config::tasks::REMOVE_EXPLICIT_WATER:
+      case config::tasks::REMOVE_EXPLICIT_WATER:
       {
         /**
         * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
@@ -742,18 +769,25 @@ int main(int argc, char **argv)
           out << hold_str[i];
         }
       }
-    default:
+      default:
       {
       
       }
 
     }
+
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";
     std::cout << "Execution of " << config::Programname << " (" << config::Version << ")";
     std::cout << " ended after " << exec_timer << '\n';
-
+    
+    //////////////////////////
+    //                      //
+    //       EXCEPTION      //
+    //       HANDLING       //
+    //                      //
+    //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
 #if !defined(COMPILEX64)
