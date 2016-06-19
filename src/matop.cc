@@ -215,6 +215,9 @@ namespace matop
           {
             if (includedAtoms[l] - 1 == i)
             {
+              //ignoreHydrogens
+              if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
+
               checker = true;
               quicksearch++;
               break;
@@ -275,17 +278,6 @@ namespace matop
       {
         std::cout << "Notice: covariance matrix is singular.\n";
         std::cout << "Details: rank of covariance matrix is " << rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-        if (Config::get().PCA.pca_remove_dof)
-        {
-          size_t temp = std::max(6, int((cov_matr.rows() - rank)));
-          eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
-          eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
-        }
-      }
-      else if (Config::get().PCA.pca_remove_dof)
-      {
-        eigenvectors.shed_cols(eigenvalues.rows() - 6, eigenvalues.rows() - 1);
-        eigenvalues.shed_rows(eigenvectors.cols() - 6, eigenvectors.cols() - 1);
       }
     }
 
@@ -298,41 +290,6 @@ namespace matop
       {
         sum_of_all_variances += eigenvalues(i);
       }
-
-      if (Config::get().PCA.pca_trunc_var != 1 && Config::get().PCA.pca_trunc_var < 1 && Config::get().PCA.pca_trunc_var > 0)
-      {
-        double temporary_sum_of_variances = 0.0;
-        Matrix_Class pca_modes2 = pca_modes;
-        if (eigenvalues.rows() < 2u) throw("Eigenvalues not initialized, error in truncating PCA values. You are in trouble.");
-        for (size_t i = 0u - 1; i < eigenvalues.rows(); i++)
-        {
-          if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
-          {
-            size_t rows_of_pca_modes2 = pca_modes2.rows();
-            pca_modes2.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-            eigenvalues.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-            break;
-          }
-          temporary_sum_of_variances += eigenvalues(i);
-        }
-        pca_modes = pca_modes2;
-      }
-      else if (Config::get().PCA.pca_trunc_var != 1)
-      {
-        throw("Error in pca task, check specified trunc_var. (It should be > 0. and < 1.)");
-      }
-      if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim < pca_modes.rows())
-      {
-        Matrix_Class pca_modes2 = pca_modes;
-        pca_modes2.shed_rows(Config::get().PCA.pca_trunc_dim, pca_modes.rows() - 1u);
-        eigenvalues.shed_rows(Config::get().PCA.pca_trunc_dim, pca_modes.rows() - 1u);
-        pca_modes = pca_modes2;
-      }
-      else if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim >= pca_modes.rows())
-      {
-        std::cout << "Notice: Inputfile-specified truncation for PCA is too large, there are less DOFs than the user specified truncation value for dimensionality.\n";
-      }
-      std::cout << "Working with " << pca_modes.rows() << " dimensions.\n";
 
       std::ofstream pca_modes_stream(filename, std::ios::out);
       pca_modes_stream << "Working with " << pca_modes.rows() << " dimensions.\n";
@@ -387,7 +344,7 @@ namespace matop
           }
           histograms_p->add_value(temp);
         }
-        
+
         histograms_p->distribute();
         histograms_p->writeProbabilityDensity("pca_histograms");
         histograms_p->writeAuxilaryData("pca_histograms_auxdata");
@@ -441,6 +398,7 @@ namespace matop
         }
       }
       //Additional options following:
+      // By the way, the rest of the file is ignored
       if (std::getline(pca_modes_stream, line))
       {
         std::getline(pca_modes_stream, line);
@@ -492,7 +450,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -562,7 +520,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -609,7 +567,7 @@ namespace matop
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
       cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1. / (float_type) input.cols() );
+      cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
@@ -638,7 +596,7 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-      delete cov_rank; 
+      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows());
@@ -911,7 +869,7 @@ namespace matop
       Matrix_Class cov_matr = (transposed(input));
       cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1.0 / (float_type)input.cols());
+      cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
@@ -988,7 +946,7 @@ namespace matop
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
 
-      cov_matr = cov_matr * (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
+      cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
       cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
       float_type entropy_sho = cov_matr.determ();
 
@@ -1014,7 +972,7 @@ namespace matop
       if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
       float_type value = 0;
-      for (size_t i = 0; i < input.atoms().size(); i++) 
+      for (size_t i = 0; i < input.atoms().size(); i++)
       {
         for (size_t j = 0; j < i; j++)
         {
@@ -1165,7 +1123,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       if (Config::get().alignment.traj_print_bool)
       {
         if (Config::get().alignment.dist_unit == 0)
-          //RMSD 
+          //RMSD
         {
           std::stringstream temporaryStringstream;
           double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
@@ -1258,7 +1216,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
       ::matop::align::centerOfMassAlignment(coords_ref);
     }
 
-    // truncate internal coordinates "PCA.pca_internal_dih" 
+    // truncate internal coordinates "PCA.pca_internal_dih"
     // or cartesians "PCA.pca_trunc_atoms" respectively
     // especially if hydrogens should be omitted
     if (Config::get().PCA.pca_use_internal)
@@ -1292,7 +1250,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
         if (Config::get().general.verbosity > 2U) std::cout << "Using all cartesian coordinates.\n";
         Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>(coords.atoms().size());
         // Fill with 0, 1, 2,..., .
-        std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1); 
+        std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1);
       }
       else if (Config::get().general.verbosity > 2U) std::cout << "Using truncated cartesian coordinates.\n";
       if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
@@ -1362,7 +1320,7 @@ void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
     //Mass-weightening coordinates if cartesians are used
     prepare_pca(matrix_aligned, eigenvalues, eigenvectors);
   }
-  
+
   if (Config::get().PCA.pca_read_vectors)
   {
     if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file pca_modes.dat .\n";
@@ -1489,7 +1447,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
         }
         coords::Coordinates current(coords);
 
-        // For every partial (truncated) structure that is inside the user-defined 
+        // For every partial (truncated) structure that is inside the user-defined
         // range regarding its PCA-Modes,
         // we now search the matching full structure in the input trajectory.
         bool structureFound = false;
@@ -1509,7 +1467,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
           {
             // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
             // is very small, the arbitrary cutoff 2e-4), consider it a match.
-            // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+            // However, we look for "not-matching" and break the loop. If everything matches, we continue.
             // Thats why we negate the criterion in the if clause (!)
             float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
             float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
@@ -1598,7 +1556,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
         for (size_t j = 0u; j < tokens.size(); j++)
         {
           // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
-          // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
+          // However, we look for "not-matching" and break the loop. If everything matches, we continue.
           // Thats why we negate the criterion in the if clause (!)
           if (tokens[j] == true)
           {

@@ -1557,19 +1557,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().PCA.pca_ref_frame_num;
   }
-  else if (option == "pca_remove_dof")
-  {
-    std::string holder;
-    cv >> holder;
-    if (holder == "true" || holder == "True" || holder == "TRUE")
-    {
-      Config::set().PCA.pca_remove_dof = true;
-    }
-    else if (holder == "false" || holder == "False" || holder == "FALSE")
-    {
-      Config::set().PCA.pca_remove_dof = false;
-    }
-  }
   else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
   {
     Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
@@ -1586,14 +1573,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().PCA.pca_internal_ignore_hydrogen = false;
     }
-  }
-  else if (option == "pca_trunc_dim")
-  {
-    cv >> Config::set().PCA.pca_trunc_dim;
-  }
-  else if (option == "pca_trunc_var")
-  {
-    cv >> Config::set().PCA.pca_trunc_var;
   }
   else if (option == "pca_print_probability_density")
   {
