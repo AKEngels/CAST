@@ -435,6 +435,7 @@ namespace matop
         }
       }
       //Additional options following:
+      // By the way, the rest of the file is ignored
       if (std::getline(pca_modes_stream, line))
       {
         std::getline(pca_modes_stream, line);
@@ -603,7 +604,7 @@ namespace matop
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
       cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1. / (float_type) input.cols() );
+      cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
@@ -905,7 +906,7 @@ namespace matop
       Matrix_Class cov_matr = (transposed(input));
       cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1.0 / (float_type)input.cols());
+      cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
@@ -982,7 +983,7 @@ namespace matop
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / input.cols();
 
-      cov_matr = cov_matr * (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
+      cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
       cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
       float_type entropy_sho = cov_matr.determ();
 
