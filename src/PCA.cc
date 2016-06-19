@@ -239,7 +239,6 @@ namespace pca
 		///////////////////////////////////////
 
 		if (Config::get().general.verbosity > 2U) std::cout << "Writing PCA modes, eigenvalues and eigenvectors to file.\n";
-		//output_pca_modes(eigenvalues, eigenvectors, modes, filename, additionalInformation);
 
 		double sum_of_all_variances = 0.0;
 		for (size_t i = 0; i < eigenvalues.rows(); i++)
@@ -288,7 +287,7 @@ namespace pca
 			}
 			else
 			{
-				throw "Error in output_probability_density, exiting.\n You need to specify either a numbger of histogram bins or a bin width in the inputfile.\n";
+				throw "Error in output of probability density, exiting.\n You need to specify either a number of histogram bins or a bin width in the inputfile.\n";
 			}
 
 			std::cout << "Starting: Histogramming...";
