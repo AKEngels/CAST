@@ -373,7 +373,21 @@ namespace pca
     stream << "Stock's Delta; see DOI 10.1063/1.2746330\n\n";
     if (Config::get().PCA.pca_use_internal)
     {
+      for (size_t i = 0u; i < this->modes.rows(); i++)
+      {
+        stream << "PCA Mode " << i << ":\n";
+        for (size_t j = 0u; j < 2u * Config::get().PCA.pca_internal_dih.size(); j += 2u)
+        {
+          stream << "Dihedral " << std::setw(6) << Config::get().PCA.pca_internal_dih[j / 2u] << std::setw(0) << ": ";
 
+          float_type delta =
+            this->eigenvectors(i, j) * this->eigenvectors(i, j) +
+            this->eigenvectors(i, j + 1) * this->eigenvectors(i, j + 1);
+
+          stream << std::setw(10) << delta << std::setw(0) << "\n";
+        }
+        stream << "------------------------------\n";
+      }
     }
     else
     {

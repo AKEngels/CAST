@@ -627,7 +627,10 @@ int main(int argc, char **argv)
             pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
           }
 		    }
-        pcaptr->writePCAModesFile();
+
+        if(Config::get().PCA.pca_read_modes || Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+        else pcaptr->writePCAModesFile("pca_modes.dat");
+
         pcaptr->writeHistogrammedProbabilityDensity();
         pcaptr->writeStocksDelta();
 		    delete pcaptr;
