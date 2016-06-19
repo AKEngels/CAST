@@ -204,7 +204,7 @@ typedef size_t uint_type;
 		{
 #ifndef USE_ARMADILLO
       base_type const & a = *this;
-      matrix_printer<base_type> mp(a);
+      ::scon::matrix_printer<base_type> mp(a);
       // 3 newlines on top
       mp.margin_top = 3u;
       // 3 newlines after
