@@ -88,9 +88,9 @@ project "CAST"
   		optimize "Full"
 			flags { "LinkTimeOptimization" }
   		defines { "USE_ARMADILLO" }
-  	filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:gmake"}
+  	filter { "configurations:Armadillo_Release",  "platforms:x86", "action:gmake"}
   		targetname "CAST_linux_x64_armadillo_release"
-  	filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
+  	filter { "configurations:Armadillo_Release",  "platforms:x64", "action:gmake"}
   		targetname "CAST_linux_x64_armadillo_release"
 
 	configuration "vs2015"
