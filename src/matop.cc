@@ -215,9 +215,6 @@ namespace matop
           {
             if (includedAtoms[l] - 1 == i)
             {
-              //ignoreHydrogens
-              if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
-
               checker = true;
               quicksearch++;
               break;

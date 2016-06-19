@@ -135,17 +135,6 @@ namespace pca
 		{
 			std::cout << "Notice: covariance matrix is singular.\n";
 			std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-			if (Config::get().PCA.pca_remove_dof)
-			{
-				size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
-				eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
-				eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
-			}
-		}
-		else if (Config::get().PCA.pca_remove_dof)
-		{
-			eigenvectors.shed_cols(eigenvalues.rows() - 6, eigenvalues.rows() - 1);
-			eigenvalues.shed_rows(eigenvectors.cols() - 6, eigenvectors.cols() - 1);
 		}
 		delete cov_rank;
 	}
@@ -258,39 +247,6 @@ namespace pca
 			sum_of_all_variances += eigenvalues(i);
 		}
 
-		if (Config::get().PCA.pca_trunc_var != 1 && Config::get().PCA.pca_trunc_var < 1 && Config::get().PCA.pca_trunc_var > 0)
-		{
-			double temporary_sum_of_variances = 0.0;
-			Matrix_Class pca_modes2 = modes;
-			if (eigenvalues.rows() < 2u) throw("Eigenvalues not initialized, error in truncating PCA values. You are in trouble.");
-			for (size_t i = 0u - 1; i < eigenvalues.rows(); i++)
-			{
-				if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
-				{
-					size_t rows_of_pca_modes2 = pca_modes2.rows();
-					pca_modes2.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-					eigenvalues.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-					break;
-				}
-				temporary_sum_of_variances += eigenvalues(i);
-			}
-			modes = pca_modes2;
-		}
-		else if (Config::get().PCA.pca_trunc_var != 1)
-		{
-			throw("Error in pca task, check specified trunc_var. (It should be > 0. and < 1.)");
-		}
-		if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim < modes.rows())
-		{
-			Matrix_Class pca_modes2 = modes;
-			pca_modes2.shed_rows(Config::get().PCA.pca_trunc_dim, modes.rows() - 1u);
-			eigenvalues.shed_rows(Config::get().PCA.pca_trunc_dim, modes.rows() - 1u);
-			modes = pca_modes2;
-		}
-		else if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim >= modes.rows())
-		{
-			std::cout << "Notice: Inputfile-specified truncation for PCA is too large, there are less DOFs than the user specified truncation value for dimensionality.\n";
-		}
 		std::cout << "Working with " << modes.rows() << " dimensions.\n";
 
 		std::ofstream pca_modes_stream(filename, std::ios::out);
