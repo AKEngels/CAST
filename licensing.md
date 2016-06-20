@@ -4,6 +4,8 @@ The following subsections of CAST have licenses and are not developed by us:
 
 - FFTW: GPL2 or higher
 - armadillo: MPL2
+- lapack: BSD
+- openBLAS: BSD
 
 - Array.h: GPL2 or higher
 - cg.h: BSD
