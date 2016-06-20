@@ -36,7 +36,7 @@ namespace pca
 						|| coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
 						|| coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
 					{
-						Config::set().PCA.pca_internal_dih.erase(Config::get().PCA.pca_internal_dih.begin() + i);
+						Config::set().PCA.pca_internal_dih.erase(Config::set().PCA.pca_internal_dih.begin() + i);
 						sizeOfVector--;
 						i--;
 					}
@@ -64,7 +64,7 @@ namespace pca
 				{
 					if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u)
 					{
-						Config::set().PCA.pca_trunc_atoms_num.erase(Config::get().PCA.pca_trunc_atoms_num.begin() + i);
+						Config::set().PCA.pca_trunc_atoms_num.erase(Config::set().PCA.pca_trunc_atoms_num.begin() + i);
 						sizeOfVector--;
 						i--;
 					}
