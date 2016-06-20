@@ -28,6 +28,18 @@ endif
 ifeq ($(config),testing_x64)
   CAST_config = testing_x64
 endif
+ifeq ($(config),armadillo_release_x86)
+  CAST_config = armadillo_release_x86
+endif
+ifeq ($(config),armadillo_release_x64)
+  CAST_config = armadillo_release_x64
+endif
+ifeq ($(config),armadillo_debug_x86)
+  CAST_config = armadillo_debug_x86
+endif
+ifeq ($(config),armadillo_debug_x64)
+  CAST_config = armadillo_debug_x64
+endif
 
 PROJECTS := CAST
 
@@ -54,6 +66,10 @@ help:
 	@echo "  release_x64"
 	@echo "  testing_x86"
 	@echo "  testing_x64"
+	@echo "  armadillo_release_x86"
+	@echo "  armadillo_release_x64"
+	@echo "  armadillo_debug_x86"
+	@echo "  armadillo_debug_x64"
 	@echo ""
 	@echo "TARGETS:"
 	@echo "   all (default)"

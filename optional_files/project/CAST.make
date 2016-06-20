@@ -73,12 +73,12 @@ ifeq ($(config),release_x86)
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -100,12 +100,12 @@ ifeq ($(config),release_x64)
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -172,13 +172,123 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 
 endif
 
+ifeq ($(config),armadillo_release_x86)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
+  OBJDIR = obj/x86/Armadillo_Release
+  DEFINES += -DUSE_ARMADILLO
+  INCLUDES += -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_release_x64)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
+  OBJDIR = obj/x64/Armadillo_Release
+  DEFINES += -DUSE_ARMADILLO
+  INCLUDES += -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_debug_x86)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
+  OBJDIR = obj/x86/Armadillo_Debug
+  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  INCLUDES += -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -fopenmp ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_debug_x64)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
+  OBJDIR = obj/x64/Armadillo_Debug
+  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  INCLUDES += -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -fopenmp ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
 OBJECTS := \
+	$(OBJDIR)/PCA.o \
 	$(OBJDIR)/Path_perp.o \
 	$(OBJDIR)/configuration.o \
 	$(OBJDIR)/coords.o \
 	$(OBJDIR)/coords_atoms.o \
 	$(OBJDIR)/coords_bias.o \
 	$(OBJDIR)/coords_io.o \
+	$(OBJDIR)/coords_io_AMBER.o \
 	$(OBJDIR)/energy.o \
 	$(OBJDIR)/energy_int_aco.o \
 	$(OBJDIR)/energy_int_aco_pot.o \
@@ -264,106 +374,112 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/Path_perp.o: ../src/Path_perp.cc
+$(OBJDIR)/PCA.o: ../../src/PCA.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/configuration.o: ../src/configuration.cc
+$(OBJDIR)/Path_perp.o: ../../src/Path_perp.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/coords.o: ../src/coords.cc
+$(OBJDIR)/configuration.o: ../../src/configuration.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/coords_atoms.o: ../src/coords_atoms.cc
+$(OBJDIR)/coords.o: ../../src/coords.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/coords_bias.o: ../src/coords_bias.cc
+$(OBJDIR)/coords_atoms.o: ../../src/coords_atoms.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/coords_io.o: ../src/coords_io.cc
+$(OBJDIR)/coords_bias.o: ../../src/coords_bias.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy.o: ../src/energy.cc
+$(OBJDIR)/coords_io.o: ../../src/coords_io.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_aco.o: ../src/energy_int_aco.cc
+$(OBJDIR)/coords_io_AMBER.o: ../../src/coords_io_AMBER.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_aco_pot.o: ../src/energy_int_aco_pot.cc
+$(OBJDIR)/energy.o: ../../src/energy.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_amoeba.o: ../src/energy_int_amoeba.cc
+$(OBJDIR)/energy_int_aco.o: ../../src/energy_int_aco.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_amoeba_pot.o: ../src/energy_int_amoeba_pot.cc
+$(OBJDIR)/energy_int_aco_pot.o: ../../src/energy_int_aco_pot.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_mopac.o: ../src/energy_int_mopac.cc
+$(OBJDIR)/energy_int_amoeba.o: ../../src/energy_int_amoeba.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/energy_int_terachem.o: ../src/energy_int_terachem.cc
+$(OBJDIR)/energy_int_amoeba_pot.o: ../../src/energy_int_amoeba_pot.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/gb_solv.o: ../src/gb_solv.cc
+$(OBJDIR)/energy_int_mopac.o: ../../src/energy_int_mopac.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/gbsa.o: ../src/gbsa.cc
+$(OBJDIR)/energy_int_terachem.o: ../../src/energy_int_terachem.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/main.o: ../src/main.cc
+$(OBJDIR)/gb_solv.o: ../../src/gb_solv.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/matop.o: ../src/matop.cc
+$(OBJDIR)/gbsa.o: ../../src/gbsa.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/md.o: ../src/md.cc
+$(OBJDIR)/main.o: ../../src/main.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/mpi_cast.o: ../src/mpi_cast.cc
+$(OBJDIR)/matop.o: ../../src/matop.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/neb.o: ../src/neb.cc
+$(OBJDIR)/md.o: ../../src/md.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/optimization.o: ../src/optimization.cc
+$(OBJDIR)/mpi_cast.o: ../../src/mpi_cast.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/optimization_grid.o: ../src/optimization_grid.cc
+$(OBJDIR)/neb.o: ../../src/neb.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/optimization_mc.o: ../src/optimization_mc.cc
+$(OBJDIR)/optimization.o: ../../src/optimization.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/optimization_ts.o: ../src/optimization_ts.cc
+$(OBJDIR)/optimization_grid.o: ../../src/optimization_grid.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/pathopt.o: ../src/pathopt.cc
+$(OBJDIR)/optimization_mc.o: ../../src/optimization_mc.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/pme.o: ../src/pme.cc
+$(OBJDIR)/optimization_ts.o: ../../src/optimization_ts.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/pme_fep.o: ../src/pme_fep.cc
+$(OBJDIR)/pathopt.o: ../../src/pathopt.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/reaccoord.o: ../src/reaccoord.cc
+$(OBJDIR)/pme.o: ../../src/pme.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/scon.o: ../src/scon.cc
+$(OBJDIR)/pme_fep.o: ../../src/pme_fep.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/startopt.o: ../src/startopt.cc
+$(OBJDIR)/reaccoord.o: ../../src/reaccoord.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/startopt_ringsearch.o: ../src/startopt_ringsearch.cc
+$(OBJDIR)/scon.o: ../../src/scon.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/startopt_solvadd.o: ../src/startopt_solvadd.cc
+$(OBJDIR)/startopt.o: ../../src/startopt.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/tinker_parameters.o: ../src/tinker_parameters.cc
+$(OBJDIR)/startopt_ringsearch.o: ../../src/startopt_ringsearch.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/tinker_refine.o: ../src/tinker_refine.cc
+$(OBJDIR)/startopt_solvadd.o: ../../src/startopt_solvadd.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/tinker_parameters.o: ../../src/tinker_parameters.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/tinker_refine.o: ../../src/tinker_refine.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

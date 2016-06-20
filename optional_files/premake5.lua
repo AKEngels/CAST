@@ -21,7 +21,7 @@ newoption {
 
 workspace "CAST"
 	configurations { "Debug", "Release", "Testing", "Armadillo_Release", "Armadillo_Debug" }
-    location "../project"
+    location "../optional_files/project"
    	platforms { "x86", "x64"}
 	filter { "platforms:x86" }
 		architecture "x32"
@@ -32,7 +32,7 @@ workspace "CAST"
 project "CAST"
 	kind "ConsoleApp"
 	language "C++"
-	targetdir "../build/"
+	targetdir "../optional_files/build/"
 	files { "../src/**.h", "../src/**.cc" }
 
 	vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/**.cc"}
@@ -43,13 +43,13 @@ project "CAST"
 		filter { "options:mpi" }
 			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", "-DTERACHEM_MPI" }
 		filter { "action:gmake" }
-		  buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
+			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
 		filter { "configurations:Release", "action:gmake" }
 			optimize "Full"
 		filter { "configurations:Release",  "platforms:x86", "action:gmake"}
-		targetname "CAST_linux_x86_release"
+			targetname "CAST_linux_x86_release"
 		filter { "configurations:Release",  "platforms:x64", "action:gmake"}
-		targetname "CAST_linux_x64_release"
+			targetname "CAST_linux_x64_release"
 
 		filter { "configurations:Testing", "action:gmake" }
 			optimize "Debug"
@@ -64,14 +64,14 @@ project "CAST"
 			optimize "Debug"
 			flags { "Symbols" }
 		filter { "configurations:Debug",  "platforms:x86", "action:gmake"}
-		targetname "CAST_linux_x86_debug"
+			targetname "CAST_linux_x86_debug"
 		filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
-		targetname "CAST_linux_x64_debug"
+			targetname "CAST_linux_x64_debug"
 
-    filter { "configurations:Armadillo_Debug", "action:gmake" }
+		filter { "configurations:Armadillo_Debug", "action:gmake" }
 			includedirs { "../optional_files/includes/armadillo/"}
-      buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-			linkoptions { "../optional_files/linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../optional_files/linux_precompiled_libs/liblapack.a -lgfortran" }
+			buildoptions { "-I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
+			linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
 			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
 			optimize "Debug"
 			flags { "Symbols" }
@@ -82,9 +82,9 @@ project "CAST"
 			targetname "CAST_linux_x64_armadillo_debug"
 
     filter { "configurations:Armadillo_Release", "action:gmake" }
-    includedirs { "../optional_files/includes/armadillo/"}
+    includedirs { "./includes/armadillo/"}
       buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../optional_files/linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../optional_files/linux_precompiled_libs/liblapack.a -lgfortran" }
+      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
   		optimize "Full"
 			flags { "LinkTimeOptimization" }
   		defines { "USE_ARMADILLO" }
