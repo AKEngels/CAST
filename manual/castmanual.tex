@@ -757,9 +757,11 @@
 		pca_ref_frame_num & Reference frame for alignment & 0 \\
 		pca_start_frame_num & First frame to be used (couting starts at "0") & 0 \\
 		pca_offset & If a value \textit{n} $\neq 1$ is specified, only every \textit{n'th} frame will be used & 1 \\
-		pca_read_vectors & Switch "true" or "false". If "true", eigenvectors of the covariance matrix will not be calculated but read from a previously performed \ac{PCA}. This enables the projection of structures onto the \ac{PCA} modes of other trajectories. & "false" \\
-		pca_read_modes & Switch "true" or "false". If "true", \ac{PCA} Modes of the covariance matrix will not be calculated but read from a previously performed \ac{PCA}. This is for example useful when different histogramming procedures are to be applied. & "false" \\
+		pca_read_vectors & Switch "true" or "false". If "true", eigenvectors of the covariance matrix will not be calculated but read from a previously performed \ac{PCA} file named \glqq pca_modes.dat\grqq. This enables the projection of structures onto the \ac{PCA} modes of other trajectories. & "false" \\
+		pca_read_modes & Switch "true" or "false". If "true", \ac{PCA} Modes of the covariance matrix will not be calculated but read from a previously performed \ac{PCA} file named \glqq pca_modes.dat\grqq. This is for example useful when different histogramming procedures are to be applied. & "false" \\
+		pca_use_internal & Should dihedrals instead of cartesian coordinates be used? & "false"\\
 		pca_internal_dih & Specify number of atoms (starting with "0") for which the dihedral angle in radians will be included in the dPCA (see \cite{dpca1, dpca2, dpca3}) (example: "3-7,8,13,15,79-115") & none\\
+		pca_ignore_hydrogen & Ignore either all cartesian coordinates of hydrogens or all dihedrals including hydrogen & "false" \\
 		pca_trunc_atoms_bool & If cartesian coordinates are used, this specifies weather only those belonging to certain atoms will be used in the\ac{PCA}. Options are "true" = truncation activated and "false" = all atoms will be included. & false\\
 		pca_trunc_atoms_num & If pca_trunc_atoms_bool = true, specify the integers of those atoms whose coordinates are to be included (example: "1,3,7,11-45,2,77-99") & none\\
 		\end{tabularx}

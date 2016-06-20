@@ -25,7 +25,7 @@ namespace pca
 		if (Config::get().PCA.pca_use_internal)
 		{
 			if (Config::get().general.verbosity > 2U) std::cout << "Using dihedral angles.\n";
-			if (Config::get().PCA.pca_internal_ignore_hydrogen)
+			if (Config::get().PCA.pca_ignore_hydrogen)
 			{
 				if (Config::get().general.verbosity > 2U) std::cout << "Excluding dihedrals involving hydrogen.\n";
 				int sizeOfVector = static_cast<int>(Config::get().PCA.pca_internal_dih.size());
@@ -56,7 +56,7 @@ namespace pca
 				std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1);
 			}
 			else if (Config::get().general.verbosity > 2U) std::cout << "Using truncated cartesian coordinates.\n";
-			if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
+			if (Config::get().PCA.pca_ignore_hydrogen)
 			{
 				if (Config::get().general.verbosity > 2U) std::cout << "Excluding hydrogen atoms.\n";
 				int sizeOfVector = static_cast<int>(Config::get().PCA.pca_trunc_atoms_num.size());

@@ -1093,19 +1093,18 @@ typedef size_t uint_type;
 
 			int j, nr = 0;
 			for (j = 0; j<n; j++) if (s_in(j) > tsh) nr++;
-      if (rank != nullptr)
-      {
-        *rank = nr;
-      }
+			if (rank != nullptr)
+			{
+			  *rank = nr;
+			}
 #else
-arma::Col<float_type> s;
-if(!svd_econ(U_in, s, V_in, *this)) throw std::runtime_error("Error in armadillo SVD: failed.");
-for (size_t i = 0; i < U_in.rows(); i++)
-{
-  s_in(i) = s(i);
-
-  if (rank != nullptr) *rank = arma::rank(s);
-}
+			arma::Col<float_type> s;
+			if(!svd_econ(U_in, s, V_in, *this)) throw std::runtime_error("Error in armadillo SVD: failed.");
+			for (size_t i = 0; i < U_in.rows(); i++)
+			{
+			  s_in(i) = s(i);
+			}
+      if (rank != nullptr) *rank = arma::rank(s);
 #endif
 		}
 
@@ -1117,10 +1116,10 @@ for (size_t i = 0; i < U_in.rows(); i++)
 		 * @param eigenvec_in Eigenvectors will be written to this matrix
 		 * @param rank_in Rank of the matrix is stored here
 		 *
-     * justification: ptr is used for rank because in can represent a
-     * bool intrinsically through nullptr and therefore stores information
-     * weather rank should be passed through this function.
-     *
+		 * justification: ptr is used for rank because in can represent a
+		 * bool intrinsically through nullptr and therefore stores information
+		 * weather rank should be passed through this function.
+		 *
 		 * NOTE: Should we check if this is symmetric? I think we should -> "eig_sym",
 		 * at least once we will do matrix-math internally in CAST.
 		 */
