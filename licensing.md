@@ -12,7 +12,7 @@ The following subsections of CAST have licenses and are not developed by us:
 - lbfgs.h: BSD
 - ls.h: BSD
 - nr3.h: Numerical Recipies, _COMMERCIAL_
-- 
+
 
 Somewhat unclear:
 - interp_1d1.h: Looks like Numerical Recipies code, therefore commercial?
