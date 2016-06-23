@@ -7,17 +7,18 @@
 -- Build for windows: "premake5 vs2015"
 -- Open CAST.sln in project/
 --
--- Build for Linux on ECPC without MPI: "premake5 gmake"
--- Run "make config=release_x64 CXX=g++-5" in project/
+-- Build for Linux on ECPC "premake5 gmake"
+-- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
 --
--- Build for Linux on ECPC wit MPI: "premake5 gmake --mpi"
+-- Build for Linux on Smurf: "premake5 mpi"
 -- Run "make config=release_x64 CXX=mpic++" in project/
 --
 
 newoption {
    trigger     = "mpi",
-   description = "Add MPI Flag to gmake makefiles"
+   description = "Target SMURF cluster with MPI"
 }
+
 
 workspace "CAST"
 	configurations { "Debug", "Release", "Testing", "Armadillo_Release", "Armadillo_Debug" }
@@ -41,7 +42,7 @@ project "CAST"
 	configuration "gmake"
 		linkoptions { "-fopenmp" }
 		filter { "options:mpi" }
-			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", "-DTERACHEM_MPI" }
+			defines { "TERACHEM_MPI" }
 		filter { "action:gmake" }
 			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
 		filter { "configurations:Release", "action:gmake" }
@@ -81,23 +82,24 @@ project "CAST"
 		filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
 			targetname "CAST_linux_x64_armadillo_debug"
 
-    filter { "configurations:Armadillo_Release", "action:gmake" }
-    includedirs { "./includes/armadillo/"}
-      buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
-  		optimize "Full"
+		filter { "configurations:Armadillo_Release", "action:gmake" }
+			includedirs { "./includes/armadillo/"}
+			buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
+			linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
+			optimize "Full"
 			flags { "LinkTimeOptimization" }
-  		defines { "USE_ARMADILLO" }
-  	filter { "configurations:Armadillo_Release",  "platforms:x86", "action:gmake"}
-  		targetname "CAST_linux_x64_armadillo_release"
-  	filter { "configurations:Armadillo_Release",  "platforms:x64", "action:gmake"}
-  		targetname "CAST_linux_x64_armadillo_release"
+			defines { "USE_ARMADILLO"}
+		filter { "configurations:Armadillo_Release",  "platforms:x86", "action:gmake"}
+			targetname "CAST_linux_x64_armadillo_release"
+		filter { "configurations:Armadillo_Release",  "platforms:x64", "action:gmake"}
+			targetname "CAST_linux_x64_armadillo_release"
 
+
+			
 	configuration "vs2015"
 		targetname "CAST.exe"
 		buildoptions { "/openmp" }
 		flags { "MultiProcessorCompile" }
-
 		filter { "configurations:Release", "action:vs2015" }
 			optimize "Full"
 			flags { "LinkTimeOptimization" }
@@ -119,8 +121,8 @@ project "CAST"
 			targetname "CAST_win_x64_release_lapack"
 
 		filter { "configurations:Armadillo_Debug", "action:vs2015"}
-      includedirs { "../optional_files/includes/armadillo/"}
-      libdirs { "../optional_files/windows_precompiled_libs/" }			libdirs { "../libs/" }
+			includedirs { "../optional_files/includes/armadillo/"}
+			libdirs { "../optional_files/windows_precompiled_libs/" }			libdirs { "../libs/" }
 			links { "blas_win64_MT", "lapack_win64_MT" }
 			defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
 			optimize "Debug"
