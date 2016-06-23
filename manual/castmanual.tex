@@ -757,19 +757,18 @@
 		pca_ref_frame_num & Reference frame for alignment & 0 \\
 		pca_start_frame_num & First frame to be used (couting starts at "0") & 0 \\
 		pca_offset & If a value \textit{n} $\neq 1$ is specified, only every \textit{n'th} frame will be used & 1 \\
-		pca_remove_dof & If "true", the 6 last \acp{DOF} will be discarded as they are corresponding to rotation and translation movement when alignment was performed. & "false" \\
-		pca_read_vectors & Switch "true" or "false". If "true", eigenvectors of the covariance matrix will not be calculated but read from a previously performed \ac{PCA}. This enables the projection of structures onto the \ac{PCA} modes of other trajectories. & "false" \\
-		pca_read_modes & Switch "true" or "false". If "true", \ac{PCA} Modes of the covariance matrix will not be calculated but read from a previously performed \ac{PCA}. This is for example useful when different histogramming procedures are to be applied. & "false" \\
-		entropy_internal_dih & Specify number of atoms (starting with "0") for which the dihedral angle in radians will be included in the dPCA (see \cite{dpca1, dpca2, dpca3}) (example: "3-7,8,13,15,79-115") & none\\
+		pca_read_vectors & Switch "true" or "false". If "true", eigenvectors of the covariance matrix will not be calculated but read from a previously performed \ac{PCA} file named \glqq pca_modes.dat\grqq. This enables the projection of structures onto the \ac{PCA} modes of other trajectories. & "false" \\
+		pca_read_modes & Switch "true" or "false". If "true", \ac{PCA} Modes of the covariance matrix will not be calculated but read from a previously performed \ac{PCA} file named \glqq pca_modes.dat\grqq. This is for example useful when different histogramming procedures are to be applied. & "false" \\
+		pca_use_internal & Should dihedrals instead of cartesian coordinates be used? & "false"\\
+		pca_internal_dih & Specify number of atoms (starting with "0") for which the dihedral angle in radians will be included in the dPCA (see \cite{dpca1, dpca2, dpca3}) (example: "3-7,8,13,15,79-115") & none\\
+		pca_ignore_hydrogen & Ignore either all cartesian coordinates of hydrogens or all dihedrals including hydrogen & "false" \\
 		pca_trunc_atoms_bool & If cartesian coordinates are used, this specifies weather only those belonging to certain atoms will be used in the\ac{PCA}. Options are "true" = truncation activated and "false" = all atoms will be included. & false\\
 		pca_trunc_atoms_num & If pca_trunc_atoms_bool = true, specify the integers of those atoms whose coordinates are to be included (example: "1,3,7,11-45,2,77-99") & none\\
 		\end{tabularx}
 		~\\
 		\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
-		\hline			
-		pca_trunc_var & Optional variance cutoff. \ac{PCA} Modes are truncated to enough dimensions so that the desired variance is achieved & 0.0\\
-		pca_trunc_dim & Optional truncation. Number of \ac{PCA} modes to be in the output. ( 0: no truncation, all dimensions are printed). & 0\\
+		\hline
 		pca_print_probability_density & Boolean flag ("true" / "false" ): Print probability density of generated PCA modes (obtained through internal histogramming). & true\\
 		pca_histogram_width & Bin size of one histogram. Number of bins is adjusted accordingly. One can use "pca_histogram_number_of_bins" alternatively. & none\\
 		pca_histogram_number_of_bins & Number of histogram bins per dimension. Bin size is adjusted accordingly. "pca_histogram_width" can be used alternatively. & none\\
@@ -783,7 +782,6 @@
 	 pca_alignment                     true
 	 pca_ref_frame_num                 0
 	 pca_start_frame_num               0
-	 pca_remove_dof                    false
 	 pca_read_vectors                  false
 	 pca_read_modes                    false
 	 pca_print_probability_density     true
@@ -826,6 +824,10 @@
 	\subsection{REACTIONCOORDINATE - REACTIONCOORDINATE?}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
 
+	%%%% REMOVE_EXPLICIT_WATER %%%%
+	\subsection{REMOVE_EXPLICIT_WATER}	
+	This task will remove all explicit water from the input trajectory and write out the truncated coordinate. This may be useful to prepare data for tasks such as ENTROPY, PCAgen or ALIGN. In detail, the truncation is performed by detecting oxygen atoms which are only bound to two hydrogen atoms.\\
+		
 
 	%%%% Boundry Conditions %%%%
 	\section{Boundary Conditions}

@@ -4,7 +4,7 @@
 #         CAST CONFIGFILE          #
 #                                  #
 #                                  #
-#################################### 
+####################################
 
 # Verbosity
 # Amount of output information from CAST [0-5] (do not use 5)
@@ -22,7 +22,7 @@ cores                  4
 #        I/O: FILES & TYPES        #
 #                                  #
 #                                  #
-#################################### 
+####################################
 
 # Input file name
 
@@ -46,7 +46,7 @@ amber_mdcrd            equil_final.crd
 #amber_trajectory_at_constant_pressure
 
 
-#################################### 
+####################################
 #                                  #
 #          PROGRAM TASK            #
 #                                  #
@@ -102,7 +102,7 @@ task                   SP
 solvmethod             VAC
 surface                TINKER
 
-#################################### 
+####################################
 #                                  #
 #        PROFILE                   #
 #                                  #
@@ -168,13 +168,13 @@ BFGSmaxstep            10000
 #                                  #
 ####################################
 
-# Simulation Temperature 
+# Simulation Temperature
 # for TS and MC important for Metropolis Criterion
 # overwritten for MD by MDheatramp
 
 Temperature            298.15
 
-# Number of iterations in global optimization routine 
+# Number of iterations in global optimization routine
 # or number of MD simulation steps
 # (overwritten for MD by MDsteps)
 
@@ -187,7 +187,7 @@ Iterations             2000
 #                                  #
 ####################################
 
-# Save all (minimized) structures 
+# Save all (minimized) structures
 # which are within "Erange" kcal/mol from the final global minimum
 # default = 0.0
 
@@ -203,7 +203,7 @@ GOmetrolocal           0
 
 GOstartopt             0
 
-# Temperature Scaling Factor applied to the Temperature, 
+# Temperature Scaling Factor applied to the Temperature,
 # once a new minimum is found during GlobOpt
 # default = 1.0
 
@@ -213,8 +213,8 @@ Tempscale              0.98
 
 GOprecision            6
 
-# Fallback type 
-# 
+# Fallback type
+#
 # LAST_GLOBAL (default) = fall back to last minimum and then to global minimum if stuck
 # EVOLUTION = select new minimum via evolutionary algorithm if stuck
 
@@ -239,7 +239,7 @@ GOfallback_fr_fit              EXPONENTIAL
 GOfallback_fr_minima    10
 
 # Lower and upper bounardy for fitness value
-# rank 1 is assign second value, rank X 
+# rank 1 is assign second value, rank X
 # (determined via GOincluded_minima) is assigned the first value
 # default = 0.5 1.0
 
@@ -250,8 +250,8 @@ GOfallback_fr_bounds       0.5 1.0
 #           GRID OPTIONS           #
 #                                  #
 ####################################
- 
-GOmain_grid            60.0     
+
+GOmain_grid            60.0
 
 
 ####################################
@@ -260,7 +260,7 @@ GOmain_grid            60.0
 #                                  #
 ####################################
 
-# Step size in cartesian space 
+# Step size in cartesian space
 
 MCstep_size            1.4
 
@@ -337,7 +337,7 @@ SOstructures           1
 # Number of Steps
 
 MDsteps                10000
- 
+
 # Integrator
 #
 # 0                    Velocity-Verlet
@@ -386,9 +386,9 @@ MDpress                0
 MDpcompress            0.000046
 MDpdelay               2.0
 MDptarget              1.0
- 
+
 # Spehrical boundaries' options
-# 
+#
 # MDspehrical          <Active 0/1> <Radius 1> <Radius 2> <Force 1> <Force 2> <Exp 1> <Exp 2>
 
 #MDspherical            0 34.0 34.1 10.0 10.0 2.0 4.0
@@ -398,13 +398,13 @@ MDptarget              1.0
 # 0                    No Constraints
 # 1                    All Hydrogend Bonds
 # 2                    Specific Hydrogen Bonds
- 
+
 MDrattle               0
 
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
- 
+
 #MDrattlebond           7 12
 
 # Iteration offset for restart files
@@ -467,7 +467,7 @@ PRdeltax               0.5
 
 DIMERdistance          0.001
 
-# Translation type 
+# Translation type
 # 0                   simple translation along dimer direction using specified stepsize
 # 1                   conjugate gradient translation
 
@@ -516,13 +516,13 @@ FIXexclude             0
 
 REMOVEHROT             0
 
-# Fix a range of atoms 
+# Fix a range of atoms
 #FIXrange               <start index> <end index>
 
 #FIXrange               1 411
 
 # Fixation of single atoms
-#ATOMFIX                <INDEX> 
+#ATOMFIX                <INDEX>
 
 #ATOMFIX                1
 #ATOMFIX                3
@@ -597,7 +597,7 @@ entropy_internal_dih              4-23
 # Should only specific atoms be used for entropy calculations?
 # (only use with cartesian coordinates)
 entropy_trunc_atoms_bool          false
-entropy_trunc_atoms_num           3,4    
+entropy_trunc_atoms_num           3,4
 
 # Specify method used in entropy-calculations:
 # 1 : Quasi-Harmonic-Approx., configurational entropy, according to Karplus et. al. (DOI 10.1021/ma50003a019)
@@ -621,15 +621,12 @@ entropy_method_knn_k              4
 # Should alignment (Kabsch algorithm, minimizes RMSD) be performed
 # prior to PCA-Analysis? (options: false / true; true is default)
 # pca_ref_frame_num gives reference frame for alignment (default is 0)
-pca_alignment                 false
+pca_alignment                 true
 pca_ref_frame_num             0
 
 # Specify first frame to be used in PCA-Analysis
 # default is 0
 pca_start_frame_num           0
-
-# Should the removal of degrees of freedom for rotation / translation be attempted?
-pca_remove_dof                false
 
 # Specify offset value (only every n'th frame will be used in calculations)
 #pca_offset                    1
@@ -643,22 +640,19 @@ pca_read_modes                false
 # Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
 # "none" also possible. Atom indices start at 0.
 pca_use_internal              true
-pca_internal_dih              3
+pca_internal_dih             5-20
+pca_internal_ignore_hydrogen  false
 
 # Should only specific atoms be used for PCA-Analysis?
-pca_trunc_atoms_bool          false
-pca_trunc_atoms_num           1-20
-
-# Optional variance cutoff. PCA Modes are truncated to enough dimensions so that the desired variance is achieved.
-#pca_trunc_var                  20
-# Optional truncation. Number of highest PCA modes to be in the output. ( 0: no truncation, all dimensions are printed).
-#pca_trunc_dim                  2
+pca_trunc_atoms_bool              true
+pca_trunc_atoms_num              5-50
+pca_trunc_atoms_ignore_hydrogen   false
 
 # Print probability density of generated PCA modes?
-pca_print_probability_density  false
+pca_print_probability_density  true
 # If true, specify the number of bins or a bin-width for histogramming the data
 pca_histogram_width              0
-pca_histogram_number_of_bins     10
+pca_histogram_number_of_bins     42
 pca_dimensions_for_histogramming 1,2
 
 

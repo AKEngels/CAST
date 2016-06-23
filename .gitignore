@@ -3,13 +3,16 @@
 *.xgcc
 *.obj
 *.oo
+*.exe
 
-build/*
-!build/premake5.exe
-!build/premake5.lua
-project/*
-!project/Makefile
-!project/CAST.make
+optional_files/build/*
+optional_files/project/*
+!optional_files/project/Makefile
+!optional_files/project/CAST.make
+
+
+
+
 /CAST_2016/x64/Release/CAST_2016.pdb
 /CAST_2016/x64/Release/CAST_2016.ipdb
 /CAST_2016/x64/Release/CAST_2016.iobj
