@@ -14,10 +14,6 @@ energy::interfaces::amoeba::amoeba_ff::amoeba_ff(coords::Coordinates *cobj)
   for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
   cparams = tp.contract(ntypes);
   refined.refine(*cobj, cparams);
-  ref(cobj);
-
-
-
 
 }
 

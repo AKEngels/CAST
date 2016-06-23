@@ -3,7 +3,7 @@
 #include "tinker_parameters.h"
 #include "tinker_refine.h"
 #include "coords.h"
-#include "nr3.h"
+#include "interpolation.h"
 
 namespace energy
 {
@@ -111,34 +111,34 @@ namespace energy
 		double energy_total;
 		double fff;
 		bool SPACKrefine;
-		VecDoub dex11, dex22, dex33, exa11, exa22, exa33;
-		VecDoub dex0, xvec1, evec1, eveca1;
+		std::vector<double> dex11, dex22, dex33, exa11, exa22, exa33;
+		std::vector<double> dex0, xvec1, evec1, eveca1;
 
 		std::vector<atom>     atoms;
 		std::vector<bond>     bonds;
 		std::vector<n>        nij1;
 		std::vector<z>        zeta;
-		vector <vector <float> > zetax, cs;
-		vector <double> kappan;
-		vector <vector <ptrdiff_t> > nijx, occ;
+		std::vector <std::vector <float> > zetax, cs;
+		std::vector <double> kappan;
+		std::vector <std::vector <ptrdiff_t> > nijx, occ;
 
 
-		vector <vector<float> > zetan;
+		std::vector <std::vector<float> > zetan;
 		size_t nbas;
 		size_t nat;
 		size_t nref;
 
-		vector <vector<double> > coef;
-		vector <vector<vector<double> > > pij;
-		vector <double> sscat;
+		std::vector <std::vector<double> > coef;
+		std::vector <std::vector<std::vector<double> > > pij;
+		std::vector <double> sscat;
 		double aLimes, bLimes, smax;
 		size_t fak;
-		vector <double> kappa;
-		vector <size_t>  atomic;
-		vector <vector<double> > fscat;
+		std::vector <double> kappa;
+		std::vector <size_t>  atomic;
+		std::vector <std::vector<double> > fscat;
 
 
-		vector<size_t> mol;
+		std::vector<size_t> mol;
 		struct spack_list {
 
 			/* size_t atom1;
@@ -147,7 +147,7 @@ namespace energy
 
 
 		};
-		vector <spack_list> vec_spack;
+		std::vector <spack_list> vec_spack;
 		size_t count;
 
 
@@ -156,7 +156,7 @@ namespace energy
 			double y;
 			double z;
 		};
-		vector < ccoord > ccenter;
+		std::vector < ccoord > ccenter;
 
 		void Spackman_mol(void);
 		void parameters();
@@ -244,7 +244,7 @@ namespace energy
         void e_ind (void);
 		inline size_t multipole_sites(void);
 		void rot_matrix(coords::Representation_3D const &pos);
-		//std::vector <double> ci, dx, dy, dz, qxx, qyy, qzz, qxy, qxz, qyx, qyz, qzx, qzy;
+		//std::std::vector <double> ci, dx, dy, dz, qxx, qyy, qzz, qxy, qxz, qyx, qyz, qzx, qzy;
 		std::vector <std::vector <double> > quadro, rp, dipole;
 		std::vector <double> charges;
 		std::vector <std::vector <double> > dem, dep;

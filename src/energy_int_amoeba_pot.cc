@@ -7,7 +7,6 @@
 #include "configuration.h"
 #include "scon_utility.h"
 #include "scon_c3.h"
-#include "interp_1d1.h"
 #include <algorithm>
 
 
@@ -4609,7 +4608,7 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
   nijx.clear();
   zetax.clear();
   char buffer[200];
-  ifstream nijf("spackman.prm", ios::in);
+  std::ifstream nijf("spackman.prm", std::ios::in);
 
 
   while (!nijf.eof())
@@ -4622,7 +4621,7 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
     hh hbuffer;
 
 
-    string forcefield;
+	std::string forcefield;
 
 
 
@@ -4740,21 +4739,21 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   dex22.resize(cut);
   dex33.resize(cut);
 
-  ifstream in1("HH_GRAD.in", ios::in);
-  ifstream in2("CC_GRAD.in", ios::in);
-  ifstream in3("CH_GRAD.in", ios::in);
-  ifstream in4("HH_EN.in", ios::in);
-  ifstream in5("CC_EN.in", ios::in);
-  ifstream in6("CH_EN.in", ios::in);
+  std::ifstream in1("HH_GRAD.in", std::ios::in);
+  std::ifstream in2("CC_GRAD.in", std::ios::in);
+  std::ifstream in3("CH_GRAD.in", std::ios::in);
+  std::ifstream in4("HH_EN.in", std::ios::in);
+  std::ifstream in5("CC_EN.in", std::ios::in);
+  std::ifstream in6("CH_EN.in", std::ios::in);
   char buffer[200];
-  Doub temp;
+  double temp;
 
   i = 0;
   while (!in1.eof())
   {
     in1.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa11[i + 1] = temp;
+    exa11[i] = temp;
     i++;
   }
   i = 0;
@@ -4762,7 +4761,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in2.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa22[i + 1] = temp;
+    exa22[i] = temp;
     i++;
   }
   i = 0;
@@ -4770,7 +4769,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in3.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa33[i + 1] = temp;
+    exa33[i] = temp;
     i++;
   }
   i = 0;
@@ -4778,7 +4777,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in4.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex11[i + 1] = temp;
+    dex11[i] = temp;
 
     i++;
   }
@@ -4787,7 +4786,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in5.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex22[i + 1] = temp;
+    dex22[i] = temp;
     i++;
   }
   i = 0;
@@ -4795,12 +4794,12 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in6.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex33[i + 1] = temp;
+    dex33[i] = temp;
     i++;
   }
-  for (i = 1; i < 11002; i++) {
+  for (i = 1; i <= 11002; i++) {
     dist = i*0.001;
-    eveca1[i] = dist;
+    eveca1[i-1] = dist;
 
   }
 
@@ -5621,17 +5620,14 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_GRAD() {
 //!calculation of analytical gradients for Spackman correction using generated list from Spackman_list	  
 void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 {
-  double distx = 0, disty = 0, distz = 0, dist_3 = 0;
-  vector <double> dist_2;
-  Doub xx_in;
-  double fac_x, fac_y, fac_z;
-  double xgrad, ygrad, zgrad;
-  size_t n;
-  size_t contr = 0;
+  size_t n(0), contr(0);
+  double distx(0.0), disty(0.0), distz(0.0), dist_3(0.0),
+	  xx_in(0.0), fac_x(0.0), fac_y(0.0), fac_z(0.0),
+	  xgrad(0.0), ygrad(0.0), zgrad(0.0), y(0.0);
+  std::vector <double> dist_2;
   auto const &positions = coords->xyz();
   coords::Cartesian_Point bv, b, gv;
   //scon::nv3d &gradients = part_grad[energy::interfaces::amoeba::types::short_range_an];
-  Doub y;
   //	    double start = omp_get_wtime();
   //
   //	    
@@ -5645,9 +5641,9 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
   //!Spline_interp == cubic spline
   //!Poly_interp == polynominal spline
   //!Linear_interp == linear spline	    
-  Spline_interp myfunc11(eveca1, exa22);
-  Spline_interp myfunc22(eveca1, exa11);
-  Spline_interp myfunc33(eveca1, exa33);
+  Linear_interp_sorted myfunc11(eveca1, exa22);
+  Linear_interp_sorted myfunc22(eveca1, exa11);
+  Linear_interp_sorted myfunc33(eveca1, exa33);
   //
   //
   ////!loop over monomer interactions 	    
@@ -5694,7 +5690,7 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 
         // 			  y=dex22[l];
 
-        y = myfunc11.interp(xx_in);
+        y = myfunc11.interpolate(xx_in);
 
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
@@ -5714,7 +5710,7 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
         // 			 y=dex11[l];
 
 
-        y = myfunc22.interp(xx_in);
+        y = myfunc22.interpolate(xx_in);
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
         zgrad = (fac_z*y);
@@ -5733,7 +5729,7 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
         // 			y=dex33[l];
 
 
-        y = myfunc33.interp(xx_in);
+        y = myfunc33.interpolate(xx_in);
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
         zgrad = (fac_z*y);
@@ -5762,34 +5758,25 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 //
 double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
 {
-  double distx = 0, disty = 0, distz = 0, dist_3 = 0;
-  vector <double> dist_2;
-  Doub xx_in;
-  size_t n;
-  size_t contr = 0;
+  size_t n(0), contr(0);
+  double distx = 0, disty = 0, distz = 0, dist_3 = 0,xx_in(0.0),
+	  y(0.0), energytemp(0.0);
+  std::vector <double> dist_2;
   auto const &positions = coords->xyz();
-  coords::Cartesian_Point bv, b, gv;
-  Doub y;
-  double energytemp(0.0);
-  //	    double start = omp_get_wtime();
-  //
-  //	    
-  //
-  //
-  //
-  /* cout<<"ENERGY INTERPOLATION" << endl;*/
+  coords::Cartesian_Point bv;
+
   //!initialize Spline routine
   //!Spline_interp == cubic spline
   //!Poly_interp == polynominal spline
   //!Linear_interp == linear spline	    
-  Spline_interp myfunc11(eveca1, dex22);
-  Spline_interp myfunc22(eveca1, dex11);
-  Spline_interp myfunc33(eveca1, dex33);
+  Linear_interp_sorted myfunc11(eveca1, dex22);
+  Linear_interp_sorted myfunc22(eveca1, dex11);
+  Linear_interp_sorted myfunc33(eveca1, dex33);
+
   //
   //
   ////!loop over monomer interactions 	    
   //	
-  y = 0.0;
   for (size_t i = 0; i < vec_spack.size(); i++) {
     //	    
     //	    
@@ -5812,19 +5799,19 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
       xx_in = dist_3;
       n = 1000;
       if (contr == 1) {
-        y = myfunc11.interp(xx_in);
+        y = myfunc11.interpolate(xx_in);
 
       }
 
       else if (contr == 2) {
-        y = myfunc22.interp(xx_in);
+        y = myfunc22.interpolate(xx_in);
 
 
       }
 
       else if (contr == 3) {
 
-        y = myfunc33.interp(xx_in);
+        y = myfunc33.interpolate(xx_in);
 
       }
     }

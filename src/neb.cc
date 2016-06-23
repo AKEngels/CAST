@@ -176,7 +176,6 @@ void neb::create()
   cPtr->set_xyz(imagi[num_images - 1]);
   cPtr->to_internal();
   tempimage_final = cPtr->xyz();
-
   for (size_t j = 1; j < (num_images - 1); j++) {
 
     double diff = (double)j / num_images;
@@ -186,13 +185,15 @@ void neb::create()
       images[i].x() = tempimage_ini[i].x() + diff * (tempimage_final[i].x() - tempimage_ini[i].x());
       images[i].y() = tempimage_ini[i].y() + diff * (tempimage_final[i].y() - tempimage_ini[i].y());
       images[i].z() = tempimage_ini[i].z() + diff * (tempimage_final[i].z() - tempimage_ini[i].z());
-
+	  
 
       imagi[j].push_back(images[i]);
       image_ini[j].push_back(images[i]);
       images_initial.push_back(images[i]);
 
     }
+	
+	
   }
 
   std::ostringstream na;
@@ -903,9 +904,9 @@ void neb::calc_shift(void)
     }
     //std::cout << '\n';
 
-    Spline_interp splinex(gridx, posx);
-    Spline_interp spliney(gridy, posy);
-    Spline_interp splinez(gridz, posz);
+   Lagrange_interp splinex(gridx, posx);
+   Lagrange_interp spliney(gridy, posy);
+   Lagrange_interp splinez(gridz, posz);
     position[i].resize(num_images);
 
     for (size_t k = 0; k < num_images; k++)
@@ -963,9 +964,9 @@ void neb::calc_shift(void)
 
         laf++;
         gridp += Config::get().neb.INT_IT;
-        x = splinex.interp(gridp);
-        y = spliney.interp(gridp);
-        z = splinez.interp(gridp);
+        x = splinex.interpolate(gridp);
+        y = spliney.interpolate(gridp);
+        z = splinez.interpolate(gridp);
         distx += x;
         disty += y;
         distz += z;
