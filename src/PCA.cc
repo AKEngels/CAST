@@ -125,9 +125,9 @@ namespace pca
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
 		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
-		cov_matr = cov_matr - ones * cov_matr / this->coordinatesMatrix.cols();
+		cov_matr = cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		cov_matr = transposed(cov_matr) * cov_matr;
-		cov_matr = cov_matr / this->coordinatesMatrix.cols();
+		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
 		int *cov_rank = new int;
 		cov_matr.eigensym(this->eigenvalues, this->eigenvectors, cov_rank);

@@ -472,13 +472,13 @@ namespace matop
 
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols());
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
-	    float_type cov_determ = 0.;
-	    int *cov_rank = new int;
+	  float_type cov_determ = 0.;
+	  int *cov_rank = new int;
       cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
 
       //Remove Eigenvalues that should be zero if cov_matr is singular
@@ -827,9 +827,9 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
+      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols());
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / input.cols();
+      cov_matr = cov_matr / static_cast<float_type>(input.cols());
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
       {
@@ -851,7 +851,7 @@ namespace matop
       Matrix_Class cov_matr = transposed(input);
       cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
       cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / input.cols();
+      cov_matr = cov_matr / static_cast<float_type>(input.cols());
 
       cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
       cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
@@ -1012,7 +1012,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
   {
-    if (i != Config::get().alignment.reference_frame_num)
+    if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
     {
       auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
       coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
@@ -1067,7 +1067,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       //Formatted string-output
     }
 
-    else if (i == Config::get().alignment.reference_frame_num)
+    else if (i == static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
     {
       std::stringstream hold_coords;
       hold_coords << coordsReferenceStructure;

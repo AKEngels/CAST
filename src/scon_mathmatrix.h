@@ -1209,13 +1209,13 @@ typedef size_t uint_type;
   mathmatrix<T> transposed(mathmatrix<T> const& in)
   {
     return mathmatrix<T>(in.t());
-  };
+  }
 
   template<typename T>
   void transpose(mathmatrix<T>& in)
   {
     in = transposed(in);
-  };
+  }
 
 #else
   using namespace scon;

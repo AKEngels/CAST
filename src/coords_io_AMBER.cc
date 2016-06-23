@@ -81,8 +81,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
   Coordinates coord_object;
   std::ifstream config_file_stream(file.c_str(), std::ios_base::in);
   std::string line;
-  std::cout << "NOTE: You are specifiying AMBER-Files as input.\nThis feature is highly, let me repeat that, HIGHLY experimental in CAST.\n";
-  std::cout << "All that fancy AMBER-stuff like residues and such is OMITTED. We collect only the atoms and their positions.\n";
+  std::cout << "NOTE: You are specifiying AMBER-Files as input.\n";
+  std::cout << "All fancy AMBER-stuff like residues and such is OMITTED. CAST only collects the atoms and their positions.\n";
   std::cout << "Keep in mind: If anything breaks, you get to keep all the pieces!\n";
 
   //First, let's see which sections are present at all. Then we can judge from where we'll take our information.
@@ -131,7 +131,9 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
   // FUTURE: Use Atomic_Number, however, in the workflow of this
   // current working group this is not present. (ie: this scetion is just not present
   // in the files for which processing with CAST is desired).
-  bool skipPastAtomName = std::find(sectionsPresent.begin(), sectionsPresent.end(), 34u) != sectionsPresent.end();
+  
+  // -> Currently not used, uncomment if you want to use it...
+  // bool skipPastAtomName = std::find(sectionsPresent.begin(), sectionsPresent.end(), 34u) != sectionsPresent.end();
 
   //NOW LETS GO!
   if (config_file_stream)
@@ -337,7 +339,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
               else
               {
                 ignoreFFtypes = true;
-                std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. Atom types omitted, do not use fore field energy interfaces." << std::endl;
+                std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
               }
             }
             atoms.add(current);
