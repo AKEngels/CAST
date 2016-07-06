@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   3A_layer.arc
+name                   nacl.arc
 
 # Output file name
 
@@ -66,7 +66,7 @@ inputtype              TINKER
 # GOSOL                Globally optimized solvation
 # GRID                 Grid Search
 
-task                   SP
+task                   DEVTEST
 
 
 #################################### 
@@ -92,9 +92,10 @@ profileruns            10
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
-# MOPAC                MOAPC2012 syscall Interface
+# MOPAC                MOPAC2016 syscall Interface
+# QMMM			 QMMM interface (MOPAC + ff)
 
-interface              CHARMM22
+interface              QMMM
 
 # Interface for preoptimizations
 
@@ -103,19 +104,30 @@ preinterface           0
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              charmm_conv.prm
+paramfile              oplsaa_mod.prm
 
 # Keywords for MOPAC Call
 
-MOPACkey               PM7
+MOPACkey               PM7 QMMM AUX CHARGE=-1
+
 
 # Delete temporary MOPAC comm files?
 
-MOPACdelete            1
+MOPACdelete            0
 
 #MOPAC executable path
 
-MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
+MOPACpath              "C:\Program Files\mopac\MOPAC2016.exe"
+
+####################################
+#                                  #
+#          QMMM                    #
+#                                  #
+####################################
+
+
+QMMMqmatoms        	 1
+QMMMmminterface       OPLSAA
 
 
 ####################################
