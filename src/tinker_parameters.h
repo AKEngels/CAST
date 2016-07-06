@@ -469,6 +469,8 @@ namespace tinker
       }
 
       vdwc_matrices_t vdwc_matrices (void) const;
+
+      global const & general() const { return m_general; }
     
       std::vector<angle> const &      angles (void) const { return m_angles; }
       std::vector<bond> const &       bonds (void) const { return m_bonds; }
@@ -537,7 +539,7 @@ namespace tinker
       std::vector<ureybrad>   m_ureybrads;
       std::vector<vdw>        m_vdws;
       std::vector<vdw>        m_vdw14s;
-	  std::vector<combi::vdwc> m_vdwsc;
+	    std::vector<combi::vdwc> m_vdwsc;
 
       friend std::ostream& operator<< (std::ostream & stream, parameters const & p);
 

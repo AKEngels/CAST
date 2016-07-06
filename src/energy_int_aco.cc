@@ -82,7 +82,8 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   if (!skip_topology) 
   {
     std::vector<std::size_t> types;
-    for (auto atom : (*coords).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+    for (auto && atom : (*coords).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+    std::cout << "Contracting " << types.size() << " types.\n";
     cparams = tp.contract(types);
     refined.refine((*coords), cparams);
   }
@@ -90,6 +91,30 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   {
     refined.refine_nb((*coords));
   }
+}
+
+std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
+{
+  std::vector<coords::float_type> c;
+  for (auto && atom : coords->atoms())
+  {
+    for (auto && chg : cparams.charges())
+    {
+      auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
+      std::cout << "Searching cp for atom " << atom << " which is " 
+        << t_of_atom << " at " << chg.index << "(" << chg.c << ")\n";
+      if (chg.index == t_of_atom)
+      {
+        c.push_back(chg.c);
+        break;
+      }
+    }
+  }
+  if (c.size() != coords->size())
+  {
+    throw std::runtime_error("Didn't find all charges.");
+  }
+  return c;
 }
 
 // Output functions

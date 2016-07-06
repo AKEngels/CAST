@@ -148,6 +148,9 @@ namespace energy
     // Optimization in the intface or interfaced program
     virtual coords::float_type o (void) = 0;
 
+    // Return charges
+    virtual std::vector<coords::float_type> charges() const = 0;
+
     // Feature getter
     bool has_periodics() const { return periodic; }
     bool has_optimizer() const { return optimizer; }

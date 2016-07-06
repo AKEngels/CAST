@@ -47,7 +47,10 @@ namespace energy
         // Optimization in the intface or interfaced program
         double o (void);
 
-		
+        std::vector<coords::float_type> charges() const override
+        {
+          throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
+        }
 
         // Output functions
         void print_E (std::ostream&) const;
@@ -246,7 +249,7 @@ namespace energy
 		void rot_matrix(coords::Representation_3D const &pos);
 		//std::vector <double> ci, dx, dy, dz, qxx, qyy, qzz, qxy, qxz, qyx, qyz, qzx, qzy;
 		std::vector <std::vector <double> > quadro, rp, dipole;
-		std::vector <double> charges;
+		std::vector <double> m_charges;
 		std::vector <std::vector <double> > dem, dep;
 		double em, ep;
 	

@@ -629,6 +629,32 @@ void config::parse_option(std::string const option, std::string const value_stri
     cv >> Config::set().general.profile_runs;
   }
 
+  //! Qmmm-Option
+  else if (option.substr(0, 4u) == "QMMM")
+  {
+    if (option.substr(4u) == "qmatoms")
+    {
+      Config::set().energy.qmmm.qmatoms = sorted_indices_from_cs_string(value_string);
+      if (Config::get().energy.qmmm.qmatoms.size() != 0)
+      {
+        Config::set().energy.qmmm.use = true;
+      }
+    }
+    else if (option.substr(4u) == "mminterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.mminterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+  }
+
+
   //!SPACKMAN
   else if (option == "Spackman")
   {
@@ -2084,7 +2110,8 @@ water_bond(0.95), water_angle(109.5),
 maxNumWater(0), ffTypeOxygen(53), ffTypeHydrogen(54),
 boundary(boundary_types::LAYER), opt(opt_types::SHELL),
 fix_initial(true), fix_intermediate(true),
-go_type(globopt_routine_type::BASINHOPPING)
+go_type(globopt_routine_type::BASINHOP
+NG)
 { }
 void set_opt(opt_types::T type);
 */

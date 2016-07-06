@@ -36,13 +36,16 @@ namespace energy
         void update (bool const skip_topology = false);
 
         // Energy function
-        coords::float_type e (void);
+        coords::float_type 
+          e (void) override;
         // Energy+Gradient function
-        coords::float_type g (void);
+        coords::float_type g (void) override;
         // Energy+Gradient+Hessian function
-        coords::float_type h (void);
+        coords::float_type h (void) override;
         // Optimization in the intface or interfaced program
-        coords::float_type o (void);
+        coords::float_type o (void) override;
+
+        std::vector<coords::float_type> charges() const override;
 
         // Virial Tensor
 
@@ -56,6 +59,12 @@ namespace energy
         void to_stream (std::ostream&) const;
         void swap (interface_base&);
         void swap (aco_ff&);
+
+
+        ::tinker::parameter::parameters const & params() const
+        {
+          return cparams;
+        }
 
       private:
         

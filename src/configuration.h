@@ -18,6 +18,7 @@
 #include "scon_vect.h"
 #include "coords_rep.h"
 
+
 namespace config
 {
 
@@ -104,18 +105,19 @@ namespace config
   };
 
   // Interface Types
-  static std::size_t const NUM_INTERFACES = 6;
+  static std::size_t const NUM_INTERFACES = 7
+    ;
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC", "QMMM" 
   };
   struct interface_types 
   { 
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC 
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, QMMM 
     }; 
   };
 
@@ -221,6 +223,7 @@ namespace config
     config::solvs::S solvationmethod;
     config::surfs::SA surfacemethod;
     bool forcefield;
+   
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
@@ -423,10 +426,18 @@ namespace config
 
     struct spack
     {
-      bool on, interp;
       double cut;
-      spack(void) : on(false), interp(true), cut(10.0) { }
+      bool on, interp;
+      spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
+
+    struct qmmm_conf
+    {
+      std::vector <size_t> qmatoms;
+      std::vector <size_t> mmatoms;
+      interface_types::T mminterface{ interface_types::T::OPLSAA };
+      bool use{ false };
+    } qmmm{};
 
     struct mopac_conf
     {

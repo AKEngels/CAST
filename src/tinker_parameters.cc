@@ -1275,8 +1275,6 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   
   return tmp;
 
-	return tmp;
-
 }
 
 /*

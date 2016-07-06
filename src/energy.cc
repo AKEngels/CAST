@@ -5,6 +5,7 @@
 #include "energy_int_mopac.h"
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
+#include "energy_int_qmmm.h"
 #include "coords.h"
 
 static inline energy::interface_base * get_interface (coords::Coordinates * cp, config::interface_types::T const &inf)
@@ -33,8 +34,17 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
       {
         std::cout << "Mopac choosen for energy calculations.\n";
       }
+      std::cout << "GET MOPAC!\n";
       return new energy::interfaces::mopac::sysCallInterface(cp);
     }
+  case config::interface_types::T::QMMM:
+  {
+    if (Config::get().general.verbosity > 29)
+    {
+      std::cout << "QMMM-Interface choosen for energy calculations.\n";
+    }
+    return new energy::interfaces::qmmm::QMMM(cp);
+  }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {

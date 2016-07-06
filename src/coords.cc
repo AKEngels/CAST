@@ -243,6 +243,7 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
     throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
   }
   energy_valid = false;
+  m_atoms.clear();
   a.swap(m_atoms);
   m_atoms.refine();
   p.swap(m_representation);
