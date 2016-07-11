@@ -178,7 +178,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mmc.energyinterface()->print_E_short(std::cout);*/
 }
 
-coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool x)
+coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
   auto elec_factor = 332.0;
   mm_charge_vector = mmc.energyinterface()->charges();
@@ -219,9 +219,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool x)
 
   if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
-  ww_calc(x);
+  ww_calc(if_gradient);
 
-  if (x)
+  if (if_gradient)
   {
     mm_energy = mmc.g();
     auto new_grad = c_gradient + vdw_gradient;
@@ -256,7 +256,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool x)
   return energy;
 }
 
-void energy::interfaces::qmmm::QMMM::ww_calc(bool x)
+void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
   auto elec_factor = 332.0;
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
@@ -311,7 +311,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool x)
       {
         vdw_energy += R_r*p_ij.E*(R_r - 1.0);
       }
-      else if (cparams.general().radiustype.value == ::tinker::parameter::radius_types::T::R_MIN)
+      else if (cparams.general().radiustype.value 
+        == ::tinker::parameter::radius_types::T::R_MIN)
       {
         vdw_energy += R_r*p_ij.E*(R_r - 2.0);
       }
@@ -319,7 +320,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool x)
       {
         throw std::runtime_error("no valid radius_type");
       }
-      if (x)
+      if (if_gradient)
       {
         coords::float_type db = b / d;
         auto c_gradient_ij = r_ij * db / d;
@@ -329,9 +330,10 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool x)
 
         coords::float_type const V = p_ij.E*R_r;
 
-        if (cparams.general().radiustype.value == ::tinker::parameter::radius_types::T::SIGMA)
+        if (cparams.general().radiustype.value 
+          == ::tinker::parameter::radius_types::T::SIGMA)
         {
-          auto vdw_r_grad = (V / d)*(6.0 - 12.0 * R_r);
+          auto vdw_r_grad = (V / (d*d))*(6.0 - 12.0 * R_r);
           auto vdw_gradient_ij = r_ij*vdw_r_grad;
           std::cout << "vdw_g: " << vdw_gradient_ij;
           vdw_gradient[i - 1] += vdw_gradient_ij;
@@ -339,7 +341,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool x)
         }
         else 
         {
-          auto vdw_gradient_ij = r_ij*12 * (V / d)*(1.0 - R_r);
+          auto vdw_gradient_ij = r_ij*12 * (V / (d*d))*(1.0 - R_r);
           vdw_gradient[i - 1] += vdw_gradient_ij;
           vdw_gradient[j - 1] -= vdw_gradient_ij;
         }
