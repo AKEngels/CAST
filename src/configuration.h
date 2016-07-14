@@ -434,7 +434,6 @@ namespace config
     struct qmmm_conf
     {
       std::vector <size_t> qmatoms;
-      std::vector <size_t> mmatoms;
       interface_types::T mminterface{ interface_types::T::OPLSAA };
       bool use{ false };
     } qmmm{};
