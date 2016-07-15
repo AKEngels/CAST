@@ -534,7 +534,7 @@ namespace config
   struct molecular_dynamics
   {
     double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trace_offset;
+    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trackoffset;
     std::vector<md_conf::config_heat> heat_steps;
     md_conf::config_spherical spherical;
     md_conf::config_rattle rattle;
@@ -545,7 +545,7 @@ namespace config
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
       refine_offset(200), restart_offset(5000), usequil(), usoffset(),
-      trace_offset(1), heat_steps(), spherical(), rattle(),
+      trackoffset(1), heat_steps(), spherical(), rattle(),
       integrator(md_conf::integrators::VERLET), fix(false),
       hooverHeatBath(true), veloScale(false), fep(false), track(true),
       silent(false), optimize_snapshots(false), pressure(false),
