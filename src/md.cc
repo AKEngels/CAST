@@ -1014,11 +1014,11 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
   }
   // Main MD Loop
-  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
+  auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u ), size_t(10000u)), std::size_t{ 100u });
   for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
   {
     bool const HEATED(heat(k));
-    if (VERBOSE < 4U && k % split == 0 && k > 1)
+    if (VERBOSE > 1u && k % split == 0 && k > 1)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }

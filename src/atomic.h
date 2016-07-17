@@ -1,3 +1,13 @@
+/**
+CAST 3
+atomic.h
+Purpose:
+Provides fundamental atomic properties
+
+@author unknown PhD student
+@version 1.0
+*/
+
 #ifndef ATOMIC_H
 
 #define ATOMIC_H 87U
