@@ -34,7 +34,6 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
       {
         std::cout << "Mopac choosen for energy calculations.\n";
       }
-      std::cout << "GET MOPAC!\n";
       return new energy::interfaces::mopac::sysCallInterface(cp);
     }
   case config::interface_types::T::QMMM:

@@ -639,7 +639,8 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           if ((i - input_ensemble.size()*(N + 1u)) == N)
           { // if we are at the end of a structure 
             if (positions.size() != atoms.size())
-              throw std::logic_error("The size of an additionally provided structure does not match the number of atoms.");
+              throw std::logic_error("The size of an additionally provided"
+                " structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
             positions.clear();
           }
@@ -661,8 +662,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           }
         }
       }
-
-
     }
 
     if (indexation_not_contiguous)
@@ -692,7 +691,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     for (auto & p : input_ensemble)
     {
       p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian);
+      coord_object.set_xyz(p.structure.cartesian, true);
       coord_object.to_internal_light();
       p = coord_object.pes();
     }

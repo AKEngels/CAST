@@ -14,18 +14,21 @@ namespace energy
     {
       class QMMM
         : public interface_base
-
       {
-        static ::tinker::parameter::parameters tp;
 
+        static ::tinker::parameter::parameters tp;
         ::tinker::parameter::parameters cparams;
-        public: 
-        QMMM (coords::Coordinates *coords);
-        QMMM(QMMM const & rhs, coords::Coordinates *coords);
+
+      public:
+
+
+        QMMM(coords::Coordinates*);
+        QMMM(QMMM const&, coords::Coordinates*);
+        QMMM(QMMM&&, coords::Coordinates*);
 
         double distance;
-        interface_base * clone(coords::Coordinates * coords) const;
-        interface_base * move(coords::Coordinates * coords);
+        interface_base * clone(coords::Coordinates*) const;
+        interface_base * move(coords::Coordinates*);
 
         void swap(interface_base &);
         void swap(QMMM &);
@@ -34,21 +37,25 @@ namespace energy
         void update(bool const skip_topology = false);
         
         // Energy function
-        coords::float_type e(void) override;
+        coords::float_type e() override;
         // Energy+Gradient function
-        coords::float_type g(void) override;
+        coords::float_type g() override;
         // Energy+Gradient+Hessian function
-        coords::float_type h(void) override;
+        coords::float_type h() override;
         // Optimization in the intface or interfaced program
-        coords::float_type o(void) override;
+        coords::float_type o() override;
 
         // Return charges (QM und MM charges?)
         std::vector<coords::float_type> charges() const override;
-        void print_E(std::ostream&) const;
-        void print_E_head(std::ostream&, bool const endline = true) const;
-        void print_gnuplot(std::ostream&, bool const endline = true) const;
-        void print_E_short(std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
+        void print_E(std::ostream&) const override;
+        void print_E_head(std::ostream&, 
+          bool const endline = true) const override;
+        void print_gnuplot(std::ostream&, 
+          bool const endline = true) const;
+        void print_E_short(std::ostream&, 
+          bool const endline = true) const override;
+        void print_G_tinkerlike(std::ostream&, 
+          bool const aggregate = false) const override;
         void to_stream(std::ostream&) const;
 
         void set_distance(double d)
@@ -56,7 +63,11 @@ namespace energy
           distance = d;
         }
 
-        private:
+      private:
+
+        void ww_calc(bool);
+        coords::float_type qmmm_calc(bool);
+
         std::vector<std::size_t> qm_indices;
         std::vector<std::size_t> mm_indices;
   
@@ -68,8 +79,6 @@ namespace energy
         
         std::vector<double> qm_charge_vector;
         std::vector<double> mm_charge_vector;
-        
-        void ww_calc(bool);
 
         coords::float_type c_energy;
         coords::float_type vdw_energy;
@@ -79,7 +88,7 @@ namespace energy
         coords::Gradients_3D c_gradient;
         coords::Gradients_3D vdw_gradient;
                
-        coords::float_type qmmm_calc(bool);
+        
         
         
 

@@ -62,7 +62,7 @@ namespace energy
 
         std::vector<coords::float_type> charges() const override
         {
-          throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
+          throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
         }
 
         // Output functions

@@ -3,9 +3,11 @@
 #include "energy_int_qmmm.h"
 #include "scon_utility.h"
 
+::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 
 namespace
 {
+
   std::vector<std::size_t> get_mm_atoms(std::size_t const num_atoms)
   {
     std::vector<std::size_t> mm_atoms;
@@ -14,10 +16,12 @@ namespace
     {
       auto mm_size = num_atoms - qm_size;
       mm_atoms.reserve(mm_size);
-      for (unsigned i = 1; i <= num_atoms; i++)
+      for (unsigned i = 0; i < num_atoms; i++)
       {
-        auto i2 = scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i);
-        if (!i2) { mm_atoms.emplace_back(i); }
+        if (!scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i)) 
+        { 
+          mm_atoms.emplace_back(i); 
+        }
       }
     }
     return mm_atoms;
@@ -30,15 +34,16 @@ namespace
     {
       new_indices_qm.resize(num_atoms);
       std::size_t current_index = 0u;
-      for (auto && a : Config::get().energy.qmmm.qmatoms)
+      for (auto&& a : Config::get().energy.qmmm.qmatoms)
       {
-        new_indices_qm.at(a - 1) = current_index++;
+        new_indices_qm.at(a) = current_index++;
       }
     }
     return new_indices_qm;
   }
 
-  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms)
+  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, 
+    std::vector<std::size_t> const& mmi)
   {
     std::vector<std::size_t> new_indices_mm;
     new_indices_mm.resize(num_atoms);
@@ -46,9 +51,9 @@ namespace
     {
       std::size_t current_index = 0u;
 
-      for (auto && a : get_mm_atoms(num_atoms))
+      for (auto && a : mmi)
       {
-        new_indices_mm.at(a - 1) = current_index++;
+        new_indices_mm.at(a) = current_index++;
       }
     }
     return new_indices_mm;
@@ -59,7 +64,6 @@ namespace
   {
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = config::interface_types::T::MOPAC;
-    std::cout << "Want MOPAC!\n";
     coords::Coordinates new_mopac_coords;
     if (cp->size() >= indices.size())
     {
@@ -68,8 +72,8 @@ namespace
       pes.structure.cartesian.reserve(indices.size());
       for (auto && a : indices)
       {
-        auto && ref_at = (*cp).atoms().atom(a - 1);
-        coords::Atom at{ (*cp).atoms().atom(a - 1).number() };
+        auto && ref_at = (*cp).atoms().atom(a);
+        coords::Atom at{ (*cp).atoms().atom(a).number() };
         at.set_energy_type(ref_at.energy_type());
         auto bonds = ref_at.bonds();
         for (auto && b : bonds)
@@ -81,7 +85,7 @@ namespace
           at.bind_to(new_indices.at(b));
         }
         new_mopac_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a - 1));
+        pes.structure.cartesian.push_back(cp->xyz(a));
       }
       new_mopac_coords.init_swap_in(new_mopac_atoms, pes);
     }
@@ -102,8 +106,8 @@ namespace
       pes.structure.cartesian.reserve(indices.size());
       for (auto && a : indices)
       {
-        auto && ref_at = (*cp).atoms().atom(a - 1);
-        coords::Atom at{ (*cp).atoms().atom(a - 1).number() };
+        auto && ref_at = (*cp).atoms().atom(a);
+        coords::Atom at{ (*cp).atoms().atom(a).number() };
         at.set_energy_type(ref_at.energy_type());
         auto bonds = ref_at.bonds();
         for (auto && b : bonds)
@@ -115,7 +119,7 @@ namespace
           at.bind_to(new_indices[b]);
         }
         new_aco_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a - 1));
+        pes.structure.cartesian.push_back(cp->xyz(a));
       }
       new_aco_coords.init_swap_in(new_aco_atoms, pes);
     }
@@ -124,23 +128,12 @@ namespace
   }
 }
 
-
-energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
-  coords::Coordinates *cobj) : interface_base(cobj), 
-  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
-  qmc(rhs.qmc), mmc(rhs.mmc), cparams(rhs.cparams)
-{
-  interface_base::operator=(rhs);
-}
-
-::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
-
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
-  qm_indices(Config::get().energy.qmmm.qmatoms), 
+  qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(get_mm_atoms(cp->size())),
   new_indices_qm(make_new_indices_qm(cp->size())),
-  new_indices_mm(make_new_indices_mm(cp->size())),
+  new_indices_mm(make_new_indices_mm(cp->size(), mm_indices)),
   qmc(make_mopac_coords(cp, qm_indices, new_indices_qm)),
   mmc(make_aco_coords(cp, mm_indices, new_indices_mm))
 {
@@ -164,22 +157,42 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
     }
   }
   cparams = tp.contract(types);
-  /*if (cp->size() != 0)
-  {
-    charges();
-  }*/
- 
-  /*qmc.g();
-  qmc.energyinterface()->print_E_head(std::cout);
-  qmc.energyinterface()->print_E_short(std::cout);
-    
-  mmc.g();
-  mmc.energyinterface()->print_E_head(std::cout);
-  mmc.energyinterface()->print_E_short(std::cout);*/
+}
+
+energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs, 
+  coords::Coordinates *cobj) : interface_base(cobj), 
+  cparams(rhs.cparams), distance(rhs.distance), 
+  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
+  qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
+  mm_charge_vector(rhs.mm_charge_vector),
+  c_energy(rhs.c_energy), vdw_energy(rhs.vdw_energy), 
+  qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
+  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient)
+{
+  interface_base::operator=(rhs);
+}
+
+energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj) 
+  : interface_base(cobj),
+  cparams(std::move(rhs.cparams)), distance(std::move(rhs.distance)),
+  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
+  new_indices_qm(std::move(rhs.new_indices_qm)), 
+  new_indices_mm(std::move(rhs.new_indices_mm)),
+  qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)), 
+  qm_charge_vector(std::move(rhs.qm_charge_vector)),
+  mm_charge_vector(std::move(rhs.mm_charge_vector)),
+  c_energy(std::move(rhs.c_energy)), vdw_energy(std::move(rhs.vdw_energy)),
+  qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
+  c_gradient(std::move(rhs.c_gradient)), 
+  vdw_gradient(std::move(rhs.vdw_gradient))
+{
+  interface_base::operator=(rhs);
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+
   auto elec_factor = 332.0;
   mm_charge_vector = mmc.energyinterface()->charges();
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
@@ -202,7 +215,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       double qi{};
       for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
       {
-        auto d = len(coords->xyz(qm_indices[i] - 1) - coords->xyz(mm_indices[j] - 1));
+        auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
         qi += mm_charge_vector[j] / d;
       }
       qi *= elec_factor;
@@ -225,24 +238,22 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   {
     mm_energy = mmc.g();
     auto new_grad = c_gradient + vdw_gradient;
-    for (auto g : new_grad)
-    {
-      std::cout << "WW-Gradienten: " << g << '\n';
-    }
+    //for (auto g : new_grad)
+    //{
+    //  std::cout << "WW-Gradienten: " << g << '\n';
+    //}
 
     auto g_qm = qmc.g_xyz();
     auto g_mm = mmc.g_xyz();
 
-    for (auto && qmi : qm_indices)
+    for (auto&& qmi : qm_indices)
     {
-      new_grad[qmi - 1] += g_qm[new_indices_qm[qmi - 1]];
-      std::cout << "QM-Gradient von " << qmi << "=" << g_qm[new_indices_qm[qmi - 1]] << '\n';
+      new_grad[qmi] += g_qm[new_indices_qm[qmi]];
     }
 
     for (auto && mmi : mm_indices)
     {
-      new_grad[mmi - 1] += g_mm[new_indices_mm[mmi - 1]];
-      std::cout << "MM-Gradient von " << mmi << "=" << g_mm[new_indices_mm[mmi - 1]] << '\n';
+      new_grad[mmi] += g_mm[new_indices_mm[mmi]];
     }
     coords->swap_g_xyz(new_grad);
   }
@@ -271,48 +282,45 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   std::size_t i2 = 0u;
   auto const & p = cparams.vdwc_matrices();
   auto const & p_vdw = p[5];
-  std::size_t i3 = 1;
   vdw_energy = 0;
   c_energy = 0;
   for (auto i : qm_indices)
   {
-    std::cout << "I: " << i << '\n';
-    auto z = qmc.atoms(i3-1).energy_type();
-    std::cout << "TI: " << z << '\n';
+    //std::cout << "I: " << i << '\n';
+    auto z = qmc.atoms(i2).energy_type();
+    //std::cout << "TI: " << z << '\n';
     std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);
-    std::cout << "CTI: " << i_vdw << '\n';
+    //std::cout << "CTI: " << i_vdw << '\n';
     coords::float_type charge_i = qm_charge_vector[i2];
-    std::cout << "QM_CHARGE: " << charge_i << '\n';
+    //std::cout << "QM_CHARGE: " << charge_i << '\n';
     std::size_t j2 = 0u;
-    std::size_t j3 = 1;
     for (auto j : mm_indices)
     {
-      std::cout << "J: " << j << '\n';
-      auto e_type = mmc.atoms(j3-1).energy_type();
-      std::cout << "TJ: " << e_type << '\n';
+      //std::cout << "J: " << j << '\n';
+      auto e_type = mmc.atoms(j2).energy_type();
+      //std::cout << "TJ: " << e_type << '\n';
       std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW);
-      std::cout << "CTJ: " << j_vdw << '\n';
+      //std::cout << "CTJ: " << j_vdw << '\n';
       auto const & p_ij = p_vdw(i_vdw, j_vdw);
-      std::cout <<"Parameter: "<< p_ij << '\n';
-      
+      //std::cout <<"Parameter: "<< p_ij << '\n';
       coords::float_type charge_j = mm_charge_vector[j2];
-      std::cout << "MM_CHARGE: " << charge_j << '\n';
-      auto r_ij = (coords->xyz(j - 1) - coords->xyz(i - 1));
-      std::cout << "Verbindungsvektor: " << r_ij << '\n';
+      //std::cout << "MM_CHARGE: " << charge_j << '\n';
+      auto r_ij = coords->xyz(j) - coords->xyz(i);
+      //std::cout << "Verbindungsvektor: " << r_ij << '\n';
       coords::float_type d = len(r_ij);
       set_distance(d);
-      std::cout << "Länge: " << d << '\n';
       coords::float_type b = (charge_i*charge_j) / d * elec_factor;
       c_energy += b;
       //EVDW
       auto R_r = std::pow(p_ij.R / d, 6);
       
-      if (cparams.general().radiustype.value == ::tinker::parameter::radius_types::T::SIGMA)
+      if (cparams.general().radiustype.value == 
+        ::tinker::parameter::radius_types::T::SIGMA)
       {
         vdw_energy += R_r*p_ij.E*(R_r - 1.0);
       }
-      else if (cparams.general().radiustype.value 
-        == ::tinker::parameter::radius_types::T::R_MIN)
+      else if (cparams.general().radiustype.value == 
+        ::tinker::parameter::radius_types::T::R_MIN)
       {
         vdw_energy += R_r*p_ij.E*(R_r - 2.0);
       }
@@ -325,8 +333,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         coords::float_type db = b / d;
         auto c_gradient_ij = r_ij * db / d;
         std::cout << "Db: " << db << '\n';
-        c_gradient[i - 1] += c_gradient_ij;
-        c_gradient[j - 1] -= c_gradient_ij;
+        c_gradient[i] += c_gradient_ij;
+        c_gradient[j] -= c_gradient_ij;
 
         coords::float_type const V = p_ij.E*R_r;
 
@@ -336,28 +344,26 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           auto vdw_r_grad = (V / (d*d))*(6.0 - 12.0 * R_r);
           auto vdw_gradient_ij = r_ij*vdw_r_grad;
           std::cout << "vdw_g: " << vdw_gradient_ij;
-          vdw_gradient[i - 1] += vdw_gradient_ij;
-          vdw_gradient[j - 1] -= vdw_gradient_ij;
+          vdw_gradient[i] += vdw_gradient_ij;
+          vdw_gradient[j] -= vdw_gradient_ij;
         }
         else 
         {
           auto vdw_gradient_ij = r_ij*12 * (V / (d*d))*(1.0 - R_r);
-          vdw_gradient[i - 1] += vdw_gradient_ij;
-          vdw_gradient[j - 1] -= vdw_gradient_ij;
+          vdw_gradient[i] += vdw_gradient_ij;
+          vdw_gradient[j] -= vdw_gradient_ij;
         }
       }
       ++j2;
-      ++j3;
     }
     ++i2;
-    ++i3;
   }
 }
 
 
 energy::interface_base * energy::interfaces::qmmm::QMMM::clone(coords::Coordinates * c) const
 {
-  QMMM * tmp = new QMMM (*this, c);
+  QMMM * tmp = new QMMM(*this, c);
   return tmp;
 }
 
@@ -368,24 +374,30 @@ energy::interface_base * energy::interfaces::qmmm::QMMM::move(coords::Coordinate
 }
 
 
-void energy::interfaces::qmmm::QMMM::swap(interface_base &rhs)
+void energy::interfaces::qmmm::QMMM::swap(interface_base& rhs)
 {
   swap(dynamic_cast<QMMM&>(rhs));
 }
 
-void energy::interfaces::qmmm::QMMM::swap(QMMM &rhs)
+void energy::interfaces::qmmm::QMMM::swap(QMMM& rhs)
 {
   interface_base::swap(rhs);
+  std::swap(cparams, rhs.cparams);
+  //cparams.swap(rhs.cparams);
   qm_indices.swap(rhs.qm_indices);
   mm_indices.swap(rhs.mm_indices);
-  
   new_indices_mm.swap(rhs.new_indices_mm);
   new_indices_qm.swap(rhs.new_indices_qm);
   qmc.swap(rhs.qmc);
   mmc.swap(rhs.mmc);
-  cparams.swap(rhs.cparams);
   qm_charge_vector.swap(rhs.qm_charge_vector);
   mm_charge_vector.swap(rhs.mm_charge_vector);
+  std::swap(c_energy, rhs.c_energy);
+  std::swap(vdw_energy, rhs.vdw_energy);
+  std::swap(qm_energy, rhs.qm_energy);
+  std::swap(mm_energy, rhs.mm_energy);
+  c_gradient.swap(rhs.c_gradient);
+  vdw_gradient.swap(rhs.vdw_gradient);
 }
 
 // update structure (account for topology or rep change)
@@ -393,7 +405,6 @@ void energy::interfaces::qmmm::QMMM::update(bool const skip_topology)
 {
   if (!skip_topology)
   {
-
     *this = QMMM(this->coords);
   }
   //
@@ -416,7 +427,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::h()
 
 coords::float_type energy::interfaces::qmmm::QMMM::o()
 {
-  throw std::runtime_error("no QMMM-function yet");
+  throw std::runtime_error("QMMM-cannot optimize");
 }
 
 std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
@@ -429,13 +440,13 @@ std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
   {
     for (auto && qmi : qm_indices)
     {
-      v[qmi - 1] = qm_charge_vector[i];
+      v[qmi] = qm_charge_vector[i];
       i++;
     }
 
     for (auto && mmi : mm_indices)
     {
-      v[mmi - 1] = mm_charge_vector[j];
+      v[mmi] = mm_charge_vector[j];
       j++;
     }
 
@@ -488,12 +499,14 @@ void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const e
   S << std::right << std::setw(24) << c_energy;
   if (endline) S << '\n';
 }
+
 void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool const endline) const
 {
   if (endline) S << '\n';
   throw std::runtime_error("no QMMM-function yet");
   
 }
+
 void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
 {
   S << '\n';

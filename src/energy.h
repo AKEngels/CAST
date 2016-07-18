@@ -104,7 +104,11 @@ namespace energy
       coords(coord_pointer), periodic(false), integrity(true), 
       optimizer(false), interactions(false), energy(0.0)
     { 
-      if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
+      if (!coord_pointer)
+      {
+        throw std::runtime_error(
+          "Interface without valid coordinates prohibited.");
+      }
     }
 
     interface_base& operator= (interface_base const &other)
@@ -165,6 +169,11 @@ namespace energy
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
+
+    coords::Coordinates* cop() const 
+    {
+      return coords;
+    }
 
   };
 

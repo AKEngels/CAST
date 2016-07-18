@@ -485,20 +485,17 @@ namespace tinker
       std::vector<ureybrad> const &   ureybrads (void) const { return m_ureybrads; }
       std::vector<vdw> const &        vdws (void) const { return m_vdws; }
       std::vector<vdw> const &        vdw14s (void) const { return m_vdw14s; }
-	  std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
+      std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
 
       double torsionunit (void) const { return m_general.torsionunit; }
       double angleunit (void) const { return m_general.angleunit; }
       double bondunit (void) const { return m_general.bondunit; }
 
-      void swap (parameters&);
-
     private:
 
-
-
       // get combination of vdw and charge parameters for given types
-      combi::vdwc    vdwc_combi (std::size_t const a, std::size_t const b, bool const use14vdw=false) const;
+      combi::vdwc    vdwc_combi (std::size_t const a, std::size_t const b, 
+        bool const use14vdw=false) const;
       // find vdw parameters of given type
       vdw const &    find_vdw (std::size_t type) const;
       vdw const &    find_vdw14 (std::size_t type) const;
@@ -509,7 +506,10 @@ namespace tinker
       // get contracted type/group
       std::size_t contracted_type (std::size_t const i, potential_keys key = BOND)
       {
-        if (m_general.indices[key].value == index_types::GROUP) return group_contraction[i];
+        if (m_general.indices[key].value == index_types::GROUP)
+        {
+          return group_contraction[i];
+        }
         else return contraction_map[i];
       }
 

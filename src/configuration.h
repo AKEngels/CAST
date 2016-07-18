@@ -39,7 +39,7 @@ namespace config
     return tmp;
   }
 
-  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str);
+  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
 
 
   // Program Name and Version

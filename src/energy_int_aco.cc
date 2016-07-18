@@ -37,7 +37,6 @@ energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs,
   cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined))
 {
   interface_base::swap(rhs);
-  
   /** 
    * This is necessary because the compiler-provided move-constructor for
    * tinker::refined is sometimes malfunctioning and containing a faulty pointer.
@@ -57,18 +56,23 @@ void energy::interfaces::aco::aco_ff::swap (aco_ff &rhs)
 {
   interface_base::swap(rhs);
   refined.swap_data(rhs.refined);
-  cparams.swap(rhs.cparams);
+  std::swap(cparams, rhs.cparams);
   std::swap(part_energy, rhs.part_energy);
-  for (std::size_t i(0u); i<part_grad.size(); ++i) part_grad[i].swap(rhs.part_grad[i]);
+  for (std::size_t i(0u); i < part_grad.size(); ++i)
+  {
+    part_grad[i].swap(rhs.part_grad[i]);
+  }
 }
 
-energy::interface_base * energy::interfaces::aco::aco_ff::clone (coords::Coordinates * coord_object) const
+energy::interface_base * energy::interfaces::aco::aco_ff::clone (
+  coords::Coordinates * coord_object) const
 {
   aco_ff * tmp = new aco_ff(*this, coord_object);
   return tmp;
 }
 
-energy::interface_base * energy::interfaces::aco::aco_ff::move (coords::Coordinates * coord_object)
+energy::interface_base * energy::interfaces::aco::aco_ff::move (
+  coords::Coordinates * coord_object)
 {
   aco_ff * tmp = new aco_ff(std::move(*this), coord_object);
   return tmp;
@@ -82,8 +86,10 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   if (!skip_topology) 
   {
     std::vector<std::size_t> types;
-    for (auto && atom : (*coords).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
-    std::cout << "Contracting " << types.size() << " types.\n";
+    for (auto && atom : (*coords).atoms())
+    {
+      scon::sorted::insert_unique(types, atom.energy_type());
+    }
     cparams = tp.contract(types);
     refined.refine((*coords), cparams);
   }
@@ -92,17 +98,19 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
     refined.refine_nb((*coords));
   }
 }
-
+ 
 std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 {
   std::vector<coords::float_type> c;
+  if (cparams.charges().empty())
+  {
+    throw std::runtime_error("No charges in parameters.");
+  }
   for (auto && atom : coords->atoms())
   {
     for (auto && chg : cparams.charges())
     {
       auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
-      std::cout << "Searching cp for atom " << atom << " which is " 
-        << t_of_atom << " at " << chg.index << "(" << chg.c << ")\n";
       if (chg.index == t_of_atom)
       {
         c.push_back(chg.c);

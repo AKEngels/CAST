@@ -1427,7 +1427,6 @@ namespace energy
         int number = 0;
         coords::float_type e_c(0.0), e_v(0.0);
 		    //std::vector <coords::float_type> charge_vector(coords->size());
-        std::cout << scon::c3_delimeter(' ');
         for (auto const & pair : pairlist)
         {
           number += 1;

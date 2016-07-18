@@ -26,7 +26,7 @@
 #define pid_func getpid
 #endif
 
-#define CAST_DEBUG_DROP_EXCEPTIONS
+//#define CAST_DEBUG_DROP_EXCEPTIONS
 
 #include "energy_int_qmmm.h"
 //#include "scon_utility.h"
@@ -89,7 +89,6 @@ int main(int argc, char **argv)
     
     //coords::input::format * ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-
 	  // setting the methods for implicit solvation
 	  //GB::born::set(coords);
 	  //GB::born::SET_METHOD();
@@ -230,6 +229,9 @@ int main(int argc, char **argv)
 
     */
 
+    std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() << 
+      ", mic: " << coords.energyinterface()->cop()<< "\n";
+
     std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
     std::cout << "' (" << Config::get().general.task << ") computation:\n";
@@ -319,10 +321,12 @@ int main(int argc, char **argv)
         sp_estr << std::setw(16) << 't';
         sp_estr << '\n';
         i = 0;
-        for (auto const & pes : *ci)
+        std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() <<
+          ", mic: " << coords.energyinterface()->cop() << "\n";
+        for (auto const& pes : *ci)
         {
           using namespace std::chrono;
-          coords.set_xyz(pes.structure.cartesian);
+          coords.set_xyz(pes.structure.cartesian, true);
           auto start = high_resolution_clock::now();
           coords.e();
           auto tim = duration_cast<duration<double>>
@@ -710,6 +714,6 @@ int main(int argc, char **argv)
     std::cout << "Error: " << e.what() << '\n';
   }
 #endif
-  std::system("pause");
+  //std::system("pause");
   return 0;
 }

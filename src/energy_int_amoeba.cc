@@ -46,7 +46,7 @@ void energy::interfaces::amoeba::amoeba_ff::swap(amoeba_ff &rhs)
 {
   interface_base::swap(rhs);
   refined.swap_data(rhs.refined);
-  cparams.swap(rhs.cparams);
+  std::swap(cparams, rhs.cparams);
   std::swap(part_energy, rhs.part_energy);
   for (size_t i(0u); i < part_grad.size(); ++i) part_grad[i].swap(rhs.part_grad[i]);
 }

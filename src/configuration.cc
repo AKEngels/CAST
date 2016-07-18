@@ -19,7 +19,7 @@
 
 Config * Config::m_instance = nullptr;
 
-std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str)
+std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, bool minus_1)
 {
   // remove all spaces
   str.erase(std::remove_if(str.begin(), str.end(),
@@ -42,11 +42,11 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str)
       std::size_t first(0), last(0);
       if (pss >> first && pss >> last)
       {
-        if (first <= last)
+        if (first <= last && (!minus_1 || first > 0))
         {
           for (auto i = first; i <= last; ++i)
           {
-            re.push_back(i);
+            re.push_back(minus_1 ? i - 1u : i);
           }
         }
         else
@@ -71,9 +71,9 @@ std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str)
     {
       std::stringstream pss{ d };
       std::size_t value;
-      if (pss >> value)
+      if (pss >> value && (!minus_1 || value > 0))
       {
-        re.push_back(value);
+        re.push_back(minus_1 ? value- 1u : value);
       }
       else
       {
@@ -634,7 +634,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(4u) == "qmatoms")
     {
-      Config::set().energy.qmmm.qmatoms = sorted_indices_from_cs_string(value_string);
+      Config::set().energy.qmmm.qmatoms = 
+        sorted_indices_from_cs_string(value_string, true);
       if (Config::get().energy.qmmm.qmatoms.size() != 0)
       {
         Config::set().energy.qmmm.use = true;
