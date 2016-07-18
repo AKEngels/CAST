@@ -20,11 +20,13 @@
 #include <omp.h>
 
 
+
 //////////////////////////
 //                      //
 //    H E A D E R S     //
 //                      //
 //////////////////////////
+#include "entropytrails.h"
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
@@ -284,146 +286,12 @@ int main(int argc, char **argv)
         // row 3: analytical density
         // row 4: (aux) NN distance at point
 
+        entropyconfig config;
+        config.readConfig(argc, argv);
+        config.draw();
+        config.calculateall();
+        config.writeall();
 
-
-        const double pi = 3.141592653589793238462643383279502884197169399375105820974944592;
-        const double e = 2.71828182845904523536028747135266249775724709369995;
-
-        // parse CMD
-        size_t dimension_ = 1;
-        size_t k_ = 5;
-        size_t iterations_ = 10000;
-        double sigma_ = 1.;
-        bool readfromFile_ = true;
-        for (int i = 0; i < argc; i++) {
-          if (std::string(argv[i]).substr(0u, 2) == "k=")
-            k_ = size_t(stoi(std::string(argv[i]).substr(2u, std::string::npos)));
-          else if (std::string(argv[i]).substr(0u, 2) == "i=")
-            iterations_ = size_t(stoi(std::string(argv[i]).substr(2u, std::string::npos)));
-          else if (std::string(argv[i]).substr(0u, 2) == "d=")
-            dimension_ = size_t(stoi(std::string(argv[i]).substr(2u, std::string::npos)));
-          else if (std::string(argv[i]).substr(0u, 2) == "s=")
-            sigma_ = stod(std::string(argv[i]).substr(2u, std::string::npos));
-          else if (std::string(argv[i]).substr(0u, 4) == "-gen")
-            readfromFile_ = false;
-        }
-        const size_t dimension = dimension_;
-        const size_t k = k_;
-        const size_t iterations = iterations_;
-        const double sigma = sigma_;
-        const bool readFromFile = readfromFile_;
-
-        Matrix_Class mat(4, iterations);
-
-        if (!readFromFile)
-        {
-          // Draw samples
-          std::random_device rd;
-          std::mt19937 gen(rd());
-          std::normal_distribution<double> distr(0, sigma);
-          std::vector<double> temp;
-          temp.reserve(iterations);
-          for (int n = 0; n < iterations; ++n) {
-            double drawnnum = distr(gen);
-            temp.push_back(drawnnum);
-          }
-          //Sort samples
-          std::stable_sort(temp.begin(), temp.end());
-          for (int n = 0; n < iterations; ++n)
-            mat(0, n) = temp[n];
-          // Write 
-          ofstream myfile;
-          myfile.open(std::string("draw_i" + std::to_string(iterations) + ".txt"));
-
-          for (size_t i = 0u; i < mat.cols(); i++)
-          {
-            myfile << std::setw(15) << std::scientific << std::setprecision(5) << mat(0, i);
-            myfile << "\n";
-          }
-          myfile.close();
-        }
-        else
-        {
-          ifstream myfile;
-          std::string line;
-          int i = 0;
-          myfile.open(std::string("draw_i" + std::to_string(iterations) + ".txt"));
-          while (std::getline(myfile, line))
-          {
-            mat(0, i) = std::stod(line);
-            i++;
-          }
-          myfile.close();
-        }
-        // KNN and gaussiandist
-
-        Matrix_Class copytemp = mat;
-#ifdef _OPENMP
-        auto const n_omp = static_cast<std::ptrdiff_t>(iterations);
-#pragma omp parallel for firstprivate(copytemp) shared(mat)
-        for (std::ptrdiff_t i = 0; i< n_omp; ++i)
-#else
-        for (size_t i = 0u; i < iterations; i++)
-#endif
-        {
-          double holdNNdistance = sqrt(matop::entropy::knn_distance(copytemp, 1, k, 0u, i));
-          mat(1, i) = k / double(iterations) / holdNNdistance;
-          mat(2, i) = (1. / sqrt(2 * pi * sigma * sigma)) * exp(-1. * copytemp(0, i) * copytemp(0, i) / (2. * sigma * sigma));
-          mat(3, i) = holdNNdistance;
-        }
-
-
-        ////Norm
-        //long double tempnorm = 0.;
-        //for (size_t j = 1u; j < mat.rows(); j++)
-        //  tempnorm += mat(1, j)*(mat(0, j) - mat(0, j - 1));
-        //std::cout << "norm: " << tempnorm << "\n";
-        //for (size_t j = 0u; j < mat.rows(); j++)
-        //  mat(1, j) /= tempnorm;
-
-        ofstream myfile;
-        myfile.open(std::string("out_k" + std::to_string(k) + "_i" + std::to_string(iterations) + "_s" + std::to_string(sigma) + ".txt"));
-        
-        for (size_t i = 0u; i < mat.cols(); i++)
-        {
-          for (size_t j = 0u; j < mat.rows(); j++)
-            myfile << std::setw(15) << std::scientific << std::setprecision(5) << mat(j, i);
-          
-          myfile << "\n";
-        }
-        myfile.close();
-
-
-        // ENTROPY
-        long double tempsum = 0.;
-        for (size_t i = 0u; i < mat.cols(); i++)
-        {
-          tempsum += log(mat(3,i));
-        }
-        tempsum /= iterations;
-        tempsum *= double(dimension);
-        tempsum += (log(iterations * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
-        double tempsum2 = 0;
-        if (k != 1)
-        {
-          for (size_t i = 1; i < k; i++)
-          {
-            tempsum2 += 1.0 / double(i);
-          }
-        }
-        tempsum -= tempsum2;
-        tempsum += 0.5772156649015328606065;
-        //////////////
-        double entropy = tempsum;
-        ofstream myfile2;
-        myfile2.open(std::string("out_entropy_k" + std::to_string(k) + "_i" + std::to_string(iterations) + "_s" + std::to_string(sigma) + ".txt"));
-
-        myfile2 << "Hnizdo: " << entropy << "\n";
-        myfile2 << "Gauss analytical: " << log(sigma * sqrt(2 * pi * e)) << "\n";
-        myfile2.close();
-
-        // DEVTEST: Room for Development testing
-        //delete[] buff;
         break;
       }
       case config::tasks::SP:
