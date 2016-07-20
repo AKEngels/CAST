@@ -310,7 +310,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       coords::float_type d = len(r_ij);
       set_distance(d);
       coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-      c_energy += b;
+      //c_energy += b;
       //EVDW
       auto R_r = std::pow(p_ij.R / d, 6);
       
@@ -332,7 +332,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       {
         coords::float_type db = b / d;
         auto c_gradient_ij = r_ij * db / d;
-        std::cout << "Db: " << db << '\n';
+        //std::cout << "Db: " << db << '\n';
         c_gradient[i] += c_gradient_ij;
         c_gradient[j] -= c_gradient_ij;
 
@@ -341,17 +341,18 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         if (cparams.general().radiustype.value 
           == ::tinker::parameter::radius_types::T::SIGMA)
         {
-          auto vdw_r_grad = (V / (d*d))*(6.0 - 12.0 * R_r);
-          auto vdw_gradient_ij = r_ij*vdw_r_grad;
-          std::cout << "vdw_g: " << vdw_gradient_ij;
-          vdw_gradient[i] += vdw_gradient_ij;
-          vdw_gradient[j] -= vdw_gradient_ij;
+          auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
+          auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma)/d;
+          //std::cout << "vdw_g: " << vdw_gradient_ij;
+          vdw_gradient[i] -= vdw_gradient_ij_sigma;
+          vdw_gradient[j] += vdw_gradient_ij_sigma;
         }
         else 
         {
-          auto vdw_gradient_ij = r_ij*12 * (V / (d*d))*(1.0 - R_r);
-          vdw_gradient[i] += vdw_gradient_ij;
-          vdw_gradient[j] -= vdw_gradient_ij;
+          auto vdw_r_grad_R_MIN = (V / d)*12*(1.0 - R_r);
+          auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN)/d;
+          vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
+          vdw_gradient[j] += vdw_gradient_ij_R_MIN;
         }
       }
       ++j2;
@@ -407,7 +408,7 @@ void energy::interfaces::qmmm::QMMM::update(bool const skip_topology)
   {
     *this = QMMM(this->coords);
   }
-  //
+    std::cout << "need to implement QMMM::Update properly!";
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::g()
@@ -496,7 +497,7 @@ void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const e
 {
   
   S << std::right << std::setw(24) << distance;
-  S << std::right << std::setw(24) << c_energy;
+  S << std::right << std::setw(24) << c_gradient + vdw_gradient;
   if (endline) S << '\n';
 }
 
