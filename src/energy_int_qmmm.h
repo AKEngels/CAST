@@ -80,7 +80,7 @@ namespace energy
         std::vector<double> qm_charge_vector;
         std::vector<double> mm_charge_vector;
 
-        coords::float_type c_energy;
+        //coords::float_type c_energy;
         coords::float_type vdw_energy;
         coords::float_type qm_energy;
         coords::float_type mm_energy;

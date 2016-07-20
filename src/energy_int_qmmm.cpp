@@ -166,7 +166,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
   mm_charge_vector(rhs.mm_charge_vector),
-  c_energy(rhs.c_energy), vdw_energy(rhs.vdw_energy), 
+  //c_energy(rhs.c_energy), vdw_energy(rhs.vdw_energy), 
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
   c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient)
 {
@@ -182,7 +182,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)), 
   qm_charge_vector(std::move(rhs.qm_charge_vector)),
   mm_charge_vector(std::move(rhs.mm_charge_vector)),
-  c_energy(std::move(rhs.c_energy)), vdw_energy(std::move(rhs.vdw_energy)),
+  //c_energy(std::move(rhs.c_energy)), vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
   c_gradient(std::move(rhs.c_gradient)), 
   vdw_gradient(std::move(rhs.vdw_gradient))
@@ -262,7 +262,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     mm_energy = mmc.e();
   }
 
-  this->energy = qm_energy + mm_energy + c_energy + vdw_energy;
+  this->energy = qm_energy + mm_energy + vdw_energy;
  
   return energy;
 }
@@ -283,7 +283,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   auto const & p = cparams.vdwc_matrices();
   auto const & p_vdw = p[5];
   vdw_energy = 0;
-  c_energy = 0;
+  //c_energy = 0;
   for (auto i : qm_indices)
   {
     //std::cout << "I: " << i << '\n';
@@ -393,7 +393,7 @@ void energy::interfaces::qmmm::QMMM::swap(QMMM& rhs)
   mmc.swap(rhs.mmc);
   qm_charge_vector.swap(rhs.qm_charge_vector);
   mm_charge_vector.swap(rhs.mm_charge_vector);
-  std::swap(c_energy, rhs.c_energy);
+  //std::swap(c_energy, rhs.c_energy);
   std::swap(vdw_energy, rhs.vdw_energy);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(mm_energy, rhs.mm_energy);
@@ -487,7 +487,7 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << '\n';
   S << std::right << std::setw(24) << qm_energy;
   S << std::right << std::setw(24) << mm_energy;
-  S << std::right << std::setw(24) << c_energy;
+  //S << std::right << std::setw(24) << c_energy;
   S << std::right << std::setw(24) << vdw_energy;
   S << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
