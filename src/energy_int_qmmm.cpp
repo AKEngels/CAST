@@ -190,6 +190,22 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   interface_base::operator=(rhs);
 }
 
+void energy::interfaces::qmmm::QMMM::update_representation()
+{
+  std::size_t qi = 0u;
+  for (auto i : qm_indices)
+  {
+    qmc.move_atom_to(qi, coords->xyz()[i], true);
+    ++qi;
+  }
+  std::size_t mi = 0u;
+  for (auto j : mm_indices)
+  {
+    mmc.move_atom_to(mi, coords->xyz()[j], true);
+    ++mi;
+  }
+
+}
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
 
@@ -227,7 +243,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   {
     throw std::runtime_error("Cannot write mol.in file.");
   }
-  
+  update_representation();
+
   qm_energy = qmc.g();
 
   if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
@@ -408,7 +425,12 @@ void energy::interfaces::qmmm::QMMM::update(bool const skip_topology)
   {
     *this = QMMM(this->coords);
   }
-    std::cout << "need to implement QMMM::Update properly!";
+  else
+  {
+    update_representation();
+    qmc.energy_update(true);
+    mmc.energy_update(true);
+  }
 }
 
 coords::float_type energy::interfaces::qmmm::QMMM::g()
@@ -511,5 +533,6 @@ void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool co
 void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
 {
   S << '\n';
+  interface_base::to_stream(S);
   throw std::runtime_error("no QMMM-function yet");
 }

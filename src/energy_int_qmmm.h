@@ -63,6 +63,8 @@ namespace energy
           distance = d;
         }
 
+        void update_representation();
+
       private:
 
         void ww_calc(bool);
