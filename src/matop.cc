@@ -849,7 +849,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
+      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols());
       cov_matr = transposed(cov_matr) * cov_matr;
       cov_matr = cov_matr / static_cast<float_type>(input.cols());
 

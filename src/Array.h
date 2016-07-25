@@ -1,3 +1,18 @@
+/**
+CAST 3
+Array.h
+Purpose:
+Used as array class for Particle Mesh Ewald Summation in periodical systems 
+PME is currently disabled.
+
+Note: Might be replacable by CAST-internal scon::matrix objects (?)
+
+@author see below
+@version see below
+*/
+
+
+
 /* Array.h:  A high-performance multi-dimensional C++ array class
 Copyright (C) 1997-2010 John C. Bowman
 

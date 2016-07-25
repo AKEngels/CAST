@@ -80,7 +80,7 @@ namespace
 md::Logger::Logger(coords::Coordinates &coords, std::size_t snap_offset) :
   snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
     Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
-  data_buffer(scon::offset_call_buffer<trace_data>(50u, 1u, 
+  data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset, 
     trace_writer{ coords::output::filename("_MD_TRACE", ".txt").c_str() })),
   snapnum()
 {
@@ -98,6 +98,7 @@ bool md::Logger::operator()(std::size_t const iter, coords::float_type const T,
       throw std::logic_error("NaN in simulation, please check your input options");
     }
   }
+  
   return data_buffer(trace_data(Eia, T, Ek, Ep, P, iter, snap_buffer(x) ? ++snapnum : 0u));
 }
 
@@ -133,7 +134,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
   M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), dt(Config::get().md.timeStep),
-  freedom(0), snapGap(0), C_geo(), C_mass(),
+  freedom(0), snapGap(0), C_geo(), C_mass(), press(0.0),
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
@@ -1013,11 +1014,11 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
   }
   // Main MD Loop
-  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
+  auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u ), size_t(10000u)), std::size_t{ 100u });
   for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
   {
     bool const HEATED(heat(k));
-    if (VERBOSE < 4U && k % split == 0 && k > 1)
+    if (VERBOSE > 1u && k % split == 0 && k > 1)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
