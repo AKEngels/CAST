@@ -450,6 +450,7 @@ int main(int argc, char **argv)
       case config::tasks::INTERNAL:
       { 
         // Explicitly shows CAST conversion to internal coordiantes
+        // Beware when chaning this, PCA-task depend on this output and need to be adjusted accordingly.
         for (auto const & pes : *ci)
         {
           coords.set_xyz(pes.structure.cartesian);
