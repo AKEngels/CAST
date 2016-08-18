@@ -72,7 +72,7 @@ namespace
   inline std::size_t gap(std::size_t const st, std::size_t const sn)
   {
     if (sn == 0u) return 0u;
-    return st / std::min(st, sn + 2u);
+    return st / std::min(st, sn); //+2u removed
   }
 }
 
@@ -1330,9 +1330,20 @@ void md::simulation::verletintegrator(std::size_t const k_init)
 
 void md::simulation::beemanintegrator(std::size_t const k_init)
 {
+	scon::chrono::high_resolution_timer integration_timer;
   // const values
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
+
+  // prepare tracking
+  std::size_t const VERBOSE(Config::get().general.verbosity);
+
+  if (VERBOSE > 0U)
+  {
+	  std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
+	  std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
+  }
+  
   std::size_t const
     N = coordobj.size();
   double const
@@ -1356,10 +1367,17 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
 
   updateEkin();
 
+  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
+
   for (std::size_t k(k_init); k < Config::get().md.num_steps; ++k)
   {
 
     bool const heated(heat(k));
+
+	if (VERBOSE >= 4U && k % split == 0 && k > 1)
+	{
+		std::cout << k << " steps completed" << std::endl;
+	}
 
     if (Config::get().md.hooverHeatBath && !heated)
     {
@@ -1420,6 +1438,11 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
     // if veloscale is true, eliminate rotation and translation
     if (Config::get().md.veloScale) tune_momentum();
 
+  }
+  if (VERBOSE > 2U)
+  {
+	  //auto integration_time = integration_timer();
+	  std::cout << "Beeman integration took " << integration_timer << '\n';
   }
 
 }
