@@ -1190,7 +1190,7 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
 
     bool const heated(heat(k));
 
-	if (VERBOSE >= 4U && k % split == 0 && k > 1)
+	if (VERBOSE > 1u && k % split == 0 && k > 1)
 	{
 		std::cout << k << " steps completed" << std::endl;
 	}
