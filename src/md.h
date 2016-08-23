@@ -322,8 +322,6 @@ namespace md
     // integrator selector
     void integrate(std::size_t const k_init = 0U);
 
-    //! verlet integrator
-    void verletintegrator(std::size_t const k_init = 0U);
     //! beeman integrator
     void beemanintegrator(std::size_t const k_init = 0U);
     //! velocity_verlet

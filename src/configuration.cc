@@ -927,6 +927,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       cv >> Config::set().md.rattle.ratpar;
       std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
     }
+	else if (option.substr(2, 13) == "active_center")
+	{
+		 cv >> Config::set().md.active_center;
+	}
   }
 
   //! dimer
