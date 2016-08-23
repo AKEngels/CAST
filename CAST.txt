@@ -9,7 +9,7 @@
 # Verbosity 
 # Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
 
-verbosity              10
+verbosity              5
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   3A_layer.arc
+name                   argon_tinker.xyz
 
 # Output file name
 
@@ -67,7 +67,7 @@ inputtype              TINKER
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
-task                   SP
+task                   MD
 
 
 #################################### 
@@ -95,7 +95,7 @@ profileruns            10
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
-interface              CHARMM22
+interface              OPLSAA 
 
 # Interface for preoptimizations
 
@@ -104,7 +104,7 @@ preinterface           0
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              charmm_conv.prm
+paramfile              oplsaa_mod.prm
 
 # Keywords for MOPAC Call
 
@@ -125,7 +125,7 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 #                                  #
 ####################################
 
-cutoff                 400.0
+cutoff                 1000.0
 switchdist             10.0
 
 
@@ -358,7 +358,7 @@ TSdivers_limit         20
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 70.0 70.0 70.0
+Periodics              0 25.0 25.0 25.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
@@ -469,7 +469,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                5
  
 # Integrator
 #
@@ -510,9 +510,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0    273.15
-MDheat                 10000 300.15
-MDheat                 50000 0.15
+MDheat                 10000	200
  
 # Spehrical boundaries' options
 # 
@@ -533,6 +531,16 @@ MDrattle               0
 # MDrattlebond         <H index>
  
 #MDrattlebond           7 12
+
+#determine active center 
+#MDset_act_center         <0/1>
+
+MDset_act_center          1
+
+#atom number of active center
+#MDactive_center        14
+
+MDactive_center         14
 
 # Iteration offset for restart files
 

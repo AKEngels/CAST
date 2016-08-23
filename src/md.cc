@@ -990,10 +990,11 @@ void md::simulation::nose_hoover_thermostat(void)
 // Velcoity verlet integrator
 void md::simulation::velocity_verlet(std::size_t k_init)
 {
-
   scon::chrono::high_resolution_timer integration_timer;
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
+
+  std::vector<double> distances;
 
   // prepare tracking
   std::size_t const VERBOSE(Config::get().general.verbosity);
@@ -1007,6 +1008,23 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     dt_2(0.5*dt),
     tempfactor(2.0 / (freedom*md::R));
 
+  if (Config::get().md.set_active_center == 1)
+  {
+	  coords::Cartesian_Point coords_act_center = coordobj.xyz(Config::get().md.active_center - 1);  //(-1) because atom count in tinker starts with 1, not with 0
+	  for (std::size_t i(0U); i < N; ++i)
+	  {
+		  coords::Cartesian_Point coords_atom = coordobj.xyz(i);
+		  double dist_x = coords_act_center.x() - coords_atom.x();
+		  double dist_y = coords_act_center.y() - coords_atom.y();
+		  double dist_z = coords_act_center.z() - coords_atom.z();
+		  double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
+		  distances.push_back(distance);
+		  if (VERBOSE > 4)
+		  {
+			  std::cout << "Atom " << i << ": Distance: " << distance<<"\n";
+		  }
+	  }  
+  }
 
   if (VERBOSE > 0U)
   {
