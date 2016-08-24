@@ -994,7 +994,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  std::vector<double> distances;
+  std::vector<double> distances; //distances to active center
 
   // prepare tracking
   std::size_t const VERBOSE(Config::get().general.verbosity);
@@ -1016,7 +1016,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		  coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
 	  }
 
-	  coords::Cartesian_Point summe_coords_act_center;
+	  coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
 	  for (auto & atom_coords : coords_act_center)
 	  {
 		  summe_coords_act_center += atom_coords;
@@ -1028,7 +1028,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		  std::cout << "Coordinates of active center: "<< C_geo_act_center << "\n";
 	  }
 	  
-	  for (std::size_t i(0U); i < N; ++i)
+	  for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
 	  {
 		  coords::Cartesian_Point coords_atom = coordobj.xyz(i);
 		  double dist_x = C_geo_act_center.x() - coords_atom.x();
