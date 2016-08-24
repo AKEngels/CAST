@@ -1010,18 +1010,35 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   if (Config::get().md.set_active_center == 1)
   {
-	  coords::Cartesian_Point coords_act_center = coordobj.xyz(Config::get().md.active_center - 1);  //(-1) because atom count in tinker starts with 1, not with 0
+	  std::vector<coords::Cartesian_Point> coords_act_center;
+	  for (auto & atom_number : Config::get().md.active_center)
+	  {
+		  coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
+	  }
+
+	  coords::Cartesian_Point summe_coords_act_center;
+	  for (auto & atom_coords : coords_act_center)
+	  {
+		  summe_coords_act_center += atom_coords;
+	  }
+	  coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
+
+	  if (VERBOSE > 3)
+	  {
+		  std::cout << "Coordinates of active center: "<< C_geo_act_center << "\n";
+	  }
+	  
 	  for (std::size_t i(0U); i < N; ++i)
 	  {
 		  coords::Cartesian_Point coords_atom = coordobj.xyz(i);
-		  double dist_x = coords_act_center.x() - coords_atom.x();
-		  double dist_y = coords_act_center.y() - coords_atom.y();
-		  double dist_z = coords_act_center.z() - coords_atom.z();
+		  double dist_x = C_geo_act_center.x() - coords_atom.x();
+		  double dist_y = C_geo_act_center.y() - coords_atom.y();
+		  double dist_z = C_geo_act_center.z() - coords_atom.z();
 		  double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
 		  distances.push_back(distance);
 		  if (VERBOSE > 4)
 		  {
-			  std::cout << "Atom " << i << ": Distance: " << distance<<"\n";
+			  std::cout << "Atom " << i+1 << ": Distance: " << distance<<"\n";
 		  }
 	  }  
   }
