@@ -40,8 +40,8 @@ std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 
 void md::trace_writer::operator() (md::trace_data const & d)
 {
-  static std::atomic<std::size_t> x(0u);
-  if (Config::get().general.verbosity > 4)
+	static std::atomic<std::size_t> x(0u);
+	if (Config::get().general.verbosity > 4)
   {
     if (x % 100u == 0)
     {
@@ -72,7 +72,7 @@ namespace
   inline std::size_t gap(std::size_t const st, std::size_t const sn)
   {
     if (sn == 0u) return 0u;
-    return st / std::min(st, sn); //+2u removed
+    return st / std::min(st, sn); 
   }
 }
 
@@ -1019,6 +1019,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
 	  for (auto & atom_coords : coords_act_center)
 	  {
+		  if (VERBOSE > 4)
+		  {
+			  std::cout << atom_coords << "\n";
+		  }
 		  summe_coords_act_center += atom_coords;
 	  }
 	  coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
@@ -1057,7 +1061,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
-
+	
     // apply half step temperature corrections
     if (CONFIG.hooverHeatBath)
     {
