@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   argon_tinker.xyz
+name                   start.xyz
 
 # Output file name
 
@@ -95,7 +95,7 @@ profileruns            10
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
-interface              OPLSAA 
+interface              OPLSAA
 
 # Interface for preoptimizations
 
@@ -125,7 +125,7 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 #                                  #
 ####################################
 
-cutoff                 1000.0
+cutoff                 400.0
 switchdist             10.0
 
 
@@ -358,7 +358,7 @@ TSdivers_limit         20
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 25.0 25.0 25.0
+Periodics              0 70.0 70.0 70.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
@@ -469,14 +469,14 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                1000
  
 # Integrator
 #
 # 0                    Velocity-Verlet
 # 1                    Beeman
 
-MDintegrator           0
+MDintegrator           1
 
 # Velocity Scaling
 
@@ -510,7 +510,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 10000	200
+MDheat                 500  300
  
 # Spehrical boundaries' options
 # 
@@ -540,14 +540,8 @@ MDset_act_center          1
 #atom number of active center <every atom a new line>
 #MDactive_center        14
 
-MDactive_center         1  
-MDactive_center         2
-MDactive_center         4
-MDactive_center         5
-MDactive_center         10
-MDactive_center         11
-MDactive_center         13
-MDactive_center         14
+MDactive_center         10 
+MDactive_center         12 
 
 # Iteration offset for restart files
 
