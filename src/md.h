@@ -324,6 +324,7 @@ namespace md
 
     //! beeman integrator
     void beemanintegrator(std::size_t const k_init = 0U);
+	void beemanintegrator_2(std::size_t const k_init = 0U);
     //! velocity_verlet
     void velocity_verlet(std::size_t const k_init = 0u);
 

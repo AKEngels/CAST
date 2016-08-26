@@ -232,6 +232,11 @@ void md::simulation::integrate(std::size_t const k_init)
         beemanintegrator(k_init);
         break;
       }
+	case config::md_conf::integrators::BEEMAN_2:
+	{ // Beeman_2 integrator
+		beemanintegrator_2(k_init);
+		break;
+	}
     default:
       { // Velocity verlet integrator
         //verletintegrator(k_init);
@@ -1396,124 +1401,125 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		}
 	}
 
-//void md::simulation::beemanintegrator(std::size_t const k_init)
-//{
-//	scon::chrono::high_resolution_timer integration_timer;
-//  // const values
-//
-//  config::molecular_dynamics const & CONFIG(Config::get().md);
-//
-//  // prepare tracking
-//  std::size_t const VERBOSE(Config::get().general.verbosity);
-//
-//  if (VERBOSE > 0U)
-//  {
-//	  std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-//	  std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
-//  }
-//  
-//  std::size_t const
-//    N = coordobj.size();
-//  double const
-//    deltt(Config::get().md.timeStep),
-//    d_8(deltt*0.125),
-//    five_d_8(d_8*5.0),
-//    mconvert(-md::convert),
-//    tempfactor(2.0 / (freedom*md::R));
-//  coords::Cartesian_Point force, temporary;
-//  std::ofstream ob_stream(
-//    std::string(std::string(Config::get().general.outputFilename).append("_MD_restart.cbf")).c_str(),
-//    std::ofstream::out | std::ofstream::binary
-//    );
-//  F_old.resize(N);
-//
-//  for (std::size_t i(0U); i < N; ++i)
-//  {
-//    F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
-//    F_old[i] = F[i];
-//  }
-//
-//  updateEkin();
-//
-//  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
-//
-//  for (std::size_t k(k_init); k < Config::get().md.num_steps; ++k)
-//  {
-//
-//    bool const heated(heat(k));
-//
-//	if (VERBOSE > 1u && k % split == 0 && k > 1)
-//	{
-//		std::cout << k << " steps completed" << std::endl;
-//	}
-//
-//    if (Config::get().md.hooverHeatBath && !heated)
-//    {
-//      nose_hoover_thermostat();
-//    }
-//
-//    // first beeman step
-//    for (std::size_t i(0U); i < N; ++i)
-//    {
-//      coords::Cartesian_Point const tmp((F[i] - F_old[i])*five_d_8);
-//      coordobj.move_atom_by(i, (V[i] + tmp)*deltt);
-//      V[i] += tmp;
-//    }
-//
-//    // new energy & gradients
-//    coordobj.g();
-//
-//    // refine nonbondeds if refinement is required due to configuration
-//    if (Config::get().md.refine_offset == 0 || (k + 1U) % Config::get().md.refine_offset == 0) coordobj.energy_update(true);
-//
-//    // adjust boundary influence
-//    boundary_adjustments();
-//
-//    // full step velocities, beeman recursion
-//    for (std::size_t i(0U); i < N; ++i)
-//    {
-//      F_old[i] = F[i];
-//      F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
-//      V[i] += (F[i] * 3.0 + F_old[i])*d_8;
-//    }
-//
-//    if (Config::get().md.hooverHeatBath && !heated)
-//    {
-//      temp = E_kin*tempfactor;
-//      nose_hoover_thermostat();
-//    }
-//    else
-//    {
-//      updateEkin();
-//      temp = E_kin*tempfactor;
-//    }
-//    // trace Energy and Temperature
-//    if (CONFIG.track)
-//    {
-//      std::vector<coords::float_type> iae;
-//      if (coordobj.interactions().size() > 1)
-//      {
-//        iae.reserve(coordobj.interactions().size());
-//        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
-//      }
-//      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
-//    }
-//    // Serialize to binary file if required.
-//    if (Config::get().md.restart_offset > 0 && k%Config::get().md.restart_offset == 0)
-//    {
-//      write_restartfile(k);
-//    }
-//    // if veloscale is true, eliminate rotation and translation
-//    if (Config::get().md.veloScale) tune_momentum();
-//
-//  }
-//  if (VERBOSE > 2U)
-//  {
-//	  //auto integration_time = integration_timer();
-//	  std::cout << "Beeman integration took " << integration_timer << '\n';
-//  }
-//
-//}
+void md::simulation::beemanintegrator_2(std::size_t const k_init)
+{
+	std::cout << "WARNING! No one knows what this integrator is doing. It might not support some options.\n";
+	scon::chrono::high_resolution_timer integration_timer;
+  // const values
+
+  config::molecular_dynamics const & CONFIG(Config::get().md);
+
+  // prepare tracking
+  std::size_t const VERBOSE(Config::get().general.verbosity);
+
+  if (VERBOSE > 0U)
+  {
+	  std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
+	  std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
+  }
+  
+  std::size_t const
+    N = coordobj.size();
+  double const
+    deltt(Config::get().md.timeStep),
+    d_8(deltt*0.125),
+    five_d_8(d_8*5.0),
+    mconvert(-md::convert),
+    tempfactor(2.0 / (freedom*md::R));
+  coords::Cartesian_Point force, temporary;
+  std::ofstream ob_stream(
+    std::string(std::string(Config::get().general.outputFilename).append("_MD_restart.cbf")).c_str(),
+    std::ofstream::out | std::ofstream::binary
+    );
+  F_old.resize(N);
+
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
+    F_old[i] = F[i];
+  }
+
+  updateEkin();
+
+  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
+
+  for (std::size_t k(k_init); k < Config::get().md.num_steps; ++k)
+  {
+
+    bool const heated(heat(k));
+
+	if (VERBOSE > 1u && k % split == 0 && k > 1)
+	{
+		std::cout << k << " steps completed" << std::endl;
+	}
+
+    if (Config::get().md.hooverHeatBath && !heated)
+    {
+      nose_hoover_thermostat();
+    }
+
+    // first beeman step
+    for (std::size_t i(0U); i < N; ++i)
+    {
+      coords::Cartesian_Point const tmp((F[i] - F_old[i])*five_d_8);
+      coordobj.move_atom_by(i, (V[i] + tmp)*deltt);
+      V[i] += tmp;
+    }
+
+    // new energy & gradients
+    coordobj.g();
+
+    // refine nonbondeds if refinement is required due to configuration
+    if (Config::get().md.refine_offset == 0 || (k + 1U) % Config::get().md.refine_offset == 0) coordobj.energy_update(true);
+
+    // adjust boundary influence
+    boundary_adjustments();
+
+    // full step velocities, beeman recursion
+    for (std::size_t i(0U); i < N; ++i)
+    {
+      F_old[i] = F[i];
+      F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
+      V[i] += (F[i] * 3.0 + F_old[i])*d_8;
+    }
+
+    if (Config::get().md.hooverHeatBath && !heated)
+    {
+      temp = E_kin*tempfactor;
+      nose_hoover_thermostat();
+    }
+    else
+    {
+      updateEkin();
+      temp = E_kin*tempfactor;
+    }
+    // trace Energy and Temperature
+    if (CONFIG.track)
+    {
+      std::vector<coords::float_type> iae;
+      if (coordobj.interactions().size() > 1)
+      {
+        iae.reserve(coordobj.interactions().size());
+        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
+      }
+      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
+    }
+    // Serialize to binary file if required.
+    if (Config::get().md.restart_offset > 0 && k%Config::get().md.restart_offset == 0)
+    {
+      write_restartfile(k);
+    }
+    // if veloscale is true, eliminate rotation and translation
+    if (Config::get().md.veloScale) tune_momentum();
+
+  }
+  if (VERBOSE > 2U)
+  {
+	  //auto integration_time = integration_timer();
+	  std::cout << "Beeman_2 integration took " << integration_timer << '\n';
+  }
+
+}
 
  //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)
