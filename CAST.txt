@@ -469,7 +469,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                10000
  
 # Integrator
 #
@@ -477,7 +477,7 @@ MDsteps                1000
 # 1                    Beeman
 # 2                    Beeman_2 (not maintained)
 
-MDintegrator           2
+MDintegrator           0
 
 # Velocity Scaling
 
@@ -541,8 +541,12 @@ MDset_act_center          1
 #atom number of active center <every atom a new line>
 #MDactive_center        14
 
-MDactive_center         10 
-MDactive_center         12 
+MDactive_center         11
+
+#cutoff around active center <inner/outer>
+#MDcutoff                10 20
+
+MDcutoff                10 20
 
 # Iteration offset for restart files
 

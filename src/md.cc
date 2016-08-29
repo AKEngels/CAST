@@ -999,7 +999,8 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  std::vector<double> distances; //distances to active center
+  std::vector<double> distances;       //distances to active center
+  double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
 
   // prepare tracking
   std::size_t const VERBOSE(Config::get().general.verbosity);
@@ -1050,6 +1051,9 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 			  std::cout << "Atom " << i+1 << ": Distance: " << distance<<"\n";
 		  }
 	  }  
+
+	  inner_cutoff = Config::get().md.inner_cutoff;
+	  outer_cutoff = Config::get().md.outer_cutoff;
   }
 
   if (VERBOSE > 0U)
@@ -1089,7 +1093,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     for (std::size_t i(0U); i < N; ++i)
     {
       // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+      coords::Cartesian_Point acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
 
       if (Config::get().general.verbosity > 149)
       {
@@ -1099,6 +1103,17 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
       // update veloctiy
       V[i] += acceleration*dt_2;
+	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
+	  {
+		  if (distances[i] > outer_cutoff)
+		  {
+			  V[i] = coords::Cartesian_Point(0, 0, 0);
+		  }
+		  else if (distances[i] > inner_cutoff)
+		  {
+			  V[i] = V[i] - V[i] * ((distances[i]-inner_cutoff) / (outer_cutoff-inner_cutoff))*((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff));
+		  }
+	  }
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
@@ -1123,8 +1138,19 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // add new acceleration and calculate full step velocities
     for (std::size_t i(0U); i < N; ++i)
     {
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+      coords::Cartesian_Point acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;
+	  if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
+	  {
+		  if (distances[i] > outer_cutoff)
+		  {
+			  V[i] = coords::Cartesian_Point(0, 0, 0);
+		  }
+		  else if (distances[i] > inner_cutoff)
+		  {
+			  V[i] = V[i] - V[i] * ((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff))*((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff));
+		  }
+	  }
     }
     // Apply full step RATTLE constraints
     if (CONFIG.rattle.use) rattle_post();

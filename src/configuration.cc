@@ -939,6 +939,14 @@ void config::parse_option(std::string const option, std::string const value_stri
 			  Config::set().md.active_center.push_back(act_cent_atom);
 		  }
 	  }
+	  else if (option.substr(2, 6) == "cutoff")
+	  {
+		  double inner, outer;
+		  cv >> inner >> outer;
+
+		  Config::set().md.inner_cutoff = inner;
+		  Config::set().md.outer_cutoff = outer;
+	  }
   }
 
   //! dimer
