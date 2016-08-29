@@ -991,6 +991,63 @@ void md::simulation::nose_hoover_thermostat(void)
   nht.v2 += nht.G2*d4;
 }
 
+std::vector<double> md::simulation::init_active_center(void)
+{
+	std::size_t const VERBOSE(Config::get().general.verbosity);
+	std::size_t const N = this->coordobj.size();
+
+	std::vector<double> distances;
+	std::vector<coords::Cartesian_Point> coords_act_center;
+	for (auto & atom_number : Config::get().md.active_center)
+	{
+		coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
+	}
+
+	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
+	for (auto & atom_coords : coords_act_center)
+	{
+		if (VERBOSE > 4)
+		{
+			std::cout << atom_coords << "\n";
+		}
+		summe_coords_act_center += atom_coords;
+	}
+	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
+
+	if (VERBOSE > 3)
+	{
+		std::cout << "Coordinates of active center: " << C_geo_act_center << "\n";
+	}
+
+	for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
+	{
+		coords::Cartesian_Point coords_atom = coordobj.xyz(i);
+		double dist_x = C_geo_act_center.x() - coords_atom.x();
+		double dist_y = C_geo_act_center.y() - coords_atom.y();
+		double dist_z = C_geo_act_center.z() - coords_atom.z();
+		double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
+		distances.push_back(distance);
+		if (VERBOSE > 4)
+		{
+			std::cout << "Atom " << i + 1 << ": Distance: " << distance << "\n";
+		}
+	}
+	return distances;
+}
+
+coords::Cartesian_Point md::simulation::adjust_velocities(coords::Cartesian_Point velocity, double distance, double inner_cutoff, double outer_cutoff)
+{
+	if (distance > outer_cutoff)       //no movement outside of outer cutoff
+	{
+		velocity = coords::Cartesian_Point(0, 0, 0);
+	}
+	else if (distance > inner_cutoff)
+	{
+		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff))*((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
+	}
+	return velocity;
+}
+
 
 // Velcoity verlet integrator
 void md::simulation::velocity_verlet(std::size_t k_init)
@@ -1016,44 +1073,9 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   if (Config::get().md.set_active_center == 1)
   {
-	  std::vector<coords::Cartesian_Point> coords_act_center;
-	  for (auto & atom_number : Config::get().md.active_center)
-	  {
-		  coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
-	  }
-
-	  coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
-	  for (auto & atom_coords : coords_act_center)
-	  {
-		  if (VERBOSE > 4)
-		  {
-			  std::cout << atom_coords << "\n";
-		  }
-		  summe_coords_act_center += atom_coords;
-	  }
-	  coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
-
-	  if (VERBOSE > 3)
-	  {
-		  std::cout << "Coordinates of active center: "<< C_geo_act_center << "\n";
-	  }
-	  
-	  for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
-	  {
-		  coords::Cartesian_Point coords_atom = coordobj.xyz(i);
-		  double dist_x = C_geo_act_center.x() - coords_atom.x();
-		  double dist_y = C_geo_act_center.y() - coords_atom.y();
-		  double dist_z = C_geo_act_center.z() - coords_atom.z();
-		  double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
-		  distances.push_back(distance);
-		  if (VERBOSE > 4)
-		  {
-			  std::cout << "Atom " << i+1 << ": Distance: " << distance<<"\n";
-		  }
-	  }  
-
-	  inner_cutoff = Config::get().md.inner_cutoff;
-	  outer_cutoff = Config::get().md.outer_cutoff;
+	   distances = init_active_center();  //calculate distances to active center
+	   inner_cutoff = Config::get().md.inner_cutoff;
+	   outer_cutoff = Config::get().md.outer_cutoff;
   }
 
   if (VERBOSE > 0U)
@@ -1093,7 +1115,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     for (std::size_t i(0U); i < N; ++i)
     {
       // calc acceleration
-      coords::Cartesian_Point acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+
+	  // update veloctiy
+	  V[i] += acceleration*dt_2;
 
       if (Config::get().general.verbosity > 149)
       {
@@ -1101,18 +1126,9 @@ void md::simulation::velocity_verlet(std::size_t k_init)
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
       }
 
-      // update veloctiy
-      V[i] += acceleration*dt_2;
 	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 	  {
-		  if (distances[i] > outer_cutoff)
-		  {
-			  V[i] = coords::Cartesian_Point(0, 0, 0);
-		  }
-		  else if (distances[i] > inner_cutoff)
-		  {
-			  V[i] = V[i] - V[i] * ((distances[i]-inner_cutoff) / (outer_cutoff-inner_cutoff))*((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff));
-		  }
+		  V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
 	  }
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
@@ -1138,18 +1154,11 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // add new acceleration and calculate full step velocities
     for (std::size_t i(0U); i < N; ++i)
     {
-      coords::Cartesian_Point acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;
 	  if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
 	  {
-		  if (distances[i] > outer_cutoff)
-		  {
-			  V[i] = coords::Cartesian_Point(0, 0, 0);
-		  }
-		  else if (distances[i] > inner_cutoff)
-		  {
-			  V[i] = V[i] - V[i] * ((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff))*((distances[i] - inner_cutoff) / (outer_cutoff - inner_cutoff));
-		  }
+		  V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
 	  }
     }
     // Apply full step RATTLE constraints
@@ -1220,7 +1229,9 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 	config::molecular_dynamics const & CONFIG(Config::get().md);
 
-	std::vector<double> distances; //distances to active center
+	std::vector<double> distances;       //distances to active center
+	double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
+
 	std::vector<coords::Cartesian_Point> F_old;
 
 	 // prepare tracking
@@ -1236,41 +1247,9 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 	if (Config::get().md.set_active_center == 1)
 	{
-		std::vector<coords::Cartesian_Point> coords_act_center;
-		for (auto & atom_number : Config::get().md.active_center)
-		{
-			coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
-		}
-
-		coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
-		for (auto & atom_coords : coords_act_center)
-		{
-			if (VERBOSE > 4)
-			{
-				std::cout << atom_coords << "\n";
-			}
-			summe_coords_act_center += atom_coords;
-		}
-		coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
-
-		if (VERBOSE > 3)
-		{
-			std::cout << "Coordinates of active center: " << C_geo_act_center << "\n";
-		}
-
-		for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
-		{
-			coords::Cartesian_Point coords_atom = coordobj.xyz(i);
-			double dist_x = C_geo_act_center.x() - coords_atom.x();
-			double dist_y = C_geo_act_center.y() - coords_atom.y();
-			double dist_z = C_geo_act_center.z() - coords_atom.z();
-			double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
-			distances.push_back(distance);
-			if (VERBOSE > 4)
-			{
-				std::cout << "Atom " << i + 1 << ": Distance: " << distance << "\n";
-			}
-		}
+		distances = init_active_center();  //calculate distances to active center
+		inner_cutoff = Config::get().md.inner_cutoff;
+		outer_cutoff = Config::get().md.outer_cutoff;
 	}
 
 	if (VERBOSE > 0U)
@@ -1329,7 +1308,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 				std::cout << "Move " << i << " by " << (V[i] * dt)
 					<< " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
 			}
-
+			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
+			{
+				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+			}
 			// update coordinates
 			coordobj.move_atom_by(i, V[i] * dt);
 		}
@@ -1363,6 +1345,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
 			coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
 			V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
+			if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
+			{
+				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+			}
 		}
 
 		// Apply full step RATTLE constraints
