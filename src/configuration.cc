@@ -947,6 +947,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  Config::set().md.inner_cutoff = inner;
 		  Config::set().md.outer_cutoff = outer;
 	  }
+	  else if (option.substr(2, 18) == "adjustment_by_step")
+	  {
+		  cv >> Config::set().md.adjustment_by_step;
+	  }
   }
 
   //! dimer
@@ -1946,7 +1950,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
-  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switchting to zero starting at " << p.switchdist << " Angstroms) applied.\n";
+  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switching to zero starting at " << p.switchdist << " Angstroms) applied.\n";
   else strm << "No cutoff radius applied.\n";
   if (p.remove_fixed)
   {

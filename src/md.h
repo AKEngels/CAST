@@ -316,7 +316,7 @@ namespace md
     void nose_hoover_thermostat(void);
 
 	// calculate distances to active center
-	std::vector<double> init_active_center(void);
+	std::vector<double> init_active_center(int counter);
 	coords::Cartesian_Point adjust_velocities(coords::Cartesian_Point velocity, double distance, double inner_cutoff, double outer_cutoff);
 
     //! rattle feature

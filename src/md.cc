@@ -991,10 +991,13 @@ void md::simulation::nose_hoover_thermostat(void)
   nht.v2 += nht.G2*d4;
 }
 
-std::vector<double> md::simulation::init_active_center(void)
+std::vector<double> md::simulation::init_active_center(int counter)
 {
 	std::size_t const VERBOSE(Config::get().general.verbosity);
 	std::size_t const N = this->coordobj.size();
+	config::molecular_dynamics const & CONFIG(Config::get().md);
+
+	auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
 
 	std::vector<double> distances;
 	std::vector<coords::Cartesian_Point> coords_act_center;
@@ -1014,7 +1017,7 @@ std::vector<double> md::simulation::init_active_center(void)
 	}
 	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
 
-	if (VERBOSE > 3)
+	if (VERBOSE > 3 && counter % split == 0)
 	{
 		std::cout << "Coordinates of active center: " << C_geo_act_center << "\n";
 	}
@@ -1073,7 +1076,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   if (Config::get().md.set_active_center == 1)
   {
-	   distances = init_active_center();  //calculate distances to active center
+	  if (Config::get().md.adjustment_by_step == 0)
+	  {
+		  distances = init_active_center(0);  //calculate active center and distances to active center once
+	  }
 	   inner_cutoff = Config::get().md.inner_cutoff;
 	   outer_cutoff = Config::get().md.outer_cutoff;
   }
@@ -1108,6 +1114,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       // scale velocities
       for (size_t i(0U); i < N; ++i) V[i] *= factor;
     }
+	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
+	{
+		distances = init_active_center(k);  //calculate active center and new distances to active center for every step
+	}
 
     // save old coordinates
     P_old = coordobj.xyz();
@@ -1247,7 +1257,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 	if (Config::get().md.set_active_center == 1)
 	{
-		distances = init_active_center();  //calculate distances to active center
+		if (Config::get().md.adjustment_by_step == 0)
+		{
+			distances = init_active_center(0);  //calculate active center and distances to active center once
+		}
 		inner_cutoff = Config::get().md.inner_cutoff;
 		outer_cutoff = Config::get().md.outer_cutoff;
 	}
@@ -1289,6 +1302,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			double const factor(std::sqrt(T / temp));
 			// scale velocities
 			for (size_t i(0U); i < N; ++i) V[i] *= factor;
+		}
+		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
+		{
+			distances = init_active_center(k);  //calculate active center and new distances to active center for every step
 		}
 
 		// save old coordinates
