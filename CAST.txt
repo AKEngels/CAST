@@ -469,7 +469,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                10000
  
 # Integrator
 #
@@ -549,9 +549,9 @@ MDactive_center         11
 MDcutoff                 20 30
 
 #adjust active center + distances with every step
-#MDadjustment_by_step     <0/1>
+#MDadjust_by_step     <0/1>
 
-MDadjustment_by_step      1
+MDadjust_by_step      1
 
 # Iteration offset for restart files
 

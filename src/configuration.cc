@@ -947,7 +947,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  Config::set().md.inner_cutoff = inner;
 		  Config::set().md.outer_cutoff = outer;
 	  }
-	  else if (option.substr(2, 18) == "adjustment_by_step")
+	  else if (option.substr(2, 18) == "adjust_by_step")
 	  {
 		  cv >> Config::set().md.adjustment_by_step;
 	  }
