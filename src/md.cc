@@ -1076,10 +1076,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   if (Config::get().md.set_active_center == 1)
   {
-	  if (Config::get().md.adjustment_by_step == 0)
-	  {
-		  distances = init_active_center(0);  //calculate active center and distances to active center once
-	  }
+	   distances = init_active_center(0);  //calculate initial active center and distances to active center
 	   inner_cutoff = Config::get().md.inner_cutoff;
 	   outer_cutoff = Config::get().md.outer_cutoff;
   }
@@ -1114,10 +1111,6 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       // scale velocities
       for (size_t i(0U); i < N; ++i) V[i] *= factor;
     }
-	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
-	{
-		distances = init_active_center(k);  //calculate active center and new distances to active center for every step
-	}
 
     // save old coordinates
     P_old = coordobj.xyz();
@@ -1143,9 +1136,13 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
+	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) //calculate active center and new distances to active center for every step
+	{
+		distances = init_active_center(k);
+	}
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
-
+	
     // calculate new energy & gradients
     coordobj.g();
     // Apply umbrella potential if umbrella sampling is used
@@ -1257,10 +1254,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 	if (Config::get().md.set_active_center == 1)
 	{
-		if (Config::get().md.adjustment_by_step == 0)
-		{
-			distances = init_active_center(0);  //calculate active center and distances to active center once
-		}
+		distances = init_active_center(0);  //calculate initial active center and distances to active center
 		inner_cutoff = Config::get().md.inner_cutoff;
 		outer_cutoff = Config::get().md.outer_cutoff;
 	}
@@ -1303,10 +1297,6 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			// scale velocities
 			for (size_t i(0U); i < N; ++i) V[i] *= factor;
 		}
-		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
-		{
-			distances = init_active_center(k);  //calculate active center and new distances to active center for every step
-		}
 
 		// save old coordinates
 		P_old = coordobj.xyz();
@@ -1331,6 +1321,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			}
 			// update coordinates
 			coordobj.move_atom_by(i, V[i] * dt);
+		}
+		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
+		{
+			distances = init_active_center(k);  //calculate active center and new distances to active center for every step
 		}
 		// Apply first part of RATTLE constraints if requested
 		if (CONFIG.rattle.use) rattle_pre();
