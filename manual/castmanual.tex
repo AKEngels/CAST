@@ -16,6 +16,9 @@
 \addbibresource{castManualReferences.bib} %ADD BIBLATEX REFERENCES FILE.
 \usepackage{acronym} %SUPPORT FOR ABBREVIATIONS
 
+\makeatletter % code for fixing bug in biblatex, see: http://tex.stackexchange.com/questions/311426/bibliography-error-use-of-blxbblverbaddi-doesnt-match-its-definition-ve 
+\def\blx@maxline{77}
+\makeatother
 
 %%%%OPTIONS FOR CODE LISTINGS
 \lstset{ %
@@ -175,7 +178,7 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\pagenumbering{arabic}
 	\section{Preface}
-	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. Semi-Empirical computations are possible through DFTB+\supercite{dftb} (\acl{DFTB}) and \ac{MOPAC}\supercite{mopac, mopac_parallel} interfaces. For calculations based on \ac{DFT}, a \ac{MPI} to the \acs{GPU} accelerated TeraChem\supercite{terachem} program is available. For more information on \ac{CAST} see \supercite{cast}.
+	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. Semi-Empirical computations are possible through DFTB+\supercite{dftb} (\acl{DFTB}) and \ac{MOPAC}\supercite{mopac, mopac_parallel} interfaces. For calculations based on \ac{DFT}, a \ac{MPI} to the \acs{GPU} accelerated TeraChem\supercite{terachem} program is available. For more information on \ac{CAST} see \cite{cast}.
 	\newpage
 	
 	
@@ -408,7 +411,7 @@
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}
-	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme.
+	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). There is also a third integrator named ``Beeman\_2'' available which is a former version of the Beeman integrator. It is not recommended to use this integrator since no one knows what it is doing. Also some options might not be available for the Beeman\_2 integrator.
 	The following variables are used to control the \ac{MD} part of \ac{CAST}:\\~\\
 
 	\begin{tabularx}{\textwidth}{l|X|X}
@@ -416,7 +419,7 @@
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
 		\textbf{MDintegrator} & Type of integrator \begin{itemize}
-			\item 0  = Velocity-Verlet \item 1 = Beeman
+			\item 0  = Velocity-Verlet \item 1 = Beeman \item 2 = Beeman\_2
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
@@ -440,6 +443,10 @@
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds\ifdevmode \item 2 = specific bonds (\textit{see below}) \fi\end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds & string [none] \ifdevmode \colorbox{red}{example or something?} \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} when MDRattle = 2 fixation & integer, integer [none] \\
+		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
+		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
+		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [none] \\
+		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [1] \\
 		\textbf{MDrestart\_offset} & Offset for restart file writing in frames & integer [0] \\
 		\textbf{MDrefine\_offset} & Offset for nonbonded list generation & integer [200] \ifdevmode \colorbox{red}{wtf is this, clarify} \fi \\
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
@@ -462,6 +469,12 @@
 	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 	
 	\fi
+	
+	\subsubsection{MD with biased potential}
+	
+	By setting the option ``MDbiased\_potential'' from 0 to 1 you can switch on a biased potential. This means that the movement of the atoms depends on the distance of every atom to the active site that is defined by the option ``MDactive\_site''. Atoms near the active site move ``normally'' whereas the speed of atoms with a larger distance to the active site is scaled down until there's no movement. With the option ``MDcutoff'' you can modify the strength of the biased potential. The first number is the distance around the active site where no additional potential is applied, the second number is the distance around the active site outside of which there's no movement. During the MD the distances of the atoms to the active site change. If you want to take this into account set the option ``MDadjust\_by\_step'' to 1. Then the position of the active site as well as the distances are calculated new for every step. If ``MDadjust\_by\_step'' is set to 0 the position of the active site and the distances are calculated only once and stay constant for every atom during the simulation. 
+	
+	If the ``MDadjust\_by\_step'' option is activated your molecule might explode during the simulation. To solve this problem choose a larger inner cutoff (``MDcutoff'').
 	
 	%%%% GOSOL %%%%
 	\subsection{GOSOL - Global Optimization and Solvation}	
@@ -749,7 +762,7 @@
 		
 	%%%% Principal Component Analysis (PCA) %%%%
 	\subsection{PCA - Principal Component Analysis}
-	The \acl{PCA} tasks performs a principal component analysis on Simulation trajectories. The procedure is split into two tasks, \textit{PCAgen} and \textit{PCAproc}. First, \textit{PCAgen} is run to obtain the coordinates of the input trajectory in their transformed form as \ac{PCA} modes. These are contained in a file titled ``pca\_modes.dat'' which also contains the eigenvalues and eigenvectors of the covariance matrix. For more information on the theoretical background of the use of \ac{PCA} see \supercite{pca_review, pca_review2, dpca1, dpca2, dpca3}. The mathematical steps in performing \ac{PCA} are closely related to those during conformational and configurational entropy calculations, therefore the configuration options of this task are very similar to those of the task ENTROPY:
+	The \acl{PCA} tasks performs a principal component analysis on Simulation trajectories. The procedure is split into two tasks, \textit{PCAgen} and \textit{PCAproc}. First, \textit{PCAgen} is run to obtain the coordinates of the input trajectory in their transformed form as \ac{PCA} modes. These are contained in a file titled ``pca\_modes.dat'' which also contains the eigenvalues and eigenvectors of the covariance matrix. For more information on the theoretical background of the use of \ac{PCA} see \cite{pca_review, pca_review2, dpca1, dpca2, dpca3}. The mathematical steps in performing \ac{PCA} are closely related to those during conformational and configurational entropy calculations, therefore the configuration options of this task are very similar to those of the task ENTROPY:
 	
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
