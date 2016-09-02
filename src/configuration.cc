@@ -927,11 +927,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().md.rattle.ratpar;
 		  std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
 	  }
-	  else if (option.substr(2, 14) == "set_act_center")
+	  else if (option.substr(2, 16) == "biased_potential")
 	  {
 		  cv >> Config::set().md.set_active_center;
 	  }
-	  else if (option.substr(2, 13) == "active_center")
+	  else if (option.substr(2, 11) == "active_site")
 	  {
 		  unsigned act_cent_atom;
 		  if (cv >> act_cent_atom)

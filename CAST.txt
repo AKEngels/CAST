@@ -485,7 +485,7 @@ MDveloscale            1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 
@@ -510,8 +510,6 @@ MDsnap_opt             0
 #
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
-
-MDheat                 500  300
  
 # Spehrical boundaries' options
 # 
@@ -536,17 +534,13 @@ MDrattle               0
 #determine active center 
 #MDset_act_center         <0/1>
 
-MDset_act_center          1
+MDbiased_potential         0
 
-#atom number of active center <every atom a new line>
-#MDactive_center        14
+#atom number(s) of active site <every atom a new line>
+#MDactive_site        14
 
-MDactive_center         11
-
-#cutoff around active center <inner/outer>
-#MDcutoff                10 20
-
-MDcutoff                 20 30
+#cutoff around active site <inner/outer>
+#MDcutoff                15 20
 
 #adjust active center + distances with every step
 #MDadjust_by_step     <0/1>
