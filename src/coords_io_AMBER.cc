@@ -62,7 +62,6 @@ namespace amberUtil
     else return 0u;
   }
 }
-dfghjk
 
 
 // Amber is aimed at FORTRAN parsers so this code is just, horrible... just horrible...
