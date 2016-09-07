@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   start.xyz
+name                   prot.prmtop
 
 # Output file name
 
@@ -35,8 +35,10 @@ outname                DEVTEST
 
 # Input file type
 
-inputtype              TINKER
+inputtype              AMBER
 
+#coordinate file for amber input
+amber_mdcrd           prot.rst
 
 
 
@@ -67,7 +69,7 @@ inputtype              TINKER
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
-task                   MD
+task                  SP
 
 
 #################################### 
@@ -95,7 +97,7 @@ profileruns            10
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
-interface              OPLSAA
+interface              AMBER
 
 # Interface for preoptimizations
 
@@ -104,7 +106,7 @@ preinterface           0
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              oplsaa_mod.prm
+paramfile              amber99.prm
 
 # Keywords for MOPAC Call
 
@@ -125,7 +127,7 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 #                                  #
 ####################################
 
-cutoff                 400.0
+cutoff                 10.0
 switchdist             10.0
 
 
@@ -358,12 +360,12 @@ TSdivers_limit         20
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 70.0 70.0 70.0
+#Periodics              0 70.0 70.0 70.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
 
-Periodicp              0
+#Periodicp              0
 
 
 
@@ -477,7 +479,7 @@ MDsteps                10000
 # 1                    Beeman
 # 2                    Beeman_2 (not maintained)
 
-MDintegrator           0
+MDintegrator           1
 
 # Velocity Scaling
 
@@ -485,7 +487,7 @@ MDveloscale            1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           0
+MDthermostat           1
 
 # Timestep in picoseconds
 
@@ -510,6 +512,8 @@ MDsnap_opt             0
 #
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
+
+MDheat                 500  300
  
 # Spehrical boundaries' options
 # 
@@ -539,8 +543,12 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
+MDactive_site        11
+
 #cutoff around active site <inner/outer>
-#MDcutoff                15 20
+#MDcutoff                10 20
+
+MDcutoff                 15  20
 
 #adjust active center + distances with every step
 #MDadjust_by_step     <0/1>
