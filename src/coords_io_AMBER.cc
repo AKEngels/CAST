@@ -47,7 +47,7 @@ namespace amberUtil
     else if (in == "S")  return 95u;
     else if (in == "SH") return 85u;
     else if (in == "P")  return 1230u;
-    else if (in == "H ")  return 90u;
+    else if (in == "H")  return 90u;
     else if (in == "HW") return 2002u;
     else if (in == "HO") return 774u;
     else if (in == "HS") return 86u;
@@ -285,16 +285,16 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             {
               symbol = "Cu";
             }
-            else if (symbol == "IM") symbol = "Cl";
+            else if (symbol == "IM") symbol = "CL";
             else if (symbol == "QC") symbol = "Cs";
             else if (symbol == "QK") symbol = "K";
             else if (symbol == "QL") symbol = "Li";
-            else if (symbol == "QN") symbol = "Na";
-            else if (symbol == "QR") symbol = "Na";
-            else if (symbol == "Na") symbol = "Na";
+            else if (symbol == "QN") symbol = "NA";
+            else if (symbol == "QR") symbol = "NA";
+            else if (symbol == "Na") symbol = "NA";
             else if (symbol == "IP")
             {
-              symbol = "Na";
+              symbol = "NA";
               std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
                 << "AMBER Atom Types webpage (\"http://ambermd.org/antechamber/gaff.html\" or "
                 << "\"http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html\").\n"
@@ -313,7 +313,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             else if (symbol.substr(0, 1) == "h" || symbol.substr(0, 1) == "H") symbol = "H";
             else if (symbol.substr(0, 1) == "c" || symbol.substr(0, 1) == "C") symbol = "C";
             else if (symbol.substr(0, 1) == "o" || symbol.substr(0, 1) == "O") symbol = "O";
-            else if (symbol.substr(0, 1) == "n" || symbol.substr(0, 1) == "N") symbol = "N";
+			else if (symbol.substr(0, 1) == "n" || symbol.substr(0, 1) == "N") symbol = "N";
             else if (symbol.substr(0, 1) == "s" || symbol.substr(0, 1) == "S") symbol = "S";
             else if (symbol.substr(0, 1) == "p" || symbol.substr(0, 1) == "P") symbol = "P";
 
@@ -334,12 +334,12 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             Atom current(symbol);
             if (!ignoreFFtypes)
             {
-              size_t type = amberUtil::toTinkerType(amberAtomType);
+			  size_t type = amberUtil::toTinkerType(symbol);
               if (type != 0u) current.set_energy_type(type);
               else
               {
                 ignoreFFtypes = true;
-                std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
+                std::cout << "AMBER atom type " << symbol << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
               }
             }
             atoms.add(current);
@@ -358,16 +358,16 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           {
             symbol = "Cu";
           }
-          else if (symbol == "IM") symbol = "Cl";
+          else if (symbol == "IM") symbol = "CL";
           else if (symbol == "QC") symbol = "Cs";
           else if (symbol == "QK") symbol = "K";
           else if (symbol == "QL") symbol = "Li";
-          else if (symbol == "QN") symbol = "Na";
-          else if (symbol == "QR") symbol = "Na";
-          else if (symbol == "Na") symbol = "Na";
+          else if (symbol == "QN") symbol = "NA";
+          else if (symbol == "QR") symbol = "NA";
+          else if (symbol == "Na") symbol = "NA";
           else if (symbol == "IP")
           {
-            symbol = "Na";
+            symbol = "NA";
             std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
               << "AMBER Atom Types webpage (\"http://ambermd.org/antechamber/gaff.html\" or "
               << "\"http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html\").\n"
@@ -376,7 +376,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           }
 
           //wtf is lone pair? certainly not an atom!
-          else if (symbol == "LP") continue;
+          else if (symbol == "LP") continue; 
           else if (symbol == "nu") continue;
 
           //Si? Starts with an s like sulfur, so we have to check..gnaah.....
@@ -400,6 +400,16 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           }
 
           Atom current(symbol);
+		  if (!ignoreFFtypes)
+		  {
+			  size_t type = amberUtil::toTinkerType(symbol);
+			  if (type != 0u) current.set_energy_type(type);
+			  else
+			  {
+				  ignoreFFtypes = true;
+				  std::cout << "AMBER atom type " << symbol << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
+			  }
+		  }
           atoms.add(current);
 
         }
@@ -427,66 +437,99 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     if (!Config::get().io.amber_mdcrd.empty())
     {
       std::ifstream coord_file_stream(Config::get().io.amber_mdcrd.c_str(), std::ios_base::in);
-      // Now, discard the title
+      // Now, discard the title and the line with the atom number
       std::getline(coord_file_stream, line);
+	  std::getline(coord_file_stream, line);
 
       unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
       {
-        // A line has 10 members in the format
-        for (unsigned int i = 0; i < 10u; state++, i++)
-        {
-          // Needed: Check if substr is empty
-          if (line.substr(i * 8u, 8u).empty())
-          {
-            if (!(state % 3u == 0))
-            {
-              std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
-              goto FAILED;
-            }
-            else
-            {
-              ///////////////////////////////
-              // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
-              ///////////////////////////////
-              goto DONE;
-            }
-          }
-          if (state % 3u == 0)
-          {
-            position.x() = std::stod(line.substr(i * 8u, 8u));
-          }
-          else if (state % 3u == 1)
-          {
-            position.y() = std::stod(line.substr(i * 8u, 8u));
-          }
-          else if (state % 3u == 2)
-          {
-            position.z() = std::stod(line.substr(i * 8u, 8u));
-            positions.push_back(position);
-            //Check if we reached end of structure, conditional is true if yes
-            if (((state + 1) / 3) % numberOfAtoms == 0)
-            {
-              input_ensemble.push_back(positions);
-              if (positions.size() != atoms.size())
-              {
-                throw std::logic_error("The size of an provided structure does not match the number of atoms.");
-              }
-              positions.clear();
-              state++;
+		  if (line.size() > 36)
+		  {
+			  double tempx(0.0), tempy(0.0), tempz(0.0), tempx_2(0.0), tempy_2(0.0), tempz_2(0.0);
+			  sscanf_s(line.c_str(), "%lf %lf %lf %lf %lf %lf", &tempx, &tempy, &tempz, &tempx_2, &tempy_2, &tempz_2);
+			  position.x() = tempx;
+			  position.y() = tempy;
+			  position.z() = tempz;
+			  positions.push_back(position);
+			  position.x() = tempx_2;
+			  position.y() = tempy_2;
+			  position.z() = tempz_2;
+			  positions.push_back(position);
+		  }
+		  else   // coordinate line only half
+		  {
+			  double tempx(0.0), tempy(0.0), tempz(0.0);
+			  sscanf_s(line.c_str(), "%lf %lf %lf", &tempx, &tempy, &tempz);
+			  position.x() = tempx;
+			  position.y() = tempy;
+			  position.z() = tempz;
+			  positions.push_back(position);
+		  }
+	  }
+	  // delete the box parameters in the last line
+	  positions.pop_back();
+	  positions.pop_back();
 
-              //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
-              if (Config::get().io.amber_trajectory_at_constant_pressure)
-              {
-                // Discard line containing box size
-                std::getline(coord_file_stream, line);
-              }
-              break;
-            }
-          }
-        }
-      }
-    }
+	  input_ensemble.push_back(positions);
+	  goto DONE;
+	}
+
+		  
+        // A line has 10 members in the format
+   //     for (unsigned int i = 0; i < 10u; state++, i++)
+   //     {
+   //       // Needed: Check if substr is empty
+   //       if (line.substr(i * 8u, 8u).empty())
+   //       {
+   //         if (!(state % 3u == 0))
+   //         {
+   //           std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
+   //           goto FAILED;
+   //         }
+   //         else
+   //         {
+   //           ///////////////////////////////
+   //           // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
+   //           ///////////////////////////////
+   //           goto DONE;
+   //         }
+   //       }
+   //       if (state % 3u == 0)
+   //       {
+   //         position.x() = std::stod(line.substr(i * 12u, 12u));
+   //       }
+   //       else if (state % 3u == 1)
+   //       {
+   //         position.y() = std::stod(line.substr(i * 12u, 12u));
+   //       }
+   //       else if (state % 3u == 2)
+   //       {
+   //         position.z() = std::stod(line.substr(i * 12u, 12u));
+   //         positions.push_back(position);
+			//std::cout << positions << "\n";
+   //         //Check if we reached end of structure, conditional is true if yes
+   //         if (((state + 1) / 3) % numberOfAtoms == 0)
+   //         {
+   //           input_ensemble.push_back(positions);
+   //           if (positions.size() != atoms.size())
+   //           {
+   //             throw std::logic_error("The size of an provided structure does not match the number of atoms.");
+   //           }
+   //           positions.clear();
+   //           state++;
+
+   //           //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
+   //           if (Config::get().io.amber_trajectory_at_constant_pressure)
+   //           {
+   //             // Discard line containing box size
+   //             std::getline(coord_file_stream, line);
+   //           }
+   //           break;
+   //         }
+   //       }
+   //     }
+
     else if (!Config::get().io.amber_inpcrd.empty())
     {
       std::cout << "Reading from inpcrd not yet supported.";
@@ -504,7 +547,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     }
 
     // THIS HAPPENS WHEN DONE
-  DONE:
+DONE:
     if (input_ensemble.empty()) throw std::logic_error("No structures found.");
     coords::PES_Point x(input_ensemble[0u]);
     coord_object.init_swap_in(atoms, x);
