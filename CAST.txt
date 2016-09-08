@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   prot.prmtop
+name                   min2.prmtop
 
 # Output file name
 
@@ -38,7 +38,7 @@ outname                DEVTEST
 inputtype              AMBER
 
 #coordinate file for amber input
-amber_mdcrd           prot.rst
+amber_mdcrd           min2.rst
 
 
 
@@ -69,7 +69,7 @@ amber_mdcrd           prot.rst
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
-task                  SP
+task                  MD
 
 
 #################################### 
@@ -127,7 +127,7 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 #                                  #
 ####################################
 
-cutoff                 10.0
+cutoff                 400.0
 switchdist             10.0
 
 
@@ -471,7 +471,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                10000
+MDsteps                1000
  
 # Integrator
 #
@@ -479,7 +479,7 @@ MDsteps                10000
 # 1                    Beeman
 # 2                    Beeman_2 (not maintained)
 
-MDintegrator           1
+MDintegrator           0
 
 # Velocity Scaling
 
@@ -535,8 +535,8 @@ MDrattle               0
  
 #MDrattlebond           7 12
 
-#determine active center 
-#MDset_act_center         <0/1>
+#apply a biased potential
+#MDbiased potential        <0/1>
 
 MDbiased_potential         0
 
