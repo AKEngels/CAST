@@ -990,7 +990,8 @@ atom       2008   46    Mg+   "Mg+2 Magnesium Ion"          12    24.305    0
 atom       2009   47    Ca+   "Ca+2 Calcium Ion"            20    40.080    0
 atom       2010   48    Zn+   "Zn+2 Zinc Ion"               30    65.400    0
 atom       2011   49    Cl-   "Cl- Chloride Ion"            17    35.450    0
-atom       2012   50    C1     sp1 C                        ??    12.01     2   !! GAFF
+atom       2012   50    C1     sp1 C                        ??    12.010    2   !! GAFF
+atom       2013   51    CL     Cl atom                      ??    35.450    1   !! GAFF
 
 
       ################################
@@ -2650,7 +2651,8 @@ charge     2008               2.0000
 charge     2009               2.0000
 charge     2010               2.0000
 charge     2011              -1.0000
-charge     2012               0.360      !! GAFF
+charge     2012               ??      !! GAFF
+charge     2013               ??
 
 
       ########################################
