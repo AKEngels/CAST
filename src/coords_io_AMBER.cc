@@ -18,10 +18,19 @@ namespace amberUtil
   // correspond however to the correct TINKER classes
   // in the amber.prm file,
   // so everything is well
+	//NOT COMPLETE
   size_t toTinkerType(std::string const& in)
   {
     if (in == "CT") return 2u;
+	else if (in == "CX") return 2u;
+	else if (in == "2C") return 2u;
+	else if (in == "3C") return 2u;
+	else if (in == "C8") return 2u;
+	else if (in == "CL-") return 2011u;
+	else if (in == "IM") return 2011u;
     else if (in == "C") return 3u;
+	else if (in == "CO") return 3u;
+	else if (in == "C ") return 3u;
     else if (in == "CA") return 115u;
     else if (in == "CM") return 1082u;
     else if (in == "CC") return 169u;
@@ -34,7 +43,19 @@ namespace amberUtil
     else if (in == "CK") return 1021u;
     else if (in == "CQ") return 1023u;
     else if (in == "N")  return 7u;
+	else if (in == "N ")  return 7u;
     else if (in == "NA") return 150u;
+	else if (in == "Cs+") return 2007u;
+	else if (in == "QC") return 2007u;
+	else if (in == "K+") return 2005u;
+	else if (in == "QK") return 2005u;
+	else if (in == "Li+") return 2003u;
+	else if (in == "QL") return 2003u;
+	else if (in == "Na+") return 2004u;
+	else if (in == "QN") return 2004u;
+	else if (in == "QR") return 2004u;
+	else if (in == "Na") return 2004u;
+	else if (in == "IP") return 2004u;
     else if (in == "NB") return 193u;
     else if (in == "NC") return 1022u;
     else if (in == "N*") return 1047u;
@@ -44,12 +65,17 @@ namespace amberUtil
     else if (in == "OH") return 145u;
     else if (in == "OS") return 1001u;
     else if (in == "O")  return 1060u;
+	else if (in == "O ")  return 1060u;
+	else if (in == "O2") return 219u;
     else if (in == "S")  return 95u;
+	else if (in == "S ")  return 95u;
     else if (in == "SH") return 85u;
     else if (in == "P")  return 1230u;
+	else if (in == "P ")  return 1230u;
     else if (in == "H")  return 90u;
+	else if (in == "H ")  return 90u;
     else if (in == "HW") return 2002u;
-    else if (in == "HO") return 774u;
+    else if (in == "HO") return 64u;
     else if (in == "HS") return 86u;
     else if (in == "HA") return 117u;
     else if (in == "HC") return 129u;
@@ -281,10 +307,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             // First, let's process all those AMBER Atom Types with
             // just incredibly retarded names. damn.
             // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
-            if (symbol == "CU")
-            {
-              symbol = "Cu";
-            }
+
+			if (symbol == "CU") symbol = "Cu";
             else if (symbol == "IM") symbol = "CL";
             else if (symbol == "QC") symbol = "Cs";
             else if (symbol == "QK") symbol = "K";
@@ -334,12 +358,12 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             Atom current(symbol);
             if (!ignoreFFtypes)
             {
-			  size_t type = amberUtil::toTinkerType(symbol);
+			  size_t type = amberUtil::toTinkerType(amberAtomType);
               if (type != 0u) current.set_energy_type(type);
               else
               {
                 ignoreFFtypes = true;
-                std::cout << "AMBER atom type " << symbol << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
+                std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
               }
             }
             atoms.add(current);
@@ -350,14 +374,13 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         for (unsigned int i = 0u; i < numberOfAtoms % 20; i++)
         {
           std::string symbol = line.substr(i * 4u, 2u);
+		  const std::string amberAtomType(symbol);
 
           // First, let's process all those AMBER Atom Types with
           // just incredibly retarded names. damn.
           // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
-          if (symbol == "CU")
-          {
-            symbol = "Cu";
-          }
+          
+		  if (symbol == "CU") symbol = "Cu";
           else if (symbol == "IM") symbol = "CL";
           else if (symbol == "QC") symbol = "Cs";
           else if (symbol == "QK") symbol = "K";
@@ -402,12 +425,12 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           Atom current(symbol);
 		  if (!ignoreFFtypes)
 		  {
-			  size_t type = amberUtil::toTinkerType(symbol);
+			  size_t type = amberUtil::toTinkerType(amberAtomType);
 			  if (type != 0u) current.set_energy_type(type);
 			  else
 			  {
 				  ignoreFFtypes = true;
-				  std::cout << "AMBER atom type " << symbol << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
+				  std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
 			  }
 		  }
           atoms.add(current);
