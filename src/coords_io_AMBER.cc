@@ -16,16 +16,24 @@ namespace amberUtil
   // TINKER atom types to the atoms according to
   // their AMBER atom types. These fake TINKER types
   // correspond however to the correct TINKER classes
-  // in the amber.prm file,
+  // in the amber99.prm file,
   // so everything is well
 	//NOT COMPLETE
-  size_t toTinkerType(std::string const& in)
+  size_t toTinkerType(std::string const & in_raw)
   {
+	  std::string in = "";      // converts lowercase letters to uppercase -> gaff atom types
+	  for (char letter : in_raw)
+	  {
+		  in = in + char(toupper(letter));
+	  }
+
     if (in == "CT") return 2u;
 	else if (in == "CX") return 2u;
+	else if (in == "C3") return 2u;
 	else if (in == "2C") return 2u;
 	else if (in == "3C") return 2u;
 	else if (in == "C8") return 2u;
+	else if (in == "C1") return 2u;
 	else if (in == "CL-") return 2011u;
 	else if (in == "IM") return 2011u;
     else if (in == "C") return 3u;
