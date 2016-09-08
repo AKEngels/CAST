@@ -33,7 +33,8 @@ namespace amberUtil
 	else if (in == "2C") return 2u;
 	else if (in == "3C") return 2u;
 	else if (in == "C8") return 2u;
-	else if (in == "C1") return 2u;
+	else if (in == "C1") return 2012u;   
+	else if (in == "CL") return 2013u;   
 	else if (in == "CL-") return 2011u;
 	else if (in == "IM") return 2011u;
     else if (in == "C") return 3u;
