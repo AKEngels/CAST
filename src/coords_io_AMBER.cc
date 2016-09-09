@@ -27,73 +27,72 @@ namespace amberUtil
 		  in = in + char(toupper(letter));
 	  }
 
-    if (in == "CT") return 2u;
-	else if (in == "CX") return 2u;
-	else if (in == "C3") return 2u;
-	else if (in == "2C") return 2u;
-	else if (in == "3C") return 2u;
-	else if (in == "C8") return 2u;
-	else if (in == "C1") return 2012u;   
-	else if (in == "CL") return 2013u;   
-	else if (in == "CL-") return 2011u;
-	else if (in == "IM") return 2011u;
-    else if (in == "C") return 3u;
-	else if (in == "CO") return 3u;
-	else if (in == "C ") return 3u;
-    else if (in == "CA") return 115u;
-    else if (in == "CM") return 1082u;
-    else if (in == "CC") return 169u;
-    else if (in == "CV") return 189u;
-    else if (in == "CW") return 204u;
-    else if (in == "CR") return 206u;
-    else if (in == "CB") return 1018u;
-    else if (in == "C*") return 146u;
-    else if (in == "CN") return 152u;
-    else if (in == "CK") return 1021u;
-    else if (in == "CQ") return 1023u;
-    else if (in == "N")  return 7u;
-	else if (in == "N ")  return 7u;
-    else if (in == "NA") return 150u;
-	else if (in == "Cs+") return 2007u;
-	else if (in == "QC") return 2007u;
-	else if (in == "K+") return 2005u;
-	else if (in == "QK") return 2005u;
-	else if (in == "Li+") return 2003u;
-	else if (in == "QL") return 2003u;
-	else if (in == "Na+") return 2004u;
-	else if (in == "QN") return 2004u;
-	else if (in == "QR") return 2004u;
-	else if (in == "Na") return 2004u;
-	else if (in == "IP") return 2004u;
-    else if (in == "NB") return 193u;
-    else if (in == "NC") return 1022u;
-    else if (in == "N*") return 1047u;
-    else if (in == "N2") return 1057u;
-    else if (in == "N3") return 285u;
-    else if (in == "OW") return 2001u;
-    else if (in == "OH") return 145u;
-    else if (in == "OS") return 1001u;
-    else if (in == "O")  return 1060u;
-	else if (in == "O ")  return 1060u;
-	else if (in == "O2") return 219u;
-    else if (in == "S")  return 95u;
-	else if (in == "S ")  return 95u;
-    else if (in == "SH") return 85u;
-    else if (in == "P")  return 1230u;
-	else if (in == "P ")  return 1230u;
-    else if (in == "H")  return 90u;
-	else if (in == "H ")  return 90u;
-    else if (in == "HW") return 2002u;
-    else if (in == "HO") return 64u;
-    else if (in == "HS") return 86u;
-    else if (in == "HA") return 117u;
-    else if (in == "HC") return 129u;
-    else if (in == "H1") return 143u;
-    else if (in == "H2") return 1009u;
-    else if (in == "H3") return 1113u;
-    else if (in == "HP") return 284u;
-    else if (in == "H4") return 148u;
-    else if (in == "H5") return 86u;
+    if (in == "CT") return 2u;          //tetrahedral C
+	else if (in == "CX") return 2u;     //tetrahedral C
+	else if (in == "C3") return 2u;     //tetrahedral C
+	else if (in == "2C") return 2u;     //tetrahedral C
+	else if (in == "3C") return 2u;     //tetrahedral C
+	else if (in == "C8") return 2u;     //tetrahedral C
+	else if (in == "C1") return 2012u;  //sp1 C  
+	else if (in == "CL") return 2013u;  //Cl atom  
+	else if (in == "CL-") return 2011u; //Cloride ion
+	else if (in == "IM") return 2011u;  //Cloride ion
+    else if (in == "C") return 3u;      //sp2 C (carbonyl)
+	else if (in == "CO") return 3u;     //sp2 C (carbonyl)
+	else if (in == "C ") return 3u;     //sp2 C (carbonyl)
+    else if (in == "CA") return 115u;   //sp2 C (aromatic)
+    else if (in == "CM") return 1082u;  //sp2 C (pyridine)
+    else if (in == "CC") return 169u;   //sp2 C (aromatic)
+    else if (in == "CV") return 189u;   //sp2 C (aromatic)
+    else if (in == "CW") return 204u;   //sp2 C (aromatic)
+    else if (in == "CR") return 206u;   //sp2 C (aromatic)
+    else if (in == "CB") return 1018u;  //sp2 C (aromatic)
+    else if (in == "C*") return 146u;   //sp2 C (aromatic)
+    else if (in == "CN") return 152u;   //sp2 C (aromatic)
+    else if (in == "CK") return 1021u;  //sp2 C (aromatic)
+    else if (in == "CQ") return 1023u;  //sp2 C (aromatic)
+    else if (in == "N")  return 7u;     //amide N
+	else if (in == "N ")  return 7u;    //amide N
+    else if (in == "NA") return 150u;   //N in ring, bound to H
+	else if (in == "Cs+") return 2007u; //Cs ion
+	else if (in == "QC") return 2007u;  //Cs ion
+	else if (in == "K+") return 2005u;  //K ion
+	else if (in == "QK") return 2005u;  //K ion
+	else if (in == "Li+") return 2003u; //Li ion
+	else if (in == "QL") return 2003u;  //Li ion
+	else if (in == "Na+") return 2004u; //Na ion
+	else if (in == "QN") return 2004u;  //Na ion
+	else if (in == "QR") return 2006u;  //Rb ion
+	else if (in == "IP") return 2004u;  //Na ion
+    else if (in == "NB") return 193u;   //N in ring, with LP
+    else if (in == "NC") return 1022u;  //N in ring, with LP
+    else if (in == "N*") return 1047u;  //N in ring, bound to alkyle group
+    else if (in == "N2") return 1057u;  //basic NH2 group
+    else if (in == "N3") return 285u;   //sp3 N
+    else if (in == "OW") return 2001u;  //water O
+    else if (in == "OH") return 63u;    //alcohole O
+    else if (in == "OS") return 1001u;  //O in ether or ester
+    else if (in == "O")  return 1060u;  //carbonyle O
+	else if (in == "O ")  return 1060u; //carbonyle O
+	else if (in == "O2") return 219u;   //carboyle or phosphate (non-bounded) O
+    else if (in == "S")  return 95u;    //S without H
+	else if (in == "S ")  return 95u;   //S without H
+    else if (in == "SH") return 85u;    //S with H
+    else if (in == "P")  return 1230u;  //P in phosphate
+	else if (in == "P ")  return 1230u; //P in phosphate
+    else if (in == "H")  return 90u;    //amide or imino H
+	else if (in == "H ")  return 90u;   //amide or imino H
+    else if (in == "HW") return 2002u;  //water H
+    else if (in == "HO") return 64u;    //alcohole H
+    else if (in == "HS") return 86u;    //H in SH
+	else if (in == "H5") return 1026u;  //???
+    else if (in == "HA") return 117u;   //H bound to aromatic C
+    else if (in == "HC") return 129u;   //H bound to aliphatic C
+    else if (in == "H1") return 143u;   //H bound to aliphatic C
+    else if (in == "H2") return 1009u;  //H in NH2
+    else if (in == "H3") return 1113u;  //H in NH3+
+    else if (in == "HP") return 284u;   //H bound to P???
+    else if (in == "H4") return 148u;   //??? 
     else return 0u;
   }
 }
