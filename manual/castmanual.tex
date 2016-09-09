@@ -20,6 +20,7 @@
 \def\blx@maxline{77}
 \makeatother
 
+
 %%%%OPTIONS FOR CODE LISTINGS
 \lstset{ %
 	backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}
@@ -336,6 +337,8 @@
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
+	
+	\subsubsection{TINKER (Standard)}
 	\ac{CAST} makes use of the TINKER\supercite{tinker} style .xyz files. This format has the advantage of carrying more information in the file than the standard xyz format. Programs that are able to read and/or write TINKER style files are Molden\supercite{molden}, \ac{VMD}\supercite{vmd}, Avogadro\supercite{avogadro}, ChemBioOffice\supercite{chembiooffice}, TINKER\supercite{tinker} and Open Babel\supercite{openbabel}. \\~\\
 	A Tinker format file contains a sequence of structures where the first line of each structure contains the number of atoms while the following lines cover one atom each. The next table explicates the composition of the atom lines.\\~\\
 	\ifverbose
@@ -354,6 +357,28 @@
 	\end{tabularx}
 	\textbf{Note}: For alchemical transformations during \acl{FEP} simulations, each line may also contain the \glqq IN\grqq~or \glqq OUT\grqq~$($ case insensitive $)$ keyword at the end, separated by at least one space from the last bound atom.
 	\fi
+	
+	\subsubsection{AMBER}
+
+\ac{CAST} can also to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
+\begin{itemize}
+\item The name of the input file has to be the .prmtop file that contains the atom types and structure information.
+\item The input file type has to be set to ``AMBER''.
+\item The option ``amber\_mdcrd'' has to be activated and set to the name of the .rst file that contains to coordinates of the atoms.
+\item The energy interface has to be set to ``AMBER'', too.
+\item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff.prm''.
+\end{itemize}
+
+The coordinate file should look like this:
+\begin{itemize}
+\item The first line contains either a title or the number of atoms in the structure.
+\item If the first line is a title the number of atoms is found in the second line.
+\item The rest of the lines contain the coordinates. In each line (except the last in case of an odd number of atoms) there are the coordinates of two atoms in the order x y z x y z where each number has a width of 12.
+\item In the last line there might be box parameters also in the format x y z x y z or not.
+\end{itemize}
+
+If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code.
+
 
 	%%%% TASKS %%%%
 	\subsection{Tasks}
