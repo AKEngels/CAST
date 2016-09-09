@@ -10,7 +10,7 @@ def get_flag(flag_name, signnumber):
     go = False
     flag_str = ""
     with open (PRMTOP) as prmtop_file:
-        start = 10000000000000
+        start = 10000000000000 # random big number
         for linenumber,line in enumerate(prmtop_file):
             if line.startswith("%FLAG "+flag_name):
                 start = linenumber + 2
