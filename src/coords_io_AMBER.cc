@@ -251,28 +251,41 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       // So we can start allocating.
 
       //If section == BONDS_INC_HYDROGEN
-      if (currentSectionID == 24u)
-      {
-        unsigned long state = 1u; //We dont care bout the third value, its AMBER stuff...
-        for (unsigned int countlines = 0u; countlines < std::ceil(float(pointers_raw[2]) * 3.f / 10.f) - 1u; countlines++)
-        {
-          std::getline(config_file_stream, line);
-          // A line has 10 members in the format
-          for (unsigned int i = 0; i < 10u; state++, i++)
-          {
-            //We dont care bout the third value, its AMBER stuff...
-            if (state % 3u != 0)
-            {
-              // Citing the amber file format manual:
-              // "For run-time efficiency, the atom indexes are actually
-              // indexes into a coordinate array, so the actual atom index A is calculated
-              // from the coordinate array index N by A = N / 3 + 1. (N is the value in the
-              // topology file)"
-              bondsWithHydrogen.push_back(std::stoi(line.substr(i * 8u, 8)) / 3u + 1u);
-            }
-          }
-        }
-      }
+	  if (currentSectionID == 24u)
+	  {
+		  unsigned long state = 1u; //We dont care bout the third value, its AMBER stuff...
+		  for (unsigned int countlines = 0u; countlines < std::ceil(float(pointers_raw[2]) * 3.f / 10.f) - 1u; countlines++)
+		  {
+			  std::getline(config_file_stream, line);
+			  // A line has 10 members in the format
+			  for (unsigned int i = 0; i < 10u; state++, i++)
+			  {
+				  //We dont care bout the third value, its AMBER stuff...
+				  if (state % 3u != 0)
+				  {
+					  // Citing the amber file format manual:
+					  // "For run-time efficiency, the atom indexes are actually
+					  // indexes into a coordinate array, so the actual atom index A is calculated
+					  // from the coordinate array index N by A = N / 3 + 1. (N is the value in the
+					  // topology file)"
+					  bondsWithHydrogen.push_back(std::stoi(line.substr(i * 8u, 8)) / 3u + 1u);
+				  }
+			  }
+		  }
+		  // read last line of bondsWithHydrogen if existent
+		  std::getline(config_file_stream, line);
+		  if (line.substr(0, 1) != "%")
+		  {
+			  for (unsigned int i = 0; i < line.size(); i = i + 8)
+			  {
+				  if (state % 3u != 0)
+				  {
+					  bondsWithHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
+				  }
+				  state = state + 1;
+			  }
+		  }
+	  }
 
       //If section == BONDS_WITHOUT_HYDROGEN
       if (currentSectionID == 25u)
@@ -296,6 +309,19 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             }
           }
         }
+		// read last line of bondsWithoutHydrogen if existent
+		std::getline(config_file_stream, line);
+		if (line.substr(0, 1) != "%")
+		{
+			for (unsigned int i = 0; i < line.size(); i = i + 8)
+			{
+				if (state % 3u != 0)
+				{
+					bondsWithoutHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
+				}
+				state = state + 1;
+			}
+		}
       }
 
       //If section == AMBER_Atom_Types
