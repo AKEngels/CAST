@@ -1680,6 +1680,22 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_remove_dof = false;
     }
   }
+  else if (option == "et_dimension")
+  {
+    Config::set().entropytrails.dimension = configuration_range_int<size_t>(cv);
+  }
+  else if (option == "et_k")
+  {
+    Config::set().entropytrails.k = configuration_range_int<size_t>(cv);
+  }
+  else if (option == "et_iteration")
+  {
+    Config::set().entropytrails.iteration = configuration_range_int<size_t>(cv);
+  }
+  else if (option == "et_sigma")
+  {
+    Config::set().entropytrails.sigma = configuration_range_float<double>(cv);
+  }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
   //else if (option == "atomexclude")

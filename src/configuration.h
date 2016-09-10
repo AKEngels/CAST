@@ -918,6 +918,19 @@ namespace config
     {}
   };
 
+  /*
+   * ENTROPYTRAILS // 
+   * KEEPS VARIABLES FOR ENTROPYTRAILS
+   */
+  struct entropytrails
+  {
+    std::vector<size_t> k;
+    std::vector<size_t> dimension;
+    std::vector<size_t> iteration;
+    std::vector<double> sigma;
+    entropytrails(void) : k(1), dimension(1), iteration(1000), sigma(1.0) {}
+  };
+
   /**
    * IO // IO OPTIONS
    * THIS STRUCT KEEPS TRACK OF ADITIONAL IO-STUFF
@@ -1007,6 +1020,7 @@ public:
   config::align			            alignment;
   config::PCA					          PCA;
   config::entropy				        entropy;
+  config::entropytrails         entropytrails;
   config::io                    io;
 
   void        check(void);

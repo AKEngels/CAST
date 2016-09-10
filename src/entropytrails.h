@@ -119,24 +119,22 @@ public:
 
   void readConfig(int argc, char **argv)
   {
+    /*
     for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]).substr(0u, 2) == "k=")
       {
         size_t lastCommaFound = 0;
         while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
         {
-
           k_values.push_back(size_t(std::stoi(std::string(argv[i]).substr( std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
           lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
         }
       }
-
       else if (std::string(argv[i]).substr(0u, 2) == "i=")
       {
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             iter.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
@@ -146,7 +144,6 @@ public:
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             dimension.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
@@ -156,12 +153,16 @@ public:
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             sigma.push_back(size_t(std::stod(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
       }
     }
+    */
+    k_values = Config::get().entropytrails.k;
+    dimension = Config::get().entropytrails.dimension;
+    sigma = Config::get().entropytrails.sigma;
+    iter = Config::get().entropytrails.iteration;
   }
 
   void draw()
