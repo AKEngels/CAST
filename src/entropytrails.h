@@ -91,10 +91,19 @@ public:
     myfile.close();
 
     std::ofstream myfile2;
-    myfile2.open(std::string("out_entropy_k" + std::to_string(k) + "_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) + ".txt"));
+    myfile2.open(std::string("out_entropy_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) + ".txt"), std::ios::app);
 
-    myfile2 << "Hnizdo: " << entropy << "\n";
-    myfile2 << "Gauss analytical: " << log(sigma * sqrt(2 * pi * e)) << "\n";
+    // First line is k=0 means analytical gauss entropy log(sigma * sqrt(2 * pi * e))
+    // Then every line is "k", "Hnizdo entropy"
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "differential entropy";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << log(sigma * sqrt(2 * pi * e)) << "\n";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "karplus entropy";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "schlitter entropy";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << std::to_string(k);
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << entropy << "\n";
     myfile2.close();
   }
 
