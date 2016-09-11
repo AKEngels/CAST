@@ -210,7 +210,9 @@ namespace coords
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
 
+    // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
+
     // swap contents
     void swap(Atom &r);
 

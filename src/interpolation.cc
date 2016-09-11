@@ -1,4 +1,4 @@
-#include "Interpolation.h"
+#include "interpolation.h"
 #include <iostream>
 
 

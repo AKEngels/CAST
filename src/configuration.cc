@@ -817,15 +817,13 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().md.integrator = enum_from_iss<config::md_conf::integrators::T>(cv);
     }
+    else if (option.substr(2, 11) == "trackoffset")
+    {
+      cv >> Config::set().md.trackoffset;
+    }
     else if (option.substr(2, 5) == "track")
     {
       Config::set().md.track = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 12) == "trace_offset")
-    {
-      cv >> Config::set().md.trace_offset;
-      Config::set().md.trace_offset =
-        std::max<std::size_t>(Config::get().md.trace_offset, 1u);
     }
     else if (option.substr(2, 8) == "snap_opt")
     {

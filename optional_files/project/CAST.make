@@ -298,6 +298,7 @@ OBJECTS := \
 	$(OBJDIR)/energy_int_terachem.o \
 	$(OBJDIR)/gb_solv.o \
 	$(OBJDIR)/gbsa.o \
+	$(OBJDIR)/interpolation.o \
 	$(OBJDIR)/main.o \
 	$(OBJDIR)/matop.o \
 	$(OBJDIR)/md.o \
@@ -423,6 +424,9 @@ $(OBJDIR)/gb_solv.o: ../../src/gb_solv.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/gbsa.o: ../../src/gbsa.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/interpolation.o: ../../src/interpolation.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: ../../src/main.cc

@@ -31,10 +31,22 @@ namespace pca
 				int sizeOfVector = static_cast<int>(Config::get().PCA.pca_internal_dih.size());
 				for (int i = 0u; i < sizeOfVector; i++)
 				{
-					if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-						|| coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-						|| coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-						|| coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
+          size_t ii = Config::get().PCA.pca_internal_dih[i];
+          size_t ci = coords.atoms(ii).i_to_a();
+          size_t ibondpartner = coords.atoms(ii).ibond();
+          size_t ianglepartner = coords.atoms(ii).iangle();
+          size_t idihpartner = coords.atoms(ii).idihedral();
+
+          size_t cbondpartner = coords.atoms(ibondpartner).i_to_a();
+          size_t canglepartner = coords.atoms(ianglepartner).i_to_a();
+          size_t cdihpartner = coords.atoms(idihpartner).i_to_a();
+
+          size_t num = coords.atoms(ci).number();
+          size_t numbnd = coords.atoms(cbondpartner).number();
+          size_t numang = coords.atoms(canglepartner).number();
+          size_t numdih = coords.atoms(cdihpartner).number();
+
+					if (num == 1u	|| numbnd == 1u || numang == 1u || numdih == 1u)
 					{
 						Config::set().PCA.pca_internal_dih.erase(Config::set().PCA.pca_internal_dih.begin() + i);
 						sizeOfVector--;

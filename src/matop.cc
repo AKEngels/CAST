@@ -461,7 +461,6 @@ namespace matop
       if (buffer == nullptr) delete[] distanceList;
       return keeper;
     }
-
   }
 
   /////////////////////////////////////
@@ -915,5 +914,3 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
     }
   }
 }
-
-
