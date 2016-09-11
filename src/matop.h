@@ -114,75 +114,6 @@ namespace matop
   namespace entropy
   {
     /**
-     * Performs entropy calculation according to Hnizdo et al.
-     * see: (DOI: 10.1002/jcc.20589)
-     * If rows > 10 this might be really computationally expensive
-     * Basically, many "next-neighbor"-searches are performed using a
-     * primitive brute-force approach.
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type hnizdo_wrapper(Matrix_Class const& input);
-
-    /**
-     * Performs entropy calculation according to Hnizdo et al.
-     * Sums marginal (== 1-dimensional) entropy, i.e. calculating
-     * values for each "row" independently and then building sum.
-     * see: (DOI: 10.1002/jcc.20589)
-     * Marginal Entropy is upper limit to actual entropy which is
-     * computationally expensive ( "hnizdo_wrapper()" )
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type hnizdo_m_wrapper(Matrix_Class const& input);
-
-    /**
-     * Performs entropy calculation according to Hnizdo et al.
-     * Sums marginal (== 1-dimensional) entropy, i.e. calculating
-     * values for each "row" independently and then building sum.
-     * see: (DOI: 10.1002/jcc.20589)
-     * Marginal Entropy is upper limit to actual entropy which is
-     * computationally expensive ( "hnizdo_wrapper()" )
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type karplus_wrapper(Matrix_Class const& input);
-
-    /**
-     * Performs entropy calculation according to Knapp et al. without corrections
-     * for anharmonicity or Mutual Information.
-     * Quasi-Harmonic-Approximation used.
-     * This method is almost identical to Schlitter's approach.
-     * Gives a strict upper limit to the actual entropy.
-     * see: (Genome Inform. 2007;18:192-205.)
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type knapp_m_wrapper(Matrix_Class const& input);
-
-    /**
-     * Performs entropy calculation according to Knapp et al. with corrections
-     * for anharmonicity or Mutual Information.
-     * Quasi-Harmonic-Approximation used.
-     * Hnizdo's entropy estimator is used to calculate the corrections.
-     * Gives a strict upper limit to the actual entropy.
-     * see: (Genome Inform. 2007;18:192-205.)
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type knapp_wrapper(Matrix_Class const& input);
-
-    /**
-     * Performs entropy calculation according to Schlitter
-     * Quasi-Harmonic-Approximation used.
-     * Gives a strict upper limit to the actual entropy.
-     * see: (doi:10.1016/0009-2614(93)89366-P)
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    float_type schlitter_wrapper(Matrix_Class const& input);
-
-    /**
      * Outputs the !SQUARED! next-neighbor distance in eucledean space
      * of the k-nearest neighbor to the query-Point. Rows are dimensions
      * of the data points, columns are the actual data points.
@@ -280,5 +211,3 @@ namespace matop
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
 void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);

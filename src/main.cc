@@ -43,6 +43,7 @@
 //#include "gbsa.h"
 #include <omp.h>
 #include "PCA.h"
+#include "entropy.h"
 
 //////////////////////////
 //                      //
@@ -699,7 +700,59 @@ int main(int argc, char **argv)
          * conformations obtained is possible. Options can be specified in the INPUTFILE
          *
          */
-        entropy(ci, coords);
+
+        // Create TrajectoryMatrixRepresentation
+        // This is actually quite elaborate and involves many steps
+        // If cartesians are desired they will always be massweightend
+        // If itnernals are desired they will always be transformed
+        // to a linear (i.e. not circular) coordinate space)
+        // Check the proceedings for more details
+        entrop::TrajectoryMatrixRepresentation repr(ci, coords);
+
+        for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
+        {
+          int m = (int)Config::get().entropy.entropy_method[u];
+          // Karplus' method
+          if (m == 1 || m == 0)
+          {
+            /*double entropy_value = */repr.karplus();
+          }
+          // Knapp's method, marginal
+          if (m == 2)
+          {
+            /*double entropy_value = */repr.knapp_marginal(
+              Config::get().entropy.entropy_temp,
+              Config::get().entropy.entropy_remove_dof);
+          }
+          // Knapp's mathod
+          if (m == 3 || m == 0)
+          {
+            /*double entropy_value = */repr.knapp(
+              Config::get().entropy.entropy_temp,
+              Config::get().entropy.entropy_method_knn_k,
+              Config::get().entropy.entropy_remove_dof);
+          }
+          // Hnizdo's method
+          if (m == 4 || m == 0)
+          {
+            /*double entropy_value = */repr.hnizdo(
+              Config::get().entropy.entropy_method_knn_k
+              );
+          }
+          // Hnizdo's method, marginal
+          if (m == 5 || m == 0)
+          {
+            /*double entropy_value = */repr.hnizdo_marginal(
+              Config::get().entropy.entropy_method_knn_k);
+          }
+          // Schlitter's method
+          if (m == 6 || m == 0)
+          {
+            /*double entropy_value = */repr.schlitter(
+              Config::get().entropy.entropy_temp);
+          }
+        }
+
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
