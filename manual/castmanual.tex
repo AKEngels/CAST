@@ -366,7 +366,7 @@
 \item The input file type has to be set to ``AMBER''.
 \item The option ``amber\_mdcrd'' has to be activated and set to the name of the .rst file that contains to coordinates of the atoms.
 \item The energy interface has to be set to ``AMBER'', too.
-\item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff.prm''.
+\item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff\_big.prm''.
 \end{itemize}
 
 The coordinate file should look like this:
@@ -379,6 +379,14 @@ The coordinate file should look like this:
 
 If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code.
 
+\paragraph{\textit{GAFF}}
+
+\textit{As \ac{AMBER} is compatible with gaff \ac{CAST} can also process structures that contain GAFF atom types. All atom types and structure features from the gaff.dat file are also implemented in the ``amber99\_gaff\_big.prm''. However not all of them are recognized by CAST. In order to recognize a gaff atom type you have to do the following:}
+\begin{itemize}
+\item \textit{Go to the file ``coords\_io\_AMBER.cc'' and add the atom type to the function ``amberUtil::toTinkerType''. The number that is returned must be the number of the atom type in the .prm file (something between 3000 and 3070).}
+\item \textit{Add the number of bonding partners of the atom type in place of the last question mark in the corresponding atom-line in the .prm file.} 
+\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. You can either take the charge of a corresponding ``normal'' amber atom type or search your .prmtop file for it by using the python script ``amber\_find\_atomnumber\_and\_charge''. There you have to put the name of your .prmtop file in the first line and your get a file named ``charges.txt'' with consecutive numbers, atom types and charges.}
+\end{itemize}
 
 	%%%% TASKS %%%%
 	\subsection{Tasks}
