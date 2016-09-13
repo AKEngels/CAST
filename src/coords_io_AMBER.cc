@@ -79,17 +79,17 @@ namespace amberUtil
 		else if (in == "H3 ") return 1113u;  //H in NH3+
 		else if (in == "HP ") return 284u;   //H bound to P???
 		else if (in == "H4 ") return 148u;   //??? 
-		else if (in == "c3 ") return 3003u;  // GAFF
-		else if (in == "ca ") return 3004u;  // GAFF
-		else if (in == "n  ") return 3035u;  // GAFF
-		else if (in == "c  ") return 3000u;  // GAFF
-		else if (in == "oh ") return 3049u;  // GAFF
-		else if (in == "ho ") return 3026u;  // GAFF
-		else if (in == "o  ") return 3048u;  // GAFF
-		else if (in == "hc ") return 3024u;  // GAFF
-		else if (in == "ha ") return 3023u;  // GAFF
-		else if (in == "h1 ") return 3018u;  // GAFF
-		else if (in == "cl ") return 3032u;  // GAFF
+		else if (in == "c3 ") return 3003u;  // GAFF  -> charge from atom type no. 2 (CT)
+		else if (in == "ca ") return 3004u;  // GAFF  -> charge from atom type no. 115 (C) 
+		else if (in == "n  ") return 3035u;  // GAFF  -> charge = example from prmtop
+		else if (in == "c  ") return 3000u;  // GAFF  -> charge = example from prmtop
+		else if (in == "oh ") return 3049u;  // GAFF  -> charge = example from prmtop
+		else if (in == "ho ") return 3026u;  // GAFF  -> charge = example from prmtop
+		else if (in == "o  ") return 3048u;  // GAFF  -> charge = example from prmtop
+		else if (in == "hc ") return 3024u;  // GAFF  -> charge from atom type no. 129 (HC) 
+		else if (in == "ha ") return 3023u;  // GAFF  -> charge = example from prmtop
+		else if (in == "h1 ") return 3018u;  // GAFF  -> charge = example from prmtop
+		else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop
 		else return 0u;
 	}
 }
