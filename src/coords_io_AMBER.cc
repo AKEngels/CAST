@@ -339,15 +339,15 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             // just incredibly retarded names. damn.
             // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
 
-			if (symbol == "CU") symbol = "Cu";
-            else if (symbol == "IM") symbol = "CL";
-            else if (symbol == "QC") symbol = "Cs";
-            else if (symbol == "QK") symbol = "K";
-            else if (symbol == "QL") symbol = "Li";
-            else if (symbol == "QN") symbol = "NA";
-            else if (symbol == "QR") symbol = "NA";
-            else if (symbol == "Na") symbol = "NA";
-            else if (symbol == "IP")
+			if (symbol == "CU ") symbol = "Cu";
+            else if (symbol == "IM ") symbol = "CL";
+            else if (symbol == "QC ") symbol = "Cs";
+            else if (symbol == "QK ") symbol = "K";
+            else if (symbol == "QL ") symbol = "Li";
+            else if (symbol == "QN ") symbol = "NA";
+            else if (symbol == "QR ") symbol = "NA";
+            else if (symbol == "Na+") symbol = "NA";
+            else if (symbol == "IP ")
             {
               symbol = "NA";
               std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
@@ -358,11 +358,14 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             }
 
             //wtf is lone pair? certainly not an atom!
-            else if (symbol == "LP") continue;
-            else if (symbol == "nu") continue;
+            else if (symbol == "LP ") continue;
+            else if (symbol == "nu ") continue;
 
             //Si? Starts with an s like sulfur, so we have to check..gnaah.....
-            else if (symbol == "si" || symbol == "Si" || symbol == "SI") { symbol = "Si"; }
+            else if (symbol == "si " || symbol == "Si " || symbol == "SI ") { symbol = "Si"; }
+
+			//Cl? Starts with a c like carbon, so we have to check..gnaah.....
+			else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
 
             //Now, lets see
             else if (symbol.substr(0, 1) == "h" || symbol.substr(0, 1) == "H") symbol = "H";
@@ -411,15 +414,15 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           // just incredibly retarded names. damn.
           // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
           
-		  if (symbol == "CU") symbol = "Cu";
-          else if (symbol == "IM") symbol = "CL";
-          else if (symbol == "QC") symbol = "Cs";
-          else if (symbol == "QK") symbol = "K";
-          else if (symbol == "QL") symbol = "Li";
-          else if (symbol == "QN") symbol = "NA";
-          else if (symbol == "QR") symbol = "NA";
-          else if (symbol == "Na") symbol = "NA";
-          else if (symbol == "IP")
+		  if (symbol == "CU ") symbol = "Cu";
+          else if (symbol == "IM ") symbol = "CL";
+          else if (symbol == "QC ") symbol = "Cs";
+          else if (symbol == "QK ") symbol = "K";
+          else if (symbol == "QL ") symbol = "Li";
+          else if (symbol == "QN ") symbol = "NA";
+          else if (symbol == "QR ") symbol = "NA";
+          else if (symbol == "Na+") symbol = "NA";
+          else if (symbol == "IP ")
           {
             symbol = "NA";
             std::cout << "Atom Type \"IP\" used. We are guessing it stands for sodium.\n This is not documented in the official "
@@ -430,11 +433,14 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           }
 
           //wtf is lone pair? certainly not an atom!
-          else if (symbol == "LP") continue; 
-          else if (symbol == "nu") continue;
+          else if (symbol == "LP ") continue; 
+          else if (symbol == "nu ") continue;
 
           //Si? Starts with an s like sulfur, so we have to check..gnaah.....
-          else if (symbol == "si" || symbol == "Si" || symbol == "SI") { symbol = "Si"; }
+          else if (symbol == "si " || symbol == "Si" || symbol == "SI") { symbol = "Si"; }
+
+		  //Cl? Starts with a c like carbon, so we have to check..gnaah.....
+		  else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
 
           //Now, lets see
           else if (symbol.substr(0, 1) == "h" || symbol.substr(0, 1) == "H") symbol = "H";
