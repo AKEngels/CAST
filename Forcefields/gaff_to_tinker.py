@@ -1,6 +1,23 @@
 CURRENT_NUMBER_OF_TINKERTYPES = 50
 CURRENT_NUMBER_OF_ATOMTYPES = 3000
 
+"""
+This script can be used to convert an amber type parameter file (like gaff.dat) to a tinker type parameter file (like amber99.prm)
+
+You have to copy the atoms from gaff.dat to a new file atoms.txt. Then comment out everything after "print ausgabe" and run the script.
+Copy the output into the atom section of amber99.prm.
+
+Then comment out "print ausgabe" and activate "print ausgabe_charge". Copy the output into the charge section of amber99.prm.
+
+Then copy the vdw parameters from gaff.dat into a new file vdw.txt. Comment out "print ausgabe_charge", activate everything until "print ausgabe"
+in the loop over vdwlist and copy the output into the vdw section of amber99.prm.
+
+Then you can comment out everything you have activated in the step before (i.e. the conversion of the vdw parameters) and activate everything
+until the next "print ausgabe". Copy the bonds from gaff.dat into a new file bindungen.txt, run the script and copy the output into the bond
+section of amber99.prm.
+
+Repeat the same for the angles (winkel.txt), torsions (torsions.txt) and improper torsions (impropers.txt).
+"""
 
 with open("atoms.txt") as atom_file:
     atoms = atom_file.readlines()
