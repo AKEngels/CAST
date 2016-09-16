@@ -96,25 +96,25 @@ for i, line in enumerate(torsions):
             for z1 in z1_list:
                 for z4 in z4_list:
                     if b != b_old and b != b_new:
-                        ausgabe = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line[17:24]), float(line[31:38]), int(float(line[48:54])))
+                        ausgabe = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line[17:24]), float(line[31:38]), abs(int(float(line[48:54]))))
                         print ausgabe
                     elif b == b_new:
                         line_old = line
                     elif b == b_old:
-                        ausgabe1 = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line_old[17:24]), float(line_old[31:38]), int(float(line_old[48:54])))
-                        ausgabe2 = "{:11.3f}{:7.1f}{:3d}".format(float(line[17:24]), float(line[31:38]), int(float(line[48:54])))
+                        ausgabe1 = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line_old[17:24]), float(line_old[31:38]), abs(int(float(line_old[48:54]))))
+                        ausgabe2 = "{:11.3f}{:7.1f}{:3d}".format(float(line[17:24]), float(line[31:38]), abs(int(float(line[48:54]))))
                         print ausgabe1 + ausgabe2
         else:
             z1 = atomlist.index(b1) + CURRENT_NUMBER_OF_TINKERTYPES
             z4 = atomlist.index(b4) + CURRENT_NUMBER_OF_TINKERTYPES
             if b != b_old and b != b_new:
-                ausgabe = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line[17:24]), float(line[31:38]), int(float(line[48:54])))
+                ausgabe = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line[17:24]), float(line[31:38]), abs(int(float(line[48:54]))))
                 print ausgabe
             elif b == b_new:
                 line_old = line
             elif b == b_old:
-                ausgabe1 = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line_old[17:24]), float(line_old[31:38]), int(float(line_old[48:54])))
-                ausgabe2 = "{:11.3f}{:7.1f}{:3d}".format(float(line[17:24]), float(line[31:38]), int(float(line[48:54])))
+                ausgabe1 = "torsion{:8d}{:5d}{:5d}{:5d}{:17.3f}{:7.1f}{:3d}".format(z1, z2, z3, z4, float(line_old[17:24]), float(line_old[31:38]), abs(int(float(line_old[48:54]))))
+                ausgabe2 = "{:11.3f}{:7.1f}{:3d}".format(float(line[17:24]), float(line[31:38]), abs(int(float(line[48:54]))))
                 print ausgabe1 + ausgabe2
     b_old = b
 
