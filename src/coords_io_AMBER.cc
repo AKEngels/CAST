@@ -1,9 +1,9 @@
 ﻿/**
 CAST 3
 coords_io_AMEBR.cpp
-Purpose: Reading from AMBER .prmtop and .crd files
+Purpose: Reading from AMBER .prmtop and .rst (.crd) files
 
-@author Dustin Kaiser
+@author Dustin Kaiser, Susanne Sauer
 @version 1.0
 */
 
@@ -552,7 +552,11 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 	  goto DONE;
 	}
 
-		  
+	// The following section is probably about reading coordinates from .crd files. 
+	// It should be reactivated as an option that is executed if the amber_mcrd file has the ending .crd
+	// whereas the code above is executed if it has the ending .rst.
+	// Everything else should work with .crd files the same way as with .rst files.
+
         // A line has 10 members in the format
    //     for (unsigned int i = 0; i < 10u; state++, i++)
    //     {
