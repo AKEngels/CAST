@@ -1,0 +1,216 @@
+\documentclass[a4paper,12pt]{scrreprt} %legt Schriftgrï¿½ï¿½e und Dokumentklasse fest
+\usepackage[T1]{fontenc} %Umlaute trennen
+\usepackage[latin1]{inputenc} %Umlaute einfï¿½gen
+\usepackage[ngerman]{babel} %deutsche Sprache / neue Rechtschreibung
+
+\usepackage{scrpage2} %Einstellungen für Seitenlayout
+\usepackage[left=2.5cm,right=2.5cm,top=3cm,bottom=4cm]{geometry} %Seitenlayout ändern
+\usepackage{lscape} %Seiten im Querformat möglich
+\usepackage{graphicx} %Bilder einbinden mï¿½glich
+\usepackage{wrapfig} %textumflossene Bilder möglich
+\usepackage{caption} %Einstellungen für Captions
+\captionsetup[wrapfig]{width=7cm} %Captionbreite wrapfig = 7cm
+\usepackage{setspace} %Möglichkeit zum Ändern des Zeilenabstands
+\usepackage{longtable} %Tabellen über mehr als eine Seite
+\usepackage{multirow} %Tabellenzeilen zusammenfassen
+\usepackage{upgreek} %aufrechte griechische Buchstaben im Math-Modus
+\usepackage{amsmath}
+\usepackage{hyperref} %Links
+\usepackage[section]{placeins} %Gleiten nur innerhalb section, außerdem floatbarrier
+\renewcommand*\chapterheadstartvskip{\vspace*{-1cm}} % bestimmt, wo auf Seite Kapitel anfängt
+\usepackage[backend=bibtex,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
+\addbibresource{../Literatur/Masterarbeit.bib} %ADD BIBLATEX REFERENCES FILE.
+
+\makeatletter % code for fixing bug in biblatex, see: http://tex.stackexchange.com/questions/311426/bibliography-error-use-of-blxbblverbaddi-doesnt-match-its-definition-ve 
+\def\blx@maxline{77}
+\makeatother
+
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}} % linksbündig mit Breitenangabe
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}} % zentriert mit Breitenangabe
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}} % rechtsbündig mit Breitenangabe
+
+\setcapwidth[c]{14cm}     % Einstellungen fuer Captions
+\setcapindent{0em}
+\addtokomafont{caption}{\small}
+\setkomafont{captionlabel}{\bfseries}
+\renewcommand{\familydefault}{\sfdefault}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}} %Fußnote mit Symbolen zählen (max. 9)
+\renewcommand{\subsectionmark}[1]{\markright{#1}{}} %Definitionen für Kopfzeile
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}
+
+% ##### Beginn des Dokuments #######################
+\begin{document}
+\rofoot[\pagemark]{\pagemark} %Seitenzahl rechts unten
+\cfoot[]{} %unten Mitte keine Seitenzahl
+\chead[]{} %oben Mitte nix
+\rohead[]{\rightmark} %oben rechts Subsection
+\lohead[]{\leftmark} %oben links Chapter 
+
+% ##### Titelseiten ################################
+\pagestyle{empty}
+\begin{center}
+\textbf{Bayerische Julius-Maximilians-Universität Würzburg \\
+Fakultät für Chemie und Pharmazie \\
+Institut für Physikalische und Theoretische Chemie} \\ [3cm]
+\Huge\textbf{TITEL} \\ [2cm]
+\Large{Masterarbeit im Studienfach Chemie} \\[3cm]
+\LARGE\textbf{Susanne Sauer} \\
+\normalsize{geboren am 4. Juli 1990 in Schweinfurt} \\[3cm]
+\Large{Würzburg, 2017}
+\end{center}
+
+% ##### Inhaltsverzeichnis #########################
+\tableofcontents
+\addtocontents{toc}{\protect\thispagestyle{empty}} 
+
+\onehalfspacing % größerer Zeilenabstand
+
+\chapter*{Zusammenfassung}
+\pagestyle{scrheadings}
+\setcounter{page}{1}
+\addcontentsline{toc}{chapter}{Zusammenfassung}
+
+
+
+\chapter{Einleitung}
+
+\section{Molekulardynamik-Simulation}
+
+Der Begriff Molekulardynamik (kurz: MD) beschreibt Methoden zur Simulation der räumlichen Bewegung von Atomen und Molekülen aufgrund der Wechselwirkungen zwischen den einzelnen Teilchen. Die Interaktionen zwischen den Teilchen werden dabei zumeist mit Hilfe von Kraftfeldern beschrieben, da auf diese Weise der Rechenaufwand geringer ist als bei Anwendung von quantenmechanischen Verfahren. Durch Lösung der Newton'schen Bewegungsgleichung können somit statische und dynamische Eigenschaften von Substanzen direkt aus den Wechselwirkungen vorhergesagt werden.\supercite{becker_computational_2001}
+
+\subsection{Anwendung in der Biologie}
+
+Besonders biologische Makromolekülen, beispielsweise Proteine, bieten ein interessantes Anwendungsfeld für molekulardynamische Ansätze, da quantenchemische Rechnungen dafür sehr zeitaufwändig und teuer sind. Auch gibt es zahlreiche unterschiedliche Bewegungen in Proteinen, die für Untersuchungen relevant sein können. Je nach Zeitskala, in der diese stattfinden, teilt man sie in unterschiedliche Typen ein:\supercite{becker_computational_2001}
+\begin{itemize}
+\item Lokalisierte Bewegungen von Seitenketten laufen in Bereich von Femto- bis Pikosekunden ab und haben eine Amplitude von weniger als einem \AA. Eine solche Bewegung kontrolliert beispielsweise die Diffussion von Sauerstoff in Hämoglobin.
+\item Auf einer Zeitskala von Nano- bis Mikrosekunden laufen sogenannten "`medium-scale"' Bewegungen ab. Sie haben eine Amplitude von 1~-~5 \AA\ und spielen eine wichtige Rolle für die Anpassung des aktiven Zentrums an ein Substrat und somit für die Substratspezifität.
+\item Bewegungen mit einer Amplitude von 5~-~10 \AA\ auf einer Zeitskala von Mikro- bis Millisekunden nennt man "`large-scale"' Bewegungen. Darunter fällt z.~B. der allosterische Übergang der Hämoglobin-Untereinheiten vom T- in den R-Zustand.\supercite{becker_computational_2001}
+\item Zuletzt gibt es auch globale Bewegungen, bei denen sich die Struktur des gesamten Proteins verändert, wobei die Dauer einer solchen Bewegung Millisekunden bis Stunden betragen kann. Ein sehr interessantes Beispiel dafür stellen die sogenannten "`Prionen"' (\textit{proteinaceous infectious particles}) dar. Dabei handelt es sich um Erreger bestimmter Hirnerkrankungen, wie der als Rinderwahn bekannten \textit{Bovine spongiforme Enzephalopatie} (BSE), die im Gegensatz zu Bakterien oder Viren kein Genom aus Nukleinsäuren besitzen, sondern überwiegend aus Proteinaggregaten bestehen. Das Prion-Protein PrP kommt v.~a. in Zellen des ZNS und des lymphoreticulären Systems vor und setzt sich in seiner "`normalen"' Form hauptsächlich aus $\upalpha$-Helizes zusammen. Es kann sich jedoch in eine abnorme Form, deren Tertiärstruktur von $\upbeta$-Faltblättern geprägt ist, umwandeln, welche zu Aggregation neigt. Nach der Prion-Hypothese sind die so gebildeten Aggregate in der Lage, in weiteren PrP-Molekülen eine Konformationsänderung von der "`normalen"' zu der pathogenen Form zu induzieren, wodurch die Übertragbarkeit der durch Prionen verursachten Erkrankungen erklärt werden kann.\supercite{becker_computational_2001}\supercite{_prionen_????}
+\end{itemize}
+All diese Bewegungen, die auf unterschiedlichen Zeit- und Längenskalen ablaufen, können jedoch nicht unabhängig voneinander betrachtet werden, sondern beruhen letztendlich alle auf atomaren Fluktuationen, welche in der MD simuliert werden müssen.\supercite{becker_computational_2001}
+
+\subsection{Vorgehen}
+
+Abb.\ref{fig:schema_MD} zeigt eine schematische Darstellung des Verlaufs einer MD-Simulation. Die einzelnen Schritte werden in den folgenden Abschnitten erläutert.\supercite{frenkel_understanding_2001}
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=0.75\textwidth]{Bilder/schema_MD.png}
+	\caption{Schematische Darstellung einer MD-Simulation}
+	\label{fig:schema_MD}
+\end{figure}
+
+\subsubsection{Initialisierung}
+
+Vor Beginn der eigentlichen Simulation müssen zunächst die Positionen und Geschwindigkeiten der einzelnen Atome initialisiert werden. Die Atomkoordinaten werden direkt aus einer Strukturdatei eingelesen. Die Anfangsgeschwindigkeiten können entweder auf Null gesetzt werden oder, abhängig einer vom Benutzer gewählten Temperatur, einer Maxwell-Boltzmann-Verteilung entnommen.\supercite{frenkel_understanding_2001}\supercite{becker_development_2015} 
+
+Die Maxwell-Boltzmann-Verteilung gibt an, welcher Anteil von Molekülen $\frac{dN}{N}$ sich bei gegebener Temperatur T im Geschwindigkeitsintervall [v, dv] befindet:
+\begin{align}
+\frac{dN}{N} = f(v)dv = \left(\frac{m}{2\pi \cdot k_BT}\right)^{\frac{3}{2}} \cdot e^{-\frac{mv^2}{2k_BT}} \cdot 4\pi v^2 dv
+\end{align}
+Dabei ist f(v) die Dichtefunktion der Geschwindigkeitsverteilung, m die Atom- bzw. Molekülmasse, k\textsubscript{B} die Boltzmann-Konstante ($1,3806503 \cdot 10^{-23} JK^{-1}$) und T die Temperatur.\supercite{czeslik_basiswissen_2010}
+
+\subsubsection{Berechnung der Kräfte} \label{sec:kraft}
+
+Die Berechnung der Kräfte auf jedes einzelne Teilchen erfolgt direkt aus der potentiellen Energie nach der Formel
+\begin{align}
+F_i = - \nabla_i V(r)
+\end{align}
+Das Potential V(r) wird dabei aus den Interaktionen zwischen den Teilchen errechnet. Die Details dazu werden im Abschnitt \ref{sec:kraftfelder} erläutert.\supercite{becker_computational_2001}
+
+\subsubsection{Integration der Bewegungsgleichung}
+
+Nach der Newton'schen Bewegungsgleichung hängt die Position eines Teilchens folgendermaßen von der Kraft ab, die auf dieses Teilchen wirkt:
+\begin{align}
+F_i = m_i \cdot a_i = m_i \cdot \ddot{r_i}
+\end{align}
+Dabei ist die Beschleunigung a\textsubscript{i} die zweite Ableitung des Ortes r\textsubscript{i} nach der Zeit t. Um die Position eines Teilchens zu einem bestimmten Zeitpunkt zu ermitteln, muss diese Gleichung also integriert werden. 
+
+Eine Methode zur Lösung solcher Differenzialgleichungen ist die Finite Differenzen Methode. Dabei handelt es sich um ein numerisches Verfahren, um schrittweise die Koordinaten und Geschwindigkeiten zur Zeit $t+\Delta t$ aus denen zur Zeit t zu berechnen.\supercite{becker_computational_2001}
+\\
+
+Dazu beginnt man mit einer Taylor-Entwicklung der Position $r(t+\Delta t)$ um den \mbox{Zeitpunkt t}:
+\begin{align}
+r(t+\Delta t) = r(t) + \dot{r}(t) \Delta t + \frac{1}{2}\ddot{r}(t) \Delta t^2 + ...
+\end{align} 
+
+Setzt man nun $\dot{r}(t) = v(t)$ und $\ddot{r}(t) = a(t) = \frac{F(t)}{m}$ ein, so erhält man:
+\begin{align}
+r(t+\Delta t) = r(t) + v(t) \Delta t + \frac{1}{2}\frac{F(t)}{m} \Delta t^2 + \mathcal{O}(\Delta t^3) \label{eq:integrator}
+\end{align}
+
+\vspace{0.5cm}
+Ein häufig verwendetes Integrationsverfahren ist der \textbf{Velocity-Verlet-Integrator}.\supercite{becker_computational_2001}\\ Dabei wird die Taylor-Entwicklung (siehe Gl.\ref{eq:integrator}) nach dem quadratischen Term abgebrochen. Die Geschwindigkeit zum Zeitpunkt $t + \Delta t$ wird aus dem Mittel der Beschleunigungen zu den Zeitpunkten t und $t+\Delta t$ berechnet:
+\begin{align}
+v(t+\Delta t) = v(t) + \frac{1}{2} \left(a(t) + a(t + \Delta t)\right) \Delta t
+\end{align}
+
+In der Praxis besteht ein Durchgang des Velocity-Verlet-Algorithmus aus folgenden Schritten (Index n steht für den Zeitpunkt t, Index n+1 für den Zeitpunkt $t+\Delta t$):\supercite{becker_computational_2001}
+\begin{enumerate}
+\item Berechnung der Beschleunigungen zu Beginn des Zeitschritts: $a_n = \frac{F_n}{m}$
+\item Berechnung der Positionen am Ende des Zeitschritts (vgl. Gl.\ref{eq:integrator}):\\ $r_{n+1} = r_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2$
+\item Berechnung der Geschwindigkeiten zur Hälfte des Zeitschritts: $v_{n+\frac{1}{2}} = v_n + \frac{1}{2} a_n \Delta t$
+\item Berechnung der Gradienten an der Position $r_{n+1}$ (siehe Abschnitt \ref{sec:kraft})
+\item Berechnung der Geschwindigkeiten am Ende des Zeitschritts: $v_n = v_{n+\frac{1}{2}} + \frac{1}{2} a_{n+1} \Delta t$
+\end{enumerate}
+
+\subsubsection{Berechnung und Ausgabe von Eigenschaften}
+
+Nach jedem Zeitschritt werden Eigenschaften des Systems berechnet und gespeichert bzw. ausgegeben. Direkt aus den bisher beschriebenen Berechnungen verfügbar sind die Koordinaten sowie die potentielle (aus dem Kraftfeld) Energie. Aus den Geschwindigkeiten lassen sich die kinetische Energie und die Temperatur berechnen:\supercite{frenkel_understanding_2001}
+\begin{align}
+T &= \sum_{i=1}^N \frac{m_i v_i^2}{k_B N_f} \\
+E_{kin} &= N \cdot \frac{3}{2} k_B T = \sum_{i=1}^N \frac{1}{2} m_i v_i^2
+\end{align}
+
+Dabei ist N die Teilchenzahl, m\textsubscript{i} die Masse, v\textsubscript{i} die Geschwindigkeit des Teilchens, k\textsubscript{B} die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Translationsfreiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
+
+\section{Kraftfelder} \label{sec:kraftfelder}
+
+\textit{hier geht's weiter}
+
+\section{Ziel der Arbeit}
+
+
+
+\chapter{Ergebnisse und Diskussion}
+
+
+\chapter{Fazit und Ausblick}
+
+
+\pagestyle{plain}
+\addcontentsline{toc}{chapter}{Literatur}
+\printbibliography
+
+
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Abbildungsverzeichnis}
+\listoftables
+\addcontentsline{toc}{chapter}{Tabellenverzeichnis}
+
+\chapter*{Anhang}
+\addcontentsline{toc}{chapter}{Anhang}
+
+\newpage
+
+\begin{center}
+{\large\textbf{ERKLÄRUNG}}\\
+\end{center}
+\vspace{2 cm}
+	Hiermit erkläre ich an Eides statt, dass ich die vorliegende Masterarbeit selbständig angefertigt und keine anderen als die von mir angegebenen Quellen und Hilfsmittel benutzt habe. \\
+	\\
+	Ich erkläre außerdem, dass diese Arbeit weder in gleicher oder anderer Form bereits in einem anderen Prüfungsverfahren vorgelegen hat. 
+
+Ich habe früher außer den mit dem Zulassungsgesuch urkundlich vorgelegten Graden keine weiteren akademischen Grade erworben oder zu erwerben versucht. 
+
+\vspace{2 cm}
+
+
+	
+Ort, Datum \hspace{3cm}Unterschrift
+
+
+\end{document}
