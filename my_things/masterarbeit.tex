@@ -7,6 +7,7 @@
 \usepackage[left=2.5cm,right=2.5cm,top=3cm,bottom=4cm]{geometry} %Seitenlayout ändern
 \usepackage{lscape} %Seiten im Querformat möglich
 \usepackage{graphicx} %Bilder einbinden mï¿½glich
+\usepackage{subfigure} %Bilder nebeneinander
 \usepackage{wrapfig} %textumflossene Bilder möglich
 \usepackage{caption} %Einstellungen für Captions
 \usepackage{setspace} %Möglichkeit zum Ändern des Zeilenabstands
@@ -174,9 +175,9 @@ Wie in Abschnitt \ref{sec:kraft} beschrieben, ist es für die Berechnung der Kräf
 
 Die Kraftfeldenergie $E_{ff}$ wird als Summe von Termen ausgedrückt, die jeweils eine Verzerrung des Moleküls aus der "`idealen"', d.h. energieminimierten, Konformation beschreiben:
 \begin{align}
-E_{ff} = E_{str} + E_{bend} + E_{tors} + E_{nb} + E_{cross}
+E_{ff} = E_{str} + E_{bend} + E_{tors} + E_{oop} + E_{nb} + E_{cross}
 \end{align}
-Dabei steht $E_{str}$ für die Energie, die für das Strecken bzw. Stauchen einer Bindung aufgewendet werden muss, $E_{bend}$ für diejenige, die dem Erweitern oder Verengen eines Bindungswinkel entspricht, $E_{tors}$ ist die Torsionsenergie für die Drehung um eine Bindungsachse, $E_{nb}$ steht für die Wechselwirkungen zwischen Atomen, die nicht direkt verbunden sind, und der Kreuzterm $E_{cross}$ beschreibt Kopplungen zwischen den andern Energietermen.\supercite{jensen_introduction_1998}
+Dabei steht $E_{str}$ für die Energie, die für das Strecken bzw. Stauchen einer Bindung aufgewendet werden muss, $E_{bend}$ für diejenige, die dem Erweitern oder Verengen eines Bindungswinkel entspricht, $E_{tors}$ ist die Torsionsenergie für die Drehung um eine Bindungsachse, die \textit{Out-of-plane} Energie $E_{oop}$ entspricht der Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms aus der Ebene seiner Bindungspartner, $E_{nb}$ steht für die Wechselwirkungen zwischen Atomen, die nicht direkt verbunden sind, und der Kreuzterm $E_{cross}$ beschreibt Kopplungen zwischen den andern Energietermen.\supercite{jensen_introduction_1998}
 
 \subsection{Bindungsenergie}
 
@@ -224,7 +225,8 @@ Im Gegensatz zur Bindungs- und Winkelenergie ist bei der Torsionsenergie eine Ex
 E_{tors}(\omega) = \sum_{n=1} V_n \cos(n\omega)
 \end{align}
 
-Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=3$ einer von 120°, ..., $V_n$ gibt die Höhe der Energiebarriere an, welche für bestimmte n auch Null werden kann, wie die folgenden Beispiele zeigen.
+Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=3$ einer von 120°, ..., $V_n$ gibt die Höhe der Energiebarriere an, welche für bestimmte n auch Null werden kann, wie die folgenden Beispiele zeigen.\supercite{jensen_introduction_1998}
+\\
 
 \begin{figure}[htb]
 	\centering
@@ -235,7 +237,7 @@ Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=
 
 Wie auf Abb.{\ref{fig:tors_ethan} zu erkennen, besitzt die Funktion für die Torsionsenergie von Ethan in Abhängigkeit des Torsionswinkels $\omega$ drei Minima, die der gestaffelten Konformation entsprechen, und drei Maxima für die ekliptische Konformation. Die Periodenlänge beträgt also 120°, d.h. $V_3 \neq 0$. Da alle Maxima und Minima jeweils die gleiche Höhe haben, wird der Verlauf der Energie durch die Funktion $E_{tors}(\omega) = V_3 \cdot \cos(3n)$ korrekt abgebildet, d.h. alle anderen Koeffizienten werden Null.
 
-Geht man vom Ethan zum Butan über, so ist das Energieminimum, bei dem sich die beiden Methylgruppen gegenüberstehen, niedriger als die beiden anderen. Analog dazu liegt das Maximum, bei dem die Substituenten direkt hintereinander liegen, höher (siehe Abb.\ref{fig:tors_butan}, blaue Kurve). Um diesen Energieverlauf zu modellieren, wird in der Formel für die Torsionsenergie ein weiterer Term mit $n = 1$ (grüne Kurve) zu dem mit $n = 3$ (rote Kurve) addiert, sodass die Formel lautet:
+Geht man vom Ethan zum Butan über, so ist das Energieminimum, bei dem sich die beiden Methylgruppen gegenüberstehen, niedriger als die beiden anderen. Analog dazu liegt das Maximum, bei dem die Substituenten direkt hintereinander liegen, höher (siehe Abb.\ref{fig:tors_butan}, blaue Kurve). Um diesen Energieverlauf zu modellieren, wird in der Formel für die Torsionsenergie ein weiterer Term mit $n = 1$ (grüne Kurve) zu dem mit $n = 3$ (rote Kurve) addiert, sodass die Formel lautet:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{tors}(\omega) = V_1 \cdot \cos{n} + V_3 \cdot \cos(3n)
 \end{align}
@@ -247,18 +249,59 @@ E_{tors}(\omega) = V_1 \cdot \cos{n} + V_3 \cdot \cos(3n)
 	\label{fig:tors_butan}
 \end{figure}
 
-bliblablub ethen MINUS davor \ref{fig:tors_ethen}
+Betrachtet man die Torsionsenergie von Ethen (siehe Abb.\ref{fig:tors_db}a), so erkennt man jeweils ein Minimum gleicher Höhe bei 0° und 180°, den Winkeln, die einer planaren Konformation entsprechen, d.h. die Funktion hat eine Periodenlänge von 180°. Für die Beschreibung der Torsionsenergie benötigt man also einen Term mit $V_2 \neq 0$. Da die Kosinusfunktion bei 0° ein Maximum besitzt, die Torsionsenergie von Ethen jedoch ein Minimum, muss dieser Term mit einem negativen Vorzeichen versehen werden, wenn $V_n$ nicht kleiner Null werden soll, sodass man $E_{tors}(\omega) = V_2 \cdot (-\cos(2n))$ erhält.
 
-\begin{figure}[htb]
-	\centering
-		\includegraphics[width=\textwidth]{Bilder/tors_ethen.png}
-	\caption{Torsionsenergie von Ethen in Abhängigkeit des Torsionswinkels}
-	\label{fig:tors_ethen}
-\end{figure}
+Ersetzt man im Ethen zwei der Wasserstoffatome durch Substituenten, z.B. Methylgruppen, so wird analog zum Übergang von Ethan und Butan die Entartung der Minima und Maxima aufgehoben, da die E-Konformation stabiler ist als die Z-Konformation (siehe Abb.\ref{fig:tors_db}b, blaue Kurve). Dies kann wiederum durch Addition eines Terms mit $n = 1$ (grüne Kurve) mathematisch dargestellt werden:\supercite{jensen_introduction_1998}
+\begin{align}
+E_{tors}(\omega) = V_1 \cdot \cos{n} + V_2 \cdot (-\cos(2n))
+\end{align}
+
+\begin{figure} [htb]
+    \subfigure[Torsionsenergie von Ethen]{\includegraphics[width=0.49\textwidth]{Bilder/tors_ethen.png}}
+    \subfigure[Torsionsenergie von 2-Buten]{\includegraphics[width=0.49\textwidth]{Bilder/tors_buten.png}}
+\caption{Torsionsenergie bei Rotation um eine Doppelbindung in Abhängigkeit des Torsionswinkels}
+\label{fig:tors_db}
+\end{figure} 
+
+\vspace{0.5cm}
+Da in organischen Molekülen keine Atome mit mehr als vier Bindungspartnern vorkommen, werden alle möglichen Torsionswinkel durch die obigen Überlegungen abgedeckt, d.h. $n$ kann nur die Werte 1, 2 und 3 annehmen. Um das Energieminimum der Torsionsenergie auf Null zu setzen, wird zur Kosinusfunktion, die sich zwischen -1 und 1 bewegt, die Zahl 1 addiert. Zudem normiert man die Funktion, indem man sie mit $\frac{1}{2}$ multipliziert, was zur Folge hat, dass im Falle einer Funktion mit nur einem Term aus dem Koeffizienten direkt die Höhe der Energiebarriere abgelesen werden kann. Die vollständige Formel zur Berechnung der Torsionsenergie für die Atomkombination A-B-C-D lautet dann:
+\begin{align}
+E_{tors}(\omega_{ABCD}) &= \frac{1}{2} \cdot V_{1,ABCD} \cdot (1+\cos \omega_{ABCD}) + \frac{1}{2} \cdot V_{2,ABCD} \cdot (1-\cos (2 \omega_{ABCD})) \nonumber \\
+&+ \frac{1}{2} \cdot V_{3,ABCD} \cdot (1+\cos(3 \omega_{ABCD}))
+\end{align}
+
+Für jede mögliche Atomkombination A-B-C-D werden somit maximal drei Parameter $V_1$, $V_2$ und $V_3$ benötigt.\supercite{jensen_introduction_1998}
 
 \subsection{\textit{Out-of-plane} Energie}
 
+Eine Form der Verzerrung des Moleküls wird durch die bisher beschriebenen Energieterme nur sehr schlecht abgebildet. Dies ist die Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms B, welches jeweils eine Bindung zu den Atomen A, C und D ausbildet, aus der Ebene, die von diesen drei Atomen aufgespannt wird. Die Energiebarriere für diesen Vorgang ist sehr groß, wohingegen die Winkel $\theta_{ABC}$, $\theta_{ABD}$ und $\theta_{CBD}$ sich kaum ändern, also auch kaum eine Erhöhung der Winkelenergie $E_{bend}$ erfolgt.
+
+Zur akkuraten energetischen Beschreibung dieses Vorgangs müssen daher weitere Terme $E_{oop}$ eingeführt werden. In den Kraftfeldern AMBER, OPLS und CHARM, die für die Simulation von Proteinen optimiert sind, werden dazu zusätzliche "`improper"' Torsionswinkel $\omega_{ABCD}$ definiert, obwohl zwischen C und D keine Bindung besteht. Liegt Atom B in der Ebene, ist dieser Winkel $\omega_0 = 180°$. Die \textit{Out-of-plane} Energie kann dann als harmonischer Oszillator um den Gleichgewichtswinkel $\omega_0$ ausgedrückt werden, also:
+\begin{align}
+E_{oop} = k_{ABCD} \cdot (\omega_{ABCD} - 180°)^2
+\end{align}
+
+Die Kraftkonstante $k_{ABCD}$ für jede Atomkombination aus A, B, C und D muss als Parameter im Kraftfeld festgehalten sein.\supercite{jensen_introduction_1998}
+
 \subsection{Energie zwischen unverbundenen Atomen}
+
+Die Wechselwirkung zwischen zwei unverbundenen Atomen A und B setzt sich aus der Summe von elektrostatischer Anziehung bzw. Abstoßung und Van der Waals-Kräften zusammen:
+\begin{align}
+E_{nb} = E_{el} + E_{vdw}
+\end{align}
+
+Die von den meisten Kraftfeldern genutzte Methode, \textbf{elektrostatische Interaktionen} in Abhängigkeit der Atomkoordinaten zu beschreiben, ist das Coulomb-Potential:
+\begin{align}
+E_{el}(R_{AB}) = \frac{Q_{A} \cdot Q_{B}}{\epsilon \cdot R_{AB}}
+\end{align}
+
+Dabei werden die Atome als Punktladungen mit Ladung $Q_A$ und $Q_B$ betrachtet, wobei die Ladungen entweder als Parameter im Kraftfeld gespeichert sein können oder für die konkrete Struktur einem berechneten elektrostatischen Potential entnommen sind. $R_{AB}$ entspricht in obiger Formel dem Atomabstand und $\epsilon$ der effektiven dielektrischen Konstanten.\supercite{jensen_introduction_1998}
+\\
+
+Die \textbf{Van der Waals-Energie} ist der Anteil der Interaktion zwischen zwei unverbundenen Atomen, der nicht auf elektrostatische Wechselwirkungen zurückgeht. Daher spielt sie eine besonders große Rolle bei wenig polaren Molekülen wie reinen Kohlenwasserstoffen. Sie wird oft durch das Lenard-Jones-Potential ausgedrückt:
+\begin{align}
+E_{vdw}(R_{AB}) = \epsilon \left[ \left(\frac{R_{AB,0}}{R_{AB}} \right)^{12} - 2 \left(\frac{R_{AB,0}}{R_{AB}} \right)^6 \right]
+\end{align}
 
 \subsection{Kreuzterme}
 
