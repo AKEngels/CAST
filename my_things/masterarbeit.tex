@@ -106,11 +106,11 @@ Abb.\ref{fig:schema_MD} zeigt eine schematische Darstellung des Verlaufs einer M
 
 Vor Beginn der eigentlichen Simulation müssen zunächst die Positionen und Geschwindigkeiten der einzelnen Atome initialisiert werden. Die Atomkoordinaten werden direkt aus einer Strukturdatei eingelesen. Die Anfangsgeschwindigkeiten können entweder auf Null gesetzt werden oder, abhängig einer vom Benutzer gewählten Temperatur, einer Maxwell-Boltzmann-Verteilung entnommen.\supercite{frenkel_understanding_2001}\supercite{becker_development_2015} 
 
-Die Maxwell-Boltzmann-Verteilung gibt an, welcher Anteil von Molekülen $\frac{dN}{N}$ sich bei gegebener Temperatur T im Geschwindigkeitsintervall [v, dv] befindet:
+Die Maxwell-Boltzmann-Verteilung gibt an, welcher Anteil von Molekülen $\frac{dN}{N}$ sich bei gegebener Temperatur $T$ im Geschwindigkeitsintervall $[v, dv]$ befindet:
 \begin{align}
 \frac{dN}{N} = f(v)dv = \left(\frac{m}{2\pi \cdot k_BT}\right)^{\frac{3}{2}} \cdot e^{-\frac{mv^2}{2k_BT}} \cdot 4\pi v^2 dv
 \end{align}
-Dabei ist f(v) die Dichtefunktion der Geschwindigkeitsverteilung, m die Atom- bzw. Molekülmasse, k\textsubscript{B} die Boltzmann-Konstante ($1,3806503 \cdot 10^{-23} JK^{-1}$) und T die Temperatur.\supercite{czeslik_basiswissen_2010}
+Dabei ist $f(v)$ die Dichtefunktion der Geschwindigkeitsverteilung, $m$ die Atom- bzw. Molekülmasse, $k_B$ die Boltzmann-Konstante ($1,3806503 \cdot 10^{-23} \text{JK}^{-1}$) und $T$ die Temperatur.\supercite{czeslik_basiswissen_2010}
 
 \subsubsection{Berechnung der Kräfte} \label{sec:kraft}
 
@@ -118,7 +118,7 @@ Die Berechnung der Kräfte auf jedes einzelne Teilchen erfolgt direkt aus der pot
 \begin{align}
 F_i = - \nabla_i V(r)
 \end{align}
-Das Potential V(r) wird dabei aus den Interaktionen zwischen den Teilchen errechnet. Die Details dazu werden im Abschnitt \ref{sec:kraftfelder} erläutert.\supercite{becker_computational_2001}
+Das Potential $V(r)$ wird dabei aus den Interaktionen zwischen den Teilchen errechnet. Die Details dazu werden im Abschnitt \ref{sec:kraftfelder} erläutert.\supercite{becker_computational_2001}
 
 \subsubsection{Integration der Bewegungsgleichung}
 
@@ -126,12 +126,12 @@ Nach der Newton'schen Bewegungsgleichung hängt die Position eines Teilchens folg
 \begin{align}
 F_i = m_i \cdot a_i = m_i \cdot \ddot{r_i}
 \end{align}
-Dabei ist die Beschleunigung a\textsubscript{i} die zweite Ableitung des Ortes r\textsubscript{i} nach der Zeit t. Um die Position eines Teilchens zu einem bestimmten Zeitpunkt zu ermitteln, muss diese Gleichung also integriert werden. 
+Dabei ist die Beschleunigung $a_i$ die zweite Ableitung des Ortes $r_i$ nach der Zeit $t$. Um die Position eines Teilchens zu einem bestimmten Zeitpunkt zu ermitteln, muss diese Gleichung also integriert werden. 
 
-Eine Methode zur Lösung solcher Differenzialgleichungen ist die Finite Differenzen Methode. Dabei handelt es sich um ein numerisches Verfahren, um schrittweise die Koordinaten und Geschwindigkeiten zur Zeit $t+\Delta t$ aus denen zur Zeit t zu berechnen.\supercite{becker_computational_2001}
+Eine Methode zur Lösung solcher Differenzialgleichungen ist die Finite Differenzen Methode. Dabei handelt es sich um ein numerisches Verfahren, um schrittweise die Koordinaten und Geschwindigkeiten zur Zeit $t+\Delta t$ aus denen zur Zeit $t$ zu berechnen.\supercite{becker_computational_2001}
 \\
 
-Dazu beginnt man mit einer Taylor-Entwicklung der Position $r(t+\Delta t)$ um den \mbox{Zeitpunkt t}:
+Dazu beginnt man mit einer Taylor-Entwicklung der Position $r(t+\Delta t)$ um den \mbox{Zeitpunkt $t$}:
 \begin{align}
 r(t+\Delta t) = r(t) + \dot{r}(t) \Delta t + \frac{1}{2}\ddot{r}(t) \Delta t^2 + ...
 \end{align} 
@@ -142,12 +142,12 @@ r(t+\Delta t) = r(t) + v(t) \Delta t + \frac{1}{2}\frac{F(t)}{m} \Delta t^2 + \m
 \end{align}
 
 \vspace{0.5cm}
-Ein häufig verwendetes Integrationsverfahren ist der \textbf{Velocity-Verlet-Integrator}.\supercite{becker_computational_2001}\\ Dabei wird die Taylor-Entwicklung der Koordinaten (siehe Gl.\ref{eq:integrator}) nach dem quadratischen Term abgebrochen. Die Geschwindigkeit zum Zeitpunkt $t + \Delta t$ wird aus dem Mittel der Beschleunigungen zu den Zeitpunkten t und $t+\Delta t$ berechnet:
+Ein häufig verwendetes Integrationsverfahren ist der \textbf{Velocity-Verlet-Integrator}.\supercite{becker_computational_2001}\\ Dabei wird die Taylor-Entwicklung der Koordinaten (siehe Gl.\ref{eq:integrator}) nach dem quadratischen Term abgebrochen. Die Geschwindigkeit zum Zeitpunkt $t + \Delta t$ wird aus dem Mittel der Beschleunigungen zu den Zeitpunkten $t$ und $t+\Delta t$ berechnet:
 \begin{align}
 v(t+\Delta t) = v(t) + \frac{1}{2} \left(a(t) + a(t + \Delta t)\right) \Delta t
 \end{align}
 
-In der Praxis besteht ein Durchgang des Velocity-Verlet-Algorithmus aus folgenden Schritten (Index n steht für den Zeitpunkt t, Index n+1 für den Zeitpunkt $t+\Delta t$):\supercite{becker_computational_2001}
+In der Praxis besteht ein Durchgang des Velocity-Verlet-Algorithmus aus folgenden Schritten (Index $n$ steht für den Zeitpunkt $t$, Index $n+1$ für den Zeitpunkt $t+\Delta t$):\supercite{becker_computational_2001}
 \begin{enumerate}
 \item Berechnung der Beschleunigungen zu Beginn des Zeitschritts: $a_n = \frac{F_n}{m}$
 \item Berechnung der Positionen am Ende des Zeitschritts (vgl. Gl.\ref{eq:integrator}):\\ $r_{n+1} = r_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2$
@@ -166,7 +166,7 @@ T &= \sum_{i=1}^N \frac{m_i v_i^2}{k_B N_f} \\
 E_{kin} &= N \cdot \frac{3}{2} k_B T = \sum_{i=1}^N \frac{1}{2} m_i v_i^2
 \end{align}
 
-Dabei ist N die Teilchenzahl, m\textsubscript{i} die Masse, v\textsubscript{i} die Geschwindigkeit des Teilchens, k\textsubscript{B} die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Translationsfreiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
+Dabei ist $N$ die Teilchenzahl, $m_i$ die Masse, $v_i$ die Geschwindigkeit des Teilchens, $k_B$ die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Translationsfreiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
 
 \section{Kraftfelder} \label{sec:kraftfelder}
 
@@ -187,7 +187,7 @@ E_{str}(R_{AB} - R_{AB,0}) = E_0 + \frac{dE_0}{dR}(R_{AB} - R_{AB,0}) + \frac{1}
 \end{align}
 Dabei ist $E_0 = E(R_{AB,0}) = 0$ die Energie am Gleichgewichtsabstand, die per Definition gleich Null gesetzt wird. Da die Energiefunktion am Gleichgewichtsabstand ein Minimum besitzt, ist auch die erste Ableitung an dieser Stelle Null: $\frac{dE_0}{dR} = 0$
 
-In vielen Kraftfeldern, so auch in den zur Simulation von Proteinen häufig verwendeten AMBER, OPLS und CHARM, wird die Taylor-Reihe nach dem quadratischen Term abgebrochen, sodass die Funktion für die Bindungsenergie die Form eines harmonischen Oszillators annimmt: 
+In vielen Kraftfeldern, so auch in den zur Simulation von Proteinen häufig verwendeten \mbox{AMBER}, OPLS und CHARM, wird die Taylor-Reihe nach dem quadratischen Term abgebrochen, sodass die Funktion für die Bindungsenergie die Form eines harmonischen Oszillators annimmt: 
 \begin{align}
 E_{str,AB}(R_{AB}) = k_{AB} \cdot (R_{AB} - R_{AB,0})^2
 \end{align}
@@ -199,7 +199,7 @@ In den meisten Fällen bietet der harmonische Oszillator eine ausreichende Genaui
 \begin{align}
 E_{morse}(\Delta R) = D \cdot \left(1-e^{\alpha \Delta R} \right)^2
 \end{align}
-Auch für diese Darstellung der Bindungsenergie benötigt man nur zwei Parameter pro Atompaar, die Dissoziationsenergie D und eine modifizierte Kraftkonstante $\alpha = \sqrt{\frac{k}{2D}}$.\supercite{jensen_introduction_1998}
+Auch für diese Darstellung der Bindungsenergie benötigt man nur zwei Parameter pro Atompaar, die Dissoziationsenergie $D$ und eine modifizierte Kraftkonstante $\alpha = \sqrt{\frac{k}{2D}}$.\supercite{jensen_introduction_1998}
 
 \subsection{Winkelenergie}
 
@@ -225,7 +225,7 @@ Im Gegensatz zur Bindungs- und Winkelenergie ist bei der Torsionsenergie eine Ex
 E_{tors}(\omega) = \sum_{n=1} V_n \cos(n\omega)
 \end{align}
 
-Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=3$ einer von 120°, ..., $V_n$ gibt die Höhe der Energiebarriere an, welche für bestimmte n auch Null werden kann, wie die folgenden Beispiele zeigen.\supercite{jensen_introduction_1998}
+Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=3$ einer von 120°, ... und $V_n$ gibt die Höhe der Energiebarriere an, welche für bestimmte $n$ auch Null werden kann, wie die folgenden Beispiele zeigen.\supercite{jensen_introduction_1998}
 \\
 
 \begin{figure}[htb]
@@ -290,29 +290,65 @@ Die Wechselwirkung zwischen zwei unverbundenen Atomen A und B setzt sich aus der
 E_{nb} = E_{el} + E_{vdw}
 \end{align}
 
-Die von den meisten Kraftfeldern genutzte Methode, \textbf{elektrostatische Interaktionen} in Abhängigkeit der Atomkoordinaten zu beschreiben, ist das Coulomb-Potential:
+
+\subsubsection{Elektrostatische Wechselwirkungen}
+
+Die von den meisten Kraftfeldern genutzte Methode, elektrostatische Interaktionen in Abhängigkeit der Atomkoordinaten zu beschreiben, ist das Coulomb-Potential:
 \begin{align}
 E_{el}(R_{AB}) = \frac{Q_{A} \cdot Q_{B}}{\epsilon \cdot R_{AB}}
 \end{align}
 
 Dabei werden die Atome als Punktladungen mit Ladung $Q_A$ und $Q_B$ betrachtet, wobei die Ladungen entweder als Parameter im Kraftfeld gespeichert sein können oder für die konkrete Struktur einem berechneten elektrostatischen Potential entnommen sind. $R_{AB}$ entspricht in obiger Formel dem Atomabstand und $\epsilon$ der effektiven dielektrischen Konstanten.\supercite{jensen_introduction_1998}
-\\
 
-Die \textbf{Van der Waals-Energie} ist der Anteil der Interaktion zwischen zwei unverbundenen Atomen, der nicht auf elektrostatische Wechselwirkungen zurückgeht. Daher spielt sie eine besonders große Rolle bei wenig polaren Molekülen wie reinen Kohlenwasserstoffen. Sie wird oft durch das Lenard-Jones-Potential ausgedrückt:
+\subsubsection{Van der Waals-Energie}
+
+Die Van der Waals-Energie ist der Anteil der Interaktion zwischen zwei unverbundenen Atomen, der nicht auf elektrostatische Wechselwirkungen zurückgeht. Daher spielt sie eine besonders große Rolle bei wenig polaren Molekülen wie reinen Kohlenwasserstoffen. Sie wird oft durch das Lenard-Jones-Potential ausgedrückt:
 \begin{align}
-E_{vdw}(R_{AB}) = \epsilon \left[ \left(\frac{R_{AB,0}}{R_{AB}} \right)^{12} - 2 \left(\frac{R_{AB,0}}{R_{AB}} \right)^6 \right]
+E_{vdw}(R_{AB}) = \epsilon_{AB} \left[ \left(\frac{R_{AB,0}}{R_{AB}} \right)^{12} - 2 \left(\frac{R_{AB,0}}{R_{AB}} \right)^6 \right] \label{eq:lenard-jones}
+\end{align}
+
+Wie auf Abb.\ref{fig:lenard-jones} zu sehen, überwiegt bei kleinen Abständen die Abstoßung der beiden Atome aufgrund von Überlappung der Elektronenhülle, die durch den vorderen Term beschrieben wird, sodass die Van der Waals Energie insgesamt positiv wird. Vergrößert sich der Abstand dominieren die anziehenden Wechselwirkungen zwischen (induzierten) Dipolen und Quadrupolen, welche dem hinteren Term der Formel entspricht.\supercite{jensen_introduction_1998}
+
+\begin{figure}[htb]
+	\centering
+		\includegraphics[width=\textwidth]{Bilder/lenard-jones.png}
+	\caption{Lenard-Jones-Potential}
+	\label{fig:lenard-jones}
+\end{figure}
+
+Nach Gleichung \ref{eq:lenard-jones} werden für jedes Atompaar zwei Parameter benötigt: der Gleichgewichtsabstand $R_{AB,0}$ und die Tiefe des Potentialtopfs $\epsilon_{AB}$. Diese werden jedoch in allen Kraftfeldern aus atomaren Parametern berechnet. $\epsilon_{AB}$ wird üblicherweise als geometrisches Mittel aus den Einzelwerten gebildet:
+\begin{align}
+\epsilon_{AB} = \sqrt{\epsilon_A \cdot \epsilon_b}
+\end{align}
+
+Zur Berechnung des Gleichgewichtsabstands kann entweder das arithmetische (z.B. CHARM, AMBER) oder das geometrische (z.B. OPLS) Mittel herangezogen werden:\supercite{jensen_introduction_1998}\supercite{mackerell_empirical_2004}
+
+\begin{align}
+R_{AB,0} &= \frac{R_A + R_B}{2} \\
+R_{AB,0} &= \sqrt{R_A \cdot R_B}
+\end{align}
+
+Einen Spezialfall nicht-bindender Wechselwirkungen stellen Wasserstoffbrücken dar. Dabei handelt es sich um Interaktionen zwischen einem Wasserstoffatom, welches an ein elektronegatives Atom gebunden ist, und einem freien Elektronenpaar beispielsweise von Sauerstoff oder Stickstoff. Der Abstand zwischen diesen beiden Atomen ist dann deutlich kürzer und die Bindungsenergie deutlich höher, als man es bei einer "`normalen"' Van der Waals-Wechselwirkung erwarten würde. Zwar ist dies hauptsächlich auf elektrostatische Anziehung zurückzuführen, in einigen Kraftfelder, wie beispielsweise AMBER, wird jedoch eine zusätzliche Stabilisierung durch besonders tiefe und kurze Van der Waals-Potentiale zwischen den entsprechenden Atomtypen erreicht. Für diese Atompaare wird auch die Form des Lenard-Jones-Potentials modifiziert, sodass die Gleichung folgendermaßen aussieht:\supercite{jensen_introduction_1998}
+\begin{align}
+E_{H-bond}(R_{AH}) = \epsilon_{AH} \left[5 \left(\frac{R_{AH,0}}{R_{AH}}\right)^{12} - 6\left(\frac{R_{AH,0}}{R_{AH}}\right)^{10} \right]
 \end{align}
 
 \subsection{Kreuzterme}
 
-\section{Ziel der Arbeit}
+Mit Hilfe von Kreuztermen werden Kopplungen zwischen den zuvor erläuterten Energieformen berücksichtigt. So besitzt Wasser im energetischen Minimum einen Bindungswinkel von 104,5° und eine OH-Bindungslänge von 0,958~\AA. Verkleinert man jedoch den Bindungswinkel, so wird der optimale Bindungsabstand aufgrund der Abstoßung der Protonen größer, vergrößert man den Winkel, sollte sich der optimale Bindungsabstand verkleinern. Um dem Rechnung zu tragen, kann man Kreuzterme einführen, die üblicherweise als Produkte von Taylorexpansionen der einzelnen Koordinaten beschrieben werden. Der Term für die Kopplung von Bindungs- und Winkelenergie in H\textsubscript{2}O könnte dann folgendermaßen aussehen:
+\begin{align}
+E_{str/bend} = k_{HOH} \cdot (\theta_{HOH} - \theta_{HOH,0}) [(R_{HO} - R_{HO,0}) + (R_{OH} - R_{OH,0})]
+\end{align}
+
+In den für die Simulation von Proteinen am häufigsten verwendeten Kraftfeldern AMBER, OPLS und CHARM wird die Energie solcher Kopplungen allerdings vernachlässigt, es kommen keine Kreuzterme vor.\supercite{jensen_introduction_1998}
 
 
+\chapter{bla}
 
-\chapter{Ergebnisse und Diskussion}
+\section{blub}
 
 
-\chapter{Fazit und Ausblick}
+\chapter{blabla}
 
 
 \pagestyle{plain}
