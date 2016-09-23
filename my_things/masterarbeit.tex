@@ -18,8 +18,8 @@
 \usepackage{hyperref} %Links
 \usepackage[section]{placeins} %Gleiten nur innerhalb section, außerdem floatbarrier
 \renewcommand*\chapterheadstartvskip{\vspace*{-1cm}} % bestimmt, wo auf Seite Kapitel anfängt
-\usepackage[backend=bibtex,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
-\addbibresource{../Literatur/Masterarbeit.bib} %ADD BIBLATEX REFERENCES FILE.
+\usepackage[backend=bibtex,style=chem-angew,biblabel=dot,articletitle]{biblatex} % Biblatex mit Stil der Angewandten Chemie, Titel von Zeitschriftenartikeln
+\addbibresource{../Literatur/Masterarbeit.bib} % bib-file mit Quellen (erstellt z.B. mit Zotero).
 
 \makeatletter % code for fixing bug in biblatex, see: http://tex.stackexchange.com/questions/311426/bibliography-error-use-of-blxbblverbaddi-doesnt-match-its-definition-ve 
 \def\blx@maxline{77}
@@ -40,7 +40,7 @@
 % ##### Kopf- und Fußzeile
 
 \renewcommand{\thefootnote}{\fnsymbol{footnote}} %Fußnote mit Symbolen zählen (max. 9)
-\renewcommand{\subsectionmark}[1]{\markright{#1}{}} %Definitionen für Kopfzeile
+\renewcommand{\sectionmark}[1]{\markright{#1}{}} %Definitionen für Kopfzeile
 \renewcommand{\chaptermark}[1]{\markleft{#1}{}}
 
 \begin{document}
@@ -243,7 +243,7 @@ Wie auf Abb.{\ref{fig:tors_ethan} zu erkennen, besitzt die Funktion für die Tors
 \begin{figure}[htb]
 	\centering
 		\includegraphics[width=\textwidth]{Bilder/tors_ethan.png}
-	\caption{Torsionsenergie von Ethan in Abhängigkeit des Torsionswinkels}
+	\caption[Torsionsenergie von Ethan]{Torsionsenergie von Ethan in Abhängigkeit des Torsionswinkels}
 	\label{fig:tors_ethan}
 \end{figure}
 
@@ -255,7 +255,7 @@ E_{tors}(\omega) = V_1 \cdot \cos{n} + V_3 \cdot \cos(3n)
 \begin{figure}[htb]
 	\centering
 		\includegraphics[width=\textwidth]{Bilder/tors_butan.png}
-	\caption[Torsionsenergie von Butan in Abhängigkeit des Torsionswinkels]{Torsionsenergie von Butan in Abhängigkeit des Torsionswinkels \\(blau: Torsionsenergie, rot: Kurve für n = 3, grün: Kurve für n = 1)}
+	\caption[Torsionsenergie von Butan]{Torsionsenergie von Butan in Abhängigkeit des Torsionswinkels \\(blau: Torsionsenergie, rot: Kurve für n = 3, grün: Kurve für n = 1)}
 	\label{fig:tors_butan}
 \end{figure}
 
@@ -269,7 +269,7 @@ E_{tors}(\omega) = V_1 \cdot \cos{n} + V_2 \cdot (-\cos(2n))
 \begin{figure} [htb]
     \subfigure[Torsionsenergie von Ethen]{\includegraphics[width=0.49\textwidth]{Bilder/tors_ethen.png}}
     \subfigure[Torsionsenergie von 2-Buten]{\includegraphics[width=0.49\textwidth]{Bilder/tors_buten.png}}
-\caption{Torsionsenergie bei Rotation um eine Doppelbindung in Abhängigkeit des Torsionswinkels}
+\caption{Torsionsenergie bei Rotation um eine Doppelbindung}
 \label{fig:tors_db}
 \end{figure} 
 
@@ -331,7 +331,6 @@ Nach Gleichung \ref{eq:lenard-jones} werden für jedes Atompaar zwei Parameter be
 \end{align}
 
 Zur Berechnung des Gleichgewichtsabstands kann entweder das arithmetische (z.~B. in CHARM oder AMBER) oder das geometrische (z.~B. in OPLS) Mittel herangezogen werden:\supercite{jensen_introduction_1998}\supercite{mackerell_empirical_2004}
-
 \begin{align}
 R_{AB,0} &= \frac{R_A + R_B}{2} \\
 R_{AB,0} &= \sqrt{R_A \cdot R_B}
