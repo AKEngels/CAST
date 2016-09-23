@@ -1019,7 +1019,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 
 	if (VERBOSE > 3 && counter % split == 0)
 	{
-		std::cout << "Coordinates of active center: " << C_geo_act_center << "\n";
+		std::cout << "Coordinates of active site: " << C_geo_act_center << "\n";
 	}
 
 	for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
@@ -1046,7 +1046,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(coords::Cartesian_Poin
 	}
 	else if (distance > inner_cutoff)
 	{
-		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff))*((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
+		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
 	}
 	return velocity;
 }
