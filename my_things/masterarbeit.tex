@@ -112,10 +112,10 @@ Vor Beginn der eigentlichen Simulation müssen zunächst die Positionen und Geschw
 
 Die Maxwell-Boltzmann-Verteilung gibt an, welcher Anteil von Molekülen $\frac{dN}{N}$ sich bei gegebener Temperatur $T$ im Geschwindigkeitsintervall $[v, v+dv]$ befindet:
 \begin{align}
-\frac{dN}{N} = f(v)dv = \left(\frac{m}{2\pi \cdot k_BT}\right)^{\frac{3}{2}} \cdot e^{-\frac{mv^2}{2k_BT}} \cdot 4\pi v^2 dv
+\frac{\mathrm{d}N}{N} = f(v) \, \mathrm{d}v = \left(\frac{m}{2\pi \cdot \text{k}_\text{B}T}\right)^{\frac{3}{2}} \cdot e^{-\frac{mv^2}{2\text{k}_\text{B}T}} \cdot 4\pi v^2 \, \mathrm{d}v
 \end{align}
 
-Dabei ist $f(v)$ die Dichtefunktion der Geschwindigkeitsverteilung, $m$ die Atom- bzw. Molekülmasse, $k_B$ die Boltzmann-Konstante ($1,3806503 \cdot 10^{-23} \text{JK}^{-1}$) und $T$ die Temperatur.\supercite{czeslik_basiswissen_2010}
+Dabei ist $f(v)$ die Dichtefunktion der Geschwindigkeitsverteilung, $m$ die Atom- bzw. Molekülmasse, k\textsubscript{B} die Boltzmann-Konstante ($1,3806503 \cdot 10^{-23} \text{JK}^{-1}$) und $T$ die Temperatur.\supercite{czeslik_basiswissen_2010}
 
 \subsubsection{Berechnung der Kräfte} \label{sec:kraft}
 
@@ -220,11 +220,11 @@ Durch die sich während eines Zeitschritts verändernde Beschleunigung werden die 
 
 Nach jedem Zeitschritt werden Eigenschaften des Systems berechnet und gespeichert bzw. ausgegeben. Direkt verfügbar sind die Koordinaten sowie die potentielle Energie (aus dem Kraftfeld). Aus den Geschwindigkeiten lassen sich die kinetische Energie und die Temperatur berechnen:\supercite{frenkel_understanding_2001}
 \begin{align}
-T &= \sum_{i=1}^N \frac{m_i v_i^2}{k_B N_f} \\
-E_{kin} &= N \cdot \frac{3}{2} k_B T = \sum_{i=1}^N \frac{1}{2} m_i v_i^2
+T &= \sum_{i=1}^N \frac{m_i v_i^2}{\text{k}_\text{B} N_f} \\
+E_{kin} &= N \cdot \frac{3}{2} \text{k}_\text{B} T = \sum_{i=1}^N \frac{1}{2} m_i v_i^2
 \end{align}
 
-Dabei ist $N$ die Teilchenzahl, $m_i$ die Masse, $v_i$ die Geschwindigkeit des Teilchens, $k_B$ die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Freiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
+Dabei ist $N$ die Teilchenzahl, $m_i$ die Masse, $v_i$ die Geschwindigkeit des Teilchens, k\textsubscript{B} die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Freiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
 
 \section{Kraftfelder} \label{sec:kraftfelder}
 
