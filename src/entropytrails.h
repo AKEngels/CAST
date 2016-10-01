@@ -8,6 +8,7 @@
 #include <string>
 
 
+
 /////////////////
 // Some constants
 /////////////////
@@ -115,6 +116,179 @@ long double digammal(long double x)
   }
 }
 
+
+
+// Class for PDF
+class ProbabilityDensity
+{
+public:
+  ProbabilityDensity(double analyticEntropy_, double maximumOfPDF_, std::function<double(double x)> PDF_, int ident_) : PDF(PDF_), 
+    maximumOfPDF(maximumOfPDF_), analyticEntropyDifferetnial(analyticEntropy_), identif(ident_)
+  {
+  };
+
+  double draw()
+  {
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_real_distribution<double> unifDistr(0, 1);
+
+    //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
+    bool run = true;
+    double PDFrange = 0.;
+    while (run)
+    {
+      if (PDF(PDFrange) < 0.0000001) break;
+      else PDFrange += 0.1;
+    }
+    std::uniform_real_distribution<double> unifDistrRange(-PDFrange, PDFrange);
+
+    double drawUnif = unifDistr(gen);
+    double drawUnifWithRange = unifDistrRange(gen);
+    double M = maximumOfPDF / (1. / (2.*PDFrange));
+    while (true)
+    {
+      if (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*PDFrange)))
+      {
+        return(drawUnifWithRange);
+      }
+    }
+  };
+
+  std::vector<double> draw(size_t numberOfSamples)
+  {
+    std::random_device rd;
+    std::mt19937 gen;
+    //
+    std::vector<double> draws;
+    draws.reserve(numberOfSamples);
+    std::normal_distribution<double> normDistrSigmaOne(0, 1);
+    std::function<double(double x)> normDistrSigmaOnePDF = [&, this](double x) { return (1. / sqrt(2. * pi)) * exp(-1.*(x*x) / double(2.)); };
+    double maximumOfNormalDistrWithSigmaOne = 1. / sqrt(2. * pi);
+    std::uniform_real_distribution<double> unifDistr(0, 1);
+
+    //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
+    bool run = true;
+    double PDFrange = 0.;
+    while (run)
+    {
+      if (PDF(PDFrange) < 0.0000001) break;
+      else PDFrange += 0.1;
+    }
+    std::uniform_real_distribution<double> unifDistrRange(-PDFrange, PDFrange);
+
+
+    for (int n = 0; n < numberOfSamples; ++n)
+    {
+      double drawUnif = unifDistr(gen);
+      double drawUnifWithRange = unifDistrRange(gen);
+      double M = maximumOfPDF / (1. / (2.*PDFrange));
+      if (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*PDFrange)))
+      {
+        draws.push_back(drawUnifWithRange);
+      }
+      else
+      {
+        --n;
+      }
+    }
+    return draws;
+  };
+
+  int ident() { return this->identif; };
+  double analyticEntropy() {
+    return this->analyticEntropyDifferetnial;
+  };
+
+  std::function<double(double x)> function() {
+    return this->PDF;
+  };
+
+  double MCIntegrationEntropy(double range, size_t numberOfSamples)
+  {
+    // MC guess with uniform distribution
+    // Draw Uniform and do
+    // Draw samples
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distr(-1. * range / 2.f, range / 2.f);
+    std::vector<double> temp;
+    temp.reserve(numberOfSamples);
+    for (int n = 0; n < numberOfSamples; ++n) {
+      double drawnnum = distr(gen);
+      temp.push_back(drawnnum);
+    }
+
+    //Sort samples
+    //std::stable_sort(temp.begin(), temp.end());
+
+    long double uniformMCvalue = 0, uniformMCvalue2 = 0, c = 0.f;
+    for (int n = 0; n < numberOfSamples; ++n)
+    {
+      long double gvalue;
+      gvalue = PDF(temp[n]);
+
+      long double y = gvalue * log(gvalue) - c;
+      long double t = uniformMCvalue + y;
+      c = (t - uniformMCvalue) - y;
+      uniformMCvalue = t;
+      uniformMCvalue2 += gvalue * log(gvalue);
+    }
+    uniformMCvalue /= double(numberOfSamples);
+    uniformMCvalue2 /= double(numberOfSamples);
+    uniformMCvalue *= -1. * range;
+    uniformMCvalue2 *= -1. * range;
+    return uniformMCvalue2;
+  };
+
+  double MCDrawEntropy(std::vector<double>& samples)
+  {
+    // new try MC guess with Kahan Summation
+    double drawMCvalue = 0.;
+    long double drawMCvalue2 = 0;
+    long double c = 0;
+    for (size_t i = 0u; i < samples.size(); i++)
+    {
+      // Value of Distribution at point x
+      double temp1 = PDF(samples[i]);
+      drawMCvalue += log(temp1);
+
+      long double y = log(temp1) - c;
+      long double t = drawMCvalue2 + y;
+      c = (t - drawMCvalue2) - y;
+      drawMCvalue2 = t;
+    }
+    drawMCvalue /= -1.* double(samples.size());
+    drawMCvalue2 /= -1 * double(samples.size());
+    return drawMCvalue2;
+  };
+
+  double MCDrawEntropy(size_t& numberOfSamples)
+  {
+    std::vector<double> samples = this->draw(numberOfSamples);
+    return this->MCDrawEntropy(samples);
+  };
+
+  double meaningfulRange()
+  {
+    //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
+    bool run = true;
+    double PDFrange = 0.;
+    while (run)
+    {
+      if (PDF(PDFrange) < 0.0000001) break;
+      else PDFrange += 0.01;
+    }
+    return PDFrange;
+  }
+private:
+  double analyticEntropyDifferetnial;
+  double maximumOfPDF;
+  int identif;
+  std::function<double(double x)> PDF;
+};
+
+
 // entropyobj
 // Contains a matrix with draws from a distribution and 
 // the number of draws(iter), dimensionality(dimension)
@@ -126,9 +300,15 @@ long double digammal(long double x)
 class entropyobj
 {
 public:
-  size_t iter, sigma, dimension;
+  size_t iter, dimension;
   Matrix_Class matrix;
-  entropyobj(Matrix_Class& matrix_, size_t& iter_, size_t& dimension_, double& sigma_) : matrix(matrix_), iter(iter_), dimension(dimension_), sigma(sigma_) {}
+  int ident;
+  ProbabilityDensity probdens;
+  entropyobj(Matrix_Class& matrix_, size_t& iter_, size_t& dimension_, ProbabilityDensity probdens_) : matrix(matrix_), iter(iter_), dimension(dimension_),  
+    probdens(probdens_)
+  {
+    ident = probdens_.ident();
+  }
 };
 
 
@@ -139,17 +319,14 @@ public:
   size_t k;
   double calculatedEntropyHnizdo;
   double calculatedEntropyLombardi;
-  double analyticEntropy;
   calculatedentropyobj(size_t k_, entropyobj const& obj, double analyticEntropyValue = 0.) : entropyobj(obj), k(k_), calculatedEntropyHnizdo(0),
-    calculatedEntropyLombardi(0.), analyticEntropy(0)
+    calculatedEntropyLombardi(0.)
   {
     this->calculate();
   }
 
   void calculate()
   {
-    auto PDF = [this](double x) { return (1. / sqrt(2. * pi * this->sigma * this->sigma)) * exp(-1.*(x*x) / double(2. * this->sigma * this->sigma)); };
-
 
     // Choose your destiny
     // Standard procedure: 
@@ -162,7 +339,7 @@ public:
     // with known PDF
     bool extraprocedure = true;
     // Range for MC draws
-    double range = 30.;
+    double range = 10.;
 
     // Standard procedure: 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
@@ -180,9 +357,10 @@ public:
       //Neccessarry
       transpose(matrix);
       Matrix_Class copytemp = matrix;
+      std::function<double(double x)> PDFtemporary = this->probdens.function();
       Matrix_Class copytemp2 = matrix;
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(copytemp) shared(copytemp2)
+#pragma omp parallel firstprivate(copytemp, PDFtemporary) shared(copytemp2)
      {
 #endif
         float_type* buffer = new float_type[k];
@@ -197,7 +375,7 @@ public:
         {
           float_type holdNNdistance = sqrt(matop::entropy::knn_distance(copytemp, 1, k, 0u, i, buffer));
           copytemp2(1, i) = double(k) / double(iter) / holdNNdistance;
-          copytemp2(2, i) = PDF(copytemp(0, i));
+          copytemp2(2, i) = PDFtemporary(copytemp(0, i));
           copytemp2(3, i) = holdNNdistance;
         }
 #ifdef _OPENMP
@@ -241,69 +419,17 @@ public:
     }
     if (extraprocedure)
     {
-      transpose(matrix);
 
-      // new try MC guess with Kahan Summation
-      double drawMCvalue = 0.;
-      long double drawMCvalue2 = 0;
-      long double c = 0;
-      for (size_t i = 0u; i < matrix.cols(); i++)
-      {
-        // Value of Distribution at point x
-        double temp1 = PDF(matrix(0, i));
-        drawMCvalue += log(temp1);
-
-        long double y = log(temp1) - c;
-        long double t = drawMCvalue2 + y;
-        c = (t - drawMCvalue2) - y;
-        drawMCvalue2 = t;
-      }
-      drawMCvalue /= -1.* double(matrix.cols());
-      drawMCvalue2 /= -1* double(matrix.cols());
-      std::cout << "drawMCvalue" << drawMCvalue << std::endl;
-
-      // MC guess with uniform distribution
-      // Draw Uniform and do
-      // Draw samples
-      std::random_device rd;
-      std::mt19937 gen(rd());
-      std::uniform_real_distribution<double> distr(-1. * range / 2.f, range / 2.f);
-      std::vector<double> temp;
-      temp.reserve(iter);
-      for (int n = 0; n < iter; ++n) {
-        double drawnnum = distr(gen);
-        temp.push_back(drawnnum);
-      }
-
-      //Sort samples
-      //std::stable_sort(temp.begin(), temp.end());
-
-      long double uniformMCvalue = 0, uniformMCvalue2 = 0;
-      c = 0.f;
-      for (int n = 0; n < iter; ++n) 
-      {
-        long double gvalue;
-        gvalue = PDF(temp[n]);
-
-        long double y = gvalue * log(gvalue) - c;
-        long double t = uniformMCvalue + y;
-        c = (t - uniformMCvalue) - y;
-        uniformMCvalue = t;
-        uniformMCvalue2 += gvalue * log(gvalue);
-      }
-      uniformMCvalue /= double(iter);
-      uniformMCvalue2 /= double(iter);
-      uniformMCvalue *= -1. * range;
-      uniformMCvalue2 *= -1. * range;
-      std::cout << "uniformMCvalue:" << uniformMCvalue << std::endl;
-
+      double mddrawentropy = this->probdens.MCDrawEntropy(iter);
+      double mcintegrationentropy = this->probdens.MCIntegrationEntropy(this->probdens.meaningfulRange() + 30, iter);
+      int seven = 7;
     }
   }
 
   void writeToFile()
   {
     std::ofstream myfile;
-    myfile.open(std::string("out_k" + std::to_string(k) + "_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) +".txt"));
+    myfile.open(std::string("out_k" + std::to_string(k) + "_i" + std::to_string(iter) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(ident) + ".txt"));
 
     for (size_t i = 0u; i < matrix.rows(); i++)
     {
@@ -316,21 +442,25 @@ public:
 
 
     std::ofstream myfile2;
-    myfile2.open(std::string("out_entropy_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) + ".txt"), std::ios::app);
+    myfile2.open(std::string("out_entropy_i" + std::to_string(iter) + "_s" + "_d" + std::to_string(dimension) + "_ident" + std::to_string(ident) + ".txt"), std::ios::app);
 
     // First line is k=0 means analytical gauss entropy log(sigma * sqrt(2 * pi * e))
     // Then every line is "k", "Hnizdo entropy"
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "differential entropy";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << log(sigma * sqrt(2 * pi * e)) << "\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.analyticEntropy() << "\n";
 
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "karplus entropy" << "\n";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "karplus entropy" << "\n";
 
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "schlitter entropy" << "\n";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "schlitter entropy" << "\n";
 
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "hnizdo entropy";
-
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << std::to_string(k);
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "hnizdo entropy with k=";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << std::to_string(k) << " ";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << calculatedEntropyHnizdo << "\n";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "lombardi entropy with k=";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << std::to_string(k) << " ";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << calculatedEntropyLombardi << "\n";
+
     myfile2.close();
   }
 
@@ -347,6 +477,7 @@ private:
   std::vector<double> sigma;
   std::vector<size_t> dimension;
   std::vector<size_t> k_values;
+  int ident;
   std::vector<calculatedentropyobj> calculatedDistributions;
 public:
   entropyconfig()
@@ -397,23 +528,59 @@ public:
     */
     k_values = Config::get().entropytrails.k;
     dimension = Config::get().entropytrails.dimension;
-    sigma = Config::get().entropytrails.sigma;
+    sigma = Config::get().entropytrails.sigma; 
     iter = Config::get().entropytrails.iteration;
+    ident = Config::get().entropytrails.ident;
   }
 
   void draw()
   {
+    std::function<double(double x)> PDF;
     for (size_t d = 0u; d < dimension.size(); d++)
     {
       for (size_t s = 0u; s < sigma.size(); s++)
       {
         for (size_t i = 0u; i < iter.size(); i++)
         {
+
+          PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x*x) / double(2. * 1. * 1.)); };
+          // Needed:
+          if (ident == 1)
+          {
+            // Gaussian with sigma 10
+            PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x*x) / double(2. * 10. * 10.)); };
+          }
+          else if (ident == 2)
+          {
+            // Parabola normated to integrate to 1 over [0;1]
+            PDF = [&, this](double x) { return 6.* (-1. * (x*x - x + 0.25) + 0.25); };
+          }
+
+          // Preparation for drawing samples
+          // New draw rejection sampling
+          // If ident == 0 gauss with sigma 1
+          double maximumOfTargetPDF = 1. / sqrt(2. * pi);
+          double analyticEntropy = log(1. * sqrt(2. * pi * e));
+          if (ident == 1)
+          {
+            // Gaussian with sigma 10
+            maximumOfTargetPDF = 1. / (10. * sqrt(2. * pi));
+            analyticEntropy = log(10. * sqrt(2. * pi * e));
+          }
+          else if (ident == 2)
+          {
+            // Parabola normated to inegrate to 1 over [0;1]
+            maximumOfTargetPDF = 0.25 * 6.;
+            analyticEntropy = 0.0006;
+          }
+          ProbabilityDensity probdens(analyticEntropy, maximumOfTargetPDF, PDF, ident);
+
+
           Matrix_Class currentmat(iter[i]);
           // Check if draw exists
           std::ifstream myfile;
           std::string line;
-          myfile.open(std::string("draw_i" + std::to_string(iter[i]) + "_s" + std::to_string(sigma[s]) + "_d" + std::to_string(dimension[d]) + ".txt"));
+          myfile.open(std::string("draw_i" + std::to_string(iter[i]) + "_d" + std::to_string(dimension[d]) + "_ident" + std::to_string(ident) + ".txt"));
           if (myfile.good())
           {
             int j = 0;
@@ -427,46 +594,10 @@ public:
           else
           {
             myfile.close();
-            // Preparation for drawing samples
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            double sigma_ = this->sigma[s];
-
-            // New draw rejection sampling
-            // Needed:
-            double maximumOfTargetPDF = 1. / sqrt(2. * pi);
-            auto PDF = [&, this](double x) { return (1. / sqrt(2. * pi * sigma_ * sigma_)) * exp(-1.*(x*x) / double(2. * sigma_ * sigma_)); };
-            //
-            std::vector<double> draws;
-            draws.reserve(iter[i]);
-            std::normal_distribution<double> normDistrSigmaOne(0, 1);
-            auto normDistrSigmaOnePDF = [&, this](double x) { return (1. / sqrt(2. * pi)) * exp(-1.*(x*x) / double(2.)); };
-            double maximumOfNormalDistrWithSigmaOne = 1. / sqrt(2. * pi);
-            std::uniform_real_distribution<double> unifDistr(0, 1);
-            for (int n = 0; n < iter[i]; ++n) 
-            {
-              double drawUnif = unifDistr(gen);
-              double drawNormDistrSigmaOne = normDistrSigmaOne(gen);
-              if (drawUnif < PDF(drawNormDistrSigmaOne) / (100. * normDistrSigmaOnePDF(drawNormDistrSigmaOne)))
-              {
-                draws.push_back(drawNormDistrSigmaOne);
-              }
-              else
-              {
-                --n;
-              }
-            }
 
 
-
-            // Old drawing from stl
-            //std::normal_distribution<double> distr(0, sigma[s]);
-            //std::vector<double> temp;
-            //temp.reserve(iter[i]);
-            //for (int n = 0; n < iter[i]; ++n) {
-            //  double drawnnum = distr(gen);
-            //  temp.push_back(drawnnum);
-            //}
+            std::vector<double> draws = probdens.draw(iter[i]);
+            std::vector<double> temp;
             temp = draws;
 
 
@@ -478,7 +609,7 @@ public:
 
             // Write 
             std::ofstream myfile2;
-            myfile2.open(std::string("draw_i" + std::to_string(iter[i]) + "_s" + std::to_string(sigma[s]) + "_d" + std::to_string(dimension[d]) + ".txt"));
+            myfile2.open(std::string("draw_i" + std::to_string(iter[i]) +  "_d" + std::to_string(dimension[d]) + "_ident" + std::to_string(ident) + ".txt"));
 
             for (size_t w = 0u; w < currentmat.rows(); w++)
             {
@@ -487,7 +618,7 @@ public:
             }
             myfile2.close();
           }
-          matvec.push_back(entropyobj(currentmat, iter[i], dimension[d], sigma[s]));
+          matvec.push_back(entropyobj(currentmat, iter[i], dimension[d], probdens));
         }
       }
     }

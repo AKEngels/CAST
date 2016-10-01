@@ -928,7 +928,8 @@ namespace config
     std::vector<size_t> dimension;
     std::vector<size_t> iteration;
     std::vector<double> sigma;
-    entropytrails(void) : k(1), dimension(1), iteration(1000), sigma(1.0) {}
+    int ident;
+    entropytrails(void) : k(1), dimension(1), iteration(1000), sigma(1.0), ident(0) {}
   };
 
   /**

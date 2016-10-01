@@ -1694,6 +1694,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     Config::set().entropytrails.sigma = configuration_range_float<double>(cv);
   }
+  else if (option == "et_ident")
+  {
+    cv >> Config::set().entropytrails.ident;
+  }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
   //else if (option == "atomexclude")
