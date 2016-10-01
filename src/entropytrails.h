@@ -427,16 +427,49 @@ public:
           else
           {
             myfile.close();
-            // Draw samples
+            // Preparation for drawing samples
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::normal_distribution<double> distr(0, sigma[s]);
-            std::vector<double> temp;
-            temp.reserve(iter[i]);
-            for (int n = 0; n < iter[i]; ++n) {
-              double drawnnum = distr(gen);
-              temp.push_back(drawnnum);
+            double sigma_ = this->sigma[s];
+
+            // New draw rejection sampling
+            // Needed:
+            double maximumOfTargetPDF = 1. / sqrt(2. * pi);
+            auto PDF = [&, this](double x) { return (1. / sqrt(2. * pi * sigma_ * sigma_)) * exp(-1.*(x*x) / double(2. * sigma_ * sigma_)); };
+            //
+            std::vector<double> draws;
+            draws.reserve(iter[i]);
+            std::normal_distribution<double> normDistrSigmaOne(0, 1);
+            auto normDistrSigmaOnePDF = [&, this](double x) { return (1. / sqrt(2. * pi)) * exp(-1.*(x*x) / double(2.)); };
+            double maximumOfNormalDistrWithSigmaOne = 1. / sqrt(2. * pi);
+            std::uniform_real_distribution<double> unifDistr(0, 1);
+            for (int n = 0; n < iter[i]; ++n) 
+            {
+              double drawUnif = unifDistr(gen);
+              double drawNormDistrSigmaOne = normDistrSigmaOne(gen);
+              if (drawUnif < PDF(drawNormDistrSigmaOne) / (100. * normDistrSigmaOnePDF(drawNormDistrSigmaOne)))
+              {
+                draws.push_back(drawNormDistrSigmaOne);
+              }
+              else
+              {
+                --n;
+              }
             }
+
+
+
+            // Old drawing from stl
+            //std::normal_distribution<double> distr(0, sigma[s]);
+            //std::vector<double> temp;
+            //temp.reserve(iter[i]);
+            //for (int n = 0; n < iter[i]; ++n) {
+            //  double drawnnum = distr(gen);
+            //  temp.push_back(drawnnum);
+            //}
+            temp = draws;
+
+
             //Sort samples
             std::stable_sort(temp.begin(), temp.end());
             for (int n = 0; n < iter[i]; ++n)
