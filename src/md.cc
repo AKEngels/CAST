@@ -1099,6 +1099,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // apply half step temperature corrections
     if (CONFIG.hooverHeatBath)
     {
+		if (VERBOSE > 4)
+		{
+			std::cout << "hoover halfstep\n";
+		}
       updateEkin();
       nose_hoover_thermostat();
       temp = E_kin * tempfactor;
@@ -1108,6 +1112,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       updateEkin();
       temp = E_kin * tempfactor;
       double const factor(std::sqrt(T / temp));
+	  if (VERBOSE > 4)
+	  {
+		  std::cout << "half step: desired temp: " << T << " current temp: " << temp << "factor: "<<factor<< "\n";
+	  }
       // scale velocities
       for (size_t i(0U); i < N; ++i) V[i] *= factor;
     }
@@ -1173,6 +1181,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // Apply full step temperature adjustments
     if (CONFIG.hooverHeatBath)
     {
+		if (VERBOSE > 4)
+		{
+			std::cout << "hoover fullstep\n";
+		}
       updateEkin();
       nose_hoover_thermostat();
       updateEkin();
@@ -1182,7 +1194,12 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     {
       updateEkin();
       temp = E_kin*tempfactor;
-      for (std::size_t i(0U); i < N; ++i) V[i] *= std::sqrt(T / temp);
+	  double const factor(std::sqrt(T / temp));
+      for (std::size_t i(0U); i < N; ++i) V[i] *= factor;
+	  if (VERBOSE > 4)
+	  {
+		  std::cout << "full step: desired temp: " << T << " current temp: " << temp << "factor: " << factor << "\n";
+	  }
       updateEkin();
       temp = E_kin * tempfactor;
     }
