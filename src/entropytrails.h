@@ -91,10 +91,19 @@ public:
     myfile.close();
 
     std::ofstream myfile2;
-    myfile2.open(std::string("out_entropy_k" + std::to_string(k) + "_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) + ".txt"));
+    myfile2.open(std::string("out_entropy_i" + std::to_string(iter) + "_s" + std::to_string(sigma) + "_d" + std::to_string(dimension) + ".txt"), std::ios::app);
 
-    myfile2 << "Hnizdo: " << entropy << "\n";
-    myfile2 << "Gauss analytical: " << log(sigma * sqrt(2 * pi * e)) << "\n";
+    // First line is k=0 means analytical gauss entropy log(sigma * sqrt(2 * pi * e))
+    // Then every line is "k", "Hnizdo entropy"
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "differential entropy";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << log(sigma * sqrt(2 * pi * e)) << "\n";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "karplus entropy";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "schlitter entropy";
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << std::to_string(k);
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << entropy << "\n";
     myfile2.close();
   }
 
@@ -119,24 +128,22 @@ public:
 
   void readConfig(int argc, char **argv)
   {
+    /*
     for (int i = 0; i < argc; i++) {
       if (std::string(argv[i]).substr(0u, 2) == "k=")
       {
         size_t lastCommaFound = 0;
         while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
         {
-
           k_values.push_back(size_t(std::stoi(std::string(argv[i]).substr( std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
           lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
         }
       }
-
       else if (std::string(argv[i]).substr(0u, 2) == "i=")
       {
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             iter.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
@@ -146,7 +153,6 @@ public:
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             dimension.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
@@ -156,12 +162,16 @@ public:
           size_t lastCommaFound = 0;
           while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
           {
-
             sigma.push_back(size_t(std::stod(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
             lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
           }
       }
     }
+    */
+    k_values = Config::get().entropytrails.k;
+    dimension = Config::get().entropytrails.dimension;
+    sigma = Config::get().entropytrails.sigma;
+    iter = Config::get().entropytrails.iteration;
   }
 
   void draw()
