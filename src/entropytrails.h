@@ -553,7 +553,7 @@ public:
           else if (ident == 2)
           {
             // Parabola normated to integrate to 1 over [0;1]
-            PDF = [&, this](double x) { return 6.* (-1. * (x*x - x + 0.25) + 0.25); };
+            PDF = [&, this](double x) { if (x < 0 | x > 1) return 0.; else return 6.* (-1. * (x*x - x + 0.25) + 0.25); };
           }
 
           // Preparation for drawing samples
@@ -571,7 +571,7 @@ public:
           {
             // Parabola normated to inegrate to 1 over [0;1]
             maximumOfTargetPDF = 0.25 * 6.;
-            analyticEntropy = 0.0006;
+            analyticEntropy = 1.25093;
           }
           ProbabilityDensity probdens(analyticEntropy, maximumOfTargetPDF, PDF, ident);
 
