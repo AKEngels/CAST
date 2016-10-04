@@ -1131,16 +1131,17 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  // update veloctiy
 	  V[i] += acceleration*dt_2;
 
-      if (Config::get().general.verbosity > 149)
-      {
-        std::cout << "Move " << i << " by " << (V[i] * dt + (acceleration*dt)) 
-          << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
-      }
-
 	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 	  {
 		  V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
 	  }
+
+      if (Config::get().general.verbosity > 149)
+      {
+        std::cout << "Move " << i << " by " << (V[i] * dt) 
+          << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
+      }
+
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
@@ -1327,14 +1328,16 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 			// update veloctiy
 			V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
+			
+			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
+			{
+				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+			}
+
 			if (Config::get().general.verbosity > 149)
 			{
 				std::cout << "Move " << i << " by " << (V[i] * dt)
 					<< " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
-			}
-			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
-			{
-				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
 			}
 			// update coordinates
 			coordobj.move_atom_by(i, V[i] * dt);
