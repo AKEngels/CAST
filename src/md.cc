@@ -1088,7 +1088,11 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 		inner_atoms.push_back(atom_number); // save atoms for temperature calculation 
 		return velocity;
 	}
-	else { std::cout << "ERROR: really strange distance\n"; }
+	else    // should not happen
+	{ 
+		std::cout << "ERROR: really strange distance for atom "<<atom_number<<": "<<distance<<"\n"; 
+		exit(EXIT_FAILURE);
+	}
 }
 
 

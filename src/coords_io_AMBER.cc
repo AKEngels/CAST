@@ -89,7 +89,7 @@ namespace amberUtil
 		else if (in == "hc ") return 3024u;  // GAFF  -> charge from atom type no. 129 (HC) 
 		else if (in == "ha ") return 3023u;  // GAFF  -> charge from atom type no. 117 (HA)
 		else if (in == "h1 ") return 3018u;  // GAFF  -> charge from atom type no. 143 (H1)
-		else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop
+		else if (in == "cl ") return 3032u;  // GAFF  -> charge zero (only for now)
 		else return 0u;
 	}
 }
