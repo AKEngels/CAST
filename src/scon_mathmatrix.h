@@ -146,6 +146,7 @@ typedef size_t uint_type;
 #ifndef USE_ARMADILLO
     using base_type::identity;
 #else
+    // Note: It might be smarter to handle this with armadillo's own .eye() function TODO
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
       identity(std::size_t const num_rows, std::size_t const num_cols)
     {
@@ -169,7 +170,7 @@ typedef size_t uint_type;
 		/////                           /////
 		/////////////////////////////////////
 
-
+#ifdef USE_ARMADILLO
 		/**
 		 * Overload += operator
 		 */
@@ -179,20 +180,12 @@ typedef size_t uint_type;
 			{
 				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
 			}
-#ifdef USE_ARMADILLO
-      return (mathmatrix(*this + in));
-#else
-			mathmatrix out(*this);
-			for (unsigned int i = 0; i < this->rows(); i++)
-			{
-				for (unsigned int j = 0; j < this->cols(); j++)
-				{
-					out(i, j) = out(i, j) + in(i, j);
-				}
-			}
-			return out;
-#endif
+
+      arma::Mat<T> const& base_this = *this;
+      arma::Mat<T> const& base_in = in;
+      return (mathmatrix(   base_this + base_in    ));
 		};
+#endif
 
     using base_type::resize;
 
@@ -1104,7 +1097,7 @@ typedef size_t uint_type;
 			{
 			  s_in(i) = s(i);
 			}
-      if (rank != nullptr) *rank = arma::rank(s);
+      if (rank != nullptr) *rank = arma::rank(*this);
 #endif
 		}
 
@@ -1148,7 +1141,7 @@ typedef size_t uint_type;
         }
         eigenval_in((*this).rows() - i - 1u) = s(i);
       }
-      if (rank_in != nullptr) *rank_in = arma::rank(s);
+      if (rank_in != nullptr) *rank_in = arma::rank(*this);
 #endif
 		}
 
