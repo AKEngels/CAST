@@ -1266,8 +1266,18 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  {
 		  std::cout <<"full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
 	  }
-      updateEkin();
-      temp = E_kin * tempfactor;
+	  if (Config::get().md.set_active_center == 1)
+	  {      // calculate temperature only for atoms inside inner cutoff
+		  updateEkin_some_atoms(inner_atoms);
+		  int dof = 3 * inner_atoms.size();
+		  double T_factor = (2.0 / (dof*md::R));
+		  temp = E_kin*T_factor;
+	  }
+	  else
+	  {
+		  updateEkin();
+		  temp = E_kin * tempfactor;
+	  }
     }
     // Apply pressure adjustments
     if (CONFIG.pressure)
@@ -1319,7 +1329,6 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 
 	config::molecular_dynamics const & CONFIG(Config::get().md);
 
-	std::vector<double> distances;       //distances to active center
 	double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
 
 	std::vector<coords::Cartesian_Point> F_old;
@@ -1368,15 +1377,33 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// apply half step temperature corrections
 		if (CONFIG.hooverHeatBath)
 		{
+			if (VERBOSE > 4)
+			{
+				std::cout << "hoover halfstep\n";
+			}
 			updateEkin();
 			nose_hoover_thermostat();
 			temp = E_kin * tempfactor;
 		}
 		else if (HEATED)
 		{
-			updateEkin();
-			temp = E_kin * tempfactor;
+			if (Config::get().md.set_active_center == 1 && k != 0)
+			{     // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				int dof = 3 * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
 			double const factor(std::sqrt(T / temp));
+			if (VERBOSE > 4)
+			{
+				std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			}
 			// scale velocities
 			for (size_t i(0U); i < N; ++i) V[i] *= factor;
 		}
@@ -1394,6 +1421,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			// update veloctiy
 			V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
 			
+			inner_atoms.clear();
 			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 			{
 				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
@@ -1436,6 +1464,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		boundary_adjustments();
 
 		// add new acceleration and calculate full step velocities
+		inner_atoms.clear();
 		for (std::size_t i(0U); i < N; ++i)
 		{
 			coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
@@ -1446,12 +1475,20 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
 			}
 		}
+		if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
+		{
+			std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
+		}
 
 		// Apply full step RATTLE constraints
 		if (CONFIG.rattle.use) rattle_post();
 		// Apply full step temperature adjustments
 		if (CONFIG.hooverHeatBath)
 		{
+			if (VERBOSE > 4)
+			{
+				std::cout << "hoover fullstep\n";
+			}
 			updateEkin();
 			nose_hoover_thermostat();
 			updateEkin();
@@ -1459,11 +1496,36 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		}
 		else if (HEATED)
 		{
-			updateEkin();
-			temp = E_kin*tempfactor;
-			for (std::size_t i(0U); i < N; ++i) V[i] *= std::sqrt(T / temp);
-			updateEkin();
-			temp = E_kin * tempfactor;
+			if (Config::get().md.set_active_center == 1)
+			{      // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				int dof = 3 * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
+			double const factor(std::sqrt(T / temp));
+			for (std::size_t i(0U); i < N; ++i) V[i] *= factor;
+			if (VERBOSE > 4)
+			{
+				std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			}
+			if (Config::get().md.set_active_center == 1)
+			{      // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				int dof = 3 * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
 		}
 		// Apply pressure adjustments
 		if (CONFIG.pressure)
