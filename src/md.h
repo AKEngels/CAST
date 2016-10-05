@@ -296,6 +296,9 @@ namespace md
     md::nose_hoover nht;
     // rattle constraints
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
+	// biased potential
+	std::vector<double> distances;  // distances to active site for every atom
+	std::vector<int> inner_atoms;   // atoms with a distance smaller than the inner cutoff
 
     //! Fep progress vector
     std::vector<fepvar> window;
@@ -317,7 +320,7 @@ namespace md
 
 	// calculate distances to active center
 	std::vector<double> init_active_center(int counter);
-	coords::Cartesian_Point adjust_velocities(coords::Cartesian_Point velocity, double distance, double inner_cutoff, double outer_cutoff);
+	coords::Cartesian_Point adjust_velocities(int i, double inner_cutoff, double outer_cutoff);
 
     //! rattle feature
     void rattle_pre(void);
@@ -338,6 +341,7 @@ namespace md
 
     //! Kinetic Energy update
     void updateEkin(void);
+    void updateEkin_some_atoms(std::vector<int> atom_list);
 
     //! Berendsen pressure coupling
     void berendsen(double const &);

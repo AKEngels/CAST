@@ -837,16 +837,16 @@ void md::simulation::updateEkin(void)
   // calculate contribution to kinetic energy for each atom
   for (std::size_t i = 0; i < N; ++i)
   {
-    auto const fact = 0.5 * M[i] / convert;
-    E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+	  auto const fact = 0.5 * M[i] / convert;
+	  E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+	  E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+	  E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+	  E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+	  E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+	  E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+	  E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+	  E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+	  E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
   }
   // calculate total kinetic energy by the trace of the tensor
   E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
@@ -855,6 +855,36 @@ void md::simulation::updateEkin(void)
     std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
       << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
   }
+}
+
+void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
+{
+	// initialize tensor to zero
+	using TenVal = coords::Tensor::value_type;
+	TenVal z = { 0.0,0.0,0.0 };
+	E_kin_tensor.fill(z);
+	auto const N = V.size();
+	// calculate contribution to kinetic energy for each atom
+	for (auto i : atom_list)
+	{
+		auto const fact = 0.5 * M[i] / convert;
+		E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+		E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+		E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+		E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+		E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+		E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+		E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+		E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+		E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+	}
+	// calculate total kinetic energy by the trace of the tensor
+	E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
+	if (Config::get().general.verbosity > 149U)
+	{
+		std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
+			<< E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
+	}
 }
 
 // apply pressure corrections if constant pressure simulation is performed
@@ -1009,7 +1039,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
 	for (auto & atom_coords : coords_act_center)
 	{
-		if (VERBOSE > 4)
+		if (VERBOSE > 9)
 		{
 			std::cout << atom_coords << "\n";
 		}
@@ -1030,7 +1060,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 		double dist_z = C_geo_act_center.z() - coords_atom.z();
 		double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
 		distances.push_back(distance);
-		if (VERBOSE > 4)
+		if (VERBOSE > 9)
 		{
 			std::cout << "Atom " << i + 1 << ": Distance: " << distance << "\n";
 		}
@@ -1038,17 +1068,27 @@ std::vector<double> md::simulation::init_active_center(int counter)
 	return distances;
 }
 
-coords::Cartesian_Point md::simulation::adjust_velocities(coords::Cartesian_Point velocity, double distance, double inner_cutoff, double outer_cutoff)
+coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff)
 {
+	double distance = distances[atom_number];
+	coords::Cartesian_Point velocity = V[atom_number];
+
 	if (distance > outer_cutoff)       //no movement outside of outer cutoff
 	{
 		velocity = coords::Cartesian_Point(0, 0, 0);
+		return velocity;
 	}
-	else if (distance > inner_cutoff)
+	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
 	{
 		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
+		return velocity;
 	}
-	return velocity;
+	else if (distance <= inner_cutoff)  // normal movement inside inner cutoff
+	{
+		inner_atoms.push_back(atom_number); // save atoms for temperature calculation 
+		return velocity;
+	}
+	else { std::cout << "ERROR: really strange distance\n"; }
 }
 
 
@@ -1059,7 +1099,6 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  std::vector<double> distances;       //distances to active center
   double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
 
   // prepare tracking
@@ -1109,12 +1148,22 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     }
     else if (HEATED)
     {
-      updateEkin();
-      temp = E_kin * tempfactor;
+		if (Config::get().md.set_active_center == 1 && k != 0)
+		{     // calculate temperature only for atoms inside inner cutoff
+			updateEkin_some_atoms(inner_atoms);
+			int dof = 3 * inner_atoms.size();
+			double T_factor = (2.0 / (dof*md::R));
+			temp = E_kin*T_factor;
+	    }
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;
+		}
       double const factor(std::sqrt(T / temp));
 	  if (VERBOSE > 4)
 	  {
-		  std::cout << "half step: desired temp: " << T << " current temp: " << temp << "factor: "<<factor<< "\n";
+		  std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: "<<factor<< "\n";
 	  }
       // scale velocities
       for (size_t i(0U); i < N; ++i) V[i] *= factor;
@@ -1131,9 +1180,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  // update veloctiy
 	  V[i] += acceleration*dt_2;
 
+	  inner_atoms.clear();  
 	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
-	  {
-		  V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+	  { 
+		  V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
 	  }
 
       if (Config::get().general.verbosity > 149)
@@ -1168,15 +1218,20 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // If spherical boundaries are used apply boundary potential
     boundary_adjustments();
     // add new acceleration and calculate full step velocities
+	inner_atoms.clear();
     for (std::size_t i(0U); i < N; ++i)
     {
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;
 	  if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
 	  {
-		  V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+		  V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);  
 	  }
     }
+	if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
+	{
+		std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
+	}
     // Apply full step RATTLE constraints
     if (CONFIG.rattle.use) rattle_post();
     // Apply full step temperature adjustments
@@ -1193,13 +1248,23 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     }
     else if (HEATED)
     {
-      updateEkin();
-      temp = E_kin*tempfactor;
+		if (Config::get().md.set_active_center == 1)
+		{      // calculate temperature only for atoms inside inner cutoff
+			updateEkin_some_atoms(inner_atoms);
+			int dof = 3 * inner_atoms.size();
+			double T_factor = (2.0 / (dof*md::R));
+			temp = E_kin*T_factor;
+		}
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;
+		}
 	  double const factor(std::sqrt(T / temp));
       for (std::size_t i(0U); i < N; ++i) V[i] *= factor;
 	  if (VERBOSE > 4)
 	  {
-		  std::cout << "full step: desired temp: " << T << " current temp: " << temp << "factor: " << factor << "\n";
+		  std::cout <<"full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
 	  }
       updateEkin();
       temp = E_kin * tempfactor;
@@ -1331,7 +1396,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			
 			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 			{
-				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
 			}
 
 			if (Config::get().general.verbosity > 149)
@@ -1378,7 +1443,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
 			if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
 			{
-				V[i] = adjust_velocities(V[i], distances[i], inner_cutoff, outer_cutoff);
+				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
 			}
 		}
 
