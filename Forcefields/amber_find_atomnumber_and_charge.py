@@ -41,7 +41,7 @@ else:    # writes output-file with atomnumber (compatible with tinker), atomtype
         for i in range(number_of_atoms):
             charge_koeff = float(charges[i][:12])
             charge_exp = int(charges[i][13:])
-            charge = charge_koeff * 10**charge_exp                 
+            charge = (charge_koeff * 10**charge_exp)/ 18.2223
             output.write("{}    {}    {}\n".format(i+1,atom_types[i], charge))
     
 
