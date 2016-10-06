@@ -385,8 +385,7 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 \begin{itemize}
 \item \textit{Go to the file ``coords\_io\_AMBER.cc'' and add the atom type to the function ``amberUtil::toTinkerType''. The number that is returned must be the number of the atom type in the .prm file (something between 3000 and 3070).}
 \item \textit{Add the number of bonding partners of the atom type in place of the last question mark in the corresponding atom-line in the .prm file.} 
-\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. In case of doubt use the charge of the corresponding amber atom type (i. e. the type with the same symbol but in capital letters). If no such type exists you can search your .prmtop file for the charge of an atom for this type by using the python script ``amber\_find\_atomnumber\_and\_charge.py''. There you have to put the name of your .prmtop file in the first line and
-your get a file named ``charges.txt'' with consecutive numbers, atom types and charges.}
+\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. In case of doubt use the charge of the corresponding amber atom type (i. e. the type with the same symbol but in capital letters). Don't use the charges from the .prmtop file as they are not compatible with the amber charges.}
 \end{itemize}
 
 	%%%% TASKS %%%%

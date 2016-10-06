@@ -39,7 +39,10 @@ else:    # writes output-file with atomnumber (compatible with tinker), atomtype
     number_of_atoms = len(atom_types)
     with open("charges.txt", "w") as output:  
         for i in range(number_of_atoms):
-            output.write("{}    {}    {}\n".format(i+1,atom_types[i], charges[i]))
+            charge_koeff = float(charges[i][:12])
+            charge_exp = int(charges[i][13:])
+            charge = charge_koeff * 10**charge_exp                 
+            output.write("{}    {}    {}\n".format(i+1,atom_types[i], charge))
     
 
     
