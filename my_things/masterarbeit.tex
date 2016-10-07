@@ -126,7 +126,7 @@ F_i = - \nabla_i V(r)
 
 Das Potential $V(r)$ wird dabei aus den Wechselwirkungen zwischen den Atomen errechnet. Die Details dazu werden im Abschnitt \ref{sec:kraftfelder} erläutert.\supercite{becker_computational_2001}
 
-\subsubsection{Integration der Bewegungsgleichung}
+\subsubsection{Integration der Bewegungsgleichung} \label{sec:integration}
 
 Nach der Newton'schen Bewegungsgleichung hängt die Position eines Teilchens folgendermaßen von der darauf wirksamen Kraft ab:
 \begin{align}
@@ -221,11 +221,43 @@ Durch die sich während eines Zeitschritts verändernde Beschleunigung werden die 
 
 Nach jedem Zeitschritt werden Eigenschaften des Systems berechnet und gespeichert bzw. ausgegeben. Direkt verfügbar sind die Koordinaten sowie die potentielle Energie (aus dem Kraftfeld). Aus den Geschwindigkeiten lassen sich die kinetische Energie und die Temperatur berechnen:\supercite{frenkel_understanding_2001}
 \begin{align}
-T &= \sum_{i=1}^N \frac{m_i v_i^2}{\text{k}_\text{B} N_f} \\
+T &= \sum_{i=1}^N \frac{m_i v_i^2}{\text{k}_\text{B} N_f} \label{eq:temp} \\
 E_{kin} &= N \cdot \frac{3}{2} \text{k}_\text{B} T = \sum_{i=1}^N \frac{1}{2} m_i v_i^2
 \end{align}
 
 Dabei ist $N$ die Teilchenzahl, $m_i$ die Masse, $v_i$ die Geschwindigkeit des Teilchens, k\textsubscript{B} die Boltzmann-Konstante und $N_f = 3N$ die Anzahl der Freiheitsgrade.\supercite{frenkel_understanding_2001}\supercite{czeslik_basiswissen_2010}
+
+\subsection{Temperaturkontrolle}
+
+Für eine realistischere Beschreibung der Bewegung eines Proteins in seiner natürlichen Umgebung ist es sinnvoll, die Temperatur während der Simulation auf einem physiologisch sinnvollen Wert zu halten.\supercite{becker_computational_2001}
+
+Da die Temperatur quadratisch von den Teilchengeschwindigkeiten abhängt (siehe Gl.\ref{eq:temp}), lässt sich dies durch eine Skalierung der Geschwindigkeiten bewerkstelligen. Für jedes Atom gilt dann:
+\begin{align}
+v_i = v_{i,0} \cdot \sqrt{\frac{T}{T_0}} \label{eq:directscaling}
+\end{align}
+
+$v_{i,0}$ und $v_i$ sind dabei die Teilchengeschwindigkeiten vor und nach der Temperaturanpassung, $T_0$ die aktuelle und $T$ die gewünschte Temperatur.\supercite{becker_computational_2001}\supercite{becker_development_2015}
+
+Um eine zu große Beeinflussung der gesamten Molekülbewegung durch die in der Initialisierung zufällig gesetzten Geschwindigkeiten zu vermeiden, sollte die Simulation bei einer niedrigen Geschwindigkeit starten und dann langsam aufgeheizt werden. Hat man zu Beginn eine Temperatur $T_{init}$ und möchte nach $S$ Schritten die Zieltemperatur $T_{end}$ erreichen, so lässt sich die Temperatur $T_n$ für jeden Schritt $n$ der Heizphase folgendermaßen berechnen: \supercite{becker_computational_2001}
+\begin{align}
+T_n = T_{n-1} + \frac{T_{end} - T_{init}}{S} \label{eq:heating}
+\end{align}
+\vspace{0.5cm}
+
+Somit wird der Algorithmus für einen Durchgang der MD-Simulation erweitert:\supercite{becker_development_2015}
+\begin{enumerate}
+\item Berechnung der aktuellen Zieltemperatur $T_n$ nach Gl.\ref{eq:heating} (nur während der Aufwärmphase)
+\item Anpassung der Geschwindigkeiten nach Gl.\ref{eq:directscaling}
+\item Berechnung der Beschleunigungen zu Beginn des Zeitschritts (vgl. Abschnitt \ref{sec:integration})
+\item Berechnung der Geschwindigkeiten zur Hälfte des Zeitschritts (vgl. Abschnitt \ref{sec:integration})
+\item Berechnung der Positionen am Ende des Zeitschritts (vgl. Abschnitt \ref{sec:integration})
+\item Berechnung der Gradienten und Beschleunigungen am Ende des Zeitschritts (vgl. Abschnitt \ref{sec:integration})
+\item Berechnung der Geschwindigkeiten am Ende des Zeitschritts (vgl. Abschnitt \ref{sec:integration})
+\item Anpassung der Geschwindigkeiten nach Gl.\ref{eq:directscaling}
+\end{enumerate}
+\vspace{0.5cm}
+
+Neben der direkten Skalierung der Geschwindigkeiten, die eine recht drastische und unphysikalische Methode darstellt, gibt es auch andere Verfahren zur Temperaturkontrolle.\supercite{becker_development_2015} Diese gehen beispielsweise davon aus, dass sich das Molekül in einem Wärmebad der gewünschten Temperatur befindet, wobei die Wärmekopplung eine für das Bad charakteristische Relaxationszeit hat, sodass eine allmähliche Temperaturanpassung erfolgt. Ein weiterer Ansatz ist das Nosé-Hoover-Thermostat, bei welchem das System ebenfalls mit einem Wärmereservoir in Kontakt steht, für welches zusätzliche Freiheitsgrade eingeführt werden. Auch diese Methoden beruhen auf der Skalierung der Teilchengeschwindigkeiten, sodass der oben vorgestellte Algorithmus im wesentlichen unverändert bleibt; es muss lediglich bei der Anpassung der Geschwindigkeiten ein anderer Skalierungsfaktor verwendet werden.\supercite{becker_computational_2001}
 
 \section{Kraftfelder} \label{sec:kraftfelder}
 
@@ -360,6 +392,8 @@ E_{el}(R_{AB}) = \frac{Q_{A} \cdot Q_{B}}{\epsilon \cdot R_{AB}}
 \end{align}
 
 Dabei werden die Atome als Punktladungen mit Ladung $Q_A$ und $Q_B$ betrachtet, wobei die Ladungen entweder als Parameter im Kraftfeld gespeichert sein können oder für die konkrete Struktur einem berechneten elektrostatischen Potential entnommen sind. $R_{AB}$ entspricht in obiger Formel dem Atomabstand und $\epsilon$ der effektiven dielektrischen Konstanten.\supercite{jensen_introduction_1998}
+
+TODO!!! \textit{für welche Atome -> Urey Bradley}
 
 \subsubsection{Van der Waals-Energie}
 
