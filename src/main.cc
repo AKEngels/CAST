@@ -290,8 +290,8 @@ int main(int argc, char **argv)
         entropyconfig config;
         config.readConfig(argc, argv);
         config.draw();
-        config.calculateall();
-        config.writeall();
+        config.calculate();
+        config.writeToFile();
 
         break;
       }
@@ -763,7 +763,6 @@ int main(int argc, char **argv)
         * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
         *
         */
-
         std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
         std::string* hold_str = new std::string[ci->size()];
 #ifdef _OPENMP

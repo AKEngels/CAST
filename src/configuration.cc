@@ -1680,19 +1680,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "et_dimension")
   {
-    Config::set().entropytrails.dimension = configuration_range_int<size_t>(cv);
+    cv >> Config::set().entropytrails.dimension;
   }
   else if (option == "et_k")
   {
-    Config::set().entropytrails.k = configuration_range_int<size_t>(cv);
+    cv >> Config::set().entropytrails.k;
   }
   else if (option == "et_iteration")
   {
-    Config::set().entropytrails.iteration = configuration_range_int<size_t>(cv);
-  }
-  else if (option == "et_sigma")
-  {
-    Config::set().entropytrails.sigma = configuration_range_float<double>(cv);
+    cv >> Config::set().entropytrails.numberOfDraws;
   }
   else if (option == "et_ident")
   {

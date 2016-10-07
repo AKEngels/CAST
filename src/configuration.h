@@ -924,12 +924,11 @@ namespace config
    */
   struct entropytrails
   {
-    std::vector<size_t> k;
-    std::vector<size_t> dimension;
-    std::vector<size_t> iteration;
-    std::vector<double> sigma;
+    size_t k;
+    size_t dimension;
+    size_t numberOfDraws;
     int ident;
-    entropytrails(void) : k(1), dimension(1), iteration(1000), sigma(1.0), ident(0) {}
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0) {}
   };
 
   /**
