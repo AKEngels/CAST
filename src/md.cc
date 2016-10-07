@@ -1276,6 +1276,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		  int dof = 3 * inner_atoms.size();
 		  double T_factor = (2.0 / (dof*md::R));
 		  temp = E_kin*T_factor;
+		  updateEkin();
 	  }
 	  else
 	  {
@@ -1524,6 +1525,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 				int dof = 3 * inner_atoms.size();
 				double T_factor = (2.0 / (dof*md::R));
 				temp = E_kin*T_factor;
+				updateEkin();
 			}
 			else
 			{
