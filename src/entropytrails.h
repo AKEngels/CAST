@@ -238,90 +238,6 @@ public:
     return this->PDF;
   };
 
-  double MCIntegrationEntropy(double range, size_t numberOfSamples)
-  {
-    // MC guess with uniform distribution
-    // Draw Uniform and do
-    // Draw samples
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> distr(-1. * range, range);
-    std::vector<double> temp;
-    temp.reserve(numberOfSamples);
-    for (int n = 0; n < numberOfSamples; ++n) {
-      double drawnnum = distr(gen);
-      temp.push_back(drawnnum);
-    }
-
-
-
-    long double uniformMCvalue = 0, uniformMCvalue2 = 0, c = 0.f;
-
-    // Debug
-    //Sort samples
-    //std::stable_sort(temp.begin(), temp.end());
-    //size_t countHowManyContinuesBecauseOfZeroPDF = 0u;
-
-    for (int n = 0; n < numberOfSamples; ++n)
-    {
-      long double gvalue;
-      gvalue = PDF(temp[n]);
-      if (gvalue == 0) {
-        //++countHowManyContinuesBecauseOfZeroPDF;  
-        continue;
-      }
-      long double y = gvalue * log(gvalue) - c;
-      long double t = uniformMCvalue + y;
-      c = (t - uniformMCvalue) - y;
-      uniformMCvalue = t;
-      uniformMCvalue2 += gvalue * log(gvalue);
-    }
-    uniformMCvalue /= double(numberOfSamples);
-    uniformMCvalue2 /= double(numberOfSamples);
-    uniformMCvalue *= -1. * (2*range);
-    uniformMCvalue2 *= -1. * (2*range);
-    return uniformMCvalue2;
-  };
-
-  double MCDrawEntropy(std::vector<double>& samples)
-  {
-    // new try MC guess with Kahan Summation
-    double drawMCvalue = 0.;
-    long double drawMCvalue2 = 0;
-    long double c = 0;
-    for (size_t i = 0u; i < samples.size(); i++)
-    {
-      // Value of Distribution at point x
-      double temp1 = PDF(samples[i]);
-      drawMCvalue += log(temp1);
-
-      long double y = log(temp1) - c;
-      long double t = drawMCvalue2 + y;
-      c = (t - drawMCvalue2) - y;
-      drawMCvalue2 = t;
-    }
-    drawMCvalue /= -1.* double(samples.size());
-    drawMCvalue2 /= -1 * double(samples.size());
-    return drawMCvalue2;
-  };
-
-  double MCDrawEntropy(size_t& numberOfSamples)
-  {
-    std::vector<double> samples = this->draw(numberOfSamples);
-    return this->MCDrawEntropy(samples);
-  };
-
-  double MCDrawEntropy(Matrix_Class& samples)
-  {
-    std::vector<double> samples_vec;
-    samples_vec.reserve(samples.rows());
-
-    for (size_t i = 0u; i < samples.rows(); ++i)
-      samples_vec.push_back(samples(i, 0u));
-
-    return this->MCDrawEntropy(samples_vec);
-  }
-
   double meaningfulRange()
   {
     // Target PDF in 0.001er Schritten auswerten und schauen wann es kleiner ist
@@ -419,22 +335,6 @@ public:
     }
     myfile.close();
   }
-
-  double empiricalGaussianEntropy()
-  {
-    // Calculate Mean
-    for (int n = 0; n < numberOfDraws; ++n)
-      mean += drawAndEvaluateMatrix(n, 0);
-    mean /= numberOfDraws;
-
-    // Calculate standard Deviation
-    for (int n = 0; n < numberOfDraws; ++n)
-      standardDeviation += (drawAndEvaluateMatrix(n, 0) - mean) * (drawAndEvaluateMatrix(n, 0) - mean);
-    standardDeviation /= numberOfDraws;
-    standardDeviation = sqrt(standardDeviation);
-
-    return log(standardDeviation * sqrt(2. * pi * e));
-  }
 };
 
 
@@ -461,13 +361,110 @@ public:
   {
   }
 
+  double empiricalGaussianEntropy()
+  {
+    // Calculate Mean
+    for (int n = 0; n < numberOfDraws; ++n)
+      mean += drawAndEvaluateMatrix(n, 0);
+    mean /= numberOfDraws;
+
+    // Calculate standard Deviation
+    for (int n = 0; n < numberOfDraws; ++n)
+      standardDeviation += (drawAndEvaluateMatrix(n, 0) - mean) * (drawAndEvaluateMatrix(n, 0) - mean);
+    standardDeviation /= numberOfDraws;
+    standardDeviation = sqrt(standardDeviation);
+
+    return log(standardDeviation * sqrt(2. * pi * e));
+  }
+
+  double MCIntegrationEntropy(double range, size_t numberOfSamples)
+  {
+    // MC guess with uniform distribution
+    // Draw Uniform and do
+    // Draw samples
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distr(-1. * range, range);
+    std::vector<double> temp;
+    temp.reserve(numberOfSamples);
+    for (int n = 0; n < numberOfSamples; ++n) {
+      double drawnnum = distr(gen);
+      temp.push_back(drawnnum);
+    }
+
+    long double uniformMCvalue = 0, uniformMCvalue2 = 0, c = 0.f;
+
+    // Debug
+    //Sort samples
+    //std::stable_sort(temp.begin(), temp.end());
+    //size_t countHowManyContinuesBecauseOfZeroPDF = 0u;
+
+    for (int n = 0; n < numberOfSamples; ++n)
+    {
+      long double gvalue;
+      gvalue = static_cast<long double>(probdens.function()(temp[n]));
+      if (gvalue == 0) {
+        //++countHowManyContinuesBecauseOfZeroPDF;  
+        continue;
+      }
+      long double y = gvalue * log(gvalue) - c;
+      long double t = uniformMCvalue + y;
+      c = (t - uniformMCvalue) - y;
+      uniformMCvalue = t;
+      uniformMCvalue2 += gvalue * log(gvalue);
+    }
+    uniformMCvalue /= double(numberOfSamples);
+    uniformMCvalue2 /= double(numberOfSamples);
+    uniformMCvalue *= -1. * (2 * range);
+    uniformMCvalue2 *= -1. * (2 * range);
+    return uniformMCvalue2;
+  };
+
+  double MCDrawEntropy(std::vector<double>& samples)
+  {
+    // new try MC guess with Kahan Summation
+    double drawMCvalue = 0.;
+    long double drawMCvalue2 = 0;
+    long double c = 0;
+    for (size_t i = 0u; i < samples.size(); i++)
+    {
+      // Value of Distribution at point x
+      double temp1 = probdens.function()(samples[i]);
+      drawMCvalue += log(temp1);
+      long double y = log(temp1) - c;
+      long double t = drawMCvalue2 + y;
+      c = (t - drawMCvalue2) - y;
+      drawMCvalue2 = t;
+    }
+    drawMCvalue /= -1.* double(samples.size());
+    drawMCvalue2 /= -1 * double(samples.size());
+    return drawMCvalue2;
+  };
+
+  double MCDrawEntropy(size_t& numberOfSamples)
+  {
+    std::vector<double> samples = this->probdens.draw(numberOfSamples);
+    return this->MCDrawEntropy(samples);
+  };
+
+  double MCDrawEntropy(Matrix_Class& samples)
+  {
+    std::vector<double> samples_vec;
+    samples_vec.reserve(samples.rows());
+
+    for (size_t i = 0u; i < samples.rows(); ++i)
+      samples_vec.push_back(samples(i, 0u));
+
+    return this->MCDrawEntropy(samples_vec);
+  }
+
   void calculate()
   {
     // Calculates entropy inegral using MC 
     // with known PDF
-    mcdrawEntropy = this->probdens.MCDrawEntropy(drawAndEvaluateMatrix);
+    mcdrawEntropy = this->MCDrawEntropy(drawAndEvaluateMatrix);
 
-    mcintegrationEntropy = this->probdens.MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
+    mcintegrationEntropy = this->MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
