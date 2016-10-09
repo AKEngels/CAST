@@ -125,13 +125,14 @@ long double digammal(long double x)
 class ProbabilityDensity
 {
 public:
-  ProbabilityDensity(int ident_) : identif(ident_)
+  ProbabilityDensity(int ident_) : identif(ident_), PDFrange(0.)
   {
     if (ident_ == 0)
     {
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x*x) / double(2. * 1. * 1.)); };
+      PDFrange = 5.920; // range incorporating function values up to under 10e-7
     }
     else if (ident_ == 1)
     {
@@ -139,6 +140,7 @@ public:
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x*x) / double(2. * 10. * 10.)); };
       maximumOfPDF = 1. / (10. * sqrt(2. * pi));
       analyticEntropy_ = log(10. * sqrt(2. * pi * e));
+      PDFrange = 55.136; // range incorporating function values up to under 10e-7
     }
     else if (ident_ == 2)
     {
@@ -146,6 +148,7 @@ public:
       PDF = [&, this](double x) { if (x < -1. || x > 1.) return 0.; else return (3. / 4.) * (-1. * ((x)*(x)) + 1.); };
       maximumOfPDF = PDF(0.);
       analyticEntropy_ = 0.568054;
+      PDFrange = 1.; // Function is only defined in [-1;1]
     }
   };
 
@@ -321,21 +324,31 @@ public:
 
   double meaningfulRange()
   {
-    //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
-    bool run = true;
-    double PDFrange = 0.;
-    while (run)
+    // Target PDF in 0.001er Schritten auswerten und schauen wann es kleiner ist
+    // als 10e-7.
+    // Ident 0: 5.917
+    // Ident 1: 55.1349999999
+    // Ident 2: 1.0000000
+    // Ident 3:
+
+    if (PDFrange == 0.)
     {
-      if (PDF(PDFrange) < 0.00000001 || PDF(-1.* PDFrange) < 0.00000001) break;
-      else PDFrange += 0.001;
+      bool run = true;
+      double PDFrange = 0.;
+      while (run)
+      {
+        if (PDF(PDFrange) < 0.00000001 || PDF(-1.* PDFrange) < 0.00000001) break;
+        else PDFrange += 0.001;
+      }
     }
-    return PDFrange;
+    return PDFrange; 
   }
 
 private:
   double analyticEntropy_;
   double maximumOfPDF;
   int identif;
+  double PDFrange;
   std::function<double(double x)> PDF;
 };
 
@@ -467,9 +480,6 @@ public:
       // Third col: Value of real distribution
       // Fourth col: kNN Distance
 
-      //Matrix_Class addition(drawAndEvaluateMatrix.rows(), 3);
-      //drawAndEvaluateMatrix.append_right(addition);
-
       //Neccessarry
       transpose(drawAndEvaluateMatrix);
       Matrix_Class copytemp = drawAndEvaluateMatrix;
@@ -494,7 +504,8 @@ public:
           drawAndEvaluateMatrix_TemporaryCopy(1, i) = double(k) / double(numberOfDraws) / holdNNdistance;
           drawAndEvaluateMatrix_TemporaryCopy(2, i) = PDFtemporary(copytemp(0, i));
           drawAndEvaluateMatrix_TemporaryCopy(3, i) = holdNNdistance;
-          // Lombardi kPN
+          
+          // Lombardi kPN hier, fehlt bisher noch
         }
 #ifdef _OPENMP
       }
