@@ -1694,6 +1694,19 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropytrails.ident;
   }
+  else if (option == "et_NNcalculation")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropytrails.NNcalculation = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropytrails.NNcalculation = false;
+    }
+  }
   // NOT IMPLEMENTED AS OF NOW!
   // I/O Atoms index options
   //else if (option == "atomexclude")

@@ -928,7 +928,8 @@ namespace config
     size_t dimension;
     size_t numberOfDraws;
     int ident;
-    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0) {}
+    bool NNcalculation;
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true) {}
   };
 
   /**

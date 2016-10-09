@@ -125,7 +125,12 @@ namespace matop
      * used in the search (example {1, 4, 5}).
      * @param col_querypt Columns index of the query Points.
      */
-    float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_querypts, size_t const& col_querypt, coords::float_type* buffer = nullptr);
+    float_type knn_distance(
+      Matrix_Class const& input, size_t 
+      const& dimension_in, size_t const& k_in, 
+      std::vector<size_t>& row_querypts, 
+      size_t const& col_querypt, 
+      coords::float_type* buffer = nullptr);
 
     /**
      * Outputs the !SQUARED! next-neighbor distance in eucledean space

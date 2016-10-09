@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <omp.h>
+#include <limits>
 #include "matop.h"
 #include <string>
 
@@ -362,10 +363,12 @@ public:
   Matrix_Class drawAndEvaluateMatrix;
   int identifierOfPDF;
   ProbabilityDensity probdens;
-  entropyobj(size_t& iter_, size_t& dimension_, ProbabilityDensity probdens_) : 
-    drawAndEvaluateMatrix(iter_, 4), 
+  double mean, standardDeviation;
+  entropyobj(size_t iter_, size_t dimension_, ProbabilityDensity probdens_) :
+    drawAndEvaluateMatrix(iter_, 4),
     numberOfDraws(iter_), dimension(dimension_),
-    probdens(probdens_), identifierOfPDF(probdens_.ident())
+    probdens(probdens_), identifierOfPDF(probdens_.ident()),
+    mean(0.), standardDeviation(0.)
   {
     // Check if draw exists
     std::ifstream myfile;
@@ -403,6 +406,22 @@ public:
     }
     myfile.close();
   }
+
+  double empiricalGaussianEntropy()
+  {
+    // Calculate Mean
+    for (int n = 0; n < numberOfDraws; ++n)
+      mean += drawAndEvaluateMatrix(n, 0);
+    mean /= numberOfDraws;
+
+    // Calculate standard Deviation
+    for (int n = 0; n < numberOfDraws; ++n)
+      standardDeviation += (drawAndEvaluateMatrix(n, 0) - mean) * (drawAndEvaluateMatrix(n, 0) - mean);
+    standardDeviation /= numberOfDraws;
+    standardDeviation = sqrt(standardDeviation);
+
+    return log(standardDeviation * sqrt(2. * pi * e));
+  }
 };
 
 
@@ -413,48 +432,34 @@ public:
   size_t k;
   double calculatedEntropyHnizdo;
   double calculatedEntropyLombardi; 
-  double mcintegrationentropy;
-  double mcdrawentropy;
+  double mcintegrationEntropy;
+  double mcdrawEntropy;
   double analyticalEntropy;
+  double empiricalNormalDistributionEntropy;
   calculatedentropyobj(size_t k_, entropyobj const& obj, double analyticEntropyValue = 0.) : 
     entropyobj(obj), 
     k(k_), 
-    calculatedEntropyHnizdo(0),
-    calculatedEntropyLombardi(0.), 
-    mcintegrationentropy(0.), 
-    mcdrawentropy(0.), 
-    analyticalEntropy(this->probdens.analyticEntropy())
+    calculatedEntropyHnizdo(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyLombardi(std::numeric_limits<double>::quiet_NaN()),
+    mcintegrationEntropy(std::numeric_limits<double>::quiet_NaN()),
+    mcdrawEntropy(std::numeric_limits<double>::quiet_NaN()),
+    analyticalEntropy(this->probdens.analyticEntropy()),
+    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
   void calculate()
   {
-
-    // Choose your destiny
-    // Standard procedure: 
-    // Calculate Hnizdo as well as Lombardi/Pant entropy
-    bool standardprocedure = true;
-
-    // ExtraProcedure:
-    // Debug stuff
     // Calculates entropy inegral using MC 
     // with known PDF
-    bool extraprocedure = true;
-    // Range for MC draws
-    double range = 10.;
+    mcdrawEntropy = this->probdens.MCDrawEntropy(drawAndEvaluateMatrix);
 
-    if (extraprocedure)
-    {
-      mcdrawentropy = this->probdens.MCDrawEntropy(drawAndEvaluateMatrix);
+    mcintegrationEntropy = this->probdens.MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
 
-      // Number 2 is untested empirical factor
-      // Maybe adjust as necessary
-      mcintegrationentropy = this->probdens.MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
-    }
+    empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
-    // Standard procedure: 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
-    if (standardprocedure)
+    if (Config::get().entropytrails.NNcalculation)
     {
       // Matrix Layout after calculation:
       // First col: Drawn samples
@@ -489,6 +494,7 @@ public:
           drawAndEvaluateMatrix_TemporaryCopy(1, i) = double(k) / double(numberOfDraws) / holdNNdistance;
           drawAndEvaluateMatrix_TemporaryCopy(2, i) = PDFtemporary(copytemp(0, i));
           drawAndEvaluateMatrix_TemporaryCopy(3, i) = holdNNdistance;
+          // Lombardi kPN
         }
 #ifdef _OPENMP
       }
@@ -506,7 +512,7 @@ public:
       tempsum *= double(dimension);
 
       // Einschub
-      // Entropy according to Lombardi
+      // Entropy according to Lombardi (traditional)
       double tempsum_kpn_alternative = tempsum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
       tempsum_kpn_alternative += digammal(numberOfDraws);
       tempsum_kpn_alternative -= digammal(k);
@@ -529,10 +535,6 @@ public:
 
       //Neccessarry
       transpose(drawAndEvaluateMatrix);
-      
-      //DEBUG out
-      std::cout << calculatedEntropyHnizdo << "  " << calculatedEntropyLombardi << "  " << analyticalEntropy << "\n";
-      std::cout << "\n";
     }
   }
 
@@ -569,6 +571,7 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(fake)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
 
       myfile2 << "\n==============================================================================================================================\n";
     }
@@ -576,97 +579,11 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->numberOfDraws << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->k << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.analyticEntropy() << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcintegrationentropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawentropy << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcintegrationEntropy << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|\n";
     myfile2.close();
   }
-};
-
-class entropyconfig
-{
-
-private:
-  // Stacking is
-  std::unique_ptr<entropyobj> entropyObject;
-  size_t numberOfDraws;
-  size_t dimension;
-  size_t k_value;
-  int ident;
-  std::unique_ptr<calculatedentropyobj> calculatedDistribution;
-public:
-  entropyconfig()
-  {
-  }
-
-  void readConfig(int argc, char **argv)
-  {
-    /*
-    for (int i = 0; i < argc; i++) {
-      if (std::string(argv[i]).substr(0u, 2) == "k=")
-      {
-        size_t lastCommaFound = 0;
-        while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
-        {
-          k_values.push_back(size_t(std::stoi(std::string(argv[i]).substr( std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
-          lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
-        }
-      }
-      else if (std::string(argv[i]).substr(0u, 2) == "i=")
-      {
-          size_t lastCommaFound = 0;
-          while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
-          {
-            iter.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
-            lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
-          }
-      }
-      else if (std::string(argv[i]).substr(0u, 2) == "d=")
-      {
-          size_t lastCommaFound = 0;
-          while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
-          {
-            dimension.push_back(size_t(std::stoi(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
-            lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
-          }
-      }
-      else if (std::string(argv[i]).substr(0u, 2) == "s=")
-      {
-          size_t lastCommaFound = 0;
-          while (std::string(argv[i]).substr(lastCommaFound, std::string::npos).find(",") != std::string::npos)
-          {
-            sigma.push_back(size_t(std::stod(std::string(argv[i]).substr(std::max(size_t(3u), lastCommaFound), std::string(argv[i]).find(",", lastCommaFound) - std::max(size_t(3u), lastCommaFound)))));
-            lastCommaFound = std::string(argv[i]).find(",", lastCommaFound) + 1;
-          }
-      }
-    }
-    */
-    k_value = Config::get().entropytrails.k;
-    dimension = Config::get().entropytrails.dimension;
-    numberOfDraws = Config::get().entropytrails.numberOfDraws;
-    ident = Config::get().entropytrails.ident;
-  }
-
-  void draw()
-  {
-    std::function<double(double x)> PDF;
-
-    ProbabilityDensity probdens(ident);
-
-    entropyObject = std::unique_ptr<entropyobj>(new entropyobj(numberOfDraws, dimension, probdens));
-  }
-
-  void calculate(void)
-  {
-    if (entropyObject == nullptr) throw std::runtime_error("entropyObject not initialized!\n");
-    calculatedDistribution = std::unique_ptr<calculatedentropyobj>(new calculatedentropyobj(k_value, *entropyObject));
-    calculatedDistribution->calculate();
-  }
-
-  void writeToFile(void)
-  {
-    calculatedDistribution->writeToFile();
-  }
-
 };

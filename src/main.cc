@@ -286,12 +286,17 @@ int main(int argc, char **argv)
         // row 2: KNN density estimate
         // row 3: analytical density
         // row 4: (aux) NN distance at point
+       
+        ProbabilityDensity probdens(Config::get().entropytrails.ident);
 
-        entropyconfig config;
-        config.readConfig(argc, argv);
-        config.draw();
-        config.calculate();
-        config.writeToFile();
+        entropyobj entropyObject(
+          Config::get().entropytrails.numberOfDraws, 
+          Config::get().entropytrails.dimension, 
+          probdens);
+       
+        calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
+        calculatedDistribution.calculate();
+        calculatedDistribution.writeToFile();
 
         break;
       }
