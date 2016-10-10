@@ -9,3 +9,16 @@ optional_files/build/*
 optional_files/project/*
 !optional_files/project/Makefile
 !optional_files/project/CAST.make
+
+cast_susanne/*
+
+/manual/castmanual-blx.bib
+/manual/castmanual.aux
+/manual/castmanual.bbl
+/manual/castmanual.blg
+/manual/castmanual.lof
+/manual/castmanual.log
+/manual/castmanual.out
+/manual/castmanual.run.xml
+/manual/castmanual.synctex
+/manual/castmanual.toc
