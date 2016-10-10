@@ -1344,8 +1344,6 @@ tinker::parameter::combi::vdwc tinker::parameter::parameters::vdwc_combi (std::s
     {
       charge const & ca(find_chg(a));
       c.C = m_general.electric*ca.c*ca.c;
-	  
-      
     }
     vdw const & va(use14vdw ? find_vdw14(a) : find_vdw(a));
     c.E = m_general.epsilonrule.process(va.e);

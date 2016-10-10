@@ -296,6 +296,9 @@ namespace md
     md::nose_hoover nht;
     // rattle constraints
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
+	// biased potential
+	std::vector<double> distances;  // distances to active site for every atom
+	std::vector<int> inner_atoms;   // atoms with a distance smaller than the inner cutoff
 
     //! Fep progress vector
     std::vector<fepvar> window;
@@ -315,6 +318,10 @@ namespace md
     // nose hoover thermostat
     void nose_hoover_thermostat(void);
 
+	// calculate distances to active center
+	std::vector<double> init_active_center(int counter);
+	coords::Cartesian_Point adjust_velocities(int i, double inner_cutoff, double outer_cutoff);
+
     //! rattle feature
     void rattle_pre(void);
     void rattle_post(void);
@@ -322,10 +329,9 @@ namespace md
     // integrator selector
     void integrate(std::size_t const k_init = 0U);
 
-    //! verlet integrator
-    void verletintegrator(std::size_t const k_init = 0U);
     //! beeman integrator
     void beemanintegrator(std::size_t const k_init = 0U);
+	void beemanintegrator_2(std::size_t const k_init = 0U);
     //! velocity_verlet
     void velocity_verlet(std::size_t const k_init = 0u);
 
@@ -335,6 +341,7 @@ namespace md
 
     //! Kinetic Energy update
     void updateEkin(void);
+    void updateEkin_some_atoms(std::vector<int> atom_list);
 
     //! Berendsen pressure coupling
     void berendsen(double const &);

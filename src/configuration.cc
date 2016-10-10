@@ -809,124 +809,148 @@ void config::parse_option(std::string const option, std::string const value_stri
   //! md
   else if (option.substr(0, 2) == "MD")
   {
-    if (option.substr(2, 5) == "steps")
-    {
-      cv >> Config::set().md.num_steps;
-    }
-    else if (option.substr(2, 10) == "integrator")
-    {
-      Config::set().md.integrator = enum_from_iss<config::md_conf::integrators::T>(cv);
-    }
-    else if (option.substr(2, 11) == "trackoffset")
-    {
-      cv >> Config::set().md.trackoffset;
-    }
-    else if (option.substr(2, 5) == "track")
-    {
-      Config::set().md.track = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 8) == "snap_opt")
-    {
-      Config::set().md.optimize_snapshots = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 11) == "snap_buffer")
-    {
-      cv >> Config::set().md.max_snap_buffer;
-    }
-    else if (option.substr(2, 5) == "snap")
-    {
-      cv >> Config::set().md.num_snapShots;
-    }
-    else if (option.substr(2, 9) == "veloscale")
-    {
-      cv >> Config::set().md.veloScale;
-    }
-    else if (option.substr(2, 10) == "thermostat")
-    {
-      Config::set().md.hooverHeatBath = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 14) == "restart_offset")
-    {
-      cv >> Config::set().md.restart_offset;
-    }
-    else if (option.substr(2, 13) == "refine_offset")
-    {
-      cv >> Config::set().md.refine_offset;
-    }
-    else if (option.substr(2, 6) == "resume")
-    {
-      Config::set().md.resume = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 8) == "timestep")
-    {
-      cv >> Config::set().md.timeStep;
-    }
-    else if (option.substr(2, 5) == "press")
-    {
-      cv >> Config::set().md.pressure;
-    }
-    else if (option.substr(2, 9) == "pcompress")
-    {
-      cv >> Config::set().md.pcompress;
-    }
-    else if (option.substr(2, 6) == "pdelay")
-    {
-      cv >> Config::set().md.pdelay;
-    }
-    else if (option.substr(2, 7) == "ptarget")
-    {
-      cv >> Config::set().md.ptarget;
-    }
-    else if (option.substr(2, 12) == "pre_optimize")
-    {
-      Config::set().md.pre_optimize = bool_from_iss(cv);
-    }
-    else if (option.substr(2, 4) == "heat")
-    {
-      config::md_conf::config_heat heatconf;
-      if (cv >> heatconf.offset && cv >> heatconf.raise)
-      {
-        Config::set().md.heat_steps.push_back(heatconf);
-        Config::set().md.T_init = Config::get().md.heat_steps.front().raise;
-        Config::set().md.T_final = Config::get().md.heat_steps.back().raise;
-      }
-    }
-    else if (option.substr(2, 9) == "spherical")
-    {
-      if (bool_from_iss(cv) && cv >> Config::set().md.spherical.r_inner
-        && cv >> Config::set().md.spherical.r_outer
-        && cv >> Config::set().md.spherical.f1
-        && cv >> Config::set().md.spherical.f2
-        && cv >> Config::set().md.spherical.e1
-        && cv >> Config::set().md.spherical.e2)
-      {
-        Config::set().md.spherical.use = true;
-      }
-    }
-    else if (option.substr(2, 10) == "rattlebond")
-    {
-      std::size_t a, b;
-      cv >> a >> b;
+	  if (option.substr(2, 5) == "steps")
+	  {
+		  cv >> Config::set().md.num_steps;
+	  }
+	  else if (option.substr(2, 10) == "integrator")
+	  {
+		  Config::set().md.integrator = enum_from_iss<config::md_conf::integrators::T>(cv);
+	  }
+	  else if (option.substr(2, 11) == "trackoffset")
+	  {
+		  cv >> Config::set().md.trackoffset;
+	  }
+	  else if (option.substr(2, 5) == "track")
+	  {
+		  Config::set().md.track = bool_from_iss(cv);
+	  }
+	  else if (option.substr(2, 8) == "snap_opt")
+	  {
+		  Config::set().md.optimize_snapshots = bool_from_iss(cv);
+	  }
+	  else if (option.substr(2, 11) == "snap_buffer")
+	  {
+		  cv >> Config::set().md.max_snap_buffer;
+	  }
+	  else if (option.substr(2, 5) == "snap")
+	  {
+		  cv >> Config::set().md.num_snapShots;
+	  }
+	  else if (option.substr(2, 9) == "veloscale")
+	  {
+		  cv >> Config::set().md.veloScale;
+	  }
+	  else if (option.substr(2, 10) == "thermostat")
+	  {
+		  Config::set().md.hooverHeatBath = bool_from_iss(cv);
+	  }
+	  else if (option.substr(2, 14) == "restart_offset")
+	  {
+		  cv >> Config::set().md.restart_offset;
+	  }
+	  else if (option.substr(2, 13) == "refine_offset")
+	  {
+		  cv >> Config::set().md.refine_offset;
+	  }
+	  else if (option.substr(2, 6) == "resume")
+	  {
+		  Config::set().md.resume = bool_from_iss(cv);
+	  }
+	  else if (option.substr(2, 8) == "timestep")
+	  {
+		  cv >> Config::set().md.timeStep;
+	  }
+	  else if (option.substr(2, 5) == "press")
+	  {
+		  cv >> Config::set().md.pressure;
+	  }
+	  else if (option.substr(2, 9) == "pcompress")
+	  {
+		  cv >> Config::set().md.pcompress;
+	  }
+	  else if (option.substr(2, 6) == "pdelay")
+	  {
+		  cv >> Config::set().md.pdelay;
+	  }
+	  else if (option.substr(2, 7) == "ptarget")
+	  {
+		  cv >> Config::set().md.ptarget;
+	  }
+	  else if (option.substr(2, 12) == "pre_optimize")
+	  {
+		  Config::set().md.pre_optimize = bool_from_iss(cv);
+	  }
+	  else if (option.substr(2, 4) == "heat")
+	  {
+		  config::md_conf::config_heat heatconf;
+		  if (cv >> heatconf.offset && cv >> heatconf.raise)
+		  {
+			  Config::set().md.heat_steps.push_back(heatconf);
+			  Config::set().md.T_init = Config::get().md.heat_steps.front().raise;
+			  Config::set().md.T_final = Config::get().md.heat_steps.back().raise;
+		  }
+	  }
+	  else if (option.substr(2, 9) == "spherical")
+	  {
+		  if (bool_from_iss(cv) && cv >> Config::set().md.spherical.r_inner
+			  && cv >> Config::set().md.spherical.r_outer
+			  && cv >> Config::set().md.spherical.f1
+			  && cv >> Config::set().md.spherical.f2
+			  && cv >> Config::set().md.spherical.e1
+			  && cv >> Config::set().md.spherical.e2)
+		  {
+			  Config::set().md.spherical.use = true;
+		  }
+	  }
+	  else if (option.substr(2, 10) == "rattlebond")
+	  {
+		  std::size_t a, b;
+		  cv >> a >> b;
 
-      config::md_conf::config_rattle::rattle_constraint_bond rattlebondBuffer;
-      rattlebondBuffer.a = a;
-      rattlebondBuffer.b = b;
-      Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
-    }
-    else if (option.substr(2, 6) == "rattle")
-    {
-      int val(0);
-      if (cv >> val)
-      {
-        Config::set().md.rattle.use = (val != 0);
-        if (val == 2) Config::set().md.rattle.all = false;
-      }
-    }
-    else if (option.substr(2, 7) == "rattpar")
-    {
-      cv >> Config::set().md.rattle.ratpar;
-      std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
-    }
+		  config::md_conf::config_rattle::rattle_constraint_bond rattlebondBuffer;
+		  rattlebondBuffer.a = a;
+		  rattlebondBuffer.b = b;
+		  Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
+	  }
+	  else if (option.substr(2, 6) == "rattle")
+	  {
+		  int val(0);
+		  if (cv >> val)
+		  {
+			  Config::set().md.rattle.use = (val != 0);
+			  if (val == 2) Config::set().md.rattle.all = false;
+		  }
+	  }
+	  else if (option.substr(2, 7) == "rattpar")
+	  {
+		  cv >> Config::set().md.rattle.ratpar;
+		  std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
+	  }
+	  else if (option.substr(2, 16) == "biased_potential")
+	  {
+		  cv >> Config::set().md.set_active_center;
+	  }
+	  else if (option.substr(2, 11) == "active_site")
+	  {
+		  unsigned act_cent_atom;
+		  if (cv >> act_cent_atom)
+		  {
+			  Config::set().md.active_center.push_back(act_cent_atom);
+		  }
+	  }
+	  else if (option.substr(2, 6) == "cutoff")
+	  {
+		  double inner, outer;
+		  cv >> inner >> outer;
+
+		  Config::set().md.inner_cutoff = inner;
+		  Config::set().md.outer_cutoff = outer;
+	  }
+	  else if (option.substr(2, 18) == "adjust_by_step")
+	  {
+		  cv >> Config::set().md.adjustment_by_step;
+	  }
   }
 
   //! dimer
@@ -1926,7 +1950,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
-  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switchting to zero starting at " << p.switchdist << " Angstroms) applied.\n";
+  if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switching to zero starting at " << p.switchdist << " Angstroms) applied.\n";
   else strm << "No cutoff radius applied.\n";
   if (p.remove_fixed)
   {

@@ -9,7 +9,7 @@
 # Verbosity 
 # Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
 
-verbosity              10
+verbosity              4
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   3A_layer.arc
+name                   min2.prmtop
 
 # Output file name
 
@@ -35,8 +35,10 @@ outname                DEVTEST
 
 # Input file type
 
-inputtype              TINKER
+inputtype              AMBER
 
+#coordinate file for amber input
+amber_mdcrd           min2.rst
 
 
 
@@ -67,7 +69,7 @@ inputtype              TINKER
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
-task                   SP
+task                  MD
 
 
 #################################### 
@@ -95,7 +97,7 @@ profileruns            10
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
-interface              CHARMM22
+interface              AMBER
 
 # Interface for preoptimizations
 
@@ -104,7 +106,7 @@ preinterface           0
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              charmm_conv.prm
+paramfile              amber99.prm
 
 # Keywords for MOPAC Call
 
@@ -358,12 +360,12 @@ TSdivers_limit         20
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 70.0 70.0 70.0
+#Periodics              0 70.0 70.0 70.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
 
-Periodicp              0
+#Periodicp              0
 
 
 
@@ -469,12 +471,13 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                1000
  
 # Integrator
 #
 # 0                    Velocity-Verlet
 # 1                    Beeman
+# 2                    Beeman_2 (not maintained)
 
 MDintegrator           0
 
@@ -494,6 +497,8 @@ MDtimestep             0.001
 
 MDtrack                1
 
+#MDtrackoffset         0
+
 #
 #   Snapshots
 #
@@ -510,9 +515,15 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0    273.15
-MDheat                 10000 300.15
-MDheat                 50000 0.15
+MDheat                 500  300
+
+# Pressure control
+
+#MDpress               0
+
+#MDpcompress
+#MDpdelay
+#MDptarget
  
 # Spehrical boundaries' options
 # 
@@ -528,11 +539,33 @@ MDheat                 50000 0.15
  
 MDrattle               0
 
+#MDrattpar
+
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
  
 #MDrattlebond           7 12
+
+#apply a biased potential
+#MDbiased potential        <0/1>
+
+MDbiased_potential         0
+
+#atom number(s) of active site <every atom a new line>
+#MDactive_site        14
+
+MDactive_site        11
+
+#cutoff around active site <inner/outer>
+#MDcutoff                10 20
+
+MDcutoff                 15  20
+
+#adjust active center + distances with every step
+#MDadjust_by_step     <0/1>
+
+MDadjust_by_step      1
 
 # Iteration offset for restart files
 
@@ -540,13 +573,13 @@ MDrestart_offset       10000
 
 # Iteration offset for structure refinement
 
-MDrestart_offset       100
+#MDrefine_offset       100
 
 # Resume simulation from restart file?
 
 MDresume               0
 
-
+#MDpre_optimize
 
 
 ####################################
