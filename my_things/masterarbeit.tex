@@ -4,7 +4,7 @@
 \usepackage[ngerman]{babel} %deutsche Sprache / neue Rechtschreibung
 
 \usepackage{scrpage2} %Einstellungen für Seitenlayout
-\usepackage[left=2.5cm,right=2.5cm,top=3cm,bottom=4cm]{geometry} %Seitenlayout ändern
+\usepackage[left=2.5cm,right=2.5cm,top=3.5cm,bottom=3.5cm]{geometry} %Seitenlayout ändern
 %\usepackage{lscape} %Seiten im Querformat möglich
 \usepackage{graphicx} %Bilder einbinden mï¿½glich
 \usepackage{color} %Farben
@@ -90,8 +90,8 @@ Der Begriff Molekulardynamik (kurz: MD) bezeichnet Methoden zur Simulation der r
 Besonders biologische Makromoleküle, beispielsweise Proteine, bieten ein interessantes Anwendungsfeld für molekulardynamische Ansätze, da quantenchemische Rechnungen dafür aufgrund der Systemgröße sehr zeitaufwändig und teuer sind. Auch gibt es zahlreiche unterschiedliche Bewegungen in Proteinen, die für Untersuchungen relevant sein können. Je nach Zeitskala, in der diese stattfinden, teilt man sie in unterschiedliche Typen ein:\supercite{becker_computational_2001}
 \begin{itemize}
 \item Lokalisierte Bewegungen von Seitenketten laufen im Bereich von Femto- bis Pikosekunden ab und haben eine Amplitude von weniger als einem Angström. Eine solche Bewegung kontrolliert beispielsweise die Diffusion von Sauerstoff in das Hämoglobinmolekül hinein und wieder heraus.
-\item Auf einer Zeitskala von Nano- bis Mikrosekunden finden sogenannte "`medium-scale"' Bewegungen statt. Sie haben eine Amplitude von 1\,-\,5 \AA\ und spielen eine wichtige Rolle für die Anpassung des aktiven Zentrums an ein Substrat und somit für die Substratspezifität von Enzymen.
-\item Bewegungen mit einer Amplitude von 5\,-\,10 \AA\ auf einer Zeitskala von Mikro- bis Millisekunden nennt man "`large-scale"' Bewegungen. Darunter fällt z.\,B. der allosterische Übergang der Hämoglobin-Untereinheiten vom T- in den R-Zustand.\supercite{becker_computational_2001}
+\item Auf einer Zeitskala von Nano- bis Mikrosekunden finden sogenannte "`medium-scale"'-Bewegungen statt. Sie haben eine Amplitude von 1\,-\,5 \AA\ und spielen eine wichtige Rolle für die Anpassung des aktiven Zentrums an ein Substrat und somit für die Substratspezifität von Enzymen.
+\item Bewegungen mit einer Amplitude von 5\,-\,10 \AA\ auf einer Zeitskala von Mikro- bis Millisekunden nennt man "`large-scale"'-Bewegungen. Darunter fällt z.\,B. der allosterische Übergang der Hämoglobin-Untereinheiten vom T- in den R-Zustand.\supercite{becker_computational_2001}
 \item Schließlich gibt es auch globale Bewegungen, bei denen sich die Struktur des gesamten Proteins verändert, wobei die Dauer einer solchen Bewegung Millisekunden bis Stunden betragen kann. Ein sehr interessantes Beispiel dafür stellen die sogenannten "`Prionen"' (\textit{proteinaceous infectious particles}) dar. Dabei handelt es sich um Erreger bestimmter Hirnerkrankungen, wie der als Rinderwahn bekannten \textit{Bovine spongiforme Enzephalopatie} (BSE), die im Gegensatz zu Bakterien oder Viren kein Genom aus Nukleinsäuren besitzen, sondern überwiegend aus Proteinaggregaten bestehen. Das Prion-Protein \textit{PrP} kommt v.\,a. in Zellen des ZNS und des lymphoreticulären Systems vor und setzt sich in seiner "`normalen"' Form hauptsächlich aus $\upalpha$-Helizes zusammen. Es kann sich jedoch in eine abnorme Form, deren Tertiärstruktur von $\upbeta$-Faltblättern geprägt ist, umwandeln, welche zu Aggregation neigt. Nach der Prion-Hypothese sind die so gebildeten Aggregate in der Lage, in weiteren \textit{PrP}-Molekülen eine Konformationsänderung von der "`normalen"' zu der pathogenen Form zu induzieren, wodurch die Übertragbarkeit der durch Prionen verursachten Erkrankungen erklärt werden kann.\supercite{becker_computational_2001}\supercite{_prionen_????}
 \end{itemize}
 All diese Bewegungen, die auf unterschiedlichen Zeit- und Längenskalen ablaufen, können jedoch nicht unabhängig voneinander betrachtet werden, sondern beruhen letztendlich alle auf atomaren Fluktuationen, welche in der MD simuliert werden müssen.\supercite{becker_computational_2001}
@@ -134,7 +134,7 @@ Nach der Newton'schen Bewegungsgleichung hängt die Position eines Teilchens folg
 F_i = m_i \cdot a_i = m_i \cdot \ddot{r_i}
 \end{align}
 
-Dabei ist die Beschleunigung $a_i$ die zweite Ableitung des Ortes $r_i$ nach der Zeit $t$. Um die Position eines Teilchens zu einem bestimmten Zeitpunkt zu ermitteln, muss diese Gleichung also integriert werden. 
+Dabei ist die Beschleunigung $a_i$ die zweite Ableitung des Ortes $r_i$ nach der Zeit $t$. Um die Position eines Teilchens zu einem bestimmten Zeitpunkt zu ermitteln, muss diese Gleichung also integriert werden.\supercite{becker_computational_2001}
 
 Eine Möglichkeit zur Lösung solcher Differenzialgleichungen ist die Finite-Differenzen-Methode. Dabei handelt es sich um ein numerisches Verfahren, um schrittweise die Koordinaten und Geschwindigkeiten zur Zeit $t+\Delta t$ aus denen zur Zeit $t$ zu berechnen.\supercite{becker_computational_2001}
 \\
@@ -195,7 +195,7 @@ Zuletzt muss noch ein Ausdruck für die Geschwindigkeit zum Zeitpunkt $n+1$ gefun
 v_n = v_{n-\frac{1}{2}} + a_n \cdot \frac{\Delta t}{2} = \frac{r_n - r_{n-1}}{\Delta t} + a_n \cdot \frac{\Delta t}{2}
 \end{align}
 
-Dieses Ergebnis setzt man nun die die Taylor-Entwicklung der Positionen ein \mbox{(vgl. Gl.\ref{eq:integrator})}:
+Dieses Ergebnis setzt man nun in die Taylor-Entwicklung der Positionen ein \mbox{(vgl. Gl.\ref{eq:integrator})}:
 \begin{align}
 r_{n+1} &= r_n + v_n \cdot \Delta t + \frac{1}{2} a_n \Delta t^2 \nonumber \\
         &= r_n + \left(\frac{r_n - r_{n-1}}{\Delta t} + a_n \cdot \frac{\Delta t}{2}\right) \cdot \Delta t + \frac{1}{2} a_n \Delta t^2 \nonumber \\
@@ -232,7 +232,7 @@ Dabei ist $N$ die Teilchenzahl, $m_i$ die Masse, $v_i$ die Geschwindigkeit des T
 
 Um die Beschreibung der Bewegung eines Proteins in seiner natürlichen Umgebung realistischer darzustellen, kann die Temperatur während der Simulation auf einem physiologisch sinnvollen Wert gehalten werden.\supercite{becker_computational_2001}
 
-Da die Temperatur quadratisch von den Teilchengeschwindigkeiten abhängt (siehe Gl.\ref{eq:temp}), lässt sich dies durch eine Skalierung der Geschwindigkeiten bewerkstelligen. Für jedes Atom gilt dann:
+Da die Temperatur quadratisch von den Teilchengeschwindigkeiten abhängig ist (siehe Gl.\ref{eq:temp}), lässt sich dies durch eine Skalierung der Geschwindigkeiten bewerkstelligen. Für jedes Atom gilt dann:
 \begin{align}
 v_i = v_{i,0} \cdot \sqrt{\frac{T}{T_0}} \label{eq:directscaling}
 \end{align}
@@ -260,7 +260,7 @@ Somit wird der Algorithmus für einen Zeitschritt der MD-Simulation erweitert:\su
 \end{enumerate}
 \vspace{0.5cm}
 
-Neben der direkten Skalierung der Geschwindigkeiten, die eine recht drastische und unphysikalische Methode darstellt, gibt es auch andere Verfahren zur Temperaturkontrolle.\supercite{becker_development_2015} Dabei wird beispielsweise davon ausgegangen, dass sich das Molekül in einem Wärmebad der gewünschten Temperatur befindet, wobei die Wärmekopplung eine für das Bad charakteristische Relaxationszeit hat, sodass eine allmähliche Temperaturanpassung erfolgt. Ein anderer Ansatz ist das Nosé-Hoover-Thermostat, bei welchem das System ebenfalls mit einem Wärmereservoir in Kontakt steht, für welches zusätzliche Freiheitsgrade eingeführt werden. Auch diese Methoden beruhen auf der Skalierung der Teilchengeschwindigkeiten, sodass der oben vorgestellte Algorithmus im wesentlichen unverändert bleibt; es muss lediglich bei der Anpassung der Geschwindigkeiten ein anderer Skalierungsfaktor verwendet werden.\supercite{becker_computational_2001}
+Neben der direkten Skalierung der Geschwindigkeiten, die eine recht drastische und unphysikalische Methode darstellt, gibt es auch andere Verfahren zur Temperaturkontrolle.\supercite{becker_development_2015} Dabei wird beispielsweise davon ausgegangen, dass sich das Molekül in einem Wärmebad der gewünschten Temperatur befindet, wobei die Wärmekopplung eine für das Bad charakteristische Relaxationszeit hat, sodass eine allmähliche Temperaturanpassung erfolgt. Ein weiterer Ansatz ist das Nosé-Hoover-Thermostat, bei welchem das System ebenfalls mit einem Wärmereservoir in Kontakt steht, für welches zusätzliche Freiheitsgrade eingeführt werden. Auch diese Methoden beruhen auf der Skalierung der Teilchengeschwindigkeiten, sodass der oben vorgestellte Algorithmus im wesentlichen unverändert bleibt; es muss lediglich bei der Anpassung der Geschwindigkeiten ein anderer Skalierungsfaktor verwendet werden.\supercite{becker_computational_2001}
 
 \section{Kraftfelder} \label{sec:kraftfelder}
 
@@ -272,11 +272,11 @@ Die Kraftfeldenergie $E_{ff}$ wird als Summe von Termen ausgedrückt, die jeweils
 E_{ff} = E_{str} + E_{bend} + E_{tors} + E_{oop} + E_{nb} + E_{cross}
 \end{align}
 
-Dabei steht $E_{str}$ für die Energie, die für das Strecken bzw. Stauchen einer Bindung aufgewendet werden muss, $E_{bend}$ für diejenige, die dem Erweitern oder Verengen eines Bindungswinkels entspricht, $E_{tors}$ ist die Torsionsenergie für die Drehung um eine Bindungsachse, die \textit{Out-of-plane} Energie $E_{oop}$ beschreibt die Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms aus der Ebene seiner Bindungspartner, $E_{nb}$ steht für die Wechselwirkungen zwischen Atomen, die nicht direkt verbunden sind, und durch den Kreuzterm $E_{cross}$ werden Kopplungen zwischen den andern Energietermen berücksichtigt.\supercite{jensen_introduction_1998}
+Dabei steht $E_{str}$ für die Energie, die für das Strecken bzw. Stauchen einer Bindung aufgewendet werden muss, $E_{bend}$ für diejenige, die dem Erweitern oder Verengen eines Bindungswinkels entspricht, $E_{tors}$ ist die Torsionsenergie für die Drehung um eine Bindungsachse, die \textit{Out-of-plane}-Energie $E_{oop}$ beschreibt die Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms aus der Ebene seiner Bindungspartner, $E_{nb}$ steht für die Wechselwirkungen zwischen Atomen, die nicht direkt verbunden sind, und durch den Kreuzterm $E_{cross}$ werden Kopplungen zwischen den andern Energietermen berücksichtigt.\supercite{jensen_introduction_1998}
 
 \subsection{Bindungsenergie}
 
-Für die Berechnung der Bindungsenergie der beiden Atome A und B geht man von einer Taylor-Entwicklung des Atomabstands $R_{AB}$ um den Gleichgewichtsabstand $R_{AB,0}$ aus:
+Für die Berechnung der Bindungsenergie der beiden Atome A und B geht man von einer Taylor-Entwicklung des Atomabstands $R_{AB}$ um den Gleichgewichtsabstand $R_{AB,0}$ aus:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{str}(R_{AB} - R_{AB,0}) = E_0 + \frac{dE_0}{dR}(R_{AB} - R_{AB,0}) + \frac{1}{2} \frac{d^2E_0}{dR^2}(R_{AB} - R_{AB,0})^2
 \end{align}
@@ -299,7 +299,7 @@ Auch für diese Darstellung der Bindungsenergie benötigt man nur zwei Parameter p
 
 \subsection{Winkelenergie}
 
-Die Winkelenergie für den Winkel zwischen den Atomen A, B und C kann analog zu den Überlegungen für die Bindungsenergie im vorangegangenen Abschnitt als harmonischer Oszillator um den Gleichgewichtswinkel $\theta_{ABC,0}$ beschrieben werden:
+Die Winkelenergie für den Winkel zwischen den Atomen A, B und C kann analog zu den Überlegungen für die Bindungsenergie im vorangegangenen Abschnitt als harmonischer Oszillator um den Gleichgewichtswinkel $\theta_{ABC,0}$ beschrieben werden:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{bend,ABC}(\theta_{ABC}) = k_{ABC} \cdot (\theta_{ABC} - \theta_{ABC,0})^2
 \end{align}
@@ -308,7 +308,7 @@ Als Parameter hat man somit für jede Kombination aus Atomtypen den Gleichgewicht
 
 \subsection{Torsionsenergie}
 
-Die Torsionsenergie für die Atomkombination A-B-C-D beschreibt die Veränderung der Energie bei Drehung um die Bindung B-C, wobei ein Drehwinkel von $\omega = 0$ bedeutet, dass die Atome A und D genau hintereinander liegen, wenn man an der Bindung B-C entlangschaut (siehe Abb.\ref{fig:torsionswinkel}).
+Die Torsionsenergie für die Atomkombination A-B-C-D beschreibt die Veränderung der Energie bei Drehung um die Bindung B-C, wobei ein Drehwinkel von $\omega = 0$ bedeutet, dass die Atome A und D genau hintereinander liegen, wenn man an der Bindung B-C entlangschaut (siehe Abb.\ref{fig:torsionswinkel}).\supercite{jensen_introduction_1998}
 
 \begin{figure}[htb]
 	\centering
@@ -325,7 +325,7 @@ E_{tors}(\omega) = \sum_{n=1} V_n \cos(n\omega)
 Dabei entspricht $n = 1$ einer Periodenlänge von 360°, $n=2$ einer von 180°, $n=3$ einer von 120°, ... und $V_n$ gibt die Höhe der Energiebarriere an, welche für bestimmte $n$ auch Null werden kann, wie die folgenden Beispiele zeigen.\supercite{jensen_introduction_1998}
 \\
 
-Wie auf Abb.{\ref{fig:tors_ethan} zu erkennen, besitzt die Funktion für die Torsionsenergie von Ethan in Abhängigkeit des Torsionswinkels $\omega$ drei Minima, die der gestaffelten Konformation entsprechen, und drei Maxima für die ekliptische Anordnung der Wasserstoffatome. Die Periodenlänge beträgt also 120°, d.h. $V_3 \neq 0$. Da alle Maxima und Minima jeweils die gleiche Höhe haben, wird der Verlauf der Energie durch die Funktion $E_{tors}(\omega) = V_3 \cdot \cos(3n)$ korrekt abgebildet, d.~h. alle anderen Koeffizienten $V_{n \neq 3}$ werden Null.
+Wie in Abb.{\ref{fig:tors_ethan} zu erkennen, besitzt die Funktion für die Torsionsenergie von Ethan in Abhängigkeit des Torsionswinkels $\omega$ drei Minima, die der gestaffelten Konformation entsprechen, und drei Maxima für die ekliptische Anordnung der Wasserstoffatome. Die Periodenlänge beträgt also 120°, d.h. $V_3 \neq 0$. Da alle Maxima und Minima jeweils die gleiche Höhe haben, wird der Verlauf der Energie durch die Funktion $E_{tors}(\omega) = V_3 \cdot \cos(3n)$ korrekt abgebildet, d.~h. alle anderen Koeffizienten $V_{n \neq 3}$ werden Null.
 
 \begin{figure}[htb]
 	\centering
@@ -371,7 +371,7 @@ Für jede mögliche Atomkombination A-B-C-D werden somit maximal drei Parameter $V
 
 \subsection{\textit{Out-of-plane}-Energie}
 
-Eine Form der Verzerrung des Moleküls wird durch die bisher beschriebenen Energieterme nur sehr schlecht abgebildet. Dies ist die Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms B, welches jeweils eine Bindung zu den Atomen A, C und D ausbildet, aus der Ebene, die von diesen drei Atomen aufgespannt wird. Die Barriere für diesen Vorgang ist sehr groß, wohingegen die Winkel $\theta_{ABC}$, $\theta_{ABD}$ und $\theta_{CBD}$ sich kaum ändern, also auch nur eine geringe Erhöhung der Winkelenergie $E_{bend}$ erfolgt.
+Eine Form der Verzerrung des Moleküls wird durch die bisher beschriebenen Energieterme nur sehr schlecht abgebildet. Dies ist die Bewegung eines sp\textsuperscript{2}-hybridisierten Atoms B, welches jeweils eine Bindung zu den Atomen A, C und D ausbildet, aus der Ebene, die von diesen drei Atomen aufgespannt wird. Die Barriere für diesen Vorgang ist sehr groß, wohingegen die Winkel $\theta_{ABC}$, $\theta_{ABD}$ und $\theta_{CBD}$ sich kaum ändern, also auch nur eine geringe Erhöhung der Winkelenergie $E_{bend}$ erfolgt.\supercite{jensen_introduction_1998}
 
 Zur akkuraten energetischen Beschreibung dieses Vorgangs müssen daher weitere Terme $E_{oop}$ eingeführt werden. In den Kraftfeldern AMBER, OPLS und CHARM, die für die Simulation von Proteinen optimiert sind, werden dazu zusätzliche "`improper"' Torsionswinkel $\omega_{ABCD}$ definiert, obwohl zwischen C und D keine Bindung besteht. Liegt Atom B in der Ebene, ist dieser Winkel $\omega_0 = 180°$. Die \textit{Out-of-plane}-Energie kann dann als harmonischer Oszillator um den Gleichgewichtswinkel $\omega_0$ ausgedrückt werden, also:
 \begin{align}
@@ -382,13 +382,17 @@ Die Kraftkonstante $k_{ABCD}$ für jede Atomkombination aus A, B, C und D muss al
 
 \subsection{Energie zwischen unverbundenen Atomen}
 
-Die Wechselwirkung zwischen zwei unverbundenen Atomen A und B setzt sich aus der Summe von elektrostatischer Anziehung bzw. Abstoßung und Van der Waals-Kräften zusammen:
+Die Wechselwirkung zwischen zwei unverbundenen Atomen A und B setzt sich aus der Summe von elektrostatischer Anziehung bzw. Abstoßung und Van der Waals-Kräften zusammen:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{nb} = E_{el} + E_{vdw}
 \end{align}
 
-\vspace{0.5cm}
-\textcolor{red}{\textbf{TODO!!! für welche Atome -> Urey Bradley !!!!}}
+Ein wichtiger Aspekt, den es hierbei zu beachten gilt, ist, welche Atome als "`unverbunden"' gelten, da ja streng genommen alle Atome eines Moleküls durch Bindungen miteinander verknüpft sind. Die meisten Kraftfelder berechnen $E_{nb}$ für Atompaare, zwischen denen drei oder mehr Bindungen liegen, wobei diejenige für 1,4-Paare häufig mit einem Skalierungsfaktor angepasst werden, um der Tatsache Rechnung zu tragen, dass die Wechselwirkung zwischen den betreffenden Atomen auch durch die Torsionsenergie beschrieben wird.\supercite{jensen_introduction_1998}
+
+Einige Kraftfelder, wie beispielsweise CHARM, enthalten zusätzlich ein van der Waals-Potential für 1,3-Atompaare, das als harmonischer Oszillator formuliert wird. Die dadurch hinzugekommene Energie nennt man \textit{Urey-Bradley}-Energie:\supercite{jensen_introduction_1998}\supercite{mackerell_all-atom_1998}
+\begin{align}
+E_{UB}(R_{AB}) = k_{AB} \cdot (R_{AB} - R_{AB,0})^2
+\end{align}
 
 \subsubsection{Elektrostatische Wechselwirkungen}
 
@@ -397,16 +401,16 @@ Die von den meisten Kraftfeldern genutzte Methode, elektrostatische Interaktione
 E_{el}(R_{AB}) = \frac{Q_{A} \cdot Q_{B}}{\epsilon \cdot R_{AB}}
 \end{align}
 
-Dabei werden die Atome als Punktladungen mit Ladung $Q_A$ und $Q_B$ betrachtet, wobei die Ladungen entweder als Parameter im Kraftfeld gespeichert sein können oder für die konkrete Struktur einem berechneten elektrostatischen Potential entnommen sind. $R_{AB}$ entspricht in obiger Formel dem Atomabstand und $\epsilon$ der effektiven dielektrischen Konstanten.\supercite{jensen_introduction_1998}
+Dabei werden die Atome als Punktladungen mit Ladung $Q_A$ und $Q_B$ betrachtet, wobei die Ladungen entweder als Parameter im Kraftfeld gespeichert sein können oder für die konkrete Struktur einem berechneten elektrostatischen Potential entnommen sind. $R_{AB}$ entspricht in obiger Formel dem Atomabstand und $\epsilon$ der effektiven dielektrischen Konstante.\supercite{jensen_introduction_1998}
 
 \subsubsection{Van der Waals-Energie}
 
-Die Van der Waals-Energie ist der Anteil der Wechselwirkungen zwischen zwei unverbundenen Atomen, der sich nicht durch Elektrostatik erklären lässt. Daher spielt sie eine besonders große Rolle bei wenig polaren Molekülen wie reinen Kohlenwasserstoffen. Sie wird oft durch das Lenard-Jones-Potential ausgedrückt:
+Die Van der Waals-Energie ist der Anteil der Wechselwirkungen zwischen zwei unverbundenen Atomen, der sich nicht durch Elektrostatik erklären lässt. Daher spielt sie eine besonders große Rolle bei wenig polaren Molekülen wie reinen Kohlenwasserstoffen. Sie wird oft durch das Lenard-Jones-Potential ausgedrückt:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{vdw}(R_{AB}) = \epsilon_{AB} \left[ \left(\frac{R_{AB,0}}{R_{AB}} \right)^{12} - 2 \left(\frac{R_{AB,0}}{R_{AB}} \right)^6 \right] \label{eq:lenard-jones}
 \end{align}
 
-Wie auf Abb.\ref{fig:lenard-jones} zu sehen, überwiegt bei kleinen Abständen die Abstoßung der beiden Atome aufgrund von Überlappung der Elektronenhülle, die durch den vorderen Term beschrieben wird, sodass die Van der Waals-Energie insgesamt positiv wird. Vergrößert sich der Abstand, dominieren die anziehenden Wechselwirkungen zwischen (induzierten) Dipolen und Quadrupolen, welche dem hinteren Term der Formel entsprechen.\supercite{jensen_introduction_1998}
+Wie in Abb.\ref{fig:lenard-jones} zu sehen, überwiegt bei kleinen Abständen die Abstoßung der beiden Atome aufgrund von Überlappung der Elektronenhülle, die durch den vorderen Term beschrieben wird, sodass die Van der Waals-Energie insgesamt positiv wird. Vergrößert sich der Abstand, dominieren die anziehenden Wechselwirkungen zwischen (induzierten) Dipolen und Quadrupolen, welche dem hinteren Term der Formel entsprechen.\supercite{jensen_introduction_1998}
 
 \begin{figure}[htb]
 	\centering
@@ -415,7 +419,7 @@ Wie auf Abb.\ref{fig:lenard-jones} zu sehen, überwiegt bei kleinen Abständen die
 	\label{fig:lenard-jones}
 \end{figure}
 
-Nach Gleichung \ref{eq:lenard-jones} werden für jedes Atompaar zwei Parameter benötigt: der Gleichgewichtsabstand $R_{AB,0}$ und die Tiefe des Potentialtopfs $\epsilon_{AB}$. Diese werden jedoch in allen Kraftfeldern aus atomaren Parametern berechnet. $\epsilon_{AB}$ wird üblicherweise als geometrisches Mittel aus den Einzelwerten gebildet:
+Nach Gleichung \ref{eq:lenard-jones} werden für jedes Atompaar zwei Parameter benötigt: der Gleichgewichtsabstand $R_{AB,0}$ und die Tiefe des Potentialtopfs $\epsilon_{AB}$. Diese werden jedoch in allen Kraftfeldern aus atomaren Parametern berechnet. $\epsilon_{AB}$ wird üblicherweise als geometrisches Mittel aus den Einzelwerten gebildet:\supercite{jensen_introduction_1998}\supercite{mackerell_empirical_2004}
 \begin{align}
 \epsilon_{AB} = \sqrt{\epsilon_A \cdot \epsilon_b}
 \end{align}
@@ -433,7 +437,7 @@ E_{H-bond}(R_{AH}) = \epsilon_{AH} \left[5 \left(\frac{R_{AH,0}}{R_{AH}}\right)^
 
 \subsection{Kreuzterme}
 
-Mit Hilfe von Kreuztermen werden Kopplungen zwischen den zuvor erläuterten Energieformen berücksichtigt. So besitzt Wasser in seiner energetisch günstigsten Konformation einen Bindungswinkel von 104,5° und eine OH-Bindungslänge von 0,958~\AA. Verkleinert man jedoch den Bindungswinkel, so wird der optimale Bindungsabstand aufgrund der Abstoßung der Protonen größer, vergrößert man den Winkel, sollte sich der optimale Bindungsabstand verkleinern. Um dem Rechnung zu tragen, kann man Kreuzterme einführen, die üblicherweise als Produkte von Taylorexpansionen der einzelnen Koordinaten ausgedrückt werden. Der Term für die Kopplung von Bindungs- und Winkelenergie in H\textsubscript{2}O könnte dann folgendermaßen aussehen:
+Mit Hilfe von Kreuztermen werden Kopplungen zwischen den zuvor erläuterten Energieformen berücksichtigt. So besitzt Wasser in seiner energetisch günstigsten Konformation einen Bindungswinkel von 104,5° und eine OH-Bindungslänge von 0,958~\AA. Verkleinert man jedoch den Bindungswinkel, so wird der optimale Bindungsabstand aufgrund der Abstoßung der Protonen größer, vergrößert man den Winkel, sollte sich der optimale Bindungsabstand verkleinern. Um dem Rechnung zu tragen, kann man Kreuzterme einführen, die üblicherweise als Produkte von Taylorexpansionen der einzelnen Koordinaten ausgedrückt werden. Der Term für die Kopplung von Bindungs- und Winkelenergie in H\textsubscript{2}O könnte dann folgendermaßen aussehen:\supercite{jensen_introduction_1998}
 \begin{align}
 E_{str/bend} = k_{HOH} \cdot (\theta_{HOH} - \theta_{HOH,0}) [(R_{HO} - R_{HO,0}) + (R_{OH} - R_{OH,0})]
 \end{align}
