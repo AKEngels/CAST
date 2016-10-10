@@ -285,7 +285,7 @@ Dabei ist $E_0 = E(R_{AB,0}) = 0$ die Energie am Gleichgewichtsabstand, die per 
 
 In vielen Kraftfeldern, so auch in den zur Simulation von Proteinen häufig verwendeten \mbox{AMBER}, OPLS und CHARM, wird die Taylor-Reihe nach dem quadratischen Term abgebrochen, sodass die Funktion für die Bindungsenergie die Form eines harmonischen Oszillators annimmt: 
 \begin{align}
-E_{str,AB}(R_{AB}) = k_{AB} \cdot (R_{AB} - R_{AB,0})^2
+E_{str}(R_{AB}) = k_{AB} \cdot (R_{AB} - R_{AB,0})^2
 \end{align}
 
 Für jedes Atompaar A und B benötigt man also als Parameter den Gleichgewichtsabstand $R_{AB,0}$ sowie die Kraftkonstante $k_{AB} =  \frac{1}{2} \frac{d^2E_0}{dR^2}$.\supercite{jensen_introduction_1998}
@@ -301,7 +301,7 @@ Auch für diese Darstellung der Bindungsenergie benötigt man nur zwei Parameter p
 
 Die Winkelenergie für den Winkel zwischen den Atomen A, B und C kann analog zu den Überlegungen für die Bindungsenergie im vorangegangenen Abschnitt als harmonischer Oszillator um den Gleichgewichtswinkel $\theta_{ABC,0}$ beschrieben werden:\supercite{jensen_introduction_1998}
 \begin{align}
-E_{bend,ABC}(\theta_{ABC}) = k_{ABC} \cdot (\theta_{ABC} - \theta_{ABC,0})^2
+E_{bend}(\theta_{ABC}) = k_{ABC} \cdot (\theta_{ABC} - \theta_{ABC,0})^2
 \end{align}
 
 Als Parameter hat man somit für jede Kombination aus Atomtypen den Gleichgewichtswinkel $\theta_{ABC,0}$ und die Kraftkonstante $k_{ABC}$. Da die Winkel im chemisch relevanten Energiebereich von ca. 10~kcal/mol nur um wenige Grad fluktuieren, bietet die harmonische Näherung in den allermeisten Fällen eine ausreichende Genauigkeit.\supercite{jensen_introduction_1998}
@@ -387,9 +387,9 @@ Die Wechselwirkung zwischen zwei unverbundenen Atomen A und B setzt sich aus der
 E_{nb} = E_{el} + E_{vdw}
 \end{align}
 
-Ein wichtiger Aspekt, den es hierbei zu beachten gilt, ist, welche Atome als "`unverbunden"' gelten, da ja streng genommen alle Atome eines Moleküls durch Bindungen miteinander verknüpft sind. Die meisten Kraftfelder berechnen $E_{nb}$ für Atompaare, zwischen denen drei oder mehr Bindungen liegen, wobei diejenige für 1,4-Paare häufig mit einem Skalierungsfaktor angepasst werden, um der Tatsache Rechnung zu tragen, dass die Wechselwirkung zwischen den betreffenden Atomen auch durch die Torsionsenergie beschrieben wird.\supercite{jensen_introduction_1998}
+Ein wichtiger Aspekt, den es hierbei zu beachten gilt, ist, welche Atome als "`unverbunden"' gelten, da ja streng genommen alle Atome eines Moleküls durch Bindungen miteinander verknüpft sind. Die meisten Kraftfelder berechnen $E_{nb}$ für Atompaare, zwischen denen drei oder mehr Bindungen liegen, wobei die Beiträge von 1,4-Paaren häufig mit einem Skalierungsfaktor angepasst werden, um der Tatsache Rechnung zu tragen, dass die Wechselwirkung zwischen den betreffenden Atomen auch durch die Torsionsenergie beschrieben wird.\supercite{jensen_introduction_1998}
 
-Einige Kraftfelder, wie beispielsweise CHARM, enthalten zusätzlich ein van der Waals-Potential für 1,3-Atompaare, das als harmonischer Oszillator formuliert wird. Die dadurch hinzugekommene Energie nennt man \textit{Urey-Bradley}-Energie:\supercite{jensen_introduction_1998}\supercite{mackerell_all-atom_1998}
+Einige Kraftfelder, wie beispielsweise CHARM, enthalten zusätzlich ein van der Waals-Potential für 1,3-Atompaare, das als harmonischer Oszillator um den energetisch günstigsten Abstand $R_{AB,0}$ formuliert wird. Die dadurch hinzugekommene Energie nennt man \textit{Urey-Bradley}-Energie ($E_{UB}$):\supercite{jensen_introduction_1998}\supercite{mackerell_all-atom_1998}
 \begin{align}
 E_{UB}(R_{AB}) = k_{AB} \cdot (R_{AB} - R_{AB,0})^2
 \end{align}
