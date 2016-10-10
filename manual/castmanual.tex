@@ -444,10 +444,10 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}
-	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). There is also a third integrator named ``Beeman\_2'' available which is a former version of the Beeman integrator. It is not recommended to use this integrator since no one knows what it is doing. Also some options might not be available for the Beeman\_2 integrator.
+	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). There is also a third integrator named ``Beeman\_2'' available which is a former version of the Beeman integrator. It is not recommended to use this integrator since no one knows what it is doing. Also some options might not be available for the Beeman\_2 integrator.
 	The following variables are used to control the \ac{MD} part of \ac{CAST}:\\~\\
 
-	\begin{tabularx}{\textwidth}{l|X|X}
+\begin{tabularx}{\textwidth}{l|X|X}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
@@ -456,22 +456,22 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
-		\textbf{MDthermostat} & Constant temperature\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}
+		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}
 		 & integer [0] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
 		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
+		\textbf{MDtrackoffset} & ???& ??? \\
 		\textbf{MDsnap} & Number of snapshots & integer [100] \\
 		\textbf{MDsnap\_buffer} & Number of snapshots saved in memory before written to file & integer [50] \\
 		\textbf{MDsnap\_opt} & Optimize snapshots with chosen energy interface\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} & integer [0] \\
 		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & integer, float [0 0.0]\\
 		\textbf{MDpress} & Enable pressure control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0]\\
-		\textbf{MDcompress} & compressibility of the solvent & float [0.000046 (value for water)] 
+		\textbf{MDpcompress} & \ifdevmode \colorbox{red}{i dont know what this is} \fi & float [0.000046 (value for water)] \\
 	\end{tabularx} ~\\ 
 	
 	\begin{tabularx}{\textwidth}{l|X|X}
 		\textbf{MDpdelay} & Barostat delay in picoseconds & float [2.0]\\
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
-		\textbf{MDpcompress} & \ifdevmode \colorbox{red}{i dont know what this is} \fi & float [0.000046 (value for water)] \\
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [0, 20.0, 20.1, 10.0, 10.0, 2.0, 4.0] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds\ifdevmode \item 2 = specific bonds (\textit{see below}) \fi\end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds & string [none] \ifdevmode \colorbox{red}{example or something?} \\
@@ -488,7 +488,7 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 
 	\ifverbose
 	\subsubsection{Heating}
-	Note: The settings for "MDheat" can be applied multiple times. The first number indicates the snapshot number, the second one the desired temperature at this snapshot. During the heating process the thermostat is disabled and a simple velocity scaling is used to heat the system. If the "MDheat" keyword is specified multiple times heating and cooling can be applied sequentially during a single simulation. \ac{CAST} reads the "MDheat" keywords from top to bottom and starts with the first one, finishing with the one on the bottom.\\~\\
+	Note: The settings for "MDheat" can be applied multiple times. The first number indicates the snapshot number, the second one the desired temperature at this snapshot. If the "MDheat" keyword is specified multiple times heating and cooling can be applied sequentially during a single simulation. \ac{CAST} reads the "MDheat" keywords from top to bottom and starts with the first one, finishing with the one on the bottom.\\~\\
 	\begin{lstlisting}
 	MDheat			    0  	  0.0
 	MDheat 			 1000   300.0
@@ -496,6 +496,12 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	MDheat			10000     0.0
 	\end{lstlisting}~\\~\\
 	In the above example the simulation starts at 0 Kelvin and is then heated to 300K within the first 1000 steps. The temperature is kept steady for 4000 steps until step 5000 is reached. Now the system is cooled back to 0 Kelvin during steps 5000 to 10000. The user has to take care that enough total steps are performed for the temperature scaling sequence!\\
+	
+	There are two possible ways for temperature control in CAST: 
+	
+	If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will however be turned off (though it still writes the temperature you expect into the logfile). This can be avoided by using a very low energy gradient for constant temperature for the duration of ``constant'' temperature. Also setting the start temperature to zero will result in an error because there's a division by zero.
+	
+	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. It also works together with ``MDheat'' but it is not completely clear how.\\
 		
 	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
 	

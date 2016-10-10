@@ -497,6 +497,8 @@ MDtimestep             0.001
 
 MDtrack                1
 
+#MDtrackoffset         0
+
 #
 #   Snapshots
 #
@@ -514,6 +516,14 @@ MDsnap_opt             0
 # MDheat               2000   293.15
 
 MDheat                 500  300
+
+# Pressure control
+
+#MDpress               0
+
+#MDpcompress
+#MDpdelay
+#MDptarget
  
 # Spehrical boundaries' options
 # 
@@ -528,6 +538,8 @@ MDheat                 500  300
 # 2                    Specific Hydrogen Bonds
  
 MDrattle               0
+
+#MDrattpar
 
 # Rattle bond specification
 #
@@ -561,13 +573,13 @@ MDrestart_offset       10000
 
 # Iteration offset for structure refinement
 
-MDrestart_offset       100
+#MDrefine_offset       100
 
 # Resume simulation from restart file?
 
 MDresume               0
 
-
+#MDpre_optimize
 
 
 ####################################
