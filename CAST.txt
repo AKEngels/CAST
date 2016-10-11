@@ -69,7 +69,7 @@ amber_mdcrd           min2.rst
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 
-task                  MD
+task                  SP
 
 
 #################################### 
