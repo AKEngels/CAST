@@ -27,6 +27,7 @@ workspace "CAST"
 	filter { "platforms:x86" }
 		architecture "x32"
 	filter { "platforms:x64" }
+    defines { "COMPILEX64"}
 		architecture "x64"
 	filter{}
 
