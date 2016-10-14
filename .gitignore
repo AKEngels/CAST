@@ -20,3 +20,5 @@ optional_files/project/*
 /manual/castmanual.run.xml
 /manual/castmanual.synctex
 /manual/castmanual.toc
+/manual/texput.log
+/manual/castmanual.synctex.gz
