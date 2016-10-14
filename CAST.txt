@@ -37,8 +37,14 @@ outname                DEVTEST
 
 inputtype              AMBER
 
-#coordinate file for amber input
-amber_mdcrd           min2.rst
+### AMBER I/O OPTIONS
+# currently coordinates can only be read from .rst files but the file name has given to amber_mdcrd
+
+amber_mdcrd            min.rst
+#amber_mdvel
+#amber_inpcrd
+#amber_restrt
+#amber_trajectory_at_constant_pressure
 
 
 
@@ -48,10 +54,11 @@ amber_mdcrd           min2.rst
 #                                  #
 ####################################
 
-# SP                   Single point stepcalculation
+# SP                   Single point eneryg calculation
 # GRAD                 Single point energy calculation
 # LOCOPT               Local optimization using Lib-LBFGS
 # MD                   Molecular dynamics simulation
+# GOSOL                Combined Solvation + Global Optimization
 # SOLVADD              Solvation using Solvadd
 # MC                   Monte Carlo
 # CENTER               Center of mass/geometry
@@ -63,13 +70,45 @@ amber_mdcrd           min2.rst
 # INTERACTION          Dividing the Molecule into two parts and calculate the interaction energy
 # RDF                  Radial distribution of water around specified atom groups
 # INTERNAL             Create Z-Matrix
+# STARTOPT
 # UMBRELLA             Umbrella Sampling
 # PROFILE              Repeated Gradient Calculation of first input structure
-# GOSOL                Globally optimized solvation
+# FEP                  Alchemical transformations using FEP
+# ALIGN                Trajectory Alignment (Kabsch algorithm)
+# PCAgen               Principal Component Analysis
+# PCAproc
+# ENTROPY              Configurational and Conformational Entropy Calculations
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# ADJUST
+# GRID
+# PATHOPT
+# PATHSAMPLING
+# REACTIONCOORDINATE
 
-task                  MD
+task                  SP
+
+####################################
+#                                  #
+#        Implicit Solvation        #
+#                                  #
+####################################
+
+# solvmethod : VAC         (default) Vacuum
+#              ONION       Numerical Still method
+#              STILL       Analytical Still method
+#              HCT         HCT method
+#              OBC         OBC method
+#              GRYCUK      Grycuk's method
+#              ACE         ACE method
+# surface    : TINKER      (default) TINKER's accessible surface area calculation
+#              SASASTILL   Still's surface area calculation
+#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
+#
+# ONION should only be combined with GAUSS
+
+solvmethod             VAC
+surface                TINKER
 
 
 #################################### 
@@ -119,6 +158,8 @@ MOPACdelete            1
 #MOPAC executable path
 
 MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
+
+#MOPACversion
 
 
 ####################################
@@ -811,3 +852,143 @@ REMOVEHROT             0
 #ALIGNdih 3 4 5 10 180.0
 #ALIGNdih 4 5 10 11 180.0
 #ALIGNdih 5 10 11 14 180.0
+
+
+####################################
+#                                  #
+#   TRAJECTORY ALIGNMENT OPTIONS   #
+#                                  #
+####################################
+
+# Should alignment be performed?
+traj_align_bool                true
+# Should distance meassures be calculated and printed?
+traj_print_bool                false
+
+
+# Should we align to an external reference structure? If yes, give file name
+align_external_file            reference.xyz
+
+# Reference frame for alignment (using Kabsch algorithm)
+# default is "0"
+ref_frame_num                   110
+
+
+# Desired distance masurement unit for output
+# 0: RMSD (default)
+# 1: dRMSD
+# 2: Hold and Sander Score
+
+dist_unit                       0
+
+# if Holm and Sander Score is chosen, pick value for r_c
+# (contact cutoff distance)
+# default is "20", as in original publication
+
+holm_sand_r0                    5
+
+
+####################################
+#                                  #
+#       ENTROPY-CALC OPTIONS   	   #
+#                                  #
+####################################
+
+# Should alignment (Kabsch algorithm, minimizes RMSD) be performed
+# prior to calculations? (options: false / true; true is default)
+# entropy_ref_frame_num gives reference frame for alignment (default is 0)
+entropy_alignment                 true
+entropy_ref_frame_num             0
+
+# Specify first frame to be used in entropy calculations
+# default is 0
+entropy_start_frame_num           0
+# Specify offset value (only every n'th frame will be used in calculations)
+entropy_offset                    1
+
+# Temperature needed for Entropy etc. calculations in K
+entropy_temp                      300.00
+
+# Should the removal of degrees of freedom for rotation / translation be attempted?
+entropy_remove_dof                true
+
+# Use internal coordinates instead of cartesian coordinates?
+# Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
+# "none" also possible
+entropy_use_internal              false
+entropy_internal_bnd              none
+entropy_internal_ang              none
+entropy_internal_dih              4-23
+
+# Should only specific atoms be used for entropy calculations?
+# (only use with cartesian coordinates)
+entropy_trunc_atoms_bool          false
+entropy_trunc_atoms_num           3,4
+
+# Specify method used in entropy-calculations:
+# 1 : Quasi-Harmonic-Approx., configurational entropy, according to Karplus et. al. (DOI 10.1021/ma50003a019)
+# 2 : Quasi-Harmonic-Approx., conformational entropy, according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)
+# 3 : Quasi-Harmonic-Approx., conformational entropy, according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)
+# 4 : Nearest-Neighbor Nonparametric Method, configurational entropy, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)
+# 5 : Nearest-Neighbor Nonparametric Method - Sum of Marginal Entropies, configurational entropy, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)
+# 6 : Quasi-Harmonic-Approx., conformational entropy, according to Schlitter (use cartesians only)
+# 0 : All of the above
+entropy_method                    0
+# if entropy_method = 3 || 4 || 5 : specify value for k in kNN-Algorithm (default is 4)
+entropy_method_knn_k              4
+
+
+####################################
+#                                  #
+#     	PCAgen OPTIONS             #
+#                                  #
+####################################
+
+# Should alignment (Kabsch algorithm, minimizes RMSD) be performed
+# prior to PCA-Analysis? (options: false / true; true is default)
+# pca_ref_frame_num gives reference frame for alignment (default is 0)
+pca_alignment                 true
+pca_ref_frame_num             0
+
+# Specify first frame to be used in PCA-Analysis
+# default is 0
+pca_start_frame_num           0
+
+# Specify offset value (only every n'th frame will be used in calculations)
+#pca_offset                    1
+
+# Should PCA-Mode-Coordinates and Eigenvalues of the covariance-matrix be written to file?
+# If false, we are expecting to read Eigenvectors and PCA-Modes from a previously CAST-generated file.
+pca_read_vectors              false
+pca_read_modes                false
+
+# Use internal coordinates instead of cartesian coordinates? If yes, should they converted to metric coordinate space?
+# Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
+# "none" also possible. Atom indices start at 0.
+pca_use_internal              true
+pca_internal_dih             5-20
+pca_internal_ignore_hydrogen  false
+
+# Should only specific atoms be used for PCA-Analysis?
+pca_trunc_atoms_bool              true
+pca_trunc_atoms_num              5-50
+pca_trunc_atoms_ignore_hydrogen   false
+
+# Print probability density of generated PCA modes?
+pca_print_probability_density  true
+# If true, specify the number of bins or a bin-width for histogramming the data
+pca_histogram_width              0
+pca_histogram_number_of_bins     42
+pca_dimensions_for_histogramming 1,2
+
+
+####################################
+#                                  #
+#     	PCAproc OPTIONS            #
+#                                  #
+####################################
+
+# Desired range of coordinates as principal components to be written.
+# Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
+proc_desired_start      -5.0
+proc_desired_stop       5.0

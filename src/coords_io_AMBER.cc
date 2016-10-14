@@ -248,36 +248,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       // Now we know some stuff, like how many atoms there are. 
       // So we can start allocating.
 
-	  //Let's save the atom charges
-	  if (currentSectionID == 3u)
-	  {
-		  for (unsigned int countlines = 0u; countlines < std::ceil(float(numberOfAtoms) / 5.f) - 1; countlines++)
-		  {
-			  std::getline(config_file_stream, line);
-			  // A Line has 5 members in this format
-			  for (unsigned int i = 0u; i < 5u; i++)
-			  {
-				  std::string charge_str = line.substr(i * 16u, 16u);
-				  int exponent = std::stoi(charge_str.substr(13u, 3u));
-				  double koeff = std::stod(charge_str.substr(0u, 12u));
-				  charges.push_back(koeff * pow(10,exponent));
-				  
-			  }
-		  }
-		  // read last line if existent
-		  std::getline(config_file_stream, line);
-		  if (line.substr(0, 1) != "%")
-		  {
-			  for (unsigned int i = 0; i < line.size(); i = i + 16)
-			  {
-				  std::string charge_str = line.substr(i * 1u, 16);
-				  int exponent = std::stoi(charge_str.substr(13u, 3u));
-				  double koeff = std::stod(charge_str.substr(0u, 12u));
-				  charges.push_back(koeff * pow(10, exponent));
-			  }
-		  }
-	  }
-
       //If section == BONDS_INC_HYDROGEN
 	  if (currentSectionID == 24u)
 	  {
@@ -548,29 +518,27 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
       {
-		  if (line.size() > 36)
+		  std::string x = line.substr(0, 12);
+		  std::string y = line.substr(12, 12);
+		  std::string z = line.substr(24, 12);
+		  position.x() = std::stod(x);
+		  position.y() = std::stod(y);
+		  position.z() = std::stod(z);
+		  positions.push_back(position);
+
+		  if (line.size() > 36)   // normally two coordinates in one line
 		  {
-			  double tempx(0.0), tempy(0.0), tempz(0.0), tempx_2(0.0), tempy_2(0.0), tempz_2(0.0);
-			  sscanf_s(line.c_str(), "%lf %lf %lf %lf %lf %lf", &tempx, &tempy, &tempz, &tempx_2, &tempy_2, &tempz_2);
-			  position.x() = tempx;
-			  position.y() = tempy;
-			  position.z() = tempz;
-			  positions.push_back(position);
-			  position.x() = tempx_2;
-			  position.y() = tempy_2;
-			  position.z() = tempz_2;
+			  std::string x = line.substr(36, 12);
+			  std::string y = line.substr(48, 12);
+			  std::string z = line.substr(60, 12);
+			  position.x() = std::stod(x);
+			  position.y() = std::stod(y);
+			  position.z() = std::stod(z);
 			  positions.push_back(position);
 		  }
-		  else   // coordinate line only half
-		  {
-			  double tempx(0.0), tempy(0.0), tempz(0.0);
-			  sscanf_s(line.c_str(), "%lf %lf %lf", &tempx, &tempy, &tempz);
-			  position.x() = tempx;
-			  position.y() = tempy;
-			  position.z() = tempz;
-			  positions.push_back(position);
-		  }
+
 	  }
+
 	  // delete the box parameters in the last line if there are some
 	  if (positions.size() == atoms.size() + 2)
 	  {
