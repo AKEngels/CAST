@@ -146,17 +146,10 @@ typedef size_t uint_type;
 #ifndef USE_ARMADILLO
     using base_type::identity;
 #else
-    // Note: It might be smarter to handle this with armadillo's own .eye() function TODO
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
       identity(std::size_t const num_rows, std::size_t const num_cols)
     {
-      mathmatrix r(num_rows, num_cols, T{});
-      auto m = std::min(num_rows, num_cols);
-      for (std::size_t i = 0; i < m; ++i)
-      {
-        r(i, i) = T{ 1 };
-      }
-      return r;
+      return mathmatrix(num_rows, num_cols).eye();
     }
 #endif
 
