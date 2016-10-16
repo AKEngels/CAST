@@ -255,7 +255,7 @@ namespace pca
 		double sum_of_all_variances = 0.0;
 		for (size_t i = 0; i < eigenvalues.rows(); i++)
 		{
-			sum_of_all_variances += eigenvalues(i);
+			sum_of_all_variances += eigenvalues(i, 0u);
 		}
 
 		std::cout << "Working with " << modes.rows() << " dimensions.\n";

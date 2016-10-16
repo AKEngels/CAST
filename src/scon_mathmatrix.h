@@ -16,7 +16,6 @@ USAGE CONVENTIONS AS FOLLOWS:
 mathmatrix(xyz, atom_nr) for mathmatrix of one frame in cartesian coordiantes
 mathmatrix(dist/angle/dihedral, atom_nr) for mathmatrix of one frame in internal coordiantes
 mathmatrix(coords, frames)
-mathmatrix(foo,1) == mathmatrix(foo) for single row vectors and such
 
 */
 
@@ -107,7 +106,6 @@ typedef size_t uint_type;
     mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
 #else
     mathmatrix() : arma::Mat<T>() {};
-    mathmatrix(size_t rows) : arma::Mat<T>(rows, 1u) {};
     mathmatrix(size_t rows, size_t cols) : arma::Mat<T>(rows, cols) {};
     mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) {};
     mathmatrix(size_t rows, size_t cols, T fill) : arma::Mat<T>(rows, cols)
@@ -138,6 +136,7 @@ typedef size_t uint_type;
     // element access
     using base_type::operator();
     using base_type::operator[];
+
 #ifndef USE_ARMADILLO
     using base_type::operator*=;
 #endif
@@ -155,7 +154,7 @@ typedef size_t uint_type;
 
     // in case you are wondering:
     // transposed and some more stuff is available as free functions
-    // eg transpose(). We should really decoment the relevant stuff here...
+    // eg transpose().
 
 		/////////////////////////////////////
 		/////                           /////
@@ -173,7 +172,6 @@ typedef size_t uint_type;
 			{
 				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
 			}
-
       arma::Mat<T> const& base_this = *this;
       arma::Mat<T> const& base_in = in;
       return (mathmatrix(   base_this + base_in    ));
@@ -557,8 +555,7 @@ typedef size_t uint_type;
 			//Check if sizes match
 			if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
 			{
-        std::cout << "Error in Matrix mathmatrix subtraction, wrong input sizes" << std::endl;
-				throw ("Error in Matrix mathmatrix subtraction, wrong input sizes");
+				throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
 			}
 			mathmatrix output = *this;
 			for (unsigned int i = 0; i < this->rows(); i++)
@@ -1205,11 +1202,6 @@ typedef size_t uint_type;
 
 #else
   using namespace scon;
-  //namespace detail
-  //{
-  //  template<class T>
-  //  struct is_matrix<mathmatrix<T>> : std::true_type {};
-  //}
 
   template<class T, class U = T>
   typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
