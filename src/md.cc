@@ -1155,7 +1155,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		if (Config::get().md.set_active_center == 1 && k != 0)
 		{     // calculate temperature only for atoms inside inner cutoff
 			updateEkin_some_atoms(inner_atoms);
-			int dof = 3 * inner_atoms.size();
+			size_t dof = 3u * inner_atoms.size();
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;
 	    }
@@ -1187,7 +1187,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  inner_atoms.clear();  
 	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 	  { 
-		  V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
+		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
 	  }
 
       if (Config::get().general.verbosity > 149)
@@ -1201,7 +1201,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     }
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) //calculate active center and new distances to active center for every step
 	{
-		distances = init_active_center(k);
+		distances = init_active_center(static_cast<int>(k));
 	}
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
@@ -1229,7 +1229,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       V[i] += acceleration*dt_2;
 	  if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
 	  {
-		  V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);  
+		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
 	  }
     }
 	if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
@@ -1255,7 +1255,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		if (Config::get().md.set_active_center == 1)
 		{      // calculate temperature only for atoms inside inner cutoff
 			updateEkin_some_atoms(inner_atoms);
-			int dof = 3 * inner_atoms.size();
+			size_t dof = 3u * inner_atoms.size();
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;
 		}
@@ -1273,7 +1273,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  if (Config::get().md.set_active_center == 1)
 	  {      // calculate temperature only for atoms inside inner cutoff
 		  updateEkin_some_atoms(inner_atoms);
-		  int dof = 3 * inner_atoms.size();
+		  size_t dof = 3u * inner_atoms.size();
 		  double T_factor = (2.0 / (dof*md::R));
 		  temp = E_kin*T_factor;
 		  updateEkin();
@@ -1395,7 +1395,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			if (Config::get().md.set_active_center == 1 && k != 0)
 			{     // calculate temperature only for atoms inside inner cutoff
 				updateEkin_some_atoms(inner_atoms);
-				int dof = 3 * inner_atoms.size();
+				size_t dof = 3u * inner_atoms.size();
 				double T_factor = (2.0 / (dof*md::R));
 				temp = E_kin*T_factor;
 			}
@@ -1429,7 +1429,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			inner_atoms.clear();
 			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 			{
-				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
+				V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
 			}
 
 			if (Config::get().general.verbosity > 149)
@@ -1442,7 +1442,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		}
 		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
 		{
-			distances = init_active_center(k);  //calculate active center and new distances to active center for every step
+			distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
 		}
 		// Apply first part of RATTLE constraints if requested
 		if (CONFIG.rattle.use) rattle_pre();
@@ -1477,7 +1477,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
 			if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
 			{
-				V[i] = adjust_velocities(i, inner_cutoff, outer_cutoff);
+				V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
 			}
 		}
 		if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
@@ -1504,7 +1504,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			if (Config::get().md.set_active_center == 1)
 			{      // calculate temperature only for atoms inside inner cutoff
 				updateEkin_some_atoms(inner_atoms);
-				int dof = 3 * inner_atoms.size();
+				size_t dof = 3u * inner_atoms.size();
 				double T_factor = (2.0 / (dof*md::R));
 				temp = E_kin*T_factor;
 			}
@@ -1522,7 +1522,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			if (Config::get().md.set_active_center == 1)
 			{      // calculate temperature only for atoms inside inner cutoff
 				updateEkin_some_atoms(inner_atoms);
-				int dof = 3 * inner_atoms.size();
+				size_t dof = 3u * inner_atoms.size();
 				double T_factor = (2.0 / (dof*md::R));
 				temp = E_kin*T_factor;
 				updateEkin();
