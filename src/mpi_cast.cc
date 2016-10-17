@@ -58,7 +58,7 @@ cmpi::CMPI::~CMPI (void)
   if (CMPI::init_done && CMPI::instances == 0) MPI_Finalize();
 }
 
-void cmpi::CMPI::send (void const * data, int size, MPI_Datatype type, int dest, int tag) const
+void cmpi::CMPI::send (void * data, int size, MPI_Datatype type, int dest, int tag) const
 {
   perform_checked(MPI_Send(data, size, type, dest, tag, m_client), "ERR_MPI_Send : ");
 }
@@ -72,7 +72,7 @@ namespace cmpi
 {
 
   /*
-  SEND AND RECIEVE VECTORS
+   SEND AND RECIEVE VECTORS
   */
 
 
@@ -111,7 +111,7 @@ namespace cmpi
   template<>
   void CMPI::send<int> (std::vector<int> &data_vector, int dest, int tag) const
   {
-    if (data_vector.size() > long long(INT_MAX)) throw std::runtime_error("ERR_MPI_SEND_INT_VECTOR_TOO_LARGE");
+    if (data_vector.size() >  static_cast<long>(INT_MAX)) throw std::runtime_error("ERR_MPI_SEND_INT_VECTOR_TOO_LARGE");
     send(data_vector.data(), static_cast<int>(data_vector.size()), MPI_INT, dest, tag);
   }
   template<>
