@@ -1,5 +1,5 @@
 #include "energy_int_terachem.h"
-#define USE_MPI
+
 #if defined(USE_MPI)
 
 #include <vector>
