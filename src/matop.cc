@@ -270,18 +270,15 @@ namespace matop
       }
 
       std::getline(pca_modes_stream, line);
-      eigenvectors.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
+      eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
       for (size_t i = 0u; i < eigenvectors.rows(); i++)
       {
         std::getline(pca_modes_stream, line);
-        size_t whitespace = 0u, lastWhitespace = 0u;
         for (size_t j = 0u; j < eigenvectors.cols(); j++)
         {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          eigenvectors(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
+          std::string number = line.substr(j * 16u, 16u);
+          eigenvectors(i, j) = stod(number);
         }
       }
       std::getline(pca_modes_stream, line);
@@ -289,7 +286,7 @@ namespace matop
       std::getline(pca_modes_stream, line);
       std::getline(pca_modes_stream, line);
       std::getline(pca_modes_stream, line);
-      trajectory.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
+      trajectory.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
       for (size_t i = 0u; i < trajectory.rows(); i++)
       {
@@ -297,10 +294,8 @@ namespace matop
         size_t whitespace = 0u, lastWhitespace = 0u;
         for (size_t j = 0u; j < trajectory.cols(); j++)
         {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          trajectory(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
+          std::string number = line.substr(j * 16u, 16u);
+          trajectory(i, j) = stod(number);
         }
       }
       //Additional options following:
