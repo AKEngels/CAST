@@ -1045,7 +1045,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 		}
 		summe_coords_act_center += atom_coords;
 	}
-	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / coords_act_center.size();
+	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / double(coords_act_center.size());
 
 	if (VERBOSE > 3 && counter % split == 0)
 	{
