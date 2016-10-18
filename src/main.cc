@@ -648,6 +648,7 @@ int main(int argc, char **argv)
 		    if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
 		    {
 		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          pcaptr->writePCAModesFile("pca_modes.dat");
 		    }
         // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
 		    else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
@@ -666,7 +667,7 @@ int main(int argc, char **argv)
 		    }
 
         // If modes or vectors have changed, write them to new file
-        if(Config::get().PCA.pca_read_modes || Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+        if(Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
         // Create Histograms
         // ATTENTION: This function read from Config::PCA
