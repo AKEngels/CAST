@@ -65,22 +65,26 @@ namespace pca
 				if (Config::get().general.verbosity > 2U) std::cout << "Using all cartesian coordinates.\n";
 				Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>(coords.atoms().size());
 				// Fill with 0, 1, 2,..., .
-				std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 1);
+				std::iota(std::begin(Config::set().PCA.pca_trunc_atoms_num), std::end(Config::set().PCA.pca_trunc_atoms_num), 0);
 			}
 			else if (Config::get().general.verbosity > 2U) std::cout << "Using truncated cartesian coordinates.\n";
 			if (Config::get().PCA.pca_ignore_hydrogen)
 			{
 				if (Config::get().general.verbosity > 2U) std::cout << "Excluding hydrogen atoms.\n";
 				int sizeOfVector = static_cast<int>(Config::get().PCA.pca_trunc_atoms_num.size());
+
 				for (int i = 0u; i < sizeOfVector; i++)
 				{
-					if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i] - 1).number() == 1u)
+					if (coords.atoms().atom(Config::get().PCA.pca_trunc_atoms_num[i]).number() == 1u)
 					{
 						Config::set().PCA.pca_trunc_atoms_num.erase(Config::set().PCA.pca_trunc_atoms_num.begin() + i);
 						sizeOfVector--;
 						i--;
 					}
 				}
+
+        if (coords.atoms().size() != Config::get().PCA.pca_trunc_atoms_num.size())
+          Config::set().PCA.pca_trunc_atoms_bool = true;
 			}
 			matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
 				((ci->size() - Config::get().PCA.pca_start_frame_num) / \

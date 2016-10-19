@@ -213,7 +213,7 @@ namespace matop
           bool checker = false;
           for (size_t l = quicksearch; l < includedAtoms.size(); l++) //iterate over vector of atoms to account for
           {
-            if (includedAtoms[l] - 1 == i)
+            if (includedAtoms[l] == i)
             {
               checker = true;
               quicksearch++;
@@ -238,7 +238,6 @@ namespace matop
           {
             for (size_t k = 0; k < 3; k++)
             {
-              //transformed_matrix(0, j + k) = input(k, i);
               transformed_matrix(0, j + 0u) = coords.xyz(i).x();
               transformed_matrix(0, j + 1u) = coords.xyz(i).y();
               transformed_matrix(0, j + 2u) = coords.xyz(i).z();
@@ -1134,8 +1133,7 @@ void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& c
     }
   }
 
-  if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
-  if (Config::get().general.verbosity > 2u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
+  if (Config::get().general.verbosity > 1u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\nWorking..." << std::endl;
 
   //Undoing PCA
   trajectory = eigenvectors * trajectory;
