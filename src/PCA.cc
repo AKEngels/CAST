@@ -484,7 +484,7 @@ namespace pca
 
       if (tokens.size() == 0u)
       {
-        tokens.resize(structuresToBeWrittenToFile.size());
+        tokens.resize(coords.atoms().size());
         std::iota(std::begin(tokens), std::end(tokens), 0);
       }
 
