@@ -183,7 +183,7 @@ namespace pca
       std::getline(pca_modes_stream, line);
       for (size_t j = 0u; j < eigenvectors.cols(); j++)
       {
-        std::string number = line.substr(j * 16u, 16u);
+        std::string number = line.substr(j * 19u, 19u);
         eigenvectors(i, j) = stod(number);
       }
     }
@@ -219,7 +219,7 @@ namespace pca
       std::getline(pca_modes_stream, line);
       for (size_t j = 0u; j < modes.cols(); j++)
       {
-        std::string number = line.substr(j * 16u, 16u);
+        std::string number = line.substr(j * 19u, 19u);
         modes(i, j) = stod(number);
       }
     }

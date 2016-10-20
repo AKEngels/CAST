@@ -210,7 +210,7 @@ typedef size_t uint_type;
       {
         for (size_t j = 0u; j < object.cols(); ++j)
         {
-          os << std::setw(15) << std::scientific << std::left << std::setprecision(8) << object(i, j) << " ";
+          os << std::setw(18) << std::scientific << std::left << std::setprecision(8) << object(i, j) << " ";
         }
         os << "\n";
       }
