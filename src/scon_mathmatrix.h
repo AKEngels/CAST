@@ -206,7 +206,6 @@ typedef size_t uint_type;
 
     friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
     {
-      std::cout << "Using new ostream horraaay!!!! \n";
       for (size_t i = 0u; i < object.rows(); ++i)
       {
         for (size_t j = 0u; j < object.cols(); ++j)
