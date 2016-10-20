@@ -175,20 +175,18 @@ namespace pca
 		}
 
 		std::getline(pca_modes_stream, line);
-		eigenvectors.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
 
-		for (size_t i = 0u; i < eigenvectors.rows(); i++)
-		{
-			std::getline(pca_modes_stream, line);
-			size_t whitespace = 0u, lastWhitespace = 0u;
-			for (size_t j = 0u; j < eigenvectors.cols(); j++)
-			{
-				lastWhitespace = whitespace;
-				whitespace = line.find(" ", lastWhitespace + 1u);
+    eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
-				eigenvectors(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-			}
-		}
+    for (size_t i = 0u; i < eigenvectors.rows(); i++)
+    {
+      std::getline(pca_modes_stream, line);
+      for (size_t j = 0u; j < eigenvectors.cols(); j++)
+      {
+        std::string number = line.substr(j * 16u, 16u);
+        eigenvectors(i, j) = stod(number);
+      }
+    }
 
 	}
 
@@ -214,20 +212,17 @@ namespace pca
 		std::getline(pca_modes_stream, line);
 		std::getline(pca_modes_stream, line);
 		std::getline(pca_modes_stream, line);
-		this->modes.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
+    modes.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
-		for (size_t i = 0u; i < this->modes.rows(); i++)
-		{
-			std::getline(pca_modes_stream, line);
-			size_t whitespace = 0u, lastWhitespace = 0u;
-			for (size_t j = 0u; j < this->modes.cols(); j++)
-			{
-				lastWhitespace = whitespace;
-				whitespace = line.find(" ", lastWhitespace + 1u);
-
-				this->modes(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-			}
-		}
+    for (size_t i = 0u; i < modes.rows(); i++)
+    {
+      std::getline(pca_modes_stream, line);
+      for (size_t j = 0u; j < modes.cols(); j++)
+      {
+        std::string number = line.substr(j * 16u, 16u);
+        modes(i, j) = stod(number);
+      }
+    }
 	}
 
 	void PrincipalComponentRepresentation::writePCAModesFile(std::string const& filename)
@@ -334,8 +329,8 @@ namespace pca
 
 	PrincipalComponentRepresentation::PrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
 	{
+    this->readEigenvectors(filenameOfPCAModesFile);
 		this->readModes(filenameOfPCAModesFile);
-		this->readEigenvectors(filenameOfPCAModesFile);
 	}
 
   void PrincipalComponentRepresentation::writeStocksDelta(std::string const& filename)
@@ -378,6 +373,276 @@ namespace pca
         }
         stream << "------------------------------\n";
       }
+    }
+  }
+
+  ProcessedPrincipalComponentRepresentation::ProcessedPrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)
+    : PrincipalComponentRepresentation(filenameOfPCAModesFile)
+  {
+    this->readAdditionalInformation(filenameOfPCAModesFile);
+    this->restoreCoordinatesMatrix();
+  }
+
+  void ProcessedPrincipalComponentRepresentation::readAdditionalInformation(std::string const& filename)
+  {
+    std::ifstream pca_modes_stream(filename, std::ios::in);
+    std::string line;
+    std::getline(pca_modes_stream, line);
+    //int dimensions = std::stoi(line.substr(13, 2));
+    while (line.find("Eigenvectors") == std::string::npos)
+    {
+      std::getline(pca_modes_stream, line);
+    }
+
+    std::getline(pca_modes_stream, line);
+    size_t vec_rows = static_cast<size_t>(stoi(line.substr(7, 16)));
+    size_t vec_cols = static_cast<size_t>(stoi(line.substr(20, 10)));
+
+    //eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+
+    for (size_t i = 0u; i < vec_rows; i++)
+    {
+      std::getline(pca_modes_stream, line);
+    }
+    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);
+    std::getline(pca_modes_stream, line);
+
+    //trajectory.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
+    size_t traj_rows = static_cast<size_t>(stoi(line.substr(7, 16)));
+    size_t traj_cols = static_cast<size_t>(stoi(line.substr(20, 10)));
+
+
+    for (size_t i = 0u; i < traj_rows; i++)
+    {
+      std::getline(pca_modes_stream, line);
+    }
+    //Additional options following:
+
+    if (std::getline(pca_modes_stream, line))
+    {
+      std::getline(pca_modes_stream, line);
+      if (std::getline(pca_modes_stream, line))
+      {
+        additionalInformation = line;
+      }
+      else
+      {
+        std::cout << "Could not read additional Information from pca_modes file.\n";
+      }
+    }
+  }
+
+  void ProcessedPrincipalComponentRepresentation::determineStructures(std::unique_ptr<coords::input::format>& ci, ::coords::Coordinates& coords)
+  {
+    if (Config::get().PCA.proc_desired_start.size() > modes.rows() || Config::get().PCA.proc_desired_stop.size() > modes.rows())
+    {
+      std::cout << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
+    }
+
+    for (size_t j = 0u; j < coordinatesMatrix.cols(); j++)
+    {
+      bool isStructureInRange = true;
+      for (size_t i = 0u; i < modes.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
+
+      {
+        if (i < Config::get().PCA.proc_desired_start.size())
+        {
+          if (modes(i, j) < Config::get().PCA.proc_desired_start[i])
+          {
+            isStructureInRange = false;
+          }
+        }
+        if (i < Config::get().PCA.proc_desired_stop.size())
+        {
+          if (modes(i, j) > Config::get().PCA.proc_desired_stop[i])
+          {
+            isStructureInRange = false;
+          }
+        }
+      }
+      if (isStructureInRange)
+      {
+        structuresToBeWrittenToFile.push_back(j);
+      }
+    }
+
+    if (Config::get().general.verbosity > 1u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\nWorking..." << std::endl;
+
+    // Case: Cartesian Coordinates.
+    if (additionalInformation.substr(0, 3) == "car")
+    {
+      //Additional Information Processing -> Read "DOFS that were used" from file. Put their identifying numbers in vector.
+      std::stringstream ss(additionalInformation.substr(4));
+      std::string buffer;
+      std::vector<size_t> tokens;
+      std::deque<bool> alreadyFoundStructures(ci->size(), false);
+
+      while (ss >> buffer) tokens.push_back((size_t)std::stoi(buffer));
+
+      if (tokens.size() == 0u)
+      {
+        tokens.resize(structuresToBeWrittenToFile.size());
+        std::iota(std::begin(tokens), std::end(tokens), 0);
+      }
+
+      if (tokens.size() != 0u)
+      {
+        ::matop::undoMassweight(coordinatesMatrix, coords, false, tokens);
+        for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+        {
+          Matrix_Class out_mat(3, coordinatesMatrix.rows() / 3u);
+          for (size_t j = 0u; j < coordinatesMatrix.rows(); j = j + 3)
+          {
+            out_mat(0, j / 3u) = coordinatesMatrix(j, structuresToBeWrittenToFile[i]);
+            out_mat(1, j / 3u) = coordinatesMatrix(j + 1u, structuresToBeWrittenToFile[i]);
+            out_mat(2, j / 3u) = coordinatesMatrix(j + 2u, structuresToBeWrittenToFile[i]);
+          }
+          coords::Coordinates current(coords);
+
+          // For every partial (truncated) structure that is inside the user-defined
+          // range regarding its PCA-Modes,
+          // we now search the matching full structure in the input trajectory.
+          bool structureFound = false;
+          auto structureCartesian = ci->PES()[0].structure.cartesian;
+          int structureNumber = -1;
+
+          for (size_t k = 0u; k < ci->size() && !structureFound; k++)
+          {
+            if (alreadyFoundStructures[k]) continue;
+
+            structureCartesian = ci->PES()[k].structure.cartesian; //Current structure
+            structureFound = true;
+            structureNumber = (int)k;
+            // Remeber, we are now iterating over certain atoms (those to which
+            // the PCA was truncated.
+            for (size_t l = 0u; l < tokens.size(); l++)
+            {
+              // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
+              // is very small, the arbitrary cutoff 2e-4), consider it a match.
+              // However, we look for "not-matching" and break the loop. If everything matches, we continue.
+              // Thats why we negate the criterion in the if clause (!)
+              float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
+              float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
+              float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].z()), 2e-4);
+
+              if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l]].x()) <= xCompare &&
+                std::abs(out_mat(1, l) - structureCartesian[tokens[l]].y()) <= yCompare &&
+                std::abs(out_mat(2, l) - structureCartesian[tokens[l]].z()) <= zCompare))
+              {
+                structureFound = false;
+                break;
+              }
+            }
+          }
+          if (structureFound)
+          {
+            this->foundStructures.push_back(ci->PES()[structureNumber]);
+            alreadyFoundStructures[structureNumber] = true;
+          }
+          else
+          {
+            std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
+            std::cout << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
+          }
+        }
+      }
+    }
+
+    // Case: Internal Coordiantes
+    else if (additionalInformation.substr(0, 3) == "int")
+    {
+      // [0]: bond distance tokens, [1]: bond angle tokens [2]: dihedrals tokens.
+      // Here we keep track of which DOFs are to be considered
+      std::deque<bool> tokens(coords.atoms().size(), false);
+      std::deque<bool> alreadyFoundStructures(ci->size(), false);
+
+      //Additional Information Processing -> Read "DOFS that were used" from file. Store in "tokens".
+      std::stringstream ss(additionalInformation.substr(4));
+      std::string buffer;
+      // Read the additional information
+      while (ss >> buffer)
+      {
+        if (buffer.substr(0, 1) == "d") tokens[(size_t)std::stoi(buffer.substr(1))] = true;
+      }
+
+      // This is gonna be complicated. Im sorry.
+      // Iterate over structures chosen from PCA-Ensemble
+      for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
+      {
+        bool structureFound = false;
+        //auto structureCartesian = ci->PES()[0].structure.cartesian;
+        int structureNumber = -1;
+
+        //Iterate over input strucutures -> find matching structure
+        for (size_t k = 0u; k < ci->size() && !structureFound; k++)
+        {
+          if (alreadyFoundStructures[k]) continue;
+          coords.set_internal(ci->PES()[k].structure.intern);
+          size_t quicksearch = 0u;
+          structureFound = true;
+          structureNumber = (int)k;
+          //Iterating over atoms, see if they all match
+          for (size_t j = 0u; j < tokens.size(); j++)
+          {
+            // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
+            // However, we look for "not-matching" and break the loop. If everything matches, we continue.
+            // Thats why we negate the criterion in the if clause (!)
+            if (tokens[j] == true)
+            {
+              float_type compareFromPCA1 = coordinatesMatrix(quicksearch, structuresToBeWrittenToFile[i]);
+              float_type compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
+              float_type compareFromPCA2 = coordinatesMatrix(quicksearch + 1u, structuresToBeWrittenToFile[i]);
+              float_type compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
+              bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
+                || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
+              bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
+                || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
+              //If structures did not match
+              if (!(found1 && found2))
+              {
+                structureFound = false;
+                break;
+              }
+              quicksearch += 2u;
+            }
+          }
+          //If match was found, store it.
+          if (structureFound)
+          {
+            alreadyFoundStructures[structureNumber] = true;
+            //coords.set_pes(ci->PES()[k]);
+            foundStructures.push_back(ci->PES()[k]);
+            //outstream << coords;
+          }
+        }
+        if (!structureFound)
+        {
+          throw std::runtime_error(
+            "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\nYou probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n"
+            );
+        }
+      }
+    }
+  }
+
+  void ProcessedPrincipalComponentRepresentation::restoreCoordinatesMatrix()
+  {
+    //Undoing PCA
+    this->coordinatesMatrix = eigenvectors * modes;
+  }
+  void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)
+  {
+    std::ofstream outstream(coords::output::filename(filenameExtension).c_str(), std::ios::app);
+    coords::Coordinates coords(coord_in);
+
+    for (size_t i = 0u; i < this->foundStructures.size(); ++i)
+    {
+      coords.set_pes(this->foundStructures[i]);
+      coords.to_internal();
+      outstream << coords;
     }
   }
 }

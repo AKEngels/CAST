@@ -689,7 +689,9 @@ int main(int argc, char **argv)
          * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
          * see also: Task PCAgen
          */
-        pca_proc(ci, coords);
+        pca::ProcessedPrincipalComponentRepresentation pcaproc("pca_modes.dat");
+        pcaproc.determineStructures(ci, coords);
+        pcaproc.writeDeterminedStructures(coords);
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
