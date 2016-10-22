@@ -3,6 +3,10 @@ namespace pca
 {
 	void PrincipalComponentRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
 	{
+    // Tell 'em what we are gonna do:
+    if (Config::get().general.verbosity > 2u)
+      std::cout << "Generating new coordinate matrix from input trajectory according to options in the Inputfile." << std::endl;
+
 		Matrix_Class matrix_aligned;
 
 		//First, adjust number of truncated atoms to be used to zero, in case truncation is not to be used (duh)
@@ -138,6 +142,10 @@ namespace pca
 
 	void PrincipalComponentRepresentation::generatePCAEigenvectorsFromCoordinates()
 	{
+    // Tell 'em what we are gonna do:
+    if (Config::get().general.verbosity > 2u)
+      std::cout << "Generating PCA Eigenvectors from coordinate matrix." << std::endl;
+
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
 		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
@@ -157,12 +165,16 @@ namespace pca
 
 	void PrincipalComponentRepresentation::generatePCAModesFromPCAEigenvectorsAndCoordinates()
 	{
+    // Tell 'em what we are gonna do:
+    if (Config::get().general.verbosity > 2u)
+      std::cout << "Generating PCA modes from coordinate matrix and PCA Eigenvectors." << std::endl;
+
 		this->modes = transposed(eigenvectors) * this->coordinatesMatrix;
 	}
 	
 	void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
 	{
-		if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file pca_modes.dat .\n";
+		if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file" << filename << "." << std::endl;
 		std::string iAmNotImportant_YouMayDiscardMe;
 		std::ifstream pca_modes_stream(filename, std::ios::in);
 		std::string line;
@@ -190,10 +202,10 @@ namespace pca
 
 	void PrincipalComponentRepresentation::readModes(std::string const& filename)
 	{
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file" << filename << "." << std::endl;
 		std::ifstream pca_modes_stream(filename, std::ios::in);
 		std::string line;
 		std::getline(pca_modes_stream, line);
-		//int dimensions = std::stoi(line.substr(13, 2));
 		while (line.find("Eigenvectors") == std::string::npos)
 		{
 			std::getline(pca_modes_stream, line);
@@ -247,7 +259,7 @@ namespace pca
 
 		///////////////////////////////////////
 
-		if (Config::get().general.verbosity > 2U) std::cout << "Writing PCA modes, eigenvalues and eigenvectors to file.\n";
+		if (Config::get().general.verbosity > 2U) std::cout << "Writing PCA modes, eigenvalues and eigenvectors to file " << filename << "." << std::endl;
 
 		double sum_of_all_variances = 0.0;
 		for (size_t i = 0; i < eigenvalues.rows(); i++)
@@ -299,7 +311,9 @@ namespace pca
 				throw "Error in output of probability density, exiting.\n You need to specify either a number of histogram bins or a bin width in the inputfile.\n";
 			}
 
-			std::cout << "Starting: Histogramming...";
+      if (Config::get().general.verbosity > 2U)
+        std::cout << "Writing histogrammed probability density to file " << filename << "." << std::endl;
+
 			//Filling the histogram
 			for (size_t j = 0u; j < modes.cols(); j++)
 			{
@@ -333,6 +347,10 @@ namespace pca
 
   void PrincipalComponentRepresentation::writeStocksDelta(std::string const& filename)
   {
+    if (Config::get().general.verbosity > 2U) 
+      std::cout << "Writing Stock's delta to file " << filename << "." << std::endl;
+
+
     std::ofstream stream(filename, std::ios::out);
     stream << "Stock's Delta; see DOI 10.1063/1.2746330\n\n";
     if (Config::get().PCA.pca_use_internal)
@@ -383,6 +401,7 @@ namespace pca
 
   void ProcessedPrincipalComponentRepresentation::readAdditionalInformation(std::string const& filename)
   {
+
     std::ifstream pca_modes_stream(filename, std::ios::in);
     std::string line;
     std::getline(pca_modes_stream, line);
@@ -631,6 +650,7 @@ namespace pca
     //Undoing PCA
     this->coordinatesMatrix = eigenvectors * modes;
   }
+
   void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)
   {
     std::ofstream outstream(coords::output::filename(filenameExtension).c_str(), std::ios::app);
