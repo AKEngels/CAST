@@ -164,11 +164,9 @@ namespace pca
 	{
 		if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file pca_modes.dat .\n";
 		std::string iAmNotImportant_YouMayDiscardMe;
-		//readEigenvectorsAndModes(eigenvectors, pca_modes, iAmNotImportant_YouMayDiscardMe);
 		std::ifstream pca_modes_stream(filename, std::ios::in);
 		std::string line;
 		std::getline(pca_modes_stream, line);
-		//int dimensions = std::stoi(line.substr(13, 2));
 		while (line.find("Eigenvectors") == std::string::npos)
 		{
 			std::getline(pca_modes_stream, line);
