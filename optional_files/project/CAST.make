@@ -15,7 +15,7 @@ ifeq ($(config),debug_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_debug.exe
   OBJDIR = obj/x86/Debug
-  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS
+  DEFINES += -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -42,7 +42,7 @@ ifeq ($(config),debug_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_debug.exe
   OBJDIR = obj/x64/Debug
-  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS
+  DEFINES += -DCOMPILEX64 -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -69,7 +69,7 @@ ifeq ($(config),release_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_release.exe
   OBJDIR = obj/x86/Release
-  DEFINES +=
+  DEFINES += -DUSE_MPI
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -96,7 +96,7 @@ ifeq ($(config),release_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_release.exe
   OBJDIR = obj/x64/Release
-  DEFINES +=
+  DEFINES += -DCOMPILEX64 -DUSE_MPI
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -123,7 +123,7 @@ ifeq ($(config),testing_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_testing.exe
   OBJDIR = obj/x86/Testing
-  DEFINES += -DGOOGLE_MOCK
+  DEFINES += -DUSE_MPI -DGOOGLE_MOCK
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -150,7 +150,7 @@ ifeq ($(config),testing_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_testing.exe
   OBJDIR = obj/x64/Testing
-  DEFINES += -DGOOGLE_MOCK
+  DEFINES += -DCOMPILEX64 -DUSE_MPI -DGOOGLE_MOCK
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -177,7 +177,7 @@ ifeq ($(config),armadillo_release_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
   OBJDIR = obj/x86/Armadillo_Release
-  DEFINES += -DUSE_ARMADILLO
+  DEFINES += -DUSE_MPI -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -204,7 +204,7 @@ ifeq ($(config),armadillo_release_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
   OBJDIR = obj/x64/Armadillo_Release
-  DEFINES += -DUSE_ARMADILLO
+  DEFINES += -DCOMPILEX64 -DUSE_MPI -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -231,7 +231,7 @@ ifeq ($(config),armadillo_debug_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
   OBJDIR = obj/x86/Armadillo_Debug
-  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  DEFINES += -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -258,7 +258,7 @@ ifeq ($(config),armadillo_debug_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
   OBJDIR = obj/x64/Armadillo_Debug
-  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  DEFINES += -DCOMPILEX64 -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)

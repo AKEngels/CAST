@@ -27,6 +27,7 @@ workspace "CAST"
 	filter { "platforms:x86" }
 		architecture "x32"
 	filter { "platforms:x64" }
+    defines { "COMPILEX64"}
 		architecture "x64"
 	filter{}
 
@@ -42,7 +43,7 @@ project "CAST"
 	configuration "gmake"
 		linkoptions { "-fopenmp" }
 		filter { "options:mpi" }
-			defines { "TERACHEM_MPI" }
+			defines { "USE_MPI" }
 		filter { "action:gmake" }
 			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
 		filter { "configurations:Release", "action:gmake" }
@@ -95,7 +96,7 @@ project "CAST"
 			targetname "CAST_linux_x64_armadillo_release"
 
 
-			
+
 	configuration "vs2015"
 		targetname "CAST.exe"
 		buildoptions { "/openmp" }

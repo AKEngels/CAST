@@ -302,7 +302,7 @@ void energy::interfaces::terachem::mpiInterface::print_G_tinkerlike (std::ostrea
 {
   S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
   S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for(std::size_t k=0; k<coords->size(); ++k)
+  for(std::size_t k=0; k < coords->size(); ++k)
   {
     S << " Anlyt";
     S << std::right << std::setw(10) << k+1U;
@@ -311,7 +311,10 @@ void energy::interfaces::terachem::mpiInterface::print_G_tinkerlike (std::ostrea
     S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
     S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
     S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(coords->g_xyz(k).scalar(coords->g_xyz(k))) << std::endl;
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
   }
 }
 

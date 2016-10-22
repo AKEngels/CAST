@@ -659,16 +659,26 @@ int main(int argc, char **argv)
          *
          * Further processing can be done via PCAproc - Task
          */
+
+        // Create empty pointer since we do not know yet if PCA eigenvectors etc.
+        // will be generated from coordinates or read from file
 		    pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+
+        // Create new PCA eigenvectors and modes
 		    if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
 		    {
 		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          pcaptr->writePCAModesFile("pca_modes.dat");
 		    }
+        // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
 		    else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
 		    else
 		    {
 		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          // Read PCA-Modes from file but generate new eigenvectors from input coordinates
 		    	if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+          // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+          // and the input coordinates
           else if (Config::get().PCA.pca_read_vectors)
           {
             pcaptr->readEigenvectors("pca_modes.dat");
@@ -676,11 +686,18 @@ int main(int argc, char **argv)
           }
 		    }
 
-        if(Config::get().PCA.pca_read_modes || Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
-        else pcaptr->writePCAModesFile("pca_modes.dat");
+        // If modes or vectors have changed, write them to new file
+        if(Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
-        pcaptr->writeHistogrammedProbabilityDensity();
-        pcaptr->writeStocksDelta();
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+        // Cleanup
 		    delete pcaptr;
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
@@ -692,7 +709,9 @@ int main(int argc, char **argv)
          * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
          * see also: Task PCAgen
          */
-        pca_proc(ci, coords);
+        pca::ProcessedPrincipalComponentRepresentation pcaproc("pca_modes.dat");
+        pcaproc.determineStructures(ci, coords);
+        pcaproc.writeDeterminedStructures(coords);
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
@@ -862,15 +881,15 @@ int main(int argc, char **argv)
     //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
-#if !defined(COMPILEX64)
+#if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
+    std::cout << "Memory allocation failure. Input structure probably too large.\n";
   }
 #else
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. Input structure probably too large.\n";
+    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
   }
 #endif
   catch (std::exception & e)

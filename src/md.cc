@@ -40,8 +40,8 @@ std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 
 void md::trace_writer::operator() (md::trace_data const & d)
 {
-  static std::atomic<std::size_t> x(0u);
-  if (Config::get().general.verbosity > 4)
+	static std::atomic<std::size_t> x(0u);
+	if (Config::get().general.verbosity > 4)
   {
     if (x % 100u == 0)
     {
@@ -72,7 +72,7 @@ namespace
   inline std::size_t gap(std::size_t const st, std::size_t const sn)
   {
     if (sn == 0u) return 0u;
-    return st / std::min(st, sn + 2u);
+    return st / std::min(st, sn); 
   }
 }
 
@@ -232,6 +232,11 @@ void md::simulation::integrate(std::size_t const k_init)
         beemanintegrator(k_init);
         break;
       }
+	case config::md_conf::integrators::BEEMAN_2:
+	{ // Beeman_2 integrator
+		beemanintegrator_2(k_init);
+		break;
+	}
     default:
       { // Velocity verlet integrator
         //verletintegrator(k_init);
@@ -832,16 +837,16 @@ void md::simulation::updateEkin(void)
   // calculate contribution to kinetic energy for each atom
   for (std::size_t i = 0; i < N; ++i)
   {
-    auto const fact = 0.5 * M[i] / convert;
-    E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
-    E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
-    E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
-    E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
-    E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
-    E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
-    E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
-    E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
-    E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+	  auto const fact = 0.5 * M[i] / convert;
+	  E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+	  E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+	  E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+	  E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+	  E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+	  E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+	  E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+	  E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+	  E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
   }
   // calculate total kinetic energy by the trace of the tensor
   E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
@@ -850,6 +855,36 @@ void md::simulation::updateEkin(void)
     std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
       << E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
   }
+}
+
+void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
+{
+	// initialize tensor to zero
+	using TenVal = coords::Tensor::value_type;
+	TenVal z = { 0.0,0.0,0.0 };
+	E_kin_tensor.fill(z);
+	auto const N = V.size();
+	// calculate contribution to kinetic energy for each atom
+	for (auto i : atom_list)
+	{
+		auto const fact = 0.5 * M[i] / convert;
+		E_kin_tensor[0][0] += fact * V[i].x() * V[i].x();
+		E_kin_tensor[1][0] += fact * V[i].x() * V[i].y();
+		E_kin_tensor[2][0] += fact * V[i].x() * V[i].z();
+		E_kin_tensor[0][1] += fact * V[i].y() * V[i].x();
+		E_kin_tensor[1][1] += fact * V[i].y() * V[i].y();
+		E_kin_tensor[2][1] += fact * V[i].y() * V[i].z();
+		E_kin_tensor[0][2] += fact * V[i].z() * V[i].x();
+		E_kin_tensor[1][2] += fact * V[i].z() * V[i].y();
+		E_kin_tensor[2][2] += fact * V[i].z() * V[i].z();
+	}
+	// calculate total kinetic energy by the trace of the tensor
+	E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
+	if (Config::get().general.verbosity > 149U)
+	{
+		std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
+			<< E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
+	}
 }
 
 // apply pressure corrections if constant pressure simulation is performed
@@ -986,14 +1021,89 @@ void md::simulation::nose_hoover_thermostat(void)
   nht.v2 += nht.G2*d4;
 }
 
+std::vector<double> md::simulation::init_active_center(int counter)
+{
+	std::size_t const VERBOSE(Config::get().general.verbosity);
+	std::size_t const N = this->coordobj.size();
+	config::molecular_dynamics const & CONFIG(Config::get().md);
+
+	auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
+
+	std::vector<double> distances;
+	std::vector<coords::Cartesian_Point> coords_act_center;
+	for (auto & atom_number : Config::get().md.active_center)
+	{
+		coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
+	}
+
+	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
+	for (auto & atom_coords : coords_act_center)
+	{
+		if (VERBOSE > 9)
+		{
+			std::cout << atom_coords << "\n";
+		}
+		summe_coords_act_center += atom_coords;
+	}
+	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / double(coords_act_center.size());
+
+	if (VERBOSE > 3 && counter % split == 0)
+	{
+		std::cout << "Coordinates of active site: " << C_geo_act_center << "\n";
+	}
+
+	for (std::size_t i(0U); i < N; ++i)  // calculate distance to active center for every atom
+	{
+		coords::Cartesian_Point coords_atom = coordobj.xyz(i);
+		double dist_x = C_geo_act_center.x() - coords_atom.x();
+		double dist_y = C_geo_act_center.y() - coords_atom.y();
+		double dist_z = C_geo_act_center.z() - coords_atom.z();
+		double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
+		distances.push_back(distance);
+		if (VERBOSE > 9)
+		{
+			std::cout << "Atom " << i + 1 << ": Distance: " << distance << "\n";
+		}
+	}
+	return distances;
+}
+
+coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff)
+{
+	double distance = distances[atom_number];
+	coords::Cartesian_Point velocity = V[atom_number];
+
+	if (distance > outer_cutoff)       //no movement outside of outer cutoff
+	{
+		velocity = coords::Cartesian_Point(0, 0, 0);
+		return velocity;
+	}
+	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
+	{
+		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
+		return velocity;
+	}
+	else if (distance <= inner_cutoff)  // normal movement inside inner cutoff
+	{
+		inner_atoms.push_back(atom_number); // save atoms for temperature calculation 
+		return velocity;
+	}
+	else    // should not happen
+	{ 
+		std::cout << "ERROR: really strange distance for atom "<<atom_number<<": "<<distance<<"\n"; 
+		exit(EXIT_FAILURE);
+	}
+}
+
 
 // Velcoity verlet integrator
 void md::simulation::velocity_verlet(std::size_t k_init)
 {
-
   scon::chrono::high_resolution_timer integration_timer;
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
+
+  double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
 
   // prepare tracking
   std::size_t const VERBOSE(Config::get().general.verbosity);
@@ -1007,6 +1117,12 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     dt_2(0.5*dt),
     tempfactor(2.0 / (freedom*md::R));
 
+  if (Config::get().md.set_active_center == 1)
+  {
+	   distances = init_active_center(0);  //calculate initial active center and distances to active center
+	   inner_cutoff = Config::get().md.inner_cutoff;
+	   outer_cutoff = Config::get().md.outer_cutoff;
+  }
 
   if (VERBOSE > 0U)
   {
@@ -1022,19 +1138,37 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
-
+	
     // apply half step temperature corrections
     if (CONFIG.hooverHeatBath)
     {
+		if (VERBOSE > 4)
+		{
+			std::cout << "hoover halfstep\n";
+		}
       updateEkin();
       nose_hoover_thermostat();
       temp = E_kin * tempfactor;
     }
     else if (HEATED)
     {
-      updateEkin();
-      temp = E_kin * tempfactor;
+		if (Config::get().md.set_active_center == 1 && k != 0)
+		{     // calculate temperature only for atoms inside inner cutoff
+			updateEkin_some_atoms(inner_atoms);
+			size_t dof = 3u * inner_atoms.size();
+			double T_factor = (2.0 / (dof*md::R));
+			temp = E_kin*T_factor;
+	    }
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;
+		}
       double const factor(std::sqrt(T / temp));
+	  if (VERBOSE > 4)
+	  {
+		  std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: "<<factor<< "\n";
+	  }
       // scale velocities
       for (size_t i(0U); i < N; ++i) V[i] *= factor;
     }
@@ -1047,20 +1181,31 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       // calc acceleration
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
 
+	  // update veloctiy
+	  V[i] += acceleration*dt_2;
+
+	  inner_atoms.clear();  
+	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
+	  { 
+		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
+	  }
+
       if (Config::get().general.verbosity > 149)
       {
-        std::cout << "Move " << i << " by " << (V[i] * dt + (acceleration*dt)) 
+        std::cout << "Move " << i << " by " << (V[i] * dt) 
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
       }
 
-      // update veloctiy
-      V[i] += acceleration*dt_2;
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
+	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) //calculate active center and new distances to active center for every step
+	{
+		distances = init_active_center(static_cast<int>(k));
+	}
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
-
+	
     // calculate new energy & gradients
     coordobj.g();
     // Apply umbrella potential if umbrella sampling is used
@@ -1077,16 +1222,29 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // If spherical boundaries are used apply boundary potential
     boundary_adjustments();
     // add new acceleration and calculate full step velocities
+	inner_atoms.clear();
     for (std::size_t i(0U); i < N; ++i)
     {
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;
+	  if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
+	  {
+		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
+	  }
     }
+	if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
+	{
+		std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
+	}
     // Apply full step RATTLE constraints
     if (CONFIG.rattle.use) rattle_post();
     // Apply full step temperature adjustments
     if (CONFIG.hooverHeatBath)
     {
+		if (VERBOSE > 4)
+		{
+			std::cout << "hoover fullstep\n";
+		}
       updateEkin();
       nose_hoover_thermostat();
       updateEkin();
@@ -1094,11 +1252,37 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     }
     else if (HEATED)
     {
-      updateEkin();
-      temp = E_kin*tempfactor;
-      for (std::size_t i(0U); i < N; ++i) V[i] *= std::sqrt(T / temp);
-      updateEkin();
-      temp = E_kin * tempfactor;
+		if (Config::get().md.set_active_center == 1)
+		{      // calculate temperature only for atoms inside inner cutoff
+			updateEkin_some_atoms(inner_atoms);
+			size_t dof = 3u * inner_atoms.size();
+			double T_factor = (2.0 / (dof*md::R));
+			temp = E_kin*T_factor;
+		}
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;
+		}
+	  double const factor(std::sqrt(T / temp));
+      for (std::size_t i(0U); i < N; ++i) V[i] *= factor;
+	  if (VERBOSE > 4)
+	  {
+		  std::cout <<"full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+	  }
+	  if (Config::get().md.set_active_center == 1)
+	  {      // calculate temperature only for atoms inside inner cutoff
+		  updateEkin_some_atoms(inner_atoms);
+		  size_t dof = 3u * inner_atoms.size();
+		  double T_factor = (2.0 / (dof*md::R));
+		  temp = E_kin*T_factor;
+		  updateEkin();
+	  }
+	  else
+	  {
+		  updateEkin();
+		  temp = E_kin * tempfactor;
+	  }
     }
     // Apply pressure adjustments
     if (CONFIG.pressure)
@@ -1144,195 +1328,272 @@ void md::simulation::velocity_verlet(std::size_t k_init)
   }
 }
 
-void md::simulation::verletintegrator(std::size_t const k_init)
+void md::simulation::beemanintegrator(std::size_t k_init)
 {
+	scon::chrono::high_resolution_timer integration_timer;
 
-  scon::chrono::high_resolution_timer integration_timer;
+	config::molecular_dynamics const & CONFIG(Config::get().md);
+
+	double inner_cutoff, outer_cutoff;   //inner and outer cutoff for MD with active center
+
+	std::vector<coords::Cartesian_Point> F_old;
+
+	 // prepare tracking
+	std::size_t const VERBOSE(Config::get().general.verbosity);
+
+	std::size_t const N = this->coordobj.size();
+	// set average pressure to zero
+	double p_average(0.0);
+	// constant values
+	double const
+		//velofactor(-0.5*dt*md::convert),
+		tempfactor(2.0 / (freedom*md::R));
+
+	if (Config::get().md.set_active_center == 1)
+	{
+		distances = init_active_center(0);  //calculate initial active center and distances to active center
+		inner_cutoff = Config::get().md.inner_cutoff;
+		outer_cutoff = Config::get().md.outer_cutoff;
+	}
+
+	if (VERBOSE > 0U)
+	{
+		std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
+		std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
+	}
+	// Main MD Loop
+	auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
+	for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
+	{
+		if (k == 0)    // set F(t-dt) for first step to F(t)
+		{
+			for (int i = 0u; i < N; ++i)
+			{
+				F_old.push_back(coordobj.g_xyz(i));
+			}
+		}
+
+		bool const HEATED(heat(k));
+		if (VERBOSE > 1u && k % split == 0 && k > 1)
+		{
+			std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
+		}
+
+		// apply half step temperature corrections
+		if (CONFIG.hooverHeatBath)
+		{
+			if (VERBOSE > 4)
+			{
+				std::cout << "hoover halfstep\n";
+			}
+			updateEkin();
+			nose_hoover_thermostat();
+			temp = E_kin * tempfactor;
+		}
+		else if (HEATED)
+		{
+			if (Config::get().md.set_active_center == 1 && k != 0)
+			{     // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				size_t dof = 3u * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
+			double const factor(std::sqrt(T / temp));
+			if (VERBOSE > 4)
+			{
+				std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			}
+			// scale velocities
+			for (size_t i(0U); i < N; ++i) V[i] *= factor;
+		}
+
+		// save old coordinates
+		P_old = coordobj.xyz();
+
+		// Calculate new positions and half step velocities
+		for (std::size_t i(0U); i < N; ++i)
+		{
+			// calc acceleration
+			coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+			coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
+
+			// update veloctiy
+			V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
+			
+			inner_atoms.clear();
+			if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
+			{
+				V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
+			}
+
+			if (Config::get().general.verbosity > 149)
+			{
+				std::cout << "Move " << i << " by " << (V[i] * dt)
+					<< " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
+			}
+			// update coordinates
+			coordobj.move_atom_by(i, V[i] * dt);
+		}
+		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
+		{
+			distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
+		}
+		// Apply first part of RATTLE constraints if requested
+		if (CONFIG.rattle.use) rattle_pre();
+
+		for (int i = 0u; i < N; ++i)   // save F(t) as F_old
+		{
+			F_old[i] = coordobj.g_xyz(i);
+		}
+		// calculate new energy & gradients -> F(t+dt)
+		coordobj.g();
+
+		// Apply umbrella potential if umbrella sampling is used
+		if (CONFIG.umbrella == true)
+		{
+			coordobj.ubias(udatacontainer);
+		}
+		// refine nonbondeds if refinement is required due to configuration
+		if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
+		{
+			if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds.\n";
+			coordobj.energy_update(true);
+		}
+		// If spherical boundaries are used apply boundary potential
+		boundary_adjustments();
+
+		// add new acceleration and calculate full step velocities
+		inner_atoms.clear();
+		for (std::size_t i(0U); i < N; ++i)
+		{
+			coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
+			coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
+			V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
+			if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
+			{
+				V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
+			}
+		}
+		if (VERBOSE > 4 && Config::get().md.set_active_center == 1)
+		{
+			std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
+		}
+
+		// Apply full step RATTLE constraints
+		if (CONFIG.rattle.use) rattle_post();
+		// Apply full step temperature adjustments
+		if (CONFIG.hooverHeatBath)
+		{
+			if (VERBOSE > 4)
+			{
+				std::cout << "hoover fullstep\n";
+			}
+			updateEkin();
+			nose_hoover_thermostat();
+			updateEkin();
+			temp = E_kin * tempfactor;
+		}
+		else if (HEATED)
+		{
+			if (Config::get().md.set_active_center == 1)
+			{      // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				size_t dof = 3u * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
+			double const factor(std::sqrt(T / temp));
+			for (std::size_t i(0U); i < N; ++i) V[i] *= factor;
+			if (VERBOSE > 4)
+			{
+				std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			}
+			if (Config::get().md.set_active_center == 1)
+			{      // calculate temperature only for atoms inside inner cutoff
+				updateEkin_some_atoms(inner_atoms);
+				size_t dof = 3u * inner_atoms.size();
+				double T_factor = (2.0 / (dof*md::R));
+				temp = E_kin*T_factor;
+				updateEkin();
+			}
+			else
+			{
+				updateEkin();
+				temp = E_kin * tempfactor;
+			}
+		}
+		// Apply pressure adjustments
+		if (CONFIG.pressure)
+		{
+			berendsen(dt);
+		}
+		// save temperature for FEP
+		if (Config::get().md.fep)
+		{
+			coordobj.fep.fepdata.back().T = temp;
+		}
+		// if requested remove translation and rotation of the system
+		if (Config::get().md.veloScale) tune_momentum();
+
+		// Logging / Traces
+
+		if (CONFIG.track)
+		{
+			std::vector<coords::float_type> iae;
+			if (coordobj.interactions().size() > 1)
+			{
+				iae.reserve(coordobj.interactions().size());
+				for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
+			}
+			logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
+		}
+
+			// Serialize to binary file if required.
+			if (k > 0 && Config::get().md.restart_offset > 0 && k % Config::get().md.restart_offset == 0)
+			{
+				write_restartfile(k);
+			}
+			// add up pressure value
+			p_average += press;
+		}
+		// calculate average pressure over whle simulation time
+		p_average /= CONFIG.num_steps;
+		if (VERBOSE > 2U)
+		{
+			std::cout << "Average pressure: " << p_average << std::endl;
+			//auto integration_time = integration_timer();
+			std::cout << "Beeman integration took " << integration_timer << '\n';
+		}
+	}
+
+void md::simulation::beemanintegrator_2(std::size_t const k_init)
+{
+	std::cout << "WARNING! No one knows what this integrator is doing. It might not support some options.\n";
+	scon::chrono::high_resolution_timer integration_timer;
+  // const values
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
   // prepare tracking
   std::size_t const VERBOSE(Config::get().general.verbosity);
 
-  std::size_t const N = this->coordobj.size();
-  // coords::Cartesian_Point acceleration, velocity;
-  double p_average(0.0);
-  // constant values
-  double const
-    //velofactor(-0.5*dt*md::convert),
-    dt_2(0.5*dt),
-    tempfactor(2.0 / (freedom*md::R));
-
-
   if (VERBOSE > 0U)
   {
-    std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
+	  std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
+	  std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
   }
-  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
-  // Main MD Loop
-  for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
-  {
-    bool const HEATED(heat(k));
-    if (VERBOSE < 4U && k % split == 0 && k > 1)
-    {
-      std::cout << k << " steps completed" << std::endl;
-    }
-
-    // apply half step temperature corrections
-    if (!CONFIG.hooverHeatBath)
-    {
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-    else if (CONFIG.hooverHeatBath && !HEATED)
-    {
-      updateEkin();
-      nose_hoover_thermostat();
-      temp = E_kin * tempfactor;
-    }
-    // Thermostat scaling factor update if heating is going on
-    else if (CONFIG.hooverHeatBath && HEATED)
-    {
-      updateEkin();
-      temp = E_kin * tempfactor;
-      double const factor(std::sqrt(T / temp));
-      // scale velocities
-      for (size_t i(0U); i < N; ++i) V[i] *= factor;
-    }
-    // save old coordinates
-    P_old = coordobj.xyz();
-    // Main simulation Progress Cycle
-    for (std::size_t i(0U); i < N; ++i)
-    {
-      // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-
-      if (Config::get().general.verbosity > 149)
-      {
-        std::cout << "Move " << i << " by " << (V[i] * dt + (acceleration*dt)) << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
-      }
-
-      // update veloctiy
-      V[i] += acceleration*dt_2;
-      // update coordinates
-      coordobj.move_atom_by(i, V[i] * dt);
-    }
-    // first rattle if Hydrogens are fixed
-    if (CONFIG.rattle.use) rattle_pre();
-
-    // new energy & gradients
-    coordobj.g();
-    // Apply umbrella potential if umbrella sampling is used
-    if (CONFIG.umbrella == true)
-    {
-      coordobj.ubias(udatacontainer);
-      /* if (coordobj.potentials().dihedrals().size() != 0)
-      {
-      for (auto && dihedral : coordobj.potentials().dihedrals())
-      {
-      udatacontainer.push_back(dihedral.value.degrees());
-      }
-      }
-      else if (coordobj.potentials().distances().size() != 0)
-      {
-      for (auto const & dist : coordobj.potentials().distances())
-      {
-      udatacontainer.push_back(dist.value);
-      }
-      }  */
-    }
-    // refine nonbondeds if refinement is required due to configuration
-    if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
-    {
-      if (VERBOSE > 99U) std::cout << "Refining structure/nonbondeds.\n";
-      coordobj.energy_update(true);
-    }
-    // If spherical boundaries are used apply boundary potential
-    boundary_adjustments();
-    // add new acceleration
-    for (std::size_t i(0U); i < N; ++i)
-    {
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      V[i] += acceleration*dt_2;
-    }
-    // Apply full step RATTLE constraints
-    if (CONFIG.rattle.use) rattle_post();
-    // Apply full step temperature adjustments
-    if (!CONFIG.hooverHeatBath)
-    {
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-    else if (CONFIG.hooverHeatBath && !HEATED)
-    {
-      updateEkin();
-      nose_hoover_thermostat();
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-    else if (HEATED)
-    { // if final temperature has not been reached adjust
-      updateEkin();
-      temp = E_kin*tempfactor;
-      if (CONFIG.hooverHeatBath)
-      {
-        for (std::size_t i(0U); i < N; ++i) V[i] *= std::sqrt(T / temp);
-      }
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-
-    // Apply pressure adjustments
-    if (CONFIG.pressure)
-    {
-      berendsen(dt);
-    }
-    // save temperature for FEP
-    if (Config::get().md.fep)
-    {
-      coordobj.fep.fepdata.back().T = temp;
-    }
-
-    if (Config::get().md.veloScale) tune_momentum();
-
-    // Logging / Traces
-
-    if (CONFIG.track)
-    {
-      std::vector<coords::float_type> iae;
-      if (coordobj.interactions().size() > 1)
-      {
-        iae.reserve(coordobj.interactions().size());
-        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
-      }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
-    }
-
-    // Serialize to binary file if required.
-    if (k > 0 && Config::get().md.restart_offset > 0 && k % Config::get().md.restart_offset == 0)
-    {
-      write_restartfile(k);
-    }
-
-    // if veloscale is true, eliminate rotation and translation
-
-    p_average += press;
-  }
-  p_average /= CONFIG.num_steps;
-  if (VERBOSE > 2U)
-  {
-    std::cout << "Average pressure: " << p_average << std::endl;
-    //auto integration_time = integration_timer();
-    std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
-  }
-}
-
-void md::simulation::beemanintegrator(std::size_t const k_init)
-{
-  // const values
-
-  config::molecular_dynamics const & CONFIG(Config::get().md);
+  
   std::size_t const
     N = coordobj.size();
   double const
@@ -1356,10 +1617,17 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
 
   updateEkin();
 
+  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
+
   for (std::size_t k(k_init); k < Config::get().md.num_steps; ++k)
   {
 
     bool const heated(heat(k));
+
+	if (VERBOSE > 1u && k % split == 0 && k > 1)
+	{
+		std::cout << k << " steps completed" << std::endl;
+	}
 
     if (Config::get().md.hooverHeatBath && !heated)
     {
@@ -1421,10 +1689,15 @@ void md::simulation::beemanintegrator(std::size_t const k_init)
     if (Config::get().md.veloScale) tune_momentum();
 
   }
+  if (VERBOSE > 2U)
+  {
+	  //auto integration_time = integration_timer();
+	  std::cout << "Beeman_2 integration took " << integration_timer << '\n';
+  }
 
 }
 
-// First part of the RATTLE algorithm to constrain H-X bonds ( half step)
+ //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)
 {
   std::size_t niter(0U);
@@ -1463,7 +1736,7 @@ void md::simulation::rattle_pre(void)
     }
   } while (niter < Config::get().md.rattle.num_iter && done == false);
 }
-// second part of RATTLE to constrain H.X bonds (full step)
+ //second part of RATTLE to constrain H.X bonds (full step)
 void md::simulation::rattle_post(void)
 {
   // initialize some local variables neede for the internal virial tensor
@@ -1536,113 +1809,113 @@ void md::simulation::write_restartfile(std::size_t const k)
   restart_stream.write(buffer.v.data(), buffer.v.size());
 }
 
-double md::barostat::berendsen::operator()(double const time, 
-  coords::Representation_3D & p,
-  coords::Tensor const & Ek_T, 
-  coords::Tensor const & Vir_T, 
-  coords::Cartesian_Point & box)
-{
-
-  double const volume = std::abs(box.x()) *  std::abs(box.y()) *  std::abs(box.z());
-  
-  double const fac = presc / volume;
-
-  double press = 0.0;
-
-  // ISOTROPIC BOX
-  if (isotropic == true) 
-  {
-    press = fac * ( (2.0 * Ek_T[0][0] - Vir_T[0][0]) + 
-                    (2.0 * Ek_T[1][1] - Vir_T[1][1]) + 
-                    (2.0 * Ek_T[2][2] - Vir_T[2][2])   ) / 3.0;
-    // Berendsen scaling for isotpropic boxes
-    double const scale = std::cbrt(1.0 + (time * compress / delay) * (press - target));
-    // Adjust box dimensions
-    box *= scale;
-    // scale atomic coordinates
-    p *= scale;
-  }
-  // ANISOTROPIC BOX
-  else 
-  {
-    coords::Tensor ptensor, aniso, anisobox, dimtemp;
-    // get pressure tensor for anisotropic systems
-    for (int i = 0; i < 3; i++) 
-    {
-      for (int j = 0; j < 3; j++) 
-      {
-        ptensor[j][i] = fac * (2.0*Ek_T[j][i] - Vir_T[j][i]);
-        //std::cout << "Ptensor:" << ptensor[j][i] << std::endl;
-      }
-    }
-    // get isotropic pressure value
-    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
-    // Anisotropic scaling factors
-    double const scale = time * compress / (3.0 * delay);
-    for (int i = 0; i < 3; i++) 
-    {
-      for (int j = 0; j < 3; j++) 
-      {
-        if (j == i)
-        {
-          aniso[i][i] = 1.0 + scale * (ptensor[i][i] - target);
-        }
-        else
-        {
-          aniso[j][i] = scale * ptensor[j][i];
-        }
-      }
-    }
-    // modify anisotropic box dimensions (only for cube or octahedron)
-    dimtemp[0][0] = box.x();
-    dimtemp[1][0] = 0.0;
-    dimtemp[2][0] = 0.0;
-    dimtemp[0][1] = box.y();
-    dimtemp[1][1] = 0.0;
-    dimtemp[2][1] = 0.0;
-    dimtemp[0][2] = 0.0;
-    dimtemp[1][2] = 0.0;
-    dimtemp[2][2] = box.z();
-
-    for (int i = 0; i < 3; i++) 
-    {
-      for (int j = 0; j < 3; j++) 
-      {
-        anisobox[j][i] = 0.0;
-        for (int k = 0; k < 3; k++) 
-        {
-          anisobox[j][i] = anisobox[j][i] + aniso[j][k] * dimtemp[k][i];
-        }
-      }
-    }
-
-    // scale box dimensions for anisotropic case
-
-    box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + 
-      anisobox[1][0] * anisobox[1][0] + 
-      anisobox[2][0] * anisobox[2][0]));
-
-    box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + 
-      anisobox[1][1] * anisobox[1][1] + 
-      anisobox[2][1] * anisobox[2][1]));
-
-    box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + 
-      anisobox[1][2] * anisobox[1][2] + 
-      anisobox[2][2] * anisobox[2][2]));
-
-    // scale atomic coordinates for anisotropic case
-    for (auto & pos : p)
-    {
-      auto px = aniso[0][0] * pos.x() + aniso[0][1] * pos.y() + aniso[0][2] * pos.z();
-      //pos.x() = px;
-      auto py = aniso[1][0] * pos.x() + aniso[1][1] * pos.y() + aniso[1][2] * pos.z();
-      //pos.y() = py;
-      auto pz = aniso[2][0] * pos.x() + aniso[2][1] * pos.y() + aniso[2][2] * pos.z();
-      pos.x() = px;
-      pos.y() = py;
-      pos.z() = pz;
-    }
-
-  }//end of isotropic else
-  return press;
-}
+//double md::barostat::berendsen::operator()(double const time, 
+//  coords::Representation_3D & p,
+//  coords::Tensor const & Ek_T, 
+//  coords::Tensor const & Vir_T, 
+//  coords::Cartesian_Point & box)
+//{
+//
+//  double const volume = std::abs(box.x()) *  std::abs(box.y()) *  std::abs(box.z());
+//  
+//  double const fac = presc / volume;
+//
+//  double press = 0.0;
+//
+//  // ISOTROPIC BOX
+//  if (isotropic == true) 
+//  {
+//    press = fac * ( (2.0 * Ek_T[0][0] - Vir_T[0][0]) + 
+//                    (2.0 * Ek_T[1][1] - Vir_T[1][1]) + 
+//                    (2.0 * Ek_T[2][2] - Vir_T[2][2])   ) / 3.0;
+//    // Berendsen scaling for isotpropic boxes
+//    double const scale = std::cbrt(1.0 + (time * compress / delay) * (press - target));
+//    // Adjust box dimensions
+//    box *= scale;
+//    // scale atomic coordinates
+//    p *= scale;
+//  }
+//  // ANISOTROPIC BOX
+//  else 
+//  {
+//    coords::Tensor ptensor, aniso, anisobox, dimtemp;
+//    // get pressure tensor for anisotropic systems
+//    for (int i = 0; i < 3; i++) 
+//    {
+//      for (int j = 0; j < 3; j++) 
+//      {
+//        ptensor[j][i] = fac * (2.0*Ek_T[j][i] - Vir_T[j][i]);
+//        //std::cout << "Ptensor:" << ptensor[j][i] << std::endl;
+//      }
+//    }
+//    // get isotropic pressure value
+//    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
+//    // Anisotropic scaling factors
+//    double const scale = time * compress / (3.0 * delay);
+//    for (int i = 0; i < 3; i++) 
+//    {
+//      for (int j = 0; j < 3; j++) 
+//      {
+//        if (j == i)
+//        {
+//          aniso[i][i] = 1.0 + scale * (ptensor[i][i] - target);
+//        }
+//        else
+//        {
+//          aniso[j][i] = scale * ptensor[j][i];
+//        }
+//      }
+//    }
+//    // modify anisotropic box dimensions (only for cube or octahedron)
+//    dimtemp[0][0] = box.x();
+//    dimtemp[1][0] = 0.0;
+//    dimtemp[2][0] = 0.0;
+//    dimtemp[0][1] = box.y();
+//    dimtemp[1][1] = 0.0;
+//    dimtemp[2][1] = 0.0;
+//    dimtemp[0][2] = 0.0;
+//    dimtemp[1][2] = 0.0;
+//    dimtemp[2][2] = box.z();
+//
+//    for (int i = 0; i < 3; i++) 
+//    {
+//      for (int j = 0; j < 3; j++) 
+//      {
+//        anisobox[j][i] = 0.0;
+//        for (int k = 0; k < 3; k++) 
+//        {
+//          anisobox[j][i] = anisobox[j][i] + aniso[j][k] * dimtemp[k][i];
+//        }
+//      }
+//    }
+//
+//    // scale box dimensions for anisotropic case
+//
+//    box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + 
+//      anisobox[1][0] * anisobox[1][0] + 
+//      anisobox[2][0] * anisobox[2][0]));
+//
+//    box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + 
+//      anisobox[1][1] * anisobox[1][1] + 
+//      anisobox[2][1] * anisobox[2][1]));
+//
+//    box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + 
+//      anisobox[1][2] * anisobox[1][2] + 
+//      anisobox[2][2] * anisobox[2][2]));
+//
+//    // scale atomic coordinates for anisotropic case
+//    for (auto & pos : p)
+//    {
+//      auto px = aniso[0][0] * pos.x() + aniso[0][1] * pos.y() + aniso[0][2] * pos.z();
+//      //pos.x() = px;
+//      auto py = aniso[1][0] * pos.x() + aniso[1][1] * pos.y() + aniso[1][2] * pos.z();
+//      //pos.y() = py;
+//      auto pz = aniso[2][0] * pos.x() + aniso[2][1] * pos.y() + aniso[2][2] * pos.z();
+//      pos.x() = px;
+//      pos.y() = py;
+//      pos.z() = pz;
+//    }
+//
+//  }//end of isotropic else
+//  return press;
+//}

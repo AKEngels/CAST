@@ -1,7 +1,7 @@
 /**
 CAST 3
 matop.h
-Purpose: 
+Purpose:
 Specific algorithms for specific problems are placed here.
 Calculations are done using mathmatrix
 
@@ -91,23 +91,6 @@ namespace matop
   /////////////////////////////////////
   //                              /////
   //    E X C L U S I V E L Y     /////
-  //            P C A             /////
-  //                              /////
-  /////////////////////////////////////
-
-  /**
-  * Reads Eigenvectors and PCA-trajectory from correctly formatted file.
-  * File is correctly formatted if it was created using the CAST::matop::output_pca_modes
-  * function.
-  */
-  namespace pca
-  {
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename = "pca_modes.dat");
-  }
-
-  /////////////////////////////////////
-  //                              /////
-  //    E X C L U S I V E L Y     /////
   //        E N T R O P Y         /////
   //                              /////
   /////////////////////////////////////
@@ -126,10 +109,10 @@ namespace matop
      * @param col_querypt Columns index of the query Points.
      */
     float_type knn_distance(
-      Matrix_Class const& input, size_t 
-      const& dimension_in, size_t const& k_in, 
-      std::vector<size_t>& row_querypts, 
-      size_t const& col_querypt, 
+      Matrix_Class const& input, size_t
+      const& dimension_in, size_t const& k_in,
+      std::vector<size_t>& row_querypts,
+      size_t const& col_querypt,
       coords::float_type* buffer = nullptr);
 
     /**
@@ -214,5 +197,3 @@ namespace matop
  */
 
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);

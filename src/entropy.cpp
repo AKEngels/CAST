@@ -325,16 +325,16 @@ namespace entrop
     delete cov_rank;
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-    Matrix_Class pca_frequencies(eigenvalues.rows());
-    Matrix_Class alpha_i(pca_frequencies.rows());
-    Matrix_Class quantum_entropy(pca_frequencies.rows());
+    Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
     float_type entropy_sho = 0;
     for (size_t i = 0; i < eigenvalues.rows(); i++)
     {
-      pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * temperatureInKelvin / eigenvalues(i));
-      alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInKelvin) * sqrt(eigenvalues(i)));
-      quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-      entropy_sho += quantum_entropy(i);
+      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      entropy_sho += quantum_entropy(i, 0u);
     }
     std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
     return entropy_sho;
@@ -384,16 +384,16 @@ namespace entrop
     delete cov_rank;
 
     //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-    Matrix_Class pca_frequencies(eigenvalues.rows());
-    Matrix_Class alpha_i(pca_frequencies.rows());
-    Matrix_Class quantum_entropy(pca_frequencies.rows());
+    Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
     float_type entropy_sho = 0;
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
-      pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * temperatureInKelvin / eigenvalues(i));
-      alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInKelvin) * sqrt(eigenvalues(i)));
-      quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-      entropy_sho += quantum_entropy(i);
+      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      entropy_sho += quantum_entropy(i, 0u);
     }
     std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
     std::cout << "Starting corrections for anharmonicity and M.I... \n";
@@ -437,7 +437,7 @@ namespace entrop
       }
       distance -= temp;
       distance += 0.5772156649015328606065;
-      entropy_anharmonic(i) = distance;
+      entropy_anharmonic(i, 0u) = distance;
       distance = 0;
 
       //MI
@@ -475,9 +475,12 @@ namespace entrop
     {
       for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
       {
-        if (pca_frequencies(i) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) && pca_frequencies(j) < ( temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+        if (
+          pca_frequencies(i, 0u) <  ( temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
+          && pca_frequencies(j, 0u) < ( temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
+          )
         {
-          entropy_mi(i, j) = entropy_anharmonic(i) + entropy_anharmonic(j) - entropy_mi(i, j);
+          entropy_mi(i, j) = entropy_anharmonic(i, 0u) + entropy_anharmonic(j, 0u) - entropy_mi(i, j);
           if (entropy_mi(i, j) < 0)
           {
             if (entropy_mi(i, j) < -1)
@@ -501,21 +504,21 @@ namespace entrop
     }
     for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
     {
-      if (pca_frequencies(i) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+      if (pca_frequencies(i, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
       {
-        classical_entropy(i) = -1.0 * (log(alpha_i(i)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
-        entropy_anharmonic(i) = classical_entropy(i) - entropy_anharmonic(i);
-        entropy_anharmonic(i) *= 1.380648813 * 6.02214129 * 0.239005736;
-        if ((entropy_anharmonic(i) / quantum_entropy(i)) < 0.007)
+        classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
+        entropy_anharmonic(i, 0u) = classical_entropy(i, 0u) - entropy_anharmonic(i, 0u);
+        entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+        if ((entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
         {
-          entropy_anharmonic(i) = 0.0;
+          entropy_anharmonic(i, 0u) = 0.0;
           std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
         }
       }
       else
       {
         std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
-        entropy_anharmonic(i) = 0.0;
+        entropy_anharmonic(i, 0u) = 0.0;
       }
     }
 
@@ -523,7 +526,7 @@ namespace entrop
     double delta_entropy = 0;
     for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
     {
-      delta_entropy += entropy_anharmonic(i);
+      delta_entropy += entropy_anharmonic(i, 0u);
       for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
       {
         delta_entropy += entropy_mi(i, j);

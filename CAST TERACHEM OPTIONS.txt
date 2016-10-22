@@ -1,0 +1,10 @@
+basis
+cc-pvdz
+charge
+0
+method
+b3lyp
+dftgrid
+2
+dftd
+d2

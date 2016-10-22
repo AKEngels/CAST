@@ -470,7 +470,7 @@ namespace config
 
   namespace md_conf
   {
-    struct integrators { enum T { VERLET, BEEMAN }; };
+    struct integrators { enum T { VERLET, BEEMAN, BEEMAN_2 }; };
 
     struct config_spherical
     {
@@ -533,9 +533,12 @@ namespace config
 
   struct molecular_dynamics
   {
-    double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+	  double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+	unsigned set_active_center, adjustment_by_step;
+	double inner_cutoff, outer_cutoff;
     std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trackoffset;
     std::vector<md_conf::config_heat> heat_steps;
+	std::vector<unsigned> active_center;
     md_conf::config_spherical spherical;
     md_conf::config_rattle rattle;
     md_conf::integrators::T integrator;
