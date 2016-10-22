@@ -1,5 +1,21 @@
+/**
+CAST 3
+PCA.h
+Purpose:
+Calculation of PrincipalComponentRepresetnation of MD Simulation trajectories.
+Includes functions for the tasks PCAgen and PCAproc.
+Currently stable and tested
+
+@author Dustin Kaiser
+@version 2.0
+*/
+
 #pragma once
 #include "matop.h"
+#include "histogram.h"
+#include "alignment.h"
+#include <deque>
+
 namespace pca
 {
 	class PrincipalComponentRepresentation

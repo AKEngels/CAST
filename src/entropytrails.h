@@ -5,8 +5,8 @@
 #include <memory>
 #include <omp.h>
 #include <limits>
-#include "matop.h"
 #include <string>
+#include "entropy.h"
 
 
 
@@ -497,7 +497,7 @@ public:
         for (size_t i = 0u; i < drawAndEvaluateMatrix_TemporaryCopy.cols(); i++)
 #endif
         {
-          float_type holdNNdistance = sqrt(matop::entropy::knn_distance(copytemp, 1, k, 0u, i, buffer));
+          float_type holdNNdistance = sqrt(entropy::knn_distance(copytemp, 1, k, 0u, i, buffer));
           drawAndEvaluateMatrix_TemporaryCopy(1, i) = double(k) / double(numberOfDraws) / holdNNdistance;
           drawAndEvaluateMatrix_TemporaryCopy(2, i) = PDFtemporary(copytemp(0, i));
           drawAndEvaluateMatrix_TemporaryCopy(3, i) = holdNNdistance;

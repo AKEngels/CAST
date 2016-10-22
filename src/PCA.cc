@@ -20,7 +20,7 @@ namespace pca
 		//Perform translational alignment for reference frame
 		if (Config::get().PCA.pca_alignment && !Config::get().PCA.pca_use_internal)
 		{
-			::matop::align::centerOfMassAlignment(coords_ref);
+			align::centerOfMassAlignment(coords_ref);
 		}
 
 		// truncate internal coordinates "PCA.pca_internal_dih" 
@@ -115,8 +115,8 @@ namespace pca
 					coords.set_xyz(holder2);
 					if (Config::get().PCA.pca_alignment)        //Translational and rotational alignment
 					{
-						::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
-						::matop::align::kabschAlignment(coords, coords_ref); //Rotates
+						align::centerOfMassAlignment(coords); //Alignes center of mass
+						align::kabschAlignment(coords, coords_ref); //Rotates
 					}
 					matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false).row(0u);
 				}

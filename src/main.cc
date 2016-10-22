@@ -44,6 +44,7 @@
 #include <omp.h>
 #include "PCA.h"
 #include "entropy.h"
+#include "alignment.h"
 
 //////////////////////////
 //                      //
@@ -732,7 +733,7 @@ int main(int argc, char **argv)
         // If itnernals are desired they will always be transformed
         // to a linear (i.e. not circular) coordinate space)
         // Check the proceedings for more details
-        entrop::TrajectoryMatrixRepresentation repr(ci, coords);
+        entropy::TrajectoryMatrixRepresentation repr(ci, coords);
 
         for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
         {

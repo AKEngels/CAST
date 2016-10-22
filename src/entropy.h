@@ -1,12 +1,74 @@
+/**
+CAST 3
+entropy.h
+Purpose:
+Specific algorithms for calculations of entropy.
+Currently stable and tested:
+Karplus, Knapp marginal
+Currently stable although dubious results:
+Hnizdo, Hnizdo marginal, Knapp
+
+@author Dustin Kaiser
+@version 1.0
+*/
+
 #pragma once
 #include "matop.h"
-namespace entrop
+#include "alignment.h"
+
+namespace entropy
 {
+  /**
+  * Outputs the !SQUARED! next-neighbor distance in eucledean space
+  * of the k-nearest neighbor to the query-Point. Rows are dimensions
+  * of the data points, columns are the actual data points.
+  *
+  * @param dimension_in Dimensionality of the search (needs to
+  * be identical to row_querypts.size().
+  * @param k_in The k-th nearest neighbor will be searched.
+  * @param row_querypts std::vector of rows (ie dimensions)
+  * used in the search (example {1, 4, 5}).
+  * @param col_querypt Columns index of the query Points.
+  */
+  float_type knn_distance(
+    Matrix_Class const& input, size_t
+    const& dimension_in, size_t const& k_in,
+    std::vector<size_t>& row_querypts,
+    size_t const& col_querypt,
+    coords::float_type* buffer = nullptr);
+
+  /**
+  * Outputs the !SQUARED! next-neighbor distance in eucledean space
+  * of the k-nearest neighbor to the query-Point. Rows are dimensions
+  * of the data points, columns are the actual data points.
+  *
+  * @param dimension_in Dimensionality of the search (will simply use
+  * subsequent rows starting from "row_query_Pt").
+  * @param k_in The k-th nearest neighbor will be searched.
+  * @param row_querypt Row index of the query Point.
+  * @param col_querypt Columns index of the query Point.
+  */
+  float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_querypt, size_t const& col_querypt, coords::float_type* buffer = nullptr);
+
+
+  /**
+  * Class used for Entropy calculations based
+  * on MD trajectories
+  * For sample use see task "ENTROPY"
+  */
   class TrajectoryMatrixRepresentation
   {
   public:
+    /**
+    * Constructor, subsequently calls (in this order):
+    * -> generateCoordinateMatrix
+    */
     TrajectoryMatrixRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
+    /**
+    * Generates matrix representation of
+    * a MD trajectory
+    */
     void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
     /**
