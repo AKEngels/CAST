@@ -91,23 +91,6 @@ namespace matop
   /////////////////////////////////////
   //                              /////
   //    E X C L U S I V E L Y     /////
-  //            P C A             /////
-  //                              /////
-  /////////////////////////////////////
-
-  /**
-  * Reads Eigenvectors and PCA-trajectory from correctly formatted file.
-  * File is correctly formatted if it was created using the CAST::matop::output_pca_modes
-  * function.
-  */
-  namespace pca
-  {
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename = "pca_modes.dat");
-  }
-
-  /////////////////////////////////////
-  //                              /////
-  //    E X C L U S I V E L Y     /////
   //        E N T R O P Y         /////
   //                              /////
   /////////////////////////////////////
@@ -278,7 +261,5 @@ namespace matop
  */
 
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
 void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
