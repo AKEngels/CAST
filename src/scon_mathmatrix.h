@@ -204,6 +204,19 @@ typedef size_t uint_type;
 #endif
 		};
 
+    friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
+    {
+      for (size_t i = 0u; i < object.rows(); ++i)
+      {
+        for (size_t j = 0u; j < object.cols(); ++j)
+        {
+          os << std::setw(18) << std::scientific << std::left << std::setprecision(8) << object(i, j) << " ";
+        }
+        os << "\n";
+      }
+      return os;
+    };
+
 		/**
 		 * Checks for positive_definite matrix
 		 */

@@ -872,9 +872,9 @@ Attention! Do not use temperature gradients in this task because the temperature
 	set terminal png
 	set output ``pca_hist.png''
 	set pm3d map
-	splot ``pca\_histograms''\end{lstlisting}~\\	
+	splot ``pca\_histograms.dat''\end{lstlisting}~\\	
 	
-	From this plot, one can identify basins of the \acl{PES}. To obtain the structures corresponding to those basins, the second task \textit{PCAproc} may be used. It reads the file \textit{pca\_modes.dat} and the original input ensemble to extract structures corresponding to desired regions of the histogrammed \ac{PCA} Modes. Input options for this task are the following:\\~\\
+	From this plot, one can identify basins of the \acl{PES}. To obtain the structures corresponding to those basins, the second task \textit{PCAproc} may be used. It reads the file \textit{pca\_modes.dat} and the original input ensemble to extract structures corresponding to desired regions of the histogrammed \ac{PCA} Modes. It is important to note that in this task coordinates are regained from the PCA-modes via an unitary transformation. Then, they are matched to the full input-trajectory. Therefore, options such as \textit{pca\_start\_frame\_num} or \textit{pca\_offset} are ignored for the \textit{PCAproc} task. Input options for this task are the following:\\~\\~\\
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
 		\hline			
