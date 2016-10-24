@@ -7,6 +7,7 @@
 \usepackage[english]{babel} %ENGLISH LANGUAGE STYLE
 \usepackage[parfill]{parskip} %PARAGRAPH SPACING
 \usepackage{color} %COLOURS
+\usepackage{amsmath} %math
 \usepackage{tabularx} %BETTER TABLES THROUGH tabularx
 \usepackage{listings} %ENABLE (SOURCE) CODE LISTINGS
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
@@ -742,6 +743,20 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 		\label{fig:FEP2}
 	\end{figure}~\\
 	One condition of the dual topology paradigm is that the atoms only belonging to the start point and end point must not interact with each other during the calculation. \ac{CAST} takes care of this automatically by excluding all angles, dihedrals or non-bonded interactions involving atom belonging to \textit{IN} or \textit{OUT}.
+	
+	In order to avoid so called endpoint catastrophies the electrostatic and van der Waals-potentials between incoming and leaving atoms and static ones is modified.\supercite{becker_development_2015} \supercite{chipot_free_2007}
+	
+	The softcore electrostatic potential is:
+	\begin{align}
+U_{el}(ab) = \lambda_{el} \cdot \frac{q_a \cdot q_b}{\sqrt[6]{R_{ab}^6 + \alpha_{cshift} \cdot (1-\lambda_{el})}} \label{cb_softcore}
+\end{align}
+
+The modified Lenard-Jones is calculated like this:
+\begin{align}
+U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\left(\alpha_{vshift} \cdot (1-\lambda_{vdw})^2 \cdot R_{ab,0}^6 + R_{ab}^6 \right)^2}  -  \frac{2 \cdot R_{ab,0}^6}{\alpha_{vshift} \cdot (1-\lambda_{vdw})^2 \cdot R_{ab,0}^6 + R_{ab}^6}  \right] \label{LJ_softcore}
+\end{align}
+	
+	
 	\ac{FEP} calculations can be modified with various parameters.
 
 	\begin{tabularx}{\textwidth}{l|X|X}
@@ -749,11 +764,11 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 		\hline
 		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
-		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions (see XX) \ifdevmode \colorbox{red}{what is XX? see where?} \fi & float [1.0] \\
-		\textbf{FEPeleccouple} & Controls coupling of electrostatics (see XX) \ifdevmode \colorbox{red}{what is XX? see where?} \fi
+		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions (somehow $\lambda_{vdw}$ is calculated from it) \fi & float [1.0] \\
+		\textbf{FEPeleccouple} & Controls coupling of electrostatics (somehow $\lambda_{el}$ is calculated from it) 
 		& float [1.0] \\
-		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential \ifdevmode \colorbox{red}{what even?} \fi & float [1.0] \\
-		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential & float [1.0] \\
+		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential ($= \alpha_{vshift}$ in equation \ref{LJ_softcore}) & float [1.0] \\
+		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential ($= \alpha_{cshift}$ in equation \ref{cb_softcore}) & float [1.0] \\
 		\textbf{FEPequil} & Number of equilibration steps in each window & integer [10] \\
 		\textbf{FEPsteps} & Number of production steps in each window & integer [10]\\
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1000] \\
@@ -761,6 +776,8 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 
 	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
+	
+Attention! Do not use temperature gradients in this task because the temperature will continue to rise in every MD simulation. So if you say you want to raise the temperature from 0 to 300\,K it will do this in the first MD but it will go up to 600\,K in the next, then to 900\,K and so on.
 	
 	%%%% Trajectory alignment (ALIGN) %%%%
 	\subsection{ALIGN - Trajectory Alignment}
