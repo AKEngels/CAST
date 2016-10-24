@@ -742,16 +742,16 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 		\caption{Modifies tinker input style for \ac{FEP} calculations}
 		\label{fig:FEP2}
 	\end{figure}~\\
-	One condition of the dual topology paradigm is that the atoms only belonging to the start point and end point must not interact with each other during the calculation. \ac{CAST} takes care of this automatically by excluding all angles, dihedrals or non-bonded interactions involving atom belonging to \textit{IN} or \textit{OUT}.
+	One condition of the dual topology paradigm is that the atoms only belonging to the start point and end point must not interact with each other during the calculation. \ac{CAST} takes care of this automatically by excluding all angles, dihedrals or non-bonded interactions involving atom belonging to \textit{IN} or \textit{OUT}.\supercite{becker_development_2015}
 	
-	In order to avoid so called endpoint catastrophies the electrostatic and van der Waals-potentials between incoming and leaving atoms and static ones is modified.\supercite{becker_development_2015} \supercite{chipot_free_2007}
+	In order to avoid so called endpoint catastrophies the electrostatic and van der Waals-potentials between incoming and leaving atoms and static ones is modified \supercite{chipot_free_2007}
 	
-	The softcore electrostatic potential is:
+	The softcore electrostatic potential is:\supercite{becker_development_2015}
 	\begin{align}
 U_{el}(ab) = \lambda_{el} \cdot \frac{q_a \cdot q_b}{\sqrt[6]{R_{ab}^6 + \alpha_{cshift} \cdot (1-\lambda_{el})}} \label{cb_softcore}
 \end{align}
 
-The modified Lenard-Jones is calculated like this:
+The modified Lenard-Jones is calculated like this:\supercite{beutler_avoiding_1994}
 \begin{align}
 U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\left(\alpha_{vshift} \cdot (1-\lambda_{vdw})^2 \cdot R_{ab,0}^6 + R_{ab}^6 \right)^2}  -  \frac{2 \cdot R_{ab,0}^6}{\alpha_{vshift} \cdot (1-\lambda_{vdw})^2 \cdot R_{ab,0}^6 + R_{ab}^6}  \right] \label{LJ_softcore}
 \end{align}
