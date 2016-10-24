@@ -764,8 +764,8 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\hline
 		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
-		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions (somehow $\lambda_{vdw}$ is calculated from it) \fi & float [1.0] \\
-		\textbf{FEPeleccouple} & Controls coupling of electrostatics (somehow $\lambda_{el}$ is calculated from it) 
+		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions (\colorbox{red}{somehow} $\lambda_{vdw}$ is calculated from it) \fi & float [1.0] \\
+		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms
 		& float [1.0] \\
 		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential ($= \alpha_{vshift}$ in equation \ref{LJ_softcore}) & float [1.0] \\
 		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential ($= \alpha_{cshift}$ in equation \ref{cb_softcore}) & float [1.0] \\
