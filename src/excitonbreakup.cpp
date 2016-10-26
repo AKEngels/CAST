@@ -694,7 +694,7 @@ punkt[0]=startpunkt[k];
       normal_distribution<double> distribution0(0.0,0.0338987); //##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hier neue standardabweichung eintragen
       zufall1=distribution0(engine); //generating an normal-distributed random number
 
-      std::vector <double> raten (partneranzahl [punkt[vschritt]]);
+      std::vector <double> raten (partneranzahl [punkt[vschritt]]+1);
 
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
