@@ -137,7 +137,8 @@ int main()
 	std::vector <int> partneranzahl(monomer_anzahl + full_anzahl);
 	for (i = 0; i < (monomer_anzahl + full_anzahl); i++) {
 		partneranzahl[i] = 0;
-	}
+	} //inizialisation of all elements with 0
+
 	for (i = 0; i < e; i++) {	// counting homodimer partners for j
 		for (j = 0; j < monomer_anzahl; j++) {
 			if ((exciton_1[i] == j) || (exciton_2[i] == j)) {
@@ -257,7 +258,7 @@ for (i=0;i<gesamtanzahl;i++){
       j++; // since the 2nd dimension length of vector partner was set to partneranzahl[i] in thes logic construction j must always end up to be equal to partneranzahl[i]
     }
   }  
-   if (partneranzahl[i] != j) { //after implementation into CAST replace by throw
+   if (partneranzahl[i] != j ) { //after implementation into CAST replace by throw
 	   cout << "Fehler bei Partneranzahl für Monomer:" << i << endl;
   }
 }
@@ -457,16 +458,18 @@ for (k=0;k<index;k++){ // schleife über startpunkte "index durch 1 vertauscht"
 	
 
 for (j=0;j<100;j++){ // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
-	//run << "j ist " << j << endl;
+//run << "j ist " << j << endl;
 zeit=0;
 zeit_1=0;
 zeit_2=0;
+
 punkt[0]=startpunkt[k];
+
 //cout << "Punkt 0 " << punkt[0] << endl;
-  int vschritt=schritt; //additional variable to access the preceding step set to maximum value for first step after that i-1
+  int vschritt=schritt-1; //additional variable to access the preceding step set to maximum value for first step after that i-1
 
   for (i=0;i<schritt;i++){ 
-	  //run << "i ist " << i << endl;
+//run << "i ist " << i << endl;
 
     if (zustand[k][j]=='c'){
       // site energies berechnen
@@ -692,6 +695,7 @@ punkt[0]=startpunkt[k];
       zufall1=distribution0(engine); //generating an normal-distributed random number
 
       std::vector <double> raten (partneranzahl [punkt[vschritt]]);
+
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
 
@@ -712,7 +716,7 @@ punkt[0]=startpunkt[k];
 		   raten[h]= r_summe;
 		}
       } // end of h
-
+run << "6";
       // fluoreszenz dazuaddieren
       r_summe=r_summe+k_rad;
       dwelltime=1/r_summe;
@@ -735,6 +739,7 @@ punkt[0]=startpunkt[k];
       }
 //      cout << "Zeit ist " << setw(12) << setprecision(3) << zeit*1e10 << endl;
       for (g=0;g<partneranzahl [punkt[vschritt]];g++){
+
 	if (raten[g]>r_i){
 	  punkt[i]=partner[ punkt[vschritt] ][g];
 //	  cout << "neuer Punkt " << punkt[i] << endl;
