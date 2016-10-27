@@ -1026,7 +1026,7 @@ void md::simulation::nose_hoover_thermostat(void)
 std::vector<double> md::simulation::init_active_center(int counter)
 {
 	std::size_t const VERBOSE(Config::get().general.verbosity);
-	std::size_t const N = this->coordobj.size();
+	std::size_t const N = this->coordobj.size();                // total number of atoms
 	config::molecular_dynamics const & CONFIG(Config::get().md);
 
 	auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
@@ -1038,7 +1038,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 		coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
 	}
 
-	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active center
+	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active site
 	for (auto & atom_coords : coords_act_center)
 	{
 		if (VERBOSE > 9)
