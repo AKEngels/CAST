@@ -76,7 +76,7 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	% FRONT PAGE
-
+\begin{center} 
 	CAST - Conformational Search and Analysis Tool
 
 	\ifdevelopment
@@ -96,10 +96,8 @@
 	Version 3.1 \\
 	\today
 
-	\ifdevmode
-	\colorbox{red}{WE SHOULD REALLY PUT THE CAST ICON HERE!}
-	\fi
-	
+	\includegraphics[width=\textwidth]{img/CAST_CMYK_small.png}
+	\end{center}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -223,9 +221,10 @@
 
 	%%%% Configuration File %%%%
 	\subsection{Configuration File}
-	A file named \glqq CAST.txt\grqq or \glqq INPUTFILE\grqq~can be used to change the configuration options of \ac{CAST}. It contains option keywords followed by one or more appropriate values. The keywords are case sensitive. Comments can be included by starting the line with a \glqq \#\grqq. The variables are usually of type integer, floating point or boolean (booleans currently being either \glqq 0\grqq~and \glqq 1\grqq~or plain text \glqq true\grqq~and \glqq false\grqq~without quotation marks).\\
+	A file named either \glqq CAST.txt\grqq~or \glqq INPUTFILE\grqq~can be used to change the configuration options of \ac{CAST}\footnote{If both files are present, \glqq CAST.txt\grqq~will be read.}. It contains option keywords followed by one or more appropriate values. The keywords are case sensitive. Comments can be included by starting the line with a \glqq \#\grqq. The variables are usually of type integer, floating point or boolean (booleans currently being either \glqq 0\grqq~and \glqq 1\grqq~or plain text \glqq true\grqq~and \glqq false\grqq~without quotation marks).\\
 
 	The following input commands are compulsory for \ac{CAST} to work and have to be set for every calculation.\\~\\
+	\begin{minipage}{\textwidth}
 	\begin{tabularx}{\textwidth}{l|l|l}
 		Variable&	Effect &	Default \\
 		\hline
@@ -235,7 +234,8 @@
 		outname &	Name of output files &	none\\
 		input-type &	Format of coordinate file &	TINKER\\
 	\end{tabularx}\\~\\
-
+	\end{minipage}
+	
 	The keyword for the path of the used coordinate file is "name". The variable ``cores'' controls the number of threads if multi-threated \ac{CAST} is used (i.e. if \ac{CAST} has been compiled with OpenMP\supercite{openmp08}). ``outname'' defines the name of the outputfile with information regarding the calculation.
 	The switch controlling how much information \ac{CAST} will print to the console is named "verbosity". Proper values are positive integral numbers where low numbers indicate less information than higher numbers do. Suggested values for productive use are 1, 2 or 3. In general, lower numbers will yield less obvious output which is  more suitable for processing (since there are less superficial descriptors printed). Higher values may slow down program execution but provide detailed insight into the program's execution. The detailed effect of the numerical verbosity setting depends on the chosen task.
 
