@@ -4,8 +4,11 @@
 #include <cmath>
 #include <algorithm>
 #include "tinker_parameters.h"
+#include <set>
 #include "filemanipulation.h"
 #include "scon_utility.h"
+#include <iterator>
+#pragma once
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4996)
@@ -86,7 +89,8 @@ tinker::parameter::atom::atom (std::string const &line)
   secondpart >> atomic >> mass >> bonds;
 }
 
-
+// Calculates the amount of memory (in byte) neccessary
+// to store a specific tinker::parameter::atom
 std::size_t tinker::parameter::atom::req_mem (void) const
 {
   std::size_t symb_size = symbol.capacity()*sizeof(std::string::traits_type::char_type);
@@ -846,9 +850,18 @@ std::ostream& tinker::parameter::operator<< (std::ostream & stream, index const 
   return stream;
 }
 
+/**
+ * This functions reads the forcefield parameters
+ * from a param-file.
+ *
+ * @param filename: filename of the parameter file (needs to be in the same folder as executable)
+ */
 void tinker::parameter::parameters::from_file (std::string const & filename)
 {
+  // LBL_FileReader reads a file and puts content into the public member "data"
   LBL_FileReader param_file(filename);
+
+  // If data is empty, throw error
   if (param_file.data.empty())
   {
     std::string fn("'");
@@ -857,15 +870,35 @@ void tinker::parameter::parameters::from_file (std::string const & filename)
     throw std::runtime_error(std::string("File for TINKER-like parameters not found at ").append(fn));
   }
 
+  // Store all the TINKER parameters from the para_file
+  // In the parameters object ("this")
   parse_lines(param_file.data);
+
 
   if (!m_atoms.empty())
   {
     std::sort(m_atoms.begin(), m_atoms.end(), atom::typeless());
     std::size_t const maxtype(m_atoms.back().type);
-    std::vector<atom> tmp(maxtype);
-    for (auto i : m_atoms) tmp[i.type-1] = i;
-    m_atoms = tmp;
+
+    std::vector<atom> m_atoms_temporary(maxtype);
+
+    for (auto i : m_atoms) m_atoms_temporary[i.type - 1] = i;
+    // At first I thought: Appareantly we adjust for zero or one based indexation
+    // However, after closer examination, we actually do NOTHING o.O
+    // We create an equal vector by obscure means
+    // In my current setup, they are euql by the test:
+    //bool testIfEqual = true;
+    //for (size_t i = 0u; i < maxtype; i++)
+    //if (!(m_atoms[i] == m_atoms_temporary[i]))
+    //{
+    //  testIfEqual = false;
+    //}
+    // However, maybe there is a reason why this is here.
+    // Maybe it is necessary for other forcefields
+    // I dont know...
+
+
+    m_atoms = m_atoms_temporary;
   } 
   m_valid = true;
 }
@@ -911,10 +944,20 @@ static inline bool check_string_put (std::string const &line, std::string const 
 
 */
 
+/**
+ * This functions reads the forcefield parameters the lines of a param-file.
+ * These "lines" are obtained using LBL_FileReader from filemanipulation.h
+ * The data is then properly stored in the members of the parameters object.
+ * Yes, ALL the parameters from the file are stored, even the parameters of
+ * atoms that are maybe not needed.
+ *
+ * @param lines: vector containing the lines of a properly formated file. Usually obtained using
+ * LBL_FileReader object from filemanipulation.h
+ */
 void tinker::parameter::parameters::parse_lines (std::vector<std::string> const & lines)
 {
-  std::size_t const N(lines.size());
-  for (std::size_t i(0u); i<N; ++i)
+  std::size_t const numberOfLines(lines.size());
+  for (std::size_t i(0u); i <  numberOfLines; ++i)
   {
     std::string const & line(lines[i]);
     if (line.empty()) continue;
@@ -1048,23 +1091,54 @@ void tinker::parameter::parameters::parse_lines (std::vector<std::string> const 
 
 */
 
+/**
+ * This function contracts the TINKER atom types found in the .arc TINKER
+ * coordinate inputfile.
+ */
+
 tinker::parameter::parameters tinker::parameter::parameters::contract(std::vector<size_t> actual_types) const
 {
   std::sort(actual_types.begin(), actual_types.end(), std::less<std::size_t>());
-  std::size_t const NA(m_atoms.size()), ACT(actual_types.size()+1);
-  parameters tmp;
-  if (actual_types.empty()) return tmp;
-  tmp.contracted = true;
-  tmp.m_general = m_general;
-  tmp.m_atoms.resize(actual_types.size());
-  tmp.m_uncontracted_atoms = m_atoms;
-  enum { GROUP=GROUP, TYPE=TYPE};
-  tmp.contraction_map.assign(NA+1, ACT+1);
-  tmp.group_contraction.assign(NA+1, ACT+1);
-  tmp.contraction_map[0u] = 0u;
-  tmp.group_contraction[0u] = 0u;
-  tmp.m_reduced_groups.push_back(0u);
-  tmp.m_reduced_types.push_back(0u);
+  // NA: Number of atoms in structure
+  // ACT: Number of (actual) unqiue forcefield atom types plus one
+  std::size_t const numberOfAtoms(m_atoms.size()), ACT(actual_types.size()+1);
+
+  // During CASTs initializing procedure an empty coords object is created
+  // During this procedure, an empty energy interface is created according to inputfile specifications
+  // This following if statement takes care of this for the initial startup procedure.
+  // Then, for now, empty parameter container is returned.
+  parameters parametersToBeContracted;
+  if (actual_types.empty()) return parametersToBeContracted;
+
+  // Tell the parameter container that it describes contracted parameters.
+  // It is (appareantly) also possible to work with not-contracted parameters
+  parametersToBeContracted.contracted = true;
+
+  // Copy the "global" m_general struct containing assorted stuff
+  // I am not sure what the stuff that is in there does
+  // But, oh well, guess we copy it to the parameter file
+  parametersToBeContracted.m_general = m_general;
+
+  // OK, so our parameter contains private members m_atoms 
+  // and m_uncontracted_atoms. Seems reasonable.
+  // Adjusting the size of m_atoms, probably actually standing for
+  // "Contracted atom types"
+  parametersToBeContracted.m_atoms.resize(actual_types.size());
+  parametersToBeContracted.m_uncontracted_atoms = m_atoms;
+  // Huh, didnt expect this. Interesting
+
+  // Ok, i removed this line. No f*cking clue what its supposed to do
+  //enum { GROUP=GROUP, TYPE=TYPE};
+
+  // FIll with "numberOfAtoms" copies of the value of "ACT+1"
+  parametersToBeContracted.contraction_map.assign(numberOfAtoms +1, ACT+1);
+  parametersToBeContracted.group_contraction.assign(numberOfAtoms +1, ACT+1);
+
+  parametersToBeContracted.contraction_map[0u] = 0u;
+  parametersToBeContracted.group_contraction[0u] = 0u;
+  parametersToBeContracted.m_reduced_groups.push_back(0u);
+  parametersToBeContracted.m_reduced_types.push_back(0u);
+
   // contract types & groups
   for (auto i : actual_types)
   {
@@ -1074,211 +1148,209 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
       tmpss << i << " not a valid type in paramter file.";
       throw std::runtime_error(tmpss.str().c_str());
     }
-    scon::sorted::insert_unique(tmp.m_reduced_groups, m_atoms[i-1].group);
-    tmp.contraction_map[i] = tmp.m_reduced_types.size();
-    tmp.m_reduced_types.push_back(m_atoms[i-1].type);
+    scon::sorted::insert_unique(parametersToBeContracted.m_reduced_groups, m_atoms[i-1].group);
+    parametersToBeContracted.contraction_map[i] = parametersToBeContracted.m_reduced_types.size();
+    parametersToBeContracted.m_reduced_types.push_back(m_atoms[i-1].type);
   }
   // map groups
-  std::size_t const NR(tmp.m_reduced_groups.size());
+  std::size_t const NR(parametersToBeContracted.m_reduced_groups.size());
   for (std::size_t i(0u); i<NR; ++i)
   {
-    tmp.group_contraction[tmp.m_reduced_groups[i]] = i;
+    parametersToBeContracted.group_contraction[parametersToBeContracted.m_reduced_groups[i]] = i;
   }
   // map atom types
   for (auto i : actual_types)
   {
-    std::size_t const red_type(tmp.contraction_map[i]),
-      red_group(tmp.group_contraction[m_atoms[i-1].group]);
-    tmp.m_atoms[red_type-1] = m_atoms[i-1];
-    tmp.m_atoms[red_type-1].group = red_group;
-    tmp.m_atoms[red_type-1].type = red_type;
+    std::size_t const red_type(parametersToBeContracted.contraction_map[i]),
+      red_group(parametersToBeContracted.group_contraction[m_atoms[i-1].group]);
+    parametersToBeContracted.m_atoms[red_type-1] = m_atoms[i-1];
+    parametersToBeContracted.m_atoms[red_type-1].group = red_group;
+    parametersToBeContracted.m_atoms[red_type-1].type = red_type;
   }
   // transfer vdw and charges, 
   for (auto const &i : m_vdws)
   {
-    std::size_t const a(tmp.contracted_type(i.index, VDW));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index, VDW));
     if (a < ACT)
     {
-      tmp.m_vdws.push_back(i);
-      tmp.m_vdws.back().index = a;
+      parametersToBeContracted.m_vdws.push_back(i);
+      parametersToBeContracted.m_vdws.back().index = a;
     }
   }
 
   for (auto const &i : m_vdw14s)
   {
-    std::size_t const a(tmp.contracted_type(i.index, VDW14));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index, VDW14));
     if (a < ACT)
     {
-      tmp.m_vdw14s.push_back(i);
-      tmp.m_vdw14s.back().index = a;
+      parametersToBeContracted.m_vdw14s.push_back(i);
+      parametersToBeContracted.m_vdw14s.back().index = a;
     }
   }
 
   for (auto const &i : m_charges)
   {
-    std::size_t const a(tmp.contracted_type(i.index, CHARGE));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index, CHARGE));
     if (a < ACT)
     {
-      tmp.m_charges.push_back(i);
-      tmp.m_charges.back().index = a;
+      parametersToBeContracted.m_charges.push_back(i);
+      parametersToBeContracted.m_charges.back().index = a;
     }
   }
 
   for (auto const &i : m_angles)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], ANGLE)),
-      b(tmp.contracted_type(i.index[1], ANGLE)),
-      c(tmp.contracted_type(i.index[2], ANGLE));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], ANGLE)),
+      b(parametersToBeContracted.contracted_type(i.index[1], ANGLE)),
+      c(parametersToBeContracted.contracted_type(i.index[2], ANGLE));
     if ((a < ACT) && (b < ACT) && (c < ACT))
     {
-      tmp.m_angles.push_back(i);
-      tmp.m_angles.back().index[0] = a;
-      tmp.m_angles.back().index[1] = b;
-      tmp.m_angles.back().index[2] = c;
+      parametersToBeContracted.m_angles.push_back(i);
+      parametersToBeContracted.m_angles.back().index[0] = a;
+      parametersToBeContracted.m_angles.back().index[1] = b;
+      parametersToBeContracted.m_angles.back().index[2] = c;
     }
   }
 
   for (auto const &i : m_bonds)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], BOND)),
-      b(tmp.contracted_type(i.index[1], BOND));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], BOND)),
+      b(parametersToBeContracted.contracted_type(i.index[1], BOND));
     if ((a < ACT) && (b < ACT))
     {
-      tmp.m_bonds.push_back(i);
-      tmp.m_bonds.back().index[0] = a;
-      tmp.m_bonds.back().index[1] = b;
+      parametersToBeContracted.m_bonds.push_back(i);
+      parametersToBeContracted.m_bonds.back().index[0] = a;
+      parametersToBeContracted.m_bonds.back().index[1] = b;
     }
   }
 
   for (auto const &i : m_impropers)
   {
     if (i.empty()) continue;
-    std::size_t const a(tmp.contracted_type(i.center, IMPROPER)),
-      b(tmp.contracted_type(i.ligand[0], IMPROPER)),
-      c(tmp.contracted_type(i.ligand[1], IMPROPER)),
-      d(tmp.contracted_type(i.ligand[2], IMPROPER));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.center, IMPROPER)),
+      b(parametersToBeContracted.contracted_type(i.ligand[0], IMPROPER)),
+      c(parametersToBeContracted.contracted_type(i.ligand[1], IMPROPER)),
+      d(parametersToBeContracted.contracted_type(i.ligand[2], IMPROPER));
     if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT))
     {
-      tmp.m_impropers.push_back(i);
-      tmp.m_impropers.back().center = a;
-      tmp.m_impropers.back().ligand[0] = b;
-      tmp.m_impropers.back().ligand[1] = c;
-      tmp.m_impropers.back().ligand[2] = d;
+      parametersToBeContracted.m_impropers.push_back(i);
+      parametersToBeContracted.m_impropers.back().center = a;
+      parametersToBeContracted.m_impropers.back().ligand[0] = b;
+      parametersToBeContracted.m_impropers.back().ligand[1] = c;
+      parametersToBeContracted.m_impropers.back().ligand[2] = d;
     }
   }
 
   for (auto const &i : m_imptors)
   {
     if (i.empty()) continue;
-    std::size_t const a(tmp.contracted_type(i.center, IMPROPER)),
-      b(tmp.contracted_type(i.ligand[0], IMPROPER)),
-      c(tmp.contracted_type(i.ligand[1], IMPROPER)),
-      d(tmp.contracted_type(i.ligand[2], IMPROPER));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.center, IMPROPER)),
+      b(parametersToBeContracted.contracted_type(i.ligand[0], IMPROPER)),
+      c(parametersToBeContracted.contracted_type(i.ligand[1], IMPROPER)),
+      d(parametersToBeContracted.contracted_type(i.ligand[2], IMPROPER));
     if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT))
     {
-      tmp.m_imptors.push_back(i);
-      tmp.m_imptors.back().center = a;
-      tmp.m_imptors.back().ligand[0] = b;
-      tmp.m_imptors.back().ligand[1] = c;
-      tmp.m_imptors.back().ligand[2] = d;
+      parametersToBeContracted.m_imptors.push_back(i);
+      parametersToBeContracted.m_imptors.back().center = a;
+      parametersToBeContracted.m_imptors.back().ligand[0] = b;
+      parametersToBeContracted.m_imptors.back().ligand[1] = c;
+      parametersToBeContracted.m_imptors.back().ligand[2] = d;
     }
   }
 
   for (auto const &i : m_torsions)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], TORSION)),
-      b(tmp.contracted_type(i.index[1], TORSION)),
-      c(tmp.contracted_type(i.index[2], TORSION)),
-      d(tmp.contracted_type(i.index[3], TORSION));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], TORSION)),
+      b(parametersToBeContracted.contracted_type(i.index[1], TORSION)),
+      c(parametersToBeContracted.contracted_type(i.index[2], TORSION)),
+      d(parametersToBeContracted.contracted_type(i.index[3], TORSION));
     if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT))
     {
-      tmp.m_torsions.push_back(i);
-      tmp.m_torsions.back().index[0] = a;
-      tmp.m_torsions.back().index[1] = b;
-      tmp.m_torsions.back().index[2] = c;
-      tmp.m_torsions.back().index[3] = d;
+      parametersToBeContracted.m_torsions.push_back(i);
+      parametersToBeContracted.m_torsions.back().index[0] = a;
+      parametersToBeContracted.m_torsions.back().index[1] = b;
+      parametersToBeContracted.m_torsions.back().index[2] = c;
+      parametersToBeContracted.m_torsions.back().index[3] = d;
     }
   }
 
   for (auto const &i : m_multipoles)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], MULTIPOLE)),
-      b(tmp.contracted_type(i.index[1], MULTIPOLE)),
-      c(tmp.contracted_type(i.index[2], MULTIPOLE)),
-      d(tmp.contracted_type(i.index[3], MULTIPOLE));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], MULTIPOLE)),
+      b(parametersToBeContracted.contracted_type(i.index[1], MULTIPOLE)),
+      c(parametersToBeContracted.contracted_type(i.index[2], MULTIPOLE)),
+      d(parametersToBeContracted.contracted_type(i.index[3], MULTIPOLE));
     if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT))
     {
-      tmp.m_multipoles.push_back(i);
-      tmp.m_multipoles.back().index[0] = a;
-      tmp.m_multipoles.back().index[1] = b;
-      tmp.m_multipoles.back().index[2] = c;
-      tmp.m_multipoles.back().index[3] = d;
+      parametersToBeContracted.m_multipoles.push_back(i);
+      parametersToBeContracted.m_multipoles.back().index[0] = a;
+      parametersToBeContracted.m_multipoles.back().index[1] = b;
+      parametersToBeContracted.m_multipoles.back().index[2] = c;
+      parametersToBeContracted.m_multipoles.back().index[3] = d;
     }
   }
 
   for (auto const &i : m_opbends)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], OPBEND)),
-      b(tmp.contracted_type(i.index[1], OPBEND)),
-      c(tmp.contracted_type(i.index[2], OPBEND)),
-      d(tmp.contracted_type(i.index[3], OPBEND));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], OPBEND)),
+      b(parametersToBeContracted.contracted_type(i.index[1], OPBEND)),
+      c(parametersToBeContracted.contracted_type(i.index[2], OPBEND)),
+      d(parametersToBeContracted.contracted_type(i.index[3], OPBEND));
     if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT))
     {
-      tmp.m_opbends.push_back(i);
-      tmp.m_opbends.back().index[0] = a;
-      tmp.m_opbends.back().index[1] = b;
-      tmp.m_opbends.back().index[2] = c;
-      tmp.m_opbends.back().index[3] = d;
+      parametersToBeContracted.m_opbends.push_back(i);
+      parametersToBeContracted.m_opbends.back().index[0] = a;
+      parametersToBeContracted.m_opbends.back().index[1] = b;
+      parametersToBeContracted.m_opbends.back().index[2] = c;
+      parametersToBeContracted.m_opbends.back().index[3] = d;
     }
   }
 
   for (auto const &i : m_polarizes)
   {
-	  size_t const a(tmp.contracted_type(i.index, POLARIZE)),
-		  b(tmp.contracted_type(i.bonded[0], POLARIZE)),
-		  c(tmp.contracted_type(i.bonded[1], POLARIZE)),
-		  d(tmp.contracted_type(i.bonded[2], POLARIZE));
+	  size_t const a(parametersToBeContracted.contracted_type(i.index, POLARIZE)),
+		  b(parametersToBeContracted.contracted_type(i.bonded[0], POLARIZE)),
+		  c(parametersToBeContracted.contracted_type(i.bonded[1], POLARIZE)),
+		  d(parametersToBeContracted.contracted_type(i.bonded[2], POLARIZE));
 	  if ((a < ACT) && (b < ACT) && (c < ACT) && (d < ACT) /*&& (e < ACT)*/)
 	  {
-		  tmp.m_polarizes.push_back(i);
-		  tmp.m_polarizes.back().index = a;
-		  tmp.m_polarizes.back().bonded[0] = b;
-		  tmp.m_polarizes.back().bonded[1] = c;
-		  tmp.m_polarizes.back().bonded[2] = d;
+		  parametersToBeContracted.m_polarizes.push_back(i);
+		  parametersToBeContracted.m_polarizes.back().index = a;
+		  parametersToBeContracted.m_polarizes.back().bonded[0] = b;
+		  parametersToBeContracted.m_polarizes.back().bonded[1] = c;
+		  parametersToBeContracted.m_polarizes.back().bonded[2] = d;
 	  }
   }
 
   for (auto const &i : m_strbends)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], STRBEND)),
-      b(tmp.contracted_type(i.index[1], STRBEND)),
-      c(tmp.contracted_type(i.index[2], STRBEND));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], STRBEND)),
+      b(parametersToBeContracted.contracted_type(i.index[1], STRBEND)),
+      c(parametersToBeContracted.contracted_type(i.index[2], STRBEND));
     if ((a < ACT) && (b < ACT) && (c < ACT))
     {
-      tmp.m_strbends.push_back(i);
-      tmp.m_strbends.back().index[0] = a;
-      tmp.m_strbends.back().index[1] = b;
-      tmp.m_strbends.back().index[2] = c;
+      parametersToBeContracted.m_strbends.push_back(i);
+      parametersToBeContracted.m_strbends.back().index[0] = a;
+      parametersToBeContracted.m_strbends.back().index[1] = b;
+      parametersToBeContracted.m_strbends.back().index[2] = c;
     }
   }
 
   for (auto const &i : m_ureybrads)
   {
-    std::size_t const a(tmp.contracted_type(i.index[0], UREYBRAD)),
-      b(tmp.contracted_type(i.index[1], UREYBRAD)),
-      c(tmp.contracted_type(i.index[2], UREYBRAD));
+    std::size_t const a(parametersToBeContracted.contracted_type(i.index[0], UREYBRAD)),
+      b(parametersToBeContracted.contracted_type(i.index[1], UREYBRAD)),
+      c(parametersToBeContracted.contracted_type(i.index[2], UREYBRAD));
     if ((a < ACT) && (b < ACT) && (c < ACT))
     {
-      tmp.m_ureybrads.push_back(i);
-      tmp.m_ureybrads.back().index[0] = a;
-      tmp.m_ureybrads.back().index[1] = b;
-      tmp.m_ureybrads.back().index[2] = c;
+      parametersToBeContracted.m_ureybrads.push_back(i);
+      parametersToBeContracted.m_ureybrads.back().index[0] = a;
+      parametersToBeContracted.m_ureybrads.back().index[1] = b;
+      parametersToBeContracted.m_ureybrads.back().index[2] = c;
     }
   }
   
-  return tmp;
-
-	return tmp;
+  return parametersToBeContracted;
 
 }
 

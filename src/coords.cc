@@ -240,7 +240,7 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
 {
   if (a.size() != p.size())
   {
-	std::cout << "Atomzahl: "<< a.size() << " bzw. " << p.size() << "\n";
+	std::cout << "Can't swap in. Number of atoms "<< a.size() << " versus " << p.size() << ". Does not match.\n";
     throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
   }
   energy_valid = false;

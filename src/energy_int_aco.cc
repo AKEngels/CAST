@@ -9,9 +9,14 @@
 energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj) 
    : interface_base(cobj) 
 {
+  // tp are static tinker parameters envoked above 
+  // (::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;)
+
   interactions = true;
   if (!tp.valid())
   {
+    // Here, we read the param file containing
+    // the force field parameters
     tp.from_file(Config::get().get().general.paramFilename);
   }
   std::vector<std::size_t> types;
