@@ -158,7 +158,18 @@ void coords::Stereo::update(coords::Representation_3D const &xyz)
 
 ################################################################################################ */
 
-
+/*! Constructor of empty Coordiantes object
+ *
+ * atoms, representations, stereo, potentials,
+ * virial and stereo are empty. mult_struc_counter member
+ * is set to zero (duh, it's an empty object).
+ * However, keep in mind that the energy interface is already
+ * initialized. And this will not change. The data for atoms etc.
+ * will be filled in later using the function init_swap_in().
+ * The energy interface and preinterface are created
+ * according to the specifications from the global Config instance.
+ *
+ */
 coords::Coordinates::Coordinates() :
   m_atoms(), m_representation(), m_stereo(),
   m_potentials(), m_virial(empty_virial()),
@@ -168,7 +179,6 @@ coords::Coordinates::Coordinates() :
   NEB_control(false),
   PathOpt_control(false),
   mult_struc_counter(0)
-  //, m_topology(0)
 {
 }
 

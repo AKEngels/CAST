@@ -31,6 +31,7 @@
 #include "scon_chrono.h"
 #include "helperfunctions.h"
 #include "scon_log.h"
+
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
@@ -62,29 +63,19 @@
 
 // Enable this define to drop exceptions
 //
+// If CAST_DEBUG_DROP_EXCEPTIONS is set,
+// exceptions will be dropped (this is good for debugging
+// and default in Debug configuration.
+// Otherwise CAST will crash and print the string
+// attached to the exception. This is default behaviour 
+// in release mode.
+//
 //#define CAST_DEBUG_DROP_EXCEPTIONS
-
 
 int main(int argc, char **argv)
 {
+  
 
-  // Where does this code come from?
-  // Why is it here, is it necessary for MOPAC Interface maybe?
-  // Please have a look at this
-  //  
-  //#ifdef _MSC_VER
-  //  //std::ios::sync_with_stdio(false);
-  //  //std::cout.sync_with_stdio(false);
-  //#endif
-
-
-
-  // If CAST_DEBUG_DROP_EXCEPTIONS is set,
-  // exceptions will be dropped (this is good for debugging
-  // and default in Debug configuration.
-  // Otherwise CAST will crash and print the string
-  // attached to the exception. This is default behaviour 
-  // in release mode.
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
   {
@@ -145,8 +136,6 @@ int main(int argc, char **argv)
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-    
-    //coords::input::format * ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
 	  // setting the methods for implicit solvation

@@ -999,12 +999,29 @@ public:
     parse_file(filename);
   }
 
+  /*! Obtain contents of Config
+   *
+   * This get() function is used to safely
+   * obtain the contents of the global Config instance
+   *
+   * This function returns const& and can
+   * therefore not be used to change values.
+   */
   static Config const & get()
   {
     if (!m_instance) throw std::runtime_error("Configuration not loaded.");
     return *m_instance;
   }
 
+  /*! Change contents of Config
+  *
+  * This set() function is used to alter
+  * the contents of the global Config instance
+  *
+  * This function returns a non-const reference 
+  * and can therefore be used to change values.
+  * To merely obtain read-access, use get() function.
+  */
   static Config & set()
   {
     if (!m_instance) throw std::runtime_error("Configuration not loaded.");

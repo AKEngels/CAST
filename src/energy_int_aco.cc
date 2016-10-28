@@ -6,6 +6,14 @@
 
 ::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;
 
+/*! Constructs a force-field energy interface
+ *
+ * Constructor for a force field energy interface.
+ * Atom types are gathered and subsequently contracted
+ * @todo: Describe this better once you understood it.
+ *
+ * @param cobj: Pointer to coordinates object for which energy interface will perform
+ */
 energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj) 
    : interface_base(cobj) 
 {

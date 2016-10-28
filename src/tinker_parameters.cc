@@ -1091,11 +1091,9 @@ void tinker::parameter::parameters::parse_lines (std::vector<std::string> const 
 
 */
 
-/**
- * This function contracts the TINKER atom types found in the .arc TINKER
- * coordinate inputfile.
- */
 
+/*! Contract the TINKER atom types found in the .arc TINKER coordinate inputfile.
+ */
 tinker::parameter::parameters tinker::parameter::parameters::contract(std::vector<size_t> actual_types) const
 {
   std::sort(actual_types.begin(), actual_types.end(), std::less<std::size_t>());

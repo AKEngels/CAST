@@ -103,6 +103,13 @@ namespace coords
 
       };
 
+      /*! Class to read from TINKER coordinate file (.arc)
+       *
+       * This class is used to read coordinates from
+       * a tinker xyz file (.arc or sometimes .xyz).
+       * The coordinates are then put into a
+       * coords::Coordinates object.
+       */
       class tinker : public coords::input::format
       {
       public:
