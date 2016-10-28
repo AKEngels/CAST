@@ -226,12 +226,14 @@ namespace tinker
       atom (void) : mass(), type(), group(), atomic(), bonds() {}
       atom (std::string const &);
       friend bool operator==(const atom& lhs, const atom& rhs);
+      friend bool operator!=(const atom& lhs, const atom& rhs);
 
       // Calculates the amount of memory (in byte) neccessary
       // to store a specific tinker::parameter::atom
       std::size_t req_mem (void) const;
     };
     std::ostream& operator<< (std::ostream & stream, atom const & a);
+
     inline bool operator==(const atom& lhs, const atom& rhs)
     {
       return (lhs.mass == rhs.mass
@@ -242,6 +244,11 @@ namespace tinker
         && lhs.symbol == rhs.symbol
         && lhs.description == rhs.description
         );
+    }
+
+    inline bool operator!=(const atom& lhs, const atom& rhs)
+    {
+      return (!(lhs == rhs));
     }
 
     // angles
