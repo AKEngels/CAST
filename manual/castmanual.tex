@@ -361,11 +361,11 @@
 	
 	\subsubsection{AMBER}
 
-\ac{CAST} can also to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
+\ac{CAST} can to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
 \begin{itemize}
 \item The name of the input file has to be the .prmtop file that contains the atom types and structure information.
 \item The input file type has to be set to ``AMBER''.
-\item The option ``amber\_mdcrd'' has to be activated and set to the name of the .rst file that contains to coordinates of the atoms.
+\item The right option for your AMBER coordinate filetype has to be activated. For restart-files, this is ``amber\_restrt''. For mdcrd-files the right option is ``amber\_mdcrd''. If you use mdcrd-files generated at constant pressure, set the configoption ``amber\_trajectory\_at\_constant\_pressure'' to \textit{true}. Inpcrd-files are currently not supported.
 \item The energy interface has to be set to ``AMBER'', too.
 \item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff\_big.prm''.
 \end{itemize}
