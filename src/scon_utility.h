@@ -191,6 +191,9 @@ namespace scon
    * Takes a string containg the full path as input
    * and can then return either only the filename,
    * only the base_path etc.
+   *
+   * Usually one will use the handy typedef
+   * StringFilePath.
    */
   template<class T = std::string>
   struct FilePath

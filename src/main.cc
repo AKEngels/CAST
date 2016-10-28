@@ -27,6 +27,7 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
+#include "scon_log.h"
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
@@ -35,9 +36,8 @@
 #include "pathopt.h"
 #include "Path_perp.h"
 #include "reaccoord.h"
-#include "scon_log.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
-//#include "gbsa.h"
+//#include "gbsa.h" // Out of Order
 #include <omp.h>
 #include "PCA.h"
 
@@ -74,6 +74,14 @@ int main(int argc, char **argv)
   //  //std::cout.sync_with_stdio(false);
   //#endif
 
+
+
+  // If CAST_DEBUG_DROP_EXCEPTIONS is set,
+  // exceptions will be dropped (this is good for debugging
+  // and default in Debug configuration.
+  // Otherwise CAST will crash and print the string
+  // attached to the exception. This is default behaviour 
+  // in release mode.
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
   {

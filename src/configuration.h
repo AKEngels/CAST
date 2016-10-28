@@ -977,7 +977,9 @@ public:
 
   Config(std::string const &filename)
   {
+    // There can only ever be one Config!
     if (m_instance) throw std::runtime_error("Configuration duplication.");
+
     m_instance = this;
     parse_file(filename);
   }

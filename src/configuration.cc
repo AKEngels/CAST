@@ -528,6 +528,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (outname_check(0))
     {
       std::string path = value_string;
+      // Remove quote signs
       if (path.front() == '"' && path.back() == '"')
       {
         path = path.substr(1u, path.length() - 2U);
