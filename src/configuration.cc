@@ -97,7 +97,17 @@ static T clip(T value, T const LOW, T const HIGH)
   return min(HIGH, max(LOW, value));
 }
 
-
+/**
+ * Helper function that matches a string
+ * to an enum via a sorted "helper-array" 
+ * If matching could not be performed,
+ * enum with value "-1" will be returned.
+ *
+ * @param arr: Sring Array in same order as enum, used for matching
+ * @param ARR_SIZE: Size of the string array
+ * @typename ENUM_T: Type of the enum that should be returned
+ * @param S: Input String.
+ */
 template<typename ENUM_T, std::size_t ARR_SIZE>
 static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
 {
@@ -108,7 +118,15 @@ static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const
   return static_cast<ENUM_T>(-1);
 }
 
-
+/**
+ * Helper function that matches a task 
+ * as string to the corresponding enum via
+ * the sorted "helper-array" config::task_strings
+ * If you add a new task, add it to both the enum
+ * config::tasks::T and config::task_strings
+ *
+ * @param S: task as string
+ */
 config::tasks::T Config::getTask(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_TASKS; ++i)
@@ -119,7 +137,15 @@ config::tasks::T Config::getTask(std::string const & S)
   return config::tasks::ILLEGAL;
 }
 
-
+/**
+ * Helper function that matches an energy interface
+ * as string to the corresponding enum via
+ * the sorted "helper-array" config::config::interface_strings
+ * If you add a new energy interface, add it to both the enum
+ * config::interface_types::T and config::interface_strings
+ *
+ * @param S: energy interface as string
+ */
 config::interface_types::T Config::getInterface(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_INTERFACES; ++i)
@@ -130,6 +156,15 @@ config::interface_types::T Config::getInterface(std::string const & S)
   return config::interface_types::ILLEGAL;
 }
 
+/**
+ * Helper function that matches an outputformat
+ * as string to the corresponding enum via
+ * the sorted "helper-array" config::output_strings
+ * If you add a new output type, add it to both the enum
+ * config::output_types::T and config::output_strings
+ *
+ * @param S: output-type as string
+ */
 config::output_types::T Config::getOutFormat(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_INTERFACES; ++i)
@@ -171,14 +206,21 @@ static bool file_exists_readable(std::string filename)
   return (teststream.is_open() && teststream.good());
 }
 
-
+/**
+ * Helper function that creates a 
+ * boolean value from an istringstream,
+ * specifically from a numerical value contained
+ * in this stream ( 0 = false, 1 = true ).
+ *
+ * All numbers smaller than or euql to 0 are considered false.
+ * All numbers bigger than 1 are considered true.
+ */
 static bool bool_from_iss(std::istringstream & in)
 {
   int x;
   in >> x;
   return (in && x > 0);
 }
-
 
 template<typename T>
 static T from_iss(std::istringstream & in)
@@ -514,6 +556,10 @@ static bool outname_check(int x = 0)
 void config::parse_option(std::string const option, std::string const value_string)
 {
   std::istringstream cv(value_string);
+
+  /////////////////////
+  //// Config::general
+  ////////////////////
   if (option == "name")
   {
     Config::set().general.inputFilename = value_string;
@@ -537,9 +583,17 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
     }
   }
+  // Name of the outputfile
+  // Default: oplsaa.prm
   else if (option == "outname")
   {
+    // outname_check is a small function used to test if
+    // an outname has already been specified by keeping a
+    // static counter.
     outname_check(1);
+
+    // If the "outname" starts with an +,
+    // we append the (input)name by this string
     if (value_string[0] == '+')
     {
       Config::set().general.outputFilename += value_string.substr(1);
@@ -548,15 +602,26 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().general.outputFilename = value_string;
   }
 
-  //! Parameterfile
+  // Filename of the ForceField parameter-file
+  // Has to be in same folder as executable
+  // Default: oplsaa.prm
   else if (option == "paramfile")
     Config::set().general.paramFilename = value_string;
 
-  //! Input format
+  // Input format.
+  // Default: TINKER
   else if (option == "inputtype")
     Config::set().general.input = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
 
-  //! Cutoff radius
+  /////////////////////
+  //// Config::energy
+  ////////////////////
+
+  // This is an option only valid for force-fields
+  // Cutoff radius for non bonded interactions
+  // {supported for any internal FF interface}
+  // If smaller than 9, it will be set to 10
+  // Default: 10000
   else if (option == "cutoff")
   {
     cv >> Config::set().energy.cutoff;
@@ -566,8 +631,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
       if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
     }
-    Config::set().energy.switchdist = Config::set().energy.cutoff > 8.0 ? Config::set().energy.cutoff - 4.0 : 0.0;
+    Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
+  // Turn particle mesh ewald on
+  // CURRENTLY OUT OF ORDER
+  // Default: Off
   else if (option == "PME")
   {
     cv >> Config::set().energy.pme;
@@ -580,15 +648,19 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().energy.pmetresh;
   }
+
+  // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+  // Default: Cutoff - 4.0
   else if (option == "switchdist")
   {
     cv >> Config::set().energy.switchdist;
   }
 
+  // Set Verbosity
+  // Default: 1
   else if (option == "verbosity")
   {
     cv >> Config::set().general.verbosity;
-    scon::cfg::verbosity = (unsigned int)Config::set().general.verbosity;
   }
 
   //! Task to be performed by CAST
@@ -601,6 +673,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
+      // In case the task was specified numerically (why the hell would
+      // you even do that dude?), we try to infer the task by matching
+      // the number to the enum
       std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_TASKS))
       {
@@ -610,6 +685,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
 
   //! Methods for implicit solvation
+
+  // Method for solvation
+  // Default: VAC (i guess vacuum?)
   else if (option == "solvmethod")
   {
     config::solvs::S solvmethod(Config::getSolv(value_string));
@@ -621,7 +699,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().general.surfacemethod = surfmethod;
   }
 
-  //! Output type for structures
+  // Output type for structures
   else if (option == "outputtype")
   {
     config::output_types::T type(Config::getOutFormat(value_string));
@@ -631,6 +709,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
+      // In case the output was specified numerically (why the hell would
+      // you even do that dude?), we try to infer the outputtype by matching
+      // the number to the enum
       std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_OUTPUT))
       {
@@ -639,7 +720,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
 
   }
-  //! Energy calculation interface
+
+  // Energy calculation interface
   else if (option == "interface")
   {
     interface_types::T inter = Config::getInterface(value_string);
@@ -650,10 +732,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     else
     {
       std::cout << "Configuration contained illegal interface." << std::endl;
+      std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
   }
 
-  //! Energy calculation interface
+  // Preoptimizazion energy calculation interface
   else if (option == "preinterface")
   {
     interface_types::T inter = Config::getInterface(value_string);
@@ -665,9 +748,15 @@ void config::parse_option(std::string const option, std::string const value_stri
 #if defined _OPENMP
     long const T(from_iss<long>(cv));
     if (T > 0) omp_set_num_threads(T);
+#else
+    if (Config::get().general.verbosity > 20u)
+    std::cout << "CAST was compiled without multithreading. Ignoring the config-option cores." << std::endl;
 #endif
   }
 
+  // Profileruns
+  // Only used in task "PROFILE"
+  // Default: 10
   else if (option == "profileruns")
   {
     cv >> Config::set().general.profile_runs;
@@ -684,9 +773,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
 
   }
+  // Options for NEB and pathopt
   else if (option.substr(0, 11) == "NEB-PATHOPT")
   {
-
 	  if (option.substr(11, 6) == "-FINAL")
 		  Config::set().neb.FINAL_STRUCTURE = value_string;
 	  else if (option.substr(11, 7) == "-IMAGES")
@@ -746,6 +835,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.mopac.delete_input = bool_from_iss(cv);
     else if (option.substr(5, 7) == "version")
     {
+      // Matching the "value string"
+      // to the enum config::mopac_ver_type
       Config::set().energy.mopac.version =
         enum_type_from_string_arr<
         config::mopac_ver_type::T,

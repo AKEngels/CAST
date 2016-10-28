@@ -851,7 +851,7 @@ std::ostream& tinker::parameter::operator<< (std::ostream & stream, index const 
 }
 
 /**
- * This functions reads the forcefield parameters
+ * This functions reads the ALL forcefield parameters
  * from a param-file.
  *
  * @param filename: filename of the parameter file (needs to be in the same folder as executable)
@@ -882,11 +882,11 @@ void tinker::parameter::parameters::from_file (std::string const & filename)
 
     std::vector<atom> m_atoms_temporary(maxtype);
 
-    for (auto i : m_atoms) m_atoms_temporary[i.type - 1] = i;
     // At first I thought: Appareantly we adjust for zero or one based indexation
     // However, after closer examination, we actually do NOTHING o.O
     // We create an equal vector by obscure means
-    // In my current setup, they are euql by the test:
+    for (auto i : m_atoms) m_atoms_temporary[i.type - 1] = i;
+    // In my current setup, they are euqal by the test:
     //bool testIfEqual = true;
     //for (size_t i = 0u; i < maxtype; i++)
     //if (!(m_atoms[i] == m_atoms_temporary[i]))

@@ -17,6 +17,8 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
   {
     // Here, we read the param file containing
     // the force field parameters
+    // (at this point, we read ALL the ff-parameters,
+    // even the ones we might not need
     tp.from_file(Config::get().get().general.paramFilename);
   }
   std::vector<std::size_t> types;

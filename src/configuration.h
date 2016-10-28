@@ -20,7 +20,14 @@
 
 namespace config
 {
-
+  /**
+   * Helperfunction that (tries to)
+   * convert a string to the template
+   * type T
+   *
+   * @param str: Input String
+   * @typename T: Class to which the string should be converted
+   */
   template<typename T, class CharT, class TraitT, class AllocT>
   inline T from_string(std::basic_string<CharT, TraitT, AllocT> const &str)
   {
@@ -184,6 +191,15 @@ namespace config
     };
   };
 
+  /**
+   * Helperfunction that matches a string
+   * to an enum via a sorted array of strings
+   *
+   * @typename enum_type: Type of the enum which is to be returned
+   * @param SIZE: Size if the sorted string array used for matching ("valarray")
+   * @param valarray: Sorted array of strings in same order as target enum
+   * @param value: Input string that is to be "converted" to enum value.
+   */
   template<class enum_type, std::size_t SIZE, 
     class CharT, class TraitT, class AllocT>
   inline enum_type enum_from_string(
@@ -972,9 +988,9 @@ namespace config
 
 class Config
 {
-
 public:
 
+  // Constructor, automatically parses file
   Config(std::string const &filename)
   {
     // There can only ever be one Config!

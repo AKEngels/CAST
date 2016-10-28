@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     // start execution and initialization timer
     scon::chrono::high_resolution_timer exec_timer, init_timer;
 
-    // initialize (old) RNG
+    // initialize (old) Random Number Generator
     srand((unsigned int)time(NULL)+pid_func());
 
     // Parse config file and command line 
