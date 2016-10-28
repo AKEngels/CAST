@@ -538,12 +538,6 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
 }
 
 
-void config::startopt_conf::solvadd::set_opt(opt_types::T type)
-{
-  opt = type;
-}
-
-
 /*
 
 

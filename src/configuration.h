@@ -766,7 +766,6 @@ namespace config
         fix_initial(true), fix_intermediate(true),
         go_type(globopt_routine_type::BASINHOPPING)
       { }
-      void set_opt(opt_types::T type);
     };
 
     std::ostream& operator<< (std::ostream &, solvadd const &);
