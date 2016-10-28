@@ -156,7 +156,7 @@ config::interface_types::T Config::getInterface(std::string const & S)
   return config::interface_types::ILLEGAL;
 }
 
-/**
+/*
  * Helper function that matches an outputformat
  * as string to the corresponding enum via
  * the sorted "helper-array" config::output_strings
@@ -194,7 +194,8 @@ config::surfs::SA Config::getSurf(std::string const & S)
   return config::surfs::TINKER;
 }
 
-/**
+/*! Checks if file is readable
+ *
  * This function tests if a file in the same
  * folder as the CAST executable is readable.
  *
@@ -206,7 +207,8 @@ static bool file_exists_readable(std::string filename)
   return (teststream.is_open() && teststream.good());
 }
 
-/**
+/*! Creates boolean from integer
+ *
  * Helper function that creates a 
  * boolean value from an istringstream,
  * specifically from a numerical value contained
@@ -239,7 +241,8 @@ static T enum_from_iss(std::istringstream & in)
   return static_cast<T>(x);
 }
 
-/**
+/*! Creates vector from range of integer-types
+ *
  * This creates an std::vector from range based input (istringstream&)
  * only works for integer types
  * EXAMPLE: 3-6 -> 3,4,5,6 (sorted)
@@ -345,7 +348,8 @@ std::vector<T> configuration_range_int(std::istringstream& cv)
   return temp;
 }
 
-/**
+/*! Creates vector from range of float-types
+ *
  * This creates an std::vector from range based input (istringstream&)
  * only works for floating types
  * Is much simpler than version for integer types, only packs into vector without filling or sorting
@@ -393,7 +397,8 @@ std::vector<T> configuration_range_float(std::istringstream& cv)
 
 */
 
-/**
+/*! Returns name of the config-file for the runtime of CAST
+ *
  * This function determines the name
  * of the INPUTFILE which is to be read for
  * config-options. Default is either "CAST.txt"
@@ -430,7 +435,16 @@ std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **
   return std::string("INPUTFILE");
 }
 
-
+/*! Parses command line switches into cnofig object
+ *
+ * This function parses command lines switches.
+ * They have priority over options from the inputfile
+ * and therefore overwrite them. Pass over argc
+ * and argv to this function.
+ *
+ * @param N: usually "argc"
+ * @param V: usually "argv"
+ */
 void config::parse_command_switches(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -441,11 +455,20 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
       std::string argument(V[i]);
       std::string::size_type const equality_pos(argument.find("="));
 
+      // This section transfers the commandline switches
+      // into a form which can be parsed by the function
+      // "parse option", see also parse_option(std::string option, std::string value)
+      //
+      // This only works for switches of the form -option=value
+      // Example, -cutoff=5.0
       if (argument.substr(0U, 1U) == "-" && equality_pos != argument.npos &&
         argument.length() >(equality_pos + 1U))
       {
         std::string option(argument.substr(1U, (equality_pos - 1U)));
         std::string value(argument.substr((equality_pos + 1U), (argument.length() - equality_pos - 1U)));
+
+        // if the value is passed to this function containing quotation marks,
+        // they will be removed for your conveniance
         if (value.substr(0U, 1U) == "\"")
         {
           std::string::size_type const last_quotationmark(argument.find_last_of("\""));
@@ -471,6 +494,10 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
         config::parse_option(option, value);
       }
 
+      // The following switches can also take the form:
+      // "-n yourChosenName" or "-p paramfile.prm"
+      //
+      // This only works for name, paramfile, outname, task and inputtype
       if (argument.substr(0, 2) == "-n" && argument.length() == 2U && N > i + 1)
       {
         config::parse_option("name", V[++i]);
@@ -487,13 +514,15 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
       {
         config::parse_option("task", V[++i]);
       }
-      else if (argument.substr(0, 6) == "-spack")
-      {
-        Config::set().energy.spackman.on = true;
-      }
       else if (argument.substr(0, 5) == "-type" && argument.length() == 5U && N > i + 1)
       {
         config::parse_option("inputtype", V[++i]);
+      }
+
+      // Enable spackman by enetering -spack
+      else if (argument.substr(0, 6) == "-spack")
+      {
+        Config::set().energy.spackman.on = true;
       }
     }
   }
@@ -528,7 +557,8 @@ void config::startopt_conf::solvadd::set_opt(opt_types::T type)
 
 
 */
-/**
+/*! Helperfunction to keep track of the output-filename
+ *
  * Small helper function that keeps
  * track of wether an "outname" has
  * been specified and read up until now.
@@ -545,7 +575,8 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
-/**
+/*! Parses one config-option and stores it in config-class
+ *
  * This function parses one configoption
  * and puts the value into the corresponding
  * struct inside the Config class
@@ -824,7 +855,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.MAXFLUX;
   }
 
-  //! convergence gradient for bfgs
+  // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
     if (option.substr(5, 3) == "key")
@@ -845,11 +876,13 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //! convergence gradient for bfgs
+  // convergence threshold for bfgs
+  // Default 0.001
   else if (option == "BFGSgrad")
     cv >> Config::set().optimization.local.bfgs.grad;
 
-  //! max number of steps for bfgs
+  // max number of steps for bfgs
+  // Default: 10000
   else if (option == "BFGSmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
 
@@ -926,7 +959,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(2, 3) == "opt")
     {
-      Config::set().startopt.solvadd.set_opt(enum_from_iss<config::startopt_conf::solvadd::opt_types::T>(cv));
+      Config::set().startopt.solvadd.opt = enum_from_iss<config::startopt_conf::solvadd::opt_types::T>(cv);
     }
     else if (option.substr(2, 7) == "go_type")
     {
@@ -1890,8 +1923,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 
 
-
-
 /*
 
 
@@ -1915,12 +1946,13 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 */
 
-/**
-* This function parses a configuration file
-* and puts the options into the COnfig class
-*
-* @param filename: Full filename of the file
-*/
+/*! Parse whole config-file for config-options
+ *
+ * This function parses a configuration file
+ * and puts the options into the Config class
+ *
+ * @param filename: Full filename of the file
+ */
 void Config::parse_file(std::string const & filename)
 {
 
@@ -1945,6 +1977,11 @@ void Config::parse_file(std::string const & filename)
   }
 }
 
+/*! Stream operator for config::general
+ *
+ * Prints contents of config::general in human
+ * readable form.
+ */
 std::ostream & config::operator<< (std::ostream &strm, general const &g)
 {
   strm << "Reading structure(s) from '" << g.inputFilename;
@@ -1953,7 +1990,6 @@ std::ostream & config::operator<< (std::ostream &strm, general const &g)
   strm << "Energy calculations will be performed using '" << interface_strings[g.energy_interface] << "'.\n";
   return strm;
 }
-
 
 std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
 {
@@ -2203,7 +2239,6 @@ boundary(boundary_types::LAYER), opt(opt_types::SHELL),
 fix_initial(true), fix_intermediate(true),
 go_type(globopt_routine_type::BASINHOPPING)
 { }
-void set_opt(opt_types::T type);
 */
 
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd const &sa)
