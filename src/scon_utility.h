@@ -185,6 +185,13 @@ namespace scon
     typedef std::wstringstream ss_type;
   };
 
+  /*
+   * Helperclass for handling filepaths
+   * 
+   * Takes a string containg the full path as input
+   * and can then return either only the filename,
+   * only the base_path etc.
+   */
   template<class T = std::string>
   struct FilePath
   {
@@ -228,6 +235,8 @@ namespace scon
       }
       return file;
     }
+
+    // The actual path
     T path;
   };
 

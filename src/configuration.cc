@@ -159,6 +159,12 @@ config::surfs::SA Config::getSurf(std::string const & S)
   return config::surfs::TINKER;
 }
 
+/**
+ * This function tests if a file in the same
+ * folder as the CAST executable is readable.
+ *
+ * @param filename: Full filename of the file
+ */
 static bool file_exists_readable(std::string filename)
 {
   std::ofstream teststream(filename.c_str(), std::ios_base::in);
@@ -345,7 +351,20 @@ std::vector<T> configuration_range_float(std::istringstream& cv)
 
 */
 
-
+/**
+ * This function determines the name
+ * of the INPUTFILE which is to be read for
+ * config-options. Default is either "CAST.txt"
+ * or "INPUTFILE".
+ * By starting the CAST executable with commandline option
+ * -s or -setup the filename of a different 
+ * inputfile can be specified.
+ *
+ * Call like this:
+ * CAST.exe -setup=filename.txt
+ * or
+ * CAST.exe -s filename.txt
+ */
 std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -467,7 +486,16 @@ void config::startopt_conf::solvadd::set_opt(opt_types::T type)
 
 
 */
-
+/**
+ * Small helper function that keeps
+ * track of wether an "outname" has
+ * been specified and read up until now.
+ *
+ * Reasoning: If no "outname" is specified in the
+ * configfile, "inputname" + "_out" will be taken
+ * as the outname. This function is used only in
+ * config::parse_option
+ */
 static bool outname_check(int x = 0)
 {
   static int chk = 0;
@@ -475,13 +503,28 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
-
+/**
+ * This function parses one configoption
+ * and puts the value into the corresponding
+ * struct inside the Config class
+ *
+ * @param option: name of the configoption
+ * @param value_string: corresponding value of the option
+ */
 void config::parse_option(std::string const option, std::string const value_string)
 {
   std::istringstream cv(value_string);
   if (option == "name")
   {
     Config::set().general.inputFilename = value_string;
+
+    // If no outname is specified,
+    // the output-file will have the same name as the inputfile
+    // but with "_out" added to the name.
+    //
+    // outname_check is a small function used to test if
+    // an outname has already been specified by keeping a
+    // static counter.
     if (outname_check(0))
     {
       std::string path = value_string;
@@ -1780,7 +1823,12 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 */
 
-
+/**
+* This function parses a configuration file
+* and puts the options into the COnfig class
+*
+* @param filename: Full filename of the file
+*/
 void Config::parse_file(std::string const & filename)
 {
 
@@ -1788,27 +1836,22 @@ void Config::parse_file(std::string const & filename)
   std::size_t const N(data.size());
   for (std::size_t i = 0; i < N; i++)
   {
+    // In the configfile, first there will be an option, then a varying number of whitespaces
+    // and then the value of the option
     std::string option_string(data[i].substr(0U, data[i].find_first_of(" ")));
     std::string value_string(data[i]);
+
+    // erase whitespaces
     value_string.erase(0, value_string.find_first_of(" "));
     value_string.erase(0, value_string.find_first_not_of(" "));
+
+    // Values beginning with an "#" are ignored.
     if (option_string.size() > 0 && option_string[0] != '#')
     {
       config::parse_option(option_string, value_string);
     }
   }
 }
-
-
-/*
-    std::string inputFilename, paramFilename, outputFilename;
-    input_types::T input;
-    config::tasks::T task;
-    interface_types::T energy_interface;
-    std::size_t verbosity;
-    bool forcefield;
-*/
-
 
 std::ostream & config::operator<< (std::ostream &strm, general const &g)
 {
