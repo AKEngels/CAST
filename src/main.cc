@@ -27,6 +27,7 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
+#include "helperfunctions.h"
 #include "scon_log.h"
 // Task items
 #include "startopt_solvadd.h"
@@ -116,42 +117,6 @@ int main(int argc, char **argv)
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
     }
-
-    // Define Function to output molar mass of a coords object
-    auto sys_mass = [](coords::Coordinates &sys) -> double
-    {
-      double m = 0;
-      for (auto && a : sys.atoms())
-      {
-        m += a.mass();
-      }
-      return m;
-    };
-
-
-    // Energy print functions
-    auto short_ene_stream = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << coords.pes().energy;
-      for (auto && ia : coords.pes().ia_matrix)
-      {
-        strm << std::setw(w) << ia.energy;
-      }
-    };
-
-    auto short_ene_stream_h = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << "Energy";
-      auto const n = coords.pes().ia_matrix.size();
-      for (std::size_t i = 0; i < n; ++i)
-      {
-        strm << std::setw(w) << ("WW" + std::to_string(i));
-      }
-    };
 
     //////////////////////////
     //                      //
