@@ -7,6 +7,8 @@
 //           //      //           //       //
 //           //      //           //       //
 //////////   //      //   //////////       //
+/////conformational analysis and search tool/////
+
 
 //////////////////////////
 //                      //
@@ -110,9 +112,25 @@ int main(int argc, char **argv)
     // Print configuration
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "\n";
+      std::cout << "  |-----------------------------------------------------|\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |  //////////   //////////   //////////   //////////  |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //////////       //      |\n";
+      std::cout << "  |  //           //////////           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //////////   //      //   //////////       //      |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |       conformational analysis and search tool       |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |-----------------------------------------------------|\n\n\n";
+
+      std::cout << "-------------------------------------------------------\n";
       std::cout << "Configuration ('" << config_filename << "')\n";
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "-------------------------------------------------------\n";
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
