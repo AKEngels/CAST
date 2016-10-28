@@ -1903,16 +1903,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().io.amber_trajectory_at_constant_pressure = false;
     }
   }
-
-  /*NOT IMPLEMENTED AS OF NOW!
-  //I/O Atoms index options
-  else if (option == "atomexclude")
-  {
-    Config::set().general.bool_atomsexclude = true;
-    Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
-  }
-  */
-
 }
 
 
