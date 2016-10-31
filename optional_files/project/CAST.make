@@ -124,60 +124,6 @@ ifeq ($(config),testing_x86)
   TARGET = $(TARGETDIR)/CAST_linux_x86_testing.exe
   OBJDIR = obj/x86/Testing
   DEFINES += -DGOOGLE_MOCK
-  INCLUDES += -I../includes/gtest -I../includes/armadillo
-  FORCE_INCLUDE +=
-  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
-  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS +=
-  LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/ ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
-  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  define PREBUILDCMDS
-  endef
-  define PRELINKCMDS
-  endef
-  define POSTBUILDCMDS
-  endef
-all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
-	@:
-
-endif
-
-ifeq ($(config),testing_x64)
-  RESCOMP = windres
-  TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_testing.exe
-  OBJDIR = obj/x64/Testing
-  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK
-  INCLUDES += -I../includes/gtest -I../includes/armadillo
-  FORCE_INCLUDE +=
-  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
-  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS +=
-  LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/ ../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran
-  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  define PREBUILDCMDS
-  endef
-  define PRELINKCMDS
-  endef
-  define POSTBUILDCMDS
-  endef
-all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
-	@:
-
-endif
-
-ifeq ($(config),testing_armadillo_x86)
-  RESCOMP = windres
-  TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST.exe
-  OBJDIR = obj/x86/Testing_Armadillo
-  DEFINES += -DGOOGLE_MOCK -DUSE_ARMADILLO
   INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -199,12 +145,12 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 
 endif
 
-ifeq ($(config),testing_armadillo_x64)
+ifeq ($(config),testing_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST.exe
-  OBJDIR = obj/x64/Testing_Armadillo
-  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK -DUSE_ARMADILLO
+  TARGET = $(TARGETDIR)/CAST_linux_x64_testing.exe
+  OBJDIR = obj/x64/Testing
+  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK
   INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -214,6 +160,60 @@ ifeq ($(config),testing_armadillo_x64)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_testing_x86)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST.exe
+  OBJDIR = obj/x86/Armadillo_Testing
+  DEFINES += -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
+  INCLUDES += -I../includes/gtest -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_testing_x64)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST.exe
+  OBJDIR = obj/x64/Armadillo_Testing
+  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
+  INCLUDES += -I../includes/gtest -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
