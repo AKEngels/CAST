@@ -9,6 +9,9 @@
 #include "scon.h"
 #include "scon_vect.h"
 #include "scon_utility.h"
+#include "configuration.h"
+#pragma once
+
 
 namespace scon
 {
