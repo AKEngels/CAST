@@ -10,6 +10,10 @@
 /////conformational analysis and search tool/////
 
 
+// If we run our tests, we will
+// take the testing main from gtest/testing_main.cc
+#ifndef GOOGLE_MOCK
+
 //////////////////////////
 //                      //
 //       L I B S        //
@@ -71,6 +75,8 @@
 // in release mode.
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
+
+
 
 int main(int argc, char **argv)
 {
@@ -809,3 +815,4 @@ int main(int argc, char **argv)
 #endif
   return 0;
 }
+#endif
