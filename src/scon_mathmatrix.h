@@ -300,7 +300,7 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: det_sign() for mathmatrix." << std::endl;
-			return ((this->determ() < 0) ? -1 : 1);
+			return ((this->determ() <= 0) ? -1 : 1);
 		};
 
 		/**
@@ -311,7 +311,8 @@ typedef size_t uint_type;
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: rank() for mathmatrix." << std::endl;
 #ifdef USE_ARMADILLO
-      return static_cast<size_t>(rank(*this));
+      arma::Mat<T> const& base_this = *this;
+      return static_cast<size_t>(arma::rank(base_this));
 #else
 			//Rewritten from NumRecipies, SVD
 
@@ -330,7 +331,7 @@ typedef size_t uint_type;
 			{
 				bool flag;
 				int i, its, j, jj, k, l, nm;
-				float_type anorm, c, f, g, h, s, scale, x, y, z;
+				T anorm, c, f, g, h, s, scale, x, y, z;
 				mathmatrix rv1(n, 1u);
 				g = scale = anorm = 0.0;
 				for (i = 0; i < n; i++) {

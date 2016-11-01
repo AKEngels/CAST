@@ -118,4 +118,55 @@ TEST(mathmatrix, positiveDefiniteCheck)
 
 }
 
+TEST(mathmatrix, detSign)
+{
+  // via https://en.wikipedia.org/wiki/Positive-definite_matrix
+  mathmatrix<float> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = -1.;
+  one(1, 1) = 2;
+  one(2, 2) = 2;
+  one(0, 1) = -1;
+  one(2, 1) = -1.;
+  one(1, 2) = -1;
+  ASSERT_EQ(one.det_sign(), 1);
+  mathmatrix<float> two(3u, 3u, 1.f);
+  ASSERT_EQ(two.det_sign(), -1);
+}
+
+TEST(mathmatrix, rank)
+{
+  // via https://en.wikipedia.org/wiki/Positive-definite_matrix
+  mathmatrix<float> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = -1.;
+  one(1, 1) = 2;
+  one(2, 2) = 2;
+  one(0, 1) = -1;
+  one(2, 1) = -1.;
+  one(1, 2) = -1;
+
+  mathmatrix<float> three(2u, 4u, 1.f);
+  three(0, 2) = 0;
+  three(1, 2) = 0;
+  three(1, 0) = -1;
+  three(1, 1) = -1;
+  three(0, 3) = 2;
+  three(1, 3) = -2;
+  ASSERT_EQ(three.rank(), 1);
+
+  ASSERT_EQ(one.rank(), 3);
+  mathmatrix<float> two(3u, 3u, 1.f);
+  two(0, 1) = 2;
+  two(1, 0) = -2;
+  two(2, 0) = 3;
+  two(1, 1) = -3;
+  two(2, 1) = 5;
+  two(2, 2) = 0;
+  ASSERT_EQ(two.rank(), 2);
+
+
+}
+
+
 #endif
