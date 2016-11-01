@@ -11,7 +11,7 @@
 -- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
 --
 -- Build for Linux on Smurf: "premake5 mpi"
--- Run "make config=release_x64 CXX=mpic++" in project/
+-- Run "make config=armadillo_release_x64 CXX='/apps/mpich/2.1.4.1p1/bin/mpicxx -cxx=/apps/gcc-6.1/bin/g++-6.1 -static-libstdc++ -static-libgcc'" in project/
 --
 
 newoption {
@@ -114,7 +114,8 @@ project "CAST"
 
 
 	configuration "vs2015"
-		targetname "CAST.exe"
+		targetname "CAST_undefined.exe"
+    debugdir "../optional_files/includes/build"
 		buildoptions { "/openmp" }
 		flags { "MultiProcessorCompile" }
 		filter { "configurations:Release", "action:vs2015" }
@@ -167,14 +168,13 @@ project "CAST"
 
     filter { "configurations:Armadillo_Testing", "action:vs2015" }
       optimize "Debug"
-      defines { "GOOGLE_MOCK" }
+      defines { "GOOGLE_MOCK", "USE_ARMADILLO" }
       includedirs { "../optional_files/includes/armadillo/", "../optional_files/includes/gtest/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
-      defines { "USE_ARMADILLO" }
-      filter { "configurations:Testing_Armadillo",  "platforms:x86", "action:vs2015"}
+      filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2015"}
   			targetname "CAST_win_x86_testing_lapack"
         links { "blas_x86rel", "lapack_x86rel", "gmock" }
-  		filter { "configurations:Testing_Armadillo",  "platforms:x64", "action:vs2015"}
+  		filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:vs2015"}
   			targetname "CAST_win_x64_testing_lapack"
         links { "blas_win64_MT", "lapack_win64_MT", "gmock" }
 
