@@ -55,6 +55,21 @@ typedef size_t uint_type;
 
 //#define DEBUGVIEW
 
+
+// Further flag important here:
+// #define USE_ARMADILLO
+// However, don't set this manually. This
+// flag is set by Visual Studio or make according to your desired configuration
+// It's all already automatized and integrated
+
+///////////////////////////////
+
+///////////////////////////////
+//                           //
+//	I N C L U D E S          //
+//                           //
+///////////////////////////////
+
 #pragma once
 #include <iostream>
 #include <vector>
@@ -71,6 +86,8 @@ typedef size_t uint_type;
 #endif
 
 ///////////////////////////////
+
+
 	template <typename T>
   class mathmatrix
 #ifndef USE_ARMADILLO
@@ -100,24 +117,52 @@ typedef size_t uint_type;
 		/////                           /////
 		/////////////////////////////////////
 
-    // forward all arguments to matrix constructor
 #ifndef USE_ARMADILLO
     template<class ... Args>
     mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
 #else
-    mathmatrix() : arma::Mat<T>() {};
-    mathmatrix(size_t rows, size_t cols) : arma::Mat<T>(rows, cols) {};
-    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) {};
-    mathmatrix(size_t rows, size_t cols, T fill) : arma::Mat<T>(rows, cols)
+    /*! Construct empty mathmatrix
+     *
+     * Constructs an empty mathmatrix
+     */
+    mathmatrix() : arma::Mat<T>() 
+    { };
+
+    /*! Construct mathmatrix of certain size
+     *
+     * Elements are undefined
+     * @param rows: Number of rows
+     * @param cols: Number of columns
+     */
+    mathmatrix(uint_type rows, uint_type cols) : arma::Mat<T>(rows, cols) 
+    { };
+
+
+    /*! Construct mathmatrix from armadillo matrix
+     *
+     * Do not call this manually.
+     * @NOTE: Used only during internal functions when using armadillo
+     */
+    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
+    { };
+
+    /*! Construct filled mathmatrix of certain size
+     *
+     * All values initialized to the same value
+     * @param rows: Number of rows
+     * @param cols: Number of columns
+     * @param fill: Value to which all matrix elements will be initialized
+     */
+    mathmatrix(uint_type rows, uint_type cols, T fill) : arma::Mat<T>(rows, cols)
     {
-      for (size_t i = 0u; i < rows; i++)
-        for (size_t j = 0u; j < cols; j++)
+      for (uint_type i = 0u; i < rows; i++)
+        for (uint_type j = 0u; j < cols; j++)
           (*this)(i, j) = fill;
     };
-
 #endif
 
     // pull in range functions
+    // if we use scon::matrix
 #ifndef USE_ARMADILLO
     using base_type::begin;
     using base_type::end;
@@ -133,22 +178,34 @@ typedef size_t uint_type;
     using base_type::row;
     using base_type::col;
 
-    // element access
+    // element access from base class
     using base_type::operator();
     using base_type::operator[];
+
+    using base_type::resize;
 
 #ifndef USE_ARMADILLO
     using base_type::operator*=;
 #endif
 
-    // identity
+    // identity from base_classes
+    // but wrapped in arma case to yield identical function name
 #ifndef USE_ARMADILLO
     using base_type::identity;
 #else
+
+    /*! Returns an "identity matrix" of certain size
+     *
+     * All diagonal elements will be initialized to one
+     * All off-diagonal elements will be initialized to zero
+     * @param num_rows: Number of rows
+     * @param num_cols: Number of columns
+     * @todo: Write as free function!!
+     */
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
       identity(std::size_t const num_rows, std::size_t const num_cols)
     {
-      return mathmatrix(num_rows, num_cols).eye();
+      return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
     }
 #endif
 
@@ -163,8 +220,10 @@ typedef size_t uint_type;
 		/////////////////////////////////////
 
 #ifdef USE_ARMADILLO
-		/**
-		 * Overload += operator
+		/*! mathmatrix += operator
+		 * 
+     * @param in: Matrix to the right of the summation (this + in)
+     * @return: Result of the addition of this + in
 		 */
 		mathmatrix operator+(mathmatrix const& in) const
 		{
@@ -178,32 +237,13 @@ typedef size_t uint_type;
 		};
 #endif
 
-    using base_type::resize;
-
-
-		/**
-		 * Prints contents to std::cout
-		 */
-		void out() const
-		{
-#ifndef USE_ARMADILLO
-      base_type const & a = *this;
-      ::scon::matrix_printer<base_type> mp(a);
-      // 3 newlines on top
-      mp.margin_top = 3u;
-      // 3 newlines after
-      mp.margin_bottom = 3u;
-      // two newlines after each row
-      mp.fill_right = '\n';
-      mp.margin_right = 1u;
-      //
-      std::cout << mp;
-#else
-      arma::Mat<T>* ptr = *this;
-      std::cout << *ptr;
-#endif
-		};
-
+    /*! mathmatrix stream operator for writing output
+     *
+     * @param os: Stream to which data is passed on
+     * @param object: mathmatrix whose contents are to be printed
+     *
+     * @return: Formatted contents of the matrix as strings (without a header)
+     */
     friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
     {
       for (size_t i = 0u; i < object.rows(); ++i)
@@ -223,10 +263,10 @@ typedef size_t uint_type;
 		bool positive_definite_check()
 		{
 			bool positive_definite = true;
-      if (!is_square(*this)) return false;
+      if (!this->return_quadratic()) return false;
       for (unsigned int i = 1; i < (this->rows() + 1); i++)
       {
-        if (mathmatrix{ resized(*this, i, i) }.det_sign() < 0)
+        if (mathmatrix( this->upper_left_submatrix(i, i) ).determ() <= 0)
         {
           return false;
         }
@@ -473,8 +513,8 @@ typedef size_t uint_type;
 		 */
 		float_type determ() const
 		{
-      if (Config::get().general.verbosity > 3U)
-        std::cout << "Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
+      //if (Config::get().general.verbosity > 3U)
+      //  std::cout << "Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
 
 #ifdef USE_ARMADILLO
 			return static_cast<float_type>(det(*this));
@@ -786,7 +826,7 @@ typedef size_t uint_type;
 		bool return_quadratic() const
 		{
 #ifndef USE_ARMADILLO
-			return this->quadratic();
+			return is_square(*this);
 #else
       return this->rows() == this->cols();
 #endif
