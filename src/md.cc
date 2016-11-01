@@ -40,29 +40,25 @@ std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 
 void md::trace_writer::operator() (md::trace_data const & d)
 {
-	static std::atomic<std::size_t> x(0u);
-	if (Config::get().general.verbosity > 4)
+	static std::atomic<bool> x(true);
+	if (x && Config::get().general.verbosity > 1)
   {
-    if (x % 100u == 0)
+    *strm << std::right << std::setw(10u) << "It";
+    *strm << std::right << std::setw(20u) << "T";
+    *strm << std::right << std::setw(20u) << "P";
+    *strm << std::right << std::setw(20u) << "E_kin";
+    *strm << std::right << std::setw(20u) << "E_pot";
+    *strm << std::right << std::setw(20u) << "E_tot";
+    *strm << std::right << std::setw(20u) << "Snapsh.";
+    if (d.Eia.size() > 1u)
     {
-      std::cout << std::right << std::setw(10u) << "It";
-      std::cout << std::right << std::setw(20u) << "T";
-      std::cout << std::right << std::setw(20u) << "P";
-      std::cout << std::right << std::setw(20u) << "E_kin";
-      std::cout << std::right << std::setw(20u) << "E_pot";
-      std::cout << std::right << std::setw(20u) << "E_tot";
-      std::cout << std::right << std::setw(20u) << "Snapsh.";
-      if (d.Eia.size() > 1u)
+      for (auto i : scon::index_range(d.Eia))
       {
-        for (auto i : scon::index_range(d.Eia))
-        {
-          std::cout << std::right << std::setw(20u) << "E_ia(# " << i << ')';
-        }
+        *strm << std::right << std::setw(20u) << "E_ia(# " << i << ')';
       }
-      std::cout << '\n';
     }
-    std::cout << d;
-    ++x;
+    *strm << '\n';
+    x = false;
   }
   *strm << d;
 }
@@ -1572,125 +1568,6 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		}
 	}
 
-/*void md::simulation::beemanintegrator_2(std::size_t const k_init)
-{
-	std::cout << "WARNING! No one knows what this integrator is doing. It might not support some options.\n";
-	scon::chrono::high_resolution_timer integration_timer;
-  // const values
-
-  config::molecular_dynamics const & CONFIG(Config::get().md);
-
-  // prepare tracking
-  std::size_t const VERBOSE(Config::get().general.verbosity);
-
-  if (VERBOSE > 0U)
-  {
-	  std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-	  std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
-  }
-  
-  std::size_t const
-    N = coordobj.size();
-  double const
-    deltt(Config::get().md.timeStep),
-    d_8(deltt*0.125),
-    five_d_8(d_8*5.0),
-    mconvert(-md::convert),
-    tempfactor(2.0 / (freedom*md::R));
-  coords::Cartesian_Point force, temporary;
-  std::ofstream ob_stream(
-    std::string(std::string(Config::get().general.outputFilename).append("_MD_restart.cbf")).c_str(),
-    std::ofstream::out | std::ofstream::binary
-    );
-  F_old.resize(N);
-
-  for (std::size_t i(0U); i < N; ++i)
-  {
-    F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
-    F_old[i] = F[i];
-  }
-
-  updateEkin();
-
-  auto split = std::max(std::size_t{ CONFIG.num_steps / 100u }, std::size_t{ 100u });
-
-  for (std::size_t k(k_init); k < Config::get().md.num_steps; ++k)
-  {
-
-    bool const heated(heat(k));
-
-	if (VERBOSE > 1u && k % split == 0 && k > 1)
-	{
-		std::cout << k << " steps completed" << std::endl;
-	}
-
-    if (Config::get().md.hooverHeatBath && !heated)
-    {
-      nose_hoover_thermostat();
-    }
-
-    // first beeman step
-    for (std::size_t i(0U); i < N; ++i)
-    {
-      coords::Cartesian_Point const tmp((F[i] - F_old[i])*five_d_8);
-      coordobj.move_atom_by(i, (V[i] + tmp)*deltt);
-      V[i] += tmp;
-    }
-
-    // new energy & gradients
-    coordobj.g();
-
-    // refine nonbondeds if refinement is required due to configuration
-    if (Config::get().md.refine_offset == 0 || (k + 1U) % Config::get().md.refine_offset == 0) coordobj.energy_update(true);
-
-    // adjust boundary influence
-    boundary_adjustments();
-
-    // full step velocities, beeman recursion
-    for (std::size_t i(0U); i < N; ++i)
-    {
-      F_old[i] = F[i];
-      F[i] = (coordobj.g_xyz(i) / M[i])*mconvert;
-      V[i] += (F[i] * 3.0 + F_old[i])*d_8;
-    }
-
-    if (Config::get().md.hooverHeatBath && !heated)
-    {
-      temp = E_kin*tempfactor;
-      nose_hoover_thermostat();
-    }
-    else
-    {
-      updateEkin();
-      temp = E_kin*tempfactor;
-    }
-    // trace Energy and Temperature
-    if (CONFIG.track)
-    {
-      std::vector<coords::float_type> iae;
-      if (coordobj.interactions().size() > 1)
-      {
-        iae.reserve(coordobj.interactions().size());
-        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
-      }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
-    }
-    // Serialize to binary file if required.
-    if (Config::get().md.restart_offset > 0 && k%Config::get().md.restart_offset == 0)
-    {
-      write_restartfile(k);
-    }
-    // if veloscale is true, eliminate rotation and translation
-    if (Config::get().md.veloScale) tune_momentum();
-
-  }
-  if (VERBOSE > 2U)
-  {
-	  //auto integration_time = integration_timer();
-	  std::cout << "Beeman_2 integration took " << integration_timer << '\n';
-  }
-
-}*/
 
  //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)
