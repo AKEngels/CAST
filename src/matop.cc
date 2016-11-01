@@ -1018,8 +1018,11 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     }
     outputstream << hold_coords_str[i];
   }
-  distance << "\n";
-  distance << "Mean value: " << (mean_value / (double) (ci->size() - 1)) << "\n";
+  if (Config::get().alignment.traj_print_bool)
+  {
+    distance << "\n";
+    distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  }
   //Formatted string-output
 
   delete[] hold_str;
