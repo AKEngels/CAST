@@ -513,8 +513,8 @@ typedef size_t uint_type;
 		 */
 		float_type determ() const
 		{
-      //if (Config::get().general.verbosity > 3U)
-      //  std::cout << "Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
+      if (Config::get().general.verbosity > 3U)
+        std::cout << "Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
 
 #ifdef USE_ARMADILLO
 			return static_cast<float_type>(det(*this));
