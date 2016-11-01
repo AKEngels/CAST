@@ -445,14 +445,14 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}
-	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). There is also a third integrator named ``Beeman\_2'' available which is a former version of the Beeman integrator. It is not recommended to use this integrator since no one knows what it is doing. Also some options might not be available for the Beeman\_2 integrator.
+	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). 
 
 	\begin{tabularx}{\textwidth}{l|X|X}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
 		\textbf{MDintegrator} & Type of integrator \begin{itemize}
-			\item 0  = Velocity-Verlet \item 1 = Beeman \item 2 = Beeman\_2
+			\item 0  = Velocity-Verlet \item 1 = Beeman
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\

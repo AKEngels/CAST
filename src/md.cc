@@ -232,11 +232,6 @@ void md::simulation::integrate(std::size_t const k_init)
         beemanintegrator(k_init);
         break;
       }
-	case config::md_conf::integrators::BEEMAN_2:
-	{ // Beeman_2 integrator
-		beemanintegrator_2(k_init);
-		break;
-	}
     default:
       { // Velocity verlet integrator
         //verletintegrator(k_init);
@@ -1577,7 +1572,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		}
 	}
 
-void md::simulation::beemanintegrator_2(std::size_t const k_init)
+/*void md::simulation::beemanintegrator_2(std::size_t const k_init)
 {
 	std::cout << "WARNING! No one knows what this integrator is doing. It might not support some options.\n";
 	scon::chrono::high_resolution_timer integration_timer;
@@ -1695,7 +1690,7 @@ void md::simulation::beemanintegrator_2(std::size_t const k_init)
 	  std::cout << "Beeman_2 integration took " << integration_timer << '\n';
   }
 
-}
+}*/
 
  //First part of the RATTLE algorithm to constrain H-X bonds ( half step)
 void md::simulation::rattle_pre(void)

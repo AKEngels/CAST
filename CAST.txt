@@ -518,7 +518,6 @@ MDsteps                1000
 #
 # 0                    Velocity-Verlet
 # 1                    Beeman
-# 2                    Beeman_2 (not maintained)
 
 MDintegrator           0
 

@@ -486,7 +486,7 @@ namespace config
 
   namespace md_conf
   {
-    struct integrators { enum T { VERLET, BEEMAN, BEEMAN_2 }; };
+    struct integrators { enum T { VERLET, BEEMAN}; };
 
     struct config_spherical
     {
