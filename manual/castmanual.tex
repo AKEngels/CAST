@@ -8,12 +8,13 @@
 \usepackage[parfill]{parskip} %PARAGRAPH SPACING
 \usepackage{color} %COLOURS
 \usepackage{amsmath} %math
+\usepackage{bm} %VECTOR BOLD AND ITALIC
 \usepackage{tabularx} %BETTER TABLES THROUGH tabularx
 \usepackage{listings} %ENABLE (SOURCE) CODE LISTINGS
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
 \usepackage{graphicx} %LATEX CANT MANAGE IMAGES, SO WE NEED THIS
 \usepackage{hyperref} %ENABLE URL SUPPORT
-\usepackage[backend=bibtex,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
+\usepackage[backend=biber,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
 \addbibresource{castManualReferences.bib} %ADD BIBLATEX REFERENCES FILE.
 \usepackage{acronym} %SUPPORT FOR ABBREVIATIONS
 
@@ -715,8 +716,27 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	%\ifdevmode \colorbox{red}{write something here} \fi	
+	The \acf{NEB} method is currently one of the most useful and powerful
+double-ended chain-of-states methods for transition state optimisation \supercite{Wales2003}. The mapping
+of the minimum energy path begins with a set of intermediate images (usually consisting of 4
+to 20 images) between the start and final geometries. This set or string of replicas constitutes
+an initial path for a subsequent optimisation procedure based on the minimisation of the forces
+acting on each image. A spring force between two subsequent images is introduced to ensure
+proper spacing of the images and prevent discontinuity of the path. The resulting minimum
+energy path is discrete up to the resolution of individual images. 
 
+The nudged elastic band force acting on each image (i.e. the force to be minimised) is given by \supercite{henkelman2002}:
+\begin{align}
+\bm{F}_i^{\mathrm{NEB}}&=\bm{F}_i^{S\vert\vert}-\nabla V^\perp(\bm{X}_i)\label{eq:fneb}\\
+&=\bm{F}_i^{S\vert\vert}- \left(\nabla V(\bm{X}_i)-\nabla V(\bm{X}_i)\bm{\hat{\tau}}_i\right),
+\end{align}
+with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on image $i$ parallel to the path and $\nabla V^\perp (\bm{X}_i)$ describing the component of the true force acting on image $i$ orthogonal to the path. $\bm{\hat{\tau}}_i$ is the unit vector of the tangent to the path. The spring force $\bm{F}_i^{S\vert\vert}$ that acts parallel to the path tangent $\bm{\hat{\tau}}$ can be written as \supercite{Sheppard2008}: 
+\begin{equation}
+\label{eq:springf}
+\bm{F}_i^{S\vert\vert}=k(\vert\bm{X}_{i+1}-\bm{X}_i\vert -\vert\bm{X}_{i}-\bm{X}_{i-1}\vert)\bm{\hat{\tau}}_i.
+\end{equation}
+	
 	%%%% INTERNAL %%%%
 	\subsection{INTERNAL - Conversion to internal coordinates}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
