@@ -263,6 +263,13 @@ for (i=0;i<gesamtanzahl;i++){
   }
 }
 
+int maxpartner=0; //variable to save maximum of partners a particle has
+for (int aa = 0; aa < partneranzahl.size(); aa++) {
+	if (maxpartner < partneranzahl[aa]) {
+		maxpartner = partneranzahl[aa];
+	}
+}
+
 // INPUT-END
 
 ofstream kopplung;
@@ -486,7 +493,8 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
       normal_distribution<double> distribution0(0.0,0.068584577); //##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hier neue standardabweichung eintragen
       zufall1 = distribution0(engine); //generating normal-distributed random number
 
-      std::vector<double> raten( partneranzahl [punkt_ladung[vschritt]]);
+      std::vector<double> raten( maxpartner+1);
+
       for (h=0;h<partneranzahl [punkt_ladung[vschritt]];h++){
 	if (partner [punkt_ladung[vschritt]] [h]<(monomer_anzahl+1)){
           zufall=distribution0(engine);	 
@@ -615,10 +623,10 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		break;
 	    }
 	    //#########################################################################################################################
-		std::cout << "altes Monomer " << setw(5) << punkt_ladung[vschritt] << endl;
-		std::cout << "neues Monomer " << setw(5) << punkt_ladung[i] << endl;
-		std::cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[vschritt] ][ punkt_ladung[i] ] << endl;
-		std::cout << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[vschritt] << endl;
+		run << "altes Monomer " << setw(5) << punkt_ladung[vschritt] << endl;
+		run << "neues Monomer " << setw(5) << punkt_ladung[i] << endl;
+		run << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[vschritt] ][ punkt_ladung[i] ] << endl;
+		run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[vschritt] << endl;
 	    break;
 	  }
 	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[vschritt] ][g]>(monomer_anzahl))){
@@ -700,7 +708,7 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
       normal_distribution<double> distribution0(0.0,0.0338987); //##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hier neue standardabweichung eintragen
       zufall1=distribution0(engine); //generating an normal-distributed random number
 
-      std::vector <double> raten (partneranzahl [punkt[vschritt]]+1);
+      std::vector <double> raten (maxpartner+1);
 
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
@@ -756,11 +764,13 @@ raten_out << zufall << endl << "------------------------------------------------
       }
 //      cout << "Zeit ist " << setw(12) << setprecision(3) << zeit*1e10 << endl;
 
-  for (g=0;g<((partneranzahl [punkt[vschritt]]));g++){// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
+  for (g=0;g< partneranzahl [punkt[vschritt]];g++){
+	 
 	if (raten[g]>r_i){
+
 	  punkt[i]= partner [punkt[vschritt]] [g]; //partner [punkt[vschritt]] doesn't reach needed values &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 	  run << "	neuer Punkt " << punkt[i] << endl;
+
 //	  if (punkt[i]<(monomer_anzahl+1)){
 //	    cout << "Exzitonentransport." << endl;
 //	    cout << "alter Punkt " << punkt[vschritt] <<endl;
@@ -786,7 +796,7 @@ raten_out << zufall << endl << "------------------------------------------------
 		  ex_diss[k]++;
 
 
-		  break;// put break statement into if-statement so g can get >0 §§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+		  break;// put break statement into if-statement so g can get >0
 	  }
 
 	}
