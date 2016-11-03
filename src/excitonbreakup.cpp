@@ -562,7 +562,6 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
       // #######################################################################################################################################################################################################     
       // hüpfendes teilchen bestimmen
       if ((1/r_summe-zeit_1)<(1/r_summe_fulleren-zeit_2)){
-		 // std::cout << "Monomer hüpft zuerst." << endl;
 		  run << "Monomer hüpft zuerst." << endl;
 	//Update der Zeiten
 	if ((1/r_summe-zeit_1)>0){
@@ -576,7 +575,6 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 	  zeit_1=0;
 	}
 	else {
-		//std::cout << "FEHLER!" << endl;
 		run << "FEHLER!" << endl;
 	  return 0;
 	}
@@ -586,7 +584,7 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
         r_i=zufall*r_summe;	
 	for (g=0;g< partneranzahl [punkt_ladung[vschritt]];g++){
 	  if ((raten[g]>r_i)&&(partner [punkt_ladung[vschritt]][g]<(monomer_anzahl))){
-		  std::cout << "Ladungstransport" << endl;
+		  run << "Ladungstransport" << endl;
 	    punkt_ladung[i]=partner [punkt_ladung[vschritt]][g];
 	    punkt[i]=punkt[vschritt];
 	    // Abbruchkriterium für Ladungstrennung
@@ -596,7 +594,6 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		  ch_diss[k]++;
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((x[ punkt_ladung[i] ])-x_mittel)/zeit_ch[k][j];			  
-		 // std::cout << "Ladungen getrennt" << endl;
 		  run << "Ladungen getrennt" << endl;
 		  zustand[k][j]='s';
 		}
@@ -606,7 +603,6 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		  ch_diss[k]++;
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((y[ punkt_ladung[i] ])-y_mittel)/zeit_ch[k][j];
-		  //std::cout << "Ladungen getrennt" << endl;
 		  run << "Ladungen getrennt" << endl;
 		  zustand[k][j]='s';
 		}
@@ -616,7 +612,6 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		  ch_diss[k]++;
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((z[ punkt_ladung[i] ])-z_mittel)/zeit_ch[k][j];		  
-		  //std::cout << "Ladungen getrennt" << endl;
 		  run << "Ladungen getrennt" << endl; 
 		  zustand[k][j]='s';
 		}		
@@ -630,21 +625,18 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 	    break;
 	  }
 	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[vschritt] ][g]>(monomer_anzahl))){
-		  //std::cout << "Rekombination" << endl;
 		  run << "Rekombination" << endl;
 	    zustand[k][j]='t';
 	    rek[k]++;
 	    break;
 	  }
 	  else if (g==(partneranzahl[ punkt_ladung[vschritt] ])) {
-		  //std::cout << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << endl;
 		  run << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << endl;
 	    return 0;
 	  }
 	}
       } // endes des hüpfenden p-halbleiters
       else if ((1/r_summe-zeit_1)>(1/r_summe_fulleren-zeit_2)){
-		  //std::cout << "Fulleren hüpft zuerst." << endl;
 		  run << "Fulleren hüpft zuerst." << endl;
 	if ((1/r_summe_fulleren-zeit_2)>0){
 	  zeit=zeit+(1/r_summe_fulleren-zeit_2);
@@ -657,7 +649,7 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 	  zeit_2=0;
 	}
 	else {
-		//std::cout << "FEHLER!" << endl;
+
 		run << "FEHLER!" << endl;
 	  return 0;
 	}
@@ -671,27 +663,25 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 //	  cout << "g anfangs " << g << endl;
 //	  cout << "Partner " << partner[ punkt[vschritt] ][g] << endl;
 	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[vschritt]][g])>monomer_anzahl)){
-		  std::cout << "Ladungstranport im Fullerenphase" << endl;
+		  run << "Ladungstranport im Fullerenphase" << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 	    
 	    punkt[i]=partner [punkt[vschritt]][g];
 	    punkt_ladung[i]=punkt_ladung[vschritt]; 
-		std::cout << "altes Fulleren " << setw(5) << punkt[vschritt] << endl;
-		std::cout << "neues Fulleren " << setw(5) << punkt[i] << endl;
-		std::cout << "Monomer " << setw(5) << punkt_ladung[i] << endl;
-		std::cout << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[vschritt] ] << endl;
+		run << "altes Fulleren " << setw(5) << punkt[vschritt] << endl;
+		run << "neues Fulleren " << setw(5) << punkt[i] << endl;
+		run << "Monomer " << setw(5) << punkt_ladung[i] << endl;
+		run << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[vschritt] ] << endl;
 	    break;
 	  }
 	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[vschritt] ][g])<(monomer_anzahl+1))){
 //	    cout << "g ist " << g << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 
-		  //std::cout << "Rekombination." << endl;
 		  run << "Rekombination." << endl;
 	    zustand[k][j]='t';
 	    rek[k]++;
 	    break;
 	  }
 	  else if (g==(partneranzahl[ punkt[vschritt] ])) {
-		  //std::cout << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
 		  run << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
 	    return 0;
 	  }
@@ -756,7 +746,6 @@ raten_out << zufall << endl << "------------------------------------------------
       //falls trapping
       zufall=distribution1(engine);      
       if (zufall*(900e-1+1/r_summe)>(900e-1)){
-		 // std::cout << "Exziton getrappt!" << endl;
 		  run << "Exziton getrappt!" << endl;
 	trapping[k]++;
 	zustand[k][j]='t';
@@ -785,13 +774,11 @@ raten_out << zufall << endl << "------------------------------------------------
 	  //	    punkt[i]=partner [punkt[vschritt]] [g];	
 		  punkt_ladung[i] = punkt[vschritt];
 		  zustand[k][j] = 'c';
-		  //std::cout << "Ladungstrennung." << endl;
 		  run << "Ladungstrennung." << endl;
 		  //	    cout << "Kopplung " << coupling_ct[ punkt[vschritt] ][ punkt[i] ] << endl;
 		  //	    cout << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[vschritt], punkt[i], 1) << endl;
 		  //	    cout << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[vschritt], punkt[i]) << endl;
 		  vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
-		  //std::cout << "Exzitonengeschw. " << vel_ex[k][j]*1e-9 << endl;
 		  run << "Exzitonengeschw. " << vel_ex[k][j] * 1e-9 << endl;
 		  ex_diss[k]++;
 
@@ -801,7 +788,6 @@ raten_out << zufall << endl << "------------------------------------------------
 
 	}
 	else if (raten [partneranzahl [punkt[vschritt]]] < r_i){
-		//std::cout << "strahlender Zerfall." << endl;
 		run << "strahlender Zerfall." << endl;
 	  radiativ[k]++;
 	  zustand[k][j]='t';
@@ -812,21 +798,18 @@ raten_out << zufall << endl << "------------------------------------------------
 	//____________________________________________________________________________________________
 
     else if (zustand[k][j]=='t'){
-		//std::cout << "KAPUTT!" << endl;
 		run << "KAPUTT!" << endl;
       break;
     } // end of 't'-zustand
 	//__________________________________________________________________________________________________
 
     else if (zustand[k][j]=='s'){
-		//std::cout << "ERFOLG!" << endl;
 		run << "ERFOLG!" << endl;
       break;
     } //end of 's'-zustand 
 	//_________________________________________________________________________________________________
 
     else {
-		//std::cout << "ACHTUNG. Zustand undefiniert!" << endl;
 		run << "ACHTUNG. Zustand undefiniert!" << endl;
       return 0;
     } //end of undefined zustand
