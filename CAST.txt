@@ -38,7 +38,6 @@ outname                DEVTEST
 inputtype              AMBER
 
 ### AMBER I/O OPTIONS
-# currently coordinates can only be read from .rst files but the file name has given to amber_mdcrd
 
 amber_mdcrd            min.rst
 #amber_mdvel
@@ -59,16 +58,12 @@ amber_mdcrd            min.rst
 # LOCOPT               Local optimization using Lib-LBFGS
 # MD                   Molecular dynamics simulation
 # GOSOL                Combined Solvation + Global Optimization
-# SOLVADD              Solvation using Solvadd
 # MC                   Monte Carlo
 # CENTER               Center of mass/geometry
 # TS                   Tabu Search (CAST: GOTS)
-# WTINKER              Print Tinker structure (e.g. if started from PDB) (CAST: WRITE)
 # RMSD                 Root mean square deviation
 # DIMER                Dimer method using torsional space
 # NEB                  Nudged elastic band calculation
-# INTERACTION          Dividing the Molecule into two parts and calculate the interaction energy
-# RDF                  Radial distribution of water around specified atom groups
 # INTERNAL             Create Z-Matrix
 # STARTOPT
 # UMBRELLA             Umbrella Sampling
@@ -82,9 +77,8 @@ amber_mdcrd            min.rst
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # ADJUST
 # GRID
-# PATHOPT
 # PATHSAMPLING
-# REACTIONCOORDINATE
+# REMOVE_EXPLICIT_WATER
 
 task                  SP
 
@@ -256,7 +250,7 @@ NEB-PATHOPT-INT_IT 0.5
 ####################################
 #                                  #
 #        SIMULATION OPTIONS        #
-#          (MC, TS, MD)            #
+#            (MC, TS)              #
 #                                  #
 ####################################
 
@@ -512,7 +506,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                1000
+MDsteps                50000
  
 # Integrator
 #
@@ -555,7 +549,11 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 500  300
+MDheat                 0  0
+MDheat                 10000  200
+MDheat                 20000  250
+MDheat                 35000  280
+MDheat                 45000  300
 
 # Pressure control
 

@@ -10,6 +10,7 @@
 #include "scon_utility.h"
 #include "coords.h"
 #include "configuration.h"
+#pragma once
 
 namespace coords
 {

@@ -338,19 +338,6 @@ int main(int argc, char **argv)
         }
         break;
       }
-      case config::tasks::PROFILE:
-      { 
-        // gradient profiling 
-        coords.e_head_tostream_short(std::cout);
-        coords.set_xyz((*ci).PES()[0].structure.cartesian);
-        for (std::size_t i(0U); i < Config::get().general.profile_runs; ++i)
-        {
-          coords.g();
-        }
-        std::cout << "Energy \n";
-        coords.e_tostream_short(std::cout);
-        break;
-      }
       case config::tasks::LOCOPT:
       { 
         // local optimization
@@ -566,37 +553,6 @@ int main(int argc, char **argv)
         coords::Coordinates const coord_obj(coords);
         path_perp path_perpobj(&coords);
         path_perpobj.pathx_ini();
-			  break;
-		  }
-	    case config::tasks::REACTIONCOORDINATE:
-		  {
-			  coords::Coordinates coords2(coords),coords3(coords);
-			  reaccoords reac_obj(&coords,&coords2);
-			  std::fstream RMSD("RMSD_REAC.dat",std::ios::app);
-
-			  coords3.set_xyz((*ci).PES()[0].structure.cartesian);
-
-			   for (auto const & pes : *ci)
-			   {
-				  coords.mult_struc_counter++;
-				  coords.set_xyz(pes.structure.cartesian);
-				  reac_obj.rmsd_align(coords3);
-				  coords.set_xyz(reac_obj.rmsd_align(coords3));
-				  reac_obj.bonds();
-				  reac_obj.angles();
-			   }
-			 
-			   for (auto const & pes : *ci)
-			   {
-				  coords2.mult_struc_counter++;
-				  coords2.set_xyz(pes.structure.cartesian);
-          RMSD << "RMSD : " << scon::root_mean_square_deviation(coords2.xyz(), coords.xyz()) << '\n';
-
-			   }
-			   
-			  reac_obj.bonds_alteration();
-			  reac_obj.angles_alteration();
-
 			  break;
 		  }
       case config::tasks::ALIGN:

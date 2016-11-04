@@ -1,12 +1,13 @@
-/*************************************************
-** class for extraction of information from     **
-** parameter file                               **
-** DW, March, 2012                              **
-**********************************************DW*/
-//! Get Information from Parameter and input File
+/**
+CAST 3
+configuration.h
+Purpose: class for extraction of information from parameter file
+
+@author Daniel Weber (modified by many)
+@version 1.1
+*/
 
 #pragma once 
-
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -15,39 +16,25 @@
 #include <map>
 #include <utility>
 #include <array>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cctype>
+
+#if defined _OPENMP
+#include <omp.h>
+#endif
+
+#include "scon.h"
+#include "filemanipulation.h"
+#include "scon_utility.h"
 #include "scon_vect.h"
 #include "coords_rep.h"
+#include "configurationHelperfunctions.h"
 
 namespace config
 {
-  /**
-   * Helperfunction that (tries to)
-   * convert a string to the template
-   * type T
-   *
-   * @param str: Input String
-   * @typename T: Class to which the string should be converted
-   */
-  template<typename T, class CharT, class TraitT, class AllocT>
-  inline T from_string(std::basic_string<CharT, TraitT, AllocT> const &str)
-  {
-    T tmp;
-    std::basic_istringstream<CharT, TraitT, AllocT> is(str);
-    is >> tmp;
-    return tmp;
-  }
-
-  template<typename T, class CharT, class TraitT, class AllocT>
-  inline T from_iss(std::basic_istringstream<CharT, TraitT, AllocT> & is)
-  {
-    T tmp;
-    is >> tmp;
-    return tmp;
-  }
-
-  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str);
-
-
   // Program Name and Version
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
@@ -57,26 +44,23 @@ namespace config
   static std::string const 
     task_strings[NUM_TASKS] =
   { 
-    "SP", "GRAD", "TS", "LOCOPT", "RMSD",
-    "MC", "DIMER", "MD", "NEB",
-    "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
+    "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER"
+    "MC", "DIMER", "MD", "NEB", "GOSOL", 
+    "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc",
-    "REMOVE_EXPLICIT_WATER"
+    "GRID", "ALIGN", "PATHSAMPLING", 
+    
   };
   struct tasks
   {
     enum T 
     { 
       ILLEGAL = -1,
-      SP, GRAD, TS, LOCOPT, RMSD,
-      MC, DIMER, MD, NEB,
-      STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
+      SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
+      MC, DIMER, MD, NEB, GOSOL, 
+      STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE,
-      GRID, ALIGN, ENTROPY, PCAgen, PCAproc,
-      REMOVE_EXPLICIT_WATER
+      GRID, ALIGN, PATHSAMPLING, 
     };
   };
 

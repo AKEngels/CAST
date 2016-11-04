@@ -1,122 +1,10 @@
-#if defined _OPENMP
-#include <omp.h>
-#endif
-
-#include <fstream>
-#include <cstddef>
-#include <string>
-#include <stdexcept>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <cctype>
-#include "scon.h"
 #include "configuration.h"
-#include "filemanipulation.h"
-#include "scon_utility.h"
-
-
-Config * Config::m_instance = nullptr;
-
-std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str)
-{
-  // remove all spaces
-  str.erase(std::remove_if(str.begin(), str.end(),
-    [](char c) -> bool {return std::isspace(c) > 0; }),
-    str.end());
-  // replace all commas with spaces
-  std::replace(str.begin(), str.end(), ',', ' ');
-  std::string d;
-  std::stringstream iss(str);
-  std::vector<std::size_t> re;
-  // get each seperated value as single string d
-  while (iss >> d)
-  {
-    auto dash_pos = d.find('-');
-    // if element is a range (contains '-')
-    if (dash_pos != std::string::npos)
-    {
-      d[dash_pos] = ' ';
-      std::stringstream pss{ d };
-      std::size_t first(0), last(0);
-      if (pss >> first && pss >> last)
-      {
-        if (first <= last)
-        {
-          for (auto i = first; i <= last; ++i)
-          {
-            re.push_back(i);
-          }
-        }
-        else
-        {
-          throw std::runtime_error("Invalid range for indices: '" +
-            std::to_string(first) + " - " + std::to_string(last) + "'.");
-        }
-      }
-
-      else
-      {
-        throw std::runtime_error("Cannot read index range from '" + d + "'.");
-      }
-    }
-    // throw if non-numeric character is found
-    else if (d.find_first_not_of("0123456789") != std::string::npos)
-    {
-      throw std::runtime_error("Non numeric character found in '" + d + "'.");
-    }
-    // read number from stringstream of d
-    else
-    {
-      std::stringstream pss{ d };
-      std::size_t value;
-      if (pss >> value)
-      {
-        re.push_back(value);
-      }
-      else
-      {
-        throw std::runtime_error("Cannot read index from '" + d + "'.");
-      }
-    }
-  }
-  // sort resulting numbers
-  std::sort(re.begin(), re.end());
-  // remove duplicates and return rest
-  return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
-}
-
-
-
-template<typename T>
-static T clip(T value, T const LOW, T const HIGH)
-{
-  using std::min;
-  using std::max;
-  return min(HIGH, max(LOW, value));
-}
 
 /**
- * Helper function that matches a string
- * to an enum via a sorted "helper-array" 
- * If matching could not be performed,
- * enum with value "-1" will be returned.
- *
- * @param arr: Sring Array in same order as enum, used for matching
- * @param ARR_SIZE: Size of the string array
- * @typename ENUM_T: Type of the enum that should be returned
- * @param S: Input String.
+ * Global static instance of the config-object. 
+ * There can only ever be one config-object.
  */
-template<typename ENUM_T, std::size_t ARR_SIZE>
-static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
-{
-  for (std::size_t i = 0; i < ARR_SIZE; ++i)
-  {
-    if (S.find(arr[i]) != S.npos) return static_cast<ENUM_T>(i);
-  }
-  return static_cast<ENUM_T>(-1);
-}
+Config * Config::m_instance = nullptr;
 
 /**
  * Helper function that matches a task 
@@ -175,6 +63,13 @@ config::output_types::T Config::getOutFormat(std::string const & S)
   return config::output_types::ILLEGAL;
 }
 
+/*
+ * Helper function that matches an solvation type
+ * as string to the corresponding enum via
+ * the sorted "helper-array" config::solv_strings
+ *
+ * @param S: solvation-type as string
+ */
 config::solvs::S Config::getSolv(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
@@ -184,6 +79,14 @@ config::solvs::S Config::getSolv(std::string const & S)
   }
   return config::solvs::VAC;
 }
+
+/*
+ * Helper function that matches an solvation surface type
+ * as string to the corresponding enum via
+ * the sorted "helper-array" config::surf_strings
+ *
+ * @param S: surface-type as string
+ */
 config::surfs::SA Config::getSurf(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_SURF; ++i)
@@ -192,186 +95,6 @@ config::surfs::SA Config::getSurf(std::string const & S)
       return static_cast<config::surfs::SA>(i);
   }
   return config::surfs::TINKER;
-}
-
-/*! Checks if file is readable
- *
- * This function tests if a file in the same
- * folder as the CAST executable is readable.
- *
- * @param filename: Full filename of the file
- */
-static bool file_exists_readable(std::string filename)
-{
-  std::ofstream teststream(filename.c_str(), std::ios_base::in);
-  return (teststream.is_open() && teststream.good());
-}
-
-/*! Creates boolean from integer
- *
- * Helper function that creates a 
- * boolean value from an istringstream,
- * specifically from a numerical value contained
- * in this stream ( 0 = false, 1 = true ).
- *
- * All numbers smaller than or euql to 0 are considered false.
- * All numbers bigger than 1 are considered true.
- */
-static bool bool_from_iss(std::istringstream & in)
-{
-  int x;
-  in >> x;
-  return (in && x > 0);
-}
-
-template<typename T>
-static T from_iss(std::istringstream & in)
-{
-  T x;
-  in >> x;
-  return x;
-}
-
-
-template<typename T>
-static T enum_from_iss(std::istringstream & in)
-{
-  int x;
-  in >> x;
-  return static_cast<T>(x);
-}
-
-/*! Creates vector from range of integer-types
- *
- * This creates an std::vector from range based input (istringstream&)
- * only works for integer types
- * EXAMPLE: 3-6 -> 3,4,5,6 (sorted)
- */
-template<typename T>
-std::vector<T> configuration_range_int(std::istringstream& cv)
-{
-  bool none_check = false;
-  std::vector<T> temp;
-  std::vector<std::string> holder;
-  while (cv)
-  {
-    std::string temp2;
-    cv >> temp2;
-    holder.push_back(temp2);
-  }
-  holder.pop_back();
-  for (unsigned int i = 0; i < holder.size(); i++)
-  {
-    if (holder[i] == "none")
-    {
-      none_check = true;
-    }
-    bool i_o_done = false;
-    while (!i_o_done)
-    {
-      for (unsigned int j = 0; j < holder[i].size(); j++)
-      {
-        if (holder[i][j] == *"-")
-        {
-          int last_comma = -1, next_comma = -1;
-          for (int l = j; l >= 0; l--)
-          {
-            if (holder[i][l] == *",") { last_comma = l; break; }
-          }
-          for (unsigned int l = j; l < holder[i].size(); l++)
-          {
-            if (holder[i][l] == *",") { next_comma = l; break; }
-            else if (l == (holder[i].size() - 1))
-            {
-              next_comma = (int)holder[i].size();
-              break;
-            }
-          }
-          std::string temp_str;
-          int k = stoi(holder[i].substr(last_comma + 1, j - last_comma - 1)) + 1;
-          while (k < stoi(holder[i].substr(j + 1, next_comma - j)))
-          {
-            temp_str.push_back(*",");
-            temp_str.append(std::to_string(k));
-            k++;
-          }
-          temp_str.push_back(*",");
-          holder[i].erase(j, 1);
-          holder[i].insert(j, temp_str);
-          i_o_done = false;
-          break;
-        }
-        if (j == holder[i].size() - 1) { i_o_done = true; }
-      }
-    }
-  }
-  for (std::size_t i = 0; i < holder.size(); i++)
-  {
-    if (holder[i] == "none") {
-      none_check = true;
-      break;
-    }
-    int last_comma = -1;
-    for (std::size_t j = 0; j < holder[i].size(); j++)
-    {
-      if (holder[i][j] == *",")
-      {
-        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma - 1))));
-        last_comma = (int)j;
-      }
-      else if (j == holder[i].size() - 1)
-      {
-        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma))));
-      }
-    }
-  }
-  //Sorting algorithm
-  std::size_t size = temp.size();
-  std::size_t left = 0;
-  while (left < size)
-  {
-    size_t min = left;
-    for (std::size_t i = (left + 1); i < size; i++)
-    {
-      if (temp[i] < temp[min])
-      {
-        min = i;
-      }
-    }
-
-    T holder2 = temp[min];
-    temp[min] = temp[left];
-    temp[left] = holder2;
-    left += 1;
-  }
-  if (none_check) temp = std::vector<T>{};
-  return temp;
-}
-
-/*! Creates vector from range of float-types
- *
- * This creates an std::vector from range based input (istringstream&)
- * only works for floating types
- * Is much simpler than version for integer types, only packs into vector without filling or sorting
- * EXAMPLE: 3.5,7.8,2 -> 3.5 | 7.8 | 2.0
- */
-template<typename T>
-std::vector<T> configuration_range_float(std::istringstream& cv)
-{
-  std::vector<T> temp;
-  std::vector<std::string> holder;
-  while (cv)
-  {
-    std::string temp2;
-    cv >> temp2;
-    holder.push_back(temp2);
-  }
-  holder.pop_back();
-  for (std::size_t i = 0; i < holder.size(); i++)
-  {
-    temp.push_back(stod(holder[i]));
-  }
-  return temp;
 }
 
 /*
@@ -551,6 +274,7 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
 
 
 */
+
 /*! Helperfunction to keep track of the output-filename
  *
  * Small helper function that keeps
@@ -701,7 +425,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       // In case the task was specified numerically (why the hell would
       // you even do that dude?), we try to infer the task by matching
       // the number to the enum
-      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      std::ptrdiff_t identifier(from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_TASKS))
       {
         Config::set().general.task = static_cast<config::tasks::T>(identifier);
@@ -737,7 +461,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       // In case the output was specified numerically (why the hell would
       // you even do that dude?), we try to infer the outputtype by matching
       // the number to the enum
-      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      std::ptrdiff_t identifier(from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_OUTPUT))
       {
         Config::set().general.output = static_cast<config::output_types::T>(identifier);
@@ -900,8 +624,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     double T(from_iss<double>(cv));
     if (T > 0.0)
     {
-      Config::set().md.T_init = T;
-      Config::set().md.T_final = T;
       Config::set().optimization.global.temperature = T;
     }
   }
@@ -915,10 +637,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "Iterations")
   {
     std::size_t const I(from_iss<std::size_t>(cv));
-    if (I > 0U)
+    if (I > 0)
     {
       Config::set().optimization.global.iterations = I;
-      Config::set().md.num_steps = I;
     }
     cv >> Config::set().optimization.global.iterations;
   }
@@ -1562,7 +1283,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 9) == "Subsystem")
   {
     // indices from current option value
-    auto ssi = sorted_indices_from_cs_string(value_string);
+    std::vector<size_t> ssi = sorted_indices_from_cs_string(value_string);
     // check whether one of the atoms in that subsystem 
     // is contained in any already given one
     for (auto & susy : Config::get().coords.subsystems)
@@ -1964,7 +1685,12 @@ void Config::parse_file(std::string const & filename)
 /*! Stream operator for config::general
  *
  * Prints contents of config::general in human
- * readable form.
+ * readable form. This contains: Where structure was read from,
+ * which inputtype the structure originates from, where the
+ * (forcefield) parameters originate from and which
+ * energy interface is used.
+ *
+ * @todo: Remove line explaining parameterfile if MOPAC or TERACHEM energy interface is chosen
  */
 std::ostream & config::operator<< (std::ostream &strm, general const &g)
 {
@@ -1975,6 +1701,11 @@ std::ostream & config::operator<< (std::ostream &strm, general const &g)
   return strm;
 }
 
+/*! Stream operator for config::eqval
+ *
+ * Prints reasoning for considering two structures
+ * equal (important for TaboSearch etc.)
+ */
 std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
 {
   strm << "Two structures will be considered to be equal if either\n";
@@ -1986,6 +1717,14 @@ std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equa
   return strm;
 }
 
+/*! Stream operator for config::coords
+ *
+ * Prints configuration details for the current CAST run
+ * Contains: Information about main dihedrals,
+ * black-/whitelists for main dihedrals,
+ * Umbrella sampling information (if task == UMBRELLA),
+ * Bias Potentials
+ */
 std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 {
   if (p.remove_hydrogen_rot)
@@ -2075,34 +1814,46 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
     strm << torsion.c + 1 << "->" << torsion.d + 1 << " will be forced to be ";
     strm << torsion.ideal << " deg with force =  " << torsion.force << ".\n";
   }
+
   for (auto const & dist : p.bias.distance)
   {
     strm << "Distance " << dist.a << "<->" << dist.b;
     strm << " will be forced to be ";
     strm << dist.ideal << " A. Force =  " << dist.force << "\n";
   }
+
   for (auto const & angle : p.bias.angle)
   {
     strm << "Angle " << angle.a << "->" << angle.b << "<-" << angle.c;
     strm << " will be forced to be ";
     strm << angle.ideal << " A. Force =  " << angle.force << "\n";
   }
+
   for (auto const & sphere : p.bias.spherical)
   {
     strm << "Spherical boundary with radius " << sphere.radius;
     strm << " will be applied; Force =  " << sphere.force;
     strm << ", Exponent = " << sphere.exponent << "\n";
   }
+
   for (auto const & cube : p.bias.cubic)
   {
     strm << "Cubic boundary with box size " << cube.dim;
     strm << " will be applied; Force =  " << cube.force;
     strm << ", Exponent = " << cube.exponent << "\n";
   }
+
   return strm;
 }
 
-
+/*! Stream operator for config::energy
+ *
+ * Prints configuration details for the current CAST run
+ * Contains: Information about main dihedrals,
+ * black-/whitelists for main dihedrals,
+ * Umbrella sampling information (if task == UMBRELLA),
+ * Bias Potentials
+ */
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
   if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switching to zero starting at " << p.switchdist << " Angstroms) applied.\n";
@@ -2126,13 +1877,12 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   return strm;
 }
 
-
-std::ostream& config::optimization_conf::operator<< (std::ostream &strm, sel const &)
-{
-  return strm;
-}
-
-
+/*! Stream operator for config::global
+ *
+ * Prints configuration details for global optimisation
+ * Contains: Iterations, Temperature, Temperature Scaling,
+ * TabuSearch-Iterations, MonteCarlo-Movetype and much more.
+ */
 std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global const &opt)
 {
   strm << "At most " << opt.iterations << " global optimization iterations at " << opt.temperature;
@@ -2204,27 +1954,11 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
   return strm;
 }
 
-/*
-struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
-struct opt_types { enum T { NONE, SHELL, TOTAL, TOTAL_SHELL }; };
-double defaultLenHB, maxDistance, water_bond;
-::coords::angle_type water_angle;
-
-std::size_t maxNumWater, ffTypeOxygen, ffTypeHydrogen;
-boundary_types::T boundary;
-opt_types::T opt;
-bool fix_initial, fix_intermediate;
-globopt_routine_type::T go_type;
-solvadd() :
-defaultLenHB(1.79), maxDistance(10.0),
-water_bond(0.95), water_angle(109.5),
-maxNumWater(0), ffTypeOxygen(53), ffTypeHydrogen(54),
-boundary(boundary_types::LAYER), opt(opt_types::SHELL),
-fix_initial(true), fix_intermediate(true),
-go_type(globopt_routine_type::BASINHOPPING)
-{ }
-*/
-
+/*! Stream operator for config::solvadd
+ *
+ * Prints configuration details for SOLVADD subtask
+ * of STARTOP task.
+ */
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd const &sa)
 {
   strm << "SolvAdd will fill ";
@@ -2273,7 +2007,11 @@ std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd con
   return strm;
 }
 
-
+/*! Stream operator for config::ringsearch
+ *
+ * Prints configuration details for RINGSEARCH subtask
+ * of STARTOP task.
+ */
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch const &rso)
 {
   strm << "Ringsearch will propagate ";
@@ -2284,6 +2022,12 @@ std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch 
   return strm;
 }
 
+/*! Stream operator for config::startopt
+ *
+ * Prints configuration details for STARTOP task,
+ * mainly by using the ostream operators for
+ * config::ringsearch and config::solvadd.
+ */
 std::ostream& config::operator<< (std::ostream &strm, startopt const &sopt)
 {
   if (sopt.type == config::startopt::types::T::RINGSEARCH ||
