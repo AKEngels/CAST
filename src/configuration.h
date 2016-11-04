@@ -966,9 +966,6 @@ namespace config
   void parse_option(std::string const option, std::string const value);
 }
 
-
-
-
 class Config
 {
 public:
@@ -1030,10 +1027,6 @@ public:
   config::entropy				        entropy;
   config::io                    io;
 
-  void        check(void);
-
-  std::string task(void) const;
-  std::string inter(void) const;
 
   static config::tasks::T            getTask(std::string const&);
   static config::interface_types::T  getInterface(std::string const&);
