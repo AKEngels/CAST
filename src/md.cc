@@ -1358,7 +1358,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 	{
 		if (k == 0)    // set F(t-dt) for first step to F(t)
 		{
-			for (int i = 0u; i < N; ++i)
+			for (size_t i = 0u; i < N; ++i)
 			{
 				F_old.push_back(coordobj.g_xyz(i));
 			}
@@ -1438,7 +1438,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// Apply first part of RATTLE constraints if requested
 		if (CONFIG.rattle.use) rattle_pre();
 
-		for (int i = 0u; i < N; ++i)   // save F(t) as F_old
+		for (size_t i = 0u; i < N; ++i)   // save F(t) as F_old
 		{
 			F_old[i] = coordobj.g_xyz(i);
 		}
