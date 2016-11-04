@@ -42,12 +42,14 @@ namespace config
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
 
-  // Program Name and Version
+  // Name of the program
   static std::string const Programname("CAST");
+  // Version-Number of CAST
   static std::string const Version("3.2.0.2dev");
 
-  // Tasks
+  // Number of tasks
   static std::size_t const NUM_TASKS = 23;
+  // Names of all CAST tasks as strings
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER"
@@ -55,10 +57,16 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", 
-    
   };
+
+  /*! contains enum with all tasks currently present in CAST
+   * 
+   * Those taks are subsequently mapped using task_strings string[].
+   */
   struct tasks
   {
+    /*! contains all tasks currently present in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1,
@@ -76,8 +84,15 @@ namespace config
   { 
     "TINKER", "AMBER" 
   };
+
+  /*! contains enum with all input_types currently supported in CAST
+   *
+   * Those input_types are subsequently mapped using input_strings string[].
+   */
   struct input_types 
   { 
+    /*! contains all input_types currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -91,8 +106,15 @@ namespace config
   { 
     "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
   };
+
+  /*! contains enum with all output_types currently supported in CAST
+   *
+   * Those output_types are subsequently mapped using output_strings string[].
+   */
   struct output_types 
   { 
+    /*! contains all output_types currently supported in CAST
+    */
     enum T 
     {
       ILLEGAL = -1, 
@@ -107,8 +129,15 @@ namespace config
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
   };
+
+  /*! contains enum with all energy interface_types currently supported in CAST
+   *
+   * Those interface_types are subsequently mapped using interface_strings string[].
+   */
   struct interface_types 
   { 
+    /*! contains all interface_types currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -123,8 +152,15 @@ namespace config
   { 
     "2012", "2012MT", "7", "AVOID_HB" 
   };
+
+  /*! contains enum with all MOPAC versions currently supported as energy interfaces in CAST
+   *
+   * Those interface versions are subsequently mapped using mopac_ver_string string[].
+   */
   struct mopac_ver_type 
   { 
+    /*! contains all MOPAC versions currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -139,14 +175,25 @@ namespace config
   { 
     "TS", "BH" 
   };
+
+  /*! contains enum with all global optimization routines currently supported in CAST
+   *
+   * Those routines are subsequently mapped using NUM_GLOBOPT_ROUTINES string[].
+   */
   struct globopt_routine_type 
   {
+    /*! contains all global optimization routines currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
       TABUSEARCH, BASINHOPPING 
     }; 
   };
+
+
+
+
 
   // Implicit solvation method types
   static std::size_t const NUM_SOLV = 7;
@@ -191,13 +238,27 @@ namespace config
   // config::Config object. This object contains all the 
   // configoptions read from file for the current CAST run.
 
+  /*! Struct containing all general information about the current CAST run
+   */
   struct general
   {
-    std::string inputFilename, paramFilename, outputFilename;
+    /// Name of the input file ("CAST.TXT")
+    std::string inputFilename;
+    /// Name of the force-field parameter file
+    std::string paramFilename;
+    /// Name of the output file
+    std::string outputFilename;
+    /// Type of the coordinate input (default: Tinker)
     input_types::T input;
+    /// Type of the coordinate output (default: Tinker)
     output_types::T output;
+    /// Current task
     config::tasks::T task;
-    interface_types::T energy_interface, preopt_interface;
+    /// Energy interface used for current run
+    interface_types::T energy_interface;
+    /// Energy interface used pre-optimization performed before the current tun
+    interface_types::T preopt_interface;
+    /// Verbosity of the output of CAST (supposed to be between 0 and 5)
     std::size_t verbosity;
     config::solvs::S solvationmethod;
     config::surfs::SA surfacemethod;
@@ -226,62 +287,53 @@ namespace config
   namespace biases
   {
 
-    struct distance
-    {
-      double force, ideal, value;
-      std::size_t a, b;
-      distance(void)
-        : force(), ideal(), a(), b()
-      { }
-    };
-
-    struct angle
-    {
-      double force, ideal, value;
-      std::size_t a, b, c;
-      angle(void)
-        : force(), ideal(), a(), b()
-      { }
-    };
-
-    struct dihedral
-    {
-      double force;
-      ::coords::angle_type ideal, value;
-      std::size_t a, b, c, d;
-      bool forward;
-      dihedral(void)
-        : force(), ideal(), value(),
-        a(), b(), forward(false)
-      { }
-    };
-
-    inline std::ostream& operator<< (std::ostream & o, dihedral const &d)
-    {
-      o << d.a << ',' << d.b << ',' << d.c << ',' << d.d << ' ';
-      o << d.force << ',' << d.ideal << ',' << d.value << ',' << d.forward;
-      return o;
-    }
-
-    struct spherical
-    {
-      double radius, force, exponent;
-      spherical()
-        : radius(), force(), exponent()
-      { }
-    };
-
-    struct cubic
-    {
-      ::coords::Cartesian_Point dim;
-      double force, exponent;
-      cubic()
-        : dim(), force(), exponent()
-      { }
-    };
+     struct distance
+     {
+       double force, ideal, value;
+       std::size_t a, b;
+       distance(void)
+         : force(), ideal(), a(), b()
+       { }
+     };
+     
+     struct angle
+     {
+       double force, ideal, value;
+       std::size_t a, b, c;
+       angle(void)
+         : force(), ideal(), a(), b()
+       { }
+     };
+     
+     struct dihedral
+     {
+       double force;
+       ::coords::angle_type ideal, value;
+       std::size_t a, b, c, d;
+       bool forward;
+       dihedral(void)
+         : force(), ideal(), value(),
+         a(), b(), forward(false)
+       { }
+     };
+       
+     struct spherical
+     {
+       double radius, force, exponent;
+       spherical()
+         : radius(), force(), exponent()
+       { }
+     };
+     
+     struct cubic
+     {
+       ::coords::Cartesian_Point dim;
+       double force, exponent;
+       cubic()
+         : dim(), force(), exponent()
+       { }
+     };
   }
-
-
 
 
   /*
@@ -351,16 +403,25 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
+
     std::vector<std::size_t> fixed;
+
     std::vector<std::vector<std::size_t>> subsystems;
-    bool remove_hydrogen_rot, no_hydrot_mains, decouple_internals, nearest_internals;
+
+    bool remove_hydrogen_rot, decouple_internals;
+
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
-      remove_hydrogen_rot(true), no_hydrot_mains(false),
-      decouple_internals(false), nearest_internals(false)
+      remove_hydrogen_rot(true),
+      decouple_internals(false)
     {}
 
   };
+
+
+  //
+  // TASK ADJUST
+  //
 
   namespace adjust_conf
   {
@@ -386,14 +447,16 @@ namespace config
     ######## ##    ## ######## ##     ##  ######      ##
   */
 
+  /*!
+   *
+   * @todo: role of isotropic bool unclear... is berendesn barostat working?
+   */
   struct energy
   {
 
-    double cutoff, switchdist, pb_cut, pmetresh;
+    double cutoff, switchdist;
     scon::c3<double> pb_box;
-    int pmespline;
     bool isotropic, pme, periodic, periodic_print, remove_fixed;
-
 
 
     struct spack
@@ -422,8 +485,8 @@ namespace config
     } mopac;
 
     energy() :
-      cutoff(10000.0), switchdist(cutoff - 4.0), pb_cut(9.0), pmetresh(),
-      pb_box(10.0, 10.0, 10.0), pmespline(), isotropic(true),
+      cutoff(10000.0), switchdist(cutoff - 4.0),
+      pb_box(10.0, 10.0, 10.0), isotropic(true),
       pme(false), periodic(false), periodic_print(false), remove_fixed(false),
       spackman(), mopac()
     { }
@@ -463,18 +526,6 @@ namespace config
       { }
     };
 
-    struct heat
-    {
-      struct point
-      {
-        std::size_t iteration;
-        double temperature;
-      };
-      double raise;
-      std::size_t offset;
-      std::vector<point> points;
-    };
-
     struct config_heat
     {
       double raise;
@@ -501,60 +552,50 @@ namespace config
     };
   }
 
-  struct fep
-  {
-    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
-    std::size_t steps, equil, freq, backward;
-    bool couple;
-    fep(void) :
-      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000), backward(0), couple(false)
-    { }
-  };
-
   struct molecular_dynamics
   {
-	  double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
-	unsigned set_active_center, adjustment_by_step;
-	double inner_cutoff, outer_cutoff;
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trackoffset;
+    double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+
+    // Options for biased MD
+    std::size_t set_active_center, adjustment_by_step;
+    double inner_cutoff, outer_cutoff;
+    std::vector<unsigned> active_center;
+    //
+
+    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, trackoffset;
+
+    // Umbrella Sampling
+    std::size_t usoffset, usequil;
+
     std::vector<md_conf::config_heat> heat_steps;
-	std::vector<unsigned> active_center;
     md_conf::config_spherical spherical;
     md_conf::config_rattle rattle;
     md_conf::integrators::T integrator;
-    bool fix, hooverHeatBath, veloScale, fep, track, silent, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
+    bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
     molecular_dynamics(void) :
       timeStep(0.001), T_init(293.15), T_final(293.15),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
       refine_offset(200), restart_offset(5000), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
-      integrator(md_conf::integrators::VERLET), fix(false),
+      integrator(md_conf::integrators::VERLET), 
       hooverHeatBath(true), veloScale(false), fep(false), track(true),
-      silent(false), optimize_snapshots(false), pressure(false),
+      optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }
 
   };
 
-  /*
-    ########     ###    ######## ##     ##
-    ##     ##   ## ##      ##    ##     ##
-    ##     ##  ##   ##     ##    ##     ##
-    ########  ##     ##    ##    #########
-    ##        #########    ##    ##     ##
-    ##        ##     ##    ##    ##     ##
-    ##        ##     ##    ##    ##     ##
-  */
-
-  struct path
+  struct fep
   {
-    double maxDeltaE, maxDeltaX;
-    std::string endpointFileName;
-    path(void) :
-      maxDeltaE(2.0), maxDeltaX(1.0), endpointFileName("PATH_END.xyz") { }
+    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
+    std::size_t steps, equil, freq, backward;
+    fep(void) :
+      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
+      steps(10), equil(10), freq(1000), backward(0)
+    { }
   };
+
 
   /*
      #######  ########  ######## #### ##     ## #### ########    ###    ######## ####  #######  ##    ##
@@ -570,20 +611,12 @@ namespace config
   {
     struct lo_types { enum T { LBFGS = 0 }; };
     struct go_types { enum T { MCM, TABU }; };
-    //struct go_move  { enum mm { CARTESIAN, DIHEDRAL, DIHEDRAL_OPT }; };
 
     struct lo
     {
       double grad;
       std::size_t maxstep;
       lo(void) : grad(0.001), maxstep(10000) { }
-    };
-
-    struct local
-    {
-      std::ptrdiff_t method;
-      lo bfgs;
-      local(void) : method(lo_types::LBFGS) { }
     };
 
     struct mc
@@ -622,9 +655,6 @@ namespace config
         main_delta(scon::ang<double>::from_deg(30.0)) {}
     };
 
-    static std::size_t const NUM_FITNESS = 2;
-    static std::string const fitness_strings[NUM_FITNESS] = { "LINEAR", "EXPONENTIAL" };
-
     struct sel
     {
       struct fitness_types { enum T { INVALID = -1, LINEAR, EXPONENTIAL }; };
@@ -637,8 +667,6 @@ namespace config
       { }
     };
 
-    std::ostream& operator<< (std::ostream &, sel const &);
-
     struct evo
     {
       double chance_pointmutation,
@@ -649,8 +677,7 @@ namespace config
       { }
     };
 
-    static std::size_t const NUM_FALLBACKS = 2;
-    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "FITNESS_ROULETTE" };
+    ///////////////////////////////////
 
     struct global
     {
@@ -672,6 +699,15 @@ namespace config
       { }
     };
 
+    struct local
+    {
+      std::ptrdiff_t method;
+      lo bfgs;
+      local(void) : method(lo_types::LBFGS) { }
+    };
+
+    ///////////////////////////////////
+
     /*! Stream operator for config::global
      *
      * Prints configuration details for global optimisation
@@ -679,6 +715,12 @@ namespace config
      * TabuSearch-Iterations, MonteCarlo-Movetype and much more.
      */
     std::ostream& operator<< (std::ostream &, global const &);
+
+    static std::size_t const NUM_FITNESS = 2;
+    static std::string const fitness_strings[NUM_FITNESS] = { "LINEAR", "EXPONENTIAL" };
+
+    static std::size_t const NUM_FALLBACKS = 2;
+    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "FITNESS_ROULETTE" };
   }
 
   struct optimization
@@ -829,8 +871,7 @@ namespace config
     bool traj_print_bool;
     double holm_sand_r0;
     std::string align_external_file;
-    //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
-    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()//, cdist_cutoff(5) 
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()
     {}
   };
 
@@ -862,7 +903,7 @@ namespace config
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
        pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
       pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
-      pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(1u),
+      pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
       proc_desired_start(), proc_desired_stop()
 
     {}
@@ -933,6 +974,8 @@ namespace config
       radius_type(gbsa_conf::radius_types::STD)
     {}
   };
+
+
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1076,8 +1119,6 @@ public:
   config::optimization          optimization;
   config::fep                   fep;
   config::molecular_dynamics    md;
-  config::path                  path;
-  //config::bias                  bias;
   config::dimer                 dimer;
   config::neb					          neb;
   config::generalized_born      gbsa;

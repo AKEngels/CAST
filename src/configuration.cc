@@ -176,7 +176,7 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
         config::parse_option("inputtype", V[++i]);
       }
 
-      // Enable spackman by enetering -spack
+      // Enable spackman by entering -spack
       else if (argument.substr(0, 6) == "-spack")
       {
         Config::set().energy.spackman.on = true;
@@ -313,14 +313,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "PME")
   {
     cv >> Config::set().energy.pme;
-  }
-  else if (option == "PMEspline")
-  {
-    cv >> Config::set().energy.pmespline;
-  }
-  else if (option == "PMEthreshold")
-  {
-    cv >> Config::set().energy.pmetresh;
   }
 
   // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
@@ -784,8 +776,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().energy.periodic = bool_from_iss(cv);
     if (cv >> Config::set().energy.pb_box.x()
       && cv >> Config::set().energy.pb_box.y()
-      && cv >> Config::set().energy.pb_box.z()
-      && cv >> Config::set().energy.pb_cut)
+      && cv >> Config::set().energy.pb_box.z() )
     {
       double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
       if (Config::set().energy.periodic
@@ -841,10 +832,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(3, 8) == "backward")
     {
       cv >> Config::set().fep.backward;
-    }
-    else if (option.substr(3, 6) == "couple")
-    {
-      Config::set().fep.couple = bool_from_iss(cv);
     }
   }
 
@@ -1031,23 +1018,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //! end file for pathrelaxation
-  else if (option.substr(0, 9) == "PRendfile")
-  {
-    if (file_exists_readable(value_string.c_str()))
-      Config::set().path.endpointFileName = value_string;
-  }
-  //! max delta E for path relaxation
-  else if (option.substr(0, 8) == "PRdeltae")
-  {
-    cv >> Config::set().path.maxDeltaE;
-  }
-  //! max delta X for path relaxation
-  else if (option.substr(0, 8) == "PRdeltax")
-  {
-    cv >> Config::set().path.maxDeltaX;
-  }
-
   //! Fixation excluding
   else if (option.substr(0, 10) == "FIXexclude")
   {
@@ -1127,11 +1097,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 10) == "REMOVEHROT")
   {
     Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv);
-  }
-
-  else if (option.substr(0, 12) == "REMOVEH2OROT")
-  {
-    Config::set().coords.no_hydrot_mains = bool_from_iss(cv);
   }
 
   else if (option.substr(0, 4) == "BIAS")
