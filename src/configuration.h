@@ -223,7 +223,6 @@ namespace config
   };
 
 
-
   /*
   ########  ####    ###     ######
   ##     ##  ##    ## ##   ##    ##
@@ -368,7 +367,22 @@ namespace config
     {}
 
   };
+
+  /*! Stream operator for config::eqval
+   *
+   * Prints reasoning for considering two structures
+   * equal (important for TaboSearch etc.)
+   */
   std::ostream & operator << (std::ostream &, coords::eqval const &);
+
+  /*! Stream operator for config::coords
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about main dihedrals,
+   * black-/whitelists for main dihedrals,
+   * Umbrella sampling information (if task == UMBRELLA),
+   * Bias Potentials
+   */
   std::ostream & operator << (std::ostream &, coords const &);
 
   namespace adjust_conf
@@ -438,6 +452,14 @@ namespace config
     { }
   };
 
+  /*! Stream operator for config::energy
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about main dihedrals,
+   * black-/whitelists for main dihedrals,
+   * Umbrella sampling information (if task == UMBRELLA),
+   * Bias Potentials
+   */
   std::ostream & operator << (std::ostream &, energy const &);
 
   /*
@@ -672,6 +694,13 @@ namespace config
         metropolis_local(true), pre_optimize(false), move_dehydrated(false)
       { }
     };
+
+    /*! Stream operator for config::global
+     *
+     * Prints configuration details for global optimisation
+     * Contains: Iterations, Temperature, Temperature Scaling,
+     * TabuSearch-Iterations, MonteCarlo-Movetype and much more.
+     */
     std::ostream& operator<< (std::ostream &, global const &);
   }
 
@@ -734,6 +763,11 @@ namespace config
       { }
     };
 
+    /*! Stream operator for config::solvadd
+     *
+     * Prints configuration details for SOLVADD subtask
+     * of STARTOP task.
+     */
     std::ostream& operator<< (std::ostream &, solvadd const &);
 
     struct ringsearch
@@ -746,11 +780,14 @@ namespace config
       { }
     };
 
+    /*! Stream operator for config::ringsearch
+     *
+     * Prints configuration details for RINGSEARCH subtask
+     * of STARTOP task.
+     */
     std::ostream& operator<< (std::ostream &, ringsearch const &);
 
   }
-
-
 
   struct startopt
   {
@@ -767,6 +804,12 @@ namespace config
     { }
   };
 
+  /*! Stream operator for config::startopt
+   *
+   * Prints configuration details for STARTOP task,
+   * mainly by using the ostream operators for
+   * config::ringsearch and config::solvadd.
+   */
   std::ostream& operator<< (std::ostream &, startopt const &);
 
 
@@ -831,6 +874,7 @@ namespace config
    * ALIGN // KABSCH ALIGNMENT OF STRUCTURES
    * THIS TASK REMOVES TRANSLATION AND ROTATION
    */
+
   struct align
   {
     size_t dist_unit;
@@ -849,6 +893,7 @@ namespace config
   * PCA // Principal Component Analysis
   * THIS TASK PERFORMS PCA ON A TRAJECTORY
   */
+
   struct PCA
   {
     bool pca_alignment;
@@ -882,6 +927,7 @@ namespace config
   * ENTROPY // Entropy Calculations
   * THIS TASK PERFORMS CONFIGURATIONAL AND CONFORMATIONAL ENTROPY CACLULATIONS
   */
+
   struct entropy
   {
     bool entropy_alignment;
@@ -1029,17 +1075,53 @@ namespace config
   */
   void parse_option(std::string const option, std::string const value);
 
-
   // Important function declarations end here...
-
 
 }
 
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+/*! Class containing the global configuration options
+ *
+ * Constructor automatically reads options from file.
+ * Members are public since access functions get() and set()
+ * return pointer to singular static global obejct of this class
+ *
+ * @Note: There can only ever be one Config object! A pointer
+ * to this object is contained in the private member m_instance
+ */
 class Config
 {
 public:
+  config::general               general;
+  config::coords                coords;
+  config::energy                energy;
+  config::startopt              startopt;
+  config::optimization          optimization;
+  config::fep                   fep;
+  config::molecular_dynamics    md;
+  config::path                  path;
+  //config::bias                  bias;
+  config::dimer                 dimer;
+  config::neb					          neb;
+  config::generalized_born      gbsa;
+  config::adjust                adjustment;
+  config::align			            alignment;
+  config::PCA					          PCA;
+  config::entropy				        entropy;
+  config::io                    io;
 
-  // Constructor, automatically parses file
+  /*! Constructor of Config object
+   *
+   * During construction the configuration-file
+   * will be automatically parsed and the members
+   * of the config-object will be filled in accordingly.
+   *
+   * @param filename: Filename of the configuration file to be read. Needs to be in the same folder as the CAST executable.
+   */
   Config(std::string const &filename)
   {
     // There can only ever be one Config!
@@ -1078,34 +1160,74 @@ public:
     return *m_instance;
   }
 
-  config::general               general;
-  config::coords                coords;
-  config::energy                energy;
-  config::startopt              startopt;
-  config::optimization          optimization;
-  config::fep                   fep;
-  config::molecular_dynamics    md;
-  config::path                  path;
-  //config::bias                  bias;
-  config::dimer                 dimer;
-  config::neb					          neb;
-  config::generalized_born      gbsa;
-  config::adjust                adjustment;
-  config::align			            alignment;
-  config::PCA					          PCA;
-  config::entropy				        entropy;
-  config::io                    io;
-
-
+  /**
+   * Helper function that matches a task
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::task_strings
+   * If you add a new task, add it to both the enum
+   * config::tasks::T and config::task_strings
+   *
+   * @param S: task as string
+   */
   static config::tasks::T            getTask(std::string const&);
+
+  /**
+   * Helper function that matches an energy interface
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::config::interface_strings
+   * If you add a new energy interface, add it to both the enum
+   * config::interface_types::T and config::interface_strings
+   *
+   * @param S: energy interface as string
+   */
   static config::interface_types::T  getInterface(std::string const&);
+
+  /*
+   * Helper function that matches an outputformat
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::output_strings
+   * If you add a new output type, add it to both the enum
+   * config::output_types::T and config::output_strings
+   *
+   * @param S: output-type as string
+   */
   static config::output_types::T     getOutFormat(std::string const&);
+
+  /*
+   * Helper function that matches an solvation type
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::solv_strings
+   *
+   * @param S: solvation-type as string
+   */
   static config::solvs::S            getSolv(std::string const&);
+
+  /*
+   * Helper function that matches an solvation surface type
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::surf_strings
+   *
+   * @param S: surface-type as string
+   */
   static config::surfs::SA           getSurf(std::string const&);
 
 private:
 
+  /*! Parse whole config-file for config-options
+   *
+   * This function parses a configuration file
+   * and puts the options into the Config class
+   *
+   * @param filename: Full filename of the file
+   */
   void parse_file(std::string const &filename);
+
+  /*! Pointer to the single instance of the Config class
+   *
+   * There can only ever be one Config object.
+   * A pointer to it is contained here.
+   * If no object exists (yet), this will be a nullpointer.
+   */
   static Config * m_instance;
 
 };

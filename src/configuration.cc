@@ -6,15 +6,6 @@
  */
 Config * Config::m_instance = nullptr;
 
-/**
- * Helper function that matches a task 
- * as string to the corresponding enum via
- * the sorted "helper-array" config::task_strings
- * If you add a new task, add it to both the enum
- * config::tasks::T and config::task_strings
- *
- * @param S: task as string
- */
 config::tasks::T Config::getTask(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_TASKS; ++i)
@@ -25,15 +16,6 @@ config::tasks::T Config::getTask(std::string const & S)
   return config::tasks::ILLEGAL;
 }
 
-/**
- * Helper function that matches an energy interface
- * as string to the corresponding enum via
- * the sorted "helper-array" config::config::interface_strings
- * If you add a new energy interface, add it to both the enum
- * config::interface_types::T and config::interface_strings
- *
- * @param S: energy interface as string
- */
 config::interface_types::T Config::getInterface(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_INTERFACES; ++i)
@@ -44,15 +26,6 @@ config::interface_types::T Config::getInterface(std::string const & S)
   return config::interface_types::ILLEGAL;
 }
 
-/*
- * Helper function that matches an outputformat
- * as string to the corresponding enum via
- * the sorted "helper-array" config::output_strings
- * If you add a new output type, add it to both the enum
- * config::output_types::T and config::output_strings
- *
- * @param S: output-type as string
- */
 config::output_types::T Config::getOutFormat(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_INTERFACES; ++i)
@@ -63,13 +36,6 @@ config::output_types::T Config::getOutFormat(std::string const & S)
   return config::output_types::ILLEGAL;
 }
 
-/*
- * Helper function that matches an solvation type
- * as string to the corresponding enum via
- * the sorted "helper-array" config::solv_strings
- *
- * @param S: solvation-type as string
- */
 config::solvs::S Config::getSolv(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
@@ -80,13 +46,6 @@ config::solvs::S Config::getSolv(std::string const & S)
   return config::solvs::VAC;
 }
 
-/*
- * Helper function that matches an solvation surface type
- * as string to the corresponding enum via
- * the sorted "helper-array" config::surf_strings
- *
- * @param S: surface-type as string
- */
 config::surfs::SA Config::getSurf(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_SURF; ++i)
@@ -467,14 +426,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (Config::get().general.verbosity > 20u)
     std::cout << "CAST was compiled without multithreading. Ignoring the config-option cores." << std::endl;
 #endif
-  }
-
-  // Profileruns
-  // Only used in task "PROFILE"
-  // Default: 10
-  else if (option == "profileruns")
-  {
-    cv >> Config::set().general.profile_runs;
   }
 
   //!SPACKMAN
@@ -1617,13 +1568,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 */
 
-/*! Parse whole config-file for config-options
- *
- * This function parses a configuration file
- * and puts the options into the Config class
- *
- * @param filename: Full filename of the file
- */
 void Config::parse_file(std::string const & filename)
 {
 
@@ -1657,11 +1601,6 @@ std::ostream & config::operator << (std::ostream &strm, general const &g)
   return strm;
 }
 
-/*! Stream operator for config::eqval
- *
- * Prints reasoning for considering two structures
- * equal (important for TaboSearch etc.)
- */
 std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
 {
   strm << "Two structures will be considered to be equal if either\n";
@@ -1673,14 +1612,6 @@ std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equa
   return strm;
 }
 
-/*! Stream operator for config::coords
- *
- * Prints configuration details for the current CAST run
- * Contains: Information about main dihedrals,
- * black-/whitelists for main dihedrals,
- * Umbrella sampling information (if task == UMBRELLA),
- * Bias Potentials
- */
 std::ostream & config::operator<< (std::ostream &strm, coords const &p)
 {
   if (p.remove_hydrogen_rot)
@@ -1802,14 +1733,6 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
   return strm;
 }
 
-/*! Stream operator for config::energy
- *
- * Prints configuration details for the current CAST run
- * Contains: Information about main dihedrals,
- * black-/whitelists for main dihedrals,
- * Umbrella sampling information (if task == UMBRELLA),
- * Bias Potentials
- */
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
   if (p.cutoff < 1000.0) strm << "Cutoff radius of " << p.cutoff << " Angstroms (switching to zero starting at " << p.switchdist << " Angstroms) applied.\n";
@@ -1833,12 +1756,6 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   return strm;
 }
 
-/*! Stream operator for config::global
- *
- * Prints configuration details for global optimisation
- * Contains: Iterations, Temperature, Temperature Scaling,
- * TabuSearch-Iterations, MonteCarlo-Movetype and much more.
- */
 std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global const &opt)
 {
   strm << "At most " << opt.iterations << " global optimization iterations at " << opt.temperature;
@@ -1910,11 +1827,6 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
   return strm;
 }
 
-/*! Stream operator for config::solvadd
- *
- * Prints configuration details for SOLVADD subtask
- * of STARTOP task.
- */
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd const &sa)
 {
   strm << "SolvAdd will fill ";
@@ -1963,11 +1875,6 @@ std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd con
   return strm;
 }
 
-/*! Stream operator for config::ringsearch
- *
- * Prints configuration details for RINGSEARCH subtask
- * of STARTOP task.
- */
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch const &rso)
 {
   strm << "Ringsearch will propagate ";
@@ -1978,12 +1885,6 @@ std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch 
   return strm;
 }
 
-/*! Stream operator for config::startopt
- *
- * Prints configuration details for STARTOP task,
- * mainly by using the ostream operators for
- * config::ringsearch and config::solvadd.
- */
 std::ostream& config::operator<< (std::ostream &strm, startopt const &sopt)
 {
   if (sopt.type == config::startopt::types::T::RINGSEARCH ||
