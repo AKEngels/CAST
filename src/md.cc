@@ -977,7 +977,7 @@ bool md::simulation::heat(std::size_t const step)
     {
       double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
       T += delta;
-      return std::fabs(delta) > 0.0 ? true : false;
+      return true;
     }
     last = heatstep;
   }
@@ -986,7 +986,7 @@ bool md::simulation::heat(std::size_t const step)
     double const delta((Config::get().md.T_final - last.raise) /
       static_cast<double>(Config::get().md.num_steps - last.offset));
     T += delta;
-    return std::fabs(delta) > 0.0 ? true : false;
+    return true;
   }
   return false;
 }
