@@ -119,9 +119,6 @@ namespace coords
 
   namespace bias
   {
-
-    struct types { enum T { QUADRATIC, BIQUADRATIC, PROGRESSIVE }; };
-
     struct Potentials
     {
 
@@ -367,8 +364,7 @@ namespace coords
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
-          && !Config::get().energy.periodic
-          && !Config::get().general.trackstream)
+          && !Config::get().energy.periodic)
         {
           m_representation.energy = m_preinterface->o();
         }
@@ -387,8 +383,7 @@ namespace coords
       energy_valid = true;
       if (m_interface->has_optimizer()
         && m_potentials.empty()
-        && !Config::get().energy.periodic
-        && !Config::get().general.trackstream)
+        && !Config::get().energy.periodic)
       {
         m_representation.energy = m_interface->o();
       }

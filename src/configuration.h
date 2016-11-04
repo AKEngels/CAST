@@ -33,6 +33,8 @@ Purpose: class for extraction of information from parameter file
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
 
+/*! Namespace containing relevant configuration options
+ */
 namespace config
 {
 
@@ -42,10 +44,10 @@ namespace config
 
   // Program Name and Version
   static std::string const Programname("CAST");
-  static std::string const Version("3.2.0.1.0.0dev");
+  static std::string const Version("3.2.0.2dev");
 
   // Tasks
-  static std::size_t const NUM_TASKS = 30;
+  static std::size_t const NUM_TASKS = 23;
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER"
@@ -189,16 +191,6 @@ namespace config
   // config::Config object. This object contains all the 
   // configoptions read from file for the current CAST run.
 
-  struct requirements
-  {
-    bool req_parameter, got_input_structure,
-      got_energy_interface, got_parameters, config_file, got_task;
-    requirements(void) :
-      req_parameter(true), got_input_structure(false), got_energy_interface(false),
-      got_parameters(false), config_file(false), got_task(false)
-    { }
-  };
-
   struct general
   {
     std::string inputFilename, paramFilename, outputFilename;
@@ -206,20 +198,17 @@ namespace config
     output_types::T output;
     config::tasks::T task;
     interface_types::T energy_interface, preopt_interface;
-    std::size_t verbosity, profile_runs;
-    std::ofstream * trackstream;
+    std::size_t verbosity;
     config::solvs::S solvationmethod;
     config::surfs::SA surfacemethod;
-    bool forcefield;
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
       task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U), profile_runs(10U), trackstream(nullptr),
-      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), forcefield(true)
+      verbosity(1U), 
+      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER)
     { }
-    void print(void);
   };
 
 
@@ -236,7 +225,7 @@ namespace config
 
   namespace biases
   {
-    struct potential_types { enum T { QUADRATIC, BIQUADRATIC, PROGRESSIVE }; };
+
     struct distance
     {
       double force, ideal, value;
@@ -245,6 +234,7 @@ namespace config
         : force(), ideal(), a(), b()
       { }
     };
+
     struct angle
     {
       double force, ideal, value;
@@ -253,6 +243,7 @@ namespace config
         : force(), ideal(), a(), b()
       { }
     };
+
     struct dihedral
     {
       double force;
@@ -264,12 +255,14 @@ namespace config
         a(), b(), forward(false)
       { }
     };
+
     inline std::ostream& operator<< (std::ostream & o, dihedral const &d)
     {
       o << d.a << ',' << d.b << ',' << d.c << ',' << d.d << ' ';
       o << d.force << ',' << d.ideal << ',' << d.value << ',' << d.forward;
       return o;
     }
+
     struct spherical
     {
       double radius, force, exponent;
@@ -277,6 +270,7 @@ namespace config
         : radius(), force(), exponent()
       { }
     };
+
     struct cubic
     {
       ::coords::Cartesian_Point dim;
@@ -284,7 +278,6 @@ namespace config
       cubic()
         : dim(), force(), exponent()
       { }
-
     };
   }
 
@@ -311,7 +304,6 @@ namespace config
       std::vector<std::pair<std::size_t, std::size_t>> main_blacklist;
     } internal;
 
-
     struct umbrellas
     {
       struct umbrella_tor
@@ -335,6 +327,7 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
+
     struct coord_bias
     {
       std::vector<biases::distance>  distance;
@@ -345,6 +338,7 @@ namespace config
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
+
     struct eqval
     {
       double superposition;
@@ -367,23 +361,6 @@ namespace config
     {}
 
   };
-
-  /*! Stream operator for config::eqval
-   *
-   * Prints reasoning for considering two structures
-   * equal (important for TaboSearch etc.)
-   */
-  std::ostream & operator << (std::ostream &, coords::eqval const &);
-
-  /*! Stream operator for config::coords
-   *
-   * Prints configuration details for the current CAST run
-   * Contains: Information about main dihedrals,
-   * black-/whitelists for main dihedrals,
-   * Umbrella sampling information (if task == UMBRELLA),
-   * Bias Potentials
-   */
-  std::ostream & operator << (std::ostream &, coords const &);
 
   namespace adjust_conf
   {
@@ -723,25 +700,6 @@ namespace config
   namespace startopt_conf
   {
 
-    struct fold
-    {
-      struct helices { enum { alpha, threeten }; };
-      struct sheets { enum { betaAParallel, betaParallel }; };
-      struct turns
-      {
-        enum {
-          turnBetaIa, turnBetaIb, turnBetaIIa,
-          turnBetaIIb, turnBetaVIa, turnBetaVIb, turnBetaVIII
-        };
-      };
-      std::string sequenceFile, outputFile;
-      int helix, sheet, turn;
-      fold() :
-        helix(helices::alpha), sheet(sheets::betaAParallel),
-        turn(turns::turnBetaIa)
-      { }
-    };
-
     struct solvadd
     {
       struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
@@ -763,13 +721,6 @@ namespace config
       { }
     };
 
-    /*! Stream operator for config::solvadd
-     *
-     * Prints configuration details for SOLVADD subtask
-     * of STARTOP task.
-     */
-    std::ostream& operator<< (std::ostream &, solvadd const &);
-
     struct ringsearch
     {
       ::coords::float_type bias_force, chance_close;
@@ -787,33 +738,27 @@ namespace config
      */
     std::ostream& operator<< (std::ostream &, ringsearch const &);
 
+    /*! Stream operator for config::solvadd
+     *
+     * Prints configuration details for SOLVADD subtask
+     * of STARTOP task.
+     */
+    std::ostream& operator<< (std::ostream &, solvadd const &);
   }
 
   struct startopt
   {
     struct types { enum T { RINGSEARCH, SOLVADD, RINGSEARCH_SOLVADD }; };
-    //startopt_conf::fold fold;
     startopt_conf::solvadd solvadd;
     startopt_conf::ringsearch ringsearch;
     types::T type;
     std::size_t number_of_structures;
     startopt(void)
-      : /*fold(),*/ solvadd(), ringsearch(),
+      : solvadd(), ringsearch(),
       type(types::SOLVADD),
       number_of_structures()
     { }
   };
-
-  /*! Stream operator for config::startopt
-   *
-   * Prints configuration details for STARTOP task,
-   * mainly by using the ostream operators for
-   * config::ringsearch and config::solvadd.
-   */
-  std::ostream& operator<< (std::ostream &, startopt const &);
-
-
-
 
   /*
     ########  #### ##     ## ######## ########
@@ -1076,6 +1021,34 @@ namespace config
   void parse_option(std::string const option, std::string const value);
 
   // Important function declarations end here...
+
+  //... now some stream operators
+
+
+  /*! Stream operator for config::eqval
+   *
+   * Prints reasoning for considering two structures
+   * equal (important for TaboSearch etc.)
+   */
+  std::ostream & operator << (std::ostream &, coords::eqval const &);
+
+  /*! Stream operator for config::coords
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about main dihedrals,
+   * black-/whitelists for main dihedrals,
+   * Umbrella sampling information (if task == UMBRELLA),
+   * Bias Potentials
+   */
+  std::ostream & operator << (std::ostream &, coords const &);
+
+  /*! Stream operator for config::startopt
+   *
+   * Prints configuration details for STARTOP task,
+   * mainly by using the ostream operators for
+   * config::ringsearch and config::solvadd.
+   */
+  std::ostream& operator<< (std::ostream &, startopt const &);
 
 }
 
