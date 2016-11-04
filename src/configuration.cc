@@ -120,21 +120,6 @@ config::surfs::SA Config::getSurf(std::string const & S)
 
 */
 
-/*! Returns name of the config-file for the runtime of CAST
- *
- * This function determines the name
- * of the INPUTFILE which is to be read for
- * config-options. Default is either "CAST.txt"
- * or "INPUTFILE".
- * By starting the CAST executable with commandline option
- * -s or -setup the filename of a different 
- * inputfile can be specified.
- *
- * Call like this:
- * CAST.exe -setup=filename.txt
- * or
- * CAST.exe -s filename.txt
- */
 std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -158,16 +143,6 @@ std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **
   return std::string("INPUTFILE");
 }
 
-/*! Parses command line switches into cnofig object
- *
- * This function parses command lines switches.
- * They have priority over options from the inputfile
- * and therefore overwrite them. Pass over argc
- * and argv to this function.
- *
- * @param N: usually "argc"
- * @param V: usually "argv"
- */
 void config::parse_command_switches(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -293,15 +268,6 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
-/*! Parses one config-option and stores it in config-class
- *
- * This function parses one configoption
- * and puts the value into the corresponding
- * struct inside the Config class
- *
- * @param option: name of the configoption
- * @param value_string: corresponding value of the option
- */
 void config::parse_option(std::string const option, std::string const value_string)
 {
   std::istringstream cv(value_string);
@@ -1682,17 +1648,7 @@ void Config::parse_file(std::string const & filename)
   }
 }
 
-/*! Stream operator for config::general
- *
- * Prints contents of config::general in human
- * readable form. This contains: Where structure was read from,
- * which inputtype the structure originates from, where the
- * (forcefield) parameters originate from and which
- * energy interface is used.
- *
- * @todo: Remove line explaining parameterfile if MOPAC or TERACHEM energy interface is chosen
- */
-std::ostream & config::operator<< (std::ostream &strm, general const &g)
+std::ostream & config::operator << (std::ostream &strm, general const &g)
 {
   strm << "Reading structure(s) from '" << g.inputFilename;
   strm << "' (type: " << config::input_strings[g.input] << ")";

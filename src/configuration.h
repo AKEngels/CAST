@@ -35,14 +35,18 @@ Purpose: class for extraction of information from parameter file
 
 namespace config
 {
+
+  // Here we find some static members that only
+  // exist once in CAST, like the version number or
+  // some helper arrays containing the tasks etc.
+
   // Program Name and Version
   static std::string const Programname("CAST");
   static std::string const Version("3.2.0.1.0.0dev");
 
   // Tasks
   static std::size_t const NUM_TASKS = 30;
-  static std::string const 
-    task_strings[NUM_TASKS] =
+  static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER"
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
@@ -66,8 +70,7 @@ namespace config
 
   // Input Types
   static std::size_t const NUM_INPUT = 2;
-  static std::string const 
-    input_strings[NUM_INPUT] =
+  static std::string const input_strings[NUM_INPUT] =
   { 
     "TINKER", "AMBER" 
   };
@@ -82,8 +85,7 @@ namespace config
 
   // Output Types
   static std::size_t const NUM_OUTPUT = 4;
-  static std::string const 
-    output_strings[NUM_OUTPUT] =
+  static std::string const output_strings[NUM_OUTPUT] =
   { 
     "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
   };
@@ -175,35 +177,21 @@ namespace config
     };
   };
 
-  /**
-   * Helperfunction that matches a string
-   * to an enum via a sorted array of strings
-   *
-   * @typename enum_type: Type of the enum which is to be returned
-   * @param SIZE: Size if the sorted string array used for matching ("valarray")
-   * @param valarray: Sorted array of strings in same order as target enum
-   * @param value: Input string that is to be "converted" to enum value.
-   */
-  template<class enum_type, std::size_t SIZE, 
-    class CharT, class TraitT, class AllocT>
-  inline enum_type enum_from_string(
-    std::basic_string<CharT, TraitT, AllocT> const valarray[SIZE], 
-    std::basic_string<CharT, TraitT, AllocT> const & value)
-  {
-    for (std::size_t i(0U); i < SIZE; ++i)
-    {
-      if (value == valarray[i])
-      {
-        return static_cast<enum_type>(i);
-      }
-    }
-    return static_cast<enum_type>(-1);
-  }
+  // Global static stuff ends here...
 
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  // ... now lets see about the members of the config namespace
+  // They all have one instance as members in the global
+  // config::Config object. This object contains all the 
+  // configoptions read from file for the current CAST run.
 
   struct requirements
   {
-    bool req_parameter, got_input_structure, 
+    bool req_parameter, got_input_structure,
       got_energy_interface, got_parameters, config_file, got_task;
     requirements(void) :
       req_parameter(true), got_input_structure(false), got_energy_interface(false),
@@ -226,7 +214,7 @@ namespace config
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
-      task(config::tasks::SP), energy_interface(interface_types::OPLSAA), 
+      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
       verbosity(1U), profile_runs(10U), trackstream(nullptr),
       solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), forcefield(true)
@@ -234,13 +222,7 @@ namespace config
     void print(void);
   };
 
-  std::ostream & operator << (std::ostream &, general const &);
 
-  struct rdf
-  {
-    double width;
-    rdf(void) : width(0.0) { }
-  };
 
   /*
   ########  ####    ###     ######
@@ -960,10 +942,97 @@ namespace config
       radius_type(gbsa_conf::radius_types::STD)
     {}
   };
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
 
+  //... now for some
+  // important functions tinkering with the config
+  // or reading it from file....
+
+
+  /**
+  * Helperfunction that matches a string
+  * to an enum via a sorted array of strings
+  *
+  * @typename enum_type: Type of the enum which is to be returned
+  * @param SIZE: Size if the sorted string array used for matching ("valarray")
+  * @param valarray: Sorted array of strings in same order as target enum
+  * @param value: Input string that is to be "converted" to enum value.
+  */
+  template<class enum_type, std::size_t SIZE,
+    class CharT, class TraitT, class AllocT>
+    inline enum_type enum_from_string(
+      std::basic_string<CharT, TraitT, AllocT> const valarray[SIZE],
+      std::basic_string<CharT, TraitT, AllocT> const & value)
+  {
+    for (std::size_t i(0U); i < SIZE; ++i)
+    {
+      if (value == valarray[i])
+      {
+        return static_cast<enum_type>(i);
+      }
+    }
+    return static_cast<enum_type>(-1);
+  }
+
+  /*! Stream operator for config::general
+  *
+  * Prints contents of config::general in human
+  * readable form. This contains: Where structure was read from,
+  * which inputtype the structure originates from, where the
+  * (forcefield) parameters originate from and which
+  * energy interface is used.
+  *
+  * @todo: Remove line explaining parameterfile if MOPAC or TERACHEM energy interface is chosen
+  */
+  std::ostream & operator<< (std::ostream &, general const &);
+
+  /*! Parses command line switches into cnofig object
+  *
+  * This function parses command lines switches.
+  * They have priority over options from the inputfile
+  * and therefore overwrite them. Pass over argc
+  * and argv to this function.
+  *
+  * @param N: usually "argc"
+  * @param V: usually "argv"
+  */
   void parse_command_switches(std::ptrdiff_t const, char**);
+
+  /*! Returns name of the config-file for the runtime of CAST
+  *
+  * This function determines the name
+  * of the INPUTFILE which is to be read for
+  * config-options. Default is either "CAST.txt"
+  * or "INPUTFILE".
+  * By starting the CAST executable with commandline option
+  * -s or -setup the filename of a different
+  * inputfile can be specified.
+  *
+  * Call like this:
+  * CAST.exe -setup=filename.txt
+  * or
+  * CAST.exe -s filename.txt
+  */
   std::string config_file_from_commandline(std::ptrdiff_t const, char**);
+
+  /*! Parses one config-option and stores it in config-class
+  *
+  * This function parses one configoption
+  * and puts the value into the corresponding
+  * struct inside the Config class
+  *
+  * @param option: name of the configoption
+  * @param value_string: corresponding value of the option
+  */
   void parse_option(std::string const option, std::string const value);
+
+
+  // Important function declarations end here...
+
+
 }
 
 class Config
