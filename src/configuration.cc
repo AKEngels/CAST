@@ -415,8 +415,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     long const T(from_iss<long>(cv));
     if (T > 0) omp_set_num_threads(T);
 #else
-    if (Config::get().general.verbosity > 20u)
-    std::cout << "CAST was compiled without multithreading. Ignoring the config-option cores." << std::endl;
+    if (Config::get().general.verbosity > 2u)
+    std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
 #endif
   }
 

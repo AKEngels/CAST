@@ -541,7 +541,7 @@ namespace matop
           }
           else
           {
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
             entropy_mi(i, j) = 0.0;
           }
         }
@@ -560,12 +560,12 @@ namespace matop
           if ((entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
           {
             entropy_anharmonic(i, 0u) = 0.0;
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
           }
         }
         else
         {
-          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
+          if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
           entropy_anharmonic(i, 0u) = 0.0;
         }
       }
@@ -933,7 +933,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
 
 #ifdef _OPENMP
-  if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
+  if (Config::get().general.verbosity > 2U) std::cout << "Using openMP for alignment.\n";
   auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
   for (std::ptrdiff_t i = 0; i < n_omp; ++i)

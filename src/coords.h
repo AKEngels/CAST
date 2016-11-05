@@ -359,7 +359,7 @@ namespace coords
     {
       if (m_preinterface)
       {
-        if (Config::get().general.verbosity > 19)
+        if (Config::get().general.verbosity >= 4)
           std::cout << "Preotimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
@@ -796,7 +796,7 @@ namespace coords
         g[i++] = static_cast<float>(e.y());
         g[i++] = static_cast<float>(e.z());
       }
-      if (Config::get().general.verbosity > 19)
+      if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Optimization: Energy of step " << S;
         std::cout << " is " << E << " integrity " << go_on << '\n';
@@ -884,7 +884,7 @@ namespace coords
         g[n++] = static_cast<float>(e.y());
         g[n++] = static_cast<float>(e.z());
       }
-      if (Config::get().general.verbosity > 19)
+      if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Optimization: Energy of step " << S;
         std::cout << " is " << E << " integrity " << go_on << '\n';

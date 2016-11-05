@@ -149,7 +149,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
 	  MCmin = lbfgs(opt);
-	  if(Config::get().general.verbosity > 15) std::cout << "MCM energy of step "<<mcstep<<" is "<<MCmin<<'\n';
+	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step " << mcstep << " is " << MCmin << '\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
@@ -482,7 +482,7 @@ double pathx::lbfgs(ptrdiff_t imagex)
 	optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
 	optimizer(x);
 
-	if (Config::get().general.verbosity > 4)
+	if (Config::get().general.verbosity > 3)
 	{
 		std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
 	}
@@ -578,13 +578,13 @@ void pathx::move_main(perp_point & direction)
   coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
   size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
   // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
+  if (Config::get().general.verbosity > 4) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
     size_t const K(static_cast<size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));
     coords::float_type const F = scon::rand<coords::float_type>(-Config::get().optimization.global.montecarlo.dihedral_max_rot,
       Config::get().optimization.global.montecarlo.dihedral_max_rot);
-    if (Config::get().general.verbosity > 9U) std::cout << "Changing main " << K << " by " << F << '\n';
+    if (Config::get().general.verbosity > 4) std::cout << "Changing main " << K << " by " << F << '\n';
     main_tors[K] = coords::main_type::from_deg(F);
   }
   // orthogonalize movement to main directions
