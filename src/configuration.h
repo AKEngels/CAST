@@ -260,8 +260,11 @@ namespace config
     interface_types::T preopt_interface;
     /// Verbosity of the output of CAST (supposed to be between 0 and 5)
     std::size_t verbosity;
+    /// Solvationmethod, implicit solvation currently not supported!
     config::solvs::S solvationmethod;
+    /// Surfacemethod for implicit solvationd, implicit solvation currently not supported!
     config::surfs::SA surfacemethod;
+    /// Constructor with reasonable default parameters
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),

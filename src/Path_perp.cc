@@ -8,7 +8,6 @@
 #include "Path_perp.h"
 #include "scon_utility.h"
 #include "ls.h"
-#include "lbfgs.h"
 #include "scon_vect.h"
 #if defined(_WIN32)
 

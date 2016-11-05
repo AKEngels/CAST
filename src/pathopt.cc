@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include "scon_utility.h"
 #include "ls.h"
-#include "lbfgs.h"
 #if defined(_WIN32)
 #include <direct.h>
 #include "sys/stat.h"

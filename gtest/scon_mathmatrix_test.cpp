@@ -9,13 +9,20 @@ Purpose: Tests matrix procedures
 
 
 #ifdef GOOGLE_MOCK
-#include "../src/scon_mathmatrix.h"
-#pragma once
 #include "gtest/gtest.h"
+#pragma once
+
+#include "../src/scon_mathmatrix.h"
 #include <iostream>
 #include <string>
 #include <sstream>
 
+TEST(mathmatrix, constructedEmpty)
+{
+  mathmatrix<float> one;
+  ASSERT_EQ(one.rows(), 0);
+  ASSERT_EQ(one.cols(), 0);
+}
 
 TEST(mathmatrix, constructedAndFilled)
 {
@@ -25,13 +32,6 @@ TEST(mathmatrix, constructedAndFilled)
     for (size_t j = 0u; j < 3u; j++)
       count += one(i, j);
   ASSERT_FLOAT_EQ(count, 18.f);
-}
-
-TEST(mathmatrix, constructedEmpty)
-{
-  mathmatrix<float> one;
-  ASSERT_EQ(one.rows(), 0);
-  ASSERT_EQ(one.cols(), 0);
 }
 
 TEST(mathmatrix, constructedIdentityMatrixQuadratic)
@@ -50,8 +50,10 @@ TEST(mathmatrix, constructedIdentityMatrixQuadratic)
 
 TEST(mathmatrix, constructedIdentityMatrixRectangular)
 {
+
   mathmatrix<float> one(3u, 3u);
   mathmatrix<float> two = one.identity(2u, 4u);
+
   ASSERT_EQ(two.rows(), 2u);
   ASSERT_EQ(two.cols(), 4u);
   ASSERT_FLOAT_EQ(two(0, 0), 1.f);
