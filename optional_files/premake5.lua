@@ -10,7 +10,7 @@
 -- Build for Linux on ECPC "premake5 gmake"
 -- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
 --
--- Build for Linux on Smurf: "premake5 mpi"
+-- Build for Linux on Smurf: "premake5 gmake --mpi"
 -- Run "make config=armadillo_release_x64 CXX='/apps/mpich/2.1.4.1p1/bin/mpicxx -cxx=/apps/gcc-6.1/bin/g++-6.1 -static-libstdc++ -static-libgcc'" in project/
 --
 
