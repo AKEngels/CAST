@@ -1035,7 +1035,15 @@ std::vector<double> md::simulation::init_active_center(int counter)
 	std::vector<coords::Cartesian_Point> coords_act_center;
 	for (auto & atom_number : Config::get().md.active_center)
 	{
-		coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
+		if (atom_number > 0 && atom_number <= N)
+		{
+			coords_act_center.push_back(coordobj.xyz(atom_number - 1));  //(-1) because atom count in tinker starts with 1, not with 0
+		}
+		else
+		{
+			std::cout << "ERROR: Atom number " << atom_number << " for active site not valid!!!\n";
+			throw std::exception();
+		}
 	}
 
 	coords::Cartesian_Point summe_coords_act_center; //calculate geometrical center of active site
