@@ -11,7 +11,7 @@ config::tasks::T Config::getTask(std::string const & S)
   for (std::size_t i = 0; i < config::NUM_TASKS; ++i)
   {
     if (S.find(config::task_strings[i]) != S.npos)
-      return static_cast<config::tasks::T>(i+1);
+      return static_cast<config::tasks::T>(i);
   }
   return config::tasks::ILLEGAL;
 }

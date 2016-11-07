@@ -52,7 +52,7 @@ namespace config
   // Names of all CAST tasks as strings
   static std::string const task_strings[NUM_TASKS] =
   { 
-    "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER"
+    "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
