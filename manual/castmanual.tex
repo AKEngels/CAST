@@ -486,6 +486,10 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 	\end{tabularx}~\\
+	
+	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
+	
+	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 
 	\ifverbose
 	\subsubsection{Heating}
@@ -507,12 +511,12 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat			10000     300
 	\end{lstlisting}
 
-	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. It also works together with ``MDheat'' but it is not completely clear how.\\
+	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. Another difference to the direct velocity scaling is that the Nosé-Hoover thermostat will not be automatically turned off after reaching the last temperature set by the ``MDheat'' option but continue to keep this temperature until the end of the simulation. So if you want the same temperature evolution as above with the thermostat your input might be:
+		\begin{lstlisting}
+	MDheat			    0  	  0
+	MDheat 			 1000     300
+	\end{lstlisting}
 		
-	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
-	
-	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
-	
 	\subsubsection{MD with biased potential}
 	
 	By setting the option ``MDbiased\_potential'' from 0 to 1 you can switch on a biased potential. This means that the movement of the atoms depends on the distance of every atom to the active site that is defined by the option ``MDactive\_site''. Atoms near the active site move ``normally'' whereas the speed of atoms with a larger distance to the active site is scaled down until there's no movement. With the option ``MDcutoff'' you can modify the strength of the biased potential. The first number is the distance around the active site where no additional potential is applied, the second number is the distance around the active site outside of which there's no movement. During the MD the distances of the atoms to the active site change. If you want to take this into account set the option ``MDadjust\_by\_step'' to 1. Then the position of the active site as well as the distances are calculated new for every step. If ``MDadjust\_by\_step'' is set to 0 the position of the active site and the distances are calculated only once and stay constant for every atom during the simulation. 
