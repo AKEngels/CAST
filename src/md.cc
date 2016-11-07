@@ -1128,6 +1128,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     dt_2(0.5*dt),
     tempfactor(2.0 / (freedom*md::R));
 
+  atoms_movable.clear();
   if (Config::get().md.set_active_center == 1)
   {
 	   distances = init_active_center(0);  //calculate initial active center and distances to active center
@@ -1144,8 +1145,8 @@ void md::simulation::velocity_verlet(std::size_t k_init)
   else
   {
 	  for (std::size_t i(0U); i < N; ++i)
-	  {
-		  atoms_movable.push_back(i);
+	  {  
+		  atoms_movable.push_back(i); 
 	  }
   }
 
