@@ -1,4 +1,5 @@
-#include <gtest/gtest.h>
+#ifdef GOOGLE_MOCK
+#include "gtest/gtest.h"
 #include <type_traits>
 #include <array>
 #include <vector>
@@ -325,3 +326,4 @@ TEST(SconTraits, ExplicitlyConstructibleTrait)
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, std::vector<int>>::value));
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, convertible_to_some_A>::value));
 }
+#endif

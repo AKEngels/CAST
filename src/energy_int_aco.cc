@@ -6,12 +6,27 @@
 
 ::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;
 
+/*! Constructs a force-field energy interface
+ *
+ * Constructor for a force field energy interface.
+ * Atom types are gathered and subsequently contracted
+ * @todo: Describe this better once you understood it.
+ *
+ * @param cobj: Pointer to coordinates object for which energy interface will perform
+ */
 energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj) 
    : interface_base(cobj) 
 {
+  // tp are static tinker parameters envoked above 
+  // (::tinker::parameter::parameters energy::interfaces::aco::aco_ff::tp;)
+
   interactions = true;
   if (!tp.valid())
   {
+    // Here, we read the param file containing
+    // the force field parameters
+    // (at this point, we read ALL the ff-parameters,
+    // even the ones we might not need
     tp.from_file(Config::get().get().general.paramFilename);
   }
   std::vector<std::size_t> types;

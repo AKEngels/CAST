@@ -222,7 +222,7 @@
 
 	%%%% Configuration File %%%%
 	\subsection{Configuration File}
-	A file named either \glqq CAST.txt\grqq~or \glqq INPUTFILE\grqq~can be used to change the configuration options of \ac{CAST}\footnote{If both files are present, \glqq CAST.txt\grqq~will be read.}. It contains option keywords followed by one or more appropriate values. The keywords are case sensitive. Comments can be included by starting the line with a \glqq \#\grqq. The variables are usually of type integer, floating point or boolean (booleans currently being either \glqq 0\grqq~and \glqq 1\grqq~or plain text \glqq true\grqq~and \glqq false\grqq~without quotation marks).\\
+	A file named either \glqq CAST.txt\grqq~or \glqq INPUTFILE\grqq~can be used to specify the configuration options of \ac{CAST}\footnote{If both files are present, \glqq CAST.txt\grqq~will be read.}. By starting the CAST executable with the commandline-switches \glqq -s\grqq~or \glqq -setup\grqq~an alternative configuration file can be specified\footnote{Call either as \glqq CAST.exe -s filename.txt\grqq~or as \glqq CAST.exe -setup=filename.txt\grqq~. The configuration file has to be placed in the same folder as the CAST executable.}. It contains option keywords followed by one or more appropriate values. The keywords are case sensitive. Comments can be included by starting the line with a \glqq \#\grqq. The variables are usually of type integer, floating point or boolean (booleans currently being either \glqq 0\grqq~and \glqq 1\grqq~or plain text \glqq true\grqq~and \glqq false\grqq~without quotation marks).\\
 
 	The following input commands are compulsory for \ac{CAST} to work and have to be set for every calculation.\\~\\
 	\begin{minipage}{\textwidth}
@@ -446,14 +446,14 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}
-	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). There is also a third integrator named ``Beeman\_2'' available which is a former version of the Beeman integrator. It is not recommended to use this integrator since no one knows what it is doing. Also some options might not be available for the Beeman\_2 integrator.
+	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). 
 
 	\begin{tabularx}{\textwidth}{l|X|X}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
 		\textbf{MDintegrator} & Type of integrator \begin{itemize}
-			\item 0  = Velocity-Verlet \item 1 = Beeman \item 2 = Beeman\_2
+			\item 0  = Velocity-Verlet \item 1 = Beeman
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
