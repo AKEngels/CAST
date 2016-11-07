@@ -1078,6 +1078,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	if (distance > outer_cutoff)       //no movement outside of outer cutoff
 	{
 		velocity = coords::Cartesian_Point(0, 0, 0);
+		std::cout << "This should not happen.\n";
 		return velocity;
 	}
 	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
@@ -1124,6 +1125,20 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	   distances = init_active_center(0);  //calculate initial active center and distances to active center
 	   inner_cutoff = Config::get().md.inner_cutoff;
 	   outer_cutoff = Config::get().md.outer_cutoff;
+	   for (std::size_t i(0U); i < N; ++i)
+	   {
+		   if (distances[i] <= outer_cutoff)
+		   {
+			   atoms_movable.push_back(i);
+		   }
+	   }
+  }
+  else
+  {
+	  for (std::size_t i(0U); i < N; ++i)
+	  {
+		  atoms_movable.push_back(i);
+	  }
   }
 
   if (VERBOSE > 0U)
@@ -1178,7 +1193,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // save old coordinates
     P_old = coordobj.xyz();
     // Calculate new positions and half step velocities
-    for (std::size_t i(0U); i < N; ++i)
+    for (auto i : atoms_movable)
     {
       // calc acceleration
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
@@ -1186,7 +1201,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	  // update veloctiy
 	  V[i] += acceleration*dt_2;
 
-	  inner_atoms.clear();  
+	  inner_atoms.clear();
 	  if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
 	  { 
 		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
@@ -1204,6 +1219,14 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) //calculate active center and new distances to active center for every step
 	{
 		distances = init_active_center(static_cast<int>(k));
+		atoms_movable.clear();
+		for (std::size_t i(0U); i < N; ++i)
+		{
+			if (distances[i] <= outer_cutoff)
+			{
+				atoms_movable.push_back(i);
+			}
+		}
 	}
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
@@ -1225,7 +1248,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     boundary_adjustments();
     // add new acceleration and calculate full step velocities
 	inner_atoms.clear();
-    for (std::size_t i(0U); i < N; ++i)
+    for (auto i: atoms_movable)
     {
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;

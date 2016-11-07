@@ -299,6 +299,7 @@ namespace md
 	// biased potential
 	std::vector<double> distances;  // distances to active site for every atom
 	std::vector<int> inner_atoms;   // atoms with a distance smaller than the inner cutoff
+	std::vector<int> atoms_movable; // atoms that move (distance smaller than outer cutoff)
 
     //! Fep progress vector
     std::vector<fepvar> window;
