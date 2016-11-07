@@ -642,7 +642,6 @@ FEPcouple   0
 
 
 
-
 ####################################
 #                                  #
 #        INTERACTION OPTIONS       #
@@ -653,20 +652,6 @@ FEPcouple   0
 # IAlimits <Start Index Substructure> <End Index Substructure>
 
 #IAlimits               1 122
-
-
-
-
-####################################
-#                                  #
-#            RDF OPTIONS           #
-#                                  #
-####################################
-
-# Distribution width
-
-RDFwidth               0.5
-
 
 
 
@@ -747,21 +732,6 @@ USsnap                 5
 
 
 
-
-####################################
-#                                  #
-#       INTERNAL INDEXATION        #
-#                                  #
-####################################
-
-#intdex                7
-#intdex                9
-#intdex                10
-#intdex                11 
-
-
-
-
 ####################################
 #                                  #
 #        DIHEDRAL FIXATIONS        #
@@ -839,16 +809,13 @@ REMOVEHROT             0
 
 ####################################
 #                                  #
-#            "ALIGNMENT"           #
+#              ADJUST              #
 #                                  #
 ####################################
 
 
-#ALIGNdih 1 2 3 4 180.0
-#ALIGNdih 2 3 4 5 180.0
-#ALIGNdih 3 4 5 10 180.0
-#ALIGNdih 4 5 10 11 180.0
-#ALIGNdih 5 10 11 14 180.0
+#ADJUSTdih 1 2 3 4 180.0
+#ADJUSTdih 2 3 4 5 180.0
 
 
 ####################################
