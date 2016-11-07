@@ -8,12 +8,13 @@
 \usepackage[parfill]{parskip} %PARAGRAPH SPACING
 \usepackage{color} %COLOURS
 \usepackage{amsmath} %math
+\usepackage{bm} %VECTOR BOLD AND ITALIC
 \usepackage{tabularx} %BETTER TABLES THROUGH tabularx
 \usepackage{listings} %ENABLE (SOURCE) CODE LISTINGS
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
 \usepackage{graphicx} %LATEX CANT MANAGE IMAGES, SO WE NEED THIS
 \usepackage{hyperref} %ENABLE URL SUPPORT
-\usepackage[backend=bibtex,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
+\usepackage[backend=biber,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
 \addbibresource{castManualReferences.bib} %ADD BIBLATEX REFERENCES FILE.
 \usepackage{acronym} %SUPPORT FOR ABBREVIATIONS
 
@@ -361,11 +362,11 @@
 	
 	\subsubsection{AMBER}
 
-\ac{CAST} can also to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
+\ac{CAST} can to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
 \begin{itemize}
 \item The name of the input file has to be the .prmtop file that contains the atom types and structure information.
 \item The input file type has to be set to ``AMBER''.
-\item The option ``amber\_mdcrd'' has to be activated and set to the name of the .rst file that contains to coordinates of the atoms.
+\item The right option for your AMBER coordinate filetype has to be activated. For restart-files, this is ``amber\_restrt''. For mdcrd-files the right option is ``amber\_mdcrd''. If you use mdcrd-files generated at constant pressure, set the configoption ``amber\_trajectory\_at\_constant\_pressure'' to \textit{true}. Inpcrd-files are currently not supported.
 \item The energy interface has to be set to ``AMBER'', too.
 \item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff\_big.prm''.
 \end{itemize}
@@ -386,7 +387,7 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 \begin{itemize}
 \item \textit{Go to the file ``coords\_io\_AMBER.cc'' and add the atom type to the function ``amberUtil::toTinkerType''. The number that is returned must be the number of the atom type in the .prm file (something between 3000 and 3070).}
 \item \textit{Add the number of bonding partners of the atom type in place of the last question mark in the corresponding atom-line in the .prm file.} 
-\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. In case of doubt use the charge of the corresponding amber atom type (i. e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.}
+\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.}
 \end{itemize}
 
 	%%%% TASKS %%%%
@@ -485,6 +486,10 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 	\end{tabularx}~\\
+	
+	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
+	
+	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 
 	\ifverbose
 	\subsubsection{Heating}
@@ -499,24 +504,28 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	
 	There are two possible ways for temperature control in CAST: 
 
-If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will however be turned off (though it still writes the temperature you expect into the logfile). This can be avoided by using a very low energy gradient for constant temperature for the duration of ``constant'' temperature. Also setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant might be:
+If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will however be turned off (though it still writes the temperature you expect into the logfile). This can be avoided by setting another ``MDheat'' option with the same temperature at the end of your simulation. Also setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant might be:
 	\begin{lstlisting}
 	MDheat			    0  	  0.0001
-	MDheat 			 1000   299.9999
-	MDheat			10000   300
+	MDheat 			 1000     300
+	MDheat			10000     300
 	\end{lstlisting}
 
-	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. It also works together with ``MDheat'' but it is not completely clear how.\\
+	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. Another difference to the direct velocity scaling is that the Nosé-Hoover thermostat will not be automatically turned off after reaching the last temperature set by the ``MDheat'' option but continue to keep this temperature until the end of the simulation. So if you want the same temperature evolution as above with the thermostat your input might be:
+		\begin{lstlisting}
+	MDheat			    0  	  0
+	MDheat 			 1000     300
+	\end{lstlisting}
 		
-	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
-	
-	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
-	
 	\subsubsection{MD with biased potential}
 	
 	By setting the option ``MDbiased\_potential'' from 0 to 1 you can switch on a biased potential. This means that the movement of the atoms depends on the distance of every atom to the active site that is defined by the option ``MDactive\_site''. Atoms near the active site move ``normally'' whereas the speed of atoms with a larger distance to the active site is scaled down until there's no movement. With the option ``MDcutoff'' you can modify the strength of the biased potential. The first number is the distance around the active site where no additional potential is applied, the second number is the distance around the active site outside of which there's no movement. During the MD the distances of the atoms to the active site change. If you want to take this into account set the option ``MDadjust\_by\_step'' to 1. Then the position of the active site as well as the distances are calculated new for every step. If ``MDadjust\_by\_step'' is set to 0 the position of the active site and the distances are calculated only once and stay constant for every atom during the simulation. 
 	
+If an FEP calculation is done you can set the ``MDactive\_site'' to zero instead of atom numbers. Then the active site is defined by all atoms that appear or disappear during the reaction, e.\,g. that are marked by ``IN'' or ``OUT'' in the coordinate file. Be careful that there are no empty spaces after these keywords in the coordinate file because then the atom is not recognised.
+	
 If you use the ``MDheat'' option without switching on the Nosé-Hoover thermostat (``MDthermostat'') the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. The Nosé-Hoover thermostat might not work together well with the biased potential as the temperature and the scaling factor are calculated by the velocities of all atoms after the adjustment according to the biased potential when many of them are zero.
+
+
 	
 %%%% GOSOL %%%%
 	
@@ -711,8 +720,27 @@ If you use the ``MDheat'' option without switching on the Nosé-Hoover thermosta
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	%\ifdevmode \colorbox{red}{write something here} \fi	
+	The \acf{NEB} method is currently one of the most useful and powerful
+double-ended chain-of-states methods for transition state optimisation \supercite{Wales2003}. The mapping
+of the minimum energy path begins with a set of intermediate images (usually consisting of 4
+to 20 images) between the start and final geometries. This set or string of replicas constitutes
+an initial path for a subsequent optimisation procedure based on the minimisation of the forces
+acting on each image. A spring force between two subsequent images is introduced to ensure
+proper spacing of the images and prevent discontinuity of the path. The resulting minimum
+energy path is discrete up to the resolution of individual images. 
 
+The nudged elastic band force acting on each image (i.e. the force to be minimised) is given by \supercite{henkelman2002}:
+\begin{align}
+\bm{F}_i^{\mathrm{NEB}}&=\bm{F}_i^{S\vert\vert}-\nabla V^\perp(\bm{X}_i)\label{eq:fneb}\\
+&=\bm{F}_i^{S\vert\vert}- \left(\nabla V(\bm{X}_i)-\nabla V(\bm{X}_i)\bm{\hat{\tau}}_i\right),
+\end{align}
+with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on image $i$ parallel to the path and $\nabla V^\perp (\bm{X}_i)$ describing the component of the true force acting on image $i$ orthogonal to the path. $\bm{\hat{\tau}}_i$ is the unit vector of the tangent to the path. The spring force $\bm{F}_i^{S\vert\vert}$ that acts parallel to the path tangent $\bm{\hat{\tau}}$ can be written as \supercite{Sheppard2008}: 
+\begin{equation}
+\label{eq:springf}
+\bm{F}_i^{S\vert\vert}=k(\vert\bm{X}_{i+1}-\bm{X}_i\vert -\vert\bm{X}_{i}-\bm{X}_{i-1}\vert)\bm{\hat{\tau}}_i.
+\end{equation}
+	
 	%%%% INTERNAL %%%%
 	\subsection{INTERNAL - Conversion to internal coordinates}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
@@ -764,8 +792,8 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\hline
 		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
-		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions \mbox{$\lambda_{vdw,in} = \frac{\lambda}{1-x} - \frac{x}{1-x}$} and $\lambda_{vdw,out} = 1- \lambda_{vdw,in}$ for $\lambda > 1- x$, else $\lambda_{vdw,in} = 0$ and $\lambda_{vdw,out} = 1$ \mbox{(x = FEPvdwcouple)} \colorbox{red}{this doesn't make sense} \fi & float [1.0] \\
-		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms - both if the term is bigger than 0, else $\lambda_{el} = 0$
+		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} \fi & float [1.0] \\
+		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms - both if the term is bigger than 0, else $\lambda_{el} = 0$ \supercite{_implementation_????}
 		& float [1.0] \\
 		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential ($= \alpha_{vshift}$ in equation \ref{LJ_softcore}) & float [1.0] \\
 		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential ($= \alpha_{cshift}$ in equation \ref{cb_softcore}) & float [1.0] \\
@@ -777,7 +805,11 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
-Attention! Do not use temperature gradients in this task because the temperature will continue to rise in every MD simulation. So if you say you want to raise the temperature from 0 to 300\,K it will do this in the first MD but it will go up to 600\,K in the next, then to 900\,K and so on.
+\textbf{Attention!} The fact that during an FEP run several MD simulations with possibly different settings are done can cause some problems you should be aware of: \\
+For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' is 50000 you will have MD runs with 1000 (for the initialisation at the very beginning), 10000 (for the equilibration of every FEP window) and 50000 steps. The stepsize between two snapshots is however calculated from the number ``MDsteps''. So if in the above example ``MDsnap'' is 1000 the program will will calculate the stepsize so that a snapshot is taken for every MD step not only in the initialisation MD with 1000 steps but also in every equilibration run with 10000 steps and in every production run with 50000 steps. So it is strongly recommended to set the ``MDsnap'' option to a very low number when doing an FEP calculation in order to avoid getting snapshot files that are much too big to deal with. \\
+Also do not use temperature gradients in this task because the temperature will continue to rise in every MD simulation. So if you say you want to raise the temperature from 0 to 300\,K it will do this in the first MD but it will go up to 600\,K in the next, then to 900\,K and so on.
+
+
 	
 	%%%% Trajectory alignment (ALIGN) %%%%
 	\subsection{ALIGN - Trajectory Alignment}

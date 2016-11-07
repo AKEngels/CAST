@@ -227,6 +227,23 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
+std::vector<unsigned> FEP_get_inout()  // function to find all appearing or disappearing atoms in an FEP input file
+{                                      // returns a vector with tinker atom numbers
+	std::vector<unsigned> temp;
+	std::ifstream config_file_stream(Config::set().general.inputFilename.c_str(), std::ios_base::in);
+	std::string line;
+	while (std::getline(config_file_stream, line))
+	{
+		if (line.substr(line.size() - 2) == "IN" || line.substr(line.size() - 3) == "OUT")
+		{
+			std::string atom_number_str = line.substr(0, 4);
+			unsigned atom_number = std::stoi(atom_number_str);
+			temp.push_back(atom_number);
+		}
+	}
+	return temp;
+}
+
 void config::parse_option(std::string const option, std::string const value_string)
 {
   std::istringstream cv(value_string);
@@ -728,7 +745,15 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  unsigned act_cent_atom;
 		  if (cv >> act_cent_atom)
 		  {
-			  Config::set().md.active_center.push_back(act_cent_atom);
+			  if (act_cent_atom == 0 && Config::get().general.task == tasks::FEP)
+			  {     // for FEP calculation: if active_site is set to zero: 
+				    // calculate active site out of all appearing or disappearing atoms
+				  Config::set().md.active_center = FEP_get_inout();
+			  }
+			  else
+			  {
+				  Config::set().md.active_center.push_back(act_cent_atom);
+			  }
 		  }
 	  }
 	  else if (option.substr(2, 6) == "cutoff")

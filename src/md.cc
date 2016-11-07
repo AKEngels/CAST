@@ -521,34 +521,36 @@ void md::simulation::fepinit(void)
       coordobj.fep.window[i].dvout = 1.0;
     }
     else if (Config::get().fep.vdwcouple == 1.0) {
-      diff = tempo / Config::get().fep.dlambda;
-      coordobj.fep.window[i].vout = 1.0 - (diff * Config::get().fep.dlambda);
-      coordobj.fep.window[i].vin = diff * Config::get().fep.dlambda;
-      diff = tempo2 / Config::get().fep.dlambda;;
-      coordobj.fep.window[i].dvout = 1.0 - (diff * Config::get().fep.dlambda);
-      coordobj.fep.window[i].dvin = diff * Config::get().fep.dlambda;
+      coordobj.fep.window[i].vout = 1.0 - i * Config::get().fep.dlambda;
+      coordobj.fep.window[i].vin = i * Config::get().fep.dlambda;
+
+      coordobj.fep.window[i].dvout = 1.0 - (i+1) * Config::get().fep.dlambda;
+      coordobj.fep.window[i].dvin = (i+1) * Config::get().fep.dlambda;
     }
-    else {
-      if (tempo <= (1 - Config::get().fep.vdwcouple)) {
-        coordobj.fep.window[i].vout = 1.0;
-        coordobj.fep.window[i].vin = 0.0;
-      }
-      else {
-        diff = std::abs(tempo - Config::get().fep.vdwcouple);
-        diff /= Config::get().fep.dlambda;
-        coordobj.fep.window[i].vout = 1.0 - (diff * linvdw);
-        coordobj.fep.window[i].vin = diff * linvdw;
-      }
-      if (tempo2 <= (1 - Config::get().fep.vdwcouple)) {
-        coordobj.fep.window[i].dvout = 1.0;
-        coordobj.fep.window[i].dvin = 0.0;
-      }
-      else {
-        diff = std::abs(tempo2 - Config::get().fep.vdwcouple);
-        diff /= Config::get().fep.dlambda;
-        coordobj.fep.window[i].dvout = 1.0 - (diff * linvdw);
-        coordobj.fep.window[i].dvin = diff * linvdw;
-      }
+    else 
+	{
+		coordobj.fep.window[i].vout = (1.0 - i * Config::get().fep.dlambda)/ Config::get().fep.vdwcouple;
+		coordobj.fep.window[i].vin = (i * Config::get().fep.dlambda)/ Config::get().fep.vdwcouple;
+
+		coordobj.fep.window[i].dvout = (1.0 - (i + 1) * Config::get().fep.dlambda)/ Config::get().fep.vdwcouple;
+		coordobj.fep.window[i].dvin = ((i + 1) * Config::get().fep.dlambda)/ Config::get().fep.vdwcouple;
+		if (coordobj.fep.window[i].vout > 1)
+		{
+			coordobj.fep.window[i].vout = 1;
+		}
+		if (coordobj.fep.window[i].vin > 1)
+		{
+			coordobj.fep.window[i].vin = 1;
+		}
+		if (coordobj.fep.window[i].dvout > 1)
+		{
+			coordobj.fep.window[i].dvout = 1;
+		}
+		if (coordobj.fep.window[i].dvin > 1)
+		{
+			coordobj.fep.window[i].dvin = 1;
+		}
+      
     }
   }// end of loop
   // clear FEP output vector and print lambvda values
@@ -966,7 +968,7 @@ bool md::simulation::heat(std::size_t const step)
     {
       double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
       T += delta;
-      return std::fabs(delta) > 0.0 ? true : false;
+      return true;
     }
     last = heatstep;
   }
@@ -975,7 +977,7 @@ bool md::simulation::heat(std::size_t const step)
     double const delta((Config::get().md.T_final - last.raise) /
       static_cast<double>(Config::get().md.num_steps - last.offset));
     T += delta;
-    return std::fabs(delta) > 0.0 ? true : false;
+    return true;
   }
   return false;
 }

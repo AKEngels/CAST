@@ -14,6 +14,7 @@ optional_files/project/*
 /src/documentation/latex
 
 /manual/castmanual-blx.bib
+/manual/castmanual.bcf
 /manual/castmanual.aux
 /manual/castmanual.bbl
 /manual/castmanual.blg
