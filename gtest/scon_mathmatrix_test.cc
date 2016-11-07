@@ -241,4 +241,13 @@ TEST(mathmatrix, minusOperatorWorksReasonably)
 
 }
 
+TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(3u, 2u, 5.f);
+
+  ASSERT_ANY_THROW(one - two);
+
+}
+
 #endif
