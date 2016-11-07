@@ -115,7 +115,7 @@ project "CAST"
 
 	configuration "vs2015"
 		targetname "CAST_undefined.exe"
-    debugdir "../optional_files/includes/build"
+    debugdir "../optional_files/build"
 		buildoptions { "/openmp" }
 		flags { "MultiProcessorCompile" }
 		filter { "configurations:Release", "action:vs2015" }
