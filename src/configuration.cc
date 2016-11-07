@@ -953,7 +953,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  unsigned act_cent_atom;
 		  if (cv >> act_cent_atom)
 		  {
-			  if (act_cent_atom == 0 && Config::get().general.task == 17)
+			  if (act_cent_atom == 0 && Config::get().general.task == tasks::FEP)
 			  {     // for FEP calculation: if active_site is set to zero: 
 				    // calculate active site out of all appearing or disappearing atoms
 				  Config::set().md.active_center = FEP_get_inout();
