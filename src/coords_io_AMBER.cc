@@ -92,12 +92,12 @@ namespace amberUtil
     else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop file divided by 18.2223 (see http://ambermd.org/formats.html#topo.cntrl)
     else if (Config::get().general.energy_interface <= 3)
       std::cout << "Warning: Could not match AMBER atom type "
-      << in << "to any TINKER atom type.\n\nThis will cause havok when force-field energy interfaces are specified (this is currently the case). "
-      << "In case you did not expect this error, please expect everything to break very soon. Do not consider results after this message valid. "
-      << "Please note that nevertheless you may use this AMBER input structure to perform calculations using CAST with energy-interfaces other than force-fields. "
-      << "To do this, adjust your configuration file accordingly.\n"
-      << std::endl;
-    else return 0u;
+        << in << "to any TINKER atom type.\n\nThis will cause havok when force-field energy interfaces are specified (this is currently the case). "
+        << "In case you did not expect this error, please expect everything to break very soon. Do not consider results after this message valid. "
+        << "Please note that nevertheless you may use this AMBER input structure to perform calculations using CAST with energy-interfaces other than force-fields. "
+        << "To do this, adjust your configuration file accordingly.\n"
+        << std::endl;
+    return 0u;
 	}
 }
 

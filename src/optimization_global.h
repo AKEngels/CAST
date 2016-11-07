@@ -85,8 +85,6 @@ namespace optimization
     class optimizer
     {
 
-      optimizer& operator= (optimizer const &);
-
       void write_accepted(std::string const &suffix = "");
 
     public:

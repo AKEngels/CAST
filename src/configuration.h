@@ -1,12 +1,13 @@
-/*************************************************
-** class for extraction of information from     **
-** parameter file                               **
-** DW, March, 2012                              **
-**********************************************DW*/
-//! Get Information from Parameter and input File
+/**
+CAST 3
+configuration.h
+Purpose: class for extraction of information from parameter file
+
+@author Daniel Weber (modified by many)
+@version 1.1
+*/
 
 #pragma once 
-
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -15,73 +16,83 @@
 #include <map>
 #include <utility>
 #include <array>
+#include <sstream>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <cctype>
+
+#if defined _OPENMP
+#include <omp.h>
+#endif
+
+#include "scon.h"
+#include "filemanipulation.h"
+#include "scon_utility.h"
 #include "scon_vect.h"
 #include "coords_rep.h"
+#include "configurationHelperfunctions.h"
 
+/*! Namespace containing relevant configuration options
+ */
 namespace config
 {
 
-  template<typename T, class CharT, class TraitT, class AllocT>
-  inline T from_string(std::basic_string<CharT, TraitT, AllocT> const &str)
-  {
-    T tmp;
-    std::basic_istringstream<CharT, TraitT, AllocT> is(str);
-    is >> tmp;
-    return tmp;
-  }
+  // Here we find some static members that only
+  // exist once in CAST, like the version number or
+  // some helper arrays containing the tasks etc.
 
-  template<typename T, class CharT, class TraitT, class AllocT>
-  inline T from_iss(std::basic_istringstream<CharT, TraitT, AllocT> & is)
-  {
-    T tmp;
-    is >> tmp;
-    return tmp;
-  }
-
-  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str);
-
-
-  // Program Name and Version
+  // Name of the program
   static std::string const Programname("CAST");
-  static std::string const Version("3.2.0.1.0.0dev");
+  // Version-Number of CAST
+  static std::string const Version("3.2.0.2dev");
 
-  // Tasks
-  static std::size_t const NUM_TASKS = 30;
-  static std::string const 
-    task_strings[NUM_TASKS] =
+  // Number of tasks
+  static std::size_t const NUM_TASKS = 23;
+  // Names of all CAST tasks as strings
+  static std::string const task_strings[NUM_TASKS] =
   { 
-    "SP", "GRAD", "TS", "LOCOPT", "RMSD",
-    "MC", "DIMER", "MD", "NEB",
-    "STARTOPT", "WRITE", "RDF", "INTERACTION", "INTERNAL",
+    "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
+    "MC", "DIMER", "MD", "NEB", "GOSOL", 
+    "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "PATHSAMPLING", "XYZ", "PROFILE", "GOSOL", "REACTIONCOORDINATE",
-    "GRID", "ALIGN", "ENTROPY", "PCAgen", "PCAproc",
-    "REMOVE_EXPLICIT_WATER"
+    "GRID", "ALIGN", "PATHSAMPLING", 
   };
+
+  /*! contains enum with all tasks currently present in CAST
+   * 
+   * Those taks are subsequently mapped using task_strings string[].
+   */
   struct tasks
   {
+    /*! contains all tasks currently present in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1,
-      SP, GRAD, TS, LOCOPT, RMSD,
-      MC, DIMER, MD, NEB,
-      STARTOPT, WRITE, RDF, INTERACTION, INTERNAL,
+      SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
+      MC, DIMER, MD, NEB, GOSOL, 
+      STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      PATHSAMPLING, XYZ, PROFILE, GOSOL, REACTIONCOORDINATE,
-      GRID, ALIGN, ENTROPY, PCAgen, PCAproc,
-      REMOVE_EXPLICIT_WATER
+      GRID, ALIGN, PATHSAMPLING, 
     };
   };
 
   // Input Types
   static std::size_t const NUM_INPUT = 2;
-  static std::string const 
-    input_strings[NUM_INPUT] =
+  static std::string const input_strings[NUM_INPUT] =
   { 
     "TINKER", "AMBER" 
   };
+
+  /*! contains enum with all input_types currently supported in CAST
+   *
+   * Those input_types are subsequently mapped using input_strings string[].
+   */
   struct input_types 
   { 
+    /*! contains all input_types currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -91,13 +102,19 @@ namespace config
 
   // Output Types
   static std::size_t const NUM_OUTPUT = 4;
-  static std::string const 
-    output_strings[NUM_OUTPUT] =
+  static std::string const output_strings[NUM_OUTPUT] =
   { 
     "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
   };
+
+  /*! contains enum with all output_types currently supported in CAST
+   *
+   * Those output_types are subsequently mapped using output_strings string[].
+   */
   struct output_types 
   { 
+    /*! contains all output_types currently supported in CAST
+    */
     enum T 
     {
       ILLEGAL = -1, 
@@ -112,8 +129,15 @@ namespace config
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
   };
+
+  /*! contains enum with all energy interface_types currently supported in CAST
+   *
+   * Those interface_types are subsequently mapped using interface_strings string[].
+   */
   struct interface_types 
   { 
+    /*! contains all interface_types currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -128,8 +152,15 @@ namespace config
   { 
     "2012", "2012MT", "7", "AVOID_HB" 
   };
+
+  /*! contains enum with all MOPAC versions currently supported as energy interfaces in CAST
+   *
+   * Those interface versions are subsequently mapped using mopac_ver_string string[].
+   */
   struct mopac_ver_type 
   { 
+    /*! contains all MOPAC versions currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
@@ -144,14 +175,25 @@ namespace config
   { 
     "TS", "BH" 
   };
+
+  /*! contains enum with all global optimization routines currently supported in CAST
+   *
+   * Those routines are subsequently mapped using NUM_GLOBOPT_ROUTINES string[].
+   */
   struct globopt_routine_type 
   {
+    /*! contains all global optimization routines currently supported in CAST
+    */
     enum T 
     { 
       ILLEGAL = -1, 
       TABUSEARCH, BASINHOPPING 
     }; 
   };
+
+
+
+
 
   // Implicit solvation method types
   static std::size_t const NUM_SOLV = 7;
@@ -184,63 +226,55 @@ namespace config
     };
   };
 
-  template<class enum_type, std::size_t SIZE, 
-    class CharT, class TraitT, class AllocT>
-  inline enum_type enum_from_string(
-    std::basic_string<CharT, TraitT, AllocT> const valarray[SIZE], 
-    std::basic_string<CharT, TraitT, AllocT> const & value)
-  {
-    for (std::size_t i(0U); i < SIZE; ++i)
-    {
-      if (value == valarray[i])
-      {
-        return static_cast<enum_type>(i);
-      }
-    }
-    return static_cast<enum_type>(-1);
-  }
+  // Global static stuff ends here...
 
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
 
-  struct requirements
-  {
-    bool req_parameter, got_input_structure, 
-      got_energy_interface, got_parameters, config_file, got_task;
-    requirements(void) :
-      req_parameter(true), got_input_structure(false), got_energy_interface(false),
-      got_parameters(false), config_file(false), got_task(false)
-    { }
-  };
+  // ... now lets see about the members of the config namespace
+  // They all have one instance as members in the global
+  // config::Config object. This object contains all the 
+  // configoptions read from file for the current CAST run.
 
+  /*! Struct containing all general information about the current CAST run
+   */
   struct general
   {
-    std::string inputFilename, paramFilename, outputFilename;
+    /// Name of the input file ("CAST.TXT")
+    std::string inputFilename;
+    /// Name of the force-field parameter file
+    std::string paramFilename;
+    /// Name of the output file
+    std::string outputFilename;
+    /// Type of the coordinate input (default: Tinker)
     input_types::T input;
+    /// Type of the coordinate output (default: Tinker)
     output_types::T output;
+    /// Current task
     config::tasks::T task;
-    interface_types::T energy_interface, preopt_interface;
-    std::size_t verbosity, profile_runs;
-    std::ofstream * trackstream;
+    /// Energy interface used for current run
+    interface_types::T energy_interface;
+    /// Energy interface used pre-optimization performed before the current tun
+    interface_types::T preopt_interface;
+    /// Verbosity of the output of CAST (supposed to be between 0 and 5)
+    std::size_t verbosity;
+    /// Solvationmethod, implicit solvation currently not supported!
     config::solvs::S solvationmethod;
+    /// Surfacemethod for implicit solvationd, implicit solvation currently not supported!
     config::surfs::SA surfacemethod;
-    bool forcefield;
+    /// Constructor with reasonable default parameters
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
-      task(config::tasks::SP), energy_interface(interface_types::OPLSAA), 
+      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U), profile_runs(10U), trackstream(nullptr),
-      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), forcefield(true)
+      verbosity(1U), 
+      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER)
     { }
-    void print(void);
   };
 
-  std::ostream & operator << (std::ostream &, general const &);
-
-  struct rdf
-  {
-    double width;
-    rdf(void) : width(0.0) { }
-  };
 
   /*
   ########  ####    ###     ######
@@ -255,59 +289,54 @@ namespace config
 
   namespace biases
   {
-    struct potential_types { enum T { QUADRATIC, BIQUADRATIC, PROGRESSIVE }; };
-    struct distance
-    {
-      double force, ideal, value;
-      std::size_t a, b;
-      distance(void)
-        : force(), ideal(), a(), b()
-      { }
-    };
-    struct angle
-    {
-      double force, ideal, value;
-      std::size_t a, b, c;
-      angle(void)
-        : force(), ideal(), a(), b()
-      { }
-    };
-    struct dihedral
-    {
-      double force;
-      ::coords::angle_type ideal, value;
-      std::size_t a, b, c, d;
-      bool forward;
-      dihedral(void)
-        : force(), ideal(), value(),
-        a(), b(), forward(false)
-      { }
-    };
-    inline std::ostream& operator<< (std::ostream & o, dihedral const &d)
-    {
-      o << d.a << ',' << d.b << ',' << d.c << ',' << d.d << ' ';
-      o << d.force << ',' << d.ideal << ',' << d.value << ',' << d.forward;
-      return o;
-    }
-    struct spherical
-    {
-      double radius, force, exponent;
-      spherical()
-        : radius(), force(), exponent()
-      { }
-    };
-    struct cubic
-    {
-      ::coords::Cartesian_Point dim;
-      double force, exponent;
-      cubic()
-        : dim(), force(), exponent()
-      { }
 
-    };
+     struct distance
+     {
+       double force, ideal, value;
+       std::size_t a, b;
+       distance(void)
+         : force(), ideal(), a(), b()
+       { }
+     };
+     
+     struct angle
+     {
+       double force, ideal, value;
+       std::size_t a, b, c;
+       angle(void)
+         : force(), ideal(), a(), b()
+       { }
+     };
+     
+     struct dihedral
+     {
+       double force;
+       ::coords::angle_type ideal, value;
+       std::size_t a, b, c, d;
+       bool forward;
+       dihedral(void)
+         : force(), ideal(), value(),
+         a(), b(), forward(false)
+       { }
+     };
+       
+     struct spherical
+     {
+       double radius, force, exponent;
+       spherical()
+         : radius(), force(), exponent()
+       { }
+     };
+     
+     struct cubic
+     {
+       ::coords::Cartesian_Point dim;
+       double force, exponent;
+       cubic()
+         : dim(), force(), exponent()
+       { }
+     };
   }
-
-
 
 
   /*
@@ -329,7 +358,6 @@ namespace config
       std::vector<std::pair<std::size_t, std::size_t>> main_whitelist;
       std::vector<std::pair<std::size_t, std::size_t>> main_blacklist;
     } internal;
-
 
     struct umbrellas
     {
@@ -354,6 +382,7 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
+
     struct coord_bias
     {
       std::vector<biases::distance>  distance;
@@ -364,6 +393,7 @@ namespace config
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
+
     struct eqval
     {
       double superposition;
@@ -376,18 +406,25 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
+
     std::vector<std::size_t> fixed;
+
     std::vector<std::vector<std::size_t>> subsystems;
-    bool remove_hydrogen_rot, no_hydrot_mains, decouple_internals, nearest_internals;
+
+    bool remove_hydrogen_rot, decouple_internals;
+
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
-      remove_hydrogen_rot(true), no_hydrot_mains(false),
-      decouple_internals(false), nearest_internals(false)
+      remove_hydrogen_rot(true),
+      decouple_internals(false)
     {}
 
   };
-  std::ostream & operator << (std::ostream &, coords::eqval const &);
-  std::ostream & operator << (std::ostream &, coords const &);
+
+
+  //
+  // TASK ADJUST
+  //
 
   namespace adjust_conf
   {
@@ -413,14 +450,16 @@ namespace config
     ######## ##    ## ######## ##     ##  ######      ##
   */
 
+  /*!
+   *
+   * @todo: role of isotropic bool unclear... is berendesn barostat working?
+   */
   struct energy
   {
 
-    double cutoff, switchdist, pb_cut, pmetresh;
+    double cutoff, switchdist;
     scon::c3<double> pb_box;
-    int pmespline;
     bool isotropic, pme, periodic, periodic_print, remove_fixed;
-
 
 
     struct spack
@@ -449,13 +488,21 @@ namespace config
     } mopac;
 
     energy() :
-      cutoff(10000.0), switchdist(cutoff - 4.0), pb_cut(9.0), pmetresh(),
-      pb_box(10.0, 10.0, 10.0), pmespline(), isotropic(true),
+      cutoff(10000.0), switchdist(cutoff - 4.0),
+      pb_box(10.0, 10.0, 10.0), isotropic(true),
       pme(false), periodic(false), periodic_print(false), remove_fixed(false),
       spackman(), mopac()
     { }
   };
 
+  /*! Stream operator for config::energy
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about main dihedrals,
+   * black-/whitelists for main dihedrals,
+   * Umbrella sampling information (if task == UMBRELLA),
+   * Bias Potentials
+   */
   std::ostream & operator << (std::ostream &, energy const &);
 
   /*
@@ -470,7 +517,7 @@ namespace config
 
   namespace md_conf
   {
-    struct integrators { enum T { VERLET, BEEMAN, BEEMAN_2 }; };
+    struct integrators { enum T { VERLET, BEEMAN}; };
 
     struct config_spherical
     {
@@ -480,18 +527,6 @@ namespace config
         r_inner(20.0), r_outer(20.1), e1(2.0), e2(4.0),
         f1(10.0), f2(10.0), use(false)
       { }
-    };
-
-    struct heat
-    {
-      struct point
-      {
-        std::size_t iteration;
-        double temperature;
-      };
-      double raise;
-      std::size_t offset;
-      std::vector<point> points;
     };
 
     struct config_heat
@@ -520,60 +555,50 @@ namespace config
     };
   }
 
-  struct fep
-  {
-    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
-    std::size_t steps, equil, freq, backward;
-    bool couple;
-    fep(void) :
-      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000), backward(0), couple(false)
-    { }
-  };
-
   struct molecular_dynamics
   {
-	  double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
-	unsigned set_active_center, adjustment_by_step;
-	double inner_cutoff, outer_cutoff;
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, usequil, usoffset, trackoffset;
+    double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+
+    // Options for biased MD
+    std::size_t set_active_center, adjustment_by_step;
+    double inner_cutoff, outer_cutoff;
+    std::vector<unsigned> active_center;
+    //
+
+    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, trackoffset;
+
+    // Umbrella Sampling
+    std::size_t usoffset, usequil;
+
     std::vector<md_conf::config_heat> heat_steps;
-	std::vector<unsigned> active_center;
     md_conf::config_spherical spherical;
     md_conf::config_rattle rattle;
     md_conf::integrators::T integrator;
-    bool fix, hooverHeatBath, veloScale, fep, track, silent, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
+    bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
     molecular_dynamics(void) :
       timeStep(0.001), T_init(293.15), T_final(293.15),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
       refine_offset(200), restart_offset(5000), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
-      integrator(md_conf::integrators::VERLET), fix(false),
+      integrator(md_conf::integrators::VERLET), 
       hooverHeatBath(true), veloScale(false), fep(false), track(true),
-      silent(false), optimize_snapshots(false), pressure(false),
+      optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }
 
   };
 
-  /*
-    ########     ###    ######## ##     ##
-    ##     ##   ## ##      ##    ##     ##
-    ##     ##  ##   ##     ##    ##     ##
-    ########  ##     ##    ##    #########
-    ##        #########    ##    ##     ##
-    ##        ##     ##    ##    ##     ##
-    ##        ##     ##    ##    ##     ##
-  */
-
-  struct path
+  struct fep
   {
-    double maxDeltaE, maxDeltaX;
-    std::string endpointFileName;
-    path(void) :
-      maxDeltaE(2.0), maxDeltaX(1.0), endpointFileName("PATH_END.xyz") { }
+    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
+    std::size_t steps, equil, freq, backward;
+    fep(void) :
+      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
+      steps(10), equil(10), freq(1000), backward(0)
+    { }
   };
+
 
   /*
      #######  ########  ######## #### ##     ## #### ########    ###    ######## ####  #######  ##    ##
@@ -589,20 +614,12 @@ namespace config
   {
     struct lo_types { enum T { LBFGS = 0 }; };
     struct go_types { enum T { MCM, TABU }; };
-    //struct go_move  { enum mm { CARTESIAN, DIHEDRAL, DIHEDRAL_OPT }; };
 
     struct lo
     {
       double grad;
       std::size_t maxstep;
       lo(void) : grad(0.001), maxstep(10000) { }
-    };
-
-    struct local
-    {
-      std::ptrdiff_t method;
-      lo bfgs;
-      local(void) : method(lo_types::LBFGS) { }
     };
 
     struct mc
@@ -641,9 +658,6 @@ namespace config
         main_delta(scon::ang<double>::from_deg(30.0)) {}
     };
 
-    static std::size_t const NUM_FITNESS = 2;
-    static std::string const fitness_strings[NUM_FITNESS] = { "LINEAR", "EXPONENTIAL" };
-
     struct sel
     {
       struct fitness_types { enum T { INVALID = -1, LINEAR, EXPONENTIAL }; };
@@ -656,8 +670,6 @@ namespace config
       { }
     };
 
-    std::ostream& operator<< (std::ostream &, sel const &);
-
     struct evo
     {
       double chance_pointmutation,
@@ -668,8 +680,7 @@ namespace config
       { }
     };
 
-    static std::size_t const NUM_FALLBACKS = 2;
-    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "FITNESS_ROULETTE" };
+    ///////////////////////////////////
 
     struct global
     {
@@ -690,7 +701,29 @@ namespace config
         metropolis_local(true), pre_optimize(false), move_dehydrated(false)
       { }
     };
+
+    struct local
+    {
+      std::ptrdiff_t method;
+      lo bfgs;
+      local(void) : method(lo_types::LBFGS) { }
+    };
+
+    ///////////////////////////////////
+
+    /*! Stream operator for config::global
+     *
+     * Prints configuration details for global optimisation
+     * Contains: Iterations, Temperature, Temperature Scaling,
+     * TabuSearch-Iterations, MonteCarlo-Movetype and much more.
+     */
     std::ostream& operator<< (std::ostream &, global const &);
+
+    static std::size_t const NUM_FITNESS = 2;
+    static std::string const fitness_strings[NUM_FITNESS] = { "LINEAR", "EXPONENTIAL" };
+
+    static std::size_t const NUM_FALLBACKS = 2;
+    static std::string const fallback_strings[NUM_FALLBACKS] = { "LAST_GLOBAL", "FITNESS_ROULETTE" };
   }
 
   struct optimization
@@ -712,25 +745,6 @@ namespace config
   namespace startopt_conf
   {
 
-    struct fold
-    {
-      struct helices { enum { alpha, threeten }; };
-      struct sheets { enum { betaAParallel, betaParallel }; };
-      struct turns
-      {
-        enum {
-          turnBetaIa, turnBetaIb, turnBetaIIa,
-          turnBetaIIb, turnBetaVIa, turnBetaVIb, turnBetaVIII
-        };
-      };
-      std::string sequenceFile, outputFile;
-      int helix, sheet, turn;
-      fold() :
-        helix(helices::alpha), sheet(sheets::betaAParallel),
-        turn(turns::turnBetaIa)
-      { }
-    };
-
     struct solvadd
     {
       struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
@@ -750,10 +764,7 @@ namespace config
         fix_initial(true), fix_intermediate(true),
         go_type(globopt_routine_type::BASINHOPPING)
       { }
-      void set_opt(opt_types::T type);
     };
-
-    std::ostream& operator<< (std::ostream &, solvadd const &);
 
     struct ringsearch
     {
@@ -765,31 +776,34 @@ namespace config
       { }
     };
 
+    /*! Stream operator for config::ringsearch
+     *
+     * Prints configuration details for RINGSEARCH subtask
+     * of STARTOP task.
+     */
     std::ostream& operator<< (std::ostream &, ringsearch const &);
 
+    /*! Stream operator for config::solvadd
+     *
+     * Prints configuration details for SOLVADD subtask
+     * of STARTOP task.
+     */
+    std::ostream& operator<< (std::ostream &, solvadd const &);
   }
-
-
 
   struct startopt
   {
     struct types { enum T { RINGSEARCH, SOLVADD, RINGSEARCH_SOLVADD }; };
-    //startopt_conf::fold fold;
     startopt_conf::solvadd solvadd;
     startopt_conf::ringsearch ringsearch;
     types::T type;
     std::size_t number_of_structures;
     startopt(void)
-      : /*fold(),*/ solvadd(), ringsearch(),
+      : solvadd(), ringsearch(),
       type(types::SOLVADD),
       number_of_structures()
     { }
   };
-
-  std::ostream& operator<< (std::ostream &, startopt const &);
-
-
-
 
   /*
     ########  #### ##     ## ######## ########
@@ -850,6 +864,7 @@ namespace config
    * ALIGN // KABSCH ALIGNMENT OF STRUCTURES
    * THIS TASK REMOVES TRANSLATION AND ROTATION
    */
+
   struct align
   {
     size_t dist_unit;
@@ -859,8 +874,7 @@ namespace config
     bool traj_print_bool;
     double holm_sand_r0;
     std::string align_external_file;
-    //double cdist_cutoff; <- CONTACT DISTANCE NOT YET IMPLEMENTED
-    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()//, cdist_cutoff(5) 
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()
     {}
   };
 
@@ -868,6 +882,7 @@ namespace config
   * PCA // Principal Component Analysis
   * THIS TASK PERFORMS PCA ON A TRAJECTORY
   */
+
   struct PCA
   {
     bool pca_alignment;
@@ -891,7 +906,7 @@ namespace config
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
        pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
       pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
-      pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(1u),
+      pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
       proc_desired_start(), proc_desired_stop()
 
     {}
@@ -901,6 +916,7 @@ namespace config
   * ENTROPY // Entropy Calculations
   * THIS TASK PERFORMS CONFIGURATIONAL AND CONFORMATIONAL ENTROPY CACLULATIONS
   */
+
   struct entropy
   {
     bool entropy_alignment;
@@ -962,38 +978,143 @@ namespace config
     {}
   };
 
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  //... now for some
+  // important functions tinkering with the config
+  // or reading it from file....
+
+
+  /**
+  * Helperfunction that matches a string
+  * to an enum via a sorted array of strings
+  *
+  * @typename enum_type: Type of the enum which is to be returned
+  * @param SIZE: Size if the sorted string array used for matching ("valarray")
+  * @param valarray: Sorted array of strings in same order as target enum
+  * @param value: Input string that is to be "converted" to enum value.
+  */
+  template<class enum_type, std::size_t SIZE,
+    class CharT, class TraitT, class AllocT>
+    inline enum_type enum_from_string(
+      std::basic_string<CharT, TraitT, AllocT> const valarray[SIZE],
+      std::basic_string<CharT, TraitT, AllocT> const & value)
+  {
+    for (std::size_t i(0U); i < SIZE; ++i)
+    {
+      if (value == valarray[i])
+      {
+        return static_cast<enum_type>(i);
+      }
+    }
+    return static_cast<enum_type>(-1);
+  }
+
+  /*! Stream operator for config::general
+  *
+  * Prints contents of config::general in human
+  * readable form. This contains: Where structure was read from,
+  * which inputtype the structure originates from, where the
+  * (forcefield) parameters originate from and which
+  * energy interface is used.
+  *
+  * @todo: Remove line explaining parameterfile if MOPAC or TERACHEM energy interface is chosen
+  */
+  std::ostream & operator<< (std::ostream &, general const &);
+
+  /*! Parses command line switches into cnofig object
+  *
+  * This function parses command lines switches.
+  * They have priority over options from the inputfile
+  * and therefore overwrite them. Pass over argc
+  * and argv to this function.
+  *
+  * @param N: usually "argc"
+  * @param V: usually "argv"
+  */
   void parse_command_switches(std::ptrdiff_t const, char**);
+
+  /*! Returns name of the config-file for the runtime of CAST
+  *
+  * This function determines the name
+  * of the INPUTFILE which is to be read for
+  * config-options. Default is either "CAST.txt"
+  * or "INPUTFILE".
+  * By starting the CAST executable with commandline option
+  * -s or -setup the filename of a different
+  * inputfile can be specified.
+  *
+  * Call like this:
+  * CAST.exe -setup=filename.txt
+  * or
+  * CAST.exe -s filename.txt
+  */
   std::string config_file_from_commandline(std::ptrdiff_t const, char**);
+
+  /*! Parses one config-option and stores it in config-class
+  *
+  * This function parses one configoption
+  * and puts the value into the corresponding
+  * struct inside the Config class
+  *
+  * @param option: name of the configoption
+  * @param value_string: corresponding value of the option
+  */
   void parse_option(std::string const option, std::string const value);
+
+  // Important function declarations end here...
+
+  //... now some stream operators
+
+
+  /*! Stream operator for config::eqval
+   *
+   * Prints reasoning for considering two structures
+   * equal (important for TaboSearch etc.)
+   */
+  std::ostream & operator << (std::ostream &, coords::eqval const &);
+
+  /*! Stream operator for config::coords
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about main dihedrals,
+   * black-/whitelists for main dihedrals,
+   * Umbrella sampling information (if task == UMBRELLA),
+   * Bias Potentials
+   */
+  std::ostream & operator << (std::ostream &, coords const &);
+
+  /*! Stream operator for config::startopt
+   *
+   * Prints configuration details for STARTOP task,
+   * mainly by using the ostream operators for
+   * config::ringsearch and config::solvadd.
+   */
+  std::ostream& operator<< (std::ostream &, startopt const &);
+
 }
 
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
 
-
-
+/*! Class containing the global configuration options
+ *
+ * Constructor automatically reads options from file.
+ * Members are public since access functions get() and set()
+ * return pointer to singular static global obejct of this class
+ *
+ * @Note: There can only ever be one Config object! A pointer
+ * to this object is contained in the private member m_instance
+ */
 class Config
 {
-
 public:
-
-  Config(std::string const &filename)
-  {
-    if (m_instance) throw std::runtime_error("Configuration duplication.");
-    m_instance = this;
-    parse_file(filename);
-  }
-
-  static Config const & get()
-  {
-    if (!m_instance) throw std::runtime_error("Configuration not loaded.");
-    return *m_instance;
-  }
-
-  static Config & set()
-  {
-    if (!m_instance) throw std::runtime_error("Configuration not loaded.");
-    return *m_instance;
-  }
-
   config::general               general;
   config::coords                coords;
   config::energy                energy;
@@ -1001,8 +1122,6 @@ public:
   config::optimization          optimization;
   config::fep                   fep;
   config::molecular_dynamics    md;
-  config::path                  path;
-  //config::bias                  bias;
   config::dimer                 dimer;
   config::neb					          neb;
   config::generalized_born      gbsa;
@@ -1012,20 +1131,120 @@ public:
   config::entropy				        entropy;
   config::io                    io;
 
-  void        check(void);
+  /*! Constructor of Config object
+   *
+   * During construction the configuration-file
+   * will be automatically parsed and the members
+   * of the config-object will be filled in accordingly.
+   *
+   * @param filename: Filename of the configuration file to be read. Needs to be in the same folder as the CAST executable.
+   */
+  Config(std::string const &filename)
+  {
+    // There can only ever be one Config!
+    if (m_instance) throw std::runtime_error("Configuration duplication.");
 
-  std::string task(void) const;
-  std::string inter(void) const;
+    m_instance = this;
+    parse_file(filename);
+  }
 
+  /*! Obtain contents of Config
+   *
+   * This get() function is used to safely
+   * obtain the contents of the global Config instance
+   *
+   * This function returns const& and can
+   * therefore not be used to change values.
+   */
+  static Config const & get()
+  {
+    if (!m_instance) throw std::runtime_error("Configuration not loaded.");
+    return *m_instance;
+  }
+
+  /*! Change contents of Config
+  *
+  * This set() function is used to alter
+  * the contents of the global Config instance
+  *
+  * This function returns a non-const reference 
+  * and can therefore be used to change values.
+  * To merely obtain read-access, use get() function.
+  */
+  static Config & set()
+  {
+    if (!m_instance) throw std::runtime_error("Configuration not loaded.");
+    return *m_instance;
+  }
+
+  /**
+   * Helper function that matches a task
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::task_strings
+   * If you add a new task, add it to both the enum
+   * config::tasks::T and config::task_strings
+   *
+   * @param S: task as string
+   */
   static config::tasks::T            getTask(std::string const&);
+
+  /**
+   * Helper function that matches an energy interface
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::config::interface_strings
+   * If you add a new energy interface, add it to both the enum
+   * config::interface_types::T and config::interface_strings
+   *
+   * @param S: energy interface as string
+   */
   static config::interface_types::T  getInterface(std::string const&);
+
+  /*
+   * Helper function that matches an outputformat
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::output_strings
+   * If you add a new output type, add it to both the enum
+   * config::output_types::T and config::output_strings
+   *
+   * @param S: output-type as string
+   */
   static config::output_types::T     getOutFormat(std::string const&);
+
+  /*
+   * Helper function that matches an solvation type
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::solv_strings
+   *
+   * @param S: solvation-type as string
+   */
   static config::solvs::S            getSolv(std::string const&);
+
+  /*
+   * Helper function that matches an solvation surface type
+   * as string to the corresponding enum via
+   * the sorted "helper-array" config::surf_strings
+   *
+   * @param S: surface-type as string
+   */
   static config::surfs::SA           getSurf(std::string const&);
 
 private:
 
+  /*! Parse whole config-file for config-options
+   *
+   * This function parses a configuration file
+   * and puts the options into the Config class
+   *
+   * @param filename: Full filename of the file
+   */
   void parse_file(std::string const &filename);
+
+  /*! Pointer to the single instance of the Config class
+   *
+   * There can only ever be one Config object.
+   * A pointer to it is contained here.
+   * If no object exists (yet), this will be a nullpointer.
+   */
   static Config * m_instance;
 
 };

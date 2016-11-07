@@ -55,6 +55,21 @@ typedef size_t uint_type;
 
 //#define DEBUGVIEW
 
+
+// Further flag important here:
+// #define USE_ARMADILLO
+// However, don't set this manually. This
+// flag is set by Visual Studio or make according to your desired configuration
+// It's all already automatized and integrated
+
+///////////////////////////////
+
+///////////////////////////////
+//                           //
+//	I N C L U D E S          //
+//                           //
+///////////////////////////////
+
 #pragma once
 #include <iostream>
 #include <vector>
@@ -71,6 +86,8 @@ typedef size_t uint_type;
 #endif
 
 ///////////////////////////////
+
+
 	template <typename T>
   class mathmatrix
 #ifndef USE_ARMADILLO
@@ -100,24 +117,63 @@ typedef size_t uint_type;
 		/////                           /////
 		/////////////////////////////////////
 
-    // forward all arguments to matrix constructor
 #ifndef USE_ARMADILLO
     template<class ... Args>
     mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
 #else
-    mathmatrix() : arma::Mat<T>() {};
-    mathmatrix(size_t rows, size_t cols) : arma::Mat<T>(rows, cols) {};
-    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) {};
-    mathmatrix(size_t rows, size_t cols, T fill) : arma::Mat<T>(rows, cols)
+    /*! Construct empty mathmatrix
+     *
+     * Constructs an empty mathmatrix
+     */
+    mathmatrix() : arma::Mat<T>() 
     {
-      for (size_t i = 0u; i < rows; i++)
-        for (size_t j = 0u; j < cols; j++)
-          (*this)(i, j) = fill;
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Constructing empty matrix." << std::endl;
     };
 
+    /*! Construct mathmatrix of certain size
+     *
+     * Elements are undefined
+     * @param rows: Number of rows
+     * @param cols: Number of columns
+     */
+    mathmatrix(uint_type rows, uint_type cols) : arma::Mat<T>(rows, cols) 
+    {
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
+    };
+
+
+    /*! Construct mathmatrix from armadillo matrix
+     *
+     * Do not call this manually.
+     * @NOTE: Used only during internal functions when using armadillo
+     */
+    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
+    {
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
+    };
+
+    /*! Construct filled mathmatrix of certain size
+     *
+     * All values initialized to the same value
+     * @param rows: Number of rows
+     * @param cols: Number of columns
+     * @param fill: Value to which all matrix elements will be initialized
+     */
+    mathmatrix(uint_type rows, uint_type cols, T fill) : arma::Mat<T>(rows, cols)
+    {
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Constructing filled matrix." << std::endl;
+      for (uint_type i = 0u; i < rows; i++)
+        for (uint_type j = 0u; j < cols; j++)
+          (*this)(i, j) = fill;
+    };
 #endif
 
     // pull in range functions
+    // if we use scon::matrix
 #ifndef USE_ARMADILLO
     using base_type::begin;
     using base_type::end;
@@ -133,22 +189,36 @@ typedef size_t uint_type;
     using base_type::row;
     using base_type::col;
 
-    // element access
+    // element access from base class
     using base_type::operator();
     using base_type::operator[];
+
+    using base_type::resize;
 
 #ifndef USE_ARMADILLO
     using base_type::operator*=;
 #endif
 
-    // identity
+    // identity from base_classes
+    // but wrapped in arma case to yield identical function name
 #ifndef USE_ARMADILLO
     using base_type::identity;
 #else
+
+    /*! Returns an "identity matrix" of certain size
+     *
+     * All diagonal elements will be initialized to one
+     * All off-diagonal elements will be initialized to zero
+     * @param num_rows: Number of rows
+     * @param num_cols: Number of columns
+     * @todo: Write as free function!!
+     */
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
       identity(std::size_t const num_rows, std::size_t const num_cols)
     {
-      return mathmatrix(num_rows, num_cols).eye();
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Constructing identity matrix." << std::endl;
+      return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
     }
 #endif
 
@@ -163,11 +233,15 @@ typedef size_t uint_type;
 		/////////////////////////////////////
 
 #ifdef USE_ARMADILLO
-		/**
-		 * Overload += operator
+		/*! mathmatrix += operator
+		 * 
+     * @param in: Matrix to the right of the summation (this + in)
+     * @return: Result of the addition of this + in
 		 */
 		mathmatrix operator+(mathmatrix const& in) const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
 			if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
 			{
 				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
@@ -178,34 +252,17 @@ typedef size_t uint_type;
 		};
 #endif
 
-    using base_type::resize;
-
-
-		/**
-		 * Prints contents to std::cout
-		 */
-		void out() const
-		{
-#ifndef USE_ARMADILLO
-      base_type const & a = *this;
-      ::scon::matrix_printer<base_type> mp(a);
-      // 3 newlines on top
-      mp.margin_top = 3u;
-      // 3 newlines after
-      mp.margin_bottom = 3u;
-      // two newlines after each row
-      mp.fill_right = '\n';
-      mp.margin_right = 1u;
-      //
-      std::cout << mp;
-#else
-      arma::Mat<T>* ptr = *this;
-      std::cout << *ptr;
-#endif
-		};
-
+    /*! mathmatrix stream operator for writing output
+     *
+     * @param os: Stream to which data is passed on
+     * @param object: mathmatrix whose contents are to be printed
+     *
+     * @return: Formatted contents of the matrix as strings (without a header)
+     */
     friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
     {
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Operator>> for matrix-class" << std::endl;
       for (size_t i = 0u; i < object.rows(); ++i)
       {
         for (size_t j = 0u; j < object.cols(); ++j)
@@ -222,11 +279,13 @@ typedef size_t uint_type;
 		 */
 		bool positive_definite_check()
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: positive_definite_check() for mathmatrix." << std::endl;
 			bool positive_definite = true;
-      if (!is_square(*this)) return false;
+      if (!this->return_quadratic()) return false;
       for (unsigned int i = 1; i < (this->rows() + 1); i++)
       {
-        if (mathmatrix{ resized(*this, i, i) }.det_sign() < 0)
+        if (mathmatrix( this->upper_left_submatrix(i, i) ).determ() <= 0)
         {
           return false;
         }
@@ -239,7 +298,9 @@ typedef size_t uint_type;
 		 */
 		int det_sign() const
 		{
-			return ((this->determ() < 0) ? -1 : 1);
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: det_sign() for mathmatrix." << std::endl;
+			return ((this->determ() <= 0) ? -1 : 1);
 		};
 
 		/**
@@ -247,8 +308,11 @@ typedef size_t uint_type;
 		 */
 		size_t rank() const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: rank() for mathmatrix." << std::endl;
 #ifdef USE_ARMADILLO
-      return static_cast<size_t>(rank(*this));
+      arma::Mat<T> const& base_this = *this;
+      return static_cast<size_t>(arma::rank(base_this));
 #else
 			//Rewritten from NumRecipies, SVD
 
@@ -267,7 +331,7 @@ typedef size_t uint_type;
 			{
 				bool flag;
 				int i, its, j, jj, k, l, nm;
-				float_type anorm, c, f, g, h, s, scale, x, y, z;
+				T anorm, c, f, g, h, s, scale, x, y, z;
 				mathmatrix rv1(n, 1u);
 				g = scale = anorm = 0.0;
 				for (i = 0; i < n; i++) {
@@ -473,8 +537,8 @@ typedef size_t uint_type;
 		 */
 		float_type determ() const
 		{
-      if (Config::get().general.verbosity > 3U)
-        std::cout << "Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
 
 #ifdef USE_ARMADILLO
 			return static_cast<float_type>(det(*this));
@@ -586,6 +650,8 @@ typedef size_t uint_type;
 		 */
 		mathmatrix operator/(T const& in) const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: operator/ for mathmatrix." << std::endl;
 			mathmatrix tempCopy(*this);
 			for (unsigned int i = 0; i < this->rows(); i++)
 			{
@@ -602,6 +668,8 @@ typedef size_t uint_type;
 		 */
 		void append_bottom(const mathmatrix& I_will_be_the_bottom_part)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: append_bottom for mathmatrix." << std::endl;
 			//if this is transposed, append bottom means append right on underlying obj
 			if (this->cols() != I_will_be_the_bottom_part.cols())
 			{
@@ -627,6 +695,8 @@ typedef size_t uint_type;
 		 */
 		void append_top(const mathmatrix& I_will_be_the_top_part)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: append_top for mathmatrix." << std::endl;
 			if (this->columns() != I_will_be_the_top_part.columns())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
@@ -658,6 +728,8 @@ typedef size_t uint_type;
 		 */
 		void append_left(const mathmatrix& I_will_be_the_left_part)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: append_left for mathmatrix." << std::endl;
 			if (this->columns() != I_will_be_the_left_part.columns())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
@@ -690,6 +762,8 @@ typedef size_t uint_type;
   	 */
 		void append_right(const mathmatrix& I_will_be_the_right_part)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: append_right for mathmatrix." << std::endl;
 			if (this->rows() != I_will_be_the_right_part.rows())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
@@ -715,6 +789,8 @@ typedef size_t uint_type;
 		 */
 		void shed_rows(size_t first_in, size_t last_in)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: shed_rows for mathmatrix." << std::endl;
 			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
 			for (size_t i = 0u; i < first_in; i++)
 			{
@@ -738,6 +814,8 @@ typedef size_t uint_type;
 		 */
 		void shed_cols(size_t first_in, size_t last_in)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: shed_cols for mathmatrix." << std::endl;
 			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
 			for (size_t j = 0u; j < this->rows(); j++)
 			{
@@ -785,8 +863,10 @@ typedef size_t uint_type;
 		 */
 		bool return_quadratic() const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: return_quadratic for mathmatrix." << std::endl;
 #ifndef USE_ARMADILLO
-			return this->quadratic();
+			return is_square(*this);
 #else
       return this->rows() == this->cols();
 #endif
@@ -799,6 +879,8 @@ typedef size_t uint_type;
 		 */
 		mathmatrix upper_left_submatrix(unsigned int const& rows_in, unsigned int const& columns_in = 0) const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: upper_left_submatrix for mathmatrix." << std::endl;
       if (rows_in <= this->rows() && columns_in <= this->cols())
       {
         mathmatrix copied(*this);
@@ -833,8 +915,8 @@ typedef size_t uint_type;
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
       U_in = *this;
-      if (Config::get().general.verbosity > 3U)
-        std::cout << "Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << " matrix." << std::endl;
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << " matrix." << std::endl;
 
 			//"Constructor"
 			V_in.resize(this->cols(), this->cols());
@@ -1121,6 +1203,8 @@ typedef size_t uint_type;
 		 */
 		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: eigensym for mathmatrix." << std::endl;
 			//On basis of SVD, so take care that your matrix is symmetrical
 
 			//And if you are unsure about your symmetry, try this beforehand:
@@ -1161,6 +1245,8 @@ typedef size_t uint_type;
 		 */
 		std::vector <std::vector<T> > to_std_vector(void) const
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: to_std_vector for mathmatrix" << std::endl;
 			std::vector <T> temp1(this->cols());
 			std::vector < std::vector <T> > temp2(this->rows(), temp1);
 			for (unsigned int i = 0; i < this->rows(); i++)
@@ -1179,6 +1265,8 @@ typedef size_t uint_type;
 		 */
 		void update_debugview(void)
 		{
+      if (Config::get().general.verbosity > 4U)
+        std::cout << "Function call: update_debugview." << std::endl;
 #ifdef DEBUGVIEW
 				std::vector <float_type> temp1(this->cols());
 				std::vector < std::vector <float_type> > temp2(this->rows(), temp1);

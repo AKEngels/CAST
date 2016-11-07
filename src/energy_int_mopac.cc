@@ -164,7 +164,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   {
     std::string const alt_infile(std::string(id).append(".xyz.out"));
     remove(std::string(id).append(".xyz.arc").c_str());
-    if (Config::get().general.verbosity > 19)
+    if (Config::get().general.verbosity >= 3)
     {
       std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.";
     }
@@ -236,7 +236,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "Index " << i << " does not match line index " << j - 1 << '\n';
+              if (Config::get().general.verbosity >= 2) std::cout << "Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
             }
@@ -245,7 +245,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
             bss_y >> tx >> j >> sx[0] >> sx[1] >> p.y() >> g.y();
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
+              if (Config::get().general.verbosity >= 2) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
             }
@@ -254,7 +254,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
             bss_z >> tx >> j >> sx[0] >> sx[1] >> p.z() >> g.z();
             if (i != (j - 1))
             {
-              if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
+              if (Config::get().general.verbosity >= 2) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
               integrity = false;
               return;
             }
@@ -278,7 +278,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
               if(sx[2] == "X") {g_tmp[j-1].x()=g.x();}
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
+                if (Config::get().general.verbosity >= 2) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -297,7 +297,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
               if(sx[2] == "Y") {g_tmp[j-1].y()=g.y();}
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
+                if (Config::get().general.verbosity >= 2) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -315,7 +315,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
               if(sx[2] == "Z") {g_tmp[j-1].z()=g.z();}
               }else*/ if (i != (j - 1) && Config::get().energy.mopac.version != config::mopac_ver_type::MOPAC7_HB)
               {
-                if (Config::get().general.verbosity > 9) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
+                if (Config::get().general.verbosity >= 2) std::cout << "MOPAC: Index " << i << " does not match line index " << j - 1 << '\n';
                 integrity = false;
                 return;
               }
@@ -400,7 +400,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
     if (!done)
     {
-      if (Config::get().general.verbosity > 9) std::cout << "Mopac calculation was not done.\n";
+      if (Config::get().general.verbosity >= 2) std::cout << "Mopac calculation was not done.\n";
       //throw std::runtime_error(std::string("IMPROPER MOPAC OUTPUT (CALCULATION NOT FINISHED): ").append(id));
       energy = e_total = e_electron = e_core = 0.0;
       integrity = false;
@@ -423,7 +423,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
     throw std::runtime_error(std::string("MOPAC OUTPUT NOT PRESENT; ID: ").append(id));
   }
   auto bpv = check_bond_preservation();
-  if (Config::get().general.verbosity > 14 && !bpv)
+  if (Config::get().general.verbosity >= 2 && !bpv)
   {
     std::cout << "A covalent bond > 2.2A, structure integrity not warranted anymore. "
       " Current conformation will be treated as broken structure.\n";
@@ -504,7 +504,7 @@ double energy::interfaces::mopac::sysCallInterface::e(void)
   if (callMopac() == 0) read_mopacOutput(false, false, false);
   else
   {
-    if (Config::get().general.verbosity > 9)
+    if (Config::get().general.verbosity >= 2)
     {
       std::cout << "MOPAC call return value was not 0. Treating structure as broken.\n";
     }

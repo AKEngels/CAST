@@ -15,7 +15,7 @@ ifeq ($(config),debug_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_debug.exe
   OBJDIR = obj/x86/Debug
-  DEFINES += -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS
+  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -42,7 +42,7 @@ ifeq ($(config),debug_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_debug.exe
   OBJDIR = obj/x64/Debug
-  DEFINES += -DCOMPILEX64 -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS
+  DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -69,7 +69,7 @@ ifeq ($(config),release_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_release.exe
   OBJDIR = obj/x86/Release
-  DEFINES += -DUSE_MPI
+  DEFINES +=
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -96,7 +96,7 @@ ifeq ($(config),release_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_release.exe
   OBJDIR = obj/x64/Release
-  DEFINES += -DCOMPILEX64 -DUSE_MPI
+  DEFINES += -DCOMPILEX64
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -123,16 +123,16 @@ ifeq ($(config),testing_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x86_testing.exe
   OBJDIR = obj/x86/Testing
-  DEFINES += -DUSE_MPI -DGOOGLE_MOCK
-  INCLUDES +=
+  DEFINES += -DGOOGLE_MOCK
+  INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -150,16 +150,70 @@ ifeq ($(config),testing_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_testing.exe
   OBJDIR = obj/x64/Testing
-  DEFINES += -DCOMPILEX64 -DUSE_MPI -DGOOGLE_MOCK
-  INCLUDES +=
+  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK
+  INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_testing_x86)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST.exe
+  OBJDIR = obj/x86/Armadillo_Testing
+  DEFINES += -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
+  INCLUDES += -I../includes/gtest -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran
+  LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  define PREBUILDCMDS
+  endef
+  define PRELINKCMDS
+  endef
+  define POSTBUILDCMDS
+  endef
+all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
+	@:
+
+endif
+
+ifeq ($(config),armadillo_testing_x64)
+  RESCOMP = windres
+  TARGETDIR = ../build
+  TARGET = $(TARGETDIR)/CAST.exe
+  OBJDIR = obj/x64/Armadillo_Testing
+  DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
+  INCLUDES += -I../includes/gtest -I../includes/armadillo
+  FORCE_INCLUDE +=
+  ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
+  LIBS +=
+  LDDEPS +=
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -flto -s -fopenmp ../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -177,7 +231,7 @@ ifeq ($(config),armadillo_release_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
   OBJDIR = obj/x86/Armadillo_Release
-  DEFINES += -DUSE_MPI -DUSE_ARMADILLO
+  DEFINES += -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -204,7 +258,7 @@ ifeq ($(config),armadillo_release_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
   OBJDIR = obj/x64/Armadillo_Release
-  DEFINES += -DCOMPILEX64 -DUSE_MPI -DUSE_ARMADILLO
+  DEFINES += -DCOMPILEX64 -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -231,7 +285,7 @@ ifeq ($(config),armadillo_debug_x86)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
   OBJDIR = obj/x86/Armadillo_Debug
-  DEFINES += -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -258,7 +312,7 @@ ifeq ($(config),armadillo_debug_x64)
   TARGETDIR = ../build
   TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
   OBJDIR = obj/x64/Armadillo_Debug
-  DEFINES += -DCOMPILEX64 -DUSE_MPI -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
+  DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
@@ -312,12 +366,13 @@ OBJECTS := \
 	$(OBJDIR)/pme.o \
 	$(OBJDIR)/pme_fep.o \
 	$(OBJDIR)/reaccoord.o \
-	$(OBJDIR)/scon.o \
 	$(OBJDIR)/startopt.o \
 	$(OBJDIR)/startopt_ringsearch.o \
 	$(OBJDIR)/startopt_solvadd.o \
 	$(OBJDIR)/tinker_parameters.o \
 	$(OBJDIR)/tinker_refine.o \
+	$(OBJDIR)/scon_traits_test.o \
+	$(OBJDIR)/testing_main.o \
 
 RESOURCES := \
 
@@ -468,9 +523,6 @@ $(OBJDIR)/pme_fep.o: ../../src/pme_fep.cc
 $(OBJDIR)/reaccoord.o: ../../src/reaccoord.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/scon.o: ../../src/scon.cc
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/startopt.o: ../../src/startopt.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -484,6 +536,12 @@ $(OBJDIR)/tinker_parameters.o: ../../src/tinker_parameters.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/tinker_refine.o: ../../src/tinker_refine.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/scon_traits_test.o: ../../gtest/scon_traits_test.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/testing_main.o: ../../gtest/testing_main.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
