@@ -250,7 +250,7 @@ int main(int argc, char **argv)
 
     // print which task
     std::cout << "-------------------------------------------------\n";
-    std::cout << "Task '" << config::task_strings[Config::get().general.task];
+    std::cout << "Task '" << config::task_strings[Config::get().general.task - 1u];
     std::cout << "' (" << Config::get().general.task << ") computation:\n";
     std::cout << "-------------------------------------------------\n";
 

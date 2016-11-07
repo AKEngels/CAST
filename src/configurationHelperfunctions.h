@@ -69,16 +69,16 @@ namespace config
   }
 
   /**
-  * Helper function that matches a string
-  * to an enum via a sorted "helper-array"
-  * If matching could not be performed,
-  * enum with value "-1" will be returned.
-  *
-  * @param arr: Sring Array in same order as enum, used for matching
-  * @param ARR_SIZE: Size of the string array
-  * @typename ENUM_T: Type of the enum that should be returned
-  * @param S: Input String.
-  */
+   * Helper function that matches a string
+   * to an enum via a sorted "helper-array"
+   * If matching could not be performed,
+   * enum with value "-1" will be returned.
+   *
+   * @param arr: Sring Array in same order as enum, used for matching
+   * @param ARR_SIZE: Size of the string array
+   * @typename ENUM_T: Type of the enum that should be returned
+   * @param S: Input String.
+   */
   template<typename ENUM_T, std::size_t ARR_SIZE>
   ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
   {
