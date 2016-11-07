@@ -1086,7 +1086,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	if (distance > outer_cutoff)       //no movement outside of outer cutoff
 	{
 		velocity = coords::Cartesian_Point(0, 0, 0);
-		std::cout << "This should not happen.\n";
+		std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
 		return velocity;
 	}
 	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
@@ -1128,13 +1128,13 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     dt_2(0.5*dt),
     tempfactor(2.0 / (freedom*md::R));
 
-  atoms_movable.clear();
+  atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
   if (Config::get().md.set_active_center == 1)
   {
 	   distances = init_active_center(0);  //calculate initial active center and distances to active center
 	   inner_cutoff = Config::get().md.inner_cutoff;
 	   outer_cutoff = Config::get().md.outer_cutoff;
-	   for (std::size_t i(0U); i < N; ++i)
+	   for (std::size_t i(0U); i < N; ++i)  // determine which atoms are moved
 	   {
 		   if (distances[i] <= outer_cutoff)
 		   {
@@ -1142,7 +1142,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		   }
 	   }
   }
-  else
+  else   // if no active site is specified: all atoms are moved
   {
 	  for (std::size_t i(0U); i < N; ++i)
 	  {  
@@ -1225,10 +1225,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
-	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) //calculate active center and new distances to active center for every step
+	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
 	{
-		distances = init_active_center(static_cast<int>(k));
-		atoms_movable.clear();
+		distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
+		atoms_movable.clear();            // determine again which atoms are moved
 		for (std::size_t i(0U); i < N; ++i)
 		{
 			if (distances[i] <= outer_cutoff)
