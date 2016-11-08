@@ -457,7 +457,7 @@ void md::simulation::fepinit(void)
   init();
   // center and temp var
   coordobj.move_all_by(-coordobj.center_of_geometry());
-  double linear, dlin, linel, linvdw;
+  double linear, dlin, linel;
   double  increment, tempo, tempo2, diff;
   Config::set().md.fep = true;
   FEPsum = 0.0;
@@ -465,10 +465,6 @@ void md::simulation::fepinit(void)
   linear = 1.0 - Config::get().fep.eleccouple;
   dlin = linear / Config::get().fep.dlambda;
   linel = 1.0 / dlin;
-  // increment van-der-Waals interactions
-  linear = 1.0 - Config::get().fep.vdwcouple;
-  dlin = linear / Config::get().fep.dlambda;
-  linvdw = 1.0 / dlin;
   // fill vector with scaling increments
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
@@ -856,7 +852,6 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
 	using TenVal = coords::Tensor::value_type;
 	TenVal z = { 0.0,0.0,0.0 };
 	E_kin_tensor.fill(z);
-	auto const N = V.size();
 	// calculate contribution to kinetic energy for each atom
 	for (auto i : atom_list)
 	{

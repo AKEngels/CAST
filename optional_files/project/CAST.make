@@ -338,6 +338,7 @@ OBJECTS := \
 	$(OBJDIR)/PCA.o \
 	$(OBJDIR)/Path_perp.o \
 	$(OBJDIR)/configuration.o \
+	$(OBJDIR)/configurationHelperfunctions.o \
 	$(OBJDIR)/coords.o \
 	$(OBJDIR)/coords_atoms.o \
 	$(OBJDIR)/coords_bias.o \
@@ -371,6 +372,8 @@ OBJECTS := \
 	$(OBJDIR)/startopt_solvadd.o \
 	$(OBJDIR)/tinker_parameters.o \
 	$(OBJDIR)/tinker_refine.o \
+	$(OBJDIR)/configurationTest.o \
+	$(OBJDIR)/scon_mathmatrix_test.o \
 	$(OBJDIR)/scon_traits_test.o \
 	$(OBJDIR)/testing_main.o \
 
@@ -437,6 +440,9 @@ $(OBJDIR)/Path_perp.o: ../../src/Path_perp.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/configuration.o: ../../src/configuration.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/configurationHelperfunctions.o: ../../src/configurationHelperfunctions.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/coords.o: ../../src/coords.cc
@@ -536,6 +542,12 @@ $(OBJDIR)/tinker_parameters.o: ../../src/tinker_parameters.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/tinker_refine.o: ../../src/tinker_refine.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/configurationTest.o: ../../gtest/configurationTest.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/scon_mathmatrix_test.o: ../../gtest/scon_mathmatrix_test.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scon_traits_test.o: ../../gtest/scon_traits_test.cc
