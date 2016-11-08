@@ -900,6 +900,23 @@ typedef size_t uint_type;
       arma::Mat<T> const& b = in;
       return mathmatrix(a*b);
     };
+
+    /*! Equality operator for armadillo mathmatrix
+     *
+     * Armadillo internally handels the operator== in a 
+     * from my perspective very strange way. This is why we
+     * use the approx_equal function with a very tight tolerance
+     * of 0.1% internally to check for equality.
+     *
+     * @param in: Matrix that *this is compared to
+     * @return: boolean that indicates if size and all elements are equal
+     */
+    bool operator== (mathmatrix const& in) const
+    {
+      arma::Mat<T> const& a = *this;
+      arma::Mat<T> const& b = in;
+      return (approx_equal(a,b,"reldiff", 0.001) );
+    }
 #endif
 
 		/**
