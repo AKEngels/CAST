@@ -258,13 +258,14 @@ for (i=0;i<gesamtanzahl;i++){
       j++; // since the 2nd dimension length of vector partner was set to partneranzahl[i] in thes logic construction j must always end up to be equal to partneranzahl[i]
     }
   }  
+
    if (partneranzahl[i] != j ) { //after implementation into CAST replace by throw
 	   cout << "Fehler bei Partneranzahl für Monomer:" << i << endl;
   }
 }
 
 int maxpartner=0; //variable to save maximum of partners a particle has
-for (int aa = 0; aa < partneranzahl.size(); aa++) {
+for (unsigned int aa = 0; aa < partneranzahl.size(); aa++) {
 	if (maxpartner < partneranzahl[aa]) {
 		maxpartner = partneranzahl[aa];
 	}
@@ -495,28 +496,28 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 
       std::vector<double> raten( maxpartner+1);
 
-      for (h=0;h<partneranzahl [punkt_ladung[vschritt]];h++){
-	if (partner [punkt_ladung[vschritt]] [h]<(monomer_anzahl+1)){
+      for (h=0;h<partneranzahl [punkt_ladung[i]];h++){
+	if (partner [punkt_ladung[i]] [h]<(monomer_anzahl+1)){
           zufall=distribution0(engine);	 
-	  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner [punkt_ladung[vschritt] ][h],3.4088)-coulomb( x, y, z, punkt[vschritt], punkt_ladung[vschritt], 3.4088);
-	  r_summe=r_summe+rate(coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], ((zufall-zufall1)+coulombenergy), reorganisationsenergie_ladung);
+	  coulombenergy=coulomb( x, y, z, punkt[i], partner [punkt_ladung[i] ][h],3.4088)-coulomb( x, y, z, punkt[i], punkt_ladung[i], 3.4088);
+	  r_summe=r_summe+rate(coupling_ladung [punkt_ladung[i]] [ partner[ punkt_ladung[i]] [h] ], ((zufall-zufall1)+coulombenergy), reorganisationsenergie_ladung);
 //	  cout << "LADUNGEN" << endl;
 //	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1), reorganisationsenergie_ladung) << endl;
 //	  cout << "Energie " << setw(12) << setprecision(6) << fixed << (zufall-zufall1)+coulombenergy << endl;
 //	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ] << endl;
 	  raten[h]=r_summe;
 	}
-	if ((partner[ punkt_ladung[vschritt] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[vschritt] ][h]==punkt[vschritt])){
+	if ((partner[ punkt_ladung[i] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i] ][h]==punkt[i])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen	   
-	  coulombenergy=coulomb( x, y, z, punkt_ladung[vschritt], partner[ punkt_ladung[vschritt] ][h], 1);
+	  coulombenergy=coulomb( x, y, z, punkt_ladung[i], partner[ punkt_ladung[i] ][h], 1);
 //	  cout << "LADUNGEN-HETERODIMER" << endl;	  
-	  r_summe=r_summe+rate(coupling_rek[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
+	  r_summe=r_summe+rate(coupling_rek[ punkt_ladung[i] ][ partner[ punkt_ladung[i] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
 //	  cout << "Rate " << setw(12) << setprecision(3) << scientific  << rate(coupling_rek[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
 	  raten[h]=r_summe;
 	}
 	//ACHTUNG: hier Korrektur ///////////////////////////////////////////////////
-	else if ((partner[ punkt_ladung[vschritt] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[vschritt] ][h]!=punkt[vschritt])){
+	else if ((partner[ punkt_ladung[i] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i] ][h]!=punkt[i])){
 	  r_summe=r_summe;
 	  raten[h]=0;
 	}
@@ -526,29 +527,29 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
       // hier raten für fullerene addieren #####################################################################################################################################################################
       r_summe_fulleren=0;
       zufall1=distribution0(engine);  
-      std::vector <double> raten_fulleren (partneranzahl [punkt[vschritt]]);
-      for (h=0;h<partneranzahl [punkt[vschritt]];h++){
-	if (partner [punkt[vschritt]][h] > (monomer_anzahl)){
+      std::vector <double> raten_fulleren (partneranzahl [punkt[i]]);
+      for (h=0;h<partneranzahl [punkt[i]];h++){
+	if (partner [punkt[i]][h] > (monomer_anzahl)){
           zufall=distribution0(engine);	
-	  coulombenergy=coulomb( x, y, z, punkt_ladung[vschritt], partner[ punkt[vschritt] ][h],3.4088)-coulomb( x, y, z, punkt[vschritt], punkt_ladung[vschritt], 3.4088);
-	  r_summe_fulleren=r_summe_fulleren+rate(coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], ((zufall-zufall1)+coulombenergy), fullerenreorganisationsenergie);
+	  coulombenergy=coulomb( x, y, z, punkt_ladung[i], partner[ punkt[i] ][h],3.4088)-coulomb( x, y, z, punkt[i], punkt_ladung[i], 3.4088);
+	  r_summe_fulleren=r_summe_fulleren+rate(coupling_fulleren[ punkt[i] ][ partner[ punkt[i] ][h] ], ((zufall-zufall1)+coulombenergy), fullerenreorganisationsenergie);
 //	  cout << "FULLERENE" << endl;
 //	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+coulombenergy, fullerenreorganisationsenergie) << endl;	
 //	  cout << "Energie " << setw(12) << setprecision(6) << fixed << (zufall-zufall1)+coulombenergy << endl;
 //	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ] << endl;
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
-	if ((partner[ punkt[vschritt] ][h]<(monomer_anzahl+1))&&(partner[ punkt[vschritt] ][h]==punkt_ladung[vschritt])){
+	if ((partner[ punkt[i] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i] ][h]==punkt_ladung[i])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen
-	  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner[ punkt[vschritt] ][h], 1);
+	  coulombenergy=coulomb( x, y, z, punkt[i], partner[ punkt[i] ][h], 1);
 //	  cout << "FULLEREN-HETERODIMER" << endl;
-	  r_summe_fulleren=r_summe_fulleren+rate(coupling_rek[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
+	  r_summe_fulleren=r_summe_fulleren+rate(coupling_rek[ punkt[i] ][ partner[ punkt[i] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
 //	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_rek[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
 	//ACHTUNG: hier Korrektur ////////////////////////////////////////////////////////
-	else if ((partner[ punkt[vschritt] ][h]<(monomer_anzahl+1))&&(partner[ punkt[vschritt] ][h]!=punkt_ladung[vschritt])){
+	else if ((partner[ punkt[i] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i] ][h]!=punkt_ladung[i])){
 	  r_summe_fulleren=r_summe_fulleren;
 	  raten_fulleren[h]=0;
 	}
@@ -582,8 +583,8 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
         uniform_real_distribution<double> distribution1(0,1); 
         zufall=distribution1(engine);
         r_i=zufall*r_summe;	
-	for (g=0;g< partneranzahl [punkt_ladung[vschritt]];g++){
-	  if ((raten[g]>r_i)&&(partner [punkt_ladung[vschritt]][g]<(monomer_anzahl))){
+	for (g=0;g< partneranzahl [punkt_ladung[i]];g++){
+	  if ((raten[g]>r_i)&&(partner [punkt_ladung[i]][g]<(monomer_anzahl))){
 		  run << "Ladungstransport" << endl;
 	    punkt_ladung[i]=partner [punkt_ladung[vschritt]][g];
 	    punkt[i]=punkt[vschritt];
@@ -624,13 +625,13 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[vschritt] << endl;
 	    break;
 	  }
-	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[vschritt] ][g]>(monomer_anzahl))){
+	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[i] ][g]>(monomer_anzahl))){
 		  run << "Rekombination" << endl;
 	    zustand[k][j]='t';
 	    rek[k]++;
 	    break;
 	  }
-	  else if (g==(partneranzahl[ punkt_ladung[vschritt] ])) {
+	  else if (g==(partneranzahl[ punkt_ladung[i] ])) {
 		  run << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << endl;
 	    return 0;
 	  }
@@ -658,14 +659,14 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
         zufall=distribution1(engine);
         r_i=zufall*r_summe_fulleren;
 //	cout << "R_i ist " << setw(12) << setprecision(6) << scientific  << r_i << endl;
-//	cout << "Partneranzahl " << partneranzahl[ punkt[vschritt] ] << endl;
-	for (g=0;g<(partneranzahl [punkt[vschritt]]);g++){
+//	cout << "Partneranzahl " << partneranzahl[ punkt[i] ] << endl;
+	for (g=0;g<(partneranzahl [punkt[i]]);g++){
 //	  cout << "g anfangs " << g << endl;
-//	  cout << "Partner " << partner[ punkt[vschritt] ][g] << endl;
-	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[vschritt]][g])>monomer_anzahl)){
+//	  cout << "Partner " << partner[ punkt[i] ][g] << endl;
+	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[i]][g])>monomer_anzahl)){
 		  run << "Ladungstranport im Fullerenphase" << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 	    
-	    punkt[i]=partner [punkt[vschritt]][g];
+	    punkt[i]=partner [punkt[i]][g];
 	    punkt_ladung[i]=punkt_ladung[vschritt]; 
 		run << "altes Fulleren " << setw(5) << punkt[vschritt] << endl;
 		run << "neues Fulleren " << setw(5) << punkt[i] << endl;
@@ -673,7 +674,7 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 		run << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[vschritt] ] << endl;
 	    break;
 	  }
-	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[vschritt] ][g])<(monomer_anzahl+1))){
+	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[i] ][g])<(monomer_anzahl))){
 //	    cout << "g ist " << g << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 
 		  run << "Rekombination." << endl;
@@ -681,7 +682,7 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 	    rek[k]++;
 	    break;
 	  }
-	  else if (g==(partneranzahl[ punkt[vschritt] ])) {
+	  else if (g==(partneranzahl[ punkt[i] ])) {
 		  run << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
 	    return 0;
 	  }
@@ -703,24 +704,24 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
 
-      for (h=0;h<(partneranzahl [punkt[vschritt]]);h++)
+      for (h=0;h<(partneranzahl [punkt[i]]);h++)
 	  {
-		if (partner [punkt[vschritt]][h]<(monomer_anzahl)){ //interaction with a monomer
+		if (partner [punkt[i]][h]<(monomer_anzahl)){ //interaction with a monomer
            zufall=distribution0(engine);// generatinjg a second normal distributed random number
 
 //			 cout << "Excitonrate " << setw(12) << setprecision(5) << scientific << rate(coupling_exciton[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1), reorganisationsenergie_exciton) << endl; 
-		   r_summe+= rate(coupling_exciton[ punkt[vschritt]] [partner[punkt[vschritt]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
+		   r_summe+= rate(coupling_exciton[ punkt[i]] [partner[punkt[i]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
 		   raten[h]= r_summe;
 
 raten_out << h << "	" << setw(5) << raten[h] << "	" << zufall << endl;
     	}
 
-		else if (partner [punkt[vschritt]] [h]>(monomer_anzahl))
+		else if (partner [punkt[i]] [h]>(monomer_anzahl))
 		{ //interaction with a fulleren
           zufall=distribution0(engine);	 
 		// coulomb energie berechnen
-		  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner[ punkt[vschritt] ][h], 1);
-		   r_summe+= rate(coupling_ct[ punkt[vschritt]] [partner [punkt[vschritt]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
+		  coulombenergy=coulomb( x, y, z, punkt[i], partner[ punkt[i] ][h], 1);
+		   r_summe+= rate(coupling_ct[ punkt[i]] [partner [punkt[i]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
 		   raten[h]= r_summe;
 
 raten_out << h << "	" << setw(5) << raten[h] << "	" << zufall << endl;
@@ -730,7 +731,7 @@ raten_out << h << "	" << setw(5) << raten[h] << "	" << zufall << endl;
 raten_out << "r_summe: " << r_summe << endl << "-----------------------------------------------------" << endl;
 
       // fluoreszenz dazuaddieren
-      r_summe=r_summe+k_rad;
+      r_summe+=k_rad;
       dwelltime=1/r_summe;
       // schritt bestimmen
       uniform_real_distribution<double> distribution1(0,1); 
@@ -753,41 +754,40 @@ raten_out << zufall << endl << "------------------------------------------------
       }
 //      cout << "Zeit ist " << setw(12) << setprecision(3) << zeit*1e10 << endl;
 
-  for (g=0;g< partneranzahl [punkt[vschritt]];g++){
+  for (g=0;g< partneranzahl [punkt[i]];g++){
 	 
 	if (raten[g]>r_i){
 
-	  punkt[i]= partner [punkt[vschritt]] [g]; //partner [punkt[vschritt]] doesn't reach needed values &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+	  punkt[i]= partner [punkt[i]] [g]; 
 	  run << "	neuer Punkt " << punkt[i] << endl;
 
-//	  if (punkt[i]<(monomer_anzahl+1)){
-//	    cout << "Exzitonentransport." << endl;
-//	    cout << "alter Punkt " << punkt[vschritt] <<endl;
-//	    cout << "neuer Punkt " << punkt[i] << endl;
-//	    cout << "Kopplung " << coupling_exciton[ punkt[vschritt] ][ punkt[i] ] << endl;	    
-//	    cout << "Raten_g " << setw(12) << setprecision(5) << scientific << raten[g] << endl;
-//	    cout << "Raten_g-1 " << setw(12) << setprecision(5) << scientific << raten[g-1] << endl;
-//	    cout << "r_i " << setw(12) << setprecision(5) << scientific << r_i << endl;
-//	  }
-	  /*else*/ if (punkt[i] > monomer_anzahl) {//PROBLEM!!!!!!!!!!!!!!!!!!!!!!!!!!&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+	  if (punkt[i]<(monomer_anzahl)){
+	    run << "Exzitonentransport." << endl;
+	    run << "alter Punkt " << punkt[vschritt] <<endl;
+	    run << "neuer Punkt " << punkt[i] << endl;
+	    run << "Kopplung " << coupling_exciton[ punkt[vschritt] ][ punkt[i] ] << endl;	    
+	    run << "Raten_g " << setw(12) << setprecision(5) << scientific << raten[g] << endl;
+//	    run << "Raten_g-1 " << setw(12) << setprecision(5) << scientific << raten[g-1] << endl;
+	    run << "r_i " << setw(12) << setprecision(5) << scientific << r_i << endl;
+	  }
+	  else if (punkt[i] > monomer_anzahl) {
 
-	  //	    punkt[i]=partner [punkt[vschritt]] [g];	
 		  punkt_ladung[i] = punkt[vschritt];
 		  zustand[k][j] = 'c';
 		  run << "Ladungstrennung." << endl;
-		  //	    cout << "Kopplung " << coupling_ct[ punkt[vschritt] ][ punkt[i] ] << endl;
-		  //	    cout << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[vschritt], punkt[i], 1) << endl;
-		  //	    cout << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[vschritt], punkt[i]) << endl;
+	   	  run << "Kopplung " << coupling_ct[ punkt[vschritt] ][ punkt[i] ] << endl;
+		  run << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[vschritt], punkt[i], 1) << endl;
+		  run << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[vschritt], punkt[i]) << endl;
 		  vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
 		  run << "Exzitonengeschw. " << vel_ex[k][j] * 1e-9 << endl;
 		  ex_diss[k]++;
-
 
 		  break;// put break statement into if-statement so g can get >0
 	  }
 
 	}
-	else if (raten [partneranzahl [punkt[vschritt]]] < r_i){
+
+   else if (raten [partneranzahl [punkt[i]]] < r_i){ // punkt[vschritt] replaced by punkt[i]
 		run << "strahlender Zerfall." << endl;
 	  radiativ[k]++;
 	  zustand[k][j]='t';
@@ -830,8 +830,8 @@ raten_out.close();
 // Auswertung: Prozentsätze
 ofstream auswertung;
 auswertung.open("auswertung.txt");
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_Diss." << setw(12) << "Ch_Diss" << setw(12) << "Rek." << setw(12) << "Trapp." << setw(12) << "Fluor." << '\n';
-double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_Diss." << setw(9) << "Ch_Diss" << setw(9) << "Rek." << setw(9) << "Trapp." << setw(9) << "Fluor." << '\n';
+
 double mittel_ex=0;
 double mittel_ch=0;
 double mittel_rek=0;
@@ -845,20 +845,18 @@ for (k=0;k<index;k++){
   mittel_rek=mittel_rek+(rek[k]*1.0);
   mittel_trapp=mittel_trapp+(trapping[k]*1.0);
   mittel_rad=mittel_rad+(radiativ[k]*1.0);
-  ex_diss_efficiency=ex_diss[k];
-  ch_diss_efficiency=ch_diss[k];  
-  rek_efficiency=rek[k];
-  trapp_efficiency=trapping[k];
-  rad_efficiency=radiativ[k];
-  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(12) << setprecision(5) << ex_diss_efficiency;
-  auswertung << setw(12) << setprecision(5) << ch_diss_efficiency;  
-  auswertung << setw(12) << setprecision(5) << rek_efficiency << setw(12) << setprecision(5) << trapp_efficiency << setw(12) << setprecision(5) << rad_efficiency << '\n';  
+ 
+  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << ex_diss[k];
+  auswertung << setw(9) << setprecision(5) << ch_diss[k];
+  auswertung << setw(9) << setprecision(5) << rek[k] << setw(9) << setprecision(5) << trapping[k] << setw(9) << setprecision(5) << radiativ[k] << '\n';
 }
-auswertung << setw(9) << "Mittel " << setw(12) << setprecision(5) << fixed << mittel_ex/index << setw(12) << setprecision(5) << fixed << mittel_ch/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rek/index << setw(12) << setprecision(5) << fixed << mittel_trapp/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rad/index << '\n';
+
+auswertung << setw(9) << "Mittel " << setw(9) << setprecision(5) << fixed << mittel_ex/index << setw(9) << setprecision(5) << fixed << mittel_ch/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rek/index << setw(12) << setprecision(5) << fixed << mittel_trapp/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rad/index << '\n';
 auswertung << "GESCHWINDIGKEITEN" << '\n';
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_vel" << setw(12) << "Ex_s_dev" << setw(12) << "Ch_vel" << setw(12) << "Ch_s_dev" << '\n';
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_vel" << setw(9) << "Ex_s_dev" << setw(9) << "Ch_vel" << setw(9) << "Ch_s_dev" << '\n';
+
 // mittlere Geschwindigkeit
 for (k=0;k<index;k++){
   mittel_ch_vel[k]=0;
@@ -866,10 +864,10 @@ for (k=0;k<index;k++){
   // Mittelwert berechnen
   for (j=0;j<100;j++){
     if (vel_ch[k][j]>0.0001){
-      mittel_ch_vel[k]=mittel_ch_vel[k]+vel_ch[k][j];
+      mittel_ch_vel[k] += vel_ch[k][j];
     }
     if (vel_ex[k][j]>0.0001){
-      mittel_ex_vel[k]=mittel_ex_vel[k]+vel_ex[k][j];
+      mittel_ex_vel[k]+= vel_ex[k][j];
     } 
   }
   if (ch_diss[k]>0){
@@ -884,7 +882,7 @@ for (k=0;k<index;k++){
   else if (ex_diss[k]==0){
     mittel_ex_vel[k]=0;
   }
- // Standardabweichunb berechnen
+ // Standardabweichung berechnen
  standard_ex[k]=0;
  standard_ch[k]=0;
   for (j=0;j<100;j++){
@@ -907,10 +905,10 @@ for (k=0;k<index;k++){
   else if (ex_diss[k]<2){
     standard_ex[k]=0;    
   }
-  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(12) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << standard_ex[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
+  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << standard_ex[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
 }
 double mittelwert_geschw_exciton=0;
 double mittelwert_geschw_ladung=0;
