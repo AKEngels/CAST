@@ -446,8 +446,26 @@ void md::simulation::init(void)
   // call center of Mass method from coordinates object
   C_mass = coordobj.center_of_mass();
 
-
-
+  atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
+  if (Config::get().md.set_active_center == 1)
+  {
+	  distances = init_active_center(0);   //calculate initial active center and distances to active center
+	  
+	  for (int i(0U); i < N; ++i)  // determine which atoms are moved
+	  {
+		  if (distances[i] <= Config::get().md.outer_cutoff)
+		  {
+			  atoms_movable.push_back(i);
+		  }
+	  }
+  }
+  else   // if no active site is specified: all atoms are moved
+  {
+	  for (int i(0U); i < N; ++i)
+	  {
+		  atoms_movable.push_back(i);
+	  }
+  }
 }
 
 // If FEP calculation is requested: calculate lambda values for each window
@@ -1108,27 +1126,9 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     dt_2(0.5*dt),
     tempfactor(2.0 / (freedom*md::R));
 
-  atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
-  if (Config::get().md.set_active_center == 1)
-  {
-	   distances = init_active_center(0);  //calculate initial active center and distances to active center
-	   inner_cutoff = Config::get().md.inner_cutoff;
-	   outer_cutoff = Config::get().md.outer_cutoff;
-	   for (std::size_t i(0U); i < N; ++i)  // determine which atoms are moved
-	   {
-		   if (distances[i] <= outer_cutoff)
-		   {
-			   atoms_movable.push_back(i);
-		   }
-	   }
-  }
-  else   // if no active site is specified: all atoms are moved
-  {
-	  for (std::size_t i(0U); i < N; ++i)
-	  {  
-		  atoms_movable.push_back(i); 
-	  }
-  }
+  //inner and outer cutoff for biased potential
+  inner_cutoff = Config::get().md.inner_cutoff;
+  outer_cutoff = Config::get().md.outer_cutoff;
 
   if (Config::get().general.verbosity > 0U)
   {
@@ -1209,7 +1209,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	{
 		distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
 		atoms_movable.clear();            // determine again which atoms are moved
-		for (std::size_t i(0U); i < N; ++i)
+		for (int i(0U); i < N; ++i)
 		{
 			if (distances[i] <= outer_cutoff)
 			{
@@ -1361,27 +1361,9 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		//velofactor(-0.5*dt*md::convert),
 		tempfactor(2.0 / (freedom*md::R));
 
-	atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
-	if (Config::get().md.set_active_center == 1)
-	{
-		distances = init_active_center(0);  //calculate initial active center and distances to active center
-		inner_cutoff = Config::get().md.inner_cutoff;
-		outer_cutoff = Config::get().md.outer_cutoff;
-		for (std::size_t i(0U); i < N; ++i)  // determine which atoms are moved
-		{
-			if (distances[i] <= outer_cutoff)
-			{
-				atoms_movable.push_back(i);
-			}
-		}
-	}
-	else   // if no active site is specified: all atoms are moved
-	{
-		for (std::size_t i(0U); i < N; ++i)
-		{
-			atoms_movable.push_back(i);
-		}
-	}
+	//inner and outer cutoff for biased potential
+    inner_cutoff = Config::get().md.inner_cutoff;
+    outer_cutoff = Config::get().md.outer_cutoff;
 
 	if (Config::get().general.verbosity > 0U)
 	{
@@ -1471,7 +1453,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		{
 			distances = init_active_center(static_cast<int>(k)); 
 			atoms_movable.clear();            // determine again which atoms are moved
-			for (std::size_t i(0U); i < N; ++i)
+			for (int i(0U); i < N; ++i)
 			{
 				if (distances[i] <= outer_cutoff)
 				{
