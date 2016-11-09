@@ -830,7 +830,7 @@ raten_out.close();
 // Auswertung: Prozentsätze
 ofstream auswertung;
 auswertung.open("auswertung.txt");
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_Diss." << setw(12) << "Ch_Diss" << setw(12) << "Rek." << setw(12) << "Trapp." << setw(12) << "Fluor." << '\n';
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_Diss." << setw(9) << "Ch_Diss" << setw(9) << "Rek." << setw(9) << "Trapp." << setw(9) << "Fluor." << '\n';
 double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
 double mittel_ex=0;
 double mittel_ch=0;
@@ -850,15 +850,15 @@ for (k=0;k<index;k++){
   rek_efficiency=rek[k];
   trapp_efficiency=trapping[k];
   rad_efficiency=radiativ[k];
-  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(12) << setprecision(5) << ex_diss_efficiency;
-  auswertung << setw(12) << setprecision(5) << ch_diss_efficiency;  
-  auswertung << setw(12) << setprecision(5) << rek_efficiency << setw(12) << setprecision(5) << trapp_efficiency << setw(12) << setprecision(5) << rad_efficiency << '\n';  
+  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << ex_diss_efficiency;
+  auswertung << setw(9) << setprecision(5) << ch_diss_efficiency;  
+  auswertung << setw(9) << setprecision(5) << rek_efficiency << setw(9) << setprecision(5) << trapp_efficiency << setw(9) << setprecision(5) << rad_efficiency << '\n';  
 }
-auswertung << setw(9) << "Mittel " << setw(12) << setprecision(5) << fixed << mittel_ex/index << setw(12) << setprecision(5) << fixed << mittel_ch/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rek/index << setw(12) << setprecision(5) << fixed << mittel_trapp/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rad/index << '\n';
+auswertung << setw(8) << "Mittel " << setw(9) << setprecision(5) << fixed << mittel_ex/index << setw(9) << setprecision(5) << fixed << mittel_ch/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rek/index << setw(9) << setprecision(5) << fixed << mittel_trapp/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rad/index << '\n';
 auswertung << "GESCHWINDIGKEITEN" << '\n';
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_vel" << setw(12) << "Ex_s_dev" << setw(12) << "Ch_vel" << setw(12) << "Ch_s_dev" << '\n';
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_vel" << setw(9) << "Ex_s_dev" << setw(9) << "Ch_vel" << setw(9) << "Ch_s_dev" << '\n';
 // mittlere Geschwindigkeit
 for (k=0;k<index;k++){
   mittel_ch_vel[k]=0;
