@@ -155,10 +155,8 @@ void md::simulation::run(bool const restart)
     nht = nose_hoover();
     T = Config::get().md.T_init;
     init();
-    // use nvect3d function to eliminate translation and rotation
-    //V.eliminate_trans_rot(coordobj.xyz(), M);
-    // use built in md function (identical)
-	if (Config::get().md.set_active_center == 0)
+	// remove rotation and translation of the molecule (only if no biased potential is applied)
+	if (Config::get().md.set_active_center == 0) 
 	{
 		tune_momentum();
 	}
@@ -448,8 +446,9 @@ void md::simulation::init(void)
   // call center of Mass method from coordinates object
   C_mass = coordobj.center_of_mass();
 
-  inner_atoms.clear();
-  atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
+  // things for biased potentials
+  inner_atoms.clear();    // in case of more than one MD, e.g. for an FEP calculation
+  atoms_movable.clear();    
   if (Config::get().md.set_active_center == 1)
   {
 	  distances = init_active_center(0);   //calculate initial active center and distances to active center
@@ -460,7 +459,7 @@ void md::simulation::init(void)
 		  {
 			  atoms_movable.push_back(i);
 		  }
-		  else
+		  else   // set velocities of atoms that are not moved to zero
 		  {
 			  V[i] = coords::Cartesian_Point(0, 0, 0);
 		  }
@@ -981,7 +980,7 @@ void md::simulation::berendsen(double const & time)
   }//end of isotropic else
 }
 
-// heating function for constant temperature MD during the heating phase
+// heating function for direct velocity scaling
 bool md::simulation::heat(std::size_t const step)
 {
   config::md_conf::config_heat last;
@@ -1042,7 +1041,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half, size_t step)
 {
 	std::size_t const N = this->coordobj.size();  // total number of atoms
 	double tempfactor(2.0 / (freedom*md::R));     // factor for calculation of temperature from kinetic energy  
-	double temp, temp2, factor;
+	double temp, temp2, factor;     // current temperature before and after the temperature scaling, scaling factor
 
 	if (thermostat)   // apply nose-hoover thermostat
 	{
@@ -1063,11 +1062,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half, size_t step)
 		if (Config::get().md.set_active_center == 0)
 		{
 			updateEkin();
-			temp = E_kin * tempfactor;
+			temp = E_kin * tempfactor;      // temperature before
             factor = std::sqrt(T / temp);
-			for (size_t i(0U); i < N; ++i) V[i] *= factor;
+			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
 			updateEkin();
-			temp2 = E_kin * tempfactor;
+			temp2 = E_kin * tempfactor;     // temperatures after
 		}
 		else
 		{     // calculate temperature only for atoms inside inner cutoff

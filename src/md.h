@@ -319,6 +319,7 @@ namespace md
     // nose hoover thermostat
     void nose_hoover_thermostat(void);
 
+	// function to control the temperature
 	double tempcontrol(bool thermostat, bool half, size_t step);
 
 	// calculate distances to active center
