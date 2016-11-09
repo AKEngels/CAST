@@ -1196,7 +1196,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 		  V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
 	  }
 
-      if (Config::get().general.verbosity > 3)
+      if (Config::get().general.verbosity > 4)
       {
         std::cout << "Move " << i << " by " << (V[i] * dt) 
           << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
