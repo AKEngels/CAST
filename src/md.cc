@@ -158,7 +158,10 @@ void md::simulation::run(bool const restart)
     // use nvect3d function to eliminate translation and rotation
     //V.eliminate_trans_rot(coordobj.xyz(), M);
     // use built in md function (identical)
-    tune_momentum();
+	if (Config::get().md.set_active_center == 0)
+	{
+		tune_momentum();
+	}
   }
 
   // Read simulation data from resume file if required
@@ -445,6 +448,7 @@ void md::simulation::init(void)
   // call center of Mass method from coordinates object
   C_mass = coordobj.center_of_mass();
 
+  inner_atoms.clear();
   atoms_movable.clear();    // in case of more than one MD, e.g. for an FEP calculation
   if (Config::get().md.set_active_center == 1)
   {
@@ -455,6 +459,14 @@ void md::simulation::init(void)
 		  if (distances[i] <= Config::get().md.outer_cutoff)
 		  {
 			  atoms_movable.push_back(i);
+		  }
+		  else
+		  {
+			  V[i] = coords::Cartesian_Point(0, 0, 0);
+		  }
+		  if (distances[i] <= Config::get().md.outer_cutoff)  //determine atoms inside inner cutoff
+		  {                                                   // for temperature calculation
+			  inner_atoms.push_back(i);
 		  }
 	  }
   }
@@ -1057,18 +1069,9 @@ double md::simulation::tempcontrol(bool thermostat, bool half, size_t step)
 			updateEkin();
 			temp2 = E_kin * tempfactor;
 		}
-		else if (Config::get().md.set_active_center == 1 && half && step != 0)
-		{
-			updateEkin();
-			temp = E_kin * tempfactor;
-			factor = std::sqrt(T / temp);
-			for (size_t i(0U); i < N; ++i) V[i] *= factor;
-			updateEkin();
-			temp2 = E_kin * tempfactor;
-		}
 		else
 		{     // calculate temperature only for atoms inside inner cutoff
-			updateEkin_some_atoms(inner_atoms);
+			updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
 			size_t dof = 3u * inner_atoms.size();
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;           // temperature of inner atoms
@@ -1249,6 +1252,10 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 			{
 				atoms_movable.push_back(i);
 			}
+			else
+			{
+				V[i] = coords::Cartesian_Point(0, 0, 0);
+			}
 		}
 	}
     // Apply first part of RATTLE constraints if requested
@@ -1417,6 +1424,10 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 				if (distances[i] <= outer_cutoff)
 				{
 					atoms_movable.push_back(i);
+				}
+				else
+				{
+					V[i] = coords::Cartesian_Point(0, 0, 0);
 				}
 			}
 		}
