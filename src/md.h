@@ -319,6 +319,8 @@ namespace md
     // nose hoover thermostat
     void nose_hoover_thermostat(void);
 
+	double tempcontrol(bool thermostat, bool half, size_t step);
+
 	// calculate distances to active center
 	std::vector<double> init_active_center(int counter);
 	coords::Cartesian_Point adjust_velocities(int i, double inner_cutoff, double outer_cutoff);
