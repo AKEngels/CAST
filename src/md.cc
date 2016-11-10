@@ -1037,7 +1037,7 @@ void md::simulation::nose_hoover_thermostat(void)
   nht.v2 += nht.G2*d4;
 }
 
-double md::simulation::tempcontrol(bool thermostat, bool half, size_t step)
+double md::simulation::tempcontrol(bool thermostat, bool half)
 {
 	std::size_t const N = this->coordobj.size();  // total number of atoms
 	double tempfactor(2.0 / (freedom*md::R));     // factor for calculation of temperature from kinetic energy  
@@ -1212,7 +1212,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // apply half step temperature corrections
 	if (CONFIG.hooverHeatBath || HEATED)
 	{
-		temp = tempcontrol(CONFIG.hooverHeatBath, true, k);
+		temp = tempcontrol(CONFIG.hooverHeatBath, true);
 	}
 
     // save old coordinates
@@ -1295,7 +1295,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
     // Apply full step temperature adjustments
 	if (CONFIG.hooverHeatBath || HEATED)
 	{
-		temp = tempcontrol(CONFIG.hooverHeatBath, false, k);
+		temp = tempcontrol(CONFIG.hooverHeatBath, false);
 	}
     // Apply pressure adjustments
     if (CONFIG.pressure)
@@ -1384,7 +1384,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// apply half step temperature corrections
 		if (CONFIG.hooverHeatBath || HEATED)
 		{
-			temp = tempcontrol(CONFIG.hooverHeatBath, true, k);
+			temp = tempcontrol(CONFIG.hooverHeatBath, true);
 		}
 
 		// save old coordinates
@@ -1476,7 +1476,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// Apply full step temperature adjustments
 		if (CONFIG.hooverHeatBath || HEATED)
 		{
-			temp = tempcontrol(CONFIG.hooverHeatBath, false, k);
+			temp = tempcontrol(CONFIG.hooverHeatBath, false);
 		}
 		// Apply pressure adjustments
 		if (CONFIG.pressure)
