@@ -11,25 +11,22 @@
 #include "scon_serialization.h"
 #include "scon_log.h"
 
-/*
-Q an J:
-- refine nach e() ?
-- Quelle Nosé-Hoover
-- Inertia Tensor Fehler in Init?
-*/
-
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons
 */
 namespace md
 {
-
+	/**boltzmann constant*/
   static const double kB = 0.83144725;
-  static const double convert = 418.4; //kcal to g*A^2/ps^2
-  static const double negconvert = -418.4; //kcal to g*A^2/ps^2
-  static const double hnconvert = -209.2; //kcal to g*A^2/ps^2
+  /**conversion factor kcal to g*A^2/ps^2*/
+  static const double convert = 418.4; 
+  /**negativ conversion factor kcal to g*A^2/ps^2*/
+  static const double negconvert = -convert; 
+  /**pi*/
   static const double PI = 3.14159265358979323;
+  /**gas constant*/
   static const double R = 1.9872066e-3;
+  /**something for pressure*/
   static const double presc = 6.85684112e4;
 
   /**
@@ -84,7 +81,7 @@ namespace md
   }
 
   /**
-  another overload of << operator
+  overload of >> operator
   */
   template<class Strm>
   scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, trace_data &t)
@@ -161,7 +158,7 @@ namespace md
     }
 
 	/**
-	another overload of << operator
+	overload of >> operator
 	*/
     template<class Strm>
     friend scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, Logger &l)
@@ -208,26 +205,7 @@ namespace md
 	  /**lambda_vdw of next window for disappearing atoms*/
 	  double dvout; 
   };
-
-
-  /** barostat namespace (barostat doesn't work at the moment)
-  */
-  namespace barostat
-  {
-
-    struct berendsen
-    {
-
-      double target, delay, compress;
-      bool isotropic;
-
-      double operator() (double const time, coords::Representation_3D & p,
-        coords::Tensor const & Ek_T, coords::Tensor const & Vir_T, 
-        coords::Cartesian_Point & box);
-
-    };
-  }
-  
+ 
 
   /** class for MD simulation
   */
@@ -436,7 +414,7 @@ namespace md
       return strm;
     }
 
-	//**another overload for << operator*/
+	//**another overload for >> operator*/
     template<class Strm>
     friend scon::binary_stream<Strm> &
       operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
