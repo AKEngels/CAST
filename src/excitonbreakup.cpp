@@ -8,7 +8,7 @@
 #include<vector>
 
 //Original code by Charlotte. German comments are from original code, english comments were inserted during implementation into CAST.
-//In original code loops begun at 1 and ran to x+1. Also many arrays were replaced by vectors.
+//Arrays were replaced by vectors.
 
 using namespace std;
 
@@ -98,8 +98,8 @@ int main()
 		return 0;
 	}
 	schwerpunkt >> skipline;
-	std::vector <double> x(gesamtanzahl), y(gesamtanzahl), z(gesamtanzahl);
-	for (i = 0; i < (gesamtanzahl); i++) {
+	std::vector <double> x(gesamtanzahl+1), y(gesamtanzahl+1), z(gesamtanzahl+1);
+	for (i = 1; i < (gesamtanzahl+1); i++) {
 		schwerpunkt >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
 	}
 	///////////////////////////////////
@@ -110,13 +110,13 @@ int main()
 	}
 	exciton.close();
 	//cout << e << " Exzitonenpaare." << endl;
-	std::vector <vector<double>> coupling_exciton(gesamtanzahl, std::vector <double>(gesamtanzahl)), //in original code 2d-arrays were used
-		coupling_ladung(gesamtanzahl, std::vector <double>(gesamtanzahl)),							 
-		coupling_ct(gesamtanzahl, std::vector <double>(gesamtanzahl)),
-		coupling_rek(gesamtanzahl, std::vector <double>(gesamtanzahl)),
-		coupling_fulleren(gesamtanzahl, std::vector <double>(gesamtanzahl));
-	for (i = 0; i < (gesamtanzahl); i++) { //initializaton of the 2d vectors with 0 in all places
-		for (j = 0; j < (gesamtanzahl); j++) {
+	std::vector <vector<double>> coupling_exciton(gesamtanzahl+1, std::vector <double>(gesamtanzahl+1)), //in original code 2d-arrays were used
+		coupling_ladung(gesamtanzahl+1, std::vector <double>(gesamtanzahl+1)),							 
+		coupling_ct(gesamtanzahl+1, std::vector <double>(gesamtanzahl+1)),
+		coupling_rek(gesamtanzahl+1, std::vector <double>(gesamtanzahl+1)),
+		coupling_fulleren(gesamtanzahl+1, std::vector <double>(gesamtanzahl+1));
+	for (i = 1; i < (gesamtanzahl+1); i++) { //initializaton of the 2d vectors with 0 in all places
+		for (j = 1; j < (gesamtanzahl+1); j++) {
 			coupling_exciton[i][j] = 0;
 			coupling_ladung[i][j] = 0;
 			coupling_ct[i][j] = 0;
@@ -125,22 +125,22 @@ int main()
 		}
 	}
 
-	std::vector <int> exciton_1(e), exciton_2(e); //vectors for exciton pairs
+	std::vector <int> exciton_1(e+1), exciton_2(e+1); //vectors for exciton pairs
 
 	exciton.open("homodimer_exciton.txt");
-	for (i = 0; i < e; i++) {
+	for (i = 1; i < (e+1); i++) {
 		exciton >> exciton_1[i] >> exciton_2[i]; 
 		exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
 		coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
 	}
 	exciton.close();
-	std::vector <int> partneranzahl(monomer_anzahl + full_anzahl);
-	for (i = 0; i < (monomer_anzahl + full_anzahl); i++) {
+	std::vector <int> partneranzahl(monomer_anzahl + full_anzahl+1);
+	for (i = 1; i < (monomer_anzahl + full_anzahl+1); i++) {
 		partneranzahl[i] = 0;
 	} //inizialisation of all elements with 0
 
-	for (i = 0; i < e; i++) {	// counting homodimer partners for j
-		for (j = 0; j < monomer_anzahl; j++) {
+	for (i = 1; i < (e+1); i++) {	// counting homodimer partners for j
+		for (j = 1; j < (monomer_anzahl+1); j++) {
 			if ((exciton_1[i] == j) || (exciton_2[i] == j)) {
 				partneranzahl[j]++;
 			}
@@ -148,7 +148,7 @@ int main()
 	}
 	////////////////////////////////////
 	exciton.open("homodimer_ladung.txt");
-	for (i = 0; i < e; i++) {
+	for (i = 1; i < (e+1); i++) {
 		exciton >> j >> h; //j=exciton_1[i], h=exciton_2[i]
 		exciton >> coupling_ladung[j][h];
 		coupling_ladung[h][j] = coupling_ladung[j][h];
@@ -161,17 +161,17 @@ int main()
 	}
 	exciton.close();
 
-	std::vector <int> hetero_1(het), hetero_2(het);
+	std::vector <int> hetero_1(het+1), hetero_2(het+1);
 
 	exciton.open("heterodimer.txt");
-	for (i = 0; i < het; i++) {
+	for (i = 1; i < (het+1); i++) {
 		exciton >> hetero_1[i] >> hetero_2[i];
 		exciton >> coupling_ct[hetero_1[i]][hetero_2[i]] >> coupling_rek[hetero_1[i]][hetero_2[i]];
 		coupling_rek[hetero_2[i]][hetero_1[i]] = coupling_rek[hetero_1[i]][hetero_2[i]];
 		coupling_ct[hetero_2[i]][hetero_1[i]] = coupling_ct[hetero_1[i]][hetero_2[i]];
 	}
-	for (i = 0; i < het; i++) {				//counting of heteropartners for j and adding to known number of partners
-		for (j = 0; j < gesamtanzahl; j++) {
+	for (i = 1; i < (het+1); i++) {				//counting of heteropartners for j and adding to known number of partners
+		for (j = 1; j < (gesamtanzahl+1); j++) {
 			if ((hetero_1[i] == j) || (hetero_2[i] == j)) {
 				partneranzahl[j]++;
 			}
@@ -187,10 +187,10 @@ int main()
 	exciton.close();
 
 	std::cout << "Anzahl an Fullerenpaaren " << full << endl;
-	std::vector <int> fulleren_1(full), fulleren_2(full), test(full);
+	std::vector <int> fulleren_1(full+1), fulleren_2(full+1), test(2000);
 
 	exciton.open("fulleren.txt");
-	for (i = 0; i < full; i++) {
+	for (i = 1; i < (full+1); i++) {
 		exciton >> fulleren_1[i] >> fulleren_2[i];
 		test[i] = fulleren_2[i];
 		exciton >> coupling_fulleren[fulleren_1[i]][fulleren_2[i]];
@@ -201,30 +201,30 @@ int main()
 	//}
 	exciton.close();
 
-	for (i = 0; i < full; i++) {				//counting of fullerenhomopartners and adding to known partners
-		for (j = 0; j < gesamtanzahl; j++) {
+	for (i = 1; i < (full+1); i++) {				//counting of fullerenhomopartners and adding to known partners
+		for (j = 1; j < (gesamtanzahl+1); j++) {
 			if ((fulleren_1[i] == j) || (fulleren_2[i] == j)) {
 				partneranzahl[j]++;
 			}
 		}
 	}
 
-	std::vector<vector<int>> partner(gesamtanzahl, std::vector<int>());//2D-vector with variing length for second vector
+	std::vector<vector<int>> partner(gesamtanzahl+1, std::vector<int>());//2D-vector with variing length for second vector
 
-for (i=0;i<gesamtanzahl;i++){ //dynamic allocation for length of 2nd vector
+for (i=1;i<(gesamtanzahl+1);i++){ //dynamic allocation for length of 2nd vector
   partner[i].resize(partneranzahl[i]+1);
 }
 
-for (i=0;i<gesamtanzahl;i++){ //initializing all elements of vector partner with 0
-  for (j=0;j<partneranzahl[i];j++){
+for (i = 1; i < (gesamtanzahl+1); i++) { //initializing all elements of vector partner with 0
+  for (j=1;j<(partneranzahl[i]+1);j++){
     partner[i][j]=0;
   }
 }
 
-for (i=0;i<gesamtanzahl;i++){
-  j=0; //j is here the number of the partner to particle i 
+for (i=1;i<(gesamtanzahl+1);i++){
+  j=1; //j is here the number of the partner to particle i 
 	
-  for (h=0;h<e;h++){ //e = number of exciton-pairs [homodimer-pairs?]
+  for (h=1;h<(e+1);h++){ //e = number of exciton-pairs [homodimer-pairs?]
 		if (exciton_1[h]==i){
 		 partner[i][j]=exciton_2[h];
 		 j++; //j is always incremented when an element is added to the list of partners of particle i
@@ -235,7 +235,7 @@ for (i=0;i<gesamtanzahl;i++){
 		}
 	}
 
-	for (h=0;h<het;h++){ //het = number of heterodimer-pairs
+	for (h=1;h<(het+1);h++){ //het = number of heterodimer-pairs
 	 if (hetero_1[h]==i){
       partner[i][j]=hetero_2[h];
       j++;
@@ -246,7 +246,7 @@ for (i=0;i<gesamtanzahl;i++){
      }
 	}
 
-   for (h=0;h<full;h++){ //full = number of fullerene homopairs
+   for (h=1;h<(full+1);h++){ //full = number of fullerene homopairs
     if (fulleren_1[h]==i){
       partner[i][j]=fulleren_2[h];
 //      cout << fulleren_2[h] << endl;      
@@ -258,7 +258,7 @@ for (i=0;i<gesamtanzahl;i++){
       j++; // since the 2nd dimension length of vector partner was set to partneranzahl[i] in thes logic construction j must always end up to be equal to partneranzahl[i]
     }
   }  
-   if (partneranzahl[i] != j ) { //after implementation into CAST replace by throw
+   if (partneranzahl[i] != j+1 ) { //after implementation into CAST replace by throw
 	   cout << "Fehler bei Partneranzahl für Monomer:" << i << endl;
   }
 }
@@ -267,9 +267,9 @@ for (i=0;i<gesamtanzahl;i++){
 
 ofstream kopplung;
 kopplung.open("partner.txt");
-for (i=0;i<gesamtanzahl;i++){
+for (i=1;i<(gesamtanzahl+1);i++){
   kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
-  for (j=0;j<partneranzahl[i];j++){
+  for (j=1;j<(partneranzahl[i]+1);j++){
     kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
   }
   kopplung << '\n';
@@ -277,12 +277,12 @@ for (i=0;i<gesamtanzahl;i++){
 kopplung.close();
 
 kopplung.open("couplings.txt");
-for (i=0;i<monomer_anzahl;i++){
+for (i=1;i<(monomer_anzahl+1);i++){
   kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
 
-  for (j=0;j<partneranzahl[i];j++){
+  for (j=1;j<(partneranzahl[i]+1);j++){
     kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
-    if (partner[i][j] < monomer_anzahl){
+    if (partner[i][j] < (monomer_anzahl+1)){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_exciton[i] [partner[i][j]]; //writes the exciton-coupling between i and j
     }
     else if (partner[i][j]>monomer_anzahl){
@@ -292,9 +292,9 @@ for (i=0;i<monomer_anzahl;i++){
   kopplung << '\n';  
 }
 
-for (i=monomer_anzahl;i<gesamtanzahl;i++){
+for (i=(monomer_anzahl+1);i<(gesamtanzahl+1);i++){
   kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
-  for (j=0;j<partneranzahl[i];j++){
+  for (j=1;j<(partneranzahl[i]+1);j++){
     kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
     if (partner[i][j]<(monomer_anzahl)){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_rek[i][ partner[i][j] ]; //writes the recombination coupling between i and j
@@ -311,19 +311,19 @@ kopplung.close();
 double x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.), 
 	   x_gesamt(0.), y_gesamt(0.), z_gesamt(0.), x_mittel(0.), y_mittel(0.), z_mittel(0.);
 
-for (i=0;i<monomer_anzahl;i++){
+for (i=1;i<(monomer_anzahl+1);i++){
   x_monomer+=(x[i]/monomer_anzahl); 
   y_monomer+=(y[i]/monomer_anzahl);
   z_monomer+=(z[i]/monomer_anzahl);
 }
 
-for (i=monomer_anzahl;i<gesamtanzahl;i++){ //using fact, that fullerens always have larger indices than other monomers
+for (i=(monomer_anzahl+1);i<(gesamtanzahl+1);i++){ //using fact, that fullerens always have larger indices than other monomers
   x_fulleren+=(x[i]/full_anzahl);
   y_fulleren+=(y[i]/full_anzahl);
   z_fulleren+=(z[i]/full_anzahl);
 }
 
-for (i=0;i<gesamtanzahl;i++){
+for (i=1;i<(gesamtanzahl+1);i++){
   x_gesamt+=(x[i]/gesamtanzahl);
   y_gesamt+=(y[i]/gesamtanzahl);
   z_gesamt+=(z[i]/gesamtanzahl);
@@ -344,28 +344,28 @@ interface.close();
 
 index=0;
 max=0;
-std::vector <int> startpunkt(monomer_anzahl);
+std::vector <int> startpunkt(monomer_anzahl+1);
 
 switch (ebene){ //different cases for the possible planes of the interface
 
   case 'x':
-    for (i=0;i<monomer_anzahl;i++){ //determining the maximal distance to interace
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
       if (x[i]>max){
 	max=x[i];
       }
     }
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << endl;
 
-    for (i=0;i<monomer_anzahl;i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
       if ((x[i]-x_mittel)>(0.85*(max-x_mittel))){
-	startpunkt[index]=i;
-	index++;
+		index++;
+		startpunkt[index]=i;
       }
     }
     break;
 
   case 'y':
-    for (i=0;i<monomer_anzahl;i++){ //determining the maximal distance to interace
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
       if (y[i]>max){
 	max=y[i];
       }
@@ -373,26 +373,28 @@ switch (ebene){ //different cases for the possible planes of the interface
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << endl;
 	std::cout << "Kriterium ist " << setw(12) << setprecision(6) << fixed << (max-y_mittel) << endl; //why only for y-plane?
 
-    for (i=0;i<monomer_anzahl;i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
       if ((y[i]-y_mittel)>(0.85*(max-y_mittel))){ 
-	startpunkt[index]=i;
-	index++;
+			index++;
+			startpunkt[index]=i;
+	
       }
     }    
     break;
 
   case 'z':
-    for (i=0;i<monomer_anzahl;i++){ //determining the maximal distance to interace
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
       if (z[i]>max){
 	max=z[i];
       }
     }
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << endl;
 
-    for (i=0;i<monomer_anzahl;i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
       if ((z[i]-z_mittel)>(0.85*(max-z_mittel))){
-	startpunkt[index]=i;
-	index++;
+		index++;
+		startpunkt[index]=i;
+	
       }
     }    
     break;
@@ -401,7 +403,7 @@ switch (ebene){ //different cases for the possible planes of the interface
 
 interface.open("startpunkt.xyz");
 interface << index << '\n' << '\n'; //writes the number of startingponts
-for (i=0;i<index;i++){				//writes coordinates of startingpoints
+for (i=1;i<(index+1);i++){				//writes coordinates of startingpoints
   interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x[ startpunkt[i] ];
   interface << setw(12) << setprecision(6) << fixed << y[ startpunkt[i] ];  
   interface << setw(12) << setprecision(6) << fixed << z[ startpunkt[i] ] << '\n';    
@@ -418,22 +420,22 @@ std::cout << "Anzahl der Schritte " << schritt << endl;
 
 // ###################################################################################
 
-std::vector <vector<double>> vel_ex (index, std::vector <double> (101)), 
-							vel_ch(index, std::vector <double>(101)),
-							zeit_ex(index, std::vector <double>(101)),
-							zeit_ch(index, std::vector <double>(101));
-std::vector <int> ex_diss(index), ch_diss(index), rek(index), trapping(index), radiativ(index);
-std::vector <vector<char>> zustand(index, std::vector <char> (101));
-std::vector <int> punkt(schritt), punkt_ladung(schritt);
+std::vector <vector<double>> vel_ex (index+1, std::vector <double> (101)), 
+							vel_ch(index+1, std::vector <double>(101)),
+							zeit_ex(index+1, std::vector <double>(101)),
+							zeit_ch(index+1, std::vector <double>(101));
+std::vector <int> ex_diss(index+1), ch_diss(index+1), rek(index+1), trapping(index+1), radiativ(index+1);
+std::vector <vector<char>> zustand(index+1, std::vector <char> (101));
+std::vector <int> punkt(schritt+1), punkt_ladung(schritt+1);
 double r_summe, r_i, zufall1, coulombenergy, dwelltime, r_summe_fulleren;
 
-for (i=0;i<index;i++){ //initializing the vectors with 0
+for (i=1;i<(index+1);i++){ //initializing the vectors with 0
     ex_diss[i]=0;
     ch_diss[i]=0;
     rek[i]=0;
     radiativ[i]=0;
     trapping[i]=0;  
-  for (j=0;j<100;j++){
+  for (j=1;j<101;j++){
     vel_ex[i][j]=0;
     vel_ch[i][j]=0;
     zeit_ex[i][j]=0;
@@ -445,19 +447,19 @@ for (i=0;i<index;i++){ //initializing the vectors with 0
 // k: index für startpunkte
 // j: index für durchläufe
 // i: index für schritt
-for (i=0;i<schritt;i++){
+for (i=0;i<(schritt+1);i++){
   punkt[i]=0;
 }
 
 ofstream run;
 	run.open("run.txt");
 
-for (k=0;k<index;k++){ // schleife über startpunkte "index durch 1 vertauscht"
+for (k=1;k<(index+1);k++){ // schleife über startpunkte "index durch 1 vertauscht"
 	run << "k ist " << k << endl;
 
 	
 
-for (j=0;j<100;j++){ // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
+for (j=1;j<101;j++){ // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
 //run << "j ist " << j << endl;
 zeit=0;
 zeit_1=0;
@@ -466,9 +468,9 @@ zeit_2=0;
 punkt[0]=startpunkt[k];
 
 //cout << "Punkt 0 " << punkt[0] << endl;
-  int vschritt=schritt-1; //additional variable to access the preceding step set to maximum value for first step after that i-1
+ // int vschritt=schritt-1; //additional variable to access the preceding step set to maximum value for first step after that i-1
 
-  for (i=0;i<schritt;i++){ 
+  for (i=1;i<(schritt+1);i++){ 
 //run << "i ist " << i << endl;
 
     if (zustand[k][j]=='c'){
@@ -480,29 +482,29 @@ punkt[0]=startpunkt[k];
       normal_distribution<double> distribution0(0.0,0.068584577); //##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hier neue standardabweichung eintragen
       zufall1 = distribution0(engine); //generating normal-distributed random number
 
-      std::vector<double> raten( partneranzahl [punkt_ladung[vschritt]]);
-      for (h=0;h<partneranzahl [punkt_ladung[vschritt]];h++){
-	if (partner [punkt_ladung[vschritt]] [h]<(monomer_anzahl+1)){
+      std::vector<double> raten( partneranzahl [punkt_ladung[i-1]]+1);
+      for (h=0;h<(partneranzahl [punkt_ladung[i-1]]+1);h++){
+	if (partner [punkt_ladung[i-1]] [h]<(monomer_anzahl+1)){
           zufall=distribution0(engine);	 
-	  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner [punkt_ladung[vschritt] ][h],3.4088)-coulomb( x, y, z, punkt[vschritt], punkt_ladung[vschritt], 3.4088);
-	  r_summe=r_summe+rate(coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], ((zufall-zufall1)+coulombenergy), reorganisationsenergie_ladung);
+	  coulombenergy=coulomb( x, y, z, punkt[i-1], partner [punkt_ladung[i-1] ][h],3.4088)-coulomb( x, y, z, punkt[i-1], punkt_ladung[i-1], 3.4088);
+	  r_summe=r_summe+rate(coupling_ladung[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ], ((zufall-zufall1)+coulombenergy), reorganisationsenergie_ladung);
 //	  cout << "LADUNGEN" << endl;
-//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1), reorganisationsenergie_ladung) << endl;
+//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_ladung[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ], (zufall-zufall1), reorganisationsenergie_ladung) << endl;
 //	  cout << "Energie " << setw(12) << setprecision(6) << fixed << (zufall-zufall1)+coulombenergy << endl;
-//	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ] << endl;
+//	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ] << endl;
 	  raten[h]=r_summe;
 	}
-	if ((partner[ punkt_ladung[vschritt] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[vschritt] ][h]==punkt[vschritt])){
+	if ((partner[ punkt_ladung[i-1] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i-1] ][h]==punkt[i-1])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen	   
-	  coulombenergy=coulomb( x, y, z, punkt_ladung[vschritt], partner[ punkt_ladung[vschritt] ][h], 1);
+	  coulombenergy=coulomb( x, y, z, punkt_ladung[i-1], partner[ punkt_ladung[i-1] ][h], 1);
 //	  cout << "LADUNGEN-HETERODIMER" << endl;	  
-	  r_summe=r_summe+rate(coupling_rek[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
-//	  cout << "Rate " << setw(12) << setprecision(3) << scientific  << rate(coupling_rek[ punkt_ladung[vschritt] ][ partner[ punkt_ladung[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
+	  r_summe=r_summe+rate(coupling_rek[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
+//	  cout << "Rate " << setw(12) << setprecision(3) << scientific  << rate(coupling_rek[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
 	  raten[h]=r_summe;
 	}
 	//ACHTUNG: hier Korrektur ///////////////////////////////////////////////////
-	else if ((partner[ punkt_ladung[vschritt] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[vschritt] ][h]!=punkt[vschritt])){
+	else if ((partner[ punkt_ladung[i-1] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i-1] ][h]!=punkt[i-1])){
 	  r_summe=r_summe;
 	  raten[h]=0;
 	}
@@ -512,29 +514,29 @@ punkt[0]=startpunkt[k];
       // hier raten für fullerene addieren #####################################################################################################################################################################
       r_summe_fulleren=0;
       zufall1=distribution0(engine);  
-      std::vector <double> raten_fulleren (partneranzahl [punkt[vschritt]]);
-      for (h=0;h<partneranzahl [punkt[vschritt]];h++){
-	if (partner [punkt[vschritt]][h] > (monomer_anzahl)){
+      std::vector <double> raten_fulleren (partneranzahl [punkt[i-1]]+1);
+      for (h=1;h<(partneranzahl [punkt[i-1]]+1);h++){
+	if (partner [punkt[i-1]][h] > (monomer_anzahl)){
           zufall=distribution0(engine);	
-	  coulombenergy=coulomb( x, y, z, punkt_ladung[vschritt], partner[ punkt[vschritt] ][h],3.4088)-coulomb( x, y, z, punkt[vschritt], punkt_ladung[vschritt], 3.4088);
-	  r_summe_fulleren=r_summe_fulleren+rate(coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], ((zufall-zufall1)+coulombenergy), fullerenreorganisationsenergie);
+	  coulombenergy=coulomb( x, y, z, punkt_ladung[i-1], partner[ punkt[i-1] ][h],3.4088)-coulomb( x, y, z, punkt[i-1], punkt_ladung[i-1], 3.4088);
+	  r_summe_fulleren=r_summe_fulleren+rate(coupling_fulleren[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], ((zufall-zufall1)+coulombenergy), fullerenreorganisationsenergie);
 //	  cout << "FULLERENE" << endl;
-//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+coulombenergy, fullerenreorganisationsenergie) << endl;	
+//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_fulleren[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], (zufall-zufall1)+coulombenergy, fullerenreorganisationsenergie) << endl;	
 //	  cout << "Energie " << setw(12) << setprecision(6) << fixed << (zufall-zufall1)+coulombenergy << endl;
-//	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_fulleren[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ] << endl;
+//	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_fulleren[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ] << endl;
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
-	if ((partner[ punkt[vschritt] ][h]<(monomer_anzahl+1))&&(partner[ punkt[vschritt] ][h]==punkt_ladung[vschritt])){
+	if ((partner[ punkt[i-1] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i-1] ][h]==punkt_ladung[i-1])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen
-	  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner[ punkt[vschritt] ][h], 1);
+	  coulombenergy=coulomb( x, y, z, punkt[i-1], partner[ punkt[i-1] ][h], 1);
 //	  cout << "FULLEREN-HETERODIMER" << endl;
-	  r_summe_fulleren=r_summe_fulleren+rate(coupling_rek[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
-//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_rek[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
+	  r_summe_fulleren=r_summe_fulleren+rate(coupling_rek[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation);
+//	  cout << "Rate " << setw(12) << setprecision(3) << scientific << rate(coupling_rek[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], (zufall-zufall1)+rekombinationstriebkraft-coulombenergy, rek_reorganisation) << endl;
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
 	//ACHTUNG: hier Korrektur ////////////////////////////////////////////////////////
-	else if ((partner[ punkt[vschritt] ][h]<(monomer_anzahl+1))&&(partner[ punkt[vschritt] ][h]!=punkt_ladung[vschritt])){
+	else if ((partner[ punkt[i-1] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i-1] ][h]!=punkt_ladung[i-1])){
 	  r_summe_fulleren=r_summe_fulleren;
 	  raten_fulleren[h]=0;
 	}
@@ -570,11 +572,11 @@ punkt[0]=startpunkt[k];
         uniform_real_distribution<double> distribution1(0,1); 
         zufall=distribution1(engine);
         r_i=zufall*r_summe;	
-	for (g=0;g< partneranzahl [punkt_ladung[vschritt]];g++){
-	  if ((raten[g]>r_i)&&(partner [punkt_ladung[vschritt]][g]<(monomer_anzahl))){
-		  std::cout << "Ladungstransport" << endl;
-	    punkt_ladung[i]=partner [punkt_ladung[vschritt]][g];
-	    punkt[i]=punkt[vschritt];
+	for (g=1;g< (partneranzahl [punkt_ladung[i-1]]+1);g++){
+	  if ((raten[g]>r_i)&&(partner [punkt_ladung[i-1]][g]<(monomer_anzahl+1))){
+		  run << "Ladungstransport" << endl;
+	    punkt_ladung[i]=partner [punkt_ladung[i-1]][g];
+	    punkt[i]=punkt[i-1];
 	    // Abbruchkriterium für Ladungstrennung
 	    switch(ebene){
 	      case 'x':
@@ -609,28 +611,25 @@ punkt[0]=startpunkt[k];
 		break;
 	    }
 	    //#########################################################################################################################
-		std::cout << "altes Monomer " << setw(5) << punkt_ladung[vschritt] << endl;
-		std::cout << "neues Monomer " << setw(5) << punkt_ladung[i] << endl;
-		std::cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[vschritt] ][ punkt_ladung[i] ] << endl;
-		std::cout << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[vschritt] << endl;
+		run << "altes Monomer " << setw(5) << punkt_ladung[i-1] << endl;
+		run << "neues Monomer " << setw(5) << punkt_ladung[i] << endl;
+		run << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[i-1] ][ punkt_ladung[i] ] << endl;
+		run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[i-1] << endl;
 	    break;
 	  }
-	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[vschritt] ][g]>(monomer_anzahl))){
-		  //std::cout << "Rekombination" << endl;
+	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[i-1] ][g]>(monomer_anzahl))){
 		  run << "Rekombination" << endl;
 	    zustand[k][j]='t';
 	    rek[k]++;
 	    break;
 	  }
-	  else if (g==(partneranzahl[ punkt_ladung[vschritt] ])) {
-		  //std::cout << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << endl;
+	  else if (g==(partneranzahl[ punkt_ladung[i-1] ])) {
 		  run << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << endl;
 	    return 0;
 	  }
 	}
       } // endes des hüpfenden p-halbleiters
       else if ((1/r_summe-zeit_1)>(1/r_summe_fulleren-zeit_2)){
-		  //std::cout << "Fulleren hüpft zuerst." << endl;
 		  run << "Fulleren hüpft zuerst." << endl;
 	if ((1/r_summe_fulleren-zeit_2)>0){
 	  zeit=zeit+(1/r_summe_fulleren-zeit_2);
@@ -643,7 +642,6 @@ punkt[0]=startpunkt[k];
 	  zeit_2=0;
 	}
 	else {
-		//std::cout << "FEHLER!" << endl;
 		run << "FEHLER!" << endl;
 	  return 0;
 	}
@@ -652,22 +650,22 @@ punkt[0]=startpunkt[k];
         zufall=distribution1(engine);
         r_i=zufall*r_summe_fulleren;
 //	cout << "R_i ist " << setw(12) << setprecision(6) << scientific  << r_i << endl;
-//	cout << "Partneranzahl " << partneranzahl[ punkt[vschritt] ] << endl;
-	for (g=0;g<(partneranzahl [punkt[vschritt]]);g++){
+//	cout << "Partneranzahl " << partneranzahl[ punkt[i-1] ] << endl;
+	for (g=1;g<((partneranzahl [punkt[i-1]])+1);g++){
 //	  cout << "g anfangs " << g << endl;
-//	  cout << "Partner " << partner[ punkt[vschritt] ][g] << endl;
-	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[vschritt]][g])>monomer_anzahl)){
-		  std::cout << "Ladungstranport im Fullerenphase" << endl;
+//	  cout << "Partner " << partner[ punkt[i-1] ][g] << endl;
+	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[i-1]][g])>monomer_anzahl)){
+		  run << "Ladungstranport im Fullerenphase" << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 	    
-	    punkt[i]=partner [punkt[vschritt]][g];
-	    punkt_ladung[i]=punkt_ladung[vschritt]; 
-		std::cout << "altes Fulleren " << setw(5) << punkt[vschritt] << endl;
-		std::cout << "neues Fulleren " << setw(5) << punkt[i] << endl;
-		std::cout << "Monomer " << setw(5) << punkt_ladung[i] << endl;
-		std::cout << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[vschritt] ] << endl;
+	    punkt[i]=partner [punkt[i-1]][g];
+	    punkt_ladung[i]=punkt_ladung[i-1]; 
+		run << "altes Fulleren " << setw(5) << punkt[i-1] << endl;
+		run << "neues Fulleren " << setw(5) << punkt[i] << endl;
+		run << "Monomer " << setw(5) << punkt_ladung[i] << endl;
+		run << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[i-1] ] << endl;
 	    break;
 	  }
-	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[vschritt] ][g])<(monomer_anzahl+1))){
+	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[i-1] ][g])<(monomer_anzahl+1))){
 //	    cout << "g ist " << g << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 
 		  //std::cout << "Rekombination." << endl;
@@ -676,7 +674,7 @@ punkt[0]=startpunkt[k];
 	    rek[k]++;
 	    break;
 	  }
-	  else if (g==(partneranzahl[ punkt[vschritt] ])) {
+	  else if (g==(partneranzahl[ punkt[i-1] ])) {
 		  //std::cout << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
 		  run << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
 	    return 0;
@@ -694,29 +692,29 @@ punkt[0]=startpunkt[k];
       normal_distribution<double> distribution0(0.0,0.0338987); //##############!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hier neue standardabweichung eintragen
       zufall1=distribution0(engine); //generating an normal-distributed random number
 
-      std::vector <double> raten (partneranzahl [punkt[vschritt]]+1);
+      std::vector <double> raten (partneranzahl [punkt[i-1]]+1);
 
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
 
-      for (h=0;h<(partneranzahl [punkt[vschritt]]);h++){
-		if (partner [punkt[vschritt]][h]<(monomer_anzahl)){
+      for (h=1;h<(partneranzahl [punkt[i-1]]+1);h++){
+		if (partner [punkt[i-1]][h]<(monomer_anzahl+1)){
            zufall=distribution0(engine);// generatinjg a second normal distributed random number
 
-//			 cout << "Excitonrate " << setw(12) << setprecision(5) << scientific << rate(coupling_exciton[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1), reorganisationsenergie_exciton) << endl; 
-		   r_summe+= rate(coupling_exciton[ punkt[vschritt]] [partner[punkt[vschritt]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
+//			 cout << "Excitonrate " << setw(12) << setprecision(5) << scientific << rate(coupling_exciton[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], (zufall-zufall1), reorganisationsenergie_exciton) << endl; 
+		   r_summe+= rate(coupling_exciton[ punkt[i-1]] [partner[punkt[i-1]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
 		   raten[h]= r_summe;
     	}
 
-		else if (partner [punkt[vschritt]] [h]>(monomer_anzahl)){
+		else if (partner [punkt[i-1]] [h]>(monomer_anzahl)){
           zufall=distribution0(engine);	 
 		// coulomb energie berechnen
-		  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner[ punkt[vschritt] ][h], 1);
-		   r_summe+= rate(coupling_ct[ punkt[vschritt]] [partner [punkt[vschritt]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
+		  coulombenergy=coulomb( x, y, z, punkt[i-1], partner[ punkt[i-1] ][h], 1);
+		   r_summe+= rate(coupling_ct[ punkt[i-1]] [partner [punkt[i-1]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
 		   raten[h]= r_summe;
 		}
       } // end of h
-run << "6";
+
       // fluoreszenz dazuaddieren
       r_summe=r_summe+k_rad;
       dwelltime=1/r_summe;
@@ -738,39 +736,36 @@ run << "6";
 	break;
       }
 //      cout << "Zeit ist " << setw(12) << setprecision(3) << zeit*1e10 << endl;
-      for (g=0;g<partneranzahl [punkt[vschritt]];g++){
+      for (g=1;g<(partneranzahl [punkt[i-1]]+1);g++){
 
 	if (raten[g]>r_i){
-	  punkt[i]=partner[ punkt[vschritt] ][g];
+	  punkt[i]=partner[ punkt[i-1] ][g];
 //	  cout << "neuer Punkt " << punkt[i] << endl;
-//	  if (punkt[i]<(monomer_anzahl+1)){
+	  if (punkt[i]<(monomer_anzahl+1)){
 //	    cout << "Exzitonentransport." << endl;
-//	    cout << "alter Punkt " << punkt[vschritt] <<endl;
+//	    cout << "alter Punkt " << punkt[i-1] <<endl;
 //	    cout << "neuer Punkt " << punkt[i] << endl;
-//	    cout << "Kopplung " << coupling_exciton[ punkt[vschritt] ][ punkt[i] ] << endl;	    
+//	    cout << "Kopplung " << coupling_exciton[ punkt[i-1] ][ punkt[i] ] << endl;	    
 //	    cout << "Raten_g " << setw(12) << setprecision(5) << scientific << raten[g] << endl;
 //	    cout << "Raten_g-1 " << setw(12) << setprecision(5) << scientific << raten[g-1] << endl;
 //	    cout << "r_i " << setw(12) << setprecision(5) << scientific << r_i << endl;
-//	  }
-/*else*/ if (punkt[i]>monomer_anzahl){
-//	    punkt[i]=partner [punkt[vschritt]] [g];	
-	    punkt_ladung[i]=punkt[vschritt];
+	  }
+	  else if (punkt[i]>monomer_anzahl){
+	    punkt[i]=partner [punkt[i-1]] [g];	
+	    punkt_ladung[i]=punkt[i-1];
 	    zustand[k][j]='c';
-		//std::cout << "Ladungstrennung." << endl;
 		run << "Ladungstrennung." << endl;
-//	    cout << "Kopplung " << coupling_ct[ punkt[vschritt] ][ punkt[i] ] << endl;
-//	    cout << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[vschritt], punkt[i], 1) << endl;
-//	    cout << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[vschritt], punkt[i]) << endl;
+//	    cout << "Kopplung " << coupling_ct[ punkt[i-1] ][ punkt[i] ] << endl;
+//	    cout << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[i-1], punkt[i], 1) << endl;
+//	    cout << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[i-1], punkt[i]) << endl;
 	    vel_ex[k][j]= length(x,y,z,punkt[0],punkt[i])/zeit;
-		//std::cout << "Exzitonengeschw. " << vel_ex[k][j]*1e-9 << endl;
 		run << "Exzitonengeschw. " << vel_ex[k][j] * 1e-9 << endl;
 	    ex_diss[k]++;
 	  }
 	  
 	  break;
 	}
-	else if (raten [partneranzahl [punkt[vschritt]]] < r_i){
-		//std::cout << "strahlender Zerfall." << endl;
+	else if (raten [partneranzahl [punkt[i-1]]] < r_i){
 		run << "strahlender Zerfall." << endl;
 	  radiativ[k]++;
 	  zustand[k][j]='t';
@@ -781,27 +776,24 @@ run << "6";
 	//____________________________________________________________________________________________
 
     else if (zustand[k][j]=='t'){
-		//std::cout << "KAPUTT!" << endl;
 		run << "KAPUTT!" << endl;
       break;
     } // end of 't'-zustand
 	//__________________________________________________________________________________________________
 
     else if (zustand[k][j]=='s'){
-		//std::cout << "ERFOLG!" << endl;
 		run << "ERFOLG!" << endl;
       break;
     } //end of 's'-zustand 
 	//_________________________________________________________________________________________________
 
     else {
-		//std::cout << "ACHTUNG. Zustand undefiniert!" << endl;
 		run << "ACHTUNG. Zustand undefiniert!" << endl;
       return 0;
     } //end of undefined zustand
 	//___________________________________________________________________________________________________
 
-	vschritt = i; //saving number of previous schritt for use in next iteration
+//	vschritt = i; //saving number of previous schritt for use in next iteration
 
   } // ende über schleife i
 
@@ -816,16 +808,16 @@ run.close();
 // Auswertung: Prozentsätze
 ofstream auswertung;
 auswertung.open("auswertung.txt");
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_Diss." << setw(12) << "Ch_Diss" << setw(12) << "Rek." << setw(12) << "Trapp." << setw(12) << "Fluor." << '\n';
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_Diss." << setw(9) << "Ch_Diss" << setw(9) << "Rek." << setw(9) << "Trapp." << setw(9) << "Fluor." << '\n';
 double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
 double mittel_ex=0;
 double mittel_ch=0;
 double mittel_rek=0;
 double mittel_trapp=0;
 double mittel_rad=0;
-std::vector <double> mittel_ex_vel (index), mittel_ch_vel (index), standard_ex (index), standard_ch(index);
+std::vector <double> mittel_ex_vel (index+1), mittel_ch_vel (index+1), standard_ex (index+1), standard_ch(index+1);
 int zahl;
-for (k=0;k<index;k++){
+for (k=1;k<(index+1);k++){
   mittel_ex=mittel_ex+(ex_diss[k]*1.0);
   mittel_ch=mittel_ch+(ch_diss[k]*1.0);
   mittel_rek=mittel_rek+(rek[k]*1.0);
@@ -836,21 +828,21 @@ for (k=0;k<index;k++){
   rek_efficiency=rek[k];
   trapp_efficiency=trapping[k];
   rad_efficiency=radiativ[k];
-  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(12) << setprecision(5) << ex_diss_efficiency;
-  auswertung << setw(12) << setprecision(5) << ch_diss_efficiency;  
-  auswertung << setw(12) << setprecision(5) << rek_efficiency << setw(12) << setprecision(5) << trapp_efficiency << setw(12) << setprecision(5) << rad_efficiency << '\n';  
+  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << ex_diss_efficiency;
+  auswertung << setw(9) << setprecision(5) << ch_diss_efficiency;  
+  auswertung << setw(9) << setprecision(5) << rek_efficiency << setw(9) << setprecision(5) << trapp_efficiency << setw(9) << setprecision(5) << rad_efficiency << '\n';  
 }
-auswertung << setw(9) << "Mittel " << setw(12) << setprecision(5) << fixed << mittel_ex/index << setw(12) << setprecision(5) << fixed << mittel_ch/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rek/index << setw(12) << setprecision(5) << fixed << mittel_trapp/index;
-auswertung << setw(12) << setprecision(5) << fixed << mittel_rad/index << '\n';
+auswertung << setw(9) << "Mittel " << setw(9) << setprecision(5) << fixed << mittel_ex/index << setw(9) << setprecision(5) << fixed << mittel_ch/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rek/index << setw(9) << setprecision(5) << fixed << mittel_trapp/index;
+auswertung << setw(9) << setprecision(5) << fixed << mittel_rad/index << '\n';
 auswertung << "GESCHWINDIGKEITEN" << '\n';
-auswertung << setw(4) << "k" << setw(5) << "IX" << setw(12) << "Ex_vel" << setw(12) << "Ex_s_dev" << setw(12) << "Ch_vel" << setw(12) << "Ch_s_dev" << '\n';
+auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_vel" << setw(9) << "Ex_s_dev" << setw(9) << "Ch_vel" << setw(9) << "Ch_s_dev" << '\n';
 // mittlere Geschwindigkeit
-for (k=0;k<index;k++){
+for (k=1;k<(index+1);k++){
   mittel_ch_vel[k]=0;
   mittel_ex_vel[k]=0;
   // Mittelwert berechnen
-  for (j=0;j<100;j++){
+  for (j=1;j<101;j++){
     if (vel_ch[k][j]>0.0001){
       mittel_ch_vel[k]=mittel_ch_vel[k]+vel_ch[k][j];
     }
@@ -873,7 +865,7 @@ for (k=0;k<index;k++){
  // Standardabweichunb berechnen
  standard_ex[k]=0;
  standard_ch[k]=0;
-  for (j=0;j<100;j++){
+  for (j=1;j<101;j++){
     if (vel_ch[k][j]>0.0001){
       standard_ch[k]=standard_ch[k]+(vel_ch[k][j]-mittel_ch_vel[k])*(vel_ch[k][j]-mittel_ch_vel[k]);
     }
@@ -893,45 +885,45 @@ for (k=0;k<index;k++){
   else if (ex_diss[k]<2){
     standard_ex[k]=0;    
   }
-  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(12) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << standard_ex[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
-  auswertung << setw(12) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
+  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << standard_ex[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
+  auswertung << setw(9) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
 }
 double mittelwert_geschw_exciton=0;
 double mittelwert_geschw_ladung=0;
-for (k=0;k<index;k++){
+for (k=1;k<(index+1);k++){
   mittelwert_geschw_exciton=mittelwert_geschw_exciton+mittel_ex_vel[k];
   mittelwert_geschw_ladung=mittelwert_geschw_ladung+mittel_ch_vel[k];
 }
-auswertung << setw(9) << "Mittel " << setw(12) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
-auswertung << setw(12) << setprecision(5) << fixed << mittelwert_geschw_ladung/index*1e-9 << '\n';
+auswertung << setw(9) << "Mittel " << setw(9) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
+auswertung << setw(9) << setprecision(5) << fixed << mittelwert_geschw_ladung/index*1e-9 << '\n';
 // Verteilung Ladungen und Exzitonengeschwindigkeiten
 ofstream exciton_verteilung;
 exciton_verteilung.open("exciton_verteilung.txt");
-for (i=0;i<20;i++){
+for (i=1;i<21;i++){
   zahl=0;
-  for (k=0;k<index;k++){
-    for (j=0;j<100;j++){
+  for (k=1;k<(index+1);k++){
+    for (j=1;j<101;j++){
       if ((vel_ex[k][j]>(i*50*1e9))){
 	zahl++;
       }
     }
   }
-  exciton_verteilung << setw(12) << setprecision(5) << i*50 << setw(12) << zahl/index << '\n';
+  exciton_verteilung << setw(9) << setprecision(5) << i*50 << setw(9) << zahl/index << '\n';
 }
 exciton_verteilung.close();
 exciton_verteilung.open("ladung_verteilung.txt");
-for (i=0;i<20;i++){
+for (i=1;i<21;i++){
   zahl=0;
-  for (k=0;k<index;k++){
-    for (j=0;j<100;j++){
+  for (k=1;k<(index+1);k++){
+    for (j=1;j<101;j++){
       if ((vel_ch[k][j]>(i*50*1e9))){
 	zahl++;
       }
     }
   }
-  exciton_verteilung << setw(12) << setprecision(5) << i*50 << setw(12) << zahl/index << '\n';
+  exciton_verteilung << setw(9) << setprecision(5) << i*50 << setw(9) << zahl/index << '\n';
 }
 exciton_verteilung.close();
 }
