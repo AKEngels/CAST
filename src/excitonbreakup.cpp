@@ -703,24 +703,24 @@ int vschritt = 0;                                 //=schritt-1;//additional vari
 //      cout << "neuer Zustand " << endl;
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
 
-      for (h=0;h<(partneranzahl [punkt[vschritt]]);h++)
+      for (h=0;h<(partneranzahl [punkt[i]]);h++)
 	  {
-		if (partner [punkt[vschritt]][h]<(monomer_anzahl)){ //interaction with a monomer
+		if (partner [punkt[i]][h]<(monomer_anzahl)){ //interaction with a monomer
            zufall=distribution0(engine);// generatinjg a second normal distributed random number
 
 //			 cout << "Excitonrate " << setw(12) << setprecision(5) << scientific << rate(coupling_exciton[ punkt[vschritt] ][ partner[ punkt[vschritt] ][h] ], (zufall-zufall1), reorganisationsenergie_exciton) << endl; 
-		   r_summe+= rate(coupling_exciton[ punkt[vschritt]] [partner[punkt[vschritt]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
+		   r_summe+= rate(coupling_exciton[ punkt[i]] [partner[punkt[i]] [h] ], (zufall-zufall1), reorganisationsenergie_exciton);
 		   raten[h]= r_summe;
 
 raten_out << h << "	" << setw(5) << raten[h] << "	" << zufall << endl;
     	}
 
-		else if (partner [punkt[vschritt]] [h]>(monomer_anzahl))
+		else if (partner [punkt[i]] [h]>(monomer_anzahl))
 		{ //interaction with a fulleren
           zufall=distribution0(engine);	 
 		// coulomb energie berechnen
-		  coulombenergy=coulomb( x, y, z, punkt[vschritt], partner[ punkt[vschritt] ][h], 1);
-		   r_summe+= rate(coupling_ct[ punkt[vschritt]] [partner [punkt[vschritt]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
+		  coulombenergy=coulomb( x, y, z, punkt[i], partner[ punkt[i] ][h], 1);
+		   r_summe+= rate(coupling_ct[ punkt[i]] [partner [punkt[i]] [h]], (zufall-zufall1)+chargetransfertriebkraft+coulombenergy, ct_reorganisation);
 		   raten[h]= r_summe;
 
 raten_out << h << "	" << setw(5) << raten[h] << "	" << zufall << endl;
@@ -753,7 +753,7 @@ raten_out << zufall << endl << "------------------------------------------------
       }
 //      cout << "Zeit ist " << setw(12) << setprecision(3) << zeit*1e10 << endl;
 
-  for (g=0;g< partneranzahl [punkt[vschritt]];g++){
+  for (g=0;g< partneranzahl [punkt[i]];g++){
 	 
 	if (raten[g]>r_i){
 
@@ -787,7 +787,7 @@ raten_out << zufall << endl << "------------------------------------------------
 	  }
 
 	}
-	else if (raten [partneranzahl [punkt[vschritt]]] < r_i){
+	else if (raten [partneranzahl [punkt[i]]] < r_i){
 		run << "strahlender Zerfall." << endl;
 	  radiativ[k]++;
 	  zustand[k][j]='t';
