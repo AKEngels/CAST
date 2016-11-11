@@ -262,7 +262,7 @@
 	 \item \acf{AMBER}\supercite{amber}
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
-	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and \ac{SPME} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
+	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and \ac{SPME} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website (\url{https://dasher.wustl.edu/tinker/distribution/params/}).
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
 		\ifdevmode \colorbox{red}{Blalala yaddayaddayadda... insert stuff here.} \fi
@@ -359,6 +359,14 @@
 	\end{tabularx}
 	\textbf{Note}: For alchemical transformations during \acl{FEP} simulations, each line may also contain the \glqq IN\grqq~or \glqq OUT\grqq~$($ case insensitive $)$ keyword at the end, separated by at least one space from the last bound atom.
 	\fi
+	
+	\subsubsection{How to obtain TINKER structures}
+	
+	Depending on the molecule you want to convert to the TINKER format there are several ways to do this:
+	
+	If you have a quite small molecule you may draw it in Avogadro (\url{http://avogadro.cc/wiki/Main_Page}). There you can save it as a .xyz file without information about topology. This .xyz file can be read by MOLDEN (\url{http://www.cmbi.ru.nl/molden/}) where you can write a Tinker file from it. However the atomtypes in this file are for the mm3 forcefield that is not supported by \ac{CAST} so you have to assign them manually. You find the atomtype in the forcefield .prm file that you use for your energy calculations in the first column in the section ``Atom type definitions''. If strange things happen during the conversion (e.\,g. appearance of dummy atoms) you can also fix this manually in the tinkerfile but this shouldn't happen frequently.
+	
+	It is also possible to convert .pdb files (e.g. from the protein data bank \url{http://www.rcsb.org/pdb/home/home.do}) into tinkerstructures using the TINKER software you can get from the TINKER website (\url{https://dasher.wustl.edu/tinker/}). Open the TINKER Executables for your system and unpack the files ``pdbxyz.exe'' and ``libiomp5md.dll'' into a folder (this explanation is for windows but the procedure should be similar on other systems). Additionally you need a parameterfile of one of the forcefields supported by \ac{CAST} that you can also obtain from the TINKER website (\url{https://dasher.wustl.edu/tinker/distribution/params/}). Then put your pdb-structure in the same folder, open the cmd there and type ``pdbxyz.exe $<$pdb-name$>$.pdb $<$prmfile-name$>$.prm''. If there is more than one chain in the pdb file you might be asked which chain you want to convert and then again what the name of your parameter file is. Then you get a TINKER .xyz file that has already assigned the correct parameter types for the forcefield corresponding to the parameter file you used for the conversion. Some structures might contain atom types that are not supported by the forcefield you chose, then you get a warning and no tinkerstructure is produced.
 	
 	\subsubsection{AMBER}
 
