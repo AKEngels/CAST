@@ -789,6 +789,15 @@ int main(int argc, char **argv)
           out << hold_str[i];
         }
       }
+	  case config::tasks::EXCITONBREAKUP:
+	  {
+		  /**
+		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN ORGANIC
+		  * SEMICONDUCTOR INTERFACE: (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR
+		  * FULLERENE INTERFACE)
+		  */
+		  break;
+	  }
       default:
       {
       

@@ -46,7 +46,7 @@ double coulomb(vector<double> arr1, vector<double> arr2, vector<double> arr3, in
   return c;
 }
 
-int main()
+int excitonbreakup()
 {
 	string zeile;
 	int i, j, h, index, k, g;
