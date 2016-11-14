@@ -40,6 +40,7 @@
 //#include "gbsa.h"
 #include <omp.h>
 #include "PCA.h"
+#include "excitonbreakup.h"
 
 //////////////////////////
 //                      //
@@ -788,15 +789,17 @@ int main(int argc, char **argv)
         {
           out << hold_str[i];
         }
+		break;
       }
 	  case config::tasks::EXCITONBREAKUP:
 	  {
 		  /**
-		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN ORGANIC
-		  * SEMICONDUCTOR INTERFACE: (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR
-		  * FULLERENE INTERFACE)
-		  */
-		  break;
+		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
+		//  excitonbreakup(); outcommented due to problem with rng
 	  }
       default:
       {
