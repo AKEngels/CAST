@@ -1123,7 +1123,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 	}
 	coords::Cartesian_Point C_geo_act_center = summe_coords_act_center / double(coords_act_center.size());
 
-	if (Config::get().general.verbosity > 3 && counter % split == 0)
+	if (Config::get().general.verbosity > 2 && counter % split == 0)
 	{
 		std::cout << "Coordinates of active site: " << C_geo_act_center << "\n";
 	}
