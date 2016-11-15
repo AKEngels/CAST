@@ -301,7 +301,7 @@ void coords::Atoms::refine_mains()
     }
 
   }
-  if (Config::get().general.verbosity > 4)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Identified " << main_torsion_indices.size() << " main torsions.\n";
   }

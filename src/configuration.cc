@@ -1,113 +1,10 @@
-#if defined _OPENMP
-#include <omp.h>
-#endif
-
-#include <fstream>
-#include <cstddef>
-#include <string>
-#include <stdexcept>
-#include <sstream>
-#include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <cctype>
-#include "scon.h"
 #include "configuration.h"
-#include "filemanipulation.h"
-#include "scon_utility.h"
 
-
+/**
+ * Global static instance of the config-object. 
+ * There can only ever be one config-object.
+ */
 Config * Config::m_instance = nullptr;
-
-std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str)
-{
-  // remove all spaces
-  str.erase(std::remove_if(str.begin(), str.end(),
-    [](char c) -> bool {return std::isspace(c) > 0; }),
-    str.end());
-  // replace all commas with spaces
-  std::replace(str.begin(), str.end(), ',', ' ');
-  std::string d;
-  std::stringstream iss(str);
-  std::vector<std::size_t> re;
-  // get each seperated value as single string d
-  while (iss >> d)
-  {
-    auto dash_pos = d.find('-');
-    // if element is a range (contains '-')
-    if (dash_pos != std::string::npos)
-    {
-      d[dash_pos] = ' ';
-      std::stringstream pss{ d };
-      std::size_t first(0), last(0);
-      if (pss >> first && pss >> last)
-      {
-        if (first <= last)
-        {
-          for (auto i = first; i <= last; ++i)
-          {
-            re.push_back(i);
-          }
-        }
-        else
-        {
-          throw std::runtime_error("Invalid range for indices: '" +
-            std::to_string(first) + " - " + std::to_string(last) + "'.");
-        }
-      }
-
-      else
-      {
-        throw std::runtime_error("Cannot read index range from '" + d + "'.");
-      }
-    }
-    // throw if non-numeric character is found
-    else if (d.find_first_not_of("0123456789") != std::string::npos)
-    {
-      throw std::runtime_error("Non numeric character found in '" + d + "'.");
-    }
-    // read number from stringstream of d
-    else
-    {
-      std::stringstream pss{ d };
-      std::size_t value;
-      if (pss >> value)
-      {
-        re.push_back(value);
-      }
-      else
-      {
-        throw std::runtime_error("Cannot read index from '" + d + "'.");
-      }
-    }
-  }
-  // sort resulting numbers
-  std::sort(re.begin(), re.end());
-  // remove duplicates and return rest
-  return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
-}
-
-
-
-template<typename T>
-static T clip(T value, T const LOW, T const HIGH)
-{
-  using std::min;
-  using std::max;
-  return min(HIGH, max(LOW, value));
-}
-
-
-template<typename ENUM_T, std::size_t ARR_SIZE>
-static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
-{
-  for (std::size_t i = 0; i < ARR_SIZE; ++i)
-  {
-    if (S.find(arr[i]) != S.npos) return static_cast<ENUM_T>(i);
-  }
-  return static_cast<ENUM_T>(-1);
-}
-
 
 config::tasks::T Config::getTask(std::string const & S)
 {
@@ -118,7 +15,6 @@ config::tasks::T Config::getTask(std::string const & S)
   }
   return config::tasks::ILLEGAL;
 }
-
 
 config::interface_types::T Config::getInterface(std::string const & S)
 {
@@ -149,6 +45,7 @@ config::solvs::S Config::getSolv(std::string const & S)
   }
   return config::solvs::VAC;
 }
+
 config::surfs::SA Config::getSurf(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_SURF; ++i)
@@ -157,169 +54,6 @@ config::surfs::SA Config::getSurf(std::string const & S)
       return static_cast<config::surfs::SA>(i);
   }
   return config::surfs::TINKER;
-}
-
-static bool file_exists_readable(std::string filename)
-{
-  std::ofstream teststream(filename.c_str(), std::ios_base::in);
-  return (teststream.is_open() && teststream.good());
-}
-
-
-static bool bool_from_iss(std::istringstream & in)
-{
-  int x;
-  in >> x;
-  return (in && x > 0);
-}
-
-
-template<typename T>
-static T from_iss(std::istringstream & in)
-{
-  T x;
-  in >> x;
-  return x;
-}
-
-
-template<typename T>
-static T enum_from_iss(std::istringstream & in)
-{
-  int x;
-  in >> x;
-  return static_cast<T>(x);
-}
-
-/**
- * This creates an std::vector from range based input (istringstream&)
- * only works for integer types
- * EXAMPLE: 3-6 -> 3,4,5,6 (sorted)
- */
-template<typename T>
-std::vector<T> configuration_range_int(std::istringstream& cv)
-{
-  bool none_check = false;
-  std::vector<T> temp;
-  std::vector<std::string> holder;
-  while (cv)
-  {
-    std::string temp2;
-    cv >> temp2;
-    holder.push_back(temp2);
-  }
-  holder.pop_back();
-  for (unsigned int i = 0; i < holder.size(); i++)
-  {
-    if (holder[i] == "none")
-    {
-      none_check = true;
-    }
-    bool i_o_done = false;
-    while (!i_o_done)
-    {
-      for (unsigned int j = 0; j < holder[i].size(); j++)
-      {
-        if (holder[i][j] == *"-")
-        {
-          int last_comma = -1, next_comma = -1;
-          for (int l = j; l >= 0; l--)
-          {
-            if (holder[i][l] == *",") { last_comma = l; break; }
-          }
-          for (unsigned int l = j; l < holder[i].size(); l++)
-          {
-            if (holder[i][l] == *",") { next_comma = l; break; }
-            else if (l == (holder[i].size() - 1))
-            {
-              next_comma = (int)holder[i].size();
-              break;
-            }
-          }
-          std::string temp_str;
-          int k = stoi(holder[i].substr(last_comma + 1, j - last_comma - 1)) + 1;
-          while (k < stoi(holder[i].substr(j + 1, next_comma - j)))
-          {
-            temp_str.push_back(*",");
-            temp_str.append(std::to_string(k));
-            k++;
-          }
-          temp_str.push_back(*",");
-          holder[i].erase(j, 1);
-          holder[i].insert(j, temp_str);
-          i_o_done = false;
-          break;
-        }
-        if (j == holder[i].size() - 1) { i_o_done = true; }
-      }
-    }
-  }
-  for (std::size_t i = 0; i < holder.size(); i++)
-  {
-    if (holder[i] == "none") {
-      none_check = true;
-      break;
-    }
-    int last_comma = -1;
-    for (std::size_t j = 0; j < holder[i].size(); j++)
-    {
-      if (holder[i][j] == *",")
-      {
-        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma - 1))));
-        last_comma = (int)j;
-      }
-      else if (j == holder[i].size() - 1)
-      {
-        temp.push_back(stoi(holder[i].substr(last_comma + 1, (j - last_comma))));
-      }
-    }
-  }
-  //Sorting algorithm
-  std::size_t size = temp.size();
-  std::size_t left = 0;
-  while (left < size)
-  {
-    size_t min = left;
-    for (std::size_t i = (left + 1); i < size; i++)
-    {
-      if (temp[i] < temp[min])
-      {
-        min = i;
-      }
-    }
-
-    T holder2 = temp[min];
-    temp[min] = temp[left];
-    temp[left] = holder2;
-    left += 1;
-  }
-  if (none_check) temp = std::vector<T>{};
-  return temp;
-}
-
-/**
- * This creates an std::vector from range based input (istringstream&)
- * only works for floating types
- * Is much simpler than version for integer types, only packs into vector without filling or sorting
- * EXAMPLE: 3.5,7.8,2 -> 3.5 | 7.8 | 2.0
- */
-template<typename T>
-std::vector<T> configuration_range_float(std::istringstream& cv)
-{
-  std::vector<T> temp;
-  std::vector<std::string> holder;
-  while (cv)
-  {
-    std::string temp2;
-    cv >> temp2;
-    holder.push_back(temp2);
-  }
-  holder.pop_back();
-  for (std::size_t i = 0; i < holder.size(); i++)
-  {
-    temp.push_back(stod(holder[i]));
-  }
-  return temp;
 }
 
 /*
@@ -345,7 +79,6 @@ std::vector<T> configuration_range_float(std::istringstream& cv)
 
 */
 
-
 std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -369,7 +102,6 @@ std::string config::config_file_from_commandline(std::ptrdiff_t const N, char **
   return std::string("INPUTFILE");
 }
 
-
 void config::parse_command_switches(std::ptrdiff_t const N, char **V)
 {
   if (N > 1)
@@ -380,11 +112,20 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
       std::string argument(V[i]);
       std::string::size_type const equality_pos(argument.find("="));
 
+      // This section transfers the commandline switches
+      // into a form which can be parsed by the function
+      // "parse option", see also parse_option(std::string option, std::string value)
+      //
+      // This only works for switches of the form -option=value
+      // Example, -cutoff=5.0
       if (argument.substr(0U, 1U) == "-" && equality_pos != argument.npos &&
         argument.length() >(equality_pos + 1U))
       {
         std::string option(argument.substr(1U, (equality_pos - 1U)));
         std::string value(argument.substr((equality_pos + 1U), (argument.length() - equality_pos - 1U)));
+
+        // if the value is passed to this function containing quotation marks,
+        // they will be removed for your conveniance
         if (value.substr(0U, 1U) == "\"")
         {
           std::string::size_type const last_quotationmark(argument.find_last_of("\""));
@@ -410,6 +151,10 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
         config::parse_option(option, value);
       }
 
+      // The following switches can also take the form:
+      // "-n yourChosenName" or "-p paramfile.prm"
+      //
+      // This only works for name, paramfile, outname, task and inputtype
       if (argument.substr(0, 2) == "-n" && argument.length() == 2U && N > i + 1)
       {
         config::parse_option("name", V[++i]);
@@ -426,13 +171,15 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
       {
         config::parse_option("task", V[++i]);
       }
-      else if (argument.substr(0, 6) == "-spack")
-      {
-        Config::set().energy.spackman.on = true;
-      }
       else if (argument.substr(0, 5) == "-type" && argument.length() == 5U && N > i + 1)
       {
         config::parse_option("inputtype", V[++i]);
+      }
+
+      // Enable spackman by entering -spack
+      else if (argument.substr(0, 6) == "-spack")
+      {
+        Config::set().energy.spackman.on = true;
       }
     }
   }
@@ -445,12 +192,6 @@ void config::parse_command_switches(std::ptrdiff_t const N, char **V)
       scon::StringFilePath(Config::get().general.inputFilename).base_no_extension() +
       Config::set().general.outputFilename.substr(f + 2);
   }
-}
-
-
-void config::startopt_conf::solvadd::set_opt(opt_types::T type)
-{
-  opt = type;
 }
 
 
@@ -468,6 +209,17 @@ void config::startopt_conf::solvadd::set_opt(opt_types::T type)
 
 */
 
+/*! Helperfunction to keep track of the output-filename
+ *
+ * Small helper function that keeps
+ * track of wether an "outname" has
+ * been specified and read up until now.
+ *
+ * Reasoning: If no "outname" is specified in the
+ * configfile, "inputname" + "_out" will be taken
+ * as the outname. This function is used only in
+ * config::parse_option
+ */
 static bool outname_check(int x = 0)
 {
   static int chk = 0;
@@ -475,16 +227,45 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
+std::vector<unsigned> FEP_get_inout()  // function to find all appearing or disappearing atoms in an FEP input file
+{                                      // returns a vector with tinker atom numbers
+	std::vector<unsigned> temp;
+	std::ifstream config_file_stream(Config::set().general.inputFilename.c_str(), std::ios_base::in);
+	std::string line;
+	while (std::getline(config_file_stream, line))
+	{
+		if (line.substr(line.size() - 2) == "IN" || line.substr(line.size() - 3) == "OUT")
+		{
+			std::string atom_number_str = line.substr(0, 4);
+			unsigned atom_number = std::stoi(atom_number_str);
+			temp.push_back(atom_number);
+		}
+	}
+	return temp;
+}
 
 void config::parse_option(std::string const option, std::string const value_string)
 {
   std::istringstream cv(value_string);
+
+  /////////////////////
+  //// Config::general
+  ////////////////////
   if (option == "name")
   {
     Config::set().general.inputFilename = value_string;
+
+    // If no outname is specified,
+    // the output-file will have the same name as the inputfile
+    // but with "_out" added to the name.
+    //
+    // outname_check is a small function used to test if
+    // an outname has already been specified by keeping a
+    // static counter.
     if (outname_check(0))
     {
       std::string path = value_string;
+      // Remove quote signs
       if (path.front() == '"' && path.back() == '"')
       {
         path = path.substr(1u, path.length() - 2U);
@@ -493,9 +274,17 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
     }
   }
+  // Name of the outputfile
+  // Default: oplsaa.prm
   else if (option == "outname")
   {
+    // outname_check is a small function used to test if
+    // an outname has already been specified by keeping a
+    // static counter.
     outname_check(1);
+
+    // If the "outname" starts with an +,
+    // we append the (input)name by this string
     if (value_string[0] == '+')
     {
       Config::set().general.outputFilename += value_string.substr(1);
@@ -504,15 +293,26 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().general.outputFilename = value_string;
   }
 
-  //! Parameterfile
+  // Filename of the ForceField parameter-file
+  // Has to be in same folder as executable
+  // Default: oplsaa.prm
   else if (option == "paramfile")
     Config::set().general.paramFilename = value_string;
 
-  //! Input format
+  // Input format.
+  // Default: TINKER
   else if (option == "inputtype")
     Config::set().general.input = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
 
-  //! Cutoff radius
+  /////////////////////
+  //// Config::energy
+  ////////////////////
+
+  // This is an option only valid for force-fields
+  // Cutoff radius for non bonded interactions
+  // {supported for any internal FF interface}
+  // If smaller than 9, it will be set to 10
+  // Default: 10000
   else if (option == "cutoff")
   {
     cv >> Config::set().energy.cutoff;
@@ -522,29 +322,28 @@ void config::parse_option(std::string const option, std::string const value_stri
       double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
       if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
     }
-    Config::set().energy.switchdist = Config::set().energy.cutoff > 8.0 ? Config::set().energy.cutoff - 4.0 : 0.0;
+    Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
+  // Turn particle mesh ewald on
+  // CURRENTLY OUT OF ORDER
+  // Default: Off
   else if (option == "PME")
   {
     cv >> Config::set().energy.pme;
   }
-  else if (option == "PMEspline")
-  {
-    cv >> Config::set().energy.pmespline;
-  }
-  else if (option == "PMEthreshold")
-  {
-    cv >> Config::set().energy.pmetresh;
-  }
+
+  // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+  // Default: Cutoff - 4.0
   else if (option == "switchdist")
   {
     cv >> Config::set().energy.switchdist;
   }
 
+  // Set Verbosity
+  // Default: 1
   else if (option == "verbosity")
   {
     cv >> Config::set().general.verbosity;
-    scon::cfg::verbosity = (unsigned int)Config::set().general.verbosity;
   }
 
   //! Task to be performed by CAST
@@ -557,7 +356,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
-      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      // In case the task was specified numerically (why the hell would
+      // you even do that dude?), we try to infer the task by matching
+      // the number to the enum
+      std::ptrdiff_t identifier(from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_TASKS))
       {
         Config::set().general.task = static_cast<config::tasks::T>(identifier);
@@ -566,6 +368,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
 
   //! Methods for implicit solvation
+
+  // Method for solvation
+  // Default: VAC (i guess vacuum?)
   else if (option == "solvmethod")
   {
     config::solvs::S solvmethod(Config::getSolv(value_string));
@@ -577,7 +382,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().general.surfacemethod = surfmethod;
   }
 
-  //! Output type for structures
+  // Output type for structures
   else if (option == "outputtype")
   {
     config::output_types::T type(Config::getOutFormat(value_string));
@@ -587,7 +392,10 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
-      std::ptrdiff_t identifier(config::from_string<std::ptrdiff_t>(value_string));
+      // In case the output was specified numerically (why the hell would
+      // you even do that dude?), we try to infer the outputtype by matching
+      // the number to the enum
+      std::ptrdiff_t identifier(from_string<std::ptrdiff_t>(value_string));
       if (identifier >= 0 && identifier < static_cast<std::ptrdiff_t>(config::NUM_OUTPUT))
       {
         Config::set().general.output = static_cast<config::output_types::T>(identifier);
@@ -595,7 +403,8 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
 
   }
-  //! Energy calculation interface
+
+  // Energy calculation interface
   else if (option == "interface")
   {
     interface_types::T inter = Config::getInterface(value_string);
@@ -606,10 +415,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     else
     {
       std::cout << "Configuration contained illegal interface." << std::endl;
+      std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
   }
 
-  //! Energy calculation interface
+  // Preoptimizazion energy calculation interface
   else if (option == "preinterface")
   {
     interface_types::T inter = Config::getInterface(value_string);
@@ -621,12 +431,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 #if defined _OPENMP
     long const T(from_iss<long>(cv));
     if (T > 0) omp_set_num_threads(T);
+#else
+    if (Config::get().general.verbosity > 2u)
+    std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
 #endif
-  }
-
-  else if (option == "profileruns")
-  {
-    cv >> Config::set().general.profile_runs;
   }
 
   //!SPACKMAN
@@ -640,9 +448,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
 
   }
+  // Options for NEB and pathopt
   else if (option.substr(0, 11) == "NEB-PATHOPT")
   {
-
 	  if (option.substr(11, 6) == "-FINAL")
 		  Config::set().neb.FINAL_STRUCTURE = value_string;
 	  else if (option.substr(11, 7) == "-IMAGES")
@@ -691,7 +499,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.MAXFLUX;
   }
 
-  //! convergence gradient for bfgs
+  // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
     if (option.substr(5, 3) == "key")
@@ -702,6 +510,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.mopac.delete_input = bool_from_iss(cv);
     else if (option.substr(5, 7) == "version")
     {
+      // Matching the "value string"
+      // to the enum config::mopac_ver_type
       Config::set().energy.mopac.version =
         enum_type_from_string_arr<
         config::mopac_ver_type::T,
@@ -710,11 +520,13 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //! convergence gradient for bfgs
+  // convergence threshold for bfgs
+  // Default 0.001
   else if (option == "BFGSgrad")
     cv >> Config::set().optimization.local.bfgs.grad;
 
-  //! max number of steps for bfgs
+  // max number of steps for bfgs
+  // Default: 10000
   else if (option == "BFGSmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
 
@@ -738,8 +550,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     double T(from_iss<double>(cv));
     if (T > 0.0)
     {
-      Config::set().md.T_init = T;
-      Config::set().md.T_final = T;
       Config::set().optimization.global.temperature = T;
     }
   }
@@ -753,10 +563,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "Iterations")
   {
     std::size_t const I(from_iss<std::size_t>(cv));
-    if (I > 0U)
+    if (I > 0)
     {
       Config::set().optimization.global.iterations = I;
-      Config::set().md.num_steps = I;
     }
     cv >> Config::set().optimization.global.iterations;
   }
@@ -791,7 +600,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else if (option.substr(2, 3) == "opt")
     {
-      Config::set().startopt.solvadd.set_opt(enum_from_iss<config::startopt_conf::solvadd::opt_types::T>(cv));
+      Config::set().startopt.solvadd.opt = enum_from_iss<config::startopt_conf::solvadd::opt_types::T>(cv);
     }
     else if (option.substr(2, 7) == "go_type")
     {
@@ -936,7 +745,15 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  unsigned act_cent_atom;
 		  if (cv >> act_cent_atom)
 		  {
-			  Config::set().md.active_center.push_back(act_cent_atom);
+			  if (act_cent_atom == 0 && Config::get().general.task == tasks::FEP)
+			  {     // for FEP calculation: if active_site is set to zero: 
+				    // calculate active site out of all appearing or disappearing atoms
+				  Config::set().md.active_center = FEP_get_inout();
+			  }
+			  else
+			  {
+				  Config::set().md.active_center.push_back(act_cent_atom);
+			  }
 		  }
 	  }
 	  else if (option.substr(2, 6) == "cutoff")
@@ -984,8 +801,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().energy.periodic = bool_from_iss(cv);
     if (cv >> Config::set().energy.pb_box.x()
       && cv >> Config::set().energy.pb_box.y()
-      && cv >> Config::set().energy.pb_box.z()
-      && cv >> Config::set().energy.pb_cut)
+      && cv >> Config::set().energy.pb_box.z() )
     {
       double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
       if (Config::set().energy.periodic
@@ -1041,10 +857,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(3, 8) == "backward")
     {
       cv >> Config::set().fep.backward;
-    }
-    else if (option.substr(3, 6) == "couple")
-    {
-      Config::set().fep.couple = bool_from_iss(cv);
     }
   }
 
@@ -1231,23 +1043,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //! end file for pathrelaxation
-  else if (option.substr(0, 9) == "PRendfile")
-  {
-    if (file_exists_readable(value_string.c_str()))
-      Config::set().path.endpointFileName = value_string;
-  }
-  //! max delta E for path relaxation
-  else if (option.substr(0, 8) == "PRdeltae")
-  {
-    cv >> Config::set().path.maxDeltaE;
-  }
-  //! max delta X for path relaxation
-  else if (option.substr(0, 8) == "PRdeltax")
-  {
-    cv >> Config::set().path.maxDeltaX;
-  }
-
   //! Fixation excluding
   else if (option.substr(0, 10) == "FIXexclude")
   {
@@ -1329,11 +1124,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv);
   }
 
-  else if (option.substr(0, 12) == "REMOVEH2OROT")
-  {
-    Config::set().coords.no_hydrot_mains = bool_from_iss(cv);
-  }
-
   else if (option.substr(0, 4) == "BIAS")
   {
     if (option.substr(4, 9) == "spherical")
@@ -1400,7 +1190,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 9) == "Subsystem")
   {
     // indices from current option value
-    auto ssi = sorted_indices_from_cs_string(value_string);
+    std::vector<size_t> ssi = sorted_indices_from_cs_string(value_string);
     // check whether one of the atoms in that subsystem 
     // is contained in any already given one
     for (auto & susy : Config::get().coords.subsystems)
@@ -1741,6 +1531,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().io.amber_trajectory_at_constant_pressure = false;
     }
   }
+
   /* Inputoptions for excitonbreakup
   */
   else if (option.substr(0u,2u) == "US")
@@ -1791,8 +1582,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 
 
-
-
 /*
 
 
@@ -1816,7 +1605,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 */
 
-
 void Config::parse_file(std::string const & filename)
 {
 
@@ -1824,10 +1612,16 @@ void Config::parse_file(std::string const & filename)
   std::size_t const N(data.size());
   for (std::size_t i = 0; i < N; i++)
   {
+    // In the configfile, first there will be an option, then a varying number of whitespaces
+    // and then the value of the option
     std::string option_string(data[i].substr(0U, data[i].find_first_of(" ")));
     std::string value_string(data[i]);
+
+    // erase whitespaces
     value_string.erase(0, value_string.find_first_of(" "));
     value_string.erase(0, value_string.find_first_not_of(" "));
+
+    // Values beginning with an "#" are ignored.
     if (option_string.size() > 0 && option_string[0] != '#')
     {
       config::parse_option(option_string, value_string);
@@ -1835,18 +1629,7 @@ void Config::parse_file(std::string const & filename)
   }
 }
 
-
-/*
-    std::string inputFilename, paramFilename, outputFilename;
-    input_types::T input;
-    config::tasks::T task;
-    interface_types::T energy_interface;
-    std::size_t verbosity;
-    bool forcefield;
-*/
-
-
-std::ostream & config::operator<< (std::ostream &strm, general const &g)
+std::ostream & config::operator << (std::ostream &strm, general const &g)
 {
   strm << "Reading structure(s) from '" << g.inputFilename;
   strm << "' (type: " << config::input_strings[g.input] << ")";
@@ -1854,7 +1637,6 @@ std::ostream & config::operator<< (std::ostream &strm, general const &g)
   strm << "Energy calculations will be performed using '" << interface_strings[g.energy_interface] << "'.\n";
   return strm;
 }
-
 
 std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
 {
@@ -1956,33 +1738,37 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
     strm << torsion.c + 1 << "->" << torsion.d + 1 << " will be forced to be ";
     strm << torsion.ideal << " deg with force =  " << torsion.force << ".\n";
   }
+
   for (auto const & dist : p.bias.distance)
   {
     strm << "Distance " << dist.a << "<->" << dist.b;
     strm << " will be forced to be ";
     strm << dist.ideal << " A. Force =  " << dist.force << "\n";
   }
+
   for (auto const & angle : p.bias.angle)
   {
     strm << "Angle " << angle.a << "->" << angle.b << "<-" << angle.c;
     strm << " will be forced to be ";
     strm << angle.ideal << " A. Force =  " << angle.force << "\n";
   }
+
   for (auto const & sphere : p.bias.spherical)
   {
     strm << "Spherical boundary with radius " << sphere.radius;
     strm << " will be applied; Force =  " << sphere.force;
     strm << ", Exponent = " << sphere.exponent << "\n";
   }
+
   for (auto const & cube : p.bias.cubic)
   {
     strm << "Cubic boundary with box size " << cube.dim;
     strm << " will be applied; Force =  " << cube.force;
     strm << ", Exponent = " << cube.exponent << "\n";
   }
+
   return strm;
 }
-
 
 std::ostream & config::operator<< (std::ostream &strm, energy const &p)
 {
@@ -2006,13 +1792,6 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   }
   return strm;
 }
-
-
-std::ostream& config::optimization_conf::operator<< (std::ostream &strm, sel const &)
-{
-  return strm;
-}
-
 
 std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global const &opt)
 {
@@ -2085,28 +1864,6 @@ std::ostream& config::optimization_conf::operator<< (std::ostream &strm, global 
   return strm;
 }
 
-/*
-struct boundary_types { enum T { LAYER = 0, SPHERE = 1, BOX = 2 }; };
-struct opt_types { enum T { NONE, SHELL, TOTAL, TOTAL_SHELL }; };
-double defaultLenHB, maxDistance, water_bond;
-::coords::angle_type water_angle;
-
-std::size_t maxNumWater, ffTypeOxygen, ffTypeHydrogen;
-boundary_types::T boundary;
-opt_types::T opt;
-bool fix_initial, fix_intermediate;
-globopt_routine_type::T go_type;
-solvadd() :
-defaultLenHB(1.79), maxDistance(10.0),
-water_bond(0.95), water_angle(109.5),
-maxNumWater(0), ffTypeOxygen(53), ffTypeHydrogen(54),
-boundary(boundary_types::LAYER), opt(opt_types::SHELL),
-fix_initial(true), fix_intermediate(true),
-go_type(globopt_routine_type::BASINHOPPING)
-{ }
-void set_opt(opt_types::T type);
-*/
-
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd const &sa)
 {
   strm << "SolvAdd will fill ";
@@ -2154,7 +1911,6 @@ std::ostream& config::startopt_conf::operator<< (std::ostream &strm, solvadd con
   }
   return strm;
 }
-
 
 std::ostream& config::startopt_conf::operator<< (std::ostream &strm, ringsearch const &rso)
 {

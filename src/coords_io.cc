@@ -29,6 +29,13 @@ public:
   }
 };
 
+
+/*! Creates new coords::input::format
+ * 
+ * Creates new coords::input::format
+ * according to the input type specified 
+ * in the configfile
+ */
 coords::input::format* coords::input::new_format(void)
 {
   switch (Config::get().general.input)
@@ -48,8 +55,18 @@ coords::input::format* coords::input::new_format(void)
   }
 }
 
+/*! Read coordinates from a tinker .arc file
+ *
+ * This function is used to read coordinates from
+ * a tinker xyz file (.arc or sometimes .xyz)
+ *
+ * @return: Coordinates object containing the coordinates
+ * @param file: Filename of the .arc tinker file
+ */
 coords::Coordinates coords::input::formats::tinker::read(std::string file)
 {
+  // Create empty coordinates object!
+
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
   if (coord_file_stream)
@@ -70,8 +87,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
     {
-      //std::cout << "Line " << i << " mod: " << i%(N+1u) << '\n';
-      //std::istringstream linestream(line);
       if (i <= N)
       {
         std::istringstream linestream(line);
@@ -117,16 +132,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           double x(0), y(0), z(0);
           CAST_SSCANF_COORDS_IO(line.c_str(), "%*u %*s %lf %lf %lf", &x, &y, &z);
           positions.emplace_back(x, y, z);
-          /*std::size_t curr_ind{ 0 };
-          std::string curr_sym;
-          if (linestream >> curr_ind >> curr_sym >> x >> y >> z)
-          {
-            positions.emplace_back( x, y, z );
-          }
-          else
-          {
-            throw std::logic_error("Cannot obtain x,y,z for " + std::to_string(i) + ".");
-          }*/
           if ((i - input_ensemble.size()*(N + 1u)) == N)
           { // if we are at the end of a structure 
             if (positions.size() != atoms.size())
@@ -136,7 +141,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           }
         }
       }
-    } // for
+    } 
 
     // dividing subsystems
     if (!has_in_out_subsystems)
