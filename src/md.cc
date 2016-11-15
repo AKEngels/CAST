@@ -1448,7 +1448,6 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// refine nonbondeds if refinement is required due to configuration
 		if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
 		{
-			std::cout << k << "\n";
 			if (Config::get().general.verbosity > 3U) std::cout << "Refining structure/nonbondeds.\n";
 			coordobj.energy_update(true);
 		}
