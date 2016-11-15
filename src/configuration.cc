@@ -1741,7 +1741,12 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().io.amber_trajectory_at_constant_pressure = false;
     }
   }
-
+  /* Inputoptions for excitonbreakup
+  */
+  else if (option == "masscenters")
+  {
+	  Config::set().exbreak.masscenters = value_string;
+  }
   /*NOT IMPLEMENTED AS OF NOW!
   //I/O Atoms index options
   else if (option == "atomexclude")

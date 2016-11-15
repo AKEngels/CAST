@@ -799,7 +799,8 @@ int main(int argc, char **argv)
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		//  excitonbreakup(); outcommented due to problem with rng
+		  excitonbreakup(Config::set().exbreak.pscnumber, Config::set().exbreak.nscnumber, Config::set().exbreak.interfaceorientation, Config::set().exbreak.masscenters, 
+						 Config::set().exbreak.nscpairrates, Config::set().exbreak.pscpairexrates, Config::set().exbreak.pscpairchrates, Config::set().exbreak.pnscpairrates);
 	  }
       default:
       {

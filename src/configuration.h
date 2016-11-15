@@ -965,6 +965,18 @@ namespace config
   void parse_command_switches(std::ptrdiff_t const, char**);
   std::string config_file_from_commandline(std::ptrdiff_t const, char**);
   void parse_option(std::string const option, std::string const value);
+
+  struct exbreak
+  {
+	  std::string masscenters; //Filename
+	  std::string nscpairrates; //Filename
+	  std::string pscpairexrates; //Filename
+	  std::string pscpairchrates; //Filename
+	  std::string pnscpairrates; //Filename
+	  int nscnumber, pscnumber;
+	  char interfaceorientation;
+  };
+
 }
 
 
@@ -1011,6 +1023,7 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
+  config::exbreak				exbreak;
 
   void        check(void);
 

@@ -758,27 +758,27 @@ USsnap                 5
 
 #Center of masses of all semiconductor molecules
 
-masscenters			schwerpunkt.xyz
+EXmasscenters			schwerpunkt.xyz
 
 #Numbers of monomers
 
-numbern				57
+EXnumbern				57
 
-numberp				159
+EXnumberp				159
 
 #Orientation of the interface
 
-planeinterf			z
+EXplaneinterf			z
 
 #transition rates for all possible dimers
 
-nscpairrates			fulleren.txt
+EXnscpairrates			fulleren.txt
 
-pscpairexrates			homodimer_exciton.txt
+EXpscpairexrates			homodimer_exciton.txt
 
-pscpairchrates			homodimer_ladung.txt
+EXpscpairchrates			homodimer_ladung.txt
 
-pnscpairrates 			heterodimer.txt
+EXpnscpairrates 			heterodimer.txt
 
 
 

@@ -10,7 +10,7 @@
 //Original code by Charlotte. German comments are from original code, english comments were inserted during implementation into CAST.
 //Arrays were replaced by vectors.
 
-//using namespace std;
+
 
 istream& skipline(istream& in )
 {
@@ -46,19 +46,19 @@ double coulomb(std::vector<double> arr1, std::vector<double> arr2, std::vector<d
   return c;
 }
 
-int excitonbreakup()
+int excitonbreakup(int pscanzahl, int nscanzahl, char ebene, std::string masscenters, std::string nscpairrates, 
+				   std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates )
 {
-	string zeile;
+	std::string zeile;
 	int i, j, h, index, k, g;
-	int monomer_anzahl, monomer_atom, full_anzahl, gesamtanzahl;
-	char ebene;
+	int gesamtanzahl;
 	int e = 0;
 	int het = 0;
 	int full = 0;
 	double max, zufall;
 	//////////////////// Definition der Konstanten  
-	double reorganisationsenergie_exciton, reorganisationsenergie_ladung, fullerenreorganisationsenergie, trappingrate, chargetransfertriebkraft, rekombinationstriebkraft, temperatur, ct_reorganisation, rek_reorganisation;
-	double oszillatorstrength, wellenzahl;
+	double reorganisationsenergie_exciton, reorganisationsenergie_ladung, fullerenreorganisationsenergie, trappingrate, chargetransfertriebkraft, 
+		   rekombinationstriebkraft, temperatur, ct_reorganisation, rek_reorganisation, oszillatorstrength, wellenzahl;
 	////////////////////////////////////// hier konstanten angeben ///////////////////////////////////////////////
 	reorganisationsenergie_exciton = 0.561; // SCS-CC2 wert: vorher 0.561
 	reorganisationsenergie_ladung = 0.194;
@@ -77,23 +77,21 @@ int excitonbreakup()
 	double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten
 	double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
 	/////////////////////////////////// INPUT-MANUELL
-	std::cout << "Anzahl der Monomere" << std::endl;
+	/*std::cout << "Anzahl der Monomere" << std::endl;
 	std::cin >> monomer_anzahl;
-	std::cout << "Anzahl der Monomeratome" << std::endl;
-	std::cin >> monomer_atom;
 	std::cout << "Anzahl der Fullerene" << std::endl;
-	std::cin >> full_anzahl;
+	std::cin >> nscanzahl;
 	std::cout << "Ebene " << std::endl;
-	std::cin >> ebene;
+	std::cin >> ebene;*/
 	/////////////////////////////////// INPUT-READING
 	ifstream schwerpunkt;
-	schwerpunkt.open("schwerpunkt.xyz");
+	schwerpunkt.open(masscenters);
 	schwerpunkt >> gesamtanzahl;
 	std::cout << "Eingelesen " << gesamtanzahl << std::endl;
-	if (gesamtanzahl == monomer_anzahl + full_anzahl) {  //test if correct number of molecules was given
+	if (gesamtanzahl == pscanzahl + nscanzahl) {  //test if correct number of molecules was given
 		std::cout << "OK!" << std::endl;
 	}
-	else { //gesamtanzahl != monomer_anzahl + full_anzahl
+	else { //gesamtanzahl != pscanzahl + nscanzahl
 		std::cout << "FALSCH!" << std::endl;
 		return 0;
 	}
@@ -104,7 +102,7 @@ int excitonbreakup()
 	}
 	///////////////////////////////////
 	ifstream exciton;
-	exciton.open("homodimer_exciton.txt");
+	exciton.open(pscpairexrates);
 	while (getline(exciton, zeile)) { //counting of excitonpairs in homodimers
 		e++;
 	}
@@ -127,27 +125,27 @@ int excitonbreakup()
 
 	std::vector <int> exciton_1(e+1), exciton_2(e+1); //vectors for exciton pairs
 
-	exciton.open("homodimer_exciton.txt");
+	exciton.open(pscpairexrates);
 	for (i = 1; i < (e+1); i++) {
 		exciton >> exciton_1[i] >> exciton_2[i]; 
 		exciton >> coupling_exciton[exciton_1[i]][exciton_2[i]];
 		coupling_exciton[exciton_2[i]][exciton_1[i]] = coupling_exciton[exciton_1[i]][exciton_2[i]];
 	}
 	exciton.close();
-	std::vector <int> partneranzahl(monomer_anzahl + full_anzahl+1);
-	for (i = 1; i < (monomer_anzahl + full_anzahl+1); i++) {
+	std::vector <int> partneranzahl(pscanzahl + nscanzahl+1);
+	for (i = 1; i < (pscanzahl + nscanzahl+1); i++) {
 		partneranzahl[i] = 0;
 	} //inizialisation of all elements with 0
 
 	for (i = 1; i < (e+1); i++) {	// counting homodimer partners for j
-		for (j = 1; j < (monomer_anzahl+1); j++) {
+		for (j = 1; j < (pscanzahl+1); j++) {
 			if ((exciton_1[i] == j) || (exciton_2[i] == j)) {
 				partneranzahl[j]++;
 			}
 		}
 	}
 	////////////////////////////////////
-	exciton.open("homodimer_ladung.txt");
+	exciton.open(pscpairchrates);
 	for (i = 1; i < (e+1); i++) {
 		exciton >> j >> h; //j=exciton_1[i], h=exciton_2[i]
 		exciton >> coupling_ladung[j][h];
@@ -155,7 +153,7 @@ int excitonbreakup()
 	}
 	exciton.close();
 
-	exciton.open("heterodimer.txt");
+	exciton.open(pnscpairrates);
 	while (getline(exciton, zeile)) { //counting of heterodimers
 		het++;
 	}
@@ -163,7 +161,7 @@ int excitonbreakup()
 
 	std::vector <int> hetero_1(het+1), hetero_2(het+1);
 
-	exciton.open("heterodimer.txt");
+	exciton.open(pnscpairrates);
 	for (i = 1; i < (het+1); i++) {
 		exciton >> hetero_1[i] >> hetero_2[i];
 		exciton >> coupling_ct[hetero_1[i]][hetero_2[i]] >> coupling_rek[hetero_1[i]][hetero_2[i]];
@@ -180,7 +178,7 @@ int excitonbreakup()
 	exciton.close();
 
 	////////////////////////////////////////
-	exciton.open("fulleren.txt");
+	exciton.open(nscpairrates);
 	while (getline(exciton, zeile)) { //counting fullerene homopairs
 		full++;
 	}
@@ -189,7 +187,7 @@ int excitonbreakup()
 	std::cout << "Anzahl an Fullerenpaaren " << full << std::endl;
 	std::vector <int> fulleren_1(full+1), fulleren_2(full+1), test(2000);
 
-	exciton.open("fulleren.txt");
+	exciton.open(nscpairrates);
 	for (i = 1; i < (full+1); i++) {
 		exciton >> fulleren_1[i] >> fulleren_2[i];
 		test[i] = fulleren_2[i];
@@ -277,29 +275,29 @@ for (i=1;i<(gesamtanzahl+1);i++){
 kopplung.close();
 
 kopplung.open("couplings.txt");
-for (i=1;i<(monomer_anzahl+1);i++){
+for (i=1;i<(pscanzahl+1);i++){
   kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
 
   for (j=1;j<(partneranzahl[i]+1);j++){
     kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
-    if (partner[i][j] < (monomer_anzahl+1)){
+    if (partner[i][j] < (pscanzahl+1)){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_exciton[i] [partner[i][j]]; //writes the exciton-coupling between i and j
     }
-    else if (partner[i][j]>monomer_anzahl){
+    else if (partner[i][j]>pscanzahl){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_ct[i][ partner[i][j] ];     //writes charge-transfer-coupling between i and j 
     }
   }
   kopplung << '\n';  
 }
 
-for (i=(monomer_anzahl+1);i<(gesamtanzahl+1);i++){
+for (i=(pscanzahl+1);i<(gesamtanzahl+1);i++){
   kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
   for (j=1;j<(partneranzahl[i]+1);j++){
     kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
-    if (partner[i][j]<(monomer_anzahl)){
+    if (partner[i][j]<(pscanzahl)){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_rek[i][ partner[i][j] ]; //writes the recombination coupling between i and j
     }
-    else if (partner[i][j]> monomer_anzahl){
+    else if (partner[i][j]> pscanzahl){
       kopplung << setw(12) << setprecision(6) << fixed << coupling_fulleren[i][ partner[i][j] ]; // writes some coupling regarding fullerens?
     }
   }
@@ -311,16 +309,16 @@ kopplung.close();
 double x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.), 
 	   x_gesamt(0.), y_gesamt(0.), z_gesamt(0.), x_mittel(0.), y_mittel(0.), z_mittel(0.);
 
-for (i=1;i<(monomer_anzahl+1);i++){
-  x_monomer+=(x[i]/monomer_anzahl); 
-  y_monomer+=(y[i]/monomer_anzahl);
-  z_monomer+=(z[i]/monomer_anzahl);
+for (i=1;i<(pscanzahl+1);i++){
+  x_monomer+=(x[i]/pscanzahl); 
+  y_monomer+=(y[i]/pscanzahl);
+  z_monomer+=(z[i]/pscanzahl);
 }
 
-for (i=(monomer_anzahl+1);i<(gesamtanzahl+1);i++){ //using fact, that fullerens always have larger indices than other monomers
-  x_fulleren+=(x[i]/full_anzahl);
-  y_fulleren+=(y[i]/full_anzahl);
-  z_fulleren+=(z[i]/full_anzahl);
+for (i=(pscanzahl+1);i<(gesamtanzahl+1);i++){ //using fact, that fullerens always have larger indices than other monomers
+  x_fulleren+=(x[i]/nscanzahl);
+  y_fulleren+=(y[i]/nscanzahl);
+  z_fulleren+=(z[i]/nscanzahl);
 }
 
 for (i=1;i<(gesamtanzahl+1);i++){
@@ -344,19 +342,19 @@ interface.close();
 
 index=0;
 max=0;
-std::vector <int> startpunkt(monomer_anzahl+1);
+std::vector <int> startpunkt(pscanzahl+1);
 
 switch (ebene){ //different cases for the possible planes of the interface
 
   case 'x':
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
+    for (i=1;i<(pscanzahl+1);i++){ //determining the maximal distance to interace
       if (x[i]>max){
 	max=x[i];
       }
     }
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
 
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((x[i]-x_mittel)>(0.85*(max-x_mittel))){
 		index++;
 		startpunkt[index]=i;
@@ -365,7 +363,7 @@ switch (ebene){ //different cases for the possible planes of the interface
     break;
 
   case 'y':
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
+    for (i=1;i<(pscanzahl+1);i++){ //determining the maximal distance to interace
       if (y[i]>max){
 	max=y[i];
       }
@@ -373,7 +371,7 @@ switch (ebene){ //different cases for the possible planes of the interface
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
 	std::cout << "Kriterium ist " << setw(12) << setprecision(6) << fixed << (max-y_mittel) << std::endl; //why only for y-plane?
 
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((y[i]-y_mittel)>(0.85*(max-y_mittel))){ 
 			index++;
 			startpunkt[index]=i;
@@ -383,14 +381,14 @@ switch (ebene){ //different cases for the possible planes of the interface
     break;
 
   case 'z':
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the maximal distance to interace
+    for (i=1;i<(pscanzahl+1);i++){ //determining the maximal distance to interace
       if (z[i]>max){
 	max=z[i];
       }
     }
 	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
 
-    for (i=1;i<(monomer_anzahl+1);i++){ //determining the necessary number of starting points? 
+    for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((z[i]-z_mittel)>(0.85*(max-z_mittel))){
 		index++;
 		startpunkt[index]=i;
@@ -484,7 +482,7 @@ punkt[0]=startpunkt[k];
 
       std::vector<double> raten( partneranzahl [punkt_ladung[i-1]]+1);
       for (h=0;h<(partneranzahl [punkt_ladung[i-1]]+1);h++){
-	if (partner [punkt_ladung[i-1]] [h]<(monomer_anzahl+1)){
+	if (partner [punkt_ladung[i-1]] [h]<(pscanzahl+1)){
           zufall=distribution0(engine);	 
 	  coulombenergy=coulomb( x, y, z, punkt[i-1], partner [punkt_ladung[i-1] ][h],3.4088)-coulomb( x, y, z, punkt[i-1], punkt_ladung[i-1], 3.4088);
 	  r_summe=r_summe+rate(coupling_ladung[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ], ((zufall-zufall1)+coulombenergy), reorganisationsenergie_ladung);
@@ -494,7 +492,7 @@ punkt[0]=startpunkt[k];
 //	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[i-1] ][ partner[ punkt_ladung[i-1] ][h] ] << endl;
 	  raten[h]=r_summe;
 	}
-	if ((partner[ punkt_ladung[i-1] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i-1] ][h]==punkt[i-1])){
+	if ((partner[ punkt_ladung[i-1] ][h]>(pscanzahl))&&(partner[ punkt_ladung[i-1] ][h]==punkt[i-1])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen	   
 	  coulombenergy=coulomb( x, y, z, punkt_ladung[i-1], partner[ punkt_ladung[i-1] ][h], 1);
@@ -504,7 +502,7 @@ punkt[0]=startpunkt[k];
 	  raten[h]=r_summe;
 	}
 	//ACHTUNG: hier Korrektur ///////////////////////////////////////////////////
-	else if ((partner[ punkt_ladung[i-1] ][h]>(monomer_anzahl))&&(partner[ punkt_ladung[i-1] ][h]!=punkt[i-1])){
+	else if ((partner[ punkt_ladung[i-1] ][h]>(pscanzahl))&&(partner[ punkt_ladung[i-1] ][h]!=punkt[i-1])){
 	  r_summe=r_summe;
 	  raten[h]=0;
 	}
@@ -516,7 +514,7 @@ punkt[0]=startpunkt[k];
       zufall1=distribution0(engine);  
       std::vector <double> raten_fulleren (partneranzahl [punkt[i-1]]+1);
       for (h=1;h<(partneranzahl [punkt[i-1]]+1);h++){
-	if (partner [punkt[i-1]][h] > (monomer_anzahl)){
+	if (partner [punkt[i-1]][h] > (pscanzahl)){
           zufall=distribution0(engine);	
 	  coulombenergy=coulomb( x, y, z, punkt_ladung[i-1], partner[ punkt[i-1] ][h],3.4088)-coulomb( x, y, z, punkt[i-1], punkt_ladung[i-1], 3.4088);
 	  r_summe_fulleren=r_summe_fulleren+rate(coupling_fulleren[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], ((zufall-zufall1)+coulombenergy), fullerenreorganisationsenergie);
@@ -526,7 +524,7 @@ punkt[0]=startpunkt[k];
 //	  cout << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_fulleren[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ] << endl;
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
-	if ((partner[ punkt[i-1] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i-1] ][h]==punkt_ladung[i-1])){
+	if ((partner[ punkt[i-1] ][h]<(pscanzahl+1))&&(partner[ punkt[i-1] ][h]==punkt_ladung[i-1])){
           zufall=distribution0(engine);	 
 	  // coulomb energie berechnen
 	  coulombenergy=coulomb( x, y, z, punkt[i-1], partner[ punkt[i-1] ][h], 1);
@@ -536,7 +534,7 @@ punkt[0]=startpunkt[k];
 	  raten_fulleren[h]=r_summe_fulleren;
 	}
 	//ACHTUNG: hier Korrektur ////////////////////////////////////////////////////////
-	else if ((partner[ punkt[i-1] ][h]<(monomer_anzahl+1))&&(partner[ punkt[i-1] ][h]!=punkt_ladung[i-1])){
+	else if ((partner[ punkt[i-1] ][h]<(pscanzahl+1))&&(partner[ punkt[i-1] ][h]!=punkt_ladung[i-1])){
 	  r_summe_fulleren=r_summe_fulleren;
 	  raten_fulleren[h]=0;
 	}
@@ -573,7 +571,7 @@ punkt[0]=startpunkt[k];
         zufall=distribution1(engine);
         r_i=zufall*r_summe;	
 	for (g=1;g< (partneranzahl [punkt_ladung[i-1]]+1);g++){
-	  if ((raten[g]>r_i)&&(partner [punkt_ladung[i-1]][g]<(monomer_anzahl+1))){
+	  if ((raten[g]>r_i)&&(partner [punkt_ladung[i-1]][g]<(pscanzahl+1))){
 		  run << "Ladungstransport" << std::endl;
 	    punkt_ladung[i]=partner [punkt_ladung[i-1]][g];
 	    punkt[i]=punkt[i-1];
@@ -617,7 +615,7 @@ punkt[0]=startpunkt[k];
 		run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[i-1] << std::endl;
 	    break;
 	  }
-	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[i-1] ][g]>(monomer_anzahl))){
+	  else if ((raten[g]>r_i)&&(partner[ punkt_ladung[i-1] ][g]>(pscanzahl))){
 		  run << "Rekombination" << std::endl;
 	    zustand[k][j]='t';
 	    rek[k]++;
@@ -654,7 +652,7 @@ punkt[0]=startpunkt[k];
 	for (g=1;g<((partneranzahl [punkt[i-1]])+1);g++){
 //	  cout << "g anfangs " << g << endl;
 //	  cout << "Partner " << partner[ punkt[i-1] ][g] << endl;
-	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[i-1]][g])>monomer_anzahl)){
+	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[i-1]][g])>pscanzahl)){
 		  run << "Ladungstranport im Fullerenphase" << std::endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 	    
 	    punkt[i]=partner [punkt[i-1]][g];
@@ -665,7 +663,7 @@ punkt[0]=startpunkt[k];
 		run << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[i-1] ] << std::endl;
 	    break;
 	  }
-	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[i-1] ][g])<(monomer_anzahl+1))){
+	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[i-1] ][g])<(pscanzahl+1))){
 //	    cout << "g ist " << g << endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 
 		  //std::cout << "Rekombination." << endl;
@@ -698,7 +696,7 @@ punkt[0]=startpunkt[k];
 //      cout << "k_rad " << setw(12) << setprecision(5) << scientific << k_rad << endl;
 
       for (h=1;h<(partneranzahl [punkt[i-1]]+1);h++){
-		if (partner [punkt[i-1]][h]<(monomer_anzahl+1)){
+		if (partner [punkt[i-1]][h]<(pscanzahl+1)){
            zufall=distribution0(engine);// generatinjg a second normal distributed random number
 
 //			 cout << "Excitonrate " << setw(12) << setprecision(5) << scientific << rate(coupling_exciton[ punkt[i-1] ][ partner[ punkt[i-1] ][h] ], (zufall-zufall1), reorganisationsenergie_exciton) << endl; 
@@ -706,7 +704,7 @@ punkt[0]=startpunkt[k];
 		   raten[h]= r_summe;
     	}
 
-		else if (partner [punkt[i-1]] [h]>(monomer_anzahl)){
+		else if (partner [punkt[i-1]] [h]>(pscanzahl)){
           zufall=distribution0(engine);	 
 		// coulomb energie berechnen
 		  coulombenergy=coulomb( x, y, z, punkt[i-1], partner[ punkt[i-1] ][h], 1);
@@ -741,7 +739,7 @@ punkt[0]=startpunkt[k];
 	if (raten[g]>r_i){
 	  punkt[i]=partner[ punkt[i-1] ][g];
 //	  cout << "neuer Punkt " << punkt[i] << endl;
-	  if (punkt[i]<(monomer_anzahl+1)){
+	  if (punkt[i]<(pscanzahl+1)){
 //	    cout << "Exzitonentransport." << endl;
 //	    cout << "alter Punkt " << punkt[i-1] <<endl;
 //	    cout << "neuer Punkt " << punkt[i] << endl;
@@ -750,7 +748,7 @@ punkt[0]=startpunkt[k];
 //	    cout << "Raten_g-1 " << setw(12) << setprecision(5) << scientific << raten[g-1] << endl;
 //	    cout << "r_i " << setw(12) << setprecision(5) << scientific << r_i << endl;
 	  }
-	  else if (punkt[i]>monomer_anzahl){
+	  else if (punkt[i]>pscanzahl){
 	    punkt[i]=partner [punkt[i-1]] [g];	
 	    punkt_ladung[i]=punkt[i-1];
 	    zustand[k][j]='c';
