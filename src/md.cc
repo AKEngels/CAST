@@ -898,7 +898,7 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
 	E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
 	if (Config::get().general.verbosity > 4u)
 	{
-		std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
+		std::cout << "Updating kinetic Energy of some atoms from " << E_kin_tensor[0][0] << ", "
 			<< E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
 	}
 }
@@ -1059,16 +1059,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 	}
 	else // no thermostat -> direct scaling
 	{
-		if (Config::get().md.set_active_center == 0)
-		{
-			updateEkin();
-			temp = E_kin * tempfactor;      // temperature before
-            factor = std::sqrt(T / temp);
-			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
-			updateEkin();
-			temp2 = E_kin * tempfactor;     // temperatures after
-		}
-		else
+		if (Config::get().md.set_active_center == 1)
 		{     // calculate temperature only for atoms inside inner cutoff
 			updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
 			size_t dof = 3u * inner_atoms.size();
@@ -1080,6 +1071,15 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			temp2 = E_kin * T_factor;                   // new temperature of inner atoms
 			updateEkin();                               // kinetic energy
 		}
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;      // temperature before
+			factor = std::sqrt(T / temp);
+			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
+			updateEkin();
+			temp2 = E_kin * tempfactor;     // temperatures after
+		}
 		
 		
 		if (Config::get().general.verbosity > 3 && half)
@@ -1088,7 +1088,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 		}
 		else if (Config::get().general.verbosity > 3)
 		{
-			std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			std::cout << "full step: desired temp: " << T << " current temp: Updating kinetic Energy from" << temp << " factor: " << factor << "\n";
 		}		
 	}
 	return temp2;
@@ -1448,6 +1448,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		// refine nonbondeds if refinement is required due to configuration
 		if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
 		{
+			std::cout << k << "\n";
 			if (Config::get().general.verbosity > 3U) std::cout << "Refining structure/nonbondeds.\n";
 			coordobj.energy_update(true);
 		}
