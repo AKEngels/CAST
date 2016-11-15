@@ -54,7 +54,7 @@ namespace matop
 
     for (size_t i = 0; i < input.cols(); i++)
     {
-      coords::Cartesian_Point tempcoord2(input(0, i), input(1, i), input(2, i));
+      coords::Cartesian_Point tempcoord2(input(0u, i), input(1u, i), input(2u, i));
       tempcoord1.push_back(tempcoord2);
     }
     return tempcoord1;
@@ -66,7 +66,7 @@ namespace matop
 
     for (size_t i = 0; i < input.cols(); i++)
     {
-      coords::internal_type tempcoord2(input(0, i), scon::ang<float_type>(input(1, i)), scon::ang<float_type>(input(2, i)));
+      coords::internal_type tempcoord2(input(0u, i), scon::ang<float_type>(input(1u, i)), scon::ang<float_type>(input(2u, i)));
       tempcoord1.push_back(tempcoord2);
     }
     return tempcoord1;
@@ -213,7 +213,7 @@ namespace matop
           bool checker = false;
           for (size_t l = quicksearch; l < includedAtoms.size(); l++) //iterate over vector of atoms to account for
           {
-            if (includedAtoms[l] - 1 == i)
+            if (includedAtoms[l] == i)
             {
               checker = true;
               quicksearch++;
@@ -238,7 +238,6 @@ namespace matop
           {
             for (size_t k = 0; k < 3; k++)
             {
-              //transformed_matrix(0, j + k) = input(k, i);
               transformed_matrix(0, j + 0u) = coords.xyz(i).x();
               transformed_matrix(0, j + 1u) = coords.xyz(i).y();
               transformed_matrix(0, j + 2u) = coords.xyz(i).z();
@@ -249,77 +248,6 @@ namespace matop
       }
     }
   }
-
-  /////////////////////////////////////
-  //                              /////
-  //    E X C L U S I V E L Y     /////
-  //            P C A             /////
-  //                              /////
-  /////////////////////////////////////
-  namespace pca
-  {
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename)
-    {
-      std::ifstream pca_modes_stream(filename, std::ios::in);
-      std::string line;
-      std::getline(pca_modes_stream, line);
-      //int dimensions = std::stoi(line.substr(13, 2));
-      while (line.find("Eigenvectors") == std::string::npos)
-      {
-        std::getline(pca_modes_stream, line);
-      }
-
-      std::getline(pca_modes_stream, line);
-      eigenvectors.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
-
-      for (size_t i = 0u; i < eigenvectors.rows(); i++)
-      {
-        std::getline(pca_modes_stream, line);
-        size_t whitespace = 0u, lastWhitespace = 0u;
-        for (size_t j = 0u; j < eigenvectors.cols(); j++)
-        {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          eigenvectors(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-        }
-      }
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      trajectory.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
-
-      for (size_t i = 0u; i < trajectory.rows(); i++)
-      {
-        std::getline(pca_modes_stream, line);
-        size_t whitespace = 0u, lastWhitespace = 0u;
-        for (size_t j = 0u; j < trajectory.cols(); j++)
-        {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          trajectory(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-        }
-      }
-      //Additional options following:
-      // By the way, the rest of the file is ignored
-      if (std::getline(pca_modes_stream, line))
-      {
-        std::getline(pca_modes_stream, line);
-        if (std::getline(pca_modes_stream, line))
-        {
-          additionalInformation = line;
-        }
-        else
-        {
-          std::cout << "Could not read additional Information from pca_modes file.\n";
-        }
-      }
-    }
-  }
-
 
   /////////////////////////////////////
   //                              /////
@@ -506,16 +434,16 @@ namespace matop
       delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-      Matrix_Class pca_frequencies(eigenvalues.rows());
-      Matrix_Class alpha_i(pca_frequencies.rows());
-      Matrix_Class quantum_entropy(pca_frequencies.rows());
+      Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+      Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+      Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
       float_type entropy_sho = 0;
       for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
-        pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
-        alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
-        quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-        entropy_sho += quantum_entropy(i);
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_sho += quantum_entropy(i, 0u);
       }
       std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
       std::cout << "Starting corrections for anharmonicity and M.I... \n";
@@ -560,7 +488,7 @@ namespace matop
         }
         distance -= temp;
         distance += 0.5772156649015328606065;
-        entropy_anharmonic(i) = distance;
+        entropy_anharmonic(i, 0u) = distance;
         distance = 0;
 
         //MI
@@ -597,9 +525,10 @@ namespace matop
       {
         for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
-          if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) && pca_frequencies(j) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+          if (pca_frequencies(i, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) 
+            && pca_frequencies(j, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
           {
-            entropy_mi(i, j) = entropy_anharmonic(i) + entropy_anharmonic(j) - entropy_mi(i, j);
+            entropy_mi(i, j) = entropy_anharmonic(i, 0u) + entropy_anharmonic(j, 0u) - entropy_mi(i, j);
             if (entropy_mi(i, j) < 0)
             {
               if (entropy_mi(i, j) < -1)
@@ -612,7 +541,7 @@ namespace matop
           }
           else
           {
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
             entropy_mi(i, j) = 0.0;
           }
         }
@@ -623,21 +552,21 @@ namespace matop
       }
       for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
-        if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+        if (pca_frequencies(i, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
         {
-          classical_entropy(i) = -1.0 * (log(alpha_i(i)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
-          entropy_anharmonic(i) = classical_entropy(i) - entropy_anharmonic(i);
-          entropy_anharmonic(i) *= 1.380648813 * 6.02214129 * 0.239005736;
-          if ((entropy_anharmonic(i) / quantum_entropy(i)) < 0.007)
+          classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
+          entropy_anharmonic(i, 0u) = classical_entropy(i, 0u) - entropy_anharmonic(i, 0u);
+          entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+          if ((entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
           {
-            entropy_anharmonic(i) = 0.0;
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
+            entropy_anharmonic(i, 0u) = 0.0;
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
           }
         }
         else
         {
-          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
-          entropy_anharmonic(i) = 0.0;
+          if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
+          entropy_anharmonic(i, 0u) = 0.0;
         }
       }
 
@@ -645,7 +574,7 @@ namespace matop
       double delta_entropy = 0;
       for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
-        delta_entropy += entropy_anharmonic(i);
+        delta_entropy += entropy_anharmonic(i, 0u);
         for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
           delta_entropy += entropy_mi(i, j);
@@ -755,7 +684,7 @@ namespace matop
         }
         distance -= temp;
         distance += 0.5772156649015328606065;
-        marginal_entropy_storage(i) = distance;
+        marginal_entropy_storage(i, 0u) = distance;
         delete[] buffer;
       }
 
@@ -763,7 +692,7 @@ namespace matop
       float_type entropy = 0;
       for (size_t i = 0; i < marginal_entropy_storage.rows(); i++)
       {
-        entropy += marginal_entropy_storage(i);
+        entropy += marginal_entropy_storage(i, 0u);
       }
       std::cout << "entropy (dimensionless): " << entropy << '\n';
       std::cout << "entropy: " << entropy * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)" << "\n";
@@ -808,16 +737,16 @@ namespace matop
       delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-      Matrix_Class pca_frequencies(eigenvalues.rows());
-      Matrix_Class alpha_i(pca_frequencies.rows());
-      Matrix_Class quantum_entropy(pca_frequencies.rows());
+      Matrix_Class pca_frequencies(eigenvalues.rows(), 0u);
+      Matrix_Class alpha_i(pca_frequencies.rows(), 0u);
+      Matrix_Class quantum_entropy(pca_frequencies.rows(), 0u);
       float_type entropy_sho = 0;
       for (size_t i = 0; i < eigenvalues.rows(); i++)
       {
-        pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
-        alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
-        quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-        entropy_sho += quantum_entropy(i);
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_sho += quantum_entropy(i, 0u);
       }
       std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
       return entropy_sho;
@@ -1004,7 +933,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
 
 #ifdef _OPENMP
-  if (Config::get().general.verbosity > 3U) std::cout << "Using openMP for alignment.\n";
+  if (Config::get().general.verbosity > 2U) std::cout << "Using openMP for alignment.\n";
   auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
   for (std::ptrdiff_t i = 0; i < n_omp; ++i)
@@ -1089,233 +1018,16 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     }
     outputstream << hold_coords_str[i];
   }
-  distance << "\n";
-  distance << "Mean value: " << (mean_value / (double) (ci->size() - 1)) << "\n";
+  if (Config::get().alignment.traj_print_bool)
+  {
+    distance << "\n";
+    distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  }
   //Formatted string-output
 
   delete[] hold_str;
   delete[] hold_coords_str;
   //Cleaning Up
-}
-
-void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
-{
-  using namespace matop;
-  using namespace matop::pca;
-  Matrix_Class eigenvectors, trajectory;
-  std::vector<size_t> structuresToBeWrittenToFile;
-  std::string additionalInformation;
-  readEigenvectorsAndModes(eigenvectors, trajectory, additionalInformation);
-  if (Config::get().PCA.proc_desired_start.size() > trajectory.rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.rows())
-  {
-    std::cout << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
-  }
-
-  for (size_t j = 0u; j < trajectory.cols(); j++)
-  {
-    bool isStructureInRange = true;
-    for (size_t i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
-
-    {
-      if (i < Config::get().PCA.proc_desired_start.size())
-      {
-        if (trajectory(i, j) < Config::get().PCA.proc_desired_start[i])
-        {
-          isStructureInRange = false;
-        }
-      }
-      if (i < Config::get().PCA.proc_desired_stop.size())
-      {
-        if (trajectory(i, j) > Config::get().PCA.proc_desired_stop[i])
-        {
-          isStructureInRange = false;
-        }
-      }
-    }
-    if (isStructureInRange)
-    {
-      structuresToBeWrittenToFile.push_back(j);
-    }
-  }
-
-  if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
-  if (Config::get().general.verbosity > 2u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
-
-  //Undoing PCA
-  trajectory = eigenvectors * trajectory;
-
-  std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
-
-  // Case: Cartesian Coordinates.
-  if (additionalInformation.substr(0, 3) == "car")
-  {
-    //Additional Information Processing -> Read "DOFS that were used" from file. Put their identifying numbers in vector.
-    std::stringstream ss(additionalInformation.substr(4));
-    std::string buffer;
-    std::vector<size_t> tokens;
-    std::deque<bool> alreadyFoundStructures(ci->size(), false);
-
-    while (ss >> buffer) tokens.push_back((size_t)std::stoi(buffer));
-
-    if (tokens.size() != 0u)
-    {
-      ::matop::undoMassweight(trajectory, coords, false, tokens);
-      for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-      {
-        Matrix_Class out_mat(3, trajectory.rows() / 3u);
-        for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
-        {
-          out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
-          out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
-          out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
-        }
-        coords::Coordinates current(coords);
-
-        // For every partial (truncated) structure that is inside the user-defined
-        // range regarding its PCA-Modes,
-        // we now search the matching full structure in the input trajectory.
-        bool structureFound = false;
-        auto structureCartesian = ci->PES()[0].structure.cartesian;
-        int structureNumber = -1;
-
-        for (size_t k = 0u; k < ci->size() && !structureFound; k++)
-        {
-          if (alreadyFoundStructures[k]) continue;
-
-          structureCartesian = ci->PES()[k].structure.cartesian; //Current structure
-          structureFound = true;
-          structureNumber = (int)k;
-          // Remeber, we are now iterating over certain atoms (those to which
-          // the PCA was truncated.
-          for (size_t l = 0u; l < tokens.size(); l++)
-          {
-            // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
-            // is very small, the arbitrary cutoff 2e-4), consider it a match.
-            // However, we look for "not-matching" and break the loop. If everything matches, we continue.
-            // Thats why we negate the criterion in the if clause (!)
-            float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
-            float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
-            float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].z()), 2e-4);
-
-            if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l]].x()) <= xCompare &&
-              std::abs(out_mat(1, l) - structureCartesian[tokens[l]].y()) <= yCompare &&
-              std::abs(out_mat(2, l) - structureCartesian[tokens[l]].z()) <= zCompare))
-            {
-              structureFound = false;
-              break;
-            }
-          }
-        }
-        if (structureFound)
-        {
-          // Horray, we found it, now write it out!
-          alreadyFoundStructures[structureNumber] = true;
-          current.set_xyz(structureCartesian);
-          current.to_internal();
-          outstream << current;
-        }
-        else
-        {
-          std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-          std::cout << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
-        }
-      }
-    }
-    else
-    {
-      // Here, we merely restore the coordinates from the PCA-modes
-      // since no truncation took place, and write them out.
-      ::matop::undoMassweight(trajectory, coords, false);
-      for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-      {
-        Matrix_Class out_mat(3, trajectory.rows() / 3u);
-        for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
-        {
-          out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
-          out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
-          out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
-        }
-        coords::Coordinates out(coords);
-        out.set_xyz(::matop::transfer_to_3DRepressentation(out_mat));
-        out.to_internal();
-        outstream << out;
-      }
-    }
-  }
-
-  // Case: Internal Coordiantes
-  else if (additionalInformation.substr(0, 3) == "int")
-  {
-    // [0]: bond distance tokens, [1]: bond angle tokens [2]: dihedrals tokens.
-    // Here we keep track of which DOFs are to be considered
-    std::deque<bool> tokens(coords.atoms().size(), false);
-    std::deque<bool> alreadyFoundStructures(ci->size(), false);
-
-    //Additional Information Processing -> Read "DOFS that were used" from file. Store in "tokens".
-    std::stringstream ss(additionalInformation.substr(4));
-    std::string buffer;
-    // Read the additional information
-    while (ss >> buffer)
-    {
-      if (buffer.substr(0, 1) == "d") tokens[(size_t)std::stoi(buffer.substr(1))] = true;
-    }
-
-    // This is gonna be complicated. Im sorry.
-    // Iterate over structures chosen from PCA-Ensemble
-    for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-    {
-      bool structureFound = false;
-      //auto structureCartesian = ci->PES()[0].structure.cartesian;
-      int structureNumber = -1;
-
-      //Iterate over input strucutures -> find matching structure
-      for (size_t k = 0u; k < ci->size() && !structureFound; k++)
-      {
-        if (alreadyFoundStructures[k]) continue;
-        coords.set_internal(ci->PES()[k].structure.intern);
-        size_t quicksearch = 0u;
-        structureFound = true;
-        structureNumber = (int)k;
-        //Iterating over atoms, see if they all match
-        for (size_t j = 0u; j < tokens.size(); j++)
-        {
-          // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
-          // However, we look for "not-matching" and break the loop. If everything matches, we continue.
-          // Thats why we negate the criterion in the if clause (!)
-          if (tokens[j] == true)
-          {
-            float_type compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
-            float_type compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
-            float_type compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
-            float_type compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
-            bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
-              || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
-            bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
-              || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
-            //If structures did not match
-            if (!(found1 && found2))
-            {
-              structureFound = false;
-              break;
-            }
-            quicksearch += 2u;
-          }
-        }
-        //If match was found, write out.
-        if (structureFound)
-        {
-          alreadyFoundStructures[structureNumber] = true;
-          coords.set_pes(ci->PES()[k]);
-          outstream << coords;
-        }
-      }
-      if (!structureFound)
-      {
-        std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-        std::cout << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
-      }
-    }
-  }
 }
 
 void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)

@@ -9,6 +9,9 @@
 #include "scon.h"
 #include "scon_vect.h"
 #include "scon_utility.h"
+#include "configuration.h"
+#pragma once
+
 
 namespace scon
 {
@@ -597,7 +600,7 @@ namespace scon
           // space extension
           m_max += extent;
           m_min -= extent;
-          if (cfg::verbosity > 29U)
+          if (Config::get().general.verbosity > 4U)
           {
             std::cout << "LinkedCells::setMaxMin found max: ";
             std::cout << m_max << ", min: " << m_min << "." << endl;
@@ -610,7 +613,7 @@ namespace scon
         using std::floor;
         T const edgeInverse = 1.0 / edge;
         zero_diff = floor(m_min*edgeInverse);
-        if (cfg::verbosity > 29U)
+        if (Config::get().general.verbosity > 4U)
         {
           std::cout << "LinkedCells::calcDimensions edgeinv: ";
           std::cout << edgeInverse << ", zerodiff: " << zero_diff << "." << endl;
@@ -620,7 +623,7 @@ namespace scon
           std::ptrdiff_t(dim_t.y()), 
           std::ptrdiff_t(dim_t.z()));
         std::size_t const cells(static_cast<std::size_t>(dim.x()*dim.y()*dim.z()));
-        if (cfg::verbosity > 29U)
+        if (Config::get().general.verbosity > 4U)
         {
           std::cout << "cells: " << cells << ", dim: " << dim << "." << endl;
         }
@@ -634,7 +637,7 @@ namespace scon
         for (std::size_t i(0u); i<N; ++i)
         {
           std::size_t const cell = box_index_from_point(positions[i]);
-          if (cfg::verbosity > 29U)
+          if (Config::get().general.verbosity > 4U)
           {
             std::cout << "LinkedCells::link(): Box of element ";
             std::cout << i << " is " << cell << "." << endl;
@@ -676,7 +679,7 @@ namespace scon
       {
         if (!empty())
         {
-          if (cfg::verbosity > 29U)
+          if (Config::get().general.verbosity > 4U)
           {
             std::cout << "LinkedCells::update for ";
             std::cout << positions.size() << " elements in boxes of " << edge << " and " << fragments() << " fragments.\n\n";

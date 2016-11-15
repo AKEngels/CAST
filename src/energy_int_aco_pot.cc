@@ -1234,8 +1234,7 @@ namespace energy
         T = T*T*T; // T^3
         T = T*T; // T^6
         D = D*D*D; // r^6
-        coords::float_type const vd = 0;
-        D = Config::get().fep.ljshift * vd * vd * T + D; // r^6 shifted
+        D = Config::get().fep.ljshift * (1-vout) * (1-vout) * T + D; // r^6 shifted
         T /= D;
         coords::float_type V = vout*E*T;
         dV = V*r*(6.0-12.0*T);

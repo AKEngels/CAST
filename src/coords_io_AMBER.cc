@@ -21,76 +21,83 @@ namespace amberUtil
 	//NOT COMPLETE
 	size_t toTinkerType(std::string const & in)
 	{
-		if (in == "CT ") return 2u;          //tetrahedral C
-		else if (in == "CX ") return 2u;     //tetrahedral C
-		else if (in == "C3 ") return 2u;     //tetrahedral C
-		else if (in == "2C ") return 2u;     //tetrahedral C
-		else if (in == "3C ") return 2u;     //tetrahedral C
-		else if (in == "C8 ") return 2u;     //tetrahedral C
-		else if (in == "CL-") return 2011u; //Cloride ion
-		else if (in == "IM ") return 2011u;  //Cloride ion
-		else if (in == "C  ") return 3u;      //sp2 C (carbonyl)
-		else if (in == "CO ") return 3u;     //sp2 C (carbonyl)
-		else if (in == "CA ") return 115u;   //sp2 C (aromatic)
-		else if (in == "CM ") return 1082u;  //sp2 C (pyridine)
-		else if (in == "CC ") return 169u;   //sp2 C (aromatic)
-		else if (in == "CV ") return 189u;   //sp2 C (aromatic)
-		else if (in == "CW ") return 204u;   //sp2 C (aromatic)
-		else if (in == "CR ") return 206u;   //sp2 C (aromatic)
-		else if (in == "CB ") return 1018u;  //sp2 C (aromatic)
-		else if (in == "C* ") return 146u;   //sp2 C (aromatic)
-		else if (in == "CN ") return 152u;   //sp2 C (aromatic)
-		else if (in == "CK ") return 1021u;  //sp2 C (aromatic)
-		else if (in == "CQ ") return 1023u;  //sp2 C (aromatic)
-		else if (in == "N  ")  return 7u;     //amide N
-		else if (in == "NA ") return 150u;   //N in ring, bound to H
-		else if (in == "Cs+") return 2007u; //Cs ion
-		else if (in == "QC ") return 2007u;  //Cs ion
-		else if (in == "K+ ") return 2005u;  //K ion
-		else if (in == "QK ") return 2005u;  //K ion
-		else if (in == "Li+") return 2003u; //Li ion
-		else if (in == "QL ") return 2003u;  //Li ion
-		else if (in == "Na+") return 2004u; //Na ion
-		else if (in == "QN ") return 2004u;  //Na ion
-		else if (in == "QR ") return 2006u;  //Rb ion
-		else if (in == "IP ") return 2004u;  //Na ion
-		else if (in == "NB ") return 193u;   //N in ring, with LP
-		else if (in == "NC ") return 1022u;  //N in ring, with LP
-		else if (in == "N* ") return 1047u;  //N in ring, bound to alkyle group
-		else if (in == "N2 ") return 1057u;  //basic NH2 group
-		else if (in == "N3 ") return 285u;   //sp3 N
-		else if (in == "OW ") return 2001u;  //water O
-		else if (in == "OH ") return 63u;    //alcohole O
-		else if (in == "OS ") return 1001u;  //O in ether or ester
-		else if (in == "O  ")  return 1060u;  //carbonyle O
-		else if (in == "O2 ") return 219u;   //carboyle or phosphate (non-bounded) O
-		else if (in == "S  ")  return 95u;    //S without H
-		else if (in == "SH ") return 85u;    //S with H
-		else if (in == "P  ")  return 1230u;  //P in phosphate
-		else if (in == "H  ")  return 90u;    //amide or imino H
-		else if (in == "HW ") return 2002u;  //water H
-		else if (in == "HO ") return 64u;    //alcohole H
-		else if (in == "HS ") return 86u;    //H in SH
-		else if (in == "H5 ") return 1026u;  //???
-		else if (in == "HA ") return 117u;   //H bound to aromatic C
-		else if (in == "HC ") return 129u;   //H bound to aliphatic C
-		else if (in == "H1 ") return 143u;   //H bound to aliphatic C
-		else if (in == "H2 ") return 1009u;  //H in NH2
-		else if (in == "H3 ") return 1113u;  //H in NH3+
-		else if (in == "HP ") return 284u;   //H bound to P???
-		else if (in == "H4 ") return 148u;   //??? 
-		else if (in == "c3 ") return 3003u;  // GAFF  -> charge from atom type no. 2 (CT)
-		else if (in == "ca ") return 3004u;  // GAFF  -> charge from atom type no. 115 (CA) 
-		else if (in == "n  ") return 3035u;  // GAFF  -> charge from atom type no. 7 (N)
-		else if (in == "c  ") return 3000u;  // GAFF  -> charge from atom type no. 3 (C)
-		else if (in == "oh ") return 3049u;  // GAFF  -> charge from atom type no. 63 (OH)
-		else if (in == "ho ") return 3026u;  // GAFF  -> charge from atom type no. 64 (HO)
-		else if (in == "o  ") return 3048u;  // GAFF  -> charge from atom type no. 1060 (O)
-		else if (in == "hc ") return 3024u;  // GAFF  -> charge from atom type no. 129 (HC) 
-		else if (in == "ha ") return 3023u;  // GAFF  -> charge from atom type no. 117 (HA)
-		else if (in == "h1 ") return 3018u;  // GAFF  -> charge from atom type no. 143 (H1)
-		else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop file divided by 18.2223 (see http://ambermd.org/formats.html#topo.cntrl)
-		else return 0u;
+    if (in == "CT ") return 2u;          //tetrahedral C
+    else if (in == "CX ") return 2u;     //tetrahedral C
+    else if (in == "C3 ") return 2u;     //tetrahedral C
+    else if (in == "2C ") return 2u;     //tetrahedral C
+    else if (in == "3C ") return 2u;     //tetrahedral C
+    else if (in == "C8 ") return 2u;     //tetrahedral C
+    else if (in == "CL-") return 2011u; //Cloride ion
+    else if (in == "IM ") return 2011u;  //Cloride ion
+    else if (in == "C  ") return 3u;      //sp2 C (carbonyl)
+    else if (in == "CO ") return 3u;     //sp2 C (carbonyl)
+    else if (in == "CA ") return 115u;   //sp2 C (aromatic)
+    else if (in == "CM ") return 1082u;  //sp2 C (pyridine)
+    else if (in == "CC ") return 169u;   //sp2 C (aromatic)
+    else if (in == "CV ") return 189u;   //sp2 C (aromatic)
+    else if (in == "CW ") return 204u;   //sp2 C (aromatic)
+    else if (in == "CR ") return 206u;   //sp2 C (aromatic)
+    else if (in == "CB ") return 1018u;  //sp2 C (aromatic)
+    else if (in == "C* ") return 146u;   //sp2 C (aromatic)
+    else if (in == "CN ") return 152u;   //sp2 C (aromatic)
+    else if (in == "CK ") return 1021u;  //sp2 C (aromatic)
+    else if (in == "CQ ") return 1023u;  //sp2 C (aromatic)
+    else if (in == "N  ")  return 7u;     //amide N
+    else if (in == "NA ") return 150u;   //N in ring, bound to H
+    else if (in == "Cs+") return 2007u; //Cs ion
+    else if (in == "QC ") return 2007u;  //Cs ion
+    else if (in == "K+ ") return 2005u;  //K ion
+    else if (in == "QK ") return 2005u;  //K ion
+    else if (in == "Li+") return 2003u; //Li ion
+    else if (in == "QL ") return 2003u;  //Li ion
+    else if (in == "Na+") return 2004u; //Na ion
+    else if (in == "QN ") return 2004u;  //Na ion
+    else if (in == "QR ") return 2006u;  //Rb ion
+    else if (in == "IP ") return 2004u;  //Na ion
+    else if (in == "NB ") return 193u;   //N in ring, with LP
+    else if (in == "NC ") return 1022u;  //N in ring, with LP
+    else if (in == "N* ") return 1047u;  //N in ring, bound to alkyle group
+    else if (in == "N2 ") return 1057u;  //basic NH2 group
+    else if (in == "N3 ") return 285u;   //sp3 N
+    else if (in == "OW ") return 2001u;  //water O
+    else if (in == "OH ") return 63u;    //alcohole O
+    else if (in == "OS ") return 1001u;  //O in ether or ester
+    else if (in == "O  ")  return 1060u;  //carbonyle O
+    else if (in == "O2 ") return 219u;   //carboyle or phosphate (non-bounded) O
+    else if (in == "S  ")  return 95u;    //S without H
+    else if (in == "SH ") return 85u;    //S with H
+    else if (in == "P  ")  return 1230u;  //P in phosphate
+    else if (in == "H  ")  return 90u;    //amide or imino H
+    else if (in == "HW ") return 2002u;  //water H
+    else if (in == "HO ") return 64u;    //alcohole H
+    else if (in == "HS ") return 86u;    //H in SH
+    else if (in == "H5 ") return 1026u;  //???
+    else if (in == "HA ") return 117u;   //H bound to aromatic C
+    else if (in == "HC ") return 129u;   //H bound to aliphatic C
+    else if (in == "H1 ") return 143u;   //H bound to aliphatic C
+    else if (in == "H2 ") return 1009u;  //H in NH2
+    else if (in == "H3 ") return 1113u;  //H in NH3+
+    else if (in == "HP ") return 284u;   //H bound to P???
+    else if (in == "H4 ") return 148u;   //??? 
+    else if (in == "c3 ") return 3003u;  // GAFF  -> charge from atom type no. 2 (CT)
+    else if (in == "ca ") return 3004u;  // GAFF  -> charge from atom type no. 115 (CA) 
+    else if (in == "n  ") return 3035u;  // GAFF  -> charge from atom type no. 7 (N)
+    else if (in == "c  ") return 3000u;  // GAFF  -> charge from atom type no. 3 (C)
+    else if (in == "oh ") return 3049u;  // GAFF  -> charge from atom type no. 63 (OH)
+    else if (in == "ho ") return 3026u;  // GAFF  -> charge from atom type no. 64 (HO)
+    else if (in == "o  ") return 3048u;  // GAFF  -> charge from atom type no. 1060 (O)
+    else if (in == "hc ") return 3024u;  // GAFF  -> charge from atom type no. 129 (HC) 
+    else if (in == "ha ") return 3023u;  // GAFF  -> charge from atom type no. 117 (HA)
+    else if (in == "h1 ") return 3018u;  // GAFF  -> charge from atom type no. 143 (H1)
+    else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop file divided by 18.2223 (see http://ambermd.org/formats.html#topo.cntrl)
+    else if (Config::get().general.energy_interface <= 3)
+      std::cout << "Warning: Could not match AMBER atom type "
+        << in << "to any TINKER atom type.\n\nThis will cause havok when force-field energy interfaces are specified (this is currently the case). "
+        << "In case you did not expect this error, please expect everything to break very soon. Do not consider results after this message valid. "
+        << "Please note that nevertheless you may use this AMBER input structure to perform calculations using CAST with energy-interfaces other than force-fields. "
+        << "To do this, adjust your configuration file accordingly.\n"
+        << std::endl;
+    return 0u;
 	}
 }
 
@@ -201,7 +208,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         {
           //Special case, we should get rid of this really fcking soon omg -.-'
           //It is by design because of the find function
-          if (line.substr(6, 9) == "SOLVENT_P") {
+          if (line.substr(6, 9) == "SOLVENT_P") 
+          {
             currentSectionID = 666; break; // this... is... just... horrible
           }
 
@@ -248,72 +256,42 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       // Now we know some stuff, like how many atoms there are. 
       // So we can start allocating.
 
-	  //Let's save the atom charges
-	  if (currentSectionID == 3u)
-	  {
-		  for (unsigned int countlines = 0u; countlines < std::ceil(float(numberOfAtoms) / 5.f) - 1; countlines++)
-		  {
-			  std::getline(config_file_stream, line);
-			  // A Line has 5 members in this format
-			  for (unsigned int i = 0u; i < 5u; i++)
-			  {
-				  std::string charge_str = line.substr(i * 16u, 16u);
-				  int exponent = std::stoi(charge_str.substr(13u, 3u));
-				  double koeff = std::stod(charge_str.substr(0u, 12u));
-				  charges.push_back(koeff * pow(10,exponent));
-				  
-			  }
-		  }
-		  // read last line if existent
-		  std::getline(config_file_stream, line);
-		  if (line.substr(0, 1) != "%")
-		  {
-			  for (unsigned int i = 0; i < line.size(); i = i + 16)
-			  {
-				  std::string charge_str = line.substr(i * 1u, 16);
-				  int exponent = std::stoi(charge_str.substr(13u, 3u));
-				  double koeff = std::stod(charge_str.substr(0u, 12u));
-				  charges.push_back(koeff * pow(10, exponent));
-			  }
-		  }
-	  }
-
       //If section == BONDS_INC_HYDROGEN
-	  if (currentSectionID == 24u)
-	  {
-		  unsigned long state = 1u; //We dont care bout the third value, its AMBER stuff...
-		  for (unsigned int countlines = 0u; countlines < std::ceil(float(pointers_raw[2]) * 3.f / 10.f) - 1u; countlines++)
-		  {
-			  std::getline(config_file_stream, line);
-			  // A line has 10 members in the format
-			  for (unsigned int i = 0; i < 10u; state++, i++)
-			  {
-				  //We dont care bout the third value, its AMBER stuff...
-				  if (state % 3u != 0)
-				  {
-					  // Citing the amber file format manual:
-					  // "For run-time efficiency, the atom indexes are actually
-					  // indexes into a coordinate array, so the actual atom index A is calculated
-					  // from the coordinate array index N by A = N / 3 + 1. (N is the value in the
-					  // topology file)"
-					  bondsWithHydrogen.push_back(std::stoi(line.substr(i * 8u, 8)) / 3u + 1u);
-				  }
-			  }
-		  }
-		  // read last line of bondsWithHydrogen if existent
-		  std::getline(config_file_stream, line);
-		  if (line.substr(0, 1) != "%")
-		  {
-			  for (unsigned int i = 0; i < line.size(); i = i + 8)
-			  {
-				  if (state % 3u != 0)
-				  {
-					  bondsWithHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
-				  }
-				  state = state + 1;
-			  }
-		  }
-	  }
+	    if (currentSectionID == 24u)
+	    {
+		    unsigned long state = 1u; //We dont care bout the third value, its AMBER stuff...
+		    for (unsigned int countlines = 0u; countlines < std::ceil(float(pointers_raw[2]) * 3.f / 10.f) - 1u; countlines++)
+		    {
+			    std::getline(config_file_stream, line);
+			    // A line has 10 members in the format
+			    for (unsigned int i = 0; i < 10u; state++, i++)
+			    {
+				    //We dont care bout the third value, its AMBER stuff...
+				    if (state % 3u != 0)
+				    {
+				  	  // Citing the amber file format manual:
+				  	  // "For run-time efficiency, the atom indexes are actually
+				  	  // indexes into a coordinate array, so the actual atom index A is calculated
+				  	  // from the coordinate array index N by A = N / 3 + 1. (N is the value in the
+				  	  // topology file)"
+				  	  bondsWithHydrogen.push_back(std::stoi(line.substr(i * 8u, 8)) / 3u + 1u);
+				    }
+			    }
+		    }
+		    // read last line of bondsWithHydrogen if existent
+		    std::getline(config_file_stream, line);
+		    if (line.substr(0, 1) != "%")
+		    {
+			    for (unsigned int i = 0; i < line.size(); i = i + 8)
+			    {
+				    if (state % 3u != 0)
+				    {
+					    bondsWithHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
+				    }
+				    state = state + 1;
+			    }
+		    }
+	    }
 
       //If section == BONDS_WITHOUT_HYDROGEN
       if (currentSectionID == 25u)
@@ -337,19 +315,19 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             }
           }
         }
-		// read last line of bondsWithoutHydrogen if existent
-		std::getline(config_file_stream, line);
-		if (line.substr(0, 1) != "%")
-		{
-			for (unsigned int i = 0; i < line.size(); i = i + 8)
-			{
-				if (state % 3u != 0)
-				{
-					bondsWithoutHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
-				}
-				state = state + 1;
-			}
-		}
+		    // read last line of bondsWithoutHydrogen if existent
+		    std::getline(config_file_stream, line);
+		    if (line.substr(0, 1) != "%")
+		    {
+			    for (unsigned int i = 0; i < line.size(); i = i + 8)
+			    {
+				    if (state % 3u != 0)
+				    {
+				      bondsWithoutHydrogen.push_back(std::stoi(line.substr(i * 1u, 8)) / 3u + 1u);
+				    }
+				    state = state + 1;
+			    }
+		    }
       }
 
       //If section == AMBER_Atom_Types
@@ -357,20 +335,20 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       {
         // Discard the format specifier
         // Read all lines except last one
-        for (unsigned int countlines = 0u; countlines < std::ceil(float(numberOfAtoms) / 20.f) - 1; countlines++)
+        for (unsigned int countlines = 0u; countlines < std::ceil((float(numberOfAtoms) + 0.5) / 20.f) - 1; countlines++)
         {
           std::getline(config_file_stream, line);
           // A Line has 20 members in this format
           for (unsigned int i = 0u; i < 20u; i++)
           {
             std::string symbol = line.substr(i * 4u, 3u);
-			const std::string amberAtomType(symbol);
+		      	const std::string amberAtomType(symbol);
 
             // First, let's process all those AMBER Atom Types with
             // just incredibly retarded names. damn.
             // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
 
-			if (symbol == "CU ") symbol = "Cu";
+		      	if (symbol == "CU ") symbol = "Cu";
             else if (symbol == "IM ") symbol = "CL";
             else if (symbol == "QC ") symbol = "Cs";
             else if (symbol == "QK ") symbol = "K";
@@ -395,14 +373,14 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             //Si? Starts with an s like sulfur, so we have to check..gnaah.....
             else if (symbol == "si " || symbol == "Si " || symbol == "SI ") { symbol = "Si"; }
 
-			//Cl? Starts with a c like carbon, so we have to check..gnaah.....
-			else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
+		      	//Cl? Starts with a c like carbon, so we have to check..gnaah.....
+		      	else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
 
             //Now, lets see
             else if (symbol.substr(0, 1) == "h" || symbol.substr(0, 1) == "H") symbol = "H";
             else if (symbol.substr(0, 1) == "c" || symbol.substr(0, 1) == "C") symbol = "C";
             else if (symbol.substr(0, 1) == "o" || symbol.substr(0, 1) == "O") symbol = "O";
-			else if (symbol.substr(0, 1) == "n" || symbol.substr(0, 1) == "N") symbol = "N";
+			      else if (symbol.substr(0, 1) == "n" || symbol.substr(0, 1) == "N") symbol = "N";
             else if (symbol.substr(0, 1) == "s" || symbol.substr(0, 1) == "S") symbol = "S";
             else if (symbol.substr(0, 1) == "p" || symbol.substr(0, 1) == "P") symbol = "P";
 
@@ -423,7 +401,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             Atom current(symbol);
             if (!ignoreFFtypes)
             {
-			  size_t type = amberUtil::toTinkerType(amberAtomType);
+			        size_t type = amberUtil::toTinkerType(amberAtomType);
               if (type != 0u) current.set_energy_type(type);
               else
               {
@@ -439,13 +417,13 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         for (unsigned int i = 0u; i < numberOfAtoms % 20; i++)
         {
           std::string symbol = line.substr(i * 4u, 3u);
-		  const std::string amberAtomType(symbol);
+		      const std::string amberAtomType(symbol);
 
           // First, let's process all those AMBER Atom Types with
           // just incredibly retarded names. damn.
           // via: http://www.chem.cmu.edu/courses/09-560/docs/msi/ffbsim/B_AtomTypes.html
           
-		  if (symbol == "CU ") symbol = "Cu";
+		      if (symbol == "CU ") symbol = "Cu";
           else if (symbol == "IM ") symbol = "CL";
           else if (symbol == "QC ") symbol = "Cs";
           else if (symbol == "QK ") symbol = "K";
@@ -470,8 +448,8 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           //Si? Starts with an s like sulfur, so we have to check..gnaah.....
           else if (symbol == "si " || symbol == "Si" || symbol == "SI") { symbol = "Si"; }
 
-		  //Cl? Starts with a c like carbon, so we have to check..gnaah.....
-		  else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
+		      //Cl? Starts with a c like carbon, so we have to check..gnaah.....
+		      else if (symbol == "cl " || symbol == "Cl " || symbol == "CL ") { symbol = "CL"; }
 
           //Now, lets see
           else if (symbol.substr(0, 1) == "h" || symbol.substr(0, 1) == "H") symbol = "H";
@@ -491,16 +469,16 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
           }
 
           Atom current(symbol);
-		  if (!ignoreFFtypes)
-		  {
-			  size_t type = amberUtil::toTinkerType(amberAtomType);
-			  if (type != 0u) current.set_energy_type(type);
-			  else
-			  {
-				  ignoreFFtypes = true;
-				  std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
-			  }
-		  }
+		      if (!ignoreFFtypes)
+		      {
+			      size_t type = amberUtil::toTinkerType(amberAtomType);
+			      if (type != 0u) current.set_energy_type(type);
+			      else
+			      {
+			    	  ignoreFFtypes = true;
+			    	  std::cout << "AMBER atom type " << amberAtomType << " could not be matched to TINKER atom class. All atom types are therefore omitted, do not use force field energy interfaces." << std::endl;
+			      }
+		      }
           atoms.add(current);
 
         }
@@ -524,123 +502,70 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // OK, let's now fetch the actual coordinates
     Representation_3D positions;
     positions.reserve(numberOfAtoms); //Reserve space
+
     if (!Config::get().io.amber_mdcrd.empty())
     {
       std::ifstream coord_file_stream(Config::get().io.amber_mdcrd.c_str(), std::ios_base::in);
-
-      // Now, discard the title (if existent) and the line with the atom number
+      // Now, discard the title
       std::getline(coord_file_stream, line);
-	  int atom_number;
-	  bool title_exists = false;
-      try
-	  {
-		  atom_number = std::stoi(line);
-	  }
-	  catch(...)
-	  {
-		  title_exists = true;
-	  }
-	  if (title_exists == true)
-	  {
-		  std::getline(coord_file_stream, line);
-	  }
 
       unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
       {
-		  if (line.size() > 36)
-		  {
-			  double tempx(0.0), tempy(0.0), tempz(0.0), tempx_2(0.0), tempy_2(0.0), tempz_2(0.0);
-			  sscanf_s(line.c_str(), "%lf %lf %lf %lf %lf %lf", &tempx, &tempy, &tempz, &tempx_2, &tempy_2, &tempz_2);
-			  position.x() = tempx;
-			  position.y() = tempy;
-			  position.z() = tempz;
-			  positions.push_back(position);
-			  position.x() = tempx_2;
-			  position.y() = tempy_2;
-			  position.z() = tempz_2;
-			  positions.push_back(position);
-		  }
-		  else   // coordinate line only half
-		  {
-			  double tempx(0.0), tempy(0.0), tempz(0.0);
-			  sscanf_s(line.c_str(), "%lf %lf %lf", &tempx, &tempy, &tempz);
-			  position.x() = tempx;
-			  position.y() = tempy;
-			  position.z() = tempz;
-			  positions.push_back(position);
-		  }
-	  }
-	  // delete the box parameters in the last line if there are some
-	  if (positions.size() == atoms.size() + 2)
-	  {
-		  positions.pop_back();
-		  positions.pop_back();
-	  }
-	  
-	  input_ensemble.push_back(positions);
-	  goto DONE;
-	}
-
-	// The following section is probably about reading coordinates from .crd files. 
-	// It should be reactivated as an option that is executed if the amber_mcrd file has the ending .crd
-	// whereas the code above is executed if it has the ending .rst.
-	// Everything else should work with .crd files the same way as with .rst files.
-
         // A line has 10 members in the format
-   //     for (unsigned int i = 0; i < 10u; state++, i++)
-   //     {
-   //       // Needed: Check if substr is empty
-   //       if (line.substr(i * 8u, 8u).empty())
-   //       {
-   //         if (!(state % 3u == 0))
-   //         {
-   //           std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
-   //           goto FAILED;
-   //         }
-   //         else
-   //         {
-   //           ///////////////////////////////
-   //           // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
-   //           ///////////////////////////////
-   //           goto DONE;
-   //         }
-   //       }
-   //       if (state % 3u == 0)
-   //       {
-   //         position.x() = std::stod(line.substr(i * 12u, 12u));
-   //       }
-   //       else if (state % 3u == 1)
-   //       {
-   //         position.y() = std::stod(line.substr(i * 12u, 12u));
-   //       }
-   //       else if (state % 3u == 2)
-   //       {
-   //         position.z() = std::stod(line.substr(i * 12u, 12u));
-   //         positions.push_back(position);
-			//std::cout << positions << "\n";
-   //         //Check if we reached end of structure, conditional is true if yes
-   //         if (((state + 1) / 3) % numberOfAtoms == 0)
-   //         {
-   //           input_ensemble.push_back(positions);
-   //           if (positions.size() != atoms.size())
-   //           {
-   //             throw std::logic_error("The size of an provided structure does not match the number of atoms.");
-   //           }
-   //           positions.clear();
-   //           state++;
+        for (unsigned int i = 0; i < 10u; state++, i++)
+        {
+          // Needed: Check if substr is empty
+          if (line.substr(i * 8u, 8u).empty())
+          {
+            if (!(state % 3u == 0))
+            {
+              std::cout << "Encounterd unexpected linebreak or EOF in reading AMBER mdcrd file.\n";
+              goto FAILED;
+            }
+            else
+            {
+              ///////////////////////////////
+              // EXIT WHILE AND DO LOOP!!! //    <- THIS HERE IS IMPORTANT!!!!!!!
+              ///////////////////////////////
+              goto DONE;
+            }
+          }
+          if (state % 3u == 0)
+          {
+            position.x() = std::stod(line.substr(i * 8u, 8u));
+          }
+          else if (state % 3u == 1)
+          {
+            position.y() = std::stod(line.substr(i * 8u, 8u));
+          }
+          else if (state % 3u == 2)
+          {
+            position.z() = std::stod(line.substr(i * 8u, 8u));
+            positions.push_back(position);
+            //Check if we reached end of structure, conditional is true if yes
+            if (((state + 1) / 3) % numberOfAtoms == 0)
+            {
+              input_ensemble.push_back(positions);
+              if (positions.size() != atoms.size())
+              {
+                throw std::logic_error("The size of an provided structure does not match the number of atoms.");
+              }
+              positions.clear();
+              state++;
 
-   //           //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
-   //           if (Config::get().io.amber_trajectory_at_constant_pressure)
-   //           {
-   //             // Discard line containing box size
-   //             std::getline(coord_file_stream, line);
-   //           }
-   //           break;
-   //         }
-   //       }
-   //     }
-
+              //In mdcrd we need to check if a linebreak occurs and box coordiantes are written.
+              if (Config::get().io.amber_trajectory_at_constant_pressure)
+              {
+                // Discard line containing box size
+                std::getline(coord_file_stream, line);
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
     else if (!Config::get().io.amber_inpcrd.empty())
     {
       std::cout << "Reading from inpcrd not yet supported.";
@@ -648,8 +573,61 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     }
     else if (!Config::get().io.amber_restrt.empty())
     {
-      std::cout << "Reading from restrt not yet supported.";
-      goto FAILED;
+      std::ifstream coord_file_stream(Config::get().io.amber_restrt.c_str(), std::ios_base::in);
+      if (! coord_file_stream.good()) 
+        throw std::runtime_error("Can't read AMBER restart file " 
+          + Config::get().io.amber_restrt 
+          + "which was specified in the inputfile.\n");
+      // Now, discard the title (if existent) and the line with the atom number
+      std::getline(coord_file_stream, line);
+      int atom_number;
+      bool title_exists = false;
+      try
+      {
+        atom_number = std::stoi(line);
+      }
+      catch (...)
+      {
+        title_exists = true;
+      }
+      if (title_exists == true)
+      {
+        std::getline(coord_file_stream, line);
+      }
+
+      unsigned long state = 0u; //Counts each processed floating point number.
+      while (std::getline(coord_file_stream, line))
+      {
+        std::string x = line.substr(0, 12);
+        std::string y = line.substr(12, 12);
+        std::string z = line.substr(24, 12);
+        position.x() = std::stod(x);
+        position.y() = std::stod(y);
+        position.z() = std::stod(z);
+        positions.push_back(position);
+
+        if (line.size() > 36)   // normally two coordinates in one line
+        {
+          std::string x = line.substr(36, 12);
+          std::string y = line.substr(48, 12);
+          std::string z = line.substr(60, 12);
+          position.x() = std::stod(x);
+          position.y() = std::stod(y);
+          position.z() = std::stod(z);
+          positions.push_back(position);
+        }
+
+      }
+
+      // delete the box parameters in the last line if there are some
+      if (positions.size() == atoms.size() + 2)
+      {
+        positions.pop_back();
+        positions.pop_back();
+      }
+
+      input_ensemble.push_back(positions);
+      goto DONE;
     }
     else
     {

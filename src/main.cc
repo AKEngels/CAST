@@ -7,6 +7,12 @@
 //           //      //           //       //
 //           //      //           //       //
 //////////   //      //   //////////       //
+/////conformational analysis and search tool/////
+
+
+// If we run our tests, we will
+// take the testing main from gtest/testing_main.cc
+#ifndef GOOGLE_MOCK
 
 //////////////////////////
 //                      //
@@ -27,6 +33,9 @@
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
+#include "helperfunctions.h"
+#include "scon_log.h"
+
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
@@ -35,9 +44,8 @@
 #include "pathopt.h"
 #include "Path_perp.h"
 #include "reaccoord.h"
-#include "scon_log.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
-//#include "gbsa.h"
+//#include "gbsa.h" // Out of Order
 #include <omp.h>
 #include "PCA.h"
 
@@ -59,20 +67,20 @@
 
 // Enable this define to drop exceptions
 //
+// If CAST_DEBUG_DROP_EXCEPTIONS is set,
+// exceptions will be dropped (this is good for debugging
+// and default in Debug configuration.
+// Otherwise CAST will crash and print the string
+// attached to the exception. This is default behaviour 
+// in release mode.
+//
 //#define CAST_DEBUG_DROP_EXCEPTIONS
+
 
 
 int main(int argc, char **argv)
 {
-
-  // Where does this code come from?
-  // Why is it here, is it necessary for MOPAC Interface maybe?
-  // Please have a look at this
-  //  
-  //#ifdef _MSC_VER
-  //  //std::ios::sync_with_stdio(false);
-  //  //std::cout.sync_with_stdio(false);
-  //#endif
+  
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
@@ -90,7 +98,7 @@ int main(int argc, char **argv)
     // start execution and initialization timer
     scon::chrono::high_resolution_timer exec_timer, init_timer;
 
-    // initialize (old) RNG
+    // initialize (old) Random Number Generator
     srand((unsigned int)time(NULL)+pid_func());
 
     // Parse config file and command line 
@@ -101,49 +109,29 @@ int main(int argc, char **argv)
     // Print configuration
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "\n";
+      std::cout << "  |-----------------------------------------------------|\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |  //////////   //////////   //////////   //////////  |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //////////       //      |\n";
+      std::cout << "  |  //           //////////           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //////////   //      //   //////////       //      |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |       conformational analysis and search tool       |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |-----------------------------------------------------|\n\n\n";
+
+      std::cout << "-------------------------------------------------------\n";
       std::cout << "Configuration ('" << config_filename << "')\n";
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "-------------------------------------------------------\n";
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
     }
-
-    // Define Function to output molar mass of a coords object
-    auto sys_mass = [](coords::Coordinates &sys) -> double
-    {
-      double m = 0;
-      for (auto && a : sys.atoms())
-      {
-        m += a.mass();
-      }
-      return m;
-    };
-
-
-    // Energy print functions
-    auto short_ene_stream = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << coords.pes().energy;
-      for (auto && ia : coords.pes().ia_matrix)
-      {
-        strm << std::setw(w) << ia.energy;
-      }
-    };
-
-    auto short_ene_stream_h = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << "Energy";
-      auto const n = coords.pes().ia_matrix.size();
-      for (std::size_t i = 0; i < n; ++i)
-      {
-        strm << std::setw(w) << ("WW" + std::to_string(i));
-      }
-    };
 
     //////////////////////////
     //                      //
@@ -154,8 +142,6 @@ int main(int argc, char **argv)
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-    
-    //coords::input::format * ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
 	  // setting the methods for implicit solvation
@@ -350,19 +336,6 @@ int main(int argc, char **argv)
           coords.e_tostream_short(std::cout);
           coords.energyinterface()->print_G_tinkerlike(gstream);
         }
-        break;
-      }
-      case config::tasks::PROFILE:
-      { 
-        // gradient profiling 
-        coords.e_head_tostream_short(std::cout);
-        coords.set_xyz((*ci).PES()[0].structure.cartesian);
-        for (std::size_t i(0U); i < Config::get().general.profile_runs; ++i)
-        {
-          coords.g();
-        }
-        std::cout << "Energy \n";
-        coords.e_tostream_short(std::cout);
         break;
       }
       case config::tasks::LOCOPT:
@@ -582,37 +555,6 @@ int main(int argc, char **argv)
         path_perpobj.pathx_ini();
 			  break;
 		  }
-	    case config::tasks::REACTIONCOORDINATE:
-		  {
-			  coords::Coordinates coords2(coords),coords3(coords);
-			  reaccoords reac_obj(&coords,&coords2);
-			  std::fstream RMSD("RMSD_REAC.dat",std::ios::app);
-
-			  coords3.set_xyz((*ci).PES()[0].structure.cartesian);
-
-			   for (auto const & pes : *ci)
-			   {
-				  coords.mult_struc_counter++;
-				  coords.set_xyz(pes.structure.cartesian);
-				  reac_obj.rmsd_align(coords3);
-				  coords.set_xyz(reac_obj.rmsd_align(coords3));
-				  reac_obj.bonds();
-				  reac_obj.angles();
-			   }
-			 
-			   for (auto const & pes : *ci)
-			   {
-				  coords2.mult_struc_counter++;
-				  coords2.set_xyz(pes.structure.cartesian);
-          RMSD << "RMSD : " << scon::root_mean_square_deviation(coords2.xyz(), coords.xyz()) << '\n';
-
-			   }
-			   
-			  reac_obj.bonds_alteration();
-			  reac_obj.angles_alteration();
-
-			  break;
-		  }
       case config::tasks::ALIGN:
       {
         /*
@@ -639,16 +581,26 @@ int main(int argc, char **argv)
          *
          * Further processing can be done via PCAproc - Task
          */
+
+        // Create empty pointer since we do not know yet if PCA eigenvectors etc.
+        // will be generated from coordinates or read from file
 		    pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+
+        // Create new PCA eigenvectors and modes
 		    if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
 		    {
 		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          pcaptr->writePCAModesFile("pca_modes.dat");
 		    }
+        // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
 		    else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
 		    else
 		    {
 		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          // Read PCA-Modes from file but generate new eigenvectors from input coordinates
 		    	if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+          // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+          // and the input coordinates
           else if (Config::get().PCA.pca_read_vectors)
           {
             pcaptr->readEigenvectors("pca_modes.dat");
@@ -656,11 +608,18 @@ int main(int argc, char **argv)
           }
 		    }
 
-        if(Config::get().PCA.pca_read_modes || Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
-        else pcaptr->writePCAModesFile("pca_modes.dat");
+        // If modes or vectors have changed, write them to new file
+        if(Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
-        pcaptr->writeHistogrammedProbabilityDensity();
-        pcaptr->writeStocksDelta();
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+        // Cleanup
 		    delete pcaptr;
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
@@ -672,7 +631,9 @@ int main(int argc, char **argv)
          * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
          * see also: Task PCAgen
          */
-        pca_proc(ci, coords);
+        pca::ProcessedPrincipalComponentRepresentation pcaproc("pca_modes.dat");
+        pcaproc.determineStructures(ci, coords);
+        pcaproc.writeDeterminedStructures(coords);
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
@@ -791,15 +752,15 @@ int main(int argc, char **argv)
     //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
-#if !defined(COMPILEX64)
+#if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
+    std::cout << "Memory allocation failure. Input structure probably too large.\n";
   }
 #else
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. Input structure probably too large.\n";
+    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
   }
 #endif
   catch (std::exception & e)
@@ -810,3 +771,4 @@ int main(int argc, char **argv)
 #endif
   return 0;
 }
+#endif

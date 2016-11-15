@@ -287,7 +287,7 @@ double coords::bias::Potentials::spherical(Representation_3D const &positions,
   std::size_t const N(positions.size());
   for (auto const & orb : m_spherical)
   {
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "Applying spherical boundary with radius " << orb.radius;
       std::cout << " around " << center << " (exponent = " << orb.exponent << ")\n";
@@ -307,7 +307,7 @@ double coords::bias::Potentials::spherical(Representation_3D const &positions,
       E += ene;
       double dE = orb.force * e * pow(md, e - 1.0);
       db *= dE;
-      if (Config::get().general.verbosity > 49)
+      if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Spherical boundary gradient of atom " << i + 1 << " at ";
         std::cout << positions[i] << " (which is " << l << " from " << center;
@@ -315,7 +315,7 @@ double coords::bias::Potentials::spherical(Representation_3D const &positions,
       }
       gradients[i] += db;
     }
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "E = " << E << '\n';
     }
@@ -332,7 +332,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
   for (auto const & box : m_cubic)
   {
     Cartesian_Point const halfdim(box.dim / 2.);
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "Applying cubic boundary with side length " << box.dim;
       std::cout << " and halfdim " << halfdim << " around " << center;
@@ -350,7 +350,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       {
         energy += box.force * std::pow(delta.x(), expo);
         de.x() = (db.x() < 0. ? -fexpo : fexpo) * std::pow(delta.x(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].x() << " x out of " << center.x();
           std::cout << " +/- " << halfdim.x() << " by " << delta.x() << " (" << db.x() << ") ";
@@ -360,7 +360,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       {
         energy += box.force * std::pow(delta.y(), expo);
         de.y() = (db.y() < 0. ? -fexpo : fexpo) * std::pow(delta.y(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].y() << " y out of " << center.y();
           std::cout << " +/- " << halfdim.y() << " by " << delta.y() << " (" << db.y() << ") ";
@@ -370,7 +370,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       {
         energy += box.force * std::pow(delta.z(), expo);
         de.z() = (db.z() < 0. ? -fexpo : fexpo) * std::pow(delta.z(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].z() << " z out of " << center.z();
           std::cout << " +/- " << halfdim.z() << " by " << delta.z() << " (" << db.z() << ") ";
@@ -378,7 +378,7 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       }
       Cartesian_Point const g = delta*de;
       E += energy;
-      if (Config::get().general.verbosity > 49 && energy > 0.)
+      if (Config::get().general.verbosity >= 4 && energy > 0.)
       {
         std::cout << " E = " << energy << " and grad " << g << '\n';
       }
