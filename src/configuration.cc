@@ -227,16 +227,27 @@ static bool outname_check(int x = 0)
   return chk < 1;
 }
 
-std::vector<unsigned> FEP_get_inout()  // function to find all appearing or disappearing atoms in an FEP input file
-{                                      // returns a vector with tinker atom numbers
+/**
+* function to find all appearing or disappearing atoms in an FEP input file
+* returns a vector with tinker atom numbers
+*/
+std::vector<unsigned> FEP_get_inout()  
+{                                      
 	std::vector<unsigned> temp;
 	std::ifstream config_file_stream(Config::set().general.inputFilename.c_str(), std::ios_base::in);
 	std::string line;
 	while (std::getline(config_file_stream, line))
 	{
-		if (line.substr(line.size() - 2) == "IN" || line.substr(line.size() - 3) == "OUT")
+		std::vector<std::string> fields;
+		std::istringstream iss(line);
+		std::string sub;
+		while (iss >> sub)
 		{
-			std::string atom_number_str = line.substr(0, 4);
+			fields.push_back(sub);
+		}
+		if (fields[fields.size()-1] == "IN" || fields[fields.size() - 1] == "OUT")
+		{
+			std::string atom_number_str = fields[0];
 			unsigned atom_number = std::stoi(atom_number_str);
 			temp.push_back(atom_number);
 		}
