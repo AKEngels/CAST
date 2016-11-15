@@ -750,6 +750,37 @@ USsnap                 5
 
 
 
+####################################
+#                                  #
+#          EXCITONBREAKUP          #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+masscenters			schwerpunkt.xyz
+
+#Numbers of monomers
+
+numbern				57
+
+numberp				159
+
+#Orientation of the interface
+
+planeinterf			z
+
+#transition rates for all possible dimers
+
+nscpairrates			fulleren.txt
+
+pscpairexrates			homodimer_exciton.txt
+
+pscpairchrates			homodimer_ladung.txt
+
+pnscpairrates 			heterodimer.txt
+
+
 
 ####################################
 #                                  #
