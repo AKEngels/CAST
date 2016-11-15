@@ -1534,7 +1534,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   /* Inputoptions for excitonbreakup
   */
-  else if (option.substr(0u,2u) == "US")
+  else if (option.substr(0u,2u) == "EX")
   {
 	  if (option.substr(2u,11u) == "masscenters")
 	  {
@@ -1562,7 +1562,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
 	  else if (option.substr(2u, 14u) == "pscpairchrates")
 	  {
-		  Config::set().exbreak.pscpairchrates == value_string;
+		  Config::set().exbreak.pscpairchrates = value_string;
 	  }
 	  else if (option.substr(2u, 13u) == "pnscpairrates")
 	  {

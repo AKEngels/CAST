@@ -925,5 +925,7 @@ for (i=1;i<21;i++){
   exciton_verteilung << setw(9) << setprecision(5) << i*50 << setw(9) << zahl/index << '\n';
 }
 exciton_verteilung.close();
+
+return 0;
 }
 
