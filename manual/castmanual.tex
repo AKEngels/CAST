@@ -512,11 +512,10 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	
 	There are two possible ways for temperature control in CAST: 
 
-If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will sometimes keep the temperature constant and sometimes not. Setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant might be (it's safer to add the third line):
+If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will keep the temperature constant. Setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant (after 1000 steps) might be:
 	\begin{lstlisting}
 	MDheat			    0  	  0.0001
 	MDheat 			 1000     300
-	MDheat      10000     300
 	\end{lstlisting}
 
 	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. Another difference to the direct velocity scaling is that the Nosé-Hoover thermostat will not be automatically turned off after reaching the last temperature set by the ``MDheat'' option but continue to keep this temperature until the end of the simulation. So if you want the same temperature evolution as above with the thermostat your input might be:

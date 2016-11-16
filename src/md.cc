@@ -980,29 +980,37 @@ void md::simulation::berendsen(double const & time)
   }//end of isotropic else
 }
 
-// heating function for direct velocity scaling
+// determine target temperature for heating
 bool md::simulation::heat(std::size_t const step)
 {
-  config::md_conf::config_heat last;
-  last.raise = Config::get().md.T_init;
-  for (auto const & heatstep : Config::get().md.heat_steps)
-  {
-    if (heatstep.offset > step)
-    {
-      double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
-      T += delta;
-      return true;
-    }
-    last = heatstep;
-  }
-  if (T < Config::get().md.T_final || T > Config::get().md.T_final)
-  {
-    double const delta((Config::get().md.T_final - last.raise) /
-      static_cast<double>(Config::get().md.num_steps - last.offset));
-    T += delta;
-    return true;
-  }
-  return false;
+	if (Config::get().md.heat_steps.size() == 0)  // no temperature control
+	{
+		return false;
+	}
+	else  // temperature control
+	{
+		config::md_conf::config_heat last;
+		last.raise = Config::get().md.T_init;
+		for (auto const & heatstep : Config::get().md.heat_steps)  
+		{
+			if (heatstep.offset > step)    // find first heatstep after current step
+			{
+				double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
+				T += delta;  // adjust target temperature
+				return true; // exit function
+			}
+			last = heatstep; // last heatstep before current step
+		}
+		if (step > Config::get().md.heat_steps[Config::get().md.heat_steps.size()-1].offset)
+		{             // after last heatstep: keep final temperature
+			T = Config::get().md.T_final;
+			return true;
+		}
+		else
+		{
+			std::cout << "This should not happen!\n";
+		}
+	}
 }
 
 // Nose-Hover thermostat. Variable names and implementation are identical to the book of

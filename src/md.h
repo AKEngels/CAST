@@ -281,7 +281,7 @@ namespace md
     /** remove translational and rotational momentum of the whole system */
     void tune_momentum(void);
 
-	/**heating function for direct velocity scaling
+	/**function for calculation of current target temperature
 	@param step: current MD step
 	*/
     bool heat(std::size_t const step);
