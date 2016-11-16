@@ -185,7 +185,7 @@ int excitonbreakup(int pscanzahl, int nscanzahl, char ebene, std::string masscen
 	}
 	exciton.close();
 
-	std::cout << "Anzahl an Fullerenpaaren " << full << std::endl;
+	std::cout << "Number of n-semiconductor pairs " << full << std::endl;
 	std::vector <int> fulleren_1(full+1), fulleren_2(full+1), test(2000);
 
 	exciton.open(nscpairrates);
@@ -258,7 +258,7 @@ for (i=1;i<(gesamtanzahl+1);i++){
     }
   }  
    if (partneranzahl[i] != j-1 ) { //after implementation into CAST replace by throw
-	   cout << "Fehler bei Partneranzahl für Monomer:" << i << std::endl;
+	   cout << "Error with number of partners for monomer " << i << std::endl;
   }
 }
 
@@ -333,7 +333,7 @@ y_mittel=(y_monomer+y_fulleren)/2;
 z_mittel=(z_monomer+z_fulleren)/2;
 
 ofstream interface;
-interface.open("schwerpunkt_allgemein.xyz"); //writing out average balance points for all groupings of monomers
+interface.open("massponts_general.xyz"); //writing out average balance points for all groupings of monomers
 interface << "4" << '\n' << '\n';
 interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_monomer << setw(12) << setprecision(6) << fixed << y_monomer << setw(12) << setprecision(6) << fixed << z_monomer << '\n';
 interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_fulleren << setw(12) << setprecision(6) << fixed << y_fulleren << setw(12) << setprecision(6) << fixed << z_fulleren << '\n';
@@ -353,7 +353,7 @@ switch (ebene){ //different cases for the possible planes of the interface
 	max=x[i];
       }
     }
-	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
+	std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
 
     for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((x[i]-x_mittel)>(0.85*(max-x_mittel))){
@@ -369,8 +369,8 @@ switch (ebene){ //different cases for the possible planes of the interface
 	max=y[i];
       }
     }
-	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
-	std::cout << "Kriterium ist " << setw(12) << setprecision(6) << fixed << (max-y_mittel) << std::endl; //why only for y-plane?
+	std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
+	//std::cout << "Kriterium ist " << setw(12) << setprecision(6) << fixed << (max-y_mittel) << std::endl; //why only for y-plane?
 
     for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((y[i]-y_mittel)>(0.85*(max-y_mittel))){ 
@@ -387,7 +387,7 @@ switch (ebene){ //different cases for the possible planes of the interface
 	max=z[i];
       }
     }
-	std::cout << "Maxabstand ist " << setw(12) << setprecision(6) << fixed << max << std::endl;
+	std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
 
     for (i=1;i<(pscanzahl+1);i++){ //determining the necessary number of starting points? 
       if ((z[i]-z_mittel)>(0.85*(max-z_mittel))){
@@ -400,7 +400,7 @@ switch (ebene){ //different cases for the possible planes of the interface
 }
 
 
-interface.open("startpunkt.xyz");
+interface.open("startingpoint.xyz");
 interface << index << '\n' << '\n'; //writes the number of startingponts
 for (i=1;i<(index+1);i++){				//writes coordinates of startingpoints
   interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x[ startpunkt[i] ];
@@ -415,7 +415,7 @@ double zeit(0.), zeit_1(0.), zeit_2(0.);
 
 // Schrittanzahl pro MC-Simulation
 int schritt=2*(e+full)+400;
-std::cout << "Anzahl der Schritte " << schritt << std::endl;
+std::cout << "Number of stepps " << schritt << std::endl;
 
 // ###################################################################################
 
@@ -550,7 +550,7 @@ punkt[0]=startpunkt[k];
       // hüpfendes teilchen bestimmen
       if ((1/r_summe-zeit_1)<(1/r_summe_fulleren-zeit_2)){
 		 // std::cout << "Monomer hüpft zuerst." << endl;
-		  run << "Monomer hüpft zuerst." << std::endl;
+		  run << "Monomer hopps first." << std::endl;
 	//Update der Zeiten
 	if ((1/r_summe-zeit_1)>0){
 	  zeit=zeit+(1/r_summe-zeit_1);
@@ -564,7 +564,7 @@ punkt[0]=startpunkt[k];
 	}
 	else {
 		//std::cout << "FEHLER!" << endl;
-		run << "FEHLER!" << std::endl;
+		run << "ERROR!" << std::endl;
 	  return 0;
 	}
 	// monomerhüpfen ausführen
@@ -573,7 +573,7 @@ punkt[0]=startpunkt[k];
         r_i=zufall*r_summe;	
 	for (g=1;g< (partneranzahl [punkt_ladung[i-1]]+1);g++){
 	  if ((raten[g]>r_i)&&(partner [punkt_ladung[i-1]][g]<(pscanzahl+1))){
-		  run << "Ladungstransport" << std::endl;
+		  run << "Chargetransport" << std::endl;
 	    punkt_ladung[i]=partner [punkt_ladung[i-1]][g];
 	    punkt[i]=punkt[i-1];
 	    // Abbruchkriterium für Ladungstrennung
@@ -584,7 +584,7 @@ punkt[0]=startpunkt[k];
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((x[ punkt_ladung[i] ])-x_mittel)/zeit_ch[k][j];			  
 		 // std::cout << "Ladungen getrennt" << endl;
-		  run << "Ladungen getrennt" << std::endl;
+		  run << "Charges separated" << std::endl;
 		  zustand[k][j]='s';
 		}
 		break;
@@ -594,7 +594,7 @@ punkt[0]=startpunkt[k];
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((y[ punkt_ladung[i] ])-y_mittel)/zeit_ch[k][j];
 		  //std::cout << "Ladungen getrennt" << endl;
-		  run << "Ladungen getrennt" << std::endl;
+		  run << "Charges separated" << std::endl;
 		  zustand[k][j]='s';
 		}
 		break;
@@ -604,15 +604,15 @@ punkt[0]=startpunkt[k];
 		  zeit_ch[k][j]=zeit-zeit_ex[k][j];
 		  vel_ch[k][j]=((z[ punkt_ladung[i] ])-z_mittel)/zeit_ch[k][j];		  
 		  //std::cout << "Ladungen getrennt" << endl;
-		  run << "Ladungen getrennt" << std::endl;
+		  run << "Charges separated" << std::endl;
 		  zustand[k][j]='s';
 		}		
 		break;
 	    }
 	    //#########################################################################################################################
-		run << "altes Monomer " << setw(5) << punkt_ladung[i-1] << std::endl;
-		run << "neues Monomer " << setw(5) << punkt_ladung[i] << std::endl;
-		run << "Kopplung " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[i-1] ][ punkt_ladung[i] ] << std::endl;
+		run << "old Monomer " << setw(5) << punkt_ladung[i-1] << std::endl;
+		run << "new Monomer " << setw(5) << punkt_ladung[i] << std::endl;
+		run << "Coupling " << setw(12) << setprecision(6) << fixed << coupling_ladung[ punkt_ladung[i-1] ][ punkt_ladung[i] ] << std::endl;
 		run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[i-1] << std::endl;
 	    break;
 	  }
@@ -623,13 +623,13 @@ punkt[0]=startpunkt[k];
 	    break;
 	  }
 	  else if (g==(partneranzahl[ punkt_ladung[i-1] ])) {
-		  run << "ACHTUNG: FEHLER im Ladungstransport des p-Halbleiters." << std::endl;
+		  run << "WARING: ERROR during p-semiconductor chargetransfer." << std::endl;
 	    return 0;
 	  }
 	}
       } // endes des hüpfenden p-halbleiters
       else if ((1/r_summe-zeit_1)>(1/r_summe_fulleren-zeit_2)){
-		  run << "Fulleren hüpft zuerst." << std::endl;
+		  run << "Fulleren hoppd firstt." << std::endl;
 	if ((1/r_summe_fulleren-zeit_2)>0){
 	  zeit=zeit+(1/r_summe_fulleren-zeit_2);
 	  zeit_1=zeit_1+(1/r_summe_fulleren-zeit_2);
@@ -641,7 +641,7 @@ punkt[0]=startpunkt[k];
 	  zeit_2=0;
 	}
 	else {
-		run << "FEHLER!" << std::endl;
+		run << "ERROR!" << std::endl;
 	  return 0;
 	}
 	// fullerenhüpfen ausführen
@@ -654,14 +654,14 @@ punkt[0]=startpunkt[k];
 //	  cout << "g anfangs " << g << endl;
 //	  cout << "Partner " << partner[ punkt[i-1] ][g] << endl;
 	  if ((raten_fulleren[g]>r_i)&&((partner [punkt[i-1]][g])>pscanzahl)){
-		  run << "Ladungstranport im Fullerenphase" << std::endl;
+		  run << "Chargetransfer in Fullerenephase" << std::endl;
 //	    cout << "Raten_fulleren ist " << setw(12) << setprecision(6) << scientific << raten_fulleren[g] << endl; 	    
 	    punkt[i]=partner [punkt[i-1]][g];
 	    punkt_ladung[i]=punkt_ladung[i-1]; 
-		run << "altes Fulleren " << setw(5) << punkt[i-1] << std::endl;
-		run << "neues Fulleren " << setw(5) << punkt[i] << std::endl;
+		run << "old Fulleren " << setw(5) << punkt[i-1] << std::endl;
+		run << "new Fulleren " << setw(5) << punkt[i] << std::endl;
 		run << "Monomer " << setw(5) << punkt_ladung[i] << std::endl;
-		run << "Kopplung " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[i-1] ] << std::endl;
+		run << "Coupling " << setw(12) << setprecision(6) << coupling_fulleren[ punkt[i] ][ punkt[i-1] ] << std::endl;
 	    break;
 	  }
 	  else if ((raten_fulleren[g]>r_i)&&((partner[ punkt[i-1] ][g])<(pscanzahl+1))){
@@ -675,7 +675,7 @@ punkt[0]=startpunkt[k];
 	  }
 	  else if (g==(partneranzahl[ punkt[i-1] ])) {
 		  //std::cout << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << endl;
-		  run << "ACHTUNG: FEHLER im Ladungstransport des Fullerens." << std::endl;
+		  run << "WARNING: ERROR during fullerene chargetransport." << std::endl;
 	    return 0;
 	  }
 	}
@@ -729,7 +729,7 @@ punkt[0]=startpunkt[k];
       zufall=distribution1(engine);      
       if (zufall*(900e-1+1/r_summe)>(900e-1)){
 		 // std::cout << "Exziton getrappt!" << endl;
-		  run << "Exziton getrappt!" << std::endl;
+		  run << "Exziton trapped!" << std::endl;
 	trapping[k]++;
 	zustand[k][j]='t';
 	break;
@@ -753,19 +753,19 @@ punkt[0]=startpunkt[k];
 	    punkt[i]=partner [punkt[i-1]] [g];	
 	    punkt_ladung[i]=punkt[i-1];
 	    zustand[k][j]='c';
-		run << "Ladungstrennung." << std::endl;
+		run << "Chargeseparation." << std::endl;
 //	    cout << "Kopplung " << coupling_ct[ punkt[i-1] ][ punkt[i] ] << endl;
 //	    cout << "Coulomb-Energie " << setw(12) << setprecision(6) << fixed <<  coulomb( x, y, z, punkt[i-1], punkt[i], 1) << endl;
 //	    cout << "Länge " << setw(12) << setprecision(6) << fixed << length(x,y,z,punkt[i-1], punkt[i]) << endl;
 	    vel_ex[k][j]= length(x,y,z,punkt[0],punkt[i])/zeit;
-		run << "Exzitonengeschw. " << vel_ex[k][j] * 1e-9 << std::endl;
+		run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
 	    ex_diss[k]++;
 	  }
 	  
 	  break;
 	}
 	else if (raten [partneranzahl [punkt[i-1]]] < r_i){
-		run << "strahlender Zerfall." << std::endl;
+		run << "radiating decay." << std::endl;
 	  radiativ[k]++;
 	  zustand[k][j]='t';
 	  break;
@@ -775,19 +775,19 @@ punkt[0]=startpunkt[k];
 	//____________________________________________________________________________________________
 
     else if (zustand[k][j]=='t'){
-		run << "KAPUTT!" << std::endl;
+		run << "BROKEN!" << std::endl;
       break;
     } // end of 't'-zustand
 	//__________________________________________________________________________________________________
 
     else if (zustand[k][j]=='s'){
-		run << "ERFOLG!" << std::endl;
+		run << "SUCCESS!" << std::endl;
       break;
     } //end of 's'-zustand 
 	//_________________________________________________________________________________________________
 
     else {
-		run << "ACHTUNG. Zustand undefiniert!" << std::endl;
+		run << "Warning. State undefined!" << std::endl;
       return 0;
     } //end of undefined zustand
 	//___________________________________________________________________________________________________
@@ -806,7 +806,7 @@ run.close();
 
 // Auswertung: Prozentsätze
 ofstream auswertung;
-auswertung.open("auswertung.txt");
+auswertung.open("evaluation.txt");
 auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_Diss." << setw(9) << "Ch_Diss" << setw(9) << "Rek." << setw(9) << "Trapp." << setw(9) << "Fluor." << '\n';
 double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
 double mittel_ex=0;
@@ -831,11 +831,11 @@ for (k=1;k<(index+1);k++){
   auswertung << setw(9) << setprecision(5) << ch_diss_efficiency;  
   auswertung << setw(9) << setprecision(5) << rek_efficiency << setw(9) << setprecision(5) << trapp_efficiency << setw(9) << setprecision(5) << rad_efficiency << '\n';  
 }
-auswertung << setw(9) << "Mittel " << setw(9) << setprecision(5) << fixed << mittel_ex/index << setw(9) << setprecision(5) << fixed << mittel_ch/index;
+auswertung << setw(9) << "Average " << setw(9) << setprecision(5) << fixed << mittel_ex/index << setw(9) << setprecision(5) << fixed << mittel_ch/index;
 auswertung << setw(9) << setprecision(5) << fixed << mittel_rek/index << setw(9) << setprecision(5) << fixed << mittel_trapp/index;
 auswertung << setw(9) << setprecision(5) << fixed << mittel_rad/index << '\n';
-auswertung << "GESCHWINDIGKEITEN" << '\n';
-auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_vel" << setw(9) << "Ex_s_dev" << setw(9) << "Ch_vel" << setw(9) << "Ch_s_dev" << '\n';
+auswertung << "Velocities" << '\n';
+auswertung << setw(4) << "k" << setw(5) << "IX" << setw(11) << "Ex_vel" << setw(11) << "Ex_s_dev" << setw(11) << "Ch_vel" << setw(11) << "Ch_s_dev" << '\n';
 // mittlere Geschwindigkeit
 for (k=1;k<(index+1);k++){
   mittel_ch_vel[k]=0;
@@ -884,10 +884,10 @@ for (k=1;k<(index+1);k++){
   else if (ex_diss[k]<2){
     standard_ex[k]=0;    
   }
-  auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
-  auswertung << setw(9) << setprecision(5) << fixed << standard_ex[k]*1e-9;
-  auswertung << setw(9) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
-  auswertung << setw(9) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
+  auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(11) << setprecision(5) << fixed << mittel_ex_vel[k]*1e-9;
+  auswertung << setw(11) << setprecision(5) << fixed << standard_ex[k]*1e-9;
+  auswertung << setw(11) << setprecision(5) << fixed << mittel_ch_vel[k]*1e-9;
+  auswertung << setw(11) << setprecision(5) << fixed << standard_ch[k]*1e-9 << '\n';
 }
 double mittelwert_geschw_exciton=0;
 double mittelwert_geschw_ladung=0;
@@ -895,11 +895,11 @@ for (k=1;k<(index+1);k++){
   mittelwert_geschw_exciton=mittelwert_geschw_exciton+mittel_ex_vel[k];
   mittelwert_geschw_ladung=mittelwert_geschw_ladung+mittel_ch_vel[k];
 }
-auswertung << setw(9) << "Mittel " << setw(9) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
+auswertung << setw(9) << "Average " << setw(18) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
 auswertung << setw(9) << setprecision(5) << fixed << mittelwert_geschw_ladung/index*1e-9 << '\n';
 // Verteilung Ladungen und Exzitonengeschwindigkeiten
 ofstream exciton_verteilung;
-exciton_verteilung.open("exciton_verteilung.txt");
+exciton_verteilung.open("exciton_distribution.txt");
 for (i=1;i<21;i++){
   zahl=0;
   for (k=1;k<(index+1);k++){
@@ -912,7 +912,7 @@ for (i=1;i<21;i++){
   exciton_verteilung << setw(9) << setprecision(5) << i*50 << setw(9) << zahl/index << '\n';
 }
 exciton_verteilung.close();
-exciton_verteilung.open("ladung_verteilung.txt");
+exciton_verteilung.open("charge_distribution.txt");
 for (i=1;i<21;i++){
   zahl=0;
   for (k=1;k<(index+1);k++){
