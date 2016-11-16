@@ -895,8 +895,8 @@ for (k=1;k<(index+1);k++){
   mittelwert_geschw_exciton=mittelwert_geschw_exciton+mittel_ex_vel[k];
   mittelwert_geschw_ladung=mittelwert_geschw_ladung+mittel_ch_vel[k];
 }
-auswertung << setw(9) << "Average " << setw(18) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
-auswertung << setw(9) << setprecision(5) << fixed << mittelwert_geschw_ladung/index*1e-9 << '\n';
+auswertung << setw(9) << "Average " << setw(5) << setprecision(5) << fixed << mittelwert_geschw_exciton/index*1e-9;
+auswertung << setw(15) << setprecision(5) << fixed << mittelwert_geschw_ladung/index*1e-9 << '\n';
 // Verteilung Ladungen und Exzitonengeschwindigkeiten
 ofstream exciton_verteilung;
 exciton_verteilung.open("exciton_distribution.txt");
