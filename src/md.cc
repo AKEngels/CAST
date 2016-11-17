@@ -1277,6 +1277,12 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	{
 		temp = tempcontrol(CONFIG.hooverHeatBath, false);
 	}
+	else  // calculate E_kin and T if no temperature control is active
+	{
+		double tempfactor(2.0 / (freedom*md::R));
+		updateEkin();
+		temp = E_kin * tempfactor;
+	}
     // Apply pressure adjustments
     if (CONFIG.pressure)
     {
@@ -1457,6 +1463,12 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		if (CONFIG.hooverHeatBath || HEATED)
 		{
 			temp = tempcontrol(CONFIG.hooverHeatBath, false);
+		}
+		else  // calculate E_kin and T if no temperature control is active
+		{
+			double tempfactor(2.0 / (freedom*md::R));
+			updateEkin();
+			temp = E_kin * tempfactor;
 		}
 		// Apply pressure adjustments
 		if (CONFIG.pressure)
