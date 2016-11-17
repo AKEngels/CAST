@@ -250,8 +250,7 @@ void md::simulation::print_init_info(void)
   if (!Config::get().md.heat_steps.empty())
   {
     std::cout << "Temperature changes: ";
-    if (Config::get().md.heat_steps.empty() || Config::get().md.heat_steps.front().offset > 0U)
-      std::cout << "[Step 0]:[" << Config::get().md.T_init << "K]";
+    std::cout << "[Step 0]:[" << Config::get().md.T_init << "K]";
     for (auto heatstep : Config::get().md.heat_steps)
     {
       std::cout << " -> [Step " << heatstep.offset << "]:[" << heatstep.raise << "K]";
@@ -426,10 +425,28 @@ void md::simulation::init(void)
     // sum position vectors for geometrical center
     C_geo += coordobj.xyz(i);
   }
-  // Set up rattle vector for constraints
-  if (Config::get().md.rattle.use == true && Config::get().md.rattle.all == true) rattlesetup();
   // get degrees of freedom
   freedom = 3U * N;
+  //calculate temperature
+  if (Config::get().md.T_init != 0.0)
+  {
+	  double tempfactor(2.0 / (freedom*md::R));
+	  updateEkin();
+	  temp = E_kin * tempfactor;
+	  // scale temperature
+	  for (std::size_t i = 0; i < N; ++i)
+	  {
+		  if (!coordobj.atoms(i).fixed())
+		  {
+			  V[i].x() = V[i].x()*pow(Config::get().md.T_init / temp, 0.5);
+			  V[i].y() = V[i].y()*pow(Config::get().md.T_init / temp, 0.5);
+			  V[i].z() = V[i].z()*pow(Config::get().md.T_init / temp, 0.5);
+		  }  
+	  }
+  }
+  
+  // Set up rattle vector for constraints
+  if (Config::get().md.rattle.use == true && Config::get().md.rattle.all == true) rattlesetup();
   // constraint degrees of freedom
   if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
   // periodics and isothermal cases
