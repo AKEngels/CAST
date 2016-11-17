@@ -624,13 +624,13 @@ void md::simulation::freecalc()
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
   double de_ensemble, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-  // calculate ensemble average
-  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) {
+  // calculate ensemble average for current window
+  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) 
+  {                // for every conformation in window
     iterator += 1;
     k = 0;
     de_ensemble = temp_avg = 0.0;
     coordobj.fep.fepdata[i].de_ens = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
-    //std::cout << boltz << "   " << traces.T[i] << "   " << conv << "   " << coordobj.fep.fepdata[i].dE << std::endl;
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
@@ -664,7 +664,6 @@ void md::simulation::freewrite(std::size_t i)
   else if (this->prod == true) {
     fep << "Starting new data collection with values:  " << 
       i * Config::get().fep.dlambda << "   " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
-    //fep << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << "   ";
   }
   // write output to alchemical.txt
   for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
@@ -719,36 +718,8 @@ void md::simulation::feprun()
       // calculate free energy change for window and write output
       freecalc();
       freewrite(i);
-
     }// end of main window loop
   }
-  // doing a backward transofrmation (NOT SUPPORTED ANYMORE)
-  //else if (Config::get().fep.backward == 1) {
-  //  // main backward window loop
-  //  for (std::size_t i = coordobj.fep.window.size() - 1; i < coordobj.fep.window.size(); --i)
-  //  {
-
-  //    std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
-  //    coordobj.fep.window[0U].step = static_cast<int>(i);
-  //    coordobj.fep.fepdata.clear();
-  //    // equilibration run for window i<
-
-  //    Config::set().md.num_steps = Config::get().fep.equil;
-  //    integrate();
-
-  //    this->prod = false;
-  //    freewrite(i);
-  //    coordobj.fep.fepdata.clear();
-
-  //    // production run for window i
-  //    Config::set().md.num_steps = Config::get().fep.steps;
-  //    integrate();
-  //    this->prod = true;
-  //    freecalc();
-  //    freewrite(i);
-  //    if (i == 0) break;
-  //  }// end of main window loop
-  //}
   else {
     throw std::runtime_error("Wrong value for FEPbackward (0 or 1). Check your input file");
   }
@@ -993,7 +964,7 @@ bool md::simulation::heat(std::size_t const step)
 		last.raise = Config::get().md.T_init;
 		for (auto const & heatstep : Config::get().md.heat_steps)  
 		{
-			if (heatstep.offset > step)    // find first heatstep after current step
+			if (heatstep.offset >= step)    // find first heatstep after current step
 			{
 				double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
 				T += delta;  // adjust target temperature
@@ -1009,6 +980,7 @@ bool md::simulation::heat(std::size_t const step)
 		else
 		{
 			std::cout << "This should not happen!\n";
+			throw std::exception();
 		}
 	}
 }
