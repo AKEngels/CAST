@@ -1063,7 +1063,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;           // temperature of inner atoms
 			factor = std::sqrt(T / temp);    // temperature scaling factor
-			for (auto i: inner_atoms) V[i] *= factor;   // new velocities
+			for (auto i: atoms_movable) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
 			updateEkin_some_atoms(inner_atoms);
 			temp2 = E_kin * T_factor;                   // new temperature of inner atoms
 			updateEkin();                               // kinetic energy
