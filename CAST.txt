@@ -256,13 +256,10 @@ NEB-PATHOPT-INT_IT 0.5
 
 # Simulation Temperature 
 # for TS and MC important for Metropolis Criterion
-# overwritten for MD by MDheatramp
 
 Temperature            298.15
 
 # Number of iterations in global optimization routine 
-# or number of MD simulation steps
-# (overwritten for MD by MDsteps)
 
 Iterations             2000
 

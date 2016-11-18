@@ -427,9 +427,9 @@ void md::simulation::init(void)
   }
   // get degrees of freedom
   freedom = 3U * N;
-  //calculate temperature
   if (Config::get().md.T_init != 0.0)
   {
+	  //calculate temperature
 	  double tempfactor(2.0 / (freedom*md::R));
 	  updateEkin();
 	  temp = E_kin * tempfactor;
