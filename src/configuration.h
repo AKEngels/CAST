@@ -577,7 +577,7 @@ namespace config
     bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
-      pcompress(), pdelay(), ptarget(),
+      pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
       refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),

@@ -465,15 +465,15 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
-		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}
+		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense
 		 & integer [0] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
-		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
+		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtrackoffset} & Offset for tracked MD output (in frames, every \textit{n}'th frame will be written)& integer [1] \\
 		\textbf{MDsnap} & Number of snapshots & integer [100] \\
 		\textbf{MDsnap\_buffer} & Number of snapshots saved in memory before written to file & integer [50] \\
 		\textbf{MDsnap\_opt} & Optimize snapshots with chosen energy interface\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} & integer [0] \\
-		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & integer, float [0 0.0]\\
+		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & none\\
 		\textbf{MDpress} & Enable pressure control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0]\\
 		\textbf{MDpcompress} & \ifdevmode \colorbox{red}{i dont know what this is} \fi & float [0.000046 (value for water)] \\ 
 	\end{tabularx} ~\\ 
@@ -481,16 +481,16 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	\begin{tabularx}{\textwidth}{l|X|X}
 		\textbf{MDpdelay} & Barostat delay in picoseconds & float [2.0]\\
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
-		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [0, 20.0, 20.1, 10.0, 10.0, 2.0, 4.0] (\textit{details below}) \\
+		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds\ifdevmode \item 2 = specific bonds (\textit{see below}) \fi\end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds & string [none] \ifdevmode \colorbox{red}{example or something?} \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} when MDRattle = 2 fixation & integer, integer [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
-		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [none] \\
-		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [1] \\
+		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
+		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [not defined] \\
 		\textbf{MDrestart\_offset} & Offset for restart file writing in frames & integer [0] \\
-		\textbf{MDrefine\_offset} & Offset for nonbonded list generation & integer [200] \ifdevmode \colorbox{red}{wtf is this, clarify} \fi \\
+		\textbf{MDrefine\_offset} & Offset for nonbonded list generation & integer [0] \ifdevmode \colorbox{red}{wtf is this, clarify} \fi \\
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 	\end{tabularx}~\\
