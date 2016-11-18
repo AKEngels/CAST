@@ -45,6 +45,7 @@
 #include "PCA.h"
 #include "entropy.h"
 #include "alignment.h"
+#include "entropytrails.h"
 
 //////////////////////////
 //                      //
@@ -282,22 +283,6 @@ int main(int argc, char **argv)
       
       case config::tasks::DEVTEST:
       {
-        // mat LAYOUT
-        // row 1: drawn sorted data points
-        // row 2: KNN density estimate
-        // row 3: analytical density
-        // row 4: (aux) NN distance at point
-       
-        ProbabilityDensity probdens(Config::get().entropytrails.ident);
-
-        entropyobj entropyObject(
-          Config::get().entropytrails.numberOfDraws, 
-          Config::get().entropytrails.dimension, 
-          probdens);
-       
-        calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
-        calculatedDistribution.calculate();
-        calculatedDistribution.writeToFile();
 
         break;
       }
@@ -860,6 +845,26 @@ int main(int argc, char **argv)
         {
           out << hold_str[i];
         }
+      }
+      case config::tasks::ENTROP_DEVTASK:
+      {
+        // mat LAYOUT
+        // row 1: drawn sorted data points
+        // row 2: KNN density estimate
+        // row 3: analytical density
+        // row 4: (aux) NN distance at point
+
+        ProbabilityDensity probdens(Config::get().entropytrails.ident);
+
+        entropyobj entropyObject(
+          Config::get().entropytrails.numberOfDraws,
+          Config::get().entropytrails.dimension,
+          probdens);
+
+        calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
+        calculatedDistribution.calculate();
+        calculatedDistribution.writeToFile();
+
       }
       default:
       {
