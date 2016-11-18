@@ -15,7 +15,6 @@
 #include "scon_utility.h"
 #include "optimization_genetic.h"
 #include "ls.h"
-#include "lbfgs.h"
 
 
 

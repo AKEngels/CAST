@@ -158,7 +158,18 @@ void coords::Stereo::update(coords::Representation_3D const &xyz)
 
 ################################################################################################ */
 
-
+/*! Constructor of empty Coordiantes object
+ *
+ * atoms, representations, stereo, potentials,
+ * virial and stereo are empty. mult_struc_counter member
+ * is set to zero (duh, it's an empty object).
+ * However, keep in mind that the energy interface is already
+ * initialized. And this will not change. The data for atoms etc.
+ * will be filled in later using the function init_swap_in().
+ * The energy interface and preinterface are created
+ * according to the specifications from the global Config instance.
+ *
+ */
 coords::Coordinates::Coordinates() :
   m_atoms(), m_representation(), m_stereo(),
   m_potentials(), m_virial(empty_virial()),
@@ -168,7 +179,6 @@ coords::Coordinates::Coordinates() :
   NEB_control(false),
   PathOpt_control(false),
   mult_struc_counter(0)
-  //, m_topology(0)
 {
 }
 
@@ -240,7 +250,7 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
 {
   if (a.size() != p.size())
   {
-	std::cout << "Atomzahl: "<< a.size() << " bzw. " << p.size() << "\n";
+	std::cout << "Can't swap in. Number of atoms "<< a.size() << " versus " << p.size() << ". Does not match.\n";
     throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
   }
   energy_valid = false;
@@ -287,7 +297,7 @@ struct OCB
     go_on = cp->integrity();
     g.resize(cp->g_xyz().size());
     scon::explicit_transform(cp->g_xyz(), g);
-    if (Config::get().general.verbosity > 19)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "Optimization: Energy of step " << S;
       std::cout << " is " << E << " integrity " << go_on << '\n';
@@ -323,13 +333,13 @@ coords::float_type coords::Coordinates::lbfgs()
   m_representation.gradient.cartesian =
     coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
   // Output
-  if (Config::get().general.verbosity > 19 ||
-    (optimizer.state() < 0 && Config::get().general.verbosity > 14))
+  if (Config::get().general.verbosity >= 4 ||
+    (optimizer.state() < 0 && Config::get().general.verbosity >= 4))
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
-  if (Config::get().general.verbosity > 19 && integrity())
+  if (Config::get().general.verbosity >= 4 && integrity())
   {
     std::cout << "Energy after optimization: \n";
     e_head_tostream_short(std::cout, energyinterface());
@@ -357,13 +367,13 @@ double coords::Coordinates::prelbfgs()
     coords::Representation_3D(x.x.begin(), x.x.end());
   m_representation.gradient.cartesian =
     coords::Gradients_3D(x.g.begin(), x.g.end());
-  if (Config::get().general.verbosity > 19)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
 
-  if (Config::get().general.verbosity > 19 && m_interface->intact())
+  if (Config::get().general.verbosity >= 4 && m_interface->intact())
   {
     std::cout << "Energy after optimization: \n";
     e_head_tostream_short(std::cout, m_interface);
@@ -907,7 +917,7 @@ coords::float_type coords::Internal_Callback::operator()
     g[i++] = e.y();
     g[i++] = e.z();
   }
-  if (Config::get().general.verbosity > 29)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
@@ -959,7 +969,7 @@ coords::float_type coords::Main_Callback::operator() (coords::Gradients_Main con
   cp->to_internal();
   go_on = cp->integrity();
   g = cp->g_main();
-  if (Config::get().general.verbosity > 29)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
@@ -997,7 +1007,7 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   float E = float(cp->pg());
   go_on = cp->integrity();
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
-  if (Config::get().general.verbosity > 29)
+  if (Config::get().general.verbosity >= 4)
     std::cout << "Optimization: Energy of step " <<
     S << " is " << E << " integrity " << go_on << '\n';
   return E;
@@ -1028,8 +1038,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   float E = float(cp->g());
   go_on = cp->integrity();
   g = from(cp->g_xyz());
-  //*ls << *cp;
-  if (Config::get().general.verbosity > 29)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';

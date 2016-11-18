@@ -213,18 +213,43 @@ namespace tinker
 
     struct atom
     {
+      // Used in STL functions such as sort to account
+      // for atoms that have no types.
       struct typeless
       { 
         bool operator() (atom const &a, atom const &b) { return a.type < b.type; }
       };
+
       double mass;
       std::size_t type, group, atomic, bonds;
       std::string symbol, description;
       atom (void) : mass(), type(), group(), atomic(), bonds() {}
       atom (std::string const &);
+      friend bool operator==(const atom& lhs, const atom& rhs);
+      friend bool operator!=(const atom& lhs, const atom& rhs);
+
+      // Calculates the amount of memory (in byte) neccessary
+      // to store a specific tinker::parameter::atom
       std::size_t req_mem (void) const;
     };
     std::ostream& operator<< (std::ostream & stream, atom const & a);
+
+    inline bool operator==(const atom& lhs, const atom& rhs)
+    {
+      return (lhs.mass == rhs.mass
+        && lhs.type == rhs.type
+        && lhs.group == rhs.group
+        && lhs.atomic == rhs.atomic
+        && lhs.bonds == rhs.bonds
+        && lhs.symbol == rhs.symbol
+        && lhs.description == rhs.description
+        );
+    }
+
+    inline bool operator!=(const atom& lhs, const atom& rhs)
+    {
+      return (!(lhs == rhs));
+    }
 
     // angles
 
@@ -484,7 +509,7 @@ namespace tinker
       std::vector<ureybrad> const &   ureybrads (void) const { return m_ureybrads; }
       std::vector<vdw> const &        vdws (void) const { return m_vdws; }
       std::vector<vdw> const &        vdw14s (void) const { return m_vdw14s; }
-	  std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
+	    std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
 
       double torsionunit (void) const { return m_general.torsionunit; }
       double imptorunit(void) const { return m_general.imptorunit; }
@@ -539,7 +564,7 @@ namespace tinker
       std::vector<ureybrad>   m_ureybrads;
       std::vector<vdw>        m_vdws;
       std::vector<vdw>        m_vdw14s;
-	  std::vector<combi::vdwc> m_vdwsc;
+	    std::vector<combi::vdwc> m_vdwsc;
 
       friend std::ostream& operator<< (std::ostream & stream, parameters const & p);
 

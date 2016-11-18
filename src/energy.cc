@@ -7,13 +7,24 @@
 #include "energy_int_amoeba.h"
 #include "coords.h"
 
-static inline energy::interface_base * get_interface (coords::Coordinates * cp, config::interface_types::T const &inf)
+/*! Creates a specific energy interface
+*
+* This function returns a pointer to
+* a new energy interface. It should not be called
+* manually but is used by the energy::new_interface
+* function. Which interface is created depends on the 
+* specifications in the global Config instance
+*
+* @param coordinates: Pointer to coordinates object for which energy interface will perform
+* @return: Base-Class Pointer to the energy interface. Nullpointer is returned if something went wrong.
+*/
+static inline energy::interface_base * get_interface (coords::Coordinates * coordinates, config::interface_types::T const &inf)
 {
   switch (inf)
   {
   case config::interface_types::T::ILLEGAL:
     {
-      if (Config::get().general.verbosity > 29)
+      if (Config::get().general.verbosity >= 3)
       {
         std::cout << "Illegal Energy interface.\n";
       }
@@ -21,35 +32,45 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     }  
   case config::interface_types::T::AMOEBA:
     {
-      if (Config::get().general.verbosity > 29)
+      if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "Not (yet) existent energy interface choosen.\n";
+        std::cout << "AMOEBA force field energy interface chosen for energy calculations\n";
       }
-      return new energy::interfaces::amoeba::amoeba_ff(cp);
+      return new energy::interfaces::amoeba::amoeba_ff(coordinates);
     }
   case config::interface_types::T::MOPAC:
     {
-      if (Config::get().general.verbosity > 29) 
+      if (Config::get().general.verbosity >= 3)
       {
         std::cout << "Mopac choosen for energy calculations.\n";
       }
-      return new energy::interfaces::mopac::sysCallInterface(cp);
+      return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
-      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations.\n";
-      return new energy::interfaces::terachem::mpiInterface(cp);
+      if (Config::get().general.verbosity >= 3) std::cout << "Terachem choosen for energy calculations.\n";
+      return new energy::interfaces::terachem::mpiInterface(coordinates);
     }
 #endif
   default:
     {
-    if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen.\n";
-      return new energy::interfaces::aco::aco_ff(cp);
+    if (Config::get().general.verbosity >= 3) std::cout << "Default (force field) interface choosen for energy calculations.\n";
+      return new energy::interfaces::aco::aco_ff(coordinates);
     }
   }
 }
 
+/*! Creates a new energy interface
+ *
+ * This function returns a pointer to
+ * a fresh, new energy interface. Which interface
+ * is created depends on the specifications in the global
+ * Config instance
+ *
+ * @param coordinates: Pointer to coordinates object for which energy interface will perform
+ * @return: Base-Class Pointer to the energy interface. Nullpointer is returned if something went wrong.
+ */
 energy::interface_base* energy::new_interface (coords::Coordinates * coordinates)
 {
   return get_interface(coordinates, Config::get().general.energy_interface);

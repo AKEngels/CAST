@@ -13,6 +13,8 @@ namespace pca
 		if (!Config::get().PCA.pca_trunc_atoms_bool) Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>();
 
 		coords::Coordinates coords_ref(coords);
+    if (Config::get().PCA.pca_ref_frame_num >= ci->size())
+      throw std::runtime_error("Error in config-option pca_ref_frame_num: Number higher than total number of simulation frames.");
 		auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
 		coords_ref.set_xyz(holder);
 		//Constructs two coordinate objects and sets reference frame according to INPUTFILE

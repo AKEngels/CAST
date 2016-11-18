@@ -8,7 +8,6 @@
 #include "Path_perp.h"
 #include "scon_utility.h"
 #include "ls.h"
-#include "lbfgs.h"
 #include "scon_vect.h"
 #if defined(_WIN32)
 
@@ -401,11 +400,11 @@ double path_perp::lbfgs (ptrdiff_t imagex)
   using vec_type = op_type::rep_type;
   op_type::point_type point(vec_type(cPtr->xyz().begin(), cPtr->xyz().end()));
   optimizer(point);
-  if (Config::get().general.verbosity > 4 && optimizer.state() != status::SUCCESS)
+  if (Config::get().general.verbosity > 3 && optimizer.state() != status::SUCCESS)
   {
     std::cout << "Optimization returned " << optimizer.state() << '\n';
   }
-  if (Config::get().general.verbosity > 5)
+  if (Config::get().general.verbosity > 3)
   {
     std::cout << "Optimization done. Evaluations:" << optimizer.iter() << '\n';
   }

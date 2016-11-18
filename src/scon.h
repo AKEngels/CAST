@@ -249,7 +249,6 @@
 
 namespace scon
 {
-  struct cfg { static unsigned int verbosity; };
   static const char endl = '\n';
 }
 

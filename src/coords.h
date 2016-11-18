@@ -119,9 +119,6 @@ namespace coords
 
   namespace bias
   {
-
-    struct types { enum T { QUADRATIC, BIQUADRATIC, PROGRESSIVE }; };
-
     struct Potentials
     {
 
@@ -362,13 +359,12 @@ namespace coords
     {
       if (m_preinterface)
       {
-        if (Config::get().general.verbosity > 19)
+        if (Config::get().general.verbosity >= 4)
           std::cout << "Preotimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
-          && !Config::get().energy.periodic
-          && !Config::get().general.trackstream)
+          && !Config::get().energy.periodic)
         {
           m_representation.energy = m_preinterface->o();
         }
@@ -387,8 +383,7 @@ namespace coords
       energy_valid = true;
       if (m_interface->has_optimizer()
         && m_potentials.empty()
-        && !Config::get().energy.periodic
-        && !Config::get().general.trackstream)
+        && !Config::get().energy.periodic)
       {
         m_representation.energy = m_interface->o();
       }
@@ -801,7 +796,7 @@ namespace coords
         g[i++] = static_cast<float>(e.y());
         g[i++] = static_cast<float>(e.z());
       }
-      if (Config::get().general.verbosity > 19)
+      if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Optimization: Energy of step " << S;
         std::cout << " is " << E << " integrity " << go_on << '\n';
@@ -889,7 +884,7 @@ namespace coords
         g[n++] = static_cast<float>(e.y());
         g[n++] = static_cast<float>(e.z());
       }
-      if (Config::get().general.verbosity > 19)
+      if (Config::get().general.verbosity >= 4)
       {
         std::cout << "Optimization: Energy of step " << S;
         std::cout << " is " << E << " integrity " << go_on << '\n';
