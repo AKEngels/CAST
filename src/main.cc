@@ -572,57 +572,81 @@ int main(int argc, char **argv)
       }
       case config::tasks::PCAgen:
       {
-        /**
-         * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
-         *
-         * This task will perform a principal component analysis (PCA) on a molecular simulation
-         * trajectory. Prior translational- and rotational fit of the conformations
-         * obtained is possible. Options can be specified in the INPUTFILE.
-         *
-         * Further processing can be done via PCAproc - Task
-         */
+        if (false)
+        {
+          pca::KernelPrincipalComponentRepresentation* pcaptr = nullptr;
 
-        // Create empty pointer since we do not know yet if PCA eigenvectors etc.
-        // will be generated from coordinates or read from file
-		    pca::PrincipalComponentRepresentation* pcaptr = nullptr;
-
-        // Create new PCA eigenvectors and modes
-		    if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
-		    {
-		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+          // Create new PCA eigenvectors and modes
+          pcaptr = new pca::KernelPrincipalComponentRepresentation(ci, coords);
           pcaptr->writePCAModesFile("pca_modes.dat");
-		    }
-        // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
-		    else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
-		    else
-		    {
-		    	pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
-          // Read PCA-Modes from file but generate new eigenvectors from input coordinates
-		    	if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
-          // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
-          // and the input coordinates
-          else if (Config::get().PCA.pca_read_vectors)
+
+          // Create Histograms
+          // ATTENTION: This function read from Config::PCA
+          pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+          // Write Stock's Delta, see DOI 10.1063/1.2746330
+          // ATTENTION: This function read from Config::PCA
+          pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+          // Cleanup
+          delete pcaptr;
+          std::cout << "Everything is done. Have a nice day." << std::endl;
+          break;
+        }
+        else
+        {
+          /**
+           * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
+           *
+           * This task will perform a principal component analysis (PCA) on a molecular simulation
+           * trajectory. Prior translational- and rotational fit of the conformations
+           * obtained is possible. Options can be specified in the INPUTFILE.
+           *
+           * Further processing can be done via PCAproc - Task
+           */
+
+           // Create empty pointer since we do not know yet if PCA eigenvectors etc.
+           // will be generated from coordinates or read from file
+          pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+
+          // Create new PCA eigenvectors and modes
+          if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
           {
-            pcaptr->readEigenvectors("pca_modes.dat");
-            pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+            pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+            pcaptr->writePCAModesFile("pca_modes.dat");
           }
-		    }
+          // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
+          else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+          else
+          {
+            pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+            // Read PCA-Modes from file but generate new eigenvectors from input coordinates
+            if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+            // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+            // and the input coordinates
+            else if (Config::get().PCA.pca_read_vectors)
+            {
+              pcaptr->readEigenvectors("pca_modes.dat");
+              pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+            }
+          }
 
-        // If modes or vectors have changed, write them to new file
-        if(Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+          // If modes or vectors have changed, write them to new file
+          if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
-        // Create Histograms
-        // ATTENTION: This function read from Config::PCA
-        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+          // Create Histograms
+          // ATTENTION: This function read from Config::PCA
+          pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
 
-        // Write Stock's Delta, see DOI 10.1063/1.2746330
-        // ATTENTION: This function read from Config::PCA
-        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+          // Write Stock's Delta, see DOI 10.1063/1.2746330
+          // ATTENTION: This function read from Config::PCA
+          pcaptr->writeStocksDelta("pca_stocksdelta.dat");
 
-        // Cleanup
-		    delete pcaptr;
-        std::cout << "Everything is done. Have a nice day." << std::endl;
-        break;
+          // Cleanup
+          delete pcaptr;
+          std::cout << "Everything is done. Have a nice day." << std::endl;
+          break;
+        }
       }
       case config::tasks::PCAproc:
       {

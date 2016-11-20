@@ -16,14 +16,26 @@ namespace pca
 		void readEigenvectors(std::string const& filename = "pca_modes.dat");
 		void readModes(std::string const& filename = "pca_modes.dat");
 		void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-		void generatePCAEigenvectorsFromCoordinates();
-		void generatePCAModesFromPCAEigenvectorsAndCoordinates();
+		virtual void generatePCAEigenvectorsFromCoordinates();
+    virtual void generatePCAModesFromPCAEigenvectorsAndCoordinates();
 	protected:
 		Matrix_Class modes;
 		Matrix_Class eigenvectors;
 		Matrix_Class eigenvalues;
 		Matrix_Class coordinatesMatrix;
 	};
+
+  class KernelPrincipalComponentRepresentation
+    : public PrincipalComponentRepresentation
+  {
+  public:
+    KernelPrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
+    void generatePCAEigenvectorsFromCoordinates() override;
+    void generatePCAModesFromPCAEigenvectorsAndCoordinates() override;
+  protected:
+    std::function<float_type(Matrix_Class const&, Matrix_Class const&)> kernelFunction;
+    Matrix_Class kernelMatrix;
+  };
 
   class ProcessedPrincipalComponentRepresentation
     : public PrincipalComponentRepresentation

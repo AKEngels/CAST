@@ -1,4 +1,6 @@
 #include "PCA.h"
+#include <fstream>
+#include <iostream>
 namespace pca
 {
 	void PrincipalComponentRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
@@ -148,15 +150,21 @@ namespace pca
     if (Config::get().general.verbosity > 2u)
       std::cout << "Generating PCA Eigenvectors from coordinate matrix." << std::endl;
 
+    // Coordinate Matrix: Rows are DOFs, cols are samples
+
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
 		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
 		cov_matr = cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		cov_matr = transposed(cov_matr) * cov_matr;
-		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
+    cov_matr = cov_matr;// / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
 		int *cov_rank = new int;
 		cov_matr.eigensym(this->eigenvalues, this->eigenvectors, cov_rank);
+
+    //std::cout << this->eigenvalues << "\n\n";
+
+
 		if (*cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
 		{
 			std::cout << "Notice: covariance matrix is singular.\n";
@@ -392,6 +400,81 @@ namespace pca
         stream << "------------------------------\n";
       }
     }
+  }
+
+  void KernelPrincipalComponentRepresentation::generatePCAEigenvectorsFromCoordinates()
+  {
+    // Tell 'em what we are gonna do:
+    if (Config::get().general.verbosity > 2u)
+      std::cout << "Generating kernelPCA Eigenvectors from coordinate matrix and kernel function." << std::endl;
+
+    // Coordinate Matrix: Rows are DOFs, cols are samples
+    // http://pca.narod.ru/scholkopf_kernel.pdf
+    // http://stats.stackexchange.com/questions/101344/is-kernel-pca-with-linear-kernel-equivalent-to-standard-pca
+    // http://mlpack.org/docs/mlpack-git/doxygen/naive__method_8hpp_source.html
+
+    // Note that we only need to calculate the upper triangular part of the
+    // kernel matrix, since it is symmetric. This helps minimize the number of
+    // kernel evaluations.
+
+    this->kernelMatrix = Matrix_Class(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols());
+    for (uint_type i = 0u; i < this->coordinatesMatrix.cols(); i++)
+    {
+      for (uint_type j = i; j < this->coordinatesMatrix.cols(); j++)
+      {
+        Matrix_Class i_(this->coordinatesMatrix.rows(), 1);
+        Matrix_Class j_(this->coordinatesMatrix.rows(), 1);
+        for (uint_type k = 0u; k < this->coordinatesMatrix.rows(); k++)
+        {
+          i_(k, 0) = this->coordinatesMatrix(k, i);
+          j_(k, 0) = this->coordinatesMatrix(k, j);
+        }
+        float_type kernelFuncResult = this->kernelFunction(i_, j_);
+        kernelMatrix(i, j) = kernelFuncResult;
+      }
+    }
+    // Copy to the lower triangular part of the matrix.
+    for (uint_type i = 1; i < this->coordinatesMatrix.cols(); ++i)
+      for (uint_type j = 0; j < i; ++j)
+        kernelMatrix(i, j) = kernelMatrix(j, i);
+
+
+    Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1. / static_cast<float>(this->coordinatesMatrix.cols()));
+    kernelMatrix = kernelMatrix - ones * kernelMatrix - kernelMatrix * ones + ones * kernelMatrix * ones;
+    kernelMatrix.eigensym(this->eigenvalues, this->eigenvectors);
+
+  };
+
+  void KernelPrincipalComponentRepresentation::generatePCAModesFromPCAEigenvectorsAndCoordinates()
+  {
+    // Tell 'em what we are gonna do:
+    if (Config::get().general.verbosity > 2u)
+      std::cout << "Generating kernelPCA modes from kernel matrix and PCA Eigenvectors." << std::endl;
+    
+    this->modes = transposed(eigenvectors) * kernelMatrix;
+
+    for (uint_type i = 0u; i < this->modes.cols(); i++)
+    {
+      for (uint_type j = 0u; j < this->modes.rows(); j++)
+      {
+        this->modes(j, i) /= sqrt(this->eigenvalues(j, 0) > 0. ? this->eigenvalues(j, 0) : -1. * this->eigenvalues(j, 0));
+      }
+    }
+
+  };
+
+  KernelPrincipalComponentRepresentation::KernelPrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
+    : PrincipalComponentRepresentation(ci, coords)
+  {
+    this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two) -> float_type
+    {
+      if (one.cols() != 1u || two.cols() != 1u)
+        throw std::runtime_error("Wrong sized vectors in kernel function. Aborting");
+      return (transposed(one) * two)(0,0);
+    };
+    this->generatePCAEigenvectorsFromCoordinates();
+    this->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+
   }
 
   ProcessedPrincipalComponentRepresentation::ProcessedPrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile)

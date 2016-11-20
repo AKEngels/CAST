@@ -1263,6 +1263,8 @@ typedef size_t uint_type;
       arma::Mat<float_type> eigVecUnordered(eigenvec_in.rows(), eigenvec_in.cols());
       eig_sym(s, eigVecUnordered, *this);
 
+      // Swap the eigenvalues and vectors since they are ordered backwards (we need largest to
+      // smallest).
       for (size_t i = 0; i < (*this).rows(); i++)
       {
         for (size_t j = 0; j < (*this).cols(); j++)
