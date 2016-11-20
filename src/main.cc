@@ -570,31 +570,29 @@ int main(int argc, char **argv)
         std::cout << "Everything is done. Have a nice day." << std::endl;
         break;
       }
+      case config::tasks::kPCA:
+      {
+        pca::KernelPrincipalComponentRepresentation* pcaptr = nullptr;
+
+        // Create new PCA eigenvectors and modes
+        pcaptr = new pca::KernelPrincipalComponentRepresentation(ci, coords);
+        pcaptr->writePCAModesFile("pca_modes.dat");
+
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+        // Cleanup
+        delete pcaptr;
+        std::cout << "Everything is done. Have a nice day." << std::endl;
+        break;
+      }
       case config::tasks::PCAgen:
       {
-        if (false)
-        {
-          pca::KernelPrincipalComponentRepresentation* pcaptr = nullptr;
-
-          // Create new PCA eigenvectors and modes
-          pcaptr = new pca::KernelPrincipalComponentRepresentation(ci, coords);
-          pcaptr->writePCAModesFile("pca_modes.dat");
-
-          // Create Histograms
-          // ATTENTION: This function read from Config::PCA
-          pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
-
-          // Write Stock's Delta, see DOI 10.1063/1.2746330
-          // ATTENTION: This function read from Config::PCA
-          pcaptr->writeStocksDelta("pca_stocksdelta.dat");
-
-          // Cleanup
-          delete pcaptr;
-          std::cout << "Everything is done. Have a nice day." << std::endl;
-          break;
-        }
-        else
-        {
           /**
            * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
            *
@@ -646,7 +644,6 @@ int main(int argc, char **argv)
           delete pcaptr;
           std::cout << "Everything is done. Have a nice day." << std::endl;
           break;
-        }
       }
       case config::tasks::PCAproc:
       {

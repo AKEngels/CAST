@@ -1366,6 +1366,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().PCA.pca_ref_frame_num;
   }
+  else if (option == "kPCAfunc")
+  {
+    cv >> Config::set().PCA.kPCAfunc;
+  }
   else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
   {
     Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);

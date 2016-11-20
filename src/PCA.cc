@@ -1,6 +1,7 @@
 #include "PCA.h"
 #include <fstream>
 #include <iostream>
+#include <queue>
 namespace pca
 {
 	void PrincipalComponentRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
@@ -466,11 +467,169 @@ namespace pca
   KernelPrincipalComponentRepresentation::KernelPrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
     : PrincipalComponentRepresentation(ci, coords)
   {
+    using namespace std;
+    if (Config::get().PCA.kPCAfunc == 0u)
     this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two) -> float_type
+
     {
       if (one.cols() != 1u || two.cols() != 1u)
         throw std::runtime_error("Wrong sized vectors in kernel function. Aborting");
       return (transposed(one) * two)(0,0);
+    };
+    else
+      this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two)->float_type
+    {
+      auto a = (transposed(one).to_std_vector())[0];
+      auto b = (transposed(two).to_std_vector())[0];
+
+      const size_t n = a.size();
+      vector<vector<float>> cost(n, vector<float>(n, 0.f));
+      for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+          cost[i][j] = -(a[i] - b[j]) * (a[i] - b[j]);
+        }
+      }
+      
+      vector<float> lx(n, 0.f);
+      vector<float> ly(n, 0.f);
+      for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+          lx[i] = max(lx[i], cost[i][j]);
+        }
+      }
+      
+      size_t max_match = 0;
+      vector<int> xy(n, -1);
+      vector<int> yx(n, -1);
+      
+      while (max_match < n) {
+        int x, y, root; //just counters and root vertex
+        queue<size_t> q;
+        vector<bool> S(n, false);
+        vector<bool> T(n, false);
+        vector<int> prev(n, -1);
+        //finding root of the tree
+        for (x = 0; x < n; x++) {
+          if (xy[x] == -1)
+          {
+            root = x;
+            q.push(root);
+            prev[x] = -2;
+            S[x] = true;
+            break;
+          }
+        }
+      
+        vector<float> slack(n);
+        vector<float> slackx(n);
+        for (y = 0; y < n; y++) //initializing slack array
+        {
+          slack[y] = lx[root] + ly[y] - cost[root][y];
+          slackx[y] = root;
+        }
+        while (true) //main cycle
+        {
+          while (!q.empty()) //building tree with bfs cycle
+          {
+            x = q.front(); //current vertex from X part
+            q.pop();
+            for (y = 0; y < n; y++) //iterate through all edges in equality graph
+              if (abs(cost[x][y] - (lx[x] + ly[y])) < 1e-6f && !T[y])
+              {
+                if (yx[y] == -1) break; //an exposed vertex in Y found, so
+                                        //augmenting path exists!
+                T[y] = true; //else just add y to T,
+                q.push(yx[y]); //add vertex yx[y], which is matched
+                               //with y, to the queue
+                               //add_to_tree(yx[y], x); //add edges (x,y) and (y,yx[y]) to the tree
+                S[yx[y]] = true; //add x to S
+                prev[yx[y]] = x; //we need this when augmenting
+                for (int z = 0; z < n; z++) { //update slacks, because we add new vertex to S
+                  if (lx[yx[y]] + ly[z] - cost[yx[y]][z] < slack[z])
+                  {
+                    slack[z] = lx[yx[y]] + ly[z] - cost[yx[y]][z];
+                    slackx[z] = yx[y];
+                  }
+                }
+              }
+            if (y < n) break; //augmenting path found!
+          }
+          if (y < n) break; //augmenting path found!
+      
+                            //update_labels(); //augmenting path not found, so improve labeling
+          {
+            int x, y;
+            float delta = numeric_limits<float>::max(); //init delta as infinity
+            for (y = 0; y < n; y++) //calculate delta using slack
+              if (!T[y])
+                delta = min(delta, slack[y]);
+            for (x = 0; x < n; x++) //update X labels
+              if (S[x]) lx[x] -= delta;
+            for (y = 0; y < n; y++) //update Y labels
+              if (T[y]) ly[y] += delta;
+            for (y = 0; y < n; y++) //update slack array
+              if (!T[y])
+                slack[y] -= delta;
+          }
+          q = queue<size_t>();
+          for (y = 0; y < n; y++)
+            //in this cycle we add edges that were added to the equality graph as a
+            //result of improving the labeling, we add edge (slackx[y], y) to the tree if
+            //and only if !T[y] && slack[y] == 0, also with this edge we add another one
+            //(y, yx[y]) or augment the matching, if y was exposed
+            if (!T[y] && slack[y] == 0)
+            {
+              if (yx[y] == -1) //exposed vertex in Y found - augmenting path exists!
+              {
+                x = slackx[y];
+                break;
+              }
+              else
+              {
+                T[y] = true; //else just add y to T,
+                if (!S[yx[y]])
+                {
+                  q.push(yx[y]); //add vertex yx[y], which is matched with
+                                 //y, to the queue
+                                 //add_to_tree(yx[y], slackx[y]); //and add edges (x,y) and (y,
+                                 //yx[y]) to the tree
+                  S[yx[y]] = true; //add x to S
+                  prev[yx[y]] = slackx[y]; //we need this when augmenting
+                  for (int z = 0; z < n; z++) { //update slacks, because we add new vertex to S
+                    if (lx[yx[y]] + ly[z] - cost[yx[y]][z] < slack[z])
+                    {
+                      slack[z] = lx[yx[y]] + ly[z] - cost[yx[y]][z];
+                      slackx[z] = yx[y];
+                    }
+                  }
+                }
+              }
+            }
+          if (y < n) break; //augmenting path found!
+        }
+      
+        if (y < n) //we found augmenting path!
+        {
+          max_match++; //increment matching
+                       //in this cycle we inverse edges along augmenting path
+          for (int cx = x, cy = y, ty; cx != -2; cx = prev[cx], cy = ty)
+          {
+            ty = xy[cx];
+            yx[cy] = cx;
+            xy[cx] = cy;
+          }
+        }
+        else {
+          break;
+        }
+      }
+      
+      
+      float minimalDistance = 0.f;
+      for (int i = 0; i < n; i++) {
+        minimalDistance -= cost[i][xy[i]];
+      }
+      return sqrt(minimalDistance);
     };
     this->generatePCAEigenvectorsFromCoordinates();
     this->generatePCAModesFromPCAEigenvectorsAndCoordinates();

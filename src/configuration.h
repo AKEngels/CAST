@@ -48,7 +48,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   // Number of tasks
-  static std::size_t const NUM_TASKS = 23;
+  static std::size_t const NUM_TASKS = 24;
   // Names of all CAST tasks as strings
   static std::string const task_strings[NUM_TASKS] =
   { 
@@ -56,7 +56,7 @@ namespace config
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING", 
+    "GRID", "ALIGN", "PATHSAMPLING", "kPCA",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -74,7 +74,7 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, 
+      GRID, ALIGN, PATHSAMPLING, kPCA
     };
   };
 
@@ -897,6 +897,7 @@ namespace config
     double pca_histogram_width;
     size_t pca_histogram_number_of_bins;
     size_t pca_offset;
+    size_t kPCAfunc;
     std::vector<size_t> pca_trunc_atoms_num;
     std::vector<size_t> pca_internal_dih;
     std::vector<size_t> pca_dimensions_for_histogramming;
@@ -905,7 +906,7 @@ namespace config
 
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
        pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
-      pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
+      pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), kPCAfunc(0u),
       pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
       proc_desired_start(), proc_desired_stop()
 
