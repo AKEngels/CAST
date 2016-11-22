@@ -468,7 +468,7 @@ namespace pca
     : PrincipalComponentRepresentation(ci, coords)
   {
     using namespace std;
-    if (Config::get().PCA.kPCAfunc == 0u)
+    if (Config::get().PCA.kPCAfunc != 0u)
     this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two) -> float_type
 
     {
@@ -479,35 +479,61 @@ namespace pca
     else
       this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two)->float_type
     {
-      auto a = (transposed(one).to_std_vector())[0];
-      auto b = (transposed(two).to_std_vector())[0];
+      std::function<float_type(const std::vector<float_type>&, const std::vector<float_type>&)> dot =
+        [](const std::vector<float_type>& a, const std::vector<float_type>& b) ->float_type
+      {
+          float sum = 0.f;
+          // assert a.size() == b.size()
+          for (size_t i = 0; i < a.size(); i++) {
+            sum += a[i] * b[i];
+          }
+          return sum;
+      };
+
+      std::vector<std::vector<float_type>> a(one.rows() / 3u, std::vector<float_type>(3u, 0.));
+      std::vector<std::vector<float_type>> b(two.rows() / 3u, std::vector<float_type>(3u, 0.));
+
+      for (size_t i = 0u; i < one.rows(); i+=3)
+      {
+        a[i / 3u][0] = one(i, 0);
+        a[i / 3u][1] = one(i+1, 0);
+        a[i / 3u][2] = one(i+2, 0);
+      }
+
+      for (size_t i = 0u; i < two.rows(); i += 3)
+      {
+        b[i / 3u][0] = two(i, 0);
+        b[i / 3u][1] = two(i + 1, 0);
+        b[i / 3u][2] = two(i + 2, 0);
+      }
+
 
       const size_t n = a.size();
-      vector<vector<float>> cost(n, vector<float>(n, 0.f));
+      std::vector<std::vector<float_type>> cost(n, std::vector<float_type>(n, 0.f));
       for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
-          cost[i][j] = -(a[i] - b[j]) * (a[i] - b[j]);
+          cost[i][j] = -dot(a[i], b[j]);
         }
       }
-      
-      vector<float> lx(n, 0.f);
-      vector<float> ly(n, 0.f);
+
+      std::vector<float_type> lx(n, 0.f);
+      std::vector<float_type> ly(n, 0.f);
       for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
           lx[i] = max(lx[i], cost[i][j]);
         }
       }
-      
+
       size_t max_match = 0;
-      vector<int> xy(n, -1);
-      vector<int> yx(n, -1);
-      
+      std::vector<float_type> xy(n, -1);
+      std::vector<float_type> yx(n, -1);
+
       while (max_match < n) {
         int x, y, root; //just counters and root vertex
         queue<size_t> q;
-        vector<bool> S(n, false);
-        vector<bool> T(n, false);
-        vector<int> prev(n, -1);
+        std::vector<bool> S(n, false);
+        std::vector<bool> T(n, false);
+        std::vector<int> prev(n, -1);
         //finding root of the tree
         for (x = 0; x < n; x++) {
           if (xy[x] == -1)
@@ -519,9 +545,9 @@ namespace pca
             break;
           }
         }
-      
-        vector<float> slack(n);
-        vector<float> slackx(n);
+
+        std::vector<float_type> slack(n);
+        std::vector<float_type> slackx(n);
         for (y = 0; y < n; y++) //initializing slack array
         {
           slack[y] = lx[root] + ly[y] - cost[root][y];
@@ -555,11 +581,11 @@ namespace pca
             if (y < n) break; //augmenting path found!
           }
           if (y < n) break; //augmenting path found!
-      
+
                             //update_labels(); //augmenting path not found, so improve labeling
           {
             int x, y;
-            float delta = numeric_limits<float>::max(); //init delta as infinity
+            float_type delta = numeric_limits<float>::max(); //init delta as infinity
             for (y = 0; y < n; y++) //calculate delta using slack
               if (!T[y])
                 delta = min(delta, slack[y]);
@@ -607,7 +633,7 @@ namespace pca
             }
           if (y < n) break; //augmenting path found!
         }
-      
+
         if (y < n) //we found augmenting path!
         {
           max_match++; //increment matching
@@ -623,8 +649,8 @@ namespace pca
           break;
         }
       }
-      
-      
+
+
       float minimalDistance = 0.f;
       for (int i = 0; i < n; i++) {
         minimalDistance -= cost[i][xy[i]];

@@ -1349,6 +1349,22 @@ typedef size_t uint_type;
 #else
   using namespace scon;
 
+  template<typename T>
+  mathmatrix<T> transposed(mathmatrix<T> const &A)
+  {
+    matrix<T> const& in = A;
+    return mathmatrix<T>(transposed(in));
+  }
+
+  // transpose matrix
+  template<class T>
+  void transpose(mathmatrix<T> &m)
+  {
+    matrix<T> & in = m;
+   (transpose(in));
+  }
+
+
   template<class T, class U = T>
   typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
     mathmatrix<typename std::common_type<T, U>::type >> ::type
