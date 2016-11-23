@@ -584,7 +584,7 @@ int main(int argc, char **argv)
 
         // Write Stock's Delta, see DOI 10.1063/1.2746330
         // ATTENTION: This function read from Config::PCA
-        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+        //pcaptr->writeStocksDelta("pca_stocksdelta.dat");
 
         // Cleanup
         delete pcaptr;

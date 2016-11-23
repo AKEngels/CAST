@@ -524,7 +524,7 @@ namespace pca
         }
       }
 
-      size_t max_match = 0;
+      volatile size_t max_match = 0;
       std::vector<float_type> xy(n, -1);
       std::vector<float_type> yx(n, -1);
 
@@ -655,7 +655,8 @@ namespace pca
       for (int i = 0; i < n; i++) {
         minimalDistance -= cost[i][xy[i]];
       }
-      return sqrt(minimalDistance);
+      return minimalDistance;
+      //return sqrt(minimalDistance);
     };
     this->generatePCAEigenvectorsFromCoordinates();
     this->generatePCAModesFromPCAEigenvectorsAndCoordinates();
