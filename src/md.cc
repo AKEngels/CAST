@@ -1064,9 +1064,12 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			temp = E_kin*T_factor;           // temperature of inner atoms
 			factor = std::sqrt(T / temp);    // temperature scaling factor
 			for (auto i: atoms_movable) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
-			updateEkin_some_atoms(inner_atoms);
-			temp2 = E_kin * T_factor;                   // new temperature of inner atoms
-			updateEkin();                               // kinetic energy
+			if (half == false)
+			{
+				updateEkin_some_atoms(inner_atoms);
+				temp2 = E_kin * T_factor;                   // new temperature of inner atoms
+				updateEkin();            // kinetic energy
+			}	
 		}
 		else
 		{
@@ -1074,8 +1077,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			temp = E_kin * tempfactor;      // temperature before
 			factor = std::sqrt(T / temp);
 			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
-			updateEkin();
-			temp2 = E_kin * tempfactor;     // temperatures after
+			if (half == false)
+			{
+				updateEkin();
+				temp2 = E_kin * tempfactor;     // temperatures after
+			}
 		}
 		
 		
@@ -1146,13 +1152,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	double distance = distances[atom_number];
 	coords::Cartesian_Point velocity = V[atom_number];
 
-	if (distance > outer_cutoff)       //no movement outside of outer cutoff
-	{
-		velocity = coords::Cartesian_Point(0, 0, 0);
-		std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
-		return velocity;
-	}
-	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
+	if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
 	{
 		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
 		return velocity;
@@ -1164,8 +1164,17 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	}
 	else    // should not happen
 	{ 
-		std::cout << "ERROR: really strange distance for atom "<<atom_number<<": "<<distance<<"\n"; 
-		exit(EXIT_FAILURE);
+		if (distance > outer_cutoff)
+		{
+			velocity = coords::Cartesian_Point(0, 0, 0);
+			std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
+			return velocity;
+		}
+		else
+		{
+			std::cout << "ERROR: really strange distance for atom " << atom_number << ": " << distance << "\n";
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 

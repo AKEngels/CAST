@@ -56,15 +56,13 @@ void energy::interfaces::aco::aco_ff::calc (void)
     #pragma omp parallel sections
     {
       #pragma omp section
-       part_energy[types::BOND]       = f_12<DERIV>();
+        part_energy[types::BOND]       = f_12<DERIV>();
       #pragma omp section
         part_energy[types::ANGLE]      = f_13_a<DERIV>();
       #pragma omp section
         part_energy[types::UREY]       = f_13_u<DERIV>();
       #pragma omp section
         part_energy[types::TORSION]    = f_14<DERIV>();
-      //#pragma omp section
-        //part_energy[types::TORSION]    = f_14p();
       #pragma omp section 
         part_energy[types::IMPTORSION] = g_it();
       #pragma omp section
