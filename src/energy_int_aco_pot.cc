@@ -598,8 +598,8 @@ namespace energy
           coords::float_type const cosine = dot(t, u) / tlul;
 		  coords::float_type const sine = dot(cb, tu) / (r12*tlul);
 
-		  auto v2 = imptor.p.force[0];   // I don't know if this is correct??? why index 0 everywhere?
-		  auto c2 = cos(imptor.p.ideal[0]*SCON_PI180);
+		  auto v2 = imptor.p.force[0];   // I don't know if this is correct (originally there was something more in this line)
+		  auto c2 = cos(imptor.p.ideal[0]*SCON_PI180);  // why index 0 everywhere?
 		  auto s2 = sin(imptor.p.ideal[0]*SCON_PI180);
 
 		  auto cosine2 = cosine*cosine - sine*sine;
