@@ -81,7 +81,7 @@ namespace energy
         void	boxjump (void);
         inline std::ptrdiff_t sign (coords::float_type const) const;
  
-        // Gradient functions (energy functions left since single point is 
+        /** Gradient functions for improper dihedrals (g_imp) btw. improper torsions (g_it) */
         coords::float_type g_it       (void);
         coords::float_type g_imp      (void);
         // selection of the correct nonbonded function
