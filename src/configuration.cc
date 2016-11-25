@@ -36,25 +36,6 @@ config::output_types::T Config::getOutFormat(std::string const & S)
   return config::output_types::ILLEGAL;
 }
 
-config::solvs::S Config::getSolv(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
-  {
-    if (S.find(config::solv_strings[i]) != S.npos)
-      return static_cast<config::solvs::S>(i);
-  }
-  return config::solvs::VAC;
-}
-
-config::surfs::SA Config::getSurf(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SURF; ++i)
-  {
-    if (S.find(config::surf_strings[i]) != S.npos)
-      return static_cast<config::surfs::SA>(i);
-  }
-  return config::surfs::TINKER;
-}
 
 /*
 
@@ -376,21 +357,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().general.task = static_cast<config::tasks::T>(identifier);
       }
     }
-  }
-
-  //! Methods for implicit solvation
-
-  // Method for solvation
-  // Default: VAC (i guess vacuum?)
-  else if (option == "solvmethod")
-  {
-    config::solvs::S solvmethod(Config::getSolv(value_string));
-    Config::set().general.solvationmethod = solvmethod;
-  }
-  else if (option == "surface")
-  {
-    config::surfs::SA surfmethod(Config::getSurf(value_string));
-    Config::set().general.surfacemethod = surfmethod;
   }
 
   // Output type for structures

@@ -191,41 +191,6 @@ namespace config
     }; 
   };
 
-
-
-
-
-  // Implicit solvation method types
-  static std::size_t const NUM_SOLV = 7;
-  static std::string const 
-    solv_strings[NUM_SOLV] =
-  { 
-    "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
-  };
-  struct solvs
-  {
-    enum S 
-    {
-      ILLEGAL = -1, 
-      VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
-    };
-  };
-  // implicit solvation surface types
-  static std::size_t const NUM_SURF = 3;
-  static std::string const 
-    surf_strings[NUM_SURF] =
-  { 
-    "TINKER", "SASASTILL", "GAUSS" 
-  };
-  struct surfs
-  {
-    enum SA 
-    { 
-      ILLEGAL = -1, 
-      TINKER, SASASTILL, GAUSS 
-    };
-  };
-
   // Global static stuff ends here...
 
   //////////////////////////////////////
@@ -260,18 +225,13 @@ namespace config
     interface_types::T preopt_interface;
     /// Verbosity of the output of CAST (supposed to be between 0 and 5)
     std::size_t verbosity;
-    /// Solvationmethod, implicit solvation currently not supported!
-    config::solvs::S solvationmethod;
-    /// Surfacemethod for implicit solvationd, implicit solvation currently not supported!
-    config::surfs::SA surfacemethod;
     /// Constructor with reasonable default parameters
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
       task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U), 
-      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER)
+      verbosity(1U)
     { }
   };
 
@@ -1209,24 +1169,6 @@ public:
    * @param S: output-type as string
    */
   static config::output_types::T     getOutFormat(std::string const&);
-
-  /*
-   * Helper function that matches an solvation type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::solv_strings
-   *
-   * @param S: solvation-type as string
-   */
-  static config::solvs::S            getSolv(std::string const&);
-
-  /*
-   * Helper function that matches an solvation surface type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::surf_strings
-   *
-   * @param S: surface-type as string
-   */
-  static config::surfs::SA           getSurf(std::string const&);
 
 private:
 

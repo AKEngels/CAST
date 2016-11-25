@@ -959,12 +959,15 @@ namespace coords
   struct Coords_3d_float_callback
   {
     coords::Coordinates * cp;
-    //std::unique_ptr<std::ofstream> ls;
     Coords_3d_float_callback(coords::Coordinates & coordpointer) :
-      cp(&coordpointer)/*, ls(new std::ofstream("st.arc"))*/ { }
+      cp(&coordpointer)
+    { }
+
     float operator() (scon::vector<scon::c3<float>> const & v,
       scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on);
+
     scon::vector<scon::c3<float>> from(coords::Gradients_3D const & g);
+
     coords::Representation_3D to(scon::vector<scon::c3<float>> const & v);
   };
 
@@ -986,13 +989,6 @@ namespace coords
       scon::vector<coords::float_type> & g, std::size_t const S, bool & go_on);
     coords::Gradients_Internal from(coords::Representation_Internal const & p);
     coords::Representation_Internal to(coords::Gradients_Internal const & p);
-  };
-
-  struct Internal_Log
-  {
-
-    void operator() (optimization::Point<coords::Gradients_Internal,
-      coords::Gradients_Internal, coords::float_type> &);
   };
 
   struct Main_Callback
