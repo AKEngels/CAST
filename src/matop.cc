@@ -9,16 +9,24 @@ namespace matop
   //                                ///
   /////////////////////////////////////
 
-  Matrix_Class transfer_to_matr(coords::Coordinates const& in)
+  Matrix_Class transfer_to_matr(coords::Coordinates const& in, std::vector<size_t> selection)
   {
-    Matrix_Class out_mat(in.size(), 3u);
-    for (size_t l = 0; l < in.size(); l++)
+    Matrix_Class out_mat(in.size() - selection.size(), 3u);
+    //size_t compare = selection.size() != 0u ? selection.size() : in.size();
+    size_t discardedAtomsCounter = 0u;
+    for (int l = 0; l < in.size(); l++)
     {
+      if (selection.size() != 0u &&
+        std::find(selection.begin(), selection.end(), l) != selection.end())
+      {
+        discardedAtomsCounter++;
+        continue;
+      }
       coords::cartesian_type tempcoord2;
       tempcoord2 = in.xyz(l);
-      out_mat(l, 0) = tempcoord2.x();
-      out_mat(l, 1) = tempcoord2.y();
-      out_mat(l, 2) = tempcoord2.z();
+      out_mat(l - discardedAtomsCounter, 0) = tempcoord2.x();
+      out_mat(l - discardedAtomsCounter, 1) = tempcoord2.y();
+      out_mat(l - discardedAtomsCounter, 2) = tempcoord2.z();
     }
     return transposed(out_mat);
   }
@@ -852,9 +860,10 @@ namespace matop
       }
 
       Matrix_Class input = transfer_to_matr(inputCoords);
-      Matrix_Class ref = transfer_to_matr(reference);
+      Matrix_Class inputTruncated = transfer_to_matr(inputCoords, Config::get().alignment.atoms_for_alignment);
+      Matrix_Class ref = transfer_to_matr(reference, Config::get().alignment.atoms_for_alignment);
 
-      Matrix_Class c(input * transposed(ref));
+      Matrix_Class c(inputTruncated * transposed(ref));
       //Creates Covariance Matrix
 
       Matrix_Class s, V, U;

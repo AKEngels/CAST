@@ -1282,6 +1282,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().alignment.traj_print_bool = false;
     }
   }
+  else if (option == "atoms_for_alignment")
+  {
+    Config::set().alignment.atoms_for_alignment = configuration_range_int<size_t>(cv);
+  }
+  
   // PCA Options
   else if (option == "pca_alignment")
   {

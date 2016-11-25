@@ -135,11 +135,11 @@ namespace pca
 			coords_ref.set_xyz(holder);
 			if (!Config::get().PCA.pca_trunc_atoms_bool)
 			{
-				::matop::massweight(matrix_aligned, coords_ref, false);
+				//::matop::massweight(matrix_aligned, coords_ref, false);
 			}
 			else
 			{
-				::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
+				//::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
 			}
 		}
 		this->coordinatesMatrix = matrix_aligned;
@@ -439,7 +439,6 @@ namespace pca
       for (uint_type j = 0; j < i; ++j)
         kernelMatrix(i, j) = kernelMatrix(j, i);
 
-
     Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1. / static_cast<float>(this->coordinatesMatrix.cols()));
     kernelMatrix = kernelMatrix - ones * kernelMatrix - kernelMatrix * ones + ones * kernelMatrix * ones;
     kernelMatrix.eigensym(this->eigenvalues, this->eigenvectors);
@@ -468,7 +467,7 @@ namespace pca
     : PrincipalComponentRepresentation(ci, coords)
   {
     using namespace std;
-    if (Config::get().PCA.kPCAfunc != 0u)
+    if (Config::get().PCA.kPCAfunc == 0u)
     this->kernelFunction = [](Matrix_Class const& one, Matrix_Class const& two) -> float_type
 
     {
@@ -489,6 +488,18 @@ namespace pca
           }
           return sum;
       };
+
+      std::function<float_type(const std::vector<float_type>&, const std::vector<float_type>&)> squaredDistance =
+        [](const std::vector<float_type>& a, const std::vector<float_type>& b) ->float_type
+      {
+        float sum = 0.f;
+        // assert a.size() == b.size()
+        for (size_t i = 0; i < a.size(); i++) {
+          sum += (a[i] - b[i]) * (a[i] - b[i]);
+        }
+        return sum;
+      };
+
 
       std::vector<std::vector<float_type>> a(one.rows() / 3u, std::vector<float_type>(3u, 0.));
       std::vector<std::vector<float_type>> b(two.rows() / 3u, std::vector<float_type>(3u, 0.));
@@ -512,7 +523,7 @@ namespace pca
       std::vector<std::vector<float_type>> cost(n, std::vector<float_type>(n, 0.f));
       for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
-          cost[i][j] = -dot(a[i], b[j]);
+          cost[i][j] = -squaredDistance(a[i], b[j]);
         }
       }
 
@@ -650,12 +661,19 @@ namespace pca
         }
       }
 
-
-      float minimalDistance = 0.f;
+      volatile float dotProduct = 0.f;
       for (int i = 0; i < n; i++) {
-        minimalDistance -= cost[i][xy[i]];
+        for (int j = 0; j < a[i].size(); j++) {
+          dotProduct += a[i][j] * b[xy[i]][j];
+        }
       }
-      return minimalDistance;
+
+
+      volatile float_type check = (transposed(one) * two)(0, 0);
+      if (abs(check - dotProduct) >= 0.0001 * abs(check))
+        check = abs(check - dotProduct);
+      //return minimalDistance;
+      return dotProduct;
       //return sqrt(minimalDistance);
     };
     this->generatePCAEigenvectorsFromCoordinates();

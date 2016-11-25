@@ -16,6 +16,7 @@ Calculations are done using mathmatrix
 #include <deque>
 #include "scon_angle.h"
 #include <stdexcept>
+#include <algorithm>
 
 typedef mathmatrix<float_type> Matrix_Class;
 
@@ -63,7 +64,7 @@ namespace matop
    * cartesian coordinates.
    * mathmatrix(xyz, atom_nr)
    */
-  Matrix_Class transfer_to_matr(coords::Coordinates const& in);
+  Matrix_Class transfer_to_matr(coords::Coordinates const& in, std::vector<size_t> selection = std::vector<size_t>());
 
   /**
    * Converts a coords:Coordinates object to a mathmatrix object

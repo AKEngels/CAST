@@ -873,8 +873,11 @@ namespace config
     bool traj_align_rotational;
     bool traj_print_bool;
     double holm_sand_r0;
+    std::vector<size_t> atoms_for_alignment;
     std::string align_external_file;
-    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), align_external_file()
+    align(void) : dist_unit(0), reference_frame_num(0), traj_align_translational(true), 
+      traj_align_rotational(true), traj_print_bool(true), holm_sand_r0(20), atoms_for_alignment(),
+      align_external_file()
     {}
   };
 
