@@ -524,4 +524,57 @@ TEST(mathmatrix, matrixMultiplicationAndEqualityOperatorWorkingReasonably)
   // OPERATOR==
   ASSERT_TRUE(result == three);
 }
+
+TEST(mathmatrix, transposeWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 6u, 0.f);
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+      one(i, j) = static_cast<float>(i*j);
+  }
+  mathmatrix<float> two = transposed(one);
+  ASSERT_EQ(two.rows(), one.cols());
+  ASSERT_EQ(two.cols(), one.rows());
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+    {
+      ASSERT_FLOAT_EQ(one(i, j), two(j, i));
+    }
+  }
+}
+
+TEST(mathmatrix, SVDWorksCorrectly)
+{
+  mathmatrix<double> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = 2.;
+  one(2, 0) = 2.;
+  one(1, 0) = -1;
+  one(1, 1) = -7.3;
+  one(1, 2) = -1;
+
+  mathmatrix<double> U, s, V;
+
+  one.singular_value_decomposition(U, s, V);
+
+  mathmatrix<double> sigma(s.rows(), s.rows(), 0.f);
+  for (size_t i = 0u; i < s.rows(); i++)
+    sigma(i, i) = s(i, 0);
+
+  mathmatrix<double> restored = sigma * transposed(V);
+  restored = U * restored;
+  //std::cout << one << std::endl << restored << std::endl;
+  //auto SHIT = restored.to_std_vector();
+
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+    {
+      ASSERT_NEAR(one(i, j), restored(i, j), 0.00001);
+    }
+  }
+}
+
 #endif
