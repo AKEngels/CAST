@@ -45,7 +45,6 @@
 #include "Path_perp.h"
 #include "reaccoord.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
-//#include "gbsa.h" // Out of Order
 #include <omp.h>
 #include "PCA.h"
 
@@ -143,12 +142,6 @@ int main(int argc, char **argv)
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-
-	  // setting the methods for implicit solvation
-    // Currently broken
-	  //GB::born::set(coords);
-	  //GB::born::SET_METHOD();
-	  //GB::born::SET_SURFACE();
 
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
