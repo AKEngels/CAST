@@ -90,18 +90,6 @@ TEST(mathmatrix, outputStreamIsAsItShouldBe)
   ASSERT_EQ(temp, thisIsCorrect);
 }
 
-TEST(mathmatrix, upperLeftSubmatrixCorrectlyTruncated)
-{
-  mathmatrix<float> one(3u, 3u, 1.f);
-  mathmatrix<float> two = one.upper_left_submatrix(2, 2);
-  mathmatrix<float> three = one.upper_left_submatrix(1, 2);
-  ASSERT_EQ(two.rows(), 2);
-  ASSERT_EQ(two.cols(), 2);
-
-  ASSERT_EQ(three.rows(), 1);
-  ASSERT_EQ(three.cols(), 2);
-}
-
 TEST(mathmatrix, positiveDefiniteCheck)
 {
   // via https://en.wikipedia.org/wiki/Positive-definite_matrix
@@ -277,4 +265,263 @@ TEST(mathmatrix, choleskyDecomposition)
 
 }
 
+TEST(mathmatrix, divisonByFloatOperatorWorksReasonably)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  one(0, 0) = 3;
+  one(0, 2) = 8;
+  one(0, 3) = 15;
+  one(1, 0) = -4;
+  one(1, 1) = 6;
+  one(1, 2) = -3.5;
+  one(1, 3) = 9;
+  one(2, 1) = -5;
+  one(2, 3) = 4;
+  one(3, 0) = 1;
+  one(3, 1) = 2;
+  one(3, 2) = 3;
+  one(3, 3) = 4;
+
+  mathmatrix<float> two(one);
+  for (size_t i = 0u; i < two.rows(); i++)
+    for (size_t j = 0u; j < two.cols(); j++)
+      two(i, j) = two(i, j) / 3.5;
+
+  ASSERT_EQ(one / 3.5 , two);
+}
+
+TEST(mathmatrix, appendFunctionsThrowUponSizeMissmatch)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(1u, 2u, 5.f);
+
+  ASSERT_ANY_THROW(one.append_bottom(two));
+  ASSERT_ANY_THROW(one.append_left(two));
+  ASSERT_ANY_THROW(one.append_right(two));
+  ASSERT_ANY_THROW(one.append_top(two));
+}
+
+TEST(mathmatrix, appendTopWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(1u, 4u, 0.f);
+
+  one.append_top(two);
+  ASSERT_EQ(one.rows(), 5u);
+  ASSERT_EQ(one.cols(), 4u);
+  ASSERT_FLOAT_EQ(one(0, 0), 0.f);
+  ASSERT_FLOAT_EQ(one(1, 1), 5.f);
+}
+
+TEST(mathmatrix, appendBottomWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(1u, 4u, 0.f);
+
+  one.append_bottom(two);
+  ASSERT_EQ(one.rows(), 5u);
+  ASSERT_EQ(one.cols(), 4u);
+  ASSERT_FLOAT_EQ(one(0, 0), 5.f);
+  ASSERT_FLOAT_EQ(one(4, 3), 0.f);
+}
+
+TEST(mathmatrix, throwsWhenArgumentsToRoundBracketOperatorIsOutOfRange)
+{
+  mathmatrix<float> one(2u, 2u, 1.f);
+  ASSERT_ANY_THROW(one(2, 2));
+  ASSERT_ANY_THROW(one(-1, 1));
+}
+
+TEST(mathmatrix, appendLeftWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(4u, 1u, 0.f);
+
+  one.append_left(two);
+  ASSERT_EQ(one.rows(), 4u);
+  ASSERT_EQ(one.cols(), 5u);
+  ASSERT_FLOAT_EQ(one(0, 0), 0.f);
+  ASSERT_FLOAT_EQ(one(1, 1), 5.f);
+}
+
+TEST(mathmatrix, appendRightWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(4u, 1u, 0.f);
+
+  one.append_right(two);
+  ASSERT_EQ(one.rows(), 4u);
+  ASSERT_EQ(one.cols(), 5u);
+  ASSERT_FLOAT_EQ(one(0, 0), 5.f);
+  ASSERT_FLOAT_EQ(one(3, 4), 0.f);
+}
+
+TEST(mathmatrix, shedFunctionsThrowWhenOutOfBounds)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  ASSERT_ANY_THROW(one.shed_rows(7, 7));
+  ASSERT_ANY_THROW(one.shed_rows(-1, -1));
+  ASSERT_ANY_THROW(one.shed_rows(3, 5));
+  ASSERT_ANY_THROW(one.shed_cols(7, 7));
+  ASSERT_ANY_THROW(one.shed_cols(-1, 1));
+  ASSERT_ANY_THROW(one.shed_cols(2, 5));
+}
+
+TEST(mathmatrix, shedRowsWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 0.f);
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+      one(i, j) = static_cast<float>(i);
+  }
+
+  one.shed_rows(2, 2);
+  ASSERT_EQ(one.rows(), 3u);
+  ASSERT_FLOAT_EQ(one(0, 0), 0.);
+  ASSERT_FLOAT_EQ(one(1, 0), 1.);
+  ASSERT_FLOAT_EQ(one(2, 0), 3.);
+
+  mathmatrix<float> two(7u, 7u, 0.f);
+  for (size_t i = 0u; i < two.rows(); i++)
+  {
+    for (size_t j = 0u; j < two.cols(); j++)
+      two(i, j) = static_cast<float>(i);
+  }
+
+  two.shed_rows(2, 4);
+  ASSERT_EQ(two.rows(), 4u);
+  ASSERT_FLOAT_EQ(two(0, 0), 0.);
+  ASSERT_FLOAT_EQ(two(1, 0), 1.);
+  ASSERT_FLOAT_EQ(two(2, 0), 5.);
+  ASSERT_FLOAT_EQ(two(3, 1), 6.);
+}
+
+TEST(mathmatrix, shedColsWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 0.f);
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+      one(i, j) = static_cast<float>(j);
+  }
+
+  one.shed_cols(2, 2);
+  ASSERT_EQ(one.cols(), 3u);
+  ASSERT_FLOAT_EQ(one(0, 0), 0.);
+  ASSERT_FLOAT_EQ(one(0, 1), 1.);
+  ASSERT_FLOAT_EQ(one(0, 2), 3.);
+
+  mathmatrix<float> two(7u, 7u, 0.f);
+  for (size_t i = 0u; i < two.rows(); i++)
+  {
+    for (size_t j = 0u; j < two.cols(); j++)
+      two(i, j) = static_cast<float>(j);
+  }
+
+  two.shed_cols(2, 4);
+  ASSERT_EQ(two.cols(), 4u);
+  ASSERT_FLOAT_EQ(two(0, 0), 0.);
+  ASSERT_FLOAT_EQ(two(0, 1), 1.);
+  ASSERT_FLOAT_EQ(two(0, 2), 5.);
+  ASSERT_FLOAT_EQ(two(1, 3), 6.);
+}
+
+TEST(mathmatrix, returnQuadraticWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(4u, 1u, 0.f);
+
+  ASSERT_EQ(one.return_quadratic(), true);
+  ASSERT_EQ(two.return_quadratic(), false);
+
+}
+
+TEST(mathmatrix, upperLeftSubmatrixWorksCorrectly)
+{
+  mathmatrix<float> one(4u, 4u, 0.f);
+  for (size_t i = 0u; i < one.rows(); i++)
+  {
+    for (size_t j = 0u; j < one.cols(); j++)
+      one(i, j) = static_cast<float>(i);
+  }
+
+  mathmatrix<float> sub = one.upper_left_submatrix(2);
+  ASSERT_EQ(sub.return_quadratic(), true);
+  ASSERT_FLOAT_EQ(sub(0, 0), 0.);
+  ASSERT_FLOAT_EQ(sub(1, 1), 1.);
+  ASSERT_EQ(sub.rows(), 2u);
+
+  mathmatrix<float> one1(6u, 6u, 0.f);
+  for (size_t i = 0u; i < one1.rows(); i++)
+  {
+    for (size_t j = 0u; j < one1.cols(); j++)
+      one1(i, j) = static_cast<float>(i);
+  }
+
+  mathmatrix<float> sub1 = one1.upper_left_submatrix(2, 3);
+  ASSERT_FLOAT_EQ(sub1(0, 0), 0.);
+  ASSERT_FLOAT_EQ(sub1(1, 1), 1.);
+  ASSERT_EQ(sub1.rows(), 2u);
+  ASSERT_EQ(sub1.cols(), 3u);
+}
+
+TEST(mathmatrix, matrixMultiplicationThrowsAtSizeMissmatch)
+{
+  mathmatrix<float> one(4u, 3u, 5.f);
+
+  mathmatrix<float> two(4u, 5u, 3.f);
+
+
+  ASSERT_ANY_THROW(one*two);
+}
+
+TEST(mathmatrix, matrixMultiplicationAndEqualityOperatorWorkingReasonably)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  one(0, 0) = 3;
+  one(0, 2) = 8;
+  one(0, 3) = 15;
+  one(1, 0) = -4;
+  one(1, 1) = 6;
+  one(1, 2) = -3.5;
+  one(1, 3) = 9;
+  one(2, 1) = -5;
+  one(2, 3) = 4;
+  one(3, 0) = 1;
+  one(3, 1) = 2;
+  one(3, 2) = 3;
+  one(3, 3) = 4;
+
+  mathmatrix<float> two(4u, 3u, 3.f);
+  two(1, 1) = -0.2;
+
+  mathmatrix<float> three(4u, 3u, 0.f);
+  three(0, 0) = 93;
+  three(0, 1) = 77;
+  three(0, 2) = 93;
+  three(1, 0) = 22.5;
+  three(1, 1) = 3.3;
+  three(1, 2) = 22.5;
+  three(2, 0) = 27;
+  three(2, 1) = 43;
+  three(2, 2) = 27;
+  three(3, 0) = 30;
+  three(3, 1) = 23.6;
+  three(3, 2) = 30;
+
+  mathmatrix<float> result = one * two;
+  for (size_t i = 0u; i < three.rows(); i++)
+  {
+    for (size_t j = 0u; j < three.cols(); j++)
+    {
+      ASSERT_FLOAT_EQ(result(i,j), three(i,j));
+    }
+  }
+
+
+
+  // OPERATOR==
+  ASSERT_TRUE(result == three);
+}
 #endif

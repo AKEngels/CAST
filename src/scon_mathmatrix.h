@@ -6,6 +6,8 @@ Purpose: Enabling matrix calculations. Uses Armadillo for enhanced speed when av
 Works on either internal scon::matrix types or arma::Mat types if
 the flag USE_ARMADILLO is specified
 
+NOTE: Matrix access does NOT throw when out of bounds, only 
+
 @author Dustin Kaiser
 @version 3.0
 */
@@ -177,6 +179,7 @@ typedef size_t uint_type;
     using base_type::row;
     using base_type::col;
 
+
     // element access from base class
     using base_type::operator();
     using base_type::operator[];
@@ -185,6 +188,8 @@ typedef size_t uint_type;
 
 #ifndef USE_ARMADILLO
     using base_type::operator*=;
+
+
 #endif
 
     // identity from base_classes
@@ -282,7 +287,7 @@ typedef size_t uint_type;
 		};
 
 		/**
-		 * Returns dign of the determinant (-1 / 1)
+		 * Returns sign of the determinant (-1 / 1)
 		 */
 		int det_sign() const
 		{
@@ -691,15 +696,16 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: append_top for mathmatrix." << std::endl;
-			if (this->columns() != I_will_be_the_top_part.columns())
+			if (this->cols() != I_will_be_the_top_part.cols())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
+      const size_t thisOldRows = this->rows();
 			this->resize(this->rows() + I_will_be_the_top_part.rows(), this->cols());
 
 			//Move the entries in the parent matrix downward
 			//We count downwards so that we dont overwrite
-			for (unsigned int i = this->rows() - 1u; i > 0; i--)
+			for (unsigned int i = thisOldRows - 1u; i > 0; i--)
 			{
 				for (unsigned int j = 0; j < this->cols(); j++)
 				{
@@ -724,16 +730,17 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: append_left for mathmatrix." << std::endl;
-			if (this->columns() != I_will_be_the_left_part.columns())
+			if (this->rows() != I_will_be_the_left_part.rows())
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
+      const size_t thisOldCols = this->cols();
 
 			this->resize(this->rows(), this->cols() + I_will_be_the_left_part.cols());
 
-			//Move the entries in the parent matrix downward
-			//We count downwards so that we dont overwrite
-			for (unsigned int j = this->cols() - 1u; j > 0; j--)
+			//Move the entries in the parent matrix rightward
+			//We count right so that we dont overwrite
+			for (unsigned int j = thisOldCols - 1u; j > 0; j--)
 			{
 				for (unsigned int i = 0u; i < this->rows(); i++)
 				{
@@ -746,7 +753,7 @@ typedef size_t uint_type;
 			{
 				for (unsigned int i = 0; i < this->rows(); i++)
 				{
-					(*this)(i, j) = (*this)(i, j);
+					(*this)(i, j) = I_will_be_the_left_part(i, j);
 				}
 			}
 		}
@@ -762,6 +769,7 @@ typedef size_t uint_type;
 			{
 				throw "Wrong Matrix size in mathmatrix:append()";
 			}
+
 			//Old size needs to be kept
 			unsigned int holder = this->cols();
 
@@ -772,7 +780,7 @@ typedef size_t uint_type;
 			{
 				for (unsigned int i = 0; i < this->rows(); i++)
 				{
-					(*this)(i, j + holder) = I_will_be_the_right_part(i, j);
+					(*this)(i, j + holder - 1) = I_will_be_the_right_part(i, j);
 				}
 			}
 
@@ -785,6 +793,10 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: shed_rows for mathmatrix." << std::endl;
+      if (first_in > last_in || last_in >= this->rows())
+      {
+        throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
+      }
 			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
 			for (size_t i = 0u; i < first_in; i++)
 			{
@@ -793,11 +805,11 @@ typedef size_t uint_type;
 					newOne(i, j) = (*this)(i, j);
 				}
 			}
-			for (size_t i = last_in + 1u; i < this->rows(); i++)
+			for (size_t i = first_in; i < this->rows() - last_in - 1 + first_in; i++)
 			{
 				for (size_t j = 0u; j < this->cols(); j++)
 				{
-					newOne(i - last_in - 1u, j) = (*this)(i, j);
+					newOne(i, j) = (*this)(i + (last_in - first_in) + 1, j);
 				}
 			}
 			this->swap(newOne);
@@ -810,6 +822,10 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: shed_cols for mathmatrix." << std::endl;
+      if (last_in >= this->cols() || first_in > last_in)
+      {
+        throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
+      }
 			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
 			for (size_t j = 0u; j < this->rows(); j++)
 			{
@@ -820,9 +836,9 @@ typedef size_t uint_type;
 			}
 			for (size_t j = 0u; j < this->rows(); j++)
 			{
-				for (size_t i = last_in + 1u; i < this->cols(); i++)
+				for (size_t i = first_in; i < this->cols() - last_in - 1 + first_in; i++)
 				{
-					newOne(j, i - last_in - 1u) = (*this)(j, i);
+					newOne(j, i) = (*this)(j, i + (last_in - first_in) + 1);
 				}
 			}
 			this->swap(newOne);
@@ -897,10 +913,12 @@ typedef size_t uint_type;
 		 * ie for columns_in is specified, then a quadratic submatrix with rows = columns = rows_in
 		 * is yieled.
 		 */
-		mathmatrix upper_left_submatrix(unsigned int const& rows_in, unsigned int const& columns_in = 0) const
+		mathmatrix upper_left_submatrix(uint_type rows_in, uint_type columns_in = 0) const
 		{
       if (Config::get().general.verbosity > 4U)
         std::cout << "Function call: upper_left_submatrix for mathmatrix." << std::endl;
+      if (columns_in == 0)
+        columns_in = rows_in;
       if (rows_in <= this->rows() && columns_in <= this->cols())
       {
         mathmatrix copied(*this);
@@ -920,6 +938,8 @@ typedef size_t uint_type;
       arma::Mat<T> const& b = in;
       return mathmatrix(a*b);
     };
+#endif
+
 
     /*! Equality operator for armadillo mathmatrix
      *
@@ -933,11 +953,29 @@ typedef size_t uint_type;
      */
     bool operator== (mathmatrix const& in) const
     {
+#ifdef USE_ARMADILLO
       arma::Mat<T> const& a = *this;
       arma::Mat<T> const& b = in;
       return (approx_equal(a,b,"reldiff", 0.001) );
-    }
+#else
+      if (this->rows() != in.rows() || this->cols() != in.cols()) return false;
+      else
+      {
+        for (size_t i = 0u; i < this->rows(); i++)
+        {
+          for (size_t j = 0u; j < this->cols(); j++)
+          {
+            if (abs((*this)(i, j) - in(i, j)) > 0.001 * abs(in(i, j)))
+            {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
 #endif
+    }
+
 
 		/**
 		 * Performs singular value decomposition on *this and writes results
