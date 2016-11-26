@@ -527,7 +527,13 @@ typedef size_t uint_type;
 
 			float_type tsh = 0.5*sqrt(m + n + 1.) * s_in(0) * eps;
 			int j, nr = 0;
-			for (j = 0; j<n; j++) if (s_in(j) > tsh) nr++;
+      for (j = 0; j < n; j++)
+      {
+        if (s_in(j) > sqrt(tsh) * 100 )
+        {
+          nr++;
+        }
+      }
 			return nr;
 #endif
 		};
