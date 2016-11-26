@@ -48,14 +48,6 @@ typedef size_t uint_type;
 //                           //
 ///////////////////////////////
 
-// ENABLE DEBUGVIEW?
-// (became pretty obsolete after removing armadillo matrix library)
-// -> Option to store array data as member of a private std::vector<std::vector<T>> for
-// debug pruproses.
-
-//#define DEBUGVIEW
-
-
 // Further flag important here:
 // #define USE_ARMADILLO
 // However, don't set this manually. This
@@ -104,10 +96,6 @@ typedef size_t uint_type;
     using base_type = arma::Mat<T>;
 #endif
 
-#ifdef DEBUGVIEW
-    std::vector<std::vector<T> > array_debugview_internal;
-#else
-#endif
 
 	public:
 
@@ -1308,31 +1296,6 @@ typedef size_t uint_type;
 			return temp2;
 		}
 
-		/**
-		 * Updates the internal std::vector<std::vector<float_type> > array_debugview_internal array
-		 * ONLY IF PREPROCESSOR FLAG "DEBUGVIEW" IS SET
-		 */
-		void update_debugview(void)
-		{
-      if (Config::get().general.verbosity > 4U)
-        std::cout << "Function call: update_debugview." << std::endl;
-#ifdef DEBUGVIEW
-				std::vector <float_type> temp1(this->cols());
-				std::vector < std::vector <float_type> > temp2(this->rows(), temp1);
-				for (unsigned int i = 0; i < this->rows(); i++)
-				{
-					for (unsigned int j = 0; j < this->cols(); j++)
-					{
-						temp2[i][j] = (*this)(i, j);
-					}
-				}
-				array_debugview_internal = temp2;
-#endif
-#ifndef DEBUGVIEW
-				std::cout << "DEBUGVIEW Flag not enabled. update_debugview(void) may not be used.\nCheck your code.\n";
-#endif
-
-		}
 	};
 
 
