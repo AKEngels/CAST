@@ -63,6 +63,7 @@ void energy::interfaces::aco::aco_ff::calc (void)
         part_energy[types::UREY]       = f_13_u<DERIV>();
       #pragma omp section
         part_energy[types::TORSION]    = f_14<DERIV>();
+#pragma omp section
         part_energy[types::IMPTORSION] = f_it<DERIV>();
       #pragma omp section
         part_energy[types::IMPROPER]   = f_imp<DERIV>();
