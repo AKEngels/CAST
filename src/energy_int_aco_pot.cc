@@ -68,8 +68,6 @@ void energy::interfaces::aco::aco_ff::calc (void)
       #pragma omp section
         part_energy[types::IMPROPER]   = f_imp<DERIV>();
     }
-    if (Config::get().general.solvationmethod != config::solvs::VAC)
-		part_energy[types::SOLVATE]      = solv<DERIV>();
 #else
     part_energy[types::BOND]         = f_12<DERIV>();
     part_energy[types::ANGLE]        = f_13_a<DERIV>();
@@ -77,8 +75,6 @@ void energy::interfaces::aco::aco_ff::calc (void)
     part_energy[types::TORSION]      = f_14<DERIV>();
     part_energy[types::IMPTORSION]   = f_it<DERIV>();
     part_energy[types::IMPROPER]     = f_imp<DERIV>();
-	if (Config::get().general.solvationmethod != config::solvs::VAC)
-		part_energy[types::SOLVATE]      = solv<DERIV>();
 #endif
 
 	if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
