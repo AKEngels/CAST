@@ -1091,7 +1091,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 		}
 		else if (Config::get().general.verbosity > 3)
 		{
-			std::cout << "full step: desired temp: " << T << " current temp: Updating kinetic Energy from" << temp << " factor: " << factor << "\n";
+			std::cout << "full step: desired temp: " << T << " current temp: Updating kinetic Energy from " << temp << " factor: " << factor << "\n";
 		}		
 	}
 	return temp2;
