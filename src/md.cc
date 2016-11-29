@@ -365,27 +365,59 @@ void md::simulation::rattlesetup(void)
   const std::size_t N = coordobj.size();
   //loop over all atoms
   for (std::size_t i = 0; i < N; i++) {
-    //check if atom is hydrogen
-    if (coordobj.atoms(i).number() == 1)
-    {
-      rctemp.a = i;
-      rctemp.b = coordobj.atoms(i).bonds(0);
-      //loop over param vector
-      for (unsigned j = 0; j < ratoms.size(); j++)
-      {
-        if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-        if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-      }
-      for (unsigned k = 0; k < temprat.size(); k++)
-      {
-        // found matching parameters -> get ideal bond distance
-        if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-        {
-          rctemp.len = temprat[k].ideal;
-        }
-      }
-      rattle_bonds.push_back(rctemp);
-    }
+	  if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
+	  {
+		  if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
+		  {
+			  rctemp.a = i;
+			  rctemp.b = coordobj.atoms(i).bonds(0);
+			  //loop over param vector
+			  for (unsigned j = 0; j < ratoms.size(); j++)
+			  {
+				  if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+				  if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+			  }
+			  for (unsigned k = 0; k < temprat.size(); k++)
+			  {
+				  // found matching parameters -> get ideal bond distance
+				  if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
+				  {
+					  rctemp.len = temprat[k].ideal;
+				  }
+			  }
+			  rattle_bonds.push_back(rctemp);
+		  }
+	  }
+	  else
+	  {
+		  if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
+		  {
+			  rctemp.a = i;
+			  rctemp.b = coordobj.atoms(i).bonds(0);
+			  for (auto s : Config::get().md.rattle.specified_rattle)
+			  {
+				  if (s.a == rctemp.a)   // if H-atom is in the rattlebond list 
+				  {
+					  //loop over param vector
+					  for (unsigned j = 0; j < ratoms.size(); j++)
+					  {
+						  if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+						  if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+					  }
+					  for (unsigned k = 0; k < temprat.size(); k++)
+					  {
+						  // found matching parameters -> get ideal bond distance
+						  if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
+						  {
+							  rctemp.len = temprat[k].ideal;
+						  }
+					  }
+					  rattle_bonds.push_back(rctemp);
+				  }
+			  }
+		  }
+	  }
+    
   }
 }
 
@@ -446,7 +478,10 @@ void md::simulation::init(void)
   }
   
   // Set up rattle vector for constraints
-  if (Config::get().md.rattle.use == true && Config::get().md.rattle.all == true) rattlesetup();
+  if (Config::get().md.rattle.use == true)
+  {
+	  rattlesetup();
+  }
   // constraint degrees of freedom
   if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
   // periodics and isothermal cases
