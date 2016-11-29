@@ -484,16 +484,16 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
-		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} when MDRattle = 2 fixation & integer, integer [none] \\
+		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 fixation (atomnumbers of the constrained bonds starting with 0, i.\,e number in tinkerstructure -1; first has to be an H-atom) & integer, integer [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
 		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
 		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [not defined] \\
 		\textbf{MDrestart\_offset} & Offset for restart file writing in frames & integer [0] \\
-		\textbf{MDrefine\_offset} & Offset for nonbonded list generation, i.\,e. the list of non-bonded pairs is generated after the number of steps that is given here (useful if a cutoff radius for non-bonded interactions is given) & integer [0]  \\
 		\end{tabularx}
 		
 		\begin{tabularx}{\textwidth}{l|X|X}
+		\textbf{MDrefine\_offset} & Offset for nonbonded list generation, i.\,e. the list of non-bonded pairs is generated after the number of steps that is given here (useful if a cutoff radius for non-bonded interactions is given) & integer [0]  \\
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 	\end{tabularx}~\\
