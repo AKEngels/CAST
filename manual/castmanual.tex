@@ -482,8 +482,8 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	\begin{tabularx}{\textwidth}{l|X|X}	
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
-		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds\ifdevmode \item 2 = specific bonds (\textit{see below}) \fi\end{itemize} & integer [0] \\
-		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds & string [none] \ifdevmode \colorbox{red}{example or something?} \\
+		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
+		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} when MDRattle = 2 fixation & integer, integer [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
@@ -491,6 +491,9 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [not defined] \\
 		\textbf{MDrestart\_offset} & Offset for restart file writing in frames & integer [0] \\
 		\textbf{MDrefine\_offset} & Offset for nonbonded list generation, i.\,e. the list of non-bonded pairs is generated after the number of steps that is given here (useful if a cutoff radius for non-bonded interactions is given) & integer [0]  \\
+		\end{tabularx}
+		
+		\begin{tabularx}{\textwidth}{l|X|X}
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 	\end{tabularx}~\\
@@ -801,7 +804,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\hline
 		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
-		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} \fi & float [1.0] \\
+		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} & float [1.0] \\
 		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms - both if the term is bigger than 0, else $\lambda_{el} = 0$ \supercite{_implementation_????}
 		& float [1.0] \\
 		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential ($= \alpha_{vshift}$ in equation \ref{LJ_softcore}) & float [1.0] \\
