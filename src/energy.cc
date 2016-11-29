@@ -83,7 +83,13 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
   return r;
 }
 
-
+/*! Override of virtual void swap
+*
+* Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is
+* useable with all general members of the class. For additional members 
+* of derived classes it must be decleared there additionaly to
+* "swap(dynamic_cast<sysCallInterface&>(rhs))"
+*/
 void energy::interface_base::swap (interface_base &other)    
 {
   std::swap(energy,    other.energy);
@@ -96,6 +102,13 @@ void energy::interface_base::swap (interface_base &other)
   std::swap(interactions, other.interactions);
 }
 
+
+/*! Override of virtual void to_stream
+*
+* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream 
+* is useable with all general members of the class fot output. For additional members
+* of derived classes it must be decleared there additionaly.
+*/
 void energy::interface_base::to_stream (std::ostream &stream) const
 {
   stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << '\n';
