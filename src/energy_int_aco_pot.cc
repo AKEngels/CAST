@@ -694,7 +694,6 @@ namespace energy
 		  using std::abs;
 		  using std::min; using std::max;
 		  coords::float_type E(0.0);
-		  coords::float_type vxx, vyx, vzx, vyy, vzy, vzz;
 		  coords::Cartesian_Point vir1, vir2, vir3, vir4;
 		  for (auto & improper : refined.impropers())
 		  {
