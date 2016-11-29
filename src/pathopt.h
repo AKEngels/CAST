@@ -77,7 +77,7 @@ public:
   std::vector <coords::Representation_3D> global_maxima, global_minima;
   ptrdiff_t global_image, counter, global_imagex;
   void pathx_ini();
-  void MCM_NEB(ptrdiff_t opt);
+  void MCM_PO(ptrdiff_t opt);
   bool testcoord(coords::Representation_3D &coords);
   void randvect();
   void proof_connect();

@@ -40,14 +40,14 @@ void pathx::pathx_ini()
   {
     N->num_images = temp_image;
     cPtr->set_xyz(N->imagi[i]);
-    MCM_NEB(i);
+    MCM_PO(i);
 	
   }
   proof_connect();
 }
 
 //BASIN HOPPING BY USING MODIFIED RANDOM JUMPS AND CONSTRAINT MINIMIZATION
-void pathx::MCM_NEB(ptrdiff_t opt)
+void pathx::MCM_PO(ptrdiff_t opt)
 {
 
   double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };

@@ -56,33 +56,25 @@ void energy::interfaces::aco::aco_ff::calc (void)
     #pragma omp parallel sections
     {
       #pragma omp section
-       part_energy[types::BOND]       = f_12<DERIV>();
+        part_energy[types::BOND]       = f_12<DERIV>();
       #pragma omp section
         part_energy[types::ANGLE]      = f_13_a<DERIV>();
       #pragma omp section
         part_energy[types::UREY]       = f_13_u<DERIV>();
       #pragma omp section
         part_energy[types::TORSION]    = f_14<DERIV>();
-      //#pragma omp section
-        //part_energy[types::TORSION]    = f_14p();
-      #pragma omp section 
-        part_energy[types::IMPTORSION] = g_it();
-      #pragma omp section
+#pragma omp section
         part_energy[types::IMPTORSION] = f_it<DERIV>();
-      #pragma omp section 
-        part_energy[types::IMPROPER]   = g_imp();
+      #pragma omp section
+        part_energy[types::IMPROPER]   = f_imp<DERIV>();
     }
-    if (Config::get().general.solvationmethod != config::solvs::VAC)
-		part_energy[types::SOLVATE]      = solv<DERIV>();
 #else
     part_energy[types::BOND]         = f_12<DERIV>();
     part_energy[types::ANGLE]        = f_13_a<DERIV>();
     part_energy[types::UREY]         = f_13_u<DERIV>();
     part_energy[types::TORSION]      = f_14<DERIV>();
     part_energy[types::IMPTORSION]   = f_it<DERIV>();
-    part_energy[types::IMPROPER]     = g_imp();
-	if (Config::get().general.solvationmethod != config::solvs::VAC)
-		part_energy[types::SOLVATE]      = solv<DERIV>();
+    part_energy[types::IMPROPER]     = f_imp<DERIV>();
 #endif
 
 	if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
@@ -573,310 +565,113 @@ namespace energy
       *                                *
       *********************************/
 
-      template<>
-      coords::float_type energy::interfaces::aco::aco_ff::f_it<0> (void)
-      {
-        using scon::cross;
-        using scon::dot;
-        using scon::len;
-        using std::sqrt;
-        using std::abs;
-        coords::float_type E(0.0);
-        for (auto const & imptor : refined.imptors())
-        {
-          coords::Cartesian_Point const b01 =
-            coords->xyz(imptor.center) - coords->xyz(imptor.twist);
-          coords::Cartesian_Point const b12 =
-            coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.center);
-          coords::Cartesian_Point const b23 =
-            coords->xyz(imptor.center) - coords->xyz(imptor.ligand[0]);
-          coords::Cartesian_Point const t = cross(b01, b12);
-          coords::Cartesian_Point const u = cross(b12, b23);
+	  template<>
+	  coords::float_type energy::interfaces::aco::aco_ff::f_it<0>(void)
+	  {
+		  using scon::cross;
+		  using scon::dot;
+		  using scon::len;
+		  using std::sqrt;
+		  using std::abs;
+		  coords::float_type E(0.0);
+		  for (auto & imptor : refined.imptors())   //for every improper torsion
+		  {
+			  //energy calculation
+			  coords::Cartesian_Point const ba =
+				  coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.ligand[0]);
+			  coords::Cartesian_Point const cb =
+				  coords->xyz(imptor.center) - coords->xyz(imptor.ligand[1]);
+			  coords::Cartesian_Point const dc =
+				  coords->xyz(imptor.twist) - coords->xyz(imptor.center);
 
-          coords::float_type const tl2 = dot(t, t);
-          coords::float_type const ul2 = dot(u, u);
-          coords::float_type const tlul = sqrt(tl2*ul2);
-          coords::float_type const r12 = len(b12);
-          coords::Cartesian_Point const tu = cross(t, u);
+			  coords::Cartesian_Point const t = cross(ba, cb);
+			  coords::Cartesian_Point const u = cross(cb, dc);
+			  coords::float_type const tl2 = dot(t, t);
+			  coords::float_type const ul2 = dot(u, u);
+			  coords::float_type const tlul = sqrt(tl2*ul2);
+			  coords::float_type const r12 = len(cb);
+			  coords::Cartesian_Point const tu = cross(t, u);
 
-          coords::float_type const cos_scalar0 = dot(t, u);
-          coords::float_type const cos_scalar1 = tlul;
+			  coords::float_type const cosine = dot(t, u) / tlul;
+			  coords::float_type const sine = dot(cb, tu) / (r12*tlul);
 
-          coords::float_type const sin_scalar0 = dot(b12, tu);
-          coords::float_type const sin_scalar1 = r12*tlul;
+			  auto v2 = imptor.p.force[0];   // I don't know if this is correct (originally there was something more in this line)
+			  auto c2 = cos(imptor.p.ideal[0] * SCON_PI180);  // why index 0 everywhere?
+			  auto s2 = sin(imptor.p.ideal[0] * SCON_PI180);
 
-          if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-          {
-            integrity = false;
-          }
+			  auto cosine2 = cosine*cosine - sine*sine;
+			  auto sine2 = 2.0 * cosine * sine;
 
-          coords::float_type cos[7], sin[7];
-          cos[1] = cos_scalar0/cos_scalar1;
-          sin[1] = sin_scalar0/sin_scalar1;
+			  auto phi2 = 1.0 + (cosine2*c2 + sine2*s2);
+			  auto dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
 
-          for (std::size_t j(2U); j <= imptor.p.max_order; ++j)
-          {
-            std::size_t k = j - 1;
-            sin[j] = sin[k]*cos[1u] + cos[k]*sin[1u];
-            cos[j] = cos[k]*cos[1u] - sin[k]*sin[1u];
-          }
-          
-          for (std::size_t j(0U); j < imptor.p.number; ++j)
-          {
-            std::size_t const k = imptor.p.order[j];
-            coords::float_type c(std::cos(imptor.p.ideal[j] * SCON_PI180)),
-              s(std::sin(imptor.p.ideal[j] * SCON_PI180));
-            c = c > 1.0 ? 1.0 : c < -1.0 ? -1.0 : c;
-            s = s > 1.0 ? 1.0 : s < -1.0 ? -1.0 : s;
-            E += imptor.p.force[j] * (1.0 + (cos[k]*c + sin[k]*s));
-          }
-        }
-        return E;
-      }
+			  auto dedphi = 0.5 * (v2*dphi2);
 
-      template<>
+			  double E_add = 0.5 * (v2*phi2);
+			  E += E_add;
+		  }
+		  return E;
+	  }
+
+	  template<>
       coords::float_type energy::interfaces::aco::aco_ff::f_it<1> (void)
       {
-        using scon::cross;
-        using scon::dot;
-        using scon::len;
-        using std::sqrt;
-        using std::abs;
-        coords::float_type E(0.0);
-        for (auto const & imptor : refined.imptors())
-        {
+		  using scon::cross;
+		  using scon::dot;
+		  using scon::len;
+		  using std::sqrt;
+		  using std::abs;
+		  coords::float_type E(0.0);
+		  for (auto & imptor : refined.imptors())   //for every improper torsion
+		  {
+			  //energy calculation
+			  coords::Cartesian_Point const ba =
+				  coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.ligand[0]);
+			  coords::Cartesian_Point const cb =
+				  coords->xyz(imptor.center) - coords->xyz(imptor.ligand[1]);
+			  coords::Cartesian_Point const dc =
+				  coords->xyz(imptor.twist) - coords->xyz(imptor.center);
 
-          //std::cout << "Imptor: " << imptor.ligand[0u]+1 << " " << imptor.ligand[1u]+1 
-          //  << " " << imptor.center+1 << " " << imptor.twist+1 << "\n";
+			  coords::Cartesian_Point const t = cross(ba, cb);
+			  coords::Cartesian_Point const u = cross(cb, dc);
+			  coords::float_type const tl2 = dot(t, t);
+			  coords::float_type const ul2 = dot(u, u);
+			  coords::float_type const tlul = sqrt(tl2*ul2);
+			  coords::float_type const r12 = len(cb);
+			  coords::Cartesian_Point const tu = cross(t, u);
 
-          coords::Cartesian_Point const ba =
-            coords->xyz(imptor.ligand[1u]) - coords->xyz(imptor.ligand[0u]);
-          coords::Cartesian_Point const cb =
-            coords->xyz(imptor.center) - coords->xyz(imptor.ligand[1u]);
-          coords::Cartesian_Point const dc =
-            coords->xyz(imptor.twist) - coords->xyz(imptor.center);
-          coords::Cartesian_Point const t = cross(ba, cb);
-          coords::Cartesian_Point const u = cross(cb, dc);
-          coords::Cartesian_Point const tu = cross(t, u);
-          coords::float_type const tl2 = dot(t, t);
-          coords::float_type const ul2 = dot(u, u);
-          coords::float_type const tlul = sqrt(tl2*ul2);
-          coords::float_type const r12 = len(cb);
+			  coords::float_type const cosine = dot(t, u) / tlul;
+			  coords::float_type const sine = dot(cb, tu) / (r12*tlul);
 
-          coords::float_type const cos_scalar0 = dot(t, u);
-          coords::float_type const cos_scalar1 = tlul;
+			  auto v2 = imptor.p.force[0];   // I don't know if this is correct (originally there was something more in this line)
+			  auto c2 = cos(imptor.p.ideal[0] * SCON_PI180);  // why index 0 everywhere?
+			  auto s2 = sin(imptor.p.ideal[0] * SCON_PI180);
 
-          coords::float_type const sin_scalar0 = dot(cb, tu);
-          coords::float_type const sin_scalar1 = r12*tlul;
+			  auto cosine2 = cosine*cosine - sine*sine;
+			  auto sine2 = 2.0 * cosine * sine;
 
-          if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-          {
-            integrity = false;
-          }
+			  auto phi2 = 1.0 + (cosine2*c2 + sine2*s2);
+			  auto dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
 
-          coords::float_type cos[7], sin[7];
-          cos[1] = cos_scalar0/cos_scalar1;
-          sin[1] = sin_scalar0/sin_scalar1;
+			  auto dedphi = 0.5 * (v2*dphi2);
 
-          //std::cout << "c,s " << cos[1] << " " << sin[1] << '\n';
+			  double E_add = 0.5 * (v2*phi2);
+			  E += E_add;
 
-          for (std::size_t j(2U); j <= imptor.p.max_order; ++j)
-          {
-            std::size_t const k = j - 1;
-            sin[j] = sin[k]*cos[1u] + cos[k]*sin[1u];
-            cos[j] = cos[k]*cos[1u] - sin[k]*sin[1u];
-            //std::cout << "c,s," << j << " " << cos[j] << " " << sin[j] << '\n';
-          }
+			  //gradient calculation
+			  auto const ca(coords->xyz(imptor.center) - coords->xyz(imptor.ligand[0]));
+			  auto const db(coords->xyz(imptor.twist) - coords->xyz(imptor.ligand[1]));
 
-          coords::float_type tE(0.0), dE(0.0);
-          //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
-          for (std::size_t j(0U); j < imptor.p.number; ++j)
-          {
-            std::size_t const k = imptor.p.order[j];
-            coords::float_type F = imptor.p.force[j] * cparams.imptorunit();
-            coords::float_type c(std::cos(imptor.p.ideal[j]*SCON_PI180)), 
-              s(std::sin(imptor.p.ideal[j]*SCON_PI180));
-            c = c > 1.0 ? 1.0 : c < -1.0 ? -1.0 : c;
-            s = s > 1.0 ? 1.0 : s < -1.0 ? -1.0 : s;
+			  auto const dt = cross(t, cb) * (dedphi / (tl2*r12));
+			  auto const du = cross(u, cb) * (-dedphi / (ul2*r12));
 
-            tE += F * (1.0 + (cos[k]*c + sin[k]*s));
-            dE += static_cast<coords::float_type>(k) * F * (cos[k]*s - sin[k]*c);
+			  part_grad[IMPTORSION][imptor.ligand[0]] += cross(dt, cb);
+			  part_grad[IMPTORSION][imptor.ligand[1]] += cross(ca, dt) + cross(du, dc);
+			  part_grad[IMPTORSION][imptor.center] += cross(dt, ba) + cross(db, du);
+			  part_grad[IMPTORSION][imptor.twist] += cross(du, cb);
 
-            //std::cout << "vcs" << k << " " << imptor.p.force[j] << " " << c << " " << s << "\n";
-            //std::cout << "p" << k << " " << (1.0 + (cos[k] * c + sin[k] * s)) << '\n';
-            //std::cout << "dp" << k << " " << (static_cast<coords::float_type>(k) * (cos[k] * s - sin[k] * c)) << '\n';
-          }
-          E += tE;
-
-          //std::cout << "E " << tE << '\n';
-
-          coords::Cartesian_Point const ca = 
-            coords->xyz(imptor.center) - coords->xyz(imptor.ligand[0u]);
-          coords::Cartesian_Point const db = 
-            coords->xyz(imptor.twist) - coords->xyz(imptor.ligand[1u]);
-
-
-          coords::Cartesian_Point const dt(cross(t, cb) * (dE / (tl2*r12)));
-          coords::Cartesian_Point const du(cross(u, cb) * (-dE / (ul2*r12)));
-
-          //std::cout << "dt: " << dt << '\n';
-          //std::cout << "dt: " << du << '\n';
-
-          //coords::Cartesian_Point dt(t);
-          //coords::Cartesian_Point du(u);
-
-          //dt.cross(cb);
-          //du.cross(cb);
-          //dt *= dE/(tl2*r12);
-          //du *= -dE/(ul2*r12);
-
-          part_grad[IMPTORSION][imptor.ligand[0]] += cross(dt, cb);
-          part_grad[IMPTORSION][imptor.ligand[1]] += cross(ca, dt) + cross(du, dc);
-          part_grad[IMPTORSION][imptor.center] += cross(dt, ba) + cross(db, du);
-          part_grad[IMPTORSION][imptor.twist] += cross(du, cb);
-          
-          //coords::float_type vxx, vyx, vzx, vyy, vzy, vzz;
-          //coords::Cartesian_Point vir1, vir2, vir3, vir4;
-
-          //vir1 = dt.crossd(cb);
-          //vir2 = ca.crossd(dt) + du.crossd(dc);
-          //vir3 = dt.crossd(ba) + db.crossd(du);
-          //vir4 = du.crossd(cb);
-
-          //part_grad[IMPTORSION][imptor.ligand[0]] += vir1;
-          //part_grad[IMPTORSION][imptor.ligand[1]] += vir2;
-          //part_grad[IMPTORSION][imptor.center] += vir3;
-          //part_grad[IMPTORSION][imptor.twist] += vir4;
-
-          ////increment the internal virial tensor
-          //vxx = cb.x()*(vir3.x() + vir4.x()) - ba.x()*vir1.x() + dc.x()*vir4.x();
-          //vyx = cb.y()*(vir3.x() + vir4.x()) - ba.y()*vir1.x() + dc.y()*vir4.x();
-          //vzx = cb.z()*(vir3.x() + vir4.x()) - ba.z()*vir1.x() + dc.z()*vir4.x();
-          //vyy = cb.y()*(vir3.y() + vir4.y()) - ba.y()*vir1.y() + dc.y()*vir4.y();
-          //vzy = cb.z()*(vir3.y() + vir4.y()) - ba.z()*vir1.y() + dc.z()*vir4.y();
-          //vzz = cb.z()*(vir3.z() + vir4.z()) - ba.z()*vir1.z() + dc.z()*vir4.z();
-          //coords->bondvirial[0][0] += vxx;
-          //coords->bondvirial[1][0] += vyx;
-          //coords->bondvirial[2][0] += vzx;
-          //coords->bondvirial[0][1] += vyx;
-          //coords->bondvirial[1][1] += vyy;
-          //coords->bondvirial[2][1] += vzy;
-          //coords->bondvirial[0][2] += vzx;
-          //coords->bondvirial[1][2] += vzy;
-          //coords->bondvirial[2][2] += vzz;
-        }
-        return E;
-      }
-
-
-      coords::float_type energy::interfaces::aco::aco_ff::g_it (void)
-      {
-        using scon::cross;
-        using scon::dot;
-        using scon::len;
-        using std::sqrt;
-        using std::abs;
-        coords::float_type E(0.0);
-        for (auto & imptor : refined.imptors())
-        {
-
-          coords::Cartesian_Point const b01 = 
-            coords->xyz(imptor.center) - coords->xyz(imptor.twist);
-          coords::Cartesian_Point const b12 = 
-            coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.center);
-          coords::Cartesian_Point const b23 =
-            coords->xyz(imptor.center) - coords->xyz(imptor.ligand[0]);
-          coords::Cartesian_Point const b02 =
-            coords->xyz(imptor.ligand[1]) - coords->xyz(imptor.twist);
-          coords::Cartesian_Point const b13 =
-            coords->xyz(imptor.ligand[1]) + b23 - coords->xyz(imptor.center);
-    
-          coords::Cartesian_Point const t = cross(b01, b12);
-          coords::Cartesian_Point const u = cross(b12, b23);
-          coords::float_type const tl2 = dot(t, t);
-          coords::float_type const ul2 = dot(u, u);
-          coords::float_type const tlul = sqrt(tl2*ul2);
-          coords::float_type const r12 = len(b12);
-          coords::Cartesian_Point const tu = cross(t, u);
-
-          coords::float_type const cos_scalar0 = dot(t, u);
-          coords::float_type const cos_scalar1 = tlul;
-
-          coords::float_type const sin_scalar0 = dot(b12, tu);
-          coords::float_type const sin_scalar1 = r12*tlul;
-
-          if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
-          {
-            integrity = false;
-            continue;
-          }
-
-          coords::float_type cos[7], sin[7];
-          cos[1] = cos_scalar0/cos_scalar1;
-          sin[1] = sin_scalar0/sin_scalar1;
-
-          for (size_t j(2U); j <= imptor.p.max_order; ++j)
-          {
-            size_t const k = j - 1;
-            sin[j] = sin[k]*cos[1] + cos[k]*sin[1];
-            cos[j] = cos[k]*cos[1] - sin[k]*sin[1];
-          }
-
-          coords::float_type tE(0.0), dE(0.0);
-          //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
-          for (size_t j(0U); j < imptor.p.number; ++j)
-          {
-            size_t const k = imptor.p.order[j];
-            coords::float_type const l = abs(imptor.p.ideal[j]) > 0.0?-1.0:1.0;
-            tE += imptor.p.force[j] * (1.0 + static_cast<coords::float_type>(cos[k]*l));
-            dE += -static_cast<coords::float_type>(k * imptor.p.force[j] * sin[k] * l);
-          }
-          E += tE;
-
-          coords::Cartesian_Point dt(cross(t, b12) * (dE / (tl2*r12)));
-          coords::Cartesian_Point du(cross(u, b12) * (-dE / (ul2*r12)));
-
-          //coords::Cartesian_Point dt(t);
-          //coords::Cartesian_Point du(u);
-          //dt.cross(b12);
-          //du.cross(b12);
-          //dt *= dE/(tl2*r12);
-          //du *= -dE/(ul2*r12);
-
-          //coords::float_type vxx, vyx, vzx, vyy, vzy, vzz;
-          //coords::Cartesian_Point vir1, vir2, vir3, vir4;
-
-          /*vir1 = dt.crossd(b12);
-          vir2 = b02.crossd(dt) + du.crossd(b23);
-          vir3 = dt.crossd(b01) + b13.crossd(du);
-          vir4 = du.crossd(b12);*/
-
-          part_grad[IMPTORSION][imptor.twist] += cross(dt, b12);
-          part_grad[IMPTORSION][imptor.center] += cross(b02, dt) + cross(du, b23);
-          part_grad[IMPTORSION][imptor.ligand[1]] += cross(dt, b01) + cross(b13, du);
-          part_grad[IMPTORSION][imptor.ligand[0]] -= cross(du, b12);
-          //part_grad[IMPTORSION][imptor.twist] += vir1;
-          //part_grad[IMPTORSION][imptor.center] += vir2;
-          //part_grad[IMPTORSION][imptor.ligand[1]] += vir3;
-          //part_grad[IMPTORSION][imptor.ligand[0]] -= vir4;
-          ////increment the internal virial tensor
-          //vxx = b12.x()*(vir3.x() + vir4.x()) - b01.x()*vir1.x() + b23.x()*vir4.x();
-          //vyx = b12.y()*(vir3.x() + vir4.x()) - b01.y()*vir1.x() + b23.y()*vir4.x();
-          //vzx = b12.z()*(vir3.x() + vir4.x()) - b01.z()*vir1.x() + b23.z()*vir4.x();
-          //vyy = b12.y()*(vir3.y() + vir4.y()) - b01.y()*vir1.y() + b23.y()*vir4.y();
-          //vzy = b12.z()*(vir3.y() + vir4.y()) - b01.z()*vir1.y() + b23.z()*vir4.y();
-          //vzz = b12.z()*(vir3.z() + vir4.z()) - b01.z()*vir1.z() + b23.z()*vir4.z();
-          //coords->bondvirial[0][0] += vxx;
-          //coords->bondvirial[1][0] += vyx;
-          //coords->bondvirial[2][0] += vzx;
-          //coords->bondvirial[0][1] += vyx;
-          //coords->bondvirial[1][1] += vyy;
-          //coords->bondvirial[2][1] += vzy;
-          //coords->bondvirial[0][2] += vzx;
-          //coords->bondvirial[1][2] += vzy;
-          //coords->bondvirial[2][2] += vzz;
-        }
-        return E;
+		  }
+		  return E;
       }
 
 
@@ -889,7 +684,51 @@ namespace energy
       *                                *
       *********************************/
 
-      coords::float_type energy::interfaces::aco::aco_ff::g_imp (void)
+	  template<>
+	  coords::float_type energy::interfaces::aco::aco_ff::f_imp<0>(void)
+	  {
+		  using scon::cross;
+		  using scon::dot;
+		  using scon::len;
+		  using std::sqrt; using std::acos;
+		  using std::abs;
+		  using std::min; using std::max;
+		  coords::float_type E(0.0);
+		  coords::float_type vxx, vyx, vzx, vyy, vzy, vzz;
+		  coords::Cartesian_Point vir1, vir2, vir3, vir4;
+		  for (auto & improper : refined.impropers())
+		  {
+			  coords::Cartesian_Point const ba =
+				  coords->xyz(improper.ligand[0]) - coords->xyz(improper.center);
+			  coords::Cartesian_Point const cb =
+				  coords->xyz(improper.ligand[1]) - coords->xyz(improper.ligand[0]);
+			  coords::Cartesian_Point const dc =
+				  coords->xyz(improper.twist) - coords->xyz(improper.ligand[1]);
+			  coords::Cartesian_Point const t(cross(ba, cb));
+			  coords::Cartesian_Point const u(cross(cb, dc));
+			  coords::Cartesian_Point const tu(cross(t, u));
+			  coords::float_type const rt2(dot(t, t)), ru2(dot(u, u)), rtru = sqrt(rt2*ru2);
+			  if (abs(rtru) > 0.0)
+			  {
+				  coords::float_type const rcb(len(cb));
+				  coords::float_type const cosine(min(1.0, max(-1.0, (dot(t, u) / rtru))));
+				  coords::float_type const sine(dot(cb, tu) / (rcb*rtru));
+				  coords::float_type const angle(sine < 0.0 ?
+					  -acos(cosine)*SCON_180PI : acos(cosine)*SCON_180PI);
+				  coords::float_type da((abs(angle + improper.p.ideal[0U]) < abs(angle - improper.p.ideal[0U])) ?
+					  angle + improper.p.ideal[0U] : angle - improper.p.ideal[0U]);
+				  if (da > 180.0) da -= 360.0;
+				  if (da < -180.0) da += 360.0;
+				  da *= SCON_PI180;
+				  coords::float_type dE = improper.p.force[0] * da;
+				  E += dE*da;
+			  }
+		  }
+		  return E;
+	  }
+
+	  template<>
+      coords::float_type energy::interfaces::aco::aco_ff::f_imp<1> (void)
       {
         using scon::cross;
         using scon::dot;
@@ -963,7 +802,6 @@ namespace energy
             part_virial[IMPROPER][2][2] += vzz;
           }
         }
-        //std::cout << "Return" << std::endl;
         return E;
       }
 

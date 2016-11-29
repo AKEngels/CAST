@@ -250,8 +250,7 @@ void md::simulation::print_init_info(void)
   if (!Config::get().md.heat_steps.empty())
   {
     std::cout << "Temperature changes: ";
-    if (Config::get().md.heat_steps.empty() || Config::get().md.heat_steps.front().offset > 0U)
-      std::cout << "[Step 0]:[" << Config::get().md.T_init << "K]";
+    std::cout << "[Step 0]:[" << Config::get().md.T_init << "K]";
     for (auto heatstep : Config::get().md.heat_steps)
     {
       std::cout << " -> [Step " << heatstep.offset << "]:[" << heatstep.raise << "K]";
@@ -426,10 +425,28 @@ void md::simulation::init(void)
     // sum position vectors for geometrical center
     C_geo += coordobj.xyz(i);
   }
-  // Set up rattle vector for constraints
-  if (Config::get().md.rattle.use == true && Config::get().md.rattle.all == true) rattlesetup();
   // get degrees of freedom
   freedom = 3U * N;
+  if (Config::get().md.T_init != 0.0)
+  {
+	  //calculate temperature
+	  double tempfactor(2.0 / (freedom*md::R));
+	  updateEkin();
+	  temp = E_kin * tempfactor;
+	  // scale temperature
+	  for (std::size_t i = 0; i < N; ++i)
+	  {
+		  if (!coordobj.atoms(i).fixed())
+		  {
+			  V[i].x() = V[i].x()*pow(Config::get().md.T_init / temp, 0.5);
+			  V[i].y() = V[i].y()*pow(Config::get().md.T_init / temp, 0.5);
+			  V[i].z() = V[i].z()*pow(Config::get().md.T_init / temp, 0.5);
+		  }  
+	  }
+  }
+  
+  // Set up rattle vector for constraints
+  if (Config::get().md.rattle.use == true && Config::get().md.rattle.all == true) rattlesetup();
   // constraint degrees of freedom
   if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
   // periodics and isothermal cases
@@ -624,13 +641,13 @@ void md::simulation::freecalc()
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
   double de_ensemble, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-  // calculate ensemble average
-  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) {
+  // calculate ensemble average for current window
+  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) 
+  {                // for every conformation in window
     iterator += 1;
     k = 0;
     de_ensemble = temp_avg = 0.0;
     coordobj.fep.fepdata[i].de_ens = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
-    //std::cout << boltz << "   " << traces.T[i] << "   " << conv << "   " << coordobj.fep.fepdata[i].dE << std::endl;
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
@@ -664,7 +681,6 @@ void md::simulation::freewrite(std::size_t i)
   else if (this->prod == true) {
     fep << "Starting new data collection with values:  " << 
       i * Config::get().fep.dlambda << "   " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
-    //fep << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << "   ";
   }
   // write output to alchemical.txt
   for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
@@ -719,36 +735,8 @@ void md::simulation::feprun()
       // calculate free energy change for window and write output
       freecalc();
       freewrite(i);
-
     }// end of main window loop
   }
-  // doing a backward transofrmation (NOT SUPPORTED ANYMORE)
-  //else if (Config::get().fep.backward == 1) {
-  //  // main backward window loop
-  //  for (std::size_t i = coordobj.fep.window.size() - 1; i < coordobj.fep.window.size(); --i)
-  //  {
-
-  //    std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
-  //    coordobj.fep.window[0U].step = static_cast<int>(i);
-  //    coordobj.fep.fepdata.clear();
-  //    // equilibration run for window i<
-
-  //    Config::set().md.num_steps = Config::get().fep.equil;
-  //    integrate();
-
-  //    this->prod = false;
-  //    freewrite(i);
-  //    coordobj.fep.fepdata.clear();
-
-  //    // production run for window i
-  //    Config::set().md.num_steps = Config::get().fep.steps;
-  //    integrate();
-  //    this->prod = true;
-  //    freecalc();
-  //    freewrite(i);
-  //    if (i == 0) break;
-  //  }// end of main window loop
-  //}
   else {
     throw std::runtime_error("Wrong value for FEPbackward (0 or 1). Check your input file");
   }
@@ -898,7 +886,7 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
 	E_kin = E_kin_tensor[0][0] + E_kin_tensor[1][1] + E_kin_tensor[2][2];
 	if (Config::get().general.verbosity > 4u)
 	{
-		std::cout << "Updating kinetic Energy from " << E_kin_tensor[0][0] << ", "
+		std::cout << "Updating kinetic Energy of some atoms from " << E_kin_tensor[0][0] << ", "
 			<< E_kin_tensor[1][1] << ", " << E_kin_tensor[2][2] << " to " << E_kin << '\n';
 	}
 }
@@ -980,29 +968,38 @@ void md::simulation::berendsen(double const & time)
   }//end of isotropic else
 }
 
-// heating function for direct velocity scaling
+// determine target temperature for heating
 bool md::simulation::heat(std::size_t const step)
 {
-  config::md_conf::config_heat last;
-  last.raise = Config::get().md.T_init;
-  for (auto const & heatstep : Config::get().md.heat_steps)
-  {
-    if (heatstep.offset > step)
-    {
-      double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
-      T += delta;
-      return true;
-    }
-    last = heatstep;
-  }
-  if (T < Config::get().md.T_final || T > Config::get().md.T_final)
-  {
-    double const delta((Config::get().md.T_final - last.raise) /
-      static_cast<double>(Config::get().md.num_steps - last.offset));
-    T += delta;
-    return true;
-  }
-  return false;
+	if (Config::get().md.heat_steps.size() == 0)  // no temperature control
+	{
+		return false;
+	}
+	else  // temperature control
+	{
+		config::md_conf::config_heat last;
+		last.raise = Config::get().md.T_init;
+		for (auto const & heatstep : Config::get().md.heat_steps)  
+		{
+			if (heatstep.offset >= step)    // find first heatstep after current step
+			{
+				double const delta((heatstep.raise - last.raise) / static_cast<double>(heatstep.offset - last.offset));
+				T += delta;  // adjust target temperature
+				return true; // exit function
+			}
+			last = heatstep; // last heatstep before current step
+		}
+		if (step > Config::get().md.heat_steps[Config::get().md.heat_steps.size()-1].offset)
+		{             // after last heatstep: keep final temperature
+			T = Config::get().md.T_final;
+			return true;
+		}
+		else
+		{
+			std::cout << "This should not happen!\n";
+			throw std::exception();
+		}
+	}
 }
 
 // Nose-Hover thermostat. Variable names and implementation are identical to the book of
@@ -1059,26 +1056,32 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 	}
 	else // no thermostat -> direct scaling
 	{
-		if (Config::get().md.set_active_center == 0)
-		{
-			updateEkin();
-			temp = E_kin * tempfactor;      // temperature before
-            factor = std::sqrt(T / temp);
-			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
-			updateEkin();
-			temp2 = E_kin * tempfactor;     // temperatures after
-		}
-		else
+		if (Config::get().md.set_active_center == 1)
 		{     // calculate temperature only for atoms inside inner cutoff
 			updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
 			size_t dof = 3u * inner_atoms.size();
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;           // temperature of inner atoms
 			factor = std::sqrt(T / temp);    // temperature scaling factor
-			for (auto i: inner_atoms) V[i] *= factor;   // new velocities
-			updateEkin_some_atoms(inner_atoms);
-			temp2 = E_kin * T_factor;                   // new temperature of inner atoms
-			updateEkin();                               // kinetic energy
+			for (auto i: atoms_movable) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+			if (half == false)
+			{
+				updateEkin_some_atoms(inner_atoms);
+				temp2 = E_kin * T_factor;                   // new temperature of inner atoms
+				updateEkin();            // kinetic energy
+			}	
+		}
+		else
+		{
+			updateEkin();
+			temp = E_kin * tempfactor;      // temperature before
+			factor = std::sqrt(T / temp);
+			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
+			if (half == false)
+			{
+				updateEkin();
+				temp2 = E_kin * tempfactor;     // temperatures after
+			}
 		}
 		
 		
@@ -1088,7 +1091,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 		}
 		else if (Config::get().general.verbosity > 3)
 		{
-			std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+			std::cout << "full step: desired temp: " << T << " current temp: Updating kinetic Energy from " << temp << " factor: " << factor << "\n";
 		}		
 	}
 	return temp2;
@@ -1149,13 +1152,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	double distance = distances[atom_number];
 	coords::Cartesian_Point velocity = V[atom_number];
 
-	if (distance > outer_cutoff)       //no movement outside of outer cutoff
-	{
-		velocity = coords::Cartesian_Point(0, 0, 0);
-		std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
-		return velocity;
-	}
-	else if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
+	if (distance > inner_cutoff)  // adjust velocities between inner and outer cutoff
 	{
 		velocity = velocity - velocity * ((distance - inner_cutoff) / (outer_cutoff - inner_cutoff));
 		return velocity;
@@ -1167,8 +1164,17 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	}
 	else    // should not happen
 	{ 
-		std::cout << "ERROR: really strange distance for atom "<<atom_number<<": "<<distance<<"\n"; 
-		exit(EXIT_FAILURE);
+		if (distance > outer_cutoff)
+		{
+			velocity = coords::Cartesian_Point(0, 0, 0);
+			std::cout << "This should not happen.\n"; //because velocities for these atoms are not calculated
+			return velocity;
+		}
+		else
+		{
+			std::cout << "ERROR: really strange distance for atom " << atom_number << ": " << distance << "\n";
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
@@ -1296,6 +1302,12 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	if (CONFIG.hooverHeatBath || HEATED)
 	{
 		temp = tempcontrol(CONFIG.hooverHeatBath, false);
+	}
+	else  // calculate E_kin and T if no temperature control is active
+	{
+		double tempfactor(2.0 / (freedom*md::R));
+		updateEkin();
+		temp = E_kin * tempfactor;
 	}
     // Apply pressure adjustments
     if (CONFIG.pressure)
@@ -1477,6 +1489,12 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		if (CONFIG.hooverHeatBath || HEATED)
 		{
 			temp = tempcontrol(CONFIG.hooverHeatBath, false);
+		}
+		else  // calculate E_kin and T if no temperature control is active
+		{
+			double tempfactor(2.0 / (freedom*md::R));
+			updateEkin();
+			temp = E_kin * tempfactor;
 		}
 		// Apply pressure adjustments
 		if (CONFIG.pressure)

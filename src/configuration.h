@@ -577,13 +577,13 @@ namespace config
     md_conf::integrators::T integrator;
     bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
     molecular_dynamics(void) :
-      timeStep(0.001), T_init(293.15), T_final(293.15),
+      timeStep(0.001), T_init(0.0), T_final(),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
-      refine_offset(200), restart_offset(5000), usequil(), usoffset(),
+      refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
       integrator(md_conf::integrators::VERLET), 
-      hooverHeatBath(true), veloScale(false), fep(false), track(true),
+      hooverHeatBath(false), veloScale(false), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }

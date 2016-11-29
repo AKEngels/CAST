@@ -81,9 +81,6 @@ namespace energy
         void	boxjump (void);
         inline std::ptrdiff_t sign (coords::float_type const) const;
  
-        // Gradient functions (energy functions left since single point is 
-        coords::float_type g_it       (void);
-        coords::float_type g_imp      (void);
         // selection of the correct nonbonded function
         template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb (void);
         // nonbonded function including PME
@@ -120,7 +117,6 @@ namespace energy
         // charge gradients
         inline coords::float_type gQ (coords::float_type const C, coords::float_type const r, coords::float_type &dQ) const;
         // charge gradients fep version
-        inline coords::float_type gQ_fep_cut(coords::float_type const C, coords::float_type const ri, coords::float_type const c_out, coords::float_type const dc_out, coords::float_type & Q2, coords::float_type &dQ, coords::float_type & fQ);
         inline coords::float_type gQ_fep(coords::float_type const C, coords::float_type const r, coords::float_type const c_out, coords::float_type &dQ) const;
         // vdw energy
         template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > inline coords::float_type eV 

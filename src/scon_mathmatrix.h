@@ -858,6 +858,32 @@ typedef size_t uint_type;
     }
 #endif
 
+    /*! Performs Cholesky Decompostion on Matrix.
+     * 
+     * @NOTE: Code via https://rosettacode.org/wiki/Cholesky_decomposition#C 19.11.16
+     * @param result: Upper triangular matrix as result of decompostion
+     */
+    void choleskyDecomposition(mathmatrix<T> & result) const
+    {
+#ifndef USE_ARMADILLO
+      result = mathmatrix<T>(this->rows(), this->cols(), T(0));
+      int n = static_cast<int>(this->rows());
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < (i + 1); j++) {
+          T s = 0;
+          for (int k = 0; k < j; k++)
+            s += result(i, k) * result(j, k);
+          result(i, j) = (i == j) ?
+            sqrt((*this)(i, i) - s) :
+            (1.0 / result(j, j) * ((*this)(i, j) - s));
+        }
+      transpose(result);
+#else
+      arma::Mat<T> const& a = *this;
+      result = mathmatrix<T>(arma::chol(a));
+#endif
+    }
+
 		/**
 		 * Returns whether mathmatrix-obj is quadratic
 		 */
