@@ -1,7 +1,7 @@
 /**
 CAST 3
 configuration.h
-Purpose: class for extraction of information from parameter file
+Purpose: class for extraction of information from inputfile
 
 @author Daniel Weber (modified by many)
 @version 1.1
