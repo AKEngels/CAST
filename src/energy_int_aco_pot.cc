@@ -1327,84 +1327,104 @@ namespace energy
       }
 
 
-      template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
-      void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io 
-      (
-        coords::float_type &e_nb, coords::Representation_3D &grad_vector, 
-        std::vector< ::tinker::refine::types::nbpair> const & pairlist,
-        scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
-      )
-      {
-        nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
-        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
-        fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
-        for (auto const & pair : pairlist)
-        {
-          coords::Cartesian_Point b(coords->xyz(pair.a) - coords->xyz(pair.b));
-          coords::Cartesian_Point dist;
-          if (PERIODIC) boundary(b.x(), b.y(), b.z());
-          coords::float_type const rr(dot(b, b));
-          coords::float_type dE(0.0), Q(0.0), V(0.0);
-          ::tinker::parameter::combi::vdwc const & p(params(refined.type(pair.a), refined.type(pair.b)));
-          if (PERIODIC)
-          {
-            coords::float_type fQ(0.0), fV(0.0);
-            coords::float_type r(0.0);
-            if(!cutob.factors(rr, r, fQ, fV)) continue;
-            g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
-            coords::float_type trash(0.0);
-            g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
-          }
-          else
-          {
-            if (Config::get().energy.cutoff < 1000.0){
-            coords::float_type fQ(0.0), fV(0.0);
-            coords::float_type r(0.0);
-            g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
-            coords::float_type trash(0.0);
-            g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
-            }
-            else{
-            coords::float_type const r= sqrt(rr);
-            g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);
-            coords::float_type trash(0.0);
-            g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash);
-            }
-          }
-          dist = b;
-          b *= dE;
-          e_c_l += Q;
-          e_vdw_l += V;
-          e_c += Q;
-          e_v += V;
-          grad_vector[pair.a] += b;
-          grad_vector[pair.b] -= b;
-          //Increment internal virial tensor
-          coords::float_type const vxx = b.x() * dist.x();
-          coords::float_type const vyx = b.x() * dist.y();
-          coords::float_type const vzx = b.x() * dist.z();
-          coords::float_type const vyy = b.y() * dist.y();
-          coords::float_type const vzy = b.y() * dist.z();
-          coords::float_type const vzz = b.z() * dist.z();
-          part_virial[VDWC][0][0] += vxx;
-          part_virial[VDWC][1][0] += vyx;
-          part_virial[VDWC][2][0] += vzx;
-          part_virial[VDWC][0][1] += vyx;
-          part_virial[VDWC][1][1] += vyy;
-          part_virial[VDWC][2][1] += vzy;
-          part_virial[VDWC][0][2] += vzx;
-          part_virial[VDWC][1][2] += vzy;
-          part_virial[VDWC][2][2] += vzz;
-        }
-        e_nb += e_c+e_v;
-        coords->fep.feptemp.e_c_l1 += e_c_l;
-        coords->fep.feptemp.e_c_l2 += e_c_dl;
-        coords->fep.feptemp.e_vdw_l1 += e_vdw_l;
-        coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;
-        //part_energy[types::VDWC] += e_c+e_v;
-        part_energy[types::CHARGE] += e_c;
-        part_energy[types::VDW] += e_v;
-      }
+	  template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
+	  void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_io
+	  (
+		  coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+		  std::vector< ::tinker::refine::types::nbpair> const & pairlist,
+		  scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
+	  )
+	  {
+		  nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
+		  coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
+		  fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
+		  std::ptrdiff_t const M(pairlist.size());
+		  {
+			  coords::Representation_3D tmp_grad(grad_vector.size());
+			  coords::virial_t tempvir(coords::empty_virial());
+			  for (std::ptrdiff_t i = 0; i<M; ++i)
+			  {
+				  coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
+				  if (PERIODIC) boundary(b.x(), b.y(), b.z());
+				  ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
+				  coords::float_type rr(dot(b, b)), dE, Q(0.0), V(0.0);
+				  coords::Cartesian_Point dist;
+				  if (PERIODIC)
+				  {
+					  coords::float_type fQ(0.0), fV(0.0);
+					  coords::float_type r(0.0);
+					  if (!cutob.factors(rr, r, fQ, fV)) continue;
+					  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+						  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+					  coords::float_type trash(0.0);
+					  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+						  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+				  }
+				  else
+				  {
+					  if (Config::get().energy.cutoff < 1000.0)
+					  {
+						  coords::float_type r(0.0);
+						  coords::float_type fQ(0.0), fV(0.0);
+						  if (!cutob.factors(rr, r, fQ, fV)) continue;
+						  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+							  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+						  coords::float_type trash(0.0);
+						  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+							  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+					  }
+					  else
+					  {
+						  coords::float_type const r = sqrt(rr);
+						  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+							  (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);
+						  coords::float_type trash(0.0);
+						  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+							  (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash);
+					  }
+				  }
+				  dist = b;
+				  b *= dE;
+				  e_c_l += Q;
+				  e_vdw_l += V;
+				  e_c += Q;
+				  e_v += V;
+				  tmp_grad[pairlist[i].a] += b;
+				  tmp_grad[pairlist[i].b] -= b;
+				  //Increment internal virial tensor
+				  coords::float_type const vxx = b.x() * dist.x();
+				  coords::float_type const vyx = b.x() * dist.y();
+				  coords::float_type const vzx = b.x() * dist.z();
+				  coords::float_type const vyy = b.y() * dist.y();
+				  coords::float_type const vzy = b.y() * dist.z();
+				  coords::float_type const vzz = b.z() * dist.z();
+				  tempvir[0][0] += vxx;
+				  tempvir[1][0] += vyx;
+				  tempvir[2][0] += vzx;
+				  tempvir[0][1] += vyx;
+				  tempvir[1][1] += vyy;
+				  tempvir[2][1] += vzy;
+				  tempvir[0][2] += vzx;
+				  tempvir[1][2] += vzy;
+				  tempvir[2][2] += vzz;
+			  }
+			  {
+				  grad_vector += tmp_grad;
+				  for (int i = 0; i <= 2; i++) {
+					  for (int k = 0; k <= 2; k++) {
+						  part_virial[VDWC][i][k] += tempvir[i][k];
+					  }
+				  }
+			  }
+		  }
+		  e_nb += e_c + e_v;
+		  coords->fep.feptemp.e_c_l1 += e_c_l;
+		  coords->fep.feptemp.e_c_l2 += e_c_dl;
+		  coords->fep.feptemp.e_vdw_l1 += e_vdw_l;
+		  coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;
+		  part_energy[types::CHARGE] += e_c;
+		  part_energy[types::VDW] += e_v;
+	  }
 
 
 	  // #############################################################################################
