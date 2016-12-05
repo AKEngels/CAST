@@ -1238,14 +1238,6 @@ namespace energy
         }
       }
 
-      template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE> 
-        void energy::interfaces::aco::aco_ff::g_nb_QV_pairs_fep_switch_periodic 
-          (coords::float_type &e_nb, coords::Representation_3D &grad_vector,
-          std::vector< ::tinker::refine::types::nbpair> const & pairs, 
-          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters)
-        {
-
-        }
 
 #ifndef _OPENMP
 
