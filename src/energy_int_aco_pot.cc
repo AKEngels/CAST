@@ -1222,19 +1222,9 @@ namespace energy
         }
         if (Config::get().md.fep)
         {
-         // std::cout << coords->fep.feptemp.e_c_l2 << "  " << coords->fep.feptemp.e_vdw_l2 << "   " << coords->fep.feptemp.e_c_l1 << "   " << coords->fep.feptemp.e_vdw_l1 << std::endl;
-          if( Config::get().fep.backward == 0)
-          {
             coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
             coords->fep.feptemp.dG = 0;
             coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
-          else if (Config::get().fep.backward == 1)
-          {
-            coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2);
-            coords->fep.feptemp.dG = 0;
-            coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
         }
       }
 
@@ -2207,6 +2197,7 @@ namespace energy
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
       )
       {
+		  float in_vorher(0.0), in_nachher(0.0), in_number(0.0), out_vorher(0.0), out_nachher(0.0), out_number(0.0);
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
@@ -2216,9 +2207,9 @@ namespace energy
           coords::Representation_3D tmp_grad(grad_vector.size());
           coords::virial_t tempvir(coords::empty_virial());
           #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
-          for (std::ptrdiff_t i=0; i<M ; ++i)
+          for (std::ptrdiff_t i=0; i<M ; ++i)      //for every pair in pairlist
           {
-            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //distance r
             if (PERIODIC) boundary(b.x(), b.y(), b.z());
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
             coords::float_type rr(dot(b, b)), dE, Q(0.0), V(0.0);
@@ -2240,21 +2231,23 @@ namespace energy
               {
                 coords::float_type r(0.0);
                 coords::float_type fQ(0.0), fV(0.0);
-                if(!cutob.factors(rr, r, fQ, fV)) continue;
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), 
-                  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
-                coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), 
-                  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+				if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
+				{
+					g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+						(ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+					coords::float_type trash(0.0);
+					g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+						(ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+				}
               }
-              else
+              else  //if no cutoff
               {
                 coords::float_type const r= sqrt(rr);
                 g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), 
-                  (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);
+                  (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
                 coords::float_type trash(0.0);
                 g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), 
-                  (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash);
+                  (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
               }
             }
             dist = b;
@@ -2293,13 +2286,12 @@ namespace energy
           }
         }
         e_nb += e_c+e_v;
-        coords->fep.feptemp.e_c_l1 += e_c_l;
-        coords->fep.feptemp.e_c_l2 += e_c_dl;
-        coords->fep.feptemp.e_vdw_l1 += e_vdw_l;
-        coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;
-        //part_energy[types::VDWC] += e_c+e_v;
-        part_energy[types::CHARGE] += e_c;
-        part_energy[types::VDW] += e_v;
+        coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
+        coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
+        coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
+        part_energy[types::VDW] += e_v;     //gradients (vdW)
       }
 	  //      template < ::tinker::parameter::radius_types::T RT>
 	  //      void energy::interfaces::aco::aco_ff::pme_direct(double &e_ch,

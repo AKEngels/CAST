@@ -180,7 +180,11 @@ namespace energy
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
 
 		/** FEP gradient function for non-bonded pairs 
-		depends on the fact if the current atom is appearing or disappearing*/
+		depends on the fact if the current atom is appearing or disappearing
+		@param T_RADIUS_TYPE: r_min or sigma
+		@param PERIODIC: periodic boundaries true/false
+		@param IS_OUT: true if appearing atom, false if disappearing atom
+		*/
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>
 		void g_nb_QV_pairs_fep_io(coords::float_type &e_nb, coords::Representation_3D &grad_vector,
 			std::vector< ::tinker::refine::types::nbpair> const & pairs,

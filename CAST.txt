@@ -633,10 +633,6 @@ FEPequil       100
 FEPsteps       500
 FEPfreq        1000
 
-#FEPcoupling  <0> Inter subsystem interactions are scaled <1> inter subsystem interactions are not scaled
-
-FEPcouple   0
-
 
 
 ####################################
