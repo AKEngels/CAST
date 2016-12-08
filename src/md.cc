@@ -729,7 +729,7 @@ void md::simulation::freewrite(std::size_t i)
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dG;
       fep << std::endl;
     }
-	if (VERBOSE > 3)
+	if (Config::get().general.verbosity > 3u)
 	{
 		std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << " ,vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
 	}
