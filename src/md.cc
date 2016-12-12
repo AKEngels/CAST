@@ -173,7 +173,7 @@ void md::simulation::run(bool const restart)
     if (bs >> iteration) bs >> *this;
   }
   // start Simulation
-  integrate(iteration);
+  integrate(false, iteration);
 }
 
 // Perform Umbrella Sampling run if requested
@@ -203,12 +203,12 @@ void md::simulation::umbrella_run(bool const restart) {
   updateEkin();
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
-  integrate();
+  integrate(false);
   // clear output vector and start production simulation
   udatacontainer.clear();
   // run production
   Config::set().md.num_steps = steps;
-  integrate();
+  integrate(false);
   //write output
   for (std::size_t i = 0; i < udatacontainer.size(); i++) {
     if (i% Config::get().md.usoffset == 0) {
@@ -220,18 +220,18 @@ void md::simulation::umbrella_run(bool const restart) {
 
 
 // Perform MD with the requested integrator
-void md::simulation::integrate(std::size_t const k_init)
+void md::simulation::integrate(bool fep, std::size_t const k_init)
 {
   switch (Config::get().md.integrator)
   {
     case config::md_conf::integrators::BEEMAN:
       { // Beeman integrator
-        beemanintegrator(k_init);
+        beemanintegrator(fep, k_init);
         break;
       }
     default:
       { // Velocity verlet integrator
-        velocity_verlet(k_init);
+        velocity_verlet(fep, k_init);
       }
   }
 }
@@ -755,14 +755,14 @@ void md::simulation::feprun()
       coordobj.fep.fepdata.clear();
       // equilibration run for window i
       Config::set().md.num_steps = Config::get().fep.equil;
-      integrate();
+      integrate(true);
       // write output for equlibration and clear fep vector
       this->prod = false;
       freewrite(i);
       coordobj.fep.fepdata.clear();
       // production run for window i
       Config::set().md.num_steps = Config::get().fep.steps;
-      integrate();
+      integrate(true);
       this->prod = true;
       // calculate free energy change for window and write output
       freecalc();
@@ -996,7 +996,7 @@ void md::simulation::berendsen(double const & time)
 }
 
 // determine target temperature for heating
-bool md::simulation::heat(std::size_t const step)
+bool md::simulation::heat(std::size_t const step, bool fep)
 {
 	if (Config::get().md.heat_steps.size() == 0)  // no temperature control
 	{
@@ -1006,6 +1006,11 @@ bool md::simulation::heat(std::size_t const step)
 	{
 		config::md_conf::config_heat last;
 		last.raise = Config::get().md.T_init;
+		if (fep == true)   // keep constant temperature in FEP calculation
+		{
+			T = Config::get().md.T_final;
+			return true;
+		}
 		for (auto const & heatstep : Config::get().md.heat_steps)  
 		{
 			if (heatstep.offset >= step)    // find first heatstep after current step
@@ -1097,6 +1102,10 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 				temp2 = E_kin * T_factor;                   // new temperature of inner atoms
 				updateEkin();            // kinetic energy
 			}	
+			else
+			{
+				temp2 = 0;  // some number, is not needed
+			}
 		}
 		else
 		{
@@ -1108,6 +1117,10 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			{
 				updateEkin();
 				temp2 = E_kin * tempfactor;     // temperatures after
+			}
+			else
+			{
+				temp2 = 0;  // some number, is not needed
 			}
 		}
 		
@@ -1207,7 +1220,7 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 
 
 // Velcoity verlet integrator
-void md::simulation::velocity_verlet(std::size_t k_init)
+void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 {
   scon::chrono::high_resolution_timer integration_timer;
 
@@ -1236,7 +1249,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
   auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u ), size_t(10000u)), std::size_t{ 100u });
   for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
   {
-    bool const HEATED(heat(k));
+    bool const HEATED(heat(k,fep));
     if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
@@ -1380,7 +1393,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
   }
 }
 
-void md::simulation::beemanintegrator(std::size_t k_init)
+void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 {
 	scon::chrono::high_resolution_timer integration_timer;
 
@@ -1414,7 +1427,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 			}
 		}
 
-		bool const HEATED(heat(k));
+		bool const HEATED(heat(k,fep));
 		if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
 		{
 			std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";

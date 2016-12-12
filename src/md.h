@@ -284,7 +284,7 @@ namespace md
 	/**function for calculation of current target temperature
 	@param step: current MD step
 	*/
-    bool heat(std::size_t const step);
+    bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
 
@@ -313,17 +313,17 @@ namespace md
     /**select an integrator (velocity-verlet or beeman)
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void integrate(std::size_t const k_init = 0U);
+    void integrate(bool fep = false, std::size_t const k_init = 0U);
 
 	/**beeman integrator
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void beemanintegrator(std::size_t const k_init = 0U);
+    void beemanintegrator(bool fep, std::size_t const k_init = 0U);
 
 	/**velocity-verlet integrator
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void velocity_verlet(std::size_t const k_init = 0u);
+    void velocity_verlet(bool fep, std::size_t const k_init = 0U);
 
     /** tell user that he applies spherical boundary conditions
 	*/
