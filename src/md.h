@@ -283,6 +283,7 @@ namespace md
 
 	/**function for calculation of current target temperature
 	@param step: current MD step
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	*/
     bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat */
@@ -311,16 +312,19 @@ namespace md
     void rattle_post(void);
 
     /**select an integrator (velocity-verlet or beeman)
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
     void integrate(bool fep = false, std::size_t const k_init = 0U);
 
 	/**beeman integrator
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
     void beemanintegrator(bool fep, std::size_t const k_init = 0U);
 
 	/**velocity-verlet integrator
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
     void velocity_verlet(bool fep, std::size_t const k_init = 0U);
