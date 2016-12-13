@@ -1296,18 +1296,9 @@ namespace energy
         if (Config::get().md.fep)
         {
           // std::cout << coords->fep.feptemp.e_c_l2 << "  " << coords->fep.feptemp.e_vdw_l2 << "   " << coords->fep.feptemp.e_c_l1 << "   " << coords->fep.feptemp.e_vdw_l1 << std::endl;
-          if (Config::get().fep.backward == 0)
-          {
             coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
             coords->fep.feptemp.dG = 0;
             coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
-          else if (Config::get().fep.backward == 1)
-          {
-            coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2);
-            coords->fep.feptemp.dG = 0;
-            coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
         }
       }
 

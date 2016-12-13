@@ -865,10 +865,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().fep.freq;
     }
-    else if (option.substr(3, 8) == "backward")
-    {
-      cv >> Config::set().fep.backward;
-    }
   }
 
   else if (option.substr(0, 5) == "COORD")

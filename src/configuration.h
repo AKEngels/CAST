@@ -515,41 +515,79 @@ namespace config
     ##     ##  #######  ######## ########     ##    ##    ## ##     ##
   */
 
+  /**namespace for MD options that need an own struct*/
   namespace md_conf
   {
+	/**integrator (velocity-verlet or beeman)*/
     struct integrators { enum T { VERLET, BEEMAN}; };
 
+	/**options for spherical boundaries*/
     struct config_spherical
     {
-      double r_inner, r_outer, e1, e2, f1, f2;
+	    /**radius for starting the inner spherical potential*/
+		double r_inner;
+		/**radius for starting the outer spherical potential*/
+		double r_outer;
+		/**exponent for the inner spherical potential*/
+		double e1;
+		/**exponent for the outer spherical potential*/
+		double e2;
+		/**force constant for the inner spherical potential*/
+		double f1;
+		/**force constant for the outer spherical potential*/
+		double f2;
+      /**true if spherical potential is applied, false if not*/
       bool use;
+	  /**constructor*/
       config_spherical(void) :
         r_inner(20.0), r_outer(20.1), e1(2.0), e2(4.0),
         f1(10.0), f2(10.0), use(false)
       { }
     };
 
+	/**contains information for one heatstep*/
     struct config_heat
     {
+	  /**temperature*/
       double raise;
+	  /**step number*/
       std::size_t offset;
+	  /**constructor*/
       config_heat(void) : raise(10.0), offset(100u) { }
+	  /**overwritten operator <:
+	  returns true if < is true for step number (offset)*/
       friend bool operator< (config_heat const &a, config_heat const &b) { return (a.offset < b.offset); }
+	  /**overwritten operator >:
+	  returns true if > is true for step number (offset)*/
       friend bool operator> (config_heat const &a, config_heat const &b) { return operator<(b, a); }
     };
 
+	/**contains information for rattle algorithm*/
     struct config_rattle
     {
+	  /**contains information for one rattle bond*/
       struct rattle_constraint_bond
       {
+		/**ideal bond length (from parameter file)*/
         double len;
-        std::size_t a, b;
+		/**number of H-atom a (number from tinker file - 1)*/
+		std::size_t a;
+		/**number of atom b (number from tinker file - 1)*/
+		std::size_t b;
       };
+	  /**???*/
       std::size_t num_iter;
+	  /**???*/
       double tolerance;
+	  /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;
-      bool use, all;
+	  /**true if rattle algorithm is applied, false if not*/
+	  bool use;
+	  /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
+	  bool all;
+	  /**name of parameter file where bond lengths for constrained bonds are taken from*/
       std::string ratpar;
+	  /**constructor*/
       config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
       { }
     };
@@ -557,24 +595,73 @@ namespace config
 
   struct molecular_dynamics
   {
-    double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+	  /**timestep in picoseconds*/
+	  double timeStep;
+	  /**initial temperature*/
+	  double T_init;
+	  /**final temperature*/
+	  double T_final;
+
+	  //pressure things
+	  double pcompress, pdelay, ptarget;
 
     // Options for biased MD
-    std::size_t set_active_center, adjustment_by_step;
-    double inner_cutoff, outer_cutoff;
+	/**1 if a biased potential around an active site is applied, 0 if not*/
+	std::size_t set_active_center;
+	/**1 if the active site and the distances to the active site should be calculated new every step,
+	0 if they should be calculated only once at the beginning of the simulation*/
+	std::size_t adjustment_by_step;
+	/**distance of inner cutoff for biased potential in angstrom*/
+	double inner_cutoff;
+	/**distance of outer cutoff for biased potential in angstrom*/
+	double outer_cutoff;
+	/**vector of atoms (tinker atom-numbers) that define the active site
+	coordinates of active site are calculated as geometrical center*/
     std::vector<unsigned> active_center;
-    //
-
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, trackoffset;
+    
+	/**number of MD steps*/
+	std::size_t num_steps;
+	/**number of snapshots*/
+	std::size_t num_snapShots;
+	/**number of snapshots in memory before written to file*/
+	std::size_t max_snap_buffer;
+	/**after this number of steps the list of non-bonded interactions is generated new*/
+	std::size_t refine_offset;
+	/**after this number of steps a restart file is generated*/
+	std::size_t restart_offset;
+	/**each trackoffset'th step is written to trace file*/
+	std::size_t trackoffset;
 
     // Umbrella Sampling
     std::size_t usoffset, usequil;
 
+	/**vector of heatsteps:
+	each MDheat option is saved into one element of this vector*/
     std::vector<md_conf::config_heat> heat_steps;
+	/**contains options for spherical boundaries if applied,
+	otherwise the information that no spherical boundaries are applied*/
     md_conf::config_spherical spherical;
+	/**contains information for rattle algorithm*/
     md_conf::config_rattle rattle;
+	/**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
+	/**Nosé-Hoover thermostat yes or no*/
+	bool hooverHeatBath, veloScale;
+	/**free energy perturbation calculation yes or no*/
+	bool fep;
+	/**activate tracking yes or no*/
+	bool track;
+	/**perform local optimization with snapshots before they are written into file yes or no*/
+	bool optimize_snapshots;
+	/**pressure control yes or no?*/
+	bool pressure;
+	/**use a restart file for starting MD yes or no (does currently not work)*/
+	bool resume;
+	/**perform an umbrella sampling yes or no*/
+	bool umbrella;
+	/**perform local optimization before starting simulation yes or no*/
+	bool pre_optimize;
+	/**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
@@ -589,13 +676,32 @@ namespace config
 
   };
 
+  /**contains information about FEP calculation if performed*/
   struct fep
   {
-    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
-    std::size_t steps, equil, freq, backward;
+	  /**final value for order parameter lambda,
+	  no need to set it to a value other than 1*/
+	  double lambda;
+	  /**size of the FEP windows*/
+	  double dlambda;
+	  /**controls lambda value for vdw-coupling*/
+	  double vdwcouple;
+	  /**controls lambda value for electrostatic coupling*/
+	  double eleccouple;
+	  /**value for vdw shifting parameter (softcore potential)*/
+	  double ljshift;
+	  /**value for coulomb shifting parameter (softcore potential)*/
+	  double cshift;
+	  /**number of MD steps in production run for every window*/
+	  std::size_t steps;
+	  /**number of MD steps in equilibration run for every window*/
+	  std::size_t equil;
+	  /**every freq'th MD step of production run is taken into account for energy calculation*/
+	  std::size_t freq;
+    /**constructor*/
     fep(void) :
-      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000), backward(0)
+      lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
+      steps(10), equil(10), freq(1000)
     { }
   };
 
