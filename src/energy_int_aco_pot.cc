@@ -665,11 +665,33 @@ namespace energy
 			  auto const dt = cross(t, cb) * (dedphi / (tl2*r12));
 			  auto const du = cross(u, cb) * (-dedphi / (ul2*r12));
 
-			  part_grad[IMPTORSION][imptor.ligand[0]] += cross(dt, cb);
-			  part_grad[IMPTORSION][imptor.ligand[1]] += cross(ca, dt) + cross(du, dc);
-			  part_grad[IMPTORSION][imptor.center] += cross(dt, ba) + cross(db, du);
-			  part_grad[IMPTORSION][imptor.twist] += cross(du, cb);
+			  auto vir1 = cross(dt, ba) + cross(db, du);
+			  auto vir2 = cross(dt, cb);
+			  auto vir3 = cross(ca, dt) + cross(du, dc);
+			  auto vir4 = cross(du, cb);
 
+			  part_grad[IMPTORSION][imptor.ligand[0]] += vir2;
+			  part_grad[IMPTORSION][imptor.ligand[1]] += vir3;
+			  part_grad[IMPTORSION][imptor.center] += vir1;
+			  part_grad[IMPTORSION][imptor.twist] += vir4;
+
+			  //calculation of virial tensors (copied from function f_imp<1>)
+			  auto vxx = cb.x()*(vir3.x() + vir4.x()) - ba.x()*vir1.x() + dc.x()*vir4.x();
+			  auto vyx = cb.y()*(vir3.x() + vir4.x()) - ba.y()*vir1.x() + dc.y()*vir4.x();
+			  auto vzx = cb.z()*(vir3.x() + vir4.x()) - ba.z()*vir1.x() + dc.z()*vir4.x();
+			  auto vyy = cb.y()*(vir3.y() + vir4.y()) - ba.y()*vir1.y() + dc.y()*vir4.y();
+			  auto vzy = cb.z()*(vir3.y() + vir4.y()) - ba.z()*vir1.y() + dc.z()*vir4.y();
+			  auto vzz = cb.z()*(vir3.z() + vir4.z()) - ba.z()*vir1.z() + dc.z()*vir4.z();
+
+			  part_virial[IMPROPER][0][0] += vxx;
+			  part_virial[IMPROPER][1][0] += vyx;
+			  part_virial[IMPROPER][2][0] += vzx;
+			  part_virial[IMPROPER][0][1] += vyx;
+			  part_virial[IMPROPER][1][1] += vyy;
+			  part_virial[IMPROPER][2][1] += vzy;
+			  part_virial[IMPROPER][0][2] += vzx;
+			  part_virial[IMPROPER][1][2] += vzy;
+			  part_virial[IMPROPER][2][2] += vzz;
 		  }
 		  return E;
       }
