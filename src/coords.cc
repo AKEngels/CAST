@@ -623,18 +623,29 @@ void coords::Coordinates::periodic_boxjump()
 }
 
 
-bool coords::Coordinates::validate_bonds() const
+bool coords::Coordinates::validate_bonds()
 {
+  bool status = true;
   std::size_t const N(m_atoms.size());
-  for (std::size_t i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i)  // for every atom i
   {
-    for (auto const & bound : m_atoms.atom(i).bonds())
+    for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
     {
       double const L(geometric_length(xyz(i) - xyz(bound)));
-      if (L < 0.3 || L > 5.0) return false;
+	  if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
+	  {
+		  status = false;  
+		  if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
+		  {
+			std::vector<std::size_t> bond;
+			bond.push_back(i);
+			bond.push_back(bound);
+			broken_bonds.push_back(bond);
+		  }  
+	  }
     }
   }
-  return true;
+  return status;
 }
 
 

@@ -424,6 +424,17 @@ void md::simulation::rattlesetup(void)
 // Initialization of MD parameters and functions
 void md::simulation::init(void)
 {
+	if (coordobj.validate_bonds() == false)  // test if there are broken bonds in the structure and save them
+	{
+		if (Config::get().general.verbosity > 1U)
+		{
+			std::cout << "Warning! Broken bonds in your structure even before the simulation starts! Atom numbers: \n";
+			for (auto b : coordobj.broken_bonds)
+			{
+				std::cout << b[0] << " and " << b[1] << "\n";
+			}
+		}
+	}
   using std::abs;
   std::size_t const N = coordobj.size();
   static double const twopi = 2.0*md::PI;
@@ -1070,7 +1081,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 {
 	std::size_t const N = this->coordobj.size();  // total number of atoms
 	double tempfactor(2.0 / (freedom*md::R));     // factor for calculation of temperature from kinetic energy  
-	double temp, temp2, factor;     // current temperature before and after the temperature scaling, scaling factor
+	double temp, temp2=0, factor;     // current temperature before and after the temperature scaling, scaling factor
 
 	if (thermostat)   // apply nose-hoover thermostat
 	{
@@ -1102,9 +1113,20 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 				temp2 = E_kin * T_factor;                   // new temperature of inner atoms
 				updateEkin();            // kinetic energy
 			}	
-			else
+		}
+		else if (Config::get().md.tempselection == 1)
+		{      // calculate temperature only for atoms in tempselection
+			updateEkin_some_atoms(Config::get().md.tempselection_atoms); // kinetic energy of tempselection
+			size_t dof = 3u * Config::get().md.tempselection_atoms.size();
+			double T_factor = (2.0 / (dof*md::R));
+			temp = E_kin*T_factor;           // temperature in tempselection
+			factor = std::sqrt(T / temp);    // temperature scaling factor
+			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
+			if (half == false)
 			{
-				temp2 = 0;  // some number, is not needed
+				updateEkin_some_atoms(Config::get().md.tempselection_atoms);
+				temp2 = E_kin * T_factor;                   // new temperature in tempselection
+				updateEkin();            // kinetic energy
 			}
 		}
 		else
@@ -1118,10 +1140,6 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 				updateEkin();
 				temp2 = E_kin * tempfactor;     // temperatures after
 			}
-			else
-			{
-				temp2 = 0;  // some number, is not needed
-			}
 		}
 		
 		
@@ -1131,7 +1149,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 		}
 		else if (Config::get().general.verbosity > 3)
 		{
-			std::cout << "full step: desired temp: " << T << " current temp: Updating kinetic Energy from " << temp << " factor: " << factor << "\n";
+			std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
 		}		
 	}
 	return temp2;
@@ -1287,6 +1305,19 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
+
+	coordobj.broken_bonds.clear();
+	if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
+	{
+		if (Config::get().general.verbosity > 1U)
+		{
+			std::cout << "Warning! Broken bonds between atoms...\n";
+			for (auto b : coordobj.broken_bonds)
+			{
+				std::cout << b[0] << " and " << b[1] << "\n";
+			}
+		}
+	}
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
 	{
 		distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
@@ -1465,6 +1496,18 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 			}
 			// update coordinates
 			coordobj.move_atom_by(i, V[i] * dt);
+		}
+		coordobj.broken_bonds.clear();
+		if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
+		{
+			if (Config::get().general.verbosity > 1U)
+			{
+				std::cout << "Warning! Broken bonds between atoms...\n";
+				for (auto b : coordobj.broken_bonds)
+				{
+					std::cout << b[0] << " and " << b[1] << "\n";
+				}
+			}
 		}
 		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
 		{

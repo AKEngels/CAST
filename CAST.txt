@@ -639,6 +639,15 @@ MDheat                 20000  250
 MDheat                 35000  280
 MDheat                 45000  300
 
+# calculate temperature for temperature control only out of certain atoms (only for direct scaling)
+
+#MDtempselection        <0/1>
+
+#atoms that are used for temperature control if tempselection is activated
+
+MDtempsel_atom         5639
+MDtempsel_atom         3600
+
 # Pressure control
 
 #MDpress               0

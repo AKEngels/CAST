@@ -245,7 +245,7 @@ namespace coords
 
     coords::float_type m_e(energy::interface_base * const p)
     {
-      if (p)
+      if (p) 
       {
         energy_valid = true;
         if (Config::get().energy.periodic) periodic_boxjump();
@@ -434,6 +434,11 @@ namespace coords
     Cartesian_Point    center_of_geometry() const; // center of geometry
     coords::float_type weight() const; // total mass of system
 
+	/**vector of broken bonds (determined by validate_bonds())
+	i.e. bondlength either too short or too long
+	each element of the vector is a vector which contains the numbers of the two atoms that form the bond*/
+	std::vector<std::vector<std::size_t>> broken_bonds;
+
     void init_swap_in(Atoms &a, PES_Point &p, bool const energy_update = true); // initial data swap in
     void init_in(Atoms a, PES_Point p, bool const energy_update = true); // new data input
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }
@@ -513,7 +518,9 @@ namespace coords
 
     std::vector< Stereo::pair > const & stereos() const { return m_stereo.centers(); }
 
-    bool validate_bonds() const;
+	/**looks if all bonds are okay (reasonable bond length)
+	and saves the ones that aren't into the vector broken_bonds*/
+    bool validate_bonds();
 
     // Setters
     void periodic_boxjump();

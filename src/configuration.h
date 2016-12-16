@@ -646,7 +646,13 @@ namespace config
 	/**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
 	/**Nosé-Hoover thermostat yes or no*/
-	bool hooverHeatBath, veloScale;
+	bool hooverHeatBath;
+	/**calculate temperature for temperature control only out of certain atoms yes or no (not for nosé-hoover)*/
+	std::size_t tempselection;
+	/**numbers of the atoms from which the temperature is calculated (starting with 0)*/
+	std::vector<int> tempselection_atoms;
+	/**remove translation and rotation after every step*/
+	bool veloScale;
 	/**free energy perturbation calculation yes or no*/
 	bool fep;
 	/**activate tracking yes or no*/
