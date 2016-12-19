@@ -1248,28 +1248,6 @@ void md::simulation::restart_broken()
 	{
 		tune_momentum();     // remove translation and rotation
 	}
-	if (Config::get().md.set_active_center == 1)
-	{
-		inner_atoms.clear();
-		atoms_movable.clear();
-		distances = init_active_center(0);   //calculate initial active center and distances to active center
-
-		for (int i(0U); i < N; ++i)  // determine which atoms are moved
-		{
-			if (distances[i] <= Config::get().md.outer_cutoff)
-			{
-				atoms_movable.push_back(i);
-			}
-			else   // set velocities of atoms that are not moved to zero
-			{
-				V[i] = coords::Cartesian_Point(0, 0, 0);
-			}
-			if (distances[i] <= Config::get().md.outer_cutoff)  //determine atoms inside inner cutoff
-			{                                                   // for temperature calculation
-				inner_atoms.push_back(i);
-			}
-		}
-	}
 }
 
 

@@ -291,9 +291,7 @@ namespace md
     /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
 
-	/**sets coordinates to original values and assigns random velocities
-	if an active site is defined it also calculates the distances and 
-	determines which atoms belong to the vectors inner_atoms and atoms_movable*/
+	/**sets coordinates to original values and assigns random velocities*/
 	void restart_broken();
 
 	/** function to control the temperature 
