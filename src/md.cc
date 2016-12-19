@@ -1317,6 +1317,13 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 				std::cout << b[0] << " and " << b[1] << "\n";
 			}
 		}
+		for (auto b : coordobj.broken_bonds)
+		{
+			coordobj.move_atom_to(b[0], P_old[b[0]]);
+			V[b[0]] = coords::r3(0, 0, 0);
+			coordobj.move_atom_to(b[1], P_old[b[1]]);
+			V[b[1]] = coords::r3(0, 0, 0);
+		}
 	}
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
 	{
