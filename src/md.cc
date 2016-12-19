@@ -528,7 +528,7 @@ void md::simulation::init(void)
 		  {
 			  V[i] = coords::Cartesian_Point(0, 0, 0);
 		  }
-		  if (distances[i] <= Config::get().md.outer_cutoff)  //determine atoms inside inner cutoff
+		  if (distances[i] <= Config::get().md.inner_cutoff)  //determine atoms inside inner cutoff
 		  {                                                   // for temperature calculation
 			  inner_atoms.push_back(i);
 		  }
