@@ -611,6 +611,10 @@ MDthermostat           1
 
 MDtimestep             0.001
 
+# start MD again from beginning if molecule gets destroyed
+
+MDrestart_if_broken    1
+
 # Activate Tracking (Log and Snapshots)
 
 MDtrack                1
