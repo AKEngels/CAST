@@ -601,6 +601,8 @@ namespace config
 	  double T_init;
 	  /**final temperature*/
 	  double T_final;
+	  /**start MD again from beginning if molecule gets destroyed yes or no*/
+	  int broken_restart;
 
 	  //pressure things
 	  double pcompress, pdelay, ptarget;
@@ -647,10 +649,6 @@ namespace config
     md_conf::integrators::T integrator;
 	/**Nosé-Hoover thermostat yes or no*/
 	bool hooverHeatBath;
-	/**calculate temperature for temperature control only out of certain atoms yes or no (not for nosé-hoover)*/
-	std::size_t tempselection;
-	/**numbers of the atoms from which the temperature is calculated (starting with 0)*/
-	std::vector<int> tempselection_atoms;
 	/**remove translation and rotation after every step*/
 	bool veloScale;
 	/**free energy perturbation calculation yes or no*/

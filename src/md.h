@@ -225,6 +225,8 @@ namespace md
 	coords::Representation_3D P;
 	/**old positions*/
 	coords::Representation_3D P_old;
+	/**positions at the beginning of the simulation*/
+	coords::Representation_3D P_start;
 	/**forces*/
 	coords::Representation_3D F;
 	/**old forces*/
@@ -288,6 +290,8 @@ namespace md
     bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
+
+	void restart_broken();
 
 	/** function to control the temperature 
 	@param thermostat: determines if nose-hoover-thermostat or direct velocity scaling

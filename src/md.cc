@@ -433,6 +433,7 @@ void md::simulation::init(void)
 			{
 				std::cout << b[0] << " and " << b[1] << "\n";
 			}
+			throw std::logic_error("Please check your input structure.");
 		}
 	}
   using std::abs;
@@ -443,6 +444,7 @@ void md::simulation::init(void)
   V.resize(N);
   F.resize(N);
   M.resize(N);
+  P_start = coordobj.xyz();
   auto dist01 = std::uniform_real_distribution<double>{0,1};
   for (std::size_t i = 0; i<N; ++i)
   {
@@ -1114,21 +1116,6 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 				updateEkin();            // kinetic energy
 			}	
 		}
-		else if (Config::get().md.tempselection == 1)
-		{      // calculate temperature only for atoms in tempselection
-			updateEkin_some_atoms(Config::get().md.tempselection_atoms); // kinetic energy of tempselection
-			size_t dof = 3u * Config::get().md.tempselection_atoms.size();
-			double T_factor = (2.0 / (dof*md::R));
-			temp = E_kin*T_factor;           // temperature in tempselection
-			factor = std::sqrt(T / temp);    // temperature scaling factor
-			for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
-			if (half == false)
-			{
-				updateEkin_some_atoms(Config::get().md.tempselection_atoms);
-				temp2 = E_kin * T_factor;                   // new temperature in tempselection
-				updateEkin();            // kinetic energy
-			}
-		}
 		else
 		{
 			updateEkin();
@@ -1236,6 +1223,55 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
 	}
 }
 
+void md::simulation::restart_broken()
+{
+	if (Config::get().general.verbosity > 2U)
+	{
+		std::cout<<"Start again...\n";
+	}
+	coordobj.set_xyz(P_start);   // set all positions to start
+	static double const twopi = 2.0*md::PI;
+	double const twokbT = 2.0*md::kB*T;
+	auto dist01 = std::uniform_real_distribution<double>{ 0,1 };
+	std::size_t const N = coordobj.size();
+	for (int i(0U); i < N; ++i)     // set random velocities around temperature T
+	{
+		double const ratio(twopi*std::sqrt(twokbT / M[i]));
+		V[i].x() = (std::sqrt(std::fabs(-2.0*ldrand())) *
+			std::cos(scon::random::threaded_rand(dist01)*ratio));
+		V[i].y() = (std::sqrt(std::fabs(-2.0*ldrand())) *
+			std::cos(scon::random::threaded_rand(dist01)*ratio));
+		V[i].z() = (std::sqrt(std::fabs(-2.0*ldrand())) *
+			std::cos(scon::random::threaded_rand(dist01)*ratio));
+	}
+	if (Config::get().md.set_active_center == 0)  
+	{
+		tune_momentum();     // remove translation and rotation
+	}
+	if (Config::get().md.set_active_center == 1)
+	{
+		inner_atoms.clear();
+		atoms_movable.clear();
+		distances = init_active_center(0);   //calculate initial active center and distances to active center
+
+		for (int i(0U); i < N; ++i)  // determine which atoms are moved
+		{
+			if (distances[i] <= Config::get().md.outer_cutoff)
+			{
+				atoms_movable.push_back(i);
+			}
+			else   // set velocities of atoms that are not moved to zero
+			{
+				V[i] = coords::Cartesian_Point(0, 0, 0);
+			}
+			if (distances[i] <= Config::get().md.outer_cutoff)  //determine atoms inside inner cutoff
+			{                                                   // for temperature calculation
+				inner_atoms.push_back(i);
+			}
+		}
+	}
+}
+
 
 // Velcoity verlet integrator
 void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
@@ -1317,12 +1353,9 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 				std::cout << b[0] << " and " << b[1] << "\n";
 			}
 		}
-		for (auto b : coordobj.broken_bonds)
+		if (Config::get().md.broken_restart == 1)
 		{
-			coordobj.move_atom_to(b[0], P_old[b[0]]);
-			V[b[0]] = coords::r3(0, 0, 0);
-			coordobj.move_atom_to(b[1], P_old[b[1]]);
-			V[b[1]] = coords::r3(0, 0, 0);
+			restart_broken();
 		}
 	}
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
@@ -1513,6 +1546,10 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 				for (auto b : coordobj.broken_bonds)
 				{
 					std::cout << b[0] << " and " << b[1] << "\n";
+				}
+				if (Config::get().md.broken_restart == 1)
+				{
+					restart_broken();
 				}
 			}
 		}

@@ -681,6 +681,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.timeStep;
 	  }
+	  else if (option.substr(2, 17) == "restart_if_broken")
+	  {
+		  cv >> Config::set().md.broken_restart;
+	  }
 	  else if (option.substr(2, 5) == "press")
 	  {
 		  cv >> Config::set().md.pressure;
@@ -710,18 +714,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 			  Config::set().md.T_init = Config::get().md.heat_steps.front().raise;
 			  Config::set().md.T_final = Config::get().md.heat_steps.back().raise;
 		  }
-	  }
-	  else if (option.substr(2, 13) == "tempselection")
-	  {
-		  cv >> Config::set().md.tempselection;
-	  }
-	  else if (option.substr(2, 12) == "tempsel_atom")
-	  {
-		  unsigned atom;
-		  if (cv >> atom)
-		  {  //conversion from atom number in file (starting with 1) to atom number in program (starting with 0)
-			  Config::set().md.tempselection_atoms.push_back(atom-1);  
-		  }   
 	  }
 	  else if (option.substr(2, 9) == "spherical")
 	  {
