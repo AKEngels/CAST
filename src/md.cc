@@ -1346,7 +1346,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 	if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
 	{
 		if (Config::get().general.verbosity > 1U)
-		{
+		{                                          // give warning if there are broken bonds
 			std::cout << "Warning! Broken bonds between atoms...\n";
 			for (auto b : coordobj.broken_bonds)
 			{
@@ -1355,7 +1355,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 		}
 		if (Config::get().md.broken_restart == 1)
 		{
-			restart_broken();
+			restart_broken();   // if desired: set simulation to original positions and random velocities
 		}
 	}
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
@@ -1541,15 +1541,15 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 		if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
 		{
 			if (Config::get().general.verbosity > 1U)
-			{
+			{                                            // give warning if there are broken bonds
 				std::cout << "Warning! Broken bonds between atoms...\n";
 				for (auto b : coordobj.broken_bonds)
 				{
 					std::cout << b[0] << " and " << b[1] << "\n";
 				}
 				if (Config::get().md.broken_restart == 1)
-				{
-					restart_broken();
+				{         // if desired: set simulation to original positions and random velocities
+					restart_broken();     
 				}
 			}
 		}
