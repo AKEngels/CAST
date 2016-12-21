@@ -626,6 +626,7 @@ void coords::Coordinates::periodic_boxjump()
 bool coords::Coordinates::validate_bonds()
 {
   bool status = true;
+  broken_bonds.clear();
   std::size_t const N(m_atoms.size());
   for (std::size_t i = 0; i < N; ++i)  // for every atom i
   {
