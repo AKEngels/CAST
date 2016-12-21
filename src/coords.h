@@ -306,8 +306,11 @@ namespace coords
     Coordinates& operator= (Coordinates const & rhs);
     ~Coordinates();
 
+	/**fix an atom, i.e. this atom can't be moved
+	@param atom: atom index*/
     void set_fix(size_t const atom, bool const fix_it = true);
 
+	/**delete everything in the Coordinates object -> empty object*/
     void clear()
     {
       *this = Coordinates{};
@@ -337,24 +340,27 @@ namespace coords
     //void roughgrid();
     //void getfepinfo();
 
+	/**calculates energy with preinterface*/
     coords::float_type pe()
     { // energy+gradients
       return m_e(m_preinterface);
     }
+	/**calculates energy*/
     coords::float_type e()
     { // energy
       return m_e(m_interface);
     }
-
+	/**calculates energy+gradients with preinterface*/
     coords::float_type pg()
     { // energy+gradients
       return m_g(m_preinterface);
     }
+	/**calculates energy+gradients*/
     coords::float_type g()
     { // energy+gradients
       return m_g(m_interface);
     }
-
+	/**performs an optimisation by steepest gradient method with preinterface*/
     coords::float_type po()
     {
       if (m_preinterface)
@@ -377,6 +383,7 @@ namespace coords
       return 0.;
     }
 
+	/**performs an optimisation by steepest gradient method*/
     coords::float_type o()
     {
       if (preoptimize()) po();
@@ -404,17 +411,28 @@ namespace coords
     {
       return dimermethod_dihedral(std::vector<coords::Gradients_Main>());
     }
-
+	/**returns the energy interface*/
     energy::interface_base const * energyinterface() const { return m_interface; }
+	/**returns the energy preinterface*/
     energy::interface_base const * preinterface() const { return m_preinterface; }
 
-    // helpers
+    /**determines if structure is intact,
+	i.e. bond lengths do not differ from ideal bond length by more than 5 angstrom,
+	angles do not differ from ideal angle by more than 20 degrees
+	and similar criteria for dihedrals and ureys
+	details see in energy_int_..._pot.cc*/
     bool               integrity() const { return pes().integrity; }
+	/**returns the size of the coordinates object, i.e. the total number of atoms*/
     size_type          size() const { return m_atoms.size(); }
-    void               swap(Coordinates &rhs); // object swap
+	/**object swap*/
+    void               swap(Coordinates &rhs); 
 
+	/**saves virial coefficients into coordinates object
+	@param V: virials coefficients*/
     void set_virial(virial_t const & V) { m_virial = V; }
 
+	/**adds V to virial coefficients
+	@param V: values that should be added*/
     void add_to_virial(std::array<std::array<double, 3>, 3>& V)
     {
       m_virial[0][0] += V[0][0];
@@ -427,95 +445,129 @@ namespace coords
       m_virial[1][2] += V[1][2];
       m_virial[2][2] += V[2][2];
     };
-
+	/**returns the virial coefficients*/
     virial_t const &   virial() const { return m_virial; }
-    Cartesian_Point    center_of_mass() const; // center of mass
+	/**calculates the center of mass*/
+    Cartesian_Point    center_of_mass() const;
+	/**calculates the center of mass for one molecule
+	@param index: index of the molecule*/
     Cartesian_Point    center_of_mass_mol(size_type const index) const;
-    Cartesian_Point    center_of_geometry() const; // center of geometry
-    coords::float_type weight() const; // total mass of system
+	/**calculates the geometrical center*/
+    Cartesian_Point    center_of_geometry() const;
+	/**calculates the total mass of the system*/
+    coords::float_type weight() const; 
 
 	/**vector of broken bonds (determined by validate_bonds())
 	i.e. bondlength either too short or too long
 	each element of the vector is a vector which contains the numbers of the two atoms that form the bond*/
 	std::vector<std::vector<std::size_t>> broken_bonds;
 
-    void init_swap_in(Atoms &a, PES_Point &p, bool const energy_update = true); // initial data swap in
-    void init_in(Atoms a, PES_Point p, bool const energy_update = true); // new data input
+	/**fills the coordinates object with data
+	@param a: atoms object
+	@param p: PES_point*/
+    void init_swap_in(Atoms &a, PES_Point &p, bool const energy_update = true);
+	/**does the same as init_swap_in 
+	@param a: atoms object
+	@param p: PES_point*/
+    void init_in(Atoms a, PES_Point p, bool const energy_update = true);
+	/**updates the topology*/
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }
+	/**fixes all atoms, i.e. nothing can move anymore*/
     void fix_all(bool const fix_it = true) { m_atoms.fix_all(fix_it); }
+	/**fixes a given atom
+	@param index: index of atom that is to be fixed*/
     void fix(size_type const index, bool const fix = true) { m_atoms.fix(index, fix); }
 
     void e_head_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
     void e_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
 
-    // PES_Point
+    /**returns the PES point*/
     PES_Point const & pes() const { return m_representation; }
+	/**also returns the PES point*/
     PES_Point & pes() { return m_representation; }
 
-    // xyz representation, const
+    /** returns the xyz representation*/
     Representation_3D const & xyz() const
     {
       return m_representation.structure.cartesian;
     }
-    // internal representation, const
+	/** returns the internal representation*/
     Representation_Internal const & intern() const
     {
       return m_representation.structure.intern;
     }
-    // Main internal representation, const
+	/** returns the representation of main dihedrals*/
     Representation_Main const & main() const
     {
       return m_representation.structure.main;
     }
 
-    // single position, const
+    /**returns the xyz coordinates of a given atom
+	@param index: atom index*/
     cartesian_type const & xyz(size_type index) const
     {
       return m_representation.structure.cartesian[index];
     }
-    // single internal, const
+	/**returns the internal coordinates of a given atom
+	@param index: atom index*/
     internal_type const & intern(size_type index) const
     {
       return m_representation.structure.intern[index];
     }
-    // single main dihedral, const
+	/**returns the main dihedral coordinates of a given atom
+	@param index: atom index*/
     main_type const & main(size_type index) const
     {
       return m_representation.structure.main[index];
     }
 
-    // gradient representations
+	/**returns the gradients in cartesian space*/
     Gradients_3D const & g_xyz() const
     {
       return m_representation.gradient.cartesian;
     }
+	/**returns the gradients in internal space*/
     Gradients_Internal const & g_intern() const
     {
       return m_representation.gradient.intern;
     }
+	/**returns the gradients in main dihedral space*/
     Gradients_Main const & g_main() const
     {
       return m_representation.gradient.main;
     }
 
+	/**returns the gradients in cartesian space for a given atom
+	@param index: atom index*/
     cartesian_gradient_type const & g_xyz(size_type const index) const
     {
       return m_representation.gradient.cartesian[index];
     }
+	/**returns the gradients in internal space for a given atom
+	@param index: atom index*/
     internal_gradient_type const & g_intern(size_type const index) const
     {
       return m_representation.gradient.cartesian[index];
     }
+	/**returns the gradients in main dihedral space for a given atom
+	@param index: atom index*/
     main_gradient_type const & g_main(size_type const index) const
     {
       return m_representation.gradient.main[index];
     }
 
+	/**returns all subsystems*/
     size_2d const & subsystems() const { return m_atoms.subsystems(); }
+	/**returns a given subsystem
+	@param index: index of subsystem*/
     size_1d const & subsystems(size_type index) const { return m_atoms.subsystems(index); }
+	/**returns all molecules*/
     size_2d const & molecules() const { return m_atoms.molecules(); }
+	/**returns a given molecule
+	@param index: index of molecule*/
     size_1d const & molecules(size_type index) const { return m_atoms.molecules(index); }
 
+	/**returns stereo centers?*/
     std::vector< Stereo::pair > const & stereos() const { return m_stereo.centers(); }
 
 	/**looks if all bonds are okay (reasonable bond length)
@@ -525,7 +577,10 @@ namespace coords
     // Setters
     void periodic_boxjump();
 
-    // move atom
+    /**move atom
+	@param index: index of atom that is to be moved
+	@param p: "space vector" by which it should be moved
+	@param force_move: if set to true also move fixed atoms*/
     void move_atom_by(size_type const index, cartesian_type const &p, bool const force_move = false)
     {
       if (!atoms(index).fixed() || force_move)
@@ -535,7 +590,10 @@ namespace coords
         m_stereo.update(xyz());
       }
     }
-    //scale atom
+	/**scale the coordinates of an atom (used for pressure control)
+	@param index: index of atom that is to be moved
+	@param p: factor by which the coordinates should be scaled
+	@param force_move: if set to true also move fixed atoms*/
     void scale_atom_by(size_type const index, double &p, bool const force_move = false)
     {
       if (!atoms(index).fixed() || force_move)
@@ -545,7 +603,7 @@ namespace coords
       }
       m_stereo.update(xyz());
     }
-    // set new atom coordinates if anisotropic pressure control is enabled
+    /** set new atom coordinates if anisotropic pressure control is enabled*/
     void set_atom_aniso(size_type const index, double tvec[3][3], bool const force_move = false) {
       if (!atoms(index).fixed() || force_move)
       {
@@ -566,11 +624,17 @@ namespace coords
       }
       m_stereo.update(xyz());
     }
-    // add gradients form spherical boundaries
+    /** add gradients to an atom (spherical boundaries)
+	@param index: atom index
+	@param g: gradients that should be added to the gradients of index*/
     void add_sp_gradients(size_type const index, Cartesian_Point const &g)
     {
       m_representation.gradient.cartesian[index] += g;
     }
+	/**move given atom to given coordinates
+	@param index: index of atom that is to be moved
+	@param p: coordinates where the atom should be moved to
+	@param force_move: if set to true also move fixed atoms*/
     void move_atom_to(size_type const index, Cartesian_Point const &p, bool const force_move = false)
     {
       if (!atoms(index).fixed() || force_move)
@@ -581,7 +645,9 @@ namespace coords
       }
     }
 
-    // move all atoms along specified vector
+    /** move all atoms along specified vector
+	@param p: vector along which the system should be moved
+	@param force_move: if set to true also move fixed atoms*/
     void move_all_by(Cartesian_Point const &p, bool const force_move = false)
     {
       size_type const N(size());
@@ -592,7 +658,9 @@ namespace coords
       energy_valid = false;
     }
 
-    // Set Internals
+    /** Set Internals
+	@param ri: internals to which the internal coordinates of the coordintes object should be set
+	@param force_move: if set to true also move fixed atoms*/
     void set_internal(Representation_Internal const & ri, bool const force_move = false)
     {
       size_type const N = m_representation.structure.intern.size();
@@ -607,7 +675,6 @@ namespace coords
 
     }
 
-    // rotate dihedrals
     void set_dih(size_type const int_index, coords::angle_type const target_angle,
       bool const move_dependants_along = true, bool const move_fixed_dih = false);
     void rotate_dih(size_type const int_index, coords::angle_type const rot_angle,
@@ -617,20 +684,23 @@ namespace coords
     void set_all_main(Representation_Main const & new_values, bool const aplly_to_xyz = true,
       bool const move_dependants_along = true, bool const move_fixed_dih = false);
 
-    // update gradients
+    /** set gradients of a given atom to a given value
+	@param index: atom index
+	@param p: new gradients*/
     void update_g_xyz(size_type const index, Cartesian_Point const &p)
     {
       if (!atoms(index).fixed()) m_representation.gradient.cartesian[index] = p;
     }
 
-    // sum gradients
+    /** add additional gradients to all atoms
+	@param rep: gradient object that is to be added*/
     void sum_g_xyz(Gradients_3D const & rep)
     {
       m_representation.gradient.cartesian += rep;
       zero_fixed_g();
     }
 
-    // zero fixed
+    /** set gradients of all fixed atoms to zero*/
     void zero_fixed_g()
     {
       size_type const N(size());
@@ -640,10 +710,14 @@ namespace coords
       }
     }
 
-    // put in pes point
+    /** put in pes point*/
     void set_pes(PES_Point const & pes_point, bool const overwrite_fixed = false);
+	/** put in pes point*/
     void set_pes(PES_Point && pes_point, bool const overwrite_fixed = false);
 
+	/**set new cartisian coordinates
+	@param new_xyz: new cartesian coordinates
+	@param overwrite_fixed: if true also change coordinates of fixed atoms*/
     void set_xyz(Representation_3D const & new_xyz, bool const overwrite_fixed = false)
     {
       size_type const N(size());
@@ -661,6 +735,9 @@ namespace coords
     }
 
 #if defined(SCON_CC11_RVALUE_REF) && defined(SCON_CC11_MOVE)
+	/**set new cartisian coordinates
+	@param new_xyz: new cartesian coordinates
+	@param overwrite_fixed: if true also change coordinates of fixed atoms*/
     void set_xyz(Representation_3D && new_xyz, bool const overwrite_fixed = false)
     {
       size_type const N(size());
@@ -679,7 +756,9 @@ namespace coords
     }
 #endif
 
-    // swap gradients in/out
+    /** set new gradients and update internal coordinates
+	@param rhs: new gradients
+	@param overwrite_fixed: if true also change gradients of fixed atoms*/
     void swap_g_xyz(Gradients_3D & rhs, bool const overwrite_fixed = false)
     {
       size_type const N(m_representation.gradient.cartesian.size());
@@ -694,39 +773,47 @@ namespace coords
       }
       m_atoms.c_to_i(m_representation); // update internals
     }
-
+	/**sets another Gradients_3D object to the cartesian gradients of coordinates object
+	@param out_g_xyz: name of object that should be set to the gradients*/
     void get_g_xyz(Gradients_3D & out_g_xyz) const
     {
       out_g_xyz = m_representation.gradient.cartesian;
     }
+	/**delete gradients -> empty object*/
     void clear_g_xyz()
     {
       m_representation.gradient.cartesian.assign(size(), Cartesian_Point());
     }
 
+	/**returns a given atom object
+	@param index: atom index*/
     Atom const & atoms(size_type const index) const
     {
       return m_atoms.atom(index);
     }
+	/**returns all atoms*/
     Atoms const & atoms() const
     {
       return m_atoms;
     }
 
+	/**returns biased potentials*/
     bias::Potentials & potentials()
     {
       return m_potentials;
     }
+	/**returns biased potentials*/
     bias::Potentials const & potentials() const
     {
       return m_potentials;
     }
 
-    // Subsystem interactions
+    /**returns matrix with interactions between subsystems*/
     sub_ia_matrix_t & interactions()
     {
       return m_representation.ia_matrix;
     }
+	/**returns matrix with interactions between subsystems*/
     sub_ia_matrix_t const & interactions() const
     {
       return m_representation.ia_matrix;
@@ -748,9 +835,12 @@ namespace coords
       return m_representation.ia_matrix(x, y);
     }
 
+	/**converts cartesian to internal coordinates*/
     void to_internal() { m_atoms.c_to_i(m_representation); }
+	/**converts cartesian to internal coordinates (light???)*/
     void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
 
+	/**converts internal to cartesian coordinates*/
     void to_xyz()
     {
       m_atoms.i_to_c(m_representation);
