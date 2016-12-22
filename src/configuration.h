@@ -42,14 +42,14 @@ namespace config
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
 
-  // Name of the program
+  /** Name of the program*/
   static std::string const Programname("CAST");
-  // Version-Number of CAST
+  /** Version-Number of CAST*/
   static std::string const Version("3.2.0.2dev");
 
-  // Number of tasks
+  /**Number of tasks*/
   static std::size_t const NUM_TASKS = 23;
-  // Names of all CAST tasks as strings
+  /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
@@ -78,8 +78,9 @@ namespace config
     };
   };
 
-  // Input Types
+  /** number of Input Types */
   static std::size_t const NUM_INPUT = 2;
+  /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   { 
     "TINKER", "AMBER" 
@@ -100,8 +101,9 @@ namespace config
     }; 
   };
 
-  // Output Types
+  /**number of Output Types*/
   static std::size_t const NUM_OUTPUT = 4;
+  /**Output Types*/
   static std::string const output_strings[NUM_OUTPUT] =
   { 
     "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
@@ -122,8 +124,9 @@ namespace config
     };
   };
 
-  // Interface Types
+  /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 6;
+  /**Interface Types*/
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
@@ -145,8 +148,9 @@ namespace config
     }; 
   };
 
-  // Mopac Versions
+  /**number of supported Mopac Versions*/
   static std::size_t const NUM_MOPAC_VERSION = 4;
+  /**supported Mopac Versions*/
   static std::string const 
     mopac_ver_string[NUM_MOPAC_VERSION] = 
   { 
@@ -168,8 +172,9 @@ namespace config
     }; 
   };
 
-  // Global optimization routines
+  /** number of Global optimization routines*/
   static std::size_t const NUM_GLOBOPT_ROUTINES = 2;
+  /**Global optimization routines (TABUSEARCH, BASINHOPPING)*/
   static std::string const 
     globopt_routines_str[NUM_GLOBOPT_ROUTINES] =
   { 
@@ -195,30 +200,44 @@ namespace config
 
 
 
-  // Implicit solvation method types
+  /**number of Implicit solvation method types (currently not supported)*/
   static std::size_t const NUM_SOLV = 7;
+  /**Implicit solvation method types as strings (currently not supported)*/
   static std::string const 
     solv_strings[NUM_SOLV] =
   { 
     "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
   };
+  /*! contains enum with all implicit solvation methods (currently not supported)
+  *
+  * Those methods are subsequently mapped using NUM_SOLV string[].
+  */
   struct solvs
   {
+	  /*! contains all implicit solvation methods (currently not supported)
+	  */
     enum S 
     {
       ILLEGAL = -1, 
       VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
     };
   };
-  // implicit solvation surface types
+  /**number of implicit solvation surface types (currently not supported)*/
   static std::size_t const NUM_SURF = 3;
+  /**implicit solvation surface types as strings (currently not supported)*/
   static std::string const 
     surf_strings[NUM_SURF] =
   { 
     "TINKER", "SASASTILL", "GAUSS" 
   };
+  /*! contains enum with all implicit solvation surface types (currently not supported)
+  *
+  * Those surface types are subsequently mapped using NUM_SURF string[].
+  */
   struct surfs
   {
+	  /*! contains all implicit solvation surface types (currently not supported)
+	  */
     enum SA 
     { 
       ILLEGAL = -1, 
@@ -242,29 +261,29 @@ namespace config
    */
   struct general
   {
-    /// Name of the input file ("CAST.TXT")
+    /** Name of the input file ("CAST.TXT")*/
     std::string inputFilename;
-    /// Name of the force-field parameter file
+    /** Name of the force-field parameter file*/
     std::string paramFilename;
-    /// Name of the output file
+    /** Name of the output file*/
     std::string outputFilename;
-    /// Type of the coordinate input (default: Tinker)
+    /**Type of the coordinate input (default: Tinker)*/
     input_types::T input;
-    /// Type of the coordinate output (default: Tinker)
+    /** Type of the coordinate output (default: Tinker)*/
     output_types::T output;
-    /// Current task
+    /** Current task*/
     config::tasks::T task;
-    /// Energy interface used for current run
+    /**Energy interface used for current run*/
     interface_types::T energy_interface;
-    /// Energy interface used pre-optimization performed before the current tun
+    /**Energy interface used pre-optimization performed before the current run*/
     interface_types::T preopt_interface;
-    /// Verbosity of the output of CAST (supposed to be between 0 and 5)
+    /**Verbosity of the output of CAST (supposed to be between 0 and 5)*/
     std::size_t verbosity;
-    /// Solvationmethod, implicit solvation currently not supported!
+    /** Solvationmethod, implicit solvation currently not supported!*/
     config::solvs::S solvationmethod;
-    /// Surfacemethod for implicit solvationd, implicit solvation currently not supported!
+    /** Surfacemethod for implicit solvationd, implicit solvation currently not supported!*/
     config::surfs::SA surfacemethod;
-    /// Constructor with reasonable default parameters
+    /**Constructor with reasonable default parameters*/
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
@@ -286,52 +305,96 @@ namespace config
   ########  #### ##     ##  ######
   */
 
-
+  /**namespace for biased potentials*/
   namespace biases
   {
-
+	  /**additional potential on distance of given atoms*/
      struct distance
      {
-       double force, ideal, value;
-       std::size_t a, b;
+		 /**force constant*/
+		 double force;
+		 /**ideal distance*/
+		 double ideal;
+		 /**???*/
+		 double value;
+		 /**number of one atom*/
+		 std::size_t a;
+		 /**number of the other atom*/
+		 std::size_t b;
+		 /**constructor*/
        distance(void)
          : force(), ideal(), a(), b()
        { }
      };
-     
+	 /**additional potential on angle between given atoms*/
      struct angle
      {
-       double force, ideal, value;
-       std::size_t a, b, c;
+		 /**force constant*/
+		 double force;
+		 /**ideal angle*/
+		 double ideal;
+		 /**???*/
+		 double value;
+		 /**number of one atom*/
+		 std::size_t a;
+		 /**number of next atom*/
+		 std::size_t b;
+		 /**number of the third atom*/
+		 std::size_t c;
+		 /**constructor*/
        angle(void)
          : force(), ideal(), a(), b()
        { }
      };
-     
+	 /**additional potential on a given dihedral*/
      struct dihedral
      {
+		 /**force constant*/
        double force;
-       ::coords::angle_type ideal, value;
-       std::size_t a, b, c, d;
+	   /**ideal dihedral angle*/
+	   ::coords::angle_type ideal;
+	   /**???*/
+	   ::coords::angle_type value;
+	   /**atom 1*/
+	   std::size_t a;
+	   /**atom 2*/
+	   std::size_t b;
+	   /**atom 3*/
+	   std::size_t c;
+	   /**atom 4*/
+	   std::size_t d;
+	   /**???*/
        bool forward;
+	   /**constructor*/
        dihedral(void)
          : force(), ideal(), value(),
          a(), b(), forward(false)
        { }
      };
-       
+       /**sperical potential - prevents non-bonded systems from exploding*/
      struct spherical
      {
-       double radius, force, exponent;
+		 /**distance to center where the additional potential starts*/
+		 double radius;
+		 /**force constant*/
+		 double force;
+		 /**exponent of the potential function, 2 for harmonic potential, 4 is also possible*/
+		 double exponent;
+		 /**constructor*/
        spherical()
          : radius(), force(), exponent()
        { }
      };
-     
+     /**cubic potential (similar to spherical but cubic)*/
      struct cubic
      {
+		 /**???*/
        ::coords::Cartesian_Point dim;
-       double force, exponent;
+	   /**force constant*/
+	   double force;
+	   /**exponent of the potential function*/
+	   double exponent;
+	   /**constructor*/
        cubic()
          : dim(), force(), exponent()
        { }
@@ -349,16 +412,21 @@ namespace config
      ######   #######   #######  ##     ## ########   ######
   */
 
+  /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-
+	  /**stuff for internal coordinates*/
     struct internals
     {
+		/**???*/
       std::map<std::size_t, std::size_t> connect;
+	  /**dihedrals given here can't be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_whitelist;
+	  /**dihedrals given here must be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_blacklist;
     } internal;
 
+	/**stuff for umbrella sampling*/
     struct umbrellas
     {
       struct umbrella_tor
@@ -382,18 +450,25 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
-
+	/**biased potentials*/
     struct coord_bias
     {
+		/**biased potentials on distances*/
       std::vector<biases::distance>  distance;
+	  /**biased potentials on angles*/
       std::vector<biases::angle>     angle;
+	  /**biased potentials on dihedrals*/
       std::vector<biases::dihedral>  dihedral;
+	  /**spherical potential*/
       std::vector<biases::spherical> spherical;
+	  /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
+	  /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
+	  /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
-
+	/**???*/
     struct eqval
     {
       double superposition;
@@ -406,13 +481,16 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-
+	/**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
-
+	/**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
+	/**are rotations where only hydrogens move counting for main dihedrals?*/
+	bool remove_hydrogen_rot;
+	/**are internals starting new with every molecule?*/
+	bool decouple_internals;
 
-    bool remove_hydrogen_rot, decouple_internals;
-
+	/**constructor*/
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
       remove_hydrogen_rot(true),
