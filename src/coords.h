@@ -574,7 +574,8 @@ namespace coords
 	and saves the ones that aren't into the vector broken_bonds*/
     bool validate_bonds();
 
-    // Setters
+    /**if periodic boundaries are activated:
+	moves atoms that are outside of the box into the box*/
     void periodic_boxjump();
 
     /**move atom
