@@ -520,121 +520,176 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass_mol(std::size_t inde
   coords::float_type M = coords::float_type();
   for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
-    coords::float_type mass(m_atoms.atom(m_atoms.molecules(index, i)).mass());
-    M += mass;
-    COM += xyz(m_atoms.molecules(index, i))*mass;
+coords::float_type mass(m_atoms.atom(m_atoms.molecules(index, i)).mass());
+M += mass;
+COM += xyz(m_atoms.molecules(index, i))*mass;
   }
   return COM / M;
 }
 
 
 void coords::Coordinates::set_dih(size_type const int_index,
-  coords::angle_type const target_angle,
-  bool const move_dependants_along, bool const move_fixed_dih)
+	coords::angle_type const target_angle,
+	bool const move_dependants_along, bool const move_fixed_dih)
 {
-  if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
-  {
-    angle_type rot = target_angle - intern(int_index).azimuth();
-    if (move_dependants_along)
-    {
-      std::size_t int_bond = m_atoms.atom(int_index).ibond();
-      size_type const N = m_atoms.atom(int_bond).bound_internals().size();
-      for (size_type i(0u); i < N; ++i)
-      {
-        m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot;
-      }
-    }
-    else
-    {
-      m_representation.structure.intern[int_index].azimuth() = target_angle;
-    }
-  }
+	if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
+	{
+		angle_type rot = target_angle - intern(int_index).azimuth();
+		if (move_dependants_along)
+		{
+			std::size_t int_bond = m_atoms.atom(int_index).ibond();
+			size_type const N = m_atoms.atom(int_bond).bound_internals().size();
+			for (size_type i(0u); i < N; ++i)
+			{
+				m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot;
+			}
+		}
+		else
+		{
+			m_representation.structure.intern[int_index].azimuth() = target_angle;
+		}
+	}
 }
 
 
 void coords::Coordinates::rotate_dih(size_type const int_index,
-  coords::angle_type const rot_angle,
-  bool const move_dependants_along, bool const move_fixed_dih)
+	coords::angle_type const rot_angle,
+	bool const move_dependants_along, bool const move_fixed_dih)
 {
-  if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
-  {
-    if (move_dependants_along)
-    {
-      // If we rotate all we need to rotate every dihedral of every atom attached to the
-      // atom to which the selected one is attached
-      std::size_t int_bond = m_atoms.atom(int_index).ibond();
-      size_type const N = m_atoms.atom(int_bond).bound_internals().size();
-      for (size_type i(0u); i < N; ++i)
-      {
-        m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot_angle;
-      }
-    }
-    else
-    {
-      m_representation.structure.intern[int_index].azimuth() += rot_angle;
-    }
-  }
+	if (int_index < size() && (!m_atoms.atom(int_index).ifix() || move_fixed_dih))
+	{
+		if (move_dependants_along)
+		{
+			// If we rotate all we need to rotate every dihedral of every atom attached to the
+			// atom to which the selected one is attached
+			std::size_t int_bond = m_atoms.atom(int_index).ibond();
+			size_type const N = m_atoms.atom(int_bond).bound_internals().size();
+			for (size_type i(0u); i < N; ++i)
+			{
+				m_representation.structure.intern[m_atoms.atom(int_bond).bound_internals()[i]].azimuth() += rot_angle;
+			}
+		}
+		else
+		{
+			m_representation.structure.intern[int_index].azimuth() += rot_angle;
+		}
+	}
 }
 
 
 void coords::Coordinates::rotate_main(size_type const main_index,
-  coords::angle_type const rot_angle,
-  bool const move_dependants_along, bool const move_fixed_dih)
+	coords::angle_type const rot_angle,
+	bool const move_dependants_along, bool const move_fixed_dih)
 {
-  rotate_dih(m_atoms.intern_of_main_idihedral(main_index), rot_angle, move_dependants_along, move_fixed_dih);
+	rotate_dih(m_atoms.intern_of_main_idihedral(main_index), rot_angle, move_dependants_along, move_fixed_dih);
 }
 
 
 void coords::Coordinates::set_all_main(coords::Representation_Main const & new_values,
-  bool const apply_to_xyz, bool const move_dependants_along, bool const move_fixed_dih)
+	bool const apply_to_xyz, bool const move_dependants_along, bool const move_fixed_dih)
 {
-  size_type const N(main().size());
-  if (new_values.size() != N)
-  {
-    throw std::logic_error("set_all_main called with wrong-sized vector");
-  }
-  for (size_type i(0u); i<N; ++i)
-  {
-    set_dih(m_atoms.intern_of_main_idihedral(i), new_values[i],
-      move_dependants_along, move_fixed_dih);
-    m_representation.structure.main[i] = new_values[i];
-  }
-  if (apply_to_xyz) to_xyz();
+	size_type const N(main().size());
+	if (new_values.size() != N)
+	{
+		throw std::logic_error("set_all_main called with wrong-sized vector");
+	}
+	for (size_type i(0u); i < N; ++i)
+	{
+		set_dih(m_atoms.intern_of_main_idihedral(i), new_values[i],
+			move_dependants_along, move_fixed_dih);
+		m_representation.structure.main[i] = new_values[i];
+	}
+	if (apply_to_xyz) to_xyz();
 }
 
 void coords::Coordinates::periodic_boxjump()
 {
-  std::size_t const N(molecules().size());
-  Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
-  for (std::size_t i = 0; i < N; ++i)
-  {
-    Cartesian_Point tmp_com(-center_of_mass_mol(i));
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x()
-      / Config::get().energy.pb_box.x() : float_type(0.);
-    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y()
-      / Config::get().energy.pb_box.y() : float_type(0.);
-    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z()
-      / Config::get().energy.pb_box.z() : float_type(0.);
-    round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
+	std::size_t const N(molecules().size());
+	Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		Cartesian_Point tmp_com(-center_of_mass_mol(i));
+		if (std::abs(tmp_com.x() <= halfbox.x()))
+		{
+			tmp_com.x() = 0;
+		}
+		else
+		{
+			tmp_com.x() = tmp_com.x() / Config::get().energy.pb_box.x();
+			int tmp_x = (int)tmp_com.x();
+			if (tmp_x > 0)
+			{
+				tmp_com.x() = tmp_x;
+			}
+			else
+			{
+				tmp_com.x() = tmp_x + 1;
+			}
+		}
+		if (std::abs(tmp_com.y() <= halfbox.y()))
+		{
+			tmp_com.y() = 0;
+		}
+		else
+		{
+			tmp_com.y() = tmp_com.y() / Config::get().energy.pb_box.y();
+			int tmp_y = (int)tmp_com.y();
+			if (tmp_y > 0)
+			{
+				tmp_com.y() = tmp_y;
+			}
+			else
+			{
+				tmp_com.y() = tmp_y + 1;
+			}
+		}
+		if (std::abs(tmp_com.z() <= halfbox.z()))
+		{
+			tmp_com.z() = 0;
+		}
+		else
+		{
+			tmp_com.z() = tmp_com.z() / Config::get().energy.pb_box.z();
+			int tmp_z = (int)tmp_com.z();
+			if (tmp_z > 0)
+			{
+				tmp_com.z() = tmp_z;
+			}
+			else
+			{
+				tmp_com.z() = tmp_z + 1;
+			}
+		}
+		tmp_com *= Config::get().energy.pb_box;
     for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
   }
 }
 
 
-bool coords::Coordinates::validate_bonds() const
+bool coords::Coordinates::validate_bonds()
 {
+  bool status = true;
+  broken_bonds.clear();
   std::size_t const N(m_atoms.size());
-  for (std::size_t i = 0; i < N; ++i)
+  for (std::size_t i = 0; i < N; ++i)  // for every atom i
   {
-    for (auto const & bound : m_atoms.atom(i).bonds())
+    for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
     {
       double const L(geometric_length(xyz(i) - xyz(bound)));
-      if (L < 0.3 || L > 5.0) return false;
+	  if (L < 0.3 || L > 5.0)  // test if bondlength between i and b is reasonable
+	  {
+		  status = false;  
+		  if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
+		  {
+			std::vector<std::size_t> bond;
+			bond.push_back(i);
+			bond.push_back(bound);
+			broken_bonds.push_back(bond);
+		  }  
+	  }
     }
   }
-  return true;
+  return status;
 }
 
 

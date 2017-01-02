@@ -82,39 +82,6 @@ amber_mdcrd            min.rst
 
 task                  SP
 
-####################################
-#                                  #
-#        Implicit Solvation        #
-#                                  #
-####################################
-
-# solvmethod : VAC         (default) Vacuum
-#              ONION       Numerical Still method
-#              STILL       Analytical Still method
-#              HCT         HCT method
-#              OBC         OBC method
-#              GRYCUK      Grycuk's method
-#              ACE         ACE method
-# surface    : TINKER      (default) TINKER's accessible surface area calculation
-#              SASASTILL   Still's surface area calculation
-#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
-#
-# ONION should only be combined with GAUSS
-
-solvmethod             VAC
-surface                TINKER
-
-
-#################################### 
-#                                  #
-#        PROFILE RUNS              #
-#                                  #
-####################################
-
-# Number of repeated gradient calculations for PROFILE task
-
-profileruns            10
-
 
 ####################################
 #                                  #
@@ -164,6 +131,143 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 cutoff                 400.0
 switchdist             10.0
+
+
+####################################
+#                                  #
+#          ATOM FIXATIONS          #
+#                                  #
+####################################
+
+# Exclude nonbondeds between two fixed atoms in internal force fields
+
+FIXexclude             0
+
+# Remove rotations of hydrogens from main torsional angles
+
+REMOVEHROT             0
+
+# Fix a range of atoms 
+#FIXrange               <start index> <end index>
+
+#FIXrange               1 213
+
+# Fixation of single atoms
+#ATOMFIX                <INDEX> 
+
+#ATOMFIX                1
+#ATOMFIX                3
+
+
+####################################
+#                                  #
+#          Boundary Bias           #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential
+#BIASspherical                <radius> <force> <exponent>
+#BIAScubic                    <x> <y> <z> <force> <exponent>
+
+#BIASspherical  25.0 1.0 2.0
+#BIAScubic 40.0 40.0 40.0 1.0 2.0
+
+
+####################################
+#                                  #
+#        DIHEDRAL FIXATIONS        #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential (quadratic in degreees)
+
+#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <all atoms> 
+
+#BIASdih                1 2 3 5 0.0   10.0 1
+#BIASdih                2 5 6 9 150.0 5.0  1
+#BIASdih                1 2 5 6 150.0 5.0  1 
+#BIASdih                1 2 5 6 95.0  10.0 1
+
+#BIASdih                1 2 5 6 60.0 0.01
+
+#BIASdih                1 2 5 6 30.0 1.0 1
+
+
+
+####################################
+#                                  #
+#             MAINlists            #
+#                                  #
+####################################
+
+# Black- or Whitelist a rotation around a bond
+# for the selection as main rotation
+
+#MAINblacklist 2 5
+
+#MAINwhitelist 2 5
+
+
+####################################
+#                                  #
+#       Periodic Boundaries        #
+#                                  #
+####################################
+
+#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
+#Periodics              0 70.0 70.0 70.0
+
+# Print periodic boundary dummy atoms to output?
+#Periodicp            <Active 1(on)/0(off)> 
+
+#Periodicp              0
+
+
+####################################
+#                                  #
+#        INTERACTION OPTIONS       #
+#                                  #
+####################################
+
+# The interaction of substructures that are not bound to each other can be calculated
+# IAlimits <Start Index Substructure> <End Index Substructure>
+
+#IAlimits               1 122
+
+
+
+####################################
+#                                  #
+#        Implicit Solvation        #
+#                                  #
+####################################
+
+# solvmethod : VAC         (default) Vacuum
+#              ONION       Numerical Still method
+#              STILL       Analytical Still method
+#              HCT         HCT method
+#              OBC         OBC method
+#              GRYCUK      Grycuk's method
+#              ACE         ACE method
+# surface    : TINKER      (default) TINKER's accessible surface area calculation
+#              SASASTILL   Still's surface area calculation
+#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
+#
+# ONION should only be combined with GAUSS
+
+solvmethod             VAC
+surface                TINKER
+
+
+#################################### 
+#                                  #
+#        PROFILE RUNS              #
+#                                  #
+####################################
+
+# Number of repeated gradient calculations for PROFILE task
+
+profileruns            10
 
 
 ####################################
@@ -387,23 +491,6 @@ TSdivers_limit         20
 
 ####################################
 #                                  #
-#       Periodic Boundaries        #
-#                                  #
-####################################
-
-#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              0 70.0 70.0 70.0
-
-# Print periodic boundary dummy atoms to output?
-#Periodicp            <Active 1(on)/0(off)> 
-
-#Periodicp              0
-
-
-
-
-####################################
-#                                  #
 #         STARTOPT OPTIONS         #
 #                                  #
 ####################################
@@ -524,6 +611,10 @@ MDthermostat           1
 
 MDtimestep             0.001
 
+# start MD again from beginning if molecule gets destroyed
+
+MDrestart_if_broken    1
+
 # Activate Tracking (Log and Snapshots)
 
 MDtrack                1
@@ -551,6 +642,15 @@ MDheat                 10000  200
 MDheat                 20000  250
 MDheat                 35000  280
 MDheat                 45000  300
+
+# calculate temperature for temperature control only out of certain atoms (only for direct scaling)
+
+#MDtempselection        <0/1>
+
+#atoms that are used for temperature control if tempselection is activated
+
+MDtempsel_atom         5639
+MDtempsel_atom         3600
 
 # Pressure control
 
@@ -633,31 +733,13 @@ FEPequil       100
 FEPsteps       500
 FEPfreq        1000
 
-#FEPcoupling  <0> Inter subsystem interactions are scaled <1> inter subsystem interactions are not scaled
-
-FEPcouple   0
-
-
-
-####################################
-#                                  #
-#        INTERACTION OPTIONS       #
-#                                  #
-####################################
-
-# The interaction of substructures that are not bound to each other can be calculated
-# IAlimits <Start Index Substructure> <End Index Substructure>
-
-#IAlimits               1 122
-
-
 
 ####################################
 #                                  #
 #            PATH OPTIONS          #
 #                                  #
 ####################################
-#
+
 # File containing the desired path end
 
 PRendfile              PATHREL_END.xyz
@@ -669,8 +751,6 @@ PRdeltae               0.5
 # Maximum structure distance with the path
 
 PRdeltax               0.5
-
-
 
 
 ####################################
@@ -759,80 +839,6 @@ EXpscpairchrates			homodimer_ladung.txt
 
 EXpnscpairrates 			heterodimer.txt
 
-
-####################################
-#                                  #
-#        DIHEDRAL FIXATIONS        #
-#                                  #
-####################################
-
-# Quadratic Dihedral Bias Potential (quadratic in degreees)
-
-#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <all atoms> 
-
-#BIASdih                1 2 3 5 0.0   10.0 1
-#BIASdih                2 5 6 9 150.0 5.0  1
-#BIASdih                1 2 5 6 150.0 5.0  1 
-#BIASdih                1 2 5 6 95.0  10.0 1
-
-#BIASdih                1 2 5 6 60.0 0.01
-
-#BIASdih                1 2 5 6 30.0 1.0 1
-
-
-
-####################################
-#                                  #
-#          Boundary Bias           #
-#                                  #
-####################################
-
-# Quadratic Dihedral Bias Potential
-#BIASspherical                <radius> <force> <exponent>
-#BIAScubic                    <x> <y> <z> <force> <exponent>
-
-#BIASspherical  25.0 1.0 2.0
-#BIAScubic 40.0 40.0 40.0 1.0 2.0
-
-
-####################################
-#                                  #
-#          ATOM FIXATIONS          #
-#                                  #
-####################################
-
-# Exclude nonbondeds between two fixed atoms in internal force fields
-
-FIXexclude             0
-
-# Remove rotations of hydrogens from main torsional angles
-
-REMOVEHROT             0
-
-# Fix a range of atoms 
-#FIXrange               <start index> <end index>
-
-#FIXrange               1 213
-
-# Fixation of single atoms
-#ATOMFIX                <INDEX> 
-
-#ATOMFIX                1
-#ATOMFIX                3
-
-
-####################################
-#                                  #
-#             MAINlists            #
-#                                  #
-####################################
-
-# Black- or Whitelist a rotation around a bond
-# for the selection as main rotation
-
-#MAINblacklist 2 5
-
-#MAINwhitelist 2 5
 
 
 ####################################

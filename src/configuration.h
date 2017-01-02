@@ -1,7 +1,7 @@
 /**
 CAST 3
 configuration.h
-Purpose: class for extraction of information from parameter file
+Purpose: class for extraction of information from inputfile
 
 @author Daniel Weber (modified by many)
 @version 1.1
@@ -42,14 +42,16 @@ namespace config
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
 
-  // Name of the program
+  /** Name of the program*/
   static std::string const Programname("CAST");
-  // Version-Number of CAST
+  /** Version-Number of CAST*/
   static std::string const Version("3.2.0.2dev");
 
-  // Number of tasks
+
+  /**Number of tasks*/
   static std::size_t const NUM_TASKS = 24;
-  // Names of all CAST tasks as strings
+  /** Names of all CAST tasks as strings*/
+
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
@@ -79,8 +81,9 @@ namespace config
     };
   };
 
-  // Input Types
+  /** number of Input Types */
   static std::size_t const NUM_INPUT = 2;
+  /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   { 
     "TINKER", "AMBER" 
@@ -101,8 +104,9 @@ namespace config
     }; 
   };
 
-  // Output Types
+  /**number of Output Types*/
   static std::size_t const NUM_OUTPUT = 4;
+  /**Output Types*/
   static std::string const output_strings[NUM_OUTPUT] =
   { 
     "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
@@ -123,8 +127,9 @@ namespace config
     };
   };
 
-  // Interface Types
+  /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 6;
+  /**Interface Types*/
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
@@ -146,8 +151,9 @@ namespace config
     }; 
   };
 
-  // Mopac Versions
+  /**number of supported Mopac Versions*/
   static std::size_t const NUM_MOPAC_VERSION = 4;
+  /**supported Mopac Versions*/
   static std::string const 
     mopac_ver_string[NUM_MOPAC_VERSION] = 
   { 
@@ -169,8 +175,9 @@ namespace config
     }; 
   };
 
-  // Global optimization routines
+  /** number of Global optimization routines*/
   static std::size_t const NUM_GLOBOPT_ROUTINES = 2;
+  /**Global optimization routines (TABUSEARCH, BASINHOPPING)*/
   static std::string const 
     globopt_routines_str[NUM_GLOBOPT_ROUTINES] =
   { 
@@ -196,30 +203,44 @@ namespace config
 
 
 
-  // Implicit solvation method types
+  /**number of Implicit solvation method types (currently not supported)*/
   static std::size_t const NUM_SOLV = 7;
+  /**Implicit solvation method types as strings (currently not supported)*/
   static std::string const 
     solv_strings[NUM_SOLV] =
   { 
     "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
   };
+  /*! contains enum with all implicit solvation methods (currently not supported)
+  *
+  * Those methods are subsequently mapped using NUM_SOLV string[].
+  */
   struct solvs
   {
+	  /*! contains all implicit solvation methods (currently not supported)
+	  */
     enum S 
     {
       ILLEGAL = -1, 
       VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
     };
   };
-  // implicit solvation surface types
+  /**number of implicit solvation surface types (currently not supported)*/
   static std::size_t const NUM_SURF = 3;
+  /**implicit solvation surface types as strings (currently not supported)*/
   static std::string const 
     surf_strings[NUM_SURF] =
   { 
     "TINKER", "SASASTILL", "GAUSS" 
   };
+  /*! contains enum with all implicit solvation surface types (currently not supported)
+  *
+  * Those surface types are subsequently mapped using NUM_SURF string[].
+  */
   struct surfs
   {
+	  /*! contains all implicit solvation surface types (currently not supported)
+	  */
     enum SA 
     { 
       ILLEGAL = -1, 
@@ -243,29 +264,29 @@ namespace config
    */
   struct general
   {
-    /// Name of the input file ("CAST.TXT")
+    /** Name of the input file ("CAST.TXT")*/
     std::string inputFilename;
-    /// Name of the force-field parameter file
+    /** Name of the force-field parameter file*/
     std::string paramFilename;
-    /// Name of the output file
+    /** Name of the output file*/
     std::string outputFilename;
-    /// Type of the coordinate input (default: Tinker)
+    /**Type of the coordinate input (default: Tinker)*/
     input_types::T input;
-    /// Type of the coordinate output (default: Tinker)
+    /** Type of the coordinate output (default: Tinker)*/
     output_types::T output;
-    /// Current task
+    /** Current task*/
     config::tasks::T task;
-    /// Energy interface used for current run
+    /**Energy interface used for current run*/
     interface_types::T energy_interface;
-    /// Energy interface used pre-optimization performed before the current tun
+    /**Energy interface used pre-optimization performed before the current run*/
     interface_types::T preopt_interface;
-    /// Verbosity of the output of CAST (supposed to be between 0 and 5)
+    /**Verbosity of the output of CAST (supposed to be between 0 and 5)*/
     std::size_t verbosity;
-    /// Solvationmethod, implicit solvation currently not supported!
+    /** Solvationmethod, implicit solvation currently not supported!*/
     config::solvs::S solvationmethod;
-    /// Surfacemethod for implicit solvationd, implicit solvation currently not supported!
+    /** Surfacemethod for implicit solvationd, implicit solvation currently not supported!*/
     config::surfs::SA surfacemethod;
-    /// Constructor with reasonable default parameters
+    /**Constructor with reasonable default parameters*/
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
@@ -287,52 +308,96 @@ namespace config
   ########  #### ##     ##  ######
   */
 
-
+  /**namespace for biased potentials*/
   namespace biases
   {
-
+	  /**additional potential on distance of given atoms*/
      struct distance
      {
-       double force, ideal, value;
-       std::size_t a, b;
+		 /**force constant*/
+		 double force;
+		 /**ideal distance*/
+		 double ideal;
+		 /**???*/
+		 double value;
+		 /**number of one atom*/
+		 std::size_t a;
+		 /**number of the other atom*/
+		 std::size_t b;
+		 /**constructor*/
        distance(void)
          : force(), ideal(), a(), b()
        { }
      };
-     
+	 /**additional potential on angle between given atoms*/
      struct angle
      {
-       double force, ideal, value;
-       std::size_t a, b, c;
+		 /**force constant*/
+		 double force;
+		 /**ideal angle*/
+		 double ideal;
+		 /**???*/
+		 double value;
+		 /**number of one atom*/
+		 std::size_t a;
+		 /**number of next atom*/
+		 std::size_t b;
+		 /**number of the third atom*/
+		 std::size_t c;
+		 /**constructor*/
        angle(void)
          : force(), ideal(), a(), b()
        { }
      };
-     
+	 /**additional potential on a given dihedral*/
      struct dihedral
      {
+		 /**force constant*/
        double force;
-       ::coords::angle_type ideal, value;
-       std::size_t a, b, c, d;
+	   /**ideal dihedral angle*/
+	   ::coords::angle_type ideal;
+	   /**???*/
+	   ::coords::angle_type value;
+	   /**atom 1*/
+	   std::size_t a;
+	   /**atom 2*/
+	   std::size_t b;
+	   /**atom 3*/
+	   std::size_t c;
+	   /**atom 4*/
+	   std::size_t d;
+	   /**???*/
        bool forward;
+	   /**constructor*/
        dihedral(void)
          : force(), ideal(), value(),
          a(), b(), forward(false)
        { }
      };
-       
+       /**sperical potential - prevents non-bonded systems from exploding*/
      struct spherical
      {
-       double radius, force, exponent;
+		 /**distance to center where the additional potential starts*/
+		 double radius;
+		 /**force constant*/
+		 double force;
+		 /**exponent of the potential function, 2 for harmonic potential, 4 is also possible*/
+		 double exponent;
+		 /**constructor*/
        spherical()
          : radius(), force(), exponent()
        { }
      };
-     
+     /**cubic potential (similar to spherical but cubic)*/
      struct cubic
      {
+		 /**???*/
        ::coords::Cartesian_Point dim;
-       double force, exponent;
+	   /**force constant*/
+	   double force;
+	   /**exponent of the potential function*/
+	   double exponent;
+	   /**constructor*/
        cubic()
          : dim(), force(), exponent()
        { }
@@ -350,16 +415,21 @@ namespace config
      ######   #######   #######  ##     ## ########   ######
   */
 
+  /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-
+	  /**stuff for internal coordinates*/
     struct internals
     {
+		/**???*/
       std::map<std::size_t, std::size_t> connect;
+	  /**dihedrals given here can't be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_whitelist;
+	  /**dihedrals given here must be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_blacklist;
     } internal;
 
+	/**stuff for umbrella sampling*/
     struct umbrellas
     {
       struct umbrella_tor
@@ -383,18 +453,25 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
-
+	/**biased potentials*/
     struct coord_bias
     {
+		/**biased potentials on distances*/
       std::vector<biases::distance>  distance;
+	  /**biased potentials on angles*/
       std::vector<biases::angle>     angle;
+	  /**biased potentials on dihedrals*/
       std::vector<biases::dihedral>  dihedral;
+	  /**spherical potential*/
       std::vector<biases::spherical> spherical;
+	  /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
+	  /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
+	  /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
-
+	/**???*/
     struct eqval
     {
       double superposition;
@@ -407,13 +484,16 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-
+	/**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
-
+	/**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
+	/**are rotations where only hydrogens move counting for main dihedrals?*/
+	bool remove_hydrogen_rot;
+	/**are internals starting new with every molecule?*/
+	bool decouple_internals;
 
-    bool remove_hydrogen_rot, decouple_internals;
-
+	/**constructor*/
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
       remove_hydrogen_rot(true),
@@ -516,41 +596,79 @@ namespace config
     ##     ##  #######  ######## ########     ##    ##    ## ##     ##
   */
 
+  /**namespace for MD options that need an own struct*/
   namespace md_conf
   {
+	/**integrator (velocity-verlet or beeman)*/
     struct integrators { enum T { VERLET, BEEMAN}; };
 
+	/**options for spherical boundaries*/
     struct config_spherical
     {
-      double r_inner, r_outer, e1, e2, f1, f2;
+	    /**radius for starting the inner spherical potential*/
+		double r_inner;
+		/**radius for starting the outer spherical potential*/
+		double r_outer;
+		/**exponent for the inner spherical potential*/
+		double e1;
+		/**exponent for the outer spherical potential*/
+		double e2;
+		/**force constant for the inner spherical potential*/
+		double f1;
+		/**force constant for the outer spherical potential*/
+		double f2;
+      /**true if spherical potential is applied, false if not*/
       bool use;
+	  /**constructor*/
       config_spherical(void) :
         r_inner(20.0), r_outer(20.1), e1(2.0), e2(4.0),
         f1(10.0), f2(10.0), use(false)
       { }
     };
 
+	/**contains information for one heatstep*/
     struct config_heat
     {
+	  /**temperature*/
       double raise;
+	  /**step number*/
       std::size_t offset;
+	  /**constructor*/
       config_heat(void) : raise(10.0), offset(100u) { }
+	  /**overwritten operator <:
+	  returns true if < is true for step number (offset)*/
       friend bool operator< (config_heat const &a, config_heat const &b) { return (a.offset < b.offset); }
+	  /**overwritten operator >:
+	  returns true if > is true for step number (offset)*/
       friend bool operator> (config_heat const &a, config_heat const &b) { return operator<(b, a); }
     };
 
+	/**contains information for rattle algorithm*/
     struct config_rattle
     {
+	  /**contains information for one rattle bond*/
       struct rattle_constraint_bond
       {
+		/**ideal bond length (from parameter file)*/
         double len;
-        std::size_t a, b;
+		/**number of H-atom a (number from tinker file - 1)*/
+		std::size_t a;
+		/**number of atom b (number from tinker file - 1)*/
+		std::size_t b;
       };
+	  /**???*/
       std::size_t num_iter;
+	  /**???*/
       double tolerance;
+	  /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;
-      bool use, all;
+	  /**true if rattle algorithm is applied, false if not*/
+	  bool use;
+	  /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
+	  bool all;
+	  /**name of parameter file where bond lengths for constrained bonds are taken from*/
       std::string ratpar;
+	  /**constructor*/
       config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
       { }
     };
@@ -558,24 +676,77 @@ namespace config
 
   struct molecular_dynamics
   {
-    double timeStep, T_init, T_final, pcompress, pdelay, ptarget;
+	  /**timestep in picoseconds*/
+	  double timeStep;
+	  /**initial temperature*/
+	  double T_init;
+	  /**final temperature*/
+	  double T_final;
+	  /**start MD again from beginning if molecule gets destroyed yes or no*/
+	  int broken_restart;
+
+	  //pressure things
+	  double pcompress, pdelay, ptarget;
 
     // Options for biased MD
-    std::size_t set_active_center, adjustment_by_step;
-    double inner_cutoff, outer_cutoff;
+	/**1 if a biased potential around an active site is applied, 0 if not*/
+	std::size_t set_active_center;
+	/**1 if the active site and the distances to the active site should be calculated new every step,
+	0 if they should be calculated only once at the beginning of the simulation*/
+	std::size_t adjustment_by_step;
+	/**distance of inner cutoff for biased potential in angstrom*/
+	double inner_cutoff;
+	/**distance of outer cutoff for biased potential in angstrom*/
+	double outer_cutoff;
+	/**vector of atoms (tinker atom-numbers) that define the active site
+	coordinates of active site are calculated as geometrical center*/
     std::vector<unsigned> active_center;
-    //
-
-    std::size_t num_steps, num_snapShots, max_snap_buffer, refine_offset, restart_offset, trackoffset;
+    
+	/**number of MD steps*/
+	std::size_t num_steps;
+	/**number of snapshots*/
+	std::size_t num_snapShots;
+	/**number of snapshots in memory before written to file*/
+	std::size_t max_snap_buffer;
+	/**after this number of steps the list of non-bonded interactions is generated new*/
+	std::size_t refine_offset;
+	/**after this number of steps a restart file is generated*/
+	std::size_t restart_offset;
+	/**each trackoffset'th step is written to trace file*/
+	std::size_t trackoffset;
 
     // Umbrella Sampling
     std::size_t usoffset, usequil;
 
+	/**vector of heatsteps:
+	each MDheat option is saved into one element of this vector*/
     std::vector<md_conf::config_heat> heat_steps;
+	/**contains options for spherical boundaries if applied,
+	otherwise the information that no spherical boundaries are applied*/
     md_conf::config_spherical spherical;
+	/**contains information for rattle algorithm*/
     md_conf::config_rattle rattle;
+	/**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-    bool hooverHeatBath, veloScale, fep, track, optimize_snapshots, pressure, resume, umbrella, pre_optimize;
+	/**Nosé-Hoover thermostat yes or no*/
+	bool hooverHeatBath;
+	/**remove translation and rotation after every step*/
+	bool veloScale;
+	/**free energy perturbation calculation yes or no*/
+	bool fep;
+	/**activate tracking yes or no*/
+	bool track;
+	/**perform local optimization with snapshots before they are written into file yes or no*/
+	bool optimize_snapshots;
+	/**pressure control yes or no?*/
+	bool pressure;
+	/**use a restart file for starting MD yes or no (does currently not work)*/
+	bool resume;
+	/**perform an umbrella sampling yes or no*/
+	bool umbrella;
+	/**perform local optimization before starting simulation yes or no*/
+	bool pre_optimize;
+	/**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
@@ -590,13 +761,32 @@ namespace config
 
   };
 
+  /**contains information about FEP calculation if performed*/
   struct fep
   {
-    double lambda, dlambda, vdwcouple, eleccouple, ljshift, cshift;
-    std::size_t steps, equil, freq, backward;
+	  /**final value for order parameter lambda,
+	  no need to set it to a value other than 1*/
+	  double lambda;
+	  /**size of the FEP windows*/
+	  double dlambda;
+	  /**controls lambda value for vdw-coupling*/
+	  double vdwcouple;
+	  /**controls lambda value for electrostatic coupling*/
+	  double eleccouple;
+	  /**value for vdw shifting parameter (softcore potential)*/
+	  double ljshift;
+	  /**value for coulomb shifting parameter (softcore potential)*/
+	  double cshift;
+	  /**number of MD steps in production run for every window*/
+	  std::size_t steps;
+	  /**number of MD steps in equilibration run for every window*/
+	  std::size_t equil;
+	  /**every freq'th MD step of production run is taken into account for energy calculation*/
+	  std::size_t freq;
+    /**constructor*/
     fep(void) :
-      lambda(1.0), dlambda(0.0), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000), backward(0)
+      lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
+      steps(10), equil(10), freq(1000)
     { }
   };
 
