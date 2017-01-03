@@ -78,6 +78,7 @@ namespace energy
 
         // Functions for periodic boundary conditions
         void	boundary (coords::float_type&, coords::float_type&, coords::float_type&) const;
+		/**doesn't seem to be called*/
         void	boxjump (void);
         inline std::ptrdiff_t sign (coords::float_type const) const;
  

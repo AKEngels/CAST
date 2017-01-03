@@ -81,7 +81,7 @@ void energy::interfaces::aco::aco_ff::calc (void)
 	{
 		/*if (Config::get().energy.pme == true) g_nb_pme< ::tinker::parameter::radius_types::R_MIN>();
 		else*/
-    g_nb< ::tinker::parameter::radius_types::R_MIN>();
+        g_nb< ::tinker::parameter::radius_types::R_MIN>();
 	}
 	else
 		g_nb< ::tinker::parameter::radius_types::SIGMA>();
@@ -909,19 +909,19 @@ namespace energy
         {
           x += Config::get().energy.pb_box.x();
         }
-        if (y > halfbox.y())
+		if (y > halfbox.y())
         {
           y -= Config::get().energy.pb_box.y();
         }
-        else if (y < -halfbox.y())
+		else if (y < -halfbox.y())
         {
           y += Config::get().energy.pb_box.y();
         }
-        if (z > halfbox.z())
+		if (z > halfbox.z())
         {
           z -= Config::get().energy.pb_box.z();
         }
-        else if (z < -halfbox.z())
+		else if (z < -halfbox.z())
         {
           z += Config::get().energy.pb_box.z();
         }
@@ -2163,17 +2163,20 @@ namespace energy
           coords::Representation_3D tmp_grad(grad_vector.size());
           coords::virial_t tempvir(coords::empty_virial());
           #pragma omp for reduction (+: e_c, e_v)
-          for (std::ptrdiff_t i=0; i<M ; ++i)
+          for (std::ptrdiff_t i=0; i<M ; ++i)  //for every pair in pairlist
           {
-            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
+            if (PERIODIC) boundary(b.x(), b.y(), b.z());  // for periodic boundaries: 
+			                        // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
+			                        // subtract (or add) the box size
+			                        // => absolute value of the new box size is the smallest value between these atoms in any of the boxes
             coords::float_type const rr = dot(b, b);
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
             if(!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0/r;
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
               refined.type(pairlist[i].b)));
-            g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);
+            g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             auto const dist = b;
             b *= dE;
             tmp_grad[pairlist[i].a] += b;

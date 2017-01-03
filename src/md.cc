@@ -1328,7 +1328,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 			std::cout << "Warning! Broken bonds between atoms...\n";
 			for (auto b : coordobj.broken_bonds)
 			{
-				std::cout << b[0] << " and " << b[1] << "\n";
+				std::cout << b[0] << " and " << b[1] << ", distance: "<<b[2]<< "\n";
 			}
 		}
 		if (Config::get().md.broken_restart == 1)
@@ -1523,7 +1523,7 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 				std::cout << "Warning! Broken bonds between atoms...\n";
 				for (auto b : coordobj.broken_bonds)
 				{
-					std::cout << b[0] << " and " << b[1] << "\n";
+					std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
 				}
 				if (Config::get().md.broken_restart == 1)
 				{         // if desired: set simulation to original positions and random velocities

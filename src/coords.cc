@@ -604,6 +604,7 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 
 void coords::Coordinates::periodic_boxjump()
 {
+<<<<<<< Updated upstream
   std::size_t const N(molecules().size());
   Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
   for (std::size_t i = 0; i < N; ++i)
@@ -618,7 +619,80 @@ void coords::Coordinates::periodic_boxjump()
       / Config::get().energy.pb_box.z() : float_type(0.);
     round(tmp_com);
     tmp_com *= Config::get().energy.pb_box;
+=======
+	
+	std::size_t const N(molecules().size());
+	Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
+	for (std::size_t i = 0; i < N; ++i)
+	{
+		Cartesian_Point tmp_com(-center_of_mass_mol(i));
+		bool move = false;
+		if (std::abs(tmp_com.x() <= halfbox.x())) 
+		{
+			tmp_com.x() = 0;  
+		}
+		else
+		{
+			//std::cout << "x_vorher: " << -tmp_com.x() <<" Molekuel: "<<molecules(i)<< "\n";
+			move = true;
+			tmp_com.x() = tmp_com.x() / Config::get().energy.pb_box.x();
+			int tmp_x = (int)tmp_com.x();
+			if (tmp_x > 0)
+			{
+				tmp_com.x() = tmp_x;
+			}
+			else
+			{
+				tmp_com.x() = tmp_x + 1;
+			}
+		}
+
+		if (std::abs(tmp_com.y() <= halfbox.y()))
+		{
+			tmp_com.y() = 0;
+		}
+		else
+		{
+			move = true;
+			//std::cout << "y_vorher: " << -tmp_com.y() << " Molekuel: " << molecules(i) << "\n";
+			tmp_com.y() = tmp_com.y() / Config::get().energy.pb_box.y();
+			int tmp_y = (int)tmp_com.y();
+			if (tmp_y > 0)
+			{
+				tmp_com.y() = tmp_y;
+			}
+			else
+			{
+				tmp_com.y() = tmp_y + 1;
+			}
+		}
+
+		if (std::abs(tmp_com.z() <= halfbox.z()))
+		{
+			tmp_com.z() = 0;
+		}
+		else
+		{
+			move = true;
+			//std::cout << "z_vorher: " << -tmp_com.z() << " Molekuel: " << molecules(i) << "\n";
+			tmp_com.z() = tmp_com.z() / Config::get().energy.pb_box.z();
+			int tmp_z = (int)tmp_com.z();
+			if (tmp_z > 0)
+			{
+				tmp_com.z() = tmp_z;
+			}
+			else
+			{
+				tmp_com.z() = tmp_z + 1;
+			}
+		}
+		tmp_com *= Config::get().energy.pb_box;
+>>>>>>> Stashed changes
     for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
+	//if (move == true)
+	//{
+		//std::cout << "nachher " << center_of_mass_mol(i) << "\n";
+	//}
   }
 }
 
@@ -637,9 +711,10 @@ bool coords::Coordinates::validate_bonds()
 		  status = false;  
 		  if (i < bound)   // save all bonds with strange bondlengths in broken_bonds
 		  {
-			std::vector<std::size_t> bond;
+			std::vector<float> bond;
 			bond.push_back(i);
 			bond.push_back(bound);
+			bond.push_back(L);
 			broken_bonds.push_back(bond);
 		  }  
 	  }
