@@ -30,3 +30,5 @@ optional_files/project/*
 
 examples/taskMD/*
 !examples/taskMD/*.rar
+examples/taskFEP/*
+!examples/taskFEP/*.rar

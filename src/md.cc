@@ -1320,7 +1320,6 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
       coordobj.move_atom_by(i, V[i] * dt);
     }
 
-	coordobj.broken_bonds.clear();
 	if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
 	{
 		if (Config::get().general.verbosity > 1U)
@@ -1515,7 +1514,6 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 			// update coordinates
 			coordobj.move_atom_by(i, V[i] * dt);
 		}
-		coordobj.broken_bonds.clear();
 		if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
 		{
 			if (Config::get().general.verbosity > 1U)

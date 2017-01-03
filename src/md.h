@@ -135,7 +135,7 @@ namespace md
 	  */
     Logger(coords::Coordinates &coords, std::size_t snap_offset);
 
-	/**writes trace_data (parameters see struct trace_date)
+	/**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
 	*/
     bool operator() (std::size_t const iter,
       coords::float_type const T, 
