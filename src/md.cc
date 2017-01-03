@@ -704,7 +704,7 @@ void md::simulation::freecalc()
     temp_avg = temp_avg / iterator;
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
   }// end of main loop
-  // calcukate final free energy change for the current window
+  // calculate final free energy change for the current window
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
 }
 

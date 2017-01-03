@@ -604,23 +604,6 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 
 void coords::Coordinates::periodic_boxjump()
 {
-<<<<<<< Updated upstream
-  std::size_t const N(molecules().size());
-  Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
-  for (std::size_t i = 0; i < N; ++i)
-  {
-    Cartesian_Point tmp_com(-center_of_mass_mol(i));
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x()
-      / Config::get().energy.pb_box.x() : float_type(0.);
-    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y()
-      / Config::get().energy.pb_box.y() : float_type(0.);
-    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z()
-      / Config::get().energy.pb_box.z() : float_type(0.);
-    round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
-=======
-	
 	std::size_t const N(molecules().size());
 	Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
 	for (std::size_t i = 0; i < N; ++i)
@@ -687,7 +670,6 @@ void coords::Coordinates::periodic_boxjump()
 			}
 		}
 		tmp_com *= Config::get().energy.pb_box;
->>>>>>> Stashed changes
     for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
 	//if (move == true)
 	//{
