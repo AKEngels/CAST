@@ -76,8 +76,18 @@ namespace energy
         ::tinker::parameter::parameters cparams;
         ::tinker::refine::refined refined;
 
-        // Functions for periodic boundary conditions
+        /**This function is called in the non-bonding part of energy calculation with periodic boundaries.
+        Before calling it the vector between two atoms whose interactions should be calculated is determined
+        and given as input to this function.
+        The function then modifies the vector: If any of the components (x, y or z) is longer than half the 
+        box size, the box size is subtracted from this component. 
+        In this way the resulting vector represents the shortest distance between these two atoms
+        in any unit cells next to each other.
+        @param x: x-component of input vector
+        @param y: y-component of input vector
+        @param z: z-component of input vector*/
         void	boundary (coords::float_type&, coords::float_type&, coords::float_type&) const;
+        /**??? (no function definition found?)*/
         inline std::ptrdiff_t sign (coords::float_type const) const;
  
         /** selection of the correct nonbonded function*/
