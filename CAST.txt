@@ -14,7 +14,7 @@ verbosity              4
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
 
-cores                  4
+cores                  1
 
 
 ####################################
@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   min2.prmtop
+name                   water.xyz
 
 # Output file name
 
@@ -35,7 +35,7 @@ outname                DEVTEST
 
 # Input file type
 
-inputtype              AMBER
+inputtype              TINKER
 
 ### AMBER I/O OPTIONS
 
@@ -79,8 +79,9 @@ amber_mdcrd            min.rst
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+# EXCITON BREAKUP
 
-task                  SP
+task                  EXCITONBREAKUP
 
 
 ####################################
@@ -97,7 +98,7 @@ task                  SP
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 
-interface              AMBER
+interface              MOPAC
 
 # Interface for preoptimizations
 
@@ -817,27 +818,27 @@ USsnap                 5
 
 #Center of masses of all semiconductor molecules
 
-EXmasscenters			schwerpunkt.xyz
+EXmasscenters           schwerpunkt.xyz
 
 #Numbers of monomers
 
-EXnumbern				57
+EXnumbern               57
 
-EXnumberp				159
+EXnumberp               159
 
 #Orientation of the interface
 
-EXplaneinterf			z
+EXplaneinterf           z
 
 #transition rates for all possible dimers
 
-EXnscpairrates			fulleren.txt
+EXnscpairrates              fulleren.txt
 
-EXpscpairexrates			homodimer_exciton.txt
+EXpscpairexrates            homodimer_exciton.txt
 
-EXpscpairchrates			homodimer_ladung.txt
+EXpscpairchrates            homodimer_ladung.txt
 
-EXpnscpairrates 			heterodimer.txt
+EXpnscpairrates             heterodimer.txt
 
 
 
