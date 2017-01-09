@@ -86,8 +86,8 @@ namespace energy
     { }
   };
   
-  // Abstract interface base class, 
-  // -> specialization for FF, MOPAC, terachem etc.
+  /**Abstract interface base class, 
+  -> specialization for FF, MOPAC, terachem etc.*/
   class interface_base
   {
   protected:
@@ -123,29 +123,29 @@ namespace energy
 
     virtual void swap (interface_base &other) = 0;
     
-    // create an copy-instance of derived via new and return pointer
+    /** create an copy-instance of derived via new and return pointer*/
     virtual interface_base * clone (coords::Coordinates * coord_object) const = 0;
     // create new instance of derived and move in data
     virtual interface_base * move (coords::Coordinates * coord_object) = 0;
 
-    // update interface information from coordinates
+    /** update interface information from coordinates*/
     virtual void update (bool const skip_topology = false) = 0;
-    // delete interface
+    /** delete interface*/
     virtual ~interface_base (void) { }
 
-    // Energy function
+    /** Energy function*/
     virtual coords::float_type e (void) = 0;
 
-    // Energy+Gradient function
+    /** Energy+Gradient function*/
     virtual coords::float_type g (void) = 0;
 
-    //// Energy+Gradient function
+    /** Energy+Gradient function*/
     //virtual coords::float_type gi(void) = 0;
 
-    // Energy+Gradient+Hessian function
+    /** Energy+Gradient+Hessian function*/
     virtual coords::float_type h (void) = 0;
 
-    // Optimization in the intface or interfaced program
+    /** Optimization in the intface or interfaced program*/
     virtual coords::float_type o (void) = 0;
 
     // Feature getter

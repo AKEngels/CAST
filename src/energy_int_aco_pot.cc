@@ -88,27 +88,6 @@ void energy::interfaces::aco::aco_ff::calc (void)
 
 }
 
-void energy::interfaces::aco::aco_ff::boxjump (void)
-{
-  size_t const N(coords->molecules().size());
-  coords::Cartesian_Point const halfbox(Config::get().energy.pb_box/2.0);
-  for (size_t i = 0; i < N; ++i)
-  {
-    coords::Cartesian_Point tmp_com(-coords->center_of_mass_mol(i));
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::fabs(tmp_com.x()) > halfbox.x()) ? tmp_com.x()/Config::get().energy.pb_box.x() : 0.0;
-    tmp_com.y() = (std::fabs(tmp_com.y()) > halfbox.y()) ? tmp_com.y()/Config::get().energy.pb_box.y() : 0.0;
-    tmp_com.z() = (std::fabs(tmp_com.z()) > halfbox.z()) ? tmp_com.z()/Config::get().energy.pb_box.z() : 0.0;
-    scon::round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
-    for (auto const & atom : coords->molecules(i))
-    {
-      coords->move_atom_by(atom, tmp_com);
-    }
-
-	} // end of molecules loop
-}
-
 
 /****************************************
 *                                       *
@@ -889,12 +868,12 @@ namespace energy
         using std::sqrt;
         using std::abs;
         r = sqrt(rr);
-        if (r > c) return false;
+        if (r > c) return false;  // if distance bigger than cutoff -> return false
         coords::float_type const cr(cc - rr);
         fV = r < s ? 1.0 : (cr*cr*(cc+2.0*rr-ss)) / cs;
         fQ = (1.0 - rr/cc);
         fQ *= fQ;
-        return (abs(r) > 0.0);
+        return (abs(r) > 0.0);  // return true (always???)
       }
 
 
@@ -941,7 +920,7 @@ namespace energy
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
         coords::float_type const Q = C*ri; // Q = C/r
-        dQ = -Q*ri; // dQ/dr = -C/r^2
+        dQ = -Q*ri; // dQ/dr = -C/r^2 (derivative)
         return Q;
       }
 
@@ -2163,16 +2142,17 @@ namespace energy
           coords::Representation_3D tmp_grad(grad_vector.size());
           coords::virial_t tempvir(coords::empty_virial());
           #pragma omp for reduction (+: e_c, e_v)
-          for (std::ptrdiff_t i=0; i<M ; ++i)
+          for (std::ptrdiff_t i=0; i<M ; ++i)   // for every pair in pairlist
           {
-            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b)); // vector between the two atoms
+            if (PERIODIC) boundary(b.x(), b.y(), b.z());  // if this vector is in any direction longer than half the box
+			                                              // subtract from this direction the box-size so that the new vector length is smaller than half the box
             coords::float_type const rr = dot(b, b);
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
             if(!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0/r;
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
-              refined.type(pairlist[i].b)));
+              refined.type(pairlist[i].b)));   // get parameters for current pair
             g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);
             auto const dist = b;
             b *= dE;

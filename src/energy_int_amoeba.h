@@ -202,7 +202,6 @@ namespace energy
 		
         // Functions for periodic boundary conditions
         void	boundary (double&, double&, double&) const;
-        void	boxjump (void);
         inline ptrdiff_t sign (double const) const;
 
         // Gradient functions (energy functions left since single point is 
