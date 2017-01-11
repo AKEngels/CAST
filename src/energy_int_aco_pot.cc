@@ -2209,7 +2209,6 @@ namespace energy
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
       )
       {
-		  float in_vorher(0.0), in_nachher(0.0), in_number(0.0), out_vorher(0.0), out_nachher(0.0), out_number(0.0);
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
