@@ -182,7 +182,7 @@ namespace energy
           std::vector< ::tinker::refine::types::nbpair> const & pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
 
-		/** gradient function for non-bonded pairs with cutoff */
+		/** gradient function for non-bonded pairs with cutoff (with and without periodics)*/
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC> 
         void g_nb_QV_pairs_cutoff (coords::float_type &e_nb, coords::Representation_3D &grad_vector, 
           std::vector< ::tinker::refine::types::nbpair> const & pairs, 

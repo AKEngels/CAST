@@ -967,7 +967,12 @@ namespace energy
         return E*T*(T-1.0);
       }
 
-
+      /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: r_min-parameter
+      @param r: inverse distance 1/r between the two atoms
+      @param dV: reference to variable that saves gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -980,7 +985,12 @@ namespace energy
         return V*(T-2.0);
       }
 
-
+      /**calculate lenard-jones potential and gradient for oplsaa-forcefield (sigma-type); 
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: sigma-parameter
+      @param r: inverse distance 1/r between the two atoms
+      @param dV: reference to variable that saves gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -989,8 +999,8 @@ namespace energy
         T = T*T*T; // T^3
         T = T*T; // T^6
         coords::float_type const V = E*T;
-        dV = V*r*(6.0-12.0*T);
-        return V*(T-1.0);
+        dV = V*r*(6.0-12.0*T);  // derivative
+        return V*(T-1.0);  //potential
       }
 
 
@@ -1191,7 +1201,7 @@ namespace energy
                   else
                     g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
               }
-              else
+              else  // no periodic boundaries
               {
                   if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
                     g_nb_QV_pairs_fep_io<RT, false, false>(e, g, pl, par);
@@ -1201,9 +1211,9 @@ namespace energy
                     g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
                   else
                     g_nb_QV_pairs<RT>(e, g, pl, par);
-              } // end of no periodic else
+              }
             }
-            else
+            else   // no fep
             {
               if (Config::get().energy.periodic)
                 g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
