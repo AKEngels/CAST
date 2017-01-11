@@ -969,7 +969,7 @@ namespace energy
 
       /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
       returns the energy
-      @param E: epsilon-parameter
+      @param E: 4 * epsilon-parameter
       @param R: r_min-parameter
       @param r: inverse distance 1/r between the two atoms
       @param dV: reference to variable that saves gradient*/
