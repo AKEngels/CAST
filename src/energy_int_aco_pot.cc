@@ -2220,9 +2220,9 @@ namespace energy
           #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
           for (std::ptrdiff_t i=0; i<M ; ++i)      //for every pair in pairlist
           {
-            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //distance r
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());
-            ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
+            if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
+            ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
             coords::float_type rr(dot(b, b)), dE, Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
             if (PERIODIC)
