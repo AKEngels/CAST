@@ -97,8 +97,9 @@ task                  EXCITONBREAKUP
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
+#Gaussian              Gaussian09 syscall Interface
 
-interface              MOPAC
+interface              Gaussian
 
 # Interface for preoptimizations
 
@@ -108,6 +109,9 @@ preinterface           0
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
 paramfile              amber99.prm
+
+
+### MOPAC OPTIONS ###
 
 # Keywords for MOPAC Call
 
@@ -123,6 +127,32 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 #MOPACversion
 
+
+### GAUSSIAN OPTIONS ###
+
+# Link 0 Commands  
+
+GAUSSIANlink 
+
+# Keywords for Gaussian Call
+
+GAUSSIANkey          Hf/ 6-31G
+
+# Charge of the Molecule
+
+GAUSSIANcharge          0
+
+# Multiplicity
+
+GAUSSIANmultiplicity    1
+
+#Gaussian executeable path
+
+GAUSSIANpath
+
+#Delete temporary Gaussian files?
+
+GAUSSIANdelete          1
 
 ####################################
 #                                  #

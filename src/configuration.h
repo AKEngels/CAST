@@ -128,12 +128,12 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 6;
+  static std::size_t const NUM_INTERFACES = 7;
   /**Interface Types*/
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -147,7 +147,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC 
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
     }; 
   };
 
@@ -567,6 +567,15 @@ namespace config
         delete_input(true)
       {}
     } mopac;
+
+    struct gaussian_conf
+    {
+      std::string command, path, link, charge, multipl;
+      bool delete_input;
+      gaussian_conf(void) : command("Hf/ 6-31G"),
+        delete_input(true)
+      {}
+    } gaussian;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),

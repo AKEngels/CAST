@@ -515,6 +515,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(5, 3) == "key")
       Config::set().energy.mopac.command = value_string;
+    else if (option.substr(5, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
       Config::set().energy.mopac.path = value_string;
     else if (option.substr(5, 6) == "delete")
@@ -529,6 +531,24 @@ void config::parse_option(std::string const option, std::string const value_stri
         config::NUM_MOPAC_VERSION
         >(value_string, config::mopac_ver_string);
     }
+  }
+
+  //Gaussian options
+  else if (option.substr(0, 8) == "GAUSSIAN")
+  {
+    if (option.substr(8, 3) == "key")
+      Config::set().energy.gaussian.command = value_string;
+    else if (option.substr(5, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
+    else if (option.substr(8, 6) == "charge")
+      Config::set().energy.gaussian.charge = value_string;
+    else if (option.substr(8, 12) == "multiplicity")
+      Config::set().energy.gaussian.multipl = value_string;
+    else if (option.substr(5, 4) == "path")
+      Config::set().energy.gaussian.path = value_string;
+    else if (option.substr(5, 6) == "delete")
+      Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
+    //else if (option.substr(5, 7) == "version")
   }
 
   // convergence threshold for bfgs
