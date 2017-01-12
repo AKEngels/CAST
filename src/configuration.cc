@@ -328,6 +328,11 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().energy.cutoff;
     Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
+    if (Config::get().energy.periodic)
+    {
+      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
+      if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
+    }
     Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
   // Turn particle mesh ewald on
@@ -809,6 +814,17 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 9) == "Periodics")
   {
     Config::set().energy.periodic = bool_from_iss(cv);
+    if (cv >> Config::set().energy.pb_box.x()
+      && cv >> Config::set().energy.pb_box.y()
+      && cv >> Config::set().energy.pb_box.z() )
+    {
+      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
+      if (Config::set().energy.periodic
+        && Config::get().energy.cutoff > min_cut)
+      {
+        Config::set().energy.cutoff = min_cut;
+      }
+    }
   }
   else if (option.substr(0, 9) == "Periodicp")
   {
