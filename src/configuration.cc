@@ -548,7 +548,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.path = value_string;
     else if (option.substr(5, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
-    //else if (option.substr(5, 7) == "version")
   }
 
   // convergence threshold for bfgs

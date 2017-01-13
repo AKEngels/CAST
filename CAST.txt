@@ -148,7 +148,7 @@ GAUSSIANmultiplicity    1
 
 #Gaussian executeable path
 
-GAUSSIANpath
+GAUSSIANpath            g09root /apps/gaussian
 
 #Delete temporary Gaussian files?
 
