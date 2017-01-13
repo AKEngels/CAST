@@ -946,7 +946,8 @@ void md::simulation::berendsen(double const & time)
     ptensor[0][0] = fac * (2.0 * E_kin_tensor[0][0] - coordobj.virial()[0][0]);
     ptensor[1][1] = fac * (2.0 * E_kin_tensor[1][1] - coordobj.virial()[1][1]);
     ptensor[2][2] = fac * (2.0 * E_kin_tensor[2][2] - coordobj.virial()[2][2]);
-    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
+    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;  // pressure in bar or atm ???
+    std::cout << "press: " << press << "\n";
     // Berendsen scaling for isotpropic boxes
     scale = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press - Config::get().md.ptarget)), 0.3333333333333);
     // Adjust box dimensions
