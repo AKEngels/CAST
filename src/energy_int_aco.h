@@ -12,14 +12,31 @@ namespace energy
     namespace aco
     {
       
-
+      /**class for non-bonded cutoff*/
       class nb_cutoff
       {
       public:
+        /**create cutoff object
+        @param ic: cutoff-distance
+        @param is: switchdist-distance*/
         nb_cutoff (coords::float_type const ic, coords::float_type const is);
+        /**test if distance of an atom pair is smaller than cutoff
+        @param rr: scalar product of the vector between two atoms
+        @param r: reference to distance between two atoms (is calculated during function)
+        @param fQ: scaling factor for coulomb energy
+        @param fV: scaling factor for vdw energy between switchdist and cutoff*/
         inline bool factors (coords::float_type const rr, coords::float_type & r, coords::float_type & fQ, coords::float_type & fV);
       private:
-        coords::float_type const c, s, cc, ss, cs;
+        /**cutoff distance*/
+        coords::float_type const c;
+        /**switchdist*/
+        coords::float_type const s;
+        /**scalar product of c*c */
+        coords::float_type const cc;
+        /** 3.0*s*s */
+        coords::float_type const ss;
+        /** (cc-s*s)*(cc-s*s)*(cc-s*s) */
+        coords::float_type const cs;
       };
 
 	  /**class for amber, charmm and oplsaa forcefield functions*/
@@ -76,11 +93,17 @@ namespace energy
         ::tinker::parameter::parameters cparams;
         ::tinker::refine::refined refined;
 
-        // Functions for periodic boundary conditions
+        /**This function is called in the non-bonding part of energy calculation with periodic boundaries.
+        Before calling it the vector between two atoms whose interactions should be calculated is determined
+        and given as input to this function.
+        The function then modifies the vector: If any of the components (x, y or z) is longer than half the 
+        box size, the box size is subtracted from this component. 
+        In this way the resulting vector represents the shortest distance between these two atoms
+        in any unit cells next to each other.
+        @param x: x-component of input vector
+        @param y: y-component of input vector
+        @param z: z-component of input vector*/
         void	boundary (coords::float_type&, coords::float_type&, coords::float_type&) const;
-		/**doesn't seem to be called*/
-        void	boxjump (void);
-        inline std::ptrdiff_t sign (coords::float_type const) const;
  
         /** selection of the correct nonbonded function*/
         template< ::tinker::parameter::radius_types::T RADIUS_TYPE > void   g_nb (void);
@@ -174,7 +197,7 @@ namespace energy
           std::vector< ::tinker::refine::types::nbpair> const & pairs,
           scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
 
-		/** gradient function for non-bonded pairs with cutoff */
+		/** gradient function for non-bonded pairs with cutoff (with and without periodics)*/
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC> 
         void g_nb_QV_pairs_cutoff (coords::float_type &e_nb, coords::Representation_3D &grad_vector, 
           std::vector< ::tinker::refine::types::nbpair> const & pairs, 

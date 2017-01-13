@@ -88,27 +88,6 @@ void energy::interfaces::aco::aco_ff::calc (void)
 
 }
 
-void energy::interfaces::aco::aco_ff::boxjump (void)
-{
-  size_t const N(coords->molecules().size());
-  coords::Cartesian_Point const halfbox(Config::get().energy.pb_box/2.0);
-  for (size_t i = 0; i < N; ++i)
-  {
-    coords::Cartesian_Point tmp_com(-coords->center_of_mass_mol(i));
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::fabs(tmp_com.x()) > halfbox.x()) ? tmp_com.x()/Config::get().energy.pb_box.x() : 0.0;
-    tmp_com.y() = (std::fabs(tmp_com.y()) > halfbox.y()) ? tmp_com.y()/Config::get().energy.pb_box.y() : 0.0;
-    tmp_com.z() = (std::fabs(tmp_com.z()) > halfbox.z()) ? tmp_com.z()/Config::get().energy.pb_box.z() : 0.0;
-    scon::round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
-    for (auto const & atom : coords->molecules(i))
-    {
-      coords->move_atom_by(atom, tmp_com);
-    }
-
-	} // end of molecules loop
-}
-
 
 /****************************************
 *                                       *
@@ -889,12 +868,12 @@ namespace energy
         using std::sqrt;
         using std::abs;
         r = sqrt(rr);
-        if (r > c) return false;
+        if (r > c) return false;  // if distance bigger than cutoff -> return false
         coords::float_type const cr(cc - rr);
         fV = r < s ? 1.0 : (cr*cr*(cc+2.0*rr-ss)) / cs;
         fQ = (1.0 - rr/cc);
         fQ *= fQ;
-        return (abs(r) > 0.0);
+        return (abs(r) > 0.0);  // return true (always???)
       }
 
 
@@ -941,7 +920,7 @@ namespace energy
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
         coords::float_type const Q = C*ri; // Q = C/r
-        dQ = -Q*ri; // dQ/dr = -C/r^2
+        dQ = -Q*ri; // dQ/dr = -C/r^2 (derivative)
         return Q;
       }
 
@@ -988,7 +967,12 @@ namespace energy
         return E*T*(T-1.0);
       }
 
-
+      /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
+      returns the energy
+      @param E: 4 * epsilon-parameter
+      @param R: r_min-parameter
+      @param r: inverse distance 1/r between the two atoms
+      @param dV: reference to variable that saves gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1001,7 +985,12 @@ namespace energy
         return V*(T-2.0);
       }
 
-
+      /**calculate lenard-jones potential and gradient for oplsaa-forcefield (sigma-type); 
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: sigma-parameter
+      @param r: inverse distance 1/r between the two atoms
+      @param dV: reference to variable that saves gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1010,8 +999,8 @@ namespace energy
         T = T*T*T; // T^3
         T = T*T; // T^6
         coords::float_type const V = E*T;
-        dV = V*r*(6.0-12.0*T);
-        return V*(T-1.0);
+        dV = V*r*(6.0-12.0*T);  // derivative
+        return V*(T-1.0);  //potential
       }
 
 
@@ -1212,7 +1201,7 @@ namespace energy
                   else
                     g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
               }
-              else
+              else  // no periodic boundaries
               {
                   if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
                     g_nb_QV_pairs_fep_io<RT, false, false>(e, g, pl, par);
@@ -1222,9 +1211,9 @@ namespace energy
                     g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
                   else
                     g_nb_QV_pairs<RT>(e, g, pl, par);
-              } // end of no periodic else
+              }
             }
-            else
+            else   // no fep
             {
               if (Config::get().energy.periodic)
                 g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
@@ -2175,7 +2164,7 @@ namespace energy
             if(!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0/r;
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
-              refined.type(pairlist[i].b)));
+              refined.type(pairlist[i].b)));   // get parameters for current pair
             g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
             auto const dist = b;
             b *= dE;
@@ -2222,7 +2211,6 @@ namespace energy
         scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
       )
       {
-		  float in_vorher(0.0), in_nachher(0.0), in_number(0.0), out_vorher(0.0), out_nachher(0.0), out_number(0.0);
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
@@ -2234,9 +2222,9 @@ namespace energy
           #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
           for (std::ptrdiff_t i=0; i<M ; ++i)      //for every pair in pairlist
           {
-            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //distance r
-            if (PERIODIC) boundary(b.x(), b.y(), b.z());
-            ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
+            coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
+            if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
+            ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
             coords::float_type rr(dot(b, b)), dE, Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
             if (PERIODIC)

@@ -609,64 +609,38 @@ void coords::Coordinates::periodic_boxjump()
 	for (std::size_t i = 0; i < N; ++i)
 	{
 		Cartesian_Point tmp_com(-center_of_mass_mol(i));
-		bool move = false;
-		if (std::abs(tmp_com.x() <= halfbox.x()))
+		if (std::abs(tmp_com.x()) <= halfbox.x())
 		{
 			tmp_com.x() = 0;
 		}
 		else
 		{
 			tmp_com.x() = tmp_com.x() / Config::get().energy.pb_box.x();
-			int tmp_x = (int)tmp_com.x();
-			if (tmp_x > 0)
-			{
-				tmp_com.x() = tmp_x;
-			}
-			else
-			{
-				tmp_com.x() = tmp_x + 1;
-			}
+			int tmp_x = std::round(tmp_com.x());
+			tmp_com.x() = tmp_x;
 		}
-		if (std::abs(tmp_com.y() <= halfbox.y()))
+		if (std::abs(tmp_com.y()) <= halfbox.y())
 		{
 			tmp_com.y() = 0;
 		}
 		else
 		{
 			tmp_com.y() = tmp_com.y() / Config::get().energy.pb_box.y();
-			int tmp_y = (int)tmp_com.y();
-			if (tmp_y > 0)
-			{
-				tmp_com.y() = tmp_y;
-			}
-			else
-			{
-				tmp_com.y() = tmp_y + 1;
-			}
+			int tmp_y = std::round(tmp_com.y());
+			tmp_com.y() = tmp_y;
 		}
-		if (std::abs(tmp_com.z() <= halfbox.z()))
+		if (std::abs(tmp_com.z()) <= halfbox.z())
 		{
 			tmp_com.z() = 0;
 		}
 		else
 		{
 			tmp_com.z() = tmp_com.z() / Config::get().energy.pb_box.z();
-			int tmp_z = (int)tmp_com.z();
-			if (tmp_z > 0)
-			{
-				tmp_com.z() = tmp_z;
-			}
-			else
-			{
-				tmp_com.z() = tmp_z + 1;
-			}
+			int tmp_z = std::round(tmp_com.z());
+			tmp_com.z() = tmp_z;
 		}
 		tmp_com *= Config::get().energy.pb_box;
     for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
-	//if (move == true)
-	//{
-		//std::cout << "nachher " << center_of_mass_mol(i) << "\n";
-	//}
   }
 }
 
