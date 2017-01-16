@@ -91,7 +91,9 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
     out_file << Config::get().energy.gaussian.command;
    
     out_file << '\n';
+    out_file << '\n';
     out_file << Config::get().general.outputFilename;
+    out_file << '\n';
     out_file << '\n';
     out_file << Config::get().energy.gaussian.charge << " ";
     out_file << Config::get().energy.gaussian.multipl;
