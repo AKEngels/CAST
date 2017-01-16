@@ -27,7 +27,7 @@ namespace md
   /**gas constant*/
   static const double R = 1.9872066e-3;
   /**something for pressure*/
-  static const double presc = 6.85684112e4;
+  static const double presc = 1.0/6.85684112e4;
 
   /**
   *collection of current simulation data
