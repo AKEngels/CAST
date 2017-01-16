@@ -1820,6 +1820,10 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
   }
+  if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
+  {
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << p.gaussian.command << "'.\n";
+  }
   return strm;
 }
 
