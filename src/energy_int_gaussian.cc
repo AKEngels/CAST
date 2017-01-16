@@ -88,11 +88,9 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
   {
     if (Config::get().energy.gaussian.link.length() != 0) {
       out_file << "%" << Config::get().energy.gaussian.link;
+      out_file << '\n';
     }
-
-    out_file << '\n';
     out_file << "# " << Config::get().energy.gaussian.command;
-   
     out_file << '\n';
     out_file << '\n';
     out_file << Config::get().general.outputFilename;
