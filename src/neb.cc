@@ -862,7 +862,7 @@ double neb::g_new_maxflux()
 			if (kappa != kappa)kappa = 0.0;
 			rv_p.x() =  (kappa / _KT_ )*rv_n.x();
 			rv_p.y() =  (kappa / _KT_ )*rv_n.y();
-			rv_p.x() =  (kappa / _KT_ )*rv_n.z();
+			rv_p.z() =  (kappa / _KT_ )*rv_n.z();
 
 			auto const g = Fpar[i] + Fvertical[i] - rv_p;
 			cPtr->update_g_xyz(i, g);

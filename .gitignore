@@ -32,3 +32,5 @@ examples/taskMD/*
 !examples/taskMD/*.rar
 examples/taskFEP/*
 !examples/taskFEP/*.rar
+/CAST_2016/CAST_2016.VC.VC.opendb
+/CAST_2016
