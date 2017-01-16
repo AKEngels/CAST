@@ -6,7 +6,7 @@ namespace scon
 *  
 */
 
-  int scon::system_call(std::string const & command_line)
+  int system_call(std::string const & command_line)
   {
 #if defined (_MSC_VER)
     // get a modifiable character sequence of the command: 
