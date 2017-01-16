@@ -81,7 +81,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::~sysCallInterfaceGauss(void
 void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
 {
   std::string outstring(id);
-  outstring.append(".gif");
+  outstring.append(".gjf");
 
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
   if (out_file)
