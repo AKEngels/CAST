@@ -86,7 +86,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
   if (out_file)
   {
-    if (Config::get().energy.gaussian.link.length != 0) {
+    if ((Config::get().energy.gaussian.link.length) != 0) {
       out_file << "%" << Config::get().energy.gaussian.link;
     }
 
