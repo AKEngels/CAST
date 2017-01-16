@@ -943,9 +943,9 @@ void md::simulation::berendsen(double const & time)
   fac = presc / volume;
   // pressure for ISOTROPIC boxes
   if (Config::get().energy.isotropic == true) {
-    ptensor[0][0] = fac * (2.0 * E_kin_tensor[0][0] - coordobj.virial()[0][0]);
-    ptensor[1][1] = fac * (2.0 * E_kin_tensor[1][1] - coordobj.virial()[1][1]);
-    ptensor[2][2] = fac * (2.0 * E_kin_tensor[2][2] - coordobj.virial()[2][2]);
+    ptensor[0][0] = fac * 2.0 * (E_kin_tensor[0][0] - coordobj.virial()[0][0]);
+    ptensor[1][1] = fac * 2.0 * (E_kin_tensor[1][1] - coordobj.virial()[1][1]);
+    ptensor[2][2] = fac * 2.0 * (E_kin_tensor[2][2] - coordobj.virial()[2][2]);
     press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;  // pressure in bar or atm ???
     std::cout << "press: " << press << "\n";
     // Berendsen scaling for isotpropic boxes
