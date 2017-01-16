@@ -63,7 +63,7 @@ void energy::interfaces::aco::aco_ff::calc (void)
         part_energy[types::UREY]       = f_13_u<DERIV>();
       #pragma omp section
         part_energy[types::TORSION]    = f_14<DERIV>();
-#pragma omp section
+      #pragma omp section
         part_energy[types::IMPTORSION] = f_it<DERIV>();
       #pragma omp section
         part_energy[types::IMPROPER]   = f_imp<DERIV>();
@@ -141,20 +141,20 @@ namespace energy
         coords::float_type E(0.0);
         for (auto const & bond : refined.bonds())
         {
-          auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1]));
+          auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1])); // r_ij (i=1, j=2)
           auto const d = len(bv);
           auto const r = d - bond.ideal;
           auto dE = bond.force*r;
-          E += dE*r;
-          dE *= 2;
+          E += dE*r;  // kcal/mol
+          dE *= 2;  // kcal/(mol*Angstrom)
           if (abs(d) > 0.0) 
           {
             if (abs(r) > 0.5) integrity = false;
-            dE /= d;
-            auto const gv = bv*dE;
+            dE /= d;  // kcal/(mol*A^2)
+            auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A))
             part_grad[BOND][bond.atoms[0]] += gv;
             part_grad[BOND][bond.atoms[1]] -= gv;
-            //increment internal virial tensor
+            //increment internal virial tensor (no factor 1/2 because atoms i and j have the same contribution)
             auto const vxx = bv.x() * gv.x();
             auto const vyx = bv.y() * gv.x();
             auto const vzx = bv.z() * gv.x();
