@@ -115,7 +115,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
-  auto gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gif";
+  auto gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
 #ifdef _MSC_VER
   gaussian_call.append(" > nul 2>&1");
 #else
