@@ -16,80 +16,132 @@ namespace amberUtil
   // TINKER atom types to the atoms according to
   // their AMBER atom types. These fake TINKER types
   // correspond however to the correct TINKER classes
-  // in the amber99.prm file,
+  // in the amber99_gaff.prm file,
   // so everything is well
-	//NOT COMPLETE
+  // all atom types included that are in the amber_gaff.prm file 
+  // however there might be alternative symbols for the atom types (like 2C instead of CT) that are not included yet
 	size_t toTinkerType(std::string const & in)
 	{
-    if (in == "CT ") return 2u;          //tetrahedral C
-    else if (in == "CX ") return 2u;     //tetrahedral C
-    else if (in == "C3 ") return 2u;     //tetrahedral C
-    else if (in == "2C ") return 2u;     //tetrahedral C
-    else if (in == "3C ") return 2u;     //tetrahedral C
-    else if (in == "C8 ") return 2u;     //tetrahedral C
-    else if (in == "CL-") return 2011u; //Cloride ion
-    else if (in == "IM ") return 2011u;  //Cloride ion
-    else if (in == "C  ") return 3u;      //sp2 C (carbonyl)
-    else if (in == "CO ") return 3u;     //sp2 C (carbonyl)
-    else if (in == "CA ") return 115u;   //sp2 C (aromatic)
-    else if (in == "CM ") return 1082u;  //sp2 C (pyridine)
-    else if (in == "CC ") return 169u;   //sp2 C (aromatic)
-    else if (in == "CV ") return 189u;   //sp2 C (aromatic)
-    else if (in == "CW ") return 204u;   //sp2 C (aromatic)
-    else if (in == "CR ") return 206u;   //sp2 C (aromatic)
-    else if (in == "CB ") return 1018u;  //sp2 C (aromatic)
-    else if (in == "C* ") return 146u;   //sp2 C (aromatic)
-    else if (in == "CN ") return 152u;   //sp2 C (aromatic)
-    else if (in == "CK ") return 1021u;  //sp2 C (aromatic)
-    else if (in == "CQ ") return 1023u;  //sp2 C (aromatic)
-    else if (in == "N  ")  return 7u;     //amide N
-    else if (in == "NA ") return 150u;   //N in ring, bound to H
-    else if (in == "Cs+") return 2007u; //Cs ion
-    else if (in == "QC ") return 2007u;  //Cs ion
-    else if (in == "K+ ") return 2005u;  //K ion
-    else if (in == "QK ") return 2005u;  //K ion
-    else if (in == "Li+") return 2003u; //Li ion
-    else if (in == "QL ") return 2003u;  //Li ion
-    else if (in == "Na+") return 2004u; //Na ion
-    else if (in == "QN ") return 2004u;  //Na ion
-    else if (in == "QR ") return 2006u;  //Rb ion
-    else if (in == "IP ") return 2004u;  //Na ion
-    else if (in == "NB ") return 193u;   //N in ring, with LP
-    else if (in == "NC ") return 1022u;  //N in ring, with LP
-    else if (in == "N* ") return 1047u;  //N in ring, bound to alkyle group
-    else if (in == "N2 ") return 1057u;  //basic NH2 group
-    else if (in == "N3 ") return 285u;   //sp3 N
-    else if (in == "OW ") return 2001u;  //water O
-    else if (in == "OH ") return 63u;    //alcohole O
-    else if (in == "OS ") return 1001u;  //O in ether or ester
-    else if (in == "O  ")  return 1060u;  //carbonyle O
-    else if (in == "O2 ") return 219u;   //carboyle or phosphate (non-bounded) O
-    else if (in == "S  ")  return 95u;    //S without H
-    else if (in == "SH ") return 85u;    //S with H
-    else if (in == "P  ")  return 1230u;  //P in phosphate
-    else if (in == "H  ")  return 90u;    //amide or imino H
-    else if (in == "HW ") return 2002u;  //water H
-    else if (in == "HO ") return 64u;    //alcohole H
-    else if (in == "HS ") return 86u;    //H in SH
-    else if (in == "H5 ") return 1026u;  //???
-    else if (in == "HA ") return 117u;   //H bound to aromatic C
-    else if (in == "HC ") return 129u;   //H bound to aliphatic C
-    else if (in == "H1 ") return 143u;   //H bound to aliphatic C
-    else if (in == "H2 ") return 1009u;  //H in NH2
-    else if (in == "H3 ") return 1113u;  //H in NH3+
-    else if (in == "HP ") return 284u;   //H bound to P???
-    else if (in == "H4 ") return 148u;   //??? 
-    else if (in == "c3 ") return 3003u;  // GAFF  -> charge from atom type no. 2 (CT)
-    else if (in == "ca ") return 3004u;  // GAFF  -> charge from atom type no. 115 (CA) 
-    else if (in == "n  ") return 3035u;  // GAFF  -> charge from atom type no. 7 (N)
-    else if (in == "c  ") return 3000u;  // GAFF  -> charge from atom type no. 3 (C)
-    else if (in == "oh ") return 3049u;  // GAFF  -> charge from atom type no. 63 (OH)
-    else if (in == "ho ") return 3026u;  // GAFF  -> charge from atom type no. 64 (HO)
-    else if (in == "o  ") return 3048u;  // GAFF  -> charge from atom type no. 1060 (O)
-    else if (in == "hc ") return 3024u;  // GAFF  -> charge from atom type no. 129 (HC) 
-    else if (in == "ha ") return 3023u;  // GAFF  -> charge from atom type no. 117 (HA)
-    else if (in == "h1 ") return 3018u;  // GAFF  -> charge from atom type no. 143 (H1)
-    else if (in == "cl ") return 3032u;  // GAFF  -> charge = example from prmtop file divided by 18.2223 (see http://ambermd.org/formats.html#topo.cntrl)
+    if (in == "N  ") return    1u;
+    else if (in == "CT " || in == "2C " || in == "3C " || in == "C8 ") return 2u;
+    else if (in == "C  " || in == "CO ") return 3u;
+    else if (in == "H  ") return    4u;
+    else if (in == "O  ") return    5u;
+    else if (in == "H1 ") return    6u;
+    else if (in == "HC ") return   14u;
+    else if (in == "OH ") return   63u;
+    else if (in == "HO ") return   64u;
+    else if (in == "SH ") return   85u;
+    else if (in == "HS ") return   86u;
+    else if (in == "S  ") return   95u;
+    else if (in == "CA ") return  115u;
+    else if (in == "HA ") return  117u;
+    else if (in == "C* ") return  146u;
+    else if (in == "CW ") return  147u;
+    else if (in == "H4 ") return  148u;
+    else if (in == "CB ") return  149u;
+    else if (in == "NA ") return  150u;
+    else if (in == "CN ") return  152u;
+    else if (in == "CC ") return  169u;
+    else if (in == "CR ") return  174u;
+    else if (in == "H5 ") return  175u;
+    else if (in == "CV ") return  189u;
+    else if (in == "NB ") return  193u;
+    else if (in == "O2 ") return  219u;
+    else if (in == "HP ") return  284u;
+    else if (in == "N3 ") return  285u;
+    else if (in == "N2 ") return  299u;
+    else if (in == "OS ") return 1001u;
+    else if (in == "H2 ") return 1009u;
+    else if (in == "N* ") return 1017u;
+    else if (in == "CK ") return 1021u;
+    else if (in == "NC ") return 1022u;
+    else if (in == "CQ ") return 1023u;
+    else if (in == "CM ") return 1082u;
+    else if (in == "P  ") return 1230u;
+    else if (in == "OW ") return 2001u;
+    else if (in == "HW ") return 2002u;
+    else if (in == "Li+") return 2003u;
+    else if (in == "Na+") return 2004u;
+    else if (in == "K+ ") return 2005u;
+    else if (in == "Rb+") return 2006u;
+    else if (in == "Cs+") return 2007u;
+    else if (in == "Mg+") return 2008u;
+    else if (in == "Ca+") return 2009u;
+    else if (in == "Zn+") return 2010u;
+    else if (in == "Ba+") return 2011u;
+    else if (in == "Cl-") return 2012u;
+    else if (in == "c  ") return 3000u;
+    else if (in == "c1 ") return 3001u;
+    else if (in == "c2 ") return 3002u;
+    else if (in == "c3 ") return 3003u;
+    else if (in == "ca ") return 3004u;
+    else if (in == "cp ") return 3005u;
+    else if (in == "cq ") return 3006u;
+    else if (in == "cc ") return 3007u;
+    else if (in == "cd ") return 3008u;
+    else if (in == "ce ") return 3009u;
+    else if (in == "cf ") return 3010u;
+    else if (in == "cg ") return 3011u;
+    else if (in == "ch ") return 3012u;
+    else if (in == "cx ") return 3013u;
+    else if (in == "cy ") return 3014u;
+    else if (in == "cu ") return 3015u;
+    else if (in == "cv ") return 3016u;
+    else if (in == "cz ") return 3017u;
+    else if (in == "h1 ") return 3018u;
+    else if (in == "h2 ") return 3019u;
+    else if (in == "h3 ") return 3020u;
+    else if (in == "h4 ") return 3021u;
+    else if (in == "h5 ") return 3022u;
+    else if (in == "ha ") return 3023u;
+    else if (in == "hc ") return 3024u;
+    else if (in == "hn ") return 3025u;
+    else if (in == "ho ") return 3026u;
+    else if (in == "hp ") return 3027u;
+    else if (in == "hs ") return 3028u;
+    else if (in == "hw ") return 3029u;
+    else if (in == "hx ") return 3030u;
+    else if (in == "f  ") return 3031u;
+    else if (in == "cl ") return 3032u;
+    else if (in == "br ") return 3033u;
+    else if (in == "i  ") return 3034u;
+    else if (in == "n  ") return 3035u;
+    else if (in == "n1 ") return 3036u;
+    else if (in == "n2 ") return 3037u;
+    else if (in == "n3 ") return 3038u;
+    else if (in == "n4 ") return 3039u;
+    else if (in == "na ") return 3040u;
+    else if (in == "nb ") return 3041u;
+    else if (in == "nc ") return 3042u;
+    else if (in == "nd ") return 3043u;
+    else if (in == "ne ") return 3044u;
+    else if (in == "nf ") return 3045u;
+    else if (in == "nh ") return 3046u;
+    else if (in == "no ") return 3047u;
+    else if (in == "o  ") return 3048u;
+    else if (in == "oh ") return 3049u;
+    else if (in == "os ") return 3050u;
+    else if (in == "ow ") return 3051u;
+    else if (in == "p2 ") return 3052u;
+    else if (in == "p3 ") return 3053u;
+    else if (in == "p4 ") return 3054u;
+    else if (in == "p5 ") return 3055u;
+    else if (in == "pb ") return 3056u;
+    else if (in == "pc ") return 3057u;
+    else if (in == "pd ") return 3058u;
+    else if (in == "pe ") return 3059u;
+    else if (in == "pf ") return 3060u;
+    else if (in == "px ") return 3061u;
+    else if (in == "py ") return 3062u;
+    else if (in == "s  ") return 3063u;
+    else if (in == "s2 ") return 3064u;
+    else if (in == "s4 ") return 3065u;
+    else if (in == "s6 ") return 3066u;
+    else if (in == "sh ") return 3067u;
+    else if (in == "ss ") return 3068u;
+    else if (in == "sx ") return 3069u;
+    else if (in == "sy ") return 3070u;
     else if (Config::get().general.energy_interface <= 3)
       std::cout << "Warning: Could not match AMBER atom type "
         << in << "to any TINKER atom type.\n\nThis will cause havok when force-field energy interfaces are specified (this is currently the case). "
@@ -268,8 +320,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             std::string charge_str = line.substr(i * 16u, 16u);
             int exponent = std::stoi(charge_str.substr(13u, 3u));
             double koeff = std::stod(charge_str.substr(0u, 12u));
-            charges.push_back((koeff * pow(10, exponent)) / 18.2223);
-            //divide by 18.2223 because AMBER works with a different unit for charges (see http://ambermd.org/formats.html#topo.cntrl)
+            charges.push_back((koeff * pow(10, exponent)));
           }
         }
         // read last line if existent
@@ -281,10 +332,10 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             std::string charge_str = line.substr(i * 1u, 16);
             int exponent = std::stoi(charge_str.substr(13u, 3u));
             double koeff = std::stod(charge_str.substr(0u, 12u));
-            charges.push_back((koeff * pow(10, exponent)) / 18.2223);
-            //divide by 18.2223 because AMBER works with a different unit for charges (see http://ambermd.org/formats.html#topo.cntrl)
+            charges.push_back((koeff * pow(10, exponent)));
           }
         }
+        Config::set().coords.charges = charges;
       }
 
       //If section == BONDS_INC_HYDROGEN

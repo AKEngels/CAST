@@ -185,7 +185,16 @@ namespace energy
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE> 
         inline void e_QV_cutoff  (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r, 
           coords::float_type const fQ, coords::float_type const fV,coords::float_type &e_c, coords::float_type &e_v) const;
-        /** charge+vdw gradients (cutoff, no fep, no periodics) */
+        /** charge+vdw gradients (cutoff, no fep, no periodics)
+        @param C: product of charges of the two atoms
+        @param E: epsilon value for lenard-jones
+        @param R: equilibrium distance
+        @param r: current distance
+        @param fQ: scaling factor for coulomb interaction
+        @param fV: scaling factor for vdw interaction
+        @param e_c: reference to coulomb energy
+        @param e_v: reference to vdw energy
+        @param dE: reference to energy gradient*/
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE> 
         inline void g_QV_cutoff  (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r, 
           coords::float_type const fQ, coords::float_type const fV, coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const;

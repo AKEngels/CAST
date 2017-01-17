@@ -2113,13 +2113,27 @@ namespace energy
         {
           coords::Representation_3D tmp_grad(grad_vector.size());
           #pragma omp for reduction (+: e_c, e_v)
-          for (std::ptrdiff_t i=0; i<M ; ++i)
+          for (std::ptrdiff_t i=0; i<M ; ++i)       // for every pair in pairlist
           {
+            double current_c;   // Q_a * Q_b from AMBER
+            if (Config::get().general.input == config::input_types::AMBER)
+            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
+              double ca = Config::get().coords.charges[pairlist[i].a];
+              double cb = Config::get().coords.charges[pairlist[i].b];
+              current_c = ca * cb;
+            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
             coords::float_type const r = 1.0 / std::sqrt(dot(b, b));
             coords::float_type dE(0.0);
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));
-            g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
+            if (Config::get().general.input == config::input_types::AMBER)
+            {
+              g_QV<RT>(current_c, p.E, p.R, r, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
+            }
+            else
+            {
+              g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
+            }
             b *= dE;
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
@@ -2154,6 +2168,13 @@ namespace energy
           #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i=0; i<M ; ++i)  //for every pair in pairlist
           {
+            double current_c;   // Q_a * Q_b from AMBER
+            if (Config::get().general.input == config::input_types::AMBER)
+            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
+              double ca = Config::get().coords.charges[pairlist[i].a];
+              double cb = Config::get().coords.charges[pairlist[i].b];
+              current_c = ca * cb;
+            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
             if (PERIODIC) boundary(b.x(), b.y(), b.z());  // for periodic boundaries: 
 			                        // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
@@ -2165,7 +2186,15 @@ namespace energy
             r = 1.0/r;
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
               refined.type(pairlist[i].b)));   // get parameters for current pair
-            g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
+            if (Config::get().general.input == config::input_types::AMBER)
+            {
+              g_QV_cutoff<RT>(current_c, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
+            }
+            else
+            {
+              g_QV_cutoff<RT>(p.C, p.E, p.R, r, fQ, fV, e_c, e_v, dE);  //calculate vdw and coulomb energy and gradients
+            }
+            
             auto const dist = b;
             b *= dE;
             tmp_grad[pairlist[i].a] += b;
@@ -2222,6 +2251,13 @@ namespace energy
           #pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
           for (std::ptrdiff_t i=0; i<M ; ++i)      //for every pair in pairlist
           {
+            double current_c;   // Q_a * Q_b from AMBER
+            if (Config::get().general.input == config::input_types::AMBER)
+            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
+              double ca = Config::get().coords.charges[pairlist[i].a];
+              double cb = Config::get().coords.charges[pairlist[i].b];
+              current_c = ca * cb;
+            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
             if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
@@ -2232,11 +2268,22 @@ namespace energy
               coords::float_type fQ(0.0), fV(0.0);
               coords::float_type r(0.0);
               if(!cutob.factors(rr, r, fQ, fV)) continue;
-              g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), 
-                (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
-              coords::float_type trash(0.0);
-              g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), 
-                (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+              if (Config::get().general.input == config::input_types::AMBER)
+              {
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+                coords::float_type trash(0.0);
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+              }
+              else
+              {
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+                coords::float_type trash(0.0);
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+              }
             }
             else
             {
@@ -2244,23 +2291,45 @@ namespace energy
               {
                 coords::float_type r(0.0);
                 coords::float_type fQ(0.0), fV(0.0);
-				if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
-				{
-					g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-						(ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
-					coords::float_type trash(0.0);
-					g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-						(ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
-				}
+                if (cutob.factors(rr, r, fQ, fV))  //calculate r and see if r < cutoff
+                {
+                  if (Config::get().general.input == config::input_types::AMBER)
+                  {
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                      (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                    coords::float_type trash(0.0);
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                      (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                  }
+                  else
+                  {
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                      (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                    coords::float_type trash(0.0);
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                      (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                  }
+                }
               }
               else  //if no cutoff
               {
                 coords::float_type const r= sqrt(rr);
-                g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout), 
-                  (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
-                coords::float_type trash(0.0);
-                g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout), 
-                  (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                if (Config::get().general.input == config::input_types::AMBER)
+                {
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                    (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
+                  coords::float_type trash(0.0);
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                    (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                }
+                else
+                {
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
+                    (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
+                  coords::float_type trash(0.0);
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
+                    (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                }
               }
             }
             dist = b;
