@@ -256,6 +256,37 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       // Now we know some stuff, like how many atoms there are. 
       // So we can start allocating.
 
+      //Let's save the atom charges
+      if (currentSectionID == 3u)
+      {
+        for (unsigned int countlines = 0u; countlines < std::ceil(float(numberOfAtoms) / 5.f) - 1; countlines++)
+        {
+          std::getline(config_file_stream, line);
+          // A Line has 5 members in this format
+          for (unsigned int i = 0u; i < 5u; i++)
+          {
+            std::string charge_str = line.substr(i * 16u, 16u);
+            int exponent = std::stoi(charge_str.substr(13u, 3u));
+            double koeff = std::stod(charge_str.substr(0u, 12u));
+            charges.push_back((koeff * pow(10, exponent)) / 18.2223);
+            //divide by 18.2223 because AMBER works with a different unit for charges (see http://ambermd.org/formats.html#topo.cntrl)
+          }
+        }
+        // read last line if existent
+        std::getline(config_file_stream, line);
+        if (line.substr(0, 1) != "%")
+        {
+          for (unsigned int i = 0; i < line.size(); i = i + 16)
+          {
+            std::string charge_str = line.substr(i * 1u, 16);
+            int exponent = std::stoi(charge_str.substr(13u, 3u));
+            double koeff = std::stod(charge_str.substr(0u, 12u));
+            charges.push_back((koeff * pow(10, exponent)) / 18.2223);
+            //divide by 18.2223 because AMBER works with a different unit for charges (see http://ambermd.org/formats.html#topo.cntrl)
+          }
+        }
+      }
+
       //If section == BONDS_INC_HYDROGEN
 	    if (currentSectionID == 24u)
 	    {
