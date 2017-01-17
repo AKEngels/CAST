@@ -538,15 +538,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(8, 3) == "key")
       Config::set().energy.gaussian.command = value_string;
-    else if (option.substr(5, 4) == "link")
+    else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")
       Config::set().energy.gaussian.charge = value_string;
     else if (option.substr(8, 12) == "multiplicity")
       Config::set().energy.gaussian.multipl = value_string;
-    else if (option.substr(5, 4) == "path")
+    else if (option.substr(8, 4) == "path")
       Config::set().energy.gaussian.path = value_string;
-    else if (option.substr(5, 6) == "delete")
+    else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
 
