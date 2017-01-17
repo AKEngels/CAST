@@ -577,7 +577,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       if (! coord_file_stream.good()) 
         throw std::runtime_error("Can't read AMBER restart file " 
           + Config::get().io.amber_restrt 
-          + "which was specified in the inputfile.\n");
+          + " which was specified in the inputfile.\n");
       // Now, discard the title (if existent) and the line with the atom number
       std::getline(coord_file_stream, line);
       int atom_number;
