@@ -1,3 +1,5 @@
+"""This is a script to create the if loop in function amberUtil::toTinkerType out of the atom section of an tinker type amber forcefield"""
+
 with open("atoms.txt") as parameterfile:
     atoms_str = parameterfile.readlines()
 
