@@ -75,6 +75,8 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::~sysCallInterfaceGauss(void
     remove(std::string(id).append(".arc").c_str());
     remove(std::string(id).append("_sys.out").c_str());
     remove(std::string(id).append(".xyz.out").c_str());
+    remove(std::string(id).append(".gjf").c_str());
+    remove(std::string(id).append(".log").c_str());
   }
 }
 
