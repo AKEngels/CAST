@@ -2168,13 +2168,6 @@ namespace energy
           #pragma omp for reduction (+: e_c, e_v)
           for (std::ptrdiff_t i=0; i<M ; ++i)  //for every pair in pairlist
           {
-            double current_c;   // Q_a * Q_b from AMBER
-            if (Config::get().general.input == config::input_types::AMBER)
-            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
-              current_c = ca * cb;
-            }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between the two atoms
             if (PERIODIC) boundary(b.x(), b.y(), b.z());  // for periodic boundaries: 
 			                        // if the absolute value of the distance in one of the coordinates is bigger than half the box size:
@@ -2184,6 +2177,13 @@ namespace energy
             coords::float_type r(0.0), fQ(0.0), fV(0.0), dE(0.0);
             if(!cutob.factors(rr, r, fQ, fV)) continue;
             r = 1.0/r;
+            double current_c;   // Q_a * Q_b from AMBER
+            if (Config::get().general.input == config::input_types::AMBER)
+            {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
+              double ca = Config::get().coords.charges[pairlist[i].a];
+              double cb = Config::get().coords.charges[pairlist[i].b];
+              current_c = ca * cb;
+            }
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
               refined.type(pairlist[i].b)));   // get parameters for current pair
             if (Config::get().general.input == config::input_types::AMBER)
