@@ -26,8 +26,9 @@ namespace md
   static const double PI = 3.14159265358979323;
   /**gas constant*/
   static const double R = 1.9872066e-3;
-  /**something for pressure*/
-  static const double presc = 6.85684112e4;
+  /**conversion factor: (kcal/mol) / (atm*A^3) */
+  static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
+                                              // but the program wouldn't always give 0.00000 for pressure
 
   /**
   *collection of current simulation data

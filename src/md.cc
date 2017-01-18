@@ -704,7 +704,7 @@ void md::simulation::freecalc()
     temp_avg = temp_avg / iterator;
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
   }// end of main loop
-  // calcukate final free energy change for the current window
+  // calculate final free energy change for the current window
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
 }
 
@@ -943,10 +943,10 @@ void md::simulation::berendsen(double const & time)
   fac = presc / volume;
   // pressure for ISOTROPIC boxes
   if (Config::get().energy.isotropic == true) {
-    ptensor[0][0] = fac * (2.0 * E_kin_tensor[0][0] - coordobj.virial()[0][0]);
-    ptensor[1][1] = fac * (2.0 * E_kin_tensor[1][1] - coordobj.virial()[1][1]);
-    ptensor[2][2] = fac * (2.0 * E_kin_tensor[2][2] - coordobj.virial()[2][2]);
-    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
+    ptensor[0][0] = fac * 2.0 * (E_kin_tensor[0][0] - coordobj.virial()[0][0]);
+    ptensor[1][1] = fac * 2.0 * (E_kin_tensor[1][1] - coordobj.virial()[1][1]);
+    ptensor[2][2] = fac * 2.0 * (E_kin_tensor[2][2] - coordobj.virial()[2][2]);
+    press = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;  // pressure in bar or atm ???
     // Berendsen scaling for isotpropic boxes
     scale = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press - Config::get().md.ptarget)), 0.3333333333333);
     // Adjust box dimensions
@@ -1327,7 +1327,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 			std::cout << "Warning! Broken bonds between atoms...\n";
 			for (auto b : coordobj.broken_bonds)
 			{
-				std::cout << b[0] << " and " << b[1] << "\n";
+				std::cout << b[0] << " and " << b[1] << ", distance: "<<b[2]<< "\n";
 			}
 		}
 		if (Config::get().md.broken_restart == 1)
@@ -1521,7 +1521,7 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 				std::cout << "Warning! Broken bonds between atoms...\n";
 				for (auto b : coordobj.broken_bonds)
 				{
-					std::cout << b[0] << " and " << b[1] << "\n";
+					std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
 				}
 				if (Config::get().md.broken_restart == 1)
 				{         // if desired: set simulation to original positions and random velocities

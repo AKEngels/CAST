@@ -459,8 +459,8 @@ namespace coords
 
 	/**vector of broken bonds (determined by validate_bonds())
 	i.e. bondlength either too short or too long
-	each element of the vector is a vector which contains the numbers of the two atoms that form the bond*/
-	std::vector<std::vector<std::size_t>> broken_bonds;
+	each element of the vector is a vector which contains the numbers of the two atoms that form the bond and the bond length*/
+	std::vector<std::vector<float>> broken_bonds;
 
 	/**fills the coordinates object with data
 	@param a: atoms object

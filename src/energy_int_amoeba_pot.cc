@@ -157,27 +157,6 @@ void energy::interfaces::amoeba::amoeba_ff::calc(void)
   }
 }
 
-void energy::interfaces::amoeba::amoeba_ff::boxjump(void)
-{
-  size_t const N(coords->molecules().size());
-  coords::Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
-  for (size_t i = 0; i < N; ++i)
-  {
-    coords::Cartesian_Point tmp_com(coords->center_of_mass_mol(i));
-    tmp_com = -tmp_com;
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x() / Config::get().energy.pb_box.x() : 0.0;
-    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y() / Config::get().energy.pb_box.y() : 0.0;
-    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z() / Config::get().energy.pb_box.z() : 0.0;
-    tmp_com = round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
-    for (auto const atom : coords->molecules(i))
-    {
-      coords->move_atom_by(atom, tmp_com);
-    }
-
-  } // end of molecules loop
-}
 
 
 /****************************************
