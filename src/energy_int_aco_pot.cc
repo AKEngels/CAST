@@ -2118,8 +2118,8 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
@@ -2180,8 +2180,8 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
@@ -2254,8 +2254,8 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b

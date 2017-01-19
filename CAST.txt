@@ -39,10 +39,10 @@ inputtype              AMBER
 
 ### AMBER I/O OPTIONS
 
-amber_mdcrd            min.rst
+#amber_mdcrd           
 #amber_mdvel
 #amber_inpcrd
-#amber_restrt
+amber_restrt           min.rst
 #amber_trajectory_at_constant_pressure
 
 

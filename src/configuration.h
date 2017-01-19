@@ -415,8 +415,9 @@ namespace config
   /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-    /**vector with amber charges*/
-    std::vector<double> charges;
+    /**vector with amber charges (only filled if AMBER input is used)*/
+    std::vector<double> amber_charges;
+
 	  /**stuff for internal coordinates*/
     struct internals
     {
