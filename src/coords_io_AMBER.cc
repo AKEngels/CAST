@@ -659,22 +659,9 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         throw std::runtime_error("Can't read AMBER restart file " 
           + Config::get().io.amber_restrt 
           + " which was specified in the inputfile.\n");
-      // Now, discard the title (if existent) and the line with the atom number
+      // Now, discard the title and the line with the atom number (and simulation time)
       std::getline(coord_file_stream, line);
-      int atom_number;
-      bool title_exists = false;
-      try
-      {
-        atom_number = std::stoi(line);
-      }
-      catch (...)
-      {
-        title_exists = true;
-      }
-      if (title_exists == true)
-      {
-        std::getline(coord_file_stream, line);
-      }
+      std::getline(coord_file_stream, line);
 
       unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
