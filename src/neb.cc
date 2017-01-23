@@ -500,33 +500,33 @@ void neb::opt_io(ptrdiff_t &count)
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
     if (ts == true)
     {
-      off << "TS          " << ts_energies[count] << '\n';
-      off << "MIN         " << min_energies[count] << '\n';
+      off << "TS          " << std::right << std::fixed << std::setprecision(6) << ts_energies[count] << '\n';
+      off << "MIN         " << std::right << std::fixed << std::setprecision(6) << min_energies[count] << '\n';
       printmono(name.str(), imagi[0], count);
     }
-    off << "ENERGIE:    " << energies[0] << "   START\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[0] << "   START\n";
     for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
     {
-      off << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+      off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
     }
-    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) <<energies[num_images - 1] << "   FINAL\n";
     print(name.str(), imagi, count);
   }
   else
   {
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
-    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {
       cPtr->set_xyz(imagi[imagecount]);
-      off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+      off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
     }
 
     print_rev(name.str(), imagi, count);
     if (ts == true)
     {
-      off << "MIN         " << min_energies[count] << '\n';
-      off << "TS          " << ts_energies[count] << '\n';
+      off << "MIN         " << std::right << std::fixed << std::setprecision(6) << min_energies[count] << '\n';
+      off << "TS          " << std::right << std::fixed << std::setprecision(6) << ts_energies[count] << '\n';
       printmono(name.str(), ts_pathstruc, count);
     }
   }
