@@ -236,7 +236,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		global_image = opt;
 		std::ostringstream struc_opt;
 		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".arc";
-		output << mcstep << "    " << opt << "    " << MCEN << "\n";
+		output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 		counter++;
 		global_path_minima_energy[opt][counter] = MCEN;
 		for (size_t i = 0; i<cPtr->size(); i++)
@@ -385,11 +385,11 @@ void pathx::proof_connect()
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect[0] << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[0] << '\n';
 					printmono(img.str().c_str(), global_path_minima[1][j], j);
 					cPtr->set_xyz(global_path_minima[1][j]);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect[1] << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[1] << '\n';
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
@@ -400,14 +400,14 @@ void pathx::proof_connect()
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
 						energy_connect.push_back(cPtr->g());
-						energy << energy_connect[i+1] << '\n';
+						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
 						jj = PARTNER[i - tempcount][jj];
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
 					cPtr->set_xyz(tempstart2);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect.back() << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect.back() << '\n';
 					energy << "Barrier_rel to start: "<< *max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]<<'\n';
 					energy << "RATE via Arrhenius: " << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
 					arrhenius += exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_));
