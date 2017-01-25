@@ -105,9 +105,53 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
 
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 {
-  energy = 0.0;
-  std::ofstream workingonint("readingGaussianOutputnotimplemented.txt", std::ios_base::out);
-  workingonint << "Sorry.";
+  hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
+  auto in_string = id + ".log";
+  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
+
+  double const au2kcal(627.5095);  //1 au = 627.5095 kcal/mol
+  bool done(false);//to controll if reading was successfull
+  coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
+  std::vector <float> occMO, virtMO;
+
+  if (in_file)
+  {
+    std::string buffer;
+    while (!in_file.eof())
+    {
+      std::getline(in_file, buffer);
+
+      while (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
+      {
+        for (int i=0;buffer.length() > 0u; i++)
+        { occMO.push_back(std::stof (buffer.substr(28 + i * 10)));}
+      }
+
+      std::sort(occMO.begin(), occMO.end(), std::greater <float>());
+
+      while (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
+      {
+        for (int i=0; buffer.length() > 0u; i++)
+        { virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));}
+      }
+
+      std::sort(virtMO.begin(), virtMO.end());
+
+    }
+  }
+
+  std::ofstream mos("MOs.txt", std::ios_base::out);
+
+  for (int i = 0; i < occMO.size(); i++)
+  {
+    mos << occMO[i] << "/n";
+  }
+
+  for (int i = 0; i < virtMO.size(); i++)
+  {
+    mos << virtMO[i] << "/n";
+  }
+
 }
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
@@ -154,22 +198,19 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
-  integrity = true;
-  print_gaussianInput();
-  if (callGaussian() == 0) read_gaussianOutput();
-  else
+  if (Config::get().general.verbosity >= 2)
   {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
+    std::cout << "Gradient not implemented in CAST as yet.";
   }
   return energy;
 }
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 {
+  if (Config::get().general.verbosity >= 2)
+  {
+    std::cout << "Hessian not implemented in CAST as yet.";
+  }
   integrity = true;
   print_gaussianInput();
   if (callGaussian() == 0) read_gaussianOutput();
@@ -186,6 +227,10 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
+  if (Config::get().general.verbosity >= 2)
+  {
+    std::cout << "Optimization not implemented in CAST as yet.";
+  }
   integrity = true;
   print_gaussianInput();
   if (callGaussian() == 0) read_gaussianOutput();
