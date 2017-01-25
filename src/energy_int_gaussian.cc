@@ -124,7 +124,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       while (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
         for (int i=0;buffer.length() > 0u; i++)
-        { occMO.push_back(std::stof (buffer.substr(28 + i * 10)));}
+        { occMO.push_back(std::stof (buffer.substr(29 + i * 10)));}
       }
 
       std::sort(occMO.begin(), occMO.end(), std::greater <float>());
@@ -132,7 +132,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       while (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
         for (int i=0; buffer.length() > 0u; i++)
-        { virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));}
+        { virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));}
       }
 
       std::sort(virtMO.begin(), virtMO.end());
