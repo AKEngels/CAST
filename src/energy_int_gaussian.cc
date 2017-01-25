@@ -123,7 +123,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       while (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
-        for (int i=0;buffer.length() > 0u; i++)
+        for (int i=0;(29u + i * 10u) < (buffer.length()); i++)
         { occMO.push_back(std::stof (buffer.substr(29 + i * 10)));}
       }
 
@@ -131,7 +131,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       while (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i=0; buffer.length() > 0u; i++)
+        for (int i=0;(30u + i * 10u) < buffer.length(); i++)
         { virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));}
       }
 
