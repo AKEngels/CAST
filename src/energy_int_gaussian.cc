@@ -126,8 +126,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       {
         for (int i = 0; i < 4; i++) //in gaussian output orbital energies are presented in rows of 5
         { 
-          mos << i << "/n";
+          mos << i << '\n';
           occMO.push_back(std::stof (buffer.substr(29 + i * 10)));
+          mos << occMO[i] << '\n';
         }
       }
 
@@ -147,12 +148,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
   for (int i = 0; i < occMO.size(); i++)
   {
-    mos << occMO[i] << "/n";
+    mos << occMO[i] << '\n';
   }
 
   for (int i = 0; i < virtMO.size(); i++)
   {
-    mos << virtMO[i] << "/n";
+    mos << virtMO[i] << '\n';
   }
 
 }
