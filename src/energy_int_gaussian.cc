@@ -128,7 +128,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         for (int i = 0; i < 4; i++) //in gaussian output orbital energies are presented in rows of 5
         { 
           mos << i << '\n';
-          std::string::size_type position = /*29 +*/ i * 10;
+          std::string::size_type position = 29 + i * 10;
           test = buffer.substr(position);
           mos << test << '\n';
           float moenergie = std::stof(buffer.substr(position));
@@ -143,7 +143,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       {
         for (int i=0;i < 4; i++)
         { 
-          std::string::size_type position = /*30 +*/ i * 10;
+          std::string::size_type position = 30 + i * 10;
           float moenergie = std::stof(buffer.substr(position));
           virtMO.push_back(moenergie);
         }
