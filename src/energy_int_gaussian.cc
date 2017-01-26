@@ -126,9 +126,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       {
         for (int i = 0; i < 4; i++) //in gaussian output orbital energies are presented in rows of 5
         { 
-          float temp_mo = std::stof(buffer.substr(29 + i * 10));
-          mos << i << " " << temp_mo << '\n';
-          occMO.push_back(temp_mo);
+          mos << i << '\n';
+          int substringposition = 29 + i * 10;
+          occMO.push_back(std::stof (buffer.substr(substringposition)));
           mos << occMO[i] << '\n';
         }
       }
@@ -138,7 +138,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       while (buffer.find("Alpha virt. eigenvalues --"))
       {
         for (int i=0;i < 4; i++)
-        { virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));}
+        { 
+          int substringposition = 30 + i * 10;
+          virtMO.push_back(std::stof(buffer.substr(substringposition)));
+        }
       }
 
       std::sort(virtMO.begin(), virtMO.end());
