@@ -122,7 +122,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
     {
       std::getline(in_file, buffer);
 
-      while (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
+      while (buffer.find("Alpha  occ. eigenvalues --"))
       {
         for (int i = 0; i < 4; i++) //in gaussian output orbital energies are presented in rows of 5
         { 
@@ -133,7 +133,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       std::sort(occMO.begin(), occMO.end(), std::greater <float>());
 
-      while (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
+      while (buffer.find("Alpha virt. eigenvalues --"))
       {
         for (int i=0;i < 4; i++)
         { virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));}
