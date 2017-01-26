@@ -124,10 +124,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       while (buffer.find("Alpha  occ. eigenvalues --"))
       {
+        std::string test;
         for (int i = 0; i < 4; i++) //in gaussian output orbital energies are presented in rows of 5
         { 
           mos << i << '\n';
           std::string::size_type position = /*29 +*/ i * 10;
+          test = buffer.substr(position);
           float moenergie = std::stof(buffer.substr(position));
           occMO.push_back(moenergie);
           mos << occMO[i] << '\n';
