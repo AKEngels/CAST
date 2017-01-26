@@ -150,11 +150,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       std::sort(virtMO.begin(), virtMO.end());
 
-      for (int i = 0; i < occMO.size(); i++)
-      {
-        mos << occMO[i] << "     " << virtMO[i] << '\n';
-      }
-
     }
   }
 
