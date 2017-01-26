@@ -130,6 +130,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
           mos << i << '\n';
           std::string::size_type position = /*29 +*/ i * 10;
           test = buffer.substr(position);
+          mos << test << '\n';
           float moenergie = std::stof(buffer.substr(position));
           occMO.push_back(moenergie);
           mos << occMO[i] << '\n';
