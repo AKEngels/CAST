@@ -113,6 +113,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   bool done(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::vector <float> occMO, virtMO;
+  std::ofstream mos("MOs.txt", std::ios_base::out);
 
   if (in_file)
   {
@@ -123,8 +124,11 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       while (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
-        for (int i=0;(29u + i * 10u) < (buffer.length()); i++)
-        { occMO.push_back(std::stof (buffer.substr(29 + i * 10)));}
+        for (int i = 0; (29u + i * 10u) < (buffer.length()); i++)
+        { 
+          mos << i << "/n";
+          occMO.push_back(std::stof (buffer.substr(29 + i * 10)));
+        }
       }
 
       std::sort(occMO.begin(), occMO.end(), std::greater <float>());
@@ -140,7 +144,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
     }
   }
 
-  std::ofstream mos("MOs.txt", std::ios_base::out);
 
   for (int i = 0; i < occMO.size(); i++)
   {
