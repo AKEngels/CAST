@@ -924,7 +924,12 @@ namespace energy
         return Q;
       }
 
-
+      /**calculate coulomb potential and gradient for FEP;
+      returns the energy
+      @param C: product of the charges
+      @param ri: distance between the two atoms
+      @param cout: lambda_el
+      @param dQ: reference to variable that saves gradient*/
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep 
         (coords::float_type const C, coords::float_type const ri, 
         coords::float_type const c_out, coords::float_type & dQ) const
@@ -936,7 +941,7 @@ namespace energy
           pow(rmod, 0.16666666666666); //Q
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
           c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // dQ/dr
-        dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted
+        //dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted (WHY???)
         return Q;
       }
 
@@ -1025,8 +1030,10 @@ namespace energy
         D6 = Config::get().fep.ljshift * (1 - vout) * (1 - vout) * T + D6; //r^6 shifted
         D12 = D6 * D6; //r^12 shifted
         coords::float_type V = vout * E * (T2/D12 - 2*T/D6);   //potential
-        dV = vout * E * 12.0 * (T * D6 - (T2))/D13;
-        dV = dV/std::pow(D6, 0.16666666666666);
+        double numerator = T * (Config::get().fep.ljshift * (vout - 1)*(vout - 1) - 1) + r*r*r*r*r*r;
+        double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
+        dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
+        //dV = dV/std::pow(D6, 0.16666666666666);  (WHY???)
         return V;
       }
 
@@ -1050,7 +1057,8 @@ namespace energy
         D = Config::get().fep.ljshift * (1-vout) * (1-vout) * T + D; // r^6 shifted
         T /= D;
         coords::float_type V = vout*E*T;
-        dV = V*r*(6.0-12.0*T);
+        double numerator = R*R*R*R*R*R * (Config::get().fep.ljshift*(vout - 1)*(vout - 1) - 2) + r*r*r*r*r*r;
+        dV = 6 * E * vout * R*R*R*R*R*R * r*r*r*r*r * numerator / (D*D*D);
         return V*(T-1.0);
       }
 
