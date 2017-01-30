@@ -907,20 +907,27 @@ namespace energy
       }
 
 
-      // C = q1*q2, ri = 1/r, dQ = dQ/dr
-      inline coords::float_type energy::interfaces::aco::aco_ff::eQ 
+      /**calculate coulomb potential;
+      returns the energy
+      @param C: product of the charges
+      @param ri: inverse distance between the two atoms */
+      coords::float_type energy::interfaces::aco::aco_ff::eQ 
         (coords::float_type const C, coords::float_type const ri) const
       {
         return C*ri;
       }
 
         
-      // C = q1*q2, ri = 1/r, dQ = dQ/dr
+      /**calculate coulomb potential and gradient for FEP;
+      returns the energy
+      @param C: product of the charges
+      @param ri: distance between the two atoms
+      @param dQ: reference to variable that saves derivative (not devided by dr) */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ 
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
         coords::float_type const Q = C*ri; // Q = C/r
-        dQ = -Q*ri; // dQ/dr = -C/r^2 (derivative)
+        dQ = -Q*ri; 
         return Q;
       }
 
@@ -929,7 +936,7 @@ namespace energy
       @param C: product of the charges
       @param ri: distance between the two atoms
       @param cout: lambda_el
-      @param dQ: reference to variable that saves gradient*/
+      @param dQ: reference to variable that saves gradient dQ/dr */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep 
         (coords::float_type const C, coords::float_type const ri, 
         coords::float_type const c_out, coords::float_type & dQ) const
@@ -940,8 +947,9 @@ namespace energy
         coords::float_type const Q = c_out * C / 
           pow(rmod, 0.16666666666666); //Q
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
-          c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // dQ/dr
-        //dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted (WHY???)
+          c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // derivative
+        auto r_shifted = pow((1.0 - c_out) *Config::get().fep.cshift + ri*ri*ri*ri*ri*ri, 0.16666666666666);
+        dQ = dQ / r_shifted;
         return Q;
       }
 
@@ -950,8 +958,12 @@ namespace energy
         lennard-jones potentials
       */
 
-      
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::eV
+      /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: r_min-parameter
+      @param r: inverse distance 1/r between the two atoms*/
+      template<> coords::float_type energy::interfaces::aco::aco_ff::eV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r) const
       {
@@ -961,8 +973,12 @@ namespace energy
         return E*T*(T-2.0);
       }
 
-
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::eV
+      /**calculate lenard-jones potential and gradient for oplsaa forcefield (sigma-type);
+      returns the energy
+      @param E: 4 * epsilon-parameter
+      @param R: sigma-parameter
+      @param r: inverse distance 1/r between the two atoms*/
+      template<> coords::float_type energy::interfaces::aco::aco_ff::eV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r) const
       {
@@ -977,7 +993,7 @@ namespace energy
       @param E: 4 * epsilon-parameter
       @param R: r_min-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves gradient (not divided by dr)*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -995,7 +1011,7 @@ namespace energy
       @param E: epsilon-parameter
       @param R: sigma-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves gradient (not divided by dr)*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1014,7 +1030,7 @@ namespace energy
       @param R: r_min-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves gradient dV/dr*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, 
@@ -1033,7 +1049,8 @@ namespace energy
         double numerator = T * (Config::get().fep.ljshift * (vout - 1)*(vout - 1) - 1) + r*r*r*r*r*r;
         double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
         dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
-        //dV = dV/std::pow(D6, 0.16666666666666);  (WHY???)
+        auto r_shifted = std::pow(D6, 0.16666666666666);
+        dV = dV / r_shifted;
         return V;
       }
 
@@ -1043,7 +1060,7 @@ namespace energy
       @param R: sigma-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves gradient dV/dr*/
         template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
           < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, 
@@ -1059,12 +1076,14 @@ namespace energy
         coords::float_type V = vout*E*T;
         double numerator = R*R*R*R*R*R * (Config::get().fep.ljshift*(vout - 1)*(vout - 1) - 2) + r*r*r*r*r*r;
         dV = 6 * E * vout * R*R*R*R*R*R * r*r*r*r*r * numerator / (D*D*D);
+        auto r_shifted = std::pow(D, 0.16666666666666);
+        dV = dV / r_shifted;
         return V*(T-1.0);
       }
 
-
+      /**d = 1/r*/
       template< ::tinker::parameter::radius_types::T RT> 
-      inline void energy::interfaces::aco::aco_ff::e_QV  
+      void energy::interfaces::aco::aco_ff::e_QV  
         (coords::float_type const C, coords::float_type const E, 
           coords::float_type const R, coords::float_type const d, 
         coords::float_type &e_c, coords::float_type &e_v) const
@@ -1073,7 +1092,7 @@ namespace energy
         e_v += eV<RT>(E, R, d);
       }
 
-
+      /**d = 1/r*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV  
         (coords::float_type const C, coords::float_type const E, 
@@ -1083,10 +1102,10 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV)*d;
+        dE = (dQ + dV)*d;   // dE/dr
       }
 
-
+      /**d = r*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_fep  
         (coords::float_type const C, coords::float_type const E, 
@@ -1097,7 +1116,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ_fep(C, d, c_io, dQ);
         e_v += gV_fep<RT>(E, R, d, v_io, dV);
-        dE = (dQ + dV);
+        dE = dQ + dV;  // dE/dr
       }
 
 

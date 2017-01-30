@@ -3,6 +3,7 @@
 #include "tinker_parameters.h"
 #include "tinker_refine.h"
 #include "coords.h"
+#define private public //for testing reasons
 
 namespace energy
 {
@@ -147,13 +148,13 @@ namespace energy
         template<std::size_t T_DERV> coords::float_type solv();
 
         /**charge energy */
-        inline coords::float_type eQ (coords::float_type const C, coords::float_type const r) const;
+        coords::float_type eQ (coords::float_type const C, coords::float_type const r) const;
         /** charge gradients */
         inline coords::float_type gQ (coords::float_type const C, coords::float_type const r, coords::float_type &dQ) const;
         /** charge gradients fep version */
         inline coords::float_type gQ_fep(coords::float_type const C, coords::float_type const r, coords::float_type const c_out, coords::float_type &dQ) const;
         /** vdw energy */
-        template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > inline coords::float_type eV 
+        template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > coords::float_type eV 
           (coords::float_type const E, coords::float_type const R, coords::float_type const r) const;
         /** vdw gradients */
         template< ::tinker::parameter::radius_types::T T_RADIUSTYPE > inline coords::float_type gV 
@@ -167,7 +168,7 @@ namespace energy
 		
 		/** charge+vdw energies (no cutoff, no fep, no periodics) */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE> 
-        inline void e_QV  (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r, 
+        void e_QV  (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r, 
           coords::float_type &e_c, coords::float_type &e_v) const;
         /** charge+vdw gradients (no cutoff, no fep, no periodics) */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE> 
