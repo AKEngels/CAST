@@ -125,14 +125,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
        /* std::string test;*/
-        for (int i = 0; i < 5; i++) //in gaussian output orbital energies are presented in rows of 5
-        { 
-         /* mos << i << '\n';*/
-          std::string::size_type position = 29 + i * 10;
-          /*test = buffer.substr(position);
-          mos << test << '\n';*/
-          float moenergie = std::stof(buffer.substr(position));
-          occMO.push_back(moenergie);
+        for (int i = 0; buffer.substr(29 + i * 10) != " "; i++) //in gaussian output orbital energies are presented in rows of 5
+        {   
+          occMO.push_back(std::stof(buffer.substr( 29 + i * 10)));
         }
       }
 
@@ -140,11 +135,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i=0;i < 5; i++)
+        for (int i=0; buffer.substr(30 + i * 10) != " "; i++)
         { 
-          std::string::size_type position = 30 + i * 10;
-          float moenergie = std::stof(buffer.substr(position));
-          virtMO.push_back(moenergie);
+          virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));
         }
       }
 
