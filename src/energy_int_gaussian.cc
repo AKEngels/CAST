@@ -114,6 +114,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::vector <float> occMO, virtMO;
   std::ofstream mos("MOs.txt", std::ios_base::out);
+  bool occmodone(false), virtmodone(false);
+  std::string::size_type amo;
 
   if (in_file)
   {
@@ -125,9 +127,11 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
        /* std::string test;*/
-        for (int i = 0; buffer[29 + (i+1) * 10] != '\n'; i++) //in gaussian output orbital energies are presented in rows of 5
+       
+        for (int i = 0; occmodone == false; i++) //in gaussian output orbital energies are presented in rows of 5
         {   
-          occMO.push_back(std::stof(buffer.substr( 29 + i * 10)));
+          occMO.push_back(std::stof(buffer.substr( 29 + i * 10), &amo));
+          buffer[amo] == '\n' ? occmodone = true : occmodone = false;
         }
       }
 
@@ -135,9 +139,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i=0; buffer[30 + (i+1) * 10] != '\n'; i++)
+        for (int i=0; virtmodone == false; i++)
         { 
-          virtMO.push_back(std::stof(buffer.substr(30 + i * 10)));
+          virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
+          buffer[amo] == '\n' ? virtmodone = true : virtmodone = false;
         }
       }
 
