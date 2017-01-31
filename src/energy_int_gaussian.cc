@@ -159,12 +159,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
      for (int i = 0; i < occMO.size(); i++)
      {
-       occMO[i] *= au2kcal_mol;
+       occMO[i] *= eV2kcal_mol;
      }
 
      for (int i = 0; i < virtMO.size(); i++)
      {
-       virtMO[i] *= au2kcal_mol;
+       virtMO[i] *= eV2kcal_mol;
      }
 
      for (int i = 0; i < excitE.size(); i++)
