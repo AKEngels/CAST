@@ -155,6 +155,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
      std::sort(excitE.begin(), excitE.end()); //sort excitation energies lowest to highest
 
+     //converting energie units to kcal/mol
+
+     for (float f : occMO) { f *= au2kcal_mol; }
+     for (float f : virtMO) { f *= au2kcal_mol; }
+     for (float f :excitE) { f *= eV2kcal_mol; }
+
      //for (int i = 0; i < occMO.size(); i++) //controll output for mo energies to test if they are fetched and sorted correctly
      // {
      //    mos << occMO[i] << '\n';
@@ -165,10 +171,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      //   mos << virtMO[i] << '\n';
      // }
 
-     for (float f : excitE)
-     { 
-       mos << f << '\n';
-     }
+     //for (float f : excitE) //controll output for excitation energuies
+     //{ 
+     //  mos << f << '\n';
+     //}
 
   }
 
