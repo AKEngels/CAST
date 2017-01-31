@@ -112,10 +112,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   double const au2kcal(627.5095);  //1 au = 627.5095 kcal/mol
   bool done(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
-  std::vector <float> occMO, virtMO;
-  std::ofstream mos("MOs.txt", std::ios_base::out);
-  bool occmodone(false), virtmodone(false);
-  std::string::size_type amo;
+  std::vector <float> occMO, virtMO, excitE;
+  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
 
   if (in_file)
   {
@@ -134,7 +132,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         }
       }
 
-      std::sort(occMO.begin(), occMO.end(), std::greater <float>());
+     
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
@@ -144,19 +142,33 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         }
       }
 
-      std::sort(virtMO.begin(), virtMO.end());
+      
+
+      if (buffer.find(" Excited State   "))//fetches excitation energies from gaussian output
+      {
+        excitE.push_back(std::stof(buffer.substr(38)));
+      }
 
     }
 
-   for (int i = 0; i < occMO.size(); i++)
-    {
-       mos << occMO[i] << '\n';
-    }
+     std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
+     std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
+     std::sort(excitE.begin(), excitE.end()); //sort excitation energies lowest to highest
 
-   for (int i = 0; i < virtMO.size(); i++)
-    {
-      mos << virtMO[i] << '\n';
-    }
+     //for (int i = 0; i < occMO.size(); i++) //controll output for mo energies to test if they are fetched and sorted correctly
+     // {
+     //    mos << occMO[i] << '\n';
+     // }
+
+     //for (int i = 0; i < virtMO.size(); i++)
+     // {
+     //   mos << virtMO[i] << '\n';
+     // }
+
+   for (int i = 0; i < excitE.size(); i++)
+   {
+     mos << excitE[i] << '\n';
+   }
 
   }
 
