@@ -109,7 +109,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   auto in_string = id + ".log";
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
-  double const au2kcal(627.5095);  //1 au = 627.5095 kcal/mol
+  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   bool done(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::vector <float> occMO, virtMO, excitE;
@@ -165,10 +165,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      //   mos << virtMO[i] << '\n';
      // }
 
-   for (int i = 0; i < excitE.size(); i++)
-   {
-     mos << excitE[i] << '\n';
-   }
+     for (float f : excitE)
+     { 
+       mos << f << '\n';
+     }
 
   }
 
