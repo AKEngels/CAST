@@ -161,25 +161,15 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      for (float f : virtMO) { f *= au2kcal_mol; }
      for (float f :excitE) { f *= eV2kcal_mol; }
 
-     //for (int i = 0; i < occMO.size(); i++) //controll output for mo energies to test if they are fetched and sorted correctly
-     // {
-     //    mos << occMO[i] << '\n';
-     // }
+     for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
+      { mos << f << '\n'; }
 
-     //for (int i = 0; i < virtMO.size(); i++)
-     // {
-     //   mos << virtMO[i] << '\n';
-     // }
+     for (float f : virtMO) { mos << f << '\n'; }
 
-     //for (float f : excitE) //controll output for excitation energuies
-     //{ 
-     //  mos << f << '\n';
-     //}
+     for (float f : excitE) //controll output for excitation energuies
+     {  mos << f << '\n'; }
 
   }
-
-
- 
 
 }
 
