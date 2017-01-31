@@ -157,9 +157,21 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
      //converting energie units to kcal/mol
 
-     for (float f : occMO) { f *= au2kcal_mol; }
-     for (float f : virtMO) { f *= au2kcal_mol; }
-     for (float f :excitE) { f *= eV2kcal_mol; }
+     for (int i = 0; i < occMO.size(); i++)
+     {
+       occMO[i] *= au2kcal_mol;
+     }
+
+     for (int i = 0; i < virtMO.size(); i++)
+     {
+       virtMO[i] *= au2kcal_mol;
+     }
+
+     for (int i = 0; i < excitE.size(); i++)
+     {
+       excitE[i] *= eV2kcal_mol;
+     }
+      
 
      for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
       { mos << f << '\n'; }
