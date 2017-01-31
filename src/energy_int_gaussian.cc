@@ -144,7 +144,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       
 
-      if (buffer.find(" Excited State   "))//fetches excitation energies from gaussian output
+      if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
         mos << (buffer.substr(38)) << '\n';
         excitE.push_back(std::stof(buffer.substr(38)));
