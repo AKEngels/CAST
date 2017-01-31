@@ -106,6 +106,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 {
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
+  float hof_au(.0);
   auto in_string = id + ".log";
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
@@ -149,6 +150,11 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         excitE.push_back(std::stof(buffer.substr(38)));
       }
 
+      if (buffer.find(" SCF Done:") != std::string::npos)
+      {
+        hof_au = std::stof(buffer.substr(24));
+      }
+
     }
 
      std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
@@ -159,27 +165,31 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
      for (int i = 0; i < occMO.size(); i++)
      {
-       occMO[i] *= eV2kcal_mol;
+       occMO[i] *= au2kcal_mol;
      }
 
      for (int i = 0; i < virtMO.size(); i++)
      {
-       virtMO[i] *= eV2kcal_mol;
+       virtMO[i] *= au2kcal_mol;
      }
 
      for (int i = 0; i < excitE.size(); i++)
      {
        excitE[i] *= eV2kcal_mol;
      }
+
+     hof_kcal_mol = hof_au * au2kcal_mol;
       
 
-     for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
-      { mos << f << '\n'; }
+     //for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
+     // { mos << f << '\n'; }
 
-     for (float f : virtMO) { mos << f << '\n'; }
+    /* for (float f : virtMO) { mos << f << '\n'; }*/
 
-     for (float f : excitE) //controll output for excitation energuies
-     {  mos << f << '\n'; }
+     //for (float f : excitE) //controll output for excitation energuies
+     //{  mos << f << '\n'; }
+
+     mos << hof_au << "  " << hof_kcal_mol << '\n';
 
   }
 
