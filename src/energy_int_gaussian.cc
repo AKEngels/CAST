@@ -212,15 +212,18 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
     e_total = e_total_au * au2kcal_mol;
       
 
-     for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
-      { mos << f << '\n'; }
+     //for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
+     // { mos << f << '\n'; }
 
-     for (float f : virtMO) { mos << f << '\n'; }
+     //for (float f : virtMO) { mos << f << '\n'; }
 
      //for (float f : excitE) //controll output for excitation energuies
      //{  mos << f << '\n'; }
 
      //mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n'; //controll output for scf energies
+
+    for (float f : gradients)
+    { mos << f << '\n'; }
 
   }
 
