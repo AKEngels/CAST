@@ -164,7 +164,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
       }
 
-      if (buffer.find("(DIIS)     (GDIIS)  (Total)") != std::string::npos) //fetches last calculated gradients from output
+      if (buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
         float temp_grad(.0);
 
@@ -173,6 +173,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
           gradients.erase(gradients.begin(), gradients.end());
         }
 
+        std::getline(in_file, buffer);
         std::getline(in_file, buffer);
         while (!(buffer.find("Item")) != std::string::npos)
         {
