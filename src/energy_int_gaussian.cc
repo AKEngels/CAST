@@ -113,7 +113,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   bool done(false),test_lastMOs(false), test_lastgradient(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
-  std::vector <float> occMO, virtMO, excitE, gradients;
+  std::vector <float> occMO, virtMO, excitE, the_last_gradients;
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
 
   if (in_file)
@@ -170,7 +170,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
         if (test_lastgradient == true)
         {
-          gradients.erase(gradients.begin(), gradients.end());
+          the_last_gradients.erase(the_last_gradients.begin(), the_last_gradients.end());
         }
 
         std::getline(in_file, buffer);
@@ -178,7 +178,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         while (!(buffer.find("Item")) != std::string::npos)
         {
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", temp_grad);
-          gradients.push_back(temp_grad);
+          the_last_gradients.push_back(temp_grad);
           std::getline(in_file, buffer);
         }
         if ((buffer.find("Item")) != std::string::npos)
@@ -223,7 +223,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
      //mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n'; //controll output for scf energies
 
-    for (float f : gradients)
+    for (float f : the_last_gradients)
     { mos << f << '\n'; }
 
   }
