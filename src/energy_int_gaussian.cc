@@ -106,7 +106,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 {
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
-  float hof_au(.0);
+  float hof_au(0.0), e_total_au(0.0);
   auto in_string = id + ".log";
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
@@ -152,7 +152,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
       if (buffer.find(" SCF Done:") != std::string::npos)
       { 
-        hof_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
+        e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
       }
 
     }
@@ -178,7 +178,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
        excitE[i] *= eV2kcal_mol;
      }
 
-     hof_kcal_mol = hof_au * au2kcal_mol;
+    e_total = e_total_au * au2kcal_mol;
       
 
      //for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
@@ -189,7 +189,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      //for (float f : excitE) //controll output for excitation energuies
      //{  mos << f << '\n'; }
 
-     mos << hof_au << "  " << hof_kcal_mol << '\n';
+     mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n';
 
   }
 
