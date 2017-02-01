@@ -111,9 +111,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
-  bool done(false);//to controll if reading was successfull
+  bool done(false),test_lastMOs(false), test_lastgradient(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
-  std::vector <float> occMO, virtMO, excitE;
+  std::vector <float> occMO, virtMO, excitE, gradients;
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
 
   if (in_file)
@@ -122,11 +122,19 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
     while (!in_file.eof())
     {
       std::getline(in_file, buffer);
-
+      
      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
       {
-       /* std::string test;*/
-       
+       if (test_lastMOs == true)
+       {
+         occMO.erase(occMO.begin(), occMO.end());
+         virtMO.erase(virtMO.begin(), virtMO.end());
+         test_lastMOs = false;
+       }
+      }
+
+     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
+      {   
         for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
         {   
           occMO.push_back(std::stof(buffer.substr( 29 + i * 10)));
@@ -141,6 +149,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         { 
           virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
+        test_lastMOs = true;
       }
 
       
@@ -153,6 +162,28 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       if (buffer.find(" SCF Done:") != std::string::npos)
       { 
         e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
+      }
+
+      if (buffer.find("(DIIS)     (GDIIS)  (Total)") != std::string::npos) //fetches last calculated gradients from output
+      {
+        float temp_grad(.0);
+
+        if (test_lastgradient == true)
+        {
+          gradients.erase(gradients.begin(), gradients.end());
+        }
+
+        std::getline(in_file, buffer);
+        while (!(buffer.find("Item")) != std::string::npos)
+        {
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", temp_grad);
+          gradients.push_back(temp_grad);
+          std::getline(in_file, buffer);
+        }
+        if ((buffer.find("Item")) != std::string::npos)
+        {
+          test_lastgradient = true;
+        }
       }
 
     }
@@ -181,15 +212,15 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
     e_total = e_total_au * au2kcal_mol;
       
 
-     //for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
-     // { mos << f << '\n'; }
+     for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
+      { mos << f << '\n'; }
 
-    /* for (float f : virtMO) { mos << f << '\n'; }*/
+     for (float f : virtMO) { mos << f << '\n'; }
 
      //for (float f : excitE) //controll output for excitation energuies
      //{  mos << f << '\n'; }
 
-     mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n';
+     //mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n'; //controll output for scf energies
 
   }
 
