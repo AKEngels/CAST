@@ -1088,11 +1088,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-<<<<<<< Updated upstream
-        dE = (dQ + dV)*d;
-=======
         dE = (dQ + dV)*d;   // //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
->>>>>>> Stashed changes
       }
 
 
@@ -2116,11 +2112,7 @@ namespace energy
             {
               g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
             }
-<<<<<<< Updated upstream
-            b *= dE;
-=======
             b *= dE; // gradient dE/dr is getting a direction by muliplying it with vector between atoms
->>>>>>> Stashed changes
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
           }
