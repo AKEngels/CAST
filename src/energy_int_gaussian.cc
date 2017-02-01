@@ -164,28 +164,28 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
       }
 
-      //if (buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
-      //{
-      //  float temp_grad(.0);
+      if (buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
+      {
+        float temp_grad(.0);
 
-      //  if (test_lastgradient == true)
-      //  {
-      //    the_last_gradients.erase(the_last_gradients.begin(), the_last_gradients.end());
-      //  }
+        if (test_lastgradient == true)
+        {
+          the_last_gradients.erase(the_last_gradients.begin(), the_last_gradients.end());
+        }
 
-      //  std::getline(in_file, buffer);
-      //  std::getline(in_file, buffer);
-      //  while (!(buffer.find("Item")) != std::string::npos)
-      //  {
-      //    std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", temp_grad);
-      //    the_last_gradients.push_back(temp_grad);
-      //    std::getline(in_file, buffer);
-      //  }
-      //  if ((buffer.find("Item")) != std::string::npos)
-      //  {
-      //    test_lastgradient = true;
-      //  }
-      //}
+        std::getline(in_file, buffer);
+        std::getline(in_file, buffer);
+        while (!(buffer.find("Item")) != std::string::npos)
+        {
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &temp_grad);
+          the_last_gradients.push_back(temp_grad);
+          std::getline(in_file, buffer);
+        }
+        if ((buffer.find("Item")) != std::string::npos)
+        {
+          test_lastgradient = true;
+        }
+      }
 
     }
 
@@ -223,8 +223,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
      //mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n'; //controll output for scf energies
 
-    /*for (float f : the_last_gradients)
-    { mos << f << '\n'; }*/
+    for (float f : the_last_gradients)
+    { mos << f << '\n'; }
 
   }
 
