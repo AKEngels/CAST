@@ -151,10 +151,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
       }
 
       if (buffer.find(" SCF Done:") != std::string::npos)
-      {
-        std::size_t p = buffer.find_first_of("=") + 1;
-        mos << buffer.substr(p) << '\n';
-        hof_au = std::stof(buffer.substr(p));
+      { 
+        hof_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
       }
 
     }
