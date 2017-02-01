@@ -676,11 +676,8 @@ void md::simulation::fepinit(void)
     coordobj.pme.pmetemp.paralleloutpme.Allocate(coordobj.pme.pmetemp.fepo.size(), coordobj.pme.pmetemp.rgridtotal);
     coordobj.pme.pmetemp.parallelallpme.Allocate(coordobj.pme.pmetemp.fepa.size(), coordobj.pme.pmetemp.rgridtotal);
   }*/
-
-
-
-
 }
+
 //Calculation of ensemble average and free energy change for each step if FEP calculation is performed
 // calculation can be improved if at every step the current averages are stored
 // currently calculation is performed at the end of each window

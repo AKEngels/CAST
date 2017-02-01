@@ -1,3 +1,7 @@
+/**
+This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
+*/
+
 #include <cmath>
 #include <stddef.h>
 #include <stdexcept>
@@ -146,12 +150,12 @@ namespace energy
           auto const r = d - bond.ideal;
           auto dE = bond.force*r;
           E += dE*r;  // kcal/mol
-          dE *= 2;  // kcal/(mol*Angstrom)
+          dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
           if (abs(d) > 0.0) 
           {
             if (abs(r) > 0.5) integrity = false;
-            dE /= d;  // kcal/(mol*A^2)
-            auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A))
+            dE /= d;  // kcal/(mol*A^2)   gradient divided by distance because later it is multiplied with it again
+            auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
             part_grad[BOND][bond.atoms[0]] += gv;   //(kcal/(mol*A))
             part_grad[BOND][bond.atoms[1]] -= gv;
             //increment internal virial tensor (no factor 1/2 because atoms i and j have the same contribution)
