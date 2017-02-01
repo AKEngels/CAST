@@ -949,7 +949,7 @@ namespace energy
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
           c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // derivative
         auto r_shifted = pow((1.0 - c_out) *Config::get().fep.cshift + ri*ri*ri*ri*ri*ri, 0.16666666666666);
-        dQ = dQ / r_shifted;
+        dQ = dQ / ri;
         return Q;
       }
 
@@ -1050,7 +1050,7 @@ namespace energy
         double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
         dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
         auto r_shifted = std::pow(D6, 0.16666666666666);
-        dV = dV / r_shifted;
+        dV = dV / r;
         return V;
       }
 
@@ -1077,7 +1077,7 @@ namespace energy
         double numerator = R*R*R*R*R*R * (Config::get().fep.ljshift*(vout - 1)*(vout - 1) - 2) + r*r*r*r*r*r;
         dV = 6 * E * vout * R*R*R*R*R*R * r*r*r*r*r * numerator / (D*D*D);
         auto r_shifted = std::pow(D, 0.16666666666666);
-        dV = dV / r_shifted;
+        dV = dV / r;
         return V*(T-1.0);
       }
 
