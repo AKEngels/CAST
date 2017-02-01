@@ -917,12 +917,11 @@ namespace energy
         return C*ri; //kcal/mol
       }
 
-        
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
       @param C: product of the charges
       @param ri: inverse distance between the two atoms
-      @param dQ: reference to variable that saves derivative (not devided by dr) */
+      @param dQ: reference to variable that saves absolute value of gradient */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ 
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
@@ -993,7 +992,7 @@ namespace energy
       @param E: 4 * epsilon-parameter
       @param R: r_min-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient (not divided by dr)*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1011,7 +1010,7 @@ namespace energy
       @param E: epsilon-parameter
       @param R: sigma-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient (not divided by dr)*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1115,7 +1114,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV)*d;   // dE/dr [kcal/(mol*A^2)]
+        dE = (dQ + dV)*d;   // //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
        /**calculate non-bonding interactions and gradients between two atoms when one of them is IN or OUT (FEP)
@@ -1181,7 +1180,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ)*fQ;
         e_v += gV<RT>(E, R, d, dV)*fV; 
-        dE = (dQ*fQ+dV*fV)*d;
+        dE = (dQ*fQ+dV*fV)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied 
@@ -2177,7 +2176,7 @@ namespace energy
             {
               g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
             }
-            b *= dE; //[kcal/(mol*A)]
+            b *= dE; // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
           }
@@ -2239,7 +2238,7 @@ namespace energy
             }
             
             auto const dist = b;
-            b *= dE;
+            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
             //Increment internal virial tensor
@@ -2376,7 +2375,7 @@ namespace energy
               }
             }
             dist = b;
-            b *= dE;
+            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             e_c_l += Q;
             e_vdw_l += V;
             e_c += Q;
