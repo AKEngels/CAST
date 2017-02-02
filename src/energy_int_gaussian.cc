@@ -254,7 +254,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     for (int i; i < xyz_tmp.size(); i++)
     {
-      mos << xyz_tmp[i].x << "  " << xyz_tmp[i].y << "  " << xyz_tmp[i].z << "  " << " | " << g_tmp[i].x << " " << g_tmp[i].y << " " << g_tmp[i].z << " " << '\n';
+      mos << xyz_tmp[i].x() << "  " << xyz_tmp[i].y() << "  " << xyz_tmp[i].z() << "  " << " | " << g_tmp[i].x() << " " << g_tmp[i].y() << " " << g_tmp[i].z() << " " << '\n';
     }
 
     mos << '\n';
