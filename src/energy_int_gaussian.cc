@@ -198,7 +198,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       if (grad && buffer.find("Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
       {
-        std::size_t i(0);
         coords::Cartesian_Point p;
 
         xyz_tmp.erase(xyz_tmp.begin(), xyz_tmp.end());
@@ -206,7 +205,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         std::getline(in_file, buffer);
         
 
-        for (; i < atoms && !in_file.eof(); ++i)
+        for ( std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
           
