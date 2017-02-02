@@ -103,21 +103,27 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
-void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
+void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
+  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
   float hof_au(0.0), e_total_au(0.0);
-  auto in_string = id + ".log";
-  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
 
-  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
-  bool done(false),test_lastMOs(false), test_lastgradient(false), grad_read(true);//to controll if reading was successfull
-  coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
-  std::vector <float> occMO, virtMO, excitE, the_last_gradients;
+  auto in_string = id + ".log";
+
+  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
+  std::vector <float> occMO, virtMO, excitE;
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
+
+  bool done(false),test_lastMOs(false);//to controll if reading was successfull
+  coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
+  std::size_t const atoms = coords->size();
 
   if (in_file)
   {
+    
+
+
     std::string buffer;
     while (!in_file.eof())
     {
@@ -164,36 +170,57 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
         e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
       }
 
-      if (buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
+      if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
-        float temp_grad(.0);
+        coords::Cartesian_Point g;
 
-        grad_read = true;
 
-        the_last_gradients.erase(the_last_gradients.begin(), the_last_gradients.end());
+        g_tmp.erase(g_tmp.begin(), g_tmp.end());
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        while (grad_read)
+       for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", &temp_grad);
-          //mos << temp_grad << " §§" << '\n';
-          the_last_gradients.push_back(temp_grad);
+          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.x);
           std::getline(in_file, buffer);
-          if (buffer.find("Item") != std::string::npos)
-          {
-            grad_read = false;
+          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.y);
+          std::getline(in_file, buffer);
+          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.z);
+         
+          std::getline(in_file, buffer);
+
+          g_tmp[i] = g;
+          
           }
         }
       } //end gradient reading
 
-      //if (buffer.find(" Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
-      //{
+      if (grad && buffer.find(" Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
+      {
+        std::size_t i(0);
+        coords::Cartesian_Point p;
 
-      //}
+        std::getline(in_file, buffer);
+        
 
-    }
+        for (; i < atoms && !in_file.eof(); ++i)
+        {
+          std::getline(in_file, buffer);
+          std::istringstream bss(buffer);
+          std::size_t tx;
+          int atm_nmr, int atm_typ;
+
+          bss >> tx >> atm_nmr >> atm_typ >> p.x() >> p.y() >> p.y();
+
+          if (opt)
+          {
+            xyz_tmp[i] = p;
+          }
+        }
+      }//end coordinater reading
+
+    } //end if(in_file)
 
      std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
@@ -217,24 +244,30 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
      }
 
     e_total = e_total_au * au2kcal_mol;
-      
 
-     //for (float f : occMO) //controll output for mo energies to test if they are fetched and sorted correctly
-     // { mos << f << '\n'; }
+    for (auto i : occMO)
+    {
+      mos << occMO[i] << "    " << virtMO[i] << '\n';
+    }
 
-     //for (float f : virtMO) { mos << f << '\n'; }
+    mos << '\n';
 
-     //for (float f : excitE) //controll output for excitation energuies
-     //{  mos << f << '\n'; }
+    for (auto i : xyz_tmp)
+    {
+      mos << xyz_tmp << " | " << g_tmp << '\n';
+    }
 
-     //mos << std::setprecision(9) << e_total_au << "  " << e_total << '\n'; //controll output for scf energies
+    mos << '\n';
 
-    for (float f : the_last_gradients)
-    { mos << f << '\n'; }
+    for (int i = 0; i < excitE.size(); i++)
+    {
+      mos << excitE[i] << '\n';
+    }
+
+    mos << '\n' << e_total << " | " << e_total_au << '\n';
 
   }
 
-}
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {

@@ -75,7 +75,7 @@ namespace energy
 
         int callGaussian(void);
         void print_gaussianInput();
-        void read_gaussianOutput();
+        void read_gaussianOutput(bool const grad = true, bool const opt = true);
         void removeTempFiles(void);
 
         /*
