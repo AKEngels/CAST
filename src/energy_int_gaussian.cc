@@ -177,7 +177,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
 
         while (grad_read)
         {
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &temp_grad);
+          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", &temp_grad);
           //mos << temp_grad << " §§" << '\n';
           the_last_gradients.push_back(temp_grad);
           std::getline(in_file, buffer);
