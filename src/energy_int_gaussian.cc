@@ -113,7 +113,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   std::vector <float> occMO, virtMO, excitE;
-  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
+  std::ofstream mos("MOs.txt", std::ios_base::out), test("test.txt", std::ios_base::out); //ofstream for mo testoutput
 
   bool done(false),test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
@@ -182,11 +182,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.x());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", g.x());
+          test << g.x() << '\n';
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.y());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", g.y());
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*f %*f %*f %*f %f %*f", g.z());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", g.z());
          
           std::getline(in_file, buffer);
 
