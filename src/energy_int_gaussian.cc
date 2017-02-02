@@ -182,12 +182,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", &g.x());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %d %*s", &g.x());
           test << g.x() << '\n';
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", &g.y());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %d %*s", &g.y());
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %f %*s", &g.z());
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %d %*s", &g.z());
          
           std::getline(in_file, buffer);
 
@@ -208,11 +208,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (; i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
-          std::istringstream bss(buffer);
-          std::size_t tx;
-          int atm_nmr, atm_typ;
-
-          bss >> tx >> atm_nmr >> atm_typ >> p.x() >> p.y() >> p.y();
+          
+          std::sscanf(buffer.c_str(), "%*s %*s %*s %d %d %d", &p.x(), &p.y(), &p.z());
 
           if (opt)
           {
