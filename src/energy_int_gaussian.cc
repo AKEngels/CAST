@@ -181,7 +181,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput()
           //mos << temp_grad << " §§" << '\n';
           the_last_gradients.push_back(temp_grad);
           std::getline(in_file, buffer);
-          if (buffer.find("Item"))
+          if (buffer.find("Item") != std::string::npos)
           {
             grad_read = false;
           }
