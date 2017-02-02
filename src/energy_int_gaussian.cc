@@ -183,7 +183,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.x());
-          test << g.x() << '\n';
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.y());
           std::getline(in_file, buffer);
@@ -197,7 +196,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         }
       } //end gradient reading
 
-      if (grad && buffer.find(" Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
+      if (grad && buffer.find("Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
       {
         std::size_t i(0);
         coords::Cartesian_Point p;
@@ -210,6 +209,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           std::getline(in_file, buffer);
           
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
+          test << p.x() << '\n';
 
           if (opt)
           {
