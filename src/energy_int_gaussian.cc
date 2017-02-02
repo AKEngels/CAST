@@ -245,16 +245,16 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     e_total = e_total_au * au2kcal_mol;
 
-    for (auto i : occMO)
+    for (int i; i < occMO.size(); i++)
     {
       mos << occMO[i] << "    " << virtMO[i] << '\n';
     }
 
     mos << '\n';
 
-    for (auto i : xyz_tmp)
+    for (int i; i < xyz_tmp.size(); i++)
     {
-      mos << xyz_tmp << " | " << g_tmp << '\n';
+      mos << xyz_tmp[i] << " | " << g_tmp[i] << '\n';
     }
 
     mos << '\n';
