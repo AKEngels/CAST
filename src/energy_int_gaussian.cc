@@ -196,7 +196,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         }
       } //end gradient reading
 
-      if (grad && buffer.find(" Number     Number") != std::string::npos)//reads last coordinates from file
+      if (grad && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
       {
         test << "1" << '\n';
 
@@ -204,6 +204,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
         xyz_tmp.erase(xyz_tmp.begin(), xyz_tmp.end());
 
+        std::getline(in_file, buffer);
         std::getline(in_file, buffer);
         
 
