@@ -1,3 +1,7 @@
+/**
+This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
+*/
+
 #include <cmath>
 #include <stddef.h>
 #include <stdexcept>
@@ -146,13 +150,13 @@ namespace energy
           auto const r = d - bond.ideal;
           auto dE = bond.force*r;
           E += dE*r;  // kcal/mol
-          dE *= 2;  // kcal/(mol*Angstrom)
+          dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
           if (abs(d) > 0.0) 
           {
             if (abs(r) > 0.5) integrity = false;
-            dE /= d;  // kcal/(mol*A^2)
-            auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A))
-            part_grad[BOND][bond.atoms[0]] += gv;
+            dE /= d;  // kcal/(mol*A^2)   gradient divided by distance because later it is multiplied with it again
+            auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
+            part_grad[BOND][bond.atoms[0]] += gv;   //(kcal/(mol*A))
             part_grad[BOND][bond.atoms[1]] -= gv;
             //increment internal virial tensor (no factor 1/2 because atoms i and j have the same contribution)
             auto const vxx = bv.x() * gv.x();
@@ -907,14 +911,15 @@ namespace energy
       }
 
 
-      // C = q1*q2, ri = 1/r, dQ = dQ/dr
-      inline coords::float_type energy::interfaces::aco::aco_ff::eQ 
+      /**calculate coulomb potential;
+      returns the energy
+      @param C: product of the charges
+      @param ri: inverse distance between the two atoms */
+      coords::float_type energy::interfaces::aco::aco_ff::eQ 
         (coords::float_type const C, coords::float_type const ri) const
       {
-        return C*ri;
+        return C*ri; //kcal/mol
       }
-
-        
 
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
@@ -924,8 +929,8 @@ namespace energy
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ 
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
-        coords::float_type const Q = C*ri; // Q = C/r
-        dQ = -Q*ri; // dQ/dr = -C/r^2 (derivative)
+        coords::float_type const Q = C*ri; // Q = C/r [kcal/mol]
+        dQ = -Q*ri; //[kcal/(mol*Angstrom)]
         return Q;
       }
 
@@ -934,7 +939,7 @@ namespace energy
       @param C: product of the charges
       @param ri: distance between the two atoms
       @param cout: lambda_el
-      @param dQ: reference to variable that saves gradient*/
+      @param dQ: reference to variable that saves absolute value of gradient */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep 
         (coords::float_type const C, coords::float_type const ri, 
         coords::float_type const c_out, coords::float_type & dQ) const
@@ -945,8 +950,7 @@ namespace energy
         coords::float_type const Q = c_out * C / 
           pow(rmod, 0.16666666666666); //Q
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
-          c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // dQ/dr
-        //dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted (WHY???)
+          c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // derivative
         return Q;
       }
 
@@ -955,8 +959,12 @@ namespace energy
         lennard-jones potentials
       */
 
-      
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::eV
+      /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: r_min-parameter
+      @param r: inverse distance 1/r between the two atoms*/
+      template<> coords::float_type energy::interfaces::aco::aco_ff::eV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r) const
       {
@@ -966,8 +974,12 @@ namespace energy
         return E*T*(T-2.0);
       }
 
-
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::eV
+      /**calculate lenard-jones potential and gradient for oplsaa forcefield (sigma-type);
+      returns the energy
+      @param E: 4 * epsilon-parameter
+      @param R: sigma-parameter
+      @param r: inverse distance 1/r between the two atoms*/
+      template<> coords::float_type energy::interfaces::aco::aco_ff::eV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r) const
       {
@@ -1008,8 +1020,8 @@ namespace energy
         coords::float_type T = R*r;
         T = T*T*T; // T^3
         T = T*T; // T^6
-        coords::float_type const V = E*T;
-        dV = V*r*(6.0-12.0*T);  // derivative
+        coords::float_type const V = E*T;    //[kcal/mol]
+        dV = V*r*(6.0-12.0*T);  // derivative  [kcal/(mol*Angstrom)]
         return V*(T-1.0);  //potential
       }
 
@@ -1019,7 +1031,7 @@ namespace energy
       @param R: r_min-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, 
@@ -1038,7 +1050,6 @@ namespace energy
         double numerator = T * (Config::get().fep.ljshift * (vout - 1)*(vout - 1) - 1) + r*r*r*r*r*r;
         double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
         dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
-        //dV = dV/std::pow(D6, 0.16666666666666);  (WHY???)
         return V;
       }
 
@@ -1048,7 +1059,7 @@ namespace energy
       @param R: sigma-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves absolute value of gradient*/
         template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
           < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, 
@@ -1067,9 +1078,15 @@ namespace energy
         return V*(T-1.0);
       }
 
-
+      /**calculate non-bonding interactions between two atoms
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: inverse distance between the two atoms
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy*/
       template< ::tinker::parameter::radius_types::T RT> 
-      inline void energy::interfaces::aco::aco_ff::e_QV  
+      void energy::interfaces::aco::aco_ff::e_QV  
         (coords::float_type const C, coords::float_type const E, 
           coords::float_type const R, coords::float_type const d, 
         coords::float_type &e_c, coords::float_type &e_v) const
@@ -1078,7 +1095,14 @@ namespace energy
         e_v += eV<RT>(E, R, d);
       }
 
-
+      /**calculate non-bonding interactions and gradients between two atoms
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: inverse distance between the two atoms
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV  
         (coords::float_type const C, coords::float_type const E, 
@@ -1088,10 +1112,19 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV)*d;   // //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE = (dQ + dV)*d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
-
+       /**calculate non-bonding interactions and gradients between two atoms when one of them is IN or OUT (FEP)
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: distance between the two atoms
+      @param c_io: lambda_el 
+      @param v_io: lamda_vdw
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_fep  
         (coords::float_type const C, coords::float_type const E, 
@@ -1102,10 +1135,18 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ_fep(C, d, c_io, dQ);
         e_v += gV_fep<RT>(E, R, d, v_io, dV);
-        dE = (dQ + dV);
+        dE = (dQ + dV)/d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
-
+      /**calculate non-bonding interactions between two atoms when a cutoff is applied
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: inverse distance between the two atoms
+      @param fQ: scaling factor for electrostatic interaction due to cutoff
+      @param fV: scaling factor for vdw interaction due to cutoff
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::e_QV_cutoff  
         (coords::float_type const C, coords::float_type const E, 
@@ -1117,7 +1158,16 @@ namespace energy
         e_v += eV<RT>(E, R, d)*fV;
       }
 
-
+      /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: inverse distance between the two atoms
+      @param fQ: scaling factor for electrostatic interaction due to cutoff
+      @param fV: scaling factor for vdw interaction due to cutoff
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_cutoff 
         (coords::float_type const C, coords::float_type const E, 
@@ -1131,7 +1181,19 @@ namespace energy
         dE = (dQ*fQ+dV*fV)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
-
+      /**calculate non-bonding interactions and gradients between two atoms when a cutoff is applied 
+      and one of the atoms in IN or OUT in FEP
+      @param C: product of the charges
+      @param E: epsilon-parameter or 4*epsilon-parameter
+      @param R: sigma or Rmin parameter
+      @param d: distance between the two atoms
+      @param c_out: lambda_el
+      @param v_out: lamda_vdw
+      @param fQ: scaling factor for electrostatic interaction due to cutoff
+      @param fV: scaling factor for vdw interaction due to cutoff
+      @param e_c: reference to variable that saves coulomb-energy
+      @param e_v: reference to variable that saves vdw-energy
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff 
         (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d, 
@@ -1141,10 +1203,10 @@ namespace energy
         coords::float_type dQ, dV;
         e_c += gQ_fep(C, d, c_out, dQ)*fQ;
         e_v += gV_fep<RT>(E, R, d, v_out, dV)*fV;
-        dE = (dQ*fQ + dV*fV);
+        dE = (dQ*fQ + dV*fV)/d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
-
+      /**main function for calculating all non-bonding interactions*/
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::aco::aco_ff::g_nb (void)
       {
