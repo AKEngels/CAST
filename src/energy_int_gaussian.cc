@@ -204,8 +204,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         {
           std::getline(in_file, buffer);
 
-          test << buffer << '\n';
-
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
 
 
@@ -213,7 +211,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           {
             xyz_tmp[i] = p;
           }
-          test << xyz_tmp[i].x() << '\n';
         }
       }//end coordinater reading
     }//end while(!in_file.eof())
@@ -242,27 +239,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
      }
 
     e_total = e_total_au * au2kcal_mol;
-
-    for (int i=0; i < occMO.size(); i++)
-    {
-      mos << occMO[i] << "    " << virtMO[i] << '\n';
-    }
-
-    mos << '\n';
-
-    for (int i=0; i < xyz_tmp.size(); i++)
-    {
-      mos << xyz_tmp[i].x() << "  " << xyz_tmp[i].y() << "  " << xyz_tmp[i].z() << "  " << " | " << g_tmp[i].x() << " " << g_tmp[i].y() << " " << g_tmp[i].z() << " " << '\n';
-    }
-
-    mos << '\n';
-
-    for (int i = 0; i < excitE.size(); i++)
-    {
-      mos << excitE[i] << '\n';
-    }
-
-    mos << '\n' << e_total << " | " << e_total_au << '\n';
 
   }
 
