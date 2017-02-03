@@ -196,7 +196,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         }
       } //end gradient reading
 
-      if (grad && buffer.find("Number     Number       Type             X           Y           Z") != std::string::npos)//reads last coordinates from file
+      if (grad && buffer.find(" Number     Number") != std::string::npos)//reads last coordinates from file
       {
         test << "1" << '\n';
 
