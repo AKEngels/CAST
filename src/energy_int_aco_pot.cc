@@ -915,7 +915,12 @@ namespace energy
       }
 
         
-      // C = q1*q2, ri = 1/r, dQ = dQ/dr
+
+      /**calculate coulomb potential and gradient for FEP;
+      returns the energy
+      @param C: product of the charges
+      @param ri: inverse distance between the two atoms
+      @param dQ: reference to variable that saves absolute value of gradient */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ 
         (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
@@ -924,7 +929,12 @@ namespace energy
         return Q;
       }
 
-
+      /**calculate coulomb potential and gradient for FEP;
+      returns the energy
+      @param C: product of the charges
+      @param ri: distance between the two atoms
+      @param cout: lambda_el
+      @param dQ: reference to variable that saves gradient*/
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep 
         (coords::float_type const C, coords::float_type const ri, 
         coords::float_type const c_out, coords::float_type & dQ) const
@@ -936,7 +946,7 @@ namespace energy
           pow(rmod, 0.16666666666666); //Q
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
           c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // dQ/dr
-        dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted
+        //dQ = dQ/pow(rmod, 0.16666666666666); // dQ/dr shifted (WHY???)
         return Q;
       }
 
@@ -972,7 +982,7 @@ namespace energy
       @param E: 4 * epsilon-parameter
       @param R: r_min-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -990,7 +1000,7 @@ namespace energy
       @param E: epsilon-parameter
       @param R: sigma-parameter
       @param r: inverse distance 1/r between the two atoms
-      @param dV: reference to variable that saves gradient*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
@@ -1003,7 +1013,13 @@ namespace energy
         return V*(T-1.0);  //potential
       }
 
-
+      /**calculate lenard-jones potential and gradient for charmm and amber forcefield (r_min-type);
+      returns the energy
+      @param E: 4 * epsilon-parameter
+      @param R: r_min-parameter
+      @param r: distance between the two atoms
+      @param vout: lambda_vdw
+      @param dV: reference to variable that saves gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, 
@@ -1018,60 +1034,21 @@ namespace energy
         D13 = D6*D6*r; //r^13
         D6 = Config::get().fep.ljshift * (1 - vout) * (1 - vout) * T + D6; //r^6 shifted
         D12 = D6 * D6; //r^12 shifted
-        coords::float_type V = vout * E * (T2/D12 - 2*T/D6);
-        dV = vout * E * 12.0 * (T * D6 - (T2))/D13;
-        dV = dV/std::pow(D6, 0.16666666666666);
+        coords::float_type V = vout * E * (T2/D12 - 2*T/D6);   //potential
+        double numerator = T * (Config::get().fep.ljshift * (vout - 1)*(vout - 1) - 1) + r*r*r*r*r*r;
+        double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
+        dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
+        //dV = dV/std::pow(D6, 0.16666666666666);  (WHY???)
         return V;
       }
-      // AMBER/CHARMM FEP vdW part
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep_cut
-        < ::tinker::parameter::radius_types::R_MIN>
-        (coords::float_type const E, coords::float_type const R, 
-          coords::float_type const r, coords::float_type const vout, 
-          coords::float_type const vout2, coords::float_type &dV, 
-          coords::float_type &alche2, coords::float_type &fV, coords::float_type &fV2) const
-      {
-          coords::float_type A, B;
-          coords::float_type K6, D6, T2;
-          coords::float_type T = R, D = r*r, K = r*r;
-          T = T*T*T; // T^3
-          T = T*T; // T^6
-          T2 = T*T; // T^12
-          A = E*T2;
-          B = E*T * 2;
-          D += Config::get().fep.ljshift * (1 - vout); // r^2 shifted
-          K += Config::get().fep.ljshift * (1 - vout2);
-          D6 = D*D*D; // r^6 shifted
-          K6 = K*K*K;
-          coords::float_type V = A / (D6*D6) - B / D6;
-          alche2 = (A / (K6*K6) - B / K6) * vout2 * fV;
-          dV = -vout * ((12 * V + 6 * B / D6) / D * fV + V * fV2);
-          V *= vout*fV;
-          return V;
-        }
-      // OPLS-AA FEP vdW part
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep_cut
-        < ::tinker::parameter::radius_types::SIGMA>
-        (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type const vout, 
-          coords::float_type const vout2, coords::float_type &dV, coords::float_type &alche2, coords::float_type &fV, coords::float_type &fV2) const
-      {
-          coords::float_type K6, D6, T2, A, B;
-          coords::float_type T = R, D = r*r, K = r*r;
-          T = T*T*T; // T^3
-          T = T*T; // T^6
-          D += Config::get().fep.ljshift * (1 - vout); // r^2 shifted
-          K += Config::get().fep.ljshift * (1 - vout2); //r^2 Dl shifted
-          D6 = D*D*D; // r^6 shifted
-          K6 = K*K*K;
-          A = E*T2;
-          B = E*T;
-          coords::float_type V = A / (D6*D6) - B / D6;
-          alche2 = (A / (K6*K6) - B / K6) * vout2 * fV;
-          dV = -vout * ((12 * V + 6 * B / D6) / D * fV + V * fV2);
-          V *= vout*fV;
-          return V;
-        }
 
+      /**calculate lenard-jones potential and gradient for oplsaa-forcefield (sigma-type);
+      returns the energy
+      @param E: epsilon-parameter
+      @param R: sigma-parameter
+      @param r: distance between the two atoms
+      @param vout: lambda_vdw
+      @param dV: reference to variable that saves gradient*/
         template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
           < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, 
@@ -1085,7 +1062,8 @@ namespace energy
         D = Config::get().fep.ljshift * (1-vout) * (1-vout) * T + D; // r^6 shifted
         T /= D;
         coords::float_type V = vout*E*T;
-        dV = V*r*(6.0-12.0*T);
+        double numerator = R*R*R*R*R*R * (Config::get().fep.ljshift*(vout - 1)*(vout - 1) - 2) + r*r*r*r*r*r;
+        dV = 6 * E * vout * R*R*R*R*R*R * r*r*r*r*r * numerator / (D*D*D);
         return V*(T-1.0);
       }
 
@@ -1110,7 +1088,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV)*d;
+        dE = (dQ + dV)*d;   // //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
 
@@ -1150,7 +1128,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ)*fQ;
         e_v += gV<RT>(E, R, d, dV)*fV; 
-        dE = (dQ*fQ+dV*fV)*d;
+        dE = (dQ*fQ+dV*fV)*d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
 
@@ -1183,7 +1161,7 @@ namespace energy
         {
           
           size_t const N(coords->interactions().size());
-          for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index<N; ++sub_ia_index)
+          for (size_t sub_ia_index(0u), row(0u), col(0u); sub_ia_index < N; ++sub_ia_index)
           {
             coords::float_type & e(coords->interactions(sub_ia_index).energy);
             coords::Representation_3D & g(coords->interactions(sub_ia_index).grad);
@@ -2118,8 +2096,8 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));
@@ -2134,7 +2112,7 @@ namespace energy
             {
               g_QV<RT>(p.C, p.E, p.R, r, e_c, e_v, dE);
             }
-            b *= dE;
+            b *= dE; // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
           }
@@ -2180,8 +2158,8 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), 
@@ -2196,7 +2174,7 @@ namespace energy
             }
             
             auto const dist = b;
-            b *= dE;
+            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             tmp_grad[pairlist[i].a] += b;
             tmp_grad[pairlist[i].b] -= b;
             //Increment internal virial tensor
@@ -2254,14 +2232,14 @@ namespace energy
             double current_c;   // Q_a * Q_b from AMBER
             if (Config::get().general.input == config::input_types::AMBER)
             {    // calculate Q_a * Q_b from AMBER charges (better if this would be done while building up pairlist)
-              double ca = Config::get().coords.charges[pairlist[i].a];
-              double cb = Config::get().coords.charges[pairlist[i].b];
+              double ca = Config::get().coords.amber_charges[pairlist[i].a];
+              double cb = Config::get().coords.amber_charges[pairlist[i].b];
               current_c = ca * cb;
             }
             coords::Cartesian_Point b(coords->xyz(pairlist[i].a) - coords->xyz(pairlist[i].b));  //vector between atoms a and b
             if (PERIODIC) boundary(b.x(), b.y(), b.z());   // adjust vector to boundary conditions
             ::tinker::parameter::combi::vdwc const & p(params(refined.type(pairlist[i].a), refined.type(pairlist[i].b)));  // get parameters
-            coords::float_type rr(dot(b, b)), dE, Q(0.0), V(0.0);
+            coords::float_type rr(dot(b, b)), dE(0.0), Q(0.0), V(0.0);
             coords::Cartesian_Point dist;
             if (PERIODIC)
             {
@@ -2270,22 +2248,22 @@ namespace energy
               if(!cutob.factors(rr, r, fQ, fV)) continue;
               if (Config::get().general.input == config::input_types::AMBER)
               {
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
                 coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
               }
               else
               {
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                  (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
                 coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                  (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
               }
             }
-            else
+            else    // not periodic
             {
               if (Config::get().energy.cutoff < 1000.0)
               {
@@ -2295,19 +2273,19 @@ namespace energy
                 {
                   if (Config::get().general.input == config::input_types::AMBER)
                   {
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                      (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
                     coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                      (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
                   }
                   else
                   {
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                      (ALCH_OUT ? fep.vin : fep.vout), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
                     coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                      (ALCH_OUT ? fep.dvin : fep.dvout), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
                   }
                 }
               }
@@ -2316,24 +2294,24 @@ namespace energy
                 coords::float_type const r= sqrt(rr);
                 if (Config::get().general.input == config::input_types::AMBER)
                 {
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                    (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
                   coords::float_type trash(0.0);
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                    (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
                 }
                 else
                 {
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.ein : fep.eout),
-                    (ALCH_OUT ? fep.vin : fep.vout), Q, V, dE);  //calculate nb-energy(lambda)
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
                   coords::float_type trash(0.0);
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.dein : fep.deout),
-                    (ALCH_OUT ? fep.dvin : fep.dvout), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
                 }
               }
             }
             dist = b;
-            b *= dE;
+            b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
             e_c_l += Q;
             e_vdw_l += V;
             e_c += Q;

@@ -335,7 +335,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
             charges.push_back((koeff * pow(10, exponent)));
           }
         }
-        Config::set().coords.charges = charges;
+        Config::set().coords.amber_charges = charges;
       }
 
       //If section == BONDS_INC_HYDROGEN
@@ -412,7 +412,7 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 		    }
       }
 
-      //If section == AMBER_Atom_Types
+      //If section == AMBER_ATOM_TYPE
       if (currentSectionID == 34u)
       {
         // Discard the format specifier
@@ -573,7 +573,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     {
       atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
       atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
-
     }
     for (unsigned int i = 0u; i < bondsWithoutHydrogen.size(); i = i + 2u)
     {
@@ -660,22 +659,9 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
         throw std::runtime_error("Can't read AMBER restart file " 
           + Config::get().io.amber_restrt 
           + " which was specified in the inputfile.\n");
-      // Now, discard the title (if existent) and the line with the atom number
+      // Now, discard the title and the line with the atom number (and simulation time)
       std::getline(coord_file_stream, line);
-      int atom_number;
-      bool title_exists = false;
-      try
-      {
-        atom_number = std::stoi(line);
-      }
-      catch (...)
-      {
-        title_exists = true;
-      }
-      if (title_exists == true)
-      {
-        std::getline(coord_file_stream, line);
-      }
+      std::getline(coord_file_stream, line);
 
       unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
@@ -701,10 +687,15 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 
       }
 
-      // delete the box parameters in the last line if there are some
+      // delete the box parameters in the last line if there are some (size and angles)
       if (positions.size() == atoms.size() + 2)
       {
         positions.pop_back();
+        positions.pop_back();
+      }
+      // delete the box parameters in the last line if there are some (only box size)
+      if (positions.size() == atoms.size() + 1)
+      {
         positions.pop_back();
       }
 

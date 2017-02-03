@@ -1449,7 +1449,6 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 
 	std::vector<coords::Cartesian_Point> F_old;
 
-
 	std::size_t const N = this->coordobj.size();
 	// set average pressure to zero
 	double p_average(0.0);
