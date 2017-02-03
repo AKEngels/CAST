@@ -129,7 +129,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     {
       std::getline(in_file, buffer);
       
-     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
+     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
       {
        if (test_lastMOs == true)
        {
@@ -139,7 +139,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
        }
       }
 
-     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos)
+     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
       {   
         for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
         {   
@@ -194,7 +194,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           
           }
         }
+      test << "-1" << '\n';
       } //end gradient reading
+
+    test << "0" << '\n';
 
       if (grad && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
       {
