@@ -128,37 +128,37 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     while (!in_file.eof())
     {
       std::getline(in_file, buffer);
-      
-     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
-      {
-       if (test_lastMOs == true)
-       {
-         occMO.erase(occMO.begin(), occMO.end());
-         virtMO.erase(virtMO.begin(), virtMO.end());
-         test_lastMOs = false;
-       }
-      }
 
-     if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
-      {   
-        for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
-        {   
-          occMO.push_back(std::stof(buffer.substr( 29 + i * 10)));
+      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
+      {
+        if (test_lastMOs == true)
+        {
+          occMO.erase(occMO.begin(), occMO.end());
+          virtMO.erase(virtMO.begin(), virtMO.end());
+          test_lastMOs = false;
         }
       }
 
-     
+      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
+      {
+        for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
+        {
+          occMO.push_back(std::stof(buffer.substr(29 + i * 10)));
+        }
+      }
+
+
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i=0; buffer.length() > (29 + i * 10); i++)
-        { 
+        for (int i = 0; buffer.length() > (29 + i * 10); i++)
+        {
           virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
         test_lastMOs = true;
       }
 
-      
+
 
       if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
@@ -166,8 +166,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       }
 
       if (buffer.find(" SCF Done:") != std::string::npos)
-      { 
-        e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1)); 
+      {
+        e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
@@ -180,47 +180,39 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-       for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
+        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.x());
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.y());
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.z());
-         
+
           std::getline(in_file, buffer);
 
           g_tmp[i] = g;
-          
-          }
-        }
-      test << "-1" << '\n';
-      } //end gradient reading
 
-    test << "0" << '\n';
+        }
+      }//end gradient reading
 
       if (grad && buffer.find("Center     Atomic      Atomic             Coordinates (Angstroms)") != std::string::npos)//reads last coordinates from file
       {
-        test << "1" << '\n';
-
         coords::Cartesian_Point p;
 
         xyz_tmp.erase(xyz_tmp.begin(), xyz_tmp.end());
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
-        
 
-        for ( std::size_t i(0); i < atoms && !in_file.eof(); ++i)
+
+        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          test << "2" << '\n';
-
           std::getline(in_file, buffer);
-          
+
           test << buffer << '\n';
 
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
-       
+
 
           if (opt)
           {
@@ -228,6 +220,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           }
         }
       }//end coordinater reading
+    }//end while(!in_file.eof())
 
     } //end if(in_file)
 
