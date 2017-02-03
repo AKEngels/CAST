@@ -939,7 +939,7 @@ namespace energy
       @param C: product of the charges
       @param ri: distance between the two atoms
       @param cout: lambda_el
-      @param dQ: reference to variable that saves gradient dQ/dr */
+      @param dQ: reference to variable that saves absolute value of gradient */
       inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep 
         (coords::float_type const C, coords::float_type const ri, 
         coords::float_type const c_out, coords::float_type & dQ) const
@@ -951,8 +951,6 @@ namespace energy
           pow(rmod, 0.16666666666666); //Q
         dQ = - c_out * C *  pow(ri, 5.0) / pow(-Config::get().fep.cshift * 
           c_out + Config::get().fep.cshift + std::pow(ri,6.0), 1.16666666666666);  // derivative
-        auto r_shifted = pow((1.0 - c_out) *Config::get().fep.cshift + ri*ri*ri*ri*ri*ri, 0.16666666666666);
-        dQ = dQ / ri;
         return Q;
       }
 
@@ -1033,7 +1031,7 @@ namespace energy
       @param R: r_min-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient dV/dr*/
+      @param dV: reference to variable that saves absolute value of gradient*/
       template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN> 
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, 
@@ -1052,8 +1050,6 @@ namespace energy
         double numerator = T * (Config::get().fep.ljshift * (vout - 1)*(vout - 1) - 1) + r*r*r*r*r*r;
         double denominator = Config::get().fep.ljshift * (vout - 1)*(vout - 1) * T + r*r*r*r*r*r;
         dV = vout * E * 12.0 * T * r*r*r*r*r * numerator / (denominator*denominator*denominator);  //derivative
-        auto r_shifted = std::pow(D6, 0.16666666666666);
-        dV = dV / r;
         return V;
       }
 
@@ -1063,7 +1059,7 @@ namespace energy
       @param R: sigma-parameter
       @param r: distance between the two atoms
       @param vout: lambda_vdw
-      @param dV: reference to variable that saves gradient dV/dr*/
+      @param dV: reference to variable that saves absolute value of gradient*/
         template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
           < ::tinker::parameter::radius_types::SIGMA> 
         (coords::float_type const E, coords::float_type const R, 
@@ -1079,8 +1075,6 @@ namespace energy
         coords::float_type V = vout*E*T;
         double numerator = R*R*R*R*R*R * (Config::get().fep.ljshift*(vout - 1)*(vout - 1) - 2) + r*r*r*r*r*r;
         dV = 6 * E * vout * R*R*R*R*R*R * r*r*r*r*r * numerator / (D*D*D);
-        auto r_shifted = std::pow(D, 0.16666666666666);
-        dV = dV / r;
         return V*(T-1.0);
       }
 
@@ -1108,7 +1102,7 @@ namespace energy
       @param d: inverse distance between the two atoms
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient dE/dr*/
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV  
         (coords::float_type const C, coords::float_type const E, 
@@ -1118,7 +1112,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ(C, d, dQ);
         e_v += gV<RT>(E, R, d, dV);
-        dE = (dQ + dV)*d;   // //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
+        dE = (dQ + dV)*d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
        /**calculate non-bonding interactions and gradients between two atoms when one of them is IN or OUT (FEP)
@@ -1130,7 +1124,7 @@ namespace energy
       @param v_io: lamda_vdw
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient dE/dr*/
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_fep  
         (coords::float_type const C, coords::float_type const E, 
@@ -1141,7 +1135,7 @@ namespace energy
         coords::float_type dQ(0.0), dV(0.0);
         e_c += gQ_fep(C, d, c_io, dQ);
         e_v += gV_fep<RT>(E, R, d, v_io, dV);
-        dE = dQ + dV;  // dE/dr
+        dE = (dQ + dV)/d;  //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**calculate non-bonding interactions between two atoms when a cutoff is applied
@@ -1173,7 +1167,7 @@ namespace energy
       @param fV: scaling factor for vdw interaction due to cutoff
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient dE/dr*/
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_cutoff 
         (coords::float_type const C, coords::float_type const E, 
@@ -1192,14 +1186,14 @@ namespace energy
       @param C: product of the charges
       @param E: epsilon-parameter or 4*epsilon-parameter
       @param R: sigma or Rmin parameter
-      @param d: inverse distance between the two atoms
+      @param d: distance between the two atoms
       @param c_out: lambda_el
       @param v_out: lamda_vdw
       @param fQ: scaling factor for electrostatic interaction due to cutoff
       @param fV: scaling factor for vdw interaction due to cutoff
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy
-      @param dE: reference to variable that saves gradient dE/dr*/
+      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT> 
       inline void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff 
         (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d, 
@@ -1209,7 +1203,7 @@ namespace energy
         coords::float_type dQ, dV;
         e_c += gQ_fep(C, d, c_out, dQ)*fQ;
         e_v += gV_fep<RT>(E, R, d, v_out, dV)*fV;
-        dE = (dQ*fQ + dV*fV);
+        dE = (dQ*fQ + dV*fV)/d;   //division by distance because dQ and dV don't have a direction and get it by multiplying it with vector between atoms
       }
 
       /**main function for calculating all non-bonding interactions*/

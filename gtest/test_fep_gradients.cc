@@ -50,7 +50,7 @@ TEST(energy_calculations, test_gQ_fep_gradient_without_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dQ;
   coords::float_type e_cb = y.gQ_fep(10.0, 1.5, 1, dQ);
-  ASSERT_FLOAT_EQ(dQ, -2.9629629);
+  ASSERT_FLOAT_EQ(dQ, -4.4444447);
   delete x;
 }
 
@@ -72,7 +72,7 @@ TEST(energy_calculations, test_gQ_fep_gradient_with_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dQ;
   coords::float_type e_cb = y.gQ_fep(10.0, 1.5, 0.2, dQ);
-  ASSERT_FLOAT_EQ(dQ, -0.42597857);
+  ASSERT_FLOAT_EQ(dQ, -0.66588628);
   delete x;
 }
 
@@ -132,7 +132,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_without_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
   coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 1, dV);
-  ASSERT_FLOAT_EQ(dV, -1384.0339);
+  ASSERT_FLOAT_EQ(dV, -2076.05);
   delete x;
 }
 
@@ -154,7 +154,7 @@ TEST(energy_calculations, test_gV_fep_Rmin_gradient_with_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
   coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 2.0, 1.5, 0.2, dV);
-  ASSERT_FLOAT_EQ(dV, 0.10193113);
+  ASSERT_FLOAT_EQ(dV, 0.24112479);
   delete x;
 }
 
@@ -176,7 +176,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_without_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
   coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 1, dV);
-  ASSERT_FLOAT_EQ(dV, -1533.8647);
+  ASSERT_FLOAT_EQ(dV, -2300.7971);
   delete x;
 }
 
@@ -198,7 +198,7 @@ TEST(energy_calculations, test_gV_fep_sigma_gradient_with_shift)
   energy::interfaces::aco::aco_ff y(x);
   coords::float_type dV;
   coords::float_type e_vdw = y.gV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 2.0, 1.5, 0.2, dV);
-  ASSERT_FLOAT_EQ(dV, 0.021640943);
+  ASSERT_FLOAT_EQ(dV, 0.05119307);
   delete x;
 }
 
@@ -287,7 +287,7 @@ TEST(energy_calculations, test_gQV_Rmin_fep_with_shift)
   y.g_QV_fep< ::tinker::parameter::radius_types::R_MIN>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE);
   ASSERT_FLOAT_EQ(e_c, 1.2794334);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, -1.1941416);
-  ASSERT_FLOAT_EQ(dE, -0.3240474);    //gradient 
+  ASSERT_FLOAT_EQ(dE, -0.2831743);    //gradient 
   delete x;
 }
 
@@ -303,7 +303,7 @@ TEST(energy_calculations, test_gQV_SIGMA_fep_with_shift)
   y.g_QV_fep< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 1.5, 0.2, 0.2, e_c, e_v, dE);
   ASSERT_FLOAT_EQ(e_c, 1.2794334);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, -0.46367568);
-  ASSERT_FLOAT_EQ(dE, -0.4043376);    //gradient 
+  ASSERT_FLOAT_EQ(dE, -0.4097954);    //gradient 
   delete x;
 }
 
