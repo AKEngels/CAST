@@ -113,7 +113,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   std::vector <float> occMO, virtMO, excitE;
-  std::ofstream mos("MOs.txt", std::ios_base::out), test("test.txt", std::ios_base::out); //ofstream for mo testoutput
+  //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
 
   bool done(false),test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
@@ -273,7 +273,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
   print_gaussianInput();
-  if (callGaussian() == 0) read_gaussianOutput();
+  if (callGaussian() == 0) read_gaussianOutput(false, false);
   else
   {
     if (Config::get().general.verbosity >=2)
@@ -287,9 +287,16 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
-  if (Config::get().general.verbosity >= 2)
+  integrity = true;
+  print_gaussianInput();
+  if (callGaussian() == 0) read_gaussianOutput(true, false);
+  else
   {
-    std::cout << "Gradient not implemented in CAST as yet.";
+    if (Config::get().general.verbosity >= 2)
+    {
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+    }
+    integrity = false;
   }
   return energy;
 }
@@ -316,13 +323,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
-  if (Config::get().general.verbosity >= 2)
-  {
-    std::cout << "Optimization not implemented in CAST as yet.";
-  }
   integrity = true;
   print_gaussianInput();
-  if (callGaussian() == 0) read_gaussianOutput();
+  if (callGaussian() == 0) read_gaussianOutput(true, true);
   else
   {
     if (Config::get().general.verbosity >= 2)
