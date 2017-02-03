@@ -174,9 +174,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       {
         coords::Cartesian_Point g;
 
-
-        g_tmp.erase(g_tmp.begin(), g_tmp.end());
-
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
@@ -199,8 +196,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       {
         coords::Cartesian_Point p;
 
-        xyz_tmp.erase(xyz_tmp.begin(), xyz_tmp.end());
-
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
@@ -218,6 +213,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           {
             xyz_tmp[i] = p;
           }
+          test << xyz_tmp[i].x() << '\n';
         }
       }//end coordinater reading
     }//end while(!in_file.eof())
