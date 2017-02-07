@@ -547,6 +547,23 @@ void md::simulation::init(void)
 // and print the scaling factors for van-der-Waals and electrostatics for each window
 void md::simulation::fepinit(void)
 {
+  if (Config::get().general.verbosity > 1)   // print warning if vdw-softcore potential is shifted so strongly that is has no minimum
+  {
+    if (Config::get().general.energy_interface == config::interface_types::CHARMM22 || Config::get().general.energy_interface == config::interface_types::AMBER)
+    {
+      if (Config::get().fep.ljshift > 1.0 / ((1 - Config::get().fep.dlambda)*(1 - Config::get().fep.dlambda)))
+      {
+        std::cout << "WARNING! You should choose a smaller value for vshift!\n\n";
+      }
+    }
+    else if (Config::get().general.energy_interface == config::interface_types::OPLSAA)
+    {
+      if (Config::get().fep.ljshift > 2.0 / ((1 - Config::get().fep.dlambda)*(1 - Config::get().fep.dlambda)))
+      {
+        std::cout << "WARNING! You should choose a smaller value for vshift!\n\n";
+      }
+    }
+  }
   init();
   // center and temp var
   coordobj.move_all_by(-coordobj.center_of_geometry());
