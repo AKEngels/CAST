@@ -812,7 +812,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	
 \textbf{Attention!} The fact that during an FEP run several MD simulations with possibly different settings are done can cause some problems you should be aware of: \\
 For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' is 50000 you will have MD runs with 1000 (for the initialisation at the very beginning), 10000 (for the equilibration of every FEP window) and 50000 steps. The stepsize between two snapshots is however calculated from the number ``MDsteps''. So if in the above example ``MDsnap'' is 1000 the program will will calculate the stepsize so that a snapshot is taken for every MD step not only in the initialisation MD with 1000 steps but also in every equilibration run with 10000 steps and in every production run with 50000 steps. So it is strongly recommended to set the ``MDsnap'' option to a very low number when doing an FEP calculation in order to avoid getting snapshot files that are much too big to deal with. \\
-
+\textbf{Attention!} Currently there is some kind of error in the function that calculates $\Delta G$ out of $\Delta E$. However the values for $\Delta E$ are given in the file ``alchemical.txt'' so $\Delta G$ can be calculated from this file without the use of CAST. You can use the script ``FEP\_check.py'' that is found in the directory ``\textbackslash optional\_files\textbackslash scripts''. For every window it prints the $\Delta G$ value of the window and the total $\Delta G$ until the window.
 
 	
 	%%%% Trajectory alignment (ALIGN) %%%%
