@@ -697,6 +697,10 @@ MDadjust_by_step      1
 
 MDrestart_offset       10000
 
+# Iteration offset for building up non-bonded pairlist
+
+MDrefine_offset        100
+
 # Resume simulation from restart file?
 
 MDresume               0

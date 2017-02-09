@@ -663,7 +663,6 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
       std::getline(coord_file_stream, line);
       std::getline(coord_file_stream, line);
 
-      unsigned long state = 0u; //Counts each processed floating point number.
       while (std::getline(coord_file_stream, line))
       {
         std::string x = line.substr(0, 12);
