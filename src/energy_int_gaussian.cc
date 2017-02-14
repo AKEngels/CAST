@@ -113,7 +113,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   std::vector <float> occMO, virtMO, excitE;
-  //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
+  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
 
   bool done(false),test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
@@ -239,6 +239,37 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
      }
 
     e_total = e_total_au * au2kcal_mol;
+
+    //test output for interface, shound be outcommented
+
+    for (unsigned int i = 0; i < xyz_tmp.size(); i++)
+    {
+      mos << xyz_tmp[i] << '\n';
+    }
+
+
+    mos << "\n occ" << "       " << "virt \n";
+
+    for (unsigned int i = 0; i < occMO.size(); i++)
+    {
+      mos << occMO[i] << "    " << virtMO[i] << '\n';
+    }
+
+    mos << "\n total energy: " << e_total << '\n';
+
+    mos << "\n Excitation energies \n";
+
+    for (unsigned int i = 0; i < excitE.size(); i++)
+    {
+      mos << excitE[i] << '\n';
+    }
+
+    mos << "\n Gradients \n";
+
+    for (unsigned int i = 0; i < g_tmp.size(); i++)
+    {
+      mos << g_tmp[i] << '\n';
+    }
 
   }
 
