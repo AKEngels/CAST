@@ -121,13 +121,15 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
   if (in_file)
   {
-    
+    mos << "1 \n";
 
 
     std::string buffer;
     while (!in_file.eof())
     {
       std::getline(in_file, buffer);
+
+      mos << "2 \n";
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
       {
@@ -199,6 +201,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
+        mos << "3 \n";
 
         for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
@@ -216,6 +219,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     }//end while(!in_file.eof())
 
     } //end if(in_file)
+
+  mos << "4 \n";
 
      std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
