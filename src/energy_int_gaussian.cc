@@ -119,6 +119,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
+  mos << "0 \n";
+
   if (in_file)
   {
     mos << "1 \n";
