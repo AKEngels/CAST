@@ -105,15 +105,18 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
 
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
+  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
   float hof_au(0.0), e_total_au(0.0);
 
   auto in_string = id + ".log";
 
+  mos << "-1 \n";
+
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   std::vector <float> occMO, virtMO, excitE;
-  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput
+  
 
   bool done(false),test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
@@ -306,7 +309,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
   print_gaussianInput();
-  if (callGaussian() == 0) /*read_gaussianOutput(false, false)*/;
+  if (callGaussian() == 0) read_gaussianOutput(false, false);
   else
   {
     if (Config::get().general.verbosity >=2)
