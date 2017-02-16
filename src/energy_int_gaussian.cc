@@ -284,11 +284,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
   auto gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
-//#ifdef _MSC_VER
-//  gaussian_call.append(" > nul 2>&1");
-//#else
-//  gaussian_call.append(" /dev/null 2>&1");
-//#endif
 
   auto ret = scon::system_call(gaussian_call);
   if (ret != 0)
@@ -311,7 +306,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
   print_gaussianInput();
-  if (callGaussian() == 0) read_gaussianOutput(false, false);
+  if (callGaussian() == 0) /*read_gaussianOutput(false, false)*/;
   else
   {
     if (Config::get().general.verbosity >=2)
