@@ -112,8 +112,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
   auto in_string = id + ".log";
 
-  mos << "-1 \n";
-
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   std::vector <float> occMO, virtMO, excitE;
   
@@ -122,19 +120,13 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
-  mos << "0 \n";
-
   if (in_file)
   {
-    mos << "1 \n";
-
 
     std::string buffer;
     while (!in_file.eof())
     {
       std::getline(in_file, buffer);
-
-      mos << "2 \n";
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
       {
@@ -206,8 +198,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        mos << "3 \n";
-
         for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
@@ -224,8 +214,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     }//end while(!in_file.eof())
 
     } //end if(in_file)
-
-  mos << "4 \n";
 
      std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
@@ -286,9 +274,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
-  auto gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
+  std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
 
-  auto ret = scon::system_call(gaussian_call);
+  int ret = scon::system_call(gaussian_call);
   if (ret != 0)
   {
     ++failcounter;
