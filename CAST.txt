@@ -349,10 +349,11 @@ NEB-PATHOPT-INT_PATH 0
 #step size of interpolated images via spline interpolation approach
 NEB-PATHOPT-INT_IT 0.5
 
-#determine if a neb calculation is performed for every found path in PATHOPT
-NEB-PATHOPT-MF_PATHOPT 1
-
+#choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
 NEB-PATHOPT-MAXFLUX 1
+
+#determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
+NEB-PATHOPT-MF_PATHOPT 1
 
 
 ####################################
