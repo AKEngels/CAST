@@ -49,6 +49,7 @@
 #include <omp.h>
 #include "PCA.h"
 #include "excitonbreakup.h"
+#include "interfcrea.h"
 
 //////////////////////////
 //                      //
@@ -731,10 +732,10 @@ int main(int argc, char **argv)
         {
           out << hold_str[i];
         }
-		break;
+		    break;
       }
-	  case config::tasks::EXCITONBREAKUP:
-	  {
+	    case config::tasks::EXCITONBREAKUP:
+	    {
 		  /**
 		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN 
 		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
@@ -744,6 +745,13 @@ int main(int argc, char **argv)
 		  excitonbreakup(Config::set().exbreak.pscnumber, Config::set().exbreak.nscnumber, Config::set().exbreak.interfaceorientation, Config::set().exbreak.masscenters, 
 						 Config::set().exbreak.nscpairrates, Config::set().exbreak.pscpairexrates, Config::set().exbreak.pscpairchrates, Config::set().exbreak.pnscpairrates);
 	  }
+      case config::tasks::INTEFACE_CREATION:
+    {
+      /**
+      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      */
+      interface_creation(Config::set().interfcrea.icfilename, Config::set().interfcrea.icaxis, Config::set().interfcrea.icdist, coords);
+    }
       default:
       {
       

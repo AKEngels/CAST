@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 24;
+  static std::size_t const NUM_TASKS = 25;
   /** Names of all CAST tasks as strings*/
 
   static std::string const task_strings[NUM_TASKS] =
@@ -59,6 +59,7 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "EXCITONBREAKUP", 
+    "INTERFACE_CREATION", 
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -76,7 +77,8 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, EXCITONBREAKUP
+      GRID, ALIGN, PATHSAMPLING, EXCITONBREAKUP,
+      INTEFACE_CREATION
 
     };
   };
@@ -1192,6 +1194,14 @@ namespace config
 	  char interfaceorientation;
   };
 
+  struct interfcrea
+  {
+    std::string icfilename;
+    input_types::T icfiletype;
+    char        icaxis;
+    double      icdist;
+  };
+
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1344,7 +1354,8 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
-  config::exbreak				exbreak;
+  config::exbreak				        exbreak;
+  config::interfcrea             interfcrea;
 
   /*! Constructor of Config object
    *

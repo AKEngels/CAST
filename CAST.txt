@@ -27,7 +27,7 @@ cores                  1
 
 # Input file name
 
-name                   water.xyz
+name                   but_min.xyz
 
 # Output file name
 
@@ -80,8 +80,9 @@ amber_restrt           min.rst
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # EXCITON BREAKUP
+# INTERFACE_CREATION
 
-task                  EXCITONBREAKUP
+task                  INTERFACE_CREATION
 
 
 ####################################
@@ -856,6 +857,32 @@ EXpscpairexrates            homodimer_exciton.txt
 EXpscpairchrates            homodimer_ladung.txt
 
 EXpnscpairrates             heterodimer.txt
+
+
+
+####################################
+#                                  #
+#        Interface Creation        #
+#                                  #
+####################################
+
+#Creation of a new Structure from the usual input structure and an additional one
+
+#Additional input file name
+
+ICname 						but_min.xyz
+
+#Additional input file type
+
+ICinputtype					TINKER
+
+#From which axis should tha additional atoms added
+
+ICaxis						x
+
+#How far apart should they be
+
+ICdistance					5.0
 
 
 

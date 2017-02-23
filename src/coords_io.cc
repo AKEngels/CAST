@@ -55,6 +55,31 @@ coords::input::format* coords::input::new_format(void)
   }
 }
 
+/*! Creates new coords::input::format
+*
+* Creates new coords::input::format
+* according to the input type specified
+* in the configfile for interface creation
+*/
+coords::input::format* coords::input::additional_format(void)
+{
+  switch (Config::get().interfcrea.icfiletype)
+  {
+  case config::input_types::TINKER:
+    //TINKER
+    return new formats::tinker;
+    break;
+  case config::input_types::AMBER:
+    //AMBER
+    return new formats::amber;
+    break;
+  default:
+  {
+    return new formats::tinker;
+  }
+  }
+}
+
 /*! Read coordinates from a tinker .arc file
  *
  * This function is used to read coordinates from

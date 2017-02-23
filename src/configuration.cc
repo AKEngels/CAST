@@ -1599,6 +1599,28 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  Config::set().exbreak.pnscpairrates = value_string;
 	  }
   }
+
+  else if (option.substr(0u, 2u) == "IC")
+  {
+    if (option.substr(2u, 4u) == "name")
+    {
+      Config::set().interfcrea.icfilename = value_string;
+    }
+    if (option.substr(2u, 9u) == "inputtype")
+    {
+      Config::set().interfcrea.icfiletype = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
+    }
+    if (option.substr(2u, 4u) == "axis")
+    {
+      cv >> Config::set().interfcrea.icaxis;
+    }
+    if (option.substr(2u, 8u) == "distance")
+    {
+      cv >> Config::set().interfcrea.icdist;
+    }
+  }
+
+
   /*NOT IMPLEMENTED AS OF NOW!
   //I/O Atoms index options
   else if (option == "atomexclude")
