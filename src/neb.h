@@ -76,6 +76,7 @@ public:
   void preprocess(ptrdiff_t &count);
   void preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path);
   void preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, bool reverse);
+  void preprocess(std::vector<coords::Representation_3D> & ini_path);
   void initial(void);
   void final(void);
   void initial(const coords::Representation_3D &start);

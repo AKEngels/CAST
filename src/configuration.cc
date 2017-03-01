@@ -508,6 +508,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.IDPP;
 	  else if (option.substr(11, 8) == "-MAXFLUX")
 		  cv >> Config::set().neb.MAXFLUX;
+	  else if (option.substr(11, 11) == "-MF_PATHOPT")
+		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
   }
 
   // MOPAC options
