@@ -657,8 +657,8 @@ void tinker::refine::refined::build_pairs_direct()
     }
   }
 
-  if (Config::get().energy.cutoff > 500.0)
-  {
+  if (Config::get().energy.cutoff > 500.0 || Config::get().energy.periodic)   // no linked cell algorithm
+  {                                                    // if cutoff > 500 or periodic boundaries activated
     const std::size_t N = coords->size(), M = (N*N - N) / 2;
     for (std::size_t i(0u), row(1u), col(0u); i < M; ++i)
     {
@@ -671,7 +671,7 @@ void tinker::refine::refined::build_pairs_direct()
       }
     }
   }
-  else
+  else    // linked cell algorithm
   {
     using cells_type = scon::linked::Cells < coords::float_type, coords::Cartesian_Point, coords::Representation_3D >;
     cells_type atmcells(
@@ -681,21 +681,18 @@ void tinker::refine::refined::build_pairs_direct()
       scon::linked::fragmentation::half);
     std::size_t const N = coords->size();
     coords::Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.);
-    //#pragma omp parallel
+    //#pragma omp parallel     // to be reactivated at some point in the future?
     for (std::size_t i = 0; i < N; ++i)
     {
-
       auto box_of_i = atmcells.box_of_element(i);
-      //std::cout << "Atom " << i << " in box " << box_of_i.id() << "\n";
       for (auto j : box_of_i.adjacencies())
       {
-        //std::cout << "Adjancent: " << j << "\n";
         if (j >= 0)
         {
           std::size_t const uj = static_cast<std::size_t>(j);
           if (uj < i)
           {
-            if (Config::get().energy.periodic)
+            /*if (Config::get().energy.periodic)
             {
               coords::Cartesian_Point d(scon::abs(coords->xyz(i) - coords->xyz(uj)));
               if (d.x() > halfbox.x()) d.x() = std::abs(d.x() - Config::get().energy.pb_box.x());
@@ -707,9 +704,9 @@ void tinker::refine::refined::build_pairs_direct()
               }
             }
             else
-            {
+            {*/
               add_pair<RELATION>(i, uj, to_matrix_id);
-            }
+            /*}*/
           }
         }
       }

@@ -1,3 +1,14 @@
+/**
+* PATHOPT class - Global reaction pathway determination 
+* via constraint minimization on "n-1" dimensional hyperplanes
+*
+*  Version 1.1
+*  
+*  @ Daniel Bellinger
+*
+*/
+
+
 #include <vector>
 #include "coords.h"
 #include <ostream>

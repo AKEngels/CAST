@@ -151,6 +151,8 @@ namespace atomic
   * @note Heteroatoms are considered Nitrogen, Oxygen, Fluorine, Phosphorus, Sulfur, Chlorine, Selenium, Bromine and Iodine.
   * @return Returns true if the atomic type is considered a heteroatom. Else returns false
   */
+  /**tests if atom is a heteroatom, i.e. N, O, F, P, S, Cl, Se, Br, I
+  @param atomic_number: atomic number of atoms that is to be tested*/
   inline bool number_is_heteroatom (std::size_t const atomic_number) 
   {
     return atomic_number ==  7u || atomic_number ==  8u || atomic_number ==  9u || 

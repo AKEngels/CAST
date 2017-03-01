@@ -647,6 +647,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.timeStep;
 	  }
+	  else if (option.substr(2, 17) == "restart_if_broken")
+	  {
+		  cv >> Config::set().md.broken_restart;
+	  }
 	  else if (option.substr(2, 5) == "press")
 	  {
 		  cv >> Config::set().md.pressure;
@@ -830,10 +834,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(3, 4) == "freq")
     {
       cv >> Config::set().fep.freq;
-    }
-    else if (option.substr(3, 8) == "backward")
-    {
-      cv >> Config::set().fep.backward;
     }
   }
 

@@ -1,3 +1,10 @@
+/**
+ Reaction pathway optimization via various NEB methods
+
+@ Daniel Bellinger, Julian Erdmannsdoerfer, Michael Prem
+*/
+
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -20,7 +27,8 @@
 #include "interpolation.h"
 #include "nr3.h"
 
-using namespace scon;
+
+
 class neb
 {
 public:
@@ -40,7 +48,6 @@ public:
   double grad_v, grad_v_temp;
   size_t N, num_images, global_imagex;
 
-  // IDPP start
   coords::Representation_3D start_structure, final_structure;
 
   void idpp_prep();
@@ -63,13 +70,7 @@ public:
   coords::Representation_3D idpp_gradients(std::vector<coords::Representation_3D> const&,
 	  Euclid&, Euclid&, Euclid&, size_t const);
 
-private:
-	std::vector<coords::Representation_3D> bond_st;
-	coords::Representation_3D Fidpp;
-	std::vector<std::vector<double>> eu_st, eu_fi;
-	// IDPP end
 
-public:
 
   void run(ptrdiff_t &count);
   void preprocess(ptrdiff_t &count);
@@ -183,6 +184,12 @@ public:
   
 
 private:
+
+  std::vector<coords::Representation_3D> bond_st;
+  coords::Representation_3D Fidpp;
+  std::vector<std::vector<double>> eu_st, eu_fi;
+		// IDPP end
+
   double springconstant;
   double tauderiv;
   double EnergyPml, EnergyPpl;
