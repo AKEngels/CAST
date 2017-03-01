@@ -139,6 +139,37 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
 /**
 * defining start structure from INPUT
 */
+void neb::preprocess(std::vector<coords::Representation_3D> & ini_path) {
+	std::vector<size_t> image_remember;
+	std::vector<std::vector<rsize_t>> atoms_remember;
+	ptrdiff_t count = 0U;
+	cPtr->mult_struc_counter++;
+	cPtr->set_xyz(ini_path[0]);
+	num_images = ini_path.size();
+	N = cPtr->size();
+	imagi.clear();
+	image_ini.clear();
+	energies.clear();
+	tau.clear();
+	images.clear();
+	ts_pathstruc.resize(num_images);
+	image_ini.resize(num_images);
+	images_initial.clear();
+	tempimage_final.resize(N);
+	tempimage_ini.resize(N);
+	energies.resize(num_images);
+	springconstant = Config::get().neb.SPRINGCONSTANT;
+	for (auto && path : ini_path) {
+		imagi.push_back(path);
+		image_ini.push_back(path);
+		for (auto && p : path) {
+			images_initial.push_back(p);
+		}
+	}
+	if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+	else run(count);
+}
+
 void neb::initial(void)
 
 {
