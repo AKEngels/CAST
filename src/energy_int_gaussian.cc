@@ -212,6 +212,16 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       }//end coordinater reading
     }//end while(!in_file.eof())
 
+    if (opt)
+    {
+      coords->set_xyz(std::move(xyz_tmp));
+    }
+
+    if (grad || opt)
+    {
+      coords->swap_g_xyz(g_tmp);
+    }
+
     } //end if(in_file)
 
      std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest

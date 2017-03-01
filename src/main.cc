@@ -751,6 +751,10 @@ int main(int argc, char **argv)
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
       interface_creation(Config::set().interfcrea.icfilename, Config::set().interfcrea.icaxis, Config::set().interfcrea.icdist, coords);
+
+      ofstream test;
+      test.open("test.txt");
+      test << coords;
     }
 
       case config::tasks::CENTER:

@@ -80,6 +80,11 @@ coords::input::format* coords::input::additional_format(void)
   }
 }
 
+coords::input::format* coords::input::new_interf_format(void)
+{
+    return new formats::tinker;
+}
+
 /*! Read coordinates from a tinker .arc file
  *
  * This function is used to read coordinates from
