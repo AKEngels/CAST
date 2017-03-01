@@ -62,8 +62,13 @@ namespace energy
 
         // heat of formation
 				double hof_kcal_mol, hof_kj_mol;
+
 				// energies
 				double e_total, e_electron, e_core;
+
+        //MO and excitation energies
+        std::vector <float> occMO, virtMO, excitE;
+
 				std::string id;
 
 				// FAILCOUNTER

@@ -112,6 +112,8 @@ namespace energy
 		double fff;
 		bool SPACKrefine;
 		std::vector<double> dex11, dex22, dex33, exa11, exa22, exa33;
+		std::vector<double> dex44, dex55, dex66, exa44, exa55, exa66;
+		std::vector<double> dex77, dex88, dex99, dex1010, exa77, exa88, exa99, exa1010;
 		std::vector<double> dex0, xvec1, evec1, eveca1;
 
 		std::vector<atom>     atoms;

@@ -113,7 +113,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   auto in_string = id + ".log";
 
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
-  std::vector <float> occMO, virtMO, excitE;
   
 
   bool done(false),test_lastMOs(false);//to controll if reading was successfull

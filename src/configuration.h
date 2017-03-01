@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 25;
+  static std::size_t const NUM_TASKS = 26;
   /** Names of all CAST tasks as strings*/
 
   static std::string const task_strings[NUM_TASKS] =
@@ -59,7 +59,7 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "EXCITONBREAKUP", 
-    "INTERFACE_CREATION", 
+    "INTERFACE_CREATION", "CENTER", 
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -78,7 +78,7 @@ namespace config
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, EXCITONBREAKUP,
-      INTEFACE_CREATION
+      INTEFACE_CREATION, CENTER
 
     };
   };
@@ -1202,6 +1202,12 @@ namespace config
     double      icdist;
   };
 
+  struct center
+  {
+    bool dimer;
+    double distance;
+  };
+
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1355,7 +1361,8 @@ public:
   config::entropy				        entropy;
   config::io                    io;
   config::exbreak				        exbreak;
-  config::interfcrea             interfcrea;
+  config::interfcrea            interfcrea;
+  config::center                center;
 
   /*! Constructor of Config object
    *

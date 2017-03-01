@@ -1600,6 +1600,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
   }
 
+  /* Inputoptions for interfacecreation
+  */
   else if (option.substr(0u, 2u) == "IC")
   {
     if (option.substr(2u, 4u) == "name")
@@ -1620,6 +1622,19 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  /* Inputoptions for Center
+  */
+  else if (option.substr(0u, 6u) == "CENTER")
+  {
+    if (option.substr(6u, 5u) == "dimer")
+    {
+      Config::set().center.dimer = bool_from_iss(cv);
+    }
+    if (option.substr(6u, 8u) == "distance")
+    {
+      cv >> Config::set().center.distance;
+    }
+  }
 
   /*NOT IMPLEMENTED AS OF NOW!
   //I/O Atoms index options
