@@ -289,7 +289,7 @@ namespace config
 		 std::size_t c;
 		 /**constructor*/
        angle(void)
-         : force(), ideal(), a(), b()
+         : force(), ideal(), a(), b(), c()
        { }
      };
 	 /**additional potential on a given dihedral*/
@@ -314,7 +314,7 @@ namespace config
 	   /**constructor*/
        dihedral(void)
          : force(), ideal(), value(),
-         a(), b(), forward(false)
+         a(), b(), c(), d(), forward(false)
        { }
      };
        /**sperical potential - prevents non-bonded systems from exploding*/

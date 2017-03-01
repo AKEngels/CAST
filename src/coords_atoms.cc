@@ -228,7 +228,7 @@ void coords::Atoms::refine_mains()
     if (atom(mti).ibond() <= N)
       atom_has_main_torsion_attached[atom(mti).ibond()] = mti;
   }
-  std::cout << std::boolalpha;
+  //std::cout << std::boolalpha;
 
   bool const decoupled_molecules = m_molecules.size() > 1 &&
     Config::get().coords.decouple_internals &&
@@ -379,7 +379,7 @@ void coords::Atoms::refine_internals()
 }
 
 
-void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
+void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const Atomnr,
   size_1d &molecule, std::size_t &index_size, std::vector<bool> &done)
 {
   std::size_t const nBound = m_atoms[A].bonds().size();

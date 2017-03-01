@@ -281,23 +281,12 @@ namespace coords
 
     bool                  NEB_control, PathOpt_control;
 
-    std::size_t                mult_struc_counter;
+    std::size_t           mult_struc_counter;
     //aditional variables for perpendicular g() and o() and NEB
 
     bool									orthogonalize, hessian_def, use_fep;
-    //void topo(std::size_t const i, std::size_t const j)
-    //{ 
-    //  scon::sorted::insert_unique(m_topology[j], i); 
-    //}    
-    //
-    typedef PES_Point::size_type size_type;
 
-    //fep_data    fep;
-    //bool        NEB_control, PathOpt_control;
-    //size_type   mult_struc_counter;
-    //// aditional variables for perpendicular g() and o() and NEB
-    //Ensemble_3d R_o, taux, NEB_taux, image_inix;
-    //bool				orthogonalize, hessian_def, use_fep;
+    typedef PES_Point::size_type size_type;
 
     Coordinates();
     Coordinates(Coordinates const &r);
@@ -327,6 +316,7 @@ namespace coords
       }
     }
 
+    //umbrella
     void ubias(std::vector<double> &uout)
     {
       if (!m_potentials.uempty())
@@ -389,7 +379,7 @@ namespace coords
       if (preoptimize()) po();
       energy_valid = true;
       if (m_interface->has_optimizer()
-        && m_potentials.empty()
+        && m_potentials.empty() //bias
         && !Config::get().energy.periodic)
       {
         m_representation.energy = m_interface->o();
@@ -400,13 +390,14 @@ namespace coords
       }
       m_representation.integrity = m_interface->intact();
       m_stereo.update(xyz());
-      zero_fixed_g();
+      zero_fixed_g(); //nullt gradienten alelr fixed atrome
       return m_representation.energy;
     }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
 
     coords::Gradients_Main dimermethod_dihedral(std::vector<coords::Gradients_Main> const &tabu_direction);
+
     coords::Gradients_Main dimermethod_dihedral()
     {
       return dimermethod_dihedral(std::vector<coords::Gradients_Main>());
@@ -735,6 +726,7 @@ namespace coords
       m_stereo.update(xyz());
     }
 
+    //ifdef kann weg
 #if defined(SCON_CC11_RVALUE_REF) && defined(SCON_CC11_MOVE)
 	/**set new cartisian coordinates
 	@param new_xyz: new cartesian coordinates
@@ -1054,6 +1046,12 @@ namespace coords
     optimization::Point<scon::vector<float>,
     scon::vector<float>, float>, internal_log_drain >;
 
+  /**
+   * Purpose: Creates a callback for optimizer,
+   * since they don't care.
+   *
+   * 
+   */
   struct Coords_3d_float_callback
   {
     coords::Coordinates * cp;
