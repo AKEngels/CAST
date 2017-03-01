@@ -17,7 +17,9 @@
 
 #endif
 
-
+/** 
+* CONSTRUCTOR OF PATHX-CLASS AND INITIALIZATION OF GLOBAL VARIABLES
+*/
 pathx::pathx(neb *NEB, coords::Coordinates *c) :_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
   N = NEB;
@@ -30,6 +32,9 @@ pathx::pathx(neb *NEB, coords::Coordinates *c) :_KT_(1 / (0.0019872966*Config::g
   ENDENERGY = N->energies[N->num_images - 1];
 }
 
+/**
+* INITIALIZATION FUNCTION FOR PATHOPT RUN
+*/
 void pathx::pathx_ini()
 {
   std::cout << "**************INITIALIZATION OF PATHOPT*************\n";
@@ -38,20 +43,36 @@ void pathx::pathx_ini()
   temp_image = N->num_images;
   for (ptrdiff_t i = 1; i < temp_image - 1; i++)
   {
+	   
     N->num_images = temp_image;
+	/**
+	* initialize global optimization by using NEB starting structure 
+	*/
     cPtr->set_xyz(N->imagi[i]);
-    MCM_NEB(i);
+	/**
+	* performing global optimization on i-th n-1 dimensional hyperplane 
+	*/
+    MCM_PO(i);
 	
   }
+  /**
+  * Connection procedure on the total number of obtained minima
+  * after optimizaiton on n-1 subspace
+  */
   proof_connect();
 }
 
-//BASIN HOPPING BY USING MODIFIED RANDOM JUMPS AND CONSTRAINT MINIMIZATION
-void pathx::MCM_NEB(ptrdiff_t opt)
+/**
+* BASIN HOPPING BY USING MODIFIED RANDOM JUMPS AND CONSTRAINT MINIMIZATION 
+*/
+void pathx::MCM_PO(ptrdiff_t opt)
 {
-
+  
   double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };
   std::vector <double> MCpmin_vec;
+  /**
+  * initialize Boltzman and trial number generation
+  */
   double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
   bool  l_disp (false);
@@ -64,7 +85,9 @@ void pathx::MCM_NEB(ptrdiff_t opt)
   global_path_minima_temp.resize(N->num_images);
   global_path_minima_energy.resize(N->num_images);
 
-  //GLOBAL ITERATIONS
+  /**
+  * global iterations for multiple runs
+  */
   for (size_t t = 0; t < Config::get().neb.GLOBALITERATION; t++) 
   {
 	for (size_t i = 0; i < global_path_minima.size(); i++)
@@ -73,23 +96,31 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 		global_path_minima_temp[i].resize(mciteration*(t + 1));
 		global_path_minima_energy[i].resize(mciteration*(t + 1));
     }
-    //INITIALIZE COORDS
+    /**
+	* initialize coords
+	*/
     coord_in = cPtr->xyz();
     coord_glob = cPtr->xyz();
-	//CALCULATE SP ENERGY
+	/** 
+	* calculate SP-energies and setting start global minimum
+	*/
     MCmin = cPtr->g();
     MCgmin = MCmin;
-    //ITERATIONS
-
+    /**
+	* MCM iterations
+	*/
     for (ptrdiff_t mcstep = 0; mcstep <= mciteration; mcstep++)
 	{
-      bool move_control(false);
       coord_last = cPtr->xyz();
 	  MCpmin_vec.push_back(MCmin);
 	  positions.clear();
       positions.resize(cPtr->size());
-	  move_control = Config::get().neb.MIXED_MOVE;
-	  if (move_control && (mcstep % 10 == 0 && mcstep > 1)) 
+	  /**
+	  * Decision which jump strategy is used
+	  * 1. possibility --> MIXED MOVE / rotation of main dihedrals
+	  * 2. possibility --> STANDARD MOVE / Cartesian steps
+	  */
+	  if (Config::get().neb.MIXED_MOVE && (mcstep % 10 == 0 && mcstep > 1))
 		  {
 			for (size_t j = 0; j < cPtr->size(); j++)
 			{
@@ -117,8 +148,6 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			test_perp = perp_point(temp_perp.pes());
 			move_main(test_perp);
 			positions = cPtr->xyz();
-			//cPtr->o();
-			positions = cPtr->xyz();	  
 	  }
 	  else
 	  {
@@ -147,40 +176,53 @@ void pathx::MCM_NEB(ptrdiff_t opt)
       cPtr->set_xyz(positions);
       this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
+	  /**
+	  * Optimization using projection or biased gradients
+	  */
 	  MCmin = lbfgs(opt);
+	  /**
+	  * MCM Criteria for accepting new minimum
+	  */
 	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step " << mcstep << " is " << MCmin << '\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
-		//std::cout << "***size of counter***:  "<<nancounter << lineend;
 		status = 0;
 		nbad++;
 		cPtr->set_xyz(coord_in);
 		if (nancounter>10) break;
 	  }
-	  //TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
+	  /**
+	  * test for low energies that are not reasonable
+	  */
 	  if (MCmin< (-1.5*std::abs(STARTENERGY))) 
 	  {
 		MCmin = 1000000.00;
 		nbad++;
 	  }
-	  //METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
+	  /**
+	  * Metropolis Monte Carlo criterium and test for identical minima
+	  */
 	  for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
-      //TEST FOR IDENTICAL MINIMA
+      /**
+	  * testing for identical minima
+	  */
 	  if (status == 2) 
 	  {
 		nbad = 0;
-	    //!same minimum
+	    ///same minimum
 		MCpmin_vec[mcstep] = MCmin;
 	  }
 	 else if (MCmin < MCpmin_vec[mcstep])
 	 {
 		nbad = 0;
-		status = 1; //accepted as next minimum
+		status = 1; ///accepted as next minimum
 		MCpmin_vec[mcstep] = MCmin;
 	 }
 	 else 
-     //METROPOLIS MONTE CARLO CRITERIUM
+     /**
+	 * Metropolis Monte Carlo criterium
+	 */
 	 {
 		nbad = 0;
 		boltzman = exp(-_KT_*(MCmin - MCpmin_vec[mcstep]));
@@ -195,7 +237,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			MCpmin_vec[mcstep] = MCmin;
 		}
 	 }
-	 //TEST IF THE DISPLACEMENT IS IN AN ACCEPTABLE RANGE
+	 /// test if the displacement is in an acceptable range 
 	 if (testcoord(coord_in)) 
 	 {
 		l_disp = false;
@@ -205,38 +247,38 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 		l_disp = true;
 		status = 0;
 	 }
-	 //APPLYING ENERGY RANGE CRITERIUM
+	 ///apply energy range criterium
 	 if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) 
 	 {
 		MCmin = 1000000.00;
 		status = 0;
 		nbad++;
 	 }
-	 //SAVE ENERGY OF NEXT GLOBAL MINIMUM
+	 ///save energy of next global minimum
 	 if ((MCmin < MCgmin) && status == 1) 
 	 {
 		coord_glob = cPtr->xyz();
 		MCgmin = MCmin;
 	}
-	//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+	///restore global minimum after three bad iterations
 	if (nbad>3)
 	{
 		nbad = 0;
 		cPtr->set_xyz(coord_glob);
 	}
-	//RESTORE COORDS FROM PREVIOUS ITERATION
+	///restore coords from previous iteration
 	else if (status != 1)
 	{
 		cPtr->set_xyz(coord_last);
 	}
-	//SAVING THE ACCEPTED MINIMA
+	///saving the accepted minima
 	else if (status == 1) 
 	{
 		MCEN = MCmin;
 		global_image = opt;
 		std::ostringstream struc_opt;
 		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".arc";
-		output << mcstep << "    " << opt << "    " << MCEN << "\n";
+		output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 		counter++;
 		global_path_minima_energy[opt][counter] = MCEN;
 		for (size_t i = 0; i<cPtr->size(); i++)
@@ -251,7 +293,10 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 }
 
 
-//CONNECTION PROCEDURE FOR THE FOUND MINIMA ON N-HYPERPLANES
+/*
+* CONNECTION PROCEDURE FOR THE FOUND MINIMA ON N-HYPERPLANES
+*/
+
 void pathx::proof_connect()
 {
 
@@ -269,7 +314,7 @@ void pathx::proof_connect()
 	coords::Representation_3D tempstart{ N->imagi[0] }, tempstart2{ N->imagi[N->num_images - 1] };
 	coord1.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
 	coord2.init_in(cPtr->atoms(), N->imagi[0], true);
-	//CENTER OF GEOMETRY ALIGNMENT
+	/// center of geometry 
 	for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 	{
 		N->num_images = temp_image;
@@ -288,7 +333,7 @@ void pathx::proof_connect()
 
 		}
 	  }
-	 //CALCULATING THE RMSD VALUE STARTING FROM HYPERPLANE N TO N+1	
+	 ///caclulating the rmsd value starting from hyperplane n to n+1
 	 for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 		{
 			N->num_images = temp_image;
@@ -303,7 +348,7 @@ void pathx::proof_connect()
 				}
 			}
 		}
-	 //LOOP OVER THE FIRST NEXT UP TO THE THIRD NEAREST NEIGHBORS
+	 /// loop over the first next up to the third nearest neighbors
 	 size_t arrhenius_counter(0U);
 	 double arrhenius(0.0);
 	 ofstream arrhenius_file("arrhenius_global.dat", ios::app);
@@ -323,7 +368,7 @@ void pathx::proof_connect()
 
 
 
-	    //ASSIGNING THE PARTNERS WITH RESPECT TO THE NEAREST NEIGHBORS ON THE NEXT HYPERPLANE
+	    /// assigning the partners with respect to the nearest neighbors on the next hyperplane
 		for (ptrdiff_t i = 1; i < temp_image - 1; i++)	
 		{
 			for (size_t j = 0; j < global_path_minima[i].size(); j++)
@@ -346,7 +391,7 @@ void pathx::proof_connect()
 		ptrdiff_t i(0U), jj(0U);
 		ptrdiff_t tempcount (0U);
 		bool tempproof = false;
-		//CONNECTING PROCEDURE I/O 1: VIA NEB 2: DIRECT 
+		///Connecting I/O 1: VIA NEB 2: DIRECT 
 		if (Config::get().neb.NEB_CONN == true)
 		{
 			for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
@@ -385,11 +430,11 @@ void pathx::proof_connect()
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect[0] << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[0] << '\n';
 					printmono(img.str().c_str(), global_path_minima[1][j], j);
 					cPtr->set_xyz(global_path_minima[1][j]);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect[1] << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[1] << '\n';
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
@@ -400,14 +445,14 @@ void pathx::proof_connect()
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
 						energy_connect.push_back(cPtr->g());
-						energy << energy_connect[i+1] << '\n';
+						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
 						jj = PARTNER[i - tempcount][jj];
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
 					cPtr->set_xyz(tempstart2);
 					energy_connect.push_back(cPtr->g());
-					energy << energy_connect.back() << '\n';
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect.back() << '\n';
 					energy << "Barrier_rel to start: "<< *max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]<<'\n';
 					energy << "RATE via Arrhenius: " << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
 					arrhenius += exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_));
@@ -425,8 +470,10 @@ void pathx::proof_connect()
 }
 
 
-//GENERATES 3D-UNIT VECTOR
-//G: MARSAGLIA, ANN. MATH. STAT., 43, 645 (1972)
+/**
+ *GENERATES 3D-UNIT VECTOR
+ *G: MARSAGLIA, ANN. MATH. STAT., 43, 645 (1972)
+ */
 void pathx::randvect(void)
 {
   double x(0.0), y(0.0), s(0.0);
@@ -445,7 +492,9 @@ void pathx::randvect(void)
 
 }
 
-//FUNCTION FOR TESTING THE COORDINATE VARIATION WITH RESPECT TO MAXVARIATION LIMIT
+/** 
+* FUNCTION FOR TESTING THE COORDINATE VARIATION WITH RESPECT TO MAXVARIATION LIMIT 
+*/
 bool pathx::testcoord(coords::Representation_3D &coords)
 {
 
@@ -459,25 +508,31 @@ bool pathx::testcoord(coords::Representation_3D &coords)
   return true;
 }
 
-//LBFGS WITH PATHOPT CALLBACK FOR GRADIENTS
+/** 
+* LBFGS WITH PATHOPT CALLBACK FOR GRADIENTS 
+*/
 double pathx::lbfgs(ptrdiff_t imagex)
 {
 
 	using namespace  optimization::local;
-	//typedef coords::Container<scon::c3<float>> nc3_type;
-	// Create optimizer
+
+	/**
+	* Create optimizer
+	*/
 	global_imagex = imagex;
 	coords::Cartesian_Point g;
 	auto optimizer = make_lbfgs(
 		make_more_thuente(GradCallBack(*this))
 	);
-	//optimizer.ls.config.ignore_callback_stop = true;
-	// Create Point
+	/** 
+	* Create Point 
+	*/
 	using op_type = decltype(optimizer);
 	op_type::point_type x(scon::explicit_transform<op_type::rep_type>(cPtr->xyz()));
-	// Optimize point
+	/** 
+	* Optimize point 
+	*/
 	optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
-	//optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
 	optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
 	optimizer(x);
 
@@ -486,15 +541,13 @@ double pathx::lbfgs(ptrdiff_t imagex)
 		std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
 	}
 
-
- 
-
-
   return optimizer.p().f;
 }
 
 
-//MODIFICATION OF GRADIENT CALCULATION
+/** 
+* MODIFICATION OF GRADIENT CALCULATION 
+*/
 double pathx::g_new(ptrdiff_t im)
 {
   double cosi(0.0), energytemp(0.0), pot(0.0), dpot(0.0);
@@ -544,7 +597,9 @@ double pathx::g_new(ptrdiff_t im)
   return energytemp;
 }
 
-
+/**
+* PRINT FCT FOR SINGLE STRUCTURE
+*/
 void pathx::printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t &count)
 {
 
@@ -569,14 +624,18 @@ void pathx::printmono(std::string const &name, coords::Representation_3D &print,
   out.close();
 }
 
+/*
+* FUNCTION FOR CHANGING RANDOM DIHEDRAL ALONG GIVEN DIRECTION
+*/
+
 void pathx::move_main(perp_point & direction)
 {
   size_t const NUM(cPtr->main().size());
   coords::Representation_Main main_tors(NUM), bla(NUM);
-  // choose number of torsions to modify
+  /// choose number of torsions to modify
   coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
   size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
-  // apply those torsions
+  /// apply those torsions
   if (Config::get().general.verbosity > 4) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
@@ -586,7 +645,7 @@ void pathx::move_main(perp_point & direction)
     if (Config::get().general.verbosity > 4) std::cout << "Changing main " << K << " by " << F << '\n';
     main_tors[K] = coords::main_type::from_deg(F);
   }
-  // orthogonalize movement to main directions
+  /// orthogonalize movement to main directions
   for (auto perp_direction : direction.main_direction)
   {
     perp_direction.resize(main_tors.size());
@@ -596,6 +655,6 @@ void pathx::move_main(perp_point & direction)
   {
     cPtr->rotate_main(i, main_tors[i]);
   }
-  //main_tors.print(cout);
+  /// main_tors.print(cout);
   cPtr->to_xyz();
 }

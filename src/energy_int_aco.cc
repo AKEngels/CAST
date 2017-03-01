@@ -161,7 +161,14 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
   S << std::right << std::setw(24) << refined.torsions().size();
   std::size_t ia(refined.ia_count());
   S << std::right << std::setw(24) << ia;
-  S << std::right << std::setw(24) << (!cparams.charges().empty() ? ia : 0u);
+  if (Config::get().general.input == config::input_types::AMBER)
+  {
+    S << std::right << std::setw(24) << "see vdw";
+  }
+  else
+  {
+    S << std::right << std::setw(24) << (!cparams.charges().empty() ? ia : 0u);
+  }
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";

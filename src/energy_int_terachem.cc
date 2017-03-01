@@ -20,7 +20,7 @@
 /*
   Mopac sysCall functions
 */
-
+double const hartree_to_kcal(627.5095);
 cmpi::CMPI energy::interfaces::terachem::mpiInterface::mpo;
 
 bool energy::interfaces::terachem::mpiInterface::option_init_done(false);
@@ -237,7 +237,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::e (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for engery call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy;
+  return energy*=hartree_to_kcal;
 }
 
 // Energy+Gradient function
@@ -250,7 +250,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::g (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for gradient call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy;
+  return energy*=hartree_to_kcal;
 }
 
 // Energy+Gradient+Hessian function
@@ -272,7 +272,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::o (void)
   //mpi_recv_gradients();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 3 (recv positions) for opt call from <- TeraChem.\n";
   mpi_recv_positions();
-  return energy;
+  return energy*=hartree_to_kcal;
 }
 
 // Output functions

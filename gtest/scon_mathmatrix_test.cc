@@ -170,5 +170,111 @@ TEST(mathmatrix, rank)
 
 }
 
+TEST(mathmatrix, determ)
+{
+  mathmatrix<float> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = -1.;
+  one(1, 1) = 2;
+  one(2, 2) = 2;
+  one(0, 1) = -1;
+  one(2, 1) = -1.;
+  one(1, 2) = -1;
+  ASSERT_FLOAT_EQ(one.determ(), 4.f);
+
+  mathmatrix<float> two(3u, 3u, 1.f);
+  ASSERT_EQ(two.determ(), 0);
+
+  mathmatrix<float> three(4u, 4u, 5.f);
+  three(0, 0) = 3;
+  three(0, 2) = 8;
+  three(0, 3) = 15;
+  three(1, 0) = -4;
+  three(1, 1) = 6;
+  three(1, 2) = -3.5;
+  three(1, 3) = 9;
+  three(2, 1) = -5;
+  three(2, 3) = 4;
+  three(3, 0) = 1;
+  three(3, 1) = 2;
+  three(3, 2) = 3;
+  three(3, 3) = 4;
+  ASSERT_NEAR(three.determ(), 0.5, 0.001);
+}
+
+TEST(mathmatrix, minusOperatorWorksReasonably)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  one(0, 0) = 3;
+  one(0, 2) = 8;
+  one(0, 3) = 15;
+  one(1, 0) = -4;
+  one(1, 1) = 6;
+  one(1, 2) = -3.5;
+  one(1, 3) = 9;
+  one(2, 1) = -5;
+  one(2, 3) = 4;
+  one(3, 0) = 1;
+  one(3, 1) = 2;
+  one(3, 2) = 3;
+  one(3, 3) = 4;
+
+  mathmatrix<float> two(4u, 4u, 3.f);
+
+  mathmatrix<float> three(4u, 4u, 0.f);
+  three(0, 1) = 2;
+  three(0, 2) = 5;
+  three(0, 3) = 12;
+  three(1, 0) = -7;
+  three(1, 1) = 3;
+  three(1, 2) = -6.5;
+  three(1, 3) = 6;
+  three(2, 0) = 2;
+  three(2, 1) = -8;
+  three(2, 2) = 2;
+  three(2, 3) = 1;
+  three(3, 0) = -2;
+  three(3, 1) = -1;
+  three(3, 2) = 0;
+  three(3, 3) = 1;
+  ASSERT_EQ(one - two, three);
+
+}
+
+TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
+{
+  mathmatrix<float> one(4u, 4u, 5.f);
+  mathmatrix<float> two(3u, 2u, 5.f);
+
+  ASSERT_ANY_THROW(one - two);
+
+}
+
+TEST(mathmatrix, choleskyDecomposition)
+{
+  mathmatrix<float> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = -1.;
+  one(1, 1) = 2;
+  one(2, 2) = 2;
+  one(0, 1) = -1;
+  one(2, 1) = -1.;
+  one(1, 2) = -1;
+
+  mathmatrix<float> reference(3u, 3u, 0.f);
+  reference(0, 0) = 1.41421354e+00;
+  reference(0, 1) = -7.07106769e-01;
+  reference(1, 1) = 1.22474492e+00;
+  reference(1, 2) = -8.16496551e-01;
+  reference(2, 2) = 1.15470052e+00;
+
+  mathmatrix<float> result;
+  one.choleskyDecomposition(result);
+
+  for (int i = 0; i < result.rows(); i++)
+    for (int j = i; j < result.rows(); j++)
+      ASSERT_FLOAT_EQ(result(i, j), reference(i, j));
+
+}
 
 #endif

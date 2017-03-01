@@ -16,8 +16,9 @@
 #include "coords.h"
 #include "optimization_global.h"
 
-/*CLASS which performs double ended Reaction Path Search by applying the NEB method and adapted
- approaches like Interpolative Optimization*/
+/**
+* NEB constructor
+*/
 
 neb::neb(coords::Coordinates *cptr):_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
@@ -28,6 +29,10 @@ neb::neb(coords::Coordinates *cptr):_KT_(1 / (0.0019872966*Config::get().neb.TEM
   ClimbingImage = Config::get().neb.CLIMBING;
   springconstant = Config::get().neb.SPRINGCONSTANT;
 }
+
+/**
+* INITIALIZING function I. standard NEB call from main with Inputstructures defined in the INPUTFILE
+*/
 
 void neb::preprocess(ptrdiff_t &count)
 {
@@ -57,6 +62,10 @@ void neb::preprocess(ptrdiff_t &count)
     else run(count);
   }
 }
+
+/**
+* INITIALIZING function II. Pathopt NEB call with structures defined in Pathopt / forward ordered
+*/
 
 void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path)
 {
@@ -92,6 +101,10 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
 
 }
 
+/**
+* INITIALIZING function III. Pathopt NEB call with structures defined in Pathopt / reverse ordered
+*/
+
 void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, bool reverse)
 {
   std::vector<size_t> image_remember;
@@ -123,13 +136,18 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   else run(count);
 }
 
-
+/**
+* defining start structure from INPUT
+*/
 void neb::initial(void)
 
 {
   imagi[0] = cPtr->xyz();
 }
 
+/**
+* Reading second structure for double ended optimization from special NEB INPUT definition
+*/
 void neb::final(void)
 {
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
@@ -146,6 +164,10 @@ void neb::final(void)
   }
 }
 
+/**
+* defining start structure from PATHOPT call
+*/
+
 void neb::initial(const coords::Representation_3D &start)
 
 {
@@ -155,6 +177,10 @@ void neb::initial(const coords::Representation_3D &start)
   }
 }
 
+/**
+* defining end structure from Pathopt call
+*/
+
 void neb::final(const coords::Representation_3D &fi)
 {
   for (size_t i = 0; i < cPtr->size(); i++)
@@ -163,6 +189,9 @@ void neb::final(const coords::Representation_3D &fi)
   }
 }
 
+/**
+* linear interpolation
+*/
 void neb::create()
 {
 
@@ -205,8 +234,9 @@ void neb::create()
 }
 
 
-
- 
+/**
+* NEB run function for standard execution
+*/
 
 void neb::run(ptrdiff_t &count)
 {
@@ -235,7 +265,9 @@ void neb::run(ptrdiff_t &count, std::vector<size_t>&, std::vector<std::vector<si
   calc_tau();
 }
 
-
+/**
+* Calculation of energies which stem from the actual optimization step
+*/
 
 void neb::get_energies(void)
 {
@@ -249,6 +281,10 @@ void neb::get_energies(void)
   if (Config::get().general.verbosity > 4) std::cout << "maximum energy image is: " << CIMaximum << "\n";
 }
 
+/**
+* Calculation of the band defining vectors tau --> standard / improved tangent estimate
+*/
+
 void neb::calc_tau(void)
 {
 
@@ -256,6 +292,7 @@ void neb::calc_tau(void)
   get_energies();
   for (size_t i = 1; i < num_images - 1; i++) {
 	if (energies[i] > energies[i - 1]) CIMaximum = i;
+	/// standard tangent estimate
     if (Config::get().neb.TAU == false)
     {
       for (size_t j = 0; j < N; j++)
@@ -269,6 +306,7 @@ void neb::calc_tau(void)
 		tau[i].push_back(images[j]);		
       }
     }
+	/// improved tangent estimate
     else
     {
 
@@ -365,7 +403,9 @@ void neb::calc_tau(void)
 
 }
 
-// IDPP start  
+/**
+* IDPP start  
+*/
 void neb::idpp_prep()
 {
   start_structure = cPtr->xyz();
@@ -488,6 +528,9 @@ coords::Representation_3D neb::idpp_gradients(std::vector<coords::Representation
 }
 //IDPP end  
 
+/**
+* I/O of optimized structures and energies
+*/
 void neb::opt_io(ptrdiff_t &count)
 {
 
@@ -500,33 +543,33 @@ void neb::opt_io(ptrdiff_t &count)
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
     if (ts == true)
     {
-      off << "TS          " << ts_energies[count] << '\n';
-      off << "MIN         " << min_energies[count] << '\n';
+      off << "TS          " << std::right << std::fixed << std::setprecision(6) << ts_energies[count] << '\n';
+      off << "MIN         " << std::right << std::fixed << std::setprecision(6) << min_energies[count] << '\n';
       printmono(name.str(), imagi[0], count);
     }
-    off << "ENERGIE:    " << energies[0] << "   START\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[0] << "   START\n";
     for (size_t imagecount = 1; imagecount < num_images - 1; imagecount++)
     {
-      off << "ENERGIE:    " << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+      off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
     }
-    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) <<energies[num_images - 1] << "   FINAL\n";
     print(name.str(), imagi, count);
   }
   else
   {
     name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
-    off << "ENERGIE:    " << energies[num_images - 1] << "   FINAL\n";
+    off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {
       cPtr->set_xyz(imagi[imagecount]);
-      off << "ENERGIE:    " << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
+      off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies_NEB[imagecount] << "     IMAGE:   " << imagecount << "   GLOBAL-COUNT:  " << count << '\n';
     }
 
     print_rev(name.str(), imagi, count);
     if (ts == true)
     {
-      off << "MIN         " << min_energies[count] << '\n';
-      off << "TS          " << ts_energies[count] << '\n';
+      off << "MIN         " << std::right << std::fixed << std::setprecision(6) << min_energies[count] << '\n';
+      off << "TS          " << std::right << std::fixed << std::setprecision(6) << ts_energies[count] << '\n';
       printmono(name.str(), ts_pathstruc, count);
     }
   }
@@ -862,7 +905,7 @@ double neb::g_new_maxflux()
 			if (kappa != kappa)kappa = 0.0;
 			rv_p.x() =  (kappa / _KT_ )*rv_n.x();
 			rv_p.y() =  (kappa / _KT_ )*rv_n.y();
-			rv_p.x() =  (kappa / _KT_ )*rv_n.z();
+			rv_p.z() =  (kappa / _KT_ )*rv_n.z();
 
 			auto const g = Fpar[i] + Fvertical[i] - rv_p;
 			cPtr->update_g_xyz(i, g);

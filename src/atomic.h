@@ -15,10 +15,11 @@ Provides fundamental atomic properties
 #include <string>
 #include <cmath>
 #include <cstddef>
-  
+
+/**namespace for atomic properties*/
 namespace atomic 
 {
-
+	/**PSE with element symbols*/
   static const std::string symbolMap[ATOMIC_H] = 
   { "XX", 
    "H",                                                                                                                                                                                       "He", 
@@ -28,7 +29,7 @@ namespace atomic
    "Rb", "Sr",                                                                                      "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",
    "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb",  "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn" 
   };
-
+  /**number of bonds for every element in saturated state*/
   static const std::size_t num_saturated_bonds[ATOMIC_H] =
   { 0,
     1,                                                                                           0,
@@ -39,6 +40,7 @@ namespace atomic
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
 
+  /**PSE with full element names*/
   enum nameMap 
   {
     HYDROGEN=1,                                                                                                                                                                            HELIUM, 
@@ -50,7 +52,7 @@ namespace atomic
                                     CERIUM,  PRASEODYMIUM, NEODYMIUM, PROMETHIUM, SAMARIUM, EUROPIUM, GADOLINIUM, TERBIN, DYSPROSIUM, HOLMIUM, ERBIUM, THULIUM, YTTERBIUM, LUTETIUM,
                                     HAFNIUM, TANTALUM,     WOLFRAM,   RHENIUM,    OSMIUM,   IRIDIUM,  PLATINUM,   GOLD,   MERCURY,    THALLIUM,  LEAD, BISMUTH, POLONIUM,   ASTATINE, RADON
   };
-
+  /**atom mass for every element*/
   static const double massMap[ATOMIC_H] = 
   { 0.0, 
     1.00794,                                                                                                                                                          4.0026, 
@@ -61,7 +63,7 @@ namespace atomic
   132.90545, 137.327,  138.906, 140.116, 140.908,  144.24,  146.915,  150.36,  151.964,  157.25 , 158.925,  162.5,   164.93,  167.259, 168.934, 173.04,   174.967,
                                 178.49,  180.9479, 183.84,  186.207,  190.23,  192.217,  195.078, 196.9665, 200.59,  204.383, 207.2,   208.908, 208.9824, 209.9871, 222.0176 
   };
-
+  /**atom radius for every element (what kind of radius?)*/
   static const double radiusMap[ATOMIC_H] =
   {
     0.0,
@@ -81,7 +83,8 @@ namespace atomic
     2.0, 2.0, 2.0, 2.0, 2.0 /*71-75*/, 2.0, 2.0, 2.0, 2.0, 2.0 /*76-80*/,
     2.0, 2.0, 2.0, 2.0, 2.0 /*81-85*/, 2.0 /*86*/
   };
-
+  /**returns atomic number
+  @param symbol: atom symbol*/
   inline std::size_t atomic_number_by_symbol (std::string const & symbol)
   {
     std::size_t ret(0U);
@@ -95,7 +98,8 @@ namespace atomic
     }
     return ret;
   }
-
+  /**returns atomic number
+  @param value: atom mass*/
   inline std::size_t atomic_number_by_mass (double const value)
   {
     if (value < 0.0 || atomic::massMap[ATOMIC_H-1U] < value) return 0U;
@@ -111,14 +115,17 @@ namespace atomic
     if ((low > 1U) && std::fabs(atomic::massMap[low-1U] - value) < 1.0) return low-1U;
     return 0;
   } 
-
+  /**tests if atom is a heteroatom, i.e. N, O, F, P, S, Cl, Se, Br, I
+  @param atomic_number: atomic number of atoms that is to be tested*/
   inline bool number_is_heteroatom (std::size_t const atomic_number) 
   {
     return atomic_number ==  7u || atomic_number ==  8u || atomic_number ==  9u || 
            atomic_number == 15u || atomic_number == 16u || atomic_number == 17u || 
            atomic_number == 34u || atomic_number == 35u || atomic_number == 53u;
   }
-
+  /**tests if an atom is saturated, i.e. if it has the maximum number of bonds
+  @param atomic_number: atomic number of atoms that is to be tested
+  @param bonds: number of bonds that the atom has*/
   inline bool saturated(std::size_t const atomic_number, std::size_t const bonds)
   {
     return num_saturated_bonds[atomic_number >= ATOMIC_H ? 0u : atomic_number] == bonds;
