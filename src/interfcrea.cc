@@ -9,7 +9,7 @@
 
 //Function to read a second structure and add it to the structure read by standart input
 
-void interface_creation(std::string fname, char iaxis, double idist, coords::Coordinates norm_coord)//norm_coord is coord object from read standart input in main.cc
+coords::Coordinates interface_creation(std::string fname, char iaxis, double idist, coords::Coordinates norm_coord)//norm_coord is coord object from read standart input in main.cc
 {
   std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
   coords::Coordinates add_coords(add_strukt_uptr->read(fname));
@@ -146,6 +146,6 @@ void interface_creation(std::string fname, char iaxis, double idist, coords::Coo
   std::unique_ptr<coords::input::format> new_strukt_uptr(coords::input::new_interf_format());
   coords::Coordinates new_interf(new_strukt_uptr->read(Config::set().general.outputFilename));
 
-  norm_coord = new_interf;
+  return new_interf;
 
 }
