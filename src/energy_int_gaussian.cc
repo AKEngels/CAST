@@ -124,7 +124,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   
 
-  bool done(false),test_lastMOs(false);//to controll if reading was successfull
+  bool test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
@@ -289,9 +289,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     std::ofstream test1("test1.txt");
     std::ofstream test2("test2.txt");
     test1 << coords;
-    test2 << coords::Coordinates::get_g_xyz;
-
-
+    coords::Representation_3D grad_test(coords->size()), xyz_tmp(coords->size());
+    grad_test =  coords->get_g_xyz;
+    test2 << grad_test;
   }
 
 
