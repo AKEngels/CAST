@@ -289,7 +289,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     std::ofstream test1("test1.txt");
     std::ofstream test2("test2.txt");
     test1 << coords;
-    coords::Representation_3D grad_test(coords->size()), xyz_tmp(coords->size());
+    coords::Representation_3D grad_test;
     grad_test =  coords->get_g_xyz;
     test2 << grad_test;
   }
