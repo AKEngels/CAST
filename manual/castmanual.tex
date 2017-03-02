@@ -382,8 +382,8 @@
 
 For the coordinate file there are several options (see above). An AMBER \textbf{restart file }should look like this:
 \begin{itemize}
-\item The first line contains either a title or the number of atoms in the structure.
-\item If the first line is a title the number of atoms is found in the second line.
+\item The first line contains the title..
+\item The second number contains the number of atoms.
 \item The rest of the lines contain the coordinates. In each line (except the last in case of an odd number of atoms) there are the coordinates of two atoms in the order x y z x y z where each number has a width of 12.
 \item In the last line there might be box parameters also in the format x y z x y z or not.
 \end{itemize}
@@ -489,7 +489,7 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 			\end{longtable} 
 	
-	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
+	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. (	IS THIS STILL CORRECT??? ) \\
 	
 	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 
@@ -818,7 +818,7 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 	%%%% Trajectory alignment (ALIGN) %%%%
 	\subsection{ALIGN - Trajectory Alignment}
 	\label{sec:align}
-	The trajectory alignment task allows the alignment of ensembles of structures, for example structures obtained from molecular dynamics. For translational alignment, the center-of-mass of all structures are aligned to the origin of the coordinate system. Rotational alignment is performed via Kabsch's method\supercite{kabsch1, kabsch2}. This task can furthermore calculate distance measures between the structures of the ensemble in regard to a reference structure. Regarding the distance metric, one can chose between the (standard) \ac{RMSD}, the \ac{dRMSD} and the Holm and Sander Score\supercite{holmsander}. For a comparison of molecular distance meassures see \cite{distancemeasures}. If no alignment is performed beforehand the distance measures are calculated among the unaligned snapshots. \ac{CAST} provides the following optionsfor the task ALIGN: \\~\\
+	The trajectory alignment task allows the alignment of ensembles of structures, for example structures obtained from molecular dynamics. For translational alignment, the center-of-mass of all structures are aligned to the origin of the coordinate system. Rotational alignment is performed via Kabsch's method\supercite{kabsch1, kabsch2}. This task can furthermore calculate distance measures between the structures of the ensemble in regard to a reference structure. Regarding the distance metric, one can chose between the (standard) \ac{RMSD}, the \ac{dRMSD} and the Holm and Sander Score\supercite{holmsander}. For a comparison of molecular distance meassures see \cite{distancemeasures}. If no alignment is performed beforehand the distance measures are calculated among the unaligned snapshots. \ac{CAST} provides the following options for the task ALIGN: \\~\\
 	
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
