@@ -286,12 +286,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     {
       mos << g_tmp[i] << '\n';
     }*/
-    std::ofstream test1("test1.txt");
-    std::ofstream test2("test2.txt");
-    test1 << coords;
-    
-    
-    test2 << coords->get_g_xyz;
   }
 
 
