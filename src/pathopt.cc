@@ -438,11 +438,26 @@ void pathx::proof_connect()
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
+
+					//During the path sempling each path is written in an array and printed out later
+					std::vector<coords::Representation_3D>* final_path = nullptr;
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						final_path = new std::vector<coords::Representation_3D>;
+						final_path->resize(temp_image);
+						final_path->at(0) = tempstart;
+						final_path->at(1) = global_path_minima[1][j];
+					}
+
 					for (i = 1; i < temp_image - 2; i++)
 					{
 						if (global_path_minima[i - tempcount][jj].empty()) continue;
 						if (global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]].empty()) continue;
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
+						
+						if (Config::get().neb.MAXFLUX_PATHOPT) {
+							final_path->at(i + 1) = global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]];
+						}
+						
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
 						energy_connect.push_back(cPtr->g());
 						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
@@ -450,6 +465,23 @@ void pathx::proof_connect()
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
+
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						auto kill = false;
+						final_path->at(final_path->size() - 1U) = tempstart2;
+						for (auto && path : *(final_path)) {
+							if (path.empty()) kill = true;
+						}
+						if (!kill) {
+							N->preprocess(*(final_path));
+						}
+						/*std::for_each(final_path->begin(), final_path->end(), [&](auto && path) {
+						printmono(std::string("MAXFLUX_PATH_" + std::to_string(j) + ".arc").c_str(), path, j);
+						});*/
+						delete final_path;
+						final_path = nullptr;
+					}
+
 					cPtr->set_xyz(tempstart2);
 					energy_connect.push_back(cPtr->g());
 					energy << std::right << std::fixed << std::setprecision(6) << energy_connect.back() << '\n';
