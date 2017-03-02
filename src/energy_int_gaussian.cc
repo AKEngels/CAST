@@ -75,7 +75,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::~sysCallInterfaceGauss(void
   }
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
+void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(char calc_type)
 {
   std::string outstring(id);
   outstring.append(".gjf");
@@ -87,7 +87,17 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput()
       out_file << "%" << Config::get().energy.gaussian.link;
       out_file << '\n';
     }
-    out_file << "# " << Config::get().energy.gaussian.command;
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec;
+
+    switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
+      case 'o' :
+        out_file << " Opt=Cartesian";
+        break;
+      case 'g' :
+        out_file << " Force";
+        break;
+    }
+
     out_file << '\n';
     out_file << '\n';
     out_file << Config::get().general.outputFilename;
@@ -108,7 +118,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
-  float hof_au(0.0), e_total_au(0.0);
 
   auto in_string = id + ".log";
 
@@ -165,7 +174,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       if (buffer.find(" SCF Done:") != std::string::npos)
       {
-        e_total_au = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
+        e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
@@ -245,7 +254,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
        excitE[i] *= eV2kcal_mol;
      }
 
-    e_total = e_total_au * au2kcal_mol;
+    e_total *= au2kcal_mol;
 
     //test output for interface, shound be outcommented
 
@@ -277,6 +286,11 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     {
       mos << g_tmp[i] << '\n';
     }*/
+    std::ofstream test1("test1.txt");
+    std::ofstream test2("test2.txt");
+    test1 << coords;
+    test2 << coords::Coordinates::get_g_xyz;
+
 
   }
 
@@ -305,7 +319,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
-  print_gaussianInput();
+  print_gaussianInput('e');
   if (callGaussian() == 0) read_gaussianOutput(false, false);
   else
   {
@@ -321,7 +335,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
   integrity = true;
-  print_gaussianInput();
+  print_gaussianInput('g');
   if (callGaussian() == 0) read_gaussianOutput(true, false);
   else
   {
@@ -341,7 +355,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
     std::cout << "Hessian not implemented in CAST as yet.";
   }
   integrity = true;
-  print_gaussianInput();
+  print_gaussianInput('h');
   if (callGaussian() == 0) read_gaussianOutput();
   else
   {
@@ -357,7 +371,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
   integrity = true;
-  print_gaussianInput();
+  print_gaussianInput('o');
   if (callGaussian() == 0) read_gaussianOutput(true, true);
   else
   {

@@ -536,8 +536,12 @@ void config::parse_option(std::string const option, std::string const value_stri
   //Gaussian options
   else if (option.substr(0, 8) == "GAUSSIAN")
   {
-    if (option.substr(8, 3) == "key")
-      Config::set().energy.gaussian.command = value_string;
+    if (option.substr(8, 6) == "method")
+      Config::set().energy.gaussian.method = value_string;
+    else if (option.substr(8, 8) == "basisset")
+      Config::set().energy.gaussian.basisset = value_string;
+    else if (option.substr(8, 14) == "specifications")
+      Config::set().energy.gaussian.spec = value_string;
     else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")

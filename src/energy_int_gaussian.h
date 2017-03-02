@@ -67,7 +67,7 @@ namespace energy
 				double e_total, e_electron, e_core;
 
         //MO and excitation energies
-        std::vector <float> occMO, virtMO, excitE;
+        std::vector <double> occMO, virtMO, excitE;
 
 				std::string id;
 
@@ -79,7 +79,7 @@ namespace energy
         */
 
         int callGaussian(void);
-        void print_gaussianInput();
+        void print_gaussianInput(char);
         void read_gaussianOutput(bool const grad = true, bool const opt = true);
         void removeTempFiles(void);
 

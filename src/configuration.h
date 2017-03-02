@@ -575,9 +575,9 @@ namespace config
 
     struct gaussian_conf
     {
-      std::string command, path, link, charge, multipl;
+      std::string path, link, charge, multipl, method, basisset, spec;
       bool delete_input;
-      gaussian_conf(void) : command("Hf/ 6-31G"),
+      gaussian_conf(void) : method("Hf/ "), basisset ("6-31G"),
         delete_input(true)
       {}
     } gaussian;
