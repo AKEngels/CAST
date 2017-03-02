@@ -1863,7 +1863,8 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   }
   if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
   {
-    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << p.gaussian.command << "'.\n";
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
+         << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
   }
   return strm;
 }
