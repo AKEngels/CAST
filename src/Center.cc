@@ -34,8 +34,10 @@ void center(coords::Coordinates coords)
 
     for (std::size_t i = 0u; i < N; i++)
     {
-      for (std::size_t j = 0u; j < N && j != i; j++)
+      for (std::size_t j = 0u; j < N ; j++)
       {
+        if(j > i)
+        {
         //Calculate distance between momomers
         com_dist = sqrt((com[i].x() - com[j].x())*(com[i].x() - com[j].x()) + (com[i].y() - com[j].y())*(com[i].y() - com[j].y()) + (com[i].z() - com[j].z())*(com[i].z() - com[j].z()));
 
@@ -78,9 +80,9 @@ void center(coords::Coordinates coords)
             }
             dimerstrukt << '\n';
           }
-
+          dimerstrukt.close();
         }
-
+       }
       }
 
     }
