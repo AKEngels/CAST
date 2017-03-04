@@ -141,7 +141,7 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
 */
 void neb::preprocess(std::vector<coords::Representation_3D> & ini_path) {
 	std::vector<size_t> image_remember;
-	std::vector<std::vector<rsize_t>> atoms_remember;
+	std::vector<std::vector<size_t> > atoms_remember;
 	ptrdiff_t count = 0U;
 	cPtr->mult_struc_counter++;
 	cPtr->set_xyz(ini_path[0]);
