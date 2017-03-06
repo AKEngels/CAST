@@ -46,7 +46,7 @@ namespace energy
         // Energy+Gradient+Hessian function
         double h(void);
         // Optimization in the interface(d program)
-        double o(void);
+       // double o(void);
 
         // Output functions
         void print_E(std::ostream&) const;

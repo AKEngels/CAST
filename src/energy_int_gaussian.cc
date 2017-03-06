@@ -362,21 +362,21 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
   return energy;
 }
 
-double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
-{
-  integrity = true;
-  print_gaussianInput('o');
-  if (callGaussian() == 0) read_gaussianOutput(true, true);
-  else
-  {
-    if (Config::get().general.verbosity >= 2)
-    {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
-    }
-    integrity = false;
-  }
-  return energy;
-}
+//double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
+//{
+//  integrity = true;
+//  print_gaussianInput('o');
+//  if (callGaussian() == 0) read_gaussianOutput(true, true);
+//  else
+//  {
+//    if (Config::get().general.verbosity >= 2)
+//    {
+//      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+//    }
+//    integrity = false;
+//  }
+//  return energy;
+//}
 
 //Outputfunctions
 
