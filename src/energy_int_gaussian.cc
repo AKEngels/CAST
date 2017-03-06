@@ -255,6 +255,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
      }
 
     e_total *= au2kcal_mol;
+    energy = e_total;
 
     //test output for interface, shound be outcommented
 
