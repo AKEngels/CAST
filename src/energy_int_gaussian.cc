@@ -213,7 +213,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
 
 
-          if (opt)
+          if (grad || opt)
           {
             xyz_tmp[i] = p;
           }
@@ -221,7 +221,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       }//end coordinater reading
     }//end while(!in_file.eof())
 
-    if (opt)
+    if (grad || opt)
     {
       coords->set_xyz(std::move(xyz_tmp));
     }
