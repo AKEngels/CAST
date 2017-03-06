@@ -369,13 +369,6 @@ int main(int argc, char **argv)
           short_ene_stream(coords, loclogstream, 16);
           coords.o();
 
-          //std::ofstream test1("test1.txt");//output to test of coords and gradients are read correctly from gaussian_output
-          //std::ofstream test2("test2.txt");
-          //test1 << coords;
-          //coords::Gradients_3D grad_test;
-          //coords.get_g_xyz(grad_test);
-          //test2 << grad_test;
-
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           short_ene_stream(coords, loclogstream, 16);
