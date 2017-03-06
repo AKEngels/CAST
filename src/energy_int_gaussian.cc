@@ -108,7 +108,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
     out_file << '\n';
-
+    out_file.close();
   }
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
