@@ -24,15 +24,18 @@ with open("alchemical.txt") as alch:   # read lines of this file that describe p
             runs[-1].append(line)
 runs.pop()  # delete last (empty) element of this list
 
-temp = float(runs[0][0][60:75])  # get temperature
 
 for r in runs:  # for every production run
     de_ens = []
+    temps = []
     for k in r:  # for every conformation in this run
         energy = float(k[75:90])  # find dE
-        de_ens.append(math.exp(-1 / (boltz*temp)*conv*energy / avogad)) # calculate the e-function term
+        current_temp = float(k[60:75]) # find current temperature
+        de_ens.append(math.exp(-1 / (boltz*current_temp)*conv*energy / avogad)) # calculate the e-function term
+        temps.append(current_temp) # save current temperature
         
     de_ensemble = sum(de_ens)/len(de_ens) # calculate ensemble average
+    temp = sum(temps)/len(temps)          # calculate average temperature
 
     dG = -1 * math.log(de_ensemble)*temp*boltz*avogad / conv  # calculate dG
     dG_list.append(dG)  # save dG
