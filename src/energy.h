@@ -66,8 +66,23 @@ namespace energy
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {
-	  coords::float_type ein, eout, vin, vout;
-	  coords::float_type dein, deout, dvin, dvout;
+	  /**current lambda_el for appearing atoms*/
+	  coords::float_type ein;
+	  /**current lambda_el for disappearing atoms*/
+	  coords::float_type eout;
+	  /**current lambda_vdw for appearing atoms*/
+	  coords::float_type vin;
+	  /**current lambda_vdw for disappearing atoms*/
+	  coords::float_type vout;
+	  /**(lambda + dlambda)_el for appearing atoms*/
+	  coords::float_type dein;
+	  /**(lambda + dlambda)_el for disappearing atoms*/
+	  coords::float_type deout;
+	  /**(lambda + dlambda)_vdw for appearing atoms*/
+	  coords::float_type dvin;
+	  /**(lambda + dlambda)_vdw for disappearing atoms*/
+	  coords::float_type dvout;
+	/**number of current window*/
     int step;
     fepvar (void) 
       : ein(1.0), eout(1.0), vin(1.0), vout(1.0),
