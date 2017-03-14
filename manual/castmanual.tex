@@ -802,7 +802,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential ($= \alpha_{cshift}$ in equation \ref{cb_softcore}) & float [1.0] \\
 		\textbf{FEPequil} & Number of equilibration steps in each window & integer [10] \\
 		\textbf{FEPsteps} & Number of production steps in each window & integer [10]\\
-		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1000] \\
+		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 	\end{tabularx}\\~\\
 
 	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.

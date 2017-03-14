@@ -786,7 +786,7 @@ namespace config
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000)
+      steps(10), equil(10), freq(1)
     { }
   };
 
