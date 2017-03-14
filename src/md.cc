@@ -775,7 +775,7 @@ void md::simulation::freewrite(std::size_t i)
 // perform FEP calculation if requested
 void md::simulation::feprun()
 {
-    for (std::size_t i(0U); i < coordobj.fep.window.size(); ++i)
+    for (std::size_t i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
     {
       std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
       coordobj.fep.window[0U].step = static_cast<int>(i);
