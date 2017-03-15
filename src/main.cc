@@ -35,7 +35,7 @@
 #include "scon_chrono.h"
 #include "helperfunctions.h"
 #include "scon_log.h"
-
+#include "win_inc.h"
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
@@ -779,6 +779,10 @@ int main(int argc, char **argv)
     std::cout << "An exception occured. The execution of " << config::Programname << " failed. \n";
     std::cout << "Error: " << e.what() << '\n';
   }
+#endif
+#ifdef _MSC_VER 
+  // make window stay open in debug session on windows
+  if (IsDebuggerPresent()) std::system("pause");
 #endif
   return 0;
 }
