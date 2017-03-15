@@ -355,6 +355,12 @@ NEB-PATHOPT-MAXFLUX 1
 #determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
 NEB-PATHOPT-MF_PATHOPT 1
 
+#using image dependent pair potential (IDPP) for NEB pathway generation (0/1: no/yes)
+NEB-PATHOPT-NEB-IDPP 1
+
+#usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+NEB-PATHOPT-NEB-COMPLETE 1
+
 
 ####################################
 #                                  #

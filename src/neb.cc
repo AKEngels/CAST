@@ -40,12 +40,21 @@ void neb::preprocess(ptrdiff_t &count)
   std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
   ts = false;
-  imagi.resize(num_images);
-  image_ini.resize(num_images);
-  tau.resize(num_images);
+  N = cPtr->size();
+  imagi.clear();
+  image_ini.clear();
+  energies.clear();
+  tau.clear();
+  images.clear();
   images_initial.clear();
+  ts_pathstruc.resize(num_images);
+  image_ini.resize(num_images);
   images.resize(N);
+  tau.resize(num_images);
+  tempimage_final.resize(num_images);
+  tempimage_ini.resize(num_images);
   energies.resize(num_images);
+  imagi.resize(num_images);
   initial();
   final();
   if (Config::get().neb.IDPP)
@@ -96,6 +105,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   initial(start);
   final(fi);
   create();
+  images.clear();
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
 
@@ -128,7 +138,6 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   tempimage_final.resize(N);
   tempimage_ini.resize(N);
   energies.resize(num_images);
-  springconstant = Config::get().neb.SPRINGCONSTANT;
   initial(start);
   final(fi);
   create();
@@ -137,37 +146,39 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
 }
 
 /**
-* defining start structure from INPUT
+* defining start structures from INPUT
 */
-void neb::preprocess(std::vector<coords::Representation_3D> & ini_path) {
+void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_t &count) {
 	std::vector<size_t> image_remember;
 	std::vector<std::vector<size_t> > atoms_remember;
-	ptrdiff_t count = 0U;
-	cPtr->mult_struc_counter++;
-	cPtr->set_xyz(ini_path[0]);
-	num_images = ini_path.size();
+	coords::Representation_3D ini_path_x;
 	N = cPtr->size();
+	ts = false;
+	num_images = ini_path.size();
 	imagi.clear();
 	image_ini.clear();
 	energies.clear();
 	tau.clear();
 	images.clear();
+	images_initial.clear();
 	ts_pathstruc.resize(num_images);
 	image_ini.resize(num_images);
-	images_initial.clear();
-	tempimage_final.resize(N);
-	tempimage_ini.resize(N);
+	images.resize(N);
+	tau.resize(num_images);
+	tempimage_final.resize(num_images);
+	tempimage_ini.resize(num_images);
 	energies.resize(num_images);
-	springconstant = Config::get().neb.SPRINGCONSTANT;
-	for (auto && path : ini_path) {
-		imagi.push_back(path);
-		image_ini.push_back(path);
-		for (auto && p : path) {
-			images_initial.push_back(p);
-		}
-	}
+	imagi.resize(num_images);
+	ini_path_x.resize(N);
+	ini_path_x=ini_path[0];
+	initial(ini_path_x);
+	ini_path_x = ini_path[num_images-1];
+	final(ini_path_x);
+	create(ini_path);
+	images.clear();
 	if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
 	else run(count);
+
 }
 
 void neb::initial(void)
@@ -193,6 +204,8 @@ void neb::final(void)
     line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
     imagi[num_images - 1].push_back(images[i]);
   }
+
+  
 }
 
 /**
@@ -231,10 +244,8 @@ void neb::create()
   std::ostringstream name;
   name << "IMAGES_INI" << cPtr->mult_struc_counter << ".dat";
   cPtr->set_xyz(imagi[0]);
-  cPtr->to_internal();
   tempimage_ini = cPtr->xyz();
   cPtr->set_xyz(imagi[num_images - 1]);
-  cPtr->to_internal();
   tempimage_final = cPtr->xyz();
   for (size_t j = 1; j < (num_images - 1); j++) {
 
@@ -264,6 +275,29 @@ void neb::create()
   if (Config::get().neb.INT_PATH) calc_shift();
 }
 
+
+void neb::create(const std::vector<coords::Representation_3D> &ini)
+{
+	for (size_t j = 1; j < (num_images - 1); j++)
+	{
+		for (size_t i = 0; i < this->cPtr->size(); i++) 
+		{
+			images[i].x() = ini[j][i].x();
+			images[i].y() = ini[j][i].y();
+			images[i].z() = ini[j][i].z();
+
+			imagi[j].push_back(images[i]);
+			image_ini[j].push_back(images[i]);
+			images_initial.push_back(images[i]);
+		}
+
+	}
+	std::ostringstream na;
+	na << "IMAGES_START" << this->cPtr->mult_struc_counter << ".arc";
+	std::ptrdiff_t s{ 0 };
+	print(na.str(), imagi, s);
+
+}
 
 /**
 * NEB run function for standard execution
@@ -566,12 +600,14 @@ void neb::opt_io(ptrdiff_t &count)
 {
 
   std::ostringstream energies_out, name;
-  energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter << ".dat";
+  if (Config::get().general.task == 8) energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter << ".dat";
+  else energies_out << "ENERGIES_COMPLETE_" << this->cPtr->mult_struc_counter <<"_"<< count << ".dat";
   std::string temp{ energies_out.str() };
   std::fstream off(temp.c_str(), std::ios::app);
   if (reversed == true)
   {
-    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+	  if (Config::get().general.task == 8) name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+	  else name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << "_" << count << ".arc";
     if (ts == true)
     {
       off << "TS          " << std::right << std::fixed << std::setprecision(6) << ts_energies[count] << '\n';
@@ -588,7 +624,8 @@ void neb::opt_io(ptrdiff_t &count)
   }
   else
   {
-    name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+	  if (Config::get().general.task == 8) name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << ".arc";
+	  else name << "IMAGES_FINAL" << this->cPtr->mult_struc_counter << "_" << count << ".arc";
     off << "ENERGIE:    " << std::right << std::fixed << std::setprecision(6) << energies[num_images - 1] << "   FINAL\n";
     for (ptrdiff_t imagecount = num_images - 2; imagecount >= 1; imagecount--)
     {

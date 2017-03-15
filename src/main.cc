@@ -523,20 +523,31 @@ int main(int argc, char **argv)
       case config::tasks::NEB:
       {
         std::ptrdiff_t counter = 0;
-        coords::Coordinates const coord_obj(coords);
+		std::vector<coords::Representation_3D> input_pathway;
         for (auto const & pes : *ci)
         {
           coords.set_xyz(pes.structure.cartesian);
-          coords.mult_struc_counter++;
-          neb nobj(&coords);
-          nobj.preprocess(counter);
+		  if (Config::get().neb.COMPLETE_PATH)
+		  {
+			  input_pathway.push_back(pes.structure.cartesian);
+		  }
+		  else
+		  {
+			  coords.mult_struc_counter++;
+			  neb nobj(&coords);
+			  nobj.preprocess(counter);
+		  }
         }
+		if (Config::get().neb.COMPLETE_PATH)
+		{
+			neb nobj(&coords);
+			nobj.preprocess(input_pathway, counter);
+		}
         break;
       }
       case config::tasks::PATHOPT:
       {
         std::ptrdiff_t counter = 0;
-        coords::Coordinates const coord_obj(coords);
         for (auto const & pes : *ci)
         {
           coords.set_xyz(pes.structure.cartesian);

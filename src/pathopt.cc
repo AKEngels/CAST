@@ -79,7 +79,9 @@ void pathx::MCM_PO(ptrdiff_t opt)
   global_image = 0;
   counter = 0;
   coords::Representation_3D positions;
-  std::ofstream output("PATHOPT_BASIN_ENERGIES.dat", std::ios::app);
+  std::ostringstream basinout;
+  basinout << "PATHOPT_BASIN_ENERGIES_" << cPtr->mult_struc_counter << ".dat";
+  std::ofstream output(basinout.str(), std::ios::app);
   coords::Representation_3D  coord_in, coord_glob, coord_last;
   global_path_minima.resize(N->num_images);
   global_path_minima_temp.resize(N->num_images);
@@ -174,7 +176,6 @@ void pathx::MCM_PO(ptrdiff_t opt)
 			}
       }
       cPtr->set_xyz(positions);
-      this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
 	  /**
 	  * Optimization using projection or biased gradients
@@ -277,7 +278,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		MCEN = MCmin;
 		global_image = opt;
 		std::ostringstream struc_opt;
-		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".arc";
+		struc_opt << "PATHOPT_STRUCTURES_" << cPtr->mult_struc_counter << "_" << opt << ".arc";
 		output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 		counter++;
 		global_path_minima_energy[opt][counter] = MCEN;
@@ -424,8 +425,8 @@ void pathx::proof_connect()
 					if (global_path_minima[1][j].empty()) continue;
 					reverse = false;
 					std::ostringstream en, img;
-					en << "ENERGY_" << j << ".dat";
-					img << "PATH_" << j << ".arc";
+					en << "ENERGY_" <<cPtr->mult_struc_counter<<"_"<< j << ".dat";
+					img << "PATH_" << cPtr->mult_struc_counter << "_"<< j << ".arc";
 					std::ofstream energy(en.str().c_str(), std::ios::app);
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
@@ -473,7 +474,7 @@ void pathx::proof_connect()
 							if (path.empty()) kill = true;
 						}
 						if (!kill) {
-							N->preprocess(*(final_path));
+							N->preprocess(*(final_path), j);
 						}
 						/*std::for_each(final_path->begin(), final_path->end(), [&](auto && path) {
 						printmono(std::string("MAXFLUX_PATH_" + std::to_string(j) + ".arc").c_str(), path, j);

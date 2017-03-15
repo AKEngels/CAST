@@ -510,6 +510,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.MAXFLUX;
 	  else if (option.substr(11, 11) == "-MF_PATHOPT")
 		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
+	  else if (option.substr(11, 13) == "-NEB-COMPLETE")
+		  cv >> Config::set().neb.COMPLETE_PATH;
   }
 
   // MOPAC options
