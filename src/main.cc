@@ -748,15 +748,14 @@ int main(int argc, char **argv)
 						 Config::set().exbreak.nscpairrates, Config::set().exbreak.pscpairexrates, Config::set().exbreak.pscpairchrates, Config::set().exbreak.pnscpairrates);
 	  }
       case config::tasks::INTEFACE_CREATION:
-    {
+      {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
         coords = interface_creation(Config::set().interfcrea.icfilename, Config::set().interfcrea.icaxis, Config::set().interfcrea.icdist, coords);
     }
-
       case config::tasks::CENTER:
-    {
+      {
         /**
         * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
         * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
