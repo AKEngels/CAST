@@ -91,7 +91,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
-        out_file << " Opt=Cartesian";
+        out_file << " (Opt=Cartesian,Steep)";
         break;
       case 'g' :
         out_file << " Force";
@@ -233,7 +233,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     } //end if(in_file)
 
-     std::sort(occMO.begin(), occMO.end(), std::greater <float>()); //sort occupied mos highest to lowest
+     std::sort(occMO.begin(), occMO.end(), std::greater <double>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
      std::sort(excitE.begin(), excitE.end()); //sort excitation energies lowest to highest
 
