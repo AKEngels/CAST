@@ -781,12 +781,12 @@ namespace config
 	  std::size_t steps;
 	  /**number of MD steps in equilibration run for every window*/
 	  std::size_t equil;
-	  /**every freq'th MD step of production run is taken into account for energy calculation*/
+	  /**output frequency in alchemical.txt (does not affect calculation)*/
 	  std::size_t freq;
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000)
+      steps(10), equil(10), freq(1)
     { }
   };
 
