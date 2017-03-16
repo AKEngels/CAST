@@ -35,7 +35,9 @@
 #include "scon_chrono.h"
 #include "helperfunctions.h"
 #include "scon_log.h"
+#ifdef _MSC_VER
 #include "win_inc.h"
+#endif
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
