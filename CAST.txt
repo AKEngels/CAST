@@ -27,7 +27,7 @@ cores                  4
 
 # Input file name
 
-name                   min2.prmtop
+name                   DEVTEST_MD_SNAP.arc
 
 # Output file name
 
@@ -35,14 +35,14 @@ outname                DEVTEST
 
 # Input file type
 
-inputtype              AMBER
+inputtype              TINKER
 
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
 #amber_mdvel
 #amber_inpcrd
-amber_restrt           min.rst
+#amber_restrt           min2.rst
 #amber_trajectory_at_constant_pressure
 
 
@@ -106,7 +106,11 @@ preinterface           0
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              amber99.prm
+paramfile              amber99_gaff_nocharge.prm
+
+# reading amber charges from separate file (called charges.txt) <0/1>
+
+chargefile             1
 
 # Keywords for MOPAC Call
 
@@ -129,7 +133,7 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 #                                  #
 ####################################
 
-cutoff                 400.0
+cutoff                 12.0
 switchdist             10.0
 
 
@@ -601,7 +605,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                1
  
 # Integrator
 #

@@ -283,6 +283,8 @@ namespace config
     config::solvs::S solvationmethod;
     /** Surfacemethod for implicit solvationd, implicit solvation currently not supported!*/
     config::surfs::SA surfacemethod;
+	/**are amber charges read from a seperate file?*/
+	bool chargefile;
     /**Constructor with reasonable default parameters*/
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
