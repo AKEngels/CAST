@@ -184,14 +184,14 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  /**
 	  * MCM Criteria for accepting new minimum
 	  */
-	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step " << mcstep << " is " << MCmin << '\n';
+	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step (not proofed) " << mcstep << " is " << MCmin << '\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
 		status = 0;
 		nbad++;
 		cPtr->set_xyz(coord_in);
-		if (nancounter>10) break;
+		if (nancounter>(mcstep/2)) break;
 	  }
 	  /**
 	  * test for low energies that are not reasonable
@@ -273,7 +273,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		cPtr->set_xyz(coord_last);
 	}
 	///saving the accepted minima
-	else if (status == 1) 
+	else if (status == 1 && nancounter == 0) 
 	{
 		MCEN = MCmin;
 		global_image = opt;
