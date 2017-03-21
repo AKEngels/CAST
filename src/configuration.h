@@ -286,13 +286,13 @@ namespace config
 	/**are amber charges read from a seperate file?*/
 	bool chargefile;
     /**Constructor with reasonable default parameters*/
-    general(void) :
-      paramFilename("oplsaa.prm"), outputFilename("%i.out"),
-      input(input_types::TINKER), output(output_types::TINKER),
-      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
-      preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U), 
-      solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER)
+	general(void) :
+		paramFilename("oplsaa.prm"), outputFilename("%i.out"),
+		input(input_types::TINKER), output(output_types::TINKER),
+		task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
+		preopt_interface(interface_types::ILLEGAL),
+		verbosity(1U),
+		solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), chargefile(false)
     { }
   };
 
