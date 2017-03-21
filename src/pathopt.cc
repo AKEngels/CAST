@@ -75,7 +75,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
   */
   double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
-  bool  l_disp (false);
+  bool  l_disp (false),nanstatus(false);
   global_image = 0;
   counter = 0;
   coords::Representation_3D positions;
@@ -117,6 +117,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  MCpmin_vec.push_back(MCmin);
 	  positions.clear();
       positions.resize(cPtr->size());
+	  nanstatus = false;
 	  /**
 	  * Decision which jump strategy is used
 	  * 1. possibility --> MIXED MOVE / rotation of main dihedrals
@@ -188,6 +189,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
+		nanstatus = true;
 		status = 0;
 		nbad++;
 		cPtr->set_xyz(coord_in);
@@ -273,7 +275,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		cPtr->set_xyz(coord_last);
 	}
 	///saving the accepted minima
-	else if (status == 1 && nancounter == 0) 
+	else if (status == 1 && nanstatus == false) 
 	{
 		MCEN = MCmin;
 		global_image = opt;
