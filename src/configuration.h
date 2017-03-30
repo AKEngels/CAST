@@ -549,7 +549,7 @@ namespace config
     {
       bool on, interp;
       double cut;
-      spack(void) : on(false), interp(true), cut(10.0) { }
+      spack(void) : on(false), interp(false),cut(10.0) { }
     } spackman;
 
     struct mopac_conf
