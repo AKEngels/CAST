@@ -115,7 +115,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
-  //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
+  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
 
@@ -163,6 +163,24 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
         test_lastMOs = true;
+      }
+
+      if (buffer.find("Excited to excited state transition electric dipole") != std::string::npos)
+      {
+        std::getline(in_file, buffer);
+
+        bool el_dipm = true;
+
+        for (int i(0);  el_dipm == true; i++)
+        {
+          std::getline(in_file, buffer);
+
+          if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
+
+          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
+
+        }
+
       }
 
 
@@ -260,33 +278,28 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     //test output for interface, shound be outcommented
 
    /* for (unsigned int i = 0; i < xyz_tmp.size(); i++)
-    {
-      mos << xyz_tmp[i] << '\n';
-    }
-
+    { mos << xyz_tmp[i] << '\n'; }
 
     mos << "\n occ" << "       " << "virt \n";
 
     for (unsigned int i = 0; i < occMO.size(); i++)
-    {
-      mos << occMO[i] << "    " << virtMO[i] << '\n';
-    }
+    { mos << occMO[i] << "    " << virtMO[i] << '\n'; }
 
     mos << "\n total energy: " << e_total << '\n';
 
     mos << "\n Excitation energies \n";
 
     for (unsigned int i = 0; i < excitE.size(); i++)
-    {
-      mos << excitE[i] << '\n';
-    }
+    { mos << excitE[i] << '\n'; }
 
     mos << "\n Gradients \n";
 
     for (unsigned int i = 0; i < g_tmp.size(); i++)
-    {
-      mos << g_tmp[i] << '\n';
-    }*/
+    { mos << g_tmp[i] << '\n'; }*/
+
+    for (unsigned int i = 0; i < state_i.size(); i++)
+    { mos << state_i[i] << state_j[i] << ex_ex_trans[i]; }
+
   }
 
 

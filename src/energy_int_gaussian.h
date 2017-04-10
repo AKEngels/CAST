@@ -67,6 +67,8 @@ namespace energy
 
         //MO and excitation energies
         std::vector <double> occMO, virtMO, excitE;
+        coords::Representation_3D  ex_ex_trans;
+        std::vector <int> state_i, state_j;
 
 				std::string id;
 
