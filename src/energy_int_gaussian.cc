@@ -174,10 +174,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
+          mos << '1';
+          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
-
-          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
 
         }
 
@@ -298,7 +298,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     { mos << g_tmp[i] << '\n'; }*/
 
     for (unsigned int i = 0; i < state_i.size(); i++)
-    { mos << state_i[i] << state_j[i] << ex_ex_trans[i]; }
+    { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
 
   }
 
