@@ -81,6 +81,10 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
   outstring.append(".gjf");
 
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
+
+  std::ofstream bibedibabedi("buh.txt", std::ios_base::out);
+  bibedibabedi << "ARE YOU NOT WRITING?";
+
   if (out_file)
   {
     if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
