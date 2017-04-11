@@ -167,6 +167,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       if (buffer.find("Excited to excited state transition electric dipole") != std::string::npos)
       {
+        mos << '0';
+
         std::getline(in_file, buffer);
 
         bool el_dipm = true;
