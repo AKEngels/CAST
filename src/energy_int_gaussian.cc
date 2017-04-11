@@ -279,7 +279,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     //test output for interface, shound be outcommented
 
-   /* for (unsigned int i = 0; i < xyz_tmp.size(); i++)
+    for (unsigned int i = 0; i < xyz_tmp.size(); i++)
     { mos << xyz_tmp[i] << '\n'; }
 
     mos << "\n occ" << "       " << "virt \n";
@@ -297,7 +297,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     mos << "\n Gradients \n";
 
     for (unsigned int i = 0; i < g_tmp.size(); i++)
-    { mos << g_tmp[i] << '\n'; }*/
+    { mos << g_tmp[i] << '\n'; }
 
     for (unsigned int i = 0; i < state_i.size(); i++)
     { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
