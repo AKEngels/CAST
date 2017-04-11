@@ -306,6 +306,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     for (unsigned int i = 0; i < state_i.size(); i++)
     { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
 
+    mos.close();
   }
 
 
