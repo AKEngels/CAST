@@ -138,6 +138,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     std::string buffer;
     while (!in_file.eof())
     {
+      mos << 0;
+
       std::getline(in_file, buffer);
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
@@ -257,6 +259,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     } //end if(in_file)
 
+    mos << "e";
+
      std::sort(occMO.begin(), occMO.end(), std::greater <double>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
      std::sort(excitE.begin(), excitE.end()); //sort excitation energies lowest to highest
@@ -333,30 +337,21 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 //Energy functions
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
-  std::ofstream test("test.txt", std::ios_base::out);
-  test << "a";
-
   integrity = true;
   print_gaussianInput('e');
 
-  test << "b";
-
   if (callGaussian() == 0)
   {
-    test << "c";
     read_gaussianOutput(false, false);
-    test << "d";
   }
   else
   {
-    test << "e";
     if (Config::get().general.verbosity >=2)
     {
       std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
-  test << "f";
   return energy;
 }
 
