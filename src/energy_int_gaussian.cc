@@ -333,9 +333,12 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 //Energy functions
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
+  std::ofstream test("test.txt", std::ios_base::out);
+  test << "-1";
+
   integrity = true;
   print_gaussianInput('e');
-  std::ofstream test("test.txt", std::ios_base::out);
+
   test << "0";
 
   if (callGaussian() == 0)
