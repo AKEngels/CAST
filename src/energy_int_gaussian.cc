@@ -117,7 +117,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
-  mos << "-3";
+  mos << -3;
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
@@ -131,10 +131,10 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
-  mos << "-2";
+  mos << -2;
   if (in_file)
   {
-    mos << "-1";
+    mos << -1;
     std::string buffer;
     while (!in_file.eof())
     {
@@ -171,7 +171,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
-        mos << "0";
+        mos << 0;
 
         std::getline(in_file, buffer);
 
@@ -180,7 +180,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
-          mos << "1";
+          mos << 1;
           std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
@@ -283,25 +283,25 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     //test output for interface, shound be outcommented
 
-    for (unsigned int i = 0; i < xyz_tmp.size(); i++)
-    { mos << xyz_tmp[i] << '\n'; }
+   /* for (unsigned int i = 0; i < xyz_tmp.size(); i++)
+    { mos << xyz_tmp[i] << '\n'; }*/
 
-    mos << "\n occ" << "       " << "virt \n";
+   /* mos << "\n occ" << "       " << "virt \n";*/
 
-    for (unsigned int i = 0; i < occMO.size(); i++)
-    { mos << occMO[i] << "    " << virtMO[i] << '\n'; }
+    /*for (unsigned int i = 0; i < occMO.size(); i++)
+    { mos << occMO[i] << "    " << virtMO[i] << '\n'; }*/
 
-    mos << "\n total energy: " << e_total << '\n';
+    /*mos << "\n total energy: " << e_total << '\n';*/
 
-    mos << "\n Excitation energies \n";
+   /* mos << "\n Excitation energies \n";*/
 
-    for (unsigned int i = 0; i < excitE.size(); i++)
-    { mos << excitE[i] << '\n'; }
+   /* for (unsigned int i = 0; i < excitE.size(); i++)
+    { mos << excitE[i] << '\n'; }*/
 
-    mos << "\n Gradients \n";
+    //mos << "\n Gradients \n";
 
-    for (unsigned int i = 0; i < g_tmp.size(); i++)
-    { mos << g_tmp[i] << '\n'; }
+   /* for (unsigned int i = 0; i < g_tmp.size(); i++)
+    { mos << g_tmp[i] << '\n'; }*/
 
     for (unsigned int i = 0; i < state_i.size(); i++)
     { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
@@ -334,29 +334,29 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   std::ofstream test("test.txt", std::ios_base::out);
-  test << "-1";
+  test << -1;
 
   integrity = true;
   print_gaussianInput('e');
 
-  test << "0";
+  test << 0;
 
   if (callGaussian() == 0)
   {
-    test << "1";
+    test << 1;
     read_gaussianOutput(false, false);
-    test << "2";
+    test << 2;
   }
   else
   {
-    test << "3";
+    test << 3;
     if (Config::get().general.verbosity >=2)
     {
       std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
-  test << "4";
+  test << 4;
   return energy;
 }
 
