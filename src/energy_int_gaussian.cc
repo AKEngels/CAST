@@ -117,8 +117,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
-  mos << "bla";
-  mos << -3;
+  mos << "a";
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
@@ -132,7 +131,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
-  mos << -2;
+  mos << "b";
   if (in_file)
   {
     mos << -1;
@@ -172,7 +171,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
-        mos << 0;
+        mos << "c";
 
         std::getline(in_file, buffer);
 
@@ -181,7 +180,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
-          mos << 1;
+          mos << "d";
           std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
@@ -335,30 +334,29 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   std::ofstream test("test.txt", std::ios_base::out);
-  test << "blö";
-  test << -1;
+  test << "a";
 
   integrity = true;
   print_gaussianInput('e');
 
-  test << 0;
+  test << "b";
 
   if (callGaussian() == 0)
   {
-    test << 1;
+    test << "c";
     read_gaussianOutput(false, false);
-    test << 2;
+    test << "d";
   }
   else
   {
-    test << 3;
+    test << "e";
     if (Config::get().general.verbosity >=2)
     {
       std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
-  test << 4;
+  test << "f";
   return energy;
 }
 
