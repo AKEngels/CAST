@@ -117,6 +117,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
+  mos << "bla";
   mos << -3;
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
@@ -334,6 +335,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   std::ofstream test("test.txt", std::ios_base::out);
+  test << "blö";
   test << -1;
 
   integrity = true;

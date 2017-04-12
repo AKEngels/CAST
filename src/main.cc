@@ -134,9 +134,6 @@ int main(int argc, char **argv)
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
-
-      std::ofstream bla("bla.txt", std::ios_base::out);
-      bla << "bla";
     }
 
     //////////////////////////
