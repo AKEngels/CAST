@@ -82,9 +82,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
 
-  std::ofstream bibedibabedi("buh.txt", std::ios_base::out);
-  bibedibabedi << "ARE YOU NOT WRITING?";
-
   if (out_file)
   {
     if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
@@ -119,8 +116,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
-  std::ofstream mos; //ofstream for mo testoutput keep commented if not needed
-  mos.open("MOs.txt", std::ios_base::out);
+  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
   mos << "-3";
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
@@ -339,15 +335,25 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
   print_gaussianInput('e');
-  if (callGaussian() == 0) read_gaussianOutput(false, false);
+  std::ofstream test("test.txt", std::ios_base::out);
+  test << "0";
+
+  if (callGaussian() == 0)
+  {
+    test << "1";
+    read_gaussianOutput(false, false);
+    test << "2";
+  }
   else
   {
+    test << "3";
     if (Config::get().general.verbosity >=2)
     {
       std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
+  test << "4";
   return energy;
 }
 
