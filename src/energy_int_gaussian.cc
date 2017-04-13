@@ -172,6 +172,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         test_lastMOs = true;
       }
 
+      tut.close();
+
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
         mos << "c";
@@ -311,7 +313,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     /*for (unsigned int i = 0; i < state_i.size(); i++)
     { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }*/
 
-    tut.close();
     mos.close();
   }
 
