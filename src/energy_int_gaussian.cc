@@ -172,7 +172,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         test_lastMOs = true;
       }
 
-      tut.close();
+      
 
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
@@ -194,7 +194,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       }
 
-
+tut.close();
 
       if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
