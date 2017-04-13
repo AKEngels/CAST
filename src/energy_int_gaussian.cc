@@ -206,7 +206,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
-tut.close();
+
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
@@ -250,6 +250,8 @@ tut.close();
           }
         }
       }//end coordinater reading
+
+tut.close();
     }//end while(!in_file.eof())
 
 
