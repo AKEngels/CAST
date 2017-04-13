@@ -194,7 +194,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       }
 
-tut.close();
+
 
       if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
@@ -249,6 +249,8 @@ tut.close();
         }
       }//end coordinater reading
     }//end while(!in_file.eof())
+
+tut.close();
 
     if (grad || opt)
     {
