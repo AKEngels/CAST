@@ -171,7 +171,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
 
-        std::getline(in_file, buffer);
+        /*std::getline(in_file, buffer);
 
         bool el_dipm = true;
 
@@ -182,7 +182,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
 
-        }
+        }*/
 
       }
 
