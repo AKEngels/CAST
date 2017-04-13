@@ -117,9 +117,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
-  mos << "a";
- 
-  
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
@@ -136,11 +133,9 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   mos << "b";
   if (in_file)
   {
-    mos << -1;
     std::string buffer;
     while (!in_file.eof())
     {
-      mos << 0;
 
       std::getline(in_file, buffer);
 
@@ -173,9 +168,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       
 
-   /*   if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
+      if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
-        mos << "c";
 
         std::getline(in_file, buffer);
 
@@ -184,14 +178,13 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
-          mos << "d";
           std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
 
         }
 
-      }*/
+      }
 
 
 
