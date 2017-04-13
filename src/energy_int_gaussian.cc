@@ -118,8 +118,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 {
   std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
   mos << "a";
-  std::ofstream tut("tut.txt", std::ios_base::out);
-  tut << "taetaeraeh";
+ 
   
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
@@ -251,10 +250,12 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         }
       }//end coordinater reading
 
-tut.close();
+
     }//end while(!in_file.eof())
 
-
+ std::ofstream tut("tut.txt", std::ios_base::out);
+  tut << "taetaeraeh";
+tut.close();
 
     if (grad || opt)
     {
