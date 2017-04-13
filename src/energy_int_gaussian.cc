@@ -194,7 +194,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       }
 
-tut.close();
+
 
       if (buffer.find(" Excited State   ") != std::string::npos)//fetches excitation energies from gaussian output
       {
@@ -261,6 +261,7 @@ tut.close();
     }
 
     } //end if(in_file)
+tut.close();
 
     mos << "e";
 
