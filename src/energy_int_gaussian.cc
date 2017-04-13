@@ -171,18 +171,18 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
 
-        /*std::getline(in_file, buffer);
+        std::getline(in_file, buffer);
 
         bool el_dipm = true;
 
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());
+          /*std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], ex_ex_trans[i].x(), ex_ex_trans[i].y(), ex_ex_trans[i].z());*/
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
 
-        }*/
+        }
 
       }
 
@@ -245,10 +245,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
 
     }//end while(!in_file.eof())
-
- std::ofstream tut("tut.txt", std::ios_base::out);
-  tut << "taetaeraeh";
-tut.close();
 
     if (grad || opt)
     {
