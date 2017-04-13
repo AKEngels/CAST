@@ -120,7 +120,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   mos << "a";
   std::ofstream tut("tut.txt", std::ios_base::out);
   tut << "taetaeraeh";
-  tut.close;
+  tut.close();
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
