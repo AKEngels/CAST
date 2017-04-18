@@ -130,7 +130,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   std::size_t const atoms = coords->size();
 
-  mos << "b";
   if (in_file)
   {
     std::string buffer;
@@ -263,8 +262,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     } //end if(in_file)
 
-    mos << "e";
-
      std::sort(occMO.begin(), occMO.end(), std::greater <double>()); //sort occupied mos highest to lowest
      std::sort(virtMO.begin(), virtMO.end()); //sort unoccupied mos lowest to highest
      std::sort(excitE.begin(), excitE.end()); //sort excitation energies lowest to highest
@@ -312,7 +309,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     { mos << g_tmp[i] << '\n'; }*/
 
     for (unsigned int i = 0; i < state_i.size(); i++)
-    { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
+    { mos << state_i[i] << "   " << state_j[i] << "   " << ex_ex_trans[i] << '\n'; }
 
     mos.close();
   }
