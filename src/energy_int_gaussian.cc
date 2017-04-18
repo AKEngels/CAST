@@ -174,11 +174,16 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         std::getline(in_file, buffer);
 
         bool el_dipm = true;
+        int tmp_i, tmp_j;
+        coords::Cartesian_Point tmp_ex_ex_trans;
 
         for (int i(0);  el_dipm == true; i++)
         {
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &state_i[i], &state_j[i], &ex_ex_trans[i].x(), &ex_ex_trans[i].y(), &ex_ex_trans[i].z());
+          std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &tmp_i, &tmp_j, &tmp_ex_ex_trans.x(), &tmp_ex_ex_trans.y(), &tmp_ex_ex_trans.z());
+          state_i.push_back(tmp_i);
+          state_j.push_back(tmp_j);
+          ex_ex_trans.push_back(tmp_ex_ex_trans);
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
 
@@ -306,8 +311,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
    /* for (unsigned int i = 0; i < g_tmp.size(); i++)
     { mos << g_tmp[i] << '\n'; }*/
 
-    /*for (unsigned int i = 0; i < state_i.size(); i++)
-    { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }*/
+    for (unsigned int i = 0; i < state_i.size(); i++)
+    { mos << state_i[i] << state_j[i] << ex_ex_trans[i] << '\n'; }
 
     mos.close();
   }
