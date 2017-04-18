@@ -191,14 +191,14 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
       {
         std::getline(in_file, buffer);
         bool gz_az_dipm = true;
-        int tmp_i;
+        int tmp_gz_i;
         coords::Cartesian_Point tmp_gz_ex_trans;
 
         while (gz_az_dipm)
         {
           std::getline(in_file, buffer);
-          std::scanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
-          gz_i_state.push_back(tmp_i);
+          std::scanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_gz_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
+          gz_i_state.push_back(tmp_gz_i);
           gz_ex_trans.push_back(tmp_gz_ex_trans);
 
           if (buffer.find("Ground to excited state transition velocity dipole moments (Au):") != std::string::npos) { gz_az_dipm = false; }
