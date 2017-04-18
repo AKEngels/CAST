@@ -165,8 +165,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         test_lastMOs = true;
       }
 
-      
-
       if (buffer.find("Excited to excited state transition electric dipole moments (Au):") != std::string::npos)
       {
 
@@ -176,7 +174,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         int tmp_i, tmp_j;
         coords::Cartesian_Point tmp_ex_ex_trans;
 
-        for (int i(0);  el_dipm == true; i++)
+        while (el_dipm)
         {
           std::getline(in_file, buffer);
           std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &tmp_i, &tmp_j, &tmp_ex_ex_trans.x(), &tmp_ex_ex_trans.y(), &tmp_ex_ex_trans.z());
@@ -185,7 +183,25 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
           ex_ex_trans.push_back(tmp_ex_ex_trans);
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
+        }
 
+      }
+
+      if (buffer.find("Ground to excited state transition electric dipole moments (Au):") != std::string::npos)
+      {
+        std::getline(in_file, buffer);
+        bool gz_az_dipm = true;
+        int tmp_i;
+        coords::Cartesian_Point tmp_gz_ex_trans;
+
+        while (gz_az_dipm)
+        {
+          std::getline(in_file, buffer);
+          std::scanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_i, tmp_gz_ex_trans.x(), tmp_gz_ex_trans.y(), tmp_gz_ex_trans.z());
+          gz_i_state.push_back(tmp_i);
+          gz_ex_trans.push_back(tmp_gz_ex_trans);
+
+          if (buffer.find("Ground to excited state transition velocity dipole moments (Au):") != std::string::npos) { gz_az_dipm = false; }
         }
 
       }
@@ -310,6 +326,11 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     /*for (unsigned int i = 0; i < state_i.size(); i++)
     { mos << state_i[i] << "   " << state_j[i] << "   " << ex_ex_trans[i] << '\n'; }*/
+
+    for (unsigned int i = 0; i < state_i.size(); i++)
+    {
+      mos << gz_i_state[i] << "   " << gz_ex_trans << '\n';
+    }
 
     mos.close();
   }
