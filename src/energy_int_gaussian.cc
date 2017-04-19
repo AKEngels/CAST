@@ -187,7 +187,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
       }
 
-      if (buffer.find("Ground to excited state transition electric dipole moments (Au):") != std::string::npos)
+      if (buffer.find("Ground to excited state transition electric") != std::string::npos)
       {
         std::getline(in_file, buffer);
         bool gz_az_dipm = true;
