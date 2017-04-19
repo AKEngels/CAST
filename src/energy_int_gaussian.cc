@@ -333,7 +333,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
     { mos << state_i[i] << "   " << state_j[i] << "   " << ex_ex_trans[i] << '\n'; }
 
     for (unsigned int i = 0; i < gz_i_state.size(); i++)
-    { mos << gz_i_state[i] << "   " << gz_ex_trans << '\n'; }
+    { mos << gz_i_state[i] << "   " << gz_ex_trans[i] << '\n'; }
 
     mos.close();
   }
