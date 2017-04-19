@@ -195,7 +195,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         coords::Cartesian_Point tmp_gz_ex_trans;
 
         mos << "a" << '\n';
-        while (gz_az_dipm)
+        for (int i =0;gz_az_dipm; i++)
         {
           std::getline(in_file, buffer);
           std::scanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_gz_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
