@@ -198,7 +198,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         for (int i =0;gz_az_dipm; i++)
         {
           std::getline(in_file, buffer);
-          std::scanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_gz_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
+          std::sscanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_gz_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
           gz_i_state.push_back(tmp_gz_i);
           gz_ex_trans.push_back(tmp_gz_ex_trans);
 
