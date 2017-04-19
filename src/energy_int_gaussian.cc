@@ -174,13 +174,16 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         int tmp_i, tmp_j;
         coords::Cartesian_Point tmp_ex_ex_trans;
 
+        std::getline(in_file, buffer);
         while (el_dipm)
         {
-          std::getline(in_file, buffer);
+
           std::sscanf(buffer.c_str(), "%i %i %lf %lf %lf %*s %*s", &tmp_i, &tmp_j, &tmp_ex_ex_trans.x(), &tmp_ex_ex_trans.y(), &tmp_ex_ex_trans.z());
           state_i.push_back(tmp_i);
           state_j.push_back(tmp_j);
           ex_ex_trans.push_back(tmp_ex_ex_trans);
+
+          std::getline(in_file, buffer);
 
           if (buffer.find("Excited to excited state transition velocity") != std::string::npos) {el_dipm = false;}
         }
@@ -194,12 +197,14 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
         int tmp_gz_i;
         coords::Cartesian_Point tmp_gz_ex_trans;
 
-        for (int i =0;gz_az_dipm; i++)
-        {
-          std::getline(in_file, buffer);
+        std::getline(in_file, buffer);
+        while (gz_az_dipm)
+        { 
           std::sscanf(buffer.c_str(), "%i %lf %lf %lf %*s %*s", &tmp_gz_i, &tmp_gz_ex_trans.x(), &tmp_gz_ex_trans.y(), &tmp_gz_ex_trans.z());
           gz_i_state.push_back(tmp_gz_i);
           gz_ex_trans.push_back(tmp_gz_ex_trans);
+
+          std::getline(in_file, buffer);
 
           if (buffer.find("Ground to excited state transition velocity dipole moments (Au):") != std::string::npos) { gz_az_dipm = false; }
         }
