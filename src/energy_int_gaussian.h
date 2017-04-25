@@ -59,6 +59,22 @@ namespace energy
         coords::Representation_3D  ex_ex_trans, gz_ex_trans;
         std::vector <int> state_i, state_j, gz_i_state;
 
+        //functions for fetching MO, excitationenergies and dipolemoments from gaussian energy interface
+
+        /*! Obtain contents of sysCallInterfaceGauss
+        *
+        * This get() function is used to safely
+        * obtain the contents of the sysCallInterfaceGauss instance
+        *
+        * This function returns const& and can
+        * therefore not be used to change values.
+        */
+        static sysCallInterfaceGauss const & get()
+        {
+          if (!m_ginterface) throw std::runtime_error("Interface not loaded.");
+          return *m_ginterface;
+        }
+
       private:
 
         //constructor for clone and move functions
@@ -91,6 +107,14 @@ namespace energy
         */
 
         bool check_bond_preservation(void) const;
+
+        /*! Pointer to the single instance of the Config class
+        *
+        * There can only ever be one Config object.
+        * A pointer to it is contained here.
+        * If no object exists (yet), this will be a nullpointer.
+        */
+        static sysCallInterfaceGauss * m_ginterface;
 
       };
 

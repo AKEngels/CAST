@@ -23,6 +23,12 @@
 Gaussian sysCall functions
 */
 
+/**
+* Global static instance of the sysCallInterfaceGauss-object.
+* There can only ever be one config-object.
+*/
+energy::interfaces::gaussian::sysCallInterfaceGauss * energy::interfaces::gaussian::sysCallInterfaceGauss::m_ginterface = nullptr;
+
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coords::Coordinates * cp) :
   energy::interface_base(cp),
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
@@ -337,7 +343,6 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
     //mos.close();
   }
-
 
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 {
