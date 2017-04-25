@@ -33,6 +33,7 @@ void couplings::coupling::kopplung()
 
       if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
+        test << '4';
         debug << '4';
 
         coords::Coordinates dim_coords(ci->read(idatname.str()));
