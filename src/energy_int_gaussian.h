@@ -54,6 +54,11 @@ namespace energy
         void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
 
+        //MO, excitation energies and dipolemoments
+        std::vector <double> occMO, virtMO, excitE;
+        coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+        std::vector <int> state_i, state_j, gz_i_state;
+
       private:
 
         //constructor for clone and move functions
@@ -65,10 +70,7 @@ namespace energy
 				// energies
 				double e_total, e_electron, e_core;
 
-        //MO and excitation energies
-        std::vector <double> occMO, virtMO, excitE;
-        coords::Representation_3D  ex_ex_trans, gz_ex_trans;
-        std::vector <int> state_i, state_j, gz_i_state;
+        
 
 				std::string id;
 

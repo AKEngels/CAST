@@ -889,8 +889,6 @@ ICaxis						x
 ICdistance					5.0
 
 
-
-
 ####################################
 #                                  #
 #              CENTER              #
@@ -900,6 +898,29 @@ ICdistance					5.0
 CENTERdimer                     1
 
 CENTERdistance                  5.0
+
+
+####################################
+#                                  #
+#             Couplings            #
+#                                  #
+####################################
+
+#Number of Dimerpairs
+
+Couplingsdimernumber   
+
+#Number of p-type semiconductor monomers
+
+CouplingspSCnumber
+
+#Number of n-type semiconductor monomers         
+
+CouplingsnSCnumber
+
+#List of states relevant for ct-processes (no commata)
+
+CouplingsCTcharastates
 
 
 ####################################

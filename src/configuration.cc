@@ -1640,14 +1640,27 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  /*NOT IMPLEMENTED AS OF NOW!
-  //I/O Atoms index options
-  else if (option == "atomexclude")
-  {
-    Config::set().general.bool_atomsexclude = true;
-    Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
-  }
+  /* Inputoptions for Couplings
   */
+  else if (option.substr(0u, 9u) == "Couplings")
+  {
+    if (option.substr(9u, 11u) == "dimernumber")
+    {
+      cv >> Config::set().couplings.nbr_dimPairs;
+    }
+    if (option.substr(9u, 9u) == "nSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_nSC;
+    }
+    if (option.substr(9u, 9u) == "pSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_pSC;
+    }
+    if (option.substr(9u, 13u) == "CTcharastates")
+    {
+      cv >> Config::set().couplings.ct_chara_all;
+    }
+  }
 
 }
 
