@@ -4,21 +4,27 @@
 void couplings::coupling::kopplung()
 {
   std::ofstream debug("debug.txt", std::ios::out);
+  std::ofstream test("test.txt", std::ios::out);
 
+  test << '0';
   debug << '0';
 
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 
+  test << '1';
   debug << '1';
 
   for (int i = 0; i < gesanzahl_monomere-1; i++)
   {
+    test << '2';
     debug << '2';
 
     for (int j = 1; j < gesanzahl_monomere; j++)
     {
+      test << '3';
       debug << '3';
+      test.close();
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
