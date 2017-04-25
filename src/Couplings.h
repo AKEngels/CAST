@@ -13,6 +13,8 @@
 
 namespace couplings {
 
+  struct coupling {
+
     //MO, excitation energies and dipolemoments
     std::vector <double> c_occMO, c_virtMO, c_excitE;
     coords::Representation_3D  c_ex_ex_trans, c_gz_ex_trans;
@@ -20,12 +22,13 @@ namespace couplings {
 
     void kopplung();
 
-    void INDO(coords::Coordinates coords);
-    void ZINDO(coords::Coordinates coords);
+    void INDO(coords::Coordinates);
+    void ZINDO(coords::Coordinates);
     void write();
 
     //kopplungen
     std::vector <double> V_el, V_hole, V_ex, V_ct, V_rek;
     std::vector <int> pSC_homo_1, pSC_homo_2, nSC_homo_1, nSC_homo_2, hetero_pSC, hetero_nSC;//vectors to keep track between which monomers the coupling is
 
+  };
 }

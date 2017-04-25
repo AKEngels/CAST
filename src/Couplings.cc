@@ -1,9 +1,11 @@
+#pragma once
 #include "Couplings.h"
 
-void couplings::kopplung()
+void couplings::coupling::kopplung()
 {
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+
   for (int i = 0; i < gesanzahl_monomere; i++)
   {
     for (int j = 0; j < gesanzahl_monomere && j > i; j++)
@@ -132,7 +134,7 @@ void couplings::kopplung()
   }
 }
 
-void couplings::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
+void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
 {
   //Change gasussian parameters to the needed settings
   Config::set().energy.gaussian.method = "INDO";
@@ -145,7 +147,7 @@ void couplings::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation
   c_virtMO = energy::interfaces::gaussian::sysCallInterfaceGauss::get().virtMO;
 }
 
-void couplings::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculation for marcus-theorie couplings
+void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculation for marcus-theorie couplings
 {
   //Change gasussian parameters to the needed settings
   Config::set().energy.gaussian.method = "ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)";
@@ -163,7 +165,7 @@ void couplings::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculatio
 
 }
 
-void couplings::write()
+void couplings::coupling::write()
 {
   std::ofstream all_couplings("couplings.txt", std::ios::out);
 

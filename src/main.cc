@@ -768,7 +768,9 @@ int main(int argc, char **argv)
       }
       case config::tasks::COUPLINGS:
       {
-        couplings::kopplung();
+        couplings::coupling coup;
+        coup.kopplung();
+
         break;
       }
 
