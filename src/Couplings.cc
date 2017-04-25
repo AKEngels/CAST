@@ -12,11 +12,11 @@ void couplings::coupling::kopplung()
 
   debug << '1';
 
-  for (int i = 0; i < gesanzahl_monomere; i++)
+  for (int i = 0; i < gesanzahl_monomere-1; i++)
   {
     debug << '2';
 
-    for (int j = 0; j < gesanzahl_monomere && j > i; j++)
+    for (int j = 1; j < gesanzahl_monomere; j++)
     {
       debug << '3';
 
