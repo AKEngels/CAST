@@ -3,22 +3,36 @@
 
 void couplings::coupling::kopplung()
 {
+  std::ofstream debug("debug.txt", std::ios::out);
+
+  debug << '0';
+
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 
+  debug << '1';
+
   for (int i = 0; i < gesanzahl_monomere; i++)
   {
+    debug << '2';
+
     for (int j = 0; j < gesanzahl_monomere && j > i; j++)
     {
+      debug << '3';
+
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
 
       try //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
+        debug << '4';
+
         coords::Coordinates dim_coords(ci->read(idatname.str()));
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
+          debug << '5';
+
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
@@ -34,6 +48,8 @@ void couplings::coupling::kopplung()
 
         if ( i >= Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
+          debug << '6';
+
           nSC_homo_1.push_back(i);
           nSC_homo_2.push_back(j);
 
@@ -45,6 +61,8 @@ void couplings::coupling::kopplung()
 
         if (i < Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
+          debug << '7';
+
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
 
@@ -57,6 +75,8 @@ void couplings::coupling::kopplung()
 
           for (int i = 0; i < 3; i++) //calculation dipolemoment for dimer for unpolar monomers
           {
+            debug << '8';
+
             dipol_ct.x() = 0.5 * monom1.x() - 0.5 * monom2.x();
             dipol_ct.y() = 0.5 * monom1.y() - 0.5 * monom2.y();
             dipol_ct.z() = 0.5 * monom1.z() - 0.5 * monom2.z();
@@ -77,6 +97,7 @@ void couplings::coupling::kopplung()
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (int i = 0; i < c_ex_ex_trans.size(); i++)//loop over all ex_ex_dipoles
           {
+            debug << '9';
             if (c_state_j[i] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
               for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
@@ -97,6 +118,7 @@ void couplings::coupling::kopplung()
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
           for (int i = 0; i < c_gz_ex_trans.size(); i++)//loop over all gz_ex_dipoles
           {
+            debug << 'a';
             for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
             {
               if (c_gz_i_state[i] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
@@ -126,10 +148,14 @@ void couplings::coupling::kopplung()
       }
       catch(std::exception & e){}
 
+
+      debug << 'b';
       //WRITING CACULATED COUPLINGS#####################################################
 
-      write();
+      debug << 'c';
 
+      write();
+      debug.close();
     }
   }
 }
