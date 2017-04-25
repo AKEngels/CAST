@@ -28,8 +28,10 @@ void couplings::coupling::kopplung()
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
+    
+      std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
-      try //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
+      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
         debug << '4';
 
@@ -152,9 +154,7 @@ void couplings::coupling::kopplung()
         }//hetero end
 
       }
-      catch(std::exception & e){}
-
-
+      
       debug << 'b';
       //WRITING CACULATED COUPLINGS#####################################################
 
