@@ -94,6 +94,8 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
   return r;
 }
 
+e/*nergy::interface_base::interface_base(void) };*/
+
 /*! Override of virtual void swap
 *
 * Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is

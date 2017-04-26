@@ -112,6 +112,8 @@ namespace energy
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
 
+    interface_base();
+
     interface_base& operator= (interface_base const &other)
     {
       energy = other.energy;
