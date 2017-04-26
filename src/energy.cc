@@ -94,7 +94,7 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
   return r;
 }
 
-e/*nergy::interface_base::interface_base(void) };*/
+//energy::interface_base::interface_base(void) }; //Constructor
 
 /*! Override of virtual void swap
 *
