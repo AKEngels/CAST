@@ -56,11 +56,11 @@ test << '5';
           V_el.push_back(0.5*(c_virtMO[1] - c_virtMO[0]));
 
 test << '6';
-
+ test.close();
           ZINDO(dim_coords);
 
 test << '7';
- test.close();
+
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
 
