@@ -130,6 +130,14 @@ namespace energy
       optimizer = other.optimizer;
       internal_optimizer = other.internal_optimizer;
       interactions = other.interactions;
+      occMO = other.occMO;
+      virtMO = other.virtMO;
+      excitE = other.excitE;
+      ex_ex_trans = other.ex_ex_trans;
+      gz_ex_trans = other.gz_ex_trans;
+      state_i = other.state_i;
+      state_j = other.state_j;
+      gz_i_state = other.gz_i_state;
       return *this;
     }
 
