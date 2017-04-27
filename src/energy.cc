@@ -22,8 +22,6 @@
 * @return: Base-Class Pointer to the energy interface. Nullpointer is returned if something went wrong.
 */
 
-energy::interface_base * energy::interface_base::m_interface = nullptr;
-
 static inline energy::interface_base * get_interface (coords::Coordinates * coordinates, config::interface_types::T const &inf)
 {
   switch (inf)

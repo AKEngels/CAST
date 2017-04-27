@@ -112,10 +112,7 @@ namespace energy
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
 
-    interface_base(coords::Coordinates*)
-    {
-      m_interface = this;
-    };
+    interface_base(); 
 
     interface_base& operator= (interface_base const &other)
     {
@@ -172,29 +169,6 @@ namespace energy
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
-
-    /*! Obtain contents of sysCallInterfaceGauss
-    *
-    * This get() function is used to safely
-    * obtain the contents of the sysCallInterfaceGauss instance
-    *
-    * This function returns const& and can
-    * therefore not be used to change values.
-    */
-    static interface_base const & get()
-    {
-      if (!m_interface) throw std::runtime_error("Interface not loaded.");
-      return *m_interface;
-    }
-
-    private:
-
-      /*! Pointer to the single instance of the gaussian interface class
-      *
-      * A pointer to it is contained here.
-      * If no object exists (yet), this will be a nullpointer.
-      */
-      static interface_base *m_interface;
 
   };
 
