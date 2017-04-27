@@ -51,10 +51,12 @@ test << '5';
           INDO(dim_coords);
 
           double V_el_tmp = 0.5*(c_virtMO[1] - c_virtMO[0]);
-          V_el.push_back(V_el_tmp);
-
 test << '6';
  test.close();
+
+          V_el.push_back(V_el_tmp);
+
+
 
           ZINDO(dim_coords);
 

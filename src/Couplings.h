@@ -27,7 +27,7 @@ namespace couplings {
     void write();
 
     //kopplungen
-    std::vector <double> V_el, V_hole, V_ex, V_ct, V_rek;
+    std::vector <double> V_el, V_hole, V_ex, V_ct, V_rek;//actual variables for couplings
     std::vector <int> pSC_homo_1, pSC_homo_2, nSC_homo_1, nSC_homo_2, hetero_pSC, hetero_nSC;//vectors to keep track between which monomers the coupling is
 
   };
