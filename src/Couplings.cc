@@ -15,21 +15,23 @@ void couplings::coupling::kopplung()
   test << '1';
   debug << '1';
 
-  for (int i = 0; i < gesanzahl_monomere-1; i++)
+  for (int i = 1; i < gesanzahl_monomere-1; i++)
   {
     test << '2';
     debug << '2';
 
-    for (int j = 1; j < gesanzahl_monomere; j++)
+    for (int j = 2; j < gesanzahl_monomere; j++)
     {
       test << '3';
       debug << '3';
       test.close();
 
       std::stringstream idatname;
-      idatname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
+      idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
     
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
+
+      test << 'a';
 
       if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
@@ -144,7 +146,6 @@ void couplings::coupling::kopplung()
             }//end loop over relevant ct-states
           }//end loop over ex_ex_dipoles
 
-         
           for (int i = 0; i < ct_relev_states.size(); i++) //sum up squares of couplings between single states
           {
             ct_square_coup_sum  += ct_coupling[i]  * ct_coupling[i];
@@ -155,15 +156,16 @@ void couplings::coupling::kopplung()
           V_rek.push_back(sqrt(rek_square_coup_sum));
          
         }//hetero end
-
       }
       
       debug << 'b';
+
       //WRITING CACULATED COUPLINGS#####################################################
+
+      write();
 
       debug << 'c';
 
-      write();
       debug.close();
     }
   }
