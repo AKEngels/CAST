@@ -44,13 +44,16 @@ debug << '5';
 
 test << '5';
 
- test.close();
+
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
 
 
           INDO(dim_coords);
+
+test << '6';
+ test.close();
 
           V_el.push_back(0.5*(c_virtMO[1] - c_virtMO[0]));
 
