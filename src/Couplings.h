@@ -14,7 +14,7 @@
 namespace couplings {
 
   struct coupling {
-
+    public:
     //MO, excitation energies and dipolemoments
     std::vector <double> c_occMO, c_virtMO, c_excitE;
     coords::Representation_3D  c_ex_ex_trans, c_gz_ex_trans;
