@@ -114,6 +114,11 @@ namespace energy
 
     interface_base(); 
 
+    //MO, excitation energies and dipolemoments for gaussian
+    std::vector <double> occMO, virtMO, excitE;
+    coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+    std::vector <int> state_i, state_j, gz_i_state;
+
     interface_base& operator= (interface_base const &other)
     {
       energy = other.energy;

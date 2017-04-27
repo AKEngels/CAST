@@ -275,6 +275,9 @@ namespace coords
 
   public:
 
+    const energy::interface_base   *get_interface = m_interface;
+    
+
     fep_data              fep;
 
     /*pme_data              pme;*/

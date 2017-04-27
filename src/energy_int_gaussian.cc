@@ -26,7 +26,7 @@ Gaussian sysCall functions
 /**
 * Global static instance of the sysCallInterfaceGauss-object.
 */
-energy::interfaces::gaussian::sysCallInterfaceGauss * energy::interfaces::gaussian::sysCallInterfaceGauss::m_interface = nullptr;
+//energy::interfaces::gaussian::sysCallInterfaceGauss * energy::interfaces::gaussian::sysCallInterfaceGauss::m_interface = nullptr;
 
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coords::Coordinates * cp) :
   energy::interface_base(cp),
@@ -121,7 +121,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
 void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
-  std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
+  //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
@@ -326,8 +326,8 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
    /* mos << "\n Excitation energies \n";*/
 
-   /* for (unsigned int i = 0; i < excitE.size(); i++)
-    { mos << excitE[i] << '\n'; }*/
+    //for (unsigned int i = 0; i < excitE.size(); i++)
+    //{ mos << excitE[i] << '\n'; }
 
     //mos << "\n Gradients \n";
 

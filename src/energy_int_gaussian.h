@@ -69,11 +69,11 @@ namespace energy
         * This function returns const& and can
         * therefore not be used to change values.
         */
-        static sysCallInterfaceGauss const & get()
+        /*static sysCallInterfaceGauss const & get()
         {
           if (!m_interface) throw std::runtime_error("Interface not loaded.");
           return *m_interface;
-        }
+        }*/
 
       private:
 
@@ -113,7 +113,7 @@ namespace energy
         * A pointer to it is contained here.
         * If no object exists (yet), this will be a nullpointer.
         */
-        static sysCallInterfaceGauss *m_interface;
+        /*static sysCallInterfaceGauss *m_interface;*/
 
       };
 
