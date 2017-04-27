@@ -61,23 +61,6 @@ namespace energy
 
         //functions for fetching MO, excitationenergies and dipolemoments from gaussian energy interface
 
-        /*! Constructor of Config object
-        *
-        * During construction the configuration-file
-        * will be automatically parsed and the members
-        * of the config-object will be filled in accordingly.
-        *
-        * @param filename: Filename of the configuration file to be read. Needs to be in the same folder as the CAST executable.
-        */
-        sysCallInterfaceGauss()
-        {
-          // There can only ever be one Config!
-          //if (m_ginterface) throw std::runtime_error("Interface duplication.");
-
-          m_ginterface = this;
-          
-        }
-
         /*! Obtain contents of sysCallInterfaceGauss
         *
         * This get() function is used to safely
@@ -88,8 +71,8 @@ namespace energy
         */
         static sysCallInterfaceGauss const & get()
         {
-          if (!m_ginterface) throw std::runtime_error("Interface not loaded.");
-          return *m_ginterface;
+          if (!m_interface) throw std::runtime_error("Interface not loaded.");
+          return *m_interface;
         }
 
       private:
@@ -125,13 +108,12 @@ namespace energy
 
         bool check_bond_preservation(void) const;
 
-        /*! Pointer to the single instance of the Config class
+        /*! Pointer to the single instance of the gaussian interface class
         *
-        * There can only ever be one Config object.
         * A pointer to it is contained here.
         * If no object exists (yet), this will be a nullpointer.
         */
-        static sysCallInterfaceGauss * m_ginterface;
+        static sysCallInterfaceGauss *m_interface;
 
       };
 

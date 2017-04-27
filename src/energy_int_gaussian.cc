@@ -25,9 +25,8 @@ Gaussian sysCall functions
 
 /**
 * Global static instance of the sysCallInterfaceGauss-object.
-* There can only ever be one config-object.
 */
-energy::interfaces::gaussian::sysCallInterfaceGauss * energy::interfaces::gaussian::sysCallInterfaceGauss::m_ginterface = nullptr;
+energy::interfaces::gaussian::sysCallInterfaceGauss * energy::interfaces::gaussian::sysCallInterfaceGauss::m_interface = nullptr;
 
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coords::Coordinates * cp) :
   energy::interface_base(cp),
