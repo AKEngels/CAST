@@ -24,7 +24,7 @@ void couplings::coupling::kopplung()
     {
       test << '3';
       debug << '3';
-      test.close();
+     
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
@@ -37,7 +37,7 @@ void couplings::coupling::kopplung()
       {
         test << '4';
         debug << '4';
-
+ test.close();
         coords::Coordinates dim_coords(ci->read(idatname.str()));
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
