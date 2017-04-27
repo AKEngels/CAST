@@ -48,15 +48,13 @@ test << '5';
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
-
-
           INDO(dim_coords);
+
+          double V_el_tmp = 0.5*(c_virtMO[1] - c_virtMO[0]);
+          V_el.push_back(V_el_tmp);
 
 test << '6';
  test.close();
-
-          V_el.push_back(0.5*(c_virtMO[1] - c_virtMO[0]));
-
 
           ZINDO(dim_coords);
 
