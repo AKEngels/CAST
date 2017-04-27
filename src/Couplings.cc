@@ -178,8 +178,8 @@ void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-C
 
   coords.e();
 
-  c_occMO = energy::interfaces::gaussian::sysCallInterfaceGauss::get().occMO;
-  c_virtMO = energy::interfaces::gaussian::sysCallInterfaceGauss::get().virtMO;
+  c_occMO = coords.get_interface->occMO;
+  c_virtMO = coords.get_interface->virtMO;
 }
 
 void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculation for marcus-theorie couplings
@@ -191,12 +191,12 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
   coords.e();
 
-  c_excitE = energy::interfaces::gaussian::sysCallInterfaceGauss::get().excitE;
-  c_ex_ex_trans = energy::interfaces::gaussian::sysCallInterfaceGauss::get().ex_ex_trans;
-  c_gz_ex_trans = energy::interfaces::gaussian::sysCallInterfaceGauss::get().gz_ex_trans;
-  c_state_i = energy::interfaces::gaussian::sysCallInterfaceGauss::get().state_i;
-  c_state_j = energy::interfaces::gaussian::sysCallInterfaceGauss::get().state_j;
-  c_gz_i_state = energy::interfaces::gaussian::sysCallInterfaceGauss::get().gz_i_state;
+  c_excitE = coords.get_interface->excitE;
+  c_ex_ex_trans = coords.get_interface->ex_ex_trans;
+  c_gz_ex_trans = coords.get_interface->gz_ex_trans;
+  c_state_i = coords.get_interface->state_i;
+  c_state_j = coords.get_interface->state_j;
+  c_gz_i_state = coords.get_interface->gz_i_state;
 
 }
 
