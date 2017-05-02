@@ -37,7 +37,6 @@ namespace energy
 
         void update(bool const) { }
 
-
         // Energy function
         double e(void);
         // Energy+Gradient function
@@ -59,23 +58,9 @@ namespace energy
         coords::Representation_3D  ex_ex_trans, gz_ex_trans;
         std::vector <int> state_i, state_j, gz_i_state;
 
-        //functions for fetching MO, excitationenergies and dipolemoments from gaussian energy interface
-
-        /*! Obtain contents of sysCallInterfaceGauss
-        *
-        * This get() function is used to safely
-        * obtain the contents of the sysCallInterfaceGauss instance
-        *
-        * This function returns const& and can
-        * therefore not be used to change values.
-        */
-        /*static sysCallInterfaceGauss const & get()
-        {
-          if (!m_interface) throw std::runtime_error("Interface not loaded.");
-          return *m_interface;
-        }*/
-
       private:
+
+        
 
         //constructor for clone and move functions
         sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj);
@@ -84,9 +69,7 @@ namespace energy
 				double hof_kcal_mol, hof_kj_mol;
 
 				// energies
-				double e_total, e_electron, e_core;
-
-        
+				double e_total, e_electron, e_core;    
 
 				std::string id;
 

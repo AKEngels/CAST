@@ -114,11 +114,6 @@ namespace energy
 
     interface_base(); 
 
-    //MO, excitation energies and dipolemoments for gaussian
-    std::vector <double> occMO, virtMO, excitE;
-    coords::Representation_3D  ex_ex_trans, gz_ex_trans;
-    std::vector <int> state_i, state_j, gz_i_state;
-
     interface_base& operator= (interface_base const &other)
     {
       energy = other.energy;
@@ -130,14 +125,6 @@ namespace energy
       optimizer = other.optimizer;
       internal_optimizer = other.internal_optimizer;
       interactions = other.interactions;
-      occMO = other.occMO;
-      virtMO = other.virtMO;
-      excitE = other.excitE;
-      ex_ex_trans = other.ex_ex_trans;
-      gz_ex_trans = other.gz_ex_trans;
-      state_i = other.state_i;
-      state_j = other.state_j;
-      gz_i_state = other.gz_i_state;
       return *this;
     }
 
@@ -182,6 +169,12 @@ namespace energy
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
+
+
+    //MO, excitation energies and dipolemoments
+    std::vector <double> occMO, virtMO, excitE;
+    coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+    std::vector <int> state_i, state_j, gz_i_state;
 
   };
 
