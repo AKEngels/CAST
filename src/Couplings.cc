@@ -188,10 +188,8 @@ void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-C
 
   coords.e();
 
-  coords::Coordinates::get_catch_interface;
-
-  c_occMO = coords.catch_interface->occMO;
-  c_virtMO = coords.catch_interface->virtMO;
+  c_occMO = coords.catch_interface->get_occMO();
+  c_virtMO = coords.catch_interface->get_virtMO();
 }
 
 void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculation for marcus-theorie couplings
@@ -203,14 +201,12 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
   coords.e();
 
-  coords::Coordinates::get_catch_interface;
-
-  c_excitE = coords.catch_interface->excitE;
-  c_ex_ex_trans = coords.catch_interface->ex_ex_trans;
-  c_gz_ex_trans = coords.catch_interface->gz_ex_trans;
-  c_state_i = coords.catch_interface->state_i;
-  c_state_j = coords.catch_interface->state_j;
-  c_gz_i_state = coords.catch_interface->gz_i_state;
+  c_excitE = coords.catch_interface->get_excitE();
+  c_ex_ex_trans = coords.catch_interface->get_ex_ex_trans();
+  c_gz_ex_trans = coords.catch_interface->get_gz_ex_trans();
+  c_state_i = coords.catch_interface->get_state_i();
+  c_state_j = coords.catch_interface->get_state_j();
+  c_gz_i_state = coords.catch_interface->get_gz_i_state();
 
 }
 

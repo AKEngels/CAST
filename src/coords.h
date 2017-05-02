@@ -275,13 +275,7 @@ namespace coords
 
   public:
 
-    const energy::interface_base   *catch_interface = m_interface;
-
-    const energy::interface_base *get_catch_interface()
-    {
-      return catch_interface = m_interface;
-    }
-    
+    energy::interface_base   *catch_interface = m_interface;
 
     fep_data              fep;
 
