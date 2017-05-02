@@ -180,10 +180,7 @@ namespace energy
     std::vector <int> get_gz_i_state() {return gz_i_state;}
     coords::Representation_3D  get_ex_ex_trans() {return ex_ex_trans;}
     coords::Representation_3D  get_gz_ex_trans() {return gz_ex_trans;}
-    
-
-
-  private:
+     
     //MO, excitation energies and dipolemoments
     std::vector <double> occMO, virtMO, excitE;
     coords::Representation_3D  ex_ex_trans, gz_ex_trans;
