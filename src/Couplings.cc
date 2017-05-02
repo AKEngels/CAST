@@ -58,10 +58,12 @@ test << V_el_tmp;
 
           V_el.push_back(V_el_tmp);
 
-          ZINDO(dim_coords);
-
 test << '7';
 test.close();
+
+          ZINDO(dim_coords);
+
+
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
 
