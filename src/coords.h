@@ -277,6 +277,11 @@ namespace coords
 
     energy::interface_base   *catch_interface = m_interface;
 
+    void get_catch_interface()
+    {
+      energy::interface_base   *catch_interface = m_interface;
+    }
+
     fep_data              fep;
 
     /*pme_data              pme;*/

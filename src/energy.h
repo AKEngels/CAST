@@ -172,14 +172,15 @@ namespace energy
 
 
     //Functions to fetch special outputdata from gaussian interface
-    std::vector <double> get_occMO()  {return occMO;}
-    std::vector <double> get_virtMO() {return virtMO;}
-    std::vector <double> get_excitE() {return excitE;}
+    std::vector <double> get_occMO()   {return occMO;}
+    std::vector <double> get_virtMO()  {return virtMO;}
+    std::vector <double> get_excitE()  {return excitE;}
+    std::vector <int> get_state_i()    {return state_i;}
+    std::vector <int> get_state_j()    {return state_j;}
+    std::vector <int> get_gz_i_state() {return gz_i_state;}
     coords::Representation_3D  get_ex_ex_trans() {return ex_ex_trans;}
     coords::Representation_3D  get_gz_ex_trans() {return gz_ex_trans;}
-    std::vector <int> get_state_i() {return state_i;}
-    std::vector <int> get_state_j() {return state_j;}
-    std::vector <int> get_gz_i_state() { return gz_i_state; }
+    
 
 
   private:

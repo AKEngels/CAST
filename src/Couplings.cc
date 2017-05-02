@@ -188,6 +188,8 @@ void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-C
 
   coords.e();
 
+  coords.get_catch_interface();
+
   c_occMO = coords.catch_interface->get_occMO();
   c_virtMO = coords.catch_interface->get_virtMO();
 }
@@ -200,6 +202,8 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
   Config::set().energy.gaussian.spec = " ";
 
   coords.e();
+
+  coords.get_catch_interface();
 
   c_excitE = coords.catch_interface->get_excitE();
   c_ex_ex_trans = coords.catch_interface->get_ex_ex_trans();
