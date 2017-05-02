@@ -42,7 +42,7 @@ debug << '4';
         {
 debug << '5';
 
-test << '5';
+test << '5' << '\n';
 
 
           pSC_homo_1.push_back(i);
@@ -52,13 +52,11 @@ test << '5';
 
           double V_el_tmp = 0.5*(c_virtMO[1] - c_virtMO[0]);
 
-test << '6 ';
+test << '6' << '\n';
 test << V_el_tmp;
- test.close();
+test.close();
 
           V_el.push_back(V_el_tmp);
-
-
 
           ZINDO(dim_coords);
 
