@@ -74,7 +74,7 @@ test << '7';
 
           ZINDO(dim_coords);
 
-test << '8';
+test << '8' << " " << i << " " << j << '\n';
 test.close();
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
