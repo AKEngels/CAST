@@ -53,11 +53,12 @@ test << '5' << '\n';
           double V_el_tmp = 0.5*(c_virtMO[1] - c_virtMO[0]);
 
 test << '6' << '\n';
-test << V_el_tmp << '\n';
+test << V_el_tmp << " " << c_virtMO[1] << " " << c_virtMO[0] << '\n';
 
 
           V_el.push_back(V_el_tmp);
 
+test << V_el.back() << '\n';
 test << '7';
 test.close();
 
