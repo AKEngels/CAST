@@ -19,9 +19,17 @@ debug << '1';
   {
 test << '2';
 debug << '2';
+std::ofstream i_loop("i_loop.txt", std::ios::out);
+i_loop << i ;
+i_loop.close();
 
     for (int j = 2; j < gesanzahl_monomere; j++)
     {
+
+std::ofstream j_loop("j_loop.txt", std::ios::out);
+j_loop << j;
+j_loop.close();
+
 test << '3';
 debug << '3';
      
@@ -179,9 +187,9 @@ debug << 'b';
       write();
 
 debug << 'c';
-
-    }
 debug.close();
+    }
+
   }
 
 }
