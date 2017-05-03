@@ -179,10 +179,10 @@ debug << 'b';
       write();
 
 debug << 'c';
-
+debug.close();
     }
   }
-debug.close();
+
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
