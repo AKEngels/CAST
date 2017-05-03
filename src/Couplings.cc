@@ -60,11 +60,12 @@ test << V_el_tmp << " " << c_virtMO[1] << " " << c_virtMO[0] << '\n';
 
 test << V_el.back() << '\n';
 test << '7';
-test.close();
+
 
           ZINDO(dim_coords);
 
-
+test << '8';
+test.close();
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
 
