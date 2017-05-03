@@ -179,8 +179,9 @@ debug << 'b';
       write();
 
 debug << 'c';
-debug.close();
+
     }
+debug.close();
   }
 
 }
