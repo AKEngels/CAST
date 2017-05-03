@@ -28,6 +28,8 @@ debug << '3';
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
+
+debug << idatname.str() << '\n';
     
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
@@ -178,9 +180,9 @@ debug << 'b';
 
 debug << 'c';
 
-debug.close();
     }
   }
+debug.close();
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
