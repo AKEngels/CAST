@@ -3,22 +3,11 @@
 
 void couplings::coupling::kopplung()
 {
-  std::ofstream debug("debug.txt", std::ios::out);
-  std::ofstream test("test.txt", std::ios::out);
-
-test << '0';
-debug << '0';
-
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   std::unique_ptr<coords::input::format> ci(coords::input::new_format());
 
-test << '1';
-debug << '1';
-
   for (int i = 1; i < gesanzahl_monomere-1; i++)
   {
-test << '2';
-debug << '2';
 std::ofstream i_loop("i_loop.txt", std::ios::out);
 i_loop << i ;
 i_loop.close();
@@ -30,9 +19,8 @@ std::ofstream j_loop("j_loop.txt", std::ios::out);
 j_loop << j;
 j_loop.close();
 
-test << '3';
-debug << '3';
-     
+std::ofstream debug("debug.txt", std::ios::out);
+std::ofstream test("test.txt", std::ios::out);
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
@@ -53,7 +41,7 @@ debug << '4';
 debug << '5';
 
 test << '5' << " " << i << " " << j << '\n';
-
+test.close();
 
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
@@ -75,7 +63,7 @@ test << '7';
           ZINDO(dim_coords);
 
 test << '8';
-test.close();
+
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
 
