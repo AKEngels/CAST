@@ -52,7 +52,7 @@ debug << '4';
         {
 debug << '5';
 
-test << '5' << '\n';
+test << '5' << " " << i << " " << j << '\n';
 
 
           pSC_homo_1.push_back(i);
@@ -74,7 +74,7 @@ test << '7';
 
           ZINDO(dim_coords);
 
-test << '8' << " " << i << " " << j << '\n';
+test << '8';
 test.close();
 
           V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
