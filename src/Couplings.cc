@@ -34,7 +34,6 @@ test << '4' << " " << i << " " << j << '\n';
 debug << '4';
 
 test << '5' ;
-
 test.close();
 
         coords::Coordinates dim_coords(ci->read(idatname.str()));
@@ -168,8 +167,11 @@ debug << 'a';
           V_rek.push_back(sqrt(rek_square_coup_sum));
          
         }//hetero end
-        delete[] ptr_dim_coords;
-      }
+        delete ptr_dim_coords;
+
+debug << 'c';
+debug.close();
+      }//end if-coord_test
       
 debug << 'b';
 
@@ -177,8 +179,7 @@ debug << 'b';
 
       write();
 
-debug << 'c';
-debug.close();
+
     }
 
   }
