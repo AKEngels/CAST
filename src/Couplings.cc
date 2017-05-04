@@ -33,19 +33,18 @@ debug << idatname.str() << '\n';
 test << '4' << " " << i << " " << j << '\n';
 debug << '4';
 
+test << '5' ;
 
+test.close();
 
         coords::Coordinates dim_coords(ci->read(idatname.str()));
-
         coords::Coordinates *ptr_dim_coords = &dim_coords;
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
 debug << '5';
 
-test << '5' ;
 
-test.close();
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
@@ -169,7 +168,7 @@ debug << 'a';
           V_rek.push_back(sqrt(rek_square_coup_sum));
          
         }//hetero end
-        delete ptr_dim_coords;
+        delete[] ptr_dim_coords;
       }
       
 debug << 'b';
@@ -195,7 +194,7 @@ void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-C
 
   coords.e();
 
-  coords.get_catch_interface();
+ /* coords.get_catch_interface();*/
 
   c_occMO = coords.catch_interface->get_occMO();
   c_virtMO = coords.catch_interface->get_virtMO();
@@ -210,7 +209,7 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
   coords.e();
 
-  coords.get_catch_interface();
+ /* coords.get_catch_interface();*/
 
   c_excitE = coords.catch_interface->get_excitE();
   c_ex_ex_trans = coords.catch_interface->get_ex_ex_trans();
