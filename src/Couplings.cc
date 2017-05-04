@@ -35,7 +35,7 @@ debug << '4';
 
 test << '5' ;
 test.close();
-        std::unique_ptr<coords::input::format> dim_ci(coords::input::new_format());
+        const std::unique_ptr<coords::input::format> dim_ci(coords::input::new_format());
         coords::Coordinates dim_coords(dim_ci->read(idatname.str()));
         
 
