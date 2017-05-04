@@ -35,8 +35,10 @@ debug << '4';
 
 test << '5' ;
 test.close();
-        const std::unique_ptr<coords::input::format> dim_ci(coords::input::new_format());
-        coords::Coordinates dim_coords(dim_ci->read(idatname.str()));
+
+        std::unique_ptr<coords::input::format> ci(coords::input::new_format());      
+        //coords::Coordinates *ptr_dim_coords = new coords::Coordinates;
+        coords::Coordinates dim_coords(ci->read(idatname.str()));
         
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
@@ -174,15 +176,11 @@ debug.close();
       
 debug << 'b';
 
-      //WRITING CACULATED COUPLINGS#####################################################
+    }//end for j
 
+  }//end for i
+//WRITING CACULATED COUPLINGS#####################################################
       write();
-
-
-    }
-
-  }
-
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
