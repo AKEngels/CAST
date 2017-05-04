@@ -3,7 +3,7 @@
 void couplings::coupling::kopplung()
 {
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
-  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+  
 
   for (int i = 1; i < gesanzahl_monomere-1; i++)
   {
@@ -35,9 +35,9 @@ debug << '4';
 
 test << '5' ;
 test.close();
-
-        coords::Coordinates dim_coords(ci->read(idatname.str()));
-        coords::Coordinates *ptr_dim_coords = &dim_coords;
+        std::unique_ptr<coords::input::format> dim_ci(coords::input::new_format());
+        coords::Coordinates dim_coords(dim_ci->read(idatname.str()));
+        
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
@@ -167,7 +167,6 @@ debug << 'a';
           V_rek.push_back(sqrt(rek_square_coup_sum));
          
         }//hetero end
-        delete ptr_dim_coords;
 
 debug << 'c';
 debug.close();
