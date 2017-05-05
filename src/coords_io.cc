@@ -95,14 +95,16 @@ coords::input::format* coords::input::new_interf_format(void)
  */
 coords::Coordinates coords::input::formats::tinker::read(std::string file)
 {
-  std::ofstream dubidubi("dubidubi.txt", std::ios::out);//test output in read function to find problem with couplings.cc
+std::ofstream dubidubi("dubidubi.txt", std::ios::out);//test output in read function to find problem with couplings.cc
+
+dubidubi << '1';
+dubidubi.close();
 
   // Create empty coordinates object!
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
 
-dubidubi << '1';
-dubidubi.close();
+
 
   if (coord_file_stream)
   {
