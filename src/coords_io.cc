@@ -102,6 +102,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
 
 dubidubi << '1';
+dubidubi.close();
 
   if (coord_file_stream)
   {
@@ -119,7 +120,7 @@ dubidubi << '1';
       has_in_out_subsystems(false);
 
 dubidubi << '2';
-dubidubi.close();
+
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
