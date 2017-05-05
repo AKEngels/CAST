@@ -5,13 +5,13 @@ void couplings::coupling::kopplung()
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   
 
-  for (int i = 1; i < gesanzahl_monomere-1; i++)
+  for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
   {
 std::ofstream i_loop("i_loop.txt", std::ios::out);
 i_loop << i ;
 i_loop.close();
 
-    for (int j = 2; j < gesanzahl_monomere; j++)
+    for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
     {
 
 std::ofstream j_loop("j_loop.txt", std::ios::out);
@@ -34,10 +34,14 @@ test << '4' << " " << i << " " << j << '\n';
 debug << '4';
 
 test << '5' ;
-test.close();
 
-        std::unique_ptr<coords::input::format> ci(coords::input::new_format());      
-        //coords::Coordinates *ptr_dim_coords = new coords::Coordinates;
+debug.close();
+
+        std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
+
+test.close();    
+
+
         coords::Coordinates dim_coords(ci->read(idatname.str()));
         
 
@@ -171,7 +175,7 @@ debug << 'a';
         }//hetero end
 
 debug << 'c';
-debug.close();
+
       }//end if-coord_test
       
 debug << 'b';
