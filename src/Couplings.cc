@@ -38,12 +38,9 @@ test << '5' ;
 debug.close();
 
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
-
-test.close();    
-
-
         coords::Coordinates dim_coords(ci->read(idatname.str()));
-        
+
+test.close();       
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
