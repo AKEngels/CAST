@@ -95,10 +95,14 @@ coords::input::format* coords::input::new_interf_format(void)
  */
 coords::Coordinates coords::input::formats::tinker::read(std::string file)
 {
-  // Create empty coordinates object!
+  std::ofstream dubidubi("dubidubi.txt", std::ios::out);//test output in read function to find problem with couplings.cc
 
+  // Create empty coordinates object!
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
+
+dubidubi << '1';
+
   if (coord_file_stream)
   {
     std::size_t N(0U);
@@ -113,6 +117,9 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false),
       has_in_out_subsystems(false);
+
+dubidubi << '2';
+dubidubi.close();
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
