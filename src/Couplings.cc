@@ -223,17 +223,17 @@ void couplings::coupling::write()
 
   for (int i = 0; i < pSC_homo_1.size(); i++)
   {
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << std::left << pSC_homo_2[i] << std::left << V_el[i] << std::left << V_ex[i] << '\n';
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " " << pSC_homo_2[i] << " " << V_el[i] << " " << V_ex[i] << '\n';
   }
 
   for (int i = 0; i < hetero_pSC.size(); i++)
   {
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << std::left << hetero_nSC[i] << std::left << V_ct[i] << std::left << V_rek[i] << '\n';
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " " << hetero_nSC[i] << " " << V_ct[i] << " " << V_rek[i] << '\n';
   }
 
   for (int i = 0; i < nSC_homo_1.size(); i++)
   {
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << std::left << nSC_homo_2[i] << std::left << V_hole[i] << '\n';
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " " << nSC_homo_2[i] << " " << V_hole[i] << '\n';
   }
 
   all_couplings.close();
