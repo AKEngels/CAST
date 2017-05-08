@@ -769,7 +769,7 @@ int main(int argc, char **argv)
       case config::tasks::COUPLINGS:
       {
         couplings::coupling coup;
-        coup.kopplung();
+        coup.kopplung(coords);
 
         break;
       }

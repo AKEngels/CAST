@@ -1079,9 +1079,20 @@ namespace scon
   *
   */
 
-
-
   int system_call(std::string const & command_line);
+
+  namespace stringseparation
+  {
+    enum charTypeT { other, alpha, digit };
+
+    charTypeT charType(char c) {
+      if (isdigit(c))return digit;
+      if (isalpha(c))return alpha;
+      else return other;
+    }
+
+    std::string separateString(std::string);
+  }
 
 }
 #endif

@@ -1,54 +1,52 @@
 #include "Couplings.h"
 
-void couplings::coupling::kopplung()
+void couplings::coupling::kopplung(coords::Coordinates dim_coords)
 {
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   
+  std::string inFilename_string;
+  int first_Monom(0), second_Monom(0);
 
-  for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
-  {
-std::ofstream i_loop("i_loop.txt", std::ios::out);
-i_loop << i ;
-i_loop.close();
+  //for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
+  //{
 
-    for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
-    {
-
-std::ofstream j_loop("j_loop.txt", std::ios::out);
-j_loop << j;
-j_loop.close();
+    //for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
+    //{
 
 std::ofstream debug("debug.txt", std::ios::out);
 std::ofstream test("test.txt", std::ios::out);
 
-      std::stringstream idatname;
-      idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
-
-debug << idatname.str() << '\n';
+      /*std::stringstream idatname;
+      idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";*/
     
-      std::ifstream coord_test(idatname.str(), std::ios_base::in);
+      /*std::ifstream coord_test(idatname.str(), std::ios_base::in);*/
 
-      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
-      {
-test << '4' << " " << i << " " << j << '\n';
+      //if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
+      //{
+
 debug << '4';
 
 test << '5' ;
 
 debug.close();
 
-        std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
-        coords::Coordinates dim_coords(ci->read(idatname.str()));
+        inFilename_string = scon::stringseparation::separateString(Config::get().general.inputFilename);
+        std::sscanf(inFilename_string.c_str(), "%*s %*s %i %*s %i %*s %*s", &first_Monom, &second_Monom);
+
+        //std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
+        //coords::Coordinates dim_coords(ci->read(idatname.str()));
 
 test.close();       
 
-        if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
+
+
+        if (first_Monom < Config::get().couplings.nbr_pSC && second_Monom < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
 debug << '5';
 
 
-          pSC_homo_1.push_back(i);
-          pSC_homo_2.push_back(j);
+          pSC_homo_1.push_back(first_Monom);
+          pSC_homo_2.push_back(second_Monom);
 
           INDO(dim_coords);
 
@@ -73,12 +71,12 @@ test << '8';
 
         }//pSC homo-pair end
 
-        if ( i >= Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC) //nSC homo-pair
+        if (first_Monom >= Config::get().couplings.nbr_pSC && second_Monom >= Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
 debug << '6';
 
-          nSC_homo_1.push_back(i);
-          nSC_homo_2.push_back(j);
+          nSC_homo_1.push_back(first_Monom);
+          nSC_homo_2.push_back(second_Monom);
 
           INDO(dim_coords);
 
@@ -86,12 +84,12 @@ debug << '6';
 
         }//nSC homo-pair end
 
-        if (i < Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
+        if (first_Monom < Config::get().couplings.nbr_pSC && second_Monom >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
 debug << '7';
 
-          hetero_pSC.push_back(i);
-          hetero_nSC.push_back(j);
+          hetero_pSC.push_back(first_Monom);
+          hetero_nSC.push_back(second_Monom);
 
           ZINDO(dim_coords);
 
@@ -100,7 +98,7 @@ debug << '7';
           monom1 = dim_coords.center_of_mass_mol(0);//for molecules without static dipolemoment we use the masscenter for the dipolemoment
           monom2 = dim_coords.center_of_mass_mol(1);
 
-          for (int i = 0; i < 3; i++) //calculation dipolemoment for dimer for unpolar monomers
+          for (int d = 0; d < 3; d++) //calculation dipolemoment for dimer for unpolar monomers
           {
 debug << '8';
 
@@ -122,18 +120,18 @@ debug << '8';
 
 
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
-          for (int i = 0; i < c_ex_ex_trans.size(); i++)//loop over all ex_ex_dipoles
+          for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
 debug << '9';
-            if (c_state_j[i] == 1)//ensuring unly dipolemoments concering the first excited state are used
+            if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
               for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
               {
-                if (c_state_i[i] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
+                if (c_state_i[c] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
                 {
-                  projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[i].x()
-                             + dipol_ct.y() / dipolemoment * c_ex_ex_trans[i].y()
-                             + dipol_ct.z() / dipolemoment * c_ex_ex_trans[i].z();
+                  projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
+                             + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
+                             + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
 
                   coupling = (projection * (c_excitE[ct_relev_states[j]-1] - c_excitE[0])) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
                   ct_coupling.push_back(coupling);
@@ -143,16 +141,16 @@ debug << '9';
           }//end loop over ex_ex_dipoles
 
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
-          for (int i = 0; i < c_gz_ex_trans.size(); i++)//loop over all gz_ex_dipoles
+          for (int c = 0; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
           {
 debug << 'a';
             for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
             {
-              if (c_gz_i_state[i] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
+              if (c_gz_i_state[c] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
               {
-                projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[i].x()
-                           + dipol_ct.y() / dipolemoment * c_gz_ex_trans[i].y()
-                           + dipol_ct.z() / dipolemoment * c_gz_ex_trans[i].z();
+                projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[c].x()
+                           + dipol_ct.y() / dipolemoment * c_gz_ex_trans[c].y()
+                           + dipol_ct.z() / dipolemoment * c_gz_ex_trans[c].z();
 
                 coupling = (projection * (c_excitE[ct_relev_states[j] - 1] )) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
                 rek_coupling.push_back(coupling);
@@ -173,13 +171,13 @@ debug << 'a';
 
 debug << 'c';
 
-      }//end if-coord_test
+      //}//end if-coord_test
       
 debug << 'b';
 
-    }//end for j
+    //}//end for j
 
-  }//end for i
+  //}//end for i
 //WRITING CACULATED COUPLINGS#####################################################
       write();
 }

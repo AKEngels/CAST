@@ -20,7 +20,7 @@ namespace couplings {
     coords::Representation_3D  c_ex_ex_trans, c_gz_ex_trans;
     std::vector <int> c_state_i, c_state_j, c_gz_i_state;
 
-    void kopplung();
+    void kopplung(coords::Coordinates);
 
     void INDO(coords::Coordinates);
     void ZINDO(coords::Coordinates);

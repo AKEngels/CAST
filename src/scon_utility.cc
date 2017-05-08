@@ -37,4 +37,19 @@ namespace scon
     return system(command_line.c_str());
 #endif
   }
+
+
+}
+
+std::string scon::stringseparation::separateString(std::string inString)
+{
+  std::string oString = ""; charTypeT st = other;
+  for (auto c : inString) {
+    if ((st == alpha && charType(c) == digit) || (st == digit && charType(c) == alpha)
+      || (st == other && charType(c) == digit) || (st == digit && charType(c) == other)
+      || (st == other && charType(c) == alpha) || (st == alpha && charType(c) == other))
+      oString.push_back(' ');
+    oString.push_back(c); st = charType(c);
+  }
+  return oString;
 }
