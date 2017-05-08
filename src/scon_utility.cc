@@ -44,7 +44,7 @@ namespace scon
   else return other;
 }
 
-std::string scon::separateString(std::string inString)
+std::string separateString(std::string inString)
 {
   std::string oString = ""; charTypeT st = other;
   for (auto c : inString) {
