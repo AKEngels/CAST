@@ -1085,7 +1085,7 @@ namespace scon
   {
     enum charTypeT { other, alpha, digit };
 
-    charTypeT charType(char c) {
+    charTypeT charTypestring(char c) {
       if (isdigit(c))return digit;
       if (isalpha(c))return alpha;
       else return other;
