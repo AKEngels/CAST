@@ -1092,7 +1092,18 @@ namespace scon
       else return other;
     }
 
-    std::string separateString(std::string);
+    std::string separateString(std::string inString)
+    {
+      std::string oString = ""; charTypeT st = other;
+      for (auto c : inString) {
+        if ((st == alpha && charTypestring(c) == digit) || (st == digit && charTypestring(c) == alpha)
+          || (st == other && charTypestring(c) == digit) || (st == digit && charTypestring(c) == other)
+          || (st == other && charTypestring(c) == alpha) || (st == alpha && charTypestring(c) == other))
+          oString.push_back(' ');
+        oString.push_back(c); st = charTypestring(c);
+      }
+      return oString;
+    }
   }
 
 }
