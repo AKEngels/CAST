@@ -1082,8 +1082,12 @@ namespace scon
 
   int system_call(std::string const & command_line);
 
-  namespace stringseparation
-  {
+
+  /*! Function to seperate a string in letters, numbers and other
+  *
+  */
+
+  
     enum charTypeT { other, alpha, digit };
 
     charTypeT charTypestring(char c) {
@@ -1104,7 +1108,7 @@ namespace scon
       }
       return oString;
     }
-  }
+  
 
 }
 #endif

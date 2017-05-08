@@ -30,7 +30,7 @@ test << '5' ;
 
 debug.close();
 
-        inFilename_string = scon::stringseparation::separateString(Config::get().general.inputFilename);
+        inFilename_string = scon::separateString(Config::get().general.inputFilename);
         std::sscanf(inFilename_string.c_str(), "%*s %*s %i %*s %i %*s %*s", &first_Monom, &second_Monom);
 
         //std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
