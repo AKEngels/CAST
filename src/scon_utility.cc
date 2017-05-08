@@ -1,3 +1,4 @@
+#pragma once
 #include "scon_utility.h"
 
 namespace scon
