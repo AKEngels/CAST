@@ -1,3 +1,4 @@
+#pragma once
 #if !defined(SCON_UTILITY_HEADER)
 
 #define SCON_UTILITY_HEADER
