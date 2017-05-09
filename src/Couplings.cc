@@ -34,7 +34,6 @@ test.close();
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         coords::Coordinates dim_coords(ci->read(idatname.str()));
 debug << '5';      
-debug.close();
 
         if (i <= Config::get().couplings.nbr_pSC && j <= Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
@@ -82,7 +81,7 @@ debug << '6';
         if (i <= Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
 debug << '7';
-
+debug.close();
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
 
