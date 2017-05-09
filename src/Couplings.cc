@@ -4,6 +4,8 @@ void couplings::coupling::kopplung(coords::Coordinates dim_coords)
 {
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   
+  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
+
   std::string inFilename_string;
   int first_Monom(0), second_Monom(0);
 
@@ -50,13 +52,9 @@ debug << '5';
 
           INDO(dim_coords);
 
-          double V_el_tmp = 0.5*(c_virtMO[1] - c_virtMO[0]);
-
-test << '6' << '\n';
-test << V_el_tmp << " " << c_virtMO[1] << " " << c_virtMO[0] << '\n';
+         V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
 
-          V_el.push_back(V_el_tmp);
 
 test << V_el.back() << '\n';
 test << '7';
@@ -67,7 +65,7 @@ test << '7';
 test << '8';
 
 
-          V_ex.push_back(0.5*(c_excitE[1] - c_excitE[0]));
+          V_ex.push_back(0.5  *(c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
 
         }//pSC homo-pair end
 
@@ -80,7 +78,7 @@ debug << '6';
 
           INDO(dim_coords);
 
-          V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]));
+          V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
 
         }//nSC homo-pair end
 
@@ -118,7 +116,6 @@ debug << '8';
 
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
-
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
@@ -133,7 +130,7 @@ debug << '9';
                              + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
                              + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
 
-                  coupling = (projection * (c_excitE[ct_relev_states[j]-1] - c_excitE[0])) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
+                  coupling = (projection * (c_excitE[ct_relev_states[j]-1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
                   ct_coupling.push_back(coupling);
                 }//end if-clause for relevant states
               }//end loop over relevant ct-states
@@ -152,7 +149,7 @@ debug << 'a';
                            + dipol_ct.y() / dipolemoment * c_gz_ex_trans[c].y()
                            + dipol_ct.z() / dipolemoment * c_gz_ex_trans[c].z();
 
-                coupling = (projection * (c_excitE[ct_relev_states[j] - 1] )) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
+                coupling = (projection * (c_excitE[ct_relev_states[j] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
                 rek_coupling.push_back(coupling);
               }//end if-clause for relevant states
             }//end loop over relevant ct-states
@@ -179,7 +176,7 @@ debug << 'b';
 
   //}//end for i
 //WRITING CACULATED COUPLINGS#####################################################
-      write();
+      write(first_Monom, second_Monom);
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
@@ -206,7 +203,7 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
   coords.e();
 
- /* coords.get_catch_interface();*/
+
 
   c_excitE = coords.catch_interface->get_excitE();
   c_ex_ex_trans = coords.catch_interface->get_ex_ex_trans();
@@ -217,9 +214,10 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
 }
 
-void couplings::coupling::write()
+void couplings::coupling::write(const int mon1, const int mon2)
 {
-  std::ofstream all_couplings("couplings.txt", std::ios::out);
+  std::string outcoupname = "Couplings_" + mon1 + '_' + mon2 + '.txt';
+  std::ofstream all_couplings(outcoupname, std::ios::out);
 
   for (int i = 0; i < pSC_homo_1.size(); i++)
   {
