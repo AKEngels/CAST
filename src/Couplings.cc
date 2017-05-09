@@ -19,12 +19,15 @@ debug << i << " " << j << '\n';
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
-    
-      std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
 std::ofstream test("test.txt", std::ios::out);
 test << i << " " << j << '\n';
-test.close();
+test.close();    
+
+      std::ifstream coord_test(idatname.str(), std::ios_base::in);
+
+
+
 
       if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
