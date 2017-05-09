@@ -24,7 +24,7 @@ namespace couplings {
 
     void INDO(coords::Coordinates);
     void ZINDO(coords::Coordinates);
-    void write(const int, const int);
+    void write(int, int);
 
     //kopplungen
     std::vector <double> V_el, V_hole, V_ex, V_ct, V_rek;//actual variables for couplings

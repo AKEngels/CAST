@@ -221,9 +221,12 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
 }
 
-void couplings::coupling::write(const int mon1, const int mon2)
+void couplings::coupling::write(int mon1, int mon2)
 {
-  std::string outcoupname = "Couplings_" + mon1 + '_' + mon2 + '.txt';
+  std::stringstream smon1, smon2;
+  smon1 << mon1;
+  smon2 << mon2;
+  std::string outcoupname = "Couplings_" + smon1.str() + '_' + smon2.str() + ".txt";
   std::ofstream all_couplings(outcoupname, std::ios::out);
 
   for (int i = 0; i < pSC_homo_1.size(); i++)
