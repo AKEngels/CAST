@@ -32,9 +32,9 @@ void center(coords::Coordinates coords)
     std::ofstream dimerstrukt;
     std::size_t size_i(0u), size_j(0u), size_dimer(0u);
 
-    for (std::size_t i = 0u; i < N; i++)
+    for (std::size_t i = 0u; i < N; i++) //Monomer i
     {
-      for (std::size_t j = 0u; j < N ; j++)
+      for (std::size_t j = 0u; j < N ; j++) //Monomer j
       {
         if(j > i)
         {
@@ -46,6 +46,21 @@ void center(coords::Coordinates coords)
           size_i = coords.molecules(i).size();//Number of atoms in monomer i
           size_j = coords.molecules(j).size();;//Number of atoms in monomer j
           size_dimer = size_i + size_j;
+          int korr_bond_i(0);
+          int korr_bond_j(0);
+
+          if (i > 1)//calculate coretion for bondingpartnerindices
+          {
+            for (int ki = i; ki > 0; ki--)
+            korr_bond_i += coords.molecules(ki).size();
+          }
+
+          if (j > 2)//calculate coretion for bondingpartnerindices
+          {
+            korr_bond_j = korr_bond_i;
+            for (int kj = j; kj > 0; kj--)
+              korr_bond_j += coords.molecules(kj).size();
+          }
 
           std::stringstream oname;
           oname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
@@ -60,9 +75,9 @@ void center(coords::Coordinates coords)
               << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
               << std::setw(8) << coords.atoms(atom_index).energy_type();
 
-            for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++)
+            for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++) //loop for bondpartners
             {
-              dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1;
+              dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1 - korr_bond_i;
             }
             dimerstrukt << '\n';
           }
@@ -74,9 +89,9 @@ void center(coords::Coordinates coords)
               << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
               << std::setw(8) << coords.atoms(atom_index).energy_type();
 
-            for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++)
+            for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++)//loop for bondpartners
             {
-              dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1;
+              dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1 - korr_bond_j;
             }
             dimerstrukt << '\n';
           }
