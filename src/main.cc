@@ -142,7 +142,9 @@ int main(int argc, char **argv)
     //    Initialization    //
     //                      //
     //////////////////////////
-
+std::ofstream tut("tut.txt", std::ios::out);
+tut << '1';
+tut.close();
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -769,9 +771,7 @@ int main(int argc, char **argv)
       case config::tasks::COUPLINGS:
       {
         couplings::coupling coup;
-std::ofstream tut("tut.txt", std::ios::out);
-tut << '1';
-tut.close();
+
         coup.kopplung(coords);
 
         break;
