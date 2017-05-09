@@ -1239,6 +1239,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.subsystems.push_back(std::move(ssi));
   }
 
+  else if (option.substr(0, 7) == "2DSCAN-")
+  {
+	  Config::set().scan2d.AXES.emplace_back(option.substr(7) + " " + value_string);
+  }
+
   // D U S T I N S T U F F 
 
   //Trajectory Alignment and Analasys options

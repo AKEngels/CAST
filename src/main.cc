@@ -50,6 +50,7 @@
 //#include "gbsa.h" // Out of Order
 #include <omp.h>
 #include "PCA.h"
+#include "2DScan.h"
 
 //////////////////////////
 //                      //
@@ -744,7 +745,12 @@ int main(int argc, char **argv)
           out << hold_str[i];
         }
       }
-      default:
+	  case config::tasks::SCAN2D:
+	  {
+		  Scan2D scan(coords);
+		  break;
+	  }
+	  default:
       {
       
       }

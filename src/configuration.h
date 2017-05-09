@@ -48,7 +48,7 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 23;
+  static std::size_t const NUM_TASKS = 24;
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
   { 
@@ -56,7 +56,7 @@ namespace config
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING", 
+    "GRID", "ALIGN", "PATHSAMPLING",  "SCAN2D",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -74,7 +74,7 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, 
+      GRID, ALIGN, PATHSAMPLING, SCAN2D,
     };
   };
 
@@ -1145,6 +1145,14 @@ namespace config
     io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
   };
 
+  /* 
+  2DScan Struct
+  */
+
+  struct scan2d {
+	  std::vector<std::string> AXES;
+  };
+
   /*
 
       GBSA
@@ -1323,6 +1331,7 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
+  config::scan2d					scan2d;
 
   /*! Constructor of Config object
    *
