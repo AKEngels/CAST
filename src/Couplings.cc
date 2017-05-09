@@ -81,7 +81,7 @@ debug << '6';
         if (i <= Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
 debug << '7';
-debug.close();
+
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
 
@@ -94,12 +94,13 @@ debug.close();
 
           for (int d = 0; d < 3; d++) //calculation dipolemoment for dimer for unpolar monomers
           {
-debug << '8';
-
             dipol_ct.x() = 0.5 * monom1.x() - 0.5 * monom2.x();
             dipol_ct.y() = 0.5 * monom1.y() - 0.5 * monom2.y();
             dipol_ct.z() = 0.5 * monom1.z() - 0.5 * monom2.z();
           }
+
+debug << '8';
+debug.close();
 
           double dipolemoment = sqrt(dipol_ct.x()*dipol_ct.x() + dipol_ct.y()*dipol_ct.y() + dipol_ct.z()*dipol_ct.z());//length of total dipolmoment
 
