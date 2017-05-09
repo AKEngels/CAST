@@ -142,15 +142,12 @@ int main(int argc, char **argv)
     //    Initialization    //
     //                      //
     //////////////////////////
-std::ofstream tut("tut.txt", std::ios::out);
-tut << '1';
 
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-tut << '2';
-tut.close();
+
 	  // setting the methods for implicit solvation
     // Currently broken
 	  //GB::born::set(coords);
