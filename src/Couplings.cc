@@ -27,9 +27,13 @@ std::ofstream test("test.txt", std::ios::out);
       //{
 
 debug << '4';
+debug.close();
 
         inFilename_string = scon::separateString(Config::get().general.inputFilename);
         std::sscanf(inFilename_string.c_str(), "%*s %*s %i %*s %i %*s %*s", &first_Monom, &second_Monom);
+
+test << '1';
+test.close();
 
         //std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         //coords::Coordinates dim_coords(ci->read(idatname.str()));
@@ -48,12 +52,11 @@ debug << '5';
 
           INDO(dim_coords);
 
-test << '1';
-test.close();
+
 
          V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
-debug.close();
+
 
 
 test << V_el.back() << '\n';
