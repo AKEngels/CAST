@@ -773,7 +773,7 @@ tut.close();
       {
         couplings::coupling coup;
 
-        coup.kopplung(coords);
+        coup.kopplung();
 
         break;
       }

@@ -1,6 +1,6 @@
 #include "Couplings.h"
 
-void couplings::coupling::kopplung(coords::Coordinates dim_coords)
+void couplings::coupling::kopplung()
 {
 std::ofstream debug("debug.txt", std::ios::out);
 std::ofstream test("test.txt", std::ios::out);
@@ -13,46 +13,41 @@ debug.close();
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
 
   std::string inFilename_string;
-  int first_Monom(0), second_Monom(0);
+  
 
-  //for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
-  //{
+  for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
+  {
 
-    //for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
-    //{
+    for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
+    {
 
 
 
-      /*std::stringstream idatname;
-      idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";*/
+      std::stringstream idatname;
+      idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
     
-      /*std::ifstream coord_test(idatname.str(), std::ios_base::in);*/
+      std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
-      //if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
-      //{
-
-
-
-        inFilename_string = scon::separateString(Config::get().general.inputFilename);
-        std::sscanf(inFilename_string.c_str(), "%*s %*s %i %*s %i %*s %*s", &first_Monom, &second_Monom);
+      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
+      {
 
 test << '1';
 test.close();
 
-        //std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
-        //coords::Coordinates dim_coords(ci->read(idatname.str()));
+        std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
+        coords::Coordinates dim_coords(ci->read(idatname.str()));
 
       
 
 
 
-        if (first_Monom < Config::get().couplings.nbr_pSC && second_Monom < Config::get().couplings.nbr_pSC)//pSC homo-pair
+        if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
 debug << '5';
 
 
-          pSC_homo_1.push_back(first_Monom);
-          pSC_homo_2.push_back(second_Monom);
+          pSC_homo_1.push_back(i);
+          pSC_homo_2.push_back(j);
 
           INDO(dim_coords);
 
@@ -76,12 +71,12 @@ test << V_el.back() << '\n';
 
         }//pSC homo-pair end
 
-        if (first_Monom >= Config::get().couplings.nbr_pSC && second_Monom >= Config::get().couplings.nbr_pSC) //nSC homo-pair
+        if (i >= Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
 debug << '6';
 
-          nSC_homo_1.push_back(first_Monom);
-          nSC_homo_2.push_back(second_Monom);
+          nSC_homo_1.push_back(i);
+          nSC_homo_2.push_back(j);
 
           INDO(dim_coords);
 
@@ -89,12 +84,12 @@ debug << '6';
 
         }//nSC homo-pair end
 
-        if (first_Monom < Config::get().couplings.nbr_pSC && second_Monom >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
+        if (i < Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
 debug << '7';
 
-          hetero_pSC.push_back(first_Monom);
-          hetero_nSC.push_back(second_Monom);
+          hetero_pSC.push_back(i);
+          hetero_nSC.push_back(j);
 
           ZINDO(dim_coords);
 
@@ -175,15 +170,15 @@ debug << 'a';
 
 debug << 'c';
 
-      //}//end if-coord_test
+      }//end if-coord_test
       
 debug << 'b';
 
-    //}//end for j
+    }//end for j
 
-  //}//end for i
+  }//end for i
 //WRITING CACULATED COUPLINGS#####################################################
-      write(first_Monom, second_Monom);
+      write();
 }
 
 void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
@@ -221,13 +216,9 @@ void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-
 
 }
 
-void couplings::coupling::write(int mon1, int mon2)
+void couplings::coupling::write()
 {
-  std::stringstream smon1, smon2;
-  smon1 << mon1;
-  smon2 << mon2;
-  std::string outcoupname = "Couplings_" + smon1.str() + '_' + smon2.str() + ".txt";
-  std::ofstream all_couplings(outcoupname, std::ios::out);
+  std::ofstream all_couplings("Couplings.txt", std::ios::out);
 
   for (int i = 0; i < pSC_homo_1.size(); i++)
   {
