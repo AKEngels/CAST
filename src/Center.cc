@@ -49,16 +49,16 @@ void center(coords::Coordinates coords)
           int korr_bond_i(0);
           int korr_bond_j(0);
 
-          if (i > 1)//calculate coretion for bondingpartnerindices
+          if (i > 0)//calculate coretion for bondingpartnerindices
           {
-            for (int ki = i; ki > 0; ki--)
+            for (int ki = i-1; ki >= 0; ki--)
             korr_bond_i += coords.molecules(ki).size();
           }
 
-          if (j > 2)//calculate coretion for bondingpartnerindices
+          if (j > 1)//calculate coretion for bondingpartnerindices
           {
             korr_bond_j = korr_bond_i;
-            for (int kj = j; kj > 0; kj--)
+            for (int kj = j-1; kj > i; kj--)
               korr_bond_j += coords.molecules(kj).size();
           }
 
