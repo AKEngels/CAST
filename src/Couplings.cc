@@ -2,12 +2,6 @@
 
 void couplings::coupling::kopplung()
 {
-std::ofstream debug("debug.txt", std::ios::out);
-std::ofstream test("test.txt", std::ios::out);
-
-
-debug << '4' << '\n';
-debug.close();
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
@@ -20,9 +14,9 @@ debug.close();
 
     for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
     {
-
+std::ofstream debug("debug.txt", std::ios::out);
 debug << i << " " << j << '\n';
-
+debug.close();
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
     
@@ -30,7 +24,7 @@ debug << i << " " << j << '\n';
 
       if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
-
+std::ofstream test("test.txt", std::ios::out);
 test << i << " " << j << '\n';
 test << '1';
 test.close();
