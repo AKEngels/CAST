@@ -22,7 +22,7 @@ debug << i << " " << j << '\n';
 
 std::ofstream test("test.txt", std::ios::out);
 test << i << " " << j << '\n';
-test.close();    
+ 
 
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
@@ -49,17 +49,7 @@ debug << '5';
 
          V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
-
-
-
-test << V_el.back() << '\n';
-
-
-
           ZINDO(dim_coords);
-
-
-
 
           V_ex.push_back(0.5  *(c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
 
@@ -100,7 +90,6 @@ debug << '7';
           }
 
 debug << '8';
-debug.close();
 
           double dipolemoment = sqrt(dipol_ct.x()*dipol_ct.x() + dipol_ct.y()*dipol_ct.y() + dipol_ct.z()*dipol_ct.z());//length of total dipolmoment
 
@@ -116,7 +105,10 @@ debug.close();
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
+
 debug << '9';
+debug.close();
+
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
               for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
@@ -160,7 +152,10 @@ debug << 'a';
 
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
           V_rek.push_back(sqrt(rek_square_coup_sum));
-         
+
+test << '1';
+test.close();
+
         }//hetero end
 
 debug << 'c';
