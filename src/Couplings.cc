@@ -48,8 +48,12 @@ debug << '5';
 
           INDO(dim_coords);
 
+test << '1';
+test.close();
+
          V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
+debug.close();
 
 
 test << V_el.back() << '\n';
@@ -172,7 +176,6 @@ debug << 'b';
 
   //}//end for i
 //WRITING CACULATED COUPLINGS#####################################################
-debug.close();
       write(first_Monom, second_Monom);
 }
 
