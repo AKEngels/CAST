@@ -16,7 +16,7 @@ void couplings::coupling::kopplung()
     {
 std::ofstream debug("debug.txt", std::ios::out);
 debug << i << " " << j << '\n';
-debug.close();
+
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
     
@@ -26,7 +26,6 @@ debug.close();
       {
 std::ofstream test("test.txt", std::ios::out);
 test << i << " " << j << '\n';
-test << '1';
 test.close();
 
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
@@ -40,7 +39,7 @@ test.close();
         {
 debug << '5';
 
-
+debug.close();
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
