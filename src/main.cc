@@ -769,6 +769,9 @@ int main(int argc, char **argv)
       case config::tasks::COUPLINGS:
       {
         couplings::coupling coup;
+std::ofstream tut("tut.txt", std::ios::out);
+tut << '1';
+tut.close();
         coup.kopplung(coords);
 
         break;
