@@ -28,17 +28,13 @@ std::ofstream test("test.txt", std::ios::out);
 
 debug << '4';
 
-test << '5' ;
-
-debug.close();
-
         inFilename_string = scon::separateString(Config::get().general.inputFilename);
         std::sscanf(inFilename_string.c_str(), "%*s %*s %i %*s %i %*s %*s", &first_Monom, &second_Monom);
 
         //std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         //coords::Coordinates dim_coords(ci->read(idatname.str()));
 
-test.close();       
+      
 
 
 
@@ -57,12 +53,12 @@ debug << '5';
 
 
 test << V_el.back() << '\n';
-test << '7';
+
 
 
           ZINDO(dim_coords);
 
-test << '8';
+
 
 
           V_ex.push_back(0.5  *(c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
@@ -176,6 +172,7 @@ debug << 'b';
 
   //}//end for i
 //WRITING CACULATED COUPLINGS#####################################################
+debug.close();
       write(first_Monom, second_Monom);
 }
 
