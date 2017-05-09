@@ -102,12 +102,14 @@ debug << '8';
 
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
+debug << '9';
+debug.close();
+
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
 
-debug << '9';
-debug.close();
+
 
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
@@ -126,10 +128,13 @@ debug.close();
             }//end if-clause ensuring first excited state
           }//end loop over ex_ex_dipoles
 
+test << '1';
+test.close();
+
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
           for (int c = 0; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
           {
-debug << 'a';
+
             for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
             {
               if (c_gz_i_state[c] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
@@ -153,16 +158,11 @@ debug << 'a';
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
           V_rek.push_back(sqrt(rek_square_coup_sum));
 
-test << '1';
-test.close();
+
 
         }//hetero end
 
-debug << 'c';
-
       }//end if-coord_test
-      
-debug << 'b';
 
     }//end for j
 
