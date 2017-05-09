@@ -22,24 +22,22 @@ debug << i << " " << j << '\n';
     
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
-      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
-      {
 std::ofstream test("test.txt", std::ios::out);
 test << i << " " << j << '\n';
 test.close();
 
+      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
+      {
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         coords::Coordinates dim_coords(ci->read(idatname.str()));
-
-      
-
-
+debug << '5';      
+debug.close();
 
         if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
-debug << '5';
 
-debug.close();
+
+
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
