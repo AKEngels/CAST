@@ -102,13 +102,13 @@ debug << '8';
 
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
-debug << '9';
-debug.close();
+
 
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
-          for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
+          for (int c = 0; c < c_state_j.size(); c++)//loop over all ex_ex_dipoles
           {
-
+debug << '9';
+debug.close();
 
 
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
