@@ -102,7 +102,7 @@ debug << '8';
 
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
-debug << '9' << " " << c_ex_ex_trans[0].x();
+debug << '9';
 debug.close();
 
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
