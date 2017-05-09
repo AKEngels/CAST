@@ -36,7 +36,7 @@ test.close();
 debug << '5';      
 debug.close();
 
-        if (i < Config::get().couplings.nbr_pSC && j < Config::get().couplings.nbr_pSC)//pSC homo-pair
+        if (i <= Config::get().couplings.nbr_pSC && j <= Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
 
 
@@ -66,7 +66,7 @@ test << V_el.back() << '\n';
 
         }//pSC homo-pair end
 
-        if (i >= Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC) //nSC homo-pair
+        if (i > Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
 debug << '6';
 
@@ -79,7 +79,7 @@ debug << '6';
 
         }//nSC homo-pair end
 
-        if (i < Config::get().couplings.nbr_pSC && j >= Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
+        if (i <= Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
 debug << '7';
 
