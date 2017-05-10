@@ -1722,7 +1722,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       {
         cv >> Config::set().couplings.hetcharge;
       }
-      else if (option.substr(18u, 6u) == "method")
+      else if (option.substr(18u, 10u) == "Calcmethod")
       {
         while (!cv.eof())
         {
