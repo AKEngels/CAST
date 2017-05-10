@@ -27,7 +27,7 @@ cores                  1
 
 # Input file name
 
-name                   but_min.xyz
+name                   testinterface.xyz
 
 # Output file name
 
@@ -35,8 +35,8 @@ outname                DEVTEST
 
 # Input file type
 
-inputtype              TINKER
-
+inputtype               TINKER
+ 
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -81,8 +81,9 @@ amber_restrt           min.rst
 # REMOVE_EXPLICIT_WATER
 # EXCITON BREAKUP
 # INTERFACE_CREATION
+# COUPLINGS
 
-task                  INTERFACE_CREATION
+task                  COUPLINGS
 
 
 ####################################
@@ -100,7 +101,7 @@ task                  INTERFACE_CREATION
 # MOPAC                MOAPC2012 syscall Interface
 #Gaussian              Gaussian09 syscall Interface
 
-interface              Gaussian
+interface              GAUSSIAN
 
 # Interface for preoptimizations
 
@@ -149,11 +150,11 @@ GAUSSIANmultiplicity    1
 
 #Gaussian executeable path
 
-GAUSSIANpath            g09root /apps/gaussian
+GAUSSIANpath            g09
 
 #Delete temporary Gaussian files?
 
-GAUSSIANdelete          1
+GAUSSIANdelete          0
 
 ####################################
 #                                  #
@@ -897,7 +898,7 @@ ICdistance					5.0
 
 CENTERdimer                     1
 
-CENTERdistance                  5.0
+CENTERdistance                  6.0
 
 
 ####################################
@@ -906,22 +907,43 @@ CENTERdistance                  5.0
 #                                  #
 ####################################
 
-#Number of Dimerpairs
-
-Couplingsdimernumber   
-
 #Number of p-type semiconductor monomers
 
-CouplingspSCnumber
+CouplingspSCnumber              4
 
 #Number of n-type semiconductor monomers         
 
-CouplingsnSCnumber
+CouplingsnSCnumber              4
 
 #List of states relevant for ct-processes (no commata)
 
-CouplingsCTcharastates
+CouplingsCTcharastates          3 5 8
 
+###p-type homodimer options
+
+CouplingspSCdimMultiplicity          1
+
+CouplingspSCdimCharge                0
+
+CouplingspSCdimElCalcmethod          INDO
+
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+###n-type homodimer options
+
+CouplingsnSCdimMultiplicity          1
+
+CouplingsnSCdimCharge                0
+
+CouplingsnSCdimholCalcmethod         INDO
+
+###heterodimer options
+
+CouplingsheterodimMultiplicity       2
+
+CouplingsheterodimCharge             0
+
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #

@@ -8,6 +8,8 @@ void couplings::coupling::kopplung()
 
   std::string inFilename_string;
   
+  Config::set().energy.gaussian.basisset = " ";
+  Config::set().energy.gaussian.spec = " ";
 
   for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
   {
@@ -43,13 +45,13 @@ debug << '5';
           pSC_homo_1.push_back(i);
           pSC_homo_2.push_back(j);
 
-          INDO(dim_coords);
+          INDO(dim_coords, Config::get().couplings.pSCmethod_el, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
 
 
          V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
-          ZINDO(dim_coords);
+          ZINDO(dim_coords, Config::get().couplings.pSCmethod_ex, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
           V_ex.push_back(0.5  *(c_excitE[1] - c_excitE[0]) / eV2kcal_mol);
 
@@ -62,7 +64,7 @@ debug << '6';
           nSC_homo_1.push_back(i);
           nSC_homo_2.push_back(j);
 
-          INDO(dim_coords);
+          INDO(dim_coords, Config::get().couplings.nSCmethod, Config::get().couplings.nSCmultipl, Config::get().couplings.nSCcharge);
 
           V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
 
@@ -75,7 +77,7 @@ debug << '7';
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
 
-          ZINDO(dim_coords);
+          ZINDO(dim_coords, Config::get().couplings.hetmethod, Config::get().couplings.hetmultipl, Config::get().couplings.hetcharge);
 
           coords::Cartesian_Point monom1, monom2, dipol_ct;
 
@@ -102,10 +104,8 @@ debug << '8';
 
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
-
-
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
-          for (int c = 0; c < c_state_j.size(); c++)//loop over all ex_ex_dipoles
+          for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
 debug << '9';
 debug.close();
@@ -158,8 +158,6 @@ test.close();
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
           V_rek.push_back(sqrt(rek_square_coup_sum));
 
-
-
         }//hetero end
 
       }//end if-coord_test
@@ -171,12 +169,14 @@ test.close();
       write();
 }
 
-void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-Calculation for marcus-theorie couplings
+void couplings::coupling::INDO(coords::Coordinates coords, std::string method, std::string multiplicity, std::string charge) //Funktion for INDO-Calculation for marcus-theorie couplings
 {
   //Change gasussian parameters to the needed settings
-  Config::set().energy.gaussian.method = "INDO";
+  Config::set().energy.gaussian.method = method;
   Config::set().energy.gaussian.basisset = " ";
   Config::set().energy.gaussian.spec = " ";
+  Config::set().energy.gaussian.charge = charge;
+  Config::set().energy.gaussian.multipl = multiplicity;
 
   coords.e();
 
@@ -186,16 +186,16 @@ void couplings::coupling::INDO(coords::Coordinates coords) //Funktion for INDO-C
   c_virtMO = coords.catch_interface->get_virtMO();
 }
 
-void couplings::coupling::ZINDO(coords::Coordinates coords)//Funktion for ZINDO-Calculation for marcus-theorie couplings
+void couplings::coupling::ZINDO(coords::Coordinates coords, std::string method, std::string multiplicity, std::string charge)//Funktion for ZINDO-Calculation for marcus-theorie couplings
 {
   //Change gasussian parameters to the needed settings
-  Config::set().energy.gaussian.method = "ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)";
+  Config::set().energy.gaussian.method = method;
   Config::set().energy.gaussian.basisset = " ";
   Config::set().energy.gaussian.spec = " ";
+  Config::set().energy.gaussian.charge = charge;
+  Config::set().energy.gaussian.multipl = multiplicity;
 
   coords.e();
-
-
 
   c_excitE = coords.catch_interface->get_excitE();
   c_ex_ex_trans = coords.catch_interface->get_ex_ex_trans();

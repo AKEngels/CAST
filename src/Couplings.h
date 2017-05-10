@@ -22,8 +22,8 @@ namespace couplings {
 
     void kopplung();
 
-    void INDO(coords::Coordinates);
-    void ZINDO(coords::Coordinates);
+    void INDO(coords::Coordinates, std::string, std::string, std::string);
+    void ZINDO(coords::Coordinates, std::string, std::string, std::string);
     void write();
 
     //kopplungen

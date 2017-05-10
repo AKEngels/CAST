@@ -1612,15 +1612,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().interfcrea.icfilename = value_string;
     }
-    if (option.substr(2u, 9u) == "inputtype")
+    else if (option.substr(2u, 9u) == "inputtype")
     {
       Config::set().interfcrea.icfiletype = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
     }
-    if (option.substr(2u, 4u) == "axis")
+    else if (option.substr(2u, 4u) == "axis")
     {
       cv >> Config::set().interfcrea.icaxis;
     }
-    if (option.substr(2u, 8u) == "distance")
+    else if (option.substr(2u, 8u) == "distance")
     {
       cv >> Config::set().interfcrea.icdist;
     }
@@ -1634,7 +1634,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().center.dimer = bool_from_iss(cv);
     }
-    if (option.substr(6u, 8u) == "distance")
+    else if (option.substr(6u, 8u) == "distance")
     {
       cv >> Config::set().center.distance;
     }
@@ -1648,17 +1648,78 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().couplings.nbr_dimPairs;
     }
-    if (option.substr(9u, 9u) == "nSCnumber")
+    else if (option.substr(9u, 9u) == "nSCnumber")
     {
       cv >> Config::set().couplings.nbr_nSC;
     }
-    if (option.substr(9u, 9u) == "pSCnumber")
+    else if (option.substr(9u, 9u) == "pSCnumber")
     {
       cv >> Config::set().couplings.nbr_pSC;
     }
-    if (option.substr(9u, 13u) == "CTcharastates")
+    else if (option.substr(9u, 13u) == "CTcharastates")
     {
       cv >> Config::set().couplings.ct_chara_all;
+    }
+    else if (option.substr(9u, 6u) == "pSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.pSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.pSCcharge;
+      }
+      else if (option.substr(15u, 12u) == "ElCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          cv >> Config::set().couplings.pSCmethod_el;
+        }
+      }
+      else if (option.substr(15u, 14u) == "ExciCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          cv >> Config::set().couplings.pSCmethod_ex;
+        }
+      }
+    }
+    else if (option.substr(9u, 6u) == "nSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.nSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.nSCcharge;
+      }
+      else if (option.substr(15u, 13u) == "holCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          cv >> Config::set().couplings.nSCmethod;
+        }
+      }
+    }
+    else if (option.substr(9u, 9u) == "heterodim")
+    {
+      if (option.substr(18u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.hetmultipl;
+      }
+      else if (option.substr(18u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.hetcharge;
+      }
+      else if (option.substr(18u, 6u) == "method")
+      {
+        while (!cv.eof())
+        {
+          cv >> Config::set().couplings.hetmethod;
+        }
+      }
     }
   }
 

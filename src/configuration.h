@@ -1211,7 +1211,10 @@ namespace config
   struct couplings
   {
     double nbr_nSC, nbr_pSC, nbr_dimPairs;
-    std::string ct_chara_all;
+    std::string ct_chara_all, 
+                pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
+                nSCmultipl, nSCcharge, nSCmethod,
+                hetmultipl, hetcharge, hetmethod;
   };
 
 
