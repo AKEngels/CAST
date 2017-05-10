@@ -11,10 +11,10 @@ void couplings::coupling::kopplung()
   Config::set().energy.gaussian.basisset = " ";
   Config::set().energy.gaussian.spec = " ";
 
-  for (int i = 1; i < gesanzahl_monomere-1; i++)//Iterator for first monomer
+  for (int i = 1; i < gesanzahl_monomere; i++)//Iterator for first monomer
   {
 
-    for (int j = 2; j < gesanzahl_monomere; j++)//Iterator for second monomer
+    for (int j = 2; j <= gesanzahl_monomere; j++)//Iterator for second monomer
     {
 std::ofstream debug("debug.txt", std::ios::out);
 debug << i << " " << j << '\n';
