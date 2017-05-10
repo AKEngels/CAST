@@ -35,7 +35,7 @@ test << i << " " << j << '\n';
       {
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         coords::Coordinates dim_coords(ci->read(idatname.str()));
-debug << '5';      
+ 
 
         if (i <= Config::get().couplings.nbr_pSC && j <= Config::get().couplings.nbr_pSC)//pSC homo-pair
         {
@@ -72,8 +72,6 @@ debug << '6';
 
         if (i <= Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC)//hetero-pair i pSC, j nSC  
         {
-debug << '7';
-
           hetero_pSC.push_back(i);
           hetero_nSC.push_back(j);
 
@@ -84,14 +82,15 @@ debug << '7';
           monom1 = dim_coords.center_of_mass_mol(0);//for molecules without static dipolemoment we use the masscenter for the dipolemoment
           monom2 = dim_coords.center_of_mass_mol(1);
 
+debug << '8';
+debug.close();
+
           for (int d = 0; d < 3; d++) //calculation dipolemoment for dimer for unpolar monomers
           {
             dipol_ct.x() = 0.5 * monom1.x() - 0.5 * monom2.x();
             dipol_ct.y() = 0.5 * monom1.y() - 0.5 * monom2.y();
             dipol_ct.z() = 0.5 * monom1.z() - 0.5 * monom2.z();
           }
-
-debug << '8';
 
           double dipolemoment = sqrt(dipol_ct.x()*dipol_ct.x() + dipol_ct.y()*dipol_ct.y() + dipol_ct.z()*dipol_ct.z());//length of total dipolmoment
 
@@ -204,6 +203,9 @@ void couplings::coupling::ZINDO(coords::Coordinates coords, std::string method, 
   c_state_j = coords.catch_interface->get_state_j();
   c_gz_i_state = coords.catch_interface->get_gz_i_state();
 
+  std::ofstream tut("tut.txt", std::ios::out);
+  tut << '1';
+  tut.close();
 }
 
 void couplings::coupling::write()
