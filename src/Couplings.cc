@@ -82,8 +82,7 @@ debug << '6';
           monom1 = dim_coords.center_of_mass_mol(0);//for molecules without static dipolemoment we use the masscenter for the dipolemoment
           monom2 = dim_coords.center_of_mass_mol(1);
 
-debug << '8';
-debug.close();
+
 
           for (int d = 0; d < 3; d++) //calculation dipolemoment for dimer for unpolar monomers
           {
@@ -106,10 +105,6 @@ debug.close();
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
           for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
-debug << '9';
-debug.close();
-
-
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
               for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
@@ -127,8 +122,7 @@ debug.close();
             }//end if-clause ensuring first excited state
           }//end loop over ex_ex_dipoles
 
-test << '1';
-test.close();
+
 
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
           for (int c = 0; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
@@ -148,11 +142,17 @@ test.close();
             }//end loop over relevant ct-states
           }//end loop over ex_ex_dipoles
 
+debug << '8';
+debug.close();
+
           for (int i = 0; i < ct_relev_states.size(); i++) //sum up squares of couplings between single states
           {
             ct_square_coup_sum  += ct_coupling[i]  * ct_coupling[i];
             rek_square_coup_sum += rek_coupling[i] * rek_coupling[i];
           }
+
+test << '1';
+test.close();
 
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
           V_rek.push_back(sqrt(rek_square_coup_sum));
@@ -202,10 +202,6 @@ void couplings::coupling::ZINDO(coords::Coordinates coords, std::string method, 
   c_state_i = coords.catch_interface->get_state_i();
   c_state_j = coords.catch_interface->get_state_j();
   c_gz_i_state = coords.catch_interface->get_gz_i_state();
-
-  std::ofstream tut("tut.txt", std::ios::out);
-  tut << '1';
-  tut.close();
 }
 
 void couplings::coupling::write()
