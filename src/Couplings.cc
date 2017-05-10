@@ -107,15 +107,15 @@ debug << '6';
           {
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
-              for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
+              for (int d = 0; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
               {
-                if (c_state_i[c] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
+                if (c_state_i[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
                 {
                   projection = dipol_ct.x() / dipolemoment * c_ex_ex_trans[c].x()
                              + dipol_ct.y() / dipolemoment * c_ex_ex_trans[c].y()
                              + dipol_ct.z() / dipolemoment * c_ex_ex_trans[c].z();
 
-                  coupling = (projection * (c_excitE[ct_relev_states[j]-1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
+                  coupling = (projection * (c_excitE[ct_relev_states[d]-1] - c_excitE[0]) / eV2kcal_mol) / sqrt((dipolemoment/a_u)*(dipolemoment/a_u) + 4* projection * projection);
                   ct_coupling.push_back(coupling);
                 }//end if-clause for relevant states
               }//end loop over relevant ct-states
@@ -127,16 +127,15 @@ debug << '6';
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
           for (int c = 0; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
           {
-
-            for (int j = 2; j < ct_relev_states.size(); j++)//loop over user defined relevant ct-states
+            for (int d = 0; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
             {
-              if (c_gz_i_state[c] == ct_relev_states[j])//only if the dipolemoment is concering a relevant state
+              if (c_gz_i_state[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
               {
-                projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[c].x()
-                           + dipol_ct.y() / dipolemoment * c_gz_ex_trans[c].y()
-                           + dipol_ct.z() / dipolemoment * c_gz_ex_trans[c].z();
+                projection = dipol_ct.x() / dipolemoment * c_gz_ex_trans[d].x()
+                           + dipol_ct.y() / dipolemoment * c_gz_ex_trans[d].y()
+                           + dipol_ct.z() / dipolemoment * c_gz_ex_trans[d].z();
 
-                coupling = (projection * (c_excitE[ct_relev_states[j] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
+                coupling = (projection * (c_excitE[ct_relev_states[d] - 1]) / eV2kcal_mol) / sqrt((dipolemoment / a_u)*(dipolemoment / a_u) + 4 * projection * projection);
                 rek_coupling.push_back(coupling);
               }//end if-clause for relevant states
             }//end loop over relevant ct-states
