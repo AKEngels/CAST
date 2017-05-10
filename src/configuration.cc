@@ -1674,14 +1674,20 @@ void config::parse_option(std::string const option, std::string const value_stri
       {
         while (!cv.eof())
         {
-          cv >> Config::set().couplings.pSCmethod_el;
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_el.append(tmp);
+          Config::set().couplings.pSCmethod_el.append(" ");
         }
       }
       else if (option.substr(15u, 14u) == "ExciCalcmethod")
       {
         while (!cv.eof())
         {
-          cv >> Config::set().couplings.pSCmethod_ex;
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_ex.append(tmp);
+          Config::set().couplings.pSCmethod_ex.append(" ");
         }
       }
     }
@@ -1699,7 +1705,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       {
         while (!cv.eof())
         {
-          cv >> Config::set().couplings.nSCmethod;
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.nSCmethod.append(tmp);
+          Config::set().couplings.nSCmethod.append(" ");
         }
       }
     }
@@ -1717,7 +1726,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       {
         while (!cv.eof())
         {
-          cv >> Config::set().couplings.hetmethod;
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.hetmethod.append(tmp);
+          Config::set().couplings.hetmethod.append(" ");
         }
       }
     }
