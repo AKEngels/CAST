@@ -527,6 +527,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
 	  else if (option.substr(11, 13) == "-NEB-COMPLETE")
 		  cv >> Config::set().neb.COMPLETE_PATH;
+	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
+		  cv >> Config::set().neb.MULTIPLE_POINTS;
   }
 
   // MOPAC options

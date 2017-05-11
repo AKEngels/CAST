@@ -99,6 +99,7 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   images_initial.clear();
   images.resize(N);
   energies.resize(num_images);
+  tau.resize(num_images);
   ts_energies = ts_energy;
   min_energies = min_energy;
   ts_pathstruc = ts_path;
@@ -130,13 +131,14 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   energies.clear();
   tau.clear();
   images.clear();
-  ClimbingImage = true;
   imagi.resize(num_images);
   ts_pathstruc.resize(num_images);
   image_ini.resize(num_images);
   images_initial.clear();
   tempimage_final.resize(N);
   tempimage_ini.resize(N);
+  images.resize(N);
+  tau.resize(num_images);
   energies.resize(num_images);
   initial(start);
   final(fi);

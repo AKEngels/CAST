@@ -363,7 +363,11 @@ NEB-PATHOPT-MF_PATHOPT 1
 NEB-PATHOPT-NEB-IDPP 1
 
 #usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+
 NEB-PATHOPT-NEB-COMPLETE 1
+
+#complete pathways or points with interconnection via NEB (0/1: no/yes)
+NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
 
 
 ####################################

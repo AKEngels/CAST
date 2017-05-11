@@ -526,24 +526,38 @@ int main(int argc, char **argv)
       {
         std::ptrdiff_t counter = 0;
 		std::vector<coords::Representation_3D> input_pathway;
+		coords::Representation_3D start_struc, final_struc;
+		ptrdiff_t image_connect=ptrdiff_t(Config::get().neb.CONNECT_NEB_NUMBER);
+	
         for (auto const & pes : *ci)
         {
-          coords.set_xyz(pes.structure.cartesian);
+          coords.set_xyz(pes.structure.cartesian);	 
+		  coords.mult_struc_counter++;
 		  if (Config::get().neb.COMPLETE_PATH)
 		  {
 			  input_pathway.push_back(pes.structure.cartesian);
 		  }
-		  else
+		  else if(!Config::get().neb.MULTIPLE_POINTS)
 		  {
-			  coords.mult_struc_counter++;
+			 
 			  neb nobj(&coords);
 			  nobj.preprocess(counter);
 		  }
         }
-		if (Config::get().neb.COMPLETE_PATH)
+		if (Config::get().neb.COMPLETE_PATH && !(Config::get().neb.MULTIPLE_POINTS))
 		{
 			neb nobj(&coords);
 			nobj.preprocess(input_pathway, counter);
+		}
+		else
+		{
+			for (size_t i = 0; i < (input_pathway.size()-1); ++i)
+			{
+				start_struc = input_pathway[i];
+				final_struc = input_pathway[i + 1];
+				neb nobj(&coords);
+				nobj.preprocess(counter, image_connect, counter, start_struc, final_struc, true);
+			}
 		}
         break;
       }
