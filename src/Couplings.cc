@@ -16,20 +16,11 @@ void couplings::coupling::kopplung()
 
     for (int j = 2; j <= gesanzahl_monomere; j++)//Iterator for second monomer
     {
-std::ofstream debug("debug.txt", std::ios::out);
-debug << i << " " << j << '\n';
 
       std::stringstream idatname;
       idatname << "Dimerstrukt_" << i << "_" << j << ".xyz";
 
-std::ofstream test("test.txt", std::ios::out);
-test << i << " " << j << '\n';
- 
-
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
-
-
-
 
       if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
       {
@@ -59,7 +50,6 @@ test << i << " " << j << '\n';
 
         if (i > Config::get().couplings.nbr_pSC && j > Config::get().couplings.nbr_pSC) //nSC homo-pair
         {
-debug << '6';
 
           nSC_homo_1.push_back(i);
           nSC_homo_2.push_back(j);
@@ -141,17 +131,11 @@ debug << '6';
             }//end loop over relevant ct-states
           }//end loop over ex_ex_dipoles
 
-debug << '8';
-debug.close();
-
           for (int i = 0; i < ct_relev_states.size(); i++) //sum up squares of couplings between single states
           {
             ct_square_coup_sum  += ct_coupling[i]  * ct_coupling[i];
             rek_square_coup_sum += rek_coupling[i] * rek_coupling[i];
           }
-
-test << '1';
-test.close();
 
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector
           V_rek.push_back(sqrt(rek_square_coup_sum));
