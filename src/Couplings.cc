@@ -215,4 +215,42 @@ void couplings::coupling::write()
   }
 
   all_couplings.close();
+
+  std::ofstream homo_ex("homodimer_exciton.txt", std::ios::out);
+  for (int i = 0; i < pSC_homo_1.size(); i++)
+  {
+    homo_ex << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
+    homo_ex << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
+    homo_ex << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_ex[i] << '\n';
+  }
+  homo_ex.close();
+
+  std::ofstream homo_ch("homodimer_ladung.txt", std::ios::out);
+  for (int i = 0; i < pSC_homo_1.size(); i++)
+  {
+    homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
+    homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
+    homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_el[i] << '\n';
+  }
+  homo_ch.close();
+
+  std::ofstream hetero("heterodimer.txt", std::ios::out);
+  for (int i = 0; i < hetero_pSC.size(); i++)
+  {
+    hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " ";
+    hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_nSC[i] << " ";
+    hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_ct[i] << " ";
+    hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_rek[i] << '\n';
+  }
+  hetero.close();
+
+  std::ofstream nSC("nSC_homodimer.txt", std::ios::out);
+  for (int i = 0; i < nSC_homo_1.size(); i++)
+  {
+    nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " ";
+    nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_2[i] << " ";
+    nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_hole[i] << '\n';
+  }
+
+
 }

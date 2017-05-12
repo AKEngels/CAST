@@ -745,15 +745,15 @@ int main(int argc, char **argv)
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		  excitonbreakup(Config::set().exbreak.pscnumber, Config::set().exbreak.nscnumber, Config::set().exbreak.interfaceorientation, Config::set().exbreak.masscenters, 
-						 Config::set().exbreak.nscpairrates, Config::set().exbreak.pscpairexrates, Config::set().exbreak.pscpairchrates, Config::set().exbreak.pnscpairrates);
+		  excitonbreakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
 	  }
       case config::tasks::INTEFACE_CREATION:
       {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
-        coords = interface_creation(Config::set().interfcrea.icfilename, Config::set().interfcrea.icaxis, Config::set().interfcrea.icdist, coords);
+        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
         break;
       }
       case config::tasks::CENTER:
