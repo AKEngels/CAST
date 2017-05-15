@@ -19,7 +19,7 @@ void center(coords::Coordinates coords)
 
   masscenters.open("CenterofMasses.out");
 
-  masscenters << N << '\n';
+  masscenters << N << '\n' << '\n';
 
   for (std::size_t i = 0u; i < N; i++)
   {

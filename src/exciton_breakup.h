@@ -95,6 +95,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     std::cout << "WRONG!" << std::endl;
     return 0;
   }
+  schwerpunkt >> skipline;
   std::vector <double> x(gesamtanzahl + 1), y(gesamtanzahl + 1), z(gesamtanzahl + 1);
 
   for (i = 1; i < (gesamtanzahl + 1); i++) 
