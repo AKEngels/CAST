@@ -713,6 +713,40 @@ DONE:
     coords::PES_Point x(input_ensemble[0u]);
     coord_object.init_swap_in(atoms, x);
 
+	if (Config::get().general.chargefile)   // read charges from chargefile
+	{
+		charges.clear();  // delete former charges
+		std::ifstream coord_file_stream("charges.txt", std::ios_base::in);
+		std::string x;
+		while (coord_file_stream)
+		{
+			if (coord_file_stream >> x)
+			{
+				// ignore atom number
+			}
+			if (coord_file_stream >> x)
+			{
+				// ignore atom type
+			}
+			if (coord_file_stream >> x)
+			{
+				charges.push_back(std::stod(x));
+			}
+		}
+		if (charges.size() == coord_object.size())
+		{
+			Config::set().coords.amber_charges = charges;
+			if (Config::get().general.verbosity > 3)
+			{
+				std::cout << "Reading charges from chargefile successful.\n";
+			}
+		}
+		else   // not the correct number of charges in chargefile
+		{
+			std::cout << "Reading charges from chargefile failed. Using charges from prmtopfile instead.\n";
+		}
+	}
+
     for (auto & p : input_ensemble)
     {
       p.gradient.cartesian.resize(p.structure.cartesian.size());

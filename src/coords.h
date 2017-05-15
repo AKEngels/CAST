@@ -188,7 +188,11 @@ namespace coords
   struct fep_data
   {
     energy::fepvect feptemp;
+	/**object in which data for one window is saved
+	which is relevant for FEP calculation 
+	(every element of vector is one conformation)*/
     std::vector<energy::fepvect> fepdata;
+	/**fep parameters for all windows (every element of vector corresponds to one window)*/
     std::vector<energy::fepvar> window;
   };
 

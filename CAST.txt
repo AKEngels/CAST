@@ -14,7 +14,7 @@ verbosity              4
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
 
-cores                  1
+cores                  8
 
 
 ####################################
@@ -31,7 +31,7 @@ name                   testinterface.xyz
 
 # Output file name
 
-outname                DEVTEST
+outname                center_test
 
 # Input file type
 
@@ -79,11 +79,11 @@ amber_restrt           min.rst
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# EXCITON BREAKUP
+# EXCITON_BREAKUP
 # INTERFACE_CREATION
 # COUPLINGS
 
-task                  COUPLINGS
+task                  EXCITON_BREAKUP
 
 
 ####################################
@@ -134,11 +134,11 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 # Link 0 Commands  
 
-GAUSSIANlink 
+GAUSSIANlink NProcShared=8 Mem=2GB 
 
 # Keywords for Gaussian Call
 
-GAUSSIANkey          Hf/ 6-31G
+GAUSSIANkey          
 
 # Charge of the Molecule
 
@@ -154,7 +154,7 @@ GAUSSIANpath            g09
 
 #Delete temporary Gaussian files?
 
-GAUSSIANdelete          0
+GAUSSIANdelete          1
 
 ####################################
 #                                  #
@@ -835,27 +835,27 @@ USsnap                 5
 
 ####################################
 #                                  #
-#         EXCITON_BREAKUP          #
+#          EXCITONBREAKUP          #
 #                                  #
 ####################################
 
 #Center of masses of all semiconductor molecules
 
-EXmasscenters           schwerpunkt.xyz
+EXmasscenters           CenterofMasses.out
 
 #Numbers of monomers
 
-EXnumbern               57
+EXnumbern               36
 
-EXnumberp               159
+EXnumberp               80
 
 #Orientation of the interface
 
-EXplaneinterf           z
+EXplaneinterf            z
 
 #transition rates for all possible dimers
 
-EXnscpairrates              fulleren.txt
+EXnscpairrates              nSC_homodimer.txt
 
 EXpscpairexrates            homodimer_exciton.txt
 
@@ -898,7 +898,7 @@ ICdistance					5.0
 
 CENTERdimer                     1
 
-CENTERdistance                  6.0
+CENTERdistance                  15.0
 
 
 ####################################
@@ -909,15 +909,15 @@ CENTERdistance                  6.0
 
 #Number of p-type semiconductor monomers
 
-CouplingspSCnumber              4
+CouplingspSCnumber              80
 
 #Number of n-type semiconductor monomers         
 
-CouplingsnSCnumber              4
+CouplingsnSCnumber              36
 
 #List of states relevant for ct-processes (no commata)
 
-CouplingsCTcharastates          3 5 8
+CouplingsCTcharastates          3 4 7
 
 ###p-type homodimer options
 
@@ -927,7 +927,7 @@ CouplingspSCdimCharge                0
 
 CouplingspSCdimElCalcmethod          INDO
 
-CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ###n-type homodimer options
 
@@ -939,11 +939,11 @@ CouplingsnSCdimholCalcmethod         INDO
 
 ###heterodimer options
 
-CouplingsheterodimMultiplicity       2
+CouplingsheterodimMultiplicity       1
 
 CouplingsheterodimCharge             0
 
-CouplingsheterodimCalcmethod         ZINDO TD=(NStates=15, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #

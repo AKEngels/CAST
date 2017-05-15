@@ -17,7 +17,6 @@ def get_flag(flag_name, signnumber):
             if linenumber == start:
                 go = True
             if linenumber > start and line.startswith("%"):
-                end = linenumber
                 break
             if go:
                 flag_str = flag_str + line
