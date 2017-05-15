@@ -48,7 +48,7 @@
 //#include "gbsa.h" // Out of Order
 #include <omp.h>
 #include "PCA.h"
-#include "excitonbreakup.h"
+#include "exciton_breakup.h"
 #include "interfcrea.h"
 #include "Center.h"
 #include "Couplings.h"
@@ -737,15 +737,15 @@ int main(int argc, char **argv)
         }
 		    break;
       }
-	    case config::tasks::EXCITONBREAKUP:
+	    case config::tasks::EXCITON_BREAKUP:
 	    {
 		  /**
-		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN 
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
 		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		  excitonbreakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
 	  }
       case config::tasks::INTEFACE_CREATION:

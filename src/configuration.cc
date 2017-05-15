@@ -1566,7 +1566,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  /* Inputoptions for excitonbreakup
+  /* Inputoptions for exciton_breakup
   */
   else if (option.substr(0u,2u) == "EX")
   {

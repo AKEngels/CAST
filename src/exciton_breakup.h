@@ -47,7 +47,7 @@ double coulomb(std::vector<double> arr1, std::vector<double> arr2, std::vector<d
   return c;
 }
 
-int excitonbreakup(int pscanzahl, int nscanzahl, char ebene, std::string masscenters, std::string nscpairrates,
+int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string masscenters, std::string nscpairrates,
   std::string pscpairexrates, std::string pscpairchrates, std::string pnscpairrates)
 {
   std::string zeile;
