@@ -19,6 +19,8 @@ void center(coords::Coordinates coords)
 
   masscenters.open("CenterofMasses.out");
 
+  masscenters << N << '\n';
+
   for (std::size_t i = 0u; i < N; i++)
   {
     masscenters << std::right << std::fixed << std::setprecision(7) << std::setw(5) << i + 1 << std::setw(13) << com[i].x() << std::setw(13) << com[i].y()
