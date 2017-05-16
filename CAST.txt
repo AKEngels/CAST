@@ -136,9 +136,13 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 GAUSSIANlink NProcShared=8 Mem=2GB 
 
-# Keywords for Gaussian Call
+# Methods for Gaussian Call
 
-GAUSSIANkey          
+GAUSSIANmethod
+
+#Basisset for Gaussian Call
+
+GAUSSIANbasisset         
 
 # Charge of the Molecule
 
