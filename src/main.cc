@@ -774,6 +774,7 @@ int main(int argc, char **argv)
 		  */  
 		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      break;
 	  }
       case config::tasks::INTEFACE_CREATION:
       {
