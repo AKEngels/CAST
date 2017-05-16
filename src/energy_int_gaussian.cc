@@ -11,6 +11,7 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
+#include <iterator>
 #if defined (_MSC_VER)
 #include "win_inc.h"
 #endif
@@ -89,8 +90,19 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
   if (out_file)
   {
     if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
-      out_file << "%" << Config::get().energy.gaussian.link;
-      out_file << '\n';
+
+      std::istringstream iss(Config::get().energy.gaussian.link);
+
+      std::vector<std::string> splitted_str(
+        std::istream_iterator<std::string>{iss},
+        std::istream_iterator<std::string>{}
+      );
+
+      for (std::size_t i = 0; i < splitted_str.size(); i++)
+      {
+        out_file << splitted_str[i] << '\n';
+      }
+      
     }
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec;
 
