@@ -549,7 +549,7 @@ int main(int argc, char **argv)
 			neb nobj(&coords);
 			nobj.preprocess(input_pathway, counter);
 		}
-		else
+		else if ((Config::get().neb.MULTIPLE_POINTS))
 		{
 			for (size_t i = 0; i < (input_pathway.size()-1); ++i)
 			{
