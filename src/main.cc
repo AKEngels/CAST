@@ -51,8 +51,10 @@
 #include <omp.h>
 #include "PCA.h"
 #include "2DScan.h"
-#include "excitonbreakup.h"
+#include "exciton_breakup.h"
 #include "interfcrea.h"
+#include "Center.h"
+#include "Couplings.h"
 
 //////////////////////////
 //                      //
@@ -370,6 +372,7 @@ int main(int argc, char **argv)
           loclogstream << std::setw(16) << i;
           short_ene_stream(coords, loclogstream, 16);
           coords.o();
+
           auto tim = duration_cast<duration<double>>
             (high_resolution_clock::now() - start);
           short_ene_stream(coords, loclogstream, 16);
@@ -529,24 +532,38 @@ int main(int argc, char **argv)
       {
         std::ptrdiff_t counter = 0;
 		std::vector<coords::Representation_3D> input_pathway;
+		coords::Representation_3D start_struc, final_struc;
+		ptrdiff_t image_connect=ptrdiff_t(Config::get().neb.CONNECT_NEB_NUMBER);
+	
         for (auto const & pes : *ci)
         {
-          coords.set_xyz(pes.structure.cartesian);
+          coords.set_xyz(pes.structure.cartesian);	 
+		  coords.mult_struc_counter++;
 		  if (Config::get().neb.COMPLETE_PATH)
 		  {
 			  input_pathway.push_back(pes.structure.cartesian);
 		  }
-		  else
+		  else if(!Config::get().neb.MULTIPLE_POINTS)
 		  {
-			  coords.mult_struc_counter++;
+			 
 			  neb nobj(&coords);
 			  nobj.preprocess(counter);
 		  }
         }
-		if (Config::get().neb.COMPLETE_PATH)
+		if (Config::get().neb.COMPLETE_PATH && !(Config::get().neb.MULTIPLE_POINTS))
 		{
 			neb nobj(&coords);
 			nobj.preprocess(input_pathway, counter);
+		}
+		else
+		{
+			for (size_t i = 0; i < (input_pathway.size()-1); ++i)
+			{
+				start_struc = input_pathway[i];
+				final_struc = input_pathway[i + 1];
+				neb nobj(&coords);
+				nobj.preprocess(counter, image_connect, counter, start_struc, final_struc, true);
+			}
 		}
         break;
       }
@@ -753,111 +770,49 @@ int main(int argc, char **argv)
 		  Scan2D scan(coords);
 		  break;
 	  }
-	  default:
-	    case config::tasks::EXCITONBREAKUP:
+	    case config::tasks::EXCITON_BREAKUP:
 	    {
 		  /**
-		  * THIS TASK SIMULATES THE EXCITONBREAKUP ON AN 
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
 		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
 		  */  
-		  excitonbreakup(Config::set().exbreak.pscnumber, Config::set().exbreak.nscnumber, Config::set().exbreak.interfaceorientation, Config::set().exbreak.masscenters, 
-						 Config::set().exbreak.nscpairrates, Config::set().exbreak.pscpairexrates, Config::set().exbreak.pscpairchrates, Config::set().exbreak.pnscpairrates);
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      break;
 	  }
       case config::tasks::INTEFACE_CREATION:
-    {
+      {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
-      interface_creation(Config::set().interfcrea.icfilename, Config::set().interfcrea.icaxis, Config::set().interfcrea.icdist, coords);
-    }
-
+        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
+        break;
+      }
       case config::tasks::CENTER:
-    {
+      {
         /**
         * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
         * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
         */
-        std::size_t N = coords.molecules().size(); //Number of Molecules in system
-        std::vector <coords::Cartesian_Point> com; //vector to save all center of masses
-        ofstream masscenters;
 
-        for (std::size_t i = 0u; i < N; i++)//i iterates over all molecules
-        {
-          com.push_back(coords.center_of_mass_mol(i));
-        }
+        center(coords);
+        break;
+      }
+      case config::tasks::COUPLINGS:
+      {
+        couplings::coupling coup;
 
-        masscenters.open("CenterofMasses.out");
+        coup.kopplung();
 
-        for (std::size_t i = 0u; i < N; i++)
-        {
-          masscenters << std::right << std::fixed << std::setprecision(7) << std::setw(5) << i + 1 << std::setw(13) << com[i].x() << std::setw(13) << com[i].y()
-            << std::setw(13) << com[i].z() << '\n';
-        }
+        break;
+      }
 
-        if (Config::set().center.dimer == true)
-        {
-          double abstkrit = Config::get().center.distance;
-          double com_dist(0u);
-          ofstream dimerstrukt;
-          std::size_t size_i(0u), size_j(0u), size_dimer(0u);
-
-          for (std::size_t i = 0u; i < N; i++)
-          {
-            for (std::size_t j = 0u; j < N && j != i; j++)
-            {
-              //Calculate distance between momomers
-              com_dist = sqrt((com[i].x() - com[j].x())*(com[i].x() - com[j].x()) + (com[i].y() - com[j].y())*(com[i].y() - com[j].y()) + (com[i].z() - com[j].z())*(com[i].z() - com[j].z()));
-
-              if (com_dist <= abstkrit)
-              {
-                size_i = coords.molecules(i).size();//Number of atoms in monomer i
-                size_j = coords.molecules(j).size();;//Number of atoms in monomer j
-                size_dimer = size_i + size_j;
-
-                stringstream oname;
-                oname << "Dimerstrukt_" << i + 1 << "_" << j + 1 << ".xyz";
-                dimerstrukt.open(oname.str());
-
-                dimerstrukt << size_dimer << '\n';
-
-                for (std::size_t k = 0u; k < size_i; k++) //loop for writing first monomer
-                {
-                  std::size_t atom_index = coords.atoms().molecules(i, k);
-                  dimerstrukt << std::right << std::fixed << std::setprecision(7) << std::setw(4) << k+1 << std::setw(6) << coords.atoms(atom_index).symbol()
-                    << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
-                    << std::setw(8) << coords.atoms(atom_index).energy_type();
-
-                  for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++)
-                  {
-                    dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1;
-                  }
-                  dimerstrukt << '\n';
-                }
-
-                for (std::size_t k = 0u; k < size_j; k++) //loop for writing second monomer
-                {
-                  std::size_t atom_index = coords.atoms().molecules(j, k);
-                  dimerstrukt << std::right << std::fixed << std::setprecision(7) << std::setw(4) << k + size_i + 1 << std::setw(6) << coords.atoms(atom_index).symbol()
-                    << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
-                    << std::setw(8) << coords.atoms(atom_index).energy_type();
-
-                  for (std::size_t l = 0u; l < coords.atoms(atom_index).bonds().size(); l++)
-                  {
-                    dimerstrukt << std::right << std::setw(7) << coords.atoms(atom_index).bonds(l) + 1;
-                  }
-                  dimerstrukt << '\n';
-                }
-
-              }
-
-            }
-
-          }
-        }
-
-    }
+      default:
+      {
+      
+      }
     }
 
     // stop and print task and execution time

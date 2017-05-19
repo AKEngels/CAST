@@ -21,6 +21,7 @@
 * @param coordinates: Pointer to coordinates object for which energy interface will perform
 * @return: Base-Class Pointer to the energy interface. Nullpointer is returned if something went wrong.
 */
+
 static inline energy::interface_base * get_interface (coords::Coordinates * coordinates, config::interface_types::T const &inf)
 {
   switch (inf)
@@ -93,6 +94,9 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
   //std::cout << "New Preinterface " << (r ? r : 0) << "." << std::endl;
   return r;
 }
+
+//energy::interface_base::interface_base(void)  //Constructor
+
 
 /*! Override of virtual void swap
 *

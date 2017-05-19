@@ -53,6 +53,7 @@ namespace coords
     input::format* new_format(void);
     //new format creator for interface creation
     input::format* additional_format(void);
+    input::format* new_interf_format(void);
 
     namespace formats
     {

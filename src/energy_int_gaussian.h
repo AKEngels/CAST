@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <string>
-
 #include "energy.h"
 
 
@@ -38,7 +37,6 @@ namespace energy
 
         void update(bool const) { }
 
-
         // Energy function
         double e(void);
         // Energy+Gradient function
@@ -57,6 +55,11 @@ namespace energy
 
       private:
 
+        ////MO, excitation energies and dipolemoments
+        //std::vector <double> occMO, virtMO, excitE;
+        //coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+        //std::vector <int> state_i, state_j, gz_i_state;
+
         //constructor for clone and move functions
         sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj);
 
@@ -64,10 +67,7 @@ namespace energy
 				double hof_kcal_mol, hof_kj_mol;
 
 				// energies
-				double e_total, e_electron, e_core;
-
-        //MO and excitation energies
-        std::vector <float> occMO, virtMO, excitE;
+				double e_total, e_electron, e_core;    
 
 				std::string id;
 
@@ -79,7 +79,7 @@ namespace energy
         */
 
         int callGaussian(void);
-        void print_gaussianInput();
+        void print_gaussianInput(char);
         void read_gaussianOutput(bool const grad = true, bool const opt = true);
         void removeTempFiles(void);
 
@@ -88,6 +88,13 @@ namespace energy
         */
 
         bool check_bond_preservation(void) const;
+
+        /*! Pointer to the single instance of the gaussian interface class
+        *
+        * A pointer to it is contained here.
+        * If no object exists (yet), this will be a nullpointer.
+        */
+        /*static sysCallInterfaceGauss *m_interface;*/
 
       };
 

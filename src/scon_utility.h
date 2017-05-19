@@ -1,3 +1,4 @@
+#pragma once
 #if !defined(SCON_UTILITY_HEADER)
 
 #define SCON_UTILITY_HEADER
@@ -1079,9 +1080,20 @@ namespace scon
   *
   */
 
-
-
   int system_call(std::string const & command_line);
+
+
+  /*! Function to seperate a string in letters, numbers and other
+  *
+  */
+
+  
+    enum charTypeT { other, alpha, digit };
+
+    charTypeT charTypestring(char);
+
+    std::string separateString(std::string);
+  
 
 }
 #endif

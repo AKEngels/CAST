@@ -527,6 +527,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
 	  else if (option.substr(11, 13) == "-NEB-COMPLETE")
 		  cv >> Config::set().neb.COMPLETE_PATH;
+	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
+		  cv >> Config::set().neb.MULTIPLE_POINTS;
   }
 
   // MOPAC options
@@ -555,8 +557,12 @@ void config::parse_option(std::string const option, std::string const value_stri
   //Gaussian options
   else if (option.substr(0, 8) == "GAUSSIAN")
   {
-    if (option.substr(8, 3) == "key")
-      Config::set().energy.gaussian.command = value_string;
+    if (option.substr(8, 6) == "method")
+      Config::set().energy.gaussian.method = value_string;
+    else if (option.substr(8, 8) == "basisset")
+      Config::set().energy.gaussian.basisset = value_string;
+    else if (option.substr(8, 14) == "specifications")
+      Config::set().energy.gaussian.spec = value_string;
     else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")
@@ -1586,7 +1592,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  /* Inputoptions for excitonbreakup
+  /* Inputoptions for exciton_breakup
   */
   else if (option.substr(0u,2u) == "EX")
   {
@@ -1632,15 +1638,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().interfcrea.icfilename = value_string;
     }
-    if (option.substr(2u, 9u) == "inputtype")
+    else if (option.substr(2u, 9u) == "inputtype")
     {
       Config::set().interfcrea.icfiletype = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
     }
-    if (option.substr(2u, 4u) == "axis")
+    else if (option.substr(2u, 4u) == "axis")
     {
       cv >> Config::set().interfcrea.icaxis;
     }
-    if (option.substr(2u, 8u) == "distance")
+    else if (option.substr(2u, 8u) == "distance")
     {
       cv >> Config::set().interfcrea.icdist;
     }
@@ -1654,20 +1660,106 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().center.dimer = bool_from_iss(cv);
     }
-    if (option.substr(6u, 8u) == "distance")
+    else if (option.substr(6u, 8u) == "distance")
     {
       cv >> Config::set().center.distance;
     }
   }
 
-  /*NOT IMPLEMENTED AS OF NOW!
-  //I/O Atoms index options
-  else if (option == "atomexclude")
-  {
-    Config::set().general.bool_atomsexclude = true;
-    Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
-  }
+  /* Inputoptions for Couplings
   */
+  else if (option.substr(0u, 9u) == "Couplings")
+  {
+    if (option.substr(9u, 11u) == "dimernumber")
+    {
+      cv >> Config::set().couplings.nbr_dimPairs;
+    }
+    else if (option.substr(9u, 9u) == "nSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_nSC;
+    }
+    else if (option.substr(9u, 9u) == "pSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_pSC;
+    }
+    else if (option.substr(9u, 13u) == "CTcharastates")
+    {
+      cv >> Config::set().couplings.ct_chara_all;
+    }
+    else if (option.substr(9u, 6u) == "pSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.pSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.pSCcharge;
+      }
+      else if (option.substr(15u, 12u) == "ElCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_el.append(tmp);
+          Config::set().couplings.pSCmethod_el.append(" ");
+        }
+      }
+      else if (option.substr(15u, 14u) == "ExciCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_ex.append(tmp);
+          Config::set().couplings.pSCmethod_ex.append(" ");
+        }
+      }
+    }
+    else if (option.substr(9u, 6u) == "nSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.nSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.nSCcharge;
+      }
+      else if (option.substr(15u, 13u) == "holCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.nSCmethod.append(tmp);
+          Config::set().couplings.nSCmethod.append(" ");
+        }
+      }
+    }
+    else if (option.substr(9u, 9u) == "heterodim")
+    {
+      if (option.substr(18u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.hetmultipl;
+      }
+      else if (option.substr(18u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.hetcharge;
+      }
+      else if (option.substr(18u, 10u) == "Calcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.hetmethod.append(tmp);
+          Config::set().couplings.hetmethod.append(" ");
+        }
+      }
+    }
+  }
 
 }
 
@@ -1883,7 +1975,8 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   }
   if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
   {
-    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << p.gaussian.command << "'.\n";
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
+         << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
   }
   return strm;
 }

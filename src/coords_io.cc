@@ -80,6 +80,11 @@ coords::input::format* coords::input::additional_format(void)
   }
 }
 
+coords::input::format* coords::input::new_interf_format(void)
+{
+    return new formats::tinker;
+}
+
 /*! Read coordinates from a tinker .arc file
  *
  * This function is used to read coordinates from
@@ -91,9 +96,11 @@ coords::input::format* coords::input::additional_format(void)
 coords::Coordinates coords::input::formats::tinker::read(std::string file)
 {
   // Create empty coordinates object!
-
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
+
+
+
   if (coord_file_stream)
   {
     std::size_t N(0U);
@@ -108,6 +115,9 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false),
       has_in_out_subsystems(false);
+
+
+
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)

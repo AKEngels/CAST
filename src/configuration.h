@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 27;
+  static std::size_t const NUM_TASKS = 28;
   /** Names of all CAST tasks as strings*/
 
   static std::string const task_strings[NUM_TASKS] =
@@ -58,8 +58,8 @@ namespace config
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING",  "SCAN2D", "EXCITONBREAKUP", 
-    "INTERFACE_CREATION", "CENTER", 
+    "GRID", "ALIGN", "PATHSAMPLING",  "SCAN2D", "EXCITON_BREAKUP", 
+    "INTERFACE_CREATION", "CENTER", "COUPLINGS"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -77,8 +77,8 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, SCAN2D, EXCITONBREAKUP,
-      INTEFACE_CREATION, CENTER
+      GRID, ALIGN, PATHSAMPLING, SCAN2D, EXCITON_BREAKUP,
+      INTEFACE_CREATION, CENTER, COUPLINGS
     };
   };
 
@@ -576,9 +576,9 @@ namespace config
 
     struct gaussian_conf
     {
-      std::string command, path, link, charge, multipl;
+      std::string path, link, charge, multipl, method, basisset, spec;
       bool delete_input;
-      gaussian_conf(void) : command("Hf/ 6-31G"),
+      gaussian_conf(void) : method("Hf/ "), basisset ("6-31G"),
         delete_input(true)
       {}
     } gaussian;
@@ -1054,7 +1054,7 @@ namespace config
     std::size_t IMAGES, MCITERATION, GLOBALITERATION, 
                 CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
     bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, 
-         MIXED_MOVE, INT_PATH, CLIMBING, IDPP,MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH;
+         MIXED_MOVE, INT_PATH, CLIMBING, IDPP,MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS;
     neb() :
       OPTMODE("PROJECTED"),
       SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
@@ -1062,7 +1062,7 @@ namespace config
       BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
       GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
       NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), 
-      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false)
+      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false),MULTIPLE_POINTS(false)
     {}
   };
 
@@ -1215,6 +1215,15 @@ namespace config
   {
     bool dimer;
     double distance;
+  };
+
+  struct couplings
+  {
+    double nbr_nSC, nbr_pSC, nbr_dimPairs;
+    std::string ct_chara_all, 
+                pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
+                nSCmultipl, nSCcharge, nSCmethod,
+                hetmultipl, hetcharge, hetmethod;
   };
 
 
@@ -1373,6 +1382,7 @@ public:
   config::exbreak				        exbreak;
   config::interfcrea            interfcrea;
   config::center                center;
+  config::couplings             couplings;
 
   /*! Constructor of Config object
    *
