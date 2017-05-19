@@ -14,7 +14,7 @@ verbosity              4
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
 
-cores                  4
+cores                  1
 
 
 ####################################
@@ -79,8 +79,10 @@ inputtype              TINKER
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+# EXCITON BREAKUP
+# INTERFACE_CREATION
 
-task                  SP
+task                  INTERFACE_CREATION
 
 
 ####################################
@@ -96,8 +98,9 @@ task                  SP
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
+#Gaussian              Gaussian09 syscall Interface
 
-interface              AMBER
+interface              Gaussian
 
 # Interface for preoptimizations
 
@@ -111,6 +114,9 @@ paramfile              amber99_gaff_nocharge.prm
 # reading amber charges from separate file (called charges.txt) <0/1>
 
 chargefile             1
+
+
+### MOPAC OPTIONS ###
 
 # Keywords for MOPAC Call
 
@@ -126,6 +132,32 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 #MOPACversion
 
+
+### GAUSSIAN OPTIONS ###
+
+# Link 0 Commands  
+
+GAUSSIANlink 
+
+# Keywords for Gaussian Call
+
+GAUSSIANkey          Hf/ 6-31G
+
+# Charge of the Molecule
+
+GAUSSIANcharge          0
+
+# Multiplicity
+
+GAUSSIANmultiplicity    1
+
+#Gaussian executeable path
+
+GAUSSIANpath            g09root /apps/gaussian
+
+#Delete temporary Gaussian files?
+
+GAUSSIANdelete          1
 
 ####################################
 #                                  #
@@ -812,6 +844,65 @@ USsteps                60
 # Offset for taking snapshots
 
 USsnap                 5
+
+
+
+####################################
+#                                  #
+#          EXCITONBREAKUP          #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters           schwerpunkt.xyz
+
+#Numbers of monomers
+
+EXnumbern               57
+
+EXnumberp               159
+
+#Orientation of the interface
+
+EXplaneinterf           z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              fulleren.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+
+
+####################################
+#                                  #
+#        Interface Creation        #
+#                                  #
+####################################
+
+#Creation of a new Structure from the usual input structure and an additional one
+
+#Additional input file name
+
+ICname 						but_min.xyz
+
+#Additional input file type
+
+ICinputtype					TINKER
+
+#From which axis should tha additional atoms added
+
+ICaxis						x
+
+#How far apart should they be
+
+ICdistance					5.0
+
 
 
 ####################################

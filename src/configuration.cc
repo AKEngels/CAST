@@ -534,6 +534,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(5, 3) == "key")
       Config::set().energy.mopac.command = value_string;
+    else if (option.substr(5, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
       Config::set().energy.mopac.path = value_string;
     else if (option.substr(5, 6) == "delete")
@@ -548,6 +550,23 @@ void config::parse_option(std::string const option, std::string const value_stri
         config::NUM_MOPAC_VERSION
         >(value_string, config::mopac_ver_string);
     }
+  }
+
+  //Gaussian options
+  else if (option.substr(0, 8) == "GAUSSIAN")
+  {
+    if (option.substr(8, 3) == "key")
+      Config::set().energy.gaussian.command = value_string;
+    else if (option.substr(8, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
+    else if (option.substr(8, 6) == "charge")
+      Config::set().energy.gaussian.charge = value_string;
+    else if (option.substr(8, 12) == "multiplicity")
+      Config::set().energy.gaussian.multipl = value_string;
+    else if (option.substr(8, 4) == "path")
+      Config::set().energy.gaussian.path = value_string;
+    else if (option.substr(8, 6) == "delete")
+      Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
 
   // convergence threshold for bfgs
@@ -1566,6 +1585,90 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().io.amber_trajectory_at_constant_pressure = false;
     }
   }
+
+  /* Inputoptions for excitonbreakup
+  */
+  else if (option.substr(0u,2u) == "EX")
+  {
+	  if (option.substr(2u,11u) == "masscenters")
+	  {
+		  Config::set().exbreak.masscenters = value_string;
+	  }
+	  else if (option.substr(2u,7u) == "numbern")
+	  {
+		  cv >> Config::set().exbreak.nscnumber;
+	  }
+	  else if (option.substr(2u,7u) == "numberp")
+	  {
+		  cv >> Config::set().exbreak.pscnumber;
+	  }
+	  else if (option.substr(2u, 11u) == "planeinterf")
+	  {
+		  cv >> Config::set().exbreak.interfaceorientation;
+	  }
+	  else if (option.substr(2u, 12u) == "nscpairrates")
+	  {
+		  Config::set().exbreak.nscpairrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairexrates")
+	  {
+		  Config::set().exbreak.pscpairexrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairchrates")
+	  {
+		  Config::set().exbreak.pscpairchrates = value_string;
+	  }
+	  else if (option.substr(2u, 13u) == "pnscpairrates")
+	  {
+		  Config::set().exbreak.pnscpairrates = value_string;
+	  }
+  }
+
+  /* Inputoptions for interfacecreation
+  */
+  else if (option.substr(0u, 2u) == "IC")
+  {
+    if (option.substr(2u, 4u) == "name")
+    {
+      Config::set().interfcrea.icfilename = value_string;
+    }
+    if (option.substr(2u, 9u) == "inputtype")
+    {
+      Config::set().interfcrea.icfiletype = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
+    }
+    if (option.substr(2u, 4u) == "axis")
+    {
+      cv >> Config::set().interfcrea.icaxis;
+    }
+    if (option.substr(2u, 8u) == "distance")
+    {
+      cv >> Config::set().interfcrea.icdist;
+    }
+  }
+
+  /* Inputoptions for Center
+  */
+  else if (option.substr(0u, 6u) == "CENTER")
+  {
+    if (option.substr(6u, 5u) == "dimer")
+    {
+      Config::set().center.dimer = bool_from_iss(cv);
+    }
+    if (option.substr(6u, 8u) == "distance")
+    {
+      cv >> Config::set().center.distance;
+    }
+  }
+
+  /*NOT IMPLEMENTED AS OF NOW!
+  //I/O Atoms index options
+  else if (option == "atomexclude")
+  {
+    Config::set().general.bool_atomsexclude = true;
+    Config::set().general.atomexclude = configuration_makearray<unsigned int>(cv);
+  }
+  */
+
 }
 
 
@@ -1777,6 +1880,10 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   if (Config::get().general.energy_interface == interface_types::MOPAC)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
+  }
+  if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
+  {
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << p.gaussian.command << "'.\n";
   }
   return strm;
 }

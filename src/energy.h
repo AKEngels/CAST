@@ -119,8 +119,13 @@ namespace energy
     { }
   };
   
-  /**Abstract interface base class, 
-  -> specialization for FF, MOPAC, terachem etc.*/
+
+  /** Abstract  base class for interfaces, 
+  * parent class for all inrterface classes used 
+  * by CAST for example FF, MOPAC, terachem , gaussian etc.
+  * Output should be in kcal/mol! 
+  */
+
   class interface_base
   {
   protected:

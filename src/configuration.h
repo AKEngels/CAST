@@ -47,16 +47,19 @@ namespace config
   /** Version-Number of CAST*/
   static std::string const Version("3.2.0.2dev");
 
+
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 24;
+  static std::size_t const NUM_TASKS = 27;
   /** Names of all CAST tasks as strings*/
+
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING",  "SCAN2D",
+    "GRID", "ALIGN", "PATHSAMPLING",  "SCAN2D", "EXCITONBREAKUP", 
+    "INTERFACE_CREATION", "CENTER", 
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -74,7 +77,8 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, SCAN2D,
+      GRID, ALIGN, PATHSAMPLING, SCAN2D, EXCITONBREAKUP,
+      INTEFACE_CREATION, CENTER
     };
   };
 
@@ -125,12 +129,12 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 6;
+  static std::size_t const NUM_INTERFACES = 7;
   /**Interface Types*/
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" 
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -144,7 +148,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC 
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
     }; 
   };
 
@@ -569,6 +573,15 @@ namespace config
         delete_input(true)
       {}
     } mopac;
+
+    struct gaussian_conf
+    {
+      std::string command, path, link, charge, multipl;
+      bool delete_input;
+      gaussian_conf(void) : command("Hf/ 6-31G"),
+        delete_input(true)
+      {}
+    } gaussian;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
@@ -1179,6 +1192,31 @@ namespace config
     {}
   };
 
+  struct exbreak
+  {
+	  std::string masscenters; //Filename
+	  std::string nscpairrates; //Filename
+	  std::string pscpairexrates; //Filename
+	  std::string pscpairchrates; //Filename
+	  std::string pnscpairrates; //Filename
+	  int nscnumber, pscnumber;
+	  char interfaceorientation;
+  };
+
+  struct interfcrea
+  {
+    std::string icfilename;
+    input_types::T icfiletype;
+    char        icaxis;
+    double      icdist;
+  };
+
+  struct center
+  {
+    bool dimer;
+    double distance;
+  };
+
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1332,6 +1370,9 @@ public:
   config::entropy				        entropy;
   config::io                    io;
   config::scan2d					scan2d;
+  config::exbreak				        exbreak;
+  config::interfcrea            interfcrea;
+  config::center                center;
 
   /*! Constructor of Config object
    *
@@ -1378,6 +1419,11 @@ public:
     if (!m_instance) throw std::runtime_error("Configuration not loaded.");
     return *m_instance;
   }
+
+  void        check(void);
+
+  std::string task(void) const;
+  std::string inter(void) const;
 
   /**
    * Helper function that matches a task
