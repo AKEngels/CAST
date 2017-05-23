@@ -1623,6 +1623,42 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  Config::set().exbreak.pnscpairrates = value_string;
 	  }
+    else if (option.substr(2u, 10u) == "ReorgE_exc")
+    {
+      cv >> Config::set().exbreak.ReorgE_exc;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ch")
+    {
+      cv >> Config::set().exbreak.ReorgE_ch;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_nSC")
+    {
+      cv >> Config::set().exbreak.ReorgE_nSC;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ct")
+    {
+      cv >> Config::set().exbreak.ReorgE_ct;
+    }
+   else if (option.substr(2u, 10u) == "ReorgE_rek")
+    {
+     cv >> Config::set().exbreak.ReorgE_rek;
+    }
+    else if (option.substr(2u, 13u) == "ct_triebkraft")
+    {
+      cv >> Config::set().exbreak.ct_triebkraft;
+    }
+    else if (option.substr(2u, 14u) == "rek_triebkraft")
+    {
+      cv >> Config::set().exbreak.rek_triebkraft;
+    }
+    else if (option.substr(2u, 18u) == "oscillatorstrength")
+    {
+      cv >> Config::set().exbreak.oscillatorstrength;
+    }
+    else if (option.substr(2u, 10u) == "wellenzahl")
+    {
+      cv >> Config::set().exbreak.wellenzahl;
+    }
   }
 
   /* Inputoptions for interfacecreation

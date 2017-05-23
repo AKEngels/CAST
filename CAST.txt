@@ -867,11 +867,29 @@ EXpscpairchrates            homodimer_ladung.txt
 
 EXpnscpairrates             heterodimer.txt
 
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
+
 
 
 ####################################
 #                                  #
-#        Interface Creation        #
+#        Interface Creation        #           
 #                                  #
 ####################################
 

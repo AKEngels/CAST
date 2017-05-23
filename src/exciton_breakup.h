@@ -58,22 +58,18 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   int full = 0;
   double max, zufall;
 
-  //////////////////// Definition der Konstanten  
-  double reorganisationsenergie_exciton, reorganisationsenergie_ladung, fullerenreorganisationsenergie, trappingrate, chargetransfertriebkraft,
-    rekombinationstriebkraft, temperatur, ct_reorganisation, rek_reorganisation, oszillatorstrength, wellenzahl;
 
-  ////////////////////////////////////// hier konstanten angeben ///////////////////////////////////////////////
-  reorganisationsenergie_exciton = 0.561; // SCS-CC2 wert: vorher 0.561
-  reorganisationsenergie_ladung = 0.194;
-  fullerenreorganisationsenergie = 0.178;
-  ct_reorganisation = 0.156;
-  trappingrate = 0.0000005;
-  chargetransfertriebkraft = 1.550;
-  rekombinationstriebkraft = -4.913;
-  rek_reorganisation = 0.184;
-  temperatur = 298;
-  oszillatorstrength = 0.0852;
-  wellenzahl = 28514.91;
+
+  ////////////////////////////////////// hier Parameter angeben ///////////////////////////////////////////////
+  double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc; //0.561; // SCS-CC2 wert: vorher 0.561
+  double reorganisationsenergie_ladung = Config::get().exbreak.ReorgE_ch;//0.194;
+  double fullerenreorganisationsenergie = Config::get().exbreak.ReorgE_nSC;//0.178;
+  double ct_reorganisation = Config::get().exbreak.ReorgE_ct;//0.156;
+  double chargetransfertriebkraft = Config::get().exbreak.ct_triebkraft;//1.550;
+  double rekombinationstriebkraft = Config::get().exbreak.rek_triebkraft;//-4.913;
+  double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
+  double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
+  double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
 
   ////////////////////////////////////
   double pi = 3.141592654;
