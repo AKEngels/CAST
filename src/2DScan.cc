@@ -151,23 +151,23 @@ std::unique_ptr<Scan2D::Input_types> Scan2D::Input_Factory(std::size_t size, std
 
 }
 
-coords::float_type Scan2D::get_length(Scan2D::bond const & ab) {
+Scan2D::length_type Scan2D::get_length(Scan2D::bond const & ab) {
 
 	auto const a_to_b = ab.a - ab.b;
 	return scon::geometric_length(a_to_b);
 }
 
-coords::float_type Scan2D::get_angle(Scan2D::angle const & abc) {
+Scan2D::angle_type Scan2D::get_angle(Scan2D::angle const & abc) {
 	
 	auto const b_to_a = abc.b - abc.a;
 	auto const b_to_c = abc.b - abc.c;
 	auto const AB_x_BC = scon::cross(b_to_c, b_to_a);
 	auto const AB_O_BC = scon::dot(b_to_c, b_to_a);
 
-	return atan2(scon::geometric_length(AB_x_BC), AB_O_BC)*SCON_180PI;
+	return Scan2D::angle_type::from_rad(atan2(scon::geometric_length(AB_x_BC), AB_O_BC));
 }
 
-coords::float_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
+Scan2D::angle_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
 	
 	auto const b_to_a = abcd.a - abcd.b;
 	auto const b_to_c = abcd.b - abcd.c;
@@ -180,7 +180,9 @@ coords::float_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
 
 	auto const orthonormal_reference = scon::normalized(b_to_c);
 
-	auto in_degrees = atan2(scon::geometric_length(notmal_to_normals), scon::dot(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC))*SCON_180PI;
+	auto in_degrees = Scan2D::angle_type::from_rad(
+		atan2(scon::geometric_length(notmal_to_normals), scon::dot(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC))
+	);
 
 	if (scon::dot(orthonormal_reference, notmal_to_normals) > 0.0) {
 		return in_degrees;
@@ -190,7 +192,7 @@ coords::float_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
 	}
 }
 
-coords::Cartesian_Point Scan2D::change_length_of_bond(Scan2D::bond const & ab, coords::float_type const & new_length) {
+coords::Cartesian_Point Scan2D::change_length_of_bond(Scan2D::bond const & ab, length_type const & new_length) {
 
 	auto direction = scon::normalized(ab.a - ab.b);
 
@@ -198,13 +200,13 @@ coords::Cartesian_Point Scan2D::change_length_of_bond(Scan2D::bond const & ab, c
 
 }
 
-coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(Scan2D::angle const & abc, coords::float_type const & new_angle) {
+coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(Scan2D::angle const & abc, Scan2D::angle_type const & new_angle) {
 
 	bond ab(abc.a, abc.b);
 	
 	auto radius = Scan2D::get_length(ab);
-	auto sin_inclination = sin(new_angle*SCON_PI180);
-	auto cos_inclination = cos(new_angle*SCON_PI180);
+	auto sin_inclination = sin(new_angle);
+	auto cos_inclination = cos(new_angle);
 	
 	auto new_x = radius * cos_inclination;
 	auto new_y = radius * sin_inclination;
@@ -217,17 +219,17 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(Scan2D::angle const & abc,
 
 }
 
-coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const & abcd, coords::float_type const & new_angle) {
+coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const & abcd, Scan2D::angle_type const & new_angle) {
 
 	bond ab(abcd.a, abcd.b);
 	angle abc(abcd.a, abcd.b, abcd.c);
 
 	auto radius = Scan2D::get_length(ab);
 	auto inclination = Scan2D::get_angle(abc);
-	auto sin_inclination = sin(inclination*SCON_PI180);
-	auto cos_inclination = cos(inclination*SCON_PI180);
-	auto sin_azimuth = -sin(new_angle*SCON_PI180);
-	auto cos_azimuth = cos(new_angle*SCON_PI180);
+	auto sin_inclination = sin(inclination);
+	auto cos_inclination = cos(inclination);
+	auto sin_azimuth = -sin(new_angle);
+	auto cos_azimuth = cos(new_angle);
 	
 	coords::Cartesian_Point helper_point(
 		radius * sin_inclination * cos_azimuth,
@@ -295,7 +297,7 @@ void Scan2D::prepare_scan(Scan2D::XY_Parser const & parser) {
 
 }
 
-void Scan2D::go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<coords::float_type> const & y_steps, coords::Coordinates coords) {
+void Scan2D::go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<length_type> const & y_steps, coords::Coordinates coords) {
 
 	coords::output::formats::tinker output(coords);
 	parser.y_parser->set_coords(coords.xyz());
@@ -306,8 +308,8 @@ void Scan2D::go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<coord
 
 		++y_circle;
 
-		std::cout << "The " << x_circle << ". x step and the " <<
-			y_circle << ". y step." << std::endl;
+		/*std::cout << "The " << x_circle << ". x step and the " <<
+			y_circle << ". y step." << std::endl;*/
 
 		energies <<
 			parser.x_parser->say_val() << " " <<
@@ -352,11 +354,11 @@ void Scan2D::Normal_Dihedral_Input::set_coords(coords::Representation_3D const &
 	dihedral = std::make_unique<Scan2D::dihedral>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u], xyz[atoms[2] - 1u], xyz[atoms[3] - 1u]);
 }
 
-std::vector<coords::float_type> Scan2D::Normal_Bond_Input::make_axis() {
+std::vector<Scan2D::length_type> Scan2D::Normal_Bond_Input::make_axis() {
 
 	auto current_position{ what->from_position };
-	auto step_width{(what->to_position-current_position)/static_cast<coords::float_type>(what->scans-1u)};
-	auto made_vec = std::vector<coords::float_type>(what->scans);
+	auto step_width{(what->to_position-current_position)/static_cast<length_type>(what->scans-1u)};
+	auto made_vec = std::vector<length_type>(what->scans);
 
 	for (auto && el : made_vec) {
 		el = current_position;
@@ -366,11 +368,11 @@ std::vector<coords::float_type> Scan2D::Normal_Bond_Input::make_axis() {
 	return std::move(made_vec);
 }
 
-std::vector<coords::float_type> Scan2D::Normal_Angle_Input::make_axis() {
+std::vector<Scan2D::length_type> Scan2D::Normal_Angle_Input::make_axis() {
 
 	auto current_inclination{ what->from_position };
-	auto step_width{ (what->to_position - current_inclination) / static_cast<coords::float_type>(what->scans - 1u) };
-	auto made_vec = std::vector<coords::float_type>(what->scans);
+	auto step_width{ (what->to_position - current_inclination) / static_cast<length_type>(what->scans - 1u) };
+	auto made_vec = std::vector<length_type>(what->scans);
 
 	for (auto && el : made_vec) {
 		el = current_inclination;
@@ -381,11 +383,11 @@ std::vector<coords::float_type> Scan2D::Normal_Angle_Input::make_axis() {
 
 }
 
-std::vector<coords::float_type> Scan2D::Normal_Dihedral_Input::make_axis() {
+std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 
 	auto current_azimuth{ what->from_position };
-	auto step_width{ (what->to_position - current_azimuth) / static_cast<coords::float_type>(what->scans - 1u) };
-	auto made_vec = std::vector<coords::float_type>(what->scans);
+	auto step_width{ (what->to_position - current_azimuth) / static_cast<length_type>(what->scans - 1u) };
+	auto made_vec = std::vector<length_type>(what->scans);
 
 	for (auto && el : made_vec) {
 		el = current_azimuth;
@@ -396,28 +398,28 @@ std::vector<coords::float_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 
 }
 
-coords::Cartesian_Point Scan2D::Normal_Bond_Input::make_move(coords::float_type const & new_pos) {
+coords::Cartesian_Point Scan2D::Normal_Bond_Input::make_move(length_type const & new_pos) {
 	return Scan2D::change_length_of_bond(*bond, new_pos);
 }
 
-coords::Cartesian_Point Scan2D::Normal_Angle_Input::make_move(coords::float_type const & new_pos) {
-	return Scan2D::rotate_a_to_new_angle(*angle, new_pos);
+coords::Cartesian_Point Scan2D::Normal_Angle_Input::make_move(length_type const & new_pos) {
+	return Scan2D::rotate_a_to_new_angle(*angle, angle_type::from_deg(new_pos));
 }
 
-coords::Cartesian_Point Scan2D::Normal_Dihedral_Input::make_move(coords::float_type const & new_pos) {
-	return Scan2D::rotate_a_to_new_dihedral(*dihedral, new_pos);
+coords::Cartesian_Point Scan2D::Normal_Dihedral_Input::make_move(length_type const & new_pos) {
+	return Scan2D::rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(new_pos));
 }
 
-coords::float_type Scan2D::Normal_Bond_Input::say_val() {
+Scan2D::length_type Scan2D::Normal_Bond_Input::say_val() {
 	return Scan2D::get_length(*bond);
 }
 
-coords::float_type Scan2D::Normal_Angle_Input::say_val() {
-	return Scan2D::get_angle(*angle);
+Scan2D::length_type Scan2D::Normal_Angle_Input::say_val() {
+	return Scan2D::get_angle(*angle).degrees();
 }
 
-coords::float_type Scan2D::Normal_Dihedral_Input::say_val() {
-	return Scan2D::get_dihedral(*dihedral);
+Scan2D::length_type Scan2D::Normal_Dihedral_Input::say_val() {
+	return Scan2D::get_dihedral(*dihedral).degrees();
 }
 
 void Scan2D::XY_Parser::fix_atoms(coords::Coordinates & coords)const{

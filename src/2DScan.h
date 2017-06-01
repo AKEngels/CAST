@@ -15,7 +15,26 @@
 #include"scon_spherical.h"
 
 class Scan2D {
+private:
+	coords::Coordinates & _coords;
+
 public:
+
+	template<typename T>
+	using remove_cr = typename std::remove_const<typename std::remove_reference<T>::type>::type;
+
+	template<typename T>
+	struct get_spherical_types {
+	};
+
+	template<typename T, typename U>
+	struct get_spherical_types<scon::sphericals<T, U>> {
+		using length_type = typename T;
+		using angle_type = typename U;
+	};
+
+	using length_type = get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::length_type;
+	using angle_type = get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::angle_type;
 
 	class dihedral {
 	public:
@@ -49,13 +68,13 @@ public:
 
 	Scan2D(coords::Coordinates & coords);
 
-	static coords::float_type get_length(bond const & ab);
-	static coords::float_type get_angle(angle const & abc);
-	static coords::float_type get_dihedral(dihedral const & abcd);
+	static length_type get_length(bond const & ab);
+	static angle_type get_angle(angle const & abc);
+	static angle_type get_dihedral(dihedral const & abcd);
 
 	static coords::Cartesian_Point change_length_of_bond(Scan2D::bond const & ab, coords::float_type const & new_length);
-	static coords::Cartesian_Point rotate_a_to_new_angle(angle const & abc, coords::float_type const & new_angle);
-	static coords::Cartesian_Point rotate_a_to_new_dihedral(dihedral const & abcd, coords::float_type const & new_dihedral);
+	static coords::Cartesian_Point rotate_a_to_new_angle(angle const & abc, angle_type const & new_angle);
+	static coords::Cartesian_Point rotate_a_to_new_dihedral(dihedral const & abcd, angle_type const & new_dihedral);
 
 
 private:
@@ -73,9 +92,9 @@ private:
 	public:
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) = 0;
 		virtual void set_coords(coords::Representation_3D const & xyz) = 0;
-		virtual coords::float_type say_val() = 0;
-		virtual std::vector<coords::float_type> make_axis() = 0;
-		virtual coords::Cartesian_Point make_move(coords::float_type const & new_pos) = 0;
+		virtual length_type say_val() = 0;
+		virtual std::vector<length_type> make_axis() = 0;
+		virtual coords::Cartesian_Point make_move(length_type const & new_pos) = 0;
 	public:
 		std::unique_ptr<Scan2D::what> what;
 	};
@@ -86,27 +105,27 @@ private:
 
 	class Normal_Bond_Input : public Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
-		virtual coords::float_type say_val() override;
-		virtual std::vector<coords::float_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(coords::float_type const & new_pos) override;
+		virtual length_type say_val() override;
+		virtual std::vector<length_type> make_axis() override;
+		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
 		std::unique_ptr<Scan2D::bond> bond;
 	};
 
 	class Normal_Angle_Input : public Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
-		virtual coords::float_type say_val() override;
-		virtual std::vector<coords::float_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(coords::float_type const & new_pos) override;
+		virtual length_type say_val() override;
+		virtual std::vector<length_type> make_axis() override;
+		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
 		std::unique_ptr<Scan2D::angle> angle;
 	};
 
 	class Normal_Dihedral_Input : public Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
-		virtual coords::float_type say_val() override;
-		virtual std::vector<coords::float_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(coords::float_type const & new_pos) override;
+		virtual length_type say_val() override;
+		virtual std::vector<length_type> make_axis() override;
+		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
 		std::unique_ptr<Scan2D::dihedral> dihedral;
 	};
@@ -122,9 +141,9 @@ private:
 
 	class XY_steps {
 	public:
-		std::vector<coords::float_type> x_steps;
-		std::vector<coords::float_type> y_steps;
-		XY_steps(std::vector<coords::float_type> & x, std::vector<coords::float_type> & y)
+		std::vector<length_type> x_steps;
+		std::vector<length_type> y_steps;
+		XY_steps(std::vector<length_type> & x, std::vector<length_type> & y)
 			: x_steps(std::move(x)), y_steps(std::move(y)){}
 	};
 
@@ -133,17 +152,15 @@ private:
 
 	void make_scan(XY_Parser const & parser, XY_steps const & steps);
 	void prepare_scan(XY_Parser const & parser);
-	void make_x_change(coords::float_type const & change, Scan2D::XY_Parser const & parser, coords::Representation_3D & y_steps);
-	void go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<coords::float_type> const & y_steps, coords::Coordinates coords);
-
-
-	coords::Coordinates & _coords;
+	void make_x_change(length_type const & change, Scan2D::XY_Parser const & parser, coords::Representation_3D & y_steps);
+	void go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<length_type> const & y_steps, coords::Coordinates coords);
 
 	std::ofstream logfile;
 	std::ofstream energies;
 
 	int x_circle = 0;
 	int y_circle = 0;
+
 };
 
 #endif
