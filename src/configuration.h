@@ -129,12 +129,12 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 7;
+  static std::size_t const NUM_INTERFACES = 8;
   /**Interface Types*/
   static std::string const 
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN", "CHEMSHELL"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -148,7 +148,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN, CHEMSHELL
     }; 
   };
 
@@ -582,6 +582,10 @@ namespace config
         delete_input(true)
       {}
     } gaussian;
+
+	struct chemshell_conf {
+		std::string path;
+	} chemshell;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),

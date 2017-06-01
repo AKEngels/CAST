@@ -6,6 +6,7 @@
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
 #include "energy_int_gaussian.h"
+#include "energy_int_chemshell.h"
 #include "coords.h"
 #include "scon_utility.h"
 
@@ -46,7 +47,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
     {
       if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "Mopac choosen for energy calculations.\n";
+        std::cout << "Mopac chosen for energy calculations.\n";
       }
       return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
@@ -54,9 +55,16 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
     {
      if (Config::get().general.verbosity >= 3)
      {
-       std::cout << "Gaussian choosen for energy calculations.\n";
+       std::cout << "Gaussian chosen for energy calculations.\n";
      }
      return new energy::interfaces::gaussian::sysCallInterfaceGauss(coordinates);
+  }
+  case config::interface_types::T::CHEMSHELL:
+  {
+	  if (Config::get().general.verbosity >= 3){
+		  std::cout << "Chemshell chosen for energy calculations.\n";
+	  }
+	  return new energy::interfaces::chemshell::sysCallInterface(coordinates);
   }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
