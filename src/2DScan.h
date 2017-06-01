@@ -72,7 +72,7 @@ public:
 	static angle_type get_angle(angle const & abc);
 	static angle_type get_dihedral(dihedral const & abcd);
 
-	static coords::Cartesian_Point change_length_of_bond(Scan2D::bond const & ab, coords::float_type const & new_length);
+	static coords::Cartesian_Point change_length_of_bond(Scan2D::bond const & ab, length_type const & new_length);
 	static coords::Cartesian_Point rotate_a_to_new_angle(angle const & abc, angle_type const & new_angle);
 	static coords::Cartesian_Point rotate_a_to_new_dihedral(dihedral const & abcd, angle_type const & new_dihedral);
 
