@@ -22,10 +22,12 @@ namespace energy {
 					tmp_file_name = std::tmpnam(nullptr);
 				}
 				~sysCallInterface() final {};
-				sysCallInterface(sysCallInterface const & other)
-					: interface_base(other.coords) {
+				sysCallInterface(sysCallInterface const & other) = default;
+				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
+					: interface_base(coord) {
 					interface_base::operator=(other);
 				}
+
 
 				void swap(interface_base & other) final;
 				interface_base * clone(coords::Coordinates * coord_object) const final;
@@ -48,6 +50,7 @@ namespace energy {
 				std::string tmp_file_name;
 
 				std::string create_pdb();
+				void write_xyz(std::string const & os);
 				void write_input(std::ostream & os);
 
 
