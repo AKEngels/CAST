@@ -29,12 +29,12 @@ public:
 
 	template<typename T, typename U>
 	struct get_spherical_types<scon::sphericals<T, U>> {
-		using length_type = typename T;
-		using angle_type = typename U;
+		using length_type = T;
+		using angle_type = U;
 	};
 
-	using length_type = get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::length_type;
-	using angle_type = get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::angle_type;
+	using length_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::length_type;
+	using angle_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::angle_type;
 
 	class dihedral {
 	public:

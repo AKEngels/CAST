@@ -29,10 +29,11 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 	xyz_file << coords->size() << "\n";
 	for (auto && el : zip(coords->atoms() ,coords->xyz())) {
 		coords::Atom atom;
-		coords::Coordinates coo;
+		scon::c3<double> coo;
 		std::tie(atom, coo) = el;
-		xyz_file << atom.symbol() << " " << coo;
+		xyz_file << atom.symbol() << " " << coo << "\n";
 	}
+	xyz_file.close();
 }
 
 
@@ -43,7 +44,10 @@ energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(c
 
 void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { return 0.0; }
+coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
+	create_pdb();
+	return 0.0; 
+}
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) { return 0.0; }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) { return 0.0; }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) { return 0.0; }

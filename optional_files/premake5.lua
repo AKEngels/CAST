@@ -45,7 +45,7 @@ project "CAST"
 		filter { "options:mpi" }
 			defines { "USE_MPI" }
 		filter { "action:gmake" }
-			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
+			buildoptions { "-Wextra", "-Wall", "-std=c++14", "-pedantic", "-fopenmp", "-static", }
 		filter { "configurations:Release", "action:gmake" }
 			optimize "Full"
 		filter { "configurations:Release",  "platforms:x86", "action:gmake"}
