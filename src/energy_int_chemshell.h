@@ -1,16 +1,16 @@
 #ifndef ENERGY_INT_CHEMSHELL_H
 #define ENERGY_INT_CHEMSHELL_H
 
-#include"energy.h"
-#include"coords.h"
 #include<memory>
-#include<cstdio>
+#include<stdlib.h>
 #include<string>
 #include<fstream>
 #include<sstream>
 #include<istream>
 #include<iostream>
 #include"coords_io.h"
+#include"energy.h"
+#include"coords.h"
 
 namespace energy {
 	namespace interfaces {
@@ -19,10 +19,25 @@ namespace energy {
 			class sysCallInterface final: public interface_base{
 			public:
 				sysCallInterface(coords::Coordinates * coord_ptr)
-					: interface_base(coord_ptr){
-					tmp_file_name = std::tmpnam(nullptr);
+					: interface_base(coord_ptr), tmp_file_name(Config::get().general.outputFilename){
+					std::stringstream ss;
+					std::srand(std::time(0));
+					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
+					tmp_file_name.append("_tmp_").append(ss.str());
 				}
-				~sysCallInterface() final {};
+				~sysCallInterface() final {
+					if (Config::get().energy.gaussian.delete_input)
+					{
+						std::string rem_xyz(tmp_file_name);
+						std::string rem_pdb(tmp_file_name);
+
+						rem_xyz.append(".xyz");
+						rem_pdb.append(".pdb");
+
+						remove(rem_xyz.c_str());
+						remove(rem_pdb.c_str());
+					}
+				};
 				sysCallInterface(sysCallInterface const & other) = default;
 				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
 					: interface_base(coord) {

@@ -29,6 +29,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
   e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
   std::stringstream ss;
+  std::srand(std::time(0));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
