@@ -20,7 +20,7 @@ std::string energy::interfaces::chemshell::sysCallInterface::create_pdb() {
 	write_xyz(xyz_file_name);
 
 	std::stringstream ss;
-	ss << "babel -ixyz " << xyz_file_name << " -opdb Test.pdb";// << pdb_file_name;
+	ss << "babel -ixyz " << xyz_file_name << " -opdb " << pdb_file_name;
 
 	scon::system_call(ss.str());
 
