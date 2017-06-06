@@ -12,27 +12,26 @@ auto zip(T && a, U && b) {
 }
 
 std::string energy::interfaces::chemshell::sysCallInterface::create_pdb() {
-	auto inp_file_name = tmp_file_name;
-	auto xyz_file_name = inp_file_name;
+	auto pdb_file_name = tmp_file_name;
+	auto xyz_file_name = tmp_file_name;
+	pdb_file_name.append(".pdb");
 	xyz_file_name.append(".xyz");
 	
 	write_xyz(xyz_file_name);
 
 	std::stringstream ss;
-	ss << "babel -ixyz " << xyz_file_name << " -opdb " << inp_file_name << ".pdb";
+	ss << "babel -ixyz " << xyz_file_name << " -opdb Test.pdb";// << pdb_file_name;
 
 	scon::system_call(ss.str());
+
+	return pdb_file_name;
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string const & o_file) {
 	std::ofstream xyz_file(o_file);
-	xyz_file << coords->size() << "\n";
-	for (auto && el : zip(coords->atoms() ,coords->xyz())) {
-		coords::Atom atom;
-		scon::c3<double> coo;
-		std::tie(atom, coo) = el;
-		xyz_file << atom.symbol() << " " << coo << "\n";
-	}
+	xyz_file << coords->size() << "\n\n";
+	xyz_file << coords::output::formats::xyz(*coords);
+	system("PAUSE");
 	xyz_file.close();
 }
 

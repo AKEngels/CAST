@@ -10,6 +10,7 @@
 #include<sstream>
 #include<istream>
 #include<iostream>
+#include"coords_io.h"
 
 namespace energy {
 	namespace interfaces {
