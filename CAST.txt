@@ -82,12 +82,9 @@ amber_restrt           min.rst
 # EXCITON_BREAKUP
 # INTERFACE_CREATION
 # COUPLINGS
+# SCAN2D
 
 task                  SCAN2D
-
-
-2DSCAN-dihedral 15 14 4 3 0 179 20
-2DSCAN-dihedral 1 2 3 4 0 179 20
 
 ####################################
 #                                  #
@@ -102,9 +99,10 @@ task                  SCAN2D
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
-#Gaussian              Gaussian09 syscall Interface
+# Gaussian             Gaussian09 syscall Interface
+# CHEMSHELL            under developement
 
-interface              GAUSSIAN
+interface              CHEMSHELL
 
 # Interface for preoptimizations
 
@@ -162,6 +160,26 @@ GAUSSIANpath            g09
 #Delete temporary Gaussian files?
 
 GAUSSIANdelete          1
+
+### CHEMSHELL OPTIONS #
+
+CHEMSHELL-path /apt/chemshell 
+
+CHEMSHELL-scheme shift
+
+CHEMSHELL-qm_theory turbomole
+
+CHEMSHELL-qm_hamiltonian b3lyp
+
+CHEMSHELL-qm_basisset def-TZVP
+
+CHEMSHELL-qm_charge 0
+
+CHEMSHELL-qm_atoms 337 - 341 2269 - 2279 32426 - 32428
+
+CHEMSHELL-residues CYS25 HIE162 WAT10006
+
+CHEMSHELL-delete 0
 
 ####################################
 #                                  #
@@ -389,7 +407,14 @@ NEB-PATHOPT-INT_PATH 0
 #step size of interpolated images via spline interpolation approach
 NEB-PATHOPT-INT_IT 0.5
 
+####################################
+#                                  #
+#          SCAN2D OPTIONS          #
+#                                  #
+####################################
 
+2DSCAN-dihedral 15 14 4 3 0 179 20
+2DSCAN-dihedral 1 2 3 4 0 179 20
 
 ####################################
 #                                  #

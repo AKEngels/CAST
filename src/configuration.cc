@@ -574,6 +574,36 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
+  else if (option.substr(0, 9) == "CHEMSHELL") {
+	  auto sub_option = option.substr(10);
+	  if (sub_option == "path") {
+		  Config::set().energy.chemshell.path = value_string;
+	  }
+	  else if (sub_option == "scheme") {
+		  Config::set().energy.chemshell.scheme = value_string;
+	  }
+	  else if (sub_option == "qm_theory") {
+		  Config::set().energy.chemshell.qm_theory = value_string;
+	  }
+	  else if (sub_option == "qm_hamiltonian") {
+		  Config::set().energy.chemshell.qm_ham = value_string;
+	  }
+	  else if (sub_option == "qm_basisset") {
+		  Config::set().energy.chemshell.qm_basis = value_string;
+	  }
+	  else if (sub_option == "qm_charge") {
+		  Config::set().energy.chemshell.qm_charge = value_string;
+	  }
+	  else if (sub_option == "qm_atoms") {
+		  Config::set().energy.chemshell.qm_atoms = value_string;
+	  }
+	  else if (sub_option == "residues") {
+		  Config::set().energy.chemshell.residues = value_string;
+	  }
+	  else if (sub_option == "delete") {
+		  Config::set().energy.chemshell.delete_input = bool_from_iss(cv);
+	  }
+  }
 
   // convergence threshold for bfgs
   // Default 0.001

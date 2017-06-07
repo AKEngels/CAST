@@ -65,9 +65,12 @@ namespace energy {
 			private:
 				std::string tmp_file_name;
 
-				std::string create_pdb();
-				void write_xyz(std::string const & os);
-				void write_input(std::ostream & os);
+				void create_pdb() const;
+				void write_xyz(std::string const & os) const;
+				void write_input() const;
+				void write_chemshell_file(std::string const & o_file) const;
+				void call_chemshell() const;
+				std::vector<std::string> parse_qm_atoms() const;
 
 
 

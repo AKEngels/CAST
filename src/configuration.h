@@ -585,6 +585,14 @@ namespace config
 
 	struct chemshell_conf {
 		std::string path;
+		std::string scheme;
+		std::string qm_theory;
+		std::string qm_ham;
+		std::string qm_basis;
+		std::string qm_charge;
+		std::string qm_atoms;
+		std::string residues;
+		bool delete_input;
 	} chemshell;
 
     energy() :
