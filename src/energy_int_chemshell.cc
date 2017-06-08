@@ -136,8 +136,17 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 }*/
 
 void energy::interfaces::chemshell::sysCallInterface::call_chemshell() const {
+	
+	create_pdb();
+	write_input();
+	actual_call();
+
+}
+
+void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
+
 	std::stringstream chemshell_stream;
-	chemshell_stream << Config::get().energy.chemshell.path << " " << tmp_file_name << ".chm";
+	chemshell_stream << Config::get().energy.chemshell.path << " < " << tmp_file_name << ".chm > " << tmpfile << ".out";
 
 	auto failcount = 0;
 
@@ -155,7 +164,6 @@ void energy::interfaces::chemshell::sysCallInterface::call_chemshell() const {
 	if (failcount == 10) {
 		throw std::runtime_error("10 Chemshell calls failed!");
 	}
-
 }
 
 void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}
@@ -165,7 +173,7 @@ energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(c
 void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
-	create_pdb();
+	call_chemshell();
 	return 0.0; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) { return 0.0; }

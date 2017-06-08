@@ -70,7 +70,7 @@ namespace energy {
 				void write_input() const;
 				void write_chemshell_file(std::string const & o_file) const;
 				void call_chemshell() const;
-				std::vector<std::string> parse_qm_atoms() const;
+				void actual_call()const;
 
 
 
