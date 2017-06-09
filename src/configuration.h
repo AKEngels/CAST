@@ -591,7 +591,6 @@ namespace config
 		std::string qm_basis;
 		std::string qm_charge;
 		std::string qm_atoms;
-		std::string residues;
 		bool delete_input;
 	} chemshell;
 

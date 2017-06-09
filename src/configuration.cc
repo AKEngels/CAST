@@ -597,9 +597,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "qm_atoms") {
 		  Config::set().energy.chemshell.qm_atoms = value_string;
 	  }
-	  else if (sub_option == "residues") {
-		  Config::set().energy.chemshell.residues = value_string;
-	  }
 	  else if (sub_option == "delete") {
 		  Config::set().energy.chemshell.delete_input = bool_from_iss(cv);
 	  }

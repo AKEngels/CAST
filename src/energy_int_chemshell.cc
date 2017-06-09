@@ -31,8 +31,51 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 
 void energy::interfaces::chemshell::sysCallInterface::write_input() const {
 
+	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
 	call_chemshell();
+
+}
+
+void energy::interfaces::chemshell::sysCallInterface::call_tleap()const {
+	
+	make_tleap_input(tmp_file_name);
+	std::stringstream ss;
+
+	ss << "tleap -s -f " << tmp_file_name << ".in > " << tmp_file_name << ".out";
+
+	scon::system_call(ss.str());
+
+}
+
+void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::string const & o_file)const {
+
+	std::stringstream ss;
+
+	ss << "antechamber -fi pdb -fo prepi " << o_file << ".pdb -o " << o_file << ".prepi -rn 0E8 -c bcc -pf y";
+
+	scon::system_call(ss.str());
+
+	// To empty ss
+	ss.str(std::string());
+
+	ss << "parmchk2 -f mol2 -i " << o_file << ".prepi -o " << o_file << ".frcmod";
+
+	scon::system_call(ss.str());
+
+	ss.str(std::string());
+
+	std::ofstream tleap_input(o_file + ".in");
+
+	tleap_input <<
+		"loadamberprep " << o_file << ".prepi\n"
+		"loadamberparams " << o_file << ".frcmod\n"
+		"mol = loadpdb " << o_file << ".pdb\n"
+		"saceamberparm mol " << o_file << ".prmtop " << o_file << ".inpcrd\n"
+		"quit"
+		;
+
+	tleap_input.close();
 
 }
 
@@ -51,80 +94,48 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 		"set sys_name_id " << tmp_file_name << "\n"
 		"\n"
 		"set amber_prmtop " << tmp_file_name << ".prmtop\n"
-		"set amber_inpcrd " << tmp_file_name << ".rst\n"
+		"set amber_inpcrd " << tmp_file_name << ".inpcrd\n"
 		"\n"
 		"set control_input_settings [ open control_input.${sys_name_id}  a ]\n"
-		"puts $control_input_settings \" the jobname is ${sys_name_id}\"\n"
 		"\n"
 		"read_pdb file=${dir}/${sys_name_id}.pdb coords=${dir}/${sys_name_id}.c\n"
 		"\n"
 		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=${sys_name_id}.c\n"
 		"\n"
 		"set embedding_scheme " << Config::get().energy.chemshell.scheme << "\n"
-		"puts $control_input_settings \" embedding scheme: $embedding_scheme \"\n"
 		"\n"
 		"set qm_theory " << Config::get().energy.chemshell.qm_theory << "\n"
 		"puts $control_input_settings \" QM method: $qm_theory \"\n"
-		"fragment hybrid.${ qm_theory }.coords new persistent\n"
 		"\n"
 		"set qm_ham " << Config::get().energy.chemshell.qm_ham << "\n"
-		"puts $control_input_settings \" QM hamiltonian: $qm_ham \"\n"
 		"\n"
 		"set qm_basis " << Config::get().energy.chemshell.qm_basis << "\n"
-		"puts $control_input_settings \" QM basis: $qm_basis \"\n"
 		"\n"
 		"set qm_ch " << Config::get().energy.chemshell.qm_charge << "\n"
-		"puts $control_input_settings \" QM charge is: $qm_ch \"\n"
 		"\n"
 		"set qmatoms  { " << Config::get().energy.chemshell.qm_atoms << " }\n"
-		"puts $control_input_settings \" QM atoms : [list  $qmatoms] \"\n"
 		"\n"
 		"set residues[pdb_to_res \"${sys_name_id}.pdb\"]\n"
-		"set residues[inlist function = combine residues = $residues sets = { " << Config::get().energy.chemshell.residues << " } target = MOX]\n"
-		"puts $control_input_settings \" Here are the residues used by the dl-find optimizer:\n"
-		" [list $residues] \"\n"
-		"\n"
-		"source act\n"
-		"puts $control_input_settings \" Here are the active atoms used by the dl - find optimizer :\n"
-		"[list $act] \"\n"
 		"\n"
 		"flush $control_input_settings\n"
 		"\n"
-		"dl - find coords = ${ dir } / ${ sys_name_id }.c \\\n"
-		"coordinates = hdlc \\\n"
-		"result = ${ sys_name_id }_opt.c \\\n"
-		"maxcycle = 1000 \\\n"
-		"tolerance = 0.00045 \\\n"
-		"active_atoms = $act \\\n"
-		"residues = $residues \\\n"
-		"constraints = { { bond 2273 32427 } {bond 341 32426} } \\\n"
-		"theory = hybrid : [list \\\n"
-		"coupling = $embedding_scheme \\\n"
-		"qm_theory = $qm_theory : [list hamiltonian = $qm_ham \\\n"
-		"basis = $qm_basis \\\n"
-		"maxcyc = 2000 \\\n"
-		"dispersion_correction = $qm_ham \\\n"
-		"charge = $qm_ch] \\\n"
-		"qm_region = $qmatoms \\\n"
-		"debug = no \\\n"
-		"mm_theory = dl_poly : [list \\\n"
-		"list_option = none \\\n"
-		"conn = ${ sys_name_id }.c \\\n"
-		"mm_defs = $amber_prmtop \\\n"
-		"exact_srf = yes \\\n"
-		"mxlist = 45000 \\\n"
-		"cutoff = 1000 \\\n"
-		"scale14 = { 1.2 2.0 } \\\n"
-		"amber_prmtop_file = $amber_prmtop] ]\n"
-		"\n"
-		"write_xyz file = ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
-		"read_pdb  file = ${ sys_name_id }.pdb  coords = dummy.coords\n"
-		"write_pdb file = ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
-		"write_xyz file = ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
-		"delete_object hybrid.${ qm_theory }.coords\n"
-		"catch {file delete dummy.coords}\n"
-		"\n"
-		"close $control_input_settings\n";
+		"dl - find coords = ${ dir }/${ sys_name_id }.c \\\n"
+		"    theory=hybrid : [ list \\\n"
+		"        hamiltonian = $qm_ham\\\n"
+		"        basis = $qm_basis\\\n"
+		"        eroots = 4 ]\\\n"
+		"    qm_region = $qm_atoms\\\n"
+		"    debug=no\\\n"
+		"    mm_theory = dl_poly : [ list\\\n"
+		"        list_option=none\\\n"
+		"        conn= ${sys_name_id}.c\\\n"
+		"        mm_defs=$amber_prmtop\\\n"
+		"        exact_srf=yes\\\n"
+		"        mxlist=16000\\\n"
+		"        cutoff=1000\\\n"
+		"        scale14 = {1.2 2.0}\\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		;
 
 	chem_shell_input_stream.close();
 
