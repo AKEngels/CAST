@@ -1248,7 +1248,7 @@ void md::simulation::restart_broken()
 	double const twokbT = 2.0*md::kB*T;
 	auto dist01 = std::uniform_real_distribution<double>{ 0,1 };
 	std::size_t const N = coordobj.size();
-	for (int i(0U); i < N; ++i)     // set random velocities around temperature T
+	for (unsigned int i(0U); i < N; ++i)     // set random velocities around temperature T
 	{
 		double const ratio(twopi*std::sqrt(twokbT / M[i]));
 		V[i].x() = (std::sqrt(std::fabs(-2.0*ldrand())) *
