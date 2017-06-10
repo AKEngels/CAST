@@ -375,6 +375,7 @@ OBJECTS := \
 	$(OBJDIR)/configurationTest.o \
 	$(OBJDIR)/scon_mathmatrix_test.o \
 	$(OBJDIR)/scon_traits_test.o \
+	$(OBJDIR)/test_fep_gradients.o \
 	$(OBJDIR)/testing_main.o \
 
 RESOURCES := \
@@ -551,6 +552,9 @@ $(OBJDIR)/scon_mathmatrix_test.o: ../../gtest/scon_mathmatrix_test.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scon_traits_test.o: ../../gtest/scon_traits_test.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/test_fep_gradients.o: ../../gtest/test_fep_gradients.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/testing_main.o: ../../gtest/testing_main.cc
