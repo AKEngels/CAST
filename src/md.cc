@@ -470,7 +470,7 @@ void md::simulation::init(void)
   {
 	  distances = init_active_center(0);   //calculate initial active center and distances to active center
 	  
-	  for (int i(0U); i < N; ++i)  // determine which atoms are moved
+	  for (unsigned int i(0U); i < N; ++i)  // determine which atoms are moved
 	  {
 		  if (distances[i] <= Config::get().md.outer_cutoff)
 		  {
@@ -488,7 +488,7 @@ void md::simulation::init(void)
   }
   else   // if no active site is specified: all atoms are moved
   {
-	  for (int i(0U); i < N; ++i)
+	  for (unsigned int i(0U); i < N; ++i)
 	  {
 		  atoms_movable.push_back(i);
 	  }
@@ -1251,7 +1251,7 @@ void md::simulation::velocity_verlet(std::size_t k_init)
 	{
 		distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
 		atoms_movable.clear();            // determine again which atoms are moved
-		for (int i(0U); i < N; ++i)
+		for (unsigned int i(0U); i < N; ++i)
 		{
 			if (distances[i] <= outer_cutoff)
 			{
@@ -1430,7 +1430,7 @@ void md::simulation::beemanintegrator(std::size_t k_init)
 		{
 			distances = init_active_center(static_cast<int>(k)); 
 			atoms_movable.clear();            // determine again which atoms are moved
-			for (int i(0U); i < N; ++i)
+			for (unsigned int i(0U); i < N; ++i)
 			{
 				if (distances[i] <= outer_cutoff)
 				{
