@@ -36,25 +36,6 @@ config::output_types::T Config::getOutFormat(std::string const & S)
   return config::output_types::ILLEGAL;
 }
 
-config::solvs::S Config::getSolv(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
-  {
-    if (S.find(config::solv_strings[i]) != S.npos)
-      return static_cast<config::solvs::S>(i);
-  }
-  return config::solvs::VAC;
-}
-
-config::surfs::SA Config::getSurf(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SURF; ++i)
-  {
-    if (S.find(config::surf_strings[i]) != S.npos)
-      return static_cast<config::surfs::SA>(i);
-  }
-  return config::surfs::TINKER;
-}
 
 /*
 
@@ -264,51 +245,66 @@ void config::parse_option(std::string const option, std::string const value_stri
   ////////////////////
   if (option == "name")
   {
-    Config::set().general.inputFilename = value_string;
+	  Config::set().general.inputFilename = value_string;
 
-    // If no outname is specified,
-    // the output-file will have the same name as the inputfile
-    // but with "_out" added to the name.
-    //
-    // outname_check is a small function used to test if
-    // an outname has already been specified by keeping a
-    // static counter.
-    if (outname_check(0))
-    {
-      std::string path = value_string;
-      // Remove quote signs
-      if (path.front() == '"' && path.back() == '"')
-      {
-        path = path.substr(1u, path.length() - 2U);
-      }
-      scon::FilePath<std::string> in_file_path(path);
-      Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
-    }
+	  // If no outname is specified,
+	  // the output-file will have the same name as the inputfile
+	  // but with "_out" added to the name.
+	  //
+	  // outname_check is a small function used to test if
+	  // an outname has already been specified by keeping a
+	  // static counter.
+	  if (outname_check(0))
+	  {
+		  std::string path = value_string;
+		  // Remove quote signs
+		  if (path.front() == '"' && path.back() == '"')
+		  {
+			  path = path.substr(1u, path.length() - 2U);
+		  }
+		  scon::FilePath<std::string> in_file_path(path);
+		  Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
+	  }
   }
   // Name of the outputfile
   // Default: oplsaa.prm
   else if (option == "outname")
   {
-    // outname_check is a small function used to test if
-    // an outname has already been specified by keeping a
-    // static counter.
-    outname_check(1);
+	  // outname_check is a small function used to test if
+	  // an outname has already been specified by keeping a
+	  // static counter.
+	  outname_check(1);
 
-    // If the "outname" starts with an +,
-    // we append the (input)name by this string
-    if (value_string[0] == '+')
-    {
-      Config::set().general.outputFilename += value_string.substr(1);
-    }
-    else
-      Config::set().general.outputFilename = value_string;
+	  // If the "outname" starts with an +,
+	  // we append the (input)name by this string
+	  if (value_string[0] == '+')
+	  {
+		  Config::set().general.outputFilename += value_string.substr(1);
+	  }
+	  else
+		  Config::set().general.outputFilename = value_string;
   }
 
   // Filename of the ForceField parameter-file
   // Has to be in same folder as executable
   // Default: oplsaa.prm
   else if (option == "paramfile")
-    Config::set().general.paramFilename = value_string;
+	  Config::set().general.paramFilename = value_string;
+
+  // Option to read charges from seperate file "charges.txt"
+  // has to be in the same folder as executable
+  // makes sense in combination with amber force field
+  else if (option == "chargefile")
+  {
+	  if (value_string == "1")
+	  {
+		  Config::set().general.chargefile = true;
+	  }
+	  else
+	  {
+		  Config::set().general.chargefile = false;
+	  }
+  }
 
   // Input format.
   // Default: TINKER
@@ -376,21 +372,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().general.task = static_cast<config::tasks::T>(identifier);
       }
     }
-  }
-
-  //! Methods for implicit solvation
-
-  // Method for solvation
-  // Default: VAC (i guess vacuum?)
-  else if (option == "solvmethod")
-  {
-    config::solvs::S solvmethod(Config::getSolv(value_string));
-    Config::set().general.solvationmethod = solvmethod;
-  }
-  else if (option == "surface")
-  {
-    config::surfs::SA surfmethod(Config::getSurf(value_string));
-    Config::set().general.surfacemethod = surfmethod;
   }
 
   // Output type for structures
@@ -508,6 +489,12 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.IDPP;
 	  else if (option.substr(11, 8) == "-MAXFLUX")
 		  cv >> Config::set().neb.MAXFLUX;
+	  else if (option.substr(11, 11) == "-MF_PATHOPT")
+		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
+	  else if (option.substr(11, 13) == "-NEB-COMPLETE")
+		  cv >> Config::set().neb.COMPLETE_PATH;
+	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
+		  cv >> Config::set().neb.MULTIPLE_POINTS;
   }
 
   // MOPAC options
@@ -680,6 +667,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (option.substr(2, 8) == "timestep")
 	  {
 		  cv >> Config::set().md.timeStep;
+	  }
+	  else if (option.substr(2, 17) == "restart_if_broken")
+	  {
+		  cv >> Config::set().md.broken_restart;
 	  }
 	  else if (option.substr(2, 5) == "press")
 	  {
@@ -864,10 +855,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(3, 4) == "freq")
     {
       cv >> Config::set().fep.freq;
-    }
-    else if (option.substr(3, 8) == "backward")
-    {
-      cv >> Config::set().fep.backward;
     }
   }
 

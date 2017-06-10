@@ -26,8 +26,9 @@ namespace md
   static const double PI = 3.14159265358979323;
   /**gas constant*/
   static const double R = 1.9872066e-3;
-  /**something for pressure*/
-  static const double presc = 6.85684112e4;
+  /**conversion factor: (kcal/mol) / (atm*A^3) */
+  static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
+                                              // but the program wouldn't always give 0.00000 for pressure
 
   /**
   *collection of current simulation data
@@ -135,7 +136,7 @@ namespace md
 	  */
     Logger(coords::Coordinates &coords, std::size_t snap_offset);
 
-	/**writes trace_data (parameters see struct trace_date)
+	/**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
 	*/
     bool operator() (std::size_t const iter,
       coords::float_type const T, 
@@ -225,6 +226,8 @@ namespace md
 	coords::Representation_3D P;
 	/**old positions*/
 	coords::Representation_3D P_old;
+	/**positions at the beginning of the simulation*/
+	coords::Representation_3D P_start;
 	/**forces*/
 	coords::Representation_3D F;
 	/**old forces*/
@@ -283,10 +286,14 @@ namespace md
 
 	/**function for calculation of current target temperature
 	@param step: current MD step
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	*/
-    bool heat(std::size_t const step);
+    bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
+
+	/**sets coordinates to original values and assigns random velocities*/
+	void restart_broken();
 
 	/** function to control the temperature 
 	@param thermostat: determines if nose-hoover-thermostat or direct velocity scaling
@@ -311,19 +318,22 @@ namespace md
     void rattle_post(void);
 
     /**select an integrator (velocity-verlet or beeman)
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void integrate(std::size_t const k_init = 0U);
+    void integrate(bool fep = false, std::size_t const k_init = 0U);
 
 	/**beeman integrator
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void beemanintegrator(std::size_t const k_init = 0U);
+    void beemanintegrator(bool fep, std::size_t const k_init = 0U);
 
 	/**velocity-verlet integrator
+	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
 	@param k_init: step where the MD starts (zero should be okay)
 	*/
-    void velocity_verlet(std::size_t const k_init = 0u);
+    void velocity_verlet(bool fep, std::size_t const k_init = 0U);
 
     /** tell user that he applies spherical boundary conditions
 	*/

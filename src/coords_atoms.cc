@@ -214,6 +214,8 @@ struct Part_of_Ring
 
 //#define PRINT_MAIN_AXIS
 
+/// DEOX
+/// @return VOID
 void coords::Atoms::refine_mains()
 {
   fix_rotation(m_atoms);
