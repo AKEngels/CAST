@@ -7,8 +7,6 @@
 
 optional_files/build/*
 optional_files/project/*
-!optional_files/project/Makefile
-!optional_files/project/CAST.make
 
 /src/documentation/html
 /src/documentation/latex
