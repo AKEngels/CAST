@@ -795,6 +795,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             if (raten[g] > r_i)
             {
               punkt[i] = partner[punkt[i - 1]][g];
+              run << punkt[i] << std::endl;
 
               if (punkt[i] < (pscanzahl + 1))
               {
