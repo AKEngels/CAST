@@ -404,7 +404,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     break;
 
   case 'y':
-    for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interace
+    for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interface
     { 
       if (y[i] > max) {
         max = y[i];
@@ -798,7 +798,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               if (punkt[i] < (pscanzahl + 1))
               {
-
+                run << "hopped to " << punkt[i];
               }
               else if (punkt[i] > pscanzahl)
               {

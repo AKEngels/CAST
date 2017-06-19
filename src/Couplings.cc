@@ -22,7 +22,7 @@ void couplings::coupling::kopplung()
 
       std::ifstream coord_test(idatname.str(), std::ios_base::in);
 
-      if(coord_test) //there will be names for dimerpairs generated whom not exist so these errors shall be caught within the loop
+      if(coord_test) //there will be names for dimerpairs generated whom not exist 
       {
         std::unique_ptr<coords::input::format> ci(coords::input::new_format());    
         coords::Coordinates dim_coords(ci->read(idatname.str()));

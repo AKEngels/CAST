@@ -8,7 +8,7 @@ namespace scon
 
   int system_call(std::string const & command_line)
   {
-#if defined (_MSC_VER)
+#if defined (_MSC_VER)//windows
     // get a modifiable character sequence of the command: 
 #if defined _UNICODE
     using cur_char = wchar_t;
@@ -33,7 +33,7 @@ namespace scon
       return 0;
     }
     else /*if call failed*/ return 666;
-#else
+#else//linux
     return system(command_line.c_str());
 #endif
   }
@@ -43,6 +43,10 @@ namespace scon
   if (isalpha(c))return alpha;
   else return other;
 }
+
+  /*! Function to seperate a string by spaces into a vector of strings
+  *
+  */
 
 std::string separateString(std::string inString)
 {
