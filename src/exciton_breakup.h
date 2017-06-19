@@ -798,7 +798,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               if (punkt[i] < (pscanzahl + 1))
               {
-                run << "hopped to " << punkt[i];
+                run << "hopped to " << punkt[i] << std::endl;
               }
               else if (punkt[i] > pscanzahl)
               {
