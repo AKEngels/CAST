@@ -513,6 +513,11 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (i = 1; i < (schritt + 1); i++)
       {
+        ofstream wtf;
+        wtf.open("wtf.txt");
+        wtf << i << "  " << startpunkt[k] << std::endl;
+        wtf.close();
+
         if (zustand[k][j] == 'c')
         {
           // site energies berechnen
@@ -792,10 +797,6 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
           for (g = 1; g < (partneranzahl[punkt[i - 1]] + 1); g++)
           {
-            ofstream wtf;
-            wtf.open("wtf.txt");
-            wtf << i << "  " << raten[g] << "  " << r_i << std::endl;
-            wtf.close();
             if (raten[g] > r_i)
             {
               punkt[i] = partner[punkt[i - 1]][g];
