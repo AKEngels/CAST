@@ -794,7 +794,8 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
           {
             ofstream wtf;
             wtf.open("wtf.txt");
-            wtf << raten[g] << "  " << r_i << std::endl;
+            wtf << i << "  " << raten[g] << "  " << r_i << std::endl;
+            wtf.close();
             if (raten[g] > r_i)
             {
               punkt[i] = partner[punkt[i - 1]][g];
