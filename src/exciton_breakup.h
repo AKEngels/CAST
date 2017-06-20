@@ -504,6 +504,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   for (k = 1; k < (index + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
   { 
     run << "k ist " << k << std::endl;
+    ofstream wtf;
+    wtf.open("wtf.txt");
+    wtf << i << "  " << startpunkt[k] << std::endl;
+    wtf.close();
     for (j = 1; j < 101; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
     { 
       zeit = 0;
@@ -513,10 +517,6 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (i = 1; i < (schritt + 1); i++)
       {
-        ofstream wtf;
-        wtf.open("wtf.txt");
-        wtf << i << "  " << startpunkt[k] << std::endl;
-        wtf.close();
 
         if (zustand[k][j] == 'c')
         {
