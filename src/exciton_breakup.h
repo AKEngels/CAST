@@ -504,10 +504,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   for (k = 1; k < (index + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
   { 
     run << "k ist " << k << std::endl;
-    ofstream wtf;
-    wtf.open("wtf.txt");
-    wtf << i << "  " << startpunkt[k] << std::endl;
-    wtf.close();
+   
     for (j = 1; j < 101; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
     { 
       zeit = 0;
@@ -770,6 +767,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               zufall = distribution0(engine);
               // coulomb energie berechnen
               coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
+              run << "coulomb  " << coulombenergy << std::endl;
               r_summe += rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
               raten[h] = r_summe;
             }
