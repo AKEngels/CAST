@@ -684,7 +684,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
           else if ((1 / r_summe - zeit_1) > (1 / r_summe_fulleren - zeit_2))
           {
-            run << "Fulleren hoppd firstt." << std::endl;
+            run << "Fulleren hopped first." << std::endl;
             if ((1 / r_summe_fulleren - zeit_2) > 0)
             {
               zeit = zeit + (1 / r_summe_fulleren - zeit_2);
@@ -792,6 +792,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
           for (g = 1; g < (partneranzahl[punkt[i - 1]] + 1); g++)
           {
+            ofstream wtf;
+            wtf.open("wtf.txt");
+            wtf << raten[g] << "  " << r_i << std::endl;
             if (raten[g] > r_i)
             {
               punkt[i] = partner[punkt[i - 1]][g];
