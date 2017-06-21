@@ -757,19 +757,21 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             if (partner[punkt[i - 1]][h] < (pscanzahl + 1))
             {
               zufall = distribution0(engine);// generatinjg a second normal distributed random number
-
-              r_summe += rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+              double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+              r_summe += testrate;
               raten[h] = r_summe;
+              run << "rate   " << testrate << std::endl;
             }
 
             else if (partner[punkt[i - 1]][h] > (pscanzahl))
             {
               zufall = distribution0(engine);
               // coulomb energie berechnen
-              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
-              run << "coulomb  " << coulombenergy << std::endl;
-              r_summe += rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);  
+              double testrate =  rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+              r_summe += testrate;
               raten[h] = r_summe;
+              run << "coulomb  " << coulombenergy  << "  rate   " << testrate << std::endl;
             }
           } // end of h
 
@@ -801,7 +803,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               if (punkt[i] < (pscanzahl + 1))
               {
-                run << "hopped to " << punkt[i] << std::endl;
+                //run << "hopped to " << punkt[i] << std::endl;
               }
               else if (punkt[i] > pscanzahl)
               {
@@ -811,7 +813,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                 run << "Chargeseparation." << std::endl;
 
                 vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
-                run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
+                //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
                 ex_diss[k]++;
               }
 
