@@ -33,7 +33,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_input() const {
 
 	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
-	//call_chemshell();
+	call_chemshell();
 
 }
 
@@ -52,14 +52,14 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 	std::stringstream ss;
 
-	ss << "antechamber -fi pdb -fo prepi " << o_file << ".pdb -o " << o_file << ".prepi -rn 0E8 -c bcc -pf y";
+	ss << "antechamber -i " << o_file << ".pdb -fi pdb -o " << o_file << ".mol2 -fo mol2";
 
 	scon::system_call(ss.str());
 
 	// To empty ss
 	std::stringstream().swap(ss);
 
-	ss << "parmchk2 -f mol2 -i " << o_file << ".prepi -o " << o_file << ".frcmod";
+	ss << "parmchk -i " << o_file << ".mol2 -f mol2 -o " << o_file << ".frcmod";
 
 	scon::system_call(ss.str());
 
@@ -68,10 +68,12 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 	std::ofstream tleap_input(o_file + ".in");
 
 	tleap_input <<
-		"loadamberprep " << o_file << ".prepi\n"
-		"loadamberparams " << o_file << ".frcmod\n"
-		"mol = loadpdb " << o_file << ".pdb\n"
-		"saveamberparm mol " << o_file << ".prmtop " << o_file << ".inpcrd\n"
+		"souce leaprc.gaff\n"
+		"LIG = loadmol2 " << o_file << ".mol2\n"
+		"check LIG\n"
+		"saveof LIG " << o_file << ".lib\n"
+		"saveamberparm LIG " << o_file << ".prmtop " << o_file << ".inpcrd\n"
+		"savepdb LIG " << o_file << ".pdb\n"
 		"quit"
 		;
 
@@ -85,7 +87,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 
 	std::ofstream chem_shell_input_stream(o_file);
 
-	chem_shell_input_stream <<
+	std::string active_atoms = find_active_atoms();
+
+	chem_shell_input_stream << active_atoms << "\n\n"
 		"global sys_name_id\n"
 		"global qm_theory\n"
 		"global ftupd\n"
@@ -119,7 +123,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 		"\n"
 		"flush $control_input_settings\n"
 		"\n"
-		"dl - find coords = ${ dir }/${ sys_name_id }.c \\\n"
+		"dl-find coords = ${ dir }/${ sys_name_id }.c \\\n"
 		"    theory=hybrid : [ list \\\n"
 		"        hamiltonian = $qm_ham\\\n"
 		"        basis = $qm_basis\\\n"
@@ -142,6 +146,32 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 
 }
 
+std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms() const {
+	
+	std::vector<int> indices(coords->size());
+	std::iota(indices.begin(), indices.end(), 1);
+	std::vector<int> final_vec;
+
+	std::transform(coords->atoms().begin(), coords->atoms().end(), indices.begin(), std::back_inserter(final_vec), 
+		[](auto const & a, auto const & b) {
+			if (a.fixed()) {
+				return 0;
+			}
+			else {
+				return b;
+			}
+	});
+
+	std::string final_atoms = "";
+	for (auto const & i : final_vec) {
+		if (i != 0) {
+			final_atoms += std::to_string(i) + " ";
+		}
+	}
+
+	return final_atoms;
+}
+
 /*std::vector<std::string> energy::interfaces::chemshell::sysCallInterface::parse_qm_atoms() const {
 
 }*/
@@ -150,7 +180,7 @@ void energy::interfaces::chemshell::sysCallInterface::call_chemshell() const {
 	
 	create_pdb();
 	write_input();
-	actual_call();
+	//actual_call();
 
 }
 

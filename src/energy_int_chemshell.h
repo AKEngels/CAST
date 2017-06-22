@@ -28,14 +28,14 @@ namespace energy {
 				~sysCallInterface() final {
 					if (Config::get().energy.gaussian.delete_input)
 					{
-						std::string rem_xyz(tmp_file_name);
+						/*std::string rem_xyz(tmp_file_name);
 						std::string rem_pdb(tmp_file_name);
 
 						rem_xyz.append(".xyz");
 						rem_pdb.append(".pdb");
 
 						remove(rem_xyz.c_str());
-						remove(rem_pdb.c_str());
+						remove(rem_pdb.c_str());*/
 					}
 				};
 				sysCallInterface(sysCallInterface const & other) = default;
@@ -64,7 +64,7 @@ namespace energy {
 
 			private:
 				std::string tmp_file_name;
-
+				
 				void create_pdb() const;
 				void write_xyz(std::string const & os) const;
 				void write_input() const;
@@ -73,7 +73,7 @@ namespace energy {
 				void make_tleap_input(std::string const & o_file)const;
 				void call_chemshell() const;
 				void actual_call()const;
-
+				std::string find_active_atoms()const;
 
 
 			};
