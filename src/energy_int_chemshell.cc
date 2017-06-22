@@ -33,7 +33,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_input() const {
 
 	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
-	call_chemshell();
+	//call_chemshell();
 
 }
 
@@ -68,7 +68,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 	std::ofstream tleap_input(o_file + ".in");
 
 	tleap_input <<
-		"souce leaprc.gaff\n"
+		"source leaprc.gaff\n"
 		"LIG = loadmol2 " << o_file << ".mol2\n"
 		"check LIG\n"
 		"saveof LIG " << o_file << ".lib\n"
@@ -215,7 +215,7 @@ void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_top
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
 	call_chemshell();
-	return 0.0; 
+	return 123.; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) { return 0.0; }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) { return 0.0; }
