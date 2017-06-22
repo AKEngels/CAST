@@ -28,14 +28,7 @@ namespace energy {
 				~sysCallInterface() final {
 					if (Config::get().energy.gaussian.delete_input)
 					{
-						/*std::string rem_xyz(tmp_file_name);
-						std::string rem_pdb(tmp_file_name);
-
-						rem_xyz.append(".xyz");
-						rem_pdb.append(".pdb");
-
-						remove(rem_xyz.c_str());
-						remove(rem_pdb.c_str());*/
+						get_rid_of_dump_files();
 					}
 				};
 				sysCallInterface(sysCallInterface const & other) = default;
@@ -74,6 +67,31 @@ namespace energy {
 				void call_chemshell() const;
 				void actual_call()const;
 				std::string find_active_atoms()const;
+				void get_rid_of_dump_files()const {
+
+					std::vector<std::string> dump_files;
+
+					//Just all the files which are to dump
+					dump_files.emplace_back(tmp_file_name + ".frcmod");
+					dump_files.emplace_back(tmp_file_name + ".in");
+					dump_files.emplace_back(tmp_file_name + ".out");
+					dump_files.emplace_back(tmp_file_name + ".inpcrd");
+					dump_files.emplace_back(tmp_file_name + ".mol2");
+					dump_files.emplace_back(tmp_file_name + ".pdb");
+					dump_files.emplace_back(tmp_file_name + ".xyz");
+					dump_files.emplace_back(tmp_file_name + ".prmtop");
+					dump_files.emplace_back(tmp_file_name + ".chm");
+					dump_files.emplace_back("leap.log");
+					dump_files.emplace_back("ANTECHAMBER_AC.AC");
+					dump_files.emplace_back("ANTECHAMBER_AC.AC0");
+					dump_files.emplace_back("ANTECHAMBER_BOND_TYPE.AC");
+					dump_files.emplace_back("ANTECHAMBER_BOND_TYPE.AC0");
+					dump_files.emplace_back("ATOMTYPE.INF");
+
+					for (auto const & dump : dump_files) {
+						remove(dump.c_str());
+					}
+				}
 
 
 			};
