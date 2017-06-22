@@ -33,7 +33,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_input() const {
 
 	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
-	call_chemshell();
+	//call_chemshell();
 
 }
 
@@ -57,13 +57,13 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 	scon::system_call(ss.str());
 
 	// To empty ss
-	ss.str(std::string());
+	std::stringstream().swap(ss);
 
 	ss << "parmchk2 -f mol2 -i " << o_file << ".prepi -o " << o_file << ".frcmod";
 
 	scon::system_call(ss.str());
 
-	ss.str(std::string());
+	std::stringstream().swap(ss);
 
 	std::ofstream tleap_input(o_file + ".in");
 
@@ -71,7 +71,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 		"loadamberprep " << o_file << ".prepi\n"
 		"loadamberparams " << o_file << ".frcmod\n"
 		"mol = loadpdb " << o_file << ".pdb\n"
-		"saceamberparm mol " << o_file << ".prmtop " << o_file << ".inpcrd\n"
+		"saveamberparm mol " << o_file << ".prmtop " << o_file << ".inpcrd\n"
 		"quit"
 		;
 
