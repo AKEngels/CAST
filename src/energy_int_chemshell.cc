@@ -95,7 +95,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 
 	std::string active_atoms = find_active_atoms();
 
-	chem_shell_input_stream << active_atoms << "\n\n"
+	chem_shell_input_stream <<
 		"global sys_name_id\n"
 		"global qm_theory\n"
 		"global ftupd\n"
