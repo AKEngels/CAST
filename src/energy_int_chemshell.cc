@@ -33,7 +33,6 @@ void energy::interfaces::chemshell::sysCallInterface::write_input() const {
 
 	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
-	call_chemshell();
 
 }
 
@@ -204,14 +203,14 @@ void energy::interfaces::chemshell::sysCallInterface::call_chemshell() const {
 	
 	create_pdb();
 	write_input();
-	//actual_call();
+	actual_call();
 
 }
 
 void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 
 	std::stringstream chemshell_stream;
-	chemshell_stream << Config::get().energy.chemshell.path << " < " << tmp_file_name << ".chm > " << tmpfile << ".out";
+	chemshell_stream << Config::get().energy.chemshell.path << " " << tmp_file_name << ".chm";
 
 	auto failcount = 0;
 
