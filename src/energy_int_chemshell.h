@@ -18,6 +18,23 @@ namespace energy {
 
 			class sysCallInterface final: public interface_base{
 			public:
+				/*
+				template<typename T>
+				using remove_cr = typename std::remove_const<typename std::remove_reference<T>::type>::type;
+
+				template<typename T>
+				struct get_spherical_types {
+				};
+
+				template<typename T, typename U>
+				struct get_spherical_types<scon::sphericals<T, U>> {
+					using length_type = T;
+					using angle_type = U;
+				};
+
+				using length_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::length_type;
+				using angle_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::angle_type;
+				*/
 				sysCallInterface(coords::Coordinates * coord_ptr)
 					: interface_base(coord_ptr), tmp_file_name(Config::get().general.outputFilename){
 					std::stringstream ss;
@@ -60,13 +77,18 @@ namespace energy {
 				
 				void create_pdb() const;
 				void write_xyz(std::string const & os) const;
-				void write_input() const;
-				void write_chemshell_file(std::string const & o_file) const;
+				void write_input(bool single_point = true) const;
+				void write_chemshell_file(std::string const & calc) const;
 				void call_tleap()const;
 				void make_tleap_input(std::string const & o_file)const;
-				void call_chemshell() const;
+				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
 				std::string find_active_atoms()const;
+				coords::float_type read_gradients()const;
+				coords::float_type read_energy()const;
+				coords::float_type read_coords()const;
+				void make_sp()const;
+				void make_opti()const;
 				void get_rid_of_dump_files()const {
 
 					std::vector<std::string> dump_files;

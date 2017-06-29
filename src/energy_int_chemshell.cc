@@ -33,11 +33,15 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 	xyz_file.close();
 }
 
-void energy::interfaces::chemshell::sysCallInterface::write_input() const {
+void energy::interfaces::chemshell::sysCallInterface::write_input(bool single_point) const {
 	
 	call_tleap();
-	write_chemshell_file(tmp_file_name + ".chm");
-
+	if (single_point) {
+		write_chemshell_file("dl-poli");
+	}
+	else {
+		write_chemshell_file("dl-find");
+	}
 }
 
 void energy::interfaces::chemshell::sysCallInterface::call_tleap()const {
@@ -92,7 +96,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 }
 
-void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::string const & o_file) const {
+void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::string const & calc) const {
 	
 	//auto qm_atoms = parse_qm_atoms();
 
@@ -101,6 +105,8 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 	constexpr auto tolerance = 0.00045;
 	constexpr auto mxlist = 45000;
 	constexpr auto cutoff = 1000;
+
+	auto o_file = tmp_file_name + ".chm";
 
 	std::ofstream chem_shell_input_stream(o_file);
 
@@ -140,7 +146,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 		"\n"
 		"flush $control_input_settings\n"
 		"\n"
-		"dl-find coords = ${dir}/${sys_name_id}.c \\\n"
+		<< calc << " coords = ${dir}/${sys_name_id}.c \\\n"
 		"    coordinates=hdlc \\\n"
 		"    maxcycle=" << maxcycle << " \\\n"
 		"    tolerance=" << tolerance << " \\\n"
@@ -181,6 +187,14 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 
 }
 
+void energy::interfaces::chemshell::sysCallInterface::make_opti() const {
+	call_chemshell(false);
+}
+
+void energy::interfaces::chemshell::sysCallInterface::make_sp()const {
+	call_chemshell();
+}
+
 std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms() const {
 	
 	std::vector<int> indices(coords->size());
@@ -211,10 +225,10 @@ std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms()
 
 }*/
 
-void energy::interfaces::chemshell::sysCallInterface::call_chemshell() const {
+void energy::interfaces::chemshell::sysCallInterface::call_chemshell(bool singlepoint) const {
 	
 	create_pdb();
-	write_input();
+	write_input(singlepoint);
 	actual_call();
 
 }
@@ -242,6 +256,18 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	}
 }
 
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy()const {
+
+}
+
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_gradients()const {
+
+}
+
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_coords()const {
+
+}
+
 void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::clone(coords::Coordinates * coord_object) const { return new sysCallInterface(*this, coord_object); }
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(coords::Coordinates * coord_object) { return new sysCallInterface(*this, coord_object); }
@@ -249,12 +275,20 @@ energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(c
 void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
-	call_chemshell();
+	make_sp();
 	return 123.; 
 }
-coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) { return 0.0; }
-coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) { return 0.0; }
-coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) { return 0.0; }
+coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
+	make_sp();
+	return 0.0; 
+}
+coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
+	return 0.0; 
+}
+coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
+	make_opti();
+	return 0.0; 
+}
 
 void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
 void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&, bool const endline) const {}
