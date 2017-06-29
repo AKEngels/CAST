@@ -18,7 +18,11 @@ void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
 	std::stringstream ss;
 	ss << "babel -ixyz " << tmp_file_name << ".xyz -opdb " << tmp_file_name << ".pdb";
 
-	scon::system_call(ss.str());
+	auto ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to call babel!");
+	}
 
 }
 
@@ -53,14 +57,22 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 	ss << "antechamber -i " << o_file << ".pdb -fi pdb -o " << o_file << ".mol2 -fo mol2";
 
-	scon::system_call(ss.str());
+	auto ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to call antechamber!");
+	}
 
 	// To empty ss
 	std::stringstream().swap(ss);
 
 	ss << "parmchk -i " << o_file << ".mol2 -f mol2 -o " << o_file << ".frcmod";
 
-	scon::system_call(ss.str());
+	ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to call parmchk!");
+	}
 
 	std::stringstream().swap(ss);
 
@@ -214,7 +226,7 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 
 	auto failcount = 0;
 
-	for (auto failcount = 1; failcount >= 10; ++failcount) {
+	for (; failcount <= 10; ++failcount) {
 		auto ret = scon::system_call(chemshell_stream.str());
 		if (ret == 0) {
 			break;
