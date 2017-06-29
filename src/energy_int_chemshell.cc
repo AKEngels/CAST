@@ -16,7 +16,7 @@ void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
 	write_xyz(tmp_file_name + ".xyz");
 
 	std::stringstream ss;
-	ss << "babel -ixyz " << tmp_file_name << ".xyz -opdb " << tmp_file_name << ".pdb";
+	ss << Config::get().energy.chemshell.babel_path << " -ixyz " << tmp_file_name << ".xyz -opdb " << tmp_file_name << ".pdb";
 
 	auto ret = scon::system_call(ss.str());
 
@@ -34,7 +34,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_input() const {
-
+	
 	call_tleap();
 	write_chemshell_file(tmp_file_name + ".chm");
 

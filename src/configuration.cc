@@ -579,6 +579,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  if (sub_option == "path") {
 		  Config::set().energy.chemshell.path = value_string;
 	  }
+	  else if (sub_option == "babel_path") {
+		  Config::set().energy.chemshell.babel_path = value_string;
+	  }
 	  else if (sub_option == "scheme") {
 		  Config::set().energy.chemshell.scheme = value_string;
 	  }

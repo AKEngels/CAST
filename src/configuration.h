@@ -585,6 +585,7 @@ namespace config
 
 	struct chemshell_conf {
 		std::string path;
+		std::string babel_path;
 		std::string scheme;
 		std::string qm_theory;
 		std::string qm_ham;
