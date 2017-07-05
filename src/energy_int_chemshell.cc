@@ -256,16 +256,52 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	}
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy()const {
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(std::string const & what)const {
+	std::ifstream ifile(what + ".energy");
+}
+
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what)const {
 
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_gradients()const {
-
+bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::string const & word)const {
+	return !(word == "block" || word == "from");
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_coords()const {
+coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_coords(std::vector<std::string> const & line) const {
+	std::vector<std::string> coord_words(line.cbegin() + 1, line.cend());
+	coords::Cartesian_Point cp(
+		std::stod(coord_words.at(0)),
+		std::stod(coord_words.at(1)),
+		std::stod(coord_words.at(2))
+	);
+	return cp;
+}
 
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what)const {
+	std::ifstream ifile(what+".coo");
+
+	std::string line;
+	coords::Representation_3D xyz;
+
+	while (getline(ifile, line)) {
+		std::istringstream iss(line);
+		std::vector<std::string> words{
+			std::istream_iterator<std::string>{iss},
+			std::istream_iterator<std::string>{}
+		};
+		if(words.size()==0){
+			continue;
+		}
+		
+		if (check_if_line_is_coord(words[0])) {
+			xyz.emplace_back(make_coords(words));
+		}
+	}
+
+	coords->set_xyz(xyz);
+
+	ifile.close();
 }
 
 void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}

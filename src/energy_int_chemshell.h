@@ -84,9 +84,13 @@ namespace energy {
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
 				std::string find_active_atoms()const;
-				coords::float_type read_gradients()const;
-				coords::float_type read_energy()const;
-				coords::float_type read_coords()const;
+				coords::float_type read_gradients(std::string const & what)const;
+				coords::float_type read_energy(std::string const & what)const;
+				coords::float_type read_coords(std::string const & what)const;
+
+				bool check_if_line_is_coord(std::string const & coords)const;
+				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
+
 				void make_sp()const;
 				void make_opti()const;
 				void get_rid_of_dump_files()const {
