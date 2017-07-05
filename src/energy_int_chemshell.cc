@@ -284,7 +284,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(
 
 coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extract_gradients(std::vector<coords::float_type> const & grads) const {
 	coords::Representation_3D new_grads;
-	for (auto & b = grads.cbegin(); b != grads.cend(); b += 3) {
+	for (auto b = grads.cbegin(); b != grads.cend(); b += 3) {
 		new_grads.emplace_back(coords::Cartesian_Point(
 			*b,
 			*(b+1),
@@ -294,7 +294,7 @@ coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extra
 	return std::move(new_grads);
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what)const {
+void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what) {
 	std::ifstream ifile(what + ".gradient");
 
 	std::string line;
@@ -333,7 +333,7 @@ coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_co
 	return cp;
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what)const {
+void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what) {
 	std::ifstream ifile(what+".coo");
 
 	std::string line;
