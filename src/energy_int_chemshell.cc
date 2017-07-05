@@ -256,11 +256,66 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	}
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(std::string const & what)const {
-	std::ifstream ifile(what + ".energy");
+bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_number(std::string const & number) const {
+	return !(number == "block" || number == "Scratch");
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what)const {
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(std::string const & what)const {
+	std::ifstream ifile(what + ".energy");
+
+	std::string line;
+	while (getline(ifile, line)) {
+		std::istringstream iss(line);
+		std::vector<std::string> words{
+			std::istream_iterator<std::string>{iss},
+			std::istream_iterator<std::string>{}
+		};
+		if (words.size()==0) {
+			continue;
+		}
+		if(check_if_line_is_number(words.at(0))){
+			return std::stod(words.at(0));
+		}
+	}
+
+	return 0.0;
+
+}
+
+coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extract_gradients(std::vector<coords::float_type> const & grads) const {
+	coords::Representation_3D new_grads;
+	for (auto & b = grads.cbegin(); b != grads.cend(); b += 3) {
+		new_grads.emplace_back(coords::Cartesian_Point(
+			*b,
+			*(b+1),
+			*(b+2)
+		));
+	}
+	return std::move(new_grads);
+}
+
+void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what)const {
+	std::ifstream ifile(what + ".gradient");
+
+	std::string line;
+
+	std::vector<coords::float_type> gradients;
+
+	while (getline(ifile, line)) {
+		std::istringstream iss(line);
+		std::vector<std::string> words{
+			std::istream_iterator<std::string>{iss},
+			std::istream_iterator<std::string>{}
+		};
+		if (words.size() == 0) {
+			continue;
+		}
+		if (check_if_line_is_number(words.at(0))) {
+			gradients.emplace_back(std::stod(words.at(0)));
+		}
+	}
+
+	coords->swap_g_xyz(extract_gradients(gradients));
 
 }
 
@@ -278,7 +333,7 @@ coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_co
 	return cp;
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what)const {
+void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what)const {
 	std::ifstream ifile(what+".coo");
 
 	std::string line;
@@ -294,7 +349,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::read_coords(
 			continue;
 		}
 		
-		if (check_if_line_is_coord(words[0])) {
+		if (check_if_line_is_coord(words.at(0))) {
 			xyz.emplace_back(make_coords(words));
 		}
 	}
@@ -312,18 +367,21 @@ void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_top
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
 	make_sp();
-	return 123.; 
+	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	make_sp();
-	return 0.0; 
+	read_gradients("energy");
+	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	return 0.0; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	make_opti();
-	return 0.0; 
+	read_gradients("dl-find");
+	read_coords("dl-find");
+	return read_energy("dl-find"); 
 }
 
 void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
