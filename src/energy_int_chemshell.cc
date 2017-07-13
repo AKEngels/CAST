@@ -37,7 +37,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_input(bool single_po
 	
 	call_tleap();
 	if (single_point) {
-		write_chemshell_file("dl-poli");
+		write_chemshell_file("energy");
 	}
 	else {
 		write_chemshell_file("dl-find");
@@ -257,7 +257,11 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 }
 
 bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_number(std::string const & number) const {
-	return !(number == "block" || number == "Scratch");
+
+	return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
+		return n != 'E' && n != 'e' && n != '-' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
+	}) == number.end();
+
 }
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(std::string const & what)const {
@@ -315,7 +319,9 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string
 		}
 	}
 
-	coords->swap_g_xyz(extract_gradients(gradients));
+	auto new_gradients = extract_gradients(gradients);
+
+	coords->swap_g_xyz(new_gradients);
 
 }
 
