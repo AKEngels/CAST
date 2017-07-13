@@ -256,7 +256,7 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	}
 }
 
-bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_number(std::string const & number) const {
+bool energy::interfaces::chemshell::sysCallInterface::check_if_number(std::string const & number) const {
 
 	return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
 		return n != 'E' && n != 'e' && n != '-' && n != '+' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
@@ -277,7 +277,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(
 		if (words.size()==0) {
 			continue;
 		}
-		if(check_if_line_is_number(words.at(0))){
+		if(check_if_number(words.at(0))){
 			return std::stod(words.at(0));
 		}
 	}
@@ -314,7 +314,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string
 		if (words.size() == 0) {
 			continue;
 		}
-		if (check_if_line_is_number(words.at(0))) {
+		if (check_if_number(words.at(0))) {
 			gradients.emplace_back(std::stod(words.at(0)));
 		}
 	}
@@ -327,9 +327,9 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string
 
 bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coords)const {
 	return 
-		check_if_line_is_number(coords.at(1)) && 
-		check_if_line_is_number(coords.at(2)) && 
-		check_if_line_is_number(coords.at(3));
+		check_if_number(coords.at(1)) && 
+		check_if_number(coords.at(2)) && 
+		check_if_number(coords.at(3));
 }
 
 coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_coords(std::vector<std::string> const & line) const {

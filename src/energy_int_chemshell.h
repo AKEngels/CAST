@@ -86,12 +86,12 @@ namespace energy {
 				std::string find_active_atoms()const;
 				void read_gradients(std::string const & what);
 
-				bool check_if_line_is_number(std::string const & number)const;
+				bool check_if_number(std::string const & number)const;
 
 				coords::float_type read_energy(std::string const & what)const;
 				void read_coords(std::string const & what);
 
-				bool check_if_line_is_coord(std::string const & coords)const;
+				bool check_if_line_is_coord(std::vector<std::string> const & coords)const;
 				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
 				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const & grads) const;
 
