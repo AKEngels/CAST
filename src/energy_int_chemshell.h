@@ -36,7 +36,10 @@ namespace energy {
 				using angle_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::angle_type;
 				*/
 				sysCallInterface(coords::Coordinates * coord_ptr)
-					: interface_base(coord_ptr), tmp_file_name(Config::get().general.outputFilename){
+					: interface_base(coord_ptr), 
+					tmp_file_name(Config::get().general.outputFilename)
+				{
+					optimizer = true;
 					std::stringstream ss;
 					std::srand(std::time(0));
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
