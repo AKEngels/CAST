@@ -96,7 +96,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	constexpr auto mxlist = 45000;
 	constexpr auto cutoff = 1000;
 
-	ofs << "energy coords = ${dir}/${sys_name_id}.c \\\n"
+	ofs << "eandg coords = ${dir}/${sys_name_id}.c \\\n"
 		"    theory=hybrid : [ list \\\n"
 		"        coupling= $embedding_scheme \\\n"
 		"        qm_theory= $qm_theory : [ list hamiltonian = $qm_ham \\\n"
@@ -115,7 +115,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 		"        cutoff=" << cutoff << " \\\n"
 		"        scale14 = {1.2 2.0}\\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
-		"    energy=energy.energy\n"
+		"    energy=energy.energy\\\n"
 		"    gradient=energy.gradient\n"
 		"\n"
 		"\n"
@@ -438,6 +438,16 @@ void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&
 
 void energy::interfaces::chemshell::sysCallInterface::print_E_short(std::ostream&, bool const endline) const {}
 
-void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::ostream&, bool const aggregate) const {}
+void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::ostream & S, bool const aggregate) const {
+
+	coords::Representation_3D gradients;
+
+	coords->get_g_xyz(gradients);
+
+	for (auto const & grad : gradients) {
+		S << grad << "\n";
+	}
+
+}
 
 void energy::interfaces::chemshell::sysCallInterface::to_stream(std::ostream&) const {}
