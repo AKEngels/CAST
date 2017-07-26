@@ -36,12 +36,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 void energy::interfaces::chemshell::sysCallInterface::write_input(bool single_point) const {
 	
 	call_tleap();
-	if (single_point) {
-		write_chemshell_file("energy");
-	}
-	else {
-		write_chemshell_file("dl-find");
-	}
+	write_chemshell_file(single_point);
 }
 
 void energy::interfaces::chemshell::sysCallInterface::call_tleap()const {
@@ -96,9 +91,37 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 }
 
-void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::string const & calc) const {
-	
-	//auto qm_atoms = parse_qm_atoms();
+void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream & ofs) const {
+
+	constexpr auto mxlist = 45000;
+	constexpr auto cutoff = 1000;
+
+	ofs << "energy coords = ${dir}/${sys_name_id}.c \\\n"
+		"    theory=hybrid : [ list \\\n"
+		"        coupling= $embedding_scheme \\\n"
+		"        qm_theory= $qm_theory : [ list hamiltonian = $qm_ham \\\n"
+		"            restart = no \\\n"
+		"            excited = no \\\n"
+		"            basis = $qm_basis \\\n"
+		"            eroots = 4 ] \\\n"
+		"    qm_region = $qm_atoms \\\n"
+		"    debug=no \\\n"
+		"    mm_theory= dl_poly : [ list \\\n"
+		"        list_option=none \\\n"
+		"        conn= ${sys_name_id}.c \\\n"
+		"        mm_defs=$amber_prmtop \\\n"
+		"        exact_srf=yes \\\n"
+		"        mxlist=" << mxlist << " \\\n"
+		"        cutoff=" << cutoff << " \\\n"
+		"        scale14 = {1.2 2.0}\\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		"    energy = e\n"
+		"\n"
+		"\n"
+		"close $control_input_settings\n";
+}
+
+void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream & ofs) const {
 
 	constexpr auto maxcycle = 1000;
 	constexpr auto maxcyc = 2000;
@@ -106,11 +129,53 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 	constexpr auto mxlist = 45000;
 	constexpr auto cutoff = 1000;
 
+	std::string active_atoms = find_active_atoms();
+
+	ofs << "dl-find coords = ${dir}/${sys_name_id}.c \\\n"
+		"    coordinates=hdlc \\\n"
+		"    maxcycle=" << maxcycle << " \\\n"
+		"    tolerance=" << tolerance << " \\\n"
+		"    active_atoms= { " << active_atoms << "} \\\n"
+		"    residues= $residues \\\n"
+		"    theory=hybrid : [ list \\\n"
+		"        coupling= $embedding_scheme \\\n"
+		"        qm_theory= $qm_theory : [ list hamiltonian = $qm_ham \\\n"
+		"            basis= $qm_basis \\\n"
+		"            maxcyc= " << maxcyc << " \\\n"
+		"            dispersion_correction= $qm_ham \\\n"
+		"            charge= $qm_ch ] \\\n"
+		"    qm_region = $qm_atoms \\\n"
+		"    debug=no \\\n"
+		"    mm_theory= dl_poly : [ list \\\n"
+		"        list_option=none \\\n"
+		"        conn= ${sys_name_id}.c \\\n"
+		"        mm_defs=$amber_prmtop \\\n"
+		"        exact_srf=yes \\\n"
+		"        mxlist=" << mxlist << " \\\n"
+		"        cutoff=" << cutoff << " \\\n"
+		"        scale14 = {1.2 2.0}\\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		"\n"
+		"\n"
+		"write_xyz file = ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
+		"read_pdb  file = ${ sys_name_id }.pdb  coords = dummy.coords\n"
+		"write_pdb file = ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
+		"write_xyz file = ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
+		"delete_object hybrid.${ qm_theory }.coords\n"
+		"catch {file delete dummy.coords}\n"
+		"\n"
+		"close $control_input_settings\n";
+}
+
+void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool const & sp) const {
+	
+	//auto qm_atoms = parse_qm_atoms();
+
+
 	auto o_file = tmp_file_name + ".chm";
 
 	std::ofstream chem_shell_input_stream(o_file);
 
-	std::string active_atoms = find_active_atoms();
 
 	chem_shell_input_stream <<
 		"global sys_name_id\n"
@@ -145,42 +210,14 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(std::
 		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n"
 		"\n"
 		"flush $control_input_settings\n"
-		"\n"
-		<< calc << " coords = ${dir}/${sys_name_id}.c \\\n"
-		"    coordinates=hdlc \\\n"
-		"    maxcycle=" << maxcycle << " \\\n"
-		"    tolerance=" << tolerance << " \\\n"
-		"    active_atoms= { " << active_atoms << "} \\\n"
-		"    residues= $residues \\\n"
-		"    theory=hybrid : [ list \\\n"
-		"        coupling= $embedding_scheme \\\n"
-		"        qm_theory= $qm_theory : [ list hamiltonian = $qm_ham \\\n"
-		"            basis= $qm_basis \\\n"
-		"            maxcyc= " << maxcyc << " \\\n"
-		"            dispersion_correction= $qm_ham \\\n"
-		"            charge= $qm_ch ] \\\n"
-		"    qm_region = $qm_atoms \\\n"
-		"    debug=no \\\n"
-		"    mm_theory= dl_poly : [ list \\\n"
-		"        list_option=none \\\n"
-		"        conn= ${sys_name_id}.c \\\n"
-		"        mm_defs=$amber_prmtop \\\n"
-		"        exact_srf=yes \\\n"
-		"        mxlist=" << mxlist << " \\\n"
-		"        cutoff=" << cutoff << " \\\n"
-		"        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
-		"\n"
-		"\n"
-		"write_xyz file = ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
-		"read_pdb  file = ${ sys_name_id }.pdb  coords = dummy.coords\n"
-		"write_pdb file = ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
-		"write_xyz file = ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
-		"delete_object hybrid.${ qm_theory }.coords\n"
-		"catch {file delete dummy.coords}\n"
-		"\n"
-		"close $control_input_settings\n"
-		;
+		"\n";
+	if (sp) {
+		make_sp_inp(chem_shell_input_stream);
+	}
+	else {
+		make_opt_inp(chem_shell_input_stream);
+	}
+		
 
 	chem_shell_input_stream.close();
 
@@ -327,6 +364,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string
 
 bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coords)const {
 	return 
+		coords.size() == 4 &&
 		check_if_number(coords.at(1)) && 
 		check_if_number(coords.at(2)) && 
 		check_if_number(coords.at(3));

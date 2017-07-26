@@ -81,7 +81,7 @@ namespace energy {
 				void create_pdb() const;
 				void write_xyz(std::string const & os) const;
 				void write_input(bool single_point = true) const;
-				void write_chemshell_file(std::string const & calc) const;
+				void write_chemshell_file(bool const & sp=true) const;
 				void call_tleap()const;
 				void make_tleap_input(std::string const & o_file)const;
 				void call_chemshell(bool single_point = true) const;
@@ -125,6 +125,9 @@ namespace energy {
 						remove(dump.c_str());
 					}
 				}
+
+				void make_sp_inp(std::ofstream & ofs)const;
+				void make_opt_inp(std::ofstream & ofs)const;
 
 
 			};
