@@ -325,7 +325,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(
 
 coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extract_gradients(std::vector<coords::float_type> const & grads) const {
 	coords::Representation_3D new_grads;
-	for (auto b = grads.cbegin(); b != grads.cend(); b += 3) {
+	for (auto b = grads.cbegin(); b < grads.cend(); b += 3) {
 		new_grads.emplace_back(coords::Cartesian_Point(
 			*b,
 			*(b+1),
