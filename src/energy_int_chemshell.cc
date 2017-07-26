@@ -115,7 +115,8 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 		"        cutoff=" << cutoff << " \\\n"
 		"        scale14 = {1.2 2.0}\\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
-		"    energy = e\n"
+		"    energy=energy.energy\n"
+		"    gradient=energy.gradient\n"
 		"\n"
 		"\n"
 		"close $control_input_settings\n";
@@ -157,10 +158,10 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
 		"\n"
 		"\n"
-		"write_xyz file = ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
-		"read_pdb  file = ${ sys_name_id }.pdb  coords = dummy.coords\n"
-		"write_pdb file = ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
-		"write_xyz file = ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
+		"write_xyz file= ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
+		"read_pdb  file= ${ sys_name_id }.pdb  coords = dummy.coords\n"
+		"write_pdb file= ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
+		"write_xyz file= ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
 		"delete_object hybrid.${ qm_theory }.coords\n"
 		"catch {file delete dummy.coords}\n"
 		"\n"
@@ -432,7 +433,11 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 }
 
 void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
+
 void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&, bool const endline) const {}
+
 void energy::interfaces::chemshell::sysCallInterface::print_E_short(std::ostream&, bool const endline) const {}
+
 void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::ostream&, bool const aggregate) const {}
+
 void energy::interfaces::chemshell::sysCallInterface::to_stream(std::ostream&) const {}
