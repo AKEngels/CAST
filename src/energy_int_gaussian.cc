@@ -101,20 +101,23 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
       for (std::size_t i = 0; i < splitted_str.size(); i++)
       {
-        out_file << splitted_str[i] << '\n';
+        out_file << '%' << splitted_str[i] << '\n';
       }
       
     }
-    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec;
+    out_file << "# " << Config::get().energy.gaussian.method << " ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
-        out_file << " (Opt=Cartesian,Steep)";
+        out_file << " (Opt=Cartesian,Steep) ";
         break;
       case 'g' :
         out_file << " Force";
         break;
     }
+
+    out_file <<  " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec;
+
 
     out_file << '\n';
     out_file << '\n';
