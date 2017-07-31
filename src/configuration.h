@@ -584,6 +584,7 @@ namespace config
     } gaussian;
 
 	struct chemshell_conf {
+		std::string extra_pdb;
 		std::string path;
 		std::string babel_path;
 		std::string scheme;

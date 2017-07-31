@@ -33,12 +33,6 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 	xyz_file.close();
 }
 
-void energy::interfaces::chemshell::sysCallInterface::write_input(bool single_point) const {
-	
-	call_tleap();
-	write_chemshell_file(single_point);
-}
-
 void energy::interfaces::chemshell::sysCallInterface::call_tleap()const {
 	
 	make_tleap_input(tmp_file_name);
@@ -114,7 +108,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 		"        mxlist=" << mxlist << " \\\n"
 		"        cutoff=" << cutoff << " \\\n"
 		"        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"    energy=energy.energy\\\n"
 		"    gradient=energy.gradient\n"
 		"\n"
@@ -155,17 +149,30 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        mxlist=" << mxlist << " \\\n"
 		"        cutoff=" << cutoff << " \\\n"
 		"        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		"\n"
-		"write_xyz file= ${ sys_name_id }_opt.xyz coords = ${ sys_name_id }_opt.c\n"
-		"read_pdb  file= ${ sys_name_id }.pdb  coords = dummy.coords\n"
-		"write_pdb file= ${ sys_name_id }_opt.pdb coords = ${ sys_name_id }_opt.c\n"
-		"write_xyz file= ${ sys_name_id }_qm_region_opt.xyz coords = hybrid.${ qm_theory }.coords\n"
+		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
+		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
+		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
+		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
 		"delete_object hybrid.${ qm_theory }.coords\n"
 		"catch {file delete dummy.coords}\n"
 		"\n"
 		"close $control_input_settings\n";
+}
+
+void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const{
+	auto o_file = tmp_file_name + ".chm";
+
+	std::ofstream chemshell_file_to_prepare_coords(o_file);
+
+	chemshell_file_to_prepare_coords << "read_pdb file=${dir}/${sys_name_id}.pdb coords=${dir}/${sys_name_id}.c";
+
+	chemshell_file_to_prepare_coords.close();
+
+	actual_call();
+
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool const & sp) const {
@@ -191,14 +198,12 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"\n"
 		"set control_input_settings [ open control_input.${sys_name_id}  a ]\n"
 		"\n"
-		"read_pdb file=${dir}/${sys_name_id}.pdb coords=${dir}/${sys_name_id}.c\n"
-		"\n"
 		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=${sys_name_id}.c\n"
 		"\n"
 		"set embedding_scheme " << Config::get().energy.chemshell.scheme << "\n"
 		"\n"
 		"set qm_theory " << Config::get().energy.chemshell.qm_theory << "\n"
-		"puts $control_input_settings \" QM method: $qm_theory \"\n"
+	//	"puts $control_input_settings \" QM method: $qm_theory \"\n"
 		"\n"
 		"set qm_ham " << Config::get().energy.chemshell.qm_ham << "\n"
 		"\n"
@@ -210,8 +215,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"\n"
 		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n"
 		"\n"
-		"flush $control_input_settings\n"
-		"\n";
+	//	"flush $control_input_settings\n"
+	//	"\n"
+		;
 	if (sp) {
 		make_sp_inp(chem_shell_input_stream);
 	}
@@ -259,14 +265,11 @@ std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms()
 	return final_atoms;
 }
 
-/*std::vector<std::string> energy::interfaces::chemshell::sysCallInterface::parse_qm_atoms() const {
-
-}*/
 
 void energy::interfaces::chemshell::sysCallInterface::call_chemshell(bool singlepoint) const {
 	
-	create_pdb();
-	write_input(singlepoint);
+	//create_pdb();
+	write_chemshell_file(singlepoint);
 	actual_call();
 
 }
@@ -445,7 +448,9 @@ void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::os
 	coords->get_g_xyz(gradients);
 
 	for (auto const & grad : gradients) {
-		S << grad << "\n";
+
+		S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << grad << "\n";
+
 	}
 
 }
