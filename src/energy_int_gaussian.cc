@@ -109,7 +109,14 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
-        out_file << " Opt=Cartesian ";
+        if (Config::get().energy.gaussian.steep)
+        {
+          out_file << " Opt=(Cartesian,Steep) ";
+        }
+        else
+        {
+          out_file << " Opt=Cartesian ";
+        }
         break;
       case 'g' :
         out_file << " Force";

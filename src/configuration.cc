@@ -571,6 +571,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.multipl = value_string;
     else if (option.substr(8, 4) == "path")
       Config::set().energy.gaussian.path = value_string;
+    else if (option.substr(8, 4) == "steep")
+      Config::set().energy.gaussian.steep = bool_from_iss(cv);
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }

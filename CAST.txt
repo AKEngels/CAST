@@ -152,6 +152,10 @@ GAUSSIANcharge          0
 
 GAUSSIANmultiplicity    1
 
+#Gaussian optimization with steepest descend
+
+GAUSSIANsteep          1
+
 #Gaussian executeable path
 
 GAUSSIANpath            g09
