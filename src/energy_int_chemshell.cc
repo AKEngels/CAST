@@ -226,7 +226,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"set embedding_scheme " << Config::get().energy.chemshell.scheme << "\n"
 		"\n"
 		"set qm_theory " << Config::get().energy.chemshell.qm_theory << "\n"
-	//	"puts $control_input_settings \" QM method: $qm_theory \"\n"
+		//	"puts $control_input_settings \" QM method: $qm_theory \"\n"
 		"\n"
 		"set qm_ham " << Config::get().energy.chemshell.qm_ham << "\n"
 		"\n"
@@ -236,8 +236,16 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"\n"
 		"set qm_atoms  { " << Config::get().energy.chemshell.qm_atoms << " }\n"
 		"\n"
-		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n"
-		"\n"
+		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n";
+	//Refactoring NEEDED!!!!!!
+	auto const & cov_res = Config::get().energy.chemshell.cov_residues;
+	
+	if (cov_res != "") {
+		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << cov_res << "} target= MOX ]\n";
+	}
+	else {
+		chem_shell_input_stream << "\n";
+	}
 	//	"flush $control_input_settings\n"
 	//	"\n"
 		;

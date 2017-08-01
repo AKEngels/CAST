@@ -600,6 +600,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "qm_charge") {
 		  Config::set().energy.chemshell.qm_charge = value_string;
 	  }
+	  else if (sub_option == "cov_residues") {
+		  Config::set().energy.chemshell.cov_residues = value_string;
+	  }
 	  else if (sub_option == "qm_atoms") {
 		  Config::set().energy.chemshell.qm_atoms = value_string;
 	  }
