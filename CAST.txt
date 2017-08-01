@@ -152,7 +152,7 @@ GAUSSIANcharge          0
 
 GAUSSIANmultiplicity    1
 
-#Gaussian optimization with steepest descend
+#Gaussian optimization with steepest descend (Newton-Raphson-Algorithm)
 
 GAUSSIANsteep          1
 
