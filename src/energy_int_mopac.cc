@@ -168,7 +168,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   {
     std::string const alt_infile(std::string(id).append(".xyz.out"));
     remove(std::string(id).append(".xyz.arc").c_str());
-    if (Config::get().general.verbosity >= 3)
+    if (Config::get().general.verbosity > 4)
     {
       std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.";
     }
