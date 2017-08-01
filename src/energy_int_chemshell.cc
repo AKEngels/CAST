@@ -188,7 +188,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 
 	std::ofstream chemshell_file_to_prepare_coords(o_file);
 
-	chemshell_file_to_prepare_coords << "read_pdb file=./${sys_name_id}.pdb coords=./${sys_name_id}.c";
+	chemshell_file_to_prepare_coords << 
+		"set sys_name_id " << tmp_file_name << "\n"
+		"read_pdb file=./${sys_name_id}.pdb coords=./${sys_name_id}.c";
 
 	chemshell_file_to_prepare_coords.close();
 
