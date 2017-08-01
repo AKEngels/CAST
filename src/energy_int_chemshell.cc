@@ -11,6 +11,27 @@ auto zip(T && a, U && b) {
 	return std::move(ret_vec);
 }
 
+void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_use()const {
+	//Fails if coordinates are not known until this point
+	if (Config::get().energy.chemshell.extra_pdb == "") {
+		create_pdb();
+	}
+	//How to deal with coordinates...
+	else {
+		std::stringstream ss;
+		ss << "cp " << Config::get().energy.chemshell.extra_pdb << " " << tmp_file_name << ".pdb";
+
+		auto ret = scon::system_call(ss.str());
+
+		if (ret) {
+			throw std::runtime_error("Failed to call babel!");
+		}
+	}
+	//TODO: Hopefully needs to be called only once so try!
+	call_tleap();
+	write_chemshell_coords();
+}
+
 void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
 	
 	write_xyz(tmp_file_name + ".xyz");
@@ -417,18 +438,22 @@ energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(c
 void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
+	check_for_first_call();
 	make_sp();
 	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
+	check_for_first_call();
 	make_sp();
 	read_gradients("energy");
 	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
+	check_for_first_call();
 	return 0.0; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
+	check_for_first_call();
 	make_opti();
 	read_gradients("dl-find");
 	read_coords("dl-find");

@@ -45,24 +45,7 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 
-					if (Config::get().energy.chemshell.extra_pdb == "") {
-						create_pdb();
-					}
-					//How to deal with coordinates...
-					//May fail if coordinates are not known until this point
-					else {
-						std::stringstream ss;
-						ss << "cp " << Config::get().energy.chemshell.extra_pdb << " " << tmp_file_name << ".pdb";
-
-						auto ret = scon::system_call(ss.str());
-
-						if (ret) {
-							throw std::runtime_error("Failed to call babel!");
-						}
-					}
-					//TODO: Hopefully needs to be called only once so try!
-					call_tleap();
-					write_chemshell_coords();
+					
 				}
 				~sysCallInterface() final {
 					if (Config::get().energy.gaussian.delete_input)
@@ -96,7 +79,8 @@ namespace energy {
 
 			private:
 				std::string tmp_file_name;
-				
+				bool first_call=true;
+
 				void create_pdb() const;
 				void write_xyz(std::string const & os) const;
 				void write_chemshell_coords()const;
@@ -119,6 +103,14 @@ namespace energy {
 
 				void make_sp()const;
 				void make_opti()const;
+				void initialize_before_first_use()const;
+				inline void check_for_first_call() {
+					if (first_call) {
+						first_call = false;
+						initialize_before_first_use();
+					}
+				}
+
 				void get_rid_of_dump_files()const {
 
 					std::vector<std::string> dump_files;
