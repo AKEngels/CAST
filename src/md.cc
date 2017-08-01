@@ -438,86 +438,13 @@ void md::simulation::init(void)
 	}
   using std::abs;
   std::size_t const N = coordobj.size();
-  static double const twopi = 2.0*md::PI;
-  double const twokbT = 2.0*md::kB*Config::get().md.T_init;
-  M_total = 0;
-  V.resize(N);
-  F.resize(N);
-  M.resize(N);
-  P_start = coordobj.xyz();
-  auto dist01 = std::uniform_real_distribution<double>{0,1};
-  for (std::size_t i = 0; i<N; ++i)
-  {
-    // Get Atom Mass
-    M[i] = coordobj.atoms(i).mass();
-    // Sum total Mass
-    M_total += M[i];
-    // Set initial velocities to zero if fixed
-    if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0)) V[i] = coords::Cartesian_Point(0);
-    // initialize random velocities otherwise
-    else
-    { //ratioRoot = sqrt ( 2*kB*T / m )
-      double const ratio(twopi*std::sqrt(twokbT / M[i]));
-      V[i].x() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-        std::cos(scon::random::threaded_rand(dist01)*ratio));
-      V[i].y() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-        std::cos(scon::random::threaded_rand(dist01)*ratio));
-      V[i].z() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-        std::cos(scon::random::threaded_rand(dist01)*ratio));
-
-      if (Config::get().general.verbosity > 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << " with rr: " << ratio << std::endl;
-    }
-    // sum position vectors for geometrical center
-    C_geo += coordobj.xyz(i);
-  }
-  // get degrees of freedom
-  freedom = 3U * N;
-  if (Config::get().md.T_init != 0.0)
-  {
-	  //calculate temperature
-	  double tempfactor(2.0 / (freedom*md::R));
-	  updateEkin();
-	  temp = E_kin * tempfactor;
-	  // scale temperature
-	  for (std::size_t i = 0; i < N; ++i)
-	  {
-		  if (!coordobj.atoms(i).fixed())
-		  {
-			  V[i].x() = V[i].x()*pow(Config::get().md.T_init / temp, 0.5);
-			  V[i].y() = V[i].y()*pow(Config::get().md.T_init / temp, 0.5);
-			  V[i].z() = V[i].z()*pow(Config::get().md.T_init / temp, 0.5);
-		  }  
-	  }
-  }
-  
-  // Set up rattle vector for constraints
-  if (Config::get().md.rattle.use == true)
-  {
-	  rattlesetup();
-  }
-  // constraint degrees of freedom
-  if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
-  // periodics and isothermal cases
-  if (Config::get().md.hooverHeatBath == true)
-  {
-    if (Config::get().energy.periodic == true) freedom -= 3;
-    else freedom -= 6;
-  }
-  if (Config::get().general.verbosity > 2U) std::cout << "Degrees of freedom: " << freedom << std::endl;
-  // calc number of steps between snapshots (gap between snapshots)
-  snapGap = gap(Config::get().md.num_steps, Config::get().md.num_snapShots);
-  // scale geometrical center vector by number of atoms
-  C_geo /= static_cast<double>(N);
-  // call center of Mass method from coordinates object
-  C_mass = coordobj.center_of_mass();
-
   // things for biased potentials
   inner_atoms.clear();    // in case of more than one MD, e.g. for an FEP calculation
-  atoms_movable.clear();    
+  atoms_movable.clear();
   if (Config::get().md.set_active_center == 1)
   {
 	  distances = init_active_center(0);   //calculate initial active center and distances to active center
-	  
+
 	  for (int i(0U); i < N; ++i)  // determine which atoms are moved
 	  {
 		  if (distances[i] <= Config::get().md.outer_cutoff)
@@ -541,6 +468,64 @@ void md::simulation::init(void)
 		  atoms_movable.push_back(i);
 	  }
   }
+
+  // temperature stuff
+  M_total = 0;
+  V.resize(N);
+  F.resize(N);
+  M.resize(N);
+  P_start = coordobj.xyz();
+
+  std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+  auto dist01 = std::normal_distribution<double>{0,1}; // normal distribution with mean=0 and standard deviation=1
+  for (std::size_t i = 0; i<N; ++i)
+  {
+    // Get Atom Mass
+    M[i] = coordobj.atoms(i).mass();
+    // Sum total Mass
+    M_total += M[i];
+    // Set initial velocities to zero if fixed or not movable
+	if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0) || std::find(atoms_movable.begin(), atoms_movable.end(), i) == atoms_movable.end())
+	{
+		V[i] = coords::Cartesian_Point(0);
+	}
+    // initialize random velocities otherwise (Maxwell Boltzmann distribution, see http://research.chem.psu.edu/shsgroup/chem647/newNotes/node6.html)
+    else
+    { 
+      V[i].x() = dist01(generator) * std::sqrt(kB*T / M[i]);
+	  V[i].y() = dist01(generator) * std::sqrt(kB*T / M[i]);
+	  V[i].z() = dist01(generator) * std::sqrt(kB*T / M[i]);
+
+	  if (Config::get().general.verbosity > 4U) std::cout << "Initial Velocity of " << i << " is " << V[i] << "\n";
+    }
+    // sum position vectors for geometrical center
+    C_geo += coordobj.xyz(i);
+  }
+  // get degrees of freedom
+  freedom = 3U * N;
+  
+  // Set up rattle vector for constraints
+  if (Config::get().md.rattle.use == true)
+  {
+	  rattlesetup();
+  }
+  // constraint degrees of freedom
+  if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
+  // periodics and isothermal cases
+  if (Config::get().md.hooverHeatBath == true)
+  {
+    if (Config::get().energy.periodic == true) freedom -= 3;
+    else freedom -= 6;
+  }
+  if (Config::get().general.verbosity > 2U) std::cout << "Degrees of freedom: " << freedom << std::endl;
+  // calc number of steps between snapshots (gap between snapshots)
+  snapGap = gap(Config::get().md.num_steps, Config::get().md.num_snapShots);
+  // scale geometrical center vector by number of atoms
+  C_geo /= static_cast<double>(N);
+  // call center of Mass method from coordinates object
+  C_mass = coordobj.center_of_mass();
+
+  
 }
 
 // If FEP calculation is requested: calculate lambda values for each window
