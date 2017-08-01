@@ -440,7 +440,7 @@ void md::simulation::init(void)
   std::size_t const N = coordobj.size();
   // things for biased potentials
   inner_atoms.clear();    // in case of more than one MD, e.g. for an FEP calculation
-  atoms_movable.clear();
+  movable_atoms.clear();
   if (Config::get().md.set_active_center == 1)
   {
 	  distances = init_active_center(0);   //calculate initial active center and distances to active center
@@ -449,7 +449,7 @@ void md::simulation::init(void)
 	  {
 		  if (distances[i] <= Config::get().md.outer_cutoff)
 		  {
-			  atoms_movable.push_back(i);
+			  movable_atoms.push_back(i);
 		  }
 		  else   // set velocities of atoms that are not moved to zero
 		  {
@@ -465,7 +465,7 @@ void md::simulation::init(void)
   {
 	  for (int i(0U); i < N; ++i)
 	  {
-		  atoms_movable.push_back(i);
+		  movable_atoms.push_back(i);
 	  }
   }
 
@@ -485,7 +485,7 @@ void md::simulation::init(void)
     // Sum total Mass
     M_total += M[i];
     // Set initial velocities to zero if fixed or not movable
-	if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0) || std::find(atoms_movable.begin(), atoms_movable.end(), i) == atoms_movable.end())
+	if (coordobj.atoms(i).fixed() || !(abs(Config::get().md.T_init) > 0.0) || std::find(movable_atoms.begin(), movable_atoms.end(), i) == movable_atoms.end())
 	{
 		V[i] = coords::Cartesian_Point(0);
 	}
@@ -1107,7 +1107,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 			double T_factor = (2.0 / (dof*md::R));
 			temp = E_kin*T_factor;           // temperature of inner atoms
 			factor = std::sqrt(T / temp);    // temperature scaling factor
-			for (auto i: atoms_movable) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+			for (auto i: movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
 			if (half == false)
 			{
 				updateEkin_some_atoms(inner_atoms);
@@ -1295,7 +1295,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // save old coordinates
     P_old = coordobj.xyz();
     // Calculate new positions and half step velocities
-    for (auto i : atoms_movable)
+    for (auto i : movable_atoms)
     {
       // calc acceleration
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
@@ -1337,12 +1337,12 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
 	if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1) 
 	{
 		distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
-		atoms_movable.clear();            // determine again which atoms are moved
+		movable_atoms.clear();            // determine again which atoms are moved
 		for (int i(0U); i < N; ++i)
 		{
 			if (distances[i] <= outer_cutoff)
 			{
-				atoms_movable.push_back(i);
+				movable_atoms.push_back(i);
 			}
 			else
 			{
@@ -1370,7 +1370,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     boundary_adjustments();
     // add new acceleration and calculate full step velocities
 	inner_atoms.clear();
-    for (auto i: atoms_movable)
+    for (auto i: movable_atoms)
     {
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
       V[i] += acceleration*dt_2;
@@ -1489,7 +1489,7 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 		P_old = coordobj.xyz();
 
 		// Calculate new positions and half step velocities
-		for (auto i: atoms_movable)
+		for (auto i: movable_atoms)
 		{
 			// calc acceleration
 			coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
@@ -1530,12 +1530,12 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 		if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
 		{
 			distances = init_active_center(static_cast<int>(k)); 
-			atoms_movable.clear();            // determine again which atoms are moved
+			movable_atoms.clear();            // determine again which atoms are moved
 			for (int i(0U); i < N; ++i)
 			{
 				if (distances[i] <= outer_cutoff)
 				{
-					atoms_movable.push_back(i);
+					movable_atoms.push_back(i);
 				}
 				else
 				{
@@ -1569,7 +1569,7 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
 
 		// add new acceleration and calculate full step velocities
 		inner_atoms.clear();
-		for (auto i: atoms_movable)
+		for (auto i: movable_atoms)
 		{
 			coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
 			coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
