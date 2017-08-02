@@ -416,6 +416,19 @@ coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_co
 	return cp;
 }
 
+void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz) {
+	coords->set_xyz(xyz);
+
+	std::stringstream ss;
+	ss << "mv " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
+
+	auto ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to replace unoptimzed .c file with the optimized one.");
+	}
+}
+
 void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what) {
 	std::ifstream ifile(what+".coo");
 
@@ -437,7 +450,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string co
 		}
 	}
 
-	coords->set_xyz(xyz);
+	make_optimized_coords_to_actual_coords(xyz);
 
 	ifile.close();
 }
