@@ -170,8 +170,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        mxlist=" << mxlist << " \\\n"
 		"        cutoff=" << cutoff << " \\\n"
 		"        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \n"
-		"\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
 		"\n"
 		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
 		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
@@ -241,7 +240,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 	auto const & cov_res = Config::get().energy.chemshell.cov_residues;
 	
 	if (cov_res != "") {
-		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << cov_res << "} target= MOX ]\n";
+		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << cov_res << "} target= MOX ]\n\n";
 	}
 	else {
 		chem_shell_input_stream << "\n";
