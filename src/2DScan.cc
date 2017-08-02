@@ -30,57 +30,7 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 	}
 	std::cout << "\n";
 
-	//std::cout << "X-Axis: " << parser.x_parser->say_val() << "\n";
-	//std::cout << "Y-Axis: " << parser.y_parser->say_val() << "\n";
-
 	make_scan(parser, axis);
-
-	/*
-	Scan2D::bond bond(xyz[3], xyz[2]);
-	Scan2D::angle angle(xyz[3], xyz[2], xyz[1]);
-	Scan2D::dihedral dih(xyz[3], xyz[2], xyz[1], xyz[0]);
-
-	std::cout << get_length(bond) << std::endl;
-	std::cout << get_angle(angle) << std::endl;
-	std::cout << get_dihedral(dih) << std::endl;
-
-
-	xyz[3] = rotate_a_to_new_dihedral(dih, 120.0);
-
-	std::cout << get_length(bond) << std::endl;
-	std::cout << get_angle(angle) << std::endl;
-	std::cout << get_dihedral(dih) << std::endl;
-
-	xyz[3] = rotate_a_to_new_angle(angle, 140.0);
-	
-	std::cout << get_length(bond) << std::endl;
-	std::cout << get_angle(angle) << std::endl;
-	std::cout << get_dihedral(dih) << std::endl;
-
-	xyz[3] = change_length_of_bond(bond, 1.0);
-
-	std::cout << get_length(bond) << std::endl;
-	std::cout << get_angle(angle) << std::endl;
-	std::cout << get_dihedral(dih) << std::endl;*/
-
-	/*std::cout << x_axis.what_kind << " with atoms: ";
-	for (auto && el : x_axis.atoms) {
-		std::cout << el << " ";
-	}
-
-	std::cout << "\n" << x_axis.to_position << " " << x_axis.scans << std::endl;
-
-	std::cout << "\n\n";
-
-	std::cout << y_axis.what_kind << "with atoms: ";
-	for (auto && el : y_axis.atoms) {
-		std::cout << el << " ";
-	}
-
-	std::cout << "\n" << y_axis.to_position << " " << y_axis.scans << std::endl;
-	*/
-
-	//std::cout << _coords.intern() << std::endl;
 
 }
 

@@ -44,7 +44,7 @@ namespace energy {
 					std::srand(std::time(0));
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
-
+					first_call = true;
 					
 				}
 				~sysCallInterface() final {
@@ -53,7 +53,14 @@ namespace energy {
 						get_rid_of_dump_files();
 					}
 				};
-				sysCallInterface(sysCallInterface const & other) = default;
+				sysCallInterface(sysCallInterface const & other) {
+					optimizer = true;
+					std::stringstream ss;
+					std::srand(std::time(0));
+					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
+					tmp_file_name.append("_tmp_").append(ss.str());
+					first_call = true;
+				};
 				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
 					: interface_base(coord) {
 					interface_base::operator=(other);
@@ -79,7 +86,7 @@ namespace energy {
 
 			private:
 				std::string tmp_file_name;
-				bool first_call=true;
+				bool first_call;
 
 				void create_pdb() const;
 				void write_xyz(std::string const & os) const;
