@@ -67,6 +67,7 @@ public:
 	};
 
 	Scan2D(coords::Coordinates & coords);
+	~Scan2D();
 
 	static length_type get_length(bond const & ab);
 	static angle_type get_angle(angle const & abc);
@@ -161,6 +162,8 @@ private:
 	int x_circle = 0;
 	int y_circle = 0;
 
+	std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");
+	std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");
 };
 
 #endif

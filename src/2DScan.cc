@@ -7,6 +7,9 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 		throw std::runtime_error("You can't pass more than two axis!");
 	}
 
+	logfile.open(structures_file);
+	energies.open(energie_file);
+
 	auto x_input_parser = parse_input(both_whats.front());
 	auto y_input_parser = parse_input(both_whats.back());
 
@@ -22,6 +25,11 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 
 	make_scan(parser, axis);
 
+}
+
+Scan2D::~Scan2D() {
+	logfile.close();
+	energies.close();
 }
 
 void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) {
@@ -189,9 +197,6 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const 
 void Scan2D::make_scan(Scan2D::XY_Parser const & parser, Scan2D::XY_steps const & steps) {
 
 	prepare_scan(parser);
-
-	logfile.open("Test.log");
-	energies.open("ENERGIES.dat");
 	
 	coords::output::formats::tinker output(_coords);
 	parser.x_parser->set_coords(_coords.xyz());
@@ -216,9 +221,6 @@ void Scan2D::make_scan(Scan2D::XY_Parser const & parser, Scan2D::XY_steps const 
 		
 		output.to_stream(logfile);
 	}
-
-	energies.close();
-	logfile.close();
 
 }
 
