@@ -59,6 +59,7 @@ namespace energy {
 					std::srand(std::time(0));
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
+					first_call = other.first_call;
 
 					change_input_file_names(other.tmp_file_name);
 				};
