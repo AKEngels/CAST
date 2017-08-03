@@ -59,8 +59,12 @@ namespace energy {
 					std::srand(std::time(0));
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
-					first_call = true;
+
+					change_input_file_names(other.tmp_file_name);
 				};
+
+				sysCallInterface(sysCallInterface && other) = default;
+
 				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
 					: interface_base(coord) {
 					interface_base::operator=(other);
@@ -108,6 +112,8 @@ namespace energy {
 				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
 				void make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz);
 				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const & grads) const;
+
+				void change_input_file_names(std::string const & filename, std::string const & copy_or_move = "cp")const;
 
 				void make_sp()const;
 				void make_opti()const;

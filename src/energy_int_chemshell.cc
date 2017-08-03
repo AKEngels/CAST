@@ -27,9 +27,8 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 			throw std::runtime_error("Failed to call babel!");
 		}
 	}
-	//TODO: Hopefully needs to be called only once so try!
+	//TODO: Hopefully needs to be called only once so try! <- Antechamber fails the second time it is called ...
 	call_tleap();
-	write_chemshell_coords();
 }
 
 void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
@@ -184,6 +183,25 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"close $control_input_settings\n";
 }
 
+void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const {
+
+	auto o_file = tmp_file_name + ".chm";
+	write_xyz(tmp_file_name + ".xyz");
+
+	std::ofstream chemshell_file_to_prepare_coords(o_file);
+
+	chemshell_file_to_prepare_coords <<
+		"set sys_name_id " << tmp_file_name << "\n"
+		"read_xyz file=./${sys_name_id}.xyz coords=./${sys_name_id}.c";
+
+	chemshell_file_to_prepare_coords.close();
+
+	actual_call();
+
+}
+
+
+/*
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const{
 	auto o_file = tmp_file_name + ".chm";
 
@@ -198,7 +216,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 	actual_call();
 
 }
-
+*/
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool const & sp) const {
 	
 	//auto qm_atoms = parse_qm_atoms();
@@ -429,6 +447,40 @@ void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_a
 	}
 }
 
+void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(std::string const & filename, std::string const & copy_or_move) const {
+
+	std::string what_happens = copy_or_move == "cp" ? "copy" : "move";
+
+	std::stringstream ss;
+	ss << copy_or_move << " " << filename << ".c " << tmp_file_name << ".c";
+
+	auto ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to " + what_happens + " the old .c file.");
+	}
+
+	std::stringstream().swap(ss);
+
+	ss << copy_or_move << " " << filename << ".prmtop " << tmp_file_name << ".prmtop";
+
+	ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to " + what_happens + " the old .prmtop file.");
+	}
+
+	std::stringstream().swap(ss);
+
+	ss << copy_or_move << " " << filename << ".inpcrd " << tmp_file_name << ".inpcrd";
+
+	ret = scon::system_call(ss.str());
+
+	if (ret) {
+		throw std::runtime_error("Failed to " + what_happens + " the old .inpcrd file.");
+	}
+}
+
 void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what) {
 	std::ifstream ifile(what+".coo");
 
@@ -463,21 +515,25 @@ void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_top
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
 	check_for_first_call();
+	write_chemshell_coords();
 	make_sp();
 	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	check_for_first_call();
+	write_chemshell_coords();
 	make_sp();
 	read_gradients("energy");
 	return read_energy("energy");
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	check_for_first_call();
+	write_chemshell_coords();
 	return 0.0; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	check_for_first_call();
+	write_chemshell_coords();
 	make_opti();
 	read_gradients("dl-find");
 	read_coords("dl-find");

@@ -20,16 +20,6 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 
 	XY_steps axis(x_changes, y_changes);
 
-	for (auto && el : axis.x_steps) {
-		std::cout << el << " ";
-	}
-	std::cout << "\n";
-
-	for (auto && el : axis.y_steps) {
-		std::cout << el << " ";
-	}
-	std::cout << "\n";
-
 	make_scan(parser, axis);
 
 }
