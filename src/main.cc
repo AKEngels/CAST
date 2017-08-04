@@ -393,11 +393,12 @@ int main(int argc, char **argv)
         {
           startopt::apply(coords, ci->PES());
         }
-        std::ofstream test("test.txt");
+std::ofstream test("test.txt");
 test << "1" << "\n";
         optimization::global::optimizers::tabuSearch gots(coords, ci->PES());
-test.close();
+
         gots.run(Config::get().optimization.global.iterations, true);
+test.close();
         gots.write_range("_TS");
         break;
       }
