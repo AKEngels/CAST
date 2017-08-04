@@ -476,7 +476,7 @@ namespace entropy
     return entropy_sho;
   }
 
-  float_type TrajectoryMatrixRepresentation::knapp(float_type const temperatureInKelvin, size_t const k, bool removeDOF)
+  float_type TrajectoryMatrixRepresentation::knapp(float_type const temperatureInKelvin, size_t const k_kNN, bool removeDOF)
   {
 #ifdef _OPENMP
     Matrix_Class input(coordsMatrix);
@@ -547,16 +547,16 @@ namespace entropy
     // II. Calculate Non-Paramteric Entropies
     // Marginal
 #ifdef _OPENMP
-#pragma omp parallel for firstprivate(pca_modes, k) shared(entropy_anharmonic, entropy_mi)
+#pragma omp parallel for firstprivate(pca_modes, k_kNN) shared(entropy_anharmonic, entropy_mi)
 #endif
     for (int i = 0; i < (int)pca_modes.rows(); i++)
     {
-      float_type* buffer = new float_type[k];
+      float_type* buffer = new float_type[k_kNN];
       float_type distance = 0.0;
       {
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(pca_modes, 1, k, i, k, buffer)));
+          distance += log(sqrt(knn_distance(pca_modes, 1, k_kNN, i, k, buffer)));
         }
       }
       distance /= float_type(pca_modes.cols());
@@ -564,9 +564,9 @@ namespace entropy
       temp /= tgamma((1 / 2) + 1);
       distance += log(temp);
       temp = 0;
-      if (k != 1u)
+      if (k_kNN != 1u)
       {
-        for (size_t l = 1; l < k; l++)
+        for (size_t l = 1; l < k_kNN; l++)
         {
           temp += 1.0 / float_type(l);
         }
@@ -583,7 +583,7 @@ namespace entropy
         std::vector<size_t> query_rows{ (size_t)i,j };
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(pca_modes, 2, k, query_rows, k, buffer)));
+          distance += log(sqrt(knn_distance(pca_modes, 2, k_kNN, query_rows, k, buffer)));
         }
 
         distance /= 2 * float_type(pca_modes.cols());
@@ -591,9 +591,9 @@ namespace entropy
 
         distance += log(temp2);
         temp2 = 0;
-        if (k != 1)
+        if (k_kNN != 1)
         {
-          for (size_t u = 1; u < k; u++)
+          for (size_t u = 1; u < k_kNN; u++)
           {
             temp2 += 1.0 / float_type(u);
           }
