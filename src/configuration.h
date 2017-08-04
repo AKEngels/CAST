@@ -230,13 +230,15 @@ namespace config
     interface_types::T preopt_interface;
     /**Verbosity of the output of CAST (supposed to be between 0 and 5)*/
     std::size_t verbosity;
+    /**are amber charges read from a seperate file?*/
+    bool chargefile;
     /// Constructor with reasonable default parameters
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
       input(input_types::TINKER), output(output_types::TINKER),
       task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
       preopt_interface(interface_types::ILLEGAL),
-      verbosity(1U)
+      verbosity(1U), chargefile(false)
     { }
   };
 

@@ -379,7 +379,7 @@ void coords::Atoms::refine_internals()
 }
 
 
-void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const Atomnr,
+void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
   size_1d &molecule, std::size_t &index_size, std::vector<bool> &done)
 {
   std::size_t const nBound = m_atoms[A].bonds().size();
