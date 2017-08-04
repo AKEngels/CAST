@@ -394,9 +394,9 @@ int main(int argc, char **argv)
           startopt::apply(coords, ci->PES());
         }
         std::ofstream test("test.txt");
-        test << "1" << "\n";
-        test.close();
+test << "1" << "\n";
         optimization::global::optimizers::tabuSearch gots(coords, ci->PES());
+test.close();
         gots.run(Config::get().optimization.global.iterations, true);
         gots.write_range("_TS");
         break;
