@@ -199,7 +199,6 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	
 	cPtr->set_xyz(positions);
 
-	this->cPtr->mult_struc_counter=0;
 	//this->cPtr->biascontrol=true;
 	this->cPtr->NEB_control=false;
 	

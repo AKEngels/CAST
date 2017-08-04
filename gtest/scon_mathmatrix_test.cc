@@ -250,4 +250,31 @@ TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
 
 }
 
+TEST(mathmatrix, choleskyDecomposition)
+{
+  mathmatrix<float> one(3u, 3u, 0.f);
+  one(0, 0) = 2.;
+  one(1, 0) = -1.;
+  one(1, 1) = 2;
+  one(2, 2) = 2;
+  one(0, 1) = -1;
+  one(2, 1) = -1.;
+  one(1, 2) = -1;
+
+  mathmatrix<float> reference(3u, 3u, 0.f);
+  reference(0, 0) = 1.41421354e+00;
+  reference(0, 1) = -7.07106769e-01;
+  reference(1, 1) = 1.22474492e+00;
+  reference(1, 2) = -8.16496551e-01;
+  reference(2, 2) = 1.15470052e+00;
+
+  mathmatrix<float> result;
+  one.choleskyDecomposition(result);
+
+  for (int i = 0; i < result.rows(); i++)
+    for (int j = i; j < result.rows(); j++)
+      ASSERT_FLOAT_EQ(result(i, j), reference(i, j));
+
+}
+
 #endif

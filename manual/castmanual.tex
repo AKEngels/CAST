@@ -10,6 +10,7 @@
 \usepackage{amsmath} %math
 \usepackage{bm} %VECTOR BOLD AND ITALIC
 \usepackage{tabularx} %BETTER TABLES THROUGH tabularx
+\usepackage{longtable} %table over more than one page
 \usepackage{listings} %ENABLE (SOURCE) CODE LISTINGS
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
 \usepackage{graphicx} %LATEX CANT MANAGE IMAGES, SO WE NEED THIS
@@ -376,26 +377,25 @@
 \item The input file type has to be set to ``AMBER''.
 \item The right option for your AMBER coordinate filetype has to be activated. For restart-files, this is ``amber\_restrt''. For mdcrd-files the right option is ``amber\_mdcrd''. If you use mdcrd-files generated at constant pressure, set the configoption ``amber\_trajectory\_at\_constant\_pressure'' to \textit{true}. Inpcrd-files are currently not supported.
 \item The energy interface has to be set to ``AMBER'', too.
-\item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff\_big.prm''.
+\item The parameter file has to be the tinker-adapted amber parameter file ``amber99.prm'' or - if there are gaff atom types in your structure - to ``amber99\_gaff\_nocharge.prm''.
 \end{itemize}
 
-The coordinate file should look like this:
+For the coordinate file there are several options (see above). An AMBER \textbf{restart file }should look like this:
 \begin{itemize}
-\item The first line contains either a title or the number of atoms in the structure.
-\item If the first line is a title the number of atoms is found in the second line.
+\item The first line contains the title..
+\item The second number contains the number of atoms.
 \item The rest of the lines contain the coordinates. In each line (except the last in case of an odd number of atoms) there are the coordinates of two atoms in the order x y z x y z where each number has a width of 12.
 \item In the last line there might be box parameters also in the format x y z x y z or not.
 \end{itemize}
 
-If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code.
+If you encounter some problems with \ac{AMBER} files the most probable reason is that some of the atom types in your prmtop-file are not recognized. This has to be corrected in the \ac{CAST} code, namely in the function ``amberUtil::toTinkerType'' in file ``coords\_io\_AMBER.cc''.
 
-\paragraph{\textit{GAFF}}
+\paragraph{Charges}
 
-\textit{As \ac{AMBER} is compatible with gaff \ac{CAST} can also process structures that contain GAFF atom types. All atom types and structure features from the gaff.dat file are also implemented in the ``amber99\_gaff\_big.prm''. However not all of them are recognized by CAST. In order to recognize a gaff atom type you have to do the following:}
+In contrast to other forcefields (and the ``normal'' design of CAST) amber atom types originally don't have a charge parameter but the charge of every atom is written in the .prmtop file. So the parameter file ``amber99\_gaff\_nocharge.prm'' doesn't contain a charge section but the charges are taken from the .prmtop file. However it is theoretically possible to use the AMBER forcefield together with a tinkerstructure. Then you have two options:
 \begin{itemize}
-\item \textit{Go to the file ``coords\_io\_AMBER.cc'' and add the atom type to the function ``amberUtil::toTinkerType''. The number that is returned must be the number of the atom type in the .prm file (something between 3000 and 3070).}
-\item \textit{Add the number of bonding partners of the atom type in place of the last question mark in the corresponding atom-line in the .prm file.} 
-\item \textit{Add the charge of the atom type in place of the question marks in the corresponding charge-line in the .prm file. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.}
+\item If you deactivate the option ``chargefile'' you need a TINKER-like forcefield with a charge section. A prototype of this is ``amber99\_gaff\_charge.prm''. The charges for atom types 1 to 2012 are provided by TINKER so it should not be necessary to change them. You have however to fill out the charge parameters for gaff atom types (3000 to 3070) that are present in your structure. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.
+\item If you activate the option ``chargefile'' the charges are taken from a file called ``charges.txt'' that is structured like the file described before but without dividing the charges by 18.2223. You get such a file by running the script ``amber\_find\_atomnumber\_and\_ambercharge.py'' over a .prmtop file.
 \end{itemize}
 
 	%%%% TASKS %%%%
@@ -456,7 +456,7 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 	\subsection{MD - Molecular Dynamics}
 	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). 
 
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
@@ -465,37 +465,35 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
-		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}
+		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense
 		 & integer [0] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
-		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
+		\textbf{MDrestart\_if\_broken} & CAST tests after every MD step if all bonds are still intact. If this option is set to zero it just tells you (assuming the verbosity is high enough) which bonds are broken and the simulation continues. This will most probably lead to an explosion of your molecule and the breaking of the simulation. If this option is however set to 1 after recognising broken bonds the coordinates of all atoms are set to the original coordinates at the beginning of the simulation and new random velocities are assigned (according to the currently desired temperature, i.\,e. if you've applied a gradient the gradient won't start again but the temperature will continue to act how you would expect it if the simulation had run normally). This will prevent the simulation from breaking. & integer [0] \\
+		\textbf{MDtrack} & Track MD and write output\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [1] \\
 		\textbf{MDtrackoffset} & Offset for tracked MD output (in frames, every \textit{n}'th frame will be written)& integer [1] \\
 		\textbf{MDsnap} & Number of snapshots & integer [100] \\
 		\textbf{MDsnap\_buffer} & Number of snapshots saved in memory before written to file & integer [50] \\
 		\textbf{MDsnap\_opt} & Optimize snapshots with chosen energy interface\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} & integer [0] \\
-		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & integer, float [0 0.0]\\
+		\textbf{MDheat}  & Apply Heating \begin{itemize}\item1st value: snapshot number\item2nd value: temperature at snapshot\end{itemize} & none\\
 		\textbf{MDpress} & Enable pressure control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0]\\
-		\textbf{MDpcompress} & \ifdevmode \colorbox{red}{i dont know what this is} \fi & float [0.000046 (value for water)] \\ 
-	\end{tabularx} ~\\ 
-	
-	\begin{tabularx}{\textwidth}{l|X|X}
+		\textbf{MDpcompress} & isothermal compressibility in bar\textsuperscript{-1} & float [0.000046 (value for water)] \\ 
 		\textbf{MDpdelay} & Barostat delay in picoseconds & float [2.0]\\
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
-		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [0, 20.0, 20.1, 10.0, 10.0, 2.0, 4.0] (\textit{details below}) \\
-		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds\ifdevmode \item 2 = specific bonds (\textit{see below}) \fi\end{itemize} & integer [0] \\
-		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds & string [none] \ifdevmode \colorbox{red}{example or something?} \\
-		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} when MDRattle = 2 fixation & integer, integer [none] \\
-		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
+		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
+		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
+		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
+		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 fixation (atomnumbers of the constrained bonds starting with 0, i.\,e number in tinkerstructure -1; first has to be an H-atom) & integer, integer [none] \\
+			\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
-		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [none] \\
-		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [1] \\
+		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
+		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [not defined] \\
 		\textbf{MDrestart\_offset} & Offset for restart file writing in frames & integer [0] \\
-		\textbf{MDrefine\_offset} & Offset for nonbonded list generation & integer [200] \ifdevmode \colorbox{red}{wtf is this, clarify} \fi \\
+		\textbf{MDrefine\_offset} & Offset for nonbonded list generation, i.\,e. the list of non-bonded pairs is generated after the number of steps that is given here (useful if a cutoff radius for non-bonded interactions is given) & integer [0]  \\
 		\textbf{MDresume} & Boolean switch for using a restart file to start MD\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
-	\end{tabularx}~\\
+			\end{longtable} 
 	
-	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. \\
+	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. (	IS THIS STILL CORRECT??? ) \\
 	
 	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 
@@ -801,29 +799,30 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\hline
 		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
-		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} \fi & float [1.0] \\
+		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} & float [1.0] \\
 		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms - both if the term is bigger than 0, else $\lambda_{el} = 0$ \supercite{_implementation_????}
 		& float [1.0] \\
 		\textbf{FEPvshift} & Value for the \ac{VdW} shifting parameter in the softcore potential ($= \alpha_{vshift}$ in equation \ref{LJ_softcore}) & float [1.0] \\
 		\textbf{FEPcshift} & Value for shifting parameter in the electrostatic potential ($= \alpha_{cshift}$ in equation \ref{cb_softcore}) & float [1.0] \\
 		\textbf{FEPequil} & Number of equilibration steps in each window & integer [10] \\
 		\textbf{FEPsteps} & Number of production steps in each window & integer [10]\\
-		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1000] \\
+		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 	\end{tabularx}\\~\\
 
 	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
+	If you use a temperature gradient it will only be applied in the initialisation run but not in the equilibration and production runs. In those the temperature is kept constant at the last temperature of your gradient.
+	
 \textbf{Attention!} The fact that during an FEP run several MD simulations with possibly different settings are done can cause some problems you should be aware of: \\
 For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' is 50000 you will have MD runs with 1000 (for the initialisation at the very beginning), 10000 (for the equilibration of every FEP window) and 50000 steps. The stepsize between two snapshots is however calculated from the number ``MDsteps''. So if in the above example ``MDsnap'' is 1000 the program will will calculate the stepsize so that a snapshot is taken for every MD step not only in the initialisation MD with 1000 steps but also in every equilibration run with 10000 steps and in every production run with 50000 steps. So it is strongly recommended to set the ``MDsnap'' option to a very low number when doing an FEP calculation in order to avoid getting snapshot files that are much too big to deal with. \\
-Also do not use temperature gradients in this task because the temperature will continue to rise in every MD simulation. So if you say you want to raise the temperature from 0 to 300\,K it will do this in the first MD but it will go up to 600\,K in the next, then to 900\,K and so on.
-
+\textbf{Attention!} Currently there is some kind of error in the function that calculates $\Delta G$ out of $\Delta E$. However the values for $\Delta E$ are given in the file ``alchemical.txt'' so $\Delta G$ can be calculated from this file without the use of CAST. You can use the script ``FEP\_check.py'' that is found in the directory ``\textbackslash optional\_files\textbackslash scripts''. For every window it prints the $\Delta G$ value of the window and the total $\Delta G$ until the window. The results obtained with this script are not expected to be identical with the ones of CAST because CAST takes into account every conformation of the MD and the script only those which are written into the output (controlled by FEPfreq).
 
 	
 	%%%% Trajectory alignment (ALIGN) %%%%
 	\subsection{ALIGN - Trajectory Alignment}
 	\label{sec:align}
-	The trajectory alignment task allows the alignment of ensembles of structures, for example structures obtained from molecular dynamics. For translational alignment, the center-of-mass of all structures are aligned to the origin of the coordinate system. Rotational alignment is performed via Kabsch's method\supercite{kabsch1, kabsch2}. This task can furthermore calculate distance measures between the structures of the ensemble in regard to a reference structure. Regarding the distance metric, one can chose between the (standard) \ac{RMSD}, the \ac{dRMSD} and the Holm and Sander Score\supercite{holmsander}. For a comparison of molecular distance meassures see \cite{distancemeasures}. If no alignment is performed beforehand the distance measures are calculated among the unaligned snapshots. \ac{CAST} provides the following optionsfor the task ALIGN: \\~\\
+	The trajectory alignment task allows the alignment of ensembles of structures, for example structures obtained from molecular dynamics. For translational alignment, the center-of-mass of all structures are aligned to the origin of the coordinate system. Rotational alignment is performed via Kabsch's method\supercite{kabsch1, kabsch2}. This task can furthermore calculate distance measures between the structures of the ensemble in regard to a reference structure. Regarding the distance metric, one can chose between the (standard) \ac{RMSD}, the \ac{dRMSD} and the Holm and Sander Score\supercite{holmsander}. For a comparison of molecular distance meassures see \cite{distancemeasures}. If no alignment is performed beforehand the distance measures are calculated among the unaligned snapshots. \ac{CAST} provides the following options for the task ALIGN: \\~\\
 	
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\

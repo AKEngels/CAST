@@ -39,6 +39,7 @@ CODING CONVENTIONS AS FOLLOWS:
 typedef coords::float_type float_type;
 typedef int int_type;
 typedef size_t uint_type;
+unsigned int constexpr printFunctionCallVerbosity = 5u;
 
 ///////////////////////////////
 
@@ -127,7 +128,7 @@ typedef size_t uint_type;
      */
     mathmatrix() : arma::Mat<T>() 
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
     };
 
@@ -139,7 +140,7 @@ typedef size_t uint_type;
      */
     mathmatrix(uint_type rows, uint_type cols) : arma::Mat<T>(rows, cols) 
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
     };
 
@@ -151,7 +152,7 @@ typedef size_t uint_type;
      */
     mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
     };
 
@@ -164,7 +165,7 @@ typedef size_t uint_type;
      */
     mathmatrix(uint_type rows, uint_type cols, T fill) : arma::Mat<T>(rows, cols)
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing filled matrix." << std::endl;
       for (uint_type i = 0u; i < rows; i++)
         for (uint_type j = 0u; j < cols; j++)
@@ -225,7 +226,7 @@ typedef size_t uint_type;
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
       identity(std::size_t const num_rows, std::size_t const num_cols)
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing identity matrix." << std::endl;
       return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
     }
@@ -249,7 +250,7 @@ typedef size_t uint_type;
 		 */
 		mathmatrix operator+(mathmatrix const& in) const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator+ for matrix-class" << std::endl;
 			if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
 			{
@@ -270,7 +271,7 @@ typedef size_t uint_type;
      */
     friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
     {
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator>> for matrix-class" << std::endl;
       for (size_t i = 0u; i < object.rows(); ++i)
       {
@@ -288,7 +289,7 @@ typedef size_t uint_type;
 		 */
 		bool positive_definite_check()
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: positive_definite_check() for mathmatrix." << std::endl;
 			bool positive_definite = true;
       if (!this->return_quadratic()) return false;
@@ -307,7 +308,7 @@ typedef size_t uint_type;
 		 */
 		int det_sign() const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: det_sign() for mathmatrix." << std::endl;
 			return ((this->determ() <= 0) ? -1 : 1);
 		};
@@ -317,7 +318,7 @@ typedef size_t uint_type;
 		 */
 		size_t rank() const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: rank() for mathmatrix." << std::endl;
 #ifdef USE_ARMADILLO
       arma::Mat<T> const& base_this = *this;
@@ -546,7 +547,7 @@ typedef size_t uint_type;
 		 */
 		float_type determ() const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
 
 #ifdef USE_ARMADILLO
@@ -659,7 +660,7 @@ typedef size_t uint_type;
 		 */
 		mathmatrix operator/(T const& in) const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: operator/ for mathmatrix." << std::endl;
 			mathmatrix tempCopy(*this);
 			for (unsigned int i = 0; i < this->rows(); i++)
@@ -677,7 +678,7 @@ typedef size_t uint_type;
 		 */
 		void append_bottom(const mathmatrix& I_will_be_the_bottom_part)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: append_bottom for mathmatrix." << std::endl;
 			//if this is transposed, append bottom means append right on underlying obj
 			if (this->cols() != I_will_be_the_bottom_part.cols())
@@ -704,7 +705,7 @@ typedef size_t uint_type;
 		 */
 		void append_top(const mathmatrix& I_will_be_the_top_part)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: append_top for mathmatrix." << std::endl;
 			if (this->columns() != I_will_be_the_top_part.columns())
 			{
@@ -737,7 +738,7 @@ typedef size_t uint_type;
 		 */
 		void append_left(const mathmatrix& I_will_be_the_left_part)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: append_left for mathmatrix." << std::endl;
 			if (this->columns() != I_will_be_the_left_part.columns())
 			{
@@ -771,7 +772,7 @@ typedef size_t uint_type;
   	 */
 		void append_right(const mathmatrix& I_will_be_the_right_part)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: append_right for mathmatrix." << std::endl;
 			if (this->rows() != I_will_be_the_right_part.rows())
 			{
@@ -798,7 +799,7 @@ typedef size_t uint_type;
 		 */
 		void shed_rows(size_t first_in, size_t last_in)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: shed_rows for mathmatrix." << std::endl;
 			mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
 			for (size_t i = 0u; i < first_in; i++)
@@ -823,7 +824,7 @@ typedef size_t uint_type;
 		 */
 		void shed_cols(size_t first_in, size_t last_in)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: shed_cols for mathmatrix." << std::endl;
 			mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
 			for (size_t j = 0u; j < this->rows(); j++)
@@ -867,12 +868,38 @@ typedef size_t uint_type;
     }
 #endif
 
+    /*! Performs Cholesky Decompostion on Matrix.
+     * 
+     * @NOTE: Code via https://rosettacode.org/wiki/Cholesky_decomposition#C 19.11.16
+     * @param result: Upper triangular matrix as result of decompostion
+     */
+    void choleskyDecomposition(mathmatrix<T> & result) const
+    {
+#ifndef USE_ARMADILLO
+      result = mathmatrix<T>(this->rows(), this->cols(), T(0));
+      int n = static_cast<int>(this->rows());
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < (i + 1); j++) {
+          T s = 0;
+          for (int k = 0; k < j; k++)
+            s += result(i, k) * result(j, k);
+          result(i, j) = (i == j) ?
+            sqrt((*this)(i, i) - s) :
+            (1.0 / result(j, j) * ((*this)(i, j) - s));
+        }
+      transpose(result);
+#else
+      arma::Mat<T> const& a = *this;
+      result = mathmatrix<T>(arma::chol(a));
+#endif
+    }
+
 		/**
 		 * Returns whether mathmatrix-obj is quadratic
 		 */
 		bool return_quadratic() const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: return_quadratic for mathmatrix." << std::endl;
 #ifndef USE_ARMADILLO
 			return is_square(*this);
@@ -888,7 +915,7 @@ typedef size_t uint_type;
 		 */
 		mathmatrix upper_left_submatrix(unsigned int const& rows_in, unsigned int const& columns_in = 0) const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: upper_left_submatrix for mathmatrix." << std::endl;
       if (rows_in <= this->rows() && columns_in <= this->cols())
       {
@@ -941,7 +968,7 @@ typedef size_t uint_type;
 		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
 		{
       U_in = *this;
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << " matrix." << std::endl;
 
 			//"Constructor"
@@ -1229,7 +1256,7 @@ typedef size_t uint_type;
 		 */
 		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: eigensym for mathmatrix." << std::endl;
 			//On basis of SVD, so take care that your matrix is symmetrical
 
@@ -1271,7 +1298,7 @@ typedef size_t uint_type;
 		 */
 		std::vector <std::vector<T> > to_std_vector(void) const
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: to_std_vector for mathmatrix" << std::endl;
 			std::vector <T> temp1(this->cols());
 			std::vector < std::vector <T> > temp2(this->rows(), temp1);
@@ -1291,7 +1318,7 @@ typedef size_t uint_type;
 		 */
 		void update_debugview(void)
 		{
-      if (Config::get().general.verbosity > 4U)
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: update_debugview." << std::endl;
 #ifdef DEBUGVIEW
 				std::vector <float_type> temp1(this->cols());
