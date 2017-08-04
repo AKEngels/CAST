@@ -1305,6 +1305,19 @@ typedef size_t uint_type;
 
 
   //FREE FUNCTIONS
+template<typename T>
+void pow(mathmatrix<T> &matrix_in, T const& exp)
+{
+  for (unsigned int i = 0; i < matrix_in.rows(); i++)
+  {
+    for (unsigned int j = 0; j < matrix_in.cols(); j++)
+    {
+      matrix_in(i, j) = std::pow(matrix_in(i, j), exp);
+    }
+  }
+}
+
+
 #ifdef USE_ARMADILLO
   template<typename T>
   mathmatrix<T> transposed(mathmatrix<T> const& in)
