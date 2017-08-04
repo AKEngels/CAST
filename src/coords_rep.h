@@ -63,112 +63,6 @@ namespace coords
   using Internal = State < Container<s3>, Container<r3> >;
   using Main_Dihedral = State < Container<angle_type>, Container<float_type> >;
 
-  struct Main_Internal_type
-  {
-    Container<float_type> distances;
-    Container<angle_type> angles;
-    Container<angle_type> dihedrals;
-    Main_Internal_type() { }
-    Main_Internal_type(std::size_t const N)
-      : distances(N), angles(N), dihedrals(N)
-    { }
-  };
-
-  inline Main_Internal_type operator- (Main_Internal_type const & v)
-  {
-    Main_Internal_type inter;
-    inter.distances = -v.distances;
-    inter.angles = -v.angles;
-    inter.dihedrals = -v.dihedrals;
-    return inter;
-  }
-
-  struct Main_Internal_gradient
-  {
-    Container<float_type> distances;
-    Container<float_type> angles;
-    Container<float_type> dihedrals;
-    Main_Internal_gradient() { }
-    Main_Internal_gradient(std::size_t const N)
-      : distances(N), angles(N), dihedrals(N)
-    { }
-  };
-
-  inline Main_Internal_gradient operator- (Main_Internal_gradient const & v)
-  {
-    using scon::operator-;
-    Main_Internal_gradient grad;
-    grad.distances = -v.distances;
-    grad.angles = -v.angles;
-    grad.dihedrals = -v.dihedrals;
-    return grad;
-  }
-
-  using Main_Internal = State < Main_Internal_type, Main_Internal_gradient >;
-
-  inline Main_Internal::type& operator+= (Main_Internal::type & inter, Main_Internal::gradient_type const & grad)
-  {
-    inter.distances += grad.distances;
-    inter.angles += grad.angles;
-    inter.dihedrals += grad.dihedrals;
-    return inter;
-  }
-
-  inline Main_Internal::type& operator-= (Main_Internal::type & inter, Main_Internal::gradient_type const & grad)
-  {
-    inter.distances -= grad.distances;
-    inter.angles -= grad.angles;
-    inter.dihedrals -= grad.dihedrals;
-    return inter;
-  }
-
-  inline Main_Internal::type operator+ (Main_Internal::type const & inter, Main_Internal::gradient_type const & grad)
-  {
-    Main_Internal::type r(inter);
-    r += grad;
-    return r;
-  }
-
-  inline Main_Internal::type operator- (Main_Internal::type const & inter, Main_Internal::gradient_type const & grad)
-  {
-    Main_Internal::type r(inter);
-    r += grad;
-    return r;
-  }
-
-  inline float_type dot(Main_Internal::type const &i1,
-    Main_Internal::type const &i2)
-  {
-    using scon::dot;
-    return dot(i1.distances, i2.distances) +
-      dot(i1.angles, i2.angles) +
-      dot(i1.dihedrals, i2.dihedrals);
-  }
-
-  inline float_type dot(Main_Internal::gradient_type const &g1,
-    Main_Internal::gradient_type const &g2)
-  {
-    using scon::dot;
-    return dot(g1.distances, g2.distances) +
-      dot(g1.angles, g2.angles) +
-      dot(g1.dihedrals, g2.dihedrals);
-  }
-
-  inline float_type dot(Main_Internal::type const &inter,
-    Main_Internal::gradient_type const &grad)
-  {
-    using scon::dot;
-    return dot(inter.distances, grad.distances) +
-      dot(inter.angles, grad.angles) +
-      dot(inter.dihedrals, grad.dihedrals);
-  }
-
-  inline float_type dot(Main_Internal::gradient_type const &grad,
-    Main_Internal::type const &inter)
-  {
-    using scon::dot;
-    return dot(inter, grad);
-  }
 
   /* #############################################
 
@@ -186,17 +80,6 @@ namespace coords
   ############################################# */
 
   typedef scon::c3<bool> fix3;
-
-  struct Main_Internal_fix
-  {
-    std::vector<bool> distances;
-    std::vector<bool> angles;
-    std::vector<bool> dihedrals;
-    Main_Internal_fix() { }
-    Main_Internal_fix(std::size_t const N)
-      : distances(N), angles(N), dihedrals(N)
-    { }
-  };
 
 
 

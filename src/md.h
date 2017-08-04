@@ -269,7 +269,7 @@ namespace md
 	/**atoms with a distance smaller than the inner cutoff*/
 	std::vector<int> inner_atoms;   //
 	/**atoms that move (distance smaller than outer cutoff)*/
-	std::vector<int> atoms_movable; // 
+	std::vector<int> movable_atoms; // 
 
     /** vector with lambda-values for every FEP window */
     std::vector<fepvar> window;

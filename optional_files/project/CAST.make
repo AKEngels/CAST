@@ -13,14 +13,14 @@ endif
 ifeq ($(config),debug_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x86_debug.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x86_debug
   OBJDIR = obj/x86/Debug
   DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -40,14 +40,14 @@ endif
 ifeq ($(config),debug_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_debug.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_debug
   OBJDIR = obj/x64/Debug
   DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -67,14 +67,14 @@ endif
 ifeq ($(config),release_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x86_release.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x86_release
   OBJDIR = obj/x86/Release
   DEFINES +=
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -94,14 +94,14 @@ endif
 ifeq ($(config),release_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_release.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_release
   OBJDIR = obj/x64/Release
   DEFINES += -DCOMPILEX64
   INCLUDES +=
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -121,14 +121,14 @@ endif
 ifeq ($(config),testing_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x86_testing.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x86_testing
   OBJDIR = obj/x86/Testing
   DEFINES += -DGOOGLE_MOCK
   INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -148,14 +148,14 @@ endif
 ifeq ($(config),testing_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_testing.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_testing
   OBJDIR = obj/x64/Testing
   DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK
   INCLUDES += -I../includes/gtest
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -175,14 +175,14 @@ endif
 ifeq ($(config),armadillo_testing_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST.exe
+  TARGET = $(TARGETDIR)/CAST
   OBJDIR = obj/x86/Armadillo_Testing
   DEFINES += -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
   INCLUDES += -I../includes/gtest -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -202,14 +202,14 @@ endif
 ifeq ($(config),armadillo_testing_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST.exe
+  TARGET = $(TARGETDIR)/CAST
   OBJDIR = obj/x64/Armadillo_Testing
   DEFINES += -DCOMPILEX64 -DGOOGLE_MOCK -DUSE_ARMADILLO -DARMA_DONT_USE_WRAPPER
   INCLUDES += -I../includes/gtest -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -flto -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -I ../includes -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -229,14 +229,14 @@ endif
 ifeq ($(config),armadillo_release_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release
   OBJDIR = obj/x86/Armadillo_Release
   DEFINES += -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -256,14 +256,14 @@ endif
 ifeq ($(config),armadillo_release_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_release
   OBJDIR = obj/x64/Armadillo_Release
   DEFINES += -DCOMPILEX64 -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -flto -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -283,14 +283,14 @@ endif
 ifeq ($(config),armadillo_debug_x86)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug
   OBJDIR = obj/x86/Armadillo_Debug
   DEFINES += -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
@@ -310,14 +310,14 @@ endif
 ifeq ($(config),armadillo_debug_x64)
   RESCOMP = windres
   TARGETDIR = ../build
-  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug.exe
+  TARGET = $(TARGETDIR)/CAST_linux_x64_armadillo_debug
   OBJDIR = obj/x64/Armadillo_Debug
   DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS -DUSE_ARMADILLO
   INCLUDES += -I../includes/armadillo
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Og -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CFLAGS)
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static -I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS +=
   LDDEPS +=
