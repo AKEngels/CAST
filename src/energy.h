@@ -62,10 +62,27 @@ namespace energy
       fftgridmax(200), bsplineorder(5), treshold(1e-8)
     {}
   };*/
+
+	/**object where fep parameters for one window are saved*/
   struct fepvar
   {
-	  coords::float_type ein, eout, vin, vout;
-	  coords::float_type dein, deout, dvin, dvout;
+	  /**current lambda_el for appearing atoms*/
+	  coords::float_type ein;
+	  /**current lambda_el for disappearing atoms*/
+	  coords::float_type eout;
+	  /**current lambda_vdw for appearing atoms*/
+	  coords::float_type vin;
+	  /**current lambda_vdw for disappearing atoms*/
+	  coords::float_type vout;
+	  /**(lambda + dlambda)_el for appearing atoms*/
+	  coords::float_type dein;
+	  /**(lambda + dlambda)_el for disappearing atoms*/
+	  coords::float_type deout;
+	  /**(lambda + dlambda)_vdw for appearing atoms*/
+	  coords::float_type dvin;
+	  /**(lambda + dlambda)_vdw for disappearing atoms*/
+	  coords::float_type dvout;
+	/**number of current window*/
     int step;
     fepvar (void) 
       : ein(1.0), eout(1.0), vin(1.0), vout(1.0),
@@ -74,11 +91,27 @@ namespace energy
     { }
   };
 
+  /**object in which data for one conformation is saved
+  which is relevant for FEP calculation*/
   struct fepvect
   {
-	  coords::float_type e_c_l1, e_c_l2;
-	  coords::float_type e_vdw_l1, e_vdw_l2;
-	  coords::float_type dE, dG, de_ens;
+	  /**coulomb-energy for this conformation with lambda*/
+	  coords::float_type e_c_l1;
+	  /**coulomb-energy for this conformation with lambda+dlambda*/
+	  coords::float_type e_c_l2;
+	  /**vdw-energy for this conformation with lambda*/
+	  coords::float_type e_vdw_l1;
+	  /**vdw-energy for this conformation with lambda+dlambda*/
+	  coords::float_type e_vdw_l2;
+	  /**difference in potential energy for this conformation
+	  = (e_c_l2 + e_vdw_l2) - (e_c_l1 + e_vdw_l1)*/
+	  coords::float_type dE;
+	  /**difference in free energy calculated for all conformations 
+	  in this window until current conformation*/
+	  coords::float_type dG;
+	  /**exp((-1 / (k_B*T))*dE ) for this conformation*/
+	  coords::float_type de_ens;
+	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
       e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), 

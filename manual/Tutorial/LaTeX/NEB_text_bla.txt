@@ -1,0 +1,36 @@
+In principle the following NEB methods are included in the CAST program: Standard method Henkelman and Jonsson[], improved tangent estimate[], climbing image variant[], temperature dependent neb[] and image dependent pair potential for improved interpolation[].
+In the following the procedure how to do a NEB calculation should be illustrated on the example of the rotation of pentane.
+
+First steps
+The first step is the preparation of the Input structures. They should be presented in Tinker (.arc) or AMBER () like Format (for Tinker structure generation see also chapter 1).  For exclusion of translational and rotational
+degrees of freedom the structures should aligend beforehand. This can be done by using the TASK ALIGN in CAST or e.g. VMD for this purpose. It is also important that the ordering of atoms and is identical in both structures used.
+The first structures is defined as the standard input structure by using  the keyword name (-name=input1.arc). The second structure is defined by the keyword NEB-PATHOPT-FINAL. For all methods applying an optimization via an NEB scheme the
+follwoing keywords have to be assigned:
+
+NEB-PATHOPT-IMAGES integer value - defines the total number of interpolated structures which define the band
+
+NEB-PATHOPT-SPRING floating point value - defines the strength of the force which couples the structures of the band and is defined in kcal/molA^^2 
+
+global variables (see also task=LOCOPT):
+
+BFGSgrad - assignes the convergence threshold for the L-BFGS optimizer which defines also the convergence for the NEB optimization
+
+BFGSmaxstep -  maximum number of steps carried out in a NEB optimization
+
+
+Standard NEB method
+
+
+
+Improved tangent && climbing image
+
+
+
+Temperature dependent NEB (MAXFLUX)
+
+
+IDPP
+
+
+
+

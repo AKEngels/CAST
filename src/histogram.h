@@ -11,276 +11,6 @@
 #include <limits>
 
 
-
-namespace statistics
-{
-
-  template<class T>
-  using floif = typename std::enable_if<
-    std::is_floating_point<T>::value, T>::type;
-
-  namespace kernel
-  {
-
-    template<class T>
-    inline floif<T> indicator(bool const x)
-    {
-      return x ? T{ 1 } : T{ 0 };
-    }
-
-    template<class T>
-    inline floif<T> f_uniform(T u)
-    {
-      using std::abs;
-      return T{ 0.5 }*indicator<T>(abs(u) <= T{ 1 });
-    }
-
-    template<class T>
-    floif<T> f_triangular(T u)
-    {
-      using std::abs;
-      auto const au = abs(u);
-      return (T{ 1 }-au)*indicator<T>(abs(u) <= T{ 1 });
-    }
-
-    template<class T>
-    floif<T> f_epanechnikov(T u)
-    {
-      using std::abs;
-      return (T{ 0.75 }-u*u)*indicator<T>(abs(u) <= T{ 1 });
-    }
-
-    template<class T>
-    floif<T> f_quartic(T u)
-    {
-      using std::abs;
-      return (T{ 0.9375 }-u*u)*indicator<T>(abs(u) <= T{ 1 });
-    }
-
-    template<class T>
-    floif<T> f_gaussian(T u)
-    {
-      using std::exp;
-      return T{ 0.3989422804014326779399460 }*exp(-T{ 0.5 }*u*u);
-    }
-
-  }
-
-  namespace selector
-  {
-
-    namespace _detail
-    {
-
-      template<class T>
-      struct accum
-      {
-        T sum;
-        accum() : sum() {}
-        void operator() (T const v)
-        {
-          sum += v;
-        }
-      };
-
-      template<class T>
-      struct ssd
-      {
-        T sum;
-        T n;
-        T av;
-        T result;
-        ssd(T average) : sum(), n(0), av(average), result() {}
-        void operator() (T const v)
-        {
-          using std::sqrt;
-          auto d = v - av;
-          sum += d*d;
-          n += T{ 1 };
-          result = std::sqrt(sum / (n - T{ 1 }));
-        }
-      };
-
-    }
-
-
-    template<class T>
-    floif<T> normal_distribution_approximation(std::vector<T> const &sample)
-    {
-      auto const av = std::for_each(sample.begin(), sample.end(),
-        _detail::accum<T>{}).sum / static_cast<T>(sample.size());
-      auto sd = std::for_each(sample.begin(), sample.end(), _detail::ssd<T>{av}).result;
-      auto sd4 = sd*sd; // ^2
-      sd4 = sd4*sd4; // ^4
-      return std::pow(T{ 4 } *sd4 * sd / (T{ 3 } *static_cast<T>(sample.size())), T{ 1 } / T{ 5 });
-    }
-  }
-
-  template<class T, class K, bool is_ari = std::is_floating_point<T>::value>
-  class kernel_density_estimator;
-
-  template<class T, class K>
-  class kernel_density_estimator<T, K, true>
-  {
-
-    std::vector<T> sample;
-    K kern;
-    T bw;
-
-  public:
-
-    template<class U>
-    kernel_density_estimator(U && k, std::vector<T> const & data = {})
-      : sample(data), kern(std::forward<U>(k)), bw() {}
-
-    template<class S>
-    void select_bandwidth(S && selector_object)
-    {
-      using std::abs;
-      bw = abs(selector_object(sample));
-    }
-
-    T bandwidth() const { return bw; }
-
-    T operator() (T const x) const
-    {
-      T sum = T{};
-      for (auto s : sample)
-      {
-        sum += kern((x - s) / bw);
-      }
-      return sum / (static_cast<T>(sample.size())*bw);
-    }
-
-  };
-
-  template<class T, class K, class S>
-  inline kernel_density_estimator<T, K> make_kde(
-    std::vector<T> const &values, K && kernel_object, S && selector_object)
-  {
-    auto kde = kernel_density_estimator<T, K>(std::forward<K>(kernel_object), values);
-    kde.select_bandwidth(std::forward<S>(selector_object));
-    return kde;
-  }
-
-  template<class T>
-  inline auto make_default_kde(std::vector<T> const &values) ->
-    decltype(make_kde(values, &kernel::f_epanechnikov<T>,
-      &selector::normal_distribution_approximation<T>))
-  {
-    return make_kde(values, &kernel::f_epanechnikov<T>,
-      &selector::normal_distribution_approximation<T>);
-  }
-
-  template<class T, bool isfp = std::is_floating_point<T>::value>
-  class histo_bin;
-
-  template<class T>
-  class histo_bin <T, true>
-  {
-    T low, high;
-    std::size_t n;
-    histo_bin() : low(), high(), n() {}
-  };
-
-  template<class T, class NullaryFunction>
-  std::vector<histo_bin<T>> make_histo_nf
-    (NullaryFunction f, std::size_t n, T width = T(1))
-  {
-    auto v = std::vector<T>{};
-    v.reserve(n);
-    T mini(std::numeric_limits<T>::max()),
-      maxi(std::numeric_limits<T>::min());
-    for (std::size_t i = 0; i < n; ++i)
-    {
-      v.emplace_back(f());
-      mini = std::min(mini, v.back());
-      maxi = std::max(maxi, v.back());
-    }
-    auto num_bins = static_cast<std::size_t>(std::floor((maxi - mini) / width)) + 1u;
-    std::vector<histo_bin<T>> bins(num_bins);
-    for (std::size_t i = 0; i < num_bins; ++i)
-    {
-      bins[i].low = mini + width * i;
-      bins[i].high = bins[i].low + width;
-    }
-    for (auto val : v)
-    {
-      auto bin_id = static_cast<std::size_t>(
-        std::floor((val - mini) / width));
-      ++bins[bin_id].n;
-    }
-    return bins;
-  }
-
-  template<class T, bool isfp = std::is_floating_point<T>::value>
-  class histogram;
-
-  template<class T>
-  class histogram<T, true>
-  {
-
-    T width, mini, maxi;
-    std::map<std::size_t, std::size_t> histo_bins;
-
-    std::map<std::size_t, std::vector<std::size_t>> bin_contains;
-
-  public:
-
-    using iterator = std::map<std::size_t, std::size_t>::const_iterator;
-
-    histogram(std::vector<T> const &sample, T const bin_width)
-      : width(bin_width), mini(std::numeric_limits<T>::max()),
-      maxi(std::numeric_limits<T>::min()), histo_bins(), bin_contains()
-    {
-      for (auto s : sample)
-      {
-        mini = std::min(mini, s);
-        maxi = std::max(maxi, s);
-      }
-      std::size_t i = 0;
-      for (auto s : sample)
-      {
-        auto bin_id = static_cast<std::size_t>(
-          std::floor((s - mini) / width));
-        ++histo_bins[bin_id];
-        bin_contains[bin_id].push_back(i);
-        ++i;
-      }
-    }
-
-    struct bin_type
-    {
-      T const start, end;
-      std::size_t const n;
-      std::vector<std::size_t> const & elements;
-    };
-
-    bin_type bin(std::size_t const i)
-    {
-      auto strt = mini + i*width;
-      return{ strt, strt + width, histo_bins[i], bin_contains[i] };
-    }
-
-    std::size_t bins() const
-    {
-      return static_cast<std::size_t>(
-        std::floor((maxi - mini) / width)) + 1u;
-    }
-
-    std::map<std::size_t, std::size_t>::size_type size() const
-    {
-      return histo_bins.size();
-    }
-
-    iterator begin() const { return histo_bins.begin(); }
-    iterator end() const { return histo_bins.end(); }
-
-  };
-
-
-}
-
 namespace histo
 {
   template<typename T>
@@ -295,6 +25,8 @@ namespace histo
    * 2. Add Values  via add_value
    * 3. call distribute() to perform histogramming
    * 4. write data and auxilary data.
+   *
+   * By Dustin Kaiser 2016
    */
   class DimensionalHistogram //Single dimension multiple histograms
   {
@@ -377,7 +109,7 @@ namespace histo
       }
       else
       {
-        std::cout << "fatal error in histogramming! -> centerOfSingleBin(std::vector<size_t> bins)\n";
+        throw("fatal error in histogramming! -> centerOfSingleBin(std::vector<size_t> bins)\n");
         return std::vector<T>();
       }
     }
@@ -417,7 +149,7 @@ namespace histo
       }
     }
 
-    //Covert serially stored histogram bin values to dimensional vector
+    // Covert serially stored histogram bin values to dimensional vector
     // Justification: Since this class should work for any number of dimensions,
     // bin data has to be stored serially. This is an N-Dimension to 1D-Mapping.
     inline std::vector<std::size_t> fromIterator(std::size_t in)
@@ -464,7 +196,7 @@ namespace histo
     }
 
     // Returns number of elements in bin associated with (1D-serial) "accessIterator" 
-    // This should actually never be needed to be called exept fopr debug purposes.
+    // This should actually never be needed to be called exept for debug purposes.
     inline std::size_t element(std::size_t accessIterator)
     {
       return m_boxes[accessIterator];
@@ -599,22 +331,25 @@ namespace histo
       std::ofstream stream(filename, std::ios::out);
       stream << std::right << std::setw(13);
       size_t keeperForBlanklines = 0;
-      for (unsigned int i = 0u; i < m_boxes.size(); i++)
+      for (unsigned int i = 0u; i < m_boxes.size(); i++) //Iterates over dimensions
       {
 
-        std::vector<T> bins = centerOfSingleBin(fromIterator(i));
+        std::vector<T> bins = centerOfSingleBin(fromIterator(i)); // Center of all bins collected in vector
 
-        if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines)
+        if (this->dimensions() > 1u)
         {
-          keeperForBlanklines = fromIterator(i)[bins.size() - 2];
-          stream << "\n";
+          if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines) // Check if we have reached second to last dimension (then we insert space)
+          {
+            keeperForBlanklines = fromIterator(i)[bins.size() - 2];
+            stream << "\n";
+          }
         }
 
         for (unsigned int j = 0u; j < bins.size(); j++)
         {
-          stream << std::right << std::setw(13) << bins[j] << " ";
+          stream << std::right << std::setw(13) << bins[j] << " "; // Write center of bins
         }
-        stream << std::right << std::setw(13) << this->element((size_t)i) << "\n";
+        stream << std::right << std::setw(13) << this->element((size_t)i) << "\n"; // Write value of bin
       }
     }
 
@@ -629,19 +364,22 @@ namespace histo
       {
 
         std::vector<T> bins = centerOfSingleBin(fromIterator(i));
-
-        if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines)
+        if (this->dimensions() > 1u)
         {
-          keeperForBlanklines = fromIterator(i)[bins.size() - 2];
-          stream << "\n";
+          if (fromIterator(i)[bins.size() - 2] != keeperForBlanklines)
+          {
+            keeperForBlanklines = fromIterator(i)[bins.size() - 2];
+            stream << "\n";
+          }
         }
 
         for (unsigned int j = 0u; j < bins.size(); j++)
         {
           stream << std::right << std::setw(13) << bins[j] << " ";
         }
-        stream << std::right << std::setw(13) << (double)((double) this->element((size_t)i) / (double) this->m_valuecount) << "\n";
+        stream << std::right << std::setw(13) << (float_type)((float_type) this->element((size_t)i) / (float_type) this->m_valuecount) << "\n";
       }
+      
     }
 
     //Write sums and means (->auxilary data) to file.
@@ -668,7 +406,7 @@ namespace histo
   ////////////////////////////////////////////////////////
 
   template<typename T>
-  class Histograms //Single dimension multiple histograms
+  class Histograms //Single dimension multiple histograms, by Daniel Weber, commented by Dustin, dont use this.
   {
 
   private:
@@ -795,7 +533,7 @@ namespace histo
     }
 
     // this seems like it actually counts the values (again?)
-    // and thereby creates the histogram.e Not sur though.
+    // and thereby creates the histogram. Not sure though.
     void distribute(void)
     {
       this->setMinMax();

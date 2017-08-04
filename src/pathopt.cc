@@ -75,11 +75,13 @@ void pathx::MCM_PO(ptrdiff_t opt)
   */
   double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
-  bool  l_disp (false);
+  bool  l_disp (false),nanstatus(false);
   global_image = 0;
   counter = 0;
   coords::Representation_3D positions;
-  std::ofstream output("PATHOPT_BASIN_ENERGIES.dat", std::ios::app);
+  std::ostringstream basinout;
+  basinout << "PATHOPT_BASIN_ENERGIES_" << cPtr->mult_struc_counter << ".dat";
+  std::ofstream output(basinout.str(), std::ios::app);
   coords::Representation_3D  coord_in, coord_glob, coord_last;
   global_path_minima.resize(N->num_images);
   global_path_minima_temp.resize(N->num_images);
@@ -115,6 +117,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  MCpmin_vec.push_back(MCmin);
 	  positions.clear();
       positions.resize(cPtr->size());
+	  nanstatus = false;
 	  /**
 	  * Decision which jump strategy is used
 	  * 1. possibility --> MIXED MOVE / rotation of main dihedrals
@@ -174,7 +177,6 @@ void pathx::MCM_PO(ptrdiff_t opt)
 			}
       }
       cPtr->set_xyz(positions);
-      this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
 	  /**
 	  * Optimization using projection or biased gradients
@@ -183,14 +185,15 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  /**
 	  * MCM Criteria for accepting new minimum
 	  */
-	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step " << mcstep << " is " << MCmin << '\n';
+	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step (not proofed) " << mcstep << " is " << MCmin << '\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
+		nanstatus = true;
 		status = 0;
 		nbad++;
 		cPtr->set_xyz(coord_in);
-		if (nancounter>10) break;
+		if (nancounter>(mcstep/2)) break;
 	  }
 	  /**
 	  * test for low energies that are not reasonable
@@ -272,12 +275,12 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		cPtr->set_xyz(coord_last);
 	}
 	///saving the accepted minima
-	else if (status == 1) 
+	else if (status == 1 && nanstatus == false) 
 	{
 		MCEN = MCmin;
 		global_image = opt;
 		std::ostringstream struc_opt;
-		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".arc";
+		struc_opt << "PATHOPT_STRUCTURES_" << cPtr->mult_struc_counter << "_" << opt << ".arc";
 		output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 		counter++;
 		global_path_minima_energy[opt][counter] = MCEN;
@@ -424,8 +427,8 @@ void pathx::proof_connect()
 					if (global_path_minima[1][j].empty()) continue;
 					reverse = false;
 					std::ostringstream en, img;
-					en << "ENERGY_" << j << ".dat";
-					img << "PATH_" << j << ".arc";
+					en << "ENERGY_" <<cPtr->mult_struc_counter<<"_"<< j << ".dat";
+					img << "PATH_" << cPtr->mult_struc_counter << "_"<< j << ".arc";
 					std::ofstream energy(en.str().c_str(), std::ios::app);
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
@@ -438,11 +441,26 @@ void pathx::proof_connect()
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
+
+					//During the path sempling each path is written in an array and printed out later
+					std::vector<coords::Representation_3D>* final_path = nullptr;
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						final_path = new std::vector<coords::Representation_3D>;
+						final_path->resize(temp_image);
+						final_path->at(0) = tempstart;
+						final_path->at(1) = global_path_minima[1][j];
+					}
+
 					for (i = 1; i < temp_image - 2; i++)
 					{
 						if (global_path_minima[i - tempcount][jj].empty()) continue;
 						if (global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]].empty()) continue;
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
+						
+						if (Config::get().neb.MAXFLUX_PATHOPT) {
+							final_path->at(i + 1) = global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]];
+						}
+						
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
 						energy_connect.push_back(cPtr->g());
 						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
@@ -450,6 +468,23 @@ void pathx::proof_connect()
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
+
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						auto kill = false;
+						final_path->at(final_path->size() - 1U) = tempstart2;
+						for (auto && path : *(final_path)) {
+							if (path.empty()) kill = true;
+						}
+						if (!kill) {
+							N->preprocess(*(final_path), j);
+						}
+						/*std::for_each(final_path->begin(), final_path->end(), [&](auto && path) {
+						printmono(std::string("MAXFLUX_PATH_" + std::to_string(j) + ".arc").c_str(), path, j);
+						});*/
+						delete final_path;
+						final_path = nullptr;
+					}
+
 					cPtr->set_xyz(tempstart2);
 					energy_connect.push_back(cPtr->g());
 					energy << std::right << std::fixed << std::setprecision(6) << energy_connect.back() << '\n';

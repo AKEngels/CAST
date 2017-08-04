@@ -361,7 +361,7 @@ namespace config
   /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-    /**vector with amber charges (only filled if AMBER input is used)*/
+    /**vector with amber charges (only filled if AMBER input is used or option chargefile is selected)*/
     std::vector<double> amber_charges;
 
 	  /**stuff for internal coordinates*/
@@ -493,7 +493,7 @@ namespace config
     {
       bool on, interp;
       double cut;
-      spack(void) : on(false), interp(true), cut(10.0) { }
+      spack(void) : on(false), interp(false),cut(10.0) { }
     } spackman;
 
     struct mopac_conf
@@ -727,12 +727,12 @@ namespace config
 	  std::size_t steps;
 	  /**number of MD steps in equilibration run for every window*/
 	  std::size_t equil;
-	  /**every freq'th MD step of production run is taken into account for energy calculation*/
+	  /**output frequency in alchemical.txt (does not affect calculation)*/
 	  std::size_t freq;
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1000)
+      steps(10), equil(10), freq(1)
     { }
   };
 
@@ -985,7 +985,7 @@ namespace config
     std::size_t IMAGES, MCITERATION, GLOBALITERATION, 
                 CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
     bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, 
-         MIXED_MOVE, INT_PATH, CLIMBING, IDPP,MAXFLUX;
+         MIXED_MOVE, INT_PATH, CLIMBING, IDPP,MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS;
     neb() :
       OPTMODE("PROJECTED"),
       SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
@@ -993,7 +993,7 @@ namespace config
       BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
       GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
       NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), 
-      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false)
+      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false),MULTIPLE_POINTS(false)
     {}
   };
 
@@ -1037,6 +1037,7 @@ namespace config
     std::vector<size_t> pca_trunc_atoms_num;
     std::vector<size_t> pca_internal_dih;
     std::vector<size_t> pca_dimensions_for_histogramming;
+    bool pca_histogram_all_marginal_degrees_of_freedom;
     std::vector<double> proc_desired_start;
     std::vector<double> proc_desired_stop;
 
@@ -1044,7 +1045,7 @@ namespace config
        pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
       pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
       pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
-      proc_desired_start(), proc_desired_stop()
+      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop()
 
     {}
   };

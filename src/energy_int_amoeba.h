@@ -100,6 +100,14 @@ namespace energy
 		{
 			double temp6;
 		};
+		struct nn
+		{
+			double temp7;
+		};
+		struct oo
+		{
+			double temp8;
+		};
 
 
 		ptrdiff_t MON;

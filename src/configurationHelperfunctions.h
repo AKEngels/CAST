@@ -98,18 +98,11 @@ namespace config
   * @todo: remove in favor of "sorted_indices_from_cs_string"
   */
   template<typename T>
-  std::vector<T> configuration_range_int(std::istringstream& cv)
+  std::vector<T> configuration_range_int(std::vector<std::string>& holder)
   {
     bool none_check = false;
     std::vector<T> temp;
-    std::vector<std::string> holder;
-    while (cv)
-    {
-      std::string temp2;
-      cv >> temp2;
-      holder.push_back(temp2);
-    }
-    holder.pop_back();
+
     for (unsigned int i = 0; i < holder.size(); i++)
     {
       if (holder[i] == "none")

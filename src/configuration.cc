@@ -245,51 +245,66 @@ void config::parse_option(std::string const option, std::string const value_stri
   ////////////////////
   if (option == "name")
   {
-    Config::set().general.inputFilename = value_string;
+	  Config::set().general.inputFilename = value_string;
 
-    // If no outname is specified,
-    // the output-file will have the same name as the inputfile
-    // but with "_out" added to the name.
-    //
-    // outname_check is a small function used to test if
-    // an outname has already been specified by keeping a
-    // static counter.
-    if (outname_check(0))
-    {
-      std::string path = value_string;
-      // Remove quote signs
-      if (path.front() == '"' && path.back() == '"')
-      {
-        path = path.substr(1u, path.length() - 2U);
-      }
-      scon::FilePath<std::string> in_file_path(path);
-      Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
-    }
+	  // If no outname is specified,
+	  // the output-file will have the same name as the inputfile
+	  // but with "_out" added to the name.
+	  //
+	  // outname_check is a small function used to test if
+	  // an outname has already been specified by keeping a
+	  // static counter.
+	  if (outname_check(0))
+	  {
+		  std::string path = value_string;
+		  // Remove quote signs
+		  if (path.front() == '"' && path.back() == '"')
+		  {
+			  path = path.substr(1u, path.length() - 2U);
+		  }
+		  scon::FilePath<std::string> in_file_path(path);
+		  Config::set().general.outputFilename = in_file_path.base_no_extension() + "_out";
+	  }
   }
   // Name of the outputfile
   // Default: oplsaa.prm
   else if (option == "outname")
   {
-    // outname_check is a small function used to test if
-    // an outname has already been specified by keeping a
-    // static counter.
-    outname_check(1);
+	  // outname_check is a small function used to test if
+	  // an outname has already been specified by keeping a
+	  // static counter.
+	  outname_check(1);
 
-    // If the "outname" starts with an +,
-    // we append the (input)name by this string
-    if (value_string[0] == '+')
-    {
-      Config::set().general.outputFilename += value_string.substr(1);
-    }
-    else
-      Config::set().general.outputFilename = value_string;
+	  // If the "outname" starts with an +,
+	  // we append the (input)name by this string
+	  if (value_string[0] == '+')
+	  {
+		  Config::set().general.outputFilename += value_string.substr(1);
+	  }
+	  else
+		  Config::set().general.outputFilename = value_string;
   }
 
   // Filename of the ForceField parameter-file
   // Has to be in same folder as executable
   // Default: oplsaa.prm
   else if (option == "paramfile")
-    Config::set().general.paramFilename = value_string;
+	  Config::set().general.paramFilename = value_string;
+
+  // Option to read charges from seperate file "charges.txt"
+  // has to be in the same folder as executable
+  // makes sense in combination with amber force field
+  else if (option == "chargefile")
+  {
+	  if (value_string == "1")
+	  {
+		  Config::set().general.chargefile = true;
+	  }
+	  else
+	  {
+		  Config::set().general.chargefile = false;
+	  }
+  }
 
   // Input format.
   // Default: TINKER
@@ -474,6 +489,12 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.IDPP;
 	  else if (option.substr(11, 8) == "-MAXFLUX")
 		  cv >> Config::set().neb.MAXFLUX;
+	  else if (option.substr(11, 11) == "-MF_PATHOPT")
+		  cv >> Config::set().neb.MAXFLUX_PATHOPT;
+	  else if (option.substr(11, 13) == "-NEB-COMPLETE")
+		  cv >> Config::set().neb.COMPLETE_PATH;
+	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
+		  cv >> Config::set().neb.MULTIPLE_POINTS;
   }
 
   // MOPAC options
@@ -1318,7 +1339,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_trunc_atoms_num")
   {
-    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(holder);
   }
   else if (option == "pca_start_frame_num")
   {
@@ -1334,7 +1363,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
   {
-    Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(holder);
   }
   else if (option == "pca_ignore_hydrogen")
   {
@@ -1372,7 +1409,18 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_dimensions_for_histogramming")
   {
-    Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    if (holder.at(0u) != "all")
+      Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(holder);
+    else
+      Config::set().PCA.pca_histogram_all_marginal_degrees_of_freedom = true;
   }
   else if (option == "proc_desired_start")
   {
@@ -1426,15 +1474,39 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
   {
-    Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
   {
-    Config::set().entropy.entropy_internal_dih = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_internal_dih = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_method")
   {
-    Config::set().entropy.entropy_method = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_method = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_method_knn_k")
   {

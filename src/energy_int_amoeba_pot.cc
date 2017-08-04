@@ -33,11 +33,8 @@ double energy::interfaces::amoeba::amoeba_ff::e(void)
 
   {
     Spackman_mol();
-    Spackman_vec();
-	
-	Spackman1();
-    
-    
+    Spackman_vec();	
+	Spackman1(); 
 
   }
 
@@ -73,7 +70,7 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
   {
     Spackman_mol();
     Spackman_vec();
-
+	Spackman1();
     
     if (Config::get().energy.spackman.interp)
       SpackmanGrad_3();
@@ -138,7 +135,7 @@ void energy::interfaces::amoeba::amoeba_ff::calc(void)
   part_energy[OPBEND] = f_oop<DERIV>();
   if (Config::get().energy.spackman.on)
   {
-
+	
     if (Config::get().energy.spackman.interp) part_energy[SHORTRANGE] = Spackman_energy_analytical();
 
 
@@ -4589,6 +4586,8 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
 
     k kbuffer;
     hh hbuffer;
+	oo oobuffer;
+    nn nnbuffer;
 
 
 	std::string forcefield;
@@ -4636,18 +4635,29 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
     }
 
 
-    else if (control == 'k') {
+    else if (control == '6') {
 
       sscanf(buffer, "%*s %lf ", &kbuffer.temp5);
       kappan.push_back(kbuffer.temp5);
 
     }
-    else if (control == 'h') {
+	else if (control == '1') {
 
-      sscanf(buffer, "%*s %lf ", &hbuffer.temp6);
-      kappan.push_back(hbuffer.temp6);
+		sscanf(buffer, "%*s %lf ", &hbuffer.temp6);
+		kappan.push_back(hbuffer.temp6);
 
-    }
+	}
+	else if (control == '5') {
+
+		sscanf(buffer, "%*s %lf ", &nnbuffer.temp7);
+		kappan.push_back(nnbuffer.temp7);
+	}
+	else if (control == '8') {
+
+		sscanf(buffer, "%*s %lf ", &oobuffer.temp8);
+		kappan.push_back(oobuffer.temp8);
+
+	}
     else if (control == 'e') break;
   }
 
@@ -5480,9 +5490,10 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman1() {
     atomic.push_back(coords->atoms(i).number());
     if (coords->atoms(i).symbol() == "h" || coords->atoms(i).symbol() == "H") kappa[i] = kappan[1];
     else if (coords->atoms(i).symbol() == "c" || coords->atoms(i).symbol() == "C") kappa[i] = kappan[0];
-    else kappa[i] = 1.0;
+	else if (coords->atoms(i).symbol() == "n" || coords->atoms(i).symbol() == "N") kappa[i] = kappan[2];
+	else if (coords->atoms(i).symbol() == "o" || coords->atoms(i).symbol() == "O") kappa[i] = kappan[3];
   }
-
+  
   //!getting atomic charges
   for (i = 0; i < n_atom; i++) {
 
@@ -5512,6 +5523,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman1() {
     //!Core
 
     if ((i1 == 1) && (kappa[ia] != 0.0)) kap = kappa[ia];
+
     for (i = 0; i < kp; i++) {
       sum1 = 0.0;
       for (j1 = 0; j1 < 7; j1++) {
