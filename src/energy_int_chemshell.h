@@ -67,7 +67,8 @@ namespace energy {
 				sysCallInterface(sysCallInterface && other) = default;*/
 
 				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
-					: interface_base(coord) {
+					: interface_base(coord),
+					tmp_file_name(Config::get().general.outputFilename) {
 					interface_base::operator=(other);
 					optimizer = true;
 					std::stringstream ss;
