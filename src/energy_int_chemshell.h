@@ -48,12 +48,12 @@ namespace energy {
 					
 				}
 				~sysCallInterface() final {
-					if (Config::get().energy.gaussian.delete_input)
+					if (Config::get().energy.chemshell.delete_input)
 					{
 						get_rid_of_dump_files();
 					}
 				};
-				sysCallInterface(sysCallInterface const & other) {
+				/*sysCallInterface(sysCallInterface const & other) {
 					optimizer = true;
 					std::stringstream ss;
 					std::srand(std::time(0));
@@ -64,11 +64,19 @@ namespace energy {
 					change_input_file_names(other.tmp_file_name);
 				};
 
-				sysCallInterface(sysCallInterface && other) = default;
+				sysCallInterface(sysCallInterface && other) = default;*/
 
 				sysCallInterface(sysCallInterface const & other, coords::Coordinates * coord)
 					: interface_base(coord) {
 					interface_base::operator=(other);
+					optimizer = true;
+					std::stringstream ss;
+					std::srand(std::time(0));
+					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
+					tmp_file_name.append("_tmp_").append(ss.str());
+					first_call = other.first_call;
+
+					change_input_file_names(other.tmp_file_name);
 				}
 
 

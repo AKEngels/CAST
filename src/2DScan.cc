@@ -307,7 +307,7 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Bond_Input::make_axis() {
 		current_position += step_width;
 	}
 
-	return std::move(made_vec);
+	return made_vec;
 }
 
 std::vector<Scan2D::length_type> Scan2D::Normal_Angle_Input::make_axis() {
@@ -321,7 +321,7 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Angle_Input::make_axis() {
 		current_inclination += step_width;
 	}
 
-	return std::move(made_vec);
+	return made_vec;
 
 }
 
@@ -336,7 +336,7 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 		current_azimuth += step_width;
 	}
 
-	return std::move(made_vec);
+	return made_vec;
 
 }
 

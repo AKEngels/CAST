@@ -8,7 +8,7 @@ auto zip(T && a, U && b) {
 		[](auto && a_i, auto && b_i) {
 		return std::make_pair(a_i, b_i);
 	});
-	return std::move(ret_vec);
+	return ret_vec;
 }
 
 void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_use()const {
@@ -386,7 +386,7 @@ coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extra
 			*(b+2)
 		));
 	}
-	return std::move(new_grads);
+	return new_grads;
 }
 
 void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what) {
