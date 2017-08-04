@@ -539,9 +539,16 @@ namespace entropy
     Matrix_Class eigenvectors_t(transposed(eigenvectors));
     Matrix_Class pca_modes = eigenvectors_t * input;
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
+    Matrix_Class entropy_kNN(pca_modes.rows(), 1u, 0.);
     Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
+    Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
     Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
-    //std::size_t const size = entropy_anharmonic.rows();
+
+
+    // Remove this for release, debug
+    pow(pca_modes, -1.);
+    pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp));
+    //
 
 
     // II. Calculate Non-Paramteric Entropies
@@ -573,11 +580,11 @@ namespace entropy
       }
       distance -= temp;
       distance += 0.5772156649015328606065;
-      entropy_anharmonic(i, 0u) = distance;
+      entropy_kNN(i, 0u) = distance;
       distance = 0;
 
       //MI
-      // Mutual INformation Correction
+      // Mutual Information Correction
       for (size_t j = i + 1; j < pca_modes.rows(); j++)
       {
         std::vector<size_t> query_rows{ (size_t)i,j };
@@ -607,16 +614,16 @@ namespace entropy
     }
 
     size_t counterForLargeNegativeM_I_Terms = 0u;
-    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
+    for (size_t i = 0; i < entropy_kNN.rows(); i++)
     {
-      for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
+      for (size_t j = (i + 1); j < entropy_kNN.rows(); j++)
       {
         if (
           pca_frequencies(i, 0u) <  ( temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
           && pca_frequencies(j, 0u) < ( temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
           )
         {
-          entropy_mi(i, j) = entropy_anharmonic(i, 0u) + entropy_anharmonic(j, 0u) - entropy_mi(i, j);
+          entropy_mi(i, j) = entropy_kNN(i, 0u) + entropy_kNN(j, 0u) - entropy_mi(i, j);
           if (entropy_mi(i, j) < 0)
           {
             if (entropy_mi(i, j) < -1)
@@ -638,17 +645,34 @@ namespace entropy
     {
       std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)\n";
     }
-    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
+    for (size_t i = 0; i < entropy_kNN.rows(); i++)
     {
+      statistical_entropy(i, 0u) = /*-1.0*  */ (log(alpha_i(i, 0u)) + log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.);
+      //statistical_entropy(i, 0u) = -1.0 * (log(pca_frequencies(i, 0u)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
+      //classical_entropy(i, 0u) = -1.0 * (log(pca_frequencies(i, 0u)) - 1.);
+
+      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
+
+      // Debug output for developers
+      if (Config::get().general.verbosity >= 5)
+      {
+        std::cout << "mode " << i << ". entropy kNN: " << entropy_kNN(i, 0u) << "\n";
+        std::cout << "mode " << i << ". entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
+        std::cout << "mode " << i << ". classical entropy: " << classical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". pca freq: " << pca_frequencies(i, 0u) << "\n";
+        std::cout << "mode " << i << ". alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
+        std::cout << "mode " << i << ". standard deviation in mw-pca-units: " << sqrt(eigenvalues(i, 0u)) << "\n";
+      }
+
       if (pca_frequencies(i, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
       {
-        classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
-        entropy_anharmonic(i, 0u) = classical_entropy(i, 0u) - entropy_anharmonic(i, 0u);
-        entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
-        if ((entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
+        if (abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
         {
           entropy_anharmonic(i, 0u) = 0.0;
-          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
+          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)\n";
         }
       }
       else
@@ -656,6 +680,10 @@ namespace entropy
         std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
         entropy_anharmonic(i, 0u) = 0.0;
       }
+
+      // Change dimensionless entropy to cal / K * mol
+      entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+
     }
 
     // III. Calculate Difference of Entropies

@@ -197,6 +197,15 @@ typedef size_t uint_type;
 
 #ifndef USE_ARMADILLO
     using base_type::operator*=;
+#else
+    mathmatrix operator*(T const& in) const
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Operator* with scalar for matrix-class" << std::endl;
+
+      arma::Mat<T> const& base_this = *this;
+      return (mathmatrix(base_this * in));
+    };
 #endif
 
     // identity from base_classes
