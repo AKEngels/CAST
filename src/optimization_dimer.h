@@ -31,15 +31,6 @@ namespace optimization
 
   namespace dimer
   {
-
-
-    template<class F>
-    inline bool signdiff(F const x, F const y)
-    {
-      using std::abs;
-      return ((x*(y / abs(y))) < F(0));
-    }
-
     template<class CallbackT>
     class dimer
     {

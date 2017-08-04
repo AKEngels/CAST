@@ -1,12 +1,11 @@
 #include <cmath>
 #include <stdexcept>
-//#include <fftw3.h>
 #include "atomic.h"
 #include "coords.h"
 #include "configuration.h"
 #include "coords_io.h"
 #include "lbfgs.h"
-#include "Array.h"
+
 #define SUPERPI 3.141592653589793238
 
 #include "optimization_dimer.h"
