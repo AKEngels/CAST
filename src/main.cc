@@ -45,7 +45,6 @@
 #include "optimization_global.h"
 #include "pathopt.h"
 #include "Path_perp.h"
-#include "reaccoord.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include <omp.h>
 #include "PCA.h"
