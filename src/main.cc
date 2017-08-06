@@ -245,14 +245,13 @@ int main(int argc, char **argv)
     // select task
     switch (Config::get().general.task)
     {
-
-    case config::tasks::DEVTEST:
-    {
+      case config::tasks::DEVTEST:
+      {
       // DEVTEST: Room for Development testing
       break;
     }
-    case config::tasks::SP:
-    {
+      case config::tasks::SP:
+      {
       // singlepoint calculation
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
@@ -272,8 +271,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::GRAD:
-    {
+      case config::tasks::GRAD:
+      {
       // calculate gradient
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
@@ -288,8 +287,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::LOCOPT:
-    {
+      case config::tasks::LOCOPT:
+      {
       // local optimization
       coords.e_head_tostream_short(std::cout);
       auto lo_structure_fn = coords::output::filename("_LOCOPT");
@@ -325,8 +324,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::TS:
-    {
+      case config::tasks::TS:
+      {
       // Gradient only tabu search
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -341,8 +340,8 @@ int main(int argc, char **argv)
       gots.write_range("_TS");
       break;
     }
-    case config::tasks::MC:
-    {
+      case config::tasks::MC:
+      {
       // MonteCarlo Simulation
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -357,8 +356,8 @@ int main(int argc, char **argv)
       mc.write_range("_MCM");
       break;
     }
-    case config::tasks::GRID:
-    {
+      case config::tasks::GRID:
+      {
       // Grid Search
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -370,8 +369,8 @@ int main(int argc, char **argv)
       mc.write_range("_GRID");
       break;
     }
-    case config::tasks::INTERNAL:
-    {
+      case config::tasks::INTERNAL:
+      {
       // Explicitly shows CAST conversion to internal coordiantes
       // Beware when chaning this, PCA-task depend on this output and need to be adjusted accordingly.
       for (auto const & pes : *ci)
@@ -393,8 +392,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::DIMER:
-    {
+      case config::tasks::DIMER:
+      {
       // Dimer method
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0U);
@@ -417,16 +416,16 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::MD:
-    {
+      case config::tasks::MD:
+      {
       // Molecular Dynamics Simulation
       if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.run();
       break;
     }
-    case config::tasks::FEP:
-    {
+      case config::tasks::FEP:
+      {
       // Free energy perturbation
       md::simulation mdObject(coords);
       mdObject.fepinit();
@@ -434,16 +433,16 @@ int main(int argc, char **argv)
       mdObject.feprun();
       break;
     }
-    case config::tasks::UMBRELLA:
-    {
+      case config::tasks::UMBRELLA:
+      {
       // Umbrella Sampling
       Config::set().md.umbrella = true;
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
       break;
     }
-    case config::tasks::STARTOPT:
-    {
+      case config::tasks::STARTOPT:
+      {
       // Preoptimization
       //std::cout << "PreApply.\n";
       startopt::apply(coords, ci->PES());
@@ -458,8 +457,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::GOSOL:
-    { // Combined Solvation + Global Optimization
+      case config::tasks::GOSOL:
+      { // Combined Solvation + Global Optimization
       std::cout << Config::get().startopt.solvadd;
       std::cout << "-------------------------------------------------\n";
       std::cout << Config::get().coords.equals;
@@ -470,8 +469,8 @@ int main(int argc, char **argv)
       sopt.run(Config::get().startopt.solvadd.maxNumWater);
       break;
     }
-    case config::tasks::NEB:
-    {
+      case config::tasks::NEB:
+      {
       std::ptrdiff_t counter = 0;
       std::vector<coords::Representation_3D> input_pathway;
       coords::Representation_3D start_struc, final_struc;
@@ -509,8 +508,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::PATHOPT:
-    {
+      case config::tasks::PATHOPT:
+      {
       std::ptrdiff_t counter = 0;
       for (auto const & pes : *ci)
       {
@@ -523,15 +522,15 @@ int main(int argc, char **argv)
       }
       break;
     }
-    case config::tasks::PATHSAMPLING:
-    {
+      case config::tasks::PATHSAMPLING:
+      {
       coords::Coordinates const coord_obj(coords);
       path_perp path_perpobj(&coords);
       path_perpobj.pathx_ini();
       break;
     }
-    case config::tasks::ALIGN:
-    {
+      case config::tasks::ALIGN:
+      {
       /*
        * THIS TASK ALIGNES A SIMULATION TRAJECTORY
        *
@@ -545,8 +544,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    case config::tasks::PCAgen:
-    {
+      case config::tasks::PCAgen:
+      {
       /**
        * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
        *
@@ -599,8 +598,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    case config::tasks::PCAproc:
-    {
+      case config::tasks::PCAproc:
+      {
       /**
        * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
        * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
@@ -612,8 +611,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    case config::tasks::ENTROPY:
-    {
+      case config::tasks::ENTROPY:
+      {
       /**
        * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
        *
@@ -622,105 +621,62 @@ int main(int argc, char **argv)
        * conformations obtained is possible. Options can be specified in the INPUTFILE
        *
        */
-      entropy(ci, coords);
+
+       // Create TrajectoryMatrixRepresentation
+       // This is actually quite elaborate and involves many steps
+       // If cartesians are desired they will always be massweightend
+       // If itnernals are desired they will always be transformed
+       // to a linear (i.e. not circular) coordinate space)
+       // Check the proceedings for more details
+      entropy::TrajectoryMatrixRepresentation repr(ci, coords);
+
+      for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
+      {
+        int m = (int)Config::get().entropy.entropy_method[u];
+        // Karplus' method
+        if (m == 1 || m == 0)
+        {
+          /*double entropy_value = */repr.karplus();
+        }
+        // Knapp's method, marginal
+        if (m == 2)
+        {
+          /*double entropy_value = */repr.knapp_marginal(
+            Config::get().entropy.entropy_temp,
+            Config::get().entropy.entropy_remove_dof);
+        }
+        // Knapp's mathod
+        if (m == 3 || m == 0)
+        {
+          /*double entropy_value = */repr.knapp(
+            Config::get().entropy.entropy_temp,
+            Config::get().entropy.entropy_method_knn_k,
+            Config::get().entropy.entropy_remove_dof);
+        }
+        // Hnizdo's method
+        if (m == 4 || m == 0)
+        {
+          /*double entropy_value = */repr.hnizdo(
+            Config::get().entropy.entropy_method_knn_k
+          );
+        }
+        // Hnizdo's method, marginal
+        if (m == 5 || m == 0)
+        {
+          /*double entropy_value = */repr.hnizdo_marginal(
+            Config::get().entropy.entropy_method_knn_k);
+        }
+        // Schlitter's method
+        if (m == 6 || m == 0)
+        {
+          /*double entropy_value = */repr.schlitter(
+            Config::get().entropy.entropy_temp);
+        }
+      }
+
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-    case config::tasks::REMOVE_EXPLICIT_WATER:
-    {
-      /**
-      * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
-      *
-      */
-
-        // Write Stock's Delta, see DOI 10.1063/1.2746330
-        // ATTENTION: This function read from Config::PCA
-        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
-
-        // Cleanup
-		    delete pcaptr;
-        std::cout << "Everything is done. Have a nice day." << std::endl;
-        break;
-      }
-      case config::tasks::PCAproc:
-      {
-        /**
-         * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
-         * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
-         * see also: Task PCAgen
-         */
-        pca::ProcessedPrincipalComponentRepresentation pcaproc("pca_modes.dat");
-        pcaproc.determineStructures(ci, coords);
-        pcaproc.writeDeterminedStructures(coords);
-        std::cout << "Everything is done. Have a nice day." << std::endl;
-        break;
-      }
-      case config::tasks::ENTROPY:
-      {
-        /**
-         * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
-         *
-         * This task will perform verious configurational or conformational entropy calculations
-         * on a molecular simualtion trajectory. Prior translational- and rotational fit of the
-         * conformations obtained is possible. Options can be specified in the INPUTFILE
-         *
-         */
-
-        // Create TrajectoryMatrixRepresentation
-        // This is actually quite elaborate and involves many steps
-        // If cartesians are desired they will always be massweightend
-        // If itnernals are desired they will always be transformed
-        // to a linear (i.e. not circular) coordinate space)
-        // Check the proceedings for more details
-        entropy::TrajectoryMatrixRepresentation repr(ci, coords);
-
-        for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
-        {
-          int m = (int)Config::get().entropy.entropy_method[u];
-          // Karplus' method
-          if (m == 1 || m == 0)
-          {
-            /*double entropy_value = */repr.karplus();
-          }
-          // Knapp's method, marginal
-          if (m == 2)
-          {
-            /*double entropy_value = */repr.knapp_marginal(
-              Config::get().entropy.entropy_temp,
-              Config::get().entropy.entropy_remove_dof);
-          }
-          // Knapp's mathod
-          if (m == 3 || m == 0)
-          {
-            /*double entropy_value = */repr.knapp(
-              Config::get().entropy.entropy_temp,
-              Config::get().entropy.entropy_method_knn_k,
-              Config::get().entropy.entropy_remove_dof);
-          }
-          // Hnizdo's method
-          if (m == 4 || m == 0)
-          {
-            /*double entropy_value = */repr.hnizdo(
-              Config::get().entropy.entropy_method_knn_k
-              );
-          }
-          // Hnizdo's method, marginal
-          if (m == 5 || m == 0)
-          {
-            /*double entropy_value = */repr.hnizdo_marginal(
-              Config::get().entropy.entropy_method_knn_k);
-          }
-          // Schlitter's method
-          if (m == 6 || m == 0)
-          {
-            /*double entropy_value = */repr.schlitter(
-              Config::get().entropy.entropy_temp);
-          }
-        }
-
-        std::cout << "Everything is done. Have a nice day." << std::endl;
-        break;
-      }
       case config::tasks::REMOVE_EXPLICIT_WATER:
       {
         /**
@@ -730,102 +686,98 @@ int main(int argc, char **argv)
         std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
         std::string* hold_str = new std::string[ci->size()];
 #ifdef _OPENMP
-      auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
+        auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coords) shared(hold_str)
-      for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
+        for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
 #else
-      for (std::size_t iter = 0; iter < ci->size(); ++iter)
+        for (std::size_t iter = 0; iter < ci->size(); ++iter)
 #endif
-      {
-        auto holder = ci->PES()[iter].structure.cartesian;
-        coords.set_xyz(holder);
-
-        std::vector<size_t> atomsToBePurged;
-        coords::Atoms truncAtoms;
-        coords::Representation_3D positions;
-        for (size_t i = 0u; i < coords.atoms().size(); i++)
         {
-          coords::Atom atom(coords.atoms().atom(i));
-          if (atom.number() != 8u && atom.number() != 1u)
+          auto holder = ci->PES()[iter].structure.cartesian;
+          coords.set_xyz(holder);
+
+          std::vector<size_t> atomsToBePurged;
+          coords::Atoms truncAtoms;
+          coords::Representation_3D positions;
+          for (size_t i = 0u; i < coords.atoms().size(); i++)
           {
-            truncAtoms.add(atom);
-            positions.push_back(coords.xyz(i));
-          }
-          else if (atom.number() == 1u)
-          {
-            // Check if hydrogen is bound to something else than Oxygen
-            bool checker = true;
-            for (size_t j = 0u; j < atom.bonds().size(); j++)
-            {
-              if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
-            }
-            if (checker)
+            coords::Atom atom(coords.atoms().atom(i));
+            if (atom.number() != 8u && atom.number() != 1u)
             {
               truncAtoms.add(atom);
               positions.push_back(coords.xyz(i));
             }
-          }
-          else if (atom.number() == 8u)
-          {
-            //checker checks if only hydrogens are bound to this current oxygen
-            bool checker = true;
-            for (size_t j = 0u; j < atom.bonds().size(); j++)
+            else if (atom.number() == 1u)
             {
-              if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
-            }
-            if (!checker)
-            {
-              truncAtoms.add(atom);
-              positions.push_back(coords.xyz(i));
-              for (auto const& bond : atom.bonds())
+              // Check if hydrogen is bound to something else than Oxygen
+              bool checker = true;
+              for (size_t j = 0u; j < atom.bonds().size(); j++)
               {
-                if (coords.atoms().atom(bond).number() == 1u)
+                if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
+              }
+              if (checker)
+              {
+                truncAtoms.add(atom);
+                positions.push_back(coords.xyz(i));
+              }
+            }
+            else if (atom.number() == 8u)
+            {
+              //checker checks if only hydrogens are bound to this current oxygen
+              bool checker = true;
+              for (size_t j = 0u; j < atom.bonds().size(); j++)
+              {
+                if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
+              }
+              if (!checker)
+              {
+                truncAtoms.add(atom);
+                positions.push_back(coords.xyz(i));
+                for (auto const& bond : atom.bonds())
                 {
-                  truncAtoms.add(coords.atoms().atom(bond));
-                  positions.push_back(coords.xyz(bond));
+                  if (coords.atoms().atom(bond).number() == 1u)
+                  {
+                    truncAtoms.add(coords.atoms().atom(bond));
+                    positions.push_back(coords.xyz(bond));
+                  }
                 }
               }
             }
           }
+          coords::Coordinates newCoords;
+          coords::PES_Point x(positions);
+          newCoords.init_in(truncAtoms, x);
+          std::stringstream temporaryStringstream;
+          temporaryStringstream << newCoords;
+          hold_str[iter] = temporaryStringstream.str();
         }
-        coords::Coordinates newCoords;
-        coords::PES_Point x(positions);
-        newCoords.init_in(truncAtoms, x);
-        std::stringstream temporaryStringstream;
-        temporaryStringstream << newCoords;
-        hold_str[iter] = temporaryStringstream.str();
       }
       case config::tasks::ENTROP_DEVTASK:
       {
-        // mat LAYOUT
-        // row 1: drawn sorted data points
-        // row 2: KNN density estimate
-        // row 3: analytical density
-        // row 4: (aux) NN distance at point
+      // mat LAYOUT
+      // row 1: drawn sorted data points
+      // row 2: KNN density estimate
+      // row 3: analytical density
+      // row 4: (aux) NN distance at point
 
-        ProbabilityDensity probdens(Config::get().entropytrails.ident);
+      ProbabilityDensity probdens(Config::get().entropytrails.ident);
 
-        entropyobj entropyObject(
-          Config::get().entropytrails.numberOfDraws,
-          Config::get().entropytrails.dimension,
-          probdens);
+      entropyobj entropyObject(
+        Config::get().entropytrails.numberOfDraws,
+        Config::get().entropytrails.dimension,
+        probdens);
 
-        calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
-        calculatedDistribution.calculate();
-        calculatedDistribution.writeToFile();
+      calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
+      calculatedDistribution.calculate();
+      calculatedDistribution.writeToFile();
 
-      }
+    }
       default:
       {
-        out << hold_str[i];
-      }
-    }
-    default:
-    {
 
     }
-
     }
+
 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
@@ -860,8 +812,9 @@ int main(int argc, char **argv)
 #endif
 #ifdef _MSC_VER 
   // make window stay open in debug session on windows
-  if (IsDebuggerPresent()) std::system("pause");
+  if (IsDebuggerPresent())
+    std::system("pause");
 #endif
   return 0;
-  }
+}
 #endif
