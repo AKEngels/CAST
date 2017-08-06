@@ -161,10 +161,8 @@
 		\acro{PCA}{Principal Component Analysis}
 		\acro{PDF}{probability density function}
 		\acro{PES}{potential energy surface}
-		\acro{PME}{Particle Mesh Ewald}
 		\acro{RMSD}{root-mean-square deviation}
 		\acro{SAPT-FF}{Symmetry Adapted Perturbation Theory based Force Field}
-		\acro{SPME}{Smooth Particle Mesh Ewald}
 		\acro{TS}{Tabu Search}
 		\acro{US}{Umbrella Sampling}
 		\acro{VdW}{Van-der-Waals}
@@ -191,7 +189,11 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\ifdevelopment
 	\section{Compiling CAST}
-	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. The \ac{PME} code however at this point still depends on FFTW libraries and is therefore not enabled by default. If you need to perform simulations with \ac{PME}, please contact the \ac{CAST} developers. Compilation was verified using Microsoft Visual Studio 2015 Update 1 on Windows 10 and \acs{GCC} 5.3 on SuseLinux. A makefile for Linux operating systems is part of the source code repository.
+	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
+	
+	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
+	
+	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. Precompiled binaries for windows and linux are included in \ac{CAST}.
 	
 	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
 	\fi
@@ -205,11 +207,6 @@
 	\section{Installation}
 	\ac{CAST} is usually distributed as a precompiled executable for Linux and Windows. Currently \ac{CAST} has no external dependencies.
 
-	\ifdevelopment
-		The Windows binary can be used with any Windows operating system starting from Windows 7. No further requirements exist. On Linux,
-		precompiled binaries are statically linked. FFTW 3.4 libraries have to be set in the \textit{PATH} variable of the Linux shell:\\
-		\textbf{LD\_LIBRARY\_PATH \glqq Path to FFTW lib dir\grqq}
-	\fi
 	\newpage
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -268,20 +265,7 @@
 		\subsubsection{AMOEBA and short range correction}
 		\ifdevmode \colorbox{red}{Blalala yaddayaddayadda... insert stuff here.} \fi
 		%% Smooth particle Mesh Ewald
-		\subsubsection{Smooth particle Mesh Ewald}
-		\ac{SPME}\supercite{spme} allows the treatment of full electrostatic in periodic systems. Essential for the use of the \ac{SPME} are applied periodic boundary conditions. \ac{SPME} uses the FFTW 3.4 library for the fourier transformations of the charge grid $($see Installation details$)$.  \ac{SPME} control features the following parameters:\\~\\
 
-		\begin{tabularx}{\textwidth}{l|l|l}
-			variable & effect & default \\
-			\hline
-			PME & Switches pme on or off 0 = off, 1 = on & 0 \\
-			PMEspline & Spline order used in SPME & 5 \\
-			PMEtreshold & Affects the value of the ewald coefficient & 0.00000001 \\
-		\end{tabularx}
-
-		\ifdevmode
-		\colorbox{red}{WE NEED TO ADRESS THE FFTW LIB ISSUE!}
-		\fi
 
 	%%%% Energy Interfaces %%%%
 	\subsection{Energy Interfaces}
@@ -750,7 +734,7 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 	
 	%%%% INTERNAL %%%%
 	\subsection{INTERNAL - Conversion to internal coordinates}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be cosntraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
 
 	%%%% STARTOPT %%%%
 	\subsection{STARTOPT - I dont even know}	
@@ -835,7 +819,7 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 	
 	%%%% Entropy calculations (ENTROPY) %%%%
 	\subsection{ENTROPY - Conformational and Configurational entropy calculations}
-	For further analysis of \acl{MD} ensembles \ac{CAST} provides the calculation of entropy contributions. Different approaches for entropy calculation can be used. Currently \ac{CAST} offers calculations according to Karplus\supercite{karplus_entropy}and Schlitter\supercite{schlitter_entropy}. Calculations can be performed in cartesian or internal coordinates for all or only several snapshots. Furthermore, the \acp{DOF} can also be truncated to a selection of internals or cartesian coordinates. If internal coordinates are to be used, you need to specify the indentifying integer of the atom where the desired internal coordinate belongs to. Since the building of internal Z-Matrices can differ between different software packages, we suggest you run the task ``INTERNAL'' to obtain the Z-Matrix \ac{CAST} will use for your specific molecular system. The following options are provided by \ac{CAST}: \\~\\
+	For further analysis of \acl{MD} ensembles \ac{CAST} provides the calculation of entropy contributions. Different approaches for entropy calculation can be used. Currently \ac{CAST} offers calculations according to Karplus\supercite{karplus_entropy}and Schlitter\supercite{schlitter_entropy}. Entropy calculations according to Karplus are modified from the original publication, as some minor math errors have been fixed. Calculations can be performed in cartesian or internal coordinates for all or only several snapshots. Furthermore, the \acp{DOF} can also be truncated to a selection of internals or cartesian coordinates. If internal coordinates are to be used, you need to specify the indentifying integer of the atom where the desired internal coordinate belongs to. Since the building of internal Z-Matrices can differ between different software packages, we suggest you run the task ``INTERNAL'' to obtain the Z-Matrix \ac{CAST} will use for your specific molecular system. The following options are provided by \ac{CAST}: \\~\\
 	
 	\begin{tabularx}{\textwidth}{l|X|r}
 		variable & effect & default\\
@@ -886,7 +870,7 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		pca\_print\_probability\_density & Boolean flag (``true'' / ``false'' ): Print probability density of generated PCA modes (obtained through internal histogramming). & true\\
 		pca\_histogram\_width & Bin size of one histogram. Number of bins is adjusted accordingly. One can use ``pca\_histogram\_number\_of\_bins\ alternatively. & none\\
 		pca\_histogram\_number\_of\_bins & Number of histogram bins per dimension. Bin size is adjusted accordingly. ``pca\_histogram\_width'' can be used alternatively. & none\\
-		pca\_dimensions\_for\_histogramming & Specify an integer range identifying the dimensions that will be histogrammed. Example: ``1,2'': Two dimensional histogramming of the first two \ac{PCA} Modes. Example: ``1-3'': Three-Dimensional histogramming of the first three \ac{PCA} Modes. Example: ``1,5,8,11-15'' etc. & none\\
+		pca\_dimensions\_for\_histogramming & Specify an integer range identifying the dimensions that will be histogrammed. Alternativly, write "all" to obtain one-dimensional hisograms of all dimensions. Example: ``1,2'': Two dimensional histogramming of the first two \ac{PCA} Modes. Example: ``1-3'': Three-Dimensional histogramming of the first three \ac{PCA} Modes. Example: ``1,5,8,11-15'' etc.& none\\
 		
 	\end{tabularx}~\\
 		
@@ -918,22 +902,18 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		proc\_desired\_stop & Float values, each one corresponding to the stop of a desired region in one dimension (Example:'' 5.0, 6.0'') & none\\
 	\end{tabularx}~\\
 
-	%%%% GRID %%%%
-	\subsection{GRID - jajajajjajaja blub}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
-	
 	%%%% PATHOPT %%%%
 	\subsection{PATHOPT - I dont even know}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
 	
+	%%%% PATHOPT %%%%
+	\subsection{GRID - I dont even know}	
+	\ifdevmode \colorbox{red}{write something here} \fi	
+	
 	%%%% PATHSAMPLING %%%%
-	\subsection{PATHSAMPLING - Repeated Gradient Calculation?}	
+	\subsection{PATHSAMPLING - ?}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
-
-	%%%% REACTIONCOORDINATE %%%%
-	\subsection{REACTIONCOORDINATE - REACTIONCOORDINATE?}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
-
+	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	
 	This task will remove all explicit water from the input trajectory and write out the truncated coordinate. This may be useful to prepare data for tasks such as ENTROPY, PCAgen or ALIGN. In detail, the truncation is performed by detecting oxygen atoms which are only bound to two hydrogen atoms.\\
