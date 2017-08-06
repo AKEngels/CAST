@@ -181,6 +181,7 @@ project "CAST"
       defines { "GOOGLE_MOCK", "CAST_USE_ARMADILLO" }
       includedirs { "../optional_files/includes/armadillo/", "../optional_files/includes/gtest/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
+	  linkoptions {"/DEBUG"}
       filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2015"}
         targetname "CAST_win_x86_testing_lapack"
         links { "blas_x86rel", "lapack_x86rel", "gmock" }

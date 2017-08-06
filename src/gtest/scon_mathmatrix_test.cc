@@ -14,7 +14,7 @@ Purpose: Tests matrix procedures
 
 
 #ifndef eigen_assert
-#define eigen_assert(msg) if (!bool( msg )) std::cout << "assertion_failed" << std:: endl
+#define eigen_assert(msg) if (!bool( msg )) { std::cout << "eigen assertion raised" << std::endl; throw std::runtime_error("eigen assertion raised"); }
 #endif
 
 
