@@ -37,7 +37,7 @@ project "CAST"
 	targetdir "../optional_files/build/"
 	files { "../src/**.h", "../src/**.cc", "../src/gtest/**.cc" }
 
-	vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/**.cc", ["Testing"] = "../src/gtest/*.cc" }
+	vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/*.cc", ["Testing"] = "../src/gtest/**.cc" }
 
 
 	configuration "gmake"
