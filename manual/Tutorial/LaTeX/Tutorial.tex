@@ -58,7 +58,7 @@
 			\Large{Conformational Analysis and Search Tool}\\[.5cm]
 			\Huge{Tutorial}\\[1cm]
 			\includegraphics[width=.7\textwidth]{LOGO}\\[1cm]
-			\Large{Authors: Julian Erdmannsdörfer and Daniel Bellinger\\[1cm]
+			\Large{Authors: Daniel Bellinger, Julian Erdmannsdörfer and Dustin Kaiser\\[1cm]
 				Last Updated: \today }
 		\end{center}
 	\end{titlepage}
@@ -74,13 +74,13 @@
 \section{Getting started: The test molecule}
 \label{sec:gettingstarted}
 
-\paragraph{From scratch}IN a first step we may want to introduce how to generate TINKER files from scratch. The two programs we will need are molden\myCite{MOLDEN} and tinker. If there is no PDB file of our target molecule first of all we need to generate this. A very handy program to do so is molden\myCite{MOLDEN}.
+\paragraph{From scratch}First we want to show how to generate TINKER files from scratch. The two programs we will need are molden\myCite{MOLDEN} and tinker. If there is no PDB file of our target molecule available we need to use this procedure to yield a cartesian structure. A very handy program to do so is molden\myCite{MOLDEN}.
 \paragraph{Using the editor}Starting molden there is a button called ``ZMAT Editor'' shown in figure \ref{fig:molden} on the very left of the upper images. Pushing this button opens another window with the option to add a line (figure \ref{fig:molden} top middle) which can be clicked to proceed in adding our first atom. The now changed window shows all the atoms in the periodic table. Furthermore next to the section bondlength one can choose whether the added bond is a single, double or triple bond, this only tells molden to use the specific bondlength if molden knows the value. Needless to say that this option will not affect the first atom.
 \paragraph{The Molecule}In the following we will create a test molecule which is a small peptide made of Alanine and Glycine. So we start by adding a carbon atom as depicted on the very right of the top row in figure \ref{fig:molden} which makes a red star appear. To proceed a little faster we may want to add a whole substituent so we click on this little star (figure \ref{fig:molden} in the upper middle the very left one). If we successfully pushed the button we see him turning into a sphere (figure \ref{fig:molden} in the middle of the upper middle images). Now we choose the ``Substitute atom by Fragment'' option (figure \ref{fig:molden} in the upper middle the very right) and choose \ce{CH_3}-fragment (figure \ref{fig:molden} on the lower middle row the very left). Now three additional \ce{H}-atoms appear. To go further on we can repeat the actions for substitution to replace one of the hydrogen's with an amine and another hydrogen with a methyl-group. The last hydrogen stays as it is. Unfortunately, molden does not know what we plan to do so it may create distances between atoms which are not very likely. We deal with this issue later on after we have had a closer look at internal coordinates.
 \paragraph{Short look at internal coordinates}Now we need another carbon atom which we need to add via the ``Add Line''  option as we did it for the first carbon. In internal coordinates, which we are using to build our peptide, we need for the first atom no spacial information it just lies in space. For the second one we need the distance from the first atom. The third one needs a distance to one of the former ones and an angle defined through the previous ones. As soon as we reach the fourth atom we need as much spacial information as we do in Cartesian-Coordinates which means three values. Let us say the atom we look at is atom $A$, the first value we need is the distance to another atom $B$, the second the angle over atom $B$ to a third atom $C$ and the third value is a torsion between $A$ and a third atom $D$ in respect to the line $B$ and $C$. Of course none of these atoms can be the same atoms so $A\neq B \neq C \neq D$.
 \paragraph{Add another atom}While we add another carbon atom the program will ask us for atom $B$ for which we choose our carbon with only four bonds. The next atom $C$ will be the methyl carbon and the last one can be one of the methyl hydrogen atoms. To deal with molden's wrong placements we use our knowledge about internal coordinates and check each atom which is misplaced by clicking on it. In the window showing the internal information the clicked atom is highlighted red as it is marked red in figure \ref{fig:molden} on the lower middle row the right one. Each value can be changed by clicking on the related box and overwriting the old value. If one clicks in the last box all information about bond, angle and torsion partner is revealed. The yellow sphere is atom $B$ its distance to atom $A$ is marked yellow, the green sphere is atom $C$ and the resulting angle is marked green. The light blue sphere is finally atom $D$ and the torsion value is marked light blue. In the case shown in figure \ref{fig:molden} we can not change the torsion of the misplaced hydrogen for it has no torsion because it is just the third atom (see appendix \ref{app:alaglytinker}). But we can change the position of the amine and the carbon by clicking on them and changing their torsion. Now we need to proceed to substitute and add atoms till we got the Ala-Gly-Peptide. If we want to use the \texttt{OPLS-AA}-Force field (FF)- and we will - we got to create a zwitterionic peptide.
 \paragraph{Saving as tinker-file}After finishing the structure we click on close to close the Z-Matrix editor and click on write on the main window and choose tinker as output (figure \ref{fig:molden} bottom pictures). We enter the directory and the filename we wish to use and save it. In this case the filename is ``\texttt{AlaGly.xyz}''. Now we have a tinker file with MM3 forcefield parameters changing these to OPLS-AA is desired.
-\paragraph{Generating the final tinker-file}The most straight forward way to change the MM3 parameters to OPLS-AA ones is to look inside the tinker file and, for each atom, look up the kind of atom molden has assigned it to. So let's take this little example:
+\paragraph{Generating the final tinker-file}The most straight forward way to change the MM3 parameters to ones supported in CAST (like OPLS-AA) is to look inside the tinker file and, for each atom, look up the kind of atom molden has assigned it to. So let's take this little example:
 
 \begin{lstlisting}[frame=single,]
   1  N    -0.679000    1.176000   -0.480000     39   2   6  12  13
@@ -99,7 +99,7 @@ So now we need a equivalent atom number in the OPLS-AA FF in which are plenty of
 atom        230   53    N3    "Ammonium RNH3+"               7    14.007    4
 \end{lstlisting}
 
-So we change the atom type to 230 changing the atom's abbreviation is optional. The first atom now looks like:
+We change the atom type to 230. Changing the atom's abbreviation is optional. The first atom now looks like:
 
 \begin{lstlisting}[frame=single,]
   1  N3    -0.679000    1.176000   -0.480000    230   2  12   6  13
@@ -142,29 +142,27 @@ Now we are ready to set up the first calculation. The CAST configuration file is
 	keyword			value
 \end{lstlisting}
 
-So each value for each keyword can be changed to adjust the settings to each respective task which is desired. So let us take a look at the predefined configuration file. The first section contains general settings starting at line \ref{appCAST:castconf} like the amount of information which is printed during the execution which can be changed in line \ref{appCAST:verbosity} by altering the value next to \texttt{verbosity}. The next value depends on the cores which your PC can spend for the desired calculation. With an \textit{i-X}-Processor there are four cores available and thus the value next to \texttt{cores} in line \ref{appCAST:cores} reads \texttt{4}.\\
-The next section is for determining the input and output options beginning at line \ref{appCAST:filestypes} and starting with the name of the molecules file name in our case we got to write next to \texttt{name} the name of the Alanine Glycine peptide, so \texttt{AlaGly.xyt} will do. The next option in line \ref{appCAST:output} decides in which file the final output is written. In this case we use \texttt{AlaGly\_final}. Keep in mind that there is no ending needed depending on the method there is a ending generated. As we use a tinker-file as input format we write in line \ref{appCAST:intype} \texttt{TINKER}. Of course there are other input types, too. %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Welche inputtypes gibt es noch????
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-At line \ref{appCAST:tasks} begins a listing of all possible tasks which we depict in this tutorial and which are possible to undergo. The task we desire is to write in line \ref{appCAST:task} next to \texttt{task}. In a first step we want to start a local optimization for which we choose \texttt{LOCOPT}. This is the only configuration we can change in this section. The next section concentrates on the energy interfaces \ac{eg} OPLS-AA which we desire to use. To do so we need to write \texttt{OPLS-AA} next to \texttt{interface} in line \ref{appCAST:interface}. We do not need a preinterface (for preoptimization) so we let the value in line \ref{appCAST:preinterface} unchanged. %
+Each value for each keyword can be changed to adjust the settings to each respective task which is desired. Let us take a look at the predefined configuration file. The first section contains general settings starting at line \ref{appCAST:castconf} like the amount of information which is printed during the execution which can be changed in line \ref{appCAST:verbosity} by altering the value next to \texttt{verbosity}. Values supported range between 1 (minimal output) and 5 (full debug output - not recomended). The next value, \textit{cores}, sets the number of CPU cores used. Most of the task in CAST are parallelized to some degree, speed-up can be expected. With an \textit{i-X}-Processor there are four cores available and thus the value next to \texttt{cores} in line \ref{appCAST:cores} reads \texttt{4}.\\
+The next section is for determining the input and output options beginning at line \ref{appCAST:filestypes} and starting with the name of the molecules file name. In our case we have got to write the name of the Alanine Glycine peptide next to \texttt{name}, so \texttt{AlaGly.xyt} will do. The next option in line \ref{appCAST:output} decides the filename of the final output. In this case we use \texttt{AlaGly\_final}. Some methods automatically name and generate additional output files. As we use a tinker-file as input format we write in line \ref{appCAST:intype} \texttt{TINKER}. Experimental support for AMBER and PDB structures is available but out of the scope of this tutorial. %
+
+At line \ref{appCAST:tasks} in the sample \textit{CAST.txt} file a listing of all possible tasks is shown. The codename of the task we desire has to be written \ref{appCAST:task} next to \texttt{task}. In a first step we want to start a local optimization for which we choose the task \texttt{LOCOPT}. This is the only configuration we can change in this section. The next section concentrates on the energy interfaces \ac{eg} OPLS-AA which we desire to use. To do so we need to write \texttt{OPLS-AA} next to \texttt{interface} in line \ref{appCAST:interface}. We do not need a preinterface (for preoptimization), so we leave the value in line \ref{appCAST:preinterface} unchanged. %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %What is a preinterface?
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The path to the parameter files needs to be adjusted as well and so the desired parameter file needs to be defined in line \ref{appCAST:paramfile}. So we change the value to \texttt{OPLS-AA.prm} and copy the FF file to the directory with the \texttt{CAST.txt} and the \texttt{AlaGly.xyz}. Everything is set up for the first optimization so we open a command prompt and enter: 
+The path to the force-field parameter files needs to be adjusted. The desired parameter file needs to be defined in line \ref{appCAST:paramfile}. We change the value to \texttt{OPLS-AA.prm} and copy the FF file to the directory including the \texttt{CAST.txt} and the \texttt{AlaGly.xyz}. Everything is set up for the first optimization; we open a command prompt and enter: 
 \begin{lstlisting}[frame=single,]
 	cd "C:\PATH\TO\TUTORIAL"
 	"C:\PATH\TO\CAST\CAST.exe"
 \end{lstlisting}
 
-CAST starts and prints the local optimized structure in the desired outputfile with a \texttt{\_LOCOPT.arc} extension. Opening this shows the result in appendix \ref{app:finalarc}.
+CAST starts and prints the local optimized structure in the desired outputfile with a \texttt{\_LOCOPT.arc} filename extension. Opening this should yield a file similar to appendix \ref{app:finalarc}.
 
 
 \section{Available energy interfaces}
 
-CAST posses in principle three different types of energy interfaces. Starting with force fields which are directly included in the CAST code. Therefore, the CHARMM, AMBER, OPLS-AA and AMOEBA force fields (FF) are available. In addition to the standard AMOEBA FF. The improved SAPT-FF is included (details will be given in the specific paragraph). The second type are semi-empirics, whereas we use a an interface to the MOPAC program from the Stewart group. The third interface offers the possibility to do DFT calculations on GPUs by using an MPI interface with the Terachem (V1.5) program from Todd Martinez group.
-\paragraph{OPLSAA, AMBER and CHARMM}
+CAST includes in principle three different types of energy interfaces. Force fields which are directly included in the CAST code via TINKER-parameter files include the CHARMM, AMBER, OPLS-AA and AMOEBA force fields (FF). In addition to the standard AMOEBA FF, the improved SAPT-FF is included (details will be given in the specific paragraph). The second type are semi-empirical calculations, which are performed via external syscall to the MOPAC program from the Stewart group. The third interface offers the possibility to do DFT calculations on GPUs by using an MPI interface with the Terachem (V1.5) program from Todd Martinez group. Further energy interface are currently being developed.
 
+\paragraph{OPLSAA, AMBER and CHARMM}
 CAST includes three standard FFs which possess more or less same functional description, but are different in terms of parametrization. The interface is chosen by the following \texttt{interface} keywords: \texttt{OPLSAA}, \texttt{AMBER}, \texttt{CHARMM}. Besides The interface keyword each of these FFs needs a tinker-parameter file. The keyword is \texttt{paramfile} this is defined in line \ref{appCAST:paramfile} in the example input file. A typical parameter file in Tinker-format looks like:
 
 
@@ -241,13 +239,13 @@ atom          7    7    HO    "Acetic Acid -OH (UA)"         1     1.008    1
 The first block after the FF definition defines several input parameters for the calculations of the potential energy functions like vdw-combination rules and further on.
   
 
-\paragraph{AMOEBA and SAPT-FF}
-The AMOEBA FF belongs to the class of polarizable FFs. The energy description should not be described in detail. A detailed description can be found in \myCite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, whereas the short-range electrostatics are treated within a partitioning scheme.
+\paragraph{AMOEBA and SAPT-FF - Theoretical Background (optional reading)}
+The AMOEBA FF belongs to the class of polarizable FFs. A detailed description can be found in \myCite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, where the short-range electrostatics are treated with a partitioning scheme.
 For the description of the electrostatic energy it is a common approach
 to use a finite expansion over atomic multipoles. The simple multipole
-expansion underestimates the electrostatic energy and for a better
+expansion underestimates the electrostatic energy. For a better
 description a penetration energy can be included by using the Coulombic
-energy between pro molecular charge densities. The classical electrostatic
+energy between molecular charge densities. The classical electrostatic
 energy (Coulomb) between two molecules A and B is described by the
 following expression,
 \begin{equation}
@@ -256,25 +254,25 @@ E_{es}=\int\int\rho_{A}(r_{A})\rho_{B}(r_{B})|r_{A}-r_{B}|^{-1}dr_{A}dr_{B}\labe
 where $\rho_{A}(r_{A})$ and $\rho_{B}(r_{B})$ are the molecular
 charge distributions, containing nuclear and electronic contributions.
 In most cases in computational work the electron distribution is approximated
-by a set of multipole moments.\myCite{Stone1996} But it is shown that
+by a set of multipole moments\myCite{Stone1996}. However,
 they underestimate the exact energies which can be calculated by exact
-integration methods. This is related due to the fact that the penetration
+integration methods. This is related to the fact that the penetration
 of the electronic distribution of molecule A inside molecule B is
 not included in these approaches. 
 
-The penetration energy is affected by the Coulombic charge density
-between pro molecular charge distributions (atomic charge distributions),
+The penetration energy is affected by the Coulomb charge density
+between molecular charge distributions (atomic charge distributions),
 which means that it is the dominant part. Therefore, the charge distribution
 can be split into a sum of atomic and deformation terms. The atomic
 charge distributions are described by spherical ones. In consequence
 the Coulombic energy is relatively easy to compute. It can be calculated
-as functions depending on the distance and several parameters. Then
+via functions depending on the distance and several parameters. Then
 the contribution term of atom A can be written in the following way\myCite{Spackman1986a},
 \begin{equation}
 \rho_{A}(r_{A})=\sum_{i\in A}[\rho_{A,i}^{atomic}(r_{A})+\Delta\rho_{A,i}^{elec}(r_{A})]=\rho_{A}^{pro}(r_{A})+\Delta\rho_{A,i}^{elec}(r_{A})
 \end{equation}
 which describes the partitioning of the molecular electronic distribution.
-The pro molecular charge distribution of spherical atom A is $\rho_{A}^{pro}(r_{A})$
+The molecular charge distribution of spherical atom A is $\rho_{A}^{pro}(r_{A})$
 and $\Delta\rho_{A,i}^{elec}(r_{A})$ is the deformation term. Now
 it is possible to rewrite $E_{es}$ and fill in $\rho_{A}\rho_{B}$
 in eq. \ref{eq:Coulombic} For this $\rho_{A}\rho_{B}$ is shown.
@@ -362,25 +360,23 @@ separations between atoms. For dimers of small molecules the energy
 is always positive and in the range of 1.5 kJ/mol. In conclusion,
 it can be said that $E_{pro-pro}$ is one of the most important terms
 for the electrostatic energy description and is called the \textbf{Spackman-correction}
-in this work. The deformation energy $E_{def-def}$ is also one of
+in this work. The deformation energy $E_{def-def}$ is one of
 the key terms in the description of intermolecular interactions. For
 this term the description depends on the used force field or the used
 multipole moments (for example DMA multipoles).
 
-\begin{itemize}
-\item \textbf{How to run a SAPT-FF/AMOEBA calculation?}
+\paragraph{How to run a SAPT-FF/AMOEBA calculation}
 
 For running an AMOEBA or the SAPT-FF calculation the \texttt{interface} keyword should be set to \texttt{AMOEBA}. The SAPT-FF is activated by using the \texttt{Spackman} keyword (see line \ref{appCAST:mopacpath}). This keywords needs three input parameters: activation (0/1), interpolated gradients (0/1) and cutoff radius for the elect. interactions (standard=10.0).
 
-\item \textbf{Spackman} 1 1 10.0 - short-range correction activated, interpolative calculation activated and cutoff is set to 10.0 $\AA$
+\textbf{Spackman} 1 1 10.0 - short-range correction activated, interpolative calculation activated and cutoff is set to 10.0 $\AA$
 
-The SAPT-FF calculation needs several additional input files. The minimum which requested is the Spackman.prm file which contains the $\kappa$ and the atomic basis information. If one would like to use the interpolative variant the precalculated energy and gradient lists are needed. These files are called XY\_EN.in or XY\_GRAD.in. For a successful calculation one needs all the .in files (at the moment 20 files). The Spackman.prm file is given in the appendix (see line \ref{appCAST:spackman}). Within the parameter files the $\kappa$ values can be changed (see line \ref{appCAST:spackmankappa}. The first number indicates the atom type by the atomic charge value.
+The SAPT-FF calculation needs several additional input files. At the evry least CAST needs the Spackman.prm file which contains the $\kappa$ and the atomic basis information. If one would like to use the interpolative variant, the precalculated energy and gradient lists are needed. These files are called XY\_EN.in or XY\_GRAD.in. For a successful calculation one needs all the .in files (at the moment 20 files, included in the CAST package). The Spackman.prm file is given in the appendix (see line \ref{appCAST:spackman}). Within the parameter files the $\kappa$ values can be changed (see line \ref{appCAST:spackmankappa}. The first number indicates the atom type by the atomic charge value.
 
 
-\end{itemize}
 \paragraph{MOPAC}
 
-By using the the \texttt{MOPAC} interface keyword one needs to install the latest Version of MOPAC (MOPAC2012/16) to do calculations. For academic groups MOPAC can be freely downloaded from: \textit{http://openmopac.net/downloads.html}. The MOPAC interface is an file I/O interface and needs some input parameters to generate the appropriate input file. Generally the MOPAC interface can be combined with all existing tasks which need an energy or gradient evaluation. The most important keywords are:
+In order to use the \texttt{MOPAC} energy interface one needs to install the latest Version of MOPAC (MOPAC2012/16) to do calculations. For academic groups MOPAC can be freely downloaded from: \textit{http://openmopac.net/downloads.html}. The MOPAC interface is an file I/O interface and needs some input parameters to generate the appropriate input file. Generally the MOPAC interface can be combined with all existing tasks which need an energy or gradient evaluation. The most important keywords are:
  
 \begin{itemize}
 \item \textbf{MOPACpath} \textit{Character String} - defines the absolute pathway to the binary installed on the system 
@@ -393,23 +389,39 @@ By using the the \texttt{MOPAC} interface keyword one needs to install the lates
 
 \paragraph{TERACHEM}
 
-description under construction....
+TeraChem is accessed via MPI when the keyword \glqq TERACHEM\grqq~is specified in the energy interface. All further parameters regarding basis set, functional and so on have to be set in an extra file readable by CAST. CAST then transfers the input parameters to TeraChem via MPI. The syntax for the TeraChem input is such that each string needs to be set in its own line. Otherwise it's identical to the TeraChem input. An example is shown below:
+		
+\begin{lstlisting}[frame=single,]
+basis
+cc-pvdz
+charge
+0
+method
+b3lyp
+dftgrid
+2
+dftd
+d2\end{lstlisting}
+
+The name for the TeraChem input has to be \glqq \textit{CAST\_TERACHEM\_OPTIONS.txt}\grqq.
+Currently, only TeraChem Version 1.5K is supported. TeraChem has to be started with the \textit{-UseMPI} command line switch.
 
 \newpage
 
-\section{Go through tasks}
+\section{Tasks avaibale in CAST - a walkthrough}
 
-\paragraph{SP}Now we may compare the total energy of our ``initial guess'' and the local minimum we found. To do so we can look at the \texttt{AlaGly\_final\_LOCOPT.txt} file to obtain the energy of the local minimum which reads $-125.525~kcal/mol$ but if we close the command prompt the energy of the initial structure is gone. So we can compute this by doing a \ac{sp} calculation by just changing the task to \texttt{SP}. Remember the task was in line \ref{appCAST:task} in the input file seen in appendix \ref{app:casttxt} and again running CAST with
+\paragraph{SP}We may compare the total energy of our ``initial guess'' and the local minimum we found earlier. To do so we can look at the \texttt{AlaGly\_final\_LOCOPT.txt} file to obtain the energy of the local minimum which reads $-125.525~kcal/mol$. So we can compute the energy of the initial guess by doing a \ac{sp} calculation (via changing the task keyword to \texttt{SP}). Remember, the task was in line \ref{appCAST:task} in the input file seen in appendix \ref{app:casttxt}. We change the task and run CAST again.
 
 \begin{lstlisting}[frame=single,]
 cd "C:\PATH\TO\TUTORIAL"
 "C:\PATH\TO\CAST\CAST.exe"
 \end{lstlisting} 
 
-and we obtain a total energy of $5.204~kcal/mol$. The same way one could calculate the gradients by using \texttt{GRAD}.
+We obtain a total energy of $5.204~kcal/mol$ for the initial guess. The same way one could calculate the gradients by using the keyword \texttt{GRAD}.
 
 \paragraph{MD}%In a local minimum a \ac{md} simulation should do pretty bad because the gradient's value should be very close to zero. But nevertheless after some simulation time something may should happen. So we may rather use the not optimized file.
-A \ac{md} simulation is to describe the behavior of an ensemble of particles during a period of time by integrating over the classical Newton laws of mechanics. To use CAST to do so we take a closer look at the input file in appendix \ref{app:casttxt}. The \ac{md} part starts at line \ref{appCAST:md} a few lines below we see the \texttt{MDsteps} option in line \ref{appCAST:mdsteps} which we can assign the value of how many steps we want to perform. This may depend on the size of the time step we want to take which can be determined later. Keep in mind that a \ac{md} simulation needs very little time steps. We set the step number to \texttt{50000}. The \texttt{MDintegrater} option in line \ref{appCAST:mdintegrator} let us choose which integrator we want to use. We can choose between the Velocity-Verlet\myCite{VelVer} implementation and the Beeman\myCite{Beeman} one. Let's use the Velocity-Verlet one known from basic computational chemistry textbooks. The \texttt{MDveloscale} option in line \ref{appCAST:mdveloscale} is set to one. A thermostat would be nice to observe \ac{md} on one specific temperature so we choose for \texttt{MDthermostat} in line \ref{appCAST:mdthermostat} the one to let a Nose-Hoover\myCite{NoseHoover} algorithm take care of keeping the same temperature. In line \ref{appCAST:mdtimestep} is the option to choose the time step in picoseconds by writing the desired value next to the option \texttt{MDtimestep}. We choose $0.001~ps$. The next option in line \ref{appCAST:mdrestartifbroken} makes the \ac{md} simulation start again if the molecule gets broken. We choose not to do so and hope it will work either way. To do so we write a $0$ next to \texttt{MDrestart\_if\_broken}. After that we go forth to line \ref{appCAST:mdtrack} and write next to \texttt{MDtrack} a one to enable tracking and allowing us to make several snapshots. This makes it possible to make a little video. The next three options in line \ref{appCAST:mdsnap}, \ref{appCAST:mdsnapbuffer} and \ref{appCAST:mdsnapopt} are determining the snapshots we want. So \texttt{MDsnap} is set to $1000$ to get $1000$ snapshots the \texttt{MDsnap\_buffer} option is set to $100$ to sample $100$ snapshots before writing them into a file. The last option is to optimize each snapshot which would be \texttt{MDsnap\_opt} is disabled, too. In line \ref{appCAST:mdheat} we can determine the temperature and can change it at a specific step. This can be done by adding lines in the form of line \ref{appCAST:mdheat}. So \ac{eg} if we want to have a start temperature of $298.15~K$ and increase the temperature by $50~K$ every $10000$ steps we write something like written in line \ref{appCAST:mdheat1} to \ref{appCAST:mdheat5}. One could also use a RATTLE\myCite{RATTLE} option which considers internal constraints. This is done by enabling the \texttt{MDrattle} option in line \ref{appCAST:mdrattle}. We do not need this now so we turn it off.%
+A \ac{md} simulation describes the behavior of an ensemble of particles during a period of time by integrating over the classical Newton laws of mechanics. To use CAST to do so we take a closer look at the input file in appendix \ref{app:casttxt}. 
+The configuration options for \ac{md} starts at line \ref{appCAST:md}. A few lines below we see the \texttt{MDsteps} option in line \ref{appCAST:mdsteps}. We can use this to assign the value of how many steps we want to perform. The number of steps should be chosen in relation to the size of the time step. Keep in mind that a \ac{md} simulation needs very small time steps to yield accurate results. We set the step number to \texttt{50000}. The \texttt{MDintegrater} option in line \ref{appCAST:mdintegrator} lets us choose which integrator we want to use. We can choose between the Velocity-Verlet\myCite{VelVer} implementation and the Beeman\myCite{Beeman} one. Let's use the Velocity-Verlet one known from basic computational chemistry textbooks. The \texttt{MDveloscale} option in line \ref{appCAST:mdveloscale} is set to one. A thermostat would be nice to observe \ac{md} on one specific temperature so we choose for \texttt{MDthermostat} in line \ref{appCAST:mdthermostat} the one to let a Nose-Hoover\myCite{NoseHoover} algorithm take care of keeping the same temperature. In line \ref{appCAST:mdtimestep} is the option to choose the time step in picoseconds by writing the desired value next to the option \texttt{MDtimestep}. We choose $0.001~ps$. The next option in line \ref{appCAST:mdrestartifbroken} makes the \ac{md} simulation start again if the molecule gets broken. We choose not to do so and hope it will work either way. To do so we write a $0$ next to \texttt{MDrestart\_if\_broken}. After that we go forth to line \ref{appCAST:mdtrack} and write next to \texttt{MDtrack} a one to enable tracking and allowing us to make several snapshots. This makes it possible to make a little video. The next three options in line \ref{appCAST:mdsnap}, \ref{appCAST:mdsnapbuffer} and \ref{appCAST:mdsnapopt} are determining the snapshots we want. So \texttt{MDsnap} is set to $1000$ to get $1000$ snapshots the \texttt{MDsnap\_buffer} option is set to $100$ to sample $100$ snapshots before writing them into a file. The last option is to optimize each snapshot which would be \texttt{MDsnap\_opt} is disabled, too. In line \ref{appCAST:mdheat} we can determine the temperature and can change it at a specific step. This can be done by adding lines in the form of line \ref{appCAST:mdheat}. So \ac{eg} if we want to have a start temperature of $298.15~K$ and increase the temperature by $50~K$ every $10000$ steps we write something like written in line \ref{appCAST:mdheat1} to \ref{appCAST:mdheat5}. One could also use a RATTLE\myCite{RATTLE} option which considers internal constraints. This is done by enabling the \texttt{MDrattle} option in line \ref{appCAST:mdrattle}. We do not need this now so we turn it off.%
 %Der Rest keine Ahnung spherical??? adjust step??? ???
 \\
 Enough explanation on the input file lets try this \ac{md} simulation. First of all you may want to copy the optimized file \texttt{AlaGly\_final\_LOCOPT.arc} file and the modified \texttt{CAST.txt} to a separate folder to keep your workspace clean now you got to change the input filename in the \texttt{CAST.txt} to the new \texttt{AlaGly\_final\_LOCOPT.arc} or rename \texttt{AlaGly\_final\_LOCOPT.arc} to \texttt{AlaGly.xyz}. Open a command prompt and write
