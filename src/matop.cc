@@ -400,8 +400,8 @@ namespace matop
 
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols());
-      cov_matr = transposed(cov_matr) * cov_matr;
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -703,8 +703,8 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols());
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
@@ -756,8 +756,9 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols());
-      cov_matr = transposed(cov_matr) * cov_matr;
+      Matrix_Class temp_obj = Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
+      cov_matr = Matrix_Class(cov_matr - temp_obj);
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr = cov_matr / static_cast<float_type>(input.cols());
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
@@ -778,12 +779,12 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols());
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / static_cast<float_type>(input.cols());
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr = Matrix_Class(cov_matr / static_cast<float_type>(input.cols()));
 
       cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
-      cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
+      cov_matr = Matrix_Class(cov_matr + Matrix_Class::Identity(cov_matr.rows(), cov_matr.cols()));
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -860,15 +861,15 @@ namespace matop
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
+      Matrix_Class unit = Matrix_Class::Identity(c.rows(), c.rows());
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;
       }
       transpose(U);
-      unit = unit * U;
-      unit = V * unit;
-      input = unit * input;
+      unit = Matrix_Class(unit * U);
+      unit = Matrix_Class(V * unit);
+      input = Matrix_Class(unit * input);
 
       inputCoords.set_xyz(transfer_to_3DRepressentation(input));
     }

@@ -12,6 +12,12 @@ Purpose: Tests matrix procedures
 #include "gtest/gtest.h"
 #pragma once
 
+
+#ifndef eigen_assert
+#define eigen_assert(msg) if (!bool( msg )) std::cout << "assertion_failed" << std:: endl
+#endif
+
+
 #include "../scon_mathmatrix.h"
 #include <iostream>
 #include <string>
@@ -37,7 +43,7 @@ TEST(mathmatrix, constructedAndFilled)
 TEST(mathmatrix, constructedIdentityMatrixQuadratic)
 {
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.identity(4u, 4u);
+  mathmatrix<float> two = one.Identity(4u, 4u);
   ASSERT_EQ(two.rows(), 4u);
   ASSERT_EQ(two.cols(), 4u);
   ASSERT_FLOAT_EQ(two(2, 2), 1.f);
@@ -52,7 +58,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 {
 
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.identity(2u, 4u);
+  mathmatrix<float> two = one.Identity(2u, 4u);
 
   ASSERT_EQ(two.rows(), 2u);
   ASSERT_EQ(two.cols(), 4u);
@@ -65,7 +71,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 
   //
 
-  mathmatrix<float> three = one.identity(4u, 2u);
+  mathmatrix<float> three = one.Identity(4u, 2u);
   ASSERT_EQ(three.rows(), 4u);
   ASSERT_EQ(three.cols(), 2u);
   ASSERT_FLOAT_EQ(three(0, 0), 1.f);
@@ -231,11 +237,12 @@ TEST(mathmatrix, minusOperatorWorksReasonably)
 
 TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
 {
+ 
+
+
   mathmatrix<float> one(4u, 4u, 5.f);
   mathmatrix<float> two(3u, 2u, 5.f);
-
   ASSERT_ANY_THROW(one - two);
-
 }
 
 TEST(mathmatrix, choleskyDecomposition)
@@ -564,7 +571,7 @@ TEST(mathmatrix, SVDWorksCorrectly)
     sigma(i, i) = s(i, 0);
 
   mathmatrix<double> restored = sigma * transposed(V);
-  restored = U * restored;
+  restored = mathmatrix<double>(U * restored);
   //std::cout << one << std::endl << restored << std::endl;
   //auto SHIT = restored.to_std_vector();
 
