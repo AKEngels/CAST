@@ -12,7 +12,7 @@ Purpose: Tests matrix procedures
 #include "gtest/gtest.h"
 #pragma once
 
-#include "../src/scon_mathmatrix.h"
+#include "../scon_mathmatrix.h"
 #include <iostream>
 #include <string>
 #include <sstream>
