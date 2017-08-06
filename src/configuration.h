@@ -49,14 +49,14 @@ namespace config
 
 
   // Number of tasks
-  static std::size_t const NUM_TASKS = 24;
+  static std::size_t const NUM_TASKS = 23;
   // Names of all CAST tasks as strings
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
-    "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
+    "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "ENTROP_DEVTASK",
   };
 
@@ -74,7 +74,7 @@ namespace config
       SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
-      DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
+      DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, ENTROP_DEVTASK
     };
   };
@@ -197,55 +197,6 @@ namespace config
     }; 
   };
 
-
-
-
-
-  /**number of Implicit solvation method types (currently not supported)*/
-  static std::size_t const NUM_SOLV = 7;
-  /**Implicit solvation method types as strings (currently not supported)*/
-  static std::string const 
-    solv_strings[NUM_SOLV] =
-  { 
-    "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
-  };
-  /*! contains enum with all implicit solvation methods (currently not supported)
-  *
-  * Those methods are subsequently mapped using NUM_SOLV string[].
-  */
-  struct solvs
-  {
-	  /*! contains all implicit solvation methods (currently not supported)
-	  */
-    enum S 
-    {
-      ILLEGAL = -1, 
-      VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
-    };
-  };
-  /**number of implicit solvation surface types (currently not supported)*/
-  static std::size_t const NUM_SURF = 3;
-  /**implicit solvation surface types as strings (currently not supported)*/
-  static std::string const 
-    surf_strings[NUM_SURF] =
-  { 
-    "TINKER", "SASASTILL", "GAUSS" 
-  };
-  /*! contains enum with all implicit solvation surface types (currently not supported)
-  *
-  * Those surface types are subsequently mapped using NUM_SURF string[].
-  */
-  struct surfs
-  {
-	  /*! contains all implicit solvation surface types (currently not supported)
-	  */
-    enum SA 
-    { 
-      ILLEGAL = -1, 
-      TINKER, SASASTILL, GAUSS 
-    };
-  };
-
   // Global static stuff ends here...
 
   //////////////////////////////////////
@@ -280,20 +231,15 @@ namespace config
     interface_types::T preopt_interface;
     /**Verbosity of the output of CAST (supposed to be between 0 and 5)*/
     std::size_t verbosity;
-    /** Solvationmethod, implicit solvation currently not supported!*/
-    config::solvs::S solvationmethod;
-    /** Surfacemethod for implicit solvationd, implicit solvation currently not supported!*/
-    config::surfs::SA surfacemethod;
-	/**are amber charges read from a seperate file?*/
-	bool chargefile;
-    /**Constructor with reasonable default parameters*/
-	general(void) :
-		paramFilename("oplsaa.prm"), outputFilename("%i.out"),
-		input(input_types::TINKER), output(output_types::TINKER),
-		task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
-		preopt_interface(interface_types::ILLEGAL),
-		verbosity(1U),
-		solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), chargefile(false)
+    /**are amber charges read from a seperate file?*/
+    bool chargefile;
+    /// Constructor with reasonable default parameters
+    general(void) :
+      paramFilename("oplsaa.prm"), outputFilename("%i.out"),
+      input(input_types::TINKER), output(output_types::TINKER),
+      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
+      preopt_interface(interface_types::ILLEGAL),
+      verbosity(1U), chargefile(false)
     { }
   };
 
@@ -346,7 +292,7 @@ namespace config
 		 std::size_t c;
 		 /**constructor*/
        angle(void)
-         : force(), ideal(), a(), b()
+         : force(), ideal(), a(), b(), c()
        { }
      };
 	 /**additional potential on a given dihedral*/
@@ -371,7 +317,7 @@ namespace config
 	   /**constructor*/
        dihedral(void)
          : force(), ideal(), value(),
-         a(), b(), forward(false)
+         a(), b(), c(), d(), forward(false)
        { }
      };
        /**sperical potential - prevents non-bonded systems from exploding*/
@@ -1420,24 +1366,6 @@ public:
    * @param S: output-type as string
    */
   static config::output_types::T     getOutFormat(std::string const&);
-
-  /*
-   * Helper function that matches an solvation type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::solv_strings
-   *
-   * @param S: solvation-type as string
-   */
-  static config::solvs::S            getSolv(std::string const&);
-
-  /*
-   * Helper function that matches an solvation surface type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::surf_strings
-   *
-   * @param S: surface-type as string
-   */
-  static config::surfs::SA           getSurf(std::string const&);
 
 private:
 

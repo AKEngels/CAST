@@ -9,8 +9,8 @@ Purpose: Tests energy and gradient functions for non-bonding atom pairs
 
 #ifdef GOOGLE_MOCK
 #pragma once
-#include "../src/energy_int_aco.h"
-#include "../src/tinker_parameters.h"
+#include "../energy_int_aco.h"
+#include "../tinker_parameters.h"
 #include "gtest/gtest.h"
 
 TEST(energy_calculations, test_eQ)

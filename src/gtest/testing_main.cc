@@ -1,6 +1,6 @@
 #ifdef GOOGLE_MOCK
 #include <gtest/gtest.h>
-#include "../src/configuration.h"
+#include "../configuration.h"
 #pragma once
 
 //TESTING MAIN

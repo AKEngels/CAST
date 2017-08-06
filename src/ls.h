@@ -30,7 +30,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
+#pragma once
 #include <cstddef> 
 #include <cmath>
 #include <cfloat>
@@ -43,21 +43,6 @@
 #include "function_trait.h"
 #include "representation.h"
 
-extern std::vector<std::vector<double>> locpx, locx, locd;
-
-template<class T>
-inline std::vector<double> change(T const &x)
-{
-  std::vector<double> r;
-  r.reserve(x.size() * 3u);
-  for (std::size_t i = 0; i < x.size(); ++i)
-  {
-    r.push_back(x[i].x());
-    r.push_back(x[i].y());
-    r.push_back(x[i].z());
-  }
-  return r;
-}
 
 namespace optimization
 {
@@ -109,6 +94,7 @@ namespace optimization
 
       template<class T> using callback_type = decltype(_detail_::get_member_type(&T::callback));
 
+
       template<class L>
       struct is_valid_linesearch
       {
@@ -155,7 +141,6 @@ namespace optimization
 
       };
 
-
       template<class F>
       bool signdiff(F const x, F const y)
       {
@@ -163,9 +148,10 @@ namespace optimization
         return ((x*(y / abs(y))) < F(0));
       }
 
+
       namespace minimizers
       {
-        /**
+        /** 
          * Find a minimizer of an interpolated cubic function.
          *  @return         The minimizer of the interpolated cubic.
          *  @param  u       The value of one point, u.
@@ -189,6 +175,7 @@ namespace optimization
           F const r((gamma - du + theta) / (gamma - du + gamma + dv));
           return u + r*d;
         }
+
         /**
          * Find a minimizer of an interpolated cubic function.
          *  @return         The minimizer of the interpolated cubic.
@@ -229,6 +216,7 @@ namespace optimization
             return min_value;
           }
         }
+
         /**
          * Find a minimizer of an interpolated quadratic function.
          *  @return         The minimizer of the interpolated quadratic.
@@ -270,8 +258,8 @@ namespace optimization
 
       */
 
-      template<class float_type, class rep_type, class grad_type = rep_type>
-      using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
+      //template<class float_type, class rep_type, class grad_type = rep_type>
+      //using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
 
       template<class CallbackT>
       struct more_thuente
