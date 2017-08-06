@@ -240,8 +240,14 @@ typedef size_t uint_type;
     // element access from base class
     using base_type::operator();
     using base_type::operator[];
-
+#ifdef CAST_USE_ARMADILLO
     using base_type::resize;
+#else
+    void resize(uint_type const rows, uint_type const cols)
+    {
+      this->conservativeResize(rows, cols);
+    }
+#endif
 
 
     using base_type::operator*=;
