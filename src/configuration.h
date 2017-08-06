@@ -48,14 +48,14 @@ namespace config
   static std::string const Version("3.2.0.2dev");
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 23;
+  static std::size_t const NUM_TASKS = 22;
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
   { 
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
     "MC", "DIMER", "MD", "NEB", "GOSOL", 
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
-    "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
+    "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", 
   };
 
@@ -73,7 +73,7 @@ namespace config
       SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
       MC, DIMER, MD, NEB, GOSOL, 
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
-      DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
+      DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, 
     };
   };

@@ -290,33 +290,6 @@ int main(int argc, char **argv)
         }
         break;
       }
-      case config::tasks::ADJUST:
-      { 
-        // alignment / change strucutre
-        coords.e_head_tostream_short(std::cout);
-        std::size_t i(0u);
-        std::ofstream outputstream(coords::output::filename("_ADJUSTED").c_str(), std::ios_base::out);
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.to_internal();
-          for (auto const &d : Config::get().adjustment.dihedrals)
-          {
-            std::size_t const di = coords.atoms().intern_of_dihedral(d.a, d.b, d.c, d.d);
-            if (di < coords.size() && coords.atoms(di).i_to_a() == d.d)
-            {
-              std::cout << "Setting dihedral " << di << " to " << d.value << "\n";
-              coords.set_dih(di, d.value, true, true);
-            }
-          }
-          coords.to_xyz();
-          coords.e();
-          std::cout << "Structure " << ++i << '\n';
-          coords.e_tostream_short(std::cout);
-          outputstream << coords;
-        }
-        break;
-      }
       case config::tasks::GRAD:
       { 
         // calculate gradient

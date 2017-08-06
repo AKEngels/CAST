@@ -228,8 +228,8 @@ optimization::global::optimizer::min_status::T optimization::global::optimizer::
 {
   if (coordobj.pes().integrity)
   {
-    if (Config::get().optimization.global.delta_e > 0.0 && (!found_new_minimum ||
-      (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
+    if (Config::get().optimization.global.delta_e > 0.0 
+      && (!found_new_minimum || (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
     {
       updateRange(coordobj.pes());
     }
