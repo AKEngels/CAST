@@ -1037,41 +1037,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   //! Fixation excluding
   else if (option.substr(0, 10) == "FIXexclude")
   {
-    Config::set().energy.remove_fixed = bool_from_iss(cv);
+    Config::set().energy.remove_fixed = bool_from_iss(cv, option.substr(0, 10));
   }
   //! Fixation 
   else if (option.substr(0, 8) == "FIXrange")
   {
-    std::size_t start(0), end(0);
-    if (cv >> start && cv >> end && start > 0 && end > start)
-    {
-      for (std::size_t a(start - 1u); a < end; ++a)
-      {
-        //std::cout << "RangeFIXING: " << a << "\n";
-        scon::sorted::insert_unique(Config::set().coords.fixed, a);
-      }
-    }
-  }
-
-  else if (option.substr(0, 7) == "ATOMFIX")
-  {
-    auto fixed = from_iss<std::size_t>(cv) - 1u;
-    //std::cout << "ATOMIXing: " << fixed << "\n";
-    scon::sorted::insert_unique(Config::set().coords.fixed, fixed);
-  }
-
-  else if (option.substr(0, 5) == "ADJUST")
-  {
-    if (option.substr(5, 3) == "dih")
-    {
-      config::adjust_conf::dihedral ald;
-      if (cv >> ald.a && cv >> ald.b
-        && cv >> ald.c && cv >> ald.d && cv >> ald.value)
-      {
-        --ald.a; --ald.b; --ald.c; --ald.d;
-        Config::set().adjustment.dihedrals.push_back(ald);
-      }
-    }
+    std::vector<size_t> indicesFromString = sorted_indices_from_cs_string(value_string);
+    Config::set().coords.fixed = indicesFromString;
   }
 
   //! Connect two atoms internally
@@ -1083,7 +1055,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().coords.internal.connect[a] = b;
       Config::set().coords.internal.connect[b] = a;
     }
-    Config::set().energy.remove_fixed = bool_from_iss(cv);
   }
   else if (option.substr(0u, 4u) == "MAIN")
   {
@@ -1112,7 +1083,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 10) == "REMOVEHROT")
   {
-    Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv);
+    Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv, option.substr(0, 10));
   }
 
   else if (option.substr(0, 4) == "BIAS")
@@ -1156,7 +1127,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         --biasBuffer.b;
         --biasBuffer.c;
         --biasBuffer.d;
-        biasBuffer.forward = bool_from_iss(cv);
         Config::set().coords.bias.dihedral.push_back(biasBuffer);
       }
     }
@@ -1626,7 +1596,7 @@ std::ostream & config::operator << (std::ostream &strm, general const &g)
   return strm;
 }
 
-std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
+std::ostream & config::operator<< (std::ostream &strm, coords::conditionsForStructuresToBeConsideredEqual const &equals)
 {
   strm << "Two structures will be considered to be equal if either\n";
   strm << " - none of the main torsions differ more then " << equals.main << ", or\n";

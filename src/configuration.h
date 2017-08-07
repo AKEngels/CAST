@@ -256,97 +256,95 @@ namespace config
   /**namespace for biased potentials*/
   namespace biases
   {
-	  /**additional potential on distance of given atoms*/
-     struct distance
-     {
-		 /**force constant*/
-		 double force;
-		 /**ideal distance*/
-		 double ideal;
-		 /**???*/
-		 double value;
-		 /**number of one atom*/
-		 std::size_t a;
-		 /**number of the other atom*/
-		 std::size_t b;
-		 /**constructor*/
-       distance(void)
-         : force(), ideal(), a(), b()
-       { }
-     };
-	 /**additional potential on angle between given atoms*/
-     struct angle
-     {
-		 /**force constant*/
-		 double force;
-		 /**ideal angle*/
-		 double ideal;
-		 /**???*/
-		 double value;
-		 /**number of one atom*/
-		 std::size_t a;
-		 /**number of next atom*/
-		 std::size_t b;
-		 /**number of the third atom*/
-		 std::size_t c;
-		 /**constructor*/
-       angle(void)
-         : force(), ideal(), a(), b(), c()
-       { }
-     };
-	 /**additional potential on a given dihedral*/
-     struct dihedral
-     {
-		 /**force constant*/
-       double force;
-	   /**ideal dihedral angle*/
-	   ::coords::angle_type ideal;
-	   /**???*/
-	   ::coords::angle_type value;
-	   /**atom 1*/
-	   std::size_t a;
-	   /**atom 2*/
-	   std::size_t b;
-	   /**atom 3*/
-	   std::size_t c;
-	   /**atom 4*/
-	   std::size_t d;
-	   /**???*/
-       bool forward;
-	   /**constructor*/
-       dihedral(void)
-         : force(), ideal(), value(),
-         a(), b(), c(), d(), forward(false)
-       { }
-     };
-       /**sperical potential - prevents non-bonded systems from exploding*/
-     struct spherical
-     {
-		 /**distance to center where the additional potential starts*/
-		 double radius;
-		 /**force constant*/
-		 double force;
-		 /**exponent of the potential function, 2 for harmonic potential, 4 is also possible*/
-		 double exponent;
-		 /**constructor*/
-       spherical()
-         : radius(), force(), exponent()
-       { }
-     };
-     /**cubic potential (similar to spherical but cubic)*/
-     struct cubic
-     {
-		 /**???*/
-       ::coords::Cartesian_Point dim;
-	   /**force constant*/
-	   double force;
-	   /**exponent of the potential function*/
-	   double exponent;
-	   /**constructor*/
-       cubic()
-         : dim(), force(), exponent()
-       { }
-     };
+    /**additional potential on distance of given atoms*/
+    struct distance
+    {
+      /**force constant*/
+      double force;
+      /**ideal distance*/
+      double ideal;
+      /**???*/
+      double value;
+      /**number of one atom*/
+      std::size_t a;
+      /**number of the other atom*/
+      std::size_t b;
+      /**constructor*/
+      distance(void)
+        : force(), ideal(), a(), b()
+      { }
+    };
+    /**additional potential on angle between given atoms*/
+    struct angle
+    {
+      /**force constant*/
+      double force;
+      /**ideal angle*/
+      double ideal;
+      /**???*/
+      double value;
+      /**number of one atom*/
+      std::size_t a;
+      /**number of next atom*/
+      std::size_t b;
+      /**number of the third atom*/
+      std::size_t c;
+      /**constructor*/
+      angle(void)
+        : force(), ideal(), a(), b(), c()
+      { }
+    };
+    /**additional potential on a given dihedral*/
+    struct dihedral
+    {
+      /**force constant*/
+      double force;
+      /**ideal dihedral angle*/
+      ::coords::angle_type ideal;
+      /**???*/
+      ::coords::angle_type value;
+      /**atom 1*/
+      std::size_t a;
+      /**atom 2*/
+      std::size_t b;
+      /**atom 3*/
+      std::size_t c;
+      /**atom 4*/
+      std::size_t d;
+      /**constructor*/
+      dihedral(void)
+        : force(), ideal(), value(),
+        a(), b(), c(), d()
+      { }
+    };
+    /**sperical potential - prevents non-bonded systems from exploding*/
+    struct spherical
+    {
+      /** distance to center where the additional potential starts*/
+      double radius;
+      /** force constant */
+      double force;
+      /** exponent of the potential function, 2 for harmonic potential, 4 is also possible */
+      double exponent;
+      /**constructor*/
+      spherical()
+        : radius(), force(), exponent()
+      { }
+    };
+    /**cubic potential (similar to spherical but cubic)*/
+    struct cubic
+    {
+      /**size of cubic box as cartesian point*/
+      ::coords::Cartesian_Point dim;
+      /**force constant*/
+      double force;
+      /**exponent of the potential function*/
+      double exponent;
+      /**constructor*/
+      cubic()
+        : dim(), force(), exponent()
+      { }
+    };
   }
 
 
@@ -401,47 +399,49 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
-	/**biased potentials*/
+    /**biased potentials*/
+
     struct coord_bias
     {
-		/**biased potentials on distances*/
+      /**biased potentials on distances*/
       std::vector<biases::distance>  distance;
-	  /**biased potentials on angles*/
+      /**biased potentials on angles*/
       std::vector<biases::angle>     angle;
-	  /**biased potentials on dihedrals*/
+      /**biased potentials on dihedrals*/
       std::vector<biases::dihedral>  dihedral;
-	  /**spherical potential*/
+      /**spherical potential*/
       std::vector<biases::spherical> spherical;
-	  /**cubic potentials*/
+      /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
-	  /**biased pot on torsions for umbrella sampling*/
+      /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
-	  /**biased pot on bonds for umbrella sampling*/
+      /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
-	/**???*/
-    struct eqval
+
+
+    struct conditionsForStructuresToBeConsideredEqual
     {
-      double superposition;
-      ::coords::main_type main;
-      ::coords::internal_type intern;
-      ::coords::Cartesian_Point xyz;
-      eqval() :
+      double superposition; // every atom is 'superposed' by an atom with the same atomic number within this radius in angstroms
+      ::coords::main_type main; // none of the main torsions differ more then this
+      ::coords::internal_type intern; // no internal vector (bond, angle, dihedral) differs more than this
+      ::coords::Cartesian_Point xyz; // no xyz position differs more than this
+      conditionsForStructuresToBeConsideredEqual() :
         superposition(0.4), main(::coords::angle_type::from_deg(8.0)),
         intern(0.2, ::coords::angle_type::from_deg(1.0), ::coords::angle_type::from_deg(8.0)),
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-	/**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
-	/**vector with subsystems*/
+    /**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
-	/**are rotations where only hydrogens move counting for main dihedrals?*/
-	bool remove_hydrogen_rot;
-	/**are internals starting new with every molecule?*/
-	bool decouple_internals;
+    /**are rotations where only hydrogens move counting for main dihedrals?*/
+    bool remove_hydrogen_rot;
+    /**are internals starting new with every molecule?*/
+    bool decouple_internals;
 
-	/**constructor*/
+    /**constructor*/
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
       remove_hydrogen_rot(true),
@@ -1196,9 +1196,9 @@ namespace config
   /*! Stream operator for config::eqval
    *
    * Prints reasoning for considering two structures
-   * equal (important for TaboSearch etc.)
+   * equal (important for TabuSearch etc.)
    */
-  std::ostream & operator << (std::ostream &, coords::eqval const &);
+  std::ostream & operator << (std::ostream &, coords::conditionsForStructuresToBeConsideredEqual const &);
 
   /*! Stream operator for config::coords
    *
