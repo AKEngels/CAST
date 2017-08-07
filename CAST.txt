@@ -5,9 +5,11 @@
 #                                  #
 #                                  #
 #################################### 
+#
+# Lines beginning with a hashtag are ignored by CAST
 
 # Verbosity 
-# Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
+# Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
 verbosity              4
 
@@ -27,11 +29,11 @@ cores                  4
 
 # Input file name
 
-name                   DEVTEST_MD_SNAP.arc
+name                   input.arc
 
 # Output file name
 
-outname                DEVTEST
+outname                SP
 
 # Input file type
 
@@ -75,7 +77,6 @@ inputtype              TINKER
 # ENTROPY              Configurational and Conformational Entropy Calculations
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
-# ADJUST
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
@@ -90,51 +91,39 @@ task                  SP
 ####################################
 
 # AMBER                AMBER force field
-# (AMOEBA)             AMOEBA03 force field
+# AMOEBA             AMOEBA03 force field
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
-# (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
-
-interface              AMBER
+interface              MOPAC
 
 # Interface for preoptimizations
-
-preinterface           0
+#preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
+paramfile              oplsaa.prm
 
-paramfile              amber99_gaff_nocharge.prm
-
-# reading amber charges from separate file (called charges.txt) <0/1>
-
-chargefile             1
+# reading amber charges from separate file (called charges.txt) <0/1>,
+# necessary for reproducing AMBER forefields accuratly
+#chargefile             1
 
 # Keywords for MOPAC Call
-
 MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-
 MOPACdelete            1
 
 #MOPAC executable path
-
 MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
-#MOPACversion
+MOPACversion          MOPAC2012
 
-
-####################################
-#                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-cutoff                 12.0
-switchdist             10.0
+#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
 
 
 ####################################
@@ -144,23 +133,14 @@ switchdist             10.0
 ####################################
 
 # Exclude nonbondeds between two fixed atoms in internal force fields
-
-FIXexclude             0
+FIXexclude             false
 
 # Remove rotations of hydrogens from main torsional angles
-
-REMOVEHROT             0
+REMOVEHROT             false
 
 # Fix a range of atoms 
-#FIXrange               <start index> <end index>
+#FIXrange               1-6,9,24,55-71,72
 
-#FIXrange               1 213
-
-# Fixation of single atoms
-#ATOMFIX                <INDEX> 
-
-#ATOMFIX                1
-#ATOMFIX                3
 
 
 ####################################
@@ -185,17 +165,21 @@ REMOVEHROT             0
 
 # Quadratic Dihedral Bias Potential (quadratic in degreees)
 
-#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <all atoms> 
+#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
+#BIASdih                1 2 3 5 0.0   10.0 
+#BIASdih                2 5 6 9 150.0 5.0  
+#BIASdih                1 2 5 6 150.0 5.0  
+#BIASdih                1 2 5 6 95.0  10.0 
 
-#BIASdih                1 2 3 5 0.0   10.0 1
-#BIASdih                2 5 6 9 150.0 5.0  1
-#BIASdih                1 2 5 6 150.0 5.0  1 
-#BIASdih                1 2 5 6 95.0  10.0 1
+####################################
+#                                  #
+#        DISTANCE FIXATIONS        #
+#                                  #
+####################################
 
-#BIASdih                1 2 5 6 60.0 0.01
+# Harmonic Distance Bias Potential (in angstrom)
 
-#BIASdih                1 2 5 6 30.0 1.0 1
-
+#BIASdist               <atom 1> <atom 2> <angstrom> <force>
 
 
 ####################################
@@ -226,54 +210,6 @@ REMOVEHROT             0
 
 #Periodicp              0
 
-
-####################################
-#                                  #
-#        INTERACTION OPTIONS       #
-#                                  #
-####################################
-
-# The interaction of substructures that are not bound to each other can be calculated
-# IAlimits <Start Index Substructure> <End Index Substructure>
-
-#IAlimits               1 122
-
-
-
-####################################
-#                                  #
-#        Implicit Solvation        #
-#                                  #
-####################################
-
-# solvmethod : VAC         (default) Vacuum
-#              ONION       Numerical Still method
-#              STILL       Analytical Still method
-#              HCT         HCT method
-#              OBC         OBC method
-#              GRYCUK      Grycuk's method
-#              ACE         ACE method
-# surface    : TINKER      (default) TINKER's accessible surface area calculation
-#              SASASTILL   Still's surface area calculation
-#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
-#
-# ONION should only be combined with GAUSS
-
-solvmethod             VAC
-surface                TINKER
-
-
-#################################### 
-#                                  #
-#        PROFILE RUNS              #
-#                                  #
-####################################
-
-# Number of repeated gradient calculations for PROFILE task
-
-profileruns            10
-
-
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
@@ -285,9 +221,9 @@ BFGSmaxstep            5000
 
 
 ###################################
-#				  #
+#				  				  #
 #      NEB & PATHOPT OPTIONS      #
-#				  #
+#				  				  #
 ###################################
 
 # Second structure for double-ended search
