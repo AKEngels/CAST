@@ -283,7 +283,13 @@ namespace coords
       : m_sub_in_index(0U), m_sub_out_index(0U),
       m_sub_io(false), m_in_exists(false), m_out_exists(false)
     { }
-    std::vector<Atom>::size_type size() const { return m_atoms.size(); }
+    /*
+     * Returns number of atoms in coords object
+     */
+    std::vector<Atom>::size_type size() const 
+    { 
+      return m_atoms.size(); 
+    }
     void swap(Atoms&);
 
     std::vector<Atom>::iterator begin() { return m_atoms.begin(); }
@@ -309,7 +315,7 @@ namespace coords
     bool out_exists() const { return m_out_exists; }
     std::size_t sub_in() const { return m_sub_in_index; }
     std::size_t sub_out() const { return m_sub_out_index; }
-    // Matrix mit indices gehörig zu PESpoint::sub_ia_matrix_t interaction matrix
+    // Matrix mit indices gehï¿½rig zu PESpoint::sub_ia_matrix_t interaction matrix
     std::size_t sub_ia_index() const { return scon::triangularIndex<true>(m_sub_in_index, m_sub_out_index); }
     bool sub_io() const { return m_sub_io; }
     // Sagt mir ob a out und b in ist oder vice versa

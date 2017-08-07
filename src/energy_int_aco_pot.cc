@@ -81,9 +81,7 @@ void energy::interfaces::aco::aco_ff::calc (void)
 
 	if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
 	{
-		/*if (Config::get().energy.pme == true) g_nb_pme< ::tinker::parameter::radius_types::R_MIN>();
-		else*/
-        g_nb< ::tinker::parameter::radius_types::R_MIN>();
+    g_nb< ::tinker::parameter::radius_types::R_MIN>();
 	}
 	else
 		g_nb< ::tinker::parameter::radius_types::SIGMA>();

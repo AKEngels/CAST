@@ -78,8 +78,6 @@ void neb::preprocess(ptrdiff_t &count)
 
 void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path)
 {
-
-
   std::vector<size_t> image_remember;
   std::vector<std::vector<size_t> > atoms_remember;
   N = cPtr->size();
@@ -109,7 +107,6 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   images.clear();
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
-
 }
 
 /**

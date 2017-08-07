@@ -663,21 +663,6 @@ void md::simulation::fepinit(void)
     std::cout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
   }
 
-
-  // Check for PME flag, if yes allocate needed memeory for the grids
-  /*if (Config::get().energy.pme == true)
-  {
-    std::cout << "PME electrostatics for FEP calculation. Setting up memory" << std::endl;
-    coordobj.getfepinfo();
-    // generate grids for incoming atoms, outgoing atoms and rest of the system (3 = x,y,z; size = atoms in the respective system)  
-    coordobj.pme.pmetemp.initingrid.Allocate(3, coordobj.pme.pmetemp.fepi.size());
-    coordobj.pme.pmetemp.initoutgrid.Allocate(3, coordobj.pme.pmetemp.fepo.size());
-    coordobj.pme.pmetemp.initallgrid.Allocate(3, coordobj.pme.pmetemp.fepa.size());
-    // Allocate memory for parallel execution of the PME calculation in FEP simulations
-    coordobj.pme.pmetemp.parallelinpme.Allocate(coordobj.pme.pmetemp.fepi.size(), coordobj.pme.pmetemp.rgridtotal);
-    coordobj.pme.pmetemp.paralleloutpme.Allocate(coordobj.pme.pmetemp.fepo.size(), coordobj.pme.pmetemp.rgridtotal);
-    coordobj.pme.pmetemp.parallelallpme.Allocate(coordobj.pme.pmetemp.fepa.size(), coordobj.pme.pmetemp.rgridtotal);
-  }*/
 }
 
 //Calculation of ensemble average and free energy change for each step if FEP calculation is performed

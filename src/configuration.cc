@@ -331,13 +331,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
-  // Turn particle mesh ewald on
-  // CURRENTLY OUT OF ORDER
-  // Default: Off
-  else if (option == "PME")
-  {
-    cv >> Config::set().energy.pme;
-  }
 
   // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
   // Default: Cutoff - 4.0
@@ -1137,7 +1130,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
 
-
     else if (option.substr(4, 5) == "cubic")
     {
 
@@ -1150,7 +1142,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().coords.bias.cubic.push_back(buffer);
       }
     }
-
 
     else if (option.substr(4, 3) == "dih")
     {
@@ -1207,7 +1198,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.subsystems.push_back(std::move(ssi));
   }
 
-  // D U S T I N S T U F F 
 
   //Trajectory Alignment and Analasys options
   else if (option == "dist_unit")
@@ -1218,10 +1208,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().alignment.holm_sand_r0;
   }
-  //else if (option == "cdist_cutoff")
-  //{
-    //cv >> Config::set().alignment.cdist_cutoff;
-  //}
   else if (option == "ref_frame_num")
   {
     cv >> Config::set().alignment.reference_frame_num;
@@ -1651,43 +1637,43 @@ std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equa
   return strm;
 }
 
-std::ostream & config::operator<< (std::ostream &strm, coords const &p)
+std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
 {
-  if (p.remove_hydrogen_rot)
+  if (coords_in.remove_hydrogen_rot)
   {
     strm << "The torsional rotation of a hydrogen atom "
       << "will not be considered as main torsion.\n";
   }
-  if (!p.internal.main_blacklist.empty() && p.internal.main_whitelist.empty())
+  if (!coords_in.internal.main_blacklist.empty() && coords_in.internal.main_whitelist.empty())
   {
     strm << "Torsional rotation axes ";
     std::size_t k = 1;
-    for (auto const & po : p.internal.main_blacklist)
+    for (auto const & po : coords_in.internal.main_blacklist)
     {
       strm << (k == 1 ? (k % 10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
       ++k;
     }
-    strm << (p.internal.main_blacklist.size() > 1 ? " are" : " is")
+    strm << (coords_in.internal.main_blacklist.size() > 1 ? " are" : " is")
       << " are not considered as main torsions.\n";
   }
-  else if (!p.internal.main_whitelist.empty())
+  else if (!coords_in.internal.main_whitelist.empty())
   {
-    strm << "Torsional rotation around ax" << (p.internal.main_whitelist.size() > 1 ? "es " : "is ");
+    strm << "Torsional rotation around ax" << (coords_in.internal.main_whitelist.size() > 1 ? "es " : "is ");
     std::size_t k = 1;
-    for (auto const & po : p.internal.main_whitelist)
+    for (auto const & po : coords_in.internal.main_whitelist)
     {
       strm << (k == 1 ? (k % 10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
       ++k;
     }
-    strm << (p.internal.main_whitelist.size() > 1 ? " are" : " is")
+    strm << (coords_in.internal.main_whitelist.size() > 1 ? " are" : " is")
       << " exclusively considered for main torsions.\n";
   }
-  if (!p.fixed.empty())
+  if (! coords_in.fixed.empty())
   {
-    auto const fsi = p.fixed.size();
+    auto const fsi = coords_in.fixed.size();
     if (fsi == 1)
     {
-      strm << "1 atom will be fixed: " << p.fixed.front() << '\n';
+      strm << "1 atom will be fixed: " << coords_in.fixed.front() << '\n';
     }
     else
     {
@@ -1696,14 +1682,14 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
       auto const fsim1 = fsi - 1u;
       while (last < fsi)
       {
-        while (last < fsim1 && p.fixed[last + 1u] == (p.fixed[last] + 1u)) { ++last; }
+        while (last < fsim1 && coords_in.fixed[last + 1u] == (coords_in.fixed[last] + 1u)) { ++last; }
         if (last > first)
         {
-          strm << " [" << p.fixed[first] + 1 << " to " << p.fixed[last] + 1 << "]";
+          strm << " [" << coords_in.fixed[first] + 1 << " to " << coords_in.fixed[last] + 1 << "]";
         }
         else
         {
-          strm << " " << p.fixed[first] + 1;
+          strm << " " << coords_in.fixed[first] + 1;
         }
         ++last;
         first = last;
@@ -1712,57 +1698,57 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
     }
   }
 
-  if (Config::get().general.task == tasks::UMBRELLA && (!p.umbrella.torsions.empty() || !p.umbrella.distances.empty()))
+  if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
   {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << p.umbrella.snap_offset << " steps.\n";
-    if (!p.umbrella.torsions.empty())
+    strm << "Umbrella Sampling with " << " steps and snapshots every " << coords_in.umbrella.snap_offset << " steps.\n";
+    if (!coords_in.umbrella.torsions.empty())
     {
       strm << "Umbrella torsions:\n";
-      for (auto const & torsion : p.umbrella.torsions)
+      for (auto const & torsion : coords_in.umbrella.torsions)
       {
         strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
         strm << ". Start: " << " - End: " << ". Step: " << ". \n";
       }
     }
-    if (!p.umbrella.distances.empty())
+    if (!coords_in.umbrella.distances.empty())
     {
       strm << "Umbrella distances:\n";
-      for (auto const & dist : p.umbrella.distances)
+      for (auto const & dist : coords_in.umbrella.distances)
       {
         strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
       }
     }
   }
 
-  for (auto const & torsion : p.bias.dihedral)
+  for (auto const & torsion : coords_in.bias.dihedral)
   {
     strm << "Dihedral " << torsion.a + 1 << "->" << torsion.b + 1 << "->";
     strm << torsion.c + 1 << "->" << torsion.d + 1 << " will be forced to be ";
     strm << torsion.ideal << " deg with force =  " << torsion.force << ".\n";
   }
 
-  for (auto const & dist : p.bias.distance)
+  for (auto const & dist : coords_in.bias.distance)
   {
     strm << "Distance " << dist.a << "<->" << dist.b;
     strm << " will be forced to be ";
     strm << dist.ideal << " A. Force =  " << dist.force << "\n";
   }
 
-  for (auto const & angle : p.bias.angle)
+  for (auto const & angle : coords_in.bias.angle)
   {
     strm << "Angle " << angle.a << "->" << angle.b << "<-" << angle.c;
     strm << " will be forced to be ";
     strm << angle.ideal << " A. Force =  " << angle.force << "\n";
   }
 
-  for (auto const & sphere : p.bias.spherical)
+  for (auto const & sphere : coords_in.bias.spherical)
   {
     strm << "Spherical boundary with radius " << sphere.radius;
     strm << " will be applied; Force =  " << sphere.force;
     strm << ", Exponent = " << sphere.exponent << "\n";
   }
 
-  for (auto const & cube : p.bias.cubic)
+  for (auto const & cube : coords_in.bias.cubic)
   {
     strm << "Cubic boundary with box size " << cube.dim;
     strm << " will be applied; Force =  " << cube.force;

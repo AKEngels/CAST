@@ -652,6 +652,9 @@ namespace scon
     return sqrt(dot(a, a));
   }
 
+  /**
+   * Returns eucledean norm of vector
+   */
   template<class T>
   typename std::enable_if<std::is_arithmetic<T>::value, 
     length_type<T>>::type geometric_length(c3<T> const &a)
