@@ -107,8 +107,8 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream & ofs) const {
 
-	constexpr auto mxlist = 45000;
-	constexpr auto cutoff = 1000;
+	const auto mxlist = Config::get().energy.chemshell.mxlist == "" ? std::stoi(Config::get().energy.chemshell.mxlist) : 45000;
+	const auto cutoff = Config::get().energy.chemshell.cutoff == "" ? std::stoi(Config::get().energy.chemshell.cutoff) : 1000;
 
 	ofs << "eandg coords = ${dir}/${sys_name_id}.c \\\n"
 		"    theory=hybrid : [ list \\\n"
@@ -138,11 +138,11 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 
 void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream & ofs) const {
 
-	constexpr auto maxcycle = 1000;
-	constexpr auto maxcyc = 2000;
-	constexpr auto tolerance = 0.00045;
-	constexpr auto mxlist = 45000;
-	constexpr auto cutoff = 1000;
+	const auto maxcycle = Config::get().energy.chemshell.maxcycle == "" ? std::stoi(Config::get().energy.chemshell.maxcycle) : 1000;
+	const auto maxcyc = Config::get().energy.chemshell.maxcyc == "" ? std::stoi(Config::get().energy.chemshell.maxcyc) : 2000;
+	const auto tolerance = Config::get().energy.chemshell.tolerance == "" ? std::stod(Config::get().energy.chemshell.tolerance) : 0.00045;
+	const auto mxlist = Config::get().energy.chemshell.mxlist == "" ? std::stoi(Config::get().energy.chemshell.mxlist) : 45000;
+	const auto cutoff = Config::get().energy.chemshell.cutoff == "" ? std::stoi(Config::get().energy.chemshell.cutoff) : 1000;
 
 	std::string active_atoms = find_active_atoms();
 

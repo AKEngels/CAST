@@ -609,6 +609,24 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "delete") {
 		  Config::set().energy.chemshell.delete_input = bool_from_iss(cv);
 	  }
+	  else if (sub_option == "maxcyc") {
+		  Config::set().energy.chemshell.maxcyc = value_string;
+	  }
+	  else if (sub_option == "maxcycle") {
+		  Config::set().energy.chemshell.maxcycle = value_string;
+	  }
+	  else if (sub_option == "tolerance") {
+		  Config::set().energy.chemshell.tolerance = value_string;
+	  }
+	  else if (sub_option == "tolerance") {
+		  Config::set().energy.chemshell.tolerance = value_string;
+	  }
+	  else if (sub_option == "mxlist") {
+		  Config::set().energy.chemshell.mxlist = value_string;
+	  }
+	  else if (sub_option == "cutoff") {
+		  Config::set().energy.chemshell.cutoff = value_string;
+	  }
   }
 
   // convergence threshold for bfgs

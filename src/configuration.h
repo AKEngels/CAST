@@ -584,16 +584,22 @@ namespace config
     } gaussian;
 
 	struct chemshell_conf {
-		std::string extra_pdb;
-		std::string path;
-		std::string babel_path;
-		std::string scheme;
-		std::string qm_theory;
-		std::string qm_ham;
-		std::string qm_basis;
-		std::string qm_charge;
-		std::string qm_atoms;
+		std::string extra_pdb = "";
+		std::string path = "";
+		std::string babel_path = "";
+		std::string scheme = "";
+		std::string qm_theory = "";
+		std::string qm_ham = "";
+		std::string qm_basis = "";
+		std::string qm_charge = "";
+		std::string qm_atoms = "";
 		std::string cov_residues;
+
+		std::string maxcycle = "";
+		std::string maxcyc = "";
+		std::string tolerance = "";
+		std::string mxlist = "";
+		std::string cutoff = "";
 		bool delete_input;
 	} chemshell;
 
