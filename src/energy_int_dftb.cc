@@ -12,6 +12,7 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
+#include "python2.7/Python.h"
 #if defined (_MSC_VER)
 #include "win_inc.h"
 #endif
@@ -29,10 +30,31 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
   e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-  std::stringstream ss;
-  ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
-  id.append("_tmp_").append(ss.str());
-  optimizer = true;
+    char *ergebnis; 
+    PyObject *modul, *funk, *prm, *ret;
+
+    Py_Initialize(); //initialize python interpreter
+    PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
+    modul = PyImport_ImportModule("test"); //import module test from path
+
+    if(modul) 
+        { 
+        funk = PyObject_GetAttrString(modul, "entscheide"); //create function
+        prm = Py_BuildValue("(ss)", "4", "2"); //give parameters 4 and 2 (as strings)
+        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+
+        ergebnis = PyString_AsString(ret); //read function return (has to be a string)
+        std::cout<<"Ergebnis: "<<std::stof(ergebnis)+2<<"\n";  //print function return
+
+        Py_DECREF(prm); //delete PyObjects
+        Py_DECREF(ret); 
+        Py_DECREF(funk); 
+        Py_DECREF(modul); 
+
+        } 
+    else 
+        printf("Fehler: Modul nicht gefunden\n"); 
+    Py_Finalize(); 
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
