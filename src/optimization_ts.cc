@@ -40,15 +40,14 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
   init_stereo = coordobj.stereos();
   std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
 
-  
+std::ofstream test("test.txt");
+test << "1" << "\n";
+test.close(); 
+
   if (Config::get().optimization.global.tabusearch.mcm_first) diversification();
   std::size_t fails(0);
   for (; i<iterations; ++i)
   {
-std::ofstream test("test.txt");
-test << i << "\n";
-test.close();
-
     scon::chrono::high_resolution_timer step_timer;
     coordobj.to_internal();
     coordobj.to_xyz();
