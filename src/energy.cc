@@ -5,6 +5,7 @@
 #include "energy_int_mopac.h"
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
+#include "energy_int_dftb.h"
 #include "coords.h"
 
 /*! Creates a specific energy interface
@@ -45,6 +46,14 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
         std::cout << "Mopac choosen for energy calculations.\n";
       }
       return new energy::interfaces::mopac::sysCallInterface(coordinates);
+    }
+  case config::interface_types::T::DFTB:
+   {
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "DFTB choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::dftb::sysCallInterface(coordinates);
     }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
