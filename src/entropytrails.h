@@ -6,8 +6,10 @@
 #include <omp.h>
 #include <limits>
 #include <string>
+#include <cmath>
 #include "entropy.h"
-
+#include <tuple>
+#include "kaham_summation.h"
 
 
 /////////////////
@@ -125,14 +127,15 @@ long double digammal(long double x)
 class ProbabilityDensity
 {
 public:
-  ProbabilityDensity(int ident_) : identif(ident_), PDFrange(0.)
+  ProbabilityDensity(int ident_) : identif(ident_)
   {
     if (ident_ == 0)
     {
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x*x) / double(2. * 1. * 1.)); };
-      PDFrange = 5.920; // range incorporating function values up to under 10e-7
+      //PDFrange = 5.920; // range incorporating function values up to under 10e-7
+      this->m_identString = "Normal sig=1";
     }
     else if (ident_ == 1)
     {
@@ -140,7 +143,8 @@ public:
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x*x) / double(2. * 10. * 10.)); };
       maximumOfPDF = 1. / (10. * sqrt(2. * pi));
       analyticEntropy_ = log(10. * sqrt(2. * pi * e));
-      PDFrange = 55.136; // range incorporating function values up to under 10e-7
+      //PDFrange = 55.136; // range incorporating function values up to under 10e-7
+      this->m_identString = "Normal sig=10";
     }
     else if (ident_ == 2)
     {
@@ -148,7 +152,28 @@ public:
       PDF = [&, this](double x) { if (x < -1. || x > 1.) return 0.; else return (3. / 4.) * (-1. * ((x)*(x)) + 1.); };
       maximumOfPDF = PDF(0.);
       analyticEntropy_ = 0.568054;
-      PDFrange = 1.; // Function is only defined in [-1;1]
+      PDFrange = std::make_shared<std::pair<double, double>>(-1.,1.); // Function is only defined in [-1;1]
+      this->m_identString = "parabolic";
+    }
+    else if (ident_ == 3)
+    {
+      // Beta Distribution https://en.wikipedia.org/wiki/Differential_entropy
+      PDF = [&, this](double x) 
+      {
+        constexpr double alpha = 1.5;
+        constexpr double beta = 9.;
+        x = abs(x);
+        if (x > 1.) 
+          return 0.; 
+        else 
+          return pow(x,alpha -1.) * pow(1. -x, beta -1.) / (tgamma(alpha)*tgamma(beta) / tgamma(alpha + beta));
+      };
+      maximumOfPDF = 4.;
+      constexpr double alpha = 1.5;
+      constexpr double beta = 9.;
+      analyticEntropy_ = log(tgamma(alpha)*tgamma(beta) / tgamma(alpha + beta)) - (alpha -1.) * (digammal(alpha) - digammal(alpha+beta)) - (beta -1.) * (digammal(beta) - digammal(alpha + beta));
+      PDFrange = std::make_shared<std::pair<double, double>>(0., 1.); // Function is only defined in [0;1]
+      this->m_identString = "Beta Distr.";
     }
   };
 
@@ -193,22 +218,18 @@ public:
     std::uniform_real_distribution<double> unifDistr(0, 1);
 
     //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
-    bool run = true;
-    double PDFrange = 0.;
-    while (run)
-    {
-      if (PDF(PDFrange) < 0.000000001) break;
-      else PDFrange += 0.005;
-    }
-    std::uniform_real_distribution<double> unifDistrRange(-PDFrange, PDFrange);
+    if (PDFrange == nullptr)
+      PDFrange = std::make_shared<std::pair<double, double>>(meaningfulRange());
 
+    std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
+    const double absrange = PDFrange->second - PDFrange->first;
 
-    for (int n = 0; n < numberOfSamples; ++n)
+    for (unsigned int n = 0; n < numberOfSamples; ++n)
     {
       double drawUnif = unifDistr(gen);
       double drawUnifWithRange = unifDistrRange(gen);
-      double M = maximumOfPDF / (1. / (2.*PDFrange));
-      if (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*PDFrange)))
+      double M = maximumOfPDF / (1. / (2.*absrange));
+      if (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*absrange)))
       {
         draws.push_back(drawUnifWithRange);
       }
@@ -220,14 +241,11 @@ public:
     return draws;
   };
 
-  int ident() { return this->identif; };
+  int ident() const { return this->identif; } ;
 
-  std::string identString() 
+  std::string identString() const
   {
-    if (this->ident() == 0) return "Normal sig=1";
-    else if (this->ident() == 1) return "Normal sig=10";
-    else if (this->ident() == 2) return "parabolic";
-    else return "ERROR_NAME";
+    return this->m_identString;
   }
 
   double analyticEntropy() {
@@ -238,33 +256,44 @@ public:
     return this->PDF;
   };
 
-  double meaningfulRange()
+  std::pair<double,double> meaningfulRange()
   {
+    if (PDFrange != nullptr)
+      return *PDFrange;
     // Target PDF in 0.001er Schritten auswerten und schauen wann es kleiner ist
     // als 10e-7.
     // Ident 0: 5.917
     // Ident 1: 55.1349999999
     // Ident 2: 1.0000000
     // Ident 3:
-
-    if (PDFrange == 0.)
+    double rangeOne = 0.f;
+    double newPDFrange = 0.;
+    bool run = true;
+    newPDFrange = 0.;
+    while (run)
     {
-      bool run = true;
-      double PDFrange = 0.;
-      while (run)
-      {
-        if (PDF(PDFrange) < 0.00000001 || PDF(-1.* PDFrange) < 0.00000001) break;
-        else PDFrange += 0.001;
-      }
+      if (PDF(newPDFrange) < 0.00000001)
+        break;
+      else newPDFrange += 0.001;
     }
-    return PDFrange; 
+    rangeOne = newPDFrange;
+    newPDFrange = 0.;
+    while (run)
+    {
+      if (PDF(newPDFrange) < 0.000000001)
+        break;
+      else newPDFrange -= 0.005;
+    }
+    
+    return std::make_pair(newPDFrange, rangeOne); 
   }
 
 private:
   double analyticEntropy_;
   double maximumOfPDF;
   int identif;
-  double PDFrange;
+  std::shared_ptr<std::pair<double,double>> PDFrange = nullptr;
+  std::string m_identString = "ERROR_NAME";
   std::function<double(double x)> PDF;
 };
 
@@ -320,7 +349,7 @@ public:
       //Sort samples (entirely optional)
       std::stable_sort(draws.begin(), draws.end());
 
-      for (int n = 0; n < numberOfDraws; ++n)
+      for (unsigned int n = 0; n < numberOfDraws; ++n)
         drawAndEvaluateMatrix(n, 0) = draws[n];
 
       // Write 
@@ -345,6 +374,7 @@ public:
   size_t k;
   double calculatedEntropyHnizdo;
   double calculatedEntropyLombardi; 
+  double calcualtedEntropyMeanFaivishevsky;
   double mcintegrationEntropy;
   double mcdrawEntropy;
   double analyticalEntropy;
@@ -357,37 +387,39 @@ public:
     mcintegrationEntropy(std::numeric_limits<double>::quiet_NaN()),
     mcdrawEntropy(std::numeric_limits<double>::quiet_NaN()),
     analyticalEntropy(this->probdens.analyticEntropy()),
-    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN())
+    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
+    calcualtedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
   double empiricalGaussianEntropy()
   {
     // Calculate Mean
-    for (int n = 0; n < numberOfDraws; ++n)
+    for (unsigned int n = 0; n < numberOfDraws; ++n)
       mean += drawAndEvaluateMatrix(n, 0);
     mean /= numberOfDraws;
 
     // Calculate standard Deviation
-    for (int n = 0; n < numberOfDraws; ++n)
+    for (unsigned int n = 0; n < numberOfDraws; ++n)
       standardDeviation += (drawAndEvaluateMatrix(n, 0) - mean) * (drawAndEvaluateMatrix(n, 0) - mean);
+
     standardDeviation /= numberOfDraws;
     standardDeviation = sqrt(standardDeviation);
 
     return log(standardDeviation * sqrt(2. * pi * e));
   }
 
-  double MCIntegrationEntropy(double range, size_t numberOfSamples)
+  double MCIntegrationEntropy(std::pair<double,double> const& range, size_t numberOfSamples)
   {
     // MC guess with uniform distribution
     // Draw Uniform and do
     // Draw samples
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> distr(-1. * range, range);
+    std::uniform_real_distribution<double> distr(range.first, range.second);
     std::vector<double> temp;
     temp.reserve(numberOfSamples);
-    for (int n = 0; n < numberOfSamples; ++n) {
+    for (unsigned int n = 0; n < numberOfSamples; ++n) {
       double drawnnum = distr(gen);
       temp.push_back(drawnnum);
     }
@@ -399,7 +431,7 @@ public:
     //std::stable_sort(temp.begin(), temp.end());
     //size_t countHowManyContinuesBecauseOfZeroPDF = 0u;
 
-    for (int n = 0; n < numberOfSamples; ++n)
+    for (unsigned int n = 0; n < numberOfSamples; ++n)
     {
       long double gvalue;
       gvalue = static_cast<long double>(probdens.function()(temp[n]));
@@ -415,8 +447,8 @@ public:
     }
     uniformMCvalue /= double(numberOfSamples);
     uniformMCvalue2 /= double(numberOfSamples);
-    uniformMCvalue *= -1. * (2 * range);
-    uniformMCvalue2 *= -1. * (2 * range);
+    uniformMCvalue *= -1. * (range.second - range.first);
+    uniformMCvalue2 *= -1. * (range.second - range.first);
     return uniformMCvalue2;
   };
 
@@ -458,6 +490,63 @@ public:
     return this->MCDrawEntropy(samples_vec);
   }
 
+  double meanNNEntropyFaivishevsky()
+  {
+    //http://papers.nips.cc/paper/3500-ica-based-on-a-smooth-estimation-of-the-differential-entropy
+    transpose(drawAndEvaluateMatrix);
+    Matrix_Class drawAndEvaluateMatrix_TemporaryCopy = drawAndEvaluateMatrix;
+    KahanAccumulation<double> kahan_acc;
+    double sum_final = 0.f;
+
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(drawAndEvaluateMatrix_TemporaryCopy,kahan_acc) reduction(+:sum_final)
+#endif
+    {
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(drawAndEvaluateMatrix_TemporaryCopy.cols());
+#pragma omp for
+      for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+      for (size_t i = 0u; i < drawAndEvaluateMatrix_TemporaryCopy.cols(); i++)
+#endif
+      {
+        for (size_t j = i + 1u; j < drawAndEvaluateMatrix_TemporaryCopy.cols(); j++)
+        {
+          kahan_acc = KahanSum(kahan_acc, log(std::abs(drawAndEvaluateMatrix_TemporaryCopy(0u, i) - drawAndEvaluateMatrix_TemporaryCopy(0u, j))));
+        }
+      }
+      sum_final += kahan_acc.sum;
+    }
+    const double mod_summation = sum_final * static_cast<double>(this->dimension) / static_cast<double>(drawAndEvaluateMatrix.cols() * (drawAndEvaluateMatrix.cols() - 1));
+    
+    double sum_gamma_k = 0.f;
+    const int n_of_samples = drawAndEvaluateMatrix.cols() - 1u;
+
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(n_of_samples) reduction(+:sum_gamma_k)
+#endif
+    {
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(n_of_samples);
+#pragma omp for
+      for (std::ptrdiff_t i = 1; i < n_omp; ++i)
+#else
+      for (size_t i = 1u; i < n_of_samples; i++)
+#endif
+        sum_gamma_k += digammal(i);
+    }
+    sum_gamma_k *= -1;
+    sum_gamma_k *= static_cast<double>(this->dimension) / static_cast<double>(drawAndEvaluateMatrix.cols() * (drawAndEvaluateMatrix.cols() - 1));
+    sum_gamma_k += digammal(drawAndEvaluateMatrix.cols());
+    
+
+    const double volume_of_unit_ball_for_eucledean_norm = pow(M_PIl, static_cast<double>(this->dimension) / 2.) / tgamma(1. + static_cast<double>(this->dimension) / 2.);
+
+
+    transpose(drawAndEvaluateMatrix);
+    return mod_summation + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm);
+  }
+
   void calculate()
   {
     // Calculates entropy inegral using MC 
@@ -467,6 +556,8 @@ public:
     mcintegrationEntropy = this->MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
+
+    calcualtedEntropyMeanFaivishevsky = meanNNEntropyFaivishevsky();
 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
     if (Config::get().entropytrails.NNcalculation)
@@ -580,8 +671,9 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(fake)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNN|";
 
-      myfile2 << "\n==============================================================================================================================\n";
+      myfile2 << "\n===============================================================================================================================================================\n";
     }
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.identString() << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->numberOfDraws << "|";
@@ -591,7 +683,8 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calcualtedEntropyMeanFaivishevsky << "|\n";
     myfile2.close();
   }
 };

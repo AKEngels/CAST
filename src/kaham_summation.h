@@ -4,12 +4,12 @@
 template <typename T>
 struct KahanAccumulation
 {
-  T sum;
-  T correction;
+  T sum = T(0);
+  T correction = T(0);
 };
 
 template <typename T>
-KahanAccumulation<T> KahanSum(KahanAccumulation<T> accumulation, T value)
+KahanAccumulation<T> KahanSum(KahanAccumulation<T> const& accumulation, T value)
 {
   KahanAccumulation<T> result;
   T y = value - accumulation.correction;
