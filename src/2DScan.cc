@@ -217,9 +217,10 @@ void Scan2D::make_scan(Scan2D::XY_Parser const & parser, Scan2D::XY_steps const 
 		_coords.o();
 		parser.x_parser->set_coords(_coords.xyz());
 
+		output.to_stream(logfile);
+
 		go_along_y_axis(parser, steps.y_steps, _coords);
 		
-		output.to_stream(logfile);
 	}
 
 }

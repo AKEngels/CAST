@@ -291,7 +291,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp()const {
 
 std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms() const {
 	
-	std::vector<int> indices(coords->size());
+	/*std::vector<int> indices(coords->size());
 	std::iota(indices.begin(), indices.end(), 1);
 	std::vector<int> final_vec;
 
@@ -305,13 +305,21 @@ std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms()
 			}
 	});
 
-	std::string final_atoms = "";
+	
 	for (auto const & i : final_vec) {
 		if (i != 0) {
 			final_atoms += std::to_string(i) + " ";
 		}
+	}*/
+	std::string final_atoms = "";
+	auto const & atoms = coords->atoms();
+	for (auto i = 0; i < coords->size(); ++i) {
+		auto const & atom = coords->atoms().atom(i);
+		if (!atom.fixed()) {
+			final_atoms += std::to_string(i + 1) + " ";
+		}
 	}
-
+	std::cout << final_atoms << std::endl;
 	return final_atoms;
 }
 
