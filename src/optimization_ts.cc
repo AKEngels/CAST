@@ -45,6 +45,10 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
   std::size_t fails(0);
   for (; i<iterations; ++i)
   {
+std::ofstream test("test.txt");
+test << i << "\n";
+test.close();
+
     scon::chrono::high_resolution_timer step_timer;
     coordobj.to_internal();
     coordobj.to_xyz();
