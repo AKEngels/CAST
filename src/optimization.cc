@@ -32,7 +32,7 @@ bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point, coor
   {
     if ((*this)[i].pes.energy < high_bound && (*this)[i].pes.energy > low_bound)
     {
-      if (co.equal_structure((*this)[i].pes, point))
+      if (co.is_equal_structure((*this)[i].pes, point))
       {
         return true;
       }

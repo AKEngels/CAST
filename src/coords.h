@@ -837,13 +837,7 @@ namespace coords
     bool check_superposition_xyz(Representation_3D const &a,
       Representation_3D const &b, double const x = 0.35) const;
 
-    bool equal_structure(coords::PES_Point const &a, coords::PES_Point const &b, 
-      coords::main_type const md = coords::main_type::from_deg(8.0), 
-      coords::internal_type const &id = coords::internal_type{
-        0.2, 
-        coords::angle_type::from_deg(1.0), 
-        coords::angle_type::from_deg(8.0)}, 
-      coords::Cartesian_Point const &cd = coords::Cartesian_Point{0.1, 0.1, 0.1}) const;
+    bool is_equal_structure(coords::PES_Point const &a, coords::PES_Point const &b) const;
 
   };
 

@@ -853,13 +853,13 @@ namespace
 
 }
 
-bool coords::Coordinates::equal_structure(coords::PES_Point const & a, 
-  coords::PES_Point const & b, 
-  coords::main_type const md, 
-  coords::internal_type const & id, 
-  coords::Cartesian_Point const & cd) const
+bool coords::Coordinates::is_equal_structure(coords::PES_Point const & a, coords::PES_Point const & b) const
 {
   using scon::operator-;
+  config::coords::conditionsForStructuresToBeConsideredEqual equalityConditions = Config::get().coords.equals;
+  coords::main_type const& md = equalityConditions.main;
+  coords::internal_type const& id = equalityConditions.intern;
+  coords::Cartesian_Point const& cd = equalityConditions.xyz;
   auto const N = size();
   if (Config::get().coords.decouple_internals)
   {
