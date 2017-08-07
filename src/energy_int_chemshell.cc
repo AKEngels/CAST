@@ -449,10 +449,11 @@ void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_a
 	ss << "mv " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
 
 	auto ret = scon::system_call(ss.str());
-
+	/*
 	if (ret) {
 		throw std::runtime_error("Failed to replace unoptimzed .c file with the optimized one.");
 	}
+	*/
 }
 
 void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(std::string const & filename, std::string const & copy_or_move) const {
