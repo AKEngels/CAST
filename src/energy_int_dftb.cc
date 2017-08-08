@@ -32,19 +32,19 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
 {
     char *ergebnis; 
     PyObject *modul, *funk, *prm, *ret;
-
     Py_Initialize(); //initialize python interpreter
+    
     PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
-    modul = PyImport_ImportModule("test"); //import module test from path
+    modul = PyImport_ImportModule("DFTB2"); //import module test from path
 
     if(modul) 
         { 
-        funk = PyObject_GetAttrString(modul, "entscheide"); //create function
-        prm = Py_BuildValue("(ss)", "4", "2"); //give parameters 4 and 2 (as strings)
+        funk = PyObject_GetAttrString(modul, "main"); //create function
+        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "/home/susanne/Downloads/DFTBaby-0.1.0/DFTB/dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
         ergebnis = PyString_AsString(ret); //read function return (has to be a string)
-        std::cout<<"Ergebnis: "<<std::stof(ergebnis)+2<<"\n";  //print function return
+        std::cout<<"Ergebnis: "<<ergebnis<<"\n";  //print function return
 
         Py_DECREF(prm); //delete PyObjects
         Py_DECREF(ret); 
