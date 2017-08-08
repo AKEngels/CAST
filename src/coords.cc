@@ -274,36 +274,15 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
     m_representation.gradient.main.resize(M);
     //m_atoms.c_to_i(m_representation); 
     m_interface->update(false);
-    if (m_preinterface) m_preinterface->update(false);
+    if (m_preinterface) 
+      m_preinterface->update(false);
   }
 }
-
 
 void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
 {
   init_swap_in(a, p, update);
 }
-
-struct OCB
-{
-  coords::Coordinates * cp;
-  OCB(coords::Coordinates & coordpointer) : cp(&coordpointer) {}
-  float operator() (scon::vector<scon::c3<float>> const & v,
-    scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
-  {
-    cp->set_xyz(coords::Representation_3D(v.begin(), v.end()), false);
-    float E = float(cp->g());
-    go_on = cp->integrity();
-    g.resize(cp->g_xyz().size());
-    scon::explicit_transform(cp->g_xyz(), g);
-    if (Config::get().general.verbosity >= 4)
-    {
-      std::cout << "Optimization: Energy of step " << S;
-      std::cout << " is " << E << " integrity " << go_on << '\n';
-    }
-    return E;
-  }
-};
 
 coords::float_type coords::Coordinates::lbfgs()
 {
@@ -418,7 +397,6 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   //m_sub_interaction.swap(rhs.m_sub_interaction);
   swap(energy_valid, rhs.energy_valid);
   swap(this->fep, rhs.fep);
-  swap(this->hessian_def, rhs.hessian_def);
   swap(this->use_fep, rhs.use_fep);
   swap(this->mult_struc_counter, rhs.mult_struc_counter);
   swap(this->NEB_control, rhs.NEB_control);
@@ -519,9 +497,9 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass_mol(std::size_t inde
   coords::float_type M = coords::float_type();
   for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
-coords::float_type mass(m_atoms.atom(m_atoms.molecules(index, i)).mass());
-M += mass;
-COM += xyz(m_atoms.molecules(index, i))*mass;
+    coords::float_type mass(m_atoms.atom(m_atoms.atomOfMolecule(index, i)).mass());
+    M += mass;
+    COM += xyz(m_atoms.atomOfMolecule(index, i))*mass;
   }
   return COM / M;
 }
@@ -604,7 +582,7 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 void coords::Coordinates::periodic_boxjump()
 {
 	std::size_t const N(molecules().size());
-	Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
+	Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
 	for (std::size_t i = 0; i < N; ++i)
 	{
 		Cartesian_Point tmp_com(-center_of_mass_mol(i));
@@ -614,7 +592,7 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.x() = tmp_com.x() / Config::get().energy.pb_box.x();
+			tmp_com.x() = tmp_com.x() / Config::get().periodics.pb_box.x();
 			int tmp_x = std::round(tmp_com.x());
 			tmp_com.x() = tmp_x;
 		}
@@ -624,7 +602,7 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.y() = tmp_com.y() / Config::get().energy.pb_box.y();
+			tmp_com.y() = tmp_com.y() / Config::get().periodics.pb_box.y();
 			int tmp_y = std::round(tmp_com.y());
 			tmp_com.y() = tmp_y;
 		}
@@ -634,12 +612,12 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.z() = tmp_com.z() / Config::get().energy.pb_box.z();
+			tmp_com.z() = tmp_com.z() / Config::get().periodics.pb_box.z();
 			int tmp_z = std::round(tmp_com.z());
 			tmp_com.z() = tmp_z;
 		}
-		tmp_com *= Config::get().energy.pb_box;
-    for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
+		tmp_com *= Config::get().periodics.pb_box;
+    for (auto const atom : molecule(i)) move_atom_by(atom, tmp_com, true);
   }
 }
 
@@ -853,13 +831,13 @@ namespace
 
 }
 
-bool coords::Coordinates::equal_structure(coords::PES_Point const & a, 
-  coords::PES_Point const & b, 
-  coords::main_type const md, 
-  coords::internal_type const & id, 
-  coords::Cartesian_Point const & cd) const
+bool coords::Coordinates::is_equal_structure(coords::PES_Point const & a, coords::PES_Point const & b) const
 {
   using scon::operator-;
+  config::coords::conditionsForStructuresToBeConsideredEqual equalityConditions = Config::get().coords.equals;
+  coords::main_type const& md = equalityConditions.main;
+  coords::internal_type const& id = equalityConditions.intern;
+  coords::Cartesian_Point const& cd = equalityConditions.xyz;
   auto const N = size();
   if (Config::get().coords.decouple_internals)
   {
@@ -883,7 +861,8 @@ bool coords::Coordinates::equal_structure(coords::PES_Point const & a,
       }
       ++i;
     }
-    if (equal) return true;
+    if (equal) 
+      return true;
   }
   // Check internal structure equality
   {
@@ -904,8 +883,10 @@ bool coords::Coordinates::equal_structure(coords::PES_Point const & a,
       }
       ++i;
     }
-    if (equal) return true;
+    if (equal) 
+      return true;
   }
+  // Check cartesian structure equality
   {
     bool equal = true;
     std::size_t i = 0;
@@ -920,9 +901,9 @@ bool coords::Coordinates::equal_structure(coords::PES_Point const & a,
       }
       ++i;
     }
-    if (equal) return true;
+    if (equal) 
+      return true;
   }
-
   return false;
 }
 
@@ -1080,433 +1061,3 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   }
   return E;
 }
-
-
-
-
-//##################################################################################
-//##################################################################################
-//                    SMOOTH PARTICLE MESH EWALD
-//##################################################################################
-//##################################################################################
-
-//void coords::Coordinates::pme_stuff(int atoms)
-//{
-//  pme.pmetemp.natoms = atoms;
-//  double x, nenner;
-//  std::vector<double> stupidarray(250);
-//  std::vector<double> brecurs(6);
-//  double eps = 1e-8;
-//  double tempcoeff;
-//  double rate, j, l, blow, bhigh;
-//  //Define PME grid size. Must be even number with prime factores 2, 3 and 5
-//  // get even numbers factorized by 2, 3 and 5
-//  for (int i = 2; i < 600; i++)
-//  {
-//    int n = i;
-//    // check if numnber is even
-//    if (n % 2 != 0) continue;
-//    // divide by 2 as long as possible
-//    while (n % 2 == 0)
-//    {
-//      n = n / 2;
-//    }
-//    // get prime factors 3 and 5
-//    for (int j = 3; j <= 5; j = j + 2)
-//    {
-//      // divide by 3 as long as possible, then by 5 as long as possible
-//      while (n%j == 0)
-//      {
-//        n = n / j;
-//      }
-//    }
-//    // if resulting number is 1 push number i into vector
-//    if (n == 1) pme.pmetemp.gridnumbers.push_back(i);
-//  }
-//  //Get initial Ewald coefficient based on cutoff radius
-//  rate = eps + 1.0;
-//  pme.pmetemp.ewaldcoeff = 0.5;
-//  j = 0;
-//  // trial and error function for first initial guess
-//  while (rate > eps){
-//    j += 1;
-//    pme.pmetemp.ewaldcoeff *= 2.0;
-//    l = pme.pmetemp.ewaldcoeff * Config::get().energy.cutoff;
-//    rate = erfc(l) / Config::get().energy.cutoff;
-//  }
-//  //run binary search according to Sander program to refine coefficient
-//  blow = 0;
-//  bhigh = pme.pmetemp.ewaldcoeff;
-//  for (int i = 1; i <= 50; i++)
-//  {
-//    pme.pmetemp.ewaldcoeff = (blow + bhigh) / 2;
-//    if (erfc(pme.pmetemp.ewaldcoeff*Config::get().energy.cutoff) / Config::get().energy.cutoff > eps)
-//    {
-//      blow = pme.pmetemp.ewaldcoeff;
-//    }
-//    else bhigh = pme.pmetemp.ewaldcoeff;
-//  }
-//  tempcoeff = pme.pmetemp.ewaldcoeff;
-//  //Calculate the grid size from the periodic box dimensions
-//  pme.pmetemp.treshold = 1e-8;
-//  pme.pmetemp.dim1 = (Config::get().energy.pb_box.x() * 1.2 - pme.pmetemp.treshold) + 1;
-//  pme.pmetemp.dim2 = (Config::get().energy.pb_box.y() * 1.2 - pme.pmetemp.treshold) + 1;
-//  pme.pmetemp.dim3 = (Config::get().energy.pb_box.z() * 1.2 - pme.pmetemp.treshold) + 1;
-//  // check that grid size is even-numbered for effective fftw
-//  pme.pmetemp.nxpoints = pme.pmetemp.nypoints = pme.pmetemp.nzpoints = pme.pmetemp.fftgridmax;
-//  // get grid size in each dimension
-//  for (int i = pme.pmetemp.gridnumbers.size(); i >= 1; i--){
-//    int temp;
-//    temp = pme.pmetemp.gridnumbers[i];
-//    if (temp < 250)
-//    {
-//      if (temp >= pme.pmetemp.dim1) pme.pmetemp.nxpoints = temp;
-//      if (temp >= pme.pmetemp.dim2) pme.pmetemp.nypoints = temp;
-//      if (temp >= pme.pmetemp.dim3) pme.pmetemp.nzpoints = temp;
-//    }
-//  }
-//  // compute the moduli for the inverse discrete fourier transformation
-//  // ########
-//  // B-Spline Stuff
-//  // ########
-//  x = 0.0;
-//  brecurs[1] = (1.0 - x);
-//  brecurs[2] = x;
-//  // recursive loop over the b-spline order 1 to x (here 5) to get spline coefficients
-//  for (int k = 3; k <= pme.pmetemp.bsplineorder; k++)
-//  {
-//    nenner = 1.0 / (k - 1);
-//    brecurs[k] = x * brecurs[k - 1] * nenner;
-//    for (int i = 1; i <= (k - 2); i++)
-//    {
-//      brecurs[k - i] = ((x + i)*brecurs[k - i - 1] + (k - i - x)*brecurs[k - i]) * nenner;
-//    }
-//    brecurs[1] = (1.0 - x) * brecurs[1] * nenner;
-//  }
-//  // ########
-//  // Fill spline array
-//  // #######
-//  for (int i = 0; i < 250; i++)
-//  {
-//    stupidarray[i] = 0.0;
-//  }
-//  // i = 2 till b-spline order + 1
-//  for (int i = 2; i <= pme.pmetemp.bsplineorder + 1; i++)
-//  {
-//    stupidarray[i] = brecurs[i - 1];
-//  }
-//  // Calculate the modulus for the spline arrays
-//  coords::Coordinates::pme_dftmodulus(stupidarray);
-//  // Set chunks for parallel execution
-//#ifdef _OPENMP
-//  coords::Coordinates::roughgrid();
-//#endif
-//  // Allocate memory for needed arrays
-//  pme.pmetemp.bscx.Allocate(4, pme.pmetemp.bsplineorder, pme.pmetemp.natoms);
-//  pme.pmetemp.bscy.Allocate(4, pme.pmetemp.bsplineorder, pme.pmetemp.natoms);
-//  pme.pmetemp.bscz.Allocate(4, pme.pmetemp.bsplineorder, pme.pmetemp.natoms);
-//  size_t align = sizeof(Complex);
-//  pme.pmetemp.charges.Allocate(pme.pmetemp.nxpoints, pme.pmetemp.nypoints, pme.pmetemp.nzpoints, align);
-//  pme.pmetemp.fractionalcharges.Allocate(pme.pmetemp.nxpoints, pme.pmetemp.nypoints, pme.pmetemp.nzpoints);
-//  pme.pmetemp.recivectors.Allocate(3, 3);
-//  pme.pmetemp.initgrid.Allocate(3, pme.pmetemp.natoms);
-//  pme.pmetemp.parallelpme.Allocate(pme.pmetemp.natoms, pme.pmetemp.rgridtotal);
-//  pme.pmetemp.feinf.resize(pme.pmetemp.natoms);
-//
-//  // set up FFTW variables if OPENMP is used
-//#ifdef _OPENMP
-//  int threads;
-//#pragma omp parallel
-//  {
-//    threads = omp_get_num_threads();
-//  }
-//  fftw_init_threads();
-//  fftw_plan_with_nthreads(threads);
-//#endif
-//  // Assign memory for charge grid
-//  pme.pmetemp.in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)* (pme.pmetemp.nxpoints*pme.pmetemp.nypoints*pme.pmetemp.nzpoints));
-//  // Set up FFTW plans
-//  pme.pmetemp.forward = fftw_plan_dft_3d(pme.pmetemp.nxpoints, pme.pmetemp.nypoints, pme.pmetemp.nzpoints, pme.pmetemp.in, pme.pmetemp.in, FFTW_FORWARD, FFTW_PATIENT);
-//  pme.pmetemp.backward = fftw_plan_dft_3d(pme.pmetemp.nxpoints, pme.pmetemp.nypoints, pme.pmetemp.nzpoints, pme.pmetemp.in, pme.pmetemp.in, FFTW_BACKWARD, FFTW_PATIENT);
-//  // Calculate reciprocal lattice vectors
-//  double boxvolume = Config::get().energy.pb_box.x() * Config::get().energy.pb_box.y() * Config::get().energy.pb_box.z();
-//  double x1, x2, x3, y1, y2, y3, z1, z2, z3;
-//  x1 = Config::get().energy.pb_box.x();
-//  x2 = x3 = 0.0;
-//  y1 = y3 = 0.0;
-//  y2 = Config::get().energy.pb_box.y();
-//  z1 = z2 = 0.0;
-//  z3 = Config::get().energy.pb_box.z();
-//  pme.pmetemp.recivectors(0, 0) = (y2*z3 - z2*y3) / boxvolume;
-//  pme.pmetemp.recivectors(1, 0) = (y3*z1 - z3*y1) / boxvolume;
-//  pme.pmetemp.recivectors(2, 0) = (y1*z2 - z1*y1) / boxvolume;
-//  pme.pmetemp.recivectors(0, 1) = (z2*x3 - x2*z3) / boxvolume;
-//  pme.pmetemp.recivectors(1, 1) = (z3*x1 - z1*x3) / boxvolume;
-//  pme.pmetemp.recivectors(2, 1) = (z1*x2 - z2*x1) / boxvolume;
-//  pme.pmetemp.recivectors(0, 2) = (x2*y3 - y2*x3) / boxvolume;
-//  pme.pmetemp.recivectors(1, 2) = (x3*y1 - y3*x1) / boxvolume;
-//  pme.pmetemp.recivectors(2, 2) = (x1*y2 - y1*x2) / boxvolume;
-//  // set up charge array
-//  pme.pmetemp.atomcharges.resize(pme.pmetemp.natoms);
-//  std::ifstream ifs2;
-//  ifs2.open(Config::get().general.paramFilename.c_str());
-//  int iterator = 0;
-//  char buffer[150];
-//  std::string bufferc, tempname;
-//  std::vector<std::string> tokens;
-//  std::string bla;
-//  bla = Config::get().general.paramFilename.substr(0, 5);
-//  pme.pmetemp.elecfac = 1.0;
-//  if (bla.substr(0, 3) == "cha") pme.pmetemp.elecfac = 332.0716;
-//  else if (bla.substr(0, 3) == "opl") pme.pmetemp.elecfac = 332.06;
-//  //else if (bla.substr(0, 3) == "amb") pme.pmetemp.elecfac = 1.0;
-//  //else if (bla.substr(0, 3) == "amo") pme.pmetemp.elecfac
-//}
-//
-//// get FEP data for the three different grids (IN, OUT, ALL) and set flags for total charge vector
-//void coords::Coordinates::getfepinfo()
-//{
-//  std::ifstream ifs;
-//  int iterator = 0;
-//  char buffer[150];
-//  std::string bufferc;
-//  std::vector<std::string> tokens;
-//
-//  ifs.open(Config::get().general.inputFilename.c_str());
-//  while (!ifs.eof())
-//  {
-//    ifs.getline(buffer, 150);
-//    bufferc = buffer;
-//    tokens.clear();
-//    std::istringstream iss(bufferc);
-//    std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-//    int g = tokens.size();
-//    if (tokens.size() > 2)
-//    {
-//
-//      if (tokens[g - 1] == "IN")
-//      {
-//        pme.pmetemp.fepi.push_back(atoi(tokens[0].c_str()));
-//        pme.pmetemp.feinf[iterator].flag = 1;
-//      }
-//      else if (tokens[g - 1] == "OUT")
-//      {
-//        pme.pmetemp.fepo.push_back(atoi(tokens[0].c_str()));
-//        pme.pmetemp.feinf[iterator].flag = 0;
-//      }
-//      else
-//      {
-//        pme.pmetemp.fepi.push_back(atoi(tokens[0].c_str()));
-//        pme.pmetemp.fepo.push_back(atoi(tokens[0].c_str()));
-//        pme.pmetemp.fepa.push_back(atoi(tokens[0].c_str()));
-//        pme.pmetemp.feinf[iterator].flag = 2;
-//      }
-//      iterator += 1;
-//    }
-//
-//  }
-//}
-//
-//// Precalculate the DFT moduli
-//void coords::Coordinates::pme_dftmodulus(std::vector<double> & stupidarray)
-//{
-//  double eps = 1e-7;
-//  pme.pmetemp.moduli1.resize(250);
-//  pme.pmetemp.moduli2.resize(250);
-//  pme.pmetemp.moduli3.resize(250);
-//  double sinsum, cossum, fact, sumarg, numbersum, zeta, tempsum1, tempsum2;
-//  int acutoff, doubleorder, indexi, indexk, indexj;
-//  fact = 2.0 * SUPERPI / pme.pmetemp.nxpoints;
-//  for (int i = 0; i < pme.pmetemp.nxpoints; i++)
-//  {
-//    sinsum = cossum = 0.0;
-//    for (int k = 0; k < pme.pmetemp.nxpoints; k++)
-//    {
-//      numbersum = double(i*k);
-//      sumarg = fact * numbersum;
-//      cossum += stupidarray[k] * cos(sumarg);
-//      sinsum += stupidarray[k] * sin(sumarg);
-//    }
-//    pme.pmetemp.moduli1[i] = sinsum*sinsum + cossum*cossum;
-//  }
-//  // Coorection for the euler interpolation
-//  double tresh = 1e-7;
-//  if (pme.pmetemp.moduli1[0] < eps) pme.pmetemp.moduli1[0] = 0.5 * pme.pmetemp.moduli1[1];
-//  for (int i = 1; i < pme.pmetemp.nxpoints - 1; i++)
-//  {
-//    if (pme.pmetemp.moduli1[i] < eps) pme.pmetemp.moduli1[i] = 0.5 * (pme.pmetemp.moduli1[i - 1] + pme.pmetemp.moduli1[i + 1]);
-//  }
-//  if (pme.pmetemp.moduli1[pme.pmetemp.nxpoints] < eps)  pme.pmetemp.moduli1[pme.pmetemp.nxpoints] = 0.5 * pme.pmetemp.moduli1[pme.pmetemp.nxpoints - 1];
-//  // calculate some stupid factor someone called zeta...whatever this thing does....
-//  acutoff = 50;
-//  doubleorder = 2 * 5;
-//  for (int i = 0; i < pme.pmetemp.nxpoints; i++)
-//  {
-//    indexk = i;
-//    if (i > pme.pmetemp.nxpoints / 2) indexk -= pme.pmetemp.nxpoints;
-//    if (indexk == 0) zeta = 1.0;
-//    else
-//    {
-//      tempsum1 = tempsum2 = 1.0;
-//      fact = SUPERPI * double(indexk) / double(pme.pmetemp.nxpoints);
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact + SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact - SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      zeta = tempsum2 / tempsum1;
-//    }
-//    pme.pmetemp.moduli1[i] *= (zeta*zeta);
-//  }
-//  // ###################
-//  // SECOND MODULUS ARRAY
-//  //####################
-//  fact = 2.0 * SUPERPI / pme.pmetemp.nypoints;
-//  for (int i = 0; i < pme.pmetemp.nypoints; i++)
-//  {
-//    sinsum = cossum = 0.0;
-//    for (int k = 0; k < pme.pmetemp.nypoints; k++)
-//    {
-//      numbersum = double(i*k);
-//      sumarg = fact * numbersum;
-//      cossum += stupidarray[k] * cos(sumarg);
-//      sinsum += stupidarray[k] * sin(sumarg);
-//    }
-//    pme.pmetemp.moduli2[i] = sinsum*sinsum + cossum*cossum;
-//  }
-//  // Coorection for the euler interpolation
-//  if (pme.pmetemp.moduli2[0] < eps) pme.pmetemp.moduli2[0] = 0.5 * pme.pmetemp.moduli2[1];
-//  for (int i = 1; i < pme.pmetemp.nypoints - 1; i++)
-//  {
-//    if (pme.pmetemp.moduli2[i] < eps) pme.pmetemp.moduli2[i] = 0.5 * (pme.pmetemp.moduli2[i - 1] + pme.pmetemp.moduli2[i + 1]);
-//  }
-//  if (pme.pmetemp.moduli2[pme.pmetemp.nypoints] < eps)  pme.pmetemp.moduli2[pme.pmetemp.nypoints] = 0.5 * pme.pmetemp.moduli2[pme.pmetemp.nypoints - 1];
-//  // calculate some stupid factor someone called zeta...whatever this thing does....
-//  acutoff = 50;
-//  doubleorder = 2 * 5;
-//  for (int i = 0; i < pme.pmetemp.nypoints; i++)
-//  {
-//    indexk = i;
-//    if (i > pme.pmetemp.nypoints / 2) indexk -= pme.pmetemp.nypoints;
-//    if (indexk == 0) zeta = 1.0;
-//    else
-//    {
-//      tempsum1 = tempsum2 = 1.0;
-//      fact = SUPERPI * double(indexk) / double(pme.pmetemp.nypoints);
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact + SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact - SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      zeta = tempsum2 / tempsum1;
-//    }
-//    pme.pmetemp.moduli2[i] *= (zeta*zeta);
-//  }
-//  // ###################
-//  // THIRD MODULUS ARRAY
-//  //####################
-//  fact = 2.0 * SUPERPI / pme.pmetemp.nzpoints;
-//  for (int i = 0; i < pme.pmetemp.nzpoints; i++)
-//  {
-//    sinsum = cossum = 0.0;
-//    for (int k = 0; k < pme.pmetemp.nzpoints; k++)
-//    {
-//      numbersum = double(i*k);
-//      sumarg = fact * numbersum;
-//      cossum += stupidarray[k] * cos(sumarg);
-//      sinsum += stupidarray[k] * sin(sumarg);
-//    }
-//    pme.pmetemp.moduli3[i] = sinsum*sinsum + cossum*cossum;
-//  }
-//  // Coorection for the euler interpolation
-//  if (pme.pmetemp.moduli3[0] < eps) pme.pmetemp.moduli3[0] = 0.5 * pme.pmetemp.moduli3[1];
-//  for (int i = 1; i < pme.pmetemp.nzpoints - 1; i++)
-//  {
-//    if (pme.pmetemp.moduli3[i] < eps) pme.pmetemp.moduli3[i] = 0.5 * (pme.pmetemp.moduli3[i - 1] + pme.pmetemp.moduli3[i + 1]);
-//  }
-//  if (pme.pmetemp.moduli3[pme.pmetemp.nzpoints] < eps)  pme.pmetemp.moduli3[pme.pmetemp.nzpoints] = 0.5 * pme.pmetemp.moduli3[pme.pmetemp.nzpoints - 1];
-//  // calculate some stupid factor someone called zeta...whatever this thing does....
-//  acutoff = 50;
-//  doubleorder = 2 * 5;
-//  for (int i = 0; i < pme.pmetemp.nzpoints; i++)
-//  {
-//    indexk = i;
-//    if (i > pme.pmetemp.nzpoints / 2) indexk -= pme.pmetemp.nzpoints;
-//    if (indexk == 0) zeta = 1.0;
-//    else
-//    {
-//      tempsum1 = tempsum2 = 1.0;
-//      fact = SUPERPI * double(indexk) / double(pme.pmetemp.nzpoints);
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact + SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      for (int j = 1; j <= acutoff; j++)
-//      {
-//        sumarg = fact / (fact - SUPERPI * double(j));
-//        tempsum1 += pow(sumarg, 5.0);
-//        tempsum2 += pow(sumarg, double(doubleorder));
-//      }
-//      zeta = tempsum2 / tempsum1;
-//    }
-//    pme.pmetemp.moduli3[i] *= (zeta*zeta);
-//  }
-//}
-//
-//#ifdef _OPENMP
-//// calculate spatial sites in the box for partial parallelization
-//void coords::Coordinates::roughgrid()
-//{
-//
-//  pme.pmetemp.nrough1 = pme.pmetemp.nrough2 = pme.pmetemp.nrough3 = pme.pmetemp.rgridtotal = 1;
-//  int threads;
-//#pragma omp parallel
-//  {
-//    threads = omp_get_num_threads();
-//  }
-//  for (int i = 2; i <= 6; i++)
-//  {
-//    if (threads > pme.pmetemp.rgridtotal && (pme.pmetemp.nxpoints%i == 0))
-//    {
-//      pme.pmetemp.nrough1 = i;
-//      pme.pmetemp.rgridtotal = pme.pmetemp.nrough1 * pme.pmetemp.nrough2 * pme.pmetemp.nrough3;
-//    }
-//    if (threads > pme.pmetemp.rgridtotal && (pme.pmetemp.nypoints%i == 0))
-//    {
-//      pme.pmetemp.nrough2 = i;
-//      pme.pmetemp.rgridtotal = pme.pmetemp.nrough1 * pme.pmetemp.nrough2 * pme.pmetemp.nrough3;
-//    }
-//    if (threads > pme.pmetemp.rgridtotal && (pme.pmetemp.nzpoints%i == 0))
-//    {
-//      pme.pmetemp.nrough3 = i;
-//      pme.pmetemp.rgridtotal = pme.pmetemp.nrough1 * pme.pmetemp.nrough2 * pme.pmetemp.nrough3;
-//    }
-//  }
-//  // x,y,z-axis number of points per chunk
-//  pme.pmetemp.rgrid1 = pme.pmetemp.nxpoints / pme.pmetemp.nrough1;
-//  pme.pmetemp.rgrid2 = pme.pmetemp.nypoints / pme.pmetemp.nrough2;
-//  pme.pmetemp.rgrid3 = pme.pmetemp.nzpoints / pme.pmetemp.nrough3;
-//  // offset for bsplines and left and right points of central point
-//  pme.pmetemp.roughleft = (pme.pmetemp.bsplineorder - 1) / 2;
-//  pme.pmetemp.roughright = pme.pmetemp.bsplineorder - pme.pmetemp.roughleft - 1;
-//  pme.pmetemp.bsoffset = (pme.pmetemp.bsplineorder + 1) / 2 + 1;
-//
-//}
-//#endif
-

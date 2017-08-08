@@ -899,7 +899,8 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
 
   // Check if reference structure is in range
-  if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+  if (Config::get().alignment.reference_frame_num >= ci->size()) 
+    throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
 
   auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 
@@ -907,8 +908,15 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   if (!Config::get().alignment.align_external_file.empty())
   {
     std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
-    coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
-    if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size())
+    try
+    {
+      coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
+    }
+    catch (std::exception& e)
+    {
+      std::cout << "Reading the external reference structure for the ALIGN task failed.\n";
+    }
+    if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size() || externalReferenceStructurePtr == nullptr)
     {
       throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
     }

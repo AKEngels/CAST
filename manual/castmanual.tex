@@ -382,6 +382,23 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 \item If you activate the option ``chargefile'' the charges are taken from a file called ``charges.txt'' that is structured like the file described before but without dividing the charges by 18.2223. You get such a file by running the script ``amber\_find\_atomnumber\_and\_ambercharge.py'' over a .prmtop file.
 \end{itemize}
 
+
+%%%% Fixations and biases %%%%
+\subsection{Fixations, Biases and coordinate manipulations}
+\ac{CAST} is able to work with bias potentials and atom fixation globally in all methods. Global optimization routines will usually operate on \textit{main dihedrals}. \textit{Main dihedrals} make up a subset of independent dihedrals. Rotating a main dihedral often implies the alteration of several dihedrals. \ac{CAST} uses a very generalized internal coordinate system which can be heavily tailored by expert users.
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{FIXexclude} & Exclude nonbonded interactions between two fixed atoms when using force-field energy interfaces & int, int [none] \\
+	\textbf{REMOVEHROT} & Torsions involving hydrogen atoms will not be considered main torsions. & bool [true] \\	
+	\textbf{FIXrange} & Numbers of atoms that are fixed & int-range [none] \\
+	\textbf{MAINblacklist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{MAINwhitelist} & Black- or Whitelist a rotation around a bond for the selection as main rotation. & int, int [none] \\
+	\textbf{BIASspherical} & Arbitrary Spherical Bias Potential centered at origin & radius force exponent [none] \\
+	\textbf{BIAScubic} & Arbitrary Cubic Bias Potential centered at origin & x y z force exponent [none] \\
+\end{longtable} 
+	
+	
 	%%%% TASKS %%%%
 	\subsection{Tasks}
 	The main computations in \ac{CAST} are called \textit{tasks}. They are invoked with the configuration file keyword \glqq\textit{task}\grqq~followed by the identifier of the desired computation. On the following pages outline the individual tasks that can be performed by \ac{CAST}.
