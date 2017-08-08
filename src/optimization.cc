@@ -165,6 +165,10 @@ optimization::global::optimizer::optimizer (
   coordobj(c), accepted_log(make_buffered_result(c, output_name + "_accepted", 5)),
   opt_clock(), found_new_minimum(false)
 { 
+  std::ofstream test("test.txt");
+    test << "1" << '\n';
+    test.close();
+
   if (Config::get().general.verbosity > 1)
   {
     std::cout << "Evaluating initial structures for global optimization.\n";
