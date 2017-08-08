@@ -179,56 +179,32 @@ optimization::global::optimizer::optimizer (
   for (std::size_t kit = 0; kit < N; ++kit)
   {
 
-    std::ofstream test("test.txt");
-    test << "1" << '\n';
-    test.close();
-
     coordobj.set_xyz(initial_structures[kit].structure.cartesian);
     if (!minimized)
     {
       if (coordobj.preoptimize())
       {
-
-        std::ofstream test2("test2.txt");
-        test2 << "2" << '\n';
-        test2.close();
-
         coordobj.po();
-
-        std::ofstream test3("test3.txt");
-        test3 << "3" << '\n';
-        test3.close();
-
       }
-
-      std::ofstream test4("test4.txt");
-      test4 << "4" << '\n';
-      test4.close();
-
       coordobj.o();
-
-      std::ofstream test5("test5.txt");
-      test5 << "5" << '\n';
-      test5.close();
-
       coordobj.to_internal();
-
-      std::ofstream test6("test6.txt");
-      test6 << "6" << '\n';
-      test6.close();
-
       coordobj.to_xyz();
-
-      std::ofstream test7("test7.txt");
-      test7 << "7" << '\n';
-      test7.close();
-
     }
 	
     else
     {
+      std::ofstream test("test.txt");
+      test << "1" << '\n';
+      test.close();
+
       coordobj.set_pes(initial_structures[kit]);
     }
+
+
+    std::ofstream test2("test2.txt");
+    test2 << "2" << '\n';
+    test2.close();
+
     min_status::T S(check_pes_of_coords());
     if (Config::get().general.verbosity > 1)
     {
@@ -240,6 +216,12 @@ optimization::global::optimizer::optimizer (
       }
     }
   }
+
+
+  std::ofstream test3("test3.txt");
+  test3 << "3" << '\n';
+  test3.close();
+
   if (Config::get().general.verbosity > 1)
   {
     std::cout << '\n';
@@ -251,10 +233,34 @@ optimization::global::optimizer::optimizer (
     std::ofstream outputstream(filename.c_str(), std::ios_base::out);
     for (auto const & structure : brokens)
     {
+
+
+      std::ofstream test4("test4.txt");
+      test4 << "4" << '\n';
+      test4.close();
+
       coordobj.set_xyz(structure);
+
+
+      std::ofstream test5("test5.txt");
+      test5 << "5" << '\n';
+      test5.close();
+
       coordobj.e();
+
+
+      std::ofstream test6("test6.txt");
+      test6 << "6" << '\n';
+      test6.close();
+
       outputstream << coords::output::formats::tinker(coordobj);
     }
+
+
+    std::ofstream test7("test7.txt");
+    test7 << "7" << '\n';
+    test7.close();
+
   }
   if (!found_new_minimum)
   {
