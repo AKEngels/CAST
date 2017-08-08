@@ -109,13 +109,13 @@ namespace startopt
         solvated_coords(init_coords), 
         m_solvated_positions(init_coords.xyz()), m_solvated_atoms(), 
         m_solvated_cells(m_solvated_positions, 3.0, 
-          Config::get().energy.periodic, 
-          Config::get().energy.periodic ? Config::get().energy.pb_box : coords::Cartesian_Point(),
-          Config::get().energy.periodic ? 1.0 : bound + 5.0),
+          Config::get().periodics.periodic,
+          Config::get().periodics.periodic ? Config::get().periodics.pb_box : coords::Cartesian_Point(),
+          Config::get().periodics.periodic ? 1.0 : bound + 5.0),
         m_init_cells(init_coords.xyz(), std::max(bound/2.0, 4.0),
-          Config::get().energy.periodic, 
-          Config::get().energy.periodic ? Config::get().energy.pb_box : coords::Cartesian_Point(), 
-          Config::get().energy.periodic ? 1.0 : bound + 2.0),
+          Config::get().periodics.periodic,
+          Config::get().periodics.periodic ? Config::get().periodics.pb_box : coords::Cartesian_Point(),
+          Config::get().periodics.periodic ? 1.0 : bound + 2.0),
         m_boundary(bound)
       { }
 

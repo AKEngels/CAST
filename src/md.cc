@@ -514,10 +514,14 @@ void md::simulation::init(void)
   // periodics and isothermal cases
   if (Config::get().md.hooverHeatBath == true)
   {
-    if (Config::get().energy.periodic == true) freedom -= 3;
-    else freedom -= 6;
+    if (Config::get().periodics.periodic == true) 
+      freedom -= 3;
+    else 
+      freedom -= 6;
   }
-  if (Config::get().general.verbosity > 2U) std::cout << "Degrees of freedom: " << freedom << std::endl;
+  if (Config::get().general.verbosity > 2U) 
+    std::cout << "Degrees of freedom: " << freedom << std::endl;
+
   // calc number of steps between snapshots (gap between snapshots)
   snapGap = gap(Config::get().md.num_steps, Config::get().md.num_snapShots);
   // scale geometrical center vector by number of atoms
@@ -663,21 +667,6 @@ void md::simulation::fepinit(void)
     std::cout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
   }
 
-
-  // Check for PME flag, if yes allocate needed memeory for the grids
-  /*if (Config::get().energy.pme == true)
-  {
-    std::cout << "PME electrostatics for FEP calculation. Setting up memory" << std::endl;
-    coordobj.getfepinfo();
-    // generate grids for incoming atoms, outgoing atoms and rest of the system (3 = x,y,z; size = atoms in the respective system)  
-    coordobj.pme.pmetemp.initingrid.Allocate(3, coordobj.pme.pmetemp.fepi.size());
-    coordobj.pme.pmetemp.initoutgrid.Allocate(3, coordobj.pme.pmetemp.fepo.size());
-    coordobj.pme.pmetemp.initallgrid.Allocate(3, coordobj.pme.pmetemp.fepa.size());
-    // Allocate memory for parallel execution of the PME calculation in FEP simulations
-    coordobj.pme.pmetemp.parallelinpme.Allocate(coordobj.pme.pmetemp.fepi.size(), coordobj.pme.pmetemp.rgridtotal);
-    coordobj.pme.pmetemp.paralleloutpme.Allocate(coordobj.pme.pmetemp.fepo.size(), coordobj.pme.pmetemp.rgridtotal);
-    coordobj.pme.pmetemp.parallelallpme.Allocate(coordobj.pme.pmetemp.fepa.size(), coordobj.pme.pmetemp.rgridtotal);
-  }*/
 }
 
 //Calculation of ensemble average and free energy change for each step if FEP calculation is performed
@@ -938,7 +927,7 @@ void md::simulation::berendsen(double const & time)
   double fac, scale, volume;
   double ptensor[3][3], aniso[3][3], anisobox[3][3], dimtemp[3][3];
   // get volume and pressure scaling factor
-  volume = Config::get().energy.pb_box.x() *  Config::get().energy.pb_box.y() *  Config::get().energy.pb_box.z();
+  volume = Config::get().periodics.pb_box.x() *  Config::get().periodics.pb_box.y() *  Config::get().periodics.pb_box.z();
   fac = presc / volume;
   // pressure for ISOTROPIC boxes
   if (Config::get().energy.isotropic == true) {
@@ -949,9 +938,9 @@ void md::simulation::berendsen(double const & time)
     // Berendsen scaling for isotpropic boxes
     scale = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press - Config::get().md.ptarget)), 0.3333333333333);
     // Adjust box dimensions
-    Config::set().energy.pb_box.x() = Config::get().energy.pb_box.x() * scale;
-    Config::set().energy.pb_box.y() = Config::get().energy.pb_box.y() * scale;
-    Config::set().energy.pb_box.z() = Config::get().energy.pb_box.z() * scale;
+    Config::set().periodics.pb_box.x() = Config::get().periodics.pb_box.x() * scale;
+    Config::set().periodics.pb_box.y() = Config::get().periodics.pb_box.y() * scale;
+    Config::set().periodics.pb_box.z() = Config::get().periodics.pb_box.z() * scale;
     // scale atomic coordinates
     for (size_t i = 0; i < N; ++i)
     {
@@ -978,15 +967,15 @@ void md::simulation::berendsen(double const & time)
     }
     // modify anisotropic box dimensions (only for cube or octahedron)
     // the 1.0 and  0.0 are placeholder for the scaling factors is monoclinic or triclinic boxes are introduced
-    dimtemp[0][0] = Config::get().energy.pb_box.x();
+    dimtemp[0][0] = Config::get().periodics.pb_box.x();
     dimtemp[1][0] = 0.0;
     dimtemp[2][0] = 0.0;
-    dimtemp[0][1] = Config::get().energy.pb_box.y() * 1.0;
-    dimtemp[1][1] = Config::get().energy.pb_box.y() * 0.0;
+    dimtemp[0][1] = Config::get().periodics.pb_box.y() * 1.0;
+    dimtemp[1][1] = Config::get().periodics.pb_box.y() * 0.0;
     dimtemp[2][1] = 0.0;
-    dimtemp[0][2] = Config::get().energy.pb_box.z() * 0.0;
-    dimtemp[1][2] = Config::get().energy.pb_box.z() * (1.0 - 1.0 * 1.0) / 1.0;
-    dimtemp[2][2] = Config::get().energy.pb_box.z() * sqrt(1.0 * 1.0 - 0.0 - 0.0);
+    dimtemp[0][2] = Config::get().periodics.pb_box.z() * 0.0;
+    dimtemp[1][2] = Config::get().periodics.pb_box.z() * (1.0 - 1.0 * 1.0) / 1.0;
+    dimtemp[2][2] = Config::get().periodics.pb_box.z() * sqrt(1.0 * 1.0 - 0.0 - 0.0);
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         anisobox[j][i] = 0.0;
@@ -996,9 +985,9 @@ void md::simulation::berendsen(double const & time)
       }
     }
     // scale box dimensions for anisotropic case
-    Config::set().energy.pb_box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + anisobox[1][0] * anisobox[1][0] + anisobox[2][0] * anisobox[2][0]));
-    Config::set().energy.pb_box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + anisobox[1][1] * anisobox[1][1] + anisobox[2][1] * anisobox[2][1]));
-    Config::set().energy.pb_box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + anisobox[1][2] * anisobox[1][2] + anisobox[2][2] * anisobox[2][2]));
+    Config::set().periodics.pb_box.x() = std::sqrt((anisobox[0][0] * anisobox[0][0] + anisobox[1][0] * anisobox[1][0] + anisobox[2][0] * anisobox[2][0]));
+    Config::set().periodics.pb_box.y() = std::sqrt((anisobox[0][1] * anisobox[0][1] + anisobox[1][1] * anisobox[1][1] + anisobox[2][1] * anisobox[2][1]));
+    Config::set().periodics.pb_box.z() = std::sqrt((anisobox[0][2] * anisobox[0][2] + anisobox[1][2] * anisobox[1][2] + anisobox[2][2] * anisobox[2][2]));
     // scale atomic coordinates for anisotropic case
     for (size_t i = 0; i < N; ++i)
     {
