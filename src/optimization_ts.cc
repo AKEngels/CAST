@@ -9,12 +9,18 @@ optimization::global::optimizers::tabuSearch::tabuSearch(
   coords::Coordinates & c, std::string const & output_name) :
   optimizer(c, output_name), divers_optimizer(new_divers_optimizer(c))
 {
+  std::ofstream test2("test2.txt");
+  test2 << "2" << "\n";
+  test2.close();
 }
 
 optimization::global::optimizers::tabuSearch::tabuSearch(
   coords::Coordinates & c, coords::Ensemble_PES const &p, std::string const & output_name) :
   optimizer(c,p,false,output_name), divers_optimizer(new_divers_optimizer(c))
 { 
+  std::ofstream test("test.txt");
+  test << "1" << "\n";
+  test.close();
 }
 
 namespace 
