@@ -374,11 +374,12 @@ public:
   size_t k;
   double calculatedEntropyHnizdo;
   double calculatedEntropyLombardi; 
-  double calcualtedEntropyMeanFaivishevsky;
+  double calculatedEntropyMeanFaivishevsky;
   double mcintegrationEntropy;
   double mcdrawEntropy;
   double analyticalEntropy;
   double empiricalNormalDistributionEntropy;
+  double calculatedEntropyGoria; // http://www.tandfonline.com/doi/abs/10.1080/104852504200026815
   calculatedentropyobj(size_t k_, entropyobj const& obj, double analyticEntropyValue = 0.) : 
     entropyobj(obj), 
     k(k_), 
@@ -388,7 +389,8 @@ public:
     mcdrawEntropy(std::numeric_limits<double>::quiet_NaN()),
     analyticalEntropy(this->probdens.analyticEntropy()),
     empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
-    calcualtedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN())
+    calculatedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
@@ -557,7 +559,7 @@ public:
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
-    calcualtedEntropyMeanFaivishevsky = meanNNEntropyFaivishevsky();
+    calculatedEntropyMeanFaivishevsky = meanNNEntropyFaivishevsky();
 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
     if (Config::get().entropytrails.NNcalculation)
@@ -613,8 +615,14 @@ public:
       // Einschub
       // Entropy according to Lombardi (traditional)
       double tempsum_kpn_alternative = tempsum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
-      tempsum_kpn_alternative += digammal(numberOfDraws);
-      tempsum_kpn_alternative -= digammal(k);
+      tempsum_kpn_alternative += digammal(double(numberOfDraws));
+      tempsum_kpn_alternative -= digammal(double(k));
+      //
+
+      //Einschub calcualtedEntropyGoria
+      double tempsum_knn_goria = tempsum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      tempsum_knn_goria += log(double(numberOfDraws - 1.));
+      tempsum_knn_goria -= digammal(double(k));
 
       tempsum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
       double tempsum2 = 0;
@@ -631,7 +639,7 @@ public:
       //////////////
       calculatedEntropyHnizdo = tempsum; // Hnizdo Entropy
       calculatedEntropyLombardi = tempsum_kpn_alternative; // Lombardi Entropy
-
+      calculatedEntropyGoria = tempsum_knn_goria; // Goria Entropy
       //Neccessarry
       transpose(drawAndEvaluateMatrix);
     }
@@ -670,6 +678,7 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(fake)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNN|";
 
@@ -683,8 +692,9 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calcualtedEntropyMeanFaivishevsky << "|\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevsky << "|\n";
     myfile2.close();
   }
 };
