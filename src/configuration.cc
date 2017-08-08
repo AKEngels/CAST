@@ -324,10 +324,11 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().energy.cutoff;
     Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
-    if (Config::get().energy.periodic)
+    if (Config::get().periodics.periodic)
     {
-      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
-      if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
+      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
+      if (min_cut > 9.0) 
+        Config::set().energy.cutoff = min_cut;
     }
     Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
   }
@@ -793,22 +794,36 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 9) == "Periodics")
   {
-    Config::set().energy.periodic = bool_from_iss(cv);
-    if (cv >> Config::set().energy.pb_box.x()
-      && cv >> Config::set().energy.pb_box.y()
-      && cv >> Config::set().energy.pb_box.z() )
+    Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
+    if (cv >> Config::set().periodics.pb_box.x()
+      && cv >> Config::set().periodics.pb_box.y()
+      && cv >> Config::set().periodics.pb_box.z() )
     {
-      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
-      if (Config::set().energy.periodic
+      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
+      if (Config::set().periodics.periodic
         && Config::get().energy.cutoff > min_cut)
       {
         Config::set().energy.cutoff = min_cut;
+        Config::set().energy.switchdist = Config::get().energy.cutoff - std::min(1./10. * min_cut, 4.0);
+
       }
     }
   }
   else if (option.substr(0, 9) == "Periodicp")
   {
-    Config::set().energy.periodic_print = bool_from_iss(cv);
+    Config::set().periodics.periodic_print = bool_from_iss(cv, option.substr(0, 9));
+  }
+  else if (option.substr(0, 15) == "PeriodicCutout")
+  {
+    Config::set().periodics.periodicCutout = bool_from_iss(cv, option.substr(0, 15));
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutCriterion")
+  {
+    cv >> Config::set().periodics.criterion;
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutDistance")
+  {
+    cv >> Config::set().periodics.cutout_distance_to_box;
   }
 
   else if (option.substr(0, 3) == "FEP")
@@ -1736,10 +1751,6 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Nonbonded terms between fixed atoms will be excluded in internal forcefield calculations.\n";
   }
-  if (p.periodic)
-  {
-    strm << "Periodics box [ x, y, z] " << p.pb_box << " applied.\n";
-  }
   if (p.spackman.on)
   {
     strm << "Spackman correction applied.\n";
@@ -1747,6 +1758,28 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   if (Config::get().general.energy_interface == interface_types::MOPAC)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
+  }
+  return strm;
+}
+
+std::ostream & config::operator<< (std::ostream &strm, periodics const &p)
+{
+  if (p.periodic)
+  {
+    strm << "Periodics box [ x, y, z ] " << p.pb_box << " applied.\n";
+    if (p.periodicCutout)
+    {
+      strm << "Molecules ";
+      if (p.criterion == 1u)
+        strm << "of which the center of mass is ";
+      else if (p.criterion == 0u)
+        strm << "which have atoms that are ";
+      if (p.cutout_distance_to_box == 0.)
+        strm << "outside the periodic box ";
+      else
+        strm << "closer than " << p.cutout_distance_to_box << "Angstrom to periodic box edges ";
+      strm << "are removed.\n";
+    }
   }
   return strm;
 }

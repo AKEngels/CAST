@@ -92,12 +92,16 @@ energy::interface_base * energy::interfaces::aco::aco_ff::move (coords::Coordina
 // initialize using coordinates pointer
 
 // update structure (account for topology or rep change)
+//
+// In this function there is a pointer to coords. 
+// As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
 {
   if (!skip_topology) 
   {
     std::vector<std::size_t> types;
-    for (auto atom : (*coords).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+    for (auto atom : (*coords).atoms()) 
+      scon::sorted::insert_unique(types, atom.energy_type());
     cparams = tp.contract(types);
     refined.refine((*coords), cparams);
   }

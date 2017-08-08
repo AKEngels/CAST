@@ -274,36 +274,15 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
     m_representation.gradient.main.resize(M);
     //m_atoms.c_to_i(m_representation); 
     m_interface->update(false);
-    if (m_preinterface) m_preinterface->update(false);
+    if (m_preinterface) 
+      m_preinterface->update(false);
   }
 }
-
 
 void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
 {
   init_swap_in(a, p, update);
 }
-
-struct OCB
-{
-  coords::Coordinates * cp;
-  OCB(coords::Coordinates & coordpointer) : cp(&coordpointer) {}
-  float operator() (scon::vector<scon::c3<float>> const & v,
-    scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
-  {
-    cp->set_xyz(coords::Representation_3D(v.begin(), v.end()), false);
-    float E = float(cp->g());
-    go_on = cp->integrity();
-    g.resize(cp->g_xyz().size());
-    scon::explicit_transform(cp->g_xyz(), g);
-    if (Config::get().general.verbosity >= 4)
-    {
-      std::cout << "Optimization: Energy of step " << S;
-      std::cout << " is " << E << " integrity " << go_on << '\n';
-    }
-    return E;
-  }
-};
 
 coords::float_type coords::Coordinates::lbfgs()
 {
@@ -418,7 +397,6 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   //m_sub_interaction.swap(rhs.m_sub_interaction);
   swap(energy_valid, rhs.energy_valid);
   swap(this->fep, rhs.fep);
-  swap(this->hessian_def, rhs.hessian_def);
   swap(this->use_fep, rhs.use_fep);
   swap(this->mult_struc_counter, rhs.mult_struc_counter);
   swap(this->NEB_control, rhs.NEB_control);
@@ -519,9 +497,9 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass_mol(std::size_t inde
   coords::float_type M = coords::float_type();
   for (std::vector<Atom>::size_type i(0U); i < N; ++i)
   {
-coords::float_type mass(m_atoms.atom(m_atoms.molecules(index, i)).mass());
-M += mass;
-COM += xyz(m_atoms.molecules(index, i))*mass;
+    coords::float_type mass(m_atoms.atom(m_atoms.atomOfMolecule(index, i)).mass());
+    M += mass;
+    COM += xyz(m_atoms.atomOfMolecule(index, i))*mass;
   }
   return COM / M;
 }
@@ -604,7 +582,7 @@ void coords::Coordinates::set_all_main(coords::Representation_Main const & new_v
 void coords::Coordinates::periodic_boxjump()
 {
 	std::size_t const N(molecules().size());
-	Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
+	Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
 	for (std::size_t i = 0; i < N; ++i)
 	{
 		Cartesian_Point tmp_com(-center_of_mass_mol(i));
@@ -614,7 +592,7 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.x() = tmp_com.x() / Config::get().energy.pb_box.x();
+			tmp_com.x() = tmp_com.x() / Config::get().periodics.pb_box.x();
 			int tmp_x = std::round(tmp_com.x());
 			tmp_com.x() = tmp_x;
 		}
@@ -624,7 +602,7 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.y() = tmp_com.y() / Config::get().energy.pb_box.y();
+			tmp_com.y() = tmp_com.y() / Config::get().periodics.pb_box.y();
 			int tmp_y = std::round(tmp_com.y());
 			tmp_com.y() = tmp_y;
 		}
@@ -634,12 +612,12 @@ void coords::Coordinates::periodic_boxjump()
 		}
 		else
 		{
-			tmp_com.z() = tmp_com.z() / Config::get().energy.pb_box.z();
+			tmp_com.z() = tmp_com.z() / Config::get().periodics.pb_box.z();
 			int tmp_z = std::round(tmp_com.z());
 			tmp_com.z() = tmp_z;
 		}
-		tmp_com *= Config::get().energy.pb_box;
-    for (auto const atom : molecules(i)) move_atom_by(atom, tmp_com, true);
+		tmp_com *= Config::get().periodics.pb_box;
+    for (auto const atom : molecule(i)) move_atom_by(atom, tmp_com, true);
   }
 }
 

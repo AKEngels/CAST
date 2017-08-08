@@ -2,9 +2,7 @@
 #include "configuration.h"
 #include "coords_atoms.h"
 
-#include <string>
-#include <cstddef>
-#include <utility>
+
 
 /* ############################################
 
@@ -334,7 +332,7 @@ void coords::Atoms::refine_internals()
   main_torsion_indices.clear();
   // Build internals
   std::size_t const numberOfAtoms(size());
-  std::vector<bool> done(numberOfAtoms, false);
+  std::deque<bool> done(numberOfAtoms, false);
   std::size_t current_internal(0u);
   // cycle rest
   for (std::size_t i = 0u; i < numberOfAtoms; ++i)
@@ -382,7 +380,7 @@ void coords::Atoms::refine_internals()
 
 
 void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
-  size_1d &molecule, std::size_t &index_size, std::vector<bool> &done)
+  size_1d &molecule, std::size_t &index_size, std::deque<bool> &done)
 {
   std::size_t const nBound = m_atoms[A].bonds().size();
   //std::cout << "Appending " << nBound << " atoms bound to " << A << "\n";

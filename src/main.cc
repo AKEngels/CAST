@@ -46,8 +46,8 @@
 #include "pathopt.h"
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
-#include <omp.h>
 #include "PCA.h"
+#include "periodicCutout.h"
 
 //////////////////////////
 //                      //
@@ -131,6 +131,7 @@ int main(int argc, char **argv)
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
+      std::cout << Config::get().periodics;
     }
 
     //////////////////////////
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
 
     // If Periodic Boundry Conditions are used, translate all structures
     // so that their center of mass is on the origin of the coordinate system
-    if (Config::get().energy.periodic)
+    if (Config::get().periodics.periodic)
     {
       for (auto & pes : *ci)
       {
@@ -177,8 +178,20 @@ int main(int argc, char **argv)
         coords.move_all_by(-coords.center_of_mass());
         pes = coords.pes();
       }
+      // If Cutout option is on, cut off all atoms outside of box + radius
+      if (Config::get().periodics.periodicCutout)
+      {
+        coords::Coordinates newCoords(coords);
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::periodicCutout(coords);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+      }
     }
-
 
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)

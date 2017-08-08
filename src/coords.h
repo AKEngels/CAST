@@ -248,7 +248,8 @@ namespace coords
       if (p)
       {
         energy_valid = true;
-        if (Config::get().energy.periodic) periodic_boxjump();
+        if (Config::get().periodics.periodic) 
+          periodic_boxjump();
         m_representation.energy = p->e();
         m_representation.integrity = p->intact();
         apply_bias();
@@ -263,7 +264,8 @@ namespace coords
       if (p)
       {
         energy_valid = true;
-        if (Config::get().energy.periodic) periodic_boxjump();
+        if (Config::get().periodics.periodic)
+          periodic_boxjump();
         m_representation.energy = p->g();
         m_representation.integrity = p->intact();
         this->apply_bias();
@@ -282,7 +284,8 @@ namespace coords
     std::size_t           mult_struc_counter;
     //aditional variables for perpendicular g() and o() and NEB
 
-    bool									orthogonalize, hessian_def, use_fep;
+    // Orthogonalize is used in Dimer method
+    bool									orthogonalize, use_fep;
 
     typedef PES_Point::size_type size_type;
 
@@ -353,7 +356,7 @@ namespace coords
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
-          && !Config::get().energy.periodic)
+          && !Config::get().periodics.periodic)
         {
           m_representation.energy = m_preinterface->o();
         }
@@ -373,7 +376,7 @@ namespace coords
       energy_valid = true;
       if (m_interface->has_optimizer()
         && m_potentials.empty() //bias
-        && !Config::get().energy.periodic)
+        && !Config::get().periodics.periodic)
       {
         m_representation.energy = m_interface->o();
       }
@@ -401,10 +404,10 @@ namespace coords
     energy::interface_base const * preinterface() const { return m_preinterface; }
 
     /**determines if structure is intact,
-  i.e. bond lengths do not differ from ideal bond length by more than 5 angstrom,
-  angles do not differ from ideal angle by more than 20 degrees
-  and similar criteria for dihedrals and ureys
-  details see in energy_int_..._pot.cc*/
+    i.e. bond lengths do not differ from ideal bond length by more than 5 angstrom,
+    angles do not differ from ideal angle by more than 20 degrees
+    and similar criteria for dihedrals and ureys
+    details see in energy_int_..._pot.cc*/
     bool               integrity() const { return pes().integrity; }
     /**returns the size of the coordinates object, i.e. the total number of atoms*/
     size_type          size() const { return m_atoms.size(); }
@@ -549,7 +552,7 @@ namespace coords
     size_2d const & molecules() const { return m_atoms.molecules(); }
     /**returns a given molecule
     @param index: index of molecule*/
-    size_1d const & molecules(size_type index) const { return m_atoms.molecules(index); }
+    size_1d const & molecule(size_type index) const { return m_atoms.molecule(index); }
 
     /**returns stereo centers?*/
     std::vector< Stereo::pair > const & stereos() const { return m_stereo.centers(); }
@@ -830,7 +833,10 @@ namespace coords
     void to_xyz()
     {
       m_atoms.i_to_c(m_representation);
-      if (Config::get().energy.periodic) { periodic_boxjump(); }
+      if (Config::get().periodics.periodic) 
+      { 
+        periodic_boxjump(); 
+      }
       m_stereo.update(xyz());
     }
 

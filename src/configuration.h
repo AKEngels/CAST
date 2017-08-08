@@ -232,6 +232,7 @@ namespace config
     std::size_t verbosity;
     /**are amber charges read from a seperate file?*/
     bool chargefile;
+
     /// Constructor with reasonable default parameters
     general(void) :
       paramFilename("oplsaa.prm"), outputFilename("%i.out"),
@@ -242,6 +243,40 @@ namespace config
     { }
   };
 
+  struct periodics
+  {
+    // Periodic Box
+    scon::c3<double> pb_box;
+    // Are Periodic bounddries on?
+    bool periodic;
+    // Print periodic dummy atoms
+    bool periodic_print;
+
+    // Cut out atoms out of box when using periodics before calculation
+    bool periodicCutout;
+    // Tolerance for cut
+    double cutout_distance_to_box;
+    //
+    unsigned int criterion;
+    periodics(void) :
+      pb_box(10.0, 10.0, 10.0), periodic(false), periodic_print(false), 
+      periodicCutout(false), cutout_distance_to_box(0.), criterion(0u)
+    {
+      if ((pb_box.x() <= cutout_distance_to_box
+        || pb_box.y() <= cutout_distance_to_box
+        || pb_box.z() <= cutout_distance_to_box) && periodicCutout)
+      {
+        throw std::runtime_error("Cutout distance cannot be bigger than box size for periodic boundries. Aborting.");
+      }
+    }
+  };
+
+  /*! Stream operator for config::periodics
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about periodic box and periodic cutout functionality,
+   */
+  std::ostream & operator << (std::ostream &, periodics const &);
 
   /*
   ########  ####    ###     ######
@@ -469,8 +504,8 @@ namespace config
   {
 
     double cutoff, switchdist;
-    scon::c3<double> pb_box;
-    bool isotropic, periodic, periodic_print, remove_fixed;
+
+    bool isotropic, remove_fixed;
 
 
     struct spack
@@ -500,8 +535,8 @@ namespace config
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
-      pb_box(10.0, 10.0, 10.0), isotropic(true),
-      periodic(false), periodic_print(false), remove_fixed(false),
+      isotropic(true),
+      remove_fixed(false),
       spackman(), mopac()
     { }
   };
@@ -1251,6 +1286,7 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
+  config::periodics             periodics;
 
   /*! Constructor of Config object
    *

@@ -899,7 +899,8 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
 
   // Check if reference structure is in range
-  if (Config::get().alignment.reference_frame_num >= ci->size()) throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+  if (Config::get().alignment.reference_frame_num >= ci->size()) 
+    throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
 
   auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 

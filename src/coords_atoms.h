@@ -4,7 +4,10 @@
 #pragma once
 
 #include <cstddef>
-
+#include <string>
+#include <cstddef>
+#include <utility>
+#include <deque>
 #include "coords_rep.h"
 #include "scon_matrix.h"
 
@@ -264,7 +267,7 @@ namespace coords
     void refine_internals();
     void get_relatives(std::size_t const i, std::size_t const b);
     void append_atoms(std::size_t const lvl, std::size_t const A, size_1d &molecule, 
-      std::size_t &index_size, std::vector<bool> &done);
+      std::size_t &index_size, std::deque<bool> &done);
     //void refine_followups();
 
     // New stuff
@@ -273,7 +276,6 @@ namespace coords
     bool common_torsion_axis(std::size_t a, std::size_t b, bool & direction) const;
     std::size_t atom_by_intern(std::size_t index) const { return m_atoms[index].i_to_a(); }
     bool common_bond(std::size_t a, std::size_t b) const;
-    void add_main_idihedral(std::size_t index);
 
     Cartesian_Point rel_xyz(std::size_t const index, Representation_3D const & xyz) const;
 
@@ -305,8 +307,8 @@ namespace coords
     Atom & atom(std::size_t index) { return m_atoms[index]; }
     Atom const & atom(std::size_t index) const { return m_atoms[index]; }
     size_2d const & molecules() const { return m_molecules; }
-    size_1d const & molecules(std::size_t index) const { return m_molecules[index]; }
-    std::size_t const & molecules(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
+    size_1d const & molecule(std::size_t index) const { return m_molecules[index]; }
+    std::size_t const & atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
     void refine();
     // subsystem stuff
     size_2d const & subsystems() const { return m_sub_systems; }
