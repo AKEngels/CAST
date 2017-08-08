@@ -36,21 +36,10 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
     opt_clock.restart();
     header_to_cout();
   }
-std::ofstream test("test.txt");
-test << "1" << "\n";
-test.close(); 
 
   coordobj.set_pes(accepted_minima[min_index].pes);
 
-std::ofstream test2("test2.txt");
-test2 << "2" << "\n";
-test2.close();
-
   init_stereo = coordobj.stereos();
-
-  std::ofstream test3("test3.txt");
-  test3 << "3" << "\n";
-  test3.close();
 
   std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
 
