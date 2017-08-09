@@ -111,11 +111,11 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       case 'o' :
         if (Config::get().energy.gaussian.steep)
         {
-          out_file << " Opt=(Cartesian,Steep) ";
+          out_file << " Opt=(Steep) ";//Cartesian,
         }
         else
         {
-          out_file << " Opt=Cartesian ";
+          out_file << " Opt"; //=Cartesian 
         }
         break;
       case 'g' :
@@ -405,6 +405,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
+  std::string tmp_id = id;
+  id = id + "_G_";
+
   integrity = true;
   print_gaussianInput('g');
   if (callGaussian() == 0) read_gaussianOutput(true, false);
@@ -416,6 +419,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
     }
     integrity = false;
   }
+
+  id = tmp_id;
+
   return energy;
 }
 
@@ -441,6 +447,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
+  std::string tmp_id = id;
+  id = id +"_O_";
+
   integrity = true;
   print_gaussianInput('o');
   if (callGaussian() == 0) read_gaussianOutput(true, true);
@@ -452,6 +461,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
     }
     integrity = false;
   }
+
+  id=tmp_id;
+
   return energy;
 }
 
