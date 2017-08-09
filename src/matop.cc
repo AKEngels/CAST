@@ -914,6 +914,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     }
     catch (std::exception& e)
     {
+      e.what();
       std::cout << "Reading the external reference structure for the ALIGN task failed.\n";
     }
     if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size() || externalReferenceStructurePtr == nullptr)
