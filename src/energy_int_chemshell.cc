@@ -129,7 +129,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 		ofs << "            ] \\\n";
 	}
 	if (qm_region != "") {
-		ofs << "    qm_region= " << qm_region << " \\\n";
+		ofs << "    qm_region= { " << qm_region << " } \\\n";
 	}
 	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
@@ -203,7 +203,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		}
 	}
 	if (qm_region != "") {
-		ofs << "    qm_region = " << qm_region << " \\\n";
+		ofs << "    qm_region = { " << qm_region << " } \\\n";
 	}
 	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
@@ -219,15 +219,15 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	}
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
-		"\n"
-		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
+		"\n\n\n";
+/*		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
 		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
 		"delete_object hybrid.${ qm_theory }.coords\n"
 		"catch {file delete dummy.coords}\n"
 		"\n"
-		"close $control_input_settings\n";
+		"close $control_input_settings\n";*/
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const {
