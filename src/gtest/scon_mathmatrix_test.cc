@@ -43,7 +43,7 @@ TEST(mathmatrix, constructedAndFilled)
 TEST(mathmatrix, constructedIdentityMatrixQuadratic)
 {
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.Identity(4u, 4u);
+  mathmatrix<float> two = mathmatrix<float>::Identity(4u, 4u);
   ASSERT_EQ(two.rows(), 4u);
   ASSERT_EQ(two.cols(), 4u);
   ASSERT_FLOAT_EQ(two(2, 2), 1.f);
@@ -58,7 +58,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 {
 
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.Identity(2u, 4u);
+  mathmatrix<float> two = mathmatrix<float>::Identity(2u, 4u);
 
   ASSERT_EQ(two.rows(), 2u);
   ASSERT_EQ(two.cols(), 4u);
@@ -71,7 +71,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 
   //
 
-  mathmatrix<float> three = one.Identity(4u, 2u);
+  mathmatrix<float> three = mathmatrix<float>::Identity(4u, 2u);
   ASSERT_EQ(three.rows(), 4u);
   ASSERT_EQ(three.cols(), 2u);
   ASSERT_FLOAT_EQ(three(0, 0), 1.f);
@@ -519,7 +519,7 @@ TEST(mathmatrix, matrixMultiplicationAndEqualityOperatorWorkingReasonably)
   three(3, 1) = 23.6;
   three(3, 2) = 30;
 
-  mathmatrix<float> result = one * two;
+  mathmatrix<float> result = mathmatrix<float>(one * two);
   for (size_t i = 0u; i < three.rows(); i++)
   {
     for (size_t j = 0u; j < three.cols(); j++)
@@ -572,7 +572,7 @@ TEST(mathmatrix, SVDWorksCorrectly)
   for (size_t i = 0u; i < s.rows(); i++)
     sigma(i, i) = s(i, 0);
 
-  mathmatrix<double> restored = sigma * transposed(V);
+  mathmatrix<double> restored = mathmatrix<double>(sigma * transposed(V));
   restored = mathmatrix<double>(U * restored);
   //std::cout << one << std::endl << restored << std::endl;
   //auto SHIT = restored.to_std_vector();

@@ -377,7 +377,7 @@ namespace histo
         {
           stream << std::right << std::setw(13) << bins[j] << " ";
         }
-        stream << std::right << std::setw(13) << (float_type)((float_type) this->element((size_t)i) / (float_type) this->m_valuecount) << "\n";
+        stream << std::right << std::setw(13) << (double)((double) this->element((size_t)i) / (double) this->m_valuecount) << "\n";
       }
       
     }
