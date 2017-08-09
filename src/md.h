@@ -398,16 +398,23 @@ namespace md
     
 	//**overload for << operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
+    friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
     {
-      std::array<std::size_t, 9u> const sizes = { {sim.P.size(), sim.P_old.size(),
-        sim.F.size(), sim.F_old.size(), sim.V.size(), sim.M.size(),
-        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()} };
+      std::array<std::size_t, 9u> const sizes = {
+        sim.P.size(), sim.P_old.size(), sim.F.size(), 
+        sim.F_old.size(), sim.V.size(), sim.M.size(),
+        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()};
       // sizes
-      for (auto const & s : sizes) strm << s;
+      for (auto const & s : sizes) 
+        strm << s;
+
       // logger
-      strm << sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm << sim.logging;
+
+
       // Non-Fundamental vectors
       for (auto const & x : sim.coordobj.xyz()) strm << x;
       for (auto const & p : sim.P) strm << p;
@@ -424,16 +431,21 @@ namespace md
       return strm;
     }
 
-	//**another overload for >> operator*/
+    //**another overload for >> operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
+    friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
     {
-      std::array<std::size_t, 10u> sizes;
+      std::array<std::size_t, 9u> sizes;
       // sizes
-      for (auto & s : sizes) strm >> s;
+      for (auto & s : sizes) 
+        strm >> s;
+
       // logger
-      strm >> sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm >> sim.logging;
+      //
       // non-fundamental vectors
       sim.P.resize(sizes[0]);
       sim.P_old.resize(sizes[1]);
