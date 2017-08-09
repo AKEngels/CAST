@@ -222,7 +222,7 @@ optimization::global::optimizer::optimizer (
   }
 
   if (!found_new_minimum)
-  {
+  { std::cout << "No valid initial structure for global optimization.";
     throw std::runtime_error("No valid initial structure for global optimization.");
   }
 
