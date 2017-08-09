@@ -221,20 +221,11 @@ optimization::global::optimizer::optimizer (
     }
   }
 
-
-  std::ofstream test("test.txt");
-  test << "1" << '\n';
-  test.close();
-
   if (!found_new_minimum)
   {
     throw std::runtime_error("No valid initial structure for global optimization.");
   }
 
-
-  std::ofstream test2("test2.txt");
-  test2 << "2" << '\n';
-  test2.close();
 
 }
 

@@ -396,7 +396,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
   {
     if (Config::get().general.verbosity >=2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.e\n";
     }
     integrity = false;
   }
@@ -412,7 +412,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.g\n";
     }
     integrity = false;
   }
@@ -432,7 +432,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.h\n";
     }
     integrity = false;
   }
@@ -448,7 +448,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.o\n";
     }
     integrity = false;
   }

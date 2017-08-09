@@ -15,9 +15,6 @@ optimization::global::optimizers::tabuSearch::tabuSearch(
   coords::Coordinates & c, coords::Ensemble_PES const &p, std::string const & output_name) :
   optimizer(c,p,false,output_name), divers_optimizer(new_divers_optimizer(c))
 { 
-  std::ofstream test3("test3.txt");
-  test3 << "3" << '\n';
-  test3.close();
 }
 
 namespace 
