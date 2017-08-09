@@ -204,7 +204,7 @@ typedef size_t uint_type;
     mathmatrix(CAST_EIGEN_MATRIX_TYPE const& in) : CAST_EIGEN_MATRIX_TYPE(in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
+        std::cout << "Function call: Constructing matrix from eigen-matrix." << std::endl;
     };
     mathmatrix& operator=(CAST_EIGEN_MATRIX_TYPE const& in)
     {
@@ -702,7 +702,11 @@ typedef size_t uint_type;
             ::sqrt((*this)(i, i) - s) :
             (1.0 / result(j, j) * ((*this)(i, j) - s));
         }
+#if defined (_MSC_VER) && ! defined(CAST_USE_ARMADILLO)
+      ::transpose(result);
+#else
       transpose(result);
+#endif
     }
 
 		/**
