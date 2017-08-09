@@ -296,7 +296,9 @@ namespace optimization
 
         status operator()(grad_type const & d, float_type & step, 
           point_type & p, rep_type const & xp, std::size_t const iter)
-        { return line(d, step, p.x, p.g, p.f, xp, iter); }
+        { 
+          return line(d, step, p.x, p.g, p.f, xp, iter); 
+        }
 
       private:
 
@@ -379,44 +381,38 @@ namespace optimization
             // f test value
             ftest1 = finit + step*dgtest;
 
-            //printf("LSA:\n");
-            //std::cout << "step\n" << step << "\n";
-            //std::cout << "xp\n" << xp << "\n\n";
-            //std::cout << "d\n" << d << "\n\n";
-            //std::cout << "x\n" << p_x << "\n\n";
-            //
-            //printf("%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n", dg, stx, fx, dgx, sty, fy, dgy);
-            //printf("%.6f %.6f %.6f %.6f\n", finit, ftest1, dginit, dgtest);
-            //printf("%.6f %.6f %.6f %.6f\n", step, stmin, stmax, f);
-
             /* Test for errors and convergence. */
             if (brackt && ((step <= stmin || stmax <= step) || uinfo != 0))
-            { /* Rounding errors prevent further progress. */
+            { 
+              /* Rounding errors prevent further progress. */
               state = status::ERR_ROUNDING;
               //std::cout << stmin << " !< " << step << " !< " << stmax << ", " << uinfo << "\n";
               break;
             }
             if (abs(step - config.max_step) < F(1.e-6)
               && f <= ftest1 && dg <= dgtest)
-            { /* The step is the maximum value. */
+            { 
+              /* The step is the maximum value. */
               state = status::ERR_MAXSTEP;
               break;
             }
             if (abs(step - config.min_step) < F(1.e-6)
               && (ftest1 < f || dgtest <= dg))
-            { /* The step is the minimum value. */
-              //std::cout << "Stepl = " << step << "\n";
+            { 
+              /* The step is the minimum value. */
               state = status::ERR_MINSTEP;
               break;
             }
             if (brackt && (stmax - stmin) <= config.xtol*stmax)
-            { /* Relative width of the interval 
+            { 
+              /* Relative width of the interval 
                  of uncertainty is at most xtol. */
               state = status::ERR_WIDTHTOOSMALL;
               break;
             }
             if (f <= ftest1 && std::abs(dg) <= config.gtol * (-dginit))
-            { /* The sufficient decrease condition 
+            { 
+              /* The sufficient decrease condition 
                  and the directional derivative condition hold. */
               state = status::SUCCESS;
               break;

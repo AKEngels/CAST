@@ -236,7 +236,7 @@ TEST(energy_calculations, test_gQV_SIGMA)
   coords::float_type e_c(0.0);
   coords::float_type e_v(0.0);
   coords::float_type dE;
-  y.g_QV< ::tinker::parameter::radius_types::SIGMA>(10, 10, 2, 0.66666666, e_c, e_v, dE);
+  y.g_QV< ::tinker::parameter::radius_types::SIGMA>(10., 10., 2., 0.66666666, e_c, e_v, dE);
   ASSERT_FLOAT_EQ(e_c, 6.6666665);    //same as in e_QV
   ASSERT_FLOAT_EQ(e_v, 259.506361);
   ASSERT_FLOAT_EQ(dE, -1536.8277);    //gradient 
