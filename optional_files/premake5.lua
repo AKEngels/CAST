@@ -42,6 +42,7 @@ project "CAST"
 
 	configuration "gmake"
 		linkoptions { "-fopenmp" }
+                targetname "CAST_undefined.exe"
 		filter { "options:mpi" }
 			defines { "USE_MPI" }
 		filter { "action:gmake" }
@@ -56,13 +57,13 @@ project "CAST"
 		filter { "configurations:Armadillo_Testing", "action:gmake" }
 			optimize "Debug"
 			defines { "GOOGLE_MOCK", "USE_ARMADILLO", "ARMA_DONT_USE_WRAPPER" }
-      includedirs { "./includes/gtest/", "../optional_files/includes/armadillo/" }
-      buildoptions { "-I ../optional_files/includes -I ../includes -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran" }
-      flags { "LinkTimeOptimization" }
-		filter { "configurations:Testing",  "platforms:x86", "action:gmake"}
+			includedirs { "./includes/gtest/", "../optional_files/includes/armadillo/" }
+			buildoptions { "-I ../optional_files/includes -I ../includes -lgfortran" }
+			linkoptions { "../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran" }
+			flags { "LinkTimeOptimization" }
+		filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:gmake"}
 			targetname "CAST_linux_x86_armadillo_testing"
-		filter { "configurations:Testing",  "platforms:x64", "action:gmake"}
+		filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:gmake"}
 		  targetname "CAST_linux_x64_armadillo_testing"
 
       filter { "configurations:Testing", "action:gmake" }
