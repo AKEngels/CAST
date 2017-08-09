@@ -600,7 +600,8 @@ namespace config
 		std::string tolerance = "";
 		std::string mxlist = "";
 		std::string cutoff = "";
-		bool delete_input;
+		bool dispersion = false;
+		bool delete_input = true;
 	} chemshell;
 
     energy() :

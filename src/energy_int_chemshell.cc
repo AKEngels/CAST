@@ -107,26 +107,42 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 
 void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream & ofs) const {
 
-	const auto mxlist = Config::get().energy.chemshell.mxlist == "" ? std::stoi(Config::get().energy.chemshell.mxlist) : 45000;
-	const auto cutoff = Config::get().energy.chemshell.cutoff == "" ? std::stoi(Config::get().energy.chemshell.cutoff) : 1000;
+	auto const & mxlist = Config::get().energy.chemshell.mxlist;
+	auto const & cutoff = Config::get().energy.chemshell.cutoff;
+	auto const & embedding_sheme = Config::get().energy.chemshell.scheme;
+	auto const & qm_ham = Config::get().energy.chemshell.qm_ham;
+	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
+	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
 
 	ofs << "eandg coords = ${dir}/${sys_name_id}.c \\\n"
-		"    theory=hybrid : [ list \\\n"
-		"        coupling= $embedding_scheme \\\n"
-		"        qm_theory= $qm_theory : [ list \\\n"
-		"            hamiltonian=$qm_ham \\\n"
-//This can't be right ask Daniel!
-//		"            basis=$qm_basis\\\n"
-		"            ] \\\n"
-		"    qm_region = $qm_atoms \\\n"
-		"    debug=no \\\n"
+		"    theory=hybrid : [ list \\\n";
+	if (embedding_sheme != "") {
+		ofs << "        coupling= " << embedding_sheme << " \\\n";
+	}
+	if (qm_theory != "") {
+		ofs << "        qm_theory= " << qm_theory << " : [ list \\\n";
+		if (qm_ham != "") {
+			ofs << "            hamiltonian= " << qm_ham << " \\\n";
+		}
+		//This can't be right ask Daniel!
+		//		"            basis=$qm_basis\\\n"
+		ofs << "            ] \\\n";
+	}
+	if (qm_region != "") {
+		ofs << "    qm_region= " << qm_region << " \\\n";
+	}
+	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
 		"        list_option=none \\\n"
 		"        conn= ${sys_name_id}.c \\\n"
 		"        mm_defs=$amber_prmtop \\\n"
-		"        exact_srf=yes \\\n"
-		"        mxlist=" << mxlist << " \\\n"
-		"        cutoff=" << cutoff << " \\\n"
+		"        exact_srf=yes \\\n";
+	if (mxlist != "") {
+		ofs << "        mxlist=" << mxlist << " \\\n";
+	}
+	if (cutoff != "") {
+		ofs << "        cutoff=" << cutoff << " \\\n";
+	}
 		"        scale14 = {1.2 2.0}\\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"    energy=energy.energy\\\n"
@@ -138,40 +154,71 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 
 void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream & ofs) const {
 
-	const auto maxcycle = Config::get().energy.chemshell.maxcycle == "" ? std::stoi(Config::get().energy.chemshell.maxcycle) : 1000;
-	const auto maxcyc = Config::get().energy.chemshell.maxcyc == "" ? std::stoi(Config::get().energy.chemshell.maxcyc) : 2000;
-	const auto tolerance = Config::get().energy.chemshell.tolerance == "" ? std::stod(Config::get().energy.chemshell.tolerance) : 0.00045;
-	const auto mxlist = Config::get().energy.chemshell.mxlist == "" ? std::stoi(Config::get().energy.chemshell.mxlist) : 45000;
-	const auto cutoff = Config::get().energy.chemshell.cutoff == "" ? std::stoi(Config::get().energy.chemshell.cutoff) : 1000;
+	auto const & maxcycle = Config::get().energy.chemshell.maxcycle;
+	auto const & maxcyc = Config::get().energy.chemshell.maxcyc;
+	auto const & tolerance = Config::get().energy.chemshell.tolerance;
+	auto const & mxlist = Config::get().energy.chemshell.mxlist;
+	auto const & cutoff = Config::get().energy.chemshell.cutoff;
+	auto const & qm_basis = Config::get().energy.chemshell.qm_basis;
+	auto const & embedding_sheme = Config::get().energy.chemshell.scheme;
+	auto const & qm_ham = Config::get().energy.chemshell.qm_ham;
+	auto const & qm_ch = Config::get().energy.chemshell.qm_charge;
+	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
+	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
 
 	std::string active_atoms = find_active_atoms();
 
+
 	ofs << "dl-find coords = ${dir}/${sys_name_id}.c \\\n"
 		"    coordinates=hdlc \\\n"
-		"    result=${sys_name_id}_opt.c \\\n"
-		"    maxcycle=" << maxcycle << " \\\n"
-		"    tolerance=" << tolerance << " \\\n"
-		"    active_atoms= { " << active_atoms << "} \\\n"
+		"    result=${sys_name_id}_opt.c \\\n";
+	if (maxcycle != "") {
+		ofs << "    maxcycle=" << maxcycle << " \\\n";
+	}
+	if (tolerance != "") {
+		ofs << "    tolerance=" << tolerance << " \\\n";
+	}
+	ofs << "    active_atoms= { " << active_atoms << "} \\\n"
 		"    residues= $residues \\\n"
-		"    theory=hybrid : [ list \\\n"
-		"        coupling= $embedding_scheme \\\n"
-		"        qm_theory= $qm_theory : [ list \\\n"
-		"            hamiltonian = $qm_ham \\\n"
-		"            basis= $qm_basis \\\n"
-		"            maxcyc= " << maxcyc << " \\\n"
-		"            dispersion_correction= $qm_ham \\\n"
-		"            charge= $qm_ch ] \\\n"
-		"    qm_region = $qm_atoms \\\n"
-		"    debug=no \\\n"
+		"    theory=hybrid : [ list \\\n";
+	if (embedding_sheme != "") {
+		ofs << "        coupling=" << embedding_sheme << " \\\n";
+	}
+	if (qm_theory != "") {
+		ofs << "        qm_theory= " << qm_theory << " : [ list \\\n";
+		if (qm_ham != "") {
+			ofs << "            hamiltonian = " << qm_ham << " \\\n";
+		}
+		if (qm_basis != "") {
+			ofs << "            basis= " << qm_basis << " \\\n";
+		}
+		if (maxcyc != "") {
+			ofs << "            maxcyc= " << maxcyc << " \\\n";
+		}
+		if (Config::get().energy.chemshell.dispersion) {
+			ofs << "            dispersion_correction= " << qm_ham << " \\\n";
+		}
+		if (qm_ch != "") {
+			ofs << "            charge= " << qm_ch << " ] \\\n";
+		}
+	}
+	if (qm_region != "") {
+		ofs << "    qm_region = " << qm_region << " \\\n";
+	}
+	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
 		"        list_option=none \\\n"
 		"        conn= ${sys_name_id}.c \\\n"
 		"        mm_defs=$amber_prmtop \\\n"
-		"        exact_srf=yes \\\n"
-		"        mxlist=" << mxlist << " \\\n"
-		"        cutoff=" << cutoff << " \\\n"
-		"        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \\\n"
+		"        exact_srf=yes \\\n";
+	if (mxlist != "") {
+		ofs << "        mxlist=" << mxlist << " \\\n";
+	}
+	if (cutoff != "") {
+		ofs << "        cutoff=" << cutoff << " \\\n";
+	}
+	ofs << "        scale14 = {1.2 2.0} \\\n"
+		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
 		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
@@ -241,19 +288,6 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"set control_input_settings [ open control_input.${sys_name_id}  a ]\n"
 		"\n"
 		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=${sys_name_id}.c\n"
-		"\n"
-		"set embedding_scheme " << Config::get().energy.chemshell.scheme << "\n"
-		"\n"
-		"set qm_theory " << Config::get().energy.chemshell.qm_theory << "\n"
-		//	"puts $control_input_settings \" QM method: $qm_theory \"\n"
-		"\n"
-		"set qm_ham " << Config::get().energy.chemshell.qm_ham << "\n"
-		"\n"
-		"set qm_basis " << Config::get().energy.chemshell.qm_basis << "\n"
-		"\n"
-		"set qm_ch " << Config::get().energy.chemshell.qm_charge << "\n"
-		"\n"
-		"set qm_atoms  { " << Config::get().energy.chemshell.qm_atoms << " }\n"
 		"\n"
 		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n";
 	//Refactoring NEEDED!!!!!!

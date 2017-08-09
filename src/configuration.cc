@@ -627,6 +627,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "cutoff") {
 		  Config::set().energy.chemshell.cutoff = value_string;
 	  }
+	  else if (sub_option == "dispersion_correction") {
+		  Config::set().energy.chemshell.dispersion = bool_from_iss(cv);
+	  }
   }
 
   // convergence threshold for bfgs
