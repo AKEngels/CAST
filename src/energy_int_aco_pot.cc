@@ -883,7 +883,7 @@ namespace energy
       @param C: product of the charges
       @param ri: inverse distance between the two atoms
       @param dQ: reference to variable that saves absolute value of gradient */
-      inline coords::float_type energy::interfaces::aco::aco_ff::gQ
+      coords::float_type energy::interfaces::aco::aco_ff::gQ
       (coords::float_type const C, coords::float_type const ri, coords::float_type & dQ) const
       {
         coords::float_type const Q = C*ri; // Q = C/r [kcal/mol]
@@ -952,7 +952,7 @@ namespace energy
       @param R: r_min-parameter
       @param r: inverse distance 1/r between the two atoms
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::R_MIN>
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
       {
@@ -970,7 +970,7 @@ namespace energy
       @param R: sigma-parameter
       @param r: inverse distance 1/r between the two atoms
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV
         < ::tinker::parameter::radius_types::SIGMA>
         (coords::float_type const E, coords::float_type const R, coords::float_type const r, coords::float_type &dV) const
       {
@@ -1061,7 +1061,7 @@ namespace energy
       @param e_v: reference to variable that saves vdw-energy
       @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV
+      void energy::interfaces::aco::aco_ff::g_QV
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const

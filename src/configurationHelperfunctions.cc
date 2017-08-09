@@ -23,11 +23,11 @@ namespace config
   {
     std::string holder;
     in >> holder;
-    if (holder == "true" || holder == "True" || holder == "TRUE" || "1")
+    if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "1")
     {
       return true;
     }
-    else if (holder == "false" || holder == "False" || holder == "FALSE" || "0" )
+    else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "0" )
     {
       return false;
     }

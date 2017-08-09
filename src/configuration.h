@@ -1111,32 +1111,6 @@ namespace config
     io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
   };
 
-  /*
-
-      GBSA
-
-  */
-
-  namespace gbsa_conf
-  {
-    struct method_types { enum T { VAC = -1, STILL = 0, HCT, OBC, GRYCUK, ACE, ONION, METHODNUM }; };
-    struct surface_types { enum T { TINKER, SASASTILL, GAUSS, SURFACESNUM }; };
-    struct radius_types { enum T { STD, VDW }; };
-
-  }
-
-  struct generalized_born
-  {
-    gbsa_conf::method_types::T method_type;
-    gbsa_conf::surface_types::T surface_type;
-    gbsa_conf::radius_types::T radius_type;
-    generalized_born() :
-      method_type(gbsa_conf::method_types::STILL),
-      surface_type(gbsa_conf::surface_types::TINKER),
-      radius_type(gbsa_conf::radius_types::STD)
-    {}
-  };
-
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1283,7 +1257,6 @@ public:
   config::molecular_dynamics    md;
   config::dimer                 dimer;
   config::neb					          neb;
-  config::generalized_born      gbsa;
   config::align			            alignment;
   config::PCA					          PCA;
   config::entropy				        entropy;
