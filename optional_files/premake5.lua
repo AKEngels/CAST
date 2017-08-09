@@ -41,6 +41,7 @@ project "CAST"
 
 
 	configuration "gmake"
+		includedirs { "../submodules/eigen/Eigen/" }
 		linkoptions { "-fopenmp" }
                 targetname "CAST_undefined.exe"
 		filter { "options:mpi" }
