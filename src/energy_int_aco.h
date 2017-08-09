@@ -81,7 +81,7 @@ namespace energy
 
         enum types {
           BOND = 0, ANGLE, IMPROPER, IMPTORSION, TORSION, MULTIPOLE, CHARGE,
-          POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, SOLVATE, TYPENUM
+          POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
         };
 
         /** Parameters*/
