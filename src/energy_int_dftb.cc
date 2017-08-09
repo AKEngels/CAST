@@ -130,10 +130,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         e_rep = std::stod(result_vec[3])*627.503;
         e_tot = std::stod(result_vec[4])*627.503;
 
-        double e_tot_comp = e_bs + e_coul + e_rep;
-
-        std::cout<<e_tot<<" , "<<e_tot_comp<<"\n";
-
         } 
     else 
         printf("Fehler: Modul nicht gefunden\n"); 
@@ -177,12 +173,20 @@ void energy::interfaces::dftb::sysCallInterface::print_E(std::ostream &S) const
 
 void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const
 {
-  std::cout<<"DFTB head\n";
+  S << "Energies\n";
+  S << std::right << std::setw(24) << "E_bs";
+  S << std::right << std::setw(24) << "E_coul";
+  S << std::right << std::setw(24) << "E_rep";
+  S << std::right << std::setw(24) << "SUM\n\n";
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
 {
-  std::cout<<"DFTB short\n";
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_bs;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_coul;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
+  S << "\n";
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }
