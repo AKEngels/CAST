@@ -6,9 +6,30 @@ MOPAC Interface
 
 #include <vector>
 #include <string>
-
+//#include "helperfunctions.h"
+#include <vector>
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <fstream>
+#include <cstdlib>
+#include <utility>
+#include "helperfunctions.h"
+#include "atomic.h"
 #include "energy.h"
+#include "configuration.h"
+#include "coords.h"
+#include "coords_io.h"
+#include "python2.7/Python.h"
 
+#if defined (_MSC_VER)
+#include "win_inc.h"
+#endif
+
+#ifdef _MSC_VER
+#pragma warning (disable: 4996)
+#endif
 
 namespace energy
 {
@@ -16,6 +37,12 @@ namespace energy
 	{
 		namespace dftb
 		{
+			/*
+			function that returns the path to a pythonmodule
+			(path has to be appended to pythonpath if you want to call this module)
+			@param modulename: name of the module
+			*/
+			std::string get_python_modulepath(std::string modulename);
 
 			class sysCallInterface
 				: public energy::interface_base

@@ -1,40 +1,53 @@
-#pragma once
-#include <vector>
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <fstream>
-#include <cstdlib>
-#include <utility>
-#include "atomic.h"
-#include "energy_int_dftb.h"
-#include "configuration.h"
-#include "coords.h"
-#include "coords_io.h"
-#include "python2.7/Python.h"
-#if defined (_MSC_VER)
-#include "win_inc.h"
-#endif
 
-#ifdef _MSC_VER
-#pragma warning (disable: 4996)
-#endif
+#include "energy_int_dftb.h"
+
 
 /*
 dftb sysCall functions
 */
+
+std::string energy::interfaces::dftb::get_python_modulepath(std::string modulename)
+{
+    std::string find = "import "+modulename+"\nwith open('tmpfile.txt','w') as fn:\n    fn.write("+modulename+".__file__)";
+    const char *c_find = find.c_str();
+    PyRun_SimpleString(c_find);  //call a python programme to find the modulepath and write it to tmpfile
+    std::ifstream file("tmpfile.txt");  //open tmpfile and read content
+    std::string content;
+    file >> content;
+    remove("tmpfile.txt");  //delete tmpfile
+    return content.substr(0,content.size()-13-modulename.size());  //give back path without filename __init__.pyc and modulename
+}
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp),
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
   e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-    char *ergebnis; 
-    PyObject *modul, *funk, *prm, *ret;
     Py_Initialize(); //initialize python interpreter
     
+    //find paths to numpy and scipy
+    std::string numpath = get_python_modulepath("numpy");
+    std::string scipath = get_python_modulepath("scipy");
+
+    //create pythonpath
+    std::string pythonpaths_str = Py_GetPath();
+    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+    std::string add_path = "import sys\n";
+    for (auto p : pythonpaths)
+    {
+      add_path += "sys.path.append('"+p+"')\n";
+    }
+    add_path += "sys.path.append('/home/susanne/Downloads/DFTBaby-0.1.0')\n";
+    add_path += "sys.path.append('"+numpath+"')\n";
+    add_path += "sys.path.append('"+scipath+"')\n";
+    
+    //call programme
+    char *ergebnis; 
+    PyObject *modul, *funk, *prm, *ret;
+    
     PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
+    const char *c = add_path.c_str();
+    PyRun_SimpleString(c);
     modul = PyImport_ImportModule("DFTB2"); //import module test from path
 
     if(modul) 
