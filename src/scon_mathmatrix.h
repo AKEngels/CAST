@@ -59,7 +59,8 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 #else
-#include "scon_matrix.h"
+#include "Eigen"
+#define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
 #endif
 
 
@@ -103,7 +104,7 @@ typedef size_t uint_type;
  * In the file scon_mathmatrix_test.cc there are comprehensive unit tests for the methods of this class
  *
  * @note This class is two-faced. It is a wrapper around either 
- * - a scon::matrix, a fast but primtive C++ Standard compliant container used also elsewhere in CAST
+ * - a Eigen matrix, a fast header only matrix math library for cpp
  * - or a armadillo::Mat. Armadillo is a C++ Framework which itself is a wrapper for LAPACK and BLAS, high speed fortran matrix routines.
  * If the preprocessor define "CAST_USE_ARMADILLO" is set, scon::mathmatrix will accompany an arma::Mat object. This of course
  * implies that CAST then hast to be compiled and linked with pre-existing LAPACK and BLAS libraries. Currently,
@@ -111,11 +112,11 @@ typedef size_t uint_type;
  * premake5 build automation to build CAST, everything should be fine and you do not need to worry about linking CAST with LAPACK.
  *
  * For environments where linking with BLAS and LAPACK is not possible, there is also the option of using scon::mathmatrix without armadillo.
- * For this end we have provided a stand-alone, internal evrsion of each matrix-transformation. These are assured to yield similar results.
+ * For this end we have provided a stand-alone, internal version of each matrix-transformation. These are assured to yield similar results.
  * However, especially SVD-Decompositions on large matrices will be painsteakingly slow. It will be too slow for productive use by
- * computational chemists in case of the tasks PCA an ENTROPY.
+ * computational chemists in case of the tasks PCA and ENTROPY.
  *
- * @warning Matrix access does NOT throw when out of bounds!!! Take caution here, only armadillo-enabled matrices on debug builds will
+ * @warning Matrix access does NOT throw when out of bounds! Take caution here, only armadillo-enabled matrices on debug builds will
  * cause an exeption when a matrix is accessed out of bounds (for example, accesing a 2x2 matrix with matrix(4,4)). In ALL other scenarios,
  * CAST will continue without ANY error and you find yourself in undefined bahviour land.
  *
@@ -132,17 +133,17 @@ typedef size_t uint_type;
 	template <typename T>
   class mathmatrix
 #ifndef CAST_USE_ARMADILLO
-    : public scon::matrix<T>
+    : public CAST_EIGEN_MATRIX_TYPE
 #else
     : public arma::Mat<T>
 #endif
 
 	{
   private:
-#ifndef CAST_USE_ARMADILLO
-    using base_type = scon::matrix<T>;
-#else
+#ifdef CAST_USE_ARMADILLO
     using base_type = arma::Mat<T>;
+#else
+    using base_type = CAST_EIGEN_MATRIX_TYPE;
 #endif
 
 
@@ -154,19 +155,24 @@ typedef size_t uint_type;
 		/////                           /////
 		/////////////////////////////////////
 
-#ifndef CAST_USE_ARMADILLO
-    template<class ... Args>
-    mathmatrix(Args && ... args) : base_type(std::forward<Args>(args)...) {}
-#else
     /*! Construct empty mathmatrix
      *
      * Constructs an empty mathmatrix
-     */
+    **/
+#ifndef CAST_USE_ARMADILLO
+    mathmatrix() : CAST_EIGEN_MATRIX_TYPE()
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Constructing empty matrix." << std::endl;
+    };
+#else
     mathmatrix() : arma::Mat<T>() 
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
     };
+#endif
+
 
     /*! Construct mathmatrix of certain size
      *
@@ -174,23 +180,48 @@ typedef size_t uint_type;
      * @param rows: Number of rows
      * @param cols: Number of columns
      */
+#ifndef CAST_USE_ARMADILLO
+    mathmatrix(uint_type rows, uint_type cols) : CAST_EIGEN_MATRIX_TYPE(rows, cols)
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
+    };
+#else
     mathmatrix(uint_type rows, uint_type cols) : arma::Mat<T>(rows, cols) 
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
     };
+#endif
 
-
-    /*! Construct mathmatrix from armadillo matrix
+    /*! Construct mathmatrix from parent matrix
      *
      * @warning Do not call this manually. This is only used in internal operations.
-     * @NOTE Used only during internal functions when using armadillo.
+     * @NOTE Used only during internal functions.
      */
+
+#ifndef CAST_USE_ARMADILLO
+    mathmatrix(CAST_EIGEN_MATRIX_TYPE const& in) : CAST_EIGEN_MATRIX_TYPE(in)
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
+    };
+    mathmatrix& operator=(CAST_EIGEN_MATRIX_TYPE const& in)
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Assignment from eigen-matrix." << std::endl;
+      if (this != &in)
+      {
+        *this = mathmatrix(in);
+      }
+    };
+#else
     mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
     };
+#endif
 
     /*! Construct filled mathmatrix of certain size
      *
@@ -199,7 +230,8 @@ typedef size_t uint_type;
      * @param cols: Number of columns
      * @param fill: Value to which all matrix elements will be initialized
      */
-    mathmatrix(uint_type rows, uint_type cols, T fill) : arma::Mat<T>(rows, cols)
+    mathmatrix(uint_type rows, uint_type cols, T fill)
+      :mathmatrix(rows, cols)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing filled matrix." << std::endl;
@@ -207,20 +239,7 @@ typedef size_t uint_type;
         for (uint_type j = 0u; j < cols; j++)
           (*this)(i, j) = fill;
     };
-#endif
 
-    // pull in range functions
-    // if we use scon::matrix
-#ifndef CAST_USE_ARMADILLO
-    using base_type::begin;
-    using base_type::end;
-    using base_type::cbegin;
-    using base_type::cend;
-    using base_type::rbegin;
-    using base_type::rend;
-    using base_type::crbegin;
-    using base_type::crend;
-#endif
 
     // base row and col proxy
     using base_type::row;
@@ -230,20 +249,92 @@ typedef size_t uint_type;
     // element access from base class
     using base_type::operator();
     using base_type::operator[];
-
+#ifdef CAST_USE_ARMADILLO
     using base_type::resize;
-
-#ifndef CAST_USE_ARMADILLO
-    using base_type::operator*=;
-
-
+#else
+    void resize(uint_type const rows, uint_type const cols)
+    {
+      this->conservativeResize(rows, cols);
+    }
 #endif
 
-    // identity from base_classes
-    // but wrapped in arma case to yield identical function name
+
+    using base_type::operator*=;
+    using base_type::operator-=;
+    using base_type::operator/=;
+    using base_type::operator+=;
 #ifndef CAST_USE_ARMADILLO
-    using base_type::identity;
+    using base_type::operator+;
+    using base_type::operator-;
+    using base_type::operator/;
+    using base_type::operator*;
 #else
+    /*! mathmatrix += operator
+     * 
+     * @param in: Matrix to the right of the summation (this + in)
+     * @return: Result of the addition of this + in
+     */
+    mathmatrix operator+(mathmatrix const& in) const
+    {
+        if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+          std::cout << "Function call: Operator+ for matrix-class" << std::endl;
+    	if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
+    	{
+    		throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
+    	}
+        arma::Mat<T> const& base_this = *this;
+        arma::Mat<T> const& base_in = in;
+        return (mathmatrix(   base_this + base_in    ));
+    };
+
+    mathmatrix operator*(mathmatrix const& in) const
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
+      if (!(this->cols() == in.rows()))
+      {
+        throw("ERROR in mathmatrix multiplication: Sizes of matrices do not match!");
+      }
+      arma::Mat<T> const& base_this = *this;
+      arma::Mat<T> const& base_in = in;
+      return (mathmatrix(base_this * base_in));
+    }
+
+    mathmatrix operator/(mathmatrix const& in) const
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
+      if (!(this->cols() == in.rows()))
+      {
+        throw("ERROR in mathmatrix divison: Sizes of matrices do not match!");
+      }
+      arma::Mat<T> const& base_this = *this;
+      arma::Mat<T> const& base_in = in;
+      return (mathmatrix(base_this / base_in));
+    };
+
+    /**
+     * @brief Overload "-" Operator for mathmatrix
+     */
+    mathmatrix operator-(mathmatrix const& in) const
+    {
+    	//Check if sizes match
+    	if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
+    	{
+    		throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
+    	}
+    	mathmatrix output = *this;
+    	for (uint_type i = 0; i < this->rows(); i++)
+    	{
+    		for (uint_type j = 0; j < this->cols(); j++)
+    		{
+    			output(i, j) -= in(i, j);
+    		}
+    	}
+    	return output;
+    }
+#endif
+
 
     /*! Returns an "identity matrix" of certain size
      *
@@ -254,13 +345,17 @@ typedef size_t uint_type;
      * @todo: Write as free function!!
      */
     static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
-      identity(std::size_t const num_rows, std::size_t const num_cols)
+      Identity(std::size_t const num_rows, std::size_t const num_cols)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing identity matrix." << std::endl;
+#ifndef CAST_USE_ARMADILLO
+      return mathmatrix<T>(base_type::Identity(num_rows, num_cols));
+#else
       return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
-    }
 #endif
+    }
+
 
     // in case you are wondering:
     // transposed and some more stuff is available as free functions
@@ -272,25 +367,6 @@ typedef size_t uint_type;
 		/////                           /////
 		/////////////////////////////////////
 
-#ifdef CAST_USE_ARMADILLO
-		/*! mathmatrix += operator
-		 * 
-     * @param in: Matrix to the right of the summation (this + in)
-     * @return: Result of the addition of this + in
-		 */
-		mathmatrix operator+(mathmatrix const& in) const
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
-			if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
-			{
-				throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
-			}
-      arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;
-      return (mathmatrix(   base_this + base_in    ));
-		};
-#endif
 
     /*! mathmatrix stream operator for writing output
      *
@@ -357,227 +433,8 @@ typedef size_t uint_type;
       arma::Mat<T> const& base_this = *this;
       return static_cast<size_t>(arma::rank(base_this));
 #else
-			//Rewritten from NumRecipies, SVD
-
-			//"Constructor"
-			mathmatrix U_in = *this;
-			mathmatrix V_in(this->cols(), this->cols());
-			mathmatrix s_in(this->cols(), 1u);
-
-			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
-			int n = this->cols();
-			int m = this->rows();
-
-			float_type eps = std::numeric_limits<float_type>::epsilon();
-
-			//Beginn SVD::decompose()
-			{
-				bool flag;
-				int i, its, j, jj, k, l, nm;
-				T anorm, c, f, g, h, s, scale, x, y, z;
-				mathmatrix rv1(n, 1u);
-				g = scale = anorm = 0.0;
-				for (i = 0; i < n; i++) {
-					l = i + 2;
-					rv1(i) = scale*g;
-					g = s = scale = 0.0;
-					if (i < m) {
-						for (k = i; k < m; k++) scale += std::abs(U_in(k, i));
-						if (scale != 0.0) {
-							for (k = i; k < m; k++) {
-								U_in(k, i) /= scale;
-								s += U_in(k, i) * U_in(k, i);
-							}
-							f = U_in(i, i);
-							//g = -SIGN(sqrt(s), f); //((b) >= 0.0 ? fabs(a) : -fabs(a))
-							g = -1 * (f >= 0.0 ? std::fabs(sqrt(s)) : -std::fabs(sqrt(s)));
-							h = f*g - s;
-							U_in(i, i) = f - g;
-							for (j = l - 1; j < n; j++) {
-								for (s = 0.0, k = i; k < m; k++) s += U_in(k, i) * U_in(k, j);
-								f = s / h;
-								for (k = i; k < m; k++)  U_in(k, j) += f* U_in(k, i);
-							}
-							for (k = i; k < m; k++) U_in(k, i) *= scale;
-						}
-					}
-					s_in(i) = scale *g;
-					g = s = scale = 0.0;
-					if (i + 1 <= m && i + 1 != n) {
-						for (k = l - 1; k < n; k++) scale += std::abs(U_in(i, k));
-						if (scale != 0.0) {
-							for (k = l - 1; k < n; k++) {
-								U_in(i, k) /= scale;
-								s += U_in(i, k) * U_in(i, k);
-							}
-							f = U_in(i, l - 1);
-							g = -1 * (f >= 0.0 ? std::fabs(sqrt(s)) : -std::fabs(sqrt(s))); //g = -SIGN(sqrt(s), f)
-							h = f*g - s;
-							U_in(i, l - 1) = f - g;
-							for (k = l - 1; k < n; k++) rv1(k) = U_in(i, k) / h;
-							for (j = l - 1; j < m; j++) {
-								for (s = 0.0, k = l - 1; k < n; k++) s += U_in(j, k) * U_in(i, k);
-								for (k = l - 1; k < n; k++) U_in(j, k) += s*rv1(k);
-							}
-							for (k = l - 1; k < n; k++) U_in(i, k) *= scale;
-						}
-					}
-					anorm = std::max(anorm, (std::abs(s_in(i)) + std::abs(rv1(i))));
-				}
-				for (i = n - 1; i >= 0; i--) {
-					if (i < n - 1) {
-						if (g != 0.0) {
-							for (j = l; j < n; j++)
-								V_in(j, i) = (U_in(i, j) / U_in(i, l)) / g;
-							for (j = l; j < n; j++) {
-								for (s = 0.0, k = l; k < n; k++) s += U_in(i, k) * V_in(k, j);
-								for (k = l; k < n; k++) V_in(k, j) += s*V_in(k, i);
-							}
-						}
-						for (j = l; j < n; j++) V_in(i, j) = V_in(j, i) = 0.0;
-					}
-					V_in(i, i) = 1.0;
-					g = rv1(i);
-					l = i;
-				}
-				for (i = std::min(m, n) - 1; i >= 0; i--) {
-					l = i + 1;
-					g = s_in(i);
-					for (j = l; j < n; j++) U_in(i, j) = 0.0;
-					if (g != 0.0) {
-						g = 1.0 / g;
-						for (j = l; j < n; j++) {
-							for (s = 0.0, k = l; k < m; k++) s += U_in(k, i) * U_in(k, j);
-							f = (s / U_in(i, i))*g;
-							for (k = i; k < m; k++) U_in(k, j) += f*U_in(k, i);
-						}
-						for (j = i; j < m; j++) U_in(j, i) *= g;
-					}
-					else for (j = i; j < m; j++) U_in(j, i) = 0.0;
-					++U_in(i, i);
-				}
-				for (k = n - 1; k >= 0; k--) {
-					for (its = 0; its < 30; its++) {
-						flag = true;
-						for (l = k; l >= 0; l--) {
-							nm = l - 1;
-							if (l == 0 || std::abs(rv1(l)) <= eps*anorm) {
-								flag = false;
-								break;
-							}
-							if (std::abs(s_in(nm)) <= eps*anorm) break;
-						}
-						if (flag) {
-							c = 0.0;
-							s = 1.0;
-							for (i = l; i<k + 1; i++) {
-								f = s*rv1(i);
-								rv1(i) = c*rv1(i);
-								if (std::abs(f) <= eps*anorm) break;
-								g = s_in(i);
-								h = (std::abs(f) > std::abs(g) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(g) / std::abs(f)), 2)) :
-									(std::abs(g) == 0.0 ? 0.0 : std::abs(g)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(g)), 2))));
-
-								/*
-								pythag function , cahnged from nrutil.h from numrecipies
-								(std::abs(a) > std::abs(b) ? std::abs(a)*sqrt(1.0 + std::pow((std::abs(b) / std::abs(a)),2)) :
-								(std::abs(b) == 0.0 ? 0.0 : std::abs(b)*sqrt(1.0 + std::pow((std::abs(a) / std::abs(b)), 2))));
-								*/
-
-								s_in(i) = h;
-								h = 1.0 / h;
-								c = g*h;
-								s = -f*h;
-								for (j = 0; j < m; j++) {
-									y = U_in(j, nm);
-									z = U_in(j, i);
-									U_in(j, nm) = y*c + z*s;
-									U_in(j, i) = z*c - y*s;
-								}
-							}
-						}
-						z = s_in(k);
-						if (l == k) {
-							if (z < 0.0) {
-								s_in(k) = -z;
-								for (j = 0; j<n; j++) V_in(j, k) = -V_in(j, k);
-							}
-							break;
-						}
-						if (its == 29) throw("no convergence in 30 svdcmp iterations");
-						x = s_in(l);
-						nm = k - 1;
-						y = s_in(nm);
-						g = rv1(nm);
-						h = rv1(k);
-						f = ((y - z)*(y + z) + (g - h)*(g + h)) / (2.0*h*y);
-						g = (std::abs(f) > 1.0 ? std::abs(f)*sqrt(1.0 + std::pow((1.0 / std::abs(f)), 2)) : sqrt(1.0 + std::pow(f, 2)));
-						f = ((x - z)*(x + z) + h*((y / (f + ((f) >= 0.0 ? std::fabs(g) : -std::fabs(g)))) - h)) / x;
-						c = s = 1.0;
-						for (j = l; j <= nm; j++) {
-							i = j + 1;
-							g = rv1(i);
-							y = s_in(i);
-							h = s*g;
-							g = c*g;
-							z = (std::abs(f) > std::abs(h) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(h) / std::abs(f)), 2)) :
-								(std::abs(h) == 0.0 ? 0.0 : std::abs(h)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(h)), 2))));
-							rv1(j) = z;
-							c = f / z;
-							s = h / z;
-							f = x*c + g*s;
-							g = g*c - x*s;
-							h = y*s;
-							y *= c;
-							for (jj = 0; jj<n; jj++) {
-								x = V_in(jj, j);
-								z = V_in(jj, i);
-								V_in(jj, j) = x*c + z*s;
-								V_in(jj, i) = z*c - x*s;
-							}
-							z = (std::abs(f) > std::abs(h) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(h) / std::abs(f)), 2)) :
-								(std::abs(h) == 0.0 ? 0.0 : std::abs(h)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(h)), 2))));
-							s_in(j) = z;
-							if (z) {
-								z = 1.0 / z;
-								c = f*z;
-								s = h*z;
-							}
-							f = c*g + s*y;
-							x = c*y - s*g;
-							for (jj = 0; jj < m; jj++) {
-								y = U_in(jj, j);
-								z = U_in(jj, i);
-								U_in(jj, j) = y*c + z*s;
-								U_in(jj, i) = z*c - y*s;
-							}
-						}
-						rv1(l) = 0.0;
-						rv1(k) = f;
-						s_in(k) = x;
-					}
-				}
-			}
-			//End SVD::decompose()
-
-			//Beginn SVD::reorder()
-			//I am not sure if this is necessary, if this
-			//algorithm merely reorders it is surely not
-			//necessary to determine the rank. However, I
-			//did not fully read this procedure and am therefore
-			//not 100% sure about wtf is even going on today.
-			//End SVD::reorder()
-
-			float_type tsh = 0.5*sqrt(m + n + 1.) * s_in(0) * eps;
-			int j, nr = 0;
-      for (j = 0; j < n; j++)
-      {
-        if (s_in(j) > sqrt(tsh) * 100 )
-        {
-          nr++;
-        }
-      }
-			return nr;
+      Eigen::ColPivHouseholderQR<CAST_EIGEN_MATRIX_TYPE> rank_colpivmat (*this);
+      return static_cast<size_t>(rank_colpivmat.rank());
 #endif
 		};
 
@@ -595,107 +452,10 @@ typedef size_t uint_type;
 #ifdef CAST_USE_ARMADILLO
 			return static_cast<float_type>(det(*this));
 #else
-			//Via Numerical Recipies, LU Decomposition
-			mathmatrix lu = *this;
-			//const float_type TINY = 1.0e-40;
-			int i, imax, j, k;
-			int n = int(this->rows());
-			std::vector<int> indx(n);
-			float_type big, temp;
-			mathmatrix vv(n, 1u);
-			float_type d = 1.0;
-
-			//Start LUdcmp
-			{
-				for (i = 0; i<n; i++) {
-					big = 0.0;
-					for (j = 0; j<n; j++)
-						if ((temp = std::abs(lu(i, j))) > big) big = temp;
-					if (big == 0.0)
-					{
-						//std::cout << "Singular matrix in LUdcmp (->calculation of determinant)";
-						goto IF_SINGULAR;
-					}
-					vv(i) = 1.0 / big;
-				}
-				for (k = 0; k<n; k++)
-				{
-					big = 0.0;
-					imax = k;
-					for (i = k; i<n; i++) {
-						temp = vv(i) * std::abs(lu(i, k));
-						if (temp > big) {
-							big = temp;
-							imax = i;
-						}
-					}
-					if (k != imax)
-					{
-						for (j = 0; j<n; j++)
-						{
-							temp = lu(imax, j);
-							lu(imax, j) = lu(k, j);
-							lu(k, j) = temp;
-						}
-						d = -d;
-						vv(imax) = vv(k);
-					}
-					indx[k] = imax;
-
-					//If pivot is zero, then the matrix is singular
-					if (lu(k, k) == 0.0)
-					{
-						d = 0.0;
-						break;
-						//lu(k, k) = TINY;
-					}
-
-					for (i = k + 1; i<n; i++) {
-						temp = lu(i, k) /= lu(k, k);
-						for (j = k + 1; j<n; j++)
-							lu(i, j) -= temp*lu(k, j);
-					}
-				}
-			}
-			//End LUdcmp
-
-			//Get determinant
-			if (d != 0.0)
-			{
-				for (int i2 = 0; i2 < n; i2++)
-				{
-					d *= lu(i2, i2);
-				}
-				return d;
-			}
-			else
-			{
-				IF_SINGULAR:
-				return 0u;
-			}
+      return static_cast<float_type>(static_cast<CAST_EIGEN_MATRIX_TYPE const*>(this)->determinant());
 #endif
 		}
 
-		/**
-		 * @brief Overload "-" Operator for mathmatrix
-		 */
-		mathmatrix operator-(mathmatrix const& in) const
-		{
-			//Check if sizes match
-			if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
-			{
-				throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
-			}
-			mathmatrix output = *this;
-			for (uint_type i = 0; i < this->rows(); i++)
-			{
-				for (uint_type j = 0; j < this->cols(); j++)
-				{
-					output(i, j) -= in(i, j);
-				}
-			}
-			return output;
-		}
 
 		/**
 		 * @brief Overload "/" Operator for mathmatrix and scalars
@@ -928,7 +688,9 @@ typedef size_t uint_type;
      */
     void choleskyDecomposition(mathmatrix<T> & result) const
     {
-#ifndef CAST_USE_ARMADILLO
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: choleskyDecomposition for mathmatrix." << std::endl;
+
       result = mathmatrix<T>(this->rows(), this->cols(), T(0));
       int n = static_cast<int>(this->rows());
       for (int i = 0; i < n; i++)
@@ -937,14 +699,10 @@ typedef size_t uint_type;
           for (int k = 0; k < j; k++)
             s += result(i, k) * result(j, k);
           result(i, j) = (i == j) ?
-            sqrt((*this)(i, i) - s) :
+            ::sqrt((*this)(i, i) - s) :
             (1.0 / result(j, j) * ((*this)(i, j) - s));
         }
       transpose(result);
-#else
-      arma::Mat<T> const& a = *this;
-      result = mathmatrix<T>(arma::chol(a));
-#endif
     }
 
 		/**
@@ -954,11 +712,7 @@ typedef size_t uint_type;
 		{
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: return_quadratic for mathmatrix." << std::endl;
-#ifndef CAST_USE_ARMADILLO
-			return is_square(*this);
-#else
       return this->rows() == this->cols();
-#endif
 		}
 
 		/**
@@ -985,16 +739,6 @@ typedef size_t uint_type;
       }
 		}
 
-#ifdef CAST_USE_ARMADILLO
-    mathmatrix operator*(mathmatrix const& in) const
-    {
-      arma::Mat<T> const& a = *this;
-      arma::Mat<T> const& b = in;
-      return mathmatrix(a*b);
-    };
-#endif
-
-
     /*! Equality operator for armadillo mathmatrix
      *
      * Armadillo internally handels the operator== in a 
@@ -1005,12 +749,15 @@ typedef size_t uint_type;
      * @param in: Matrix that *this is compared to
      * @return: boolean that indicates if size and all elements are equal
      */
+#ifndef CAST_TOLERANCE_FOR_MATRIX_COMPARISSON
+#define CAST_TOLERANCE_FOR_MATRIX_COMPARISSON 0.001
+#endif
     bool operator== (mathmatrix const& in) const
     {
 #ifdef CAST_USE_ARMADILLO
       arma::Mat<T> const& a = *this;
       arma::Mat<T> const& b = in;
-      return (approx_equal(a,b,"reldiff", 0.001) );
+      return (approx_equal(a,b,"reldiff", CAST_TOLERANCE_FOR_MATRIX_COMPARISSON) );
 #else
       if (this->rows() != in.rows() || this->cols() != in.cols()) return false;
       else
@@ -1019,7 +766,7 @@ typedef size_t uint_type;
         {
           for (size_t j = 0u; j < this->cols(); j++)
           {
-            if (abs((*this)(i, j) - in(i, j)) > 0.001 * abs(in(i, j)))
+            if (abs((*this)(i, j) - in(i, j)) > CAST_TOLERANCE_FOR_MATRIX_COMPARISSON * abs(in(i, j)))
             {
               return false;
             }
@@ -1052,260 +799,17 @@ typedef size_t uint_type;
 			//"Constructor"
 			V_in.resize(this->cols(), this->cols());
 			s_in.resize(this->cols(), 1u);
+
 #ifndef CAST_USE_ARMADILLO
-			//Rewritten from NumRecipies
-			//Numerical Recipies Nomenclatur, I don't even.... who would name it like that? nnm strcpcps wtf
-			int n = int(this->cols());
-			int m = int(this->rows());
-
-			float_type eps = std::numeric_limits<float_type>::epsilon();
-
-			//Beginn SVD::decompose()
-			{
-				bool flag;
-				int i, its, j, jj, k, l = 0, nm;
-				float_type anorm, c, f, g, h, s, scale, x, y, z;
-				mathmatrix rv1(n);
-				g = scale = anorm = 0.0;
-				for (i = 0; i < n; i++)
-				{
-					l = i + 2;
-					rv1(i) = scale * g;
-					g = s = scale = 0.0;
-					if (i < m) {
-						for (k = i; k < m; k++) scale += std::abs(U_in(k, i));
-						if (scale != 0.0) {
-							for (k = i; k < m; k++) {
-								U_in(k, i) /= scale;
-								s += U_in(k, i) * U_in(k, i);
-							}
-							f = U_in(i, i);
-							//g = -SIGN(sqrt(s), f);
-							//SIGN(a, b) :::: b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);
-							g = -1 * (f >= 0.0 ? (sqrt(s) >= 0 ? sqrt(s) : -sqrt(s)) : (sqrt(s) >= 0 ? -sqrt(s) : sqrt(s)));
-
-							h = f*g - s;
-							U_in(i, i) = f - g;
-							for (j = l - 1; j < n; j++) {
-								for (s = 0.0, k = i; k < m; k++) s += U_in(k, i) * U_in(k, j);
-								f = s / h;
-								for (k = i; k < m; k++)  U_in(k, j) += f* U_in(k, i);
-							}
-							for (k = i; k < m; k++) U_in(k, i) *= scale;
-						}
-					}
-					s_in(i) = scale *g;
-					g = s = scale = 0.0;
-					if (i + 1 <= m && i + 1 != n) {
-						for (k = l - 1; k < n; k++) scale += std::abs(U_in(i, k));
-						if (scale != 0.0) {
-							for (k = l - 1; k < n; k++) {
-								U_in(i, k) /= scale;
-								s += U_in(i, k) * U_in(i, k);
-							}
-							f = U_in(i, l - 1);
-							g = -1 * (f >= 0.0 ? (sqrt(s) >= 0 ? sqrt(s) : -sqrt(s)) : (sqrt(s) >= 0 ? -sqrt(s) : sqrt(s))); //g = -SIGN(sqrt(s), f)
-							h = f*g - s;
-							U_in(i, l - 1) = f - g;
-							for (k = l - 1; k < n; k++) rv1(k) = U_in(i, k) / h;
-							for (j = l - 1; j < m; j++) {
-								for (s = 0.0, k = l - 1; k < n; k++) s += U_in(j, k) * U_in(i, k);
-								for (k = l - 1; k < n; k++) U_in(j, k) += s*rv1(k);
-							}
-							for (k = l - 1; k < n; k++) U_in(i, k) *= scale;
-						}
-					}
-					anorm = std::max(anorm, (std::abs(s_in(i)) + std::abs(rv1(i))));
-				}
-				for (i = n - 1; i >= 0; i--) {
-					if (i < n - 1) {
-						if (g != 0.0) {
-							for (j = l; j < n; j++)
-								V_in(j, i) = (U_in(i, j) / U_in(i, l)) / g;
-							for (j = l; j < n; j++) {
-								for (s = 0.0, k = l; k < n; k++) s += U_in(i, k) * V_in(k, j);
-								for (k = l; k < n; k++) V_in(k, j) += s*V_in(k, i);
-							}
-						}
-						for (j = l; j < n; j++) V_in(i, j) = V_in(j, i) = 0.0;
-					}
-					V_in(i, i) = 1.0;
-					g = rv1(i);
-					l = i;
-				}
-				for (i = std::min(m, n) - 1; i >= 0; i--) {
-					l = i + 1;
-					g = s_in(i);
-					for (j = l; j < n; j++) U_in(i, j) = 0.0;
-					if (g != 0.0) {
-						g = 1.0 / g;
-						for (j = l; j < n; j++) {
-							for (s = 0.0, k = l; k < m; k++) s += U_in(k, i) * U_in(k, j);
-							f = (s / U_in(i, i))*g;
-							for (k = i; k < m; k++) U_in(k, j) += f*U_in(k, i);
-						}
-						for (j = i; j < m; j++) U_in(j, i) *= g;
-					}
-					else for (j = i; j < m; j++) U_in(j, i) = 0.0;
-					++U_in(i, i);
-				}
-				for (k = n - 1; k >= 0; k--) {
-					for (its = 0; its < 30; its++) {
-						flag = true;
-						for (l = k; l >= 0; l--) {
-							nm = l - 1;
-							if (l == 0 || std::abs(rv1(l)) <= eps*anorm) {
-								flag = false;
-								break;
-							}
-							if (std::abs(s_in(nm)) <= eps*anorm) break;
-						}
-						if (flag) {
-							c = 0.0;
-							s = 1.0;
-							for (i = l; i<k + 1; i++) {
-								f = s*rv1(i);
-								rv1(i) = c*rv1(i);
-								if (std::abs(f) <= eps*anorm) break;
-								g = s_in(i);
-								h = (std::abs(f) > std::abs(g) ? std::abs(f)*sqrt(1.0 + (std::abs(g) / std::abs(f)) * (std::abs(g) / std::abs(f))) :
-									(std::abs(g) == 0.0 ? 0.0 : std::abs(g)*sqrt(1.0 + (std::abs(f) / std::abs(g)) * (std::abs(f) / std::abs(g)))));
-								//h=pythag(f,g);
-								/*
-								pythag function , cahnged from nrutil.h from numrecipies
-								(std::abs(a) > std::abs(b) ? std::abs(a)*sqrt(1.0 + std::pow((std::abs(b) / std::abs(a)),2)) :
-								(std::abs(b) == 0.0 ? 0.0 : std::abs(b)*sqrt(1.0 + std::pow((std::abs(a) / std::abs(b)), 2))));
-								*/
-
-								s_in(i) = h;
-								h = 1.0 / h;
-								c = g*h;
-								s = -f*h;
-								for (j = 0; j < m; j++) {
-									y = U_in(j, nm);
-									z = U_in(j, i);
-									U_in(j, nm) = y*c + z*s;
-									U_in(j, i) = z*c - y*s;
-								}
-							}
-						}
-						z = s_in(k);
-						if (l == k) {
-							if (z < 0.0) {
-								s_in(k) = -z;
-								for (j = 0; j<n; j++) V_in(j, k) = -V_in(j, k);
-							}
-							break;
-						}
-						if (its == 29) throw("no convergence in 30 svdcmp iterations");
-						x = s_in(l);
-						nm = k - 1;
-						y = s_in(nm);
-						g = rv1(nm);
-						h = rv1(k);
-						f = ((y - z)*(y + z) + (g - h)*(g + h)) / (2.0*h*y);
-						g = (std::abs(f) > 1.0 ? std::abs(f)*sqrt(1.0 + std::pow((1.0 / std::abs(f)), 2)) : sqrt(1.0 + std::pow(f, 2)));
-						f = ((x - z)*(x + z) + h*((y / (f +
-							//SIGN(a, b) :::: b >= 0 ? (a >= 0 ? a : -a) : (a >= 0 ? -a : a);
-							(f >= 0.0 ? (g >= 0 ? g : -g) : (g >= 0 ? -g : g))
-							//((f) >= 0.0 ? std::fabs(g) : -std::fabs(g))
-							)) - h)) / x;
-						c = s = 1.0;
-						for (j = l; j <= nm; j++) {
-							i = j + 1;
-							g = rv1(i);
-							y = s_in(i);
-							h = s*g;
-							g = c*g;
-							z = (std::abs(f) > std::abs(h) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(h) / std::abs(f)), 2)) :
-								(std::abs(h) == 0.0 ? 0.0 : std::abs(h)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(h)), 2))));
-							rv1(j) = z;
-							c = f / z;
-							s = h / z;
-							f = x*c + g*s;
-							g = g*c - x*s;
-							h = y*s;
-							y *= c;
-							for (jj = 0; jj<n; jj++) {
-								x = V_in(jj, j);
-								z = V_in(jj, i);
-								V_in(jj, j) = x*c + z*s;
-								V_in(jj, i) = z*c - x*s;
-							}
-							z = (std::abs(f) > std::abs(h) ? std::abs(f)*sqrt(1.0 + std::pow((std::abs(h) / std::abs(f)), 2)) :
-								(std::abs(h) == 0.0 ? 0.0 : std::abs(h)*sqrt(1.0 + std::pow((std::abs(f) / std::abs(h)), 2))));
-							s_in(j) = z;
-							if (z) {
-								z = 1.0 / z;
-								c = f*z;
-								s = h*z;
-							}
-							f = c*g + s*y;
-							x = c*y - s*g;
-							for (jj = 0; jj < m; jj++) {
-								y = U_in(jj, j);
-								z = U_in(jj, i);
-								U_in(jj, j) = y*c + z*s;
-								U_in(jj, i) = z*c - y*s;
-							}
-						}
-						rv1(l) = 0.0;
-						rv1(k) = f;
-						s_in(k) = x;
-					}
-				}
-			}
-			//End SVD::decompose()
-
-			//Beginn SVD::reorder()
-			{
-				int i, j, k, s, inc = 1;
-				float_type sw;
-				mathmatrix su(m), sv(n);
-				do { inc *= 3; inc++; } while (inc <= n);
-				do
-				{
-					inc /= 3;
-					for (i = inc; i < n; i++)
-					{
-						sw = s_in(i);
-						for (k = 0; k < m; k++) su(k) = U_in(k, i);
-						for (k = 0; k < n; k++) sv(k) = V_in(k, i);
-						j = i;
-						while (s_in(j - inc) < sw)
-						{
-							s_in(j) = s_in(j - inc);
-							for (k = 0; k < m; k++) U_in(k, j) = U_in(k, j - inc);
-							for (k = 0; k < n; k++) V_in(k, j) = V_in(k, j - inc);
-							j -= inc;
-							if (j < inc) break;
-						}
-						s_in(j) = sw;
-						for (k = 0; k < m; k++) U_in(k, j) = su(k);
-						for (k = 0; k < n; k++) V_in(k, j) = sv(k);
-					}
-				} while (inc > 1);
-				for (k = 0; k < n; k++)
-				{
-					s = 0;
-					for (i = 0; i < m; i++) if (U_in(i, k) < 0.) s++;
-					for (j = 0; j < n; j++) if (V_in(j, k) < 0.) s++;
-					if (s > (m + n) / 2) {
-						for (i = 0; i < m; i++) U_in(i, k) = -U_in(i, k);
-						for (j = 0; j < n; j++) V_in(j, k) = -V_in(j, k);
-					}
-				}
-			}
-			//End SVD::reorder()
-
-			float_type tsh = 0.5*sqrt(m + n + 1.) * s_in(0) * eps;
-
-			int j, nr = 0;
-			for (j = 0; j<n; j++) if (s_in(j) > tsh) nr++;
-			if (rank != nullptr)
-			{
-			  *rank = nr;
-			}
+      CAST_EIGEN_MATRIX_TYPE const* this_eigenptr= static_cast<CAST_EIGEN_MATRIX_TYPE const*>(this);
+      auto bdcsvd_obj = this_eigenptr->bdcSvd();
+      bdcsvd_obj.compute(*this_eigenptr, Eigen::ComputeFullU | Eigen::ComputeFullV);
+      U_in = mathmatrix<T>(bdcsvd_obj.matrixU());
+      V_in = mathmatrix<T>(bdcsvd_obj.matrixV());
+      for (size_t i = 0; i < U_in.rows(); i++)
+      {
+        s_in(i) = bdcsvd_obj.singularValues()(i);
+      }
 #else
 			arma::Col<float_type> s;
 			if(!svd_econ(U_in, s, V_in, *this)) throw std::runtime_error("Error in armadillo SVD: failed.");
@@ -1339,7 +843,7 @@ typedef size_t uint_type;
 
 			//And if you are unsure about your symmetry, try this beforehand:
 			//this->symmetry_check();
-			//(Although it might slow stuff down considerably.)
+			//(Although it might slow stuff down considerably)
 #ifndef CAST_USE_ARMADILLO
 			mathmatrix V;
 			this->singular_value_decomposition(eigenvec_in, eigenval_in, V, rank_in);
@@ -1429,34 +933,16 @@ typedef size_t uint_type;
   }
 
 #else
-  using namespace scon;
-
-  template<class T, class U = T>
-  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
-    mathmatrix<typename std::common_type<T, U>::type >> ::type
-    operator* (mathmatrix<T> const & a, mathmatrix<U> const &b)
+  template<typename T>
+  mathmatrix<T> transposed(mathmatrix<T> const& in)
   {
-    scon::matrix<T> const &ma = a;
-    matrix<U> const &mb = b;
-    return ma*mb;
+    return mathmatrix<T>(in.transpose());
   }
 
-  template<class T, class U = T>
-  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
-    mathmatrix<typename std::common_type<T, U>::type >> ::type
-    operator* (matrix<T> const & a, mathmatrix<U> const &b)
+  template<typename T>
+  void transpose(mathmatrix<T>& in)
   {
-    matrix<U> const &mb = b;
-    return a *mb;
-  }
-
-  template<class T, class U = T>
-  typename std::enable_if < std::is_arithmetic<T>::value && std::is_arithmetic<U>::value,
-    mathmatrix<typename std::common_type<T, U>::type >> ::type
-    operator* (mathmatrix<T> const & a, matrix<U> const &b)
-  {
-    matrix<T> const &ma = a;
-    return ma * b;
+    static_cast<CAST_EIGEN_MATRIX_TYPE&>(in).transposeInPlace();
   }
 #endif
 

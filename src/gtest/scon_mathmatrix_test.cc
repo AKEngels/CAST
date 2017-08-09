@@ -12,6 +12,12 @@ Purpose: Tests matrix procedures
 #include "gtest/gtest.h"
 #pragma once
 
+
+#ifndef eigen_assert
+#define eigen_assert(msg) if (!bool( msg )) { std::cout << "eigen assertion raised" << std::endl; throw std::runtime_error("eigen assertion raised"); }
+#endif
+
+
 #include "../scon_mathmatrix.h"
 #include <iostream>
 #include <string>
@@ -37,7 +43,7 @@ TEST(mathmatrix, constructedAndFilled)
 TEST(mathmatrix, constructedIdentityMatrixQuadratic)
 {
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.identity(4u, 4u);
+  mathmatrix<float> two = mathmatrix<float>::Identity(4u, 4u);
   ASSERT_EQ(two.rows(), 4u);
   ASSERT_EQ(two.cols(), 4u);
   ASSERT_FLOAT_EQ(two(2, 2), 1.f);
@@ -52,7 +58,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 {
 
   mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = one.identity(2u, 4u);
+  mathmatrix<float> two = mathmatrix<float>::Identity(2u, 4u);
 
   ASSERT_EQ(two.rows(), 2u);
   ASSERT_EQ(two.cols(), 4u);
@@ -65,7 +71,7 @@ TEST(mathmatrix, constructedIdentityMatrixRectangular)
 
   //
 
-  mathmatrix<float> three = one.identity(4u, 2u);
+  mathmatrix<float> three = mathmatrix<float>::Identity(4u, 2u);
   ASSERT_EQ(three.rows(), 4u);
   ASSERT_EQ(three.cols(), 2u);
   ASSERT_FLOAT_EQ(three(0, 0), 1.f);
@@ -231,11 +237,12 @@ TEST(mathmatrix, minusOperatorWorksReasonably)
 
 TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
 {
+ 
+
+
   mathmatrix<float> one(4u, 4u, 5.f);
   mathmatrix<float> two(3u, 2u, 5.f);
-
   ASSERT_ANY_THROW(one - two);
-
 }
 
 TEST(mathmatrix, choleskyDecomposition)
@@ -346,14 +353,16 @@ TEST(mathmatrix, appendLeftWorksCorrectly)
 
 TEST(mathmatrix, appendRightWorksCorrectly)
 {
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(4u, 1u, 0.f);
+  mathmatrix<double> one(4u, 4u, 5.);
+  mathmatrix<double> two(4u, 1u, 0.);
+  std::cout << one << "\n";
+  std::cout << two << "\n";
 
   one.append_right(two);
   ASSERT_EQ(one.rows(), 4u);
   ASSERT_EQ(one.cols(), 5u);
-  ASSERT_FLOAT_EQ(one(0, 0), 5.f);
-  ASSERT_FLOAT_EQ(one(3, 4), 0.f);
+  ASSERT_FLOAT_EQ(one(0, 0), 5.);
+  ASSERT_NEAR(one(3, 4), 0.f, 1e-30);
 }
 
 TEST(mathmatrix, shedFunctionsThrowWhenOutOfBounds)
@@ -510,7 +519,7 @@ TEST(mathmatrix, matrixMultiplicationAndEqualityOperatorWorkingReasonably)
   three(3, 1) = 23.6;
   three(3, 2) = 30;
 
-  mathmatrix<float> result = one * two;
+  mathmatrix<float> result = mathmatrix<float>(one * two);
   for (size_t i = 0u; i < three.rows(); i++)
   {
     for (size_t j = 0u; j < three.cols(); j++)
@@ -563,8 +572,8 @@ TEST(mathmatrix, SVDWorksCorrectly)
   for (size_t i = 0u; i < s.rows(); i++)
     sigma(i, i) = s(i, 0);
 
-  mathmatrix<double> restored = sigma * transposed(V);
-  restored = U * restored;
+  mathmatrix<double> restored = mathmatrix<double>(sigma * transposed(V));
+  restored = mathmatrix<double>(U * restored);
   //std::cout << one << std::endl << restored << std::endl;
   //auto SHIT = restored.to_std_vector();
 

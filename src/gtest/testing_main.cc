@@ -18,8 +18,11 @@ int main(int argc, char** argv) {
   config::parse_command_switches(argc, argv);
   Config::set().general.verbosity = 3u;
 
-	testing::InitGoogleTest(&argc, argv);
-	int result = RUN_ALL_TESTS();
+
+
+
+  testing::InitGoogleTest(&argc, argv);
+  int result = RUN_ALL_TESTS();
   
   // If you want to run TESTS live from Visual Studio,
   // this will help
