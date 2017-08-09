@@ -353,14 +353,16 @@ TEST(mathmatrix, appendLeftWorksCorrectly)
 
 TEST(mathmatrix, appendRightWorksCorrectly)
 {
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(4u, 1u, 0.f);
+  mathmatrix<long double> one(4u, 4u, 5.);
+  mathmatrix<long double> two(4u, 1u, 0.);
+  std::cout << one << "\n";
+  std::cout << two << "\n";
 
   one.append_right(two);
   ASSERT_EQ(one.rows(), 4u);
   ASSERT_EQ(one.cols(), 5u);
-  ASSERT_FLOAT_EQ(one(0, 0), 5.f);
-  ASSERT_FLOAT_EQ(one(3, 4), 0.f);
+  ASSERT_FLOAT_EQ(one(0, 0), 5.);
+  ASSERT_NEAR(one(3, 4), 0.f, 1e-30);
 }
 
 TEST(mathmatrix, shedFunctionsThrowWhenOutOfBounds)
