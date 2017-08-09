@@ -59,7 +59,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 #else
-#include "eigen"
+#include "Eigen"
 #define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
 #endif
 
@@ -206,6 +206,15 @@ typedef size_t uint_type;
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
     };
+    mathmatrix& operator=(CAST_EIGEN_MATRIX_TYPE const& in)
+    {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Assignment from eigen-matrix." << std::endl;
+      if (this != &in)
+      {
+        *this = mathmatrix(in);
+      }
+    };
 #else
     mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
     {
@@ -326,11 +335,6 @@ typedef size_t uint_type;
     }
 #endif
 
-    // identity from base_classes
-    // but wrapped in arma case to yield identical function name
-#ifndef CAST_USE_ARMADILLO
-    using base_type::Identity;
-#else
 
     /*! Returns an "identity matrix" of certain size
      *
@@ -345,9 +349,13 @@ typedef size_t uint_type;
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing identity matrix." << std::endl;
+#ifndef CAST_USE_ARMADILLO
+      return mathmatrix<T>(base_type::Identity(num_rows, num_cols));
+#else
       return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
-    }
 #endif
+    }
+
 
     // in case you are wondering:
     // transposed and some more stuff is available as free functions
@@ -694,7 +702,7 @@ typedef size_t uint_type;
             ::sqrt((*this)(i, i) - s) :
             (1.0 / result(j, j) * ((*this)(i, j) - s));
         }
-      ::transpose(result);
+      transpose(result);
     }
 
 		/**

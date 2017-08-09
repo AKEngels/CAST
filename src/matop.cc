@@ -451,7 +451,7 @@ namespace matop
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
       Matrix_Class eigenvectors_t(transposed(eigenvectors));
-      Matrix_Class pca_modes = eigenvectors_t * input;
+      Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
       Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
       Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
       Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
@@ -756,7 +756,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      Matrix_Class temp_obj = Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
+      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols()));
       cov_matr = Matrix_Class(cov_matr - temp_obj);
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr = cov_matr / static_cast<float_type>(input.cols());
@@ -779,12 +779,12 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
-      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr = Matrix_Class(cov_matr / static_cast<float_type>(input.cols()));
 
       cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
-      cov_matr = Matrix_Class(cov_matr + Matrix_Class::Identity(cov_matr.rows(), cov_matr.cols()));
+      cov_matr = Matrix_Class(cov_matr + Matrix_Class(Matrix_Class::Identity(cov_matr.rows(), cov_matr.cols())));
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -861,7 +861,7 @@ namespace matop
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit = Matrix_Class::Identity(c.rows(), c.rows());
+      Matrix_Class unit = Matrix_Class(Matrix_Class::Identity(c.rows(), c.rows()));
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;
