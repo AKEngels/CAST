@@ -22,61 +22,7 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
   energy::interface_base(cp),
   e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-    Py_Initialize(); //initialize python interpreter
     
-    //find paths to numpy and scipy
-    std::string numpath = get_python_modulepath("numpy");
-    std::string scipath = get_python_modulepath("scipy");
-
-    //create pythonpath
-    std::string pythonpaths_str = Py_GetPath();
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
-    std::string add_path = "import sys\n";
-    for (auto p : pythonpaths)
-    {
-      add_path += "sys.path.append('"+p+"')\n";
-    }
-    add_path += "sys.path.append('/home/susanne/Downloads/DFTBaby-0.1.0')\n";
-    add_path += "sys.path.append('"+numpath+"')\n";
-    add_path += "sys.path.append('"+scipath+"')\n";
-    
-    //call programme
-    std::string result_str; 
-    PyObject *modul, *funk, *prm, *ret;
-    
-    PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
-    const char *c = add_path.c_str();
-    PyRun_SimpleString(c);
-    modul = PyImport_ImportModule("DFTB2"); //import module test from path
-
-    if(modul) 
-        { 
-        funk = PyObject_GetAttrString(modul, "main"); //create function
-        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "/home/susanne/Downloads/DFTBaby-0.1.0/DFTB/dftbaby.cfg"); //give parameters
-        ret = PyObject_CallObject(funk, prm);  //call function with parameters
-
-        result_str = PyString_AsString(ret); //read function return (has to be a string)
-        result_str = result_str.substr(1,result_str.size()-2);
-        std::vector<std::string> result_vec = split(result_str, ',');
-
-        Py_DECREF(prm); //delete PyObjects
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-
-        e_bs = std::stod(result_vec[0]);
-        e_coul = std::stod(result_vec[1]);
-        e_rep = std::stod(result_vec[3]);
-        e_tot = std::stod(result_vec[4]);
-
-        double e_tot_comp = e_bs + e_coul + e_rep;
-
-        std::cout<<e_tot<<" , "<<e_tot_comp<<"\n";
-
-        } 
-    else 
-        printf("Fehler: Modul nicht gefunden\n"); 
-    Py_Finalize(); 
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -137,8 +83,62 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   integrity = true;
   grad_var = false;
-  std::cout<<"No energy yet\n";
-  return energy;
+  Py_Initialize(); //initialize python interpreter
+    
+    //find paths to numpy and scipy
+    std::string numpath = get_python_modulepath("numpy");
+    std::string scipath = get_python_modulepath("scipy");
+
+    //create pythonpath
+    std::string pythonpaths_str = Py_GetPath();
+    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+    std::string add_path = "import sys\n";
+    for (auto p : pythonpaths)
+    {
+      add_path += "sys.path.append('"+p+"')\n";
+    }
+    add_path += "sys.path.append('/home/susanne/Downloads/DFTBaby-0.1.0')\n";
+    add_path += "sys.path.append('"+numpath+"')\n";
+    add_path += "sys.path.append('"+scipath+"')\n";
+    
+    //call programme
+    std::string result_str; 
+    PyObject *modul, *funk, *prm, *ret;
+    
+    PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
+    const char *c = add_path.c_str();
+    PyRun_SimpleString(c);
+    modul = PyImport_ImportModule("DFTB2"); //import module test from path
+
+    if(modul) 
+        { 
+        funk = PyObject_GetAttrString(modul, "main"); //create function
+        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "/home/susanne/Downloads/DFTBaby-0.1.0/DFTB/dftbaby.cfg"); //give parameters
+        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+
+        result_str = PyString_AsString(ret); //read function return (has to be a string)
+        result_str = result_str.substr(1,result_str.size()-2);
+        std::vector<std::string> result_vec = split(result_str, ',');
+
+        Py_DECREF(prm); //delete PyObjects
+        Py_DECREF(ret); 
+        Py_DECREF(funk); 
+        Py_DECREF(modul); 
+
+        e_bs = std::stod(result_vec[0])*627.503; //read energies and convert them to kcal/mol
+        e_coul = std::stod(result_vec[1])*627.503;
+        e_rep = std::stod(result_vec[3])*627.503;
+        e_tot = std::stod(result_vec[4])*627.503;
+
+        double e_tot_comp = e_bs + e_coul + e_rep;
+
+        std::cout<<e_tot<<" , "<<e_tot_comp<<"\n";
+
+        } 
+    else 
+        printf("Fehler: Modul nicht gefunden\n"); 
+    Py_Finalize(); 
+  return e_tot;
 }
 
 // Energy+Gradient function
@@ -171,7 +171,8 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
 // Output functions
 void energy::interfaces::dftb::sysCallInterface::print_E(std::ostream &S) const
 {
-  std::cout<<"DFTB energy\n";
+  S << "Total Energy:      ";
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_tot;
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const

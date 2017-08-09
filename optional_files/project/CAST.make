@@ -53,6 +53,10 @@ ifeq ($(config),debug_x64)
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  CFLAGS+=$(shell python-config --cflags)
+  LDFLAGS+=$(shell python-config --ldflags)
+  all: -lpython2.7
+
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
