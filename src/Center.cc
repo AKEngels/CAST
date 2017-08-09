@@ -45,8 +45,8 @@ void center(coords::Coordinates coords)
 
         if (com_dist <= abstkrit)
         {
-          size_i = coords.molecules(i).size();//Number of atoms in monomer i
-          size_j = coords.molecules(j).size();;//Number of atoms in monomer j
+          size_i = coords.molecule(i).size();//Number of atoms in monomer i
+          size_j = coords.molecule(j).size();;//Number of atoms in monomer j
           size_dimer = size_i + size_j;
           int korr_bond_i(0);
           int korr_bond_j(0);
@@ -54,14 +54,14 @@ void center(coords::Coordinates coords)
           if (i > 0)//calculate coretion for bondingpartnerindices
           {
             for (int ki = i-1; ki >= 0; ki--)
-            korr_bond_i += coords.molecules(ki).size();
+            korr_bond_i += coords.molecule(ki).size();
           }
 
           if (j > 1)//calculate coretion for bondingpartnerindices
           {
             korr_bond_j = korr_bond_i;
             for (int kj = j-1; kj > i; kj--)
-              korr_bond_j += coords.molecules(kj).size();
+              korr_bond_j += coords.molecule(kj).size();
           }
 
           std::stringstream oname;
@@ -72,7 +72,7 @@ void center(coords::Coordinates coords)
 
           for (std::size_t k = 0u; k < size_i; k++) //loop for writing first monomer
           {
-            std::size_t atom_index = coords.atoms().molecules(i, k);
+            std::size_t atom_index = coords.atoms().atomOfMolecule(i, k);
             dimerstrukt << std::right << std::fixed << std::setprecision(7) << std::setw(4) << k + 1 << std::setw(6) << coords.atoms(atom_index).symbol()
               << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
               << std::setw(8) << coords.atoms(atom_index).energy_type();
@@ -86,7 +86,7 @@ void center(coords::Coordinates coords)
 
           for (std::size_t k = 0u; k < size_j; k++) //loop for writing second monomer
           {
-            std::size_t atom_index = coords.atoms().molecules(j, k);
+            std::size_t atom_index = coords.atoms().atomOfMolecule(j, k);
             dimerstrukt << std::right << std::fixed << std::setprecision(7) << std::setw(4) << k + size_i + 1 << std::setw(6) << coords.atoms(atom_index).symbol()
               << std::setw(13) << coords.xyz(atom_index).x() << std::setw(13) << coords.xyz(atom_index).y() << std::setw(13) << coords.xyz(atom_index).z()
               << std::setw(8) << coords.atoms(atom_index).energy_type();
