@@ -49,37 +49,36 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 27;
-  /** Names of all CAST tasks as strings*/
+  static std::size_t const NUM_TASKS = 26;
 
+  /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
-  { 
+  {
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
-    "MC", "DIMER", "MD", "NEB", "GOSOL", 
+    "MC", "DIMER", "MD", "NEB", "GOSOL",
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
-    "DEVTEST", "ADJUST", "UMBRELLA", "FEP", "PATHOPT",
+    "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "EXCITON_BREAKUP", 
     "INTERFACE_CREATION", "CENTER", "COUPLINGS", 
   };
 
   /*! contains enum with all tasks currently present in CAST
-   * 
+   *
    * Those taks are subsequently mapped using task_strings string[].
    */
   struct tasks
   {
     /*! contains all tasks currently present in CAST
     */
-    enum T 
-    { 
+    enum T
+    {
       ILLEGAL = -1,
       SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
-      MC, DIMER, MD, NEB, GOSOL, 
+      MC, DIMER, MD, NEB, GOSOL,
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
-      DEVTEST, ADJUST, UMBRELLA, FEP, PATHOPT,
+      DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, EXCITON_BREAKUP,
       INTEFACE_CREATION, CENTER, COUPLINGS
-
     };
   };
 
@@ -87,44 +86,44 @@ namespace config
   static std::size_t const NUM_INPUT = 2;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
-  { 
-    "TINKER", "AMBER" 
+  {
+    "TINKER", "AMBER"
   };
 
   /*! contains enum with all input_types currently supported in CAST
    *
    * Those input_types are subsequently mapped using input_strings string[].
    */
-  struct input_types 
-  { 
+  struct input_types
+  {
     /*! contains all input_types currently supported in CAST
     */
-    enum T 
-    { 
-      ILLEGAL = -1, 
-      TINKER, AMBER 
-    }; 
+    enum T
+    {
+      ILLEGAL = -1,
+      TINKER, AMBER
+    };
   };
 
   /**number of Output Types*/
   static std::size_t const NUM_OUTPUT = 4;
   /**Output Types*/
   static std::string const output_strings[NUM_OUTPUT] =
-  { 
-    "TINKER", "XYZ", "MOLDEN", "ZMATRIX" 
+  {
+    "TINKER", "XYZ", "MOLDEN", "ZMATRIX"
   };
 
   /*! contains enum with all output_types currently supported in CAST
    *
    * Those output_types are subsequently mapped using output_strings string[].
    */
-  struct output_types 
-  { 
+  struct output_types
+  {
     /*! contains all output_types currently supported in CAST
     */
-    enum T 
+    enum T
     {
-      ILLEGAL = -1, 
+      ILLEGAL = -1,
       TINKER, XYZ, MOLDEN, ZMATRIX
     };
   };
@@ -132,18 +131,20 @@ namespace config
   /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 7;
   /**Interface Types*/
-  static std::string const 
+  static std::string const
     interface_strings[NUM_INTERFACES] =
+
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
+
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
    *
    * Those interface_types are subsequently mapped using interface_strings string[].
    */
-  struct interface_types 
-  { 
+  struct interface_types
+  {
     /*! contains all interface_types currently supported in CAST
     */
     enum T 
@@ -156,97 +157,48 @@ namespace config
   /**number of supported Mopac Versions*/
   static std::size_t const NUM_MOPAC_VERSION = 4;
   /**supported Mopac Versions*/
-  static std::string const 
-    mopac_ver_string[NUM_MOPAC_VERSION] = 
-  { 
-    "2012", "2012MT", "7", "AVOID_HB" 
+  static std::string const
+    mopac_ver_string[NUM_MOPAC_VERSION] =
+  {
+    "2012", "2012MT", "7", "AVOID_HB"
   };
 
   /*! contains enum with all MOPAC versions currently supported as energy interfaces in CAST
    *
    * Those interface versions are subsequently mapped using mopac_ver_string string[].
    */
-  struct mopac_ver_type 
-  { 
+  struct mopac_ver_type
+  {
     /*! contains all MOPAC versions currently supported in CAST
     */
-    enum T 
-    { 
-      ILLEGAL = -1, 
-      MOPAC2012, MOPAC2012MT, MOPAC7, MOPAC7_HB 
-    }; 
+    enum T
+    {
+      ILLEGAL = -1,
+      MOPAC2012, MOPAC2012MT, MOPAC7, MOPAC7_HB
+    };
   };
 
   /** number of Global optimization routines*/
   static std::size_t const NUM_GLOBOPT_ROUTINES = 2;
   /**Global optimization routines (TABUSEARCH, BASINHOPPING)*/
-  static std::string const 
+  static std::string const
     globopt_routines_str[NUM_GLOBOPT_ROUTINES] =
-  { 
-    "TS", "BH" 
+  {
+    "TS", "BH"
   };
 
   /*! contains enum with all global optimization routines currently supported in CAST
    *
    * Those routines are subsequently mapped using NUM_GLOBOPT_ROUTINES string[].
    */
-  struct globopt_routine_type 
+  struct globopt_routine_type
   {
     /*! contains all global optimization routines currently supported in CAST
     */
-    enum T 
-    { 
-      ILLEGAL = -1, 
-      TABUSEARCH, BASINHOPPING 
-    }; 
-  };
-
-
-
-
-
-  /**number of Implicit solvation method types (currently not supported)*/
-  static std::size_t const NUM_SOLV = 7;
-  /**Implicit solvation method types as strings (currently not supported)*/
-  static std::string const 
-    solv_strings[NUM_SOLV] =
-  { 
-    "VAC", "STILL", "HCT", "OBC", "GRYCUK", "ACE", "ONION" 
-  };
-  /*! contains enum with all implicit solvation methods (currently not supported)
-  *
-  * Those methods are subsequently mapped using NUM_SOLV string[].
-  */
-  struct solvs
-  {
-	  /*! contains all implicit solvation methods (currently not supported)
-	  */
-    enum S 
+    enum T
     {
-      ILLEGAL = -1, 
-      VAC, STILL, HCT, OBC, GRYCUK, ACE, ONION 
-    };
-  };
-  /**number of implicit solvation surface types (currently not supported)*/
-  static std::size_t const NUM_SURF = 3;
-  /**implicit solvation surface types as strings (currently not supported)*/
-  static std::string const 
-    surf_strings[NUM_SURF] =
-  { 
-    "TINKER", "SASASTILL", "GAUSS" 
-  };
-  /*! contains enum with all implicit solvation surface types (currently not supported)
-  *
-  * Those surface types are subsequently mapped using NUM_SURF string[].
-  */
-  struct surfs
-  {
-	  /*! contains all implicit solvation surface types (currently not supported)
-	  */
-    enum SA 
-    { 
-      ILLEGAL = -1, 
-      TINKER, SASASTILL, GAUSS 
+      ILLEGAL = -1,
+      TABUSEARCH, BASINHOPPING
     };
   };
 
@@ -284,23 +236,53 @@ namespace config
     interface_types::T preopt_interface;
     /**Verbosity of the output of CAST (supposed to be between 0 and 5)*/
     std::size_t verbosity;
-    /** Solvationmethod, implicit solvation currently not supported!*/
-    config::solvs::S solvationmethod;
-    /** Surfacemethod for implicit solvationd, implicit solvation currently not supported!*/
-    config::surfs::SA surfacemethod;
-	/**are amber charges read from a seperate file?*/
-	bool chargefile;
-    /**Constructor with reasonable default parameters*/
-	general(void) :
-		paramFilename("oplsaa.prm"), outputFilename("%i.out"),
-		input(input_types::TINKER), output(output_types::TINKER),
-		task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
-		preopt_interface(interface_types::ILLEGAL),
-		verbosity(1U),
-		solvationmethod(solvs::VAC), surfacemethod(surfs::TINKER), chargefile(false)
+    /**are amber charges read from a seperate file?*/
+    bool chargefile;
+
+    /// Constructor with reasonable default parameters
+    general(void) :
+      paramFilename("oplsaa.prm"), outputFilename("%i.out"),
+      input(input_types::TINKER), output(output_types::TINKER),
+      task(config::tasks::SP), energy_interface(interface_types::OPLSAA),
+      preopt_interface(interface_types::ILLEGAL),
+      verbosity(1U), chargefile(false)
     { }
   };
 
+  struct periodics
+  {
+    // Periodic Box
+    scon::c3<double> pb_box;
+    // Are Periodic bounddries on?
+    bool periodic;
+    // Print periodic dummy atoms
+    bool periodic_print;
+
+    // Cut out atoms out of box when using periodics before calculation
+    bool periodicCutout;
+    // Tolerance for cut
+    double cutout_distance_to_box;
+    //
+    unsigned int criterion;
+    periodics(void) :
+      pb_box(10.0, 10.0, 10.0), periodic(false), periodic_print(false), 
+      periodicCutout(false), cutout_distance_to_box(0.), criterion(0u)
+    {
+      if ((pb_box.x() <= cutout_distance_to_box
+        || pb_box.y() <= cutout_distance_to_box
+        || pb_box.z() <= cutout_distance_to_box) && periodicCutout)
+      {
+        throw std::runtime_error("Cutout distance cannot be bigger than box size for periodic boundries. Aborting.");
+      }
+    }
+  };
+
+  /*! Stream operator for config::periodics
+   *
+   * Prints configuration details for the current CAST run
+   * Contains: Information about periodic box and periodic cutout functionality,
+   */
+  std::ostream & operator << (std::ostream &, periodics const &);
 
   /*
   ########  ####    ###     ######
@@ -315,97 +297,95 @@ namespace config
   /**namespace for biased potentials*/
   namespace biases
   {
-	  /**additional potential on distance of given atoms*/
-     struct distance
-     {
-		 /**force constant*/
-		 double force;
-		 /**ideal distance*/
-		 double ideal;
-		 /**???*/
-		 double value;
-		 /**number of one atom*/
-		 std::size_t a;
-		 /**number of the other atom*/
-		 std::size_t b;
-		 /**constructor*/
-       distance(void)
-         : force(), ideal(), a(), b()
-       { }
-     };
-	 /**additional potential on angle between given atoms*/
-     struct angle
-     {
-		 /**force constant*/
-		 double force;
-		 /**ideal angle*/
-		 double ideal;
-		 /**???*/
-		 double value;
-		 /**number of one atom*/
-		 std::size_t a;
-		 /**number of next atom*/
-		 std::size_t b;
-		 /**number of the third atom*/
-		 std::size_t c;
-		 /**constructor*/
-       angle(void)
-         : force(), ideal(), a(), b()
-       { }
-     };
-	 /**additional potential on a given dihedral*/
-     struct dihedral
-     {
-		 /**force constant*/
-       double force;
-	   /**ideal dihedral angle*/
-	   ::coords::angle_type ideal;
-	   /**???*/
-	   ::coords::angle_type value;
-	   /**atom 1*/
-	   std::size_t a;
-	   /**atom 2*/
-	   std::size_t b;
-	   /**atom 3*/
-	   std::size_t c;
-	   /**atom 4*/
-	   std::size_t d;
-	   /**???*/
-       bool forward;
-	   /**constructor*/
-       dihedral(void)
-         : force(), ideal(), value(),
-         a(), b(), forward(false)
-       { }
-     };
-       /**sperical potential - prevents non-bonded systems from exploding*/
-     struct spherical
-     {
-		 /**distance to center where the additional potential starts*/
-		 double radius;
-		 /**force constant*/
-		 double force;
-		 /**exponent of the potential function, 2 for harmonic potential, 4 is also possible*/
-		 double exponent;
-		 /**constructor*/
-       spherical()
-         : radius(), force(), exponent()
-       { }
-     };
-     /**cubic potential (similar to spherical but cubic)*/
-     struct cubic
-     {
-		 /**???*/
-       ::coords::Cartesian_Point dim;
-	   /**force constant*/
-	   double force;
-	   /**exponent of the potential function*/
-	   double exponent;
-	   /**constructor*/
-       cubic()
-         : dim(), force(), exponent()
-       { }
-     };
+    /**additional potential on distance of given atoms*/
+    struct distance
+    {
+      /**force constant*/
+      double force;
+      /**ideal distance*/
+      double ideal;
+      /**???*/
+      double value;
+      /**number of one atom*/
+      std::size_t a;
+      /**number of the other atom*/
+      std::size_t b;
+      /**constructor*/
+      distance(void)
+        : force(), ideal(), a(), b()
+      { }
+    };
+    /**additional potential on angle between given atoms*/
+    struct angle
+    {
+      /**force constant*/
+      double force;
+      /**ideal angle*/
+      double ideal;
+      /**???*/
+      double value;
+      /**number of one atom*/
+      std::size_t a;
+      /**number of next atom*/
+      std::size_t b;
+      /**number of the third atom*/
+      std::size_t c;
+      /**constructor*/
+      angle(void)
+        : force(), ideal(), a(), b(), c()
+      { }
+    };
+    /**additional potential on a given dihedral*/
+    struct dihedral
+    {
+      /**force constant*/
+      double force;
+      /**ideal dihedral angle*/
+      ::coords::angle_type ideal;
+      /**???*/
+      ::coords::angle_type value;
+      /**atom 1*/
+      std::size_t a;
+      /**atom 2*/
+      std::size_t b;
+      /**atom 3*/
+      std::size_t c;
+      /**atom 4*/
+      std::size_t d;
+      /**constructor*/
+      dihedral(void)
+        : force(), ideal(), value(),
+        a(), b(), c(), d()
+      { }
+    };
+    /**sperical potential - prevents non-bonded systems from exploding*/
+    struct spherical
+    {
+      /** distance to center where the additional potential starts*/
+      double radius;
+      /** force constant */
+      double force;
+      /** exponent of the potential function, 2 for harmonic potential, 4 is also possible */
+      double exponent;
+      /**constructor*/
+      spherical()
+        : radius(), force(), exponent()
+      { }
+    };
+    /**cubic potential (similar to spherical but cubic)*/
+    struct cubic
+    {
+      /**size of cubic box as cartesian point*/
+      ::coords::Cartesian_Point dim;
+      /**force constant*/
+      double force;
+      /**exponent of the potential function*/
+      double exponent;
+      /**constructor*/
+      cubic()
+        : dim(), force(), exponent()
+      { }
+    };
   }
 
 
@@ -425,18 +405,18 @@ namespace config
     /**vector with amber charges (only filled if AMBER input is used or option chargefile is selected)*/
     std::vector<double> amber_charges;
 
-	  /**stuff for internal coordinates*/
+    /**stuff for internal coordinates*/
     struct internals
     {
-		/**???*/
+      /**???*/
       std::map<std::size_t, std::size_t> connect;
-	  /**dihedrals given here can't be main dihedrals*/
+      /**dihedrals given here can't be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_whitelist;
-	  /**dihedrals given here must be main dihedrals*/
+      /**dihedrals given here must be main dihedrals*/
       std::vector<std::pair<std::size_t, std::size_t>> main_blacklist;
     } internal;
 
-	/**stuff for umbrella sampling*/
+    /**stuff for umbrella sampling*/
     struct umbrellas
     {
       struct umbrella_tor
@@ -460,47 +440,49 @@ namespace config
       umbrellas(void) : steps(50), snap_offset(10) { }
 
     } umbrella;
-	/**biased potentials*/
+    /**biased potentials*/
+
     struct coord_bias
     {
-		/**biased potentials on distances*/
+      /**biased potentials on distances*/
       std::vector<biases::distance>  distance;
-	  /**biased potentials on angles*/
+      /**biased potentials on angles*/
       std::vector<biases::angle>     angle;
-	  /**biased potentials on dihedrals*/
+      /**biased potentials on dihedrals*/
       std::vector<biases::dihedral>  dihedral;
-	  /**spherical potential*/
+      /**spherical potential*/
       std::vector<biases::spherical> spherical;
-	  /**cubic potentials*/
+      /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
-	  /**biased pot on torsions for umbrella sampling*/
+      /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
-	  /**biased pot on bonds for umbrella sampling*/
+      /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
     } bias;
-	/**???*/
-    struct eqval
+
+
+    struct conditionsForStructuresToBeConsideredEqual
     {
-      double superposition;
-      ::coords::main_type main;
-      ::coords::internal_type intern;
-      ::coords::Cartesian_Point xyz;
-      eqval() :
+      double superposition; // every atom is 'superposed' by an atom with the same atomic number within this radius in angstroms
+      ::coords::main_type main; // none of the main torsions differ more then this
+      ::coords::internal_type intern; // no internal vector (bond, angle, dihedral) differs more than this
+      ::coords::Cartesian_Point xyz; // no xyz position differs more than this
+      conditionsForStructuresToBeConsideredEqual() :
         superposition(0.4), main(::coords::angle_type::from_deg(8.0)),
         intern(0.2, ::coords::angle_type::from_deg(1.0), ::coords::angle_type::from_deg(8.0)),
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-	/**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
-	/**vector with subsystems*/
+    /**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
-	/**are rotations where only hydrogens move counting for main dihedrals?*/
-	bool remove_hydrogen_rot;
-	/**are internals starting new with every molecule?*/
-	bool decouple_internals;
+    /**are rotations where only hydrogens move counting for main dihedrals?*/
+    bool remove_hydrogen_rot;
+    /**are internals starting new with every molecule?*/
+    bool decouple_internals;
 
-	/**constructor*/
+    /**constructor*/
     coords(void) :
       internal(), umbrella(), bias(), equals(), fixed(), subsystems(),
       remove_hydrogen_rot(true),
@@ -509,24 +491,6 @@ namespace config
 
   };
 
-
-  //
-  // TASK ADJUST
-  //
-
-  namespace adjust_conf
-  {
-    struct dihedral
-    {
-      std::size_t a, b, c, d;
-      ::coords::angle_type value;
-    };
-  }
-
-  struct adjust
-  {
-    std::vector<adjust_conf::dihedral> dihedrals;
-  };
 
   /*
     ######## ##    ## ######## ########   ######   ##    ##
@@ -546,15 +510,15 @@ namespace config
   {
 
     double cutoff, switchdist;
-    scon::c3<double> pb_box;
-    bool isotropic, pme, periodic, periodic_print, remove_fixed;
+
+    bool isotropic, remove_fixed;
 
 
     struct spack
     {
       bool on, interp;
       double cut;
-      spack(void) : on(false), interp(false),cut(10.0) { }
+      spack(void) : on(false), interp(false), cut(10.0) { }
     } spackman;
 
     struct mopac_conf
@@ -586,8 +550,8 @@ namespace config
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
-      pb_box(10.0, 10.0, 10.0), isotropic(true),
-      pme(false), periodic(false), periodic_print(false), remove_fixed(false),
+      isotropic(true),
+      remove_fixed(false),
       spackman(), mopac()
     { }
   };
@@ -615,76 +579,76 @@ namespace config
   /**namespace for MD options that need an own struct*/
   namespace md_conf
   {
-	/**integrator (velocity-verlet or beeman)*/
-    struct integrators { enum T { VERLET, BEEMAN}; };
+    /**integrator (velocity-verlet or beeman)*/
+    struct integrators { enum T { VERLET, BEEMAN }; };
 
-	/**options for spherical boundaries*/
+    /**options for spherical boundaries*/
     struct config_spherical
     {
-	    /**radius for starting the inner spherical potential*/
-		double r_inner;
-		/**radius for starting the outer spherical potential*/
-		double r_outer;
-		/**exponent for the inner spherical potential*/
-		double e1;
-		/**exponent for the outer spherical potential*/
-		double e2;
-		/**force constant for the inner spherical potential*/
-		double f1;
-		/**force constant for the outer spherical potential*/
-		double f2;
+      /**radius for starting the inner spherical potential*/
+      double r_inner;
+      /**radius for starting the outer spherical potential*/
+      double r_outer;
+      /**exponent for the inner spherical potential*/
+      double e1;
+      /**exponent for the outer spherical potential*/
+      double e2;
+      /**force constant for the inner spherical potential*/
+      double f1;
+      /**force constant for the outer spherical potential*/
+      double f2;
       /**true if spherical potential is applied, false if not*/
       bool use;
-	  /**constructor*/
+      /**constructor*/
       config_spherical(void) :
         r_inner(20.0), r_outer(20.1), e1(2.0), e2(4.0),
         f1(10.0), f2(10.0), use(false)
       { }
     };
 
-	/**contains information for one heatstep*/
+    /**contains information for one heatstep*/
     struct config_heat
     {
-	  /**temperature*/
+      /**temperature*/
       double raise;
-	  /**step number*/
+      /**step number*/
       std::size_t offset;
-	  /**constructor*/
+      /**constructor*/
       config_heat(void) : raise(10.0), offset(100u) { }
-	  /**overwritten operator <:
-	  returns true if < is true for step number (offset)*/
+      /**overwritten operator <:
+      returns true if < is true for step number (offset)*/
       friend bool operator< (config_heat const &a, config_heat const &b) { return (a.offset < b.offset); }
-	  /**overwritten operator >:
-	  returns true if > is true for step number (offset)*/
+      /**overwritten operator >:
+      returns true if > is true for step number (offset)*/
       friend bool operator> (config_heat const &a, config_heat const &b) { return operator<(b, a); }
     };
 
-	/**contains information for rattle algorithm*/
+    /**contains information for rattle algorithm*/
     struct config_rattle
     {
-	  /**contains information for one rattle bond*/
+      /**contains information for one rattle bond*/
       struct rattle_constraint_bond
       {
-		/**ideal bond length (from parameter file)*/
+        /**ideal bond length (from parameter file)*/
         double len;
-		/**number of H-atom a (number from tinker file - 1)*/
-		std::size_t a;
-		/**number of atom b (number from tinker file - 1)*/
-		std::size_t b;
+        /**number of H-atom a (number from tinker file - 1)*/
+        std::size_t a;
+        /**number of atom b (number from tinker file - 1)*/
+        std::size_t b;
       };
-	  /**???*/
+      /**???*/
       std::size_t num_iter;
-	  /**???*/
+      /**???*/
       double tolerance;
-	  /**vectors of bonds that should be constrained*/
+      /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;
-	  /**true if rattle algorithm is applied, false if not*/
-	  bool use;
-	  /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
-	  bool all;
-	  /**name of parameter file where bond lengths for constrained bonds are taken from*/
+      /**true if rattle algorithm is applied, false if not*/
+      bool use;
+      /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
+      bool all;
+      /**name of parameter file where bond lengths for constrained bonds are taken from*/
       std::string ratpar;
-	  /**constructor*/
+      /**constructor*/
       config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
       { }
     };
@@ -692,84 +656,84 @@ namespace config
 
   struct molecular_dynamics
   {
-	  /**timestep in picoseconds*/
-	  double timeStep;
-	  /**initial temperature*/
-	  double T_init;
-	  /**final temperature*/
-	  double T_final;
-	  /**start MD again from beginning if molecule gets destroyed yes or no*/
-	  int broken_restart;
+    /**timestep in picoseconds*/
+    double timeStep;
+    /**initial temperature*/
+    double T_init;
+    /**final temperature*/
+    double T_final;
+    /**start MD again from beginning if molecule gets destroyed yes or no*/
+    int broken_restart;
 
-	  //pressure things
-	  double pcompress, pdelay, ptarget;
+    //pressure things
+    double pcompress, pdelay, ptarget;
 
     // Options for biased MD
-	/**1 if a biased potential around an active site is applied, 0 if not*/
-	std::size_t set_active_center;
-	/**1 if the active site and the distances to the active site should be calculated new every step,
-	0 if they should be calculated only once at the beginning of the simulation*/
-	std::size_t adjustment_by_step;
-	/**distance of inner cutoff for biased potential in angstrom*/
-	double inner_cutoff;
-	/**distance of outer cutoff for biased potential in angstrom*/
-	double outer_cutoff;
-	/**vector of atoms (tinker atom-numbers) that define the active site
-	coordinates of active site are calculated as geometrical center*/
+  /**1 if a biased potential around an active site is applied, 0 if not*/
+    std::size_t set_active_center;
+    /**1 if the active site and the distances to the active site should be calculated new every step,
+    0 if they should be calculated only once at the beginning of the simulation*/
+    std::size_t adjustment_by_step;
+    /**distance of inner cutoff for biased potential in angstrom*/
+    double inner_cutoff;
+    /**distance of outer cutoff for biased potential in angstrom*/
+    double outer_cutoff;
+    /**vector of atoms (tinker atom-numbers) that define the active site
+    coordinates of active site are calculated as geometrical center*/
     std::vector<unsigned> active_center;
-    
-	/**number of MD steps*/
-	std::size_t num_steps;
-	/**number of snapshots*/
-	std::size_t num_snapShots;
-	/**number of snapshots in memory before written to file*/
-	std::size_t max_snap_buffer;
-	/**after this number of steps the list of non-bonded interactions is generated new*/
-	std::size_t refine_offset;
-	/**after this number of steps a restart file is generated*/
-	std::size_t restart_offset;
-	/**each trackoffset'th step is written to trace file*/
-	std::size_t trackoffset;
+
+    /**number of MD steps*/
+    std::size_t num_steps;
+    /**number of snapshots*/
+    std::size_t num_snapShots;
+    /**number of snapshots in memory before written to file*/
+    std::size_t max_snap_buffer;
+    /**after this number of steps the list of non-bonded interactions is generated new*/
+    std::size_t refine_offset;
+    /**after this number of steps a restart file is generated*/
+    std::size_t restart_offset;
+    /**each trackoffset'th step is written to trace file*/
+    std::size_t trackoffset;
 
     // Umbrella Sampling
     std::size_t usoffset, usequil;
 
-	/**vector of heatsteps:
-	each MDheat option is saved into one element of this vector*/
+    /**vector of heatsteps:
+    each MDheat option is saved into one element of this vector*/
     std::vector<md_conf::config_heat> heat_steps;
-	/**contains options for spherical boundaries if applied,
-	otherwise the information that no spherical boundaries are applied*/
+    /**contains options for spherical boundaries if applied,
+    otherwise the information that no spherical boundaries are applied*/
     md_conf::config_spherical spherical;
-	/**contains information for rattle algorithm*/
+    /**contains information for rattle algorithm*/
     md_conf::config_rattle rattle;
-	/**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
+    /**integrator that is used: VERLET (velocity-verlet) or BEEMAN (beeman) */
     md_conf::integrators::T integrator;
-	/**Nosé-Hoover thermostat yes or no*/
-	bool hooverHeatBath;
-	/**remove translation and rotation after every step*/
-	bool veloScale;
-	/**free energy perturbation calculation yes or no*/
-	bool fep;
-	/**activate tracking yes or no*/
-	bool track;
-	/**perform local optimization with snapshots before they are written into file yes or no*/
-	bool optimize_snapshots;
-	/**pressure control yes or no?*/
-	bool pressure;
-	/**use a restart file for starting MD yes or no (does currently not work)*/
-	bool resume;
-	/**perform an umbrella sampling yes or no*/
-	bool umbrella;
-	/**perform local optimization before starting simulation yes or no*/
-	bool pre_optimize;
-	/**constructor*/
+    /**Nosï¿½-Hoover thermostat yes or no*/
+    bool hooverHeatBath;
+    /**remove translation and rotation after every step*/
+    bool veloScale;
+    /**free energy perturbation calculation yes or no*/
+    bool fep;
+    /**activate tracking yes or no*/
+    bool track;
+    /**perform local optimization with snapshots before they are written into file yes or no*/
+    bool optimize_snapshots;
+    /**pressure control yes or no?*/
+    bool pressure;
+    /**use a restart file for starting MD yes or no (does currently not work)*/
+    bool resume;
+    /**perform an umbrella sampling yes or no*/
+    bool umbrella;
+    /**perform local optimization before starting simulation yes or no*/
+    bool pre_optimize;
+    /**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
       pcompress(0.000046), pdelay(2.0), ptarget(1.0),
       num_steps(10000), num_snapShots(100), max_snap_buffer(50),
       refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
-      integrator(md_conf::integrators::VERLET), 
+      integrator(md_conf::integrators::VERLET),
       hooverHeatBath(false), veloScale(false), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
@@ -780,25 +744,25 @@ namespace config
   /**contains information about FEP calculation if performed*/
   struct fep
   {
-	  /**final value for order parameter lambda,
-	  no need to set it to a value other than 1*/
-	  double lambda;
-	  /**size of the FEP windows*/
-	  double dlambda;
-	  /**controls lambda value for vdw-coupling*/
-	  double vdwcouple;
-	  /**controls lambda value for electrostatic coupling*/
-	  double eleccouple;
-	  /**value for vdw shifting parameter (softcore potential)*/
-	  double ljshift;
-	  /**value for coulomb shifting parameter (softcore potential)*/
-	  double cshift;
-	  /**number of MD steps in production run for every window*/
-	  std::size_t steps;
-	  /**number of MD steps in equilibration run for every window*/
-	  std::size_t equil;
-	  /**output frequency in alchemical.txt (does not affect calculation)*/
-	  std::size_t freq;
+    /**final value for order parameter lambda,
+    no need to set it to a value other than 1*/
+    double lambda;
+    /**size of the FEP windows*/
+    double dlambda;
+    /**controls lambda value for vdw-coupling*/
+    double vdwcouple;
+    /**controls lambda value for electrostatic coupling*/
+    double eleccouple;
+    /**value for vdw shifting parameter (softcore potential)*/
+    double ljshift;
+    /**value for coulomb shifting parameter (softcore potential)*/
+    double cshift;
+    /**number of MD steps in production run for every window*/
+    std::size_t steps;
+    /**number of MD steps in equilibration run for every window*/
+    std::size_t equil;
+    /**output frequency in alchemical.txt (does not affect calculation)*/
+    std::size_t freq;
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
@@ -1050,20 +1014,20 @@ namespace config
   struct neb
   {
     std::string FINAL_STRUCTURE, OPTMODE;
-    double SPRINGCONSTANT, TEMPERATURE, MCSTEPSIZE, BIASCONSTANT, 
-           VARIATION, PO_ENERGY_RANGE, BOND_PARAM, INT_IT;
-    std::size_t IMAGES, MCITERATION, GLOBALITERATION, 
-                CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
-    bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, 
-         MIXED_MOVE, INT_PATH, CLIMBING, IDPP,MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS;
+    double SPRINGCONSTANT, TEMPERATURE, MCSTEPSIZE, BIASCONSTANT,
+      VARIATION, PO_ENERGY_RANGE, BOND_PARAM, INT_IT;
+    std::size_t IMAGES, MCITERATION, GLOBALITERATION,
+      CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
+    bool NEB_CONN, CONSTRAINT_GLOBAL, TAU,
+      MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS;
     neb() :
       OPTMODE("PROJECTED"),
       SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
-      BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0), 
+      BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
       BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
       GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
-      NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), 
-      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false),MULTIPLE_POINTS(false)
+      NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false),
+      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false)
     {}
   };
 
@@ -1107,14 +1071,15 @@ namespace config
     std::vector<size_t> pca_trunc_atoms_num;
     std::vector<size_t> pca_internal_dih;
     std::vector<size_t> pca_dimensions_for_histogramming;
+    bool pca_histogram_all_marginal_degrees_of_freedom;
     std::vector<double> proc_desired_start;
     std::vector<double> proc_desired_stop;
 
     PCA(void) : pca_alignment(true), pca_ref_frame_num(0u), pca_start_frame_num(0u), pca_read_vectors(false), pca_read_modes(false),
-       pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
-      pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u), 
+      pca_use_internal(false), pca_trunc_atoms_bool(false), pca_ignore_hydrogen(false),
+      pca_print_probability_density(true), pca_histogram_width(0.), pca_histogram_number_of_bins(32u), pca_offset(1u),
       pca_trunc_atoms_num(), pca_internal_dih(), pca_dimensions_for_histogramming(std::vector<size_t>{1u, 2u}),
-      proc_desired_start(), proc_desired_stop()
+      pca_histogram_all_marginal_degrees_of_freedom(false), proc_desired_start(), proc_desired_stop()
 
     {}
   };
@@ -1159,32 +1124,6 @@ namespace config
     io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
   };
 
-  /*
-
-      GBSA
-
-  */
-
-  namespace gbsa_conf
-  {
-    struct method_types { enum T { VAC = -1, STILL = 0, HCT, OBC, GRYCUK, ACE, ONION, METHODNUM }; };
-    struct surface_types { enum T { TINKER, SASASTILL, GAUSS, SURFACESNUM }; };
-    struct radius_types { enum T { STD, VDW }; };
-
-  }
-
-  struct generalized_born
-  {
-    gbsa_conf::method_types::T method_type;
-    gbsa_conf::surface_types::T surface_type;
-    gbsa_conf::radius_types::T radius_type;
-    generalized_born() :
-      method_type(gbsa_conf::method_types::STILL),
-      surface_type(gbsa_conf::surface_types::TINKER),
-      radius_type(gbsa_conf::radius_types::STD)
-    {}
-  };
-
   struct exbreak
   {
 	  std::string masscenters; //Filename
@@ -1220,7 +1159,6 @@ namespace config
                 nSCmultipl, nSCcharge, nSCmethod,
                 hetmultipl, hetcharge, hetmethod;
   };
-
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1317,9 +1255,9 @@ namespace config
   /*! Stream operator for config::eqval
    *
    * Prints reasoning for considering two structures
-   * equal (important for TaboSearch etc.)
+   * equal (important for TabuSearch etc.)
    */
-  std::ostream & operator << (std::ostream &, coords::eqval const &);
+  std::ostream & operator << (std::ostream &, coords::conditionsForStructuresToBeConsideredEqual const &);
 
   /*! Stream operator for config::coords
    *
@@ -1341,10 +1279,10 @@ namespace config
 
 }
 
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
+//////////////////////////////////////
+//////////////////////////////////////
+//////////////////////////////////////
+//////////////////////////////////////
 
 /*! Class containing the global configuration options
  *
@@ -1367,8 +1305,6 @@ public:
   config::molecular_dynamics    md;
   config::dimer                 dimer;
   config::neb					          neb;
-  config::generalized_born      gbsa;
-  config::adjust                adjustment;
   config::align			            alignment;
   config::PCA					          PCA;
   config::entropy				        entropy;
@@ -1377,6 +1313,7 @@ public:
   config::interfcrea            interfcrea;
   config::center                center;
   config::couplings             couplings;
+  config::periodics             periodics;
 
   /*! Constructor of Config object
    *
@@ -1414,7 +1351,7 @@ public:
   * This set() function is used to alter
   * the contents of the global Config instance
   *
-  * This function returns a non-const reference 
+  * This function returns a non-const reference
   * and can therefore be used to change values.
   * To merely obtain read-access, use get() function.
   */
@@ -1461,24 +1398,6 @@ public:
    * @param S: output-type as string
    */
   static config::output_types::T     getOutFormat(std::string const&);
-
-  /*
-   * Helper function that matches an solvation type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::solv_strings
-   *
-   * @param S: solvation-type as string
-   */
-  static config::solvs::S            getSolv(std::string const&);
-
-  /*
-   * Helper function that matches an solvation surface type
-   * as string to the corresponding enum via
-   * the sorted "helper-array" config::surf_strings
-   *
-   * @param S: surface-type as string
-   */
-  static config::surfs::SA           getSurf(std::string const&);
 
 private:
 

@@ -4,7 +4,10 @@
 #pragma once
 
 #include <cstddef>
-
+#include <string>
+#include <cstddef>
+#include <utility>
+#include <deque>
 #include "coords_rep.h"
 #include "scon_matrix.h"
 
@@ -250,7 +253,7 @@ namespace coords
     std::vector<Atom> m_atoms;
     // the systems the atoms are grouped into
     size_2d m_sub_systems, m_molecules;
-    // indices of the internal bonds/angles/torsions that are "main"
+    // internal indices of the internal torsions that are "main"
     size_1d main_bond_indices, main_angle_indices, main_torsion_indices;
     // subsystem index "incoming" and "outgoing"
     std::size_t m_sub_in_index, m_sub_out_index;
@@ -259,14 +262,13 @@ namespace coords
 
     // subsystem helper stuff
     void refine_subsystems();
+
     // internal helper stuff
     void refine_internals();
     void get_relatives(std::size_t const i, std::size_t const b);
     void append_atoms(std::size_t const lvl, std::size_t const A, size_1d &molecule, 
-      std::size_t &index_size, std::vector<bool> &done);
+      std::size_t &index_size, std::deque<bool> &done);
     //void refine_followups();
-    void refine_torsions();
-    bool atom_fixed;
 
     // New stuff
     void refine_mains();
@@ -274,7 +276,6 @@ namespace coords
     bool common_torsion_axis(std::size_t a, std::size_t b, bool & direction) const;
     std::size_t atom_by_intern(std::size_t index) const { return m_atoms[index].i_to_a(); }
     bool common_bond(std::size_t a, std::size_t b) const;
-    void add_main_idihedral(std::size_t index);
 
     Cartesian_Point rel_xyz(std::size_t const index, Representation_3D const & xyz) const;
 
@@ -284,7 +285,13 @@ namespace coords
       : m_sub_in_index(0U), m_sub_out_index(0U),
       m_sub_io(false), m_in_exists(false), m_out_exists(false)
     { }
-    std::vector<Atom>::size_type size() const { return m_atoms.size(); }
+    /*
+     * Returns number of atoms in coords object
+     */
+    std::vector<Atom>::size_type size() const 
+    { 
+      return m_atoms.size(); 
+    }
     void swap(Atoms&);
 
     std::vector<Atom>::iterator begin() { return m_atoms.begin(); }
@@ -300,8 +307,8 @@ namespace coords
     Atom & atom(std::size_t index) { return m_atoms[index]; }
     Atom const & atom(std::size_t index) const { return m_atoms[index]; }
     size_2d const & molecules() const { return m_molecules; }
-    size_1d const & molecules(std::size_t index) const { return m_molecules[index]; }
-    std::size_t const & molecules(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
+    size_1d const & molecule(std::size_t index) const { return m_molecules[index]; }
+    std::size_t const & atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
     void refine();
     // subsystem stuff
     size_2d const & subsystems() const { return m_sub_systems; }
@@ -310,12 +317,14 @@ namespace coords
     bool out_exists() const { return m_out_exists; }
     std::size_t sub_in() const { return m_sub_in_index; }
     std::size_t sub_out() const { return m_sub_out_index; }
+    // Matrix mit indices geh�rig zu PESpoint::sub_ia_matrix_t interaction matrix
     std::size_t sub_ia_index() const { return scon::triangularIndex<true>(m_sub_in_index, m_sub_out_index); }
     bool sub_io() const { return m_sub_io; }
+    // Sagt mir ob a out und b in ist oder vice versa
     bool sub_io_transition(std::size_t a, std::size_t b) const;
     //bool valid_sub_ia (std::size_t a, std::size_t b) const { return }
 
-    // internal stuff
+    // internal stuff, index is main, what is the internal index?
     std::size_t intern_of_main_idihedral(std::size_t index) const { return main_torsion_indices[index]; }
     size_1d const & mains() const { return main_torsion_indices; }
 
@@ -336,6 +345,7 @@ namespace coords
     size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;
     void fix_all(bool const fix_it = true);
     void fix(std::size_t const atom, bool const fix_it = true);
+    // @todo document return vlaue
     std::size_t intern_of_dihedral(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
     friend std::ostream& operator<< (std::ostream &stream, Atoms const & atoms);
   };

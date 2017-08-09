@@ -28,6 +28,21 @@ optional_files/project/CAST.make
 /manual/texput.log
 /manual/castmanual.synctex.gz
 
+/manual/Tutorial/LaTeX/*-blx.bib
+/manual/Tutorial/LaTeX/*.bcf
+/manual/Tutorial/LaTeX/*.aux
+/manual/Tutorial/LaTeX/*.bbl
+/manual/Tutorial/LaTeX/*.blg
+/manual/Tutorial/LaTeX/*.pdf
+/manual/Tutorial/LaTeX/*.lof
+/manual/Tutorial/LaTeX/*.log
+/manual/Tutorial/LaTeX/*.out
+/manual/Tutorial/LaTeX/*.run.xml
+/manual/Tutorial/LaTeX/*.synctex
+/manual/Tutorial/LaTeX/*.toc
+/manual/Tutorial/LaTeX/*.synctex.gz
+
+
 examples/taskMD/*
 !examples/taskMD/*.rar
 examples/taskFEP/*

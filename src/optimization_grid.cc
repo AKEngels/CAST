@@ -89,8 +89,10 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
       std::cout << std::setprecision(Config::get().optimization.global.precision);
       std::cout << std::showpoint << std::scientific << coordobj.pes().energy;
     }
-    if (coordobj.preoptimize()) coordobj.po();
-    double ene = coordobj.o();
+    if (coordobj.preoptimize()) 
+      coordobj.po();
+
+    const double energy = coordobj.o();
     coordobj.to_internal();
     coordobj.to_xyz();
     min_status::T const status(check_pes_of_coords());
@@ -98,7 +100,7 @@ bool optimization::global::optimizers::main_grid::run(std::size_t const iteratio
     {
       std::cout << std::setw(Config::get().optimization.global.precision + 10) << std::right;
       std::cout << std::setprecision(Config::get().optimization.global.precision);
-      std::cout << std::showpoint << std::scientific << ene;
+      std::cout << std::showpoint << std::scientific << energy;
       std::cout << status;
       std::cout << std::setw(8) << std::left << accepted_minima.size();
       std::cout << std::setw(8) << std::left << range_minima.size();

@@ -36,25 +36,6 @@ config::output_types::T Config::getOutFormat(std::string const & S)
   return config::output_types::ILLEGAL;
 }
 
-config::solvs::S Config::getSolv(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SOLV; ++i)
-  {
-    if (S.find(config::solv_strings[i]) != S.npos)
-      return static_cast<config::solvs::S>(i);
-  }
-  return config::solvs::VAC;
-}
-
-config::surfs::SA Config::getSurf(std::string const & S)
-{
-  for (std::size_t i = 0; i < config::NUM_SURF; ++i)
-  {
-    if (S.find(config::surf_strings[i]) != S.npos)
-      return static_cast<config::surfs::SA>(i);
-  }
-  return config::surfs::TINKER;
-}
 
 /*
 
@@ -343,19 +324,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().energy.cutoff;
     Config::set().energy.cutoff = Config::get().energy.cutoff < 9.0 ? 10.0 : Config::get().energy.cutoff;
-    if (Config::get().energy.periodic)
+    if (Config::get().periodics.periodic)
     {
-      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
-      if (min_cut > 9.0) Config::set().energy.cutoff = min_cut;
+      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
+      if (min_cut > 9.0) 
+        Config::set().energy.cutoff = min_cut;
     }
     Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
-  }
-  // Turn particle mesh ewald on
-  // CURRENTLY OUT OF ORDER
-  // Default: Off
-  else if (option == "PME")
-  {
-    cv >> Config::set().energy.pme;
   }
 
   // Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
@@ -391,21 +366,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().general.task = static_cast<config::tasks::T>(identifier);
       }
     }
-  }
-
-  //! Methods for implicit solvation
-
-  // Method for solvation
-  // Default: VAC (i guess vacuum?)
-  else if (option == "solvmethod")
-  {
-    config::solvs::S solvmethod(Config::getSolv(value_string));
-    Config::set().general.solvationmethod = solvmethod;
-  }
-  else if (option == "surface")
-  {
-    config::surfs::SA surfmethod(Config::getSurf(value_string));
-    Config::set().general.surfacemethod = surfmethod;
   }
 
   // Output type for structures
@@ -859,22 +819,36 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 9) == "Periodics")
   {
-    Config::set().energy.periodic = bool_from_iss(cv);
-    if (cv >> Config::set().energy.pb_box.x()
-      && cv >> Config::set().energy.pb_box.y()
-      && cv >> Config::set().energy.pb_box.z() )
+    Config::set().periodics.periodic = bool_from_iss(cv, option.substr(0, 9));
+    if (cv >> Config::set().periodics.pb_box.x()
+      && cv >> Config::set().periodics.pb_box.y()
+      && cv >> Config::set().periodics.pb_box.z() )
     {
-      double const min_cut(min(abs(Config::get().energy.pb_box)) / 2.0);
-      if (Config::set().energy.periodic
+      double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
+      if (Config::set().periodics.periodic
         && Config::get().energy.cutoff > min_cut)
       {
         Config::set().energy.cutoff = min_cut;
+        Config::set().energy.switchdist = Config::get().energy.cutoff - std::min(1./10. * min_cut, 4.0);
+
       }
     }
   }
   else if (option.substr(0, 9) == "Periodicp")
   {
-    Config::set().energy.periodic_print = bool_from_iss(cv);
+    Config::set().periodics.periodic_print = bool_from_iss(cv, option.substr(0, 9));
+  }
+  else if (option.substr(0, 15) == "PeriodicCutout")
+  {
+    Config::set().periodics.periodicCutout = bool_from_iss(cv, option.substr(0, 15));
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutCriterion")
+  {
+    cv >> Config::set().periodics.criterion;
+  }
+  else if (option.substr(0, 23) == "PeriodicCutoutDistance")
+  {
+    cv >> Config::set().periodics.cutout_distance_to_box;
   }
 
   else if (option.substr(0, 3) == "FEP")
@@ -1103,41 +1077,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   //! Fixation excluding
   else if (option.substr(0, 10) == "FIXexclude")
   {
-    Config::set().energy.remove_fixed = bool_from_iss(cv);
+    Config::set().energy.remove_fixed = bool_from_iss(cv, option.substr(0, 10));
   }
   //! Fixation 
   else if (option.substr(0, 8) == "FIXrange")
   {
-    std::size_t start(0), end(0);
-    if (cv >> start && cv >> end && start > 0 && end > start)
-    {
-      for (std::size_t a(start - 1u); a < end; ++a)
-      {
-        //std::cout << "RangeFIXING: " << a << "\n";
-        scon::sorted::insert_unique(Config::set().coords.fixed, a);
-      }
-    }
-  }
-
-  else if (option.substr(0, 7) == "ATOMFIX")
-  {
-    auto fixed = from_iss<std::size_t>(cv) - 1u;
-    //std::cout << "ATOMIXing: " << fixed << "\n";
-    scon::sorted::insert_unique(Config::set().coords.fixed, fixed);
-  }
-
-  else if (option.substr(0, 5) == "ADJUST")
-  {
-    if (option.substr(5, 3) == "dih")
-    {
-      config::adjust_conf::dihedral ald;
-      if (cv >> ald.a && cv >> ald.b
-        && cv >> ald.c && cv >> ald.d && cv >> ald.value)
-      {
-        --ald.a; --ald.b; --ald.c; --ald.d;
-        Config::set().adjustment.dihedrals.push_back(ald);
-      }
-    }
+    std::vector<size_t> indicesFromString = sorted_indices_from_cs_string(value_string);
+    Config::set().coords.fixed = indicesFromString;
   }
 
   //! Connect two atoms internally
@@ -1149,7 +1095,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().coords.internal.connect[a] = b;
       Config::set().coords.internal.connect[b] = a;
     }
-    Config::set().energy.remove_fixed = bool_from_iss(cv);
   }
   else if (option.substr(0u, 4u) == "MAIN")
   {
@@ -1178,7 +1123,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 10) == "REMOVEHROT")
   {
-    Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv);
+    Config::set().coords.remove_hydrogen_rot = bool_from_iss(cv, option.substr(0, 10));
   }
 
   else if (option.substr(0, 4) == "BIAS")
@@ -1196,7 +1141,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
 
-
     else if (option.substr(4, 5) == "cubic")
     {
 
@@ -1209,7 +1153,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().coords.bias.cubic.push_back(buffer);
       }
     }
-
 
     else if (option.substr(4, 3) == "dih")
     {
@@ -1224,7 +1167,6 @@ void config::parse_option(std::string const option, std::string const value_stri
         --biasBuffer.b;
         --biasBuffer.c;
         --biasBuffer.d;
-        biasBuffer.forward = bool_from_iss(cv);
         Config::set().coords.bias.dihedral.push_back(biasBuffer);
       }
     }
@@ -1266,7 +1208,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.subsystems.push_back(std::move(ssi));
   }
 
-  // D U S T I N S T U F F 
 
   //Trajectory Alignment and Analasys options
   else if (option == "dist_unit")
@@ -1277,10 +1218,6 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().alignment.holm_sand_r0;
   }
-  //else if (option == "cdist_cutoff")
-  //{
-    //cv >> Config::set().alignment.cdist_cutoff;
-  //}
   else if (option == "ref_frame_num")
   {
     cv >> Config::set().alignment.reference_frame_num;
@@ -1398,7 +1335,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_trunc_atoms_num")
   {
-    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().PCA.pca_trunc_atoms_num = configuration_range_int<size_t>(holder);
   }
   else if (option == "pca_start_frame_num")
   {
@@ -1414,7 +1359,15 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_internal_dih" && Config::get().PCA.pca_use_internal)
   {
-    Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().PCA.pca_internal_dih = configuration_range_int<size_t>(holder);
   }
   else if (option == "pca_ignore_hydrogen")
   {
@@ -1452,7 +1405,18 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "pca_dimensions_for_histogramming")
   {
-    Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    if (holder.at(0u) != "all")
+      Config::set().PCA.pca_dimensions_for_histogramming = configuration_range_int<size_t>(holder);
+    else
+      Config::set().PCA.pca_histogram_all_marginal_degrees_of_freedom = true;
   }
   else if (option == "proc_desired_start")
   {
@@ -1506,15 +1470,39 @@ void config::parse_option(std::string const option, std::string const value_stri
   }
   else if (option == "entropy_trunc_atoms_num" && Config::get().entropy.entropy_trunc_atoms_bool)
   {
-    Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_trunc_atoms_num = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_internal_dih" && Config::get().entropy.entropy_use_internal)
   {
-    Config::set().entropy.entropy_internal_dih = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_internal_dih = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_method")
   {
-    Config::set().entropy.entropy_method = configuration_range_int<size_t>(cv);
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropy.entropy_method = configuration_range_int<size_t>(holder);
   }
   else if (option == "entropy_method_knn_k")
   {
@@ -1854,7 +1842,7 @@ std::ostream & config::operator << (std::ostream &strm, general const &g)
   return strm;
 }
 
-std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equals)
+std::ostream & config::operator<< (std::ostream &strm, coords::conditionsForStructuresToBeConsideredEqual const &equals)
 {
   strm << "Two structures will be considered to be equal if either\n";
   strm << " - none of the main torsions differ more then " << equals.main << ", or\n";
@@ -1865,43 +1853,43 @@ std::ostream & config::operator<< (std::ostream &strm, coords::eqval const &equa
   return strm;
 }
 
-std::ostream & config::operator<< (std::ostream &strm, coords const &p)
+std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
 {
-  if (p.remove_hydrogen_rot)
+  if (coords_in.remove_hydrogen_rot)
   {
     strm << "The torsional rotation of a hydrogen atom "
       << "will not be considered as main torsion.\n";
   }
-  if (!p.internal.main_blacklist.empty() && p.internal.main_whitelist.empty())
+  if (!coords_in.internal.main_blacklist.empty() && coords_in.internal.main_whitelist.empty())
   {
     strm << "Torsional rotation axes ";
     std::size_t k = 1;
-    for (auto const & po : p.internal.main_blacklist)
+    for (auto const & po : coords_in.internal.main_blacklist)
     {
       strm << (k == 1 ? (k % 10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
       ++k;
     }
-    strm << (p.internal.main_blacklist.size() > 1 ? " are" : " is")
+    strm << (coords_in.internal.main_blacklist.size() > 1 ? " are" : " is")
       << " are not considered as main torsions.\n";
   }
-  else if (!p.internal.main_whitelist.empty())
+  else if (!coords_in.internal.main_whitelist.empty())
   {
-    strm << "Torsional rotation around ax" << (p.internal.main_whitelist.size() > 1 ? "es " : "is ");
+    strm << "Torsional rotation around ax" << (coords_in.internal.main_whitelist.size() > 1 ? "es " : "is ");
     std::size_t k = 1;
-    for (auto const & po : p.internal.main_whitelist)
+    for (auto const & po : coords_in.internal.main_whitelist)
     {
       strm << (k == 1 ? (k % 10 == 0 ? ",\n" : "") : ", ") << po.first << "-" << po.second;
       ++k;
     }
-    strm << (p.internal.main_whitelist.size() > 1 ? " are" : " is")
+    strm << (coords_in.internal.main_whitelist.size() > 1 ? " are" : " is")
       << " exclusively considered for main torsions.\n";
   }
-  if (!p.fixed.empty())
+  if (! coords_in.fixed.empty())
   {
-    auto const fsi = p.fixed.size();
+    auto const fsi = coords_in.fixed.size();
     if (fsi == 1)
     {
-      strm << "1 atom will be fixed: " << p.fixed.front() << '\n';
+      strm << "1 atom will be fixed: " << coords_in.fixed.front() << '\n';
     }
     else
     {
@@ -1910,14 +1898,14 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
       auto const fsim1 = fsi - 1u;
       while (last < fsi)
       {
-        while (last < fsim1 && p.fixed[last + 1u] == (p.fixed[last] + 1u)) { ++last; }
+        while (last < fsim1 && coords_in.fixed[last + 1u] == (coords_in.fixed[last] + 1u)) { ++last; }
         if (last > first)
         {
-          strm << " [" << p.fixed[first] + 1 << " to " << p.fixed[last] + 1 << "]";
+          strm << " [" << coords_in.fixed[first] + 1 << " to " << coords_in.fixed[last] + 1 << "]";
         }
         else
         {
-          strm << " " << p.fixed[first] + 1;
+          strm << " " << coords_in.fixed[first] + 1;
         }
         ++last;
         first = last;
@@ -1926,57 +1914,57 @@ std::ostream & config::operator<< (std::ostream &strm, coords const &p)
     }
   }
 
-  if (Config::get().general.task == tasks::UMBRELLA && (!p.umbrella.torsions.empty() || !p.umbrella.distances.empty()))
+  if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
   {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << p.umbrella.snap_offset << " steps.\n";
-    if (!p.umbrella.torsions.empty())
+    strm << "Umbrella Sampling with " << " steps and snapshots every " << coords_in.umbrella.snap_offset << " steps.\n";
+    if (!coords_in.umbrella.torsions.empty())
     {
       strm << "Umbrella torsions:\n";
-      for (auto const & torsion : p.umbrella.torsions)
+      for (auto const & torsion : coords_in.umbrella.torsions)
       {
         strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
         strm << ". Start: " << " - End: " << ". Step: " << ". \n";
       }
     }
-    if (!p.umbrella.distances.empty())
+    if (!coords_in.umbrella.distances.empty())
     {
       strm << "Umbrella distances:\n";
-      for (auto const & dist : p.umbrella.distances)
+      for (auto const & dist : coords_in.umbrella.distances)
       {
         strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
       }
     }
   }
 
-  for (auto const & torsion : p.bias.dihedral)
+  for (auto const & torsion : coords_in.bias.dihedral)
   {
     strm << "Dihedral " << torsion.a + 1 << "->" << torsion.b + 1 << "->";
     strm << torsion.c + 1 << "->" << torsion.d + 1 << " will be forced to be ";
     strm << torsion.ideal << " deg with force =  " << torsion.force << ".\n";
   }
 
-  for (auto const & dist : p.bias.distance)
+  for (auto const & dist : coords_in.bias.distance)
   {
     strm << "Distance " << dist.a << "<->" << dist.b;
     strm << " will be forced to be ";
     strm << dist.ideal << " A. Force =  " << dist.force << "\n";
   }
 
-  for (auto const & angle : p.bias.angle)
+  for (auto const & angle : coords_in.bias.angle)
   {
     strm << "Angle " << angle.a << "->" << angle.b << "<-" << angle.c;
     strm << " will be forced to be ";
     strm << angle.ideal << " A. Force =  " << angle.force << "\n";
   }
 
-  for (auto const & sphere : p.bias.spherical)
+  for (auto const & sphere : coords_in.bias.spherical)
   {
     strm << "Spherical boundary with radius " << sphere.radius;
     strm << " will be applied; Force =  " << sphere.force;
     strm << ", Exponent = " << sphere.exponent << "\n";
   }
 
-  for (auto const & cube : p.bias.cubic)
+  for (auto const & cube : coords_in.bias.cubic)
   {
     strm << "Cubic boundary with box size " << cube.dim;
     strm << " will be applied; Force =  " << cube.force;
@@ -1994,10 +1982,6 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Nonbonded terms between fixed atoms will be excluded in internal forcefield calculations.\n";
   }
-  if (p.periodic)
-  {
-    strm << "Periodics box [ x, y, z] " << p.pb_box << " applied.\n";
-  }
   if (p.spackman.on)
   {
     strm << "Spackman correction applied.\n";
@@ -2010,6 +1994,28 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
          << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
+  }
+  return strm;
+}
+
+std::ostream & config::operator<< (std::ostream &strm, periodics const &p)
+{
+  if (p.periodic)
+  {
+    strm << "Periodics box [ x, y, z ] " << p.pb_box << " applied.\n";
+    if (p.periodicCutout)
+    {
+      strm << "Molecules ";
+      if (p.criterion == 1u)
+        strm << "of which the center of mass is ";
+      else if (p.criterion == 0u)
+        strm << "which have atoms that are ";
+      if (p.cutout_distance_to_box == 0.)
+        strm << "outside the periodic box ";
+      else
+        strm << "closer than " << p.cutout_distance_to_box << "Angstrom to periodic box edges ";
+      strm << "are removed.\n";
+    }
   }
   return strm;
 }

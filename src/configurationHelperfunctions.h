@@ -51,13 +51,13 @@ namespace config
    *
    * Helper function that creates a
    * boolean value from an istringstream,
-   * specifically from a numerical value contained
-   * in this stream ( 0 = false, 1 = true ).
+   * scanning for "TRUE", "true", "True" or 1
+   * (and equivalently for false)
    *
-   * All numbers smaller than or euql to 0 are considered false.
-   * All numbers bigger than 1 are considered true.
+   * Throws formated output when @value option is given when
+   * boolean value cannot be determined.
    */
-  bool bool_from_iss(std::istringstream & in);
+  bool bool_from_iss(std::istringstream & in, std::string const& option = std::string());
 
 
   template<typename T>
@@ -98,18 +98,11 @@ namespace config
   * @todo: remove in favor of "sorted_indices_from_cs_string"
   */
   template<typename T>
-  std::vector<T> configuration_range_int(std::istringstream& cv)
+  std::vector<T> configuration_range_int(std::vector<std::string>& holder)
   {
     bool none_check = false;
     std::vector<T> temp;
-    std::vector<std::string> holder;
-    while (cv)
-    {
-      std::string temp2;
-      cv >> temp2;
-      holder.push_back(temp2);
-    }
-    holder.pop_back();
+
     for (unsigned int i = 0; i < holder.size(); i++)
     {
       if (holder[i] == "none")

@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <array>
 #include <vector>
-#include "../src/scon_traits.h"
+#include "../scon_traits.h"
 
 TEST(SconTraitHelpers, BooleanHelper)
 {
