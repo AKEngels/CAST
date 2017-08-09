@@ -143,13 +143,13 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	if (cutoff != "") {
 		ofs << "        cutoff=" << cutoff << " \\\n";
 	}
-		"        scale14 = {1.2 2.0}\\\n"
+	"        scale14 = {1.2 2.0}\\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"    energy=energy.energy\\\n"
 		"    gradient=energy.gradient\n"
-		"\n"
-		"\n"
-		"close $control_input_settings\n";
+		"\n\n\n";
+//		"\n"
+//		"close $control_input_settings\n";
 }
 
 void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream & ofs) const {
@@ -219,9 +219,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	}
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
-		"\n\n\n";
-/*		"write_xyz file=${ sys_name_id }_opt.xyz coords=${ sys_name_id }_opt.c\n"
-		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
+		"\n"
+		"write_xyz file=dl-find.xyz coords=${ sys_name_id }_opt.c\n\n\n";
+/*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
 		"delete_object hybrid.${ qm_theory }.coords\n"
@@ -266,13 +266,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 */
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool const & sp) const {
 	
-	//auto qm_atoms = parse_qm_atoms();
-
-
 	auto o_file = tmp_file_name + ".chm";
 
 	std::ofstream chem_shell_input_stream(o_file);
-
 
 	chem_shell_input_stream <<
 		"global sys_name_id\n"
@@ -309,9 +305,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		make_opt_inp(chem_shell_input_stream);
 	}
 		
-
 	chem_shell_input_stream.close();
-
 
 }
 
@@ -525,7 +519,7 @@ void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(st
 }
 
 void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what) {
-	std::ifstream ifile(what+".coo");
+	std::ifstream ifile(what+".xyz");
 
 	std::string line;
 	coords::Representation_3D xyz;
