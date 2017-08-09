@@ -87,10 +87,9 @@ namespace energy
 				// constructor for clone and move functions
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
-				// heat of formation
-				double hof_kcal_mol, hof_kj_mol;
 				// energies
-				double e_total, e_electron, e_core;
+				double e_bs, e_coul, e_rep, e_tot;
+				
 				std::string id;
 
 				// FAILCOUNTER
