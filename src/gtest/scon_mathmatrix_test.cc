@@ -353,8 +353,8 @@ TEST(mathmatrix, appendLeftWorksCorrectly)
 
 TEST(mathmatrix, appendRightWorksCorrectly)
 {
-  mathmatrix<long double> one(4u, 4u, 5.);
-  mathmatrix<long double> two(4u, 1u, 0.);
+  mathmatrix<double> one(4u, 4u, 5.);
+  mathmatrix<double> two(4u, 1u, 0.);
   std::cout << one << "\n";
   std::cout << two << "\n";
 
