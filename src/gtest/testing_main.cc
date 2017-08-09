@@ -1,6 +1,9 @@
 #ifdef GOOGLE_MOCK
 #include <gtest/gtest.h>
 #include "../configuration.h"
+#ifdef _MSC_VER
+#include "../win_inc.h"
+#endif
 #pragma once
 
 //TESTING MAIN
@@ -26,7 +29,10 @@ int main(int argc, char** argv) {
   
   // If you want to run TESTS live from Visual Studio,
   // this will help
-  std::cin >> result;
+#ifdef _MSC_VER 
+  // make window stay open in debug session on windows
+  if (IsDebuggerPresent()) std::system("pause");
+#endif
 
   return result;
 }
