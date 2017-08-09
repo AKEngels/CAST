@@ -220,7 +220,7 @@ public:
   ProbabilityDensity probdens;
   double mean, standardDeviation;
   entropyobj(size_t iter_, size_t dimension_, ProbabilityDensity probdens_) :
-    drawAndEvaluateMatrix(iter_, 4),
+    drawAndEvaluateMatrix(iter_, 5),
     numberOfDraws(iter_), dimension(dimension_),
     probdens(probdens_), identifierOfPDF(probdens_.ident()),
     mean(0.), standardDeviation(0.)
@@ -277,6 +277,7 @@ public:
   double analyticalEntropy;
   double empiricalNormalDistributionEntropy;
   double calculatedEntropyGoria; // http://www.tandfonline.com/doi/abs/10.1080/104852504200026815
+  double ardakaniEntropyEucledean;
   calculatedentropyobj(size_t k_, entropyobj const& obj, double analyticEntropyValue = 0.) : 
     entropyobj(obj), 
     k(k_), 
@@ -287,7 +288,8 @@ public:
     analyticalEntropy(this->probdens.analyticEntropy()),
     empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN())
+    calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN()),
+    ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
@@ -472,6 +474,13 @@ public:
       Matrix_Class copytemp = drawAndEvaluateMatrix;
       Matrix_Class drawAndEvaluateMatrix_TemporaryCopy = drawAndEvaluateMatrix;
       std::function<double(double x)> PDFtemporary = this->probdens.function();
+      float_type ardakaniCorrection_minimumValueInDataset(std::numeric_limits<float_type>::max());
+      float_type ardakaniCorrection_maximumValueInDataset(-std::numeric_limits<float_type>::max());
+      for (size_t k = 0; k < drawAndEvaluateMatrix.cols(); k++)
+      {
+        ardakaniCorrection_minimumValueInDataset = std::min(ardakaniCorrection_minimumValueInDataset, drawAndEvaluateMatrix(0, k));
+        ardakaniCorrection_maximumValueInDataset = std::max(ardakaniCorrection_maximumValueInDataset, drawAndEvaluateMatrix(0, k));
+      }
 
 #ifdef _OPENMP
 #pragma omp parallel firstprivate(copytemp, PDFtemporary) shared(drawAndEvaluateMatrix_TemporaryCopy)
@@ -487,11 +496,13 @@ public:
         for (size_t i = 0u; i < drawAndEvaluateMatrix_TemporaryCopy.cols(); i++)
 #endif
         {
-          float_type holdNNdistance = sqrt(entropy::knn_distance(copytemp, 1, k, 0u, i, buffer));
+          const float_type holdNNdistance = sqrt(entropy::knn_distance(copytemp, 1, k, 0u, i, buffer));
           drawAndEvaluateMatrix_TemporaryCopy(1, i) = double(k) / double(numberOfDraws) / holdNNdistance;
           drawAndEvaluateMatrix_TemporaryCopy(2, i) = PDFtemporary(copytemp(0, i));
           drawAndEvaluateMatrix_TemporaryCopy(3, i) = holdNNdistance;
-          
+          // Ardakani Correction
+          drawAndEvaluateMatrix_TemporaryCopy(4, i) = ardakaniCorrection1D(ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset, drawAndEvaluateMatrix(0, i), holdNNdistance);
+         
           // Lombardi kPN hier, fehlt bisher noch
         }
 #ifdef _OPENMP
@@ -500,28 +511,38 @@ public:
 
      drawAndEvaluateMatrix = drawAndEvaluateMatrix_TemporaryCopy;
 
+     double ardakaniSum = 0.f;
+     for (size_t i = 0u; i < drawAndEvaluateMatrix.cols(); i++)
+       ardakaniSum += log(drawAndEvaluateMatrix(4, i));
+     ardakaniSum /= double(numberOfDraws);
+     ardakaniSum *= double(dimension);
+     ardakaniSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+     ardakaniSum += digammal(double(numberOfDraws));
+     ardakaniSum -= digammal(double(k));
 
       // ENTROPY according to Hnzido
-      double tempsum = 0.;
+      double hnizdoSum = 0.;
       for (size_t i = 0u; i < drawAndEvaluateMatrix.cols(); i++)
-        tempsum += log(drawAndEvaluateMatrix(3, i));
+        hnizdoSum += log(drawAndEvaluateMatrix(3, i));
 
-      tempsum /= double(numberOfDraws);
-      tempsum *= double(dimension);
+      hnizdoSum /= double(numberOfDraws);
+      hnizdoSum *= double(dimension);
 
       // Einschub
       // Entropy according to Lombardi (traditional)
-      double tempsum_kpn_alternative = tempsum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
-      tempsum_kpn_alternative += digammal(double(numberOfDraws));
-      tempsum_kpn_alternative -= digammal(double(k));
+      double lombardi_without_correction = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      lombardi_without_correction += digammal(double(numberOfDraws));
+      lombardi_without_correction -= digammal(double(k));
       //
 
       //Einschub calcualtedEntropyGoria
-      double tempsum_knn_goria = tempsum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      double tempsum_knn_goria = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
       tempsum_knn_goria += log(double(numberOfDraws - 1.));
       tempsum_knn_goria -= digammal(double(k));
 
-      tempsum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      hnizdoSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+
+      // The following is identical to -digamma(double(k))
       double tempsum2 = 0;
       if (k != 1)
       {
@@ -530,13 +551,14 @@ public:
           tempsum2 += 1.0 / double(i);
         }
       }
-      tempsum -= tempsum2;
-      tempsum += 0.5772156649015328606065;
+      hnizdoSum -= tempsum2;
+      hnizdoSum += 0.5772156649015328606065;
 
       //////////////
-      calculatedEntropyHnizdo = tempsum; // Hnizdo Entropy
-      calculatedEntropyLombardi = tempsum_kpn_alternative; // Lombardi Entropy
+      calculatedEntropyHnizdo = hnizdoSum; // Hnizdo Entropy
+      calculatedEntropyLombardi = lombardi_without_correction; // Lombardi Entropy
       calculatedEntropyGoria = tempsum_knn_goria; // Goria Entropy
+      ardakaniEntropyEucledean = ardakaniSum;
       //Neccessarry
       transpose(drawAndEvaluateMatrix);
     }
@@ -559,7 +581,8 @@ public:
     std::ifstream myfile3;
     myfile3.open(std::string("out_entropy.txt"));
     bool writeHeader = false;
-    if (!myfile3.good()) writeHeader = true;
+    if (!myfile3.good()) 
+      writeHeader = true;
     myfile3.close();
     std::ofstream myfile2;
     myfile2.open(std::string("out_entropy.txt"), std::ios::app);
@@ -575,6 +598,7 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(fake)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Ardakani(eucl)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNN|";
@@ -589,9 +613,54 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->ardakaniEntropyEucledean << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevsky << "|\n";
     myfile2.close();
   }
 };
+
+// Returns the ardakani Corrected NN distance, see PHYSICAL REVIEW E 83, 051121 (2011)
+float_type ardakaniCorrection1D(float_type const& globMin, float_type const& globMax, float_type const& currentPoint, float_type const& NNdistance)
+{
+    if (currentPoint - NNdistance * 0.5 < globMin)
+      return currentPoint + NNdistance * 0.5 - globMin;
+    else if (currentPoint + NNdistance * 0.5 > globMax)
+      return globMax - (currentPoint - NNdistance * 0.5);
+    return NNdistance;
+}
+
+template<typename T>
+float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& globMin, std::vector<T> const& globMax, std::vector<T> const& currentPoint, T const& NNdistance)
+{
+#ifdef _DEBUG
+  if (!(globMin.size() == globMax.size() && globMax.size() == currentPoint.size() && NNdistance.size() == currentPoint.size()))
+  {
+    throw std::runtime_error("Size Mismatch in N Dimensional Eucledean Ardakani Correction. Aborting.");
+  }
+#endif
+  std::vector<T> radiiOfHyperEllipsoid(globMin.size());
+  for (unsigned int i = 0u; i < radius.size(), i++)
+  {
+    radius.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i))
+  }
+
+  // Getting determinant of Mahalanobis distance for calculation of
+  // Hyperelipsoid volume. Determinant is product of all eigenvalues. 
+  // Eigenvalues of Hyperelipsoid quartic matrix are radius^-2
+  T determinant = 1.;
+  for (unsigned int i = 0u; i < radius.size(), i++)
+  {
+    determinant *= std::pow(radius.at(i), -2);
+  }
+
+  // For volume of hyperelipsoid https://math.stackexchange.com/questions/332391/volume-of-hyperellipsoid
+  // Is radius of hypersphere volume 1? I think, because we have all scaling the eigenvalues
+  // But I am not sure...
+  const T V_d = 2. / radius.size() * (std::pow(pi, radius.size() / 2.) / tgamma(radius.size() / 2.)) * std::pow(1, radius.size());
+  const T volumeOfHyperellipsoid = V_d * std::sqrt(determinant);
+  const T equivalentRadiusOfHypersphere = std::pow(volumeOfHyperellipsoid * tgamma(radius.size() / 2. + 1) / std::pow(pi, radius.size() / 2.), 1. / radius.size());
+  return equivalentRadiusOfHypersphere;
+
+}
