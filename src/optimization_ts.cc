@@ -29,7 +29,7 @@ namespace
 
 bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterations, bool const reset)
 {
-  double ene(0.0);
+  double energy(0.0);
   if (reset)
   {
     i = 0;
@@ -42,8 +42,10 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
   init_stereo = coordobj.stereos();
 
   std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
+  
+  if (Config::get().optimization.global.tabusearch.mcm_first) 
+    diversification();
 
-  if (Config::get().optimization.global.tabusearch.mcm_first) diversification();
   std::size_t fails(0);
   for (; i<iterations; ++i)
   {
@@ -68,18 +70,22 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
       std::cout << std::setprecision(Config::get().optimization.global.precision);
       std::cout << std::showpoint << std::scientific << coordobj.pes().energy << ' ';
     }
-    ene = descent();
+    energy = descent();
     coordobj.to_internal();
     coordobj.to_xyz();
     min_status::T const status(check_pes_of_coords());
-    if (!success(status)) ++fails;
-    else fails = 0;
+
+    if (!success(status)) 
+      ++fails;
+    else 
+      fails = 0;
+
     if (Config::get().general.verbosity > 1U) 
     {
       // final energy
       std::cout << std::setw (Config::get().optimization.global.precision + 10) << std::left;
       std::cout << std::setprecision(Config::get().optimization.global.precision);
-      std::cout << std::showpoint << std::scientific << ene << ' ';
+      std::cout << std::showpoint << std::scientific << energy << ' ';
       // status
       std::cout << status;
       // number of accpeted and range minima
@@ -104,7 +110,9 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
       }
     }
   }
-  if (i > 0) --i;
+
+  if (i > 0) 
+    --i;
   return found_new_minimum;
 }
 
