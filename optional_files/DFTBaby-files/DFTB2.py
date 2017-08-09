@@ -9,9 +9,9 @@ Approximations:
   - density profile of charge fluctuations on individual atoms
     is assumed to be Gaussian and spherically symmetric
 """
+
 import sys
-sys.path = ['/home/susanne/Downloads/DFTBaby-0.1.0/DFTB', '/usr/lib/python2.7', '/usr/lib/python2.7/plat-x86_64-linux-gnu', '/usr/lib/python2.7/lib-tk', '/usr/lib/python2.7/lib-old', '/usr/lib/python2.7/lib-dynload', '/home/susanne/.local/lib/python2.7/site-packages', '/usr/local/lib/python2.7/dist-packages', '/usr/lib/python2.7/dist-packages', '/usr/lib/python2.7/dist-packages/gtk-2.0']
-sys.path.append("/home/susanne/Downloads/DFTBaby-0.1.0")
+sys.path.append("..")
 from numpy import array, zeros, sqrt, log, exp, dot, argsort, where, sum, vstack, pi, mean, trace, copy
 import numpy as np
 import numpy.linalg as la
@@ -2484,6 +2484,9 @@ def main(xyz_file, conf_file):
     from DFTB.XYZ import read_xyz, extract_keywords_xyz
     from DFTB.Molden import MoldenExporter
     from DFTB.Analyse.Cube import CubeExporter
+
+    outputfile = open("scf_output_dftb.txt","w")
+    sys.stdout = outputfile
 
     usage = "Usage: %s <xyz-file>\n" % xyz_file
     usage += "   options can be passed on the command line or\n"

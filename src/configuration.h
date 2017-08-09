@@ -535,6 +535,11 @@ namespace config
       {}
     } mopac;
 
+    struct dftb_conf
+    {
+      std::string path;
+    } dftb;
+
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
       isotropic(true),

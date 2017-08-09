@@ -512,6 +512,12 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  //DFTB options
+  else if (option.substr(0,7)== "DFTBath")
+  {
+    Config::set().energy.dftb.path = value_string;
+  }
+
   // convergence threshold for bfgs
   // Default 0.001
   else if (option == "BFGSgrad")

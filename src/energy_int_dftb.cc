@@ -22,7 +22,7 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
   energy::interface_base(cp),
   e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-    
+  
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -97,7 +97,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     {
       add_path += "sys.path.append('"+p+"')\n";
     }
-    add_path += "sys.path.append('/home/susanne/Downloads/DFTBaby-0.1.0')\n";
+    add_path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
     add_path += "sys.path.append('"+numpath+"')\n";
     add_path += "sys.path.append('"+scipath+"')\n";
     
@@ -105,7 +105,8 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     std::string result_str; 
     PyObject *modul, *funk, *prm, *ret;
     
-    PySys_SetPath("/home/susanne/Downloads/DFTBaby-0.1.0/DFTB"); //path to python module
+    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";
+    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //path to python module
     const char *c = add_path.c_str();
     PyRun_SimpleString(c);
     modul = PyImport_ImportModule("DFTB2"); //import module test from path
@@ -113,7 +114,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     if(modul) 
         { 
         funk = PyObject_GetAttrString(modul, "main"); //create function
-        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "/home/susanne/Downloads/DFTBaby-0.1.0/DFTB/dftbaby.cfg"); //give parameters
+        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
         result_str = PyString_AsString(ret); //read function return (has to be a string)
