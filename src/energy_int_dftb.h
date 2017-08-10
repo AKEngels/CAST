@@ -1,4 +1,4 @@
-/*DW                            *
+﻿/*DW                            *
 MOPAC Interface
 *                            DW*/
 
@@ -21,7 +21,8 @@ MOPAC Interface
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include "python2.7/Python.h"
+#include <Python.h>
+//#include "python2.7/Python.h"
 
 #if defined (_MSC_VER)
 #include "win_inc.h"
