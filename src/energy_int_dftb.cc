@@ -141,8 +141,11 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 
         } 
     else 
+    {
         printf("Fehler: Modul DFTB2 nicht gefunden\n"); 
         std::exit(0);
+    }
+        
     Py_Finalize(); 
   return e_tot;
 }
