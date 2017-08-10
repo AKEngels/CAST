@@ -221,7 +221,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		"write_xyz file=dl-find.xyz coords=${sys_name_id}_opt.c\n"
-		"read_pdb  file=${ Alsys_name_id}.pdb  coords=dummy.coords\n"
+		"read_pdb  file=${sys_name_id}.pdb  coords=dummy.coords\n"
 		"write_pdb file=${sys_name_id}.pdb coords=${sys_name_id}_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
