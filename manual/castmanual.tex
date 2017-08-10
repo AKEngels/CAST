@@ -985,6 +985,127 @@ ICdistance           4.0
 \end{lstlisting}
 
 
+	%%%%CENTER%%%%
+	\subsection{CENTER}
+	
+	The options for the CENTER task are limited since the names for the output files are hard coded to ensure smoother usage of the files in the following COUPLINGS task. With the first option denoted by the keyword \textit{CENTERdimer} the user decides if, additionally to the centers of mass, dimer structure pairs should be generated.
+For this option a \textit{0} means only the centers of mass are to be calculated and a \textit{1} means the dimer pairs are also to be created. The \textit{CENTERdistance} keyword is only used when dimer structures are generated. With it the user defines the maximum distance between the centers of mass for which a dimer structure is generated. The distance has to be given in \aa ngström.\\
+\begin{lstlisting}
+#Calculation the centers of mass for all molecules
+#in the System options only used to determine dimer criteria
+
+CENTERdimer                     1
+
+
+CENTERdistance                  15.0 
+\end{lstlisting}
+
+	%%%%COUPLINGS%%%%
+	\subsection{COUPLINGS}
+	
+	The dimer pairs created by the previously discussed task can be put to use in the COUPLINGS task and are perfectly suited for it, as they are already named in the fashion required by the COUPLINGS task. The required numbers of p-type and n-type semiconductor monomers are to be put in at the \textit{CouplingspSCnumber} and \textit{CouplingsnSCnumber} keywords, respectively.\\
+The option \textit{CouplingsCTcharastates} is used to define the excited states to be considered for the charge transfer process at the interface and thus the calculation of the charge transfer coupling.\\
+The remaining options specify the Gaussian09\supercite{M.J.Frisch2009} options to be used for the correspondent calculation. The keywords \textit{CouplingspSCdimMultiplicity}, \textit{CouplingsnSCdimMultiplicity} and \textit{CouplingsheterodimMultiplicity} are for the specification of the multiplicity the different dimer types possess. The options \textit{CouplingspSCdimCharge}, \textit{CouplingsnSCdimCharge} and \textit{CouplingsheterodimCharge} do the same for the charges of the dimer structures.
+The methods to be used for the couplings calculations are specified with the keywords \textit{CouplingspSCdimElCalcmethod} for the electron transport coupling, \textit{CouplingspSCdimExciCalcmethod} for the exciton transport coupling, \textit{CouplingsnSCdimholCalcmethod} for the hole transport coupling and \textit{CouplingsheterodimCalcmethod} for the charge transport couplings, electron transfer and recombination. It must be noted that the options for \textit{CouplingspSCdimExciCalcmethod} and \textit{CouplingsheterodimCalcmethod} must specify an excited states calculation. The other methods must be ground state calculations.\\
+
+\begin{lstlisting}
+#Calaulation of couplings  needed for XB_EXCITONBREAKUP
+
+#Number of p-type semiconductor monomers
+
+CouplingspSCnumber                    6
+
+#Number of n-type semiconductor monomers        
+
+CouplingsnSCnumber                    3 
+
+#List of states relevant for ct-processes (no comma)
+
+CouplingsCTcharastates                3 4 7
+
+#p-type homodimer options
+
+CouplingspSCdimMultiplicity           1  
+
+CouplingspSCdimCharge                 0  
+
+CouplingspSCdimElCalcmethod           INDO 
+
+CouplingspSCdimExciCalcmethod         ZINDO TD=(NStates=9,Singlets,  													 		   AllTransitiondensities,															 					ListWindow) gfinput 																					IOP(6/7=3) 
+
+#n-type homodimer options
+
+CouplingsnSCdimMultiplicity           1 
+
+CouplingsnSCdimCharge                 0 
+
+CouplingsnSCdimholCalcmethod          INDO 
+
+#heterodimer options
+
+CouplingsheterodimMultiplicity        1 
+
+CouplingsheterodimCharge              0 
+
+CouplingsheterodimCalcmethod          ZINDO TD=(NStates=9,Singlets, 																 AllTransitiondensities, 																			  ListWindow)gfinput 																					  IOP(6/7=3) 
+\end{lstlisting}
+In the exemplary input the methods for the excited states calculations are written in more than one line, this is not the case in the used input file, but was necessary in this work to ensure legibility. \\
+The Gaussian keywords used for the calculations employed in this work are explained here as some of them are not encountered very often. With the command \textit{TD} an calculation for the excited states is requested in Gaussian, the option \textit{NStates} is used to declare the number of excited states calculate and the keyword \textit{Singlets} ensures only singlet excited states are considered. The method for the calculation of the charge transfer and recombination couplings in the heterodimer must furthermore include the \textit{AllTransitiondensities} keyword for Gaussian, so that the electric transition dipole moments between all states, not only the moments concerning the ground state, are written in the Gaussian output file so CAST can read them. Another not broadly used Gaussian commands is the \textit{IOP(6/7=3)} keyword, which here reads, set option 7 in overlay 6 to 3, which makes Gaussian write out all MO's. The keyword \textit{gfinput} tells Gaussian to print the used basis set in a way so it can be used as a general basis set. A list of orbitals from the input can be frozen by usage of the \textit{ListWindow} keyword in Gaussian.\\
+The calculated couplings are written once in a file called ``Couplings.txt'' in the order couplings of the p-type semiconductor homodimers, then the couplings of the heterodimers and finally the couplings of the n-type semiconductor pairs. Additionally, the couplings of the three kinds of dimers are also written into three separate files called ``homodimer\_exciton.txt'', ``homodimer\_ladung.txt'', ``heterodimer.txt'' and ``nSC\_homodimer.txt'' with names corresponding to the contained information. \\
+In the files, first the indices of the monomers are written, then the associated couplings. In the ``Couplings.txt'' for the p-type semiconductor dimers the couplings in the third column are the electron transport coupling whereas the exciton transport couplings are in the fourth column. Furthermore, are the charge transfer couplings in the third column and the recombination couplings in the fourth column for the heterodimers in both the ``Couplings.txt'' and ``heterodimer.txt''.
+
+	%%%%EXCITON_BREAKUP%%%%
+	\subsection{EXCITONBREAKUP}
+With the keyword \textit{EXmasscenters} the name of the file containing the centers of mass is denoted, the numbers of p- and n-type semiconductors are to be given at the \textit{EXnumberp} and \textit{EXnumbern} options, respectively. At the \textit{EXplaneinterf} keyword the dimension ($x, y$ or $z$) perpendicular to the interface plane has to be specified. \\
+The files containing the couplings must be given at the keywords \textit{EXpscpairexrates} for the exciton transport couplings, \textit{EXpscpairchrates} for the electron transport couplings, \textit{EXpnscpairrates}, for the couplings of the heterodimers and \textit{EXnscpairrates} for the hole transport couplings.\\
+The input for the recombination energies involved in the various processes are denoted with the keywords \textit{EXReorgE\_exc} for the exciton transport, \textit{EXReorgE\_ch} for the electron transport, \textit{EXReorgE\_nSC} for the hole transport, \textit{EXReorgE\_ct} for the charge transfer and \textit{EXReorgE\_rek} for the reorganisation. The keywords are chosen in a fashion so they reflect which reorganisation energy is needed there. The driving forces for charge transfer and recombination are necessary at the keywords \textit{EXct\_triebkraft} and \textit{EXrek\_triebkraft}, respectively. The recombination energies and driving forces all are in the unit electronvolt. The parameters necessary to calculate the fluorescence rate are requested at the keywords \textit{EXoscillatorstrength}, for the oscillator strength, and \textit{EXwellenzahl}, for the wavenumber. The wavenumber is used in the unit inverese centimeter.
+\begin{lstlisting}
+#Input for simultion of exciton behaviour at 
+#an semiconductor interface.
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters                 CenterofMasses.out
+
+#Numbers of monomers
+
+EXnumbern                     3
+
+EXnumberp                     6
+
+#Orientation of the interface
+
+EXplaneinterf                 y
+
+#Couplings for all possible dimers
+
+EXnscpairrates                nSC\_homodimer.txt
+
+EXpscpairexrates              homodimer\_exciton.txt
+
+EXpscpairchrates              homodimer\_ladung.txt
+
+EXpnscpairrates               heterodimer.txt
+
+EXReorgE\_exc                 0.561
+
+EXReorgE\_ch                  0.194
+
+EXReorgE\_nSC                 0.178
+
+EXReorgE\_ct                  0.156
+
+EXReorgE\_rek                 0.184
+
+EXct\_triebkraft              1.550
+
+EXrek\_triebkraft            -4.913
+
+EXoscillatorstrength          0.0852
+
+EXwellenzahl                  28514.91
+\end{lstlisting}	
+	
 	%%%% ADJUST %%%%
 	\subsection{ADJUST - something something}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
