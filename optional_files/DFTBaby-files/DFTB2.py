@@ -2210,8 +2210,9 @@ class DFTB2(object):
             # constrained SCC calculation
             print "Constrained SCC calculation"
             self.runConstrainedSCC(**opts)
-        Etot = self.getEnergies()[-1]
-        return Etot
+        E = self.getEnergies()
+        return E   # list of energies
+
     def getRepulsiveEnergy(self, translation=None):
         """
         compute energy due to core electrons and nuclear repulsion
@@ -2508,7 +2509,7 @@ def main(xyz_file, conf_file):
     scf_options = parser.scf_options  #alternative to parse_args() because it doesn't work with C++
     for i, atomlist in enumerate(structures):
         dftb2.setGeometry(atomlist, kwds.get("charge", 0.0))
-        dftb2.getEnergy(**scf_options)  #returns total energy
+        E = dftb2.getEnergy(**scf_options)  #returns list of energies
 
     # commented out because it is currently not needed (and it doesn't work with C++)
          #print "TOTAL ENERGY OF STRUCTURE %d              : %s %s\n" % (
@@ -2532,7 +2533,7 @@ def main(xyz_file, conf_file):
     # # writing timings
     # print T
     # #return energies in Hartree
-    return str(dftb2.getEnergies())
+    return str(E)
 
 
 if __name__ == "__main__":
