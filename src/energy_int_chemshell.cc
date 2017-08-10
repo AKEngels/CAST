@@ -24,7 +24,7 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 		auto ret = scon::system_call(ss.str());
 
 		if (ret) {
-			throw std::runtime_error("Failed to call babel!");
+			throw std::runtime_error("Failed to copy the given PDB file!");
 		}
 	}
 	//TODO: Hopefully needs to be called only once so try! <- Antechamber fails the second time it is called ...
@@ -221,6 +221,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		"write_xyz file=dl-find.xyz coords=${sys_name_id}_opt.c\n"
+		"read_pdb  file=${sys_name_id}.pdb  coords=dummy.coords\n"
 		"write_pdb file=${sys_name_id}.pdb coords=${sys_name_id}_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
