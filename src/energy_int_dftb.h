@@ -6,7 +6,6 @@ MOPAC Interface
 
 #include <vector>
 #include <string>
-//#include "helperfunctions.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -22,7 +21,6 @@ MOPAC Interface
 #include "coords.h"
 #include "coords_io.h"
 #include <Python.h>
-//#include "python2.7/Python.h"
 
 #if defined (_MSC_VER)
 #include "win_inc.h"

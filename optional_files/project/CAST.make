@@ -44,6 +44,7 @@ ifeq ($(config),debug_x64)
   OBJDIR = obj/x64/Debug
   DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES += -I../../submodules/eigen/Eigen
+  INCLUDES += -I/usr/include/python2.7 
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
@@ -100,13 +101,14 @@ ifeq ($(config),release_x64)
   TARGET = $(TARGETDIR)/CAST_linux_x64_release
   OBJDIR = obj/x64/Release
   DEFINES += -DCOMPILEX64
-  INCLUDES += -I../../submodules/eigen/Eigen
+  INCLUDES += -I../../submodules/eigen/Eigen 
+  INCLUDES += -I/usr/include/python2.7 
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS +=
+  LIBS += 
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
