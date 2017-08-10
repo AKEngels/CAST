@@ -143,10 +143,10 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	if (cutoff != "") {
 		ofs << "        cutoff=" << cutoff << " \\\n";
 	}
-	"        scale14 = {1.2 2.0}\\\n"
+	ofs << "        scale14 = {1.2 2.0}\\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
-		"    energy=energy.energy\\\n"
-		"    gradient=energy.gradient\n"
+		"    energy=" << tmp_file_name << ".energy\\\n"
+		"    gradient=" << tmp_file_name << ".gradient\n"
 		"\n\n\n";
 //		"\n"
 //		"close $control_input_settings\n";
@@ -171,7 +171,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 
 	ofs << "dl-find coords = ${dir}/${sys_name_id}.c \\\n"
 		"    coordinates=hdlc \\\n"
-		"    result=${sys_name_id}_opt.c \\\n";
+		"    result=" << tmp_file_name << ".c \\\n"
+		"    energy=" << tmp_file_name << ".energy \\\n"
+		"    gradient=" << tmp_file_name << ".gradient \\\n";
 	if (maxcycle != "") {
 		ofs << "    maxcycle=" << maxcycle << " \\\n";
 	}
@@ -208,7 +210,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
 		"        list_option=none \\\n"
-		"        conn= ${sys_name_id}.c \\\n"
+		"        conn=" << tmp_file_name << ".c \\\n"
 		"        mm_defs=$amber_prmtop \\\n"
 		"        exact_srf=yes \\\n";
 	if (mxlist != "") {
@@ -220,9 +222,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
-		"write_xyz file=dl-find.xyz coords=${sys_name_id}_opt.c\n"
-		"read_pdb  file=${sys_name_id}.pdb  coords=dummy.coords\n"
-		"write_pdb file=${sys_name_id}.pdb coords=${sys_name_id}_opt.c\n\n\n";
+		"write_xyz file=" << tmp_file_name << ".xyz coords=${sys_name_id}_opt.c\n"
+		"read_pdb  file=" << tmp_file_name << ".pdb  coords=dummy.coords\n"
+		"write_pdb file=" << tmp_file_name << ".pdb coords=${sys_name_id}_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
@@ -393,8 +395,8 @@ bool energy::interfaces::chemshell::sysCallInterface::check_if_number(std::strin
 
 }
 
-coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy(std::string const & what)const {
-	std::ifstream ifile(what + ".energy");
+coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy()const {
+	std::ifstream ifile(tmp_file_name + ".energy");
 
 	std::string line;
 	while (getline(ifile, line)) {
@@ -427,8 +429,8 @@ coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extra
 	return new_grads;
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_gradients(std::string const & what) {
-	std::ifstream ifile(what + ".gradient");
+void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
+	std::ifstream ifile(tmp_file_name + ".gradient");
 
 	std::string line;
 
@@ -475,7 +477,7 @@ coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_co
 void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz) {
 	coords->set_xyz(xyz);
 
-	std::stringstream ss;
+	/*std::stringstream ss;
 	ss << "mv " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
 
 	auto ret = scon::system_call(ss.str());
@@ -530,8 +532,8 @@ void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(st
 	}
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_coords(std::string const & what) {
-	std::ifstream ifile(what+".xyz");
+void energy::interfaces::chemshell::sysCallInterface::read_coords() {
+	std::ifstream ifile(tmp_file_name+".xyz");
 
 	std::string line;
 	coords::Representation_3D xyz;
@@ -566,14 +568,14 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) {
 	check_for_first_call();
 	write_chemshell_coords();
 	make_sp();
-	return read_energy("energy");
+	return read_energy();
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	check_for_first_call();
 	write_chemshell_coords();
 	make_sp();
-	read_gradients("energy");
-	return read_energy("energy");
+	read_gradients();
+	return read_energy();
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	check_for_first_call();
@@ -584,9 +586,9 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	check_for_first_call();
 	write_chemshell_coords();
 	make_opti();
-	read_gradients("dl-find");
-	read_coords("dl-find");
-	return read_energy("dl-find"); 
+	read_gradients();
+	read_coords();
+	return read_energy(); 
 }
 
 void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}

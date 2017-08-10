@@ -111,12 +111,12 @@ namespace energy {
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
 				std::string find_active_atoms()const;
-				void read_gradients(std::string const & what);
+				void read_gradients();
 
 				bool check_if_number(std::string const & number)const;
 
-				coords::float_type read_energy(std::string const & what)const;
-				void read_coords(std::string const & what);
+				coords::float_type read_energy()const;
+				void read_coords();
 
 				bool check_if_line_is_coord(std::vector<std::string> const & coords)const;
 				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
