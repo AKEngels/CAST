@@ -6,6 +6,7 @@ The following subsections of CAST have licenses and are not developed by us:
 - armadillo: MPL2
 - lapack: BSD
 - openBLAS: BSD
+- Eigen: MPL2
 
 - Array.h: GPL2 or higher
 - cg.h: BSD
@@ -14,8 +15,6 @@ The following subsections of CAST have licenses and are not developed by us:
 - lbfgs.h: BSD
 - ls.h: BSD
 - nr3.h: Numerical Recipies, _COMMERCIAL_
-
-- SVD and Eigenvalue-Decomposition code in scon_mathmatrix.h is taken without modifications from Numerical Recipies, it is therefore commercial
 
 Somewhat unclear:
 - interp_1d1.h: Looks like Numerical Recipies code, therefore commercial?

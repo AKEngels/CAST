@@ -195,15 +195,18 @@ namespace optimization
         : public optimizer
       {
       public:
+
         std::unique_ptr<optimizer> divers_optimizer;
         //optimizer * divers_optimizer;
         // ..
         tabuSearch(coords::Coordinates & c, std::string const & output_name = "");
         tabuSearch(coords::Coordinates & c, coords::Ensemble_PES const &p, std::string const & output_name = "");
+        
         // run tabu search
         bool run(std::size_t const iterations, bool const _reset = false);
         // perform ascent and descent
         void ascent(void);
+
         coords::float_type descent(void);
         //! Start a diversification search if tabu search is stuck
         bool diversification(void);

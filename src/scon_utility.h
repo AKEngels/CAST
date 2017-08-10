@@ -1,3 +1,4 @@
+#pragma once
 #if !defined(SCON_UTILITY_HEADER)
 
 #define SCON_UTILITY_HEADER
@@ -26,7 +27,6 @@
 #include "scon.h"
 #include "scon_traits.h"
 #include "scon_iterator.h"
-
 #if !defined(_MSC_VER)
 #include <cxxabi.h>
 #endif
@@ -39,7 +39,13 @@
 #define thread_local 
 #endif
 
+#if defined(_MSC_VER)
+#include "win_inc.h"
+#endif
 
+#ifdef _MSC_VER
+#pragma warning (disable: 4996)
+#endif
 
 namespace scon
 {
@@ -47,18 +53,18 @@ namespace scon
   namespace util
   {
 
-    #if defined(ULLONG_MAX)
-      typedef unsigned long long maxi_uint_type;
-    #else
-      typedef unsigned long maxi_uint_type;
-    #endif
-    
+#if defined(ULLONG_MAX)
+    typedef unsigned long long maxi_uint_type;
+#else
+    typedef unsigned long maxi_uint_type;
+#endif
+
     template<maxi_uint_type NUM, maxi_uint_type DENUM>
     struct ratio
     {
       typedef maxi_uint_type type;
-      static const type num=NUM;
-      static const type den=DENUM;
+      static const type num = NUM;
+      static const type den = DENUM;
     };
 
     typedef ratio<1000000000000, 1> tera;
@@ -102,15 +108,15 @@ namespace scon
   {
     typedef typename std::remove_reference<T>::type TR;
     std::unique_ptr<char, void(*)(void*)> own
-      (
+    (
 #ifndef _MSC_VER
       abi::__cxa_demangle(typeid(TR).name(), nullptr,
-      nullptr, nullptr),
+        nullptr, nullptr),
 #else
       nullptr,
 #endif
       std::free
-      );
+    );
     std::string r = own != nullptr ? own.get() : typeid(TR).name();
     if (std::is_const<TR>::value)
       r += " const";
@@ -124,7 +130,7 @@ namespace scon
   }
 
   template<class charT>
-  struct ci_str_equal 
+  struct ci_str_equal
   {
     ci_str_equal(std::locale const & loc) : loc_(loc) { }
     bool operator()(charT ch1, charT ch2)
@@ -137,23 +143,23 @@ namespace scon
   };
 
   // find substring (case insensitive)
-  template<class charT, class traitsT, class allocT, 
+  template<class charT, class traitsT, class allocT,
     class U = std::basic_string<charT, traitsT, allocT>>
-  typename std::basic_string<charT, traitsT, allocT>::size_type 
-  find_substr_ci(std::basic_string<charT, traitsT, allocT> const & str1,
-    U const & needle, const std::locale& loc = std::locale())
+    typename std::basic_string<charT, traitsT, allocT>::size_type
+    find_substr_ci(std::basic_string<charT, traitsT, allocT> const & str1,
+      U const & needle, const std::locale& loc = std::locale())
   {
     std::basic_string<charT, traitsT, allocT> str2(needle);
     using std::begin;
     using std::end;
-    auto it = std::search(begin(str1), end(str1), 
+    auto it = std::search(begin(str1), end(str1),
       begin(str2), end(str2), ci_str_equal<charT>(loc));
     if (it != str1.end()) return static_cast<std::size_t>(it - str1.begin());
     else return std::basic_string<charT, traitsT, allocT>::npos; // not found
   }
 
   template<class T>
-  T str_replace (T s, T const & toReplace, T const & replaceWith)
+  T str_replace(T s, T const & toReplace, T const & replaceWith)
   {
     auto const f = s.find(toReplace);
     if (f != T::npos)
@@ -187,7 +193,7 @@ namespace scon
 
   /*
    * Helperclass for handling filepaths
-   * 
+   *
    * Takes a string containg the full path as input
    * and can then return either only the filename,
    * only the base_path etc.
@@ -215,16 +221,16 @@ namespace scon
     }
     T base_no_extension(T const &slash = "/\\", T const & dot = ".") const
     {
-      typename T::size_type const 
-        s(path.find_last_of(slash)), 
+      typename T::size_type const
+        s(path.find_last_of(slash)),
         p(path.find_last_of(dot));
-      if (p != T::npos && (p > (s+1U)) && ((p - s - 1U) > 0U))
+      if (p != T::npos && (p > (s + 1U)) && ((p - s - 1U) > 0U))
       {
         return path.substr(s + 1, p - s - 1U);
       }
       return path;
     }
-    T get_unique_path () const
+    T get_unique_path() const
     {
       T file(path);
       std::size_t next(0U);
@@ -260,7 +266,7 @@ namespace scon
 
 
   template<class C>
-  std::size_t size_2d (C const & object)
+  std::size_t size_2d(C const & object)
   {
     using std::begin;
     using std::end;
@@ -328,7 +334,7 @@ namespace scon
     auto b = begin(v);
     auto const e = end(v);
     U t(std::distance(b, e));
-    transform(b, e, begin(t), [](scon::range_value<T> const & x) 
+    transform(b, e, begin(t), [](scon::range_value<T> const & x)
       -> scon::range_value<U>
     {
       return static_cast<scon::range_value<U>>(x);
@@ -427,13 +433,13 @@ namespace scon
       auto const found = std::lower_bound(first, last, value, comp);
       return static_cast<std::size_t>(
         (found != last && !comp(value, *found)) ?
-          std::distance(first, found) : std::distance(first, last)
+        std::distance(first, found) : std::distance(first, last)
         );
     }
 
     template<class Container, class T>
     std::size_t find(Container & object, T const &value)
-    { 
+    {
       using std::begin;
       using std::end;
       auto const first = begin(object);
@@ -441,7 +447,7 @@ namespace scon
       auto const found = std::lower_bound(first, last, value);
       return static_cast<std::size_t>(
         (found != last && !(value < *found)) ?
-          std::distance(first, found) : std::distance(first, last)
+        std::distance(first, found) : std::distance(first, last)
         );
     }
 
@@ -466,7 +472,7 @@ namespace scon
     {
       using std::begin;
       using std::end;
-      object.insert(std::lower_bound(begin(object), 
+      object.insert(std::lower_bound(begin(object),
         end(object), value), value);
     }
 
@@ -564,7 +570,7 @@ namespace scon
       auto first = begin(object);
       auto last = end(object);
       auto const found = std::lower_bound(first, last, value, comp);
-      if (found != last && comp(value,*found))
+      if (found != last && comp(value, *found))
       {
         for (auto i = last - 1; i != found; --i)
         {
@@ -622,12 +628,12 @@ namespace scon
       return dist(lrng);
     }
     template<class Distribution>
-    static typename Distribution::result_type 
+    static typename Distribution::result_type
       threaded_rand(Distribution dist)
     {
-      static thread_local std::mt19937_64 tlrng = 
+      static thread_local std::mt19937_64 tlrng =
         std::mt19937_64(std::random_device{}() +
-        std::hash<std::thread::id>()(std::this_thread::get_id()));
+          std::hash<std::thread::id>()(std::this_thread::get_id()));
       return dist(tlrng);
     }
 #endif
@@ -650,7 +656,7 @@ namespace scon
   template<class T>
   struct uniform_distribution
   {
-    using distribution_type = 
+    using distribution_type =
       typename uniform_ditribution_trait<T>::type;
     using result_type = typename distribution_type::result_type;
     using param_type = typename distribution_type::param_type;
@@ -658,7 +664,7 @@ namespace scon
     uniform_distribution() : dist() { }
     uniform_distribution(T low, T high) : dist(low, high) { }
     template<class G>
-    auto operator() (G & generator) 
+    auto operator() (G & generator)
       -> decltype(dist(generator))
     {
       return dist(generator);
@@ -681,7 +687,7 @@ namespace scon
     { }
     uniform_randomizer(T const l, T const h)
       : d(l, h) { }
-    void operator () 
+    void operator ()
       (typename uniform_distribution<T>::result_type & v)
     {
       v = scon::random::rand(d);
@@ -761,21 +767,21 @@ namespace scon
 #endif
 
   template<class T, class U = T>
-  inline typename std::enable_if<std::is_arithmetic<U>::value>::type 
+  inline typename std::enable_if<std::is_arithmetic<U>::value>::type
     rand(T & val, U const & low, U const & up)
   {
     val = rand<U>(low, up);
   }
 
   template<class T>
-  inline typename std::enable_if<std::is_arithmetic<T>::value>::type 
+  inline typename std::enable_if<std::is_arithmetic<T>::value>::type
     randomize(T & val, T const & low, T const & up)
   {
     val = rand<T>(low, up);
   }
 
   template<class T>
-  inline typename std::enable_if<std::is_arithmetic<T>::value>::type 
+  inline typename std::enable_if<std::is_arithmetic<T>::value>::type
     randomize(T & ref)
   {
     ref = scon::rand<T>();
@@ -873,7 +879,7 @@ namespace scon
   {
     return a.empty() && empty(others...);
   }
-  
+
   template<template<class...> class T, class ... TArgs>
   T<TArgs...> make(TArgs && ... args)
   {
@@ -906,7 +912,7 @@ namespace scon
     return range_printer<T>(t, delim);
   }
 
-  
+
 
   namespace delimeted_tuple_detail
   {
@@ -923,10 +929,10 @@ namespace scon
     };
 
     template<std::size_t N, class ... Ts>
-    struct TuplePrinter 
+    struct TuplePrinter
     {
       template<class Ch, class ChTr>
-      static void print(std::basic_ostream<Ch, ChTr> & strm, 
+      static void print(std::basic_ostream<Ch, ChTr> & strm,
         delimeted_tuple<Ch, ChTr, Ts...> const & t)
       {
         TuplePrinter<N - 1, Ts...>::print(strm, t);
@@ -945,10 +951,10 @@ namespace scon
     };
 
     template<class ... Ts>
-    struct TuplePrinter<1, Ts...> 
+    struct TuplePrinter<1, Ts...>
     {
       template<class Ch, class ChTr>
-      static void print(std::basic_ostream<Ch, ChTr> &strm, 
+      static void print(std::basic_ostream<Ch, ChTr> &strm,
         delimeted_tuple<Ch, ChTr, Ts...> const & t)
       {
         strm << std::get<0u>(t.v);
@@ -957,7 +963,7 @@ namespace scon
     };
 
     template<class Ch, class ChTr, class ... T>
-    std::basic_ostream<Ch, ChTr>& operator<< (std::basic_ostream<Ch, ChTr> & strm, 
+    std::basic_ostream<Ch, ChTr>& operator<< (std::basic_ostream<Ch, ChTr> & strm,
       delimeted_tuple<Ch, ChTr, T...> const &t)
     {
       TuplePrinter<sizeof...(T), T...>::template print<Ch, ChTr>(strm, t);
@@ -965,7 +971,7 @@ namespace scon
     }
 
   }
-  
+
   template<class ... T>
   delimeted_tuple_detail::delimeted_tuple<std::string::value_type, std::string::traits_type, T...>
     delimeted(std::string const & delimeter, T && ... ts)
@@ -979,14 +985,14 @@ namespace scon
     using std::begin;
     using std::end;
     template<class T>
-    struct reverted_iter_range 
-    { 
+    struct reverted_iter_range
+    {
       using begin_iterator = std::reverse_iterator<decltype(end(std::declval<T&>()))>;
       using end_iterator = std::reverse_iterator<decltype(begin(std::declval<T&>()))>;
       begin_iterator _begin;
       end_iterator _end;
       reverted_iter_range(T & r) : _begin(end(r)), _end(begin(r)) {}
-    }; 
+    };
     template<class T>
     typename reverted_iter_range<T>::begin_iterator begin(reverted_iter_range<T> const &r)
     {
@@ -1019,9 +1025,9 @@ namespace scon
     {
       std::size_t f, l;
       template<class R>
-      range_indexer(R &r) : f(0u), 
-      l(static_cast<std::size_t>(std::distance(begin(r), end(r)))) {}
-      range_indexer(std::size_t const start_index, 
+      range_indexer(R &r) : f(0u),
+        l(static_cast<std::size_t>(std::distance(begin(r), end(r)))) {}
+      range_indexer(std::size_t const start_index,
         std::size_t const end_index) : f(start_index), l(end_index)
       { }
     };
@@ -1032,7 +1038,7 @@ namespace scon
   template<class T>
   inline range_index_detail::range_indexer index_range(T &range)
   {
-    return { range };
+    return{ range };
   }
 
   inline range_index_detail::range_indexer index_range(
@@ -1070,6 +1076,26 @@ namespace scon
     return std::forward_as_tuple(std::forward<UnaryFs>(fs)...);
   }
 
-}
+  /*! Function to call other programms
+  *
+  */
 
+  int system_call(std::string const & command_line);
+
+
+  /*! Function to seperate a string in letters, numbers and other
+  *
+  */
+
+  
+    enum charTypeT { other, alpha, digit };
+
+    charTypeT charTypestring(char);
+
+    std::string separateString(std::string);
+  
+
+}
 #endif
+
+    

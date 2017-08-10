@@ -7,62 +7,10 @@
 #include <iostream>
 #include <memory>
 #include <string>
-//#include <fftw3.h>
 #include "coords_rep.h"
-//#include "Array.h"
-//#include "Complex.h"
 
 namespace energy
 {
- /* struct pmevar
-  {
-    struct feinfo{
-      int atom, flag;
-    };
-    fftw_complex *in;
-    fftw_plan forward;
-    fftw_plan backward;
-    std::vector<int> fepi;
-    std::vector<int> fepo;
-    std::vector<int> fepa;
-    std::vector<feinfo> feinf;
-    coords::float_type ewaldcoeff;
-    std::vector<double>atomcharges;
-    std::vector<int> gridnumbers;
-    std::vector<double> moduli1;
-    std::vector<double> moduli2;
-    std::vector<double> moduli3;
-    Array::array3<Complex> charges;
-    Array::array3<double> fractionalcharges;
-    Array::array3<double> bscx;
-    Array::array3<double> bscy;
-    Array::array3<double> bscz;
-    Array::array2<double> recivectors;
-    Array::array2<double> initgrid;
-    Array::array2<double> initingrid;
-    Array::array2<double> initoutgrid;
-    Array::array2<double> initallgrid;
-    Array::array2<int>parallelpme;
-    Array::array2<int>parallelinpme;
-    Array::array2<int>paralleloutpme;
-    Array::array2<int>parallelallpme;
-    int natoms;
-    int rgrid1, rgrid2, rgrid3, rgridtotal, nrough1, nrough2, nrough3, roughoffset;
-    int roughleft, roughright, bsoffset;
-    int forwardplan, backwardplan;
-    int dim1, dim2, dim3;
-    int nxpoints, nypoints, nzpoints;
-    std::string wisdom;
-    int fftgridmax;
-    int bsplineorder;
-    coords::float_type treshold, elecfac;
-    pmevar(void)
-      : ewaldcoeff(1.0), dim1(0), dim2(0), dim3(0),
-      nxpoints(0), nypoints(0), nzpoints(0),
-      fftgridmax(200), bsplineorder(5), treshold(1e-8)
-    {}
-  };*/
-
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {
@@ -119,8 +67,13 @@ namespace energy
     { }
   };
   
-  /**Abstract interface base class, 
-  -> specialization for FF, MOPAC, terachem etc.*/
+
+  /** Abstract  base class for interfaces, 
+  * parent class for all inrterface classes used 
+  * by CAST for example FF, MOPAC, terachem , gaussian etc.
+  * Output should be in kcal/mol! 
+  */
+
   class interface_base
   {
   protected:
@@ -139,6 +92,8 @@ namespace energy
     { 
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
+
+    interface_base(); 
 
     interface_base& operator= (interface_base const &other)
     {
@@ -196,10 +151,24 @@ namespace energy
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
 
+
+    //Functions to fetch special outputdata from gaussian interface
+    std::vector <double> get_occMO()   {return occMO;}
+    std::vector <double> get_virtMO()  {return virtMO;}
+    std::vector <double> get_excitE()  {return excitE;}
+    std::vector <int> get_state_i()    {return state_i;}
+    std::vector <int> get_state_j()    {return state_j;}
+    std::vector <int> get_gz_i_state() {return gz_i_state;}
+    coords::Representation_3D  get_ex_ex_trans() {return ex_ex_trans;}
+    coords::Representation_3D  get_gz_ex_trans() {return gz_ex_trans;}
+     
+    //MO, excitation energies and dipolemoments
+    std::vector <double> occMO, virtMO, excitE;
+    coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+    std::vector <int> state_i, state_j, gz_i_state;
+
   };
 
   interface_base* new_interface (coords::Coordinates *);
   interface_base* pre_interface (coords::Coordinates *);
-
-
 }

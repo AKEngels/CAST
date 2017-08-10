@@ -60,7 +60,7 @@ namespace align
     Matrix_Class s, V, U;
     c.singular_value_decomposition(U, s, V);
 
-    Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
+    Matrix_Class unit = Matrix_Class::Identity(c.rows(), c.rows());
     if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
     {
       unit(2, 2) = -1;
