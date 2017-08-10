@@ -15,7 +15,7 @@ std::string energy::interfaces::dftb::get_python_modulepath(std::string modulena
     std::string content;
     file >> content;
     remove("tmpfile.txt");  //delete tmpfile
-    return content.substr(0,content.size()-13-modulename.size());  //give back path without filename __init__.pyc and modulename
+    return content.substr(0,content.size()-14-modulename.size());  //give back path without filename __init__.pyc and modulename
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
