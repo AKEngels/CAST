@@ -44,7 +44,6 @@ ifeq ($(config),debug_x64)
   OBJDIR = obj/x64/Debug
   DEFINES += -DCOMPILEX64 -DCAST_DEBUG_DROP_EXCEPTIONS
   INCLUDES += -I../../submodules/eigen/Eigen
-  INCLUDES += -I/usr/include/python2.7 
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -Og -g -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
@@ -54,9 +53,6 @@ ifeq ($(config),debug_x64)
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  CFLAGS+=$(shell python-config --cflags)
-  LDFLAGS+=$(shell python-config --ldflags)
-  all: -lpython2.7
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -101,19 +97,19 @@ ifeq ($(config),release_x64)
   TARGET = $(TARGETDIR)/CAST_linux_x64_release
   OBJDIR = obj/x64/Release
   DEFINES += -DCOMPILEX64
-  INCLUDES += -I../../submodules/eigen/Eigen 
-  INCLUDES += -I/usr/include/python2.7 
+  INCLUDES += -I../../submodules/eigen/Eigen
+  INCLUDES += -I/usr/include/python2.7
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wextra -Wall -std=c++0x -pedantic -fopenmp -static
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  LIBS += 
+  LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s -fopenmp
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
-  CFLAGS+=$(shell python-config --cflags)
-  LDFLAGS+=$(shell python-config --ldflags)
+  CFLAGS += $(shell python-config --cflags)
+  LDFLAGS += $(shell python-config --ldflags)
   all: -lpython2.7
   define PREBUILDCMDS
   endef
@@ -343,6 +339,8 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 endif
 
 OBJECTS := \
+	$(OBJDIR)/Center.o \
+	$(OBJDIR)/Couplings.o \
 	$(OBJDIR)/PCA.o \
 	$(OBJDIR)/Path_perp.o \
 	$(OBJDIR)/configuration.o \
@@ -358,8 +356,10 @@ OBJECTS := \
 	$(OBJDIR)/energy_int_amoeba.o \
 	$(OBJDIR)/energy_int_amoeba_pot.o \
 	$(OBJDIR)/energy_int_dftb.o \
+	$(OBJDIR)/energy_int_gaussian.o \
 	$(OBJDIR)/energy_int_mopac.o \
 	$(OBJDIR)/energy_int_terachem.o \
+	$(OBJDIR)/interfcrea.o \
 	$(OBJDIR)/interpolation.o \
 	$(OBJDIR)/main.o \
 	$(OBJDIR)/matop.o \
@@ -371,6 +371,7 @@ OBJECTS := \
 	$(OBJDIR)/optimization_mc.o \
 	$(OBJDIR)/optimization_ts.o \
 	$(OBJDIR)/pathopt.o \
+	$(OBJDIR)/scon_utility.o \
 	$(OBJDIR)/startopt.o \
 	$(OBJDIR)/startopt_ringsearch.o \
 	$(OBJDIR)/startopt_solvadd.o \
@@ -438,6 +439,12 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
+$(OBJDIR)/Center.o: ../../src/Center.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Couplings.o: ../../src/Couplings.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/PCA.o: ../../src/PCA.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -483,10 +490,16 @@ $(OBJDIR)/energy_int_amoeba_pot.o: ../../src/energy_int_amoeba_pot.cc
 $(OBJDIR)/energy_int_dftb.o: ../../src/energy_int_dftb.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/energy_int_gaussian.o: ../../src/energy_int_gaussian.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_mopac.o: ../../src/energy_int_mopac.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_terachem.o: ../../src/energy_int_terachem.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/interfcrea.o: ../../src/interfcrea.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/interpolation.o: ../../src/interpolation.cc
@@ -520,6 +533,9 @@ $(OBJDIR)/optimization_ts.o: ../../src/optimization_ts.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/pathopt.o: ../../src/pathopt.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/scon_utility.o: ../../src/scon_utility.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/startopt.o: ../../src/startopt.cc

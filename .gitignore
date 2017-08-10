@@ -9,7 +9,9 @@
 
 optional_files/build/*
 optional_files/project/*
+
 !optional_files/project/*.make
+
 
 /src/documentation/html
 /src/documentation/latex

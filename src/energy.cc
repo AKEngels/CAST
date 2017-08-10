@@ -6,7 +6,10 @@
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
 #include "energy_int_dftb.h"
+#include "energy_int_gaussian.h"
 #include "coords.h"
+#include "scon_utility.h"
+
 
 /*! Creates a specific energy interface
 *
@@ -19,6 +22,7 @@
 * @param coordinates: Pointer to coordinates object for which energy interface will perform
 * @return: Base-Class Pointer to the energy interface. Nullpointer is returned if something went wrong.
 */
+
 static inline energy::interface_base * get_interface (coords::Coordinates * coordinates, config::interface_types::T const &inf)
 {
   switch (inf)
@@ -55,6 +59,14 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       }
       return new energy::interfaces::dftb::sysCallInterface(coordinates);
     }
+  case config::interface_types::T::GAUSSIAN:
+    {
+     if (Config::get().general.verbosity >= 3)
+     {
+       std::cout << "Gaussian choosen for energy calculations.\n";
+     }
+     return new energy::interfaces::gaussian::sysCallInterfaceGauss(coordinates);
+  }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
@@ -92,7 +104,16 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
   return r;
 }
 
+//energy::interface_base::interface_base(void)  //Constructor
 
+
+/*! Override of virtual void swap
+*
+* Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is
+* useable with all general members of the class. For additional members 
+* of derived classes it must be decleared there additionaly to
+* "void swap(sysCallInterface&)"
+*/
 void energy::interface_base::swap (interface_base &other)    
 {
   std::swap(energy,    other.energy);
@@ -105,9 +126,15 @@ void energy::interface_base::swap (interface_base &other)
   std::swap(interactions, other.interactions);
 }
 
+
+/*! Override of virtual void to_stream
+*
+* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream 
+* is useable with all general members of the class fot output. For additional members
+* of derived classes it must be decleared there additionaly.
+*/
 void energy::interface_base::to_stream (std::ostream &stream) const
 {
   stream << "Energy: " << energy << ", Periodic: " << periodic << ", Integrity: " << integrity << ", Optimizer: " << optimizer << '\n';
   stream << "Periodics:  Max: " << pb_max << ", Min: " << pb_min << ", Dim: " << pb_dim << '\n';
 }
-
