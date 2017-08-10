@@ -220,7 +220,8 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
-		"write_xyz file=dl-find.xyz coords=${sys_name_id}_opt.c\n\n\n";
+		"write_xyz file=dl-find.xyz coords=${sys_name_id}_opt.c\n"
+		"write_pdb file=${sys_name_id}.pdb coords=${sys_name_id}_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
