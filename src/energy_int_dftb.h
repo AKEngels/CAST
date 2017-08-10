@@ -89,7 +89,7 @@ namespace energy
 				// energies
 				double e_bs, e_coul, e_rep, e_lr, e_tot;
 				
-				std::string id;
+				std::string id, add_path;
 
 				// FAILCOUNTER
 				size_t failcounter;

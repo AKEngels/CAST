@@ -22,7 +22,21 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
   energy::interface_base(cp),
   e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-  
+  //find paths to numpy and scipy
+    std::string numpath = get_python_modulepath("numpy");
+    std::string scipath = get_python_modulepath("scipy");
+
+    //create pythonpath
+    std::string pythonpaths_str = Py_GetPath();
+    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+    add_path = "import sys\n";
+    for (auto p : pythonpaths)
+    {
+      add_path += "sys.path.append('"+p+"')\n";
+    }
+    add_path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
+    add_path += "sys.path.append('"+numpath+"')\n";
+    add_path += "sys.path.append('"+scipath+"')\n";
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -89,25 +103,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     file << coords::output::formats::xyz_dftb(*this->coords);
     file.close();
     
-
-    Py_Initialize(); //initialize python interpreter
-    
-    //find paths to numpy and scipy
-    std::string numpath = get_python_modulepath("numpy");
-    std::string scipath = get_python_modulepath("scipy");
-
-    //create pythonpath
-    std::string pythonpaths_str = Py_GetPath();
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
-    std::string add_path = "import sys\n";
-    for (auto p : pythonpaths)
-    {
-      add_path += "sys.path.append('"+p+"')\n";
-    }
-    add_path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
-    add_path += "sys.path.append('"+numpath+"')\n";
-    add_path += "sys.path.append('"+scipath+"')\n";
-    
     //call programme
     std::string result_str; 
     PyObject *modul, *funk, *prm, *ret;
@@ -145,8 +140,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         printf("Fehler: Modul DFTB2 nicht gefunden\n"); 
         std::exit(0);
     }
-        
-    Py_Finalize(); 
   return e_tot;
 }
 

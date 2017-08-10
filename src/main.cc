@@ -23,6 +23,7 @@
 #include <fstream>
 #include <memory>
 #include <omp.h>
+#include <Python.h>
 
 
 //////////////////////////
@@ -145,6 +146,11 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {
+      Py_Initialize();
+    }
+
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -197,6 +203,8 @@ int main(int argc, char **argv)
         coords = newCoords;
       }
     }
+
+
 
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
@@ -774,6 +782,11 @@ int main(int argc, char **argv)
 
     }
 
+    }
+
+        if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {
+      Py_Finalize();
     }
 
     // stop and print task and execution time
