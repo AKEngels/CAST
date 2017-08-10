@@ -57,7 +57,7 @@ void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
 
 energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 {
-  
+
 }
 
 
@@ -83,7 +83,14 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   integrity = true;
   grad_var = false;
-  Py_Initialize(); //initialize python interpreter
+
+    //write inputstructure
+    std::ofstream file("tmp_struc.xyz");
+    file << coords::output::formats::xyz_dftb(*this->coords);
+    file.close();
+    
+
+    Py_Initialize(); //initialize python interpreter
     
     //find paths to numpy and scipy
     std::string numpath = get_python_modulepath("numpy");
@@ -114,7 +121,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     if(modul) 
         { 
         funk = PyObject_GetAttrString(modul, "main"); //create function
-        prm = Py_BuildValue("(ss)", "/home/susanne/Downloads/DFTBaby-0.1.0/molecules/ethan.xyz", "dftbaby.cfg"); //give parameters
+        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
         result_str = PyString_AsString(ret); //read function return (has to be a string)
