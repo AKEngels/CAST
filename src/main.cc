@@ -730,7 +730,7 @@ int main(int argc, char **argv)
       }
 		    break;
       }
-	    case config::tasks::EXCITON_BREAKUP:
+	    case config::tasks::XB_EXCITON_BREAKUP:
 	    {
 		  /**
 		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
@@ -742,7 +742,7 @@ int main(int argc, char **argv)
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       break;
 	  }
-      case config::tasks::INTEFACE_CREATION:
+      case config::tasks::XB_INTEFACE_CREATION:
       {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
@@ -750,7 +750,7 @@ int main(int argc, char **argv)
         coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
         break;
       }
-      case config::tasks::CENTER:
+      case config::tasks::XB_CENTER:
       {
         /**
         * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
@@ -760,7 +760,7 @@ int main(int argc, char **argv)
         center(coords);
         break;
       }
-      case config::tasks::COUPLINGS:
+      case config::tasks::XB_COUPLINGS:
       {
         couplings::coupling coup;
 

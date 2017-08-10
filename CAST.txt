@@ -55,36 +55,36 @@ amber_restrt           min.rst
 #                                  #
 ####################################
 
-# SP                   Single point eneryg calculation
-# GRAD                 Single point energy calculation
-# LOCOPT               Local optimization using Lib-LBFGS
-# MD                   Molecular dynamics simulation
-# GOSOL                Combined Solvation + Global Optimization
-# MC                   Monte Carlo
-# CENTER               Center of mass/geometry
-# TS                   Tabu Search (CAST: GOTS)
-# RMSD                 Root mean square deviation
-# DIMER                Dimer method using torsional space
-# NEB                  Nudged elastic band calculation
-# INTERNAL             Create Z-Matrix
+# SP                      Single point eneryg calculation
+# GRAD                    Single point energy calculation
+# LOCOPT                  Local optimization using Lib-LBFGS
+# MD                      Molecular dynamics simulation
+# GOSOL                   Combined Solvation + Global Optimization
+# MC                      Monte Carlo
+# XB_CENTER               Center of mass, Cutting out dimer pairs
+# TS                      Tabu Search (CAST: GOTS)
+# RMSD                    Root mean square deviation
+# DIMER                   Dimer method using torsional space
+# NEB                     Nudged elastic band calculation
+# INTERNAL                Create Z-Matrix
 # STARTOPT
-# UMBRELLA             Umbrella Sampling
-# PROFILE              Repeated Gradient Calculation of first input structure
-# FEP                  Alchemical transformations using FEP
-# ALIGN                Trajectory Alignment (Kabsch algorithm)
-# PCAgen               Principal Component Analysis
+# UMBRELLA                Umbrella Sampling
+# PROFILE                 Repeated Gradient Calculation of first input structure
+# FEP                     Alchemical transformations using FEP
+# ALIGN                   Trajectory Alignment (Kabsch algorithm)
+# PCAgen                  Principal Component Analysis
 # PCAproc
-# ENTROPY              Configurational and Conformational Entropy Calculations
-# GRID                 Grid Search
-# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# ENTROPY                 Configurational and Conformational Entropy Calculations
+# GRID                    Grid Search
+# PATHOPT                 Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# EXCITON_BREAKUP
-# INTERFACE_CREATION
-# COUPLINGS
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 
-task                  EXCITON_BREAKUP
+task                      EXCITON_BREAKUP
 
 
 ####################################
@@ -797,7 +797,7 @@ USsnap                 5
 
 ####################################
 #                                  #
-#          EXCITONBREAKUP          #
+#        XB_EXCITON_BREAKUP        #
 #                                  #
 ####################################
 
@@ -847,7 +847,7 @@ EXwellenzahl                28514.9
 
 ####################################
 #                                  #
-#        Interface Creation        #           
+#      XB_Interface Creation       #           
 #                                  #
 ####################################
 
@@ -872,7 +872,7 @@ ICdistance					5.0
 
 ####################################
 #                                  #
-#              CENTER              #
+#             XB_CENTER            #
 #                                  #
 ####################################
 
@@ -883,7 +883,7 @@ CENTERdistance                  15.0
 
 ####################################
 #                                  #
-#             Couplings            #
+#           XB_Couplings           #
 #                                  #
 ####################################
 
