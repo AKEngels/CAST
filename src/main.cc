@@ -193,13 +193,6 @@ int main(int argc, char **argv)
       }
     }
 
-    if (Config::get().general.energy_interface == config::interface_types::DFTB)
-    {
-      std::ofstream file("dftb_input.txt");
-      file<<coords::output::formats::xyz_dftb(coords)<<"\n";
-      file.close();
-    }
-
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
     {

@@ -2145,6 +2145,8 @@ class DFTB2(object):
             # compute long range Hartree-Fock exchange
             self.E_HF_x = self.lc_exchange_energy()
             self.E_elec += self.E_HF_x
+        else:
+            self.E_HF_x = 0
         if hasattr(self, "Vcoul_pc"):
             # point charges
             self.E_point_charges = dot(self.Vcoul_pc, self.dq)
@@ -2160,7 +2162,7 @@ class DFTB2(object):
             self.E_cav = self.getCavity_Energy()
             self.E_nuc = self.E_rep + self.E_disp + self.E_qmmm + self.E_cav
         self.E_tot = self.E_elec + self.E_nuc
-        return self.E_bs, self.E_coulomb, self.E_elec, self.E_nuc, self.E_tot
+        return self.E_bs, self.E_coulomb, self.E_elec, self.E_nuc, self.E_HF_x, self.E_tot
 
     @T.timer
     def getEnergy(self, **opts):

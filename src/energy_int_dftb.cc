@@ -136,7 +136,8 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         e_bs = std::stod(result_vec[0])*627.503; //read energies and convert them to kcal/mol
         e_coul = std::stod(result_vec[1])*627.503;
         e_rep = std::stod(result_vec[3])*627.503;
-        e_tot = std::stod(result_vec[4])*627.503;
+        e_lr = std::stod(result_vec[4])*627.503;
+        e_tot = std::stod(result_vec[5])*627.503;
 
         } 
     else 
@@ -184,6 +185,7 @@ void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, b
   S << "Energies\n";
   S << std::right << std::setw(24) << "E_bs";
   S << std::right << std::setw(24) << "E_coul";
+  S << std::right << std::setw(24) << "E_lr";
   S << std::right << std::setw(24) << "E_rep";
   S << std::right << std::setw(24) << "SUM\n\n";
 }
@@ -192,6 +194,7 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 {
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_bs;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_coul;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_lr;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
   S << "\n";

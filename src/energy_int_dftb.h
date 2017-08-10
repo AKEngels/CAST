@@ -88,7 +88,7 @@ namespace energy
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
 				// energies
-				double e_bs, e_coul, e_rep, e_tot;
+				double e_bs, e_coul, e_rep, e_lr, e_tot;
 				
 				std::string id;
 
