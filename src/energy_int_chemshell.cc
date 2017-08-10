@@ -171,9 +171,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 
 	ofs << "dl-find coords = ${dir}/${sys_name_id}.c \\\n"
 		"    coordinates=hdlc \\\n"
-		"    result=" << tmp_file_name << ".c \\\n"
-		"    energy=" << tmp_file_name << ".energy \\\n"
-		"    gradient=" << tmp_file_name << ".gradient \\\n";
+		"    result=" << tmp_file_name << ".c \\\n";
 	if (maxcycle != "") {
 		ofs << "    maxcycle=" << maxcycle << " \\\n";
 	}
@@ -474,6 +472,21 @@ coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_co
 	return cp;
 }
 
+void energy::interfaces::chemshell::sysCallInterface::change_name_of_energy_and_grad()const {
+	std::stringstream ss;
+
+	ss << "mv dl-find.energy " << tmp_file_name << ".energy";
+
+	scon::system_call(ss.str());
+
+	std::stringstream().swap(ss);
+
+	ss << "mv dl-find.gradient " << tmp_file_name << ".gradient";
+
+	scon::system_call(ss.str());
+
+}
+
 void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz) {
 	coords->set_xyz(xyz);
 
@@ -586,6 +599,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	check_for_first_call();
 	write_chemshell_coords();
 	make_opti();
+	change_name_of_energy_and_grad();
 	read_gradients();
 	read_coords();
 	return read_energy(); 
