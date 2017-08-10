@@ -519,6 +519,8 @@ void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(st
 		throw std::runtime_error("Failed to " + what_happens + " the old .inpcrd file.");
 	}
 
+	std::stringstream().swap(ss);
+
 	ss << copy_or_move << " " << filename << ".pdb " << tmp_file_name << ".pdb";
 
 	ret = scon::system_call(ss.str());
