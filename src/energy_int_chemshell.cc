@@ -220,9 +220,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
-		"write_xyz file=" << tmp_file_name << ".xyz coords=${sys_name_id}_opt.c\n"
+		"write_xyz file=" << tmp_file_name << ".xyz coords=${sys_name_id}.c\n"
 		"read_pdb  file=" << tmp_file_name << ".pdb  coords=dummy.coords\n"
-		"write_pdb file=" << tmp_file_name << ".pdb coords=${sys_name_id}_opt.c\n\n\n";
+		"write_pdb file=" << tmp_file_name << ".pdb coords=${sys_name_id}.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
@@ -283,9 +283,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"set amber_prmtop " << tmp_file_name << ".prmtop\n"
 		"set amber_inpcrd " << tmp_file_name << ".inpcrd\n"
 		"\n"
-		"set control_input_settings [ open control_input.${sys_name_id}  a ]\n"
-		"\n"
-		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=${sys_name_id}.c\n"
+//		"set control_input_settings [ open control_input.${sys_name_id}  a ]\n"
+//		"\n"
+		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=" << tmp_file_name << ".c\n"
 		"\n"
 		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n";
 	//Refactoring NEEDED!!!!!!
