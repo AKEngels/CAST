@@ -167,7 +167,6 @@ void coords::Stereo::update(coords::Representation_3D const &xyz)
  * will be filled in later using the function init_swap_in().
  * The energy interface and preinterface are created
  * according to the specifications from the global Config instance.
- *
  */
 coords::Coordinates::Coordinates() :
   m_atoms(), m_representation(), m_stereo(),

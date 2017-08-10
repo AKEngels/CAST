@@ -47,7 +47,12 @@
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
+#include "exciton_breakup.h"
+#include "interfcrea.h"
+#include "Center.h"
+#include "Couplings.h"
 #include "periodicCutout.h"
+
 
 //////////////////////////
 //                      //
@@ -404,7 +409,9 @@ int main(int argc, char **argv)
           std::cout << " and " << coords.atoms(angle_intern).i_to_a();
           std::cout << " : " << coords.main(i) << '\n';
         }
+
         for (auto const & e : coords.main()) std::cout << e << '\n';
+
       }
       break;
     }
@@ -717,10 +724,51 @@ int main(int argc, char **argv)
         hold_str[iter] = temporaryStringstream.str();
       }
       for (size_t i = 0; i < ci->size(); i++)
+
       {
         out << hold_str[i];
       }
-    }
+		    break;
+      }
+	    case config::tasks::XB_EXCITON_BREAKUP:
+	    {
+		  /**
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      break;
+	  }
+      case config::tasks::XB_INTEFACE_CREATION:
+      {
+      /**
+      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      */
+        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
+        break;
+      }
+      case config::tasks::XB_CENTER:
+      {
+        /**
+        * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+        * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
+        */
+
+        center(coords);
+        break;
+      }
+      case config::tasks::XB_COUPLINGS:
+      {
+        couplings::coupling coup;
+
+        coup.kopplung();
+
+        break;
+      }
+
     default:
     {
 

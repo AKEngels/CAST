@@ -67,8 +67,13 @@ namespace energy
     { }
   };
   
-  /**Abstract interface base class, 
-  -> specialization for FF, MOPAC, terachem etc.*/
+
+  /** Abstract  base class for interfaces, 
+  * parent class for all inrterface classes used 
+  * by CAST for example FF, MOPAC, terachem , gaussian etc.
+  * Output should be in kcal/mol! 
+  */
+
   class interface_base
   {
   protected:
@@ -87,6 +92,8 @@ namespace energy
     { 
       if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
     }
+
+    interface_base(); 
 
     interface_base& operator= (interface_base const &other)
     {
@@ -143,6 +150,22 @@ namespace energy
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
+
+
+    //Functions to fetch special outputdata from gaussian interface
+    std::vector <double> get_occMO()   {return occMO;}
+    std::vector <double> get_virtMO()  {return virtMO;}
+    std::vector <double> get_excitE()  {return excitE;}
+    std::vector <int> get_state_i()    {return state_i;}
+    std::vector <int> get_state_j()    {return state_j;}
+    std::vector <int> get_gz_i_state() {return gz_i_state;}
+    coords::Representation_3D  get_ex_ex_trans() {return ex_ex_trans;}
+    coords::Representation_3D  get_gz_ex_trans() {return gz_ex_trans;}
+     
+    //MO, excitation energies and dipolemoments
+    std::vector <double> occMO, virtMO, excitE;
+    coords::Representation_3D  ex_ex_trans, gz_ex_trans;
+    std::vector <int> state_i, state_j, gz_i_state;
 
   };
 

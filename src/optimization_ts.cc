@@ -36,10 +36,12 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
     opt_clock.restart();
     header_to_cout();
   }
-  coordobj.set_pes(accepted_minima[min_index].pes);
-  init_stereo = coordobj.stereos();
-  std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
 
+  coordobj.set_pes(accepted_minima[min_index].pes);
+
+  init_stereo = coordobj.stereos();
+
+  std::size_t const iter_size(scon::num_digits(Config::get().optimization.global.iterations) + 1);
   
   if (Config::get().optimization.global.tabusearch.mcm_first) 
     diversification();

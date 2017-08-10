@@ -37,35 +37,35 @@ project "CAST"
   targetdir "../optional_files/build/"
   files { "../src/**.h", "../src/**.cc", "../src/gtest/**.cc" }
 
-	vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/*.cc", ["Testing"] = "../src/gtest/**.cc" }
+  vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/*.cc", ["Testing"] = "../src/gtest/**.cc" }
 
 
-	configuration "gmake"
-		includedirs { "../submodules/eigen/Eigen/" }
-		linkoptions { "-fopenmp" }
+  configuration "gmake"
+    includedirs { "../submodules/eigen/Eigen/" }
+    linkoptions { "-fopenmp" }
                 targetname "CAST_undefined.exe"
-		filter { "options:mpi" }
-			defines { "USE_MPI" }
-		filter { "action:gmake" }
-			buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
-		filter { "configurations:Release", "action:gmake" }
-			optimize "Full"
-		filter { "configurations:Release",  "platforms:x86", "action:gmake"}
-			targetname "CAST_linux_x86_release"
-		filter { "configurations:Release",  "platforms:x64", "action:gmake"}
-			targetname "CAST_linux_x64_release"
+    filter { "options:mpi" }
+      defines { "USE_MPI" }
+    filter { "action:gmake" }
+      buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
+    filter { "configurations:Release", "action:gmake" }
+      optimize "Full"
+    filter { "configurations:Release",  "platforms:x86", "action:gmake"}
+      targetname "CAST_linux_x86_release"
+    filter { "configurations:Release",  "platforms:x64", "action:gmake"}
+      targetname "CAST_linux_x64_release"
 
-		filter { "configurations:Armadillo_Testing", "action:gmake" }
-			optimize "Debug"
-			defines { "GOOGLE_MOCK", "USE_ARMADILLO", "ARMA_DONT_USE_WRAPPER" }
-			includedirs { "./includes/gtest/", "../optional_files/includes/armadillo/" }
-			buildoptions { "-I ../optional_files/includes -I ../includes -lgfortran" }
-			linkoptions { "../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran" }
-			flags { "LinkTimeOptimization" }
-		filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:gmake"}
-			targetname "CAST_linux_x86_armadillo_testing"
-		filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:gmake"}
-		  targetname "CAST_linux_x64_armadillo_testing"
+    filter { "configurations:Armadillo_Testing", "action:gmake" }
+      optimize "Debug"
+      defines { "GOOGLE_MOCK", "USE_ARMADILLO", "ARMA_DONT_USE_WRAPPER" }
+      includedirs { "./includes/gtest/", "../optional_files/includes/armadillo/" }
+      buildoptions { "-I ../optional_files/includes -I ../includes -lgfortran" }
+      linkoptions { "../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran" }
+      flags { "LinkTimeOptimization" }
+    filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:gmake"}
+      targetname "CAST_linux_x86_armadillo_testing"
+    filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:gmake"}
+      targetname "CAST_linux_x64_armadillo_testing"
 
       filter { "configurations:Testing", "action:gmake" }
         optimize "Debug"
@@ -82,7 +82,7 @@ project "CAST"
     filter { "configurations:Debug", "action:gmake" }
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       optimize "Debug"
-	  includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/Eigen/"}
       flags { "Symbols" }
     filter { "configurations:Debug",  "platforms:x86", "action:gmake"}
       targetname "CAST_linux_x86_debug"
@@ -126,12 +126,12 @@ project "CAST"
       flags { "LinkTimeOptimization" }
     filter { "configurations:Release",  "platforms:x86", "action:vs2015"}
       targetname "CAST_win_x86_release"
-	  defines {"EIGEN_NO_DEBUG"}
-	  includedirs { "../submodules/eigen/Eigen/"}
+    defines {"EIGEN_NO_DEBUG"}
+    includedirs { "../submodules/eigen/Eigen/"}
     filter { "configurations:Release",  "platforms:x64", "action:vs2015"}
       targetname "CAST_win_x64_release"
-	  defines {"EIGEN_NO_DEBUG"}
-	  includedirs { "../submodules/eigen/Eigen/"}
+    defines {"EIGEN_NO_DEBUG"}
+    includedirs { "../submodules/eigen/Eigen/"}
 
     filter { "configurations:Armadillo_Release", "action:vs2015"}
       includedirs { "../optional_files/includes/armadillo/"}
@@ -168,7 +168,7 @@ project "CAST"
       defines { "GOOGLE_MOCK" }
       libdirs { "../optional_files/windows_precompiled_libs/" }
       links { "gmock" }
-	  linkoptions {"/DEBUG"}
+    linkoptions {"/DEBUG"}
     filter { "configurations:Testing",  "platforms:x86", "action:vs2015"}
     targetname "CAST_win_x86_testing"
     filter { "configurations:Testing",  "platforms:x64", "action:vs2015"}
@@ -179,7 +179,7 @@ project "CAST"
       defines { "GOOGLE_MOCK", "CAST_USE_ARMADILLO" }
       includedirs { "../optional_files/includes/armadillo/", "../optional_files/includes/gtest/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
-	  linkoptions {"/DEBUG"}
+    linkoptions {"/DEBUG"}
       filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2015"}
         targetname "CAST_win_x86_testing_lapack"
         links { "blas_x86rel", "lapack_x86rel", "gmock" }
@@ -190,10 +190,10 @@ project "CAST"
     filter { "configurations:Debug", "action:vs2015" }
       removefiles { "./src/tests/**.cc", "./src/test/**.h"}
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-	  includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/Eigen/"}
       optimize "Debug"
       flags { "Symbols" }
     filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
       targetname "CAST_win_x86_debug"
     filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
-      targetname "CAST_win_x64_debug"
+targetname "CAST_win_x64_debug"

@@ -55,6 +55,36 @@ coords::input::format* coords::input::new_format(void)
   }
 }
 
+/*! Creates new coords::input::format
+*
+* Creates new coords::input::format
+* according to the input type specified
+* in the configfile for interface creation
+*/
+coords::input::format* coords::input::additional_format(void)
+{
+  switch (Config::get().interfcrea.icfiletype)
+  {
+  case config::input_types::TINKER:
+    //TINKER
+    return new formats::tinker;
+    break;
+  case config::input_types::AMBER:
+    //AMBER
+    return new formats::amber;
+    break;
+  default:
+  {
+    return new formats::tinker;
+  }
+  }
+}
+
+coords::input::format* coords::input::new_interf_format(void)
+{
+    return new formats::tinker;
+}
+
 /*! Read coordinates from a tinker .arc file
  *
  * This function is used to read coordinates from
@@ -66,9 +96,11 @@ coords::input::format* coords::input::new_format(void)
 coords::Coordinates coords::input::formats::tinker::read(std::string file)
 {
   // Create empty coordinates object!
-
   Coordinates coord_object;
   std::ifstream coord_file_stream(file.c_str(), std::ios_base::in);
+
+
+
   if (coord_file_stream)
   {
     std::size_t N(0U);
@@ -83,6 +115,9 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     std::vector<std::size_t> index_of_atom(N);
     bool indexation_not_contiguous(false),
       has_in_out_subsystems(false);
+
+
+
 
     // loop fetching atoms and positions
     for (std::size_t i(1U); std::getline(coord_file_stream, line); ++i)
@@ -348,29 +383,14 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
   //stream << N << '\n';
   for (std::size_t i(0U); i < N; ++i)
   {
-    /* stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+     stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
-     stream << '\n';*/
-    if (ref.atoms(i).fixed())
-    {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 0";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 0";
-      stream << '\n';
-    }
-    else
-    {
-      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x() << " 1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y() << " 1";
-      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z() << " 1";
-      stream << '\n';
-    }
+     stream << '\n';
   }
 }
+
 
 
 void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const

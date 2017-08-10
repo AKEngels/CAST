@@ -47,8 +47,10 @@ namespace config
   /** Version-Number of CAST*/
   static std::string const Version("3.2.0.2dev");
 
+
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 22;
+  static std::size_t const NUM_TASKS = 26;
+
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
   {
@@ -56,7 +58,8 @@ namespace config
     "MC", "DIMER", "MD", "NEB", "GOSOL",
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING",
+    "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -74,7 +77,8 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL,
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING,
+      GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
+      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS
     };
   };
 
@@ -125,12 +129,14 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 6;
+  static std::size_t const NUM_INTERFACES = 7;
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-  {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC"
+
+  { 
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
+
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -141,11 +147,11 @@ namespace config
   {
     /*! contains all interface_types currently supported in CAST
     */
-    enum T
-    {
-      ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC
-    };
+    enum T 
+    { 
+      ILLEGAL = -1, 
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
+    }; 
   };
 
   /**number of supported Mopac Versions*/
@@ -532,6 +538,15 @@ namespace config
         delete_input(true)
       {}
     } mopac;
+
+    struct gaussian_conf
+    {
+      std::string path, link, charge, multipl, method, basisset, spec;
+      bool delete_input, steep;
+      gaussian_conf(void) : method("Hf/ "), basisset ("6-31G"),
+        delete_input(true)
+      {}
+    } gaussian;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
@@ -1109,6 +1124,41 @@ namespace config
     io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
   };
 
+  struct exbreak
+  {
+	  std::string masscenters; //Filename
+	  std::string nscpairrates; //Filename
+	  std::string pscpairexrates; //Filename
+	  std::string pscpairchrates; //Filename
+	  std::string pnscpairrates; //Filename
+	  int nscnumber, pscnumber;
+	  char interfaceorientation;
+    double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek, 
+       ct_triebkraft, rek_triebkraft,oscillatorstrength, wellenzahl;
+  };
+
+  struct interfcrea
+  {
+    std::string icfilename;
+    input_types::T icfiletype;
+    char        icaxis;
+    double      icdist;
+  };
+
+  struct center
+  {
+    bool dimer;
+    double distance;
+  };
+
+  struct couplings
+  {
+    double nbr_nSC, nbr_pSC, nbr_dimPairs;
+    std::string ct_chara_all, 
+                pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
+                nSCmultipl, nSCcharge, nSCmethod,
+                hetmultipl, hetcharge, hetmethod;
+  };
 
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1259,6 +1309,10 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
+  config::exbreak				        exbreak;
+  config::interfcrea            interfcrea;
+  config::center                center;
+  config::couplings             couplings;
   config::periodics             periodics;
 
   /*! Constructor of Config object
@@ -1306,6 +1360,11 @@ public:
     if (!m_instance) throw std::runtime_error("Configuration not loaded.");
     return *m_instance;
   }
+
+  void        check(void);
+
+  std::string task(void) const;
+  std::string inter(void) const;
 
   /**
    * Helper function that matches a task

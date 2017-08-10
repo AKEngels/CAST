@@ -496,6 +496,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(5, 3) == "key")
       Config::set().energy.mopac.command = value_string;
+    else if (option.substr(5, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
       Config::set().energy.mopac.path = value_string;
     else if (option.substr(5, 6) == "delete")
@@ -510,6 +512,29 @@ void config::parse_option(std::string const option, std::string const value_stri
         config::NUM_MOPAC_VERSION
         >(value_string, config::mopac_ver_string);
     }
+  }
+
+  //Gaussian options
+  else if (option.substr(0, 8) == "GAUSSIAN")
+  {
+    if (option.substr(8, 6) == "method")
+      Config::set().energy.gaussian.method = value_string;
+    else if (option.substr(8, 8) == "basisset")
+      Config::set().energy.gaussian.basisset = value_string;
+    else if (option.substr(8, 14) == "specifications")
+      Config::set().energy.gaussian.spec = value_string;
+    else if (option.substr(8, 4) == "link")
+      Config::set().energy.gaussian.link = value_string;
+    else if (option.substr(8, 6) == "charge")
+      Config::set().energy.gaussian.charge = value_string;
+    else if (option.substr(8, 12) == "multiplicity")
+      Config::set().energy.gaussian.multipl = value_string;
+    else if (option.substr(8, 4) == "path")
+      Config::set().energy.gaussian.path = value_string;
+    else if (option.substr(8, 5) == "steep")
+      Config::set().energy.gaussian.steep = bool_from_iss(cv);
+    else if (option.substr(8, 6) == "delete")
+      Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
 
   // convergence threshold for bfgs
@@ -1551,6 +1576,212 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().io.amber_trajectory_at_constant_pressure = false;
     }
   }
+
+  /* Inputoptions for exciton_breakup
+  */
+  else if (option.substr(0u,2u) == "EX")
+  {
+	  if (option.substr(2u,11u) == "masscenters")
+	  {
+		  Config::set().exbreak.masscenters = value_string;
+	  }
+	  else if (option.substr(2u,7u) == "numbern")
+	  {
+		  cv >> Config::set().exbreak.nscnumber;
+	  }
+	  else if (option.substr(2u,7u) == "numberp")
+	  {
+		  cv >> Config::set().exbreak.pscnumber;
+	  }
+	  else if (option.substr(2u, 11u) == "planeinterf")
+	  {
+		  cv >> Config::set().exbreak.interfaceorientation;
+	  }
+	  else if (option.substr(2u, 12u) == "nscpairrates")
+	  {
+		  Config::set().exbreak.nscpairrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairexrates")
+	  {
+		  Config::set().exbreak.pscpairexrates = value_string;
+	  }
+	  else if (option.substr(2u, 14u) == "pscpairchrates")
+	  {
+		  Config::set().exbreak.pscpairchrates = value_string;
+	  }
+	  else if (option.substr(2u, 13u) == "pnscpairrates")
+	  {
+		  Config::set().exbreak.pnscpairrates = value_string;
+	  }
+    else if (option.substr(2u, 10u) == "ReorgE_exc")
+    {
+      cv >> Config::set().exbreak.ReorgE_exc;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ch")
+    {
+      cv >> Config::set().exbreak.ReorgE_ch;
+    }
+    else if (option.substr(2u, 10u) == "ReorgE_nSC")
+    {
+      cv >> Config::set().exbreak.ReorgE_nSC;
+    }
+    else if (option.substr(2u, 9u) == "ReorgE_ct")
+    {
+      cv >> Config::set().exbreak.ReorgE_ct;
+    }
+   else if (option.substr(2u, 10u) == "ReorgE_rek")
+    {
+     cv >> Config::set().exbreak.ReorgE_rek;
+    }
+    else if (option.substr(2u, 13u) == "ct_triebkraft")
+    {
+      cv >> Config::set().exbreak.ct_triebkraft;
+    }
+    else if (option.substr(2u, 14u) == "rek_triebkraft")
+    {
+      cv >> Config::set().exbreak.rek_triebkraft;
+    }
+    else if (option.substr(2u, 18u) == "oscillatorstrength")
+    {
+      cv >> Config::set().exbreak.oscillatorstrength;
+    }
+    else if (option.substr(2u, 10u) == "wellenzahl")
+    {
+      cv >> Config::set().exbreak.wellenzahl;
+    }
+  }
+
+  /* Inputoptions for interfacecreation
+  */
+  else if (option.substr(0u, 2u) == "IC")
+  {
+    if (option.substr(2u, 4u) == "name")
+    {
+      Config::set().interfcrea.icfilename = value_string;
+    }
+    else if (option.substr(2u, 9u) == "inputtype")
+    {
+      Config::set().interfcrea.icfiletype = enum_from_string<input_types::T, NUM_INPUT>(input_strings, value_string);
+    }
+    else if (option.substr(2u, 4u) == "axis")
+    {
+      cv >> Config::set().interfcrea.icaxis;
+    }
+    else if (option.substr(2u, 8u) == "distance")
+    {
+      cv >> Config::set().interfcrea.icdist;
+    }
+  }
+
+  /* Inputoptions for Center
+  */
+  else if (option.substr(0u, 6u) == "CENTER")
+  {
+    if (option.substr(6u, 5u) == "dimer")
+    {
+      Config::set().center.dimer = bool_from_iss(cv);
+    }
+    else if (option.substr(6u, 8u) == "distance")
+    {
+      cv >> Config::set().center.distance;
+    }
+  }
+
+  /* Inputoptions for Couplings
+  */
+  else if (option.substr(0u, 9u) == "Couplings")
+  {
+    if (option.substr(9u, 11u) == "dimernumber")
+    {
+      cv >> Config::set().couplings.nbr_dimPairs;
+    }
+    else if (option.substr(9u, 9u) == "nSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_nSC;
+    }
+    else if (option.substr(9u, 9u) == "pSCnumber")
+    {
+      cv >> Config::set().couplings.nbr_pSC;
+    }
+    else if (option.substr(9u, 13u) == "CTcharastates")
+    {
+      cv >> Config::set().couplings.ct_chara_all;
+    }
+    else if (option.substr(9u, 6u) == "pSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.pSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.pSCcharge;
+      }
+      else if (option.substr(15u, 12u) == "ElCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_el.append(tmp);
+          Config::set().couplings.pSCmethod_el.append(" ");
+        }
+      }
+      else if (option.substr(15u, 14u) == "ExciCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.pSCmethod_ex.append(tmp);
+          Config::set().couplings.pSCmethod_ex.append(" ");
+        }
+      }
+    }
+    else if (option.substr(9u, 6u) == "nSCdim")
+    {
+      if (option.substr(15u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.nSCmultipl;
+      }
+      else if (option.substr(15u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.nSCcharge;
+      }
+      else if (option.substr(15u, 13u) == "holCalcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.nSCmethod.append(tmp);
+          Config::set().couplings.nSCmethod.append(" ");
+        }
+      }
+    }
+    else if (option.substr(9u, 9u) == "heterodim")
+    {
+      if (option.substr(18u, 12u) == "Multiplicity")
+      {
+        cv >> Config::set().couplings.hetmultipl;
+      }
+      else if (option.substr(18u, 6u) == "Charge")
+      {
+        cv >> Config::set().couplings.hetcharge;
+      }
+      else if (option.substr(18u, 10u) == "Calcmethod")
+      {
+        while (!cv.eof())
+        {
+          std::string tmp;
+          cv >> tmp;
+          Config::set().couplings.hetmethod.append(tmp);
+          Config::set().couplings.hetmethod.append(" ");
+        }
+      }
+    }
+  }
+
 }
 
 
@@ -1758,6 +1989,11 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   if (Config::get().general.energy_interface == interface_types::MOPAC)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
+  }
+  if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
+  {
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
+         << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
   }
   return strm;
 }
