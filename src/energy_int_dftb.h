@@ -48,7 +48,9 @@ namespace energy
 			{
 
 			public:
-
+                /**constructor
+				when called first, sets all partial energies to 0
+				and fills the string add_path for adding stuff to pythonpath*/
 				sysCallInterface(coords::Coordinates*);
 				~sysCallInterface(void);
 
@@ -87,9 +89,21 @@ namespace energy
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
 				// energies
-				double e_bs, e_coul, e_rep, e_lr, e_tot;
+				/**band structure energy*/
+				double e_bs;
+				/**coulomb energy*/
+				double e_coul;
+				/**long range correction*/
+				double e_lr;
+				/**repulsion energy (nuclear)*/
+				double e_rep;
+				/**total energy*/
+				double e_tot;
 				
-				std::string id, add_path;
+				std::string id;
+				/**string that contains pythonprogramme to 
+				add all necessary paths to pythonpath*/
+				std::string add_path;
 
 				// FAILCOUNTER
 				size_t failcounter;

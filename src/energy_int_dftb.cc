@@ -22,7 +22,7 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
   energy::interface_base(cp),
   e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
-  //find paths to numpy and scipy
+    //find paths to numpy and scipy
     std::string numpath = get_python_modulepath("numpy");
     std::string scipath = get_python_modulepath("scipy");
 
@@ -107,11 +107,12 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     std::string result_str; 
     PyObject *modul, *funk, *prm, *ret;
     
-    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";
-    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //path to python module
-    const char *c = add_path.c_str();
+    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
+    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
+    const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
-    modul = PyImport_ImportModule("DFTB2"); //import module test from path
+
+    modul = PyImport_ImportModule("DFTB2"); //import module 
 
     if(modul) 
         { 
@@ -120,20 +121,21 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
         result_str = PyString_AsString(ret); //read function return (has to be a string)
-        result_str = result_str.substr(1,result_str.size()-2);
+        result_str = result_str.substr(1,result_str.size()-2);  //process return
         std::vector<std::string> result_vec = split(result_str, ',');
 
-        Py_DECREF(prm); //delete PyObjects
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-
-        e_bs = std::stod(result_vec[0])*627.503; //read energies and convert them to kcal/mol
+        //read energies and convert them to kcal/mol
+        e_bs = std::stod(result_vec[0])*627.503; 
         e_coul = std::stod(result_vec[1])*627.503;
         e_rep = std::stod(result_vec[3])*627.503;
         e_lr = std::stod(result_vec[4])*627.503;
         e_tot = std::stod(result_vec[5])*627.503;
-
+        
+        //delete PyObjects
+        Py_DECREF(prm); 
+        Py_DECREF(ret); 
+        Py_DECREF(funk); 
+        Py_DECREF(modul); 
         } 
     else 
     {

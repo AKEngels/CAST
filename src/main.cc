@@ -147,7 +147,8 @@ int main(int argc, char **argv)
     //////////////////////////
 
     if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
-    {
+    {   // if DFTB energy interface: initialize python 
+        // necessary to do it here because it can't be done more than once
       Py_Initialize();
     }
 
@@ -784,8 +785,8 @@ int main(int argc, char **argv)
 
     }
 
-        if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
-    {
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {    // if DFTB interface: close python
       Py_Finalize();
     }
 
