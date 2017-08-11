@@ -151,8 +151,8 @@ namespace pca
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
 		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
-		cov_matr = cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
-		cov_matr = transposed(cov_matr) * cov_matr;
+		cov_matr = Matrix_Class (cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols()));
+		cov_matr = Matrix_Class (transposed(cov_matr) * cov_matr);
 		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
 		int *cov_rank = new int;
@@ -171,7 +171,7 @@ namespace pca
     if (Config::get().general.verbosity > 2u)
       std::cout << "Generating PCA modes from coordinate matrix and PCA Eigenvectors." << std::endl;
 
-		this->modes = transposed(eigenvectors) * this->coordinatesMatrix;
+		this->modes = Matrix_Class (transposed(eigenvectors) * this->coordinatesMatrix);
 	}
 	
 	void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
@@ -680,7 +680,7 @@ namespace pca
   void ProcessedPrincipalComponentRepresentation::restoreCoordinatesMatrix()
   {
     //Undoing PCA
-    this->coordinatesMatrix = eigenvectors * modes;
+    this->coordinatesMatrix = Matrix_Class (eigenvectors * modes);
   }
 
   void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)

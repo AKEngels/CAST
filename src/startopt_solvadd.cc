@@ -29,19 +29,15 @@ bool startopt::solvadd::water::check_geometry (void) const
   return (d1 > 0.05 || d2 > 0.05 || da > 0.05 || d3 < 1.0) ? false : true;
 }
 
-namespace
+double ratio(std::size_t const num_atoms, std::size_t const num_water)
 {
-  double ratio(std::size_t const num_atoms, std::size_t const num_water)
-  {
-    auto const n_pp = (num_atoms*num_atoms - num_atoms) / 2;
-    auto const n_ww = (9 * num_water*num_water - 3 * num_water) / 2;
-    auto n_wp = num_atoms*num_water * 3;
-    return (static_cast<double>(n_wp - n_ww) / static_cast<double>(n_pp + n_ww + n_wp));
-  }
+  auto const n_pp = (num_atoms*num_atoms - num_atoms) / 2;
+  auto const n_ww = (9 * num_water*num_water - 3 * num_water) / 2;
+  auto n_wp = num_atoms*num_water * 3;
+  return (static_cast<double>(n_wp - n_ww) / static_cast<double>(n_pp + n_ww + n_wp));
 }
 
-std::size_t startopt::solvadd::num_w_max_w_solute_ia(
-  std::size_t const a)
+std::size_t startopt::solvadd::num_w_max_w_solute_ia(std::size_t const a)
 {
   std::size_t w(0u);
   auto rat = ratio(a, w);
@@ -55,7 +51,6 @@ std::size_t startopt::solvadd::num_w_max_w_solute_ia(
   return w;
 }
 
-
 void startopt::preoptimizers::Solvadd::generate (
   coords::Ensemble_PES const & init_ensemble, std::size_t const multiplier)
 {
@@ -67,7 +62,7 @@ void startopt::preoptimizers::Solvadd::generate (
   std::size_t const twopps(100U*pre_per_structure);
   bool const SHELLOPT((Config::get().startopt.solvadd.opt == config::startopt_conf::solvadd::opt_types::SHELL || 
                       Config::get().startopt.solvadd.opt == config::startopt_conf::solvadd::opt_types::TOTAL_SHELL));
-  for (std::size_t e(0u); e<init_ensemble_size; ++e)
+  for (std::size_t e =0u; e < init_ensemble_size; ++e)
   {
     std::size_t p(0U), pi(0U);
     while(p < pre_per_structure && pi < twopps)
@@ -135,16 +130,17 @@ void startopt::preoptimizers::Solvadd::generate (
             << " , Diff: " << added_total - purged << ")" << std::endl;
         }
       }
+
       // we need to maintain a stable number of water molecules throughout the ensemble
       std::size_t const iter(e*pre_per_structure+p);
-      if (iter > 0u && m_solvated_positions.size() != m_final_coords.size() &&
-        Config::get().general.verbosity > 2U)
+      if (iter > 0u && m_solvated_positions.size() != m_final_coords.size() && Config::get().general.verbosity > 2U)
       {
-        auto ds = (m_solvated_positions.size() - coords.size())/3;
-        auto df = (m_final_coords.size() - coords.size())/3;
+        auto currentNumberOfWaters = (m_solvated_positions.size() - coords.size()) / 3u;
+        auto desiredNumberOfWaters = (m_final_coords.size() - coords.size()) / 3u;
         //auto d = ds > df ? ds-df : df-ds;
-        std::cout << "Number of waters " << ds << " does not match required number " << df << " - retrying.\n";
+        std::cout << "Number of waters " << currentNumberOfWaters << " does not match required number " << desiredNumberOfWaters << " - retrying.\n";
       }
+
       if (iter < 1U || m_solvated_positions.size() == m_final_coords.size())
       {
         populate_coords(w); 
@@ -192,7 +188,6 @@ void startopt::preoptimizers::Solvadd::generate (
   //histogram_stream << sahist;
 }
 
-
 void startopt::preoptimizers::Solvadd::build_sites (void)
 {
   std::size_t const N(m_solvated_atoms.size());
@@ -236,7 +231,6 @@ void startopt::preoptimizers::Solvadd::build_sites (void)
   std::shuffle(m_sites.begin(), m_sites.end(), engine);
 }
 
-
 void startopt::preoptimizers::Solvadd::build_site_group_1  (std::size_t atom)
 {
   if(!m_solvated_atoms.atom(atom).bonds().empty()) 
@@ -255,7 +249,6 @@ void startopt::preoptimizers::Solvadd::build_site_group_1  (std::size_t atom)
     }
   }
 }
-
 
 void startopt::preoptimizers::Solvadd::build_site_group_15 (std::size_t atom)
 {
@@ -311,7 +304,6 @@ void startopt::preoptimizers::Solvadd::build_site_group_15 (std::size_t atom)
   }
 }
 
-
 void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
 {
   std::size_t nb(m_solvated_atoms.atom(atom).bonds().size());
@@ -342,7 +334,6 @@ void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
   }
 }
 
-
 void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
 {
   if(m_solvated_atoms.atom(atom).bonds().size() > 1) return;
@@ -352,7 +343,6 @@ void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
   std::size_t idx[3] = {atom, b, (b0 == atom ? b1 : b0)};
   build_multisite(idx, 3, coords::angle_type::from_deg(109.5), coords::angle_type::from_deg(60.0), 120.0, false);
 }
-
 
 void startopt::preoptimizers::Solvadd::build_site(std::size_t const index[3], 
   coords::angle_type const angle, coords::angle_type const dihedral, bool const tetraedric)
@@ -369,7 +359,6 @@ void startopt::preoptimizers::Solvadd::build_site(std::size_t const index[3],
   m_sites.push_back(s);
 }
 
-
 void startopt::preoptimizers::Solvadd::build_multisite(std::size_t const index[3], 
   std::size_t const n_sites, coords::angle_type const angle, 
   coords::angle_type const dihedral, coords::float_type const offset, bool const tetraedric)
@@ -379,7 +368,6 @@ void startopt::preoptimizers::Solvadd::build_multisite(std::size_t const index[3
     build_site(index, angle, dihedral + coords::angle_type::from_deg(i*offset), tetraedric);
   }
 }
-
 
 static coords::Cartesian_Point center_of_watermass 
 (
@@ -391,7 +379,6 @@ static coords::Cartesian_Point center_of_watermass
   return coords::Cartesian_Point((o*15.9996+h1*1.00079+h2*1.00079)/18.00118);
 }
 
-
 bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
 {
   using scon::randomized;
@@ -401,6 +388,7 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
   //{
   //  atom_id 
   //}
+
   std::vector<std::size_t> const surrounding_atoms(site_box.adjacencies().begin(), site_box.adjacencies().end());
   coords::float_type const svl(len(s.v));
   //std::cout << "Sorroundings for populating:" << surrounding_atoms.size() << std::endl;
@@ -436,14 +424,6 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
       //std::cout << "From " << m_solvated_atoms.size() << "\n";
       if (check_sterics(w, surrounding_atoms) && !check_out_of_boundary(center_of_watermass(w.o, w.h[0], w.h[1])) && w.check_geometry()) 
       {
-        //scon::xyz_dummy_writer<coords::float_type> dw;
-        //dw.add(m_solvated_positions[s.atom]);
-        //dw.add(m_solvated_positions[s.atom] + s.v);
-        //dw.add(w.h[0]);
-        //dw.add(w.h[1]);
-        //dw.add(w.o);
-        //dw.print((n + ".xyz").c_str());
-        //n += "x";
         if (m_solvated_atoms.atom(s.atom).number() == 1u)
         {
           auto p = std::pair<std::size_t, std::size_t>(m_solvated_atoms.size() + 2, s.atom);
@@ -463,7 +443,6 @@ bool startopt::preoptimizers::Solvadd::populate_site (solvadd::site const &s)
   return false;
 }
 
-
 bool startopt::preoptimizers::Solvadd::check_sterics (solvadd::water const &w, std::vector<std::size_t> const &atoms_around)  const
 {
   //std::cout << "Sterics check with " << atoms_around.size() << " atoms around." << std::endl;
@@ -479,13 +458,15 @@ bool startopt::preoptimizers::Solvadd::check_sterics (solvadd::water const &w, s
     };
     //std::cout << "Distances to " << atom << ", " << m_solvated_positions[atom] 
     // << ": " << scon::comma_delimeted(dist[0], dist[1], dist[2]) << "\n";
-    if (an == 1u && (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 1.8)) return false;
-    else if (atomic::number_is_heteroatom(an) && (dist[0] < 1.7 || dist[1] < 1.7 || dist[2] < 2.4)) return false;    
-    else if (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 2.2) return false;
+    if (an == 1u && (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 1.8)) 
+      return false;
+    else if (atomic::number_is_heteroatom(an) && (dist[0] < 1.7 || dist[1] < 1.7 || dist[2] < 2.4)) 
+      return false;    
+    else if (dist[0] < 1.9 || dist[1] < 1.9 || dist[2] < 2.2) 
+      return false;
   }
   return true;
 }
-
 
 bool startopt::preoptimizers::Solvadd::check_out_of_boundary (coords::Cartesian_Point const & p) const
 {
@@ -515,7 +496,6 @@ bool startopt::preoptimizers::Solvadd::check_out_of_boundary (coords::Cartesian_
   return true;
 }
 
-
 void startopt::preoptimizers::Solvadd::push_boundary ()
 {
   m_boundary += 0.5;
@@ -528,8 +508,7 @@ void startopt::preoptimizers::Solvadd::push_boundary ()
   m_init_cells.init(m_boundary);
 }
 
-
-void startopt::preoptimizers::Solvadd::add_water (solvadd::water const &w)
+void startopt::preoptimizers::Solvadd::add_water(solvadd::water const &w)
 {
   // Set new energy
   coords::Atom h1(static_cast<std::size_t>(1u)), h2(static_cast<std::size_t>(1u)), o(static_cast<std::size_t>(8u));
@@ -557,7 +536,6 @@ void startopt::preoptimizers::Solvadd::add_water (solvadd::water const &w)
   tabu_atoms.push_back(false);
 }
 
-
 void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
 {
   solvated_coords.clear();
@@ -569,7 +547,7 @@ void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
   {
     m_solvated_atoms.atom(i).assign_to_system(0u);
     // or if i is not added this turn and we fix intermediate
-    // insert coord posiition 
+    // insert coord position 
     // m_solvated_positions[i] = coords.xyz(i);
     // fix if we fix init and i is part of init 
     m_solvated_atoms.atom(i).fix(Config::get().startopt.solvadd.fix_initial);
@@ -587,8 +565,6 @@ void startopt::preoptimizers::Solvadd::populate_coords (std::size_t const added)
   //  Config::set().coords.internal.connect.swap(m_interlinks);
 }
 
-
-
 std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)
 {
   std::size_t const N(m_solvated_atoms.size());
@@ -597,7 +573,7 @@ std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)
   std::size_t removed_w(0U);
   if (N > coords.size()) 
   {
-    for (std::size_t i(coords.size()); i<m_solvated_positions.size(); ++i)
+    for (std::size_t i(coords.size()); i < m_solvated_positions.size(); ++i)
     {
       std::size_t o(0U), h[2] = {0,0};
       if (m_solvated_atoms.atom(i).number() == 8U && i > 1 && 
@@ -625,8 +601,7 @@ std::size_t startopt::preoptimizers::Solvadd::purge_coords (void)
         h[0] = i;
       }
       else throw std::logic_error("Unexpected atomic number in Solvation process.");
-      if (check_out_of_boundary(center_of_watermass(m_solvated_positions[o], 
-        m_solvated_positions[h[0]], m_solvated_positions[h[1]])))
+      if (check_out_of_boundary(center_of_watermass(m_solvated_positions[o], m_solvated_positions[h[0]], m_solvated_positions[h[1]])))
       { // if center of mass is out of bounds we remove the water with those positions
         // swap with last water and remove last water to avoid resort
         if ((*(m_solvated_atoms.end()-1)).number() == 8U &&
@@ -700,7 +675,6 @@ std::size_t startopt::preoptimizers::GOSol::f_solvate(std::size_t const max_num_
   }
   return W;
 }
-
 
 void startopt::preoptimizers::GOSol::f_optimize(std::string const &suffix)
 {
