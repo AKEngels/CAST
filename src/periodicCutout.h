@@ -130,4 +130,46 @@ namespace periodicsHelperfunctions
     std::stringstream temporaryStringstream;
     return newCoords;
   }
+
+  /**delete molecules from structure
+  @param inputStructure: coords object containing structure
+  @param indices: vector containing indices of molecules to delete*/
+  coords::Coordinates delete_molecules(coords::Coordinates const& inputStructure, std::vector<std::size_t> indices)
+  {
+    coords::Atoms const& atoms = inputStructure.atoms();
+    coords::Atoms truncatedAtoms;
+    coords::Representation_3D positions;
+    std::vector<std::size_t> new_index_of_atom(inputStructure.atoms().size(), 0u);
+
+    for (std::size_t i = 0u; i < inputStructure.atoms().molecules().size(); i++)
+    {
+      for (std::size_t j = 0u; j < indices.size(); j++)
+      {
+        if (i != indices[j])
+        {
+          for (std::vector<coords::Atom>::size_type k = 0u; k < atoms.molecule(i).size(); ++k)
+          {
+            truncatedAtoms.add(inputStructure.atoms(atoms.atomOfMolecule(i, k)));
+            positions.push_back(inputStructure.xyz(atoms.atomOfMolecule(i, k)));
+            new_index_of_atom.at(atoms.atomOfMolecule(i, k)) = truncatedAtoms.size() - 1u;
+          }//k
+          unsigned int helperIterator = 0u;
+          for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)
+          {
+            for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
+            {
+              truncatedAtoms.atom(k).detach_from(bonding_partner);
+              truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
+            }
+          }//k
+        }
+      }//j
+    }//i
+    coords::Coordinates newCoords;
+    coords::PES_Point x(positions);
+
+    newCoords.init_in(truncatedAtoms, x, true);
+    return newCoords;
+  }
+
 }

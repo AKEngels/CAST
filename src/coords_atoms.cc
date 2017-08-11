@@ -401,7 +401,6 @@ void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
   }
 }
 
-
 void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
 {
   std::size_t const S = size();
