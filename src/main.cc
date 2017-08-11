@@ -263,13 +263,13 @@ int main(int argc, char **argv)
     // select task
     switch (Config::get().general.task)
     {
-      case config::tasks::DEVTEST:
-      {
+    case config::tasks::DEVTEST:
+    {
       // DEVTEST: Room for Development testing
       break;
     }
-      case config::tasks::SP:
-      {
+    case config::tasks::SP:
+    {
       // singlepoint calculation
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
@@ -289,8 +289,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::GRAD:
-      {
+    case config::tasks::GRAD:
+    {
       // calculate gradient
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
@@ -305,8 +305,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::LOCOPT:
-      {
+    case config::tasks::LOCOPT:
+    {
       // local optimization
       coords.e_head_tostream_short(std::cout);
       auto lo_structure_fn = coords::output::filename("_LOCOPT");
@@ -342,8 +342,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::TS:
-      {
+    case config::tasks::TS:
+    {
       // Gradient only tabu search
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -358,8 +358,8 @@ int main(int argc, char **argv)
       gots.write_range("_TS");
       break;
     }
-      case config::tasks::MC:
-      {
+    case config::tasks::MC:
+    {
       // MonteCarlo Simulation
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -374,8 +374,8 @@ int main(int argc, char **argv)
       mc.write_range("_MCM");
       break;
     }
-      case config::tasks::GRID:
-      {
+    case config::tasks::GRID:
+    {
       // Grid Search
       std::cout << Config::get().coords.equals;
       std::cout << "-------------------------------------------------\n";
@@ -387,8 +387,8 @@ int main(int argc, char **argv)
       mc.write_range("_GRID");
       break;
     }
-      case config::tasks::INTERNAL:
-      {
+    case config::tasks::INTERNAL:
+    {
       // Explicitly shows CAST conversion to internal coordiantes
       // Beware when chaning this, PCA-task depend on this output and need to be adjusted accordingly.
       for (auto const & pes : *ci)
@@ -412,8 +412,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::DIMER:
-      {
+    case config::tasks::DIMER:
+    {
       // Dimer method
       coords.e_head_tostream_short(std::cout);
       std::size_t i(0U);
@@ -436,16 +436,16 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::MD:
-      {
+    case config::tasks::MD:
+    {
       // Molecular Dynamics Simulation
       if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.run();
       break;
     }
-      case config::tasks::FEP:
-      {
+    case config::tasks::FEP:
+    {
       // Free energy perturbation
       md::simulation mdObject(coords);
       mdObject.fepinit();
@@ -453,16 +453,16 @@ int main(int argc, char **argv)
       mdObject.feprun();
       break;
     }
-      case config::tasks::UMBRELLA:
-      {
+    case config::tasks::UMBRELLA:
+    {
       // Umbrella Sampling
       Config::set().md.umbrella = true;
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
       break;
     }
-      case config::tasks::STARTOPT:
-      {
+    case config::tasks::STARTOPT:
+    {
       // Preoptimization
       //std::cout << "PreApply.\n";
       startopt::apply(coords, ci->PES());
@@ -477,8 +477,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::GOSOL:
-      { // Combined Solvation + Global Optimization
+    case config::tasks::GOSOL:
+    { // Combined Solvation + Global Optimization
       std::cout << Config::get().startopt.solvadd;
       std::cout << "-------------------------------------------------\n";
       std::cout << Config::get().coords.equals;
@@ -489,8 +489,8 @@ int main(int argc, char **argv)
       sopt.run(Config::get().startopt.solvadd.maxNumWater);
       break;
     }
-      case config::tasks::NEB:
-      {
+    case config::tasks::NEB:
+    {
       std::ptrdiff_t counter = 0;
       std::vector<coords::Representation_3D> input_pathway;
       coords::Representation_3D start_struc, final_struc;
@@ -528,8 +528,8 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::PATHOPT:
-      {
+    case config::tasks::PATHOPT:
+    {
       std::ptrdiff_t counter = 0;
       for (auto const & pes : *ci)
       {
@@ -542,15 +542,15 @@ int main(int argc, char **argv)
       }
       break;
     }
-      case config::tasks::PATHSAMPLING:
-      {
+    case config::tasks::PATHSAMPLING:
+    {
       coords::Coordinates const coord_obj(coords);
       path_perp path_perpobj(&coords);
       path_perpobj.pathx_ini();
       break;
     }
-      case config::tasks::ALIGN:
-      {
+    case config::tasks::ALIGN:
+    {
       /*
        * THIS TASK ALIGNES A SIMULATION TRAJECTORY
        *
@@ -564,8 +564,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-      case config::tasks::PCAgen:
-      {
+    case config::tasks::PCAgen:
+    {
       /**
        * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
        *
@@ -618,8 +618,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-      case config::tasks::PCAproc:
-      {
+    case config::tasks::PCAproc:
+    {
       /**
        * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
        * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
@@ -631,8 +631,8 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-      case config::tasks::ENTROPY:
-      {
+    case config::tasks::ENTROPY:
+    {
       /**
        * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
        *
@@ -697,129 +697,120 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
-      case config::tasks::REMOVE_EXPLICIT_WATER:
-      {
-        /**
-        * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
-        *
-        */
-        std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
-        std::string* hold_str = new std::string[ci->size()];
+    case config::tasks::REMOVE_EXPLICIT_WATER:
+    {
+      /**
+      * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
+      *
+      */
+      std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
+      std::string* hold_str = new std::string[ci->size()];
 #ifdef _OPENMP
-        auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
+      auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coords) shared(hold_str)
-        for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
+      for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
 #else
-        for (std::size_t iter = 0; iter < ci->size(); ++iter)
+      for (std::size_t iter = 0; iter < ci->size(); ++iter)
 #endif
-        {
-          auto holder = ci->PES()[iter].structure.cartesian;
-          coords.set_xyz(holder);
+      {
+        auto holder = ci->PES()[iter].structure.cartesian;
+        coords.set_xyz(holder);
 
-          std::vector<size_t> atomsToBePurged;
-          coords::Atoms truncAtoms;
-          coords::Representation_3D positions;
-          for (size_t i = 0u; i < coords.atoms().size(); i++)
+        std::vector<size_t> atomsToBePurged;
+        coords::Atoms truncAtoms;
+        coords::Representation_3D positions;
+        for (size_t i = 0u; i < coords.atoms().size(); i++)
+        {
+          coords::Atom atom(coords.atoms().atom(i));
+          if (atom.number() != 8u && atom.number() != 1u)
           {
-            coords::Atom atom(coords.atoms().atom(i));
-            if (atom.number() != 8u && atom.number() != 1u)
+            truncAtoms.add(atom);
+            positions.push_back(coords.xyz(i));
+          }
+          else if (atom.number() == 1u)
+          {
+            // Check if hydrogen is bound to something else than Oxygen
+            bool checker = true;
+            for (size_t j = 0u; j < atom.bonds().size(); j++)
+            {
+              if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
+            }
+            if (checker)
             {
               truncAtoms.add(atom);
               positions.push_back(coords.xyz(i));
             }
-            else if (atom.number() == 1u)
+          }
+          else if (atom.number() == 8u)
+          {
+            //checker checks if only hydrogens are bound to this current oxygen
+            bool checker = true;
+            for (size_t j = 0u; j < atom.bonds().size(); j++)
             {
-              // Check if hydrogen is bound to something else than Oxygen
-              bool checker = true;
-              for (size_t j = 0u; j < atom.bonds().size(); j++)
-              {
-                if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
-              }
-              if (checker)
-              {
-                truncAtoms.add(atom);
-                positions.push_back(coords.xyz(i));
-              }
+              if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
             }
-            else if (atom.number() == 8u)
+            if (!checker)
             {
-              //checker checks if only hydrogens are bound to this current oxygen
-              bool checker = true;
-              for (size_t j = 0u; j < atom.bonds().size(); j++)
+              truncAtoms.add(atom);
+              positions.push_back(coords.xyz(i));
+              for (auto const& bond : atom.bonds())
               {
-                if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
-              }
-              if (!checker)
-              {
-                truncAtoms.add(atom);
-                positions.push_back(coords.xyz(i));
-                for (auto const& bond : atom.bonds())
+                if (coords.atoms().atom(bond).number() == 1u)
                 {
-                  if (coords.atoms().atom(bond).number() == 1u)
-                  {
-                    truncAtoms.add(coords.atoms().atom(bond));
-                    positions.push_back(coords.xyz(bond));
-                  }
+                  truncAtoms.add(coords.atoms().atom(bond));
+                  positions.push_back(coords.xyz(bond));
                 }
               }
             }
           }
-          coords::Coordinates newCoords;
-          coords::PES_Point x(positions);
-          newCoords.init_in(truncAtoms, x);
-          std::stringstream temporaryStringstream;
-          temporaryStringstream << newCoords;
-          hold_str[iter] = temporaryStringstream.str();
         }
+        coords::Coordinates newCoords;
+        coords::PES_Point x(positions);
+        newCoords.init_in(truncAtoms, x);
+        std::stringstream temporaryStringstream;
+        temporaryStringstream << newCoords;
+        hold_str[iter] = temporaryStringstream.str();
       }
-      for (size_t i = 0; i < ci->size(); i++)
-
-      case config::tasks::ENTROP_DEVTASK:
-      {
-        out << hold_str[i];
-      }
-		    break;
-      }
-	    case config::tasks::XB_EXCITON_BREAKUP:
-	    {
-		  /**
-		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
-		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
-		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
-		  * NEEDS SPECIALLY PREPEARED INPUT
-		  */  
-		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
-						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+    }
+    case config::tasks::XB_EXCITON_BREAKUP:
+    {
+      /**
+      * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN
+      * INTERFACE OF TWO ORGANIC SEMICONDUCTORS:
+      * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+      * NEEDS SPECIALLY PREPEARED INPUT
+      */
+      exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters,
+        Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       break;
-	  }
-      case config::tasks::XB_INTEFACE_CREATION:
-      {
+    }
+    case config::tasks::XB_INTEFACE_CREATION:
+    {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
-        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
-        break;
-      }
-      case config::tasks::XB_CENTER:
-      {
-        /**
-        * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
-        * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
-        */
+      coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
+      break;
+    }
+    case config::tasks::XB_CENTER:
+    {
+      /**
+      * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+      * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
+      */
 
-        center(coords);
-        break;
-      }
-      case config::tasks::XB_COUPLINGS:
-      {
-        couplings::coupling coup;
+      center(coords);
+      break;
+    }
+    case config::tasks::XB_COUPLINGS:
+    {
+      couplings::coupling coup;
 
-        coup.kopplung();
+      coup.kopplung();
 
-        break;
-      }
-
-    default:
+      break;
+    }
+    case config::tasks::ENTROP_DEVTASK:
     {
       // mat LAYOUT
       // row 1: drawn sorted data points
@@ -837,10 +828,10 @@ int main(int argc, char **argv)
       calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
       calculatedDistribution.calculate();
       calculatedDistribution.writeToFile();
-
     }
-      default:
-      {
+    default:
+    {
+
 
     }
     }
