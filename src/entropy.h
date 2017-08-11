@@ -110,7 +110,7 @@ namespace entropy
     * see: (Genome Inform. 2007;18:192-205.)
     *
     */
-    float_type TrajectoryMatrixRepresentation::knapp_marginal(float_type const temperatureInKelvin = 300.0, bool removeDOF = false);
+    float_type knapp_marginal(float_type const temperatureInKelvin = 300.0, bool removeDOF = false);
 
     /**
     * Performs entropy calculation according to Knapp et al. with corrections
@@ -121,7 +121,7 @@ namespace entropy
     * see: (Genome Inform. 2007;18:192-205.)
     *
     */
-    float_type TrajectoryMatrixRepresentation::knapp(float_type const temperatureInKelvin = 300.0, size_t const k = 5, bool removeDOF = false);
+    float_type knapp(float_type const temperatureInKelvin = 300.0, size_t const k = 5, bool removeDOF = false);
 
     /**
     * Performs entropy calculation according to Schlitter

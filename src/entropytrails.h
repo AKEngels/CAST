@@ -278,7 +278,7 @@ public:
   double empiricalNormalDistributionEntropy;
   double calculatedEntropyGoria; // http://www.tandfonline.com/doi/abs/10.1080/104852504200026815
   double ardakaniEntropyEucledean;
-  calculatedentropyobj(size_t k_, entropyobj const& obj, double analyticEntropyValue = 0.) : 
+  calculatedentropyobj(size_t k_, entropyobj const& obj) : 
     entropyobj(obj), 
     k(k_), 
     calculatedEntropyHnizdo(std::numeric_limits<double>::quiet_NaN()),
