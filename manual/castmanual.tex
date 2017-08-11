@@ -281,9 +281,10 @@
 		\textbf{SAPT-FF} & internal &parameterfile and Spackman-input\\
 		\textbf{MOPAC} & external & MOPAC variables\\
 		\textbf{TeraChem} & external & TeraChem input\\
+		\textbf{DFTB} & external & path to DFTBaby\\
 	\end{tabularx}	\\~\\
 	\ifverbose
-	In contrast to the force fields, the \ac{MOPAC} and TeraChem interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
+	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
 	\fi
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -360,6 +361,52 @@ GAUSSIANpath            g09
 
 GAUSSIANdelete          1
 \end{lstlisting}
+
+\subsubsection{DFTB}
+
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. At the moment you have to do the following steps even if you don't want to use DFTB. This should change in the future.
+
+\paragraph{Installing python}\mbox{}\\
+
+First install python and the python modules numpy and scipy. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
+
+\paragraph{CAST setup for python import}\mbox{}\\
+
+After running premake you have to tell CAST where to find the python libraray. How to do this depends on your operating system:
+
+On Linux you go into the file ``cast/optional\_files/project/CAST.make'', look for the configuration you want to build (e.g. ``ifeq (\$(config),release\_x64)'') and add the following lines:
+\begin{lstlisting}
+INCLUDES += -I/usr/include/python2.7
+CFLAGS += \$(shell python-config --cflags)
+LDFLAGS += \$(shell python-config --ldflags)
+all: -lpython2.7
+\end{lstlisting}
+
+On Windows you open your visual studio solution in visual studio. Then go to Project $\rightarrow$ CAST-Properties... (CAST-Eigenschaften) $\rightarrow$ VC++-Directories (VC++-Verzeichnisse). To ``Include Directories'' (Includeverzeichnisse) add the path ``C:\textbackslash Python27\textbackslash include'' and to ``Library Directories'' (Bibliotheksverzeichnisse) add ``C:\textbackslash Python27\textbackslash libs''. Then (also in CAST-Properties) go to Linker $\rightarrow$ Input (Eingabe) and add ``python27.lib'' to ``Additional dependencies'' (Zusätzliche Abhängigkeiten).
+
+Now you should be able to compile CAST. If you don't want to use DFTB you don't need to do the following steps.
+
+\paragraph{Downloading and installing DFTBaby}\mbox{}\\
+
+If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
+
+In addition to numpy and scipy that you have already installed before you need BLAS. To install it, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.
+
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. Go to folder ``DFTBaby-\#\#\#/DFTB'', open the file DFTB2.py and add at the beginning of the file the following lines:
+\begin{lstlisting}
+import sys
+sys.path.append(``..'')
+\end{lstlisting}
+
+Now you should be able to run DFTBaby. Test it by opening a terminal in the folder ``DFTBaby-\#\#\#/DFTB'' and type \$python DFTB2.py --help. You can also try the benzene example from the project page.
+
+\paragraph{CAST setup for DFTBaby}\mbox{}\\
+
+To use DFTBaby out of CAST a few modifications are needed. So replace the files ``DFTB2.py'' and ``utils.py'' by those in the folder ``cast\textbackslash optional\_files\textbackslash DFTBaby-files''. Now CAST is ready for DFTB calculations.
+
+\paragraph{Run CAST with DFTB}\mbox{}\\
+
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a normal SP calculation with a tinkerstructure. Options for the DFTB calculation can be given in a file ``dftbaby.cfg''. The first line of this file must be [DFTBaby]. Which options are available see here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/options.md} The output of DFTBaby is written into the file ``scf\_output\_dftb.txt''.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
