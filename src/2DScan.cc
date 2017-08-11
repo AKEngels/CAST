@@ -19,11 +19,11 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 	auto x_changes = x_input_parser->make_axis();
 	auto y_changes = y_input_parser->make_axis();
 
-	XY_Parser parser(std::move(x_input_parser), std::move(y_input_parser));
+	parser = std::make_unique<XY_Parser>(std::move(x_input_parser), std::move(y_input_parser));
 
-	XY_steps axis(x_changes, y_changes);
+	axis = std::make_unique<XY_steps>(x_changes, y_changes);
 
-	make_scan(parser, axis);
+	make_scan();
 
 }
 
@@ -194,91 +194,80 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const 
 
 }
 
-void Scan2D::make_scan(Scan2D::XY_Parser const & parser, Scan2D::XY_steps const & steps) {
+void Scan2D::make_scan() {
 
-	prepare_scan(parser);
+	prepare_scan();
 	
 	coords::output::formats::tinker output(_coords);
-	parser.x_parser->set_coords(_coords.xyz());
+	parser->x_parser->set_coords(_coords.xyz());
 
-	for (auto && x_step : steps.x_steps) {
+	for (auto && x_step : axis->x_steps) {
 
 		++x_circle;
 
 		auto new_xyz = _coords.xyz();
 
-		auto atom_to_change = parser.x_parser->what->atoms[0];
-		new_xyz[atom_to_change - 1u] = parser.x_parser->make_move(x_step);
+		auto atom_to_change = parser->x_parser->what->atoms[0];
+		new_xyz[atom_to_change - 1u] = parser->x_parser->make_move(x_step);
 
 		_coords.set_xyz(new_xyz, true);
 
-		parser.fix_atoms(_coords);
+		parser->fix_atoms(_coords);
 
-		_coords.o();
-		parser.x_parser->set_coords(_coords.xyz());
+		write_energy_entry(_coords.o());
+		parser->x_parser->set_coords(_coords.xyz());
 
 		output.to_stream(logfile);
 
-		go_along_y_axis(parser, steps.y_steps, _coords);
+		go_along_y_axis(_coords);
 		
 	}
 
 }
 
-void Scan2D::prepare_scan(Scan2D::XY_Parser const & parser) {
+void Scan2D::prepare_scan() {
 	auto xyz = _coords.xyz();
 
-	auto & x_atom = parser.x_parser->what->atoms[0];
-	auto & y_atom = parser.y_parser->what->atoms[0];
-	auto & x_move = parser.x_parser->what->from_position;
-	auto & y_move = parser.y_parser->what->from_position;
+	auto & x_atom = parser->x_parser->what->atoms[0];
+	auto & y_atom = parser->y_parser->what->atoms[0];
+	auto & x_move = parser->x_parser->what->from_position;
+	auto & y_move = parser->y_parser->what->from_position;
 
-	xyz[x_atom - 1] = parser.x_parser->make_move(x_move);
-	xyz[y_atom - 1] = parser.y_parser->make_move(y_move);
+	xyz[x_atom - 1] = parser->x_parser->make_move(x_move);
+	xyz[y_atom - 1] = parser->y_parser->make_move(y_move);
 
 	_coords.set_xyz(xyz, true);
 
 }
 
-void Scan2D::go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<length_type> const & y_steps, coords::Coordinates coords) {
+void Scan2D::write_energy_entry(double const & e) {
+
+}
+
+void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 	coords::output::formats::tinker output(coords);
-	parser.y_parser->set_coords(coords.xyz());
+	parser->y_parser->set_coords(coords.xyz());
 
-	
-
-	std::for_each(y_steps.cbegin()+1, y_steps.cend(), [&](auto && y_step){
+	std::for_each(axis->y_steps.cbegin()+1, axis->y_steps.cend(), [&](auto && y_step){
 
 		++y_circle;
 
-		/*std::cout << "The " << x_circle << ". x step and the " <<
-			y_circle << ". y step." << std::endl;*/
-
-		energies <<
-			parser.x_parser->say_val() << " " <<
-			parser.y_parser->say_val() << " " <<
-			coords.e() << "\n";
-
 		auto new_xyz = coords.xyz();
-		auto atom_to_change = parser.y_parser->what->atoms[0];
+		auto atom_to_change = parser->y_parser->what->atoms[0];
 
-		new_xyz[atom_to_change - 1u] = parser.y_parser->make_move(y_step);
+		new_xyz[atom_to_change - 1u] = parser->y_parser->make_move(y_step);
 		coords.set_xyz(new_xyz, true);
-		parser.fix_atoms(coords);
+		parser->fix_atoms(coords);
 
-		coords.o(); 
-		parser.y_parser->set_coords(coords.xyz());
+		write_energy_entry(coords.o()); 
+		parser->y_parser->set_coords(coords.xyz());
 
 		output.to_stream(logfile);
 
 	});
 
 	y_circle = 0;
-
-	energies <<
-		parser.x_parser->say_val() << " " <<
-		parser.y_parser->say_val() << " " <<
-		coords.e() << "\n" << std::endl;
 
 }
 

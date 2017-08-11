@@ -151,10 +151,20 @@ private:
 	std::unique_ptr<Scan2D::Input_types> parse_input(std::string const & input);
 	std::unique_ptr<Scan2D::Input_types> Input_Factory(std::size_t size, std::string kind);
 
-	void make_scan(XY_Parser const & parser, XY_steps const & steps);
-	void prepare_scan(XY_Parser const & parser);
-	void make_x_change(length_type const & change, Scan2D::XY_Parser const & parser, coords::Representation_3D & y_steps);
-	void go_along_y_axis(Scan2D::XY_Parser const & parser, std::vector<length_type> const & y_steps, coords::Coordinates coords);
+	void make_scan();
+	void prepare_scan();
+	//void make_x_change(length_type const & change, Scan2D::XY_Parser const & parser, coords::Representation_3D & y_steps);
+	void go_along_y_axis(coords::Coordinates coords);
+
+	std::unique_ptr<XY_Parser> parser;
+	std::unique_ptr<XY_steps> axis;
+
+	inline void write_energy_entry(double const & e) {
+		energies <<
+			parser->x_parser->say_val() << " " <<
+			parser->y_parser->say_val() << " " <<
+			e << "\n";
+	}
 
 	std::ofstream logfile;
 	std::ofstream energies;

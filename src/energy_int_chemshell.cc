@@ -221,7 +221,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		"write_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << "_opt.c\n"
-		"read_pdb  file=" << tmp_file_name << ".pdb  coords=dummy.coords\n"
+		"read_pdb file=" << tmp_file_name << ".pdb coords=dummy.coords\n"
 		"write_pdb file=" << tmp_file_name << ".pdb coords=" << tmp_file_name << "_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
@@ -286,7 +286,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 //		"\n"
 		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=" << tmp_file_name << ".c\n"
 		"\n"
-		"set residues [pdb_to_res \"${sys_name_id}.pdb\"]\n";
+		"set residues [pdb_to_res \"" << tmp_file_name << ".pdb\"]\n";
 	//Refactoring NEEDED!!!!!!
 	auto const & cov_res = Config::get().energy.chemshell.cov_residues;
 	
