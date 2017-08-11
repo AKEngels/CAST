@@ -23,9 +23,9 @@ using namespace mathFunctions;
 // Returns the ardakani Corrected NN distance, see PHYSICAL REVIEW E 83, 051121 (2011)
 float_type ardakaniCorrection1D(float_type const& globMin, float_type const& globMax, float_type const& currentPoint, float_type const& NNdistance)
 {
-  if (currentPoint - NNdistance * 0.5 < globMin)
+  if (currentPoint - NNdistance * 0.5 < globMin && currentPoint != globMin)
     return currentPoint + NNdistance * 0.5 - globMin;
-  else if (currentPoint + NNdistance * 0.5 > globMax)
+  else if (currentPoint + NNdistance * 0.5 > globMax && currentPoint != globMax)
     return globMax - (currentPoint - NNdistance * 0.5);
   return NNdistance;
 }
@@ -566,7 +566,7 @@ public:
        ardakaniSum += log(drawAndEvaluateMatrix(4, i));
      ardakaniSum /= double(numberOfDraws);
      ardakaniSum *= double(dimension);
-     ardakaniSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+     ardakaniSum += (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
      ardakaniSum += digammal(double(numberOfDraws));
      ardakaniSum -= digammal(double(k));
 
