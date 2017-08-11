@@ -42,24 +42,24 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
   std::vector<T> radiiOfHyperEllipsoid(globMin.size());
   for (unsigned int i = 0u; i < radius.size(), i++)
   {
-    radius.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i))
+    radiiOfHyperEllipsoid.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i))
   }
 
   // Getting determinant of Mahalanobis distance for calculation of
   // Hyperelipsoid volume. Determinant is product of all eigenvalues. 
   // Eigenvalues of Hyperelipsoid quartic matrix are radius^-2
   T determinant = 1.;
-  for (unsigned int i = 0u; i < radius.size(), i++)
+  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(), i++)
   {
-    determinant *= std::pow(radius.at(i), -2);
+    determinant *= std::pow(radiiOfHyperEllipsoid.at(i), -2);
   }
 
   // For volume of hyperelipsoid https://math.stackexchange.com/questions/332391/volume-of-hyperellipsoid
   // Is radius of hypersphere volume 1? I think, because we have all scaling the eigenvalues
   // But I am not sure...
-  const T V_d = 2. / radius.size() * (std::pow(pi, radius.size() / 2.) / tgamma(radius.size() / 2.)) * std::pow(1, radius.size());
+  const T V_d = 2. / radiiOfHyperEllipsoid.size() * (std::pow(pi, radiiOfHyperEllipsoid.size() / 2.) / tgamma(radiiOfHyperEllipsoid.size() / 2.)) * std::pow(1, radiiOfHyperEllipsoid.size());
   const T volumeOfHyperellipsoid = V_d * std::sqrt(determinant);
-  const T equivalentRadiusOfHypersphere = std::pow(volumeOfHyperellipsoid * tgamma(radius.size() / 2. + 1) / std::pow(pi, radius.size() / 2.), 1. / radius.size());
+  const T equivalentRadiusOfHypersphere = std::pow(volumeOfHyperellipsoid * tgamma(radiiOfHyperEllipsoid.size() / 2. + 1) / std::pow(pi, radiiOfHyperEllipsoid.size() / 2.), 1. / radiiOfHyperEllipsoid.size());
   return equivalentRadiusOfHypersphere;
 
 }
