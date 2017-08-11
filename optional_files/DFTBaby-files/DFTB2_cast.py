@@ -944,7 +944,7 @@ class DFTB2(object):
         converged = False
         shift_flag = False
         mixing_flag = False
-        for self.i in range(0, int(self.maxiter)):
+        for self.i in range(0, self.maxiter):
             # build hamiltonian 
             if self.mulliken_dipoles == 1:
                 Hcoul = self._coulomb_hamiltonian_multipoles()
@@ -2499,12 +2499,10 @@ def main(xyz_file, conf_file):
                                                             CubeExporter.exportCubes], usage)
     options = parser.options   #alternative to parse_args() because it doesn't work with C++
     kwds = extract_keywords_xyz(xyz_file)
-    #read first structure to get the atom types
     structures = read_xyz(xyz_file)
     atomlist = structures[0]
 
     dftb2 = DFTB2(atomlist, **options)
-    #(scf_options, args) = parser.parse_args(dftb2.runSCC)
     scf_options = parser.scf_options  #alternative to parse_args() because it doesn't work with C++
     dftb2.setGeometry(atomlist, kwds.get("charge", 0.0))
     E = dftb2.getEnergy(**scf_options)  #returns list of energies

@@ -150,8 +150,51 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 {
   integrity = true;
   grad_var = true;
-  std::cout<<"no gradients yet\n";
-  return energy;
+  //write inputstructure
+    std::ofstream file("tmp_struc.xyz");
+    file << coords::output::formats::xyz_dftb(*this->coords);
+    file.close();
+    
+    //call programme
+    std::string result_str; 
+    PyObject *modul, *funk, *prm, *ret;
+    
+    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
+    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
+    const char *c = add_path.c_str();  //add paths from variable add_path
+    PyRun_SimpleString(c);
+
+    modul = PyImport_ImportModule("LR_TDDFTB_cast"); //import module 
+
+    if(modul) 
+        { 
+        funk = PyObject_GetAttrString(modul, "main"); //create function
+        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
+        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+
+        result_str = PyString_AsString(ret); //read function return (has to be a string)
+        result_str = result_str.substr(1,result_str.size()-2);  //process return
+        std::vector<std::string> result_vec = split(result_str, ',');
+
+        //read energies and convert them to kcal/mol
+        e_bs = std::stod(result_vec[0])*627.503; 
+        e_coul = std::stod(result_vec[1])*627.503;
+        e_rep = std::stod(result_vec[3])*627.503;
+        e_lr = std::stod(result_vec[4])*627.503;
+        e_tot = std::stod(result_vec[5])*627.503;
+        
+        //delete PyObjects
+        Py_DECREF(prm); 
+        Py_DECREF(ret); 
+        Py_DECREF(funk); 
+        Py_DECREF(modul); 
+        } 
+    else 
+    {
+        printf("Fehler: Modul LR_TDDFTB_cast nicht gefunden\n"); 
+        std::exit(0);
+    }
+  return e_tot;
 }
 
 // Energy+Gradient+Hessian function

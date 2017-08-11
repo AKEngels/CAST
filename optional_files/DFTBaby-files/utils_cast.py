@@ -324,6 +324,12 @@ class OptionParserFuncWrapper:
         valuelist = []    # collects all values because parse_args() doesn't work with C++
         scf_optionlist = []    # collects options and values for scf-convergence
         scf_valuelist = []
+        init_optionlist = []
+        init_valuelist = []
+        tde_optionlist = []
+        tde_valuelist = []
+        gradient_optionlist = []
+        gradient_valuelist = []
         
         self.parser = OptionParser(usage)
 
@@ -406,15 +412,31 @@ class OptionParserFuncWrapper:
                 ivar += 1
                 try:
                     default = float(default)
+                    if round(default,0) == default:
+                        default = int(default)
                 except:
                     pass
                 if section == "SCF-Convergence":  # add options and values for scf-convergence
                     scf_optionlist.append(option)
                     scf_valuelist.append(default)
                 valuelist.append(default)   # add value to string
+                args_init = ("parameter_set","point_charges_xyz", "initial_charge_guess", "save_converged_charges", "verbose", "distance_cutoff", "long_range_correction", "long_range_radius", "long_range_T", "long_range_switching", "lc_implementation", "tune_range_radius", "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry", "fluctuation_functions", "mulliken_dipoles", "dispersion_correction", "qmmm_partitioning", "qmmm_embedding", "periodic_force_field", "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver")
+                if option in args_init:
+                    init_optionlist.append(option)
+                    init_valuelist.append(default)
+                if section == "Davidson-like Diagonalization" or section == "Linear-Response TD-DFTB" or section == "Long-Range Charge-Transfer":
+                    tde_optionlist.append(option)
+                    tde_valuelist.append(default)
+                if section == "Gradients":
+                    gradient_optionlist.append(option)
+                    gradient_valuelist.append(default)
             self.func_parameters[func.func_name] = fvars
+
         self.options = dict(zip(optionlist, valuelist))
         self.scf_options = dict(zip(scf_optionlist, scf_valuelist))
+        self.init_options = dict(zip(init_optionlist, init_valuelist))
+        self.tde_options = dict(zip(tde_optionlist, tde_valuelist))
+        self.gradient_options = dict(zip(gradient_optionlist, gradient_valuelist))
 
 
     def convert_types(self, options):
