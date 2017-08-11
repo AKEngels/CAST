@@ -21,7 +21,7 @@ from scipy.optimize import fminbound, fmin
 from scipy.misc import derivative
 import itertools
 import multiprocessing
-from DFTB import utils
+from DFTB import utils_cast as utils
 from DFTB.utils import annotated_matrix
 from DFTB.SlaterKoster.SKIntegrals import SlakoTransformations, NoSKDipolesException
 from DFTB.RepulsivePotential.RepulsivePotential import RepulsivePotential, read_repulsive_potential, dummy_reppot_module, hotbit_scaling_factors
@@ -2483,7 +2483,7 @@ def annotated_hessian(atomlist, hessian, **opts):
 
 
 def main(xyz_file, conf_file):
-    """put in own function to pass structurefile and conf_file as arguments"""
+
     from DFTB.XYZ import read_xyz, extract_keywords_xyz
     from DFTB.Molden import MoldenExporter
     from DFTB.Analyse.Cube import CubeExporter
@@ -2497,7 +2497,6 @@ def main(xyz_file, conf_file):
     usage += "   --help option will provide more information\n"
     parser = utils.OptionParserFuncWrapper(conf_file, [DFTB2.__init__, DFTB2.runSCC, MoldenExporter.export,
                                                             CubeExporter.exportCubes], usage)
-    #(options, args) = parser.parse_args()
     options = parser.options   #alternative to parse_args() because it doesn't work with C++
     kwds = extract_keywords_xyz(xyz_file)
     #read first structure to get the atom types
@@ -2507,33 +2506,10 @@ def main(xyz_file, conf_file):
     dftb2 = DFTB2(atomlist, **options)
     #(scf_options, args) = parser.parse_args(dftb2.runSCC)
     scf_options = parser.scf_options  #alternative to parse_args() because it doesn't work with C++
-    for i, atomlist in enumerate(structures):
-        dftb2.setGeometry(atomlist, kwds.get("charge", 0.0))
-        E = dftb2.getEnergy(**scf_options)  #returns list of energies
+    dftb2.setGeometry(atomlist, kwds.get("charge", 0.0))
+    E = dftb2.getEnergy(**scf_options)  #returns list of energies
 
-    # commented out because it is currently not needed (and it doesn't work with C++)
-         #print "TOTAL ENERGY OF STRUCTURE %d              : %s %s\n" % (
-         #i, string.rjust("%.7f hartree" % dftb2.E_tot, 20), string.rjust("%.7f eV" % (dftb2.E_tot * hartree_to_eV), 20))
-         #        print "Dipole Moment (exact): %s" % dftb2.getDipoleMoment()
-         #        print "Dipole Moment (Mulliken approximation): %s" % dftb2.getMullikenDipoleMoment()
-    # #(options, args) = parser.parse_args(MoldenExporter(None).export)
-    # molden = MoldenExporter(dftb2)
-    # molden.export(**options)
-    # #    print fermi_occupation(array([-0.2, -10.0, -4.0, -1.0, -0.01]), 5, 30.0)
-    # #    print fermi_occupation_T0(array([-0.2, -10.0, -4.0, -1.0, -0.01]), 5)
-    #
-    # # write density to grid
-    # cube = CubeExporter(dftb2, name=os.path.basename(xyz_file).replace(".xyz", ""))
-    # #(options, args) = parser.parse_args(cube.exportCubes)
-    # cube.exportCubes(**options)
-    #
-    # # write partial dipoles
-    # if dftb2.mulliken_dipoles == 1:
-    #     Mulliken.save_partial_dipoles("/tmp/mulliken_dipoles.dat", dftb2.atomlist, dftb2.ddip)
-    # # writing timings
-    # print T
-    # #return energies in Hartree
-    return str(E)
+    return str(E)  #return energies in Hartree
 
 
 if __name__ == "__main__":

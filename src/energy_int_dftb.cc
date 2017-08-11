@@ -112,7 +112,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("DFTB2"); //import module 
+    modul = PyImport_ImportModule("DFTB2_cast"); //import module 
 
     if(modul) 
         { 
@@ -139,7 +139,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         } 
     else 
     {
-        printf("Fehler: Modul DFTB2 nicht gefunden\n"); 
+        printf("Fehler: Modul DFTB2_cast nicht gefunden\n"); 
         std::exit(0);
     }
   return e_tot;
