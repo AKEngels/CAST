@@ -39,11 +39,11 @@ namespace mathFunctions
     else if (x < 1.0L)
       return digammal(1.0L + x) - 1.0L / x;
     else if (x == 1.0L)
-      return -gamma;
+      return -::constants::gamma;
     else if (x == 2.0L)
-      return 1.0L - gamma;
+      return 1.0L - ::constants::gamma;
     else if (x == 3.0L)
-      return 1.5L - gamma;
+      return 1.5L - ::constants::gamma;
     else if (x > 3.0L)
       /* duplication formula */
       return 0.5L*(digammal(x / 2.0L) + digammal((x + 1.0L) / 2.0L)) + ln_2;

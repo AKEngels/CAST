@@ -40,16 +40,16 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
   }
 #endif
   std::vector<T> radiiOfHyperEllipsoid(globMin.size());
-  for (unsigned int i = 0u; i < radius.size(), i++)
+  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
   {
-    radiiOfHyperEllipsoid.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i))
+    radiiOfHyperEllipsoid.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i));
   }
 
   // Getting determinant of Mahalanobis distance for calculation of
   // Hyperelipsoid volume. Determinant is product of all eigenvalues. 
   // Eigenvalues of Hyperelipsoid quartic matrix are radius^-2
   T determinant = 1.;
-  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(), i++)
+  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
   {
     determinant *= std::pow(radiiOfHyperEllipsoid.at(i), -2);
   }
