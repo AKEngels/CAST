@@ -120,7 +120,6 @@ namespace energy {
 
 				bool check_if_line_is_coord(std::vector<std::string> const & coords)const;
 				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
-				void make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz);
 				void change_name_of_energy_and_grad()const;
 				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const & grads) const;
 

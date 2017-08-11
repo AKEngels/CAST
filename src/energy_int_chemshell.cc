@@ -114,7 +114,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
 	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
 
-	ofs << "eandg coords = ${dir}/${sys_name_id}.c \\\n"
+	ofs << "eandg coords = ${dir}/" << tmp_file_name << ".c \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
 		ofs << "        coupling= " << embedding_sheme << " \\\n";
@@ -169,9 +169,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	std::string active_atoms = find_active_atoms();
 
 
-	ofs << "dl-find coords = ${dir}/${sys_name_id}.c \\\n"
+	ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
 		"    coordinates=hdlc \\\n"
-		"    result=" << tmp_file_name << ".c \\\n";
+		"    result=" << tmp_file_name << "_opt.c \\\n";
 	if (maxcycle != "") {
 		ofs << "    maxcycle=" << maxcycle << " \\\n";
 	}
@@ -220,9 +220,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
-		"write_xyz file=" << tmp_file_name << ".xyz coords=${sys_name_id}.c\n"
+		"write_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << "_opt.c\n"
 		"read_pdb  file=" << tmp_file_name << ".pdb  coords=dummy.coords\n"
-		"write_pdb file=" << tmp_file_name << ".pdb coords=${sys_name_id}.c\n\n\n";
+		"write_pdb file=" << tmp_file_name << ".pdb coords=" << tmp_file_name << "_opt.c\n\n\n";
 /*		"read_pdb  file=${ sys_name_id }.pdb  coords=dummy.coords\n"
 		"write_pdb file=${ sys_name_id }_opt.pdb coords=${ sys_name_id }_opt.c\n"
 		"write_xyz file=${ sys_name_id }_qm_region_opt.xyz coords=hybrid.${ qm_theory }.coords\n"
@@ -240,8 +240,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 	std::ofstream chemshell_file_to_prepare_coords(o_file);
 
 	chemshell_file_to_prepare_coords <<
-		"set sys_name_id " << tmp_file_name << "\n"
-		"read_xyz file=./${sys_name_id}.xyz coords=./${sys_name_id}.c";
+		"read_xyz file=./" << tmp_file_name << ".xyz coords=./" << tmp_file_name << ".c";
 
 	chemshell_file_to_prepare_coords.close();
 
@@ -485,20 +484,12 @@ void energy::interfaces::chemshell::sysCallInterface::change_name_of_energy_and_
 
 	scon::system_call(ss.str());
 
-}
+	std::stringstream().swap(ss);
 
-void energy::interfaces::chemshell::sysCallInterface::make_optimized_coords_to_actual_coords(coords::Representation_3D const & xyz) {
-	coords->set_xyz(xyz);
-
-	/*std::stringstream ss;
 	ss << "mv " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
 
-	auto ret = scon::system_call(ss.str());
-	/*
-	if (ret) {
-		throw std::runtime_error("Failed to replace unoptimzed .c file with the optimized one.");
-	}
-	*/
+	scon::system_call(ss.str());
+
 }
 
 void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(std::string const & filename, std::string const & copy_or_move) const {
@@ -566,7 +557,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords() {
 		}
 	}
 
-	make_optimized_coords_to_actual_coords(xyz);
+	coords->set_xyz(xyz,true);
 
 	ifile.close();
 }
