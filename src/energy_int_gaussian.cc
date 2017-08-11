@@ -143,6 +143,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
+  double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1/0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
 
   auto in_string = id + ".log";
@@ -266,7 +267,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
           std::getline(in_file, buffer);
 
-          g_tmp[i] = g;
+          g_tmp[i] = g * HartreePerBohr2KcalperMolperAngstr;
 
         }
       }//end gradient reading
