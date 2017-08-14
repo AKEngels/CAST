@@ -58,6 +58,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
+#define CAST_ARMA_MATRIX_TYPE arma::Mat<T>
 #else
 #include "Eigen"
 #define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
@@ -135,13 +136,13 @@ typedef size_t uint_type;
 #ifndef CAST_USE_ARMADILLO
     : public CAST_EIGEN_MATRIX_TYPE
 #else
-    : public arma::Mat<T>
+    : public CAST_ARMA_MATRIX_TYPE
 #endif
 
 	{
   private:
 #ifdef CAST_USE_ARMADILLO
-    using base_type = arma::Mat<T>;
+    using base_type = CAST_ARMA_MATRIX_TYPE;
 #else
     using base_type = CAST_EIGEN_MATRIX_TYPE;
 #endif
@@ -166,7 +167,7 @@ typedef size_t uint_type;
         std::cout << "Function call: Constructing empty matrix." << std::endl;
     };
 #else
-    mathmatrix() : arma::Mat<T>() 
+    mathmatrix() : CAST_ARMA_MATRIX_TYPE()
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
@@ -217,7 +218,7 @@ typedef size_t uint_type;
       return *this;
     };
 #else
-    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
+    mathmatrix(CAST_ARMA_MATRIX_TYPE in) : CAST_ARMA_MATRIX_TYPE(in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
@@ -283,8 +284,8 @@ typedef size_t uint_type;
     	{
     		throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
     	}
-        arma::Mat<T> const& base_this = *this;
-        arma::Mat<T> const& base_in = in;
+        CAST_ARMA_MATRIX_TYPE const& base_this = *this;
+        CAST_ARMA_MATRIX_TYPE const& base_in = in;
         return (mathmatrix(   base_this + base_in    ));
     };
 
@@ -296,8 +297,8 @@ typedef size_t uint_type;
       {
         throw("ERROR in mathmatrix multiplication: Sizes of matrices do not match!");
       }
-      arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;
+      CAST_ARMA_MATRIX_TYPE const& base_this = *this;
+      CAST_ARMA_MATRIX_TYPE const& base_in = in;
       return (mathmatrix(base_this * base_in));
     }
 
@@ -324,8 +325,8 @@ typedef size_t uint_type;
       {
         throw("ERROR in mathmatrix divison: Sizes of matrices do not match!");
       }
-      arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;
+      CAST_ARMA_MATRIX_TYPE const& base_this = *this;
+      CAST_ARMA_MATRIX_TYPE const& base_in = in;
       return (mathmatrix(base_this / base_in));
     };
 
@@ -446,7 +447,7 @@ typedef size_t uint_type;
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: rank() for mathmatrix." << std::endl;
 #ifdef CAST_USE_ARMADILLO
-      arma::Mat<T> const& base_this = *this;
+      CAST_ARMA_MATRIX_TYPE const& base_this = *this;
       return static_cast<size_t>(arma::rank(base_this));
 #else
       Eigen::ColPivHouseholderQR<CAST_EIGEN_MATRIX_TYPE> rank_colpivmat (*this);
@@ -775,8 +776,8 @@ typedef size_t uint_type;
     bool operator== (mathmatrix const& in) const
     {
 #ifdef CAST_USE_ARMADILLO
-      arma::Mat<T> const& a = *this;
-      arma::Mat<T> const& b = in;
+      CAST_ARMA_MATRIX_TYPE const& a = *this;
+      CAST_ARMA_MATRIX_TYPE const& b = in;
       return (approx_equal(a,b,"reldiff", CAST_TOLERANCE_FOR_MATRIX_COMPARISSON) );
 #else
       if (this->rows() != in.rows() || this->cols() != in.cols()) return false;
@@ -956,21 +957,18 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
   template<typename T>
   mathmatrix<T> transposed(mathmatrix<T> const& in)
   {
-    return mathmatrix<T>(in.t());
+    mathmatrix<T> toBeReturned(in);
+    transpose(toBeReturned);
+    return toBeReturned;
   }
 
+#ifdef CAST_USE_ARMADILLO
   template<typename T>
   void transpose(mathmatrix<T>& in)
   {
-    in = transposed(in);
+    static_cast<CAST_ARMA_MATRIX_TYPE&>(in).t();
   }
-
 #else
-  template<typename T>
-  mathmatrix<T> transposed(mathmatrix<T> const& in)
-  {
-    return mathmatrix<T>(in.transpose());
-  }
 
   template<typename T>
   void transpose(mathmatrix<T>& in)
