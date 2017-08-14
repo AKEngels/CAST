@@ -64,6 +64,34 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
 
 }
 
+template<typename T>
+float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMin, std::vector<T> const& globMax, std::vector<T> const& currentPoint, T const& NNdistance)
+{
+#ifdef _DEBUG
+  if (!(globMin.size() == globMax.size() && globMax.size() == currentPoint.size() && NNdistance.size() == currentPoint.size()))
+  {
+    throw std::runtime_error("Size Mismatch in N Dimensional Eucledean Ardakani Correction. Aborting.");
+  }
+#endif
+  std::vector<T> radiiOfBox(globMin.size());
+  for (unsigned int i = 0u; i < radiiOfBox.size(); i++)
+  {
+    radiiOfBox.at(i) = 
+      std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) 
+      - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i));
+  }
+
+  T volumeOfBox = 1.;
+  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
+  {
+    volumeOfBox *= radiiOfHyperEllipsoid.at(i);
+  }
+
+  const T equivalentRadiusOfHyperSquare = std::pow(volumeOfBox, 1. / radiiOfHyperEllipsoid.size());
+  return equivalentRadiusOfHyperSquare;
+
+}
+
 
 
 
@@ -78,6 +106,7 @@ public:
   {
     if (ident_ == 0)
     {
+      this->dimension = 1;
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x*x) / double(2. * 1. * 1.)); };
@@ -86,6 +115,7 @@ public:
     }
     else if (ident_ == 1)
     {
+      this->dimension = 1;
       // Gaussian with sigma 10
       PDF = [&, this](double x) { return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x*x) / double(2. * 10. * 10.)); };
       maximumOfPDF = 1. / (10. * sqrt(2. * pi));
@@ -95,6 +125,7 @@ public:
     }
     else if (ident_ == 2)
     {
+      this->dimension = 1;
       // Parabola normated to integrate to 1 over [0;1]
       PDF = [&, this](double x) { if (x < -1. || x > 1.) return 0.; else return (3. / 4.) * (-1. * ((x)*(x)) + 1.); };
       maximumOfPDF = PDF(0.);
@@ -104,6 +135,7 @@ public:
     }
     else if (ident_ == 3)
     {
+      this->dimension = 1;
       // Beta Distribution https://en.wikipedia.org/wiki/Differential_entropy
       PDF = [&, this](double x) 
       {
@@ -124,33 +156,6 @@ public:
     }
   };
 
-  double draw()
-  {
-    std::random_device rd;
-    std::mt19937 gen;
-    std::uniform_real_distribution<double> unifDistr(0, 1);
-
-    //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
-    bool run = true;
-    double PDFrange = 0.;
-    while (run)
-    {
-      if (PDF(PDFrange) < 0.0000001) break;
-      else PDFrange += 0.1;
-    }
-    std::uniform_real_distribution<double> unifDistrRange(-PDFrange, PDFrange);
-
-    double drawUnif = unifDistr(gen);
-    double drawUnifWithRange = unifDistrRange(gen);
-    double M = maximumOfPDF / (1. / (2.*PDFrange));
-    while (true)
-    {
-      if (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*PDFrange)))
-      {
-        return(drawUnifWithRange);
-      }
-    }
-  };
 
   std::vector<double> draw(size_t numberOfSamples)
   {
@@ -167,6 +172,8 @@ public:
     //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
     if (PDFrange == nullptr)
       PDFrange = std::make_shared<std::pair<double, double>>(meaningfulRange());
+
+
 
     std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
     const double absrange = PDFrange->second - PDFrange->first;
@@ -221,7 +228,8 @@ public:
     {
       if (PDF(newPDFrange) < 0.00000001)
         break;
-      else newPDFrange += 0.001;
+      else 
+        newPDFrange += 0.001;
     }
     rangeOne = newPDFrange;
     newPDFrange = 0.;
@@ -229,7 +237,8 @@ public:
     {
       if (PDF(newPDFrange) < 0.000000001)
         break;
-      else newPDFrange -= 0.005;
+      else 
+        newPDFrange -= 0.005;
     }
     
     return std::make_pair(newPDFrange, rangeOne); 
