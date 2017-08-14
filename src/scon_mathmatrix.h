@@ -966,7 +966,7 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
   template<typename T>
   void transpose(mathmatrix<T>& in)
   {
-    static_cast<CAST_ARMA_MATRIX_TYPE&>(in).t();
+    in = mathmatrix<T>(static_cast<CAST_ARMA_MATRIX_TYPE&>(in).t());
   }
 #else
 
