@@ -284,8 +284,16 @@ int main(int argc, char **argv)
       i = 0;
       for (auto const & pes : *ci)
       {
-
-        break;
+        using namespace std::chrono;
+        coords.set_xyz(pes.structure.cartesian);
+        auto start = high_resolution_clock::now();
+        coords.e();
+        auto tim = duration_cast<duration<double>>
+          (high_resolution_clock::now() - start);
+        std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+        short_ene_stream(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << tim.count() << '\n';
+        coords.e_tostream_short(std::cout);
       }
       break;
     }

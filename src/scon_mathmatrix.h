@@ -953,7 +953,7 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
 }
 
 
-#ifdef CAST_USE_ARMADILLO
+
   template<typename T>
   mathmatrix<T> transposed(mathmatrix<T> const& in)
   {
