@@ -9,7 +9,6 @@
 //////////   //      //   //////////       //
 /////conformational analysis and search tool/////
 
-
 // If we run our tests, we will
 // take the testing main from gtest/testing_main.cc
 #ifndef GOOGLE_MOCK
@@ -747,7 +746,11 @@ int main(int argc, char **argv)
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
-        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
+        //creating second coords object
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+
+        coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
         break;
       }
       case config::tasks::XB_CENTER:
