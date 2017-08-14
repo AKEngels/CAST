@@ -74,7 +74,7 @@ namespace periodicsHelperfunctions
           unsigned int helperIterator = 0u;
           for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - atoms.molecule(i).size(); j < truncatedAtoms.size(); ++j, helperIterator++)
           {
-            for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds() )
+            for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
             {
               truncatedAtoms.atom(j).detach_from(bonding_partner);
               truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]);
@@ -143,33 +143,67 @@ namespace periodicsHelperfunctions
 
     for (std::size_t i = 0u; i < inputStructure.atoms().molecules().size(); i++)
     {
-      for (std::size_t j = 0u; j < indices.size(); j++)
+      if (std::find(indices.begin(), indices.end(), i) == indices.end())
       {
-        if (i != indices[j])
+        for (std::vector<coords::Atom>::size_type k = 0u; k < atoms.molecule(i).size(); ++k)
         {
-          for (std::vector<coords::Atom>::size_type k = 0u; k < atoms.molecule(i).size(); ++k)
+          truncatedAtoms.add(inputStructure.atoms(atoms.atomOfMolecule(i, k)));
+          positions.push_back(inputStructure.xyz(atoms.atomOfMolecule(i, k)));
+          new_index_of_atom.at(atoms.atomOfMolecule(i, k)) = truncatedAtoms.size() - 1u;
+        }//k
+        unsigned int helperIterator = 0u;
+        for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)
+        {
+          for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
           {
-            truncatedAtoms.add(inputStructure.atoms(atoms.atomOfMolecule(i, k)));
-            positions.push_back(inputStructure.xyz(atoms.atomOfMolecule(i, k)));
-            new_index_of_atom.at(atoms.atomOfMolecule(i, k)) = truncatedAtoms.size() - 1u;
-          }//k
-          unsigned int helperIterator = 0u;
-          for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)
-          {
-            for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
-            {
-              truncatedAtoms.atom(k).detach_from(bonding_partner);
-              truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
-            }
-          }//k
-        }
-      }//j
+            truncatedAtoms.atom(k).detach_from(bonding_partner);
+            truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
+          }
+        }//k
+      }
     }//i
     coords::Coordinates newCoords;
     coords::PES_Point x(positions);
 
     newCoords.init_in(truncatedAtoms, x, true);
     return newCoords;
+  }
+
+  coords::Coordinates delete_random_molecules(coords::Coordinates const& coords)
+  {
+    coords::Coordinates new_coords;
+    std::size_t N_mol = coords.molecules().size();
+    double del_share = 3;                                //Share of molecules to delete for a third 3, a fourth 4 ...
+    double del_amount = N_mol / del_share;
+    del_amount = round(del_amount);                                   //Making sure a whole number of moleculles is deleted
+    std::vector<std::size_t> del_indices;                //Vector for the indices of the molecules to delete                 
+
+    std::default_random_engine rn_generator;
+    std::uniform_int_distribution<int> uni_int_distr(0, N_mol - 1);
+    std::size_t tmp_rn;
+
+    while (del_indices.size() < del_amount)
+    {
+      tmp_rn = uni_int_distr(rn_generator);
+      if (del_indices.empty())                             //Check if vector for indicesis empty
+      {
+        del_indices.push_back(tmp_rn);
+      }
+      else
+      {
+        if (std::find(del_indices.begin(), del_indices.end(), tmp_rn) == del_indices.end()) //Chck if generated random number is already part of del_indices
+        {
+          del_indices.push_back(tmp_rn);
+        }
+      }
+    }//end while(del_indices)
+
+    new_coords = periodicsHelperfunctions::delete_molecules(coords, del_indices);
+
+    std::ofstream del_indices_test("del_indices.txt");
+    for (std::size_t i = 0; i < del_indices.size(); i++) { del_indices_test << del_indices[i] << '\n'; }
+
+    return new_coords;
   }
 
 }
