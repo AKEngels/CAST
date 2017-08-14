@@ -415,6 +415,9 @@ public:
   double empiricalNormalDistributionEntropy;
   double calculatedEntropyGoria; // http://www.tandfonline.com/doi/abs/10.1080/104852504200026815
   double ardakaniEntropyEucledean;
+  double ardakaniEntropyMaximum;
+  double calculatedEntropyGoriaMaximum;
+  double calculatedEntropyLombardiMaximum;
   calculatedentropyobj(size_t k_, entropyobj const& obj) : 
     entropyobj(obj), 
     k(k_), 
@@ -426,7 +429,10 @@ public:
     empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN()),
-    ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN())
+    ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN()),
+    ardakaniEntropyMaximum(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyGoriaMaximum(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyLombardiMaximum(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
@@ -737,6 +743,13 @@ public:
       lombardi_without_correction += digammal(double(numberOfDraws));
       lombardi_without_correction -= digammal(double(k));
       //
+      double lobardi_maximum_norm = maxArdakaniSum / double(numberOfDraws);
+      lobardi_maximum_norm *= double(dimension);
+      lobardi_maximum_norm += log(pow(2., this->dimension));
+      lobardi_maximum_norm += digammal(double(numberOfDraws));
+      lobardi_maximum_norm -= digammal(double(k));
+
+
 
       //Einschub calcualtedEntropyGoria
       double tempsum_knn_goria = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
@@ -770,6 +783,9 @@ public:
       calculatedEntropyLombardi = lombardi_without_correction; // Lombardi Entropy
       calculatedEntropyGoria = tempsum_knn_goria; // Goria Entropy
       ardakaniEntropyEucledean = ardakaniSum;
+      ardakaniEntropyMaximum = maxArdakaniEntropy;
+      calculatedEntropyGoriaMaximum = maxnorm_knn_goria;
+      calculatedEntropyLombardiMaximum = lobardi_maximum_norm;
       //Neccessarry
       transpose(drawMatrix);
     }
@@ -808,9 +824,12 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Integral|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(fake)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(eucl)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(max)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Ardakani(eucl)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Ardakani(max)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(eucl)|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(max)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNN|";
 
@@ -824,8 +843,11 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardiMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->ardakaniEntropyEucledean << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->ardakaniEntropyMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoriaMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevsky << "|\n";
     myfile2.close();
