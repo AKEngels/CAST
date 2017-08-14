@@ -45,16 +45,3 @@ void short_ene_stream_h(
   }
 }
 
-// VIA http://www.cplusplus.com/forum/general/209784/
-// Computes the distance between two std::vectors
-template <typename T>
-T	eucledeanDistance(const std::vector<T>& a, const std::vector<T>& b)
-{
-  std::vector<T>	auxiliary;
-
-  std::transform(a.begin(), a.end(), b.begin(), std::back_inserter(auxiliary),//
-    [](T element1, T element2) {return pow((element1 - element2), 2); });
-
-  return std::sqrt(std::accumulate(auxiliary.begin(), auxiliary.end(), 0.0));
-
-} // end template vectors_distance

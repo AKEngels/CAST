@@ -37,6 +37,14 @@ namespace entropy
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
+
+  float_type maximum_norm_knn_distance(
+    Matrix_Class const& input, size_t
+    const& dimension_in, size_t const& k_in,
+    std::vector<size_t>& row_querypts,
+    size_t const& col_querypt,
+    coords::float_type* buffer = nullptr);
+
   /**
   * Outputs the !SQUARED! next-neighbor distance in eucledean space
   * of the k-nearest neighbor to the query-Point. Rows are dimensions

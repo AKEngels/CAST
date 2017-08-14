@@ -299,7 +299,8 @@ typedef size_t uint_type;
       }
       CAST_ARMA_MATRIX_TYPE const& base_this = *this;
       CAST_ARMA_MATRIX_TYPE const& base_in = in;
-      return (mathmatrix(base_this * base_in));
+      CAST_ARMA_MATRIX_TYPE multiplied = base_this * base_in;
+      return (mathmatrix(multiplied));
     }
 
     mathmatrix operator*(T const& in) const
