@@ -651,22 +651,20 @@ public:
       //Neccessarry
       transpose(drawMatrix);
       Matrix_Class copytemp = drawMatrix;
-      Matrix_Class EvaluateMatrix(2, numberOfDraws, 0.);
+      Matrix_Class EvaluateMatrix(4, numberOfDraws, 0.);
       //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
       std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
       std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
       for (size_t k = 0; k < drawMatrix.cols(); k++)
       {
-        std::vector<double> current;
         for (unsigned int i = 0u; i < this->dimension; i++)
-          current.push_back(drawMatrix(i, k));
-        const double euclDist = eucledeanDistance(ardakaniCorrection_minimumValueInDataset);
+        {
+          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, k))
+            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, k);
 
-        if (eucledeanDistance(ardakaniCorrection_minimumValueInDataset) > euclDist)
-          ardakaniCorrection_minimumValueInDataset = current;
-
-        if (eucledeanDistance(ardakaniCorrection_maximumValueInDataset) < euclDist)
-          ardakaniCorrection_maximumValueInDataset = current;
+          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(i, k))
+            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(i, k);
+        }
       }
 
 #ifdef _OPENMP
@@ -683,33 +681,47 @@ public:
         for (size_t i = 0u; i < drawAndEvaluateMatrix_TemporaryCopy.cols(); i++)
 #endif
         {
-          const float_type holdNNdistance = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
-          EvaluateMatrix(0, i) = holdNNdistance;
+          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
+          EvaluateMatrix(0, i) = holdNNdistanceEucl;
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, std::vector<unsigned int> {0u}, i, buffer);
+          EvaluateMatrix(1, i) = holdNNdistanceMax;
           //EvaluateMatrix(2, i) = PDFtemporary(copytemp(0, i));
           //EvaluateMatrix(3, i) = holdNNdistance;
           // Ardakani Correction
+
           std::vector<double> current;
           for (unsigned int j = 0u; j < this->dimension; j++)
             current.push_back(copytemp(j, i));
-
-          EvaluateMatrix(1, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
-            ardakaniCorrection_maximumValueInDataset, current, holdNNdistance);
+          EvaluateMatrix(2, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
+            ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
+          EvaluateMatrix(3, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
+            ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
           // Lombardi kPN hier, fehlt bisher noch
         }
 #ifdef _OPENMP
       }
 #endif
 
-     //drawAndEvaluateMatrix = drawAndEvaluateMatrix_TemporaryCopy;
 
+     // Eucledean ArdakaniSum
      double ardakaniSum = 0.f;
      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-       ardakaniSum += log(EvaluateMatrix(1, i));
+       ardakaniSum += log(EvaluateMatrix(2, i));
      ardakaniSum /= double(numberOfDraws);
      ardakaniSum *= double(dimension);
      ardakaniSum += (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
      ardakaniSum += digammal(double(numberOfDraws));
      ardakaniSum -= digammal(double(k));
+
+      // Maximum Norm ArdakaniSum
+     double maxArdakaniSum = 0.f;
+     for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
+       maxArdakaniSum += log(EvaluateMatrix(3, i));
+     double maxArdakaniEntropy = maxArdakaniSum / double(numberOfDraws);
+     maxArdakaniEntropy *= double(dimension);
+     maxArdakaniEntropy += log(pow(2., this->dimension));
+     maxArdakaniEntropy += digammal(double(numberOfDraws));
+     maxArdakaniEntropy -= digammal(double(k));
 
       // ENTROPY according to Hnzido
       double hnizdoSum = 0.;
@@ -730,6 +742,14 @@ public:
       double tempsum_knn_goria = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
       tempsum_knn_goria += log(double(numberOfDraws - 1.));
       tempsum_knn_goria -= digammal(double(k));
+
+      //MaxNormGoria:
+      double maxnorm_knn_goria = maxArdakaniSum;
+      maxnorm_knn_goria /= double(numberOfDraws);
+      maxnorm_knn_goria *= double(dimension);
+      maxnorm_knn_goria += log(pow(2., this->dimension));
+      maxnorm_knn_goria += log(double(numberOfDraws - 1.));
+      maxnorm_knn_goria -= digammal(double(k));
 
       hnizdoSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
 
