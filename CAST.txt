@@ -100,9 +100,10 @@ task                      EXCITON_BREAKUP
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
-#Gaussian              Gaussian09 syscall Interface
+# Gaussian             Gaussian09 syscall Interface
 
 interface              DFTB
+
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -112,11 +113,13 @@ interface              DFTB
 
 paramfile              oplsaa_mod.prm
 
-
-### MOPAC OPTIONS ###
-
 # path to DFTBaby
 DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
+
+paramfile              oplsaa.prm
+
+
+### MOPAC OPTIONS ###
 
 # Keywords for MOPAC Call
 MOPACkey               PM7

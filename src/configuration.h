@@ -130,6 +130,7 @@ namespace config
 
   /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 8;
+
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
@@ -537,6 +538,7 @@ namespace config
         delete_input(true)
       {}
     } mopac;
+
 
     struct dftb_conf
     {

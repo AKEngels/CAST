@@ -105,8 +105,6 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 }
 
 //energy::interface_base::interface_base(void)  //Constructor
-
-
 /*! Override of virtual void swap
 *
 * Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is
