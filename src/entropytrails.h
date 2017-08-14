@@ -61,52 +61,60 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
   std::vector<T> radiiOfHyperEllipsoid(globMin.size());
   for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
   {
-    radiiOfHyperEllipsoid.at(i) = std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i));
+    double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
+    double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
+    radiiOfHyperEllipsoid.at(i) = min - max;
   }
 
   // Getting determinant of Mahalanobis distance for calculation of
   // Hyperelipsoid volume. Determinant is product of all eigenvalues. 
   // Eigenvalues of Hyperelipsoid quartic matrix are radius^-2
-  T determinant = 1.;
+  //T determinant = 1.;
+  //for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
+  //{
+  //  determinant *= std::pow(radiiOfHyperEllipsoid.at(i), -2);
+  //}
+  //
+  //// For volume of hyperelipsoid https://math.stackexchange.com/questions/332391/volume-of-hyperellipsoid
+  //// Is radius of hypersphere volume 1? I think, because we have all scaling the eigenvalues
+  //// But I am not sure...
+  //const T V_d = 2. / radiiOfHyperEllipsoid.size() * (std::pow(pi, radiiOfHyperEllipsoid.size() / 2.) / tgamma(radiiOfHyperEllipsoid.size() / 2.)) * std::pow(1, radiiOfHyperEllipsoid.size());
+  //const T volumeOfHyperellipsoid = V_d * std::sqrt(determinant);
+  //const T equivalentRadiusOfHypersphere = std::pow(volumeOfHyperellipsoid * tgamma(radiiOfHyperEllipsoid.size() / 2. + 1) / std::pow(pi, radiiOfHyperEllipsoid.size() / 2.), 1. / radiiOfHyperEllipsoid.size());
+  //return equivalentRadiusOfHypersphere;
+
+  T equivalentRadiusOfHypersphere = T(1.);
   for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
   {
-    determinant *= std::pow(radiiOfHyperEllipsoid.at(i), -2);
+    equivalentRadiusOfHypersphere *= radiiOfHyperEllipsoid.at(i);
   }
-
-  // For volume of hyperelipsoid https://math.stackexchange.com/questions/332391/volume-of-hyperellipsoid
-  // Is radius of hypersphere volume 1? I think, because we have all scaling the eigenvalues
-  // But I am not sure...
-  const T V_d = 2. / radiiOfHyperEllipsoid.size() * (std::pow(pi, radiiOfHyperEllipsoid.size() / 2.) / tgamma(radiiOfHyperEllipsoid.size() / 2.)) * std::pow(1, radiiOfHyperEllipsoid.size());
-  const T volumeOfHyperellipsoid = V_d * std::sqrt(determinant);
-  const T equivalentRadiusOfHypersphere = std::pow(volumeOfHyperellipsoid * tgamma(radiiOfHyperEllipsoid.size() / 2. + 1) / std::pow(pi, radiiOfHyperEllipsoid.size() / 2.), 1. / radiiOfHyperEllipsoid.size());
-  return equivalentRadiusOfHypersphere;
-
+  return std::pow(equivalentRadiusOfHypersphere, 1. / double(radiiOfHyperEllipsoid.size()));
 }
 
 template<typename T>
 float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMin, std::vector<T> const& globMax, std::vector<T> const& currentPoint, T const& NNdistance)
 {
 #ifdef _DEBUG
-  if (!(globMin.size() == globMax.size() && globMax.size() == currentPoint.size() && NNdistance.size() == currentPoint.size()))
+  if (!(globMin.size() == globMax.size() && globMax.size() == currentPoint.size()))
   {
-    throw std::runtime_error("Size Mismatch in N Dimensional Eucledean Ardakani Correction. Aborting.");
+    throw std::runtime_error("Size Mismatch in N Dimensional Maximum Norm Ardakani Correction. Aborting.");
   }
 #endif
   std::vector<T> radiiOfBox(globMin.size());
   for (unsigned int i = 0u; i < radiiOfBox.size(); i++)
   {
-    radiiOfBox.at(i) = 
-      std::min(currentPoint.at(i) + NNdistance / 0.5, globMax.at(i)) 
-      - std::max(currentPoint.at(i) - NNdistance / 0.5, globMin.at(i));
+    double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
+    double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
+    radiiOfBox.at(i) = min - max;
   }
 
   T volumeOfBox = 1.;
-  for (unsigned int i = 0u; i < radiiOfHyperEllipsoid.size(); i++)
+  for (unsigned int i = 0u; i < radiiOfBox.size(); i++)
   {
-    volumeOfBox *= radiiOfHyperEllipsoid.at(i);
+    volumeOfBox *= radiiOfBox.at(i);
   }
 
-  const T equivalentRadiusOfHyperSquare = std::pow(volumeOfBox, 1. / radiiOfHyperEllipsoid.size());
+  const T equivalentRadiusOfHyperSquare = std::pow(volumeOfBox, 1. / radiiOfBox.size());
   return equivalentRadiusOfHyperSquare;
 
 }
