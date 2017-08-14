@@ -99,7 +99,7 @@ class LR_TDDFTB:
             self.determineActiveSpace()
         if self.dftb2.verbose > 0:
             self._writeExcitations()
-        return self.Omega, self.oscillator_strength
+        return self.Omega, self.oscillator_strength, self.en0
 
 
     def energy_func(self, x, atomlist, I):
@@ -851,10 +851,8 @@ def main(xyz_file, conf_file):
     from DFTB.DFTB2 import DFTB2
     from DFTB.Analyse.Cube import CubeExporterEx
     from DFTB.Molden import MoldenExporter
-    import DFTB2_cast
-    from DFTB.Analyse.Cube import CubeExporter
 
-    outputfile = open("scf_output_dftb.txt", "w")
+    outputfile = open("scf_output_dftb.txt", "a")
     sys.stdout = outputfile
 
     usage = "Usage: %s <xyz-file>\n" % xyz_file
@@ -874,25 +872,19 @@ def main(xyz_file, conf_file):
     options = parser.options
     scf_options = parser.scf_options
 
-    # calculate energy
-    dftb2 = DFTB2_cast.DFTB2(atomlist, **options)
-    dftb2.setGeometry(atomlist)
-    E = dftb2.getEnergy(**scf_options)
-
-    # start TD-DFTB
     init_options = parser.init_options
     tddftb = LR_TDDFTB(atomlist, **init_options)
 
     options = parser.tde_options
     options.update(scf_options)
     tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
-    tddftb.getEnergies(**options)
+    x = tddftb.getEnergies(**options)
 
     grad = Gradients(tddftb)
     options = parser.gradient_options
     grad.getGradients(**options)
 
-    return str(E)  # return energies in Hartree
+    return str(x[-1])  # return energies in Hartree
 
 
 

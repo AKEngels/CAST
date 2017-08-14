@@ -72,7 +72,7 @@ namespace energy
 				double h(void);
 				// Optimization in the interface(d program)
 				double o(void);
-				//MOPAC7_HB VAR
+				//???
 				bool grad_var;
 				// Output functions
 				void print_E(std::ostream&) const;

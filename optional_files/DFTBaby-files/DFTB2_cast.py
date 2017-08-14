@@ -24,7 +24,8 @@ import multiprocessing
 from DFTB import utils_cast as utils
 from DFTB.utils import annotated_matrix
 from DFTB.SlaterKoster.SKIntegrals import SlakoTransformations, NoSKDipolesException
-from DFTB.RepulsivePotential.RepulsivePotential import RepulsivePotential, read_repulsive_potential, dummy_reppot_module, hotbit_scaling_factors
+from DFTB.RepulsivePotential.RepulsivePotential_cast import RepulsivePotential
+from DFTB.RepulsivePotential.RepulsivePotential_cast import read_repulsive_potential, dummy_reppot_module, hotbit_scaling_factors
 from DFTB.SlaterKoster import slako_tables
 from DFTB.SKMatrixElements import H0andS, DipoleMatrix
 from DFTB.RepulsivePotential import reppot_tables
@@ -265,6 +266,7 @@ class DFTB2(object):
                                     (atom_names[Zi-1], atom_names[Zj-1]))
             self.SKT[(Zi,Zj)] = SlakoTransformations(slako_module)
             self.VREP[(Zi,Zj)] = RepulsivePotential(reppot_module,scaling_factors)
+
         if self.verbose > 0:
             print "  Unique Atoms"
             print "  ============"
@@ -2234,6 +2236,7 @@ class DFTB2(object):
                 # nucleus-nucleus and core electron repulsion
                 E_nuc += self.VREP[(Z1,Z2)].getVrep(Rij)
         return E_nuc
+
     def getDispersionEnergy(self):
         """
         compute dispersion correction for energy

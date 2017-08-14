@@ -98,6 +98,8 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
   integrity = true;
   grad_var = false;
 
+  std::cout<<"Calculate Energy\n";
+
     //write inputstructure
     std::ofstream file("tmp_struc.xyz");
     file << coords::output::formats::xyz_dftb(*this->coords);
@@ -142,6 +144,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         printf("Fehler: Modul DFTB2_cast nicht gefunden\n"); 
         std::exit(0);
     }
+    std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
 }
 
@@ -150,50 +153,70 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 {
   integrity = true;
   grad_var = true;
-  //write inputstructure
-    std::ofstream file("tmp_struc.xyz");
-    file << coords::output::formats::xyz_dftb(*this->coords);
-    file.close();
+
+  // create inputfile
+  std::ofstream file("tmp_struc.xyz");
+  file << coords::output::formats::xyz_dftb(*this->coords);
+  file.close();
     
-    //call programme
-    std::string result_str; 
-    PyObject *modul, *funk, *prm, *ret;
+  //call programme
+  std::string result_str; 
+  PyObject *modul, *funk, *prm, *ret;
     
-    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
-    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
-    const char *c = add_path.c_str();  //add paths from variable add_path
-    PyRun_SimpleString(c);
+  std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
+  PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
+  const char *c = add_path.c_str();  //add paths from variable add_path
+  PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("LR_TDDFTB_cast"); //import module 
+  modul = PyImport_ImportModule("LR_TDDFTB_cast"); //import module 
 
-    if(modul) 
-        { 
-        funk = PyObject_GetAttrString(modul, "main"); //create function
-        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
-        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+  if(modul) 
+    { 
+      funk = PyObject_GetAttrString(modul, "main"); //create function
+      prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby_grad.cfg"); //give parameters
+      ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
-        result_str = PyString_AsString(ret); //read function return (has to be a string)
-        result_str = result_str.substr(1,result_str.size()-2);  //process return
-        std::vector<std::string> result_vec = split(result_str, ',');
+      result_str = PyString_AsString(ret); //read function return (has to be a string)
+      result_str = result_str.substr(1,result_str.size()-2);  //process return
+      std::vector<std::string> result_vec = split(result_str, ',');
 
-        //read energies and convert them to kcal/mol
-        e_bs = std::stod(result_vec[0])*627.503; 
-        e_coul = std::stod(result_vec[1])*627.503;
-        e_rep = std::stod(result_vec[3])*627.503;
-        e_lr = std::stod(result_vec[4])*627.503;
-        e_tot = std::stod(result_vec[5])*627.503;
+      //read energies and convert them to kcal/mol
+      e_bs = std::stod(result_vec[0])*627.503; 
+      e_coul = std::stod(result_vec[1])*627.503;
+      e_rep = std::stod(result_vec[3])*627.503;
+      e_lr = std::stod(result_vec[4])*627.503;
+      e_tot = std::stod(result_vec[5])*627.503;
         
-        //delete PyObjects
-        Py_DECREF(prm); 
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-        } 
+      //delete PyObjects
+      Py_DECREF(prm); 
+      Py_DECREF(ret); 
+      Py_DECREF(funk); 
+      Py_DECREF(modul); 
+    } 
     else 
     {
-        printf("Fehler: Modul LR_TDDFTB_cast nicht gefunden\n"); 
-        std::exit(0);
+      printf("Fehler: Modul LR_TDDFTB_cast nicht gefunden\n"); 
+      std::exit(0);
     }
+
+    //read gradients
+    std::string line;
+    coords::Representation_3D g_tmp;
+    std::ifstream infile2("grad.xyz");
+    std::getline(infile2, line);  //discard fist two lines
+    std::getline(infile2, line);
+    std::string element;
+    double x,y,z;
+    while (infile2 >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
+    {
+        coords::Cartesian_Point g(x*627.503,y*627.503,z*627.503);
+        g_tmp.push_back(g);
+    }
+    infile2.close();
+    std::remove("grad.xyz"); // delete file
+    std::remove("tmp_struc.xyz"); // delete file
+    coords->swap_g_xyz(g_tmp);
+
   return e_tot;
 }
 
@@ -209,10 +232,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  integrity = true;
-  grad_var = false;
-  std::cout<<"no optimizer yet\n";
-  return energy;
+  throw std::runtime_error("DFTB doesn't provide any optimization routines.");
 }
 
 // Output functions
@@ -242,7 +262,25 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
   S << "\n";
 }
 
-void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }
+void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
+{ 
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for(std::size_t k=0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k+1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
+  }
+}
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
 
