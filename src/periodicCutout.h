@@ -169,13 +169,10 @@ namespace periodicsHelperfunctions
     return newCoords;
   }
 
-  coords::Coordinates delete_random_molecules(coords::Coordinates const& coords)
+  coords::Coordinates delete_random_molecules(coords::Coordinates const& coords, std::size_t del_amount)
   {
     coords::Coordinates new_coords;
     std::size_t N_mol = coords.molecules().size();
-    double del_share = 3;                                //Share of molecules to delete for a third 3, a fourth 4 ...
-    double del_amount = N_mol / del_share;
-    del_amount = round(del_amount);                                   //Making sure a whole number of moleculles is deleted
     std::vector<std::size_t> del_indices;                //Vector for the indices of the molecules to delete                 
 
     std::default_random_engine rn_generator;
