@@ -890,6 +890,19 @@ typedef size_t uint_type;
 #endif
 		}
 
+    mathmatrix inversed() const
+    {
+#ifndef CAST_USE_ARMADILLO
+      CAST_EIGEN_MATRIX_TYPE const* this_eigenptr = static_cast<CAST_EIGEN_MATRIX_TYPE const*>(this);
+      auto inversed = this_eigenptr->inverse();
+      CAST_EIGEN_MATRIX_TYPE to_be_returned(inversed);
+      return to_be_returned;
+#else
+      CAST_ARMA_MATRIX_TYPE const& base_this = *this;
+      return mathmatrix(inv(base_this));
+#endif
+    }
+
 
 		/**
 		 * @breif Returns mathmatrix-obj as std vector of vector of float_type.
