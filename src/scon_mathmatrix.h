@@ -292,7 +292,7 @@ typedef size_t uint_type;
     mathmatrix operator*(mathmatrix const& in) const
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
+        std::cout << "Function call: Operator* for matrix-class" << std::endl;
       if (!(this->cols() == in.rows()))
       {
         throw("ERROR in mathmatrix multiplication: Sizes of matrices do not match!");
@@ -321,7 +321,7 @@ typedef size_t uint_type;
     mathmatrix operator/(mathmatrix const& in) const
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
+        std::cout << "Function call: Operator/ for matrix-class" << std::endl;
       if (!(this->cols() == in.rows()))
       {
         throw("ERROR in mathmatrix divison: Sizes of matrices do not match!");
@@ -336,6 +336,8 @@ typedef size_t uint_type;
      */
     mathmatrix operator-(mathmatrix const& in) const
     {
+      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        std::cout << "Function call: Operator- for matrix-class" << std::endl;
     	//Check if sizes match
     	if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
     	{

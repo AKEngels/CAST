@@ -1160,14 +1160,6 @@ namespace scon
 
   template<class T, class U = T>
   typename std::enable_if<is_range<T>::value && is_range<U>::value, 
-    T>::type operator* (T v, U const &w)
-  {
-    v *= w;
-    return v;
-  }
-
-  template<class T, class U = T>
-  typename std::enable_if<is_range<T>::value && is_range<U>::value, 
     T>::type& operator/= (T & v, U const &w)
   {
     using std::begin;
