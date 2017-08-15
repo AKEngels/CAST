@@ -136,11 +136,11 @@ public:
       this->dimension = 1;
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
-      PDF = [&, this](std::vector<double> const& x) 
-      {         
+      PDF = [&, this](std::vector<double> const& x)
+      {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
-        return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 1. * 1.)) ;
+        return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 1. * 1.));
       };
       //PDFrange = 5.920; // range incorporating function values up to under 10e-7
       this->m_identString = "Normal sig=1";
@@ -150,10 +150,10 @@ public:
       this->dimension = 1;
       // Gaussian with sigma 10
       PDF = [&, this](std::vector<double> const& x)
-      { 
+      {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
-        return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 10. * 10.)) ;
+        return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 10. * 10.));
       };
       maximumOfPDF = 1. / (10. * sqrt(2. * pi));
       analyticEntropy_ = log(10. * sqrt(2. * pi * e));
@@ -164,18 +164,18 @@ public:
     {
       this->dimension = 1;
       // Parabola normated to integrate to 1 over [0;1]
-      PDF = [&, this](std::vector<double> const& x) 
-      { 
+      PDF = [&, this](std::vector<double> const& x)
+      {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
         if (x.at(0) < -1. || x.at(0) > 1.)
           return 0.;
-        else 
-          return (3. / 4.) * (-1. * ((x.at(0))*(x.at(0))) + 1.) ;
+        else
+          return (3. / 4.) * (-1. * ((x.at(0))*(x.at(0))) + 1.);
       };
       maximumOfPDF = PDF(std::vector<double>{ 0. });
       analyticEntropy_ = 0.568054;
-      PDFrange = std::make_shared<std::pair<double, double>>(-1.,1.); // Function is only defined in [-1;1]
+      PDFrange = std::make_shared<std::pair<double, double>>(-1., 1.); // Function is only defined in [-1;1]
       this->m_identString = "parabolic";
     }
     else if (ident_ == 3)
@@ -192,15 +192,89 @@ public:
         xtemp.at(0) = abs(x.at(0));
         if (xtemp.at(0) > 1.)
           return 0.;
-        else 
+        else
           return pow(xtemp.at(0), alpha - 1.) * pow(1. - xtemp.at(0), beta - 1.) / (tgamma(alpha)*tgamma(beta) / tgamma(alpha + beta));
       };
       maximumOfPDF = 4.;
       constexpr double alpha = 1.5;
       constexpr double beta = 9.;
-      analyticEntropy_ = log(tgamma(alpha)*tgamma(beta) / tgamma(alpha + beta)) - (alpha -1.) * (digammal(alpha) - digammal(alpha+beta)) - (beta -1.) * (digammal(beta) - digammal(alpha + beta));
+      analyticEntropy_ = log(tgamma(alpha)*tgamma(beta) / tgamma(alpha + beta)) - (alpha - 1.) * (digammal(alpha) - digammal(alpha + beta)) - (beta - 1.) * (digammal(beta) - digammal(alpha + beta));
       PDFrange = std::make_shared<std::pair<double, double>>(0., 1.); // Function is only defined in [0;1]
       this->m_identString = "Beta Distr.";
+    }
+    else if (ident_ == 4)
+    {
+      this->dimension = 2;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() != 2)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        Matrix_Class mean(x.size(), 1u, 0.);
+        Matrix_Class covariance(x.size(), x.size(), 0u);
+        covariance(0, 0) = 1.;
+        covariance(1, 0) = 0.56;
+        covariance(1, 1) = 0.75;
+        covariance(0, 1) = 0.56;
+
+        Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
+        const double prefactor = 1. / (std::pow(2 * ::constants::pi, 2.) * std::sqrt(covariance.determ()));
+
+
+        return prefactor * std::exp(value(0u,0u) * -0.5);
+      };
+      maximumOfPDF = PDF(std::vector<double>{ 0.,0. });
+      Matrix_Class covariance(2, 2, 0u);
+      covariance(0, 0) = 1.;
+      covariance(1, 0) = 0.56;
+      covariance(1, 1) = 0.75;
+      covariance(0, 1) = 0.56;
+
+      analyticEntropy_ = 0.5 * log(2 * ::constants::pi * ::constants::e * covariance.determ());
+      PDFrange = std::make_shared<std::pair<double, double>>(-6, 6.);
+      this->m_identString = "2varGauss";
+    }
+    else if (ident_ == 5)
+    {
+      this->dimension = 2;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() != 2)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        Matrix_Class mean(x.size(), 1u, 0.);
+        Matrix_Class covariance(x.size(), x.size(), 0u);
+        covariance(0, 0) = 1.;
+        covariance(1, 0) = 0.0;
+        covariance(1, 1) = 0.75;
+        covariance(0, 1) = 0.0;
+
+        Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
+        const double prefactor = 1. / (std::pow(2 * ::constants::pi, 2.) * std::sqrt(covariance.determ()));
+
+
+        return prefactor * std::exp(value(0u, 0u) * -0.5);
+      };
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. });
+      Matrix_Class covariance(2, 2, 0u);
+      covariance(0, 0) = 1.;
+      covariance(1, 0) = 0.0;
+      covariance(1, 1) = 0.75;
+      covariance(0, 1) = 0.0;
+
+      analyticEntropy_ = 0.5 * log(2 * ::constants::pi * ::constants::e * covariance.determ());
+      PDFrange = std::make_shared<std::pair<double, double>>(-5, 5.);
+      this->m_identString = "2varGauss2";
     }
   };
 
@@ -252,7 +326,7 @@ public:
     return draws;
   };
 
-  int ident() const { return this->identif; } ;
+  int ident() const { return this->identif; };
 
   std::string identString() const
   {
@@ -267,7 +341,12 @@ public:
     return this->PDF;
   };
 
-  std::pair<double,double> meaningfulRange()
+  unsigned int getDimension() const
+  {
+    return this->dimension;
+  }
+
+  std::pair<double, double> meaningfulRange()
   {
     if (PDFrange != nullptr)
       return *PDFrange;
@@ -315,7 +394,7 @@ private:
   double maximumOfPDF;
   int identif;
   int dimension = 0;
-  std::shared_ptr<std::pair<double,double>> PDFrange = nullptr;
+  std::shared_ptr<std::pair<double, double>> PDFrange = nullptr;
   std::string m_identString = "ERROR_NAME";
   std::function<double(std::vector<double> const& x)> PDF;
 };
@@ -346,9 +425,9 @@ public:
   int identifierOfPDF;
   ProbabilityDensity probdens;
   double mean, standardDeviation;
-  entropyobj(size_t iter_, size_t dimension_, ProbabilityDensity probdens_) :
+  entropyobj(size_t iter_, ProbabilityDensity probdens_) :
     drawAndsEvaluateMatrix(iter_, 5),
-    numberOfDraws(iter_), dimension(dimension_), drawMatrix(iter_,dimension_),
+    numberOfDraws(iter_), dimension(probdens_.getDimension()), drawMatrix(iter_, probdens_.getDimension()),
     probdens(probdens_), identifierOfPDF(probdens_.ident()),
     mean(0.), standardDeviation(0.)
   {
@@ -358,6 +437,7 @@ public:
     myfile.open(std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt"));
     if (myfile.good())
     {
+      std::cout << "Reading draw from file." << std::endl;
       int j = 0;
       int currentDim = 0;
       while (std::getline(myfile, line))
@@ -373,11 +453,13 @@ public:
     }
     else
     {
+      std::cout << "Creating new draw." << std::endl;
       // Draw 
       std::vector<std::vector<double>> draws = probdens.draw(numberOfDraws);
 
-      //Sort samples (entirely optional)
-      std::stable_sort(draws.begin(), draws.end());
+      //Sort samples (entirely optional) if dimension == 1
+      if (this->dimension == 1)
+        std::stable_sort(draws.begin(), draws.end());
 
       for (unsigned int n = 0; n < numberOfDraws; ++n)
         for (unsigned int currentDim = 0; currentDim < this->dimension; ++currentDim)
@@ -407,8 +489,9 @@ class calculatedentropyobj : public entropyobj
 public:
   size_t k;
   double calculatedEntropyHnizdo;
-  double calculatedEntropyLombardi; 
-  double calculatedEntropyMeanFaivishevsky;
+  double calculatedEntropyLombardi;
+  double calculatedEntropyMeanFaivishevskyMaximum;
+  double calculatedEntropyMeanFaivishevskyEucledean;
   double mcintegrationEntropy;
   double mcdrawEntropy;
   double analyticalEntropy;
@@ -418,16 +501,17 @@ public:
   double ardakaniEntropyMaximum;
   double calculatedEntropyGoriaMaximum;
   double calculatedEntropyLombardiMaximum;
-  calculatedentropyobj(size_t k_, entropyobj const& obj) : 
-    entropyobj(obj), 
-    k(k_), 
+  calculatedentropyobj(size_t k_, entropyobj const& obj) :
+    entropyobj(obj),
+    k(k_),
     calculatedEntropyHnizdo(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyLombardi(std::numeric_limits<double>::quiet_NaN()),
     mcintegrationEntropy(std::numeric_limits<double>::quiet_NaN()),
     mcdrawEntropy(std::numeric_limits<double>::quiet_NaN()),
     analyticalEntropy(this->probdens.analyticEntropy()),
     empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyMeanFaivishevsky(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyMeanFaivishevskyEucledean(std::numeric_limits<double>::quiet_NaN()),
+    calculatedEntropyMeanFaivishevskyMaximum(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN()),
     ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN()),
     ardakaniEntropyMaximum(std::numeric_limits<double>::quiet_NaN()),
@@ -438,6 +522,8 @@ public:
 
   double empiricalGaussianEntropy()
   {
+    std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
+
     if (this->dimension == 1)
     {
       // Calculate Mean
@@ -456,22 +542,82 @@ public:
     }
     else
     {
-      Matrix_Class ones(this->drawMatrix.cols(), this->drawMatrix.cols(), 1.0);
-      Matrix_Class cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->drawMatrix.cols()));
-      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
-      cov_matr = cov_matr / static_cast<float_type>(this->drawMatrix.cols());
+      Matrix_Class cov_matr;
+      if (false && this->numberOfDraws < 10001)
+      {
+        transpose(this->drawMatrix);
+        cov_matr = (transposed(this->drawMatrix));
+        //Matrix_Class cov_matr = (this->drawMatrix);
+        Matrix_Class ones(this->drawMatrix.cols(), this->drawMatrix.cols(), 1.0);
+
+        cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->drawMatrix.cols()));
+        cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+        cov_matr = cov_matr / static_cast<float_type>(this->drawMatrix.cols());
+        transpose(this->drawMatrix);
+      }
+      else
+      {
+        cov_matr = Matrix_Class(this->dimension, this->dimension, 0.);
+        Matrix_Class meanPerDim(this->dimension, 1u, std::numeric_limits<double>::quiet_NaN());
+        for (unsigned int dim = 0u; dim < this->dimension; dim++)
+        {
+          double meanThisDim = 0u;
+          for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+          {
+            meanThisDim += this->drawMatrix(i, dim);
+          }
+          meanThisDim /= double(this->numberOfDraws);
+          meanPerDim(dim, 0u) = meanThisDim;
+
+          double sum = 0.;
+          for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+          {
+            sum += std::pow(this->drawMatrix(i, dim) - meanThisDim, 2);
+          }
+          sum /= double(this->numberOfDraws);
+          cov_matr(dim, dim) = sum;
+
+          for (unsigned int dim2 = dim + 1; dim2 < this->dimension; dim2++)
+          {
+            if (meanPerDim(dim2, 0u) != meanPerDim(dim2, 0u))
+            {
+              double mean = 0u;
+              for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+              {
+                mean += this->drawMatrix(i, dim2);
+              }
+              mean /= double(this->numberOfDraws);
+              meanPerDim(dim2, 0u) = mean;
+            }
+
+            double sum2 = 0.;
+            for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+            {
+              sum2 += (this->drawMatrix(i, dim2) - meanPerDim(dim2, 0u)) * (this->drawMatrix(i, dim) - meanPerDim(dim,0u));
+            }
+            sum2 /= double(this->numberOfDraws);
+            cov_matr(dim, dim2) = sum2;
+            cov_matr(dim2, dim) = sum2;
+          }
+        }
+      }
+
       float_type cov_determ = 0.;
       int *cov_rank = new int;
       Matrix_Class eigenval, eigenvec;
       double determinant = cov_matr.determ();
 
-      return (log(sqrt(2. * pi)) + 1) -0.5  *double(this->dimension) + 0.5 * log(determinant);
+
+      return log(sqrt(2. * pi * e)) * 0.5  * double(this->dimension) + 0.5 * log(determinant);
       //Covariance Matrix
     }
   }
 
-  double MCIntegrationEntropy(std::pair<double,double> const& range, size_t numberOfSamples)
+  double MCIntegrationEntropy(std::pair<double, double> const& range, size_t numberOfSamples)
   {
+    std::cout << "Commencing MCIntegrationEntropy calculation." << std::endl;
+
+
     // MC guess with uniform distribution
     // Draw Uniform and do
     // Draw samples
@@ -479,10 +625,13 @@ public:
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> distr(range.first, range.second);
     std::vector<std::vector<double>> temp;
-    //temp.reserve(numberOfSamples);
-    for (unsigned int n = 0; n < numberOfSamples; ++n) 
+    for (unsigned int currentDim = 0; currentDim < this->dimension; ++currentDim)
     {
       temp.push_back(std::vector<double>{});
+    }
+    //temp.reserve(numberOfSamples);
+    for (unsigned int n = 0; n < numberOfSamples; ++n)
+    {
       for (unsigned int currentDim = 0; currentDim < this->dimension; ++currentDim)
       {
         double drawnnum = distr(gen);
@@ -490,59 +639,47 @@ public:
       }
     }
 
-    long double uniformMCvalue = 0, uniformMCvalue2 = 0, c = 0.f;
 
-    // Debug
-    //Sort samples
-    //std::stable_sort(temp.begin(), temp.end());
-    //size_t countHowManyContinuesBecauseOfZeroPDF = 0u;
+    KahanAccumulation<double> kahan_acc;
+
 
     for (unsigned int n = 0; n < numberOfSamples; ++n)
     {
-      long double gvalue;
       std::vector<double> current;
       for (unsigned int currentDim = 0; currentDim < this->dimension; ++currentDim)
       {
         current.push_back(temp.at(currentDim).at(n));
       }
 
-      gvalue = static_cast<long double>(probdens.function()(current));
-      if (gvalue == 0) {
-        //++countHowManyContinuesBecauseOfZeroPDF;  
+      const double gvalue = static_cast<long double>(probdens.function()(current));
+      if (gvalue == 0)
         continue;
-      }
-      long double y = gvalue * log(gvalue) - c;
-      long double t = uniformMCvalue + y;
-      c = (t - uniformMCvalue) - y;
-      uniformMCvalue = t;
-      uniformMCvalue2 += gvalue * log(gvalue);
+      kahan_acc = KahanSum(kahan_acc, gvalue * log(gvalue));
+
     }
-    uniformMCvalue /= double(numberOfSamples);
-    uniformMCvalue2 /= double(numberOfSamples);
-    uniformMCvalue *= -1. * (range.second - range.first);
-    uniformMCvalue2 *= -1. * (range.second - range.first);
-    return uniformMCvalue2;
+    double uniformMCvalue = kahan_acc.sum / double(numberOfSamples);
+    uniformMCvalue *= -1. * std::pow((range.second - range.first), this->dimension);
+    return uniformMCvalue;
   };
 
   double MCDrawEntropy(std::vector<std::vector<double>>& samples)
   {
+    std::cout << "Commencing MCDrawEntropy calculation." << std::endl;
+
+
     // new try MC guess with Kahan Summation
-    double drawMCvalue = 0.;
-    long double drawMCvalue2 = 0;
-    long double c = 0;
+    KahanAccumulation<double> kahan_acc;
     for (size_t i = 0u; i < samples.size(); i++)
     {
       // Value of Distribution at point x
-      double temp1 = probdens.function()(samples[i]);
-      drawMCvalue += log(temp1);
-      long double y = log(temp1) - c;
-      long double t = drawMCvalue2 + y;
-      c = (t - drawMCvalue2) - y;
-      drawMCvalue2 = t;
+      const double temp1 = probdens.function()(samples[i]);
+      kahan_acc = KahanSum(kahan_acc, log(temp1));
+
     }
-    drawMCvalue /= -1.* double(samples.size());
-    drawMCvalue2 /= -1 * double(samples.size());
-    return drawMCvalue2;
+    const double result = kahan_acc.sum / (-1.* double(samples.size()));
+    //const double secondResult = result * std::pow((this->probdens.meaningfulRange().second - this->probdens.meaningfulRange().first), this->dimension);
+
+    return result;
   };
 
   double MCDrawEntropy(size_t& numberOfSamples)
@@ -570,14 +707,17 @@ public:
 
   double meanNNEntropyFaivishevsky()
   {
+    std::cout << "Commencing meanNNEntropyFaivishevsky calculation." << std::endl;
+
+
     //http://papers.nips.cc/paper/3500-ica-based-on-a-smooth-estimation-of-the-differential-entropy
     transpose(drawMatrix);
     Matrix_Class drawMatrix_TemporaryCopy = drawMatrix;
-    KahanAccumulation<double> kahan_acc;
-    double sum_final = 0.f;
-
+    KahanAccumulation<double> kahan_acc_eucl_norm, kahan_acc_max_norm;
+    double sum_final_eucl = 0.f;
+    double sum_final_max = 0.f;
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(drawMatrix_TemporaryCopy,kahan_acc) reduction(+:sum_final)
+#pragma omp parallel firstprivate(drawMatrix_TemporaryCopy,kahan_acc_eucl_norm, kahan_acc_max_norm) reduction(+:sum_final_eucl) reduction(+:sum_final_max)
 #endif
     {
 #ifdef _OPENMP
@@ -591,20 +731,28 @@ public:
         for (size_t j = i + 1u; j < drawMatrix_TemporaryCopy.cols(); j++)
         {
           // Eucledean norm
-          double norm = 0.;
+          double eucl_norm = 0.;
+          double max_norm = std::numeric_limits<double>::max() * -1.;
           for (size_t currentDim = 0u; currentDim < this->dimension; currentDim++)
           {
-            norm += (drawMatrix_TemporaryCopy(0u, i) - drawMatrix_TemporaryCopy(0u, j))
+            eucl_norm += (drawMatrix_TemporaryCopy(0u, i) - drawMatrix_TemporaryCopy(0u, j))
               * (drawMatrix_TemporaryCopy(0u, i) - drawMatrix_TemporaryCopy(0u, j));
+
+            max_norm = std::max(max_norm, std::abs(drawMatrix_TemporaryCopy(0u, i) - drawMatrix_TemporaryCopy(0u, j)));
+
           }
-          norm = sqrt(norm);
-          kahan_acc = KahanSum(kahan_acc, log(norm));
+          eucl_norm = sqrt(eucl_norm);
+          kahan_acc_eucl_norm = KahanSum(kahan_acc_eucl_norm, log(eucl_norm));
+          kahan_acc_max_norm = KahanSum(kahan_acc_max_norm, log(max_norm));
+
         }
       }
-      sum_final += kahan_acc.sum;
+      sum_final_max += kahan_acc_max_norm.sum;
+      sum_final_eucl += kahan_acc_eucl_norm.sum;
     }
-    const double mod_summation = sum_final * static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
-    
+    const double mod_summation_eucl = sum_final_eucl * static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
+    const double mod_summation_max = sum_final_max * static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
+
     double sum_gamma_k = 0.f;
     const int n_of_samples = drawMatrix_TemporaryCopy.cols() - 1u;
 
@@ -624,13 +772,15 @@ public:
     sum_gamma_k *= -1;
     sum_gamma_k *= static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
     sum_gamma_k += digammal(drawMatrix_TemporaryCopy.cols());
-    
+
 
     const double volume_of_unit_ball_for_eucledean_norm = pow(pi, static_cast<double>(this->dimension) / 2.) / tgamma(1. + static_cast<double>(this->dimension) / 2.);
+    const double volume_of_unit_ball_for_max_norm = pow(2., this->dimension);
 
 
     transpose(drawMatrix);
-    return mod_summation + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm);
+    this->calculatedEntropyMeanFaivishevskyEucledean = mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm);
+    this->calculatedEntropyMeanFaivishevskyMaximum = mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm);
   }
 
   void calculate()
@@ -643,7 +793,10 @@ public:
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
-    calculatedEntropyMeanFaivishevsky = meanNNEntropyFaivishevsky();
+    meanNNEntropyFaivishevsky();
+
+    std::cout << "Commencing NNEntropy calculation." << std::endl;
+
 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
     if (Config::get().entropytrails.NNcalculation)
@@ -675,7 +828,7 @@ public:
 
 #ifdef _OPENMP
 #pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) shared(EvaluateMatrix)
-     {
+      {
 #endif
         float_type* buffer = new float_type[k];
 #ifdef _OPENMP
@@ -689,7 +842,14 @@ public:
         {
           const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
           EvaluateMatrix(0, i) = holdNNdistanceEucl;
-          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, std::vector<size_t> {0u}, i, buffer);
+
+          std::vector<size_t> rowQueryPts;
+          for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+          {
+            rowQueryPts.push_back(currentDim);
+          }
+
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, rowQueryPts, i, buffer);
           EvaluateMatrix(1, i) = holdNNdistanceMax;
           //EvaluateMatrix(2, i) = PDFtemporary(copytemp(0, i));
           //EvaluateMatrix(3, i) = holdNNdistance;
@@ -709,25 +869,25 @@ public:
 #endif
 
 
-     // Eucledean ArdakaniSum
-     double ardakaniSum = 0.f;
-     for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-       ardakaniSum += log(EvaluateMatrix(2, i));
-     ardakaniSum /= double(numberOfDraws);
-     ardakaniSum *= double(dimension);
-     ardakaniSum += (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
-     ardakaniSum += digammal(double(numberOfDraws));
-     ardakaniSum -= digammal(double(k));
+      // Eucledean ArdakaniSum
+      double ardakaniSum = 0.f;
+      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
+        ardakaniSum += log(EvaluateMatrix(2, i));
+      ardakaniSum /= double(numberOfDraws);
+      ardakaniSum *= double(dimension);
+      ardakaniSum += (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      ardakaniSum += digammal(double(numberOfDraws));
+      ardakaniSum -= digammal(double(k));
 
       // Maximum Norm ArdakaniSum
-     double maxArdakaniSum = 0.f;
-     for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-       maxArdakaniSum += log(EvaluateMatrix(3, i));
-     double maxArdakaniEntropy = maxArdakaniSum / double(numberOfDraws);
-     maxArdakaniEntropy *= double(dimension);
-     maxArdakaniEntropy += log(pow(2., this->dimension));
-     maxArdakaniEntropy += digammal(double(numberOfDraws));
-     maxArdakaniEntropy -= digammal(double(k));
+      double maxArdakaniSum = 0.f;
+      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
+        maxArdakaniSum += log(EvaluateMatrix(3, i));
+      double maxArdakaniEntropy = maxArdakaniSum / double(numberOfDraws);
+      maxArdakaniEntropy *= double(dimension);
+      maxArdakaniEntropy += log(pow(2., this->dimension));
+      maxArdakaniEntropy += digammal(double(numberOfDraws));
+      maxArdakaniEntropy -= digammal(double(k));
 
       // ENTROPY according to Hnzido
       double hnizdoSum = 0.;
@@ -831,9 +991,12 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(eucl)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(max)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNN|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
 
-      myfile2 << "\n===============================================================================================================================================================\n";
+      myfile2 << "\n=========================================================================";
+      myfile2 << "==================================================================================";
+      myfile2 << "=====================================================================================================\n";
     }
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.identString() << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->numberOfDraws << "|";
@@ -849,7 +1012,8 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoriaMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevsky << "|\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
     myfile2.close();
   }
 };

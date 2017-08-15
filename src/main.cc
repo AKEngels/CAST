@@ -830,7 +830,6 @@ int main(int argc, char **argv)
 
       entropyobj entropyObject(
         Config::get().entropytrails.numberOfDraws,
-        Config::get().entropytrails.dimension,
         probdens);
 
       calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
