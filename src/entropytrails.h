@@ -689,7 +689,7 @@ public:
         {
           const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
           EvaluateMatrix(0, i) = holdNNdistanceEucl;
-          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, std::vector<unsigned int> {0u}, i, buffer);
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, std::vector<size_t> {0u}, i, buffer);
           EvaluateMatrix(1, i) = holdNNdistanceMax;
           //EvaluateMatrix(2, i) = PDFtemporary(copytemp(0, i));
           //EvaluateMatrix(3, i) = holdNNdistance;

@@ -139,7 +139,7 @@ namespace entropy
   }
 
 
-  float_type maximum_norm_knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
+  float_type maximum_norm_knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t> const& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
     //Will throw if input is wrong
   {

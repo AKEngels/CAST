@@ -41,7 +41,7 @@ namespace entropy
   float_type maximum_norm_knn_distance(
     Matrix_Class const& input, size_t
     const& dimension_in, size_t const& k_in,
-    std::vector<size_t>& row_querypts,
+    std::vector<size_t> const& row_querypts,
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
