@@ -186,7 +186,7 @@ public:
       PDF = [&, this](std::vector<double> const& x)
       {
         if (x.size() != 1)
-          throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
         constexpr double alpha = 1.5;
         constexpr double beta = 9.;
         std::vector<double> xtemp(x);
@@ -205,11 +205,11 @@ public:
     }
     else if (ident_ == 4)
     {
-      this->dimension = 2;
+      this->dimension = 3;
       // Multivariate gaussian
       PDF = [&, this](std::vector<double> const& x)
       {
-        if (x.size() != 2)
+        if (x.size() != 3)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
 
         Matrix_Class input(x.size(), 1u);
@@ -219,26 +219,36 @@ public:
         Matrix_Class mean(x.size(), 1u, 0.);
         Matrix_Class covariance(x.size(), x.size(), 0u);
         covariance(0, 0) = 1.;
-        covariance(1, 0) = 0.56;
-        covariance(1, 1) = 0.75;
-        covariance(0, 1) = 0.56;
+        covariance(1, 0) = 0.7;
+        covariance(2, 1) = 0.9;
+        covariance(0, 1) = 0.7;
+        covariance(1, 1) = 1.5;
+        covariance(1, 2) = 0.9;
+        covariance(2, 2) = 1.5;
+        covariance(0, 2) = 0.56;
+        covariance(2, 0) = 0.56;
 
         Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
-        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, 2.) * covariance.determ());
+        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance.determ());
 
 
         return prefactor * std::exp(value(0u,0u) * -0.5);
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0.,0. });
-      Matrix_Class covariance(2, 2, 0u);
+      maximumOfPDF = PDF(std::vector<double>{ 0.,0.,0. });
+      Matrix_Class covariance(this->dimension, this->dimension, 0u);
       covariance(0, 0) = 1.;
-      covariance(1, 0) = 0.56;
-      covariance(1, 1) = 0.75;
-      covariance(0, 1) = 0.56;
+      covariance(1, 0) = 0.7;
+      covariance(2, 1) = 0.9;
+      covariance(0, 1) = 0.7;
+      covariance(1, 1) = 1.5;
+      covariance(1, 2) = 0.9;
+      covariance(2, 2) = 1.5;
+      covariance(0, 2) = 0.56;
+      covariance(2, 0) = 0.56;
 
       analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension)/2. * std::log(2. * ::constants::pi * ::constants::e);
-      PDFrange = std::make_shared<std::pair<double, double>>(-20, 20.);
-      this->m_identString = "2varGauss";
+      PDFrange = std::make_shared<std::pair<double, double>>(-8, 8.);
+      this->m_identString = "3varGauss";
     }
     else if (ident_ == 5)
     {
@@ -248,34 +258,24 @@ public:
       {
         if (x.size() != 2)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+        const double coeff = 0.9;
 
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        Matrix_Class mean(x.size(), 1u, 0.);
-        Matrix_Class covariance(x.size(), x.size(), 0u);
-        covariance(0, 0) = 1.;
-        covariance(1, 0) = 0.0;
-        covariance(1, 1) = 0.75;
-        covariance(0, 1) = 0.0;
-
-        Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
-        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, 2.) * covariance.determ());
+        const double exp_argument = -0.5 * (1. / (1. - coeff * coeff)) * (x.at(0) * x.at(0) - 2. * coeff * x.at(0)* x.at(1) + x.at(1) * x.at(1));
+        const double prefactor = 1. / ((2 * ::constants::pi) * sqrt(1 -  coeff *  coeff));
 
 
-        return prefactor * std::exp(value(0u, 0u) * -0.5);
+        return prefactor * std::exp(exp_argument);
       };
       maximumOfPDF = PDF(std::vector<double>{ 0., 0. });
+      const double coeff = 0.9;
       Matrix_Class covariance(2, 2, 0u);
       covariance(0, 0) = 1.;
-      covariance(1, 0) = 0.0;
-      covariance(1, 1) = 0.75;
-      covariance(0, 1) = 0.0;
-
+      covariance(1, 0) = coeff;
+      covariance(1, 1) = 1.;
+      covariance(0, 1) = coeff;
       analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
-      PDFrange = std::make_shared<std::pair<double, double>>(-5, 5.);
-      this->m_identString = "2varGauss2";
+      PDFrange = std::make_shared<std::pair<double, double>>(-8, 8.);
+      this->m_identString = "2varGauss";
     }
   };
 
