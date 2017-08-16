@@ -175,7 +175,8 @@ namespace periodicsHelperfunctions
     std::size_t N_mol = coords.molecules().size();
     std::vector<std::size_t> del_indices;                //Vector for the indices of the molecules to delete                 
 
-    std::default_random_engine rn_generator;
+    std::random_device rd;
+    std::default_random_engine rn_generator(rd());
     std::uniform_int_distribution<int> uni_int_distr(0, N_mol - 1);
     std::size_t tmp_rn;
 
