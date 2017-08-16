@@ -720,7 +720,14 @@ namespace pca
     {
       std::cout << "Covariance Matrix of Gaussian " << i << ":\n";
       Matrix_Class current = model.fcovs.slice(i);
-      std::cout << current << "\n";
+      for (unsigned int j = 0u; j < current.rows(); j++)
+      {
+        for (unsigned int k = j; k < current.cols(); k++)
+        {
+          std::cout << j << "," << k << " : " << current(j, k) << "\n";
+        }
+      }
+      std::cout << "\n" << "\n";
     }
     std::cout << "\n";
     for (unsigned int i = 0u; i < means.cols(); i++)

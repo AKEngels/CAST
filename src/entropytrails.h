@@ -277,6 +277,241 @@ public:
       PDFrange = std::make_shared<std::pair<double, double>>(-8, 8.);
       this->m_identString = "2varGauss";
     }
+    else if (ident_ == 6)
+    {
+      // 7 GMM fittet to MD of tridecalanine dim 1,2
+      this->dimension = 2;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() != 2)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        std::vector<double> weight(7u,0.);
+        std::vector<Matrix_Class> mean(7u, Matrix_Class(x.size(), 1u, 0.));
+        std::vector<Matrix_Class> covariance(7u, Matrix_Class(2, 2, 0u));
+
+        weight[0] = 4.59166833e-01;
+        weight[1] = 1.81156684e-01;
+        weight[2] = 4.40929007e-02;
+        weight[3] = 1.11308104e-01;
+        weight[4] = 9.41269069e-02;
+        weight[5] = 8.58282250e-02;
+        weight[6] = 2.43203471e-02;
+
+        mean[0](0, 0) = 8.56364042e-12;  mean[0](1, 0) = 3.34079765e-13;
+        mean[1](0, 0) = -2.96791360e-12; mean[1](1, 0) = -2.69003397e-12;
+        mean[2](0, 0) = 8.47527692e-12;  mean[2](1, 0) = 9.86326412e-12;
+        mean[3](0, 0) = 1.26754874e-11;  mean[3](1, 0) = -4.38271175e-12;
+        mean[4](0, 0) = 1.05388512e-12;  mean[4](1, 0) = 4.78499853e-12;
+        mean[5](0, 0) = 4.78838598e-12;  mean[5](1, 0) = -6.31405122e-12;
+        mean[6](0, 0) = 3.82288827e-12;  mean[6](1, 0) = 1.34958334e-11;
+
+        covariance[0](0, 0) = 1.46117966e-23;
+        covariance[0](1, 0) = -9.62323794e-26;
+        covariance[0](1, 1) = 5.74205745e-24;
+        covariance[0](0, 1) = covariance[0](1, 0);
+        covariance[1](0, 0) = 5.56924448e-24;
+        covariance[1](1, 0) = 8.28644834e-25;
+        covariance[1](1, 1) = 4.53278335e-24;
+        covariance[1](0, 1) = covariance[1](1, 0);
+        covariance[2](0, 0) = 1.20196030e-23;
+        covariance[2](1, 0) = -4.14350002e-24;
+        covariance[2](1, 1) = 8.64760265e-24;
+        covariance[2](0, 1) = covariance[2](1, 0);
+        covariance[3](0, 0) = 4.04029907e-24;
+        covariance[3](1, 0) = 4.25933021e-25;
+        covariance[3](1, 1) = 1.20733036e-23;
+        covariance[3](0, 1) = covariance[3](1, 0);
+        covariance[4](0, 0) = 5.61578290e-24;
+        covariance[4](1, 0) = -5.66515611e-25;
+        covariance[4](1, 1) = 7.56044583e-24;
+        covariance[4](0, 1) = covariance[4](1, 0);
+        covariance[5](0, 0) = 7.97900136e-24;
+        covariance[5](1, 0) = -1.89541174e-24;
+        covariance[5](1, 1) = 7.87990277e-24;
+        covariance[5](0, 1) = covariance[5](1, 0);
+        covariance[6](0, 0) = 4.20157802e-24;
+        covariance[6](1, 0) = -8.10342841e-25;
+        covariance[6](1, 1) = 1.80154978e-24;
+        covariance[6](0, 1) = covariance[6](1, 0);
+
+        double returnValue = 0.;
+        for (unsigned int i = 0u; i < 7; i++)
+        {
+          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
+          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+        }
+
+        return returnValue;
+      };
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
+      PDFrange = std::make_shared<std::pair<double, double>>(-1e-10, 1e-10);
+      this->m_identString = "GMM1";
+    }
+    else if (ident_ == 7)
+    {
+      // 10 GMM fittet to MD of tridecalanine dim 1,2,3
+      this->dimension = 3;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() != 3)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        std::vector<double> weight(10u, 0.);
+        std::vector<Matrix_Class> mean(10u, Matrix_Class(x.size(), 1u, 0.));
+        std::vector<Matrix_Class> covariance(10u, Matrix_Class(3, 3, 0u));
+
+        weight[0] = 0.297859;
+        weight[1] = 0.0322744;
+        weight[2] = 0.147175;
+        weight[3] = 0.0242578;
+        weight[4] = 0.087544;
+        weight[5] = 0.0482769;
+        weight[6] = 0.154248;
+        weight[7] = 0.0822646;
+        weight[8] = 0.105497;
+        weight[9] = 0.0206026;
+
+        mean[0](0, 0) = 1.01991e-11; mean[0](1, 0) = 6.2136e-13 ; mean[0](2, 0)   = -2.22955e-12    ;
+        mean[1](0, 0) = 2.02376e-12; mean[1](1, 0) = 5.60621e-12; mean[1](2, 0) = -4.73088e-12    ;
+        mean[2](0, 0) = 3.67781e-12; mean[2](1, 0) = -1.86976e-12; mean[2](2, 0) = -1.83584e-12   ;
+        mean[3](0, 0) = 3.9285e-12; mean[3](1, 0) = 1.25377e-11; mean[3](2, 0) = -8.63069e-12     ;
+        mean[4](0, 0) = 8.38703e-12; mean[4](1, 0) = -6.51049e-12; mean[4](2, 0) = -6.30375e-12   ;
+        mean[5](0, 0) = 1.0033e-11; mean[5](1, 0) = 8.74454e-12; mean[5](2, 0) = -5.99058e-12     ;
+        mean[6](0, 0) = -3.60727e-12; mean[6](1, 0) = -2.87797e-12; mean[6](2, 0) = -4.07751e-12  ;
+        mean[7](0, 0) = 1.20153e-11; mean[7](1, 0) = -1.8596e-12; mean[7](2, 0) = 4.33388e-14     ;
+        mean[8](0, 0) = 1.37377e-12; mean[8](1, 0) = 3.74631e-12; mean[8](2, 0) = -1.55544e-12    ;
+        mean[9](0, 0) = 1.19832e-11; mean[9](1, 0) = -9.49643e-12; mean[9](2, 0) = -3.73347e-13   ;
+
+        covariance[0](0, 0) = 9.03379e-24 ;
+        covariance[0](1, 0) = -1.59016e-24;
+        covariance[0](2, 0) = -3.71382e-24;
+        covariance[0](1, 1) = 5.02031e-24 ;
+        covariance[0](2, 1) = -5.47595e-25;
+        covariance[0](2, 2) = 1.39e-23    ;
+        covariance[0](0, 1) = covariance[0](1, 0);
+        covariance[0](0, 2) = covariance[0](2, 0);
+        covariance[0](1, 2) = covariance[0](2, 1);
+
+        covariance[1](0, 0) = 4.72767e-24  ;
+        covariance[1](1, 0) = 3.64308e-25;
+        covariance[1](2, 0) = 4.1357e-25 ;
+        covariance[1](1, 1) = 2.70482e-23;
+        covariance[1](2, 1) = 6.36459e-24;
+        covariance[1](2, 2) = 7.4303e-24 ;
+        covariance[1](0, 1) = covariance[1](1, 0);
+        covariance[1](0, 2) = covariance[1](2, 0);
+        covariance[1](1, 2) = covariance[1](2, 1);
+
+
+        covariance[2](0, 0) = 4.81709e-24  ;
+        covariance[2](1, 0) = 3.40596e-25  ;
+        covariance[2](2, 0) = -8.31425e-25 ;
+        covariance[2](1, 1) = 6.35518e-24  ;
+        covariance[2](2, 1) = 2.17662e-24  ;
+        covariance[2](2, 2) = 1.1871e-23   ;
+        covariance[2](0, 1) = covariance[2](1, 0);
+        covariance[2](0, 2) = covariance[2](2, 0);
+        covariance[2](1, 2) = covariance[2](2, 1);
+
+        covariance[3](0, 0) = 2.67491e-24;
+        covariance[3](1, 0) = -1.73085e-24;
+        covariance[3](2, 0) = -1.32122e-24;
+        covariance[3](1, 1) = 4.93419e-24;
+        covariance[3](2, 1) = 3.15282e-24;
+        covariance[3](2, 2) = 3.7244e-24;
+        covariance[3](0, 1) = covariance[3](1, 0);
+        covariance[3](0, 2) = covariance[3](2, 0);
+        covariance[3](1, 2) = covariance[3](2, 1);
+
+        covariance[4](0, 0) = 1.68382e-23;
+        covariance[4](1, 0) = 4.61495e-24;
+        covariance[4](2, 0) = -5.11702e-24;
+        covariance[4](1, 1) = 6.54348e-24;
+        covariance[4](2, 1) = -3.82479e-24;
+        covariance[4](2, 2) = 1.5579e-23;
+        covariance[4](0, 1) = covariance[4](1, 0);
+        covariance[4](0, 2) = covariance[4](2, 0);
+        covariance[4](1, 2) = covariance[4](2, 1);
+
+        covariance[5](0, 0) = 9.38482e-24;
+        covariance[5](1, 0) = -7.38849e-24;
+        covariance[5](2, 0) = -3.31397e-24;
+        covariance[5](1, 1) = 1.51979e-23;
+        covariance[5](2, 1) = 2.51153e-24;
+        covariance[5](2, 2) = 4.87609e-24;
+        covariance[5](0, 1) = covariance[5](1, 0);
+        covariance[5](0, 2) = covariance[5](2, 0);
+        covariance[5](1, 2) = covariance[5](2, 1);
+
+        covariance[6](0, 0) = 3.33945e-24;
+        covariance[6](1, 0) = 1.59445e-25;
+        covariance[6](2, 0) = -8.61476e-25;
+        covariance[6](1, 1) = 3.94627e-24;
+        covariance[6](2, 1) = 4.21489e-24;
+        covariance[6](2, 2) = 9.25474e-24;
+        covariance[6](0, 1) = covariance[6](1, 0);
+        covariance[6](0, 2) = covariance[6](2, 0);
+        covariance[6](1, 2) = covariance[6](2, 1);
+
+        covariance[7](0, 0) = 3.83925e-24;
+        covariance[7](1, 0) = -2.37765e-24;
+        covariance[7](2, 0) = -1.75374e-24;
+        covariance[7](1, 1) = 5.72715e-24;
+        covariance[7](2, 1) = 3.57909e-24;
+        covariance[7](2, 2) = 4.99204e-24;
+        covariance[7](0, 1) = covariance[7](1, 0);
+        covariance[7](0, 2) = covariance[7](2, 0);
+        covariance[7](1, 2) = covariance[7](2, 1);
+
+        covariance[8](0, 0) = 6.9919e-24;
+        covariance[8](1, 0) = -1.45301e-24;
+        covariance[8](2, 0) = -3.2444e-24;
+        covariance[8](1, 1) = 7.4847e-24;
+        covariance[8](2, 1) = 2.61163e-24;
+        covariance[8](2, 2) = 9.62358e-24;
+        covariance[8](0, 1) = covariance[8](1, 0);
+        covariance[8](0, 2) = covariance[8](2, 0);
+        covariance[8](1, 2) = covariance[8](2, 1);
+
+        covariance[9](0, 0) = 5.27517e-24;
+        covariance[9](1, 0) = 4.34838e-25;
+        covariance[9](2, 0) = -2.87762e-24;
+        covariance[9](1, 1) = 2.49859e-24;
+        covariance[9](2, 1) = 2.80166e-24;
+        covariance[9](2, 2) = 9.32401e-24;
+        covariance[9](0, 1) = covariance[9](1, 0);
+        covariance[9](0, 2) = covariance[9](2, 0);
+        covariance[9](1, 2) = covariance[9](2, 1);
+
+
+        double returnValue = 0.;
+        for (unsigned int i = 0u; i < 10; i++)
+        {
+          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
+          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+        }
+
+        return returnValue;
+      };
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
+      PDFrange = std::make_shared<std::pair<double, double>>(-4e-11, 4e-11);
+      this->m_identString = "GMM1";
+    }
   };
 
 
@@ -483,7 +718,7 @@ public:
   }
 };
 
-int cubaturefunctionEntropy(unsigned ndim, const double *x, void *fdata, unsigned fdim, double *fval)
+int cubaturefunctionEntropy(unsigned ndim, unsigned npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
   ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
 
@@ -492,23 +727,30 @@ int cubaturefunctionEntropy(unsigned ndim, const double *x, void *fdata, unsigne
   if (fdim != 1)
     throw;
 
-  std::vector<double> input;
-  for (unsigned int i = 0u; i < ndim; i++)
-    input.push_back(x[i]);
-  double probdens_result = probdens.function()(input);
-  if (probdens_result != 0.)
-  {
-    double returner = probdens.function()(input) * std::log(probdens.function()(input));
-    fval[0] = returner;
-  }
-  else
-  {
-    fval[0] = 0.;
+
+
+
+
+  for (int j = 0; j < npts; ++j) 
+  { // evaluate the integrand for npts points
+    std::vector<double> input;
+    for (unsigned int i = 0u; i < ndim; i++)
+      input.push_back(x[j*ndim + i]);
+    double probdens_result = probdens.function()(input);
+    if (probdens_result != 0.)
+    {
+      double returner = probdens.function()(input) * std::log(probdens.function()(input));
+      fval[j] = returner;
+    }
+    else
+    {
+      fval[j] = 0.;
+    }
   }
   return 0;
 }
 
-int cubaturefunctionProbDens(unsigned ndim, const double *x, void *fdata, unsigned fdim, double *fval)
+int cubaturefunctionProbDens(unsigned ndim, unsigned npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
   ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
 
@@ -517,11 +759,16 @@ int cubaturefunctionProbDens(unsigned ndim, const double *x, void *fdata, unsign
   if (fdim != 1)
     throw;
 
-  std::vector<double> input;
-  for (unsigned int i = 0u; i < ndim; i++)
-    input.push_back(x[i]);
-  double returner = probdens.function()(input);
-  fval[0] = returner;
+  for (int j = 0; j < npts; ++j)
+  { // evaluate the integrand for npts points
+    std::vector<double> input;
+    for (unsigned int i = 0u; i < ndim; i++)
+      input.push_back(x[j*ndim + i]);
+
+    double probdens_result = probdens.function()(input);
+    double returner = probdens.function()(input);
+    fval[j] = returner;
+  }
   return 0;
 }
 
@@ -767,19 +1014,22 @@ public:
       val[i] = 0.;
       err[i] = 0.;
     }
+    
+    double range = std::abs(this->probdens.meaningfulRange().first - this->probdens.meaningfulRange().second);
 
-    int returncode = hcubature(1, cubaturefunctionProbDens, &(this->probdens),
+    int returncode = hcubature_v(1, cubaturefunctionProbDens, &(this->probdens),
       this->dimension, xmin, xmax,
-      0u, 0, 1e-5, ERROR_INDIVIDUAL, val, err);
+      0u, 0, 1e-3 * range, ERROR_INDIVIDUAL, val, err);
 
     std::cout << "Debug Output: Integral of ProbDens is: " << val[0] << "." << std::endl;
     
-    returncode = hcubature(1, cubaturefunctionEntropy, &(this->probdens),
+    returncode = hcubature_v(1, cubaturefunctionEntropy, &(this->probdens),
       this->dimension, xmin, xmax,
-      0u, 0, 1e-6, ERROR_INDIVIDUAL, val, err);
+      0u, 0, 1e-3 *  range, ERROR_INDIVIDUAL, val, err);
 
     const double value = val[0];
 
+    std::cout << "Computed integral = " << value << " with error: " << err << std::endl;
 
 
     delete[] xmin, xmax, err, val;
