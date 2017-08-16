@@ -12,8 +12,6 @@ optional_files/project/*
 optional_files/project/Makefile
 optional_files/project/CAST.make
 
-!optional_files/project/*.make
-
 
 /src/documentation/html
 /src/documentation/latex
