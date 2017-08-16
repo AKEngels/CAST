@@ -135,7 +135,7 @@ DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
 # verbosity (only for DFTBaby)
 DFTBverbose             1
 
-# distance cutoff (orbitals whose centers are further away than this cutoff do not interact (in bohr)
+# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
 DFTBcutoff            30
 
 # switch on long range correction <0/1>

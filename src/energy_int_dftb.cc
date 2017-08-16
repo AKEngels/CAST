@@ -18,31 +18,12 @@ std::string energy::interfaces::dftb::get_python_modulepath(std::string modulena
     return content.substr(0,content.size()-14-modulename.size());  //give back path without filename __init__.pyc and modulename
 }
 
-energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp),
-  e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0), id(Config::get().general.outputFilename), failcounter(0u)
+void energy::interfaces::dftb::create_dftbaby_configfile()
 {
-    //find paths to numpy and scipy
-    std::string numpath = get_python_modulepath("numpy");
-    std::string scipath = get_python_modulepath("scipy");
-
-    //create pythonpath
-    std::string pythonpaths_str = Py_GetPath();
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
-    add_path = "import sys\n";
-    for (auto p : pythonpaths)
-    {
-      add_path += "sys.path.append('"+p+"')\n";
-    }
-    add_path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
-    add_path += "sys.path.append('"+numpath+"')\n";
-    add_path += "sys.path.append('"+scipath+"')\n";
-
-    //create configuration file dftbaby.cfg
     std::ofstream file("dftbaby.cfg");
     file << "[DFTBaby]\n\n";
-    file << "gradient_file = "+Config::get().energy.dftb.gradfile+"\n\n";
-    file << "gradient_state = "+std::to_string(Config::get().energy.dftb.gradstate)+"\n\n";
+    file << "gradient_file = "+Config::get().energy.dftb.gradfile+"\n\n"; // has to be set in any case cause otherwise gradients are not calculated
+    file << "gradient_state = "+std::to_string(Config::get().energy.dftb.gradstate)+"\n\n";  // set because standard not ground state
     file << "verbose = "+std::to_string(Config::get().energy.dftb.verbose)+"\n\n";
     if (Config::get().energy.dftb.longrange == false)
     {    //in dftbaby long range correction is standard
@@ -65,9 +46,35 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
     file.close();
 }
 
+std::string energy::interfaces::dftb::create_pythonpath(std::string numpath, std::string scipath)
+{
+    std::string pythonpaths_str = Py_GetPath();
+    std::string path;
+    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+    path = "import sys\n";
+    for (auto p : pythonpaths)
+    {
+      path += "sys.path.append('"+p+"')\n";
+    }
+    path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
+    path += "sys.path.append('"+numpath+"')\n";
+    path += "sys.path.append('"+scipath+"')\n";
+    return path;
+}
+
+energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
+  energy::interface_base(cp),
+  e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0)
+{
+    std::string numpath = get_python_modulepath("numpy");
+    std::string scipath = get_python_modulepath("scipy");
+    add_path = create_pythonpath(numpath, scipath);
+    create_dftbaby_configfile();
+}
+
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
   interface_base(cobj),
-  e_bs(rhs.e_bs), e_coul(rhs.e_coul), e_rep(rhs.e_rep), e_tot(rhs.e_tot), id(rhs.id), failcounter(rhs.failcounter)
+  e_bs(rhs.e_bs), e_coul(rhs.e_coul), e_rep(rhs.e_rep), e_tot(rhs.e_tot)
 {
   interface_base::operator=(rhs);
 }
@@ -92,27 +99,12 @@ void energy::interfaces::dftb::sysCallInterface::swap(interface_base &rhs)
 void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
 {
   interface_base::swap(rhs);
-  std::swap(failcounter, rhs.failcounter);
 }
 
 energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 {
 
 }
-
-
-
-
-
-namespace
-{
-  int dftb_system_call(std::string const & command_line)
-  {
-
-  }
-}
-
-
 
 /*
 Energy class functions that need to be overloaded

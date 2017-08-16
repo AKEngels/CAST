@@ -42,6 +42,20 @@ namespace energy
 			@param modulename: name of the module
 			*/
 			std::string get_python_modulepath(std::string modulename);
+            
+			/*
+			function that creates a string that can be run as a python programme
+			this programme sets the correct pythonpath
+			@param numpath: path to module numpy
+			@param scipath: path to param scipy
+			*/
+			std::string create_pythonpath(std::string numpath, std::string scipath);
+            
+			/*
+			function that creates a configfile for dftbaby (dftbaby.cfg)
+			out of configuration options in CAST inputfile
+			*/
+			void create_dftbaby_configfile();
 
 			class sysCallInterface
 				: public energy::interface_base
@@ -49,8 +63,9 @@ namespace energy
 
 			public:
                 /**constructor
-				when called first, sets all partial energies to 0
-				and fills the string add_path for adding stuff to pythonpath*/
+				when called first, sets all partial energies to 0,
+				fills the string add_path for adding stuff to pythonpath
+				and creates configuration file for dftbaby*/
 				sysCallInterface(coords::Coordinates*);
 				~sysCallInterface(void);
 
@@ -75,10 +90,15 @@ namespace energy
 				//???
 				bool grad_var;
 				// Output functions
+				/**prints total energy*/
 				void print_E(std::ostream&) const;
+				/**prints 'headline' for energies*/
 				void print_E_head(std::ostream&, bool const endline = true) const;
+				/**prints partial energies*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
+				/**prints gradients*/
 				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
+				/**does nothing*/
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
@@ -99,14 +119,10 @@ namespace energy
 				double e_rep;
 				/**total energy*/
 				double e_tot;
-				
-				std::string id;
+
 				/**string that contains pythonprogramme to 
 				add all necessary paths to pythonpath*/
 				std::string add_path;
-
-				// FAILCOUNTER
-				size_t failcounter;
 
 				/*
 				Helper functions
