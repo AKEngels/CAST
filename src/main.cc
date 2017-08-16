@@ -260,6 +260,53 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
+
+      //Generating layer with random defects
+      coords::Coordinates newCoords(coords);
+      std::size_t already_fixed_atoms = 0;
+
+      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+      //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+      coords::Coordinates inp_add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));//Change variables so they are specific to the task
+      //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+      coords::Coordinates add_coords;
+
+      for (auto & pes : *ci)
+      {
+        newCoords.set_xyz(pes.structure.cartesian);
+        newCoords = periodicsHelperfunctions::delete_random_molecules(coords, 8);
+        pes = newCoords.pes();
+      }
+      newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+      coords = newCoords;
+
+      // Molecular Dynamics Simulation
+      if (Config::get().md.pre_optimize) coords.o();
+      md::simulation mdObject(coords);
+      mdObject.run();
+
+      for (std::size_t i = 0; i < 1; i++)//Change variables so they are specific to the task
+      {
+        //fix all atoms already moved by md
+        for (std::size_t i = already_fixed_atoms; i < coords.atoms.size(); i++)
+        {
+          coords.set_fix(i, true);
+        }
+        already_fixed_atoms = coords.atoms.size() - 1; //making sure only prevoisly unfixed atoms get fixed
+
+        add_coords = inp_add_coords;
+        add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 8);
+
+        //§§§§§§§§§§§§§§§§§§
+        coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
+        //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+
+        // Molecular Dynamics Simulation
+        if (Config::get().md.pre_optimize) coords.o();
+        md::simulation mdObject(coords);
+        mdObject.run();
+      }
+
       break;
     }
     case config::tasks::SP:

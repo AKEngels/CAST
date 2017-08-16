@@ -179,7 +179,7 @@ namespace periodicsHelperfunctions
     std::uniform_int_distribution<int> uni_int_distr(0, N_mol - 1);
     std::size_t tmp_rn;
 
-    while (del_indices.size() < del_amount)
+    while (del_indices.size() < del_amount) //Loop to get secified amount of different random numbers
     {
       tmp_rn = uni_int_distr(rn_generator);
       if (del_indices.empty())                             //Check if vector for indicesis empty
@@ -196,9 +196,6 @@ namespace periodicsHelperfunctions
     }//end while(del_indices)
 
     new_coords = periodicsHelperfunctions::delete_molecules(coords, del_indices);
-
-    std::ofstream del_indices_test("del_indices.txt");
-    for (std::size_t i = 0; i < del_indices.size(); i++) { del_indices_test << del_indices[i] << '\n'; }
 
     return new_coords;
   }
