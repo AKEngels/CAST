@@ -402,11 +402,11 @@ Now you should be able to run DFTBaby. Test it by opening a terminal in the fold
 
 \paragraph{CAST setup for DFTBaby}\mbox{}\\
 
-To use DFTBaby out of CAST a few modifications are needed. So copy the files ``DFTB2\_cast.py'' and ``utils\_cast.py'' from the folder ``cast\textbackslash optional\_files\textbackslash DFTBaby-files'' to ``DFTBaby-\#\#\#/DFTB. Now CAST is ready for DFTB calculations.
+To use DFTBaby out of CAST a few modifications are needed. So copy the files ``DFTB2\_cast.py'', ``utils\_cast.py'' and ``LR\_TDDFTB\_cast.py'' from the folder ``cast\textbackslash optional\_files\textbackslash DFTBaby-files'' to ``DFTBaby-\#\#\#/DFTB and the file ``RepulsivePotential\_cast.py'' to ``DFTBaby-\#\#\#/DFTB/RepulsivePotential''. Now CAST is ready for DFTB calculations.
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a normal SP calculation with a tinkerstructure. Options for the DFTB calculation can be given in a file ``dftbaby.cfg''. The first line of this file must be [DFTBaby]. Which options are available see here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/options.md} The output of DFTBaby is written into the file ``scf\_output\_dftb.txt''.
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``scf\_output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
