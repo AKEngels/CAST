@@ -1786,9 +1786,13 @@ void config::parse_option(std::string const option, std::string const value_stri
   */
   else if (option.substr(0u, 4u) == "LayD")
   {
-    if (option.substr(2u, 8u) == "layers")
+    if (option.substr(4u, 6u) == "layers")
     {
       cv >> Config::set().layd.amount;
+    }
+    else if (option.substr(4u, 10u) == "del_number")
+    {
+      cv >> Config::set().layd.del_amount;
     }
     else if (option.substr(4u, 4u) == "axis")
     {

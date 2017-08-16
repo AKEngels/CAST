@@ -1164,7 +1164,7 @@ namespace config
 
   struct layd
   {
-    std::size_t amount;
+    std::size_t amount, del_amount;
     char        laydaxis;
     double      layddist;
   };
