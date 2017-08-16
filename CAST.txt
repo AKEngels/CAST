@@ -936,6 +936,10 @@ CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransition
 
 LayDlayers                     5
 
+#Number of molecules deleted per layer
+
+LayDdel_number                 1
+
 #From which axis should the layers be added
 
 LayDaxis                       y 
