@@ -702,8 +702,9 @@ class LR_TDDFTB:
             symstr = self.dftb2.symmetry_group.name().rjust(3)
         else:
             symstr = "   "
-        txt = " ground state energy: %s %s\n\n" % (string.rjust("%.7f hartree" % self.en0,15), \
-                               string.rjust("%.7f eV" % (self.en0*hartree_to_eV), 15))
+        print self.en0
+        txt = " ground state energy: %s %s\n\n" % (string.rjust("%.7f hartree" % self.en0[-1],15), \
+                               string.rjust("%.7f eV" % (self.en0[-1]*hartree_to_eV), 15))
         txt += "           Excited States\n"
         txt += "           ==============\n"
         txt += "     Spn %s     exc. en. /hartree      exc. en. / eV   exc. en. / nm    osc. strength             dominant contrib.               en_KS / eV      transition dipole [TDx TDy TDz]   /\\ diagn.\n" % symstr
@@ -729,17 +730,18 @@ class LR_TDDFTB:
                 if count == nr_dominant_ex-1:
                     break
             txt += "%s %s %s: %s %s %s  %s %s %s %s %s\n" % (string.rjust(str(I+1),5), \
-                               self.multiplicity, \
-                               string.rjust(self.Irreps[I], 3), \
-                               string.rjust("%.7f hartree" % self.Omega[I],20), \
-                               string.rjust("%.7f eV" % (self.Omega[I]*hartree_to_eV), 17), \
-                               string.rjust("%.7f nm" % (hartree_to_nm / self.Omega[I]), 17), \
-                               string.rjust("%.7f" % self.oscillator_strength[I], 12), \
-                               string.rjust("%s" % domex_str, 45), \
-                               string.rjust("%s" % domKS_str, 8), \
-                               string.rjust("[%+2.7f %+2.7f %+2.7f]" % (self.tdipX[I], self.tdipY[I], self.tdipZ[I]), 40), \
-                               string.rjust("%.4f" % self.Lambda2[I], 7))
+                                self.multiplicity, \
+                                string.rjust(self.Irreps[I], 3), \
+                                string.rjust("%.7f hartree" % self.Omega[I],20), \
+                                string.rjust("%.7f eV" % (self.Omega[I]*hartree_to_eV), 17), \
+                                string.rjust("%.7f nm" % (hartree_to_nm / self.Omega[I]), 17), \
+                                string.rjust("%.7f" % self.oscillator_strength[I], 12), \
+                                string.rjust("%s" % domex_str, 45), \
+                                string.rjust("%s" % domKS_str, 8), \
+                                string.rjust("[%+2.7f %+2.7f %+2.7f]" % (self.tdipX[I], self.tdipY[I], self.tdipZ[I]), 40), \
+                                string.rjust("%.4f" % self.Lambda2[I], 7))
         print txt
+
     def saveAbsorptionSpectrum(self, spectrum_file="absorption_spectrum.dat"):
         """
         Write a table with absorption spectrum to a file.

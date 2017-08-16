@@ -37,6 +37,32 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
     add_path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
     add_path += "sys.path.append('"+numpath+"')\n";
     add_path += "sys.path.append('"+scipath+"')\n";
+
+    //create configuration file dftbaby.cfg
+    std::ofstream file("dftbaby.cfg");
+    file << "[DFTBaby]\n\n";
+    file << "gradient_file = "+Config::get().energy.dftb.gradfile+"\n\n";
+    file << "gradient_state = "+std::to_string(Config::get().energy.dftb.gradstate)+"\n\n";
+    file << "verbose = "+std::to_string(Config::get().energy.dftb.verbose)+"\n\n";
+    if (Config::get().energy.dftb.longrange == false)
+    {    //in dftbaby long range correction is standard
+      file << "long_range_correction = 0\n\n";
+    }
+    if (Config::get().energy.dftb.cutoff != 0)
+        file << "distance_cutoff = "+std::to_string(Config::get().energy.dftb.cutoff)+"\n\n";
+    if (Config::get().energy.dftb.lr_dist != 0)
+        file << "long_range_radius = "+std::to_string(Config::get().energy.dftb.lr_dist)+"\n\n";
+    if (Config::get().energy.dftb.maxiter != 0)
+        file << "maxiter = "+std::to_string(Config::get().energy.dftb.maxiter)+"\n\n";
+    if (Config::get().energy.dftb.conv_threshold != "0")
+        file << "scf_conv = "+Config::get().energy.dftb.conv_threshold+"\n\n";
+    if (Config::get().energy.dftb.states != 0)
+        file << "nstates = "+std::to_string(Config::get().energy.dftb.states)+"\n\n";
+    if (Config::get().energy.dftb.diag_conv != "0")
+        file << "diag_conv = "+Config::get().energy.dftb.diag_conv+"\n\n";
+    if (Config::get().energy.dftb.diag_maxiter != 0)
+        file << "diag_maxiter = "+std::to_string(Config::get().energy.dftb.diag_maxiter)+"\n\n";
+    file.close();
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -98,8 +124,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
   integrity = true;
   grad_var = false;
 
-  std::cout<<"Calculate Energy\n";
-
     //write inputstructure
     std::ofstream file("tmp_struc.xyz");
     file << coords::output::formats::xyz_dftb(*this->coords);
@@ -154,7 +178,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = true;
   grad_var = true;
 
-  // create inputfile
+  // write inputstructure
   std::ofstream file("tmp_struc.xyz");
   file << coords::output::formats::xyz_dftb(*this->coords);
   file.close();
@@ -173,7 +197,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   if(modul) 
     { 
       funk = PyObject_GetAttrString(modul, "main"); //create function
-      prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby_grad.cfg"); //give parameters
+      prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
       result_str = PyString_AsString(ret); //read function return (has to be a string)
@@ -202,20 +226,21 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     //read gradients
     std::string line;
     coords::Representation_3D g_tmp;
-    std::ifstream infile2("grad.xyz");
-    std::getline(infile2, line);  //discard fist two lines
-    std::getline(infile2, line);
+    std::ifstream infile(Config::get().energy.dftb.gradfile);
+    std::getline(infile, line);  //discard fist two lines
+    std::getline(infile, line);
     std::string element;
     double x,y,z;
-    while (infile2 >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
+    while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
     {
         coords::Cartesian_Point g(x*627.503,y*627.503,z*627.503);
         g_tmp.push_back(g);
     }
-    infile2.close();
-    std::remove("grad.xyz"); // delete file
+    infile.close();
+    const char *gradfile = Config::get().energy.dftb.gradfile.c_str();
+    std::remove(gradfile); // delete file
     std::remove("tmp_struc.xyz"); // delete file
-    coords->swap_g_xyz(g_tmp);
+    coords->swap_g_xyz(g_tmp); //give gradients to coordobject
 
   return e_tot;
 }
@@ -232,7 +257,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  throw std::runtime_error("DFTB doesn't provide any optimization routines.");
+  throw std::runtime_error("DFTB doesn't at the moment provide any optimization routines.");
 }
 
 // Output functions

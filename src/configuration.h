@@ -543,6 +543,20 @@ namespace config
     struct dftb_conf
     {
       std::string path;
+      std::string gradfile;
+      float cutoff;
+      bool longrange;
+      float lr_dist;
+      int maxiter;
+      std::string conv_threshold;
+      int states;
+      int diag_maxiter;
+      std::string diag_conv;
+      int gradstate;
+      int verbose;
+      dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
+      states(0), diag_maxiter(0), diag_conv("0") {}
     } dftb;
 
     struct gaussian_conf

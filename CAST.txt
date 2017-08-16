@@ -16,7 +16,7 @@ verbosity              4
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
 
-cores                  8
+cores                  4
 
 
 ####################################
@@ -29,7 +29,7 @@ cores                  8
 
 # Input file name
 
-name                   ubq.arc
+name                   water1.arc
 
 # Output file name
 
@@ -37,14 +37,14 @@ outname                SP
 
 # Input file type
 
-inputtype               TINKER
- 
+inputtype              TINKER
+
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
 #amber_mdvel
 #amber_inpcrd
-amber_restrt           min.rst
+#amber_restrt           min2.rst
 #amber_trajectory_at_constant_pressure
 
 
@@ -55,36 +55,33 @@ amber_restrt           min.rst
 #                                  #
 ####################################
 
-# SP                      Single point eneryg calculation
-# GRAD                    Single point energy calculation
-# LOCOPT                  Local optimization using Lib-LBFGS
-# MD                      Molecular dynamics simulation
-# GOSOL                   Combined Solvation + Global Optimization
-# MC                      Monte Carlo
-# XB_CENTER               Center of mass, Cutting out dimer pairs
-# TS                      Tabu Search (CAST: GOTS)
-# RMSD                    Root mean square deviation
-# DIMER                   Dimer method using torsional space
-# NEB                     Nudged elastic band calculation
-# INTERNAL                Create Z-Matrix
+# SP                   Single point eneryg calculation
+# GRAD                 Single point energy calculation
+# LOCOPT               Local optimization using Lib-LBFGS
+# MD                   Molecular dynamics simulation
+# GOSOL                Combined Solvation + Global Optimization
+# MC                   Monte Carlo
+# CENTER               Center of mass/geometry
+# TS                   Tabu Search (CAST: GOTS)
+# RMSD                 Root mean square deviation
+# DIMER                Dimer method using torsional space
+# NEB                  Nudged elastic band calculation
+# INTERNAL             Create Z-Matrix
 # STARTOPT
-# UMBRELLA                Umbrella Sampling
-# PROFILE                 Repeated Gradient Calculation of first input structure
-# FEP                     Alchemical transformations using FEP
-# ALIGN                   Trajectory Alignment (Kabsch algorithm)
-# PCAgen                  Principal Component Analysis
+# UMBRELLA             Umbrella Sampling
+# PROFILE              Repeated Gradient Calculation of first input structure
+# FEP                  Alchemical transformations using FEP
+# ALIGN                Trajectory Alignment (Kabsch algorithm)
+# PCAgen               Principal Component Analysis
 # PCAproc
-# ENTROPY                 Configurational and Conformational Entropy Calculations
-# GRID                    Grid Search
-# PATHOPT                 Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# ENTROPY              Configurational and Conformational Entropy Calculations
+# GRID                 Grid Search
+# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
-# XB_INTERFACE_CREATION   Combinig two structures
-# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 
-task                      EXCITON_BREAKUP
+task                  GRAD
 
 
 ####################################
@@ -100,26 +97,19 @@ task                      EXCITON_BREAKUP
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
-# Gaussian             Gaussian09 syscall Interface
 
 interface              DFTB
-
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-
 paramfile              oplsaa_mod.prm
 
-# path to DFTBaby
-DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
-
-paramfile              oplsaa.prm
-
-
-### MOPAC OPTIONS ###
+# reading amber charges from separate file (called charges.txt) <0/1>,
+# necessary for reproducing AMBER forefields accuratly
+#chargefile             1
 
 # Keywords for MOPAC Call
 MOPACkey               PM7
@@ -130,53 +120,50 @@ MOPACdelete            1
 #MOPAC executable path
 MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
-#MOPACversion          MOPAC2012
+MOPACversion          MOPAC2012
 
-
-### GAUSSIAN OPTIONS ###
-
-# Link 0 Commands  
-
-GAUSSIANlink NProcShared=8 Mem=2GB 
-
-# Methods for Gaussian Call
-
-GAUSSIANmethod
-
-#Basisset for Gaussian Call
-
-GAUSSIANbasisset         
-
-# Charge of the Molecule
-
-GAUSSIANcharge          0
-
-# Multiplicity
-
-GAUSSIANmultiplicity    1
-
-#Gaussian optimization with steepest descend (Newton-Raphson-Algorithm)
-
-GAUSSIANsteep          1
-
-#Gaussian executeable path
-
-GAUSSIANpath            g09
-
-#Delete temporary Gaussian files?
-
-GAUSSIANdelete          1
-
-####################################
-#                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
 #switchdist             10.0
+
+################# DFTB options ################################################
+
+# path to DFTBaby
+DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
+
+# verbosity (only for DFTBaby)
+DFTBverbose             1
+
+# distance cutoff (orbitals whose centers are further away than this cutoff do not interact (in bohr)
+DFTBcutoff            30
+
+# switch on long range correction <0/1>
+DFTBlr_corr             0
+
+# distance (in bohr) where the long range correction is switched on
+DFTBlr_dist            3.03     
+
+# maximum number of iterations for SCF-calculation
+DFTBmaxiter            1000
+
+# convergence threshold for relative change in SCF-calculation
+DFTBconv               1e-10
+
+# name of the DFTBaby gradient file 
+DFTBgradfile            grad.xyz
+
+# state for which the DFTB gradients should be calculated (ground state = 0)
+DFTBgradstate          0
+
+# limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
+DFTBstates            1
+
+# maximum number of iterations for TD-DFTB matrix diagonalisation
+DFTBdiag_maxiter        50
+
+# convergence threshold for TD-DFTB matrix diagonalisation
+DFTBdiag_conv           1e-05
 
 
 ####################################
@@ -349,6 +336,21 @@ NEB-PATHOPT-INT_PATH 0
 #step size of interpolated images via spline interpolation approach
 NEB-PATHOPT-INT_IT 0.5
 
+#choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
+NEB-PATHOPT-MAXFLUX 1
+
+#determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
+NEB-PATHOPT-MF_PATHOPT 1
+
+#using image dependent pair potential (IDPP) for NEB pathway generation (0/1: no/yes)
+NEB-PATHOPT-NEB-IDPP 1
+
+#usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+
+NEB-PATHOPT-NEB-COMPLETE 1
+
+#complete pathways or points with interconnection via NEB (0/1: no/yes)
+NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
 
 
 ####################################
@@ -592,7 +594,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                10
  
 # Integrator
 #
@@ -607,7 +609,7 @@ MDveloscale            1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 
@@ -615,7 +617,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    1
+MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
@@ -639,11 +641,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0  0
-MDheat                 10000  200
-MDheat                 20000  250
-MDheat                 35000  280
-MDheat                 45000  300
+
 
 # Pressure control
 
@@ -800,137 +798,6 @@ USsteps                60
 
 USsnap                 5
 
-
-
-####################################
-#                                  #
-#        XB_EXCITON_BREAKUP        #
-#                                  #
-####################################
-
-#Center of masses of all semiconductor molecules
-
-EXmasscenters           CenterofMasses.out
-
-#Numbers of monomers
-
-EXnumbern               36
-
-EXnumberp               80
-
-#Orientation of the interface
-
-EXplaneinterf            z
-
-#transition rates for all possible dimers
-
-EXnscpairrates              nSC_homodimer.txt
-
-EXpscpairexrates            homodimer_exciton.txt
-
-EXpscpairchrates            homodimer_ladung.txt
-
-EXpnscpairrates             heterodimer.txt
-
-EXReorgE_exc                0.561
-
-EXReorgE_ch                 0.194
-
-EXReorgE_nSC                0.178
-
-EXReorgE_ct                 0.156
-
-EXReorgE_rek                0.184
-
-EXct_triebkraft             1.550
-
-EXrek_triebkraft           -4.913
-
-EXoscillatorstrength        0.0852
-
-EXwellenzahl                28514.9
-
-
-
-####################################
-#                                  #
-#      XB_Interface Creation       #           
-#                                  #
-####################################
-
-#Creation of a new Structure from the usual input structure and an additional one
-
-#Additional input file name
-
-ICname 						but_min.xyz
-
-#Additional input file type
-
-ICinputtype					TINKER
-
-#From which axis should tha additional atoms added
-
-ICaxis						x
-
-#How far apart should they be
-
-ICdistance					5.0
-
-
-####################################
-#                                  #
-#             XB_CENTER            #
-#                                  #
-####################################
-
-CENTERdimer                     1
-
-CENTERdistance                  15.0
-
-
-####################################
-#                                  #
-#           XB_Couplings           #
-#                                  #
-####################################
-
-#Number of p-type semiconductor monomers
-
-CouplingspSCnumber              80
-
-#Number of n-type semiconductor monomers         
-
-CouplingsnSCnumber              36
-
-#List of states relevant for ct-processes (no commata)
-
-CouplingsCTcharastates          3 4 7
-
-###p-type homodimer options
-
-CouplingspSCdimMultiplicity          1
-
-CouplingspSCdimCharge                0
-
-CouplingspSCdimElCalcmethod          INDO
-
-CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
-
-###n-type homodimer options
-
-CouplingsnSCdimMultiplicity          1
-
-CouplingsnSCdimCharge                0
-
-CouplingsnSCdimholCalcmethod         INDO
-
-###heterodimer options
-
-CouplingsheterodimMultiplicity       1
-
-CouplingsheterodimCharge             0
-
-CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #

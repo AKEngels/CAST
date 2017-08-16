@@ -150,6 +150,7 @@ int main(int argc, char **argv)
     {   // if DFTB energy interface: initialize python 
         // necessary to do it here because it can't be done more than once
       Py_Initialize();
+      std::remove("scf_output_dftb.txt"); // delete dftbaby output file from former run
     }
 
     // read coordinate input file
