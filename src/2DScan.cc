@@ -240,10 +240,6 @@ void Scan2D::prepare_scan() {
 
 }
 
-void Scan2D::write_energy_entry(double const & e) {
-
-}
-
 void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 	coords::output::formats::tinker output(coords);

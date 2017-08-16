@@ -160,10 +160,12 @@ private:
 	std::unique_ptr<XY_steps> axis;
 
 	inline void write_energy_entry(double const & e) {
-		energies <<
-			parser->x_parser->say_val() << " " <<
-			parser->y_parser->say_val() << " " <<
-			e << "\n";
+
+		energies << std::fixed << std::setprecision(5) <<
+			std::setw(12) << parser->x_parser->say_val() <<
+			std::setw(12) << parser->y_parser->say_val() <<
+			std::setw(12) << e << "\n";
+
 	}
 
 	std::ofstream logfile;
