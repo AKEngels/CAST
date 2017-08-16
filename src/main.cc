@@ -621,6 +621,14 @@ int main(int argc, char **argv)
       // ATTENTION: This function read from Config::PCA
       pcaptr->writeStocksDelta("pca_stocksdelta.dat");
 
+#ifdef CAST_USE_ARMADILLO
+      // Create gaussian mixture from PCA_modes
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 10);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 3);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 5);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 7);
+#endif
+
       // Cleanup
       delete pcaptr;
       std::cout << "Everything is done. Have a nice day." << std::endl;

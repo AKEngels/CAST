@@ -34,11 +34,17 @@ namespace pca
 		void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 		void generatePCAEigenvectorsFromCoordinates();
 		void generatePCAModesFromPCAEigenvectorsAndCoordinates();
+
+#ifdef CAST_USE_ARMADILLO
+    void createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians);
+#endif
+
 	protected:
 		Matrix_Class modes;
 		Matrix_Class eigenvectors;
 		Matrix_Class eigenvalues;
 		Matrix_Class coordinatesMatrix;
+    Matrix_Class gaussianMixtureModel;
 	};
 
   class ProcessedPrincipalComponentRepresentation

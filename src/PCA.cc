@@ -683,6 +683,57 @@ namespace pca
     this->coordinatesMatrix = Matrix_Class (eigenvectors * modes);
   }
 
+#ifdef CAST_USE_ARMADILLO
+  void PrincipalComponentRepresentation::createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians)
+  {
+    using namespace arma;
+    Matrix_Class submodes(dimensions.size(), this->modes.cols());
+    for (unsigned int i = 0u; i < dimensions.size(); i++)
+    {
+      for (unsigned int j = 0u; j < this->modes.cols(); j++)
+      {
+        submodes(i, j) = this->modes(dimensions.at(i), j);
+      }
+    }
+
+    arma::Mat<double> & pca_modes_matrix = submodes;
+    arma::gmm_full model;
+
+    bool status = model.learn(pca_modes_matrix, numberOfGaussians, eucl_dist, random_spread, 10, 7, 0, true);
+    if (status == false)
+    {
+      std::cout << "learning failed" << std::endl;
+    }
+
+    Matrix_Class means = model.means;
+    for (unsigned int i = 0u; i < means.cols(); i++)
+    {
+      std::cout << "Mean of Gaussian " << i << ":\n";
+      for (unsigned int j = 0u; j < means.rows(); j++)
+      {
+        std::cout << means(j, i) << " ";
+      }
+      std::cout << "\n";
+    }
+
+    for (unsigned int i = 0u; i < means.cols(); i++)
+    {
+      std::cout << "Covariance Matrix of Gaussian " << i << ":\n";
+      Matrix_Class current = model.fcovs.slice(i);
+      std::cout << current << "\n";
+    }
+    std::cout << "\n";
+    for (unsigned int i = 0u; i < means.cols(); i++)
+    {
+      std::cout << "Weight of Gaussian " << i << ": ";
+      std::cout << model.hefts(i) << "\n";
+    }
+    std::cout << "\n";
+    std::cout << "\n";
+    std::cout << "\n";
+  }
+#endif
+
   void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)
   {
     std::ofstream outstream(coords::output::filename(filenameExtension).c_str(), std::ios::app);
