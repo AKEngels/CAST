@@ -98,6 +98,9 @@ namespace energy {
 				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final;
 				void to_stream(std::ostream&) const final;
 
+				//TODO: Get better value from better source
+				static auto constexpr au_to_kcalmol = 627.503;
+
 			private:
 				std::string tmp_file_name;
 				bool first_call;
