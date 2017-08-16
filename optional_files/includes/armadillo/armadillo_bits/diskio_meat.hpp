@@ -1,14 +1,17 @@
-// Copyright (C) 2008-2015 National ICT Australia (NICTA)
+// Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
+// Copyright 2008-2016 National ICT Australia (NICTA)
 // 
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-// -------------------------------------------------------------------
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
 // 
-// Written by Conrad Sanderson - http://conradsanderson.id.au
-// Written by Ian Cullinan
-// Written by Ryan Curtin
-// Written by Szabolcs Horvat
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ------------------------------------------------------------------------
 
 
 //! \addtogroup diskio
@@ -652,22 +655,17 @@ arma_cold
 bool
 diskio::safe_rename(const std::string& old_name, const std::string& new_name)
   {
-  std::fstream f(new_name.c_str(), std::fstream::out | std::fstream::app);
+  const char* new_name_c_str = new_name.c_str();
+  
+  std::fstream f(new_name_c_str, std::fstream::out | std::fstream::app);
   f.put(' ');
   
-  bool save_okay = f.good();
-  f.close();
+  if(f.good()) { f.close(); } else { return false; }
   
-  if(save_okay == true)
-    {
-    std::remove(new_name.c_str());
-    
-    const int mv_result = std::rename(old_name.c_str(), new_name.c_str());
-    
-    save_okay = (mv_result == 0);
-    }
+  if(std::remove(                  new_name_c_str) != 0)  { return false; }
+  if(std::rename(old_name.c_str(), new_name_c_str) != 0)  { return false; }
   
-  return save_okay;
+  return true;
   }
 
 
@@ -799,13 +797,17 @@ diskio::save_raw_ascii(const Mat<eT>& x, std::ostream& f)
   
   uword cell_width;
   
-  // TODO: need sane values for complex numbers
-  
-  if( (is_float<eT>::value) || (is_double<eT>::value) )
+  if(is_real<eT>::value)
     {
     f.setf(ios::scientific);
     f.precision(14);
     cell_width = 22;
+    }
+  
+  if(is_cx<eT>::value)
+    {
+    f.setf(ios::scientific);
+    f.precision(14);
     }
   
   for(uword row=0; row < x.n_rows; ++row)
@@ -814,14 +816,14 @@ diskio::save_raw_ascii(const Mat<eT>& x, std::ostream& f)
       {
       f.put(' ');
       
-      if( (is_float<eT>::value) || (is_double<eT>::value) )
+      if(is_real<eT>::value)
         {
-        f.width(cell_width);
+        f.width(std::streamsize(cell_width));
         }
       
       arma_ostream::print_elem(f, x.at(row,col), false);
       }
-      
+    
     f.put('\n');
     }
   
@@ -925,24 +927,28 @@ diskio::save_arma_ascii(const Mat<eT>& x, std::ostream& f)
   
   uword cell_width;
   
-  // TODO: need sane values for complex numbers
-  
-  if( (is_float<eT>::value) || (is_double<eT>::value) )
+  if(is_real<eT>::value)
     {
     f.setf(ios::scientific);
     f.precision(14);
     cell_width = 22;
     }
-    
+  
+  if(is_cx<eT>::value)
+    {
+    f.setf(ios::scientific);
+    f.precision(14);
+    }
+  
   for(uword row=0; row < x.n_rows; ++row)
     {
     for(uword col=0; col < x.n_cols; ++col)
       {
       f.put(' ');
       
-      if( (is_float<eT>::value) || (is_double<eT>::value) )        
+      if(is_real<eT>::value)
         {
-        f.width(cell_width);
+        f.width(std::streamsize(cell_width));
         }
       
       arma_ostream::print_elem(f, x.at(row,col), false);
@@ -1002,8 +1008,6 @@ diskio::save_csv_ascii(const Mat<eT>& x, std::ostream& f)
   
   const ios::fmtflags orig_flags = f.flags();
   
-  // TODO: need sane values for complex numbers
-  
   if( (is_float<eT>::value) || (is_double<eT>::value) )
     {
     f.setf(ios::scientific);
@@ -1019,10 +1023,59 @@ diskio::save_csv_ascii(const Mat<eT>& x, std::ostream& f)
       {
       arma_ostream::print_elem(f, x.at(row,col), false);
       
-      if( col < (x_n_cols-1) )
-        {
-        f.put(',');
-        }
+      if( col < (x_n_cols-1) )  { f.put(','); }
+      }
+    
+    f.put('\n');
+    }
+  
+  const bool save_okay = f.good();
+  
+  f.flags(orig_flags);
+  
+  return save_okay;
+  }
+
+
+
+//! Save a matrix in CSV text format (human readable); complex numbers stored in "a+bi" format
+template<typename T>
+inline
+bool
+diskio::save_csv_ascii(const Mat< std::complex<T> >& x, std::ostream& f)
+  {
+  arma_extra_debug_sigprint();
+  
+  typedef typename std::complex<T> eT;
+  
+  const ios::fmtflags orig_flags = f.flags();
+  
+  if( (is_float<T>::value) || (is_double<T>::value) )
+    {
+    f.setf(ios::scientific);
+    f.precision(14);
+    }
+  
+  uword x_n_rows = x.n_rows;
+  uword x_n_cols = x.n_cols;
+  
+  for(uword row=0; row < x_n_rows; ++row)
+    {
+    for(uword col=0; col < x_n_cols; ++col)
+      {
+      const eT& val = x.at(row,col);
+      
+      const T    tmp_r     = std::real(val);
+      const T    tmp_i     = std::imag(val);
+      const T    tmp_i_abs = (tmp_i < T(0)) ? T(-tmp_i) : T(tmp_i);
+      const char tmp_sign  = (tmp_i < T(0)) ? char('-') : char('+');
+      
+      arma_ostream::print_elem(f, tmp_r,     false);
+      f.put(tmp_sign);
+      arma_ostream::print_elem(f, tmp_i_abs, false);
+      f.put('i');
+      
+      if( col < (x_n_cols-1) )  { f.put(','); }
       }
     
     f.put('\n');
@@ -1250,7 +1303,7 @@ diskio::save_hdf5_binary(const Mat<eT>& x, const std::string& final_name)
     arma_ignore(x);
     arma_ignore(final_name);
     
-    arma_stop("Mat::save(): use of HDF5 needs to be enabled");
+    arma_stop_logic_error("Mat::save(): use of HDF5 needs to be enabled");
     
     return false;
     }
@@ -1456,10 +1509,10 @@ diskio::load_raw_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
   //f.seekg(0, ios::beg);
   f.seekg(pos1);
   
-  x.set_size(N / sizeof(eT), 1);
+  x.set_size(N / uword(sizeof(eT)), 1);
   
   f.clear();
-  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(N) );
+  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
   
   return f.good();
   }
@@ -1618,6 +1671,8 @@ diskio::load_csv_ascii(Mat<eT>& x, std::istream& f, std::string&)
   {
   arma_extra_debug_sigprint();
   
+  // TODO: replace with more efficient implementation
+  
   bool load_okay = f.good();
   
   f.clear();
@@ -1710,6 +1765,231 @@ diskio::load_csv_ascii(Mat<eT>& x, std::istream& f, std::string&)
           diskio::convert_naninf( x.at(row,col), token );
           }
         }
+      
+      ++col;
+      }
+    
+    ++row;
+    }
+  
+  return load_okay;
+  }
+
+
+
+//! Load a matrix in CSV text format (human readable); complex numbers stored in "a+bi" format
+template<typename T>
+inline
+bool
+diskio::load_csv_ascii(Mat< std::complex<T> >& x, std::istream& f, std::string&)
+  {
+  arma_extra_debug_sigprint();
+  
+  // TODO: replace with more efficient implementation
+  
+  bool load_okay = f.good();
+  
+  f.clear();
+  const std::fstream::pos_type pos1 = f.tellg();
+  
+  //
+  // work out the size
+  
+  uword f_n_rows = 0;
+  uword f_n_cols = 0;
+  
+  std::string line_string;
+  std::string token;
+  
+  std::stringstream line_stream;
+  
+  while( (f.good() == true) && (load_okay == true) )
+    {
+    std::getline(f, line_string);
+    
+    if(line_string.size() == 0)
+      {
+      break;
+      }
+    
+    line_stream.clear();
+    line_stream.str(line_string);
+    
+    uword line_n_cols = 0;
+    
+    while(line_stream.good() == true)
+      {
+      std::getline(line_stream, token, ',');
+      ++line_n_cols;
+      }
+    
+    if(f_n_cols < line_n_cols)
+      {
+      f_n_cols = line_n_cols;
+      }
+    
+    ++f_n_rows;
+    }
+  
+  f.clear();
+  f.seekg(pos1);
+  
+  x.zeros(f_n_rows, f_n_cols);
+  
+  uword row = 0;
+  
+  std::stringstream ss;
+  std::string       str_real;
+  std::string       str_imag;
+  
+  while(f.good() == true)
+    {
+    std::getline(f, line_string);
+    
+    if(line_string.size() == 0)
+      {
+      break;
+      }
+    
+    line_stream.clear();
+    line_stream.str(line_string);
+    
+    uword col = 0;
+    
+    while(line_stream.good() == true)
+      {
+      std::getline(line_stream, token, ',');
+      
+      if(token.length() == 0)  { col++; continue; }
+      
+      bool found_x = false;
+      std::string::size_type loc_x = 0;  // location of the separator (+ or -) between the real and imaginary part
+      
+      std::string::size_type loc_i = token.find_last_of('i');  // location of the imaginary part indicator
+      
+      if(loc_i == std::string::npos)
+        {
+        str_real = token;
+        str_imag.clear();
+        }
+      else
+        {
+        bool found_plus  = false;
+        bool found_minus = false;
+        
+        std::string::size_type loc_plus = token.find_last_of('+');
+        
+        if(loc_plus != std::string::npos)
+          {
+          if(loc_plus >= 1)
+            {
+            const char prev_char = token.at(loc_plus-1);
+            
+            // make sure we're not looking at the sign of the exponent
+            if( (prev_char != 'e') && (prev_char != 'E') )
+              {
+              found_plus = true;
+              }
+            else
+              {
+              // search again, omitting the exponent
+              loc_plus = token.find_last_of('+', loc_plus-1);
+              
+              if(loc_plus != std::string::npos)  { found_plus = true; }
+              }
+            }
+          else
+            {
+            // loc_plus == 0, meaning we're at the start of the string
+            found_plus = true;
+            }
+          }
+        
+        std::string::size_type loc_minus = token.find_last_of('-');
+        
+        if(loc_minus != std::string::npos)
+          {
+          if(loc_minus >= 1)
+            {
+            const char prev_char = token.at(loc_minus-1);
+            
+            // make sure we're not looking at the sign of the exponent
+            if( (prev_char != 'e') && (prev_char != 'E') )
+              {
+              found_minus = true;
+              }
+            else
+              {
+              // search again, omitting the exponent
+              loc_minus = token.find_last_of('-', loc_minus-1);
+              
+              if(loc_minus != std::string::npos)  { found_minus = true; }
+              }
+            }
+          else
+            {
+            // loc_minus == 0, meaning we're at the start of the string
+            found_minus = true;
+            }
+          }
+        
+        if(found_plus && found_minus)
+          {
+          if( (loc_i > loc_plus) && (loc_i > loc_minus) )
+            {
+            // choose the sign closest to the "i" to be the separator between the real and imaginary part
+            loc_x = ( (loc_i - loc_plus) < (loc_i - loc_minus) ) ? loc_plus : loc_minus;
+            found_x = true;
+            }
+          }
+        else if(found_plus )  { loc_x = loc_plus;  found_x = true; }
+        else if(found_minus)  { loc_x = loc_minus; found_x = true; }
+        
+        if(found_x)
+          {
+          if(loc_x > 0)                { str_real = token.substr(0,loc_x);                     } else { str_real.clear(); }
+          if((loc_x+1) < token.size()) { str_imag = token.substr(loc_x, token.size()-loc_x-1); } else { str_imag.clear(); }
+          }
+        }
+      
+      T val_real_1 = T(0);
+      T val_real_2 = T(0);
+      
+      T val_imag_1 = T(0);
+      T val_imag_2 = T(0);
+      
+      ss.clear();
+      ss.str(str_real);
+      ss >> val_real_1;
+      
+      if(ss.fail() == false)
+        {
+        val_real_2 = val_real_1;
+        }
+      else
+        {
+        T val_tmp = T(0);
+        diskio::convert_naninf(val_tmp, str_real);
+        val_real_2 = val_tmp;
+        }
+      
+      
+      ss.clear();
+      ss.str(str_imag);
+      ss >> val_imag_1;
+      
+      if(ss.fail() == false)
+        {
+        val_imag_2 = val_imag_1;
+        }
+      else
+        {
+        T val_tmp = T(0);
+        diskio::convert_naninf(val_tmp, str_real);
+        val_imag_2 = val_tmp;
+        }
+      
+      x.at(row,col) = std::complex<T>(val_real_2, val_imag_2);
       
       ++col;
       }
@@ -1894,7 +2174,7 @@ diskio::load_pgm_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
     f >> f_maxval;
     f.get();
     
-    if( (f_maxval > 0) || (f_maxval <= 65535) )
+    if( (f_maxval > 0) && (f_maxval <= 65535) )
       {
       x.set_size(f_n_rows,f_n_cols);
       
@@ -1945,7 +2225,7 @@ diskio::load_pgm_binary(Mat<eT>& x, std::istream& f, std::string& err_msg)
     else
       {
       load_okay = false;
-      err_msg = "currently no code available to handle loading ";
+      err_msg = "functionality unimplemented to handle loading ";
       }
     
     if(f.good() == false)
@@ -2128,7 +2408,7 @@ diskio::load_hdf5_binary(Mat<eT>& x, const std::string& name, std::string& err_m
     arma_ignore(name);
     arma_ignore(err_msg);
 
-    arma_stop("Mat::load(): use of HDF5 needs to be enabled");
+    arma_stop_logic_error("Mat::load(): use of HDF5 needs to be enabled");
 
     return false;
     }
@@ -2463,6 +2743,8 @@ diskio::load_coord_ascii(SpMat<eT>& x, std::istream& f, std::string& err_msg)
   arma_extra_debug_sigprint();
   arma_ignore(err_msg);
   
+  // TODO: replace with more efficient implementation
+  
   bool load_okay = f.good();
   
   f.clear();
@@ -2687,6 +2969,8 @@ diskio::load_coord_ascii(SpMat< std::complex<T> >& x, std::istream& f, std::stri
   {
   arma_extra_debug_sigprint();
   arma_ignore(err_msg);
+  
+  // TODO: replace with more efficient implementation
   
   bool load_okay = f.good();
   
@@ -3140,13 +3424,17 @@ diskio::save_raw_ascii(const Cube<eT>& x, std::ostream& f)
   
   uword cell_width;
   
-  // TODO: need sane values for complex numbers
-  
-  if( (is_float<eT>::value) || (is_double<eT>::value) )
+  if(is_real<eT>::value)
     {
     f.setf(ios::scientific);
     f.precision(14);
     cell_width = 22;
+    }
+  
+  if(is_cx<eT>::value)
+    {
+    f.setf(ios::scientific);
+    f.precision(14);
     }
   
   for(uword slice=0; slice < x.n_slices; ++slice)
@@ -3157,9 +3445,9 @@ diskio::save_raw_ascii(const Cube<eT>& x, std::ostream& f)
         {
         f.put(' ');
         
-        if( (is_float<eT>::value) || (is_double<eT>::value) )
+        if(is_real<eT>::value)
           {
-          f.width(cell_width);
+          f.width(std::streamsize(cell_width));
           }
         
         arma_ostream::print_elem(f, x.at(row,col,slice), false);
@@ -3269,15 +3557,19 @@ diskio::save_arma_ascii(const Cube<eT>& x, std::ostream& f)
   
   uword cell_width;
   
-  // TODO: need sane values for complex numbers
-  
-  if( (is_float<eT>::value) || (is_double<eT>::value) )
+  if(is_real<eT>::value)
     {
     f.setf(ios::scientific);
     f.precision(14);
     cell_width = 22;
     }
-    
+  
+  if(is_cx<eT>::value)
+    {
+    f.setf(ios::scientific);
+    f.precision(14);
+    }
+  
   for(uword slice=0; slice < x.n_slices; ++slice)
     {
     for(uword row=0; row < x.n_rows; ++row)
@@ -3286,9 +3578,9 @@ diskio::save_arma_ascii(const Cube<eT>& x, std::ostream& f)
         {
         f.put(' ');
         
-        if( (is_float<eT>::value) || (is_double<eT>::value) )        
+        if(is_real<eT>::value)
           {
-          f.width(cell_width);
+          f.width(std::streamsize(cell_width));
           }
         
         arma_ostream::print_elem(f, x.at(row,col,slice), false);
@@ -3417,7 +3709,7 @@ diskio::save_hdf5_binary(const Cube<eT>& x, const std::string& final_name)
     arma_ignore(x);
     arma_ignore(final_name);
 
-    arma_stop("Cube::save(): use of HDF5 needs to be enabled");
+    arma_stop_logic_error("Cube::save(): use of HDF5 needs to be enabled");
 
     return false;
     }
@@ -3536,10 +3828,10 @@ diskio::load_raw_binary(Cube<eT>& x, std::istream& f, std::string& err_msg)
   //f.seekg(0, ios::beg);
   f.seekg(pos1);
   
-  x.set_size(N / sizeof(eT), 1, 1);
+  x.set_size(N / uword(sizeof(eT)), 1, 1);
   
   f.clear();
-  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(N) );
+  f.read( reinterpret_cast<char *>(x.memptr()), std::streamsize(x.n_elem * uword(sizeof(eT))) );
   
   return f.good();
   }
@@ -3881,7 +4173,7 @@ diskio::load_hdf5_binary(Cube<eT>& x, const std::string& name, std::string& err_
     arma_ignore(name);
     arma_ignore(err_msg);
 
-    arma_stop("Cube::load(): use of HDF5 needs to be enabled");
+    arma_stop_logic_error("Cube::load(): use of HDF5 needs to be enabled");
 
     return false;
     }

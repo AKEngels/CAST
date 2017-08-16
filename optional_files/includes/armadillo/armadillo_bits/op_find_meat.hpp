@@ -1,12 +1,17 @@
-// Copyright (C) 2010-2016 National ICT Australia (NICTA)
+// Copyright 2008-2016 Conrad Sanderson (http://conradsanderson.id.au)
+// Copyright 2008-2016 National ICT Australia (NICTA)
 // 
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-// -------------------------------------------------------------------
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
 // 
-// Written by Conrad Sanderson - http://conradsanderson.id.au
-// Written by Dimitrios Bouzas
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ------------------------------------------------------------------------
 
 
 
@@ -37,7 +42,7 @@ op_find::helper
   uword* indices_mem = indices.memptr();
   uword  n_nz        = 0;
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     typename Proxy<T1>::ea_type PA = A.get_ea();
     
@@ -95,7 +100,7 @@ op_find::helper
   uword* indices_mem = indices.memptr();
   uword  n_nz        = 0;
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     typename Proxy<T1>::ea_type PA = A.get_ea();
     
@@ -225,7 +230,7 @@ op_find::helper
   uword  n_nz        = 0;
   
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     for(uword i=0; i<n_elem; ++i)
       {
@@ -368,7 +373,7 @@ op_find::helper
   uword  n_nz        = 0;
   
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     for(uword i=0; i<n_elem; ++i)
       {
@@ -479,7 +484,7 @@ op_find_finite::apply(Mat<uword>& out, const mtOp<uword, T1, op_find_finite>& X)
   uword* indices_mem = indices.memptr();
   uword  count       = 0;
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     const typename Proxy<T1>::ea_type Pea = P.get_ea();
     
@@ -525,7 +530,7 @@ op_find_nonfinite::apply(Mat<uword>& out, const mtOp<uword, T1, op_find_nonfinit
   uword* indices_mem = indices.memptr();
   uword  count       = 0;
   
-  if(Proxy<T1>::prefer_at_accessor == false)
+  if(Proxy<T1>::use_at == false)
     {
     const typename Proxy<T1>::ea_type Pea = P.get_ea();
     
