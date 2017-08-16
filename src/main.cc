@@ -265,7 +265,6 @@ int main(int argc, char **argv)
       coords::Coordinates newCoords(coords);
       coords::Coordinates inp_add_coords(coords);
       coords::Coordinates add_coords;
-      std::size_t fix_next_step = 0;
 
       for (auto & pes : *ci)
       {
@@ -292,11 +291,10 @@ int main(int argc, char **argv)
         //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 
         //fix all atoms already moved by md
-        for (std::size_t i = fix_next_step; i < coords.size(); i++)
+        for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)
         {
           coords.set_fix(i, true);
         }
-        fix_next_step = coords.size() - 1;
 
         // Molecular Dynamics Simulation
         if (Config::get().md.pre_optimize) coords.o();
