@@ -11,6 +11,7 @@
 #include <tuple>
 #include "kaham_summation.h"
 #include "constants.h"
+#include "cubature.h"
 
 /////////////////
 // Some constants
@@ -223,7 +224,7 @@ public:
         covariance(0, 1) = 0.56;
 
         Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
-        const double prefactor = 1. / (std::pow(2 * ::constants::pi, 2.) * std::sqrt(covariance.determ()));
+        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, 2.) * covariance.determ());
 
 
         return prefactor * std::exp(value(0u,0u) * -0.5);
@@ -235,8 +236,8 @@ public:
       covariance(1, 1) = 0.75;
       covariance(0, 1) = 0.56;
 
-      analyticEntropy_ = 0.5 * log(2 * ::constants::pi * ::constants::e * covariance.determ());
-      PDFrange = std::make_shared<std::pair<double, double>>(-6, 6.);
+      analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension)/2. * std::log(2. * ::constants::pi * ::constants::e);
+      PDFrange = std::make_shared<std::pair<double, double>>(-20, 20.);
       this->m_identString = "2varGauss";
     }
     else if (ident_ == 5)
@@ -260,7 +261,7 @@ public:
         covariance(0, 1) = 0.0;
 
         Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
-        const double prefactor = 1. / (std::pow(2 * ::constants::pi, 2.) * std::sqrt(covariance.determ()));
+        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, 2.) * covariance.determ());
 
 
         return prefactor * std::exp(value(0u, 0u) * -0.5);
@@ -272,7 +273,7 @@ public:
       covariance(1, 1) = 0.75;
       covariance(0, 1) = 0.0;
 
-      analyticEntropy_ = 0.5 * log(2 * ::constants::pi * ::constants::e * covariance.determ());
+      analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       PDFrange = std::make_shared<std::pair<double, double>>(-5, 5.);
       this->m_identString = "2varGauss2";
     }
@@ -482,6 +483,48 @@ public:
   }
 };
 
+int cubaturefunctionEntropy(unsigned ndim, const double *x, void *fdata, unsigned fdim, double *fval)
+{
+  ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
+
+  if (ndim != probdens.getDimension())
+    throw;
+  if (fdim != 1)
+    throw;
+
+  std::vector<double> input;
+  for (unsigned int i = 0u; i < ndim; i++)
+    input.push_back(x[i]);
+  double probdens_result = probdens.function()(input);
+  if (probdens_result != 0.)
+  {
+    double returner = probdens.function()(input) * std::log(probdens.function()(input));
+    fval[0] = returner;
+  }
+  else
+  {
+    fval[0] = 0.;
+  }
+  return 0;
+}
+
+int cubaturefunctionProbDens(unsigned ndim, const double *x, void *fdata, unsigned fdim, double *fval)
+{
+  ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
+
+  if (ndim != probdens.getDimension())
+    throw;
+  if (fdim != 1)
+    throw;
+
+  std::vector<double> input;
+  for (unsigned int i = 0u; i < ndim; i++)
+    input.push_back(x[i]);
+  double returner = probdens.function()(input);
+  fval[0] = returner;
+  return 0;
+}
+
 
 // Calculated entropy object calculates estiamted entropy
 class calculatedentropyobj : public entropyobj
@@ -501,6 +544,7 @@ public:
   double ardakaniEntropyMaximum;
   double calculatedEntropyGoriaMaximum;
   double calculatedEntropyLombardiMaximum;
+  double cubatureIntegral;
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
     k(k_),
@@ -516,7 +560,8 @@ public:
     ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN()),
     ardakaniEntropyMaximum(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyGoriaMaximum(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyLombardiMaximum(std::numeric_limits<double>::quiet_NaN())
+    calculatedEntropyLombardiMaximum(std::numeric_limits<double>::quiet_NaN()),
+    cubatureIntegral(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
@@ -607,8 +652,8 @@ public:
       Matrix_Class eigenval, eigenvec;
       double determinant = cov_matr.determ();
 
-
-      return log(sqrt(2. * pi * e)) * 0.5  * double(this->dimension) + 0.5 * log(determinant);
+      const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
+      return gaussentropy;
       //Covariance Matrix
     }
   }
@@ -705,6 +750,43 @@ public:
     return this->MCDrawEntropy(samples_vec);
   }
 
+  double cubatureIntegrationEntropy()
+  {
+    std::cout << "Commencing cubature integration of entropy." << std::endl;
+    const double min_ = (this->probdens.meaningfulRange().first);
+    const double max_ = (this->probdens.meaningfulRange().second);
+    double* xmin, *xmax, *val, *err;
+    xmin = new double[this->dimension];
+    xmax = new double[this->dimension];
+    val = new double[this->dimension];
+    err = new double[this->dimension];
+    for (unsigned int i = 0u; i < this->dimension; i++)
+    {
+      xmin[i] = min_;
+      xmax[i] = max_;
+      val[i] = 0.;
+      err[i] = 0.;
+    }
+
+    int returncode = hcubature(1, cubaturefunctionProbDens, &(this->probdens),
+      this->dimension, xmin, xmax,
+      0u, 0, 1e-5, ERROR_INDIVIDUAL, val, err);
+
+    std::cout << "Debug Output: Integral of ProbDens is: " << val[0] << "." << std::endl;
+    
+    returncode = hcubature(1, cubaturefunctionEntropy, &(this->probdens),
+      this->dimension, xmin, xmax,
+      0u, 0, 1e-6, ERROR_INDIVIDUAL, val, err);
+
+    const double value = val[0];
+
+
+
+    delete[] xmin, xmax, err, val;
+    return value * -1.;
+
+  }
+
   double meanNNEntropyFaivishevsky()
   {
     std::cout << "Commencing meanNNEntropyFaivishevsky calculation." << std::endl;
@@ -785,15 +867,15 @@ public:
 
   void calculate()
   {
-    // Calculates entropy inegral using MC 
-    // with known PDF
-    mcdrawEntropy = this->MCDrawEntropy(drawMatrix);
+    this->cubatureIntegral = cubatureIntegrationEntropy();
 
-    mcintegrationEntropy = this->MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
+    //mcdrawEntropy = this->MCDrawEntropy(drawMatrix);
+
+    //mcintegrationEntropy = this->MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
-    meanNNEntropyFaivishevsky();
+    //meanNNEntropyFaivishevsky();
 
     std::cout << "Commencing NNEntropy calculation." << std::endl;
 
@@ -981,8 +1063,9 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "NumberOfDraws|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "k for NN|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Analytical|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Integral|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Cubature|";
+      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Integral|";
+      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(eucl)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(max)|";
@@ -991,8 +1074,8 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(eucl)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(max)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
+      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
+      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
 
       myfile2 << "\n=========================================================================";
       myfile2 << "==================================================================================";
@@ -1002,8 +1085,9 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->numberOfDraws << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->k << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.analyticEntropy() << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcintegrationEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->cubatureIntegral << "|";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcintegrationEntropy << "|";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardiMaximum << "|";
@@ -1012,8 +1096,8 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoriaMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
+    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
     myfile2.close();
   }
 };
