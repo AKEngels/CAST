@@ -569,7 +569,8 @@ namespace config
       std::string diag_conv;
       
       /**constructor
-      if a value is set to 0, the default values from dftbaby are used*/
+      for most options if a value is set to 0, the default values from dftbaby are used
+      exceptions: gradstate, verbose*/
       dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
       states(0), diag_maxiter(0), diag_conv("0") {}
