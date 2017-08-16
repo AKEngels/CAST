@@ -563,6 +563,10 @@ namespace config
       float lr_dist;
       /**limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues*/
       int states;
+      /**number of occupied orbitals taken into account for TD-DFTB*/
+      int orb_occ;
+      /**number of virtual orbitals taken into account for TD-DFTB*/
+      int orb_virt;
       /**maximum number of iterations for TD-DFTB matrix diagonalisation*/
       int diag_maxiter;
       /**convergence threshold for TD-DFTB matrix diagonalisation*/
@@ -573,7 +577,7 @@ namespace config
       exceptions: gradstate, verbose*/
       dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
-      states(0), diag_maxiter(0), diag_conv("0") {}
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0") {}
     } dftb;
 
     struct gaussian_conf

@@ -39,6 +39,10 @@ void energy::interfaces::dftb::create_dftbaby_configfile()
         file << "scf_conv = "+Config::get().energy.dftb.conv_threshold+"\n\n";
     if (Config::get().energy.dftb.states != 0)
         file << "nstates = "+std::to_string(Config::get().energy.dftb.states)+"\n\n";
+    if (Config::get().energy.dftb.orb_occ != 0)
+        file << "nr_active_occ = "+std::to_string(Config::get().energy.dftb.orb_occ)+"\n\n";
+    if (Config::get().energy.dftb.orb_virt != 0)
+        file << "nr_active_virt = "+std::to_string(Config::get().energy.dftb.orb_virt)+"\n\n";
     if (Config::get().energy.dftb.diag_conv != "0")
         file << "diag_conv = "+Config::get().energy.dftb.diag_conv+"\n\n";
     if (Config::get().energy.dftb.diag_maxiter != 0)

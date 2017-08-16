@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water1.arc
+name                   3d7z_inh.arc
 
 # Output file name
 
@@ -81,7 +81,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 
-task                  GRAD
+task                  MD
 
 
 ####################################
@@ -136,19 +136,19 @@ DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
 DFTBverbose             1
 
 # distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
-DFTBcutoff            30
+#DFTBcutoff            30
 
 # switch on long range correction <0/1>
-DFTBlr_corr             0
+DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-DFTBlr_dist            3.03     
+#DFTBlr_dist            3.03     
 
 # maximum number of iterations for SCF-calculation
-DFTBmaxiter            1000
+#DFTBmaxiter            1000
 
 # convergence threshold for relative change in SCF-calculation
-DFTBconv               1e-10
+#DFTBconv               1e-10
 
 # name of the DFTBaby gradient file 
 DFTBgradfile            grad.xyz
@@ -159,11 +159,17 @@ DFTBgradstate          0
 # limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
 DFTBstates            1
 
+# number of occupied orbitals taken into account for TD-DFTB
+DFTBocc_orb            2
+
+# number of virtual orbitals taken into account for TD-DFTB
+DFTBvirt_orb            2
+
 # maximum number of iterations for TD-DFTB matrix diagonalisation
-DFTBdiag_maxiter        50
+#DFTBdiag_maxiter        50
 
 # convergence threshold for TD-DFTB matrix diagonalisation
-DFTBdiag_conv           1e-05
+#DFTBdiag_conv           1e-05
 
 
 ####################################
@@ -594,7 +600,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                10
+MDsteps                100
  
 # Integrator
 #

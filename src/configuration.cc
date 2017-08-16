@@ -535,6 +535,10 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().energy.dftb.conv_threshold = value_string;
     else if (option.substr(4,6) == "states")
         Config::set().energy.dftb.states = std::stoi(value_string);
+    else if (option.substr(4,7) == "occ_orb")
+        Config::set().energy.dftb.orb_occ = std::stoi(value_string);
+    else if (option.substr(4,8) == "virt_orb")
+        Config::set().energy.dftb.orb_virt = std::stoi(value_string);
     else if (option.substr(4,9) == "diag_conv")
          Config::set().energy.dftb.diag_conv = value_string; 
     else if (option.substr(4,12) == "diag_maxiter")
