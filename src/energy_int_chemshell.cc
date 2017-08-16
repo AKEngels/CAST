@@ -12,11 +12,10 @@ auto zip(T && a, U && b) {
 }
 
 void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_use()const {
-	//Fails if coordinates are not known until this point
+	
 	if (Config::get().energy.chemshell.extra_pdb == "") {
 		create_pdb();
 	}
-	//How to deal with coordinates...
 	else {
 		std::stringstream ss;
 		ss << "cp " << Config::get().energy.chemshell.extra_pdb << " " << tmp_file_name << ".pdb";
@@ -27,8 +26,30 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 			throw std::runtime_error("Failed to copy the given PDB file!");
 		}
 	}
-	//TODO: Hopefully needs to be called only once so try! <- Antechamber fails the second time it is called ...
-	call_tleap();
+	if (Config::get().energy.chemshell.optional_frcmod == "" || Config::get().energy.chemshell.optional_prmtop == "") {
+		//TODO: Hopefully needs to be called only once so try! <- Antechamber fails the second time it is called ...
+		call_tleap();
+	}
+	else{
+		std::stringstream ss;
+		ss << "cp " << Config::get().energy.chemshell.optional_frcmod << " " << tmp_file_name << ".frcmod";
+
+		auto ret = scon::system_call(ss.str());
+
+		if (ret) {
+			throw std::runtime_error("Failed to copy the given frcmod file!");
+		}
+
+		std::stringstream().swap(ss);
+
+		ss << "cp " << Config::get().energy.chemshell.optional_prmtop << " " << tmp_file_name << ".prmtop";
+
+		ret = scon::system_call(ss.str());
+
+		if (ret) {
+			throw std::runtime_error("Failed to copy the given prmtop file!");
+		}
+	}
 }
 
 void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
