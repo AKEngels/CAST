@@ -263,13 +263,9 @@ int main(int argc, char **argv)
 
       //Generating layer with random defects
       coords::Coordinates newCoords(coords);
-      std::size_t already_fixed_atoms = 0;
-
-      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-      //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
-      coords::Coordinates inp_add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));//Change variables so they are specific to the task
-      //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+      coords::Coordinates inp_add_coords(coords);
       coords::Coordinates add_coords;
+      std::size_t fix_next_step = 0;
 
       for (auto & pes : *ci)
       {
@@ -287,12 +283,6 @@ int main(int argc, char **argv)
 
       for (std::size_t i = 0; i < 1; i++)//Change variables so they are specific to the task
       {
-        //fix all atoms already moved by md
-        for (std::size_t i = already_fixed_atoms; i < coords.size(); i++)
-        {
-          coords.set_fix(i, true);
-        }
-        already_fixed_atoms = coords.size() - 1; //making sure only prevoisly unfixed atoms get fixed
 
         add_coords = inp_add_coords;
         add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 8);
@@ -300,6 +290,13 @@ int main(int argc, char **argv)
         //§§§§§§§§§§§§§§§§§§
         coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
         //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+
+        //fix all atoms already moved by md
+        for (std::size_t i = fix_next_step; i < coords.size(); i++)
+        {
+          coords.set_fix(i, true);
+        }
+        fix_next_step = coords.size() - 1;
 
         // Molecular Dynamics Simulation
         if (Config::get().md.pre_optimize) coords.o();
