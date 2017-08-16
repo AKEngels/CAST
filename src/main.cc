@@ -260,48 +260,6 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
-
-      //Generating layer with random defects
-      coords::Coordinates newCoords(coords);
-      coords::Coordinates inp_add_coords(coords);
-      coords::Coordinates add_coords;
-
-      for (auto & pes : *ci)
-      {
-        newCoords.set_xyz(pes.structure.cartesian);
-        newCoords = periodicsHelperfunctions::delete_random_molecules(coords, 1);
-        pes = newCoords.pes();
-      }
-      newCoords.set_xyz(ci->structure(0u).structure.cartesian);
-      coords = newCoords;
-
-      // Molecular Dynamics Simulation
-      if (Config::get().md.pre_optimize) coords.o();
-      md::simulation mdObject(coords);
-      mdObject.run();
-
-      for (std::size_t i = 0; i < 1; i++)//Change variables so they are specific to the task
-      {
-
-        add_coords = inp_add_coords;
-        add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 1);
-
-        //§§§§§§§§§§§§§§§§§§
-        coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
-        //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
-
-        //fix all atoms already moved by md
-        for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)
-        {
-          coords.set_fix(i, true);
-        }
-
-        // Molecular Dynamics Simulation
-        if (Config::get().md.pre_optimize) coords.o();
-        md::simulation mdObject(coords);
-        mdObject.run();
-      }
-
       break;
     }
     case config::tasks::SP:
@@ -810,6 +768,51 @@ int main(int argc, char **argv)
         couplings::coupling coup;
 
         coup.kopplung();
+
+        break;
+      }
+      case config::tasks::LAYER_DEPOSITION:
+      {
+        //Generating layer with random defects
+        coords::Coordinates newCoords(coords);
+        coords::Coordinates inp_add_coords(coords);
+        coords::Coordinates add_coords;
+
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::delete_random_molecules(coords, 1);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+
+        // Molecular Dynamics Simulation
+        if (Config::get().md.pre_optimize) coords.o();
+        md::simulation mdObject(coords);
+        mdObject.run();
+
+        for (std::size_t i = 0; i < 4; i++)//Change variables so they are specific to the task || Determination how many layers are added
+        {
+
+          add_coords = inp_add_coords;
+          add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 1);
+
+          //§§§§§§§§§§§§§§§§§§
+          coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
+                                                                                                                            //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
+
+                                                                                                                            //fix all atoms already moved by md
+          for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)
+          {
+            coords.set_fix(i, true);
+          }
+
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject(coords);
+          mdObject.run();
+        }
 
         break;
       }
