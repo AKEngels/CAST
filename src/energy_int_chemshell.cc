@@ -166,7 +166,8 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
 	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
 
-	std::string active_atoms = find_active_atoms();
+	std::string active_atoms, inactive_atoms;
+	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms();
 
 
 	ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
@@ -178,7 +179,8 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	if (tolerance != "") {
 		ofs << "    tolerance=" << tolerance << " \\\n";
 	}
-	ofs << "    active_atoms= { " << active_atoms << "} \\\n"
+	ofs << "    active_atoms= {" << active_atoms << "} \\\n"
+		"    frozen= {" << inactive_atoms << "} \\\n" 
 		"    residues= $residues \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
@@ -318,7 +320,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp()const {
 	call_chemshell();
 }
 
-std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms() const {
+std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterface::find_active_and_inactive_atoms() const {
 	
 	/*std::vector<int> indices(coords->size());
 	std::iota(indices.begin(), indices.end(), 1);
@@ -340,18 +342,28 @@ std::string energy::interfaces::chemshell::sysCallInterface::find_active_atoms()
 			final_atoms += std::to_string(i) + " ";
 		}
 	}*/
-	std::string final_atoms = "";
+	std::string free_atoms = "", fixed_atoms = "";
 	auto const & atoms = coords->atoms();
 	for (auto i = 0; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
 		if (!atom.fixed()) {
-			final_atoms += std::to_string(i + 1) + " ";
+			free_atoms += std::to_string(i + 1) + " ";
+		}
+		else {
+			fixed_atoms += std::to_string(i + 1) + " ";
 		}
 	}
-	std::cout << final_atoms << std::endl;
-	return final_atoms;
+	return std::make_pair(trim_space_and_tabs(free_atoms), trim_space_and_tabs(fixed_atoms));
 }
 
+std::string energy::interfaces::chemshell::sysCallInterface::trim_space_and_tabs(std::string const & str) {
+	auto const first = str.find_first_not_of(" \t");
+	auto const last = str.find_last_not_of(" \t");
+
+	auto const length = last - first;
+
+	return str.substr(first, length + 1);
+}
 
 void energy::interfaces::chemshell::sysCallInterface::call_chemshell(bool singlepoint) const {
 	

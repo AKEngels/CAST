@@ -110,8 +110,10 @@ namespace energy {
 				void make_tleap_input(std::string const & o_file)const;
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
-				std::string find_active_atoms()const;
+				std::pair<std::string, std::string> find_active_and_inactive_atoms()const;
 				void read_gradients();
+
+				static std::string trim_space_and_tabs(std::string const & str);
 
 				bool check_if_number(std::string const & number)const;
 
