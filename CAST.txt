@@ -83,6 +83,7 @@ amber_restrt           min.rst
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
 task                      EXCITON_BREAKUP
 
@@ -855,19 +856,19 @@ EXwellenzahl                28514.9
 
 #Additional input file name
 
-ICname 						but_min.xyz
+ICname                     but_min.xyz
 
 #Additional input file type
 
-ICinputtype					TINKER
+ICinputtype                TINKER
 
 #From which axis should tha additional atoms added
 
-ICaxis						x
+ICaxis                      x
 
 #How far apart should they be
 
-ICdistance					5.0
+ICdistance               5.0
 
 
 ####################################
@@ -924,6 +925,24 @@ CouplingsheterodimMultiplicity       1
 CouplingsheterodimCharge             0
 
 CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+####################################
+#                                  #
+#         LAYER_DEPOSITION         #
+#                                  #
+####################################
+
+#Number of layers
+
+LayDlayers                     5
+
+#From which axis should the layers be added
+
+LayDaxis                       y 
+
+#How far apart should they be
+
+LayDdistance                   5.0
 
 ####################################
 #                                  #

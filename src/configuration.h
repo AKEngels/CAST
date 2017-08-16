@@ -1162,6 +1162,13 @@ namespace config
                 hetmultipl, hetcharge, hetmethod;
   };
 
+  struct layd
+  {
+    std::size_t amount;
+    char        laydaxis;
+    double      layddist;
+  };
+
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1316,6 +1323,7 @@ public:
   config::center                center;
   config::couplings             couplings;
   config::periodics             periodics;
+  config::layd                 layd;
 
   /*! Constructor of Config object
    *

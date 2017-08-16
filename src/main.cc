@@ -792,14 +792,14 @@ int main(int argc, char **argv)
         md::simulation mdObject(coords);
         mdObject.run();
 
-        for (std::size_t i = 0; i < 4; i++)//Change variables so they are specific to the task || Determination how many layers are added
+        for (std::size_t i = 0; i < Config::get().layd.amount; i++)//Change variables so they are specific to the task || Determination how many layers are added
         {
 
           add_coords = inp_add_coords;
           add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 1);
 
           //§§§§§§§§§§§§§§§§§§
-          coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
+          coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);//Change variables so they are specific to the task
                                                                                                                             //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
 
                                                                                                                             //fix all atoms already moved by md

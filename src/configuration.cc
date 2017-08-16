@@ -1782,6 +1782,24 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  /* Inputoptions for Layer_Deposition
+  */
+  else if (option.substr(0u, 4u) == "LayD")
+  {
+    if (option.substr(2u, 8u) == "layers")
+    {
+      cv >> Config::set().layd.amount;
+    }
+    else if (option.substr(4u, 4u) == "axis")
+    {
+      cv >> Config::set().layd.laydaxis;
+    }
+    else if (option.substr(4u, 8u) == "distance")
+    {
+      cv >> Config::set().layd.layddist;
+    }
+  }
+
 }
 
 
