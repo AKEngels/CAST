@@ -214,7 +214,7 @@ void Scan2D::make_scan() {
 
 		parser->fix_atoms(_coords);
 
-		this->write_energy_entry(_coords.o());
+		write_energy_entry(_coords.o());
 		parser->x_parser->set_coords(_coords.xyz());
 
 		output.to_stream(logfile);
@@ -256,7 +256,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 		coords.set_xyz(new_xyz, true);
 		parser->fix_atoms(coords);
 
-		write_energy_entry(coords.o()); 
+		this->write_energy_entry(coords.o());
 		parser->y_parser->set_coords(coords.xyz());
 
 		output.to_stream(logfile);
