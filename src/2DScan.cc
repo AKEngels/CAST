@@ -214,7 +214,7 @@ void Scan2D::make_scan() {
 
 		parser->fix_atoms(_coords);
 
-		write_energy_entry(_coords.o());
+		this->write_energy_entry(_coords.o());
 		parser->x_parser->set_coords(_coords.xyz());
 
 		output.to_stream(logfile);

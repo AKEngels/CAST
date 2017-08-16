@@ -342,18 +342,16 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 			final_atoms += std::to_string(i) + " ";
 		}
 	}*/
-	std::string free_atoms = "", fixed_atoms = "";
+	std::string active_atom = "", fixed_atoms = "";
 	auto const & atoms = coords->atoms();
 	for (auto i = 0; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
-		if (!atom.fixed()) {
-			free_atoms += std::to_string(i + 1) + " ";
-		}
-		else {
+		if (atom.fixed()) {
 			fixed_atoms += std::to_string(i + 1) + " ";
 		}
+		active_atom += std::to_string(i + 1) + " ";
 	}
-	return std::make_pair(trim_space_and_tabs(free_atoms), trim_space_and_tabs(fixed_atoms));
+	return std::make_pair(trim_space_and_tabs(active_atom), trim_space_and_tabs(fixed_atoms));
 }
 
 std::string energy::interfaces::chemshell::sysCallInterface::trim_space_and_tabs(std::string const & str) {
