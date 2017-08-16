@@ -149,6 +149,19 @@ project "CAST"
     defines {"EIGEN_NO_DEBUG"}
     includedirs { "../submodules/eigen/Eigen/"}
 
+    filter { "configurations:Python_Release",  "platforms:x64", "action:vs2015"}
+      targetname "CAST_win_x64_python_release"
+      defines {"EIGEN_NO_DEBUG"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Release",  "platforms:x86", "action:vs2015"}
+      targetname "CAST_win_x86_release"
+      defines {"EIGEN_NO_DEBUG"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+
     filter { "configurations:Armadillo_Release", "action:vs2015"}
       includedirs { "../optional_files/includes/armadillo/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
@@ -212,4 +225,14 @@ project "CAST"
     filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
       targetname "CAST_win_x86_debug"
     filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
-targetname "CAST_win_x64_debug"
+      targetname "CAST_win_x64_debug"
+    filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2015"}
+      targetname "CAST_win_x86_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2015"}
+      targetname "CAST_win_x64_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
