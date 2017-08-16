@@ -1,11 +1,13 @@
-#include <stdexcept>
+﻿#include <stdexcept>
 #include "configuration.h"
 #include "energy.h"
 #include "energy_int_aco.h"
 #include "energy_int_mopac.h"
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
+#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
+#endif
 #include "energy_int_gaussian.h"
 #include "coords.h"
 #include "scon_utility.h"
@@ -51,6 +53,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       }
       return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
+#ifdef USE_PYTHON
   case config::interface_types::T::DFTB:
    {
       if (Config::get().general.verbosity >= 3)
@@ -59,6 +62,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       }
       return new energy::interfaces::dftb::sysCallInterface(coordinates);
     }
+#endif
   case config::interface_types::T::GAUSSIAN:
     {
      if (Config::get().general.verbosity >= 3)

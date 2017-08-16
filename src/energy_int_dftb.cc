@@ -1,4 +1,4 @@
-
+﻿#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
 
 
@@ -322,3 +322,4 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
   }
   return true;
 }
+#endif

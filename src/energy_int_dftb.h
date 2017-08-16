@@ -1,6 +1,4 @@
-﻿/*DW                            *
-MOPAC Interface
-*                            DW*/
+﻿#ifdef USE_PYTHON
 
 #pragma once 
 
@@ -134,3 +132,4 @@ namespace energy
 		}
 	}
 }
+#endif
