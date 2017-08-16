@@ -364,33 +364,18 @@ GAUSSIANdelete          1
 
 \subsubsection{DFTB}
 
-For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. At the moment you have to do the following steps even if you don't want to use DFTB. This should change in the future.
-
-\paragraph{Installing python}\mbox{}\\
-
-First install python and the python modules numpy and scipy. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
-
-\paragraph{CAST setup for python import}\mbox{}\\
-
-After running premake you have to tell CAST where to find the python libraray. How to do this depends on your operating system:
-
-On Linux you go into the file ``cast/optional\_files/project/CAST.make'', look for the configuration you want to build (e.g. ``ifeq (\$(config),release\_x64)'') and add the following lines:
-\begin{lstlisting}
-INCLUDES += -I/usr/include/python2.7
-CFLAGS += \$(shell python-config --cflags)
-LDFLAGS += \$(shell python-config --ldflags)
-all: -lpython2.7
-\end{lstlisting}
-
-On Windows you open your visual studio solution in visual studio. Then go to Project $\rightarrow$ CAST-Properties... (CAST-Eigenschaften) $\rightarrow$ VC++-Directories (VC++-Verzeichnisse). To ``Include Directories'' (Includeverzeichnisse) add the path ``C:\textbackslash Python27\textbackslash include'' and to ``Library Directories'' (Bibliotheksverzeichnisse) add ``C:\textbackslash Python27\textbackslash libs''. Then (also in CAST-Properties) go to Linker $\rightarrow$ Input (Eingabe) and add ``python27.lib'' to ``Additional dependencies'' (Zusätzliche Abhängigkeiten).
-
-Now you should be able to compile CAST. If you don't want to use DFTB you don't need to do the following steps.
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
 
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
 If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
 
-In addition to numpy and scipy that you have already installed before you need BLAS. To install it, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.
+In addition to python you also need the following:
+\begin{itemize}
+\item the python module numpy
+\item the python module scipy
+\item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
+\end{itemize}
 
 Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. Go to folder ``DFTBaby-\#\#\#/DFTB'', open the file DFTB2.py and add at the beginning of the file the following lines:
 \begin{lstlisting}
