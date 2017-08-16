@@ -269,7 +269,7 @@ int main(int argc, char **argv)
       for (auto & pes : *ci)
       {
         newCoords.set_xyz(pes.structure.cartesian);
-        newCoords = periodicsHelperfunctions::delete_random_molecules(coords, 8);
+        newCoords = periodicsHelperfunctions::delete_random_molecules(coords, 1);
         pes = newCoords.pes();
       }
       newCoords.set_xyz(ci->structure(0u).structure.cartesian);
@@ -284,7 +284,7 @@ int main(int argc, char **argv)
       {
 
         add_coords = inp_add_coords;
-        add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 8);
+        add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, 1);
 
         //§§§§§§§§§§§§§§§§§§
         coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);//Change variables so they are specific to the task
