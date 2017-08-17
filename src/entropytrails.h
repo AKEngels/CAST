@@ -12,6 +12,7 @@
 #include "kaham_summation.h"
 #include "constants.h"
 #include "cubature.h"
+#include "histogram.h"
 
 /////////////////
 // Some constants
@@ -718,7 +719,7 @@ public:
   }
 };
 
-int cubaturefunctionEntropy(unsigned ndim, unsigned npts, const double *x, void *fdata, unsigned fdim, double *fval)
+int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
   ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
 
@@ -726,10 +727,6 @@ int cubaturefunctionEntropy(unsigned ndim, unsigned npts, const double *x, void 
     throw;
   if (fdim != 1)
     throw;
-
-
-
-
 
   for (int j = 0; j < npts; ++j) 
   { // evaluate the integrand for npts points
@@ -750,7 +747,7 @@ int cubaturefunctionEntropy(unsigned ndim, unsigned npts, const double *x, void 
   return 0;
 }
 
-int cubaturefunctionProbDens(unsigned ndim, unsigned npts, const double *x, void *fdata, unsigned fdim, double *fval)
+int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
   ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
 
