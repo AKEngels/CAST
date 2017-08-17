@@ -692,7 +692,7 @@ namespace pca
     {
       for (unsigned int j = 0u; j < this->modes.cols(); j++)
       {
-        submodes(i, j) = this->modes(dimensions.at(i), j);
+        submodes(i, j) = this->modes(dimensions.at(i) - 1u, j);
       }
     }
 
