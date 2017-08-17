@@ -27,12 +27,11 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 		}
 	}
 	if (Config::get().energy.chemshell.optional_frcmod == "" || Config::get().energy.chemshell.optional_prmtop == "") {
-		//TODO: Hopefully needs to be called only once so try! <- Antechamber fails the second time it is called ...
 		call_tleap();
 	}
 	else{
 		std::stringstream ss;
-		ss << "cp " << Config::get().energy.chemshell.optional_frcmod << " " << tmp_file_name << ".frcmod";
+		ss << "cp " << Config::get().energy.chemshell.optional_inpcrd << " " << tmp_file_name << ".inpcrd";
 
 		auto ret = scon::system_call(ss.str());
 
@@ -243,6 +242,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	ofs << "        scale14 = {1.2 2.0} \\\n"
 		"        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
+		/*Consider qm_theory.energy and qm_theory.gradient as a way to produce output with the right name in the first place*/
 		"write_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << "_opt.c\n"
 		"read_pdb file=" << tmp_file_name << ".pdb coords=dummy.coords\n"
 		"write_pdb file=" << tmp_file_name << ".pdb coords=" << tmp_file_name << "_opt.c\n\n\n";

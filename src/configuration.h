@@ -585,7 +585,7 @@ namespace config
 
 	struct chemshell_conf {
 		std::string extra_pdb = "";
-		std::string optional_frcmod = "";
+		std::string optional_inpcrd = "";
 		std::string optional_prmtop = "";
 		std::string path = "";
 		std::string babel_path = "";
