@@ -157,7 +157,6 @@ bool tinker::parameter::angle::check (std::size_t a, std::size_t b, std::size_t 
 {
   if (b == index[1] && ((a == index[0] && c == index[2]) || 
                         (a == index[2] && c == index[0]))) return true;
- // if (config::tasks::REACTIONCOORDINATE) return true;
   return false;
 }
 
@@ -187,7 +186,6 @@ tinker::parameter::bond::bond (std::string const &line)
 bool tinker::parameter::bond::check (std::size_t a, std::size_t b) const
 {
   if ((a == index[0] && b == index[1]) || (a == index[1] && b == index[0])) return true;
- // if (config::tasks::REACTIONCOORDINATE) return true;
   return false;
 }
 

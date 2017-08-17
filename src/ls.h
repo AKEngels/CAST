@@ -30,7 +30,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
+#pragma once
 #include <cstddef> 
 #include <cmath>
 #include <cfloat>
@@ -43,21 +43,6 @@
 #include "function_trait.h"
 #include "representation.h"
 
-extern std::vector<std::vector<double>> locpx, locx, locd;
-
-template<class T>
-inline std::vector<double> change(T const &x)
-{
-  std::vector<double> r;
-  r.reserve(x.size() * 3u);
-  for (std::size_t i = 0; i < x.size(); ++i)
-  {
-    r.push_back(x[i].x());
-    r.push_back(x[i].y());
-    r.push_back(x[i].z());
-  }
-  return r;
-}
 
 namespace optimization
 {
@@ -109,6 +94,7 @@ namespace optimization
 
       template<class T> using callback_type = decltype(_detail_::get_member_type(&T::callback));
 
+
       template<class L>
       struct is_valid_linesearch
       {
@@ -155,7 +141,6 @@ namespace optimization
 
       };
 
-
       template<class F>
       bool signdiff(F const x, F const y)
       {
@@ -163,9 +148,10 @@ namespace optimization
         return ((x*(y / abs(y))) < F(0));
       }
 
+
       namespace minimizers
       {
-        /**
+        /** 
          * Find a minimizer of an interpolated cubic function.
          *  @return         The minimizer of the interpolated cubic.
          *  @param  u       The value of one point, u.
@@ -189,6 +175,7 @@ namespace optimization
           F const r((gamma - du + theta) / (gamma - du + gamma + dv));
           return u + r*d;
         }
+
         /**
          * Find a minimizer of an interpolated cubic function.
          *  @return         The minimizer of the interpolated cubic.
@@ -229,6 +216,7 @@ namespace optimization
             return min_value;
           }
         }
+
         /**
          * Find a minimizer of an interpolated quadratic function.
          *  @return         The minimizer of the interpolated quadratic.
@@ -270,8 +258,8 @@ namespace optimization
 
       */
 
-      template<class float_type, class rep_type, class grad_type = rep_type>
-      using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
+      //template<class float_type, class rep_type, class grad_type = rep_type>
+      //using callback_function_type = float_type(*)(rep_type const &, grad_type&, std::size_t const, bool&);
 
       template<class CallbackT>
       struct more_thuente
@@ -308,7 +296,9 @@ namespace optimization
 
         status operator()(grad_type const & d, float_type & step, 
           point_type & p, rep_type const & xp, std::size_t const iter)
-        { return line(d, step, p.x, p.g, p.f, xp, iter); }
+        { 
+          return line(d, step, p.x, p.g, p.f, xp, iter); 
+        }
 
       private:
 
@@ -391,44 +381,38 @@ namespace optimization
             // f test value
             ftest1 = finit + step*dgtest;
 
-            //printf("LSA:\n");
-            //std::cout << "step\n" << step << "\n";
-            //std::cout << "xp\n" << xp << "\n\n";
-            //std::cout << "d\n" << d << "\n\n";
-            //std::cout << "x\n" << p_x << "\n\n";
-            //
-            //printf("%.6f %.6f %.6f %.6f %.6f %.6f %.6f\n", dg, stx, fx, dgx, sty, fy, dgy);
-            //printf("%.6f %.6f %.6f %.6f\n", finit, ftest1, dginit, dgtest);
-            //printf("%.6f %.6f %.6f %.6f\n", step, stmin, stmax, f);
-
             /* Test for errors and convergence. */
             if (brackt && ((step <= stmin || stmax <= step) || uinfo != 0))
-            { /* Rounding errors prevent further progress. */
+            { 
+              /* Rounding errors prevent further progress. */
               state = status::ERR_ROUNDING;
               //std::cout << stmin << " !< " << step << " !< " << stmax << ", " << uinfo << "\n";
               break;
             }
             if (abs(step - config.max_step) < F(1.e-6)
               && f <= ftest1 && dg <= dgtest)
-            { /* The step is the maximum value. */
+            { 
+              /* The step is the maximum value. */
               state = status::ERR_MAXSTEP;
               break;
             }
             if (abs(step - config.min_step) < F(1.e-6)
               && (ftest1 < f || dgtest <= dg))
-            { /* The step is the minimum value. */
-              //std::cout << "Stepl = " << step << "\n";
+            { 
+              /* The step is the minimum value. */
               state = status::ERR_MINSTEP;
               break;
             }
             if (brackt && (stmax - stmin) <= config.xtol*stmax)
-            { /* Relative width of the interval 
+            { 
+              /* Relative width of the interval 
                  of uncertainty is at most xtol. */
               state = status::ERR_WIDTHTOOSMALL;
               break;
             }
             if (f <= ftest1 && std::abs(dg) <= config.gtol * (-dginit))
-            { /* The sufficient decrease condition 
+            { 
+              /* The sufficient decrease condition 
                  and the directional derivative condition hold. */
               state = status::SUCCESS;
               break;

@@ -92,12 +92,16 @@ energy::interface_base * energy::interfaces::aco::aco_ff::move (coords::Coordina
 // initialize using coordinates pointer
 
 // update structure (account for topology or rep change)
+//
+// In this function there is a pointer to coords. 
+// As coords has a pointer to energy, this is recursive and should be removed in the future
 void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
 {
   if (!skip_topology) 
   {
     std::vector<std::size_t> types;
-    for (auto atom : (*coords).atoms()) scon::sorted::insert_unique(types, atom.energy_type());
+    for (auto atom : (*coords).atoms()) 
+      scon::sorted::insert_unique(types, atom.energy_type());
     cparams = tp.contract(types);
     refined.refine((*coords), cparams);
   }
@@ -186,7 +190,6 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::TORSION];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::VDW];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::CHARGE];
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::SOLVATE];
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << energy;
   std::size_t const IAS(coords->interactions().size());

@@ -61,16 +61,6 @@ namespace scon
       m_x(static_cast<T>(v.x())), 
       m_y(static_cast<T>(v.y())),
       m_z(static_cast<T>(v.z())) { }
-    
-    //template<class U>
-    //explicit operator c3<U>() const
-    //{
-    //  return c3<U>(
-    //    static_cast<U>(m_x),
-    //    static_cast<U>(m_y),
-    //    static_cast<U>(m_z)
-    //  );
-    //}
 
     /*!
     *
