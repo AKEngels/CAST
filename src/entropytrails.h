@@ -121,6 +121,114 @@ float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMi
 
 }
 
+struct GMM_data
+{
+  unsigned int numberOfDimensions = 0u;
+  unsigned int numberOfGaussians = 0u;
+  std::vector<double> weights;
+  std::vector<Matrix_Class> mean;
+  std::vector<Matrix_Class> covariance;
+  GMM_data() {};
+  GMM_data(std::string name)
+  {
+
+    std::ifstream gmm_stream(name, std::ios::in);
+    std::string line;
+    
+    //int dimensions = std::stoi(line.substr(13, 2));
+    while (std::getline(gmm_stream, line))
+    {
+      if (line.find("Number of Gaussians") != std::string::npos)
+      {
+        numberOfGaussians = static_cast<size_t>(stoi(line.substr(21)));
+        weights = std::vector<double>(numberOfGaussians, 0.);
+        continue;
+      }
+      if (line.find("Number of Dimensions: ") != std::string::npos)
+      {
+        numberOfDimensions = static_cast<size_t>(stoi(line.substr(22)));
+        mean = std::vector<Matrix_Class>(numberOfGaussians, Matrix_Class(numberOfDimensions, 1u, 0.));
+        covariance = std::vector<Matrix_Class>(numberOfGaussians, Matrix_Class(numberOfDimensions, numberOfDimensions, 0u));
+        continue;
+      }
+      if (line.find("Mean of Gaussian ") != std::string::npos)
+      {
+        std::getline(gmm_stream, line);
+        std::istringstream iss(line);
+        
+        for (unsigned int i = 0u; i < this->numberOfDimensions; i++)
+        {
+          std::string s;
+          std::getline(iss, s, ' ');
+          mean.at(0)(i, 0) = std::stod(s);
+        }
+        for (unsigned int j = 1u; j < this->numberOfGaussians; j++)
+        {
+          std::getline(gmm_stream, line);
+          std::getline(gmm_stream, line);
+          iss = std::istringstream(line);
+          for (unsigned int i = 0u; i < this->numberOfDimensions; i++)
+          {
+            std::string s;
+            std::getline(iss, s, ' ');
+            while (s == std::string())
+            {
+              std::getline(iss, s, ' ');
+            }
+            mean.at(j)(i, 0) = std::stod(s);
+          }
+        }
+        continue;
+      }
+      if (line.find("Covariance Matrix of Gaussian ") != std::string::npos)
+      {
+        for (unsigned int j = 0u; j < covariance.at(0).rows(); j++)
+        {
+          for (unsigned int k = j; k < covariance.at(0).cols(); k++)
+          {
+            std::getline(gmm_stream, line);
+            line = line.substr(6);
+            covariance.at(0)(j, k) = std::stod(line);
+            covariance.at(0)(k, j) = covariance.at(0)(j, k);
+          }
+        }
+
+        for (unsigned int i = 1u; i < this->numberOfGaussians; i++)
+        {
+          std::getline(gmm_stream, line);
+          std::getline(gmm_stream, line);
+          std::getline(gmm_stream, line);
+          for (unsigned int j = 0u; j < covariance.at(i).rows(); j++)
+          {
+            for (unsigned int k = j; k < covariance.at(i).cols(); k++)
+            {
+              std::getline(gmm_stream, line);
+              line = line.substr(6);
+              covariance.at(i)(j, k) = std::stod(line);
+              covariance.at(i)(k, j) = covariance.at(i)(j, k);
+            }
+          }
+        }
+        continue;
+      }
+      if (line.find("Weight of Gaussian ") != std::string::npos)
+      {
+        for (unsigned int i = 0u; i < this->numberOfGaussians; i++)
+        {
+          if (line == std::string())
+            break;
+
+          weights.at(i) = std::stod(line.substr(line.find(":") + 1u));
+          if (!std::getline(gmm_stream, line))
+          {
+            break;
+          }
+        }
+        continue;
+      }
+    }
+  }
+};
 
 
 
@@ -131,6 +239,8 @@ float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMi
 class ProbabilityDensity
 {
 public:
+  GMM_data gmmdatafromfile;
+
   ProbabilityDensity(int ident_) : identif(ident_)
   {
     if (ident_ == 0)
@@ -513,6 +623,153 @@ public:
       PDFrange = std::make_shared<std::pair<double, double>>(-4e-11, 4e-11);
       this->m_identString = "GMM1";
     }
+    else if (ident_ == 8)
+    {
+      // 10 GMM fittet to MD of tridecalanine dim 1,2,3
+      this->dimension =2;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() !=2)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        std::vector<double> weight(10u, 0.);
+        std::vector<Matrix_Class> mean(10u, Matrix_Class(x.size(), 1u, 0.));
+        std::vector<Matrix_Class> covariance(10u, Matrix_Class(2, 2, 0u));
+
+        weight[0] = 0.296898      ;
+        weight[1] = 0.11709     ;
+        weight[2] = 0.00502877  ;
+        weight[3] = 0.186937    ;
+        weight[4] = 0.0422829   ;
+        weight[5] = 0.0138878   ;
+        weight[6] = 0.000274472 ;
+        weight[7] = 0.0144979   ;
+        weight[8] = 0.286551    ;
+        weight[9] = 0.0365531   ;
+
+        mean[0](0, 0) = 4.78981e-12 ; mean[0](1, 0) = -1.36579e-12   ;
+        mean[1](0, 0) = 5.51715e-12; mean[1](1, 0) = 4.76378e-12   ;
+        mean[2](0, 0) = 4.21048e-12; mean[2](1, 0) = -1.14226e-11  ;
+        mean[3](0, 0) = -2.85438e-12; mean[3](1, 0) = -1.61024e-12 ;
+        mean[4](0, 0) = 9.96989e-12; mean[4](1, 0) = -8.20098e-12  ;
+        mean[5](0, 0) = 3.36488e-12; mean[5](1, 0) = 1.33293e-11   ;
+        mean[6](0, 0) = 4.71386e-1;   mean[6](1, 0) = 1.65182e-11  ;
+        mean[7](0, 0) = 1.44319e-11; mean[7](1, 0) = -7.62714e-12  ;
+        mean[8](0, 0) = 1.15107e-11; mean[8](1, 0) = -4.21604e-13  ;
+        mean[9](0, 0) = 6.82143e-12; mean[9](1, 0) = 1.21607e-11   ;
+
+        covariance[0](0, 0) = 1.11731e-23  ;
+          covariance[0](1, 0) = 2.00613e-24;
+          covariance[0](1, 1) = 1.15219e-23;
+        covariance[0](0, 1) = covariance[0](1, 0);
+
+        covariance[1](0, 0) = 2.47926e-23;
+          covariance[1](1, 0) = -4.84533e-24 ;
+          covariance[1](1, 1) = 8.67598e-24  ;
+        covariance[1](0, 1) = covariance[1](1, 0);
+
+        covariance[2](0, 0) = 5.57373e-24     ;
+          covariance[2](1, 0) = -1.0595e-24   ;
+          covariance[2](1, 1) = 8.4526e-25    ;
+        covariance[2](0, 1) = covariance[2](1, 0);
+
+        covariance[3](0, 0) = 5.61383e-24;
+        covariance[3](1, 0) = 3.79572e-24;
+        covariance[3](1, 1) = 9.50937e-24;
+        covariance[3](0, 1) = covariance[3](1, 0);
+
+        covariance[4](0, 0) = 7.01799e-24;
+        covariance[4](1, 0) = -1.14537e-25;
+        covariance[4](1, 1) = 3.25432e-24;
+        covariance[4](0, 1) = covariance[4](1, 0);
+
+        covariance[5](0, 0) = 3.02747e-24;
+        covariance[5](1, 0) = -7.55053e-25;
+        covariance[5](1, 1) = 2.16706e-24;
+        covariance[5](0, 1) = covariance[5](1, 0);
+
+        covariance[6](0, 0) = 5.70972e-25;
+        covariance[6](1, 0) = -1.83951e-25;
+        covariance[6](1, 1) = 2.22965e-25;
+        covariance[6](0, 1) = covariance[6](1, 0);
+
+        covariance[7](0, 0) = 1.90793e-24;
+        covariance[7](1, 0) = 1.96845e-24;
+        covariance[7](1, 1) = 5.79567e-24;
+        covariance[7](0, 1) = covariance[7](1, 0);
+
+        covariance[8](0, 0) = 5.49353e-24;
+        covariance[8](1, 0) = -1.62023e-24;
+        covariance[8](1, 1) = 6.07475e-24;
+        covariance[8](0, 1) = covariance[8](1, 0);
+
+        covariance[9](0, 0) = 1.31776e-23;
+        covariance[9](1, 0) = -3.69162e-24;
+        covariance[9](1, 1) = 4.42914e-24;
+        covariance[9](0, 1) = covariance[9](1, 0);
+
+        double returnValue = 0.;
+        for (unsigned int i = 0u; i < 10; i++)
+        {
+          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
+          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+        }
+
+        return returnValue;
+      };
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
+      PDFrange = std::make_shared<std::pair<double, double>>(-9e-11, 9e-11);
+      this->m_identString = "GMM3";
+    }
+    else if (ident_ == 9)
+    {
+      // Read GMM from file
+      gmmdatafromfile = GMM_data("gmmfile.dat");
+      std::cout << "Read gmmfile.dat with " << gmmdatafromfile.numberOfDimensions << " dimensions and " << gmmdatafromfile.numberOfGaussians << " gaussians." << std::endl;
+      this->dimension = gmmdatafromfile.numberOfDimensions;
+      // Multivariate gaussian
+      PDF = [&, this](std::vector<double> const& x)
+      {
+        if (x.size() != this->dimension)
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+        Matrix_Class input(x.size(), 1u);
+        for (unsigned int i = 0u; i < x.size(); i++)
+          input(i, 0u) = x.at(i);
+
+        unsigned int const numberOfGaussians = gmmdatafromfile.numberOfGaussians;
+
+        std::vector<double> weight = gmmdatafromfile.weights;
+        std::vector<Matrix_Class> mean = gmmdatafromfile.mean;
+        std::vector<Matrix_Class> covariance = gmmdatafromfile.covariance;
+
+        long double returnValue = 0.;
+        for (unsigned int i = 0u; i < numberOfGaussians; i++)
+        {
+          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+          const long double cov_determ = covariance[i].determ();
+          const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+
+          const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+          if (addition != addition)
+            continue;
+          returnValue += addition;
+        }
+
+        return returnValue;
+      };
+      maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.)) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
+      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
+      PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
+      this->m_identString = "GMMfile";
+    }
   };
 
 
@@ -554,6 +811,9 @@ public:
       if (inRange)
       {
         draws.push_back(drawUnifWithRange);
+
+        if (draws.size() % 25 == 0)
+          std::cout << "Number of draws: " << draws.size() << std::endl;
       }
       else
       {
@@ -1110,6 +1370,39 @@ public:
     transpose(drawMatrix);
     this->calculatedEntropyMeanFaivishevskyEucledean = mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm);
     this->calculatedEntropyMeanFaivishevskyMaximum = mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm);
+  }
+
+  void histogramProbabilityDensity(size_t numberOFBins, std::string filename, std::vector<size_t> dimensionsToBeUsed = std::vector<size_t>())
+  {
+    using namespace histo;
+    std::cout << "Writing histogrammed probability density to file " << filename << "." << std::endl;
+
+    std::vector<size_t> dimensionsToBeUsedInHistogramming = dimensionsToBeUsed;
+    if (dimensionsToBeUsedInHistogramming == std::vector<size_t>())
+    {
+      for (unsigned int i = 0u; i < this->dimension; i++)
+        dimensionsToBeUsedInHistogramming.push_back(i);
+    }
+    DimensionalHistogram<float_type> *histograms_p;
+    const size_t histogramBins = numberOFBins;
+     
+    histograms_p = new DimensionalHistogram<float_type>((size_t)dimensionsToBeUsedInHistogramming.size(), histogramBins);
+
+    //Filling the histogram
+    for (size_t j = 0u; j < this->drawMatrix.rows(); j++)
+    {
+      std::vector<float_type> temp(dimensionsToBeUsedInHistogramming.size());
+      for (size_t i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
+      {
+        temp[i] = drawMatrix(j,dimensionsToBeUsedInHistogramming[i]);
+      }
+      histograms_p->add_value(temp);
+    }
+
+    histograms_p->distribute();
+    histograms_p->writeProbabilityDensity("entropytrails_" + filename);
+    histograms_p->writeAuxilaryData("auxfile_entropytrails_" + filename);
+    delete histograms_p;
   }
 
   void calculate()
