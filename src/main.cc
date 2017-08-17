@@ -623,6 +623,14 @@ int main(int argc, char **argv)
 
 #ifdef CAST_USE_ARMADILLO
       // Create gaussian mixture from PCA_modes
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 150);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 125);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 100);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 75);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 50);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 40);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 30);
+      pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 20);
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 10);
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 3);
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 5);

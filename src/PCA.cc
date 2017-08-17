@@ -706,12 +706,16 @@ namespace pca
     }
 
     Matrix_Class means = model.means;
+
+    std::cout << "Number of Gaussians: " << means.cols() << "\n";
+    std::cout << "Number of Dimensions: " << dimensions.size() << "\n\n";
+
     for (unsigned int i = 0u; i < means.cols(); i++)
     {
       std::cout << "Mean of Gaussian " << i << ":\n";
       for (unsigned int j = 0u; j < means.rows(); j++)
       {
-        std::cout << means(j, i) << " ";
+        std::cout << std::setw(10) << means(j, i) << " ";
       }
       std::cout << "\n";
     }
@@ -724,7 +728,7 @@ namespace pca
       {
         for (unsigned int k = j; k < current.cols(); k++)
         {
-          std::cout << j << "," << k << " : " << current(j, k) << "\n";
+          std::cout << j << "," << k << " : " << std::setw(10) << current(j, k) << "\n";
         }
       }
       std::cout << "\n" << "\n";
@@ -733,7 +737,7 @@ namespace pca
     for (unsigned int i = 0u; i < means.cols(); i++)
     {
       std::cout << "Weight of Gaussian " << i << ": ";
-      std::cout << model.hefts(i) << "\n";
+      std::cout << std::setw(10) << model.hefts(i) << "\n";
     }
     std::cout << "\n";
     std::cout << "\n";
