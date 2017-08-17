@@ -1,4 +1,4 @@
-#ifndef coords_h_guard_
+﻿#ifndef coords_h_guard_
 #define coords_h_guard_  
 
 #include <vector>
@@ -851,7 +851,25 @@ namespace coords
       Representation_3D const &b, double const x = 0.35) const;
 
     bool is_equal_structure(coords::PES_Point const &a, coords::PES_Point const &b) const;
-
+    //returns if the atom is terminal for every atom
+    std::vector<bool> const terminal();
+    //returns 1 for terminal atoms, 2 for atoms that are terminal when ignoring actually terminal atoms, etc.
+    std::vector<size_t> const terminal_enum();
+    //returns a Coordinates object reduced by all atoms with bool "false"
+    coords::Coordinates get_red_replic(std::vector<bool> criterion);
+    //for changing atoms list. Only to be used with replics of importent coords::Coordinates objects
+    Atoms & atoms_changable()
+    {
+      return m_atoms;
+    }
+    Atom & atoms_changeable(size_type const index)
+    {
+      return m_atoms.atom(index);
+    }
+    //adapts indexation of coords object to initially read structure
+    void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
+      std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
+      coords::Coordinates const *cPtr);
   };
 
   std::ostream& operator<< (std::ostream &stream, Coordinates const & coord);

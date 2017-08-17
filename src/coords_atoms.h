@@ -1,4 +1,4 @@
-#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
+﻿#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 #define coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 
 #pragma once
@@ -220,8 +220,19 @@ namespace coords
     void swap(Atom &r);
 
     friend std::ostream& operator<< (std::ostream &stream, Atom const & atom);
-
+    friend bool operator== (Atom const &lhs, Atom const &rhs)
+    {
+      if (lhs.m_mass == rhs.m_mass)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
   };
+
 
   inline void swap(Atom &a, Atom &b)
   {
@@ -348,6 +359,21 @@ namespace coords
     // @todo document return vlaue
     std::size_t intern_of_dihedral(std::size_t a, std::size_t b, std::size_t c, std::size_t d) const;
     friend std::ostream& operator<< (std::ostream &stream, Atoms const & atoms);
+    friend bool operator== (Atoms const &lhs, Atoms const &rhs)
+    {
+      bool ret = true;
+      for (size_t i = 0; i < lhs.size(); ++i)
+      {
+        ret = ret && lhs.atom(i) == rhs.atom(i);
+      }
+      return ret;
+    }
+
+    friend bool operator!= (Atoms const &lhs, Atoms const &rhs)
+    {
+      return !operator== (lhs, rhs);
+    }
+
   };
 
   inline void swap(Atoms &a, Atoms &b)
