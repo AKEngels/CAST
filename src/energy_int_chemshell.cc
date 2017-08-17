@@ -26,7 +26,7 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 			throw std::runtime_error("Failed to copy the given PDB file!");
 		}
 	}
-	if (Config::get().energy.chemshell.optional_frcmod == "" || Config::get().energy.chemshell.optional_prmtop == "") {
+	if (Config::get().energy.chemshell.optional_inpcrd == "" || Config::get().energy.chemshell.optional_prmtop == "") {
 		call_tleap();
 	}
 	else{
