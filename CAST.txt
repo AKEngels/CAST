@@ -934,7 +934,7 @@ CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransition
 
 #Number of layers
 
-LayDlayers                     5
+LayDlayers                     3
 
 #Number of molecules deleted per layer
 
@@ -947,6 +947,18 @@ LayDaxis                       y
 #How far apart should they be
 
 LayDdistance                   5.0
+
+#Shall layers of a second moleculetype be added
+
+LayDhet_struc                   1
+
+LayDhet_name
+
+layDhet_distance                5.0
+
+layDhet_layers                  4
+
+layDhet_het_del_numbers         1
 
 ####################################
 #                                  #

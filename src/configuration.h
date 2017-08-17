@@ -1164,9 +1164,11 @@ namespace config
 
   struct layd
   {
-    std::size_t amount, del_amount;
+    std::size_t amount, del_amount, sec_amount, sec_del_amount;
     char        laydaxis;
-    double      layddist;
+    double      layddist, sec_layddist;
+    bool        hetero_option;
+    std::string layd_secname;
   };
 
   //////////////////////////////////////

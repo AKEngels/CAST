@@ -792,18 +792,14 @@ int main(int argc, char **argv)
         md::simulation mdObject(coords);
         mdObject.run();
 
-        for (std::size_t i = 0; i < Config::get().layd.amount; i++)//Change variables so they are specific to the task || Determination how many layers are added
+        for (std::size_t i = 0; i < Config::get().layd.amount; i++)
         {
-
           add_coords = inp_add_coords;
           add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
 
-          //§§§§§§§§§§§§§§§§§§
-          coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);//Change variables so they are specific to the task
-                                                                                                                            //§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§
-
-                                                                                                                            //fix all atoms already moved by md
-          for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)
+          coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
+                                                                                                                            
+          for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)//fix all atoms already moved by md
           {
             coords.set_fix(i, true);
           }
@@ -812,6 +808,33 @@ int main(int argc, char **argv)
           if (Config::get().md.pre_optimize) coords.o();
           md::simulation mdObject(coords);
           mdObject.run();
+        }
+
+        //option if a heterogenous structure shall be created
+        if (Config::get().layd.hetero_option == true)
+        {
+          std::unique_ptr<coords::input::format> sec_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates sec_coords(sec_strukt_uptr->read(Config::get().layd.layd_secname));
+          coords::Coordinates add_sec_coords;
+
+          for (std::size_t i = 0; i < Config::get().layd.sec_amount; i++)
+          {
+            add_sec_coords = sec_coords;
+            add_sec_coords = periodicsHelperfunctions::delete_random_molecules(add_sec_coords, Config::get().layd.sec_del_amount);
+
+            coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
+
+            for (std::size_t i = 0; i < (coords.size() - add_sec_coords.size()); i++)//fix all atoms already moved by md
+            {
+              coords.set_fix(i, true);
+            }
+
+            // Molecular Dynamics Simulation
+            if (Config::get().md.pre_optimize) coords.o();
+            md::simulation mdObject(coords);
+            mdObject.run();
+          }
+
         }
 
         break;
