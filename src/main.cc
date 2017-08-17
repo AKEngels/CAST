@@ -841,8 +841,21 @@ int main(int argc, char **argv)
         probdens);
 
       calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
+      if (calculatedDistribution.dimension <= 2)
+      {
+        calculatedDistribution.histogramProbabilityDensity(60, "ident_" + std::to_string(Config::get().entropytrails.ident));
+      }
+      else if (calculatedDistribution.dimension == 3)
+      {
+        calculatedDistribution.histogramProbabilityDensity(20, "dim12_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 1});
+        calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{1, 2});
+        calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 2});
+      }
+       
+
       calculatedDistribution.calculate();
       calculatedDistribution.writeToFile();
+
     }
     default:
     {
