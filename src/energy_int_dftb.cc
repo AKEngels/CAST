@@ -134,11 +134,11 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("DFTB2_cast"); //import module 
+    modul = PyImport_ImportModule("calc_E"); //import module 
 
     if(modul) 
         { 
-        funk = PyObject_GetAttrString(modul, "main"); //create function
+        funk = PyObject_GetAttrString(modul, "calc_energies"); //create function
         prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
@@ -150,8 +150,8 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         e_bs = std::stod(result_vec[0])*627.503; 
         e_coul = std::stod(result_vec[1])*627.503;
         e_rep = std::stod(result_vec[3])*627.503;
-        e_lr = std::stod(result_vec[4])*627.503;
-        e_tot = std::stod(result_vec[5])*627.503;
+        e_tot = std::stod(result_vec[4])*627.503;
+        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
         
         //delete PyObjects
         Py_DECREF(prm); 
@@ -161,7 +161,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         } 
     else 
     {
-        printf("Fehler: Modul DFTB2_cast nicht gefunden\n"); 
+        printf("ERROR: module calc_E not found\n"); 
         std::exit(0);
     }
     std::remove("tmp_struc.xyz"); // delete file
@@ -215,7 +215,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     } 
     else 
     {
-      printf("Fehler: Modul LR_TDDFTB_cast nicht gefunden\n"); 
+      printf("ERROR: module LR_TDDFTB_cast not found\n"); 
       std::exit(0);
     }
 
