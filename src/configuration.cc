@@ -582,7 +582,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "pdb") {
 		  Config::set().energy.chemshell.extra_pdb = value_string;
 	  }
-	  else if (sub_option == "frcmod") {
+	  else if (sub_option == "inpcrd") {
 		  Config::set().energy.chemshell.optional_inpcrd = value_string;
 	  }
 	  else if (sub_option == "prmtop") {
