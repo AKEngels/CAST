@@ -239,9 +239,9 @@ namespace periodicsHelperfunctions
     case 'x':
     {
       double maxx(0.);
-      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      for (std::size_t i = 0u; i < inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
       {
-        if (add_inputStructure.xyz(i).x() > maxx) maxx = add_inputStructure.xyz(i).x();
+        if (inputStructure.xyz(i).x() > maxx) maxx = inputStructure.xyz(i).x();
       }
       displ = maxx + idist;
 
@@ -273,9 +273,9 @@ namespace periodicsHelperfunctions
     case 'y':
     {
       double maxy(0.);
-      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      for (std::size_t i = 0u; i < inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
       {
-        if (add_inputStructure.xyz(i).y() > maxy) maxy = add_inputStructure.xyz(i).y();
+        if (inputStructure.xyz(i).y() > maxy) maxy = inputStructure.xyz(i).y();
       }
       displ = maxy + idist;
 
@@ -307,9 +307,9 @@ namespace periodicsHelperfunctions
     case 'z':
     {
       double maxz(0.);
-      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      for (std::size_t i = 0u; i < inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
       {
-        if (add_inputStructure.xyz(i).z() > maxz) maxz = add_inputStructure.xyz(i).z();
+        if (inputStructure.xyz(i).z() > maxz) maxz = inputStructure.xyz(i).z();
       }
       displ = maxz + idist;
 
