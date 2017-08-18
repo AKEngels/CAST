@@ -741,7 +741,7 @@ int main(int argc, char **argv)
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       break;
 	  }
-      case config::tasks::XB_INTEFACE_CREATION:
+      case config::tasks::XB_INTERFACE_CREATION:
       {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
@@ -749,8 +749,16 @@ int main(int argc, char **argv)
         //creating second coords object
         std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
         coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+        coords::Coordinates newCoords(coords);
 
-        coords = interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+ 
+        newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+
+        coords = newCoords;
+
+        std::ofstream new_structure(Config::set().general.outputFilename, std::ios_base::out);
+        new_structure << coords;
+
         break;
       }
       case config::tasks::XB_CENTER:
@@ -792,12 +800,19 @@ int main(int argc, char **argv)
         md::simulation mdObject(coords);
         mdObject.run();
 
-        for (std::size_t i = 0; i < Config::get().layd.amount; i++)
+        for (std::size_t i = 1; i < Config::get().layd.amount; i++)
         {
           add_coords = inp_add_coords;
           add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
 
-          coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
+          for (auto & pes : *ci)
+          {
+            newCoords.set_xyz(pes.structure.cartesian);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+            pes = newCoords.pes();
+          }
+          newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+          coords = newCoords;
                                                                                                                             
           for (std::size_t i = 0; i < (coords.size() - add_coords.size()); i++)//fix all atoms already moved by md
           {
@@ -822,7 +837,14 @@ int main(int argc, char **argv)
             add_sec_coords = sec_coords;
             add_sec_coords = periodicsHelperfunctions::delete_random_molecules(add_sec_coords, Config::get().layd.sec_del_amount);
 
-            coords = interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
+            for (auto & pes : *ci)
+            {
+              newCoords.set_xyz(pes.structure.cartesian);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+              pes = newCoords.pes();
+            }
+            newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+            coords = newCoords;
 
             for (std::size_t i = 0; i < (coords.size() - add_sec_coords.size()); i++)//fix all atoms already moved by md
             {
@@ -836,8 +858,7 @@ int main(int argc, char **argv)
           }
 
         }
-
-        break;
+      break;
       }
 
     default:

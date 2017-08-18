@@ -160,7 +160,7 @@ namespace periodicsHelperfunctions
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
           }
         }//k
-      }
+      }//if-clause end
     }//i
     coords::Coordinates newCoords;
     coords::PES_Point x(positions);
@@ -201,4 +201,154 @@ namespace periodicsHelperfunctions
     return new_coords;
   }
 
+  coords::Coordinates interface_creation(char iaxis, double idist, coords::Coordinates const& inputStructure, coords::Coordinates const& add_inputStructure)
+  {
+    std::size_t origN = inputStructure.xyz().size();
+    std::size_t Nges = origN + add_inputStructure.xyz().size();//Number of atoms in new structure file
+
+    coords::Atoms const& atoms = inputStructure.atoms();
+    coords::Atoms const& add_atoms = add_inputStructure.atoms();
+    coords::Atoms truncatedAtoms;
+    coords::Representation_3D positions;
+    std::vector<std::size_t> new_index_of_atom((inputStructure.atoms().size() + add_inputStructure.atoms().size()), 0u);
+
+    for (std::size_t i = 0u; i < inputStructure.atoms().molecules().size(); i++) //input_Structure is broken down
+    {
+      for (std::vector<coords::Atom>::size_type j = 0u; j < atoms.molecule(i).size(); ++j)
+      {
+        truncatedAtoms.add(inputStructure.atoms(atoms.atomOfMolecule(i, j)));
+        positions.push_back(inputStructure.xyz(atoms.atomOfMolecule(i, j)));
+        new_index_of_atom.at(atoms.atomOfMolecule(i, j)) = truncatedAtoms.size() - 1u;
+      }//j
+      unsigned int helperIterator = 0u;
+      for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
+      {
+        for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
+        {
+          truncatedAtoms.atom(k).detach_from(bonding_partner);
+          truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
+        }
+      }//k
+    }//i
+
+    double displ; //displacement of atoms from add_coords in new interface
+    coords::Cartesian_Point tmp_cart_pnt;
+
+    switch (iaxis)
+    {
+    case 'x':
+    {
+      double maxx(0.);
+      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      {
+        if (add_inputStructure.xyz(i).x() > maxx) maxx = add_inputStructure.xyz(i).x();
+      }
+      displ = maxx + idist;
+
+      for (std::size_t i = 0u; i < add_inputStructure.atoms().molecules().size(); i++) //add_input_Structure is broken down
+      {
+        for (std::vector<coords::Atom>::size_type j = 0u; j < add_atoms.molecule(i).size(); ++j)
+        {
+          truncatedAtoms.add(add_inputStructure.atoms(add_atoms.atomOfMolecule(i, j)));
+          tmp_cart_pnt.x() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).x() + displ;
+          tmp_cart_pnt.y() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).y();
+          tmp_cart_pnt.z() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).z();
+          positions.push_back(tmp_cart_pnt);
+          new_index_of_atom.at(add_atoms.atomOfMolecule(i, j) + origN) = truncatedAtoms.size() - 1u;//to old index of second structure add size of first structure so 
+        }//j
+        unsigned int helperIterator = 0u;
+        for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
+        {
+          for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
+          {
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
+          }
+        }//k
+      }//i
+
+      break;
+    }//x end
+
+    case 'y':
+    {
+      double maxy(0.);
+      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      {
+        if (add_inputStructure.xyz(i).y() > maxy) maxy = add_inputStructure.xyz(i).y();
+      }
+      displ = maxy + idist;
+
+      for (std::size_t i = 0u; i < add_inputStructure.atoms().molecules().size(); i++) //add_input_Structure is broken down
+      {
+        for (std::vector<coords::Atom>::size_type j = 0u; j < add_atoms.molecule(i).size(); ++j)
+        {
+          truncatedAtoms.add(add_inputStructure.atoms(add_atoms.atomOfMolecule(i, j)));
+          tmp_cart_pnt.x() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).x();
+          tmp_cart_pnt.y() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).y() + displ;
+          tmp_cart_pnt.z() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).z();
+          positions.push_back(tmp_cart_pnt);
+          new_index_of_atom.at(add_atoms.atomOfMolecule(i, j) + origN) = truncatedAtoms.size() - 1u;//to old index of second structure add size of first structure so 
+        }//j
+        unsigned int helperIterator = 0u;
+        for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
+        {
+          for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
+          {
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
+          }
+        }//k
+      }//i
+
+      break;
+    }//y end
+
+    case 'z':
+    {
+      double maxz(0.);
+      for (std::size_t i = 0u; i < add_inputStructure.xyz().size(); i++) //loop to find biggest x value in standart input
+      {
+        if (add_inputStructure.xyz(i).z() > maxz) maxz = add_inputStructure.xyz(i).z();
+      }
+      displ = maxz + idist;
+
+      for (std::size_t i = 0u; i < add_inputStructure.atoms().molecules().size(); i++) //add_input_Structure is broken down
+      {
+        for (std::vector<coords::Atom>::size_type j = 0u; j < add_atoms.molecule(i).size(); ++j)
+        {
+          truncatedAtoms.add(add_inputStructure.atoms(add_atoms.atomOfMolecule(i, j)));
+          tmp_cart_pnt.x() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).x();
+          tmp_cart_pnt.y() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).y();
+          tmp_cart_pnt.z() = add_inputStructure.xyz(add_atoms.atomOfMolecule(i, j)).z() + displ;
+          positions.push_back(tmp_cart_pnt);
+          new_index_of_atom.at(add_atoms.atomOfMolecule(i, j) + origN) = truncatedAtoms.size() - 1u;//to old index of second structure add size of first structure so 
+        }//j
+        unsigned int helperIterator = 0u;
+        for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
+        {
+          for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
+          {
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
+          }
+        }//k
+      }//i
+
+      break;
+    }//z end
+
+    default:
+    {
+      throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
+      break;
+    }//default end
+    }//switch end
+
+    coords::Coordinates newCoords;
+    coords::PES_Point x(positions);
+
+    newCoords.init_in(truncatedAtoms, x, true);
+    return newCoords;
+  }
 }
