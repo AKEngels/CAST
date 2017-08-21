@@ -201,6 +201,11 @@ namespace periodicsHelperfunctions
     return new_coords;
   }
 
+  /** combine two structures
+  @param iaxis: dimension along which the structures are combined
+  @param idist: distance between structures
+  @param inputStructure: coords object containing structure
+  @param add_inputStructure: coords object containing second structure*/
   coords::Coordinates interface_creation(char iaxis, double idist, coords::Coordinates const& inputStructure, coords::Coordinates const& add_inputStructure)
   {
     std::size_t origN = inputStructure.xyz().size();
@@ -350,5 +355,47 @@ namespace periodicsHelperfunctions
 
     newCoords.init_in(truncatedAtoms, x, true);
     return newCoords;
+  }
+
+  /** create coords object for a single molecule from a coords object
+  @param inputStructure: coords object containing structure
+  @param index: index of molecule a coords_object is to be created for*/
+  coords::Coordinates monomer_structure(coords::Coordinates const& inputStructure, std::size_t index)
+  {
+    coords::Atoms truncatedAtoms;
+    coords::Representation_3D positions;
+    coords::Atoms const& atoms = inputStructure.atoms();
+    std::vector<std::size_t> molecule(atoms.molecule(index));
+    std::vector<std::size_t> new_index_of_atom(inputStructure.atoms().size(), 0u);
+    
+
+    if (index >= atoms.molecules().size())//check if a valid molecule is requested
+    {
+      throw std::logic_error("Index too big, strucutre contains not so many monomers.");
+    }
+    else
+    {
+      for (std::vector<coords::Atom>::size_type j = 0u; j < atoms.molecule(index).size(); ++j)
+      {
+        truncatedAtoms.add(inputStructure.atoms(atoms.atomOfMolecule(index, j)));
+        positions.push_back(inputStructure.xyz(atoms.atomOfMolecule(index, j)));
+        new_index_of_atom.at(molecule.at(j)) = truncatedAtoms.size() - 1u;
+      }//j
+      unsigned int helperIterator = 0u;
+      for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(index).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
+      {
+        for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(index, helperIterator)).bonds())
+        {
+          truncatedAtoms.atom(k).detach_from(bonding_partner);
+          truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
+        }
+      }//k
+
+      coords::Coordinates newCoords;
+      coords::PES_Point x(positions);
+
+      newCoords.init_in(truncatedAtoms, x, true);
+      return newCoords;
+    }
   }
 }
