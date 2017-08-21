@@ -276,6 +276,8 @@ std::ostream& coords::operator<< (std::ostream &stream, coords::Coordinates cons
     stream << coords::output::formats::tinker(coord);
   else if (Config::get().general.output == config::output_types::XYZ)
     stream << coords::output::formats::xyz(coord);
+  else if (Config::get().general.output == config::output_types::XYZ)
+    stream << coords::output::formats::xyz_dftb(coord);
   else if (Config::get().general.output == config::output_types::MOLDEN)
     stream << coords::output::formats::moldenxyz(coord);
   else if (Config::get().general.output == config::output_types::ZMATRIX)
@@ -388,6 +390,21 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
      stream << '\n';
+  }
+}
+
+void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
+{
+  std::size_t const N(ref.size());
+  stream << N << '\n';
+  stream << Config::set().general.inputFilename<<"\n";
+  for (std::size_t i(0U); i < N; ++i)
+  {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+      stream << '\n';
   }
 }
 

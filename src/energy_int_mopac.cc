@@ -615,7 +615,7 @@ void energy::interfaces::mopac::sysCallInterface::print_E(std::ostream &S) const
 {
   S << "Heat of Formation: ";
   S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << hof_kcal_mol;
-  S << "Total Energy:      ";
+  S << "Total Energy M:      ";
   S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_total;
   S << "Electronic Energy: ";
   S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_electron;

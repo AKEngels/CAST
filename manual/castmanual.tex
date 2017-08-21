@@ -281,9 +281,10 @@
 		\textbf{SAPT-FF} & internal &parameterfile and Spackman-input\\
 		\textbf{MOPAC} & external & MOPAC variables\\
 		\textbf{TeraChem} & external & TeraChem input\\
+		\textbf{DFTB} & external & path to DFTBaby\\
 	\end{tabularx}	\\~\\
 	\ifverbose
-	In contrast to the force fields, the \ac{MOPAC} and TeraChem interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
+	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
 	\fi
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -360,6 +361,37 @@ GAUSSIANpath            g09
 
 GAUSSIANdelete          1
 \end{lstlisting}
+
+\subsubsection{DFTB}
+
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
+
+\paragraph{Downloading and installing DFTBaby}\mbox{}\\
+
+If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
+
+In addition to python you also need the following:
+\begin{itemize}
+\item the python module numpy
+\item the python module scipy
+\item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
+\end{itemize}
+
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. Go to folder ``DFTBaby-\#\#\#/DFTB'', open the file DFTB2.py and add at the beginning of the file the following lines:
+\begin{lstlisting}
+import sys
+sys.path.append(``..'')
+\end{lstlisting}
+
+Now you should be able to run DFTBaby. Test it by opening a terminal in the folder ``DFTBaby-\#\#\#/DFTB'' and type \$python DFTB2.py --help. You can also try the benzene example from the project page.
+
+\paragraph{CAST setup for DFTBaby}\mbox{}\\
+
+To use DFTBaby out of CAST a few modifications are needed. So copy the files ``DFTB2\_cast.py'', ``utils\_cast.py'' and ``LR\_TDDFTB\_cast.py'' from the folder ``cast\textbackslash optional\_files\textbackslash DFTBaby-files'' to ``DFTBaby-\#\#\#/DFTB and the file ``RepulsivePotential\_cast.py'' to ``DFTBaby-\#\#\#/DFTB/RepulsivePotential''. Now CAST is ready for DFTB calculations.
+
+\paragraph{Run CAST with DFTB}\mbox{}\\
+
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``scf\_output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
