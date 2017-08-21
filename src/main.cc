@@ -795,16 +795,19 @@ int main(int argc, char **argv)
         newCoords.set_xyz(ci->structure(0u).structure.cartesian);
         coords = newCoords;
 
-        // Molecular Dynamics Simulation
-        if (Config::get().md.pre_optimize) coords.o();
-        md::simulation mdObject(coords);
-        mdObject.run();
+        for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
+        {
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject1(coords);
+          mdObject1.run();
+        }
 
         for (std::size_t i = 1; i < Config::get().layd.amount; i++)
         {
           add_coords = inp_add_coords;
           add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
-
+  
           for (auto & pes : *ci)
           {
             newCoords.set_xyz(pes.structure.cartesian);
@@ -821,8 +824,8 @@ int main(int argc, char **argv)
 
           // Molecular Dynamics Simulation
           if (Config::get().md.pre_optimize) coords.o();
-          md::simulation mdObject(coords);
-          mdObject.run();
+          md::simulation mdObject2(coords);
+          mdObject2.run();
         }
 
         //option if a heterogenous structure shall be created
@@ -858,7 +861,8 @@ int main(int argc, char **argv)
           }
 
         }
-      break;
+
+        break;
       }
 
     default:
