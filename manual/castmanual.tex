@@ -377,21 +377,24 @@ In addition to python you also need the following:
 \item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
 \end{itemize}
 
-Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. Go to folder ``DFTBaby-\#\#\#/DFTB'', open the file DFTB2.py and add at the beginning of the file the following lines:
-\begin{lstlisting}
-import sys
-sys.path.append(``..'')
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. 
+
+\paragraph{Fix bug in DFTBaby}\mbox{}\\
+
+There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
+\begin{lstlisting}[firstnumber=92]
+        else:
+				    self.dmax = max(reppot\_module.d)
+						self.tck = interpolate.splrep(reppot\_module.d, reppot_module.Vrep,s=0)
+						def smooth_tail(d,deriv=0)
+						    return 0.0
+				reppot\_module.d /= scaling
+				self.smooth_tail = smooth_tail
 \end{lstlisting}
-
-Now you should be able to run DFTBaby. Test it by opening a terminal in the folder ``DFTBaby-\#\#\#/DFTB'' and type \$python DFTB2.py --help. You can also try the benzene example from the project page.
-
-\paragraph{CAST setup for DFTBaby}\mbox{}\\
-
-To use DFTBaby out of CAST a few modifications are needed. So copy the files ``DFTB2\_cast.py'', ``utils\_cast.py'' and ``LR\_TDDFTB\_cast.py'' from the folder ``cast\textbackslash optional\_files\textbackslash DFTBaby-files'' to ``DFTBaby-\#\#\#/DFTB and the file ``RepulsivePotential\_cast.py'' to ``DFTBaby-\#\#\#/DFTB/RepulsivePotential''. Now CAST is ready for DFTB calculations.
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``scf\_output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
