@@ -97,7 +97,7 @@ public:
   double g_int(std::vector <scon::c3 <float> >  tx);
   void calc_shift(void);
   double dot_uneq(coords::Representation_3D const &a, coords::Representation_3D const &b);
-  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_to_Z_backbone(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dists, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_angles, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dihedrals, std::vector<size_t> backbone_indeces);
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> redundant_to_Z_backbone(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dists, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_angles, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dihedrals, std::vector<size_t> backbone_indeces);
   void write_gzmat(std::string const &filename, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &Z_matrix, coords::Coordinates const &coords) const;
 
   //Julians implementation
