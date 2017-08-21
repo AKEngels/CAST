@@ -378,6 +378,10 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 }
 
 std::string energy::interfaces::chemshell::sysCallInterface::trim_space_and_tabs(std::string const & str) {
+
+	if (str == "") {
+		return str;
+	}
 	auto const first = str.find_first_not_of(" \t");
 	auto const last = str.find_last_not_of(" \t");
 
