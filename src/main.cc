@@ -47,7 +47,6 @@
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
 #include "exciton_breakup.h"
-#include "interfcrea.h"
 #include "Center.h"
 #include "Couplings.h"
 #include "periodicCutout.h"
