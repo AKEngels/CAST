@@ -2749,7 +2749,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   std::vector<std::vector<std::vector<std::pair<std::vector<size_t>, double>>>> redundant_dists,
     redundant_angles,
     redundant_dihedrals;
-  std::vector<size_t> tömp;
+  std::vector<size_t> temporary;
 
   redundant_dists.resize(imgs);
   redundant_angles.resize(imgs);
@@ -2789,12 +2789,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     }
     for (size_t k = 0; k < involved_bonds[ANGLE][j].size(); ++k)
     {
-      tömp = { involved_bonds[ANGLE][j][k][1],
+      temporary = { involved_bonds[ANGLE][j][k][1],
         involved_bonds[ANGLE][j][k][0],
         involved_bonds[ANGLE][j][k][2] };
-      redundant_angles[0][j].push_back(std::make_pair(tömp,
+      redundant_angles[0][j].push_back(std::make_pair(temporary,
         anglevec_all[0][j][k]));
-      redundant_angles[imgs - 1][j].push_back(std::make_pair(tömp,
+      redundant_angles[imgs - 1][j].push_back(std::make_pair(temporary,
         anglevec_all[imgs - 1][j][k]));
     }
     for (size_t k = 0; k < involved_bonds[DIHEDRAL][j].size(); ++k)
@@ -2802,13 +2802,13 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       if (cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][1] - 1)
         && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][2] - 1)
         && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][3] - 1)) continue;
-      tömp = { involved_bonds[DIHEDRAL][j][k][2],
+      temporary = { involved_bonds[DIHEDRAL][j][k][2],
         involved_bonds[DIHEDRAL][j][k][0],
         involved_bonds[DIHEDRAL][j][k][1],
         involved_bonds[DIHEDRAL][j][k][3] };
-      redundant_dihedrals[0][j].push_back(std::make_pair(tömp,
+      redundant_dihedrals[0][j].push_back(std::make_pair(temporary,
         dihedralvec_all[0][j][k]));
-      redundant_dihedrals[imgs - 1][j].push_back(std::make_pair(tömp,
+      redundant_dihedrals[imgs - 1][j].push_back(std::make_pair(temporary,
         dihedralvec_all[imgs - 1][j][k]));
     }
   }
@@ -2878,14 +2878,14 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       {
         Z_matrices[i][j].resize(3);
 
-        tömp = { 0, N };
-        Z_matrices[i][j][0].first = tömp;
+        temporary = { 0, N };
+        Z_matrices[i][j][0].first = temporary;
 
-        tömp = { 0, N, N + 1 };
-        Z_matrices[i][j][1].first = tömp;
+        temporary = { 0, N, N + 1 };
+        Z_matrices[i][j][1].first = temporary;
 
-        tömp = { 0, N, N + 1, N + 2 };
-        Z_matrices[i][j][2].first = tömp;
+        temporary = { 0, N, N + 1, N + 2 };
+        Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][0].second = coords_ini.intern(j).radius()
           + (coords_final.intern(j).radius()
@@ -2909,11 +2909,11 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
         mega_temp = spherical(atom_B, atom_A, x_ref - atom_A, y_ref - atom_A);
 
-        tömp = { 1, 0, N };
-        Z_matrices[i][j][1].first = tömp;
+        temporary = { 1, 0, N };
+        Z_matrices[i][j][1].first = temporary;
 
-        tömp = { 1, 0, N, N + 1 };
-        Z_matrices[i][j][2].first = tömp;
+        temporary = { 1, 0, N, N + 1 };
+        Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
           + (double)(coords_final.intern(j).inclination()
@@ -2942,8 +2942,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
         mega_temp = spherical(atom_C, atom_B, atom_A - atom_B, x_ref - atom_B);
 
-        tömp = { 2, 1, 0, N };
-        Z_matrices[i][j][2].first = tömp;
+        temporary = { 2, 1, 0, N };
+        Z_matrices[i][j][2].first = temporary;
 
         Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
           + (double)(coords_final.intern(j).azimuth()
