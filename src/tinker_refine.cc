@@ -657,7 +657,7 @@ void tinker::refine::refined::build_pairs_direct()
     }
   }
 
-  if (Config::get().energy.cutoff > 500.0 || Config::get().energy.periodic)   // no linked cell algorithm
+  if (Config::get().energy.cutoff > 500.0 || Config::get().periodics.periodic)   // no linked cell algorithm
   {                                                    // if cutoff > 500 or periodic boundaries activated
     const std::size_t N = coords->size(), M = (N*N - N) / 2;
     for (std::size_t i(0u), row(1u), col(0u); i < M; ++i)
@@ -677,10 +677,10 @@ void tinker::refine::refined::build_pairs_direct()
     cells_type atmcells(
       coords->xyz(),
       Config::get().energy.cutoff,
-      Config::get().energy.periodic, Config::get().energy.pb_box, coords::float_type(0),
+      Config::get().periodics.periodic, Config::get().periodics.pb_box, coords::float_type(0),
       scon::linked::fragmentation::half);
     std::size_t const N = coords->size();
-    coords::Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.);
+    coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.);
     //#pragma omp parallel     // to be reactivated at some point in the future?
     for (std::size_t i = 0; i < N; ++i)
     {

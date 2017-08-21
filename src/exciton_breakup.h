@@ -58,22 +58,18 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   int full = 0;
   double max, zufall;
 
-  //////////////////// Definition der Konstanten  
-  double reorganisationsenergie_exciton, reorganisationsenergie_ladung, fullerenreorganisationsenergie, trappingrate, chargetransfertriebkraft,
-    rekombinationstriebkraft, temperatur, ct_reorganisation, rek_reorganisation, oszillatorstrength, wellenzahl;
 
-  ////////////////////////////////////// hier konstanten angeben ///////////////////////////////////////////////
-  reorganisationsenergie_exciton = 0.561; // SCS-CC2 wert: vorher 0.561
-  reorganisationsenergie_ladung = 0.194;
-  fullerenreorganisationsenergie = 0.178;
-  ct_reorganisation = 0.156;
-  trappingrate = 0.0000005;
-  chargetransfertriebkraft = 1.550;
-  rekombinationstriebkraft = -4.913;
-  rek_reorganisation = 0.184;
-  temperatur = 298;
-  oszillatorstrength = 0.0852;
-  wellenzahl = 28514.91;
+
+  ////////////////////////////////////// hier Parameter angeben ///////////////////////////////////////////////
+  double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc; //0.561; // SCS-CC2 wert: vorher 0.561
+  double reorganisationsenergie_ladung = Config::get().exbreak.ReorgE_ch;//0.194;
+  double fullerenreorganisationsenergie = Config::get().exbreak.ReorgE_nSC;//0.178;
+  double ct_reorganisation = Config::get().exbreak.ReorgE_ct;//0.156;
+  double chargetransfertriebkraft = Config::get().exbreak.ct_triebkraft;//1.550;
+  double rekombinationstriebkraft = Config::get().exbreak.rek_triebkraft;//-4.913;
+  double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
+  double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
+  double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
 
   ////////////////////////////////////
   double pi = 3.141592654;
@@ -408,7 +404,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     break;
 
   case 'y':
-    for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interace
+    for (i = 1; i < (pscanzahl + 1); i++)  //determining the maximal distance to interface
     { 
       if (y[i] > max) {
         max = y[i];
@@ -508,6 +504,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   for (k = 1; k < (index + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
   { 
     run << "k ist " << k << std::endl;
+   
     for (j = 1; j < 101; j++)   // schleife über durchläufe für den gleichen startpunkt " 101 durch 11 vertauscht"
     { 
       zeit = 0;
@@ -517,6 +514,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
       for (i = 1; i < (schritt + 1); i++)
       {
+
         if (zustand[k][j] == 'c')
         {
           // site energies berechnen
@@ -688,7 +686,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
           else if ((1 / r_summe - zeit_1) > (1 / r_summe_fulleren - zeit_2))
           {
-            run << "Fulleren hoppd firstt." << std::endl;
+            run << "Fulleren hopped first." << std::endl;
             if ((1 / r_summe_fulleren - zeit_2) > 0)
             {
               zeit = zeit + (1 / r_summe_fulleren - zeit_2);
@@ -759,18 +757,21 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             if (partner[punkt[i - 1]][h] < (pscanzahl + 1))
             {
               zufall = distribution0(engine);// generatinjg a second normal distributed random number
-
-              r_summe += rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+              double testrate = rate(coupling_exciton[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1), reorganisationsenergie_exciton);
+              r_summe += testrate;
               raten[h] = r_summe;
+              run << "rate   " << testrate << std::endl;
             }
 
             else if (partner[punkt[i - 1]][h] > (pscanzahl))
             {
               zufall = distribution0(engine);
               // coulomb energie berechnen
-              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);
-              r_summe += rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+              coulombenergy = coulomb(x, y, z, punkt[i - 1], partner[punkt[i - 1]][h], 1);  
+              double testrate =  rate(coupling_ct[punkt[i - 1]][partner[punkt[i - 1]][h]], (zufall - zufall1) + chargetransfertriebkraft + coulombenergy, ct_reorganisation);
+              r_summe += testrate;
               raten[h] = r_summe;
+              run << "coulomb  " << coulombenergy  << "  rate   " << testrate << std::endl;
             }
           } // end of h
 
@@ -802,7 +803,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               if (punkt[i] < (pscanzahl + 1))
               {
-
+                //run << "hopped to " << punkt[i] << std::endl;
               }
               else if (punkt[i] > pscanzahl)
               {
@@ -812,7 +813,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                 run << "Chargeseparation." << std::endl;
 
                 vel_ex[k][j] = length(x, y, z, punkt[0], punkt[i]) / zeit;
-                run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
+                //run << "Exzitonspeed " << vel_ex[k][j] * 1e-9 << std::endl;
                 ex_diss[k]++;
               }
 

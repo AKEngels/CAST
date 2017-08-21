@@ -264,7 +264,8 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 	}
 
   }
-  else throw std::logic_error("Reading the structure input file failed.");
+  else 
+    throw std::logic_error("Reading the structure input file failed.");
   return coord_object;
 }
 
@@ -296,7 +297,7 @@ static void tinker_dummy_to_stream(std::ostream & stream, std::size_t index, coo
 
 void coords::output::formats::tinker::to_stream(std::ostream & stream) const
 {
-  bool const pp = Config::get().energy.periodic && Config::get().energy.periodic_print;
+  bool const pp = Config::get().periodics.periodic && Config::get().periodics.periodic_print;
   std::size_t const N(ref.size());
   stream << (pp ? N + 8 : N) << '\n';
   //std::size_t index_width(1), tens(N);
@@ -324,7 +325,7 @@ void coords::output::formats::tinker::to_stream(std::ostream & stream) const
   }
   if (pp)
   {
-    coords::Cartesian_Point const halfbox = Config::get().energy.pb_box / 2.;
+    coords::Cartesian_Point const halfbox = Config::get().periodics.pb_box / 2.;
     tinker_dummy_to_stream(stream, N + 1, halfbox.x(), halfbox.y(), -halfbox.z());
     tinker_dummy_to_stream(stream, N + 2, -halfbox.x(), -halfbox.y(), -halfbox.z());
     tinker_dummy_to_stream(stream, N + 3, halfbox.x(), -halfbox.y(), -halfbox.z());

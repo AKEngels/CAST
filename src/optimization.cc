@@ -18,27 +18,26 @@ float const optimization::constants<float>::kB = 0.001987204118f;
 
 bool optimization::global::Tabu_List::tabu (coords::PES_Point const &point, coords::Coordinates const &co) const
 {
-  if (empty() || point.energy < (front().pes.energy-1.0)) 
+  if (this->empty() || point.energy < (front().pes.energy - 1.0)) 
   {
     return false;
   }
-  if ((back().pes.energy+1.0) < point.energy) 
+  if ((back().pes.energy + 1.0) < point.energy) 
   {
     return false;
   }
   double const low_bound(point.energy - 1.0), high_bound(point.energy + 1.0);
-  base_type::size_type const n = this->size();
-  for (base_type::size_type i(0u); i < n; ++i)
+  base_type::size_type const sizeOfTabuPointList = this->size();
+  for (base_type::size_type i(0u); i < sizeOfTabuPointList; ++i)
   {
     if ((*this)[i].pes.energy < high_bound && (*this)[i].pes.energy > low_bound)
     {
-      if (co.equal_structure((*this)[i].pes, point))
+      if (co.is_equal_structure((*this)[i].pes, point))
       {
         return true;
       }
     }
   }
-  //std::cout << "Did not find any structures in list to make it (" << point.energy << ") tabu\n";
   return false;
 }
 
@@ -174,6 +173,7 @@ optimization::global::optimizer::optimizer (
   coords::Ensemble_3d brokens;
   for (std::size_t kit = 0; kit < N; ++kit)
   {
+
     coordobj.set_xyz(initial_structures[kit].structure.cartesian);
     if (!minimized)
     {
@@ -190,6 +190,7 @@ optimization::global::optimizer::optimizer (
     {
       coordobj.set_pes(initial_structures[kit]);
     }
+
     min_status::T S(check_pes_of_coords());
     if (Config::get().general.verbosity > 1)
     {
@@ -201,6 +202,7 @@ optimization::global::optimizer::optimizer (
       }
     }
   }
+
   if (Config::get().general.verbosity > 1)
   {
     std::cout << '\n';
@@ -217,10 +219,14 @@ optimization::global::optimizer::optimizer (
       outputstream << coords::output::formats::tinker(coordobj);
     }
   }
+
   if (!found_new_minimum)
-  {
+  { 
+    std::cout << "No valid initial structure for global optimization.";
     throw std::runtime_error("No valid initial structure for global optimization.");
   }
+
+
 }
 
 
@@ -228,8 +234,8 @@ optimization::global::optimizer::min_status::T optimization::global::optimizer::
 {
   if (coordobj.pes().integrity)
   {
-    if (Config::get().optimization.global.delta_e > 0.0 && (!found_new_minimum ||
-      (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
+    if (Config::get().optimization.global.delta_e > 0.0 
+      && (!found_new_minimum || (coordobj.pes().energy - accepted_minima[gmin_index].pes.energy) < Config::get().optimization.global.delta_e))
     {
       updateRange(coordobj.pes());
     }
@@ -240,11 +246,13 @@ optimization::global::optimizer::min_status::T optimization::global::optimizer::
         return min_status::T::REJECT_STEREO;
       }
     }
-    else return min_status::T::REJECT_ENERGY;
+    else 
+      return min_status::T::REJECT_ENERGY;
   }
-  else return min_status::T::REJECT_BROKEN;
-  if (!tabulist.tabu(coordobj.pes(), coordobj) && 
-    !tabulist.has_superposition(coordobj.pes(), coordobj))
+  else 
+    return min_status::T::REJECT_BROKEN;
+
+  if (!tabulist.tabu(coordobj.pes(), coordobj) && !tabulist.has_superposition(coordobj.pes(), coordobj))
   {
     return new_minimum();
   }

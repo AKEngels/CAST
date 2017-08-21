@@ -158,7 +158,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const grad, bool const, bool const opt)
 {
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
-  auto in_string = id + ".out";
+  std::string in_string = id + ".out";
   if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB) { in_string = "FOR006"; remove("FOR012"); }
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   //std::size_t fixcounter(0);
@@ -168,14 +168,21 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   {
     std::string const alt_infile(std::string(id).append(".xyz.out"));
     remove(std::string(id).append(".xyz.arc").c_str());
-    if (Config::get().general.verbosity >= 3)
+    if (Config::get().general.verbosity > 4)
     {
       std::cout << "Input file '" << in_string << "' not found, trying '" << alt_infile << "'.";
     }
     in_file.open(alt_infile.c_str(), std::ios_base::in);
+
+	if (in_file)
+		in_string = alt_infile;
+	else
+		throw std::runtime_error(std::string("MOPAC OUTPUT NOT PRESENT; ID: ").append(id));
+
+
   }
   // ...
-  double const ev_to_kcal(23.060547411538901355);
+  double constexpr ev_to_kcal(23.060547411538901355);
   bool const mozyme(Config::get().energy.mopac.command.find("MOZYME") != std::string::npos);
   bool done(false);
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
@@ -404,12 +411,35 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
     if (!done)
     {
-      if (Config::get().general.verbosity >= 2) std::cout << "Mopac calculation was not done.\n";
-      //throw std::runtime_error(std::string("IMPROPER MOPAC OUTPUT (CALCULATION NOT FINISHED): ").append(id));
+#ifndef _CAST_ALL_WARNINGS_ARE_ERRORS
+      if (Config::get().general.verbosity >= 1) 
+		  std::cout << "ATTENTION: MOPAC calculation was not finished correctly.\n";
+	  // Keep (=Copy) failed output file if verbosity is >=3
+	  if (Config::get().general.verbosity >= 3)
+	  {
+		  std::ifstream in_file_failed(in_string.c_str(), std::ios_base::in);
+		  std::ofstream keep_file_failed(std::string(in_string + "_FAILED").c_str(), std::ios_base::out);
+		  if (in_file_failed && keep_file_failed)
+		  {
+			  while (!in_file_failed.eof())
+			  {
+				  std::string str_buffer;
+				  std::getline(in_file_failed, str_buffer);
+				  keep_file_failed << str_buffer;
+			  }
+		  }
+		  else
+		  {
+			  std::cout << "Could not copy failed MOPAC output file. Run with verbosity < 3 (this only masks the error, but it still exists) or fix the issue.\n";
+			  throw std::runtime_error("Could not copy failed MOPAC output file");
+		  }
+	  }
+#else
+	  throw std::runtime_error("ATTENTION: MOPAC calculation was not finished correctly.\n");
+#endif
       energy = e_total = e_electron = e_core = 0.0;
       integrity = false;
       return;
-      //throw std::runtime_error(std::string("IMPROPER MOPAC OUTPUT (CALCULATION NOT FINISHED): ").append(id));
     }
     else
     {

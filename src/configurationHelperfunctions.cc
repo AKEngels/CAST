@@ -19,11 +19,26 @@ namespace config
     return (teststream.is_open() && teststream.good());
   }
 
-  bool bool_from_iss(std::istringstream & in)
+  bool bool_from_iss(std::istringstream & in, std::string const& option)
   {
-    int x;
-    in >> x;
-    return (in && x > 0);
+    std::string holder;
+    in >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE" || holder == "1")
+    {
+      return true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE" || holder == "0" )
+    {
+      return false;
+    }
+    else if(option == std::string())
+    {
+      throw std::runtime_error("Could not determine boolean input value.");
+    }
+    else
+    {
+      throw std::runtime_error("Could not determine boolean input value \"" + holder + "\" for option \"" + option + "\".");
+    }
   }
 
   std::vector<std::size_t> sorted_indices_from_cs_string(std::string str)

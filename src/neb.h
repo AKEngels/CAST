@@ -1,4 +1,4 @@
-/**
+﻿/**
  Reaction pathway optimization via various NEB methods
 
 @ Daniel Bellinger, Julian Erdmannsdoerfer, Michael Prem
@@ -81,8 +81,11 @@ public:
   void final(void);
   void initial(const coords::Representation_3D &start);
   void final(const coords::Representation_3D &fi);
-  void create();
-  void create(const std::vector<coords::Representation_3D> &ini);
+  void final_align(void);
+  void create_cartesian_interpolation();
+  void create_internal_interpolation(std::vector <coords::Representation_3D> &input);
+  void create_ini_path(const std::vector<coords::Representation_3D> &ini);
+  void create_internal_interpolation(const std::vector<coords::Representation_3D> &ini);
   void get_energies(void);
   void calc_tau(void);
   void opt_io(ptrdiff_t &count);
@@ -94,6 +97,8 @@ public:
   double g_int(std::vector <scon::c3 <float> >  tx);
   void calc_shift(void);
   double dot_uneq(coords::Representation_3D const &a, coords::Representation_3D const &b);
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> redundant_to_Z_backbone(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dists, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_angles, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dihedrals, std::vector<size_t> backbone_indeces);
+  void write_gzmat(std::string const &filename, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &Z_matrix, coords::Coordinates const &coords) const;
 
   //Julians implementation
   void run(ptrdiff_t &count, std::vector<size_t>& image_remember, std::vector<std::vector<size_t> >& atoms_remember);

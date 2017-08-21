@@ -101,15 +101,22 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
       for (std::size_t i = 0; i < splitted_str.size(); i++)
       {
-        out_file << splitted_str[i] << '\n';
+        out_file << '%' << splitted_str[i] << '\n';
       }
       
     }
-    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec;
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
-        out_file << " (Opt=Cartesian,Steep)";
+        if (Config::get().energy.gaussian.steep)
+        {
+          out_file << " Opt=(Steep) ";//Cartesian,
+        }
+        else
+        {
+          out_file << " Opt"; //=Cartesian 
+        }
         break;
       case 'g' :
         out_file << " Force";
@@ -131,11 +138,12 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
-void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
+void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
 {
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
+  double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
 
   auto in_string = id + ".log";
@@ -259,7 +267,7 @@ void::energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(b
 
           std::getline(in_file, buffer);
 
-          g_tmp[i] = g;
+          g_tmp[i] = g * HartreePerBohr2KcalperMolperAngstr;
 
         }
       }//end gradient reading
@@ -389,7 +397,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
   {
     if (Config::get().general.verbosity >=2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.e\n";
     }
     integrity = false;
   }
@@ -398,6 +406,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 {
+  std::string tmp_id = id;
+  id = id + "_G_";
+
   integrity = true;
   print_gaussianInput('g');
   if (callGaussian() == 0) read_gaussianOutput(true, false);
@@ -405,10 +416,13 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.g\n";
     }
     integrity = false;
   }
+
+  id = tmp_id;
+
   return energy;
 }
 
@@ -425,7 +439,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.h\n";
     }
     integrity = false;
   }
@@ -434,6 +448,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
 {
+  std::string tmp_id = id;
+  id = id +"_O_";
+
   integrity = true;
   print_gaussianInput('o');
   if (callGaussian() == 0) read_gaussianOutput(true, true);
@@ -441,10 +458,13 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.\n";
+      std::cout << "Gaussian call return value was not 0. Treating structure as broken.o\n";
     }
     integrity = false;
   }
+
+  id=tmp_id;
+
   return energy;
 }
 

@@ -16,12 +16,12 @@
 */
 namespace md
 {
-	/**boltzmann constant*/
+  /**boltzmann constant*/
   static const double kB = 0.83144725;
   /**conversion factor kcal to g*A^2/ps^2*/
-  static const double convert = 418.4; 
+  static const double convert = 418.4;
   /**negativ conversion factor kcal to g*A^2/ps^2*/
-  static const double negconvert = -convert; 
+  static const double negconvert = -convert;
   /**pi*/
   static const double PI = 3.14159265358979323;
   /**gas constant*/
@@ -35,29 +35,29 @@ namespace md
   */
   struct trace_data
   {
-	  /**energy of subsystems???*/
-    std::vector<coords::float_type> Eia; 
-	/**temperature*/
-	coords::float_type T; 
-	/**kinetic energy*/
-	coords::float_type Ek; 
-	/**potential energy*/
-	coords::float_type Ep; 
-	/**pressure*/
-	coords::float_type P;
-	/**step-number*/
-	std::size_t i;
-	/**snapshot-number*/
-	std::size_t snapshot; 
-	/**
-	* default constructor
-	*/
+    /**energy of subsystems???*/
+    std::vector<coords::float_type> Eia;
+    /**temperature*/
+    coords::float_type T;
+    /**kinetic energy*/
+    coords::float_type Ek;
+    /**potential energy*/
+    coords::float_type Ep;
+    /**pressure*/
+    coords::float_type P;
+    /**step-number*/
+    std::size_t i;
+    /**snapshot-number*/
+    std::size_t snapshot;
+    /**
+    * default constructor
+    */
     trace_data() : Eia(), T(), Ek(), Ep(), P(), i(), snapshot() {}
-	/**
-	* another constructor that already takes all the public members as parameters
-	*/
+    /**
+    * another constructor that already takes all the public members as parameters
+    */
     trace_data(std::vector<coords::float_type> const &E_ia,
-      coords::float_type temp, coords::float_type E_kin, 
+      coords::float_type temp, coords::float_type E_kin,
       coords::float_type E_pot, coords::float_type press,
       std::size_t iteration, std::size_t snap_number) :
       Eia(E_ia), T(temp), Ek(E_kin), Ep(E_pot), P(press),
@@ -85,10 +85,10 @@ namespace md
   overload of >> operator
   */
   template<class Strm>
-  scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, trace_data &t)
+  scon::binary_stream<Strm> & operator >> (scon::binary_stream<Strm> &str, trace_data &t)
   {
     decltype(t.Eia.size()) x = 0;
-    if (str >> t.T && str >> t.Ek && str >> t.Ep && 
+    if (str >> t.T && str >> t.Ek && str >> t.Ep &&
       str >> t.P && str >> t.i && str >> t.snapshot && str >> x)
     {
       t.Eia.resize(x);
@@ -104,17 +104,17 @@ namespace md
   {
     std::unique_ptr<std::ofstream> strm;
   public:
-	  /**default constructor*/
+    /**default constructor*/
     trace_writer() : strm() {}
-	/**another constructor
-	* @param filename: name of the file where the information should be written
-	*/
+    /**another constructor
+    * @param filename: name of the file where the information should be written
+    */
     trace_writer(char const * const filename)
       : strm(new std::ofstream(filename, std::ios::out))
     {}
-	/** function for writing the data
-	* @param xyz: trace_data object where information should be taken 
-	*/
+    /** function for writing the data
+    * @param xyz: trace_data object where information should be taken
+    */
     void operator() (trace_data  const & xyz);
   };
 
@@ -130,25 +130,25 @@ namespace md
 
   public:
 
-	  /**writes snapshots
-	  @param coords: coords-object
-	  @param snap_offset: has something to do with MDsnapbuffer???
-	  */
+    /**writes snapshots
+    @param coords: coords-object
+    @param snap_offset: has something to do with MDsnapbuffer???
+    */
     Logger(coords::Coordinates &coords, std::size_t snap_offset);
 
-	/**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
-	*/
+    /**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
+    */
     bool operator() (std::size_t const iter,
-      coords::float_type const T, 
+      coords::float_type const T,
       coords::float_type const P,
-      coords::float_type const Ek, 
+      coords::float_type const Ek,
       coords::float_type const Ep,
       std::vector<coords::float_type> const Eia,
       coords::Representation_3D const & x);
 
-	/**
-	overload of << operator
-	*/
+    /**
+    overload of << operator
+    */
     template<class Strm>
     friend scon::binary_stream<Strm> & operator<< (scon::binary_stream<Strm> &str, Logger const &l)
     {
@@ -158,15 +158,15 @@ namespace md
       return str;
     }
 
-	/**
-	overload of >> operator
-	*/
+    /**
+    overload of >> operator
+    */
     template<class Strm>
-    friend scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, Logger &l)
+    friend scon::binary_stream<Strm> & operator >> (scon::binary_stream<Strm> &str, Logger &l)
     {
       str >> l.snapnum;
       str >> l.snap_buffer;
-      str >> l.data_buffer;
+      //str >> l.data_buffer;
       return str;
     }
 
@@ -189,24 +189,24 @@ namespace md
   */
   struct fepvar
   {
-	  /**lambda_el for appearing atoms*/
-	  double ein; 
-	  /**lambda_el for disappearing atoms*/
-	  double eout;
-	  /**lambda_vdw for appearing atoms*/
-	  double vin; 
-	  /**lambda_vdw for disappearing atoms*/
-	  double vout; 
-	  /**lambda_el of next window for appearing atoms*/
-	  double dein; 
-	  /**lambda_el of next window for disappearing atoms*/
-	  double deout;
-	  /**lambda_vdw of next window for appearing atoms*/
-	  double dvin;
-	  /**lambda_vdw of next window for disappearing atoms*/
-	  double dvout; 
+    /**lambda_el for appearing atoms*/
+    double ein;
+    /**lambda_el for disappearing atoms*/
+    double eout;
+    /**lambda_vdw for appearing atoms*/
+    double vin;
+    /**lambda_vdw for disappearing atoms*/
+    double vout;
+    /**lambda_el of next window for appearing atoms*/
+    double dein;
+    /**lambda_el of next window for disappearing atoms*/
+    double deout;
+    /**lambda_vdw of next window for appearing atoms*/
+    double dvin;
+    /**lambda_vdw of next window for disappearing atoms*/
+    double dvout;
   };
- 
+
 
   /** class for MD simulation
   */
@@ -222,56 +222,56 @@ namespace md
     Logger logging;
 
     // positions, forces, velocities
-	/**positions*/
-	coords::Representation_3D P;
-	/**old positions*/
-	coords::Representation_3D P_old;
-	/**positions at the beginning of the simulation*/
-	coords::Representation_3D P_start;
-	/**forces*/
-	coords::Representation_3D F;
-	/**old forces*/
-	coords::Representation_3D F_old;
-	/**velocities*/
-	coords::Representation_3D V;
+  /**positions*/
+    coords::Representation_3D P;
+    /**old positions*/
+    coords::Representation_3D P_old;
+    /**positions at the beginning of the simulation*/
+    coords::Representation_3D P_start;
+    /**forces*/
+    coords::Representation_3D F;
+    /**old forces*/
+    coords::Representation_3D F_old;
+    /**velocities*/
+    coords::Representation_3D V;
     /** masses */
     std::vector<double> M;
     /** total Mass of the System */
     double M_total;
     /**tensor for kinetic energy*/
     coords::Tensor E_kin_tensor;
-	/**tensor for kinetic energy*/
+    /**tensor for kinetic energy*/
     double E_kin;
     /** desired temperature */
-	double T;
-	/** current temperature */
-	double temp;
+    double T;
+    /** current temperature */
+    double temp;
     /** Pressure stuff*/
     double press, presstemp;
     /** timestep */
     double dt;
-	/** degrees of freedom */ 
-	std::size_t freedom;
-	/**snapshot offset (gap between two snapshots) */
-	std::size_t snapGap;
-	/** geometric center */ 
-	coords::Cartesian_Point C_geo;
-	/**center of mass*/
-	coords::Cartesian_Point C_mass;
+    /** degrees of freedom */
+    std::size_t freedom;
+    /**snapshot offset (gap between two snapshots) */
+    std::size_t snapGap;
+    /** geometric center */
+    coords::Cartesian_Point C_geo;
+    /**center of mass*/
+    coords::Cartesian_Point C_mass;
     /** nose hoover thermostat values */
     md::nose_hoover nht;
     /** rattle constraints */
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
 
-	// stuff for biased potential
-	/**distances to active site for every atom*/
-	std::vector<double> distances;  // distances to active site for every atom
-	/**atoms with a distance smaller than the inner cutoff*/
-	std::vector<int> inner_atoms;   //
-	/**atoms that move (distance smaller than outer cutoff)*/
-	std::vector<int> atoms_movable; // 
+    // stuff for biased potential
+    /**distances to active site for every atom*/
+    std::vector<double> distances;  // distances to active site for every atom
+    /**atoms with a distance smaller than the inner cutoff*/
+    std::vector<int> inner_atoms;   //
+    /**atoms that move (distance smaller than outer cutoff)*/
+    std::vector<int> movable_atoms; // 
 
-    /** vector with lambda-values for every FEP window */
+      /** vector with lambda-values for every FEP window */
     std::vector<fepvar> window;
     /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
@@ -284,130 +284,137 @@ namespace md
     /** remove translational and rotational momentum of the whole system */
     void tune_momentum(void);
 
-	/**function for calculation of current target temperature
-	@param step: current MD step
-	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-	*/
+    /**function for calculation of current target temperature
+    @param step: current MD step
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    */
     bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
 
-	/**sets coordinates to original values and assigns random velocities*/
-	void restart_broken();
+    /**sets coordinates to original values and assigns random velocities*/
+    void restart_broken();
 
-	/** function to control the temperature 
-	@param thermostat: determines if nose-hoover-thermostat or direct velocity scaling
-	@param half: determines if half or fullstep (only relevant for console output)
-	*/
-	double tempcontrol(bool thermostat, bool half);
+    /** function to control the temperature
+    @param thermostat: determines if nose-hoover-thermostat or direct velocity scaling
+    @param half: determines if half or fullstep (only relevant for console output)
+    */
+    double tempcontrol(bool thermostat, bool half);
 
-	/** calculate distances to active center 
-	@param counter: current MD step
-	*/
-	std::vector<double> init_active_center(int counter);
-	/** scale down velocities according to distance to active site
-	@param atom_number: atom number (starting with zero)
-	@param inner_cutoff: radius of inner cutoff
-	@param outer_cutoff: radius of outer cutoff
-	*/
-	coords::Cartesian_Point adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff);
+    /** calculate distances to active center
+    @param counter: current MD step
+    */
+    std::vector<double> init_active_center(int counter);
+    /** scale down velocities according to distance to active site
+    @param atom_number: atom number (starting with zero)
+    @param inner_cutoff: radius of inner cutoff
+    @param outer_cutoff: radius of outer cutoff
+    */
+    coords::Cartesian_Point adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff);
 
     /** rattle feature pre */
     void rattle_pre(void);
-	/** rattle feature post */
+    /** rattle feature post */
     void rattle_post(void);
 
     /**select an integrator (velocity-verlet or beeman)
-	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-	@param k_init: step where the MD starts (zero should be okay)
-	*/
+  @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+  @param k_init: step where the MD starts (zero should be okay)
+  */
     void integrate(bool fep = false, std::size_t const k_init = 0U);
 
-	/**beeman integrator
-	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-	@param k_init: step where the MD starts (zero should be okay)
-	*/
+    /**beeman integrator
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    @param k_init: step where the MD starts (zero should be okay)
+    */
     void beemanintegrator(bool fep, std::size_t const k_init = 0U);
 
-	/**velocity-verlet integrator
-	@param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-	@param k_init: step where the MD starts (zero should be okay)
-	*/
+    /**velocity-verlet integrator
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    @param k_init: step where the MD starts (zero should be okay)
+    */
     void velocity_verlet(bool fep, std::size_t const k_init = 0U);
 
     /** tell user that he applies spherical boundary conditions
-	*/
+  */
     void boundary_adjustments(void);
-	/** adjusting spherical boundary conditions (yet to be tested)
-	*/
+    /** adjusting spherical boundary conditions (yet to be tested)
+    */
     void spherical_adjust(void);
 
     /** Kinetic Energy update */
     void updateEkin(void);
-	/** Kinetic Energy update for a selection of atoms
-	@param atom_list: vector of atom numbers whose energy should be calculated
-	*/
+    /** Kinetic Energy update for a selection of atoms
+    @param atom_list: vector of atom numbers whose energy should be calculated
+    */
     void updateEkin_some_atoms(std::vector<int> atom_list);
 
     /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const &);
 
-	/**write a restartfile
-	@param k: current MD step
-	*/
+    /**write a restartfile
+    @param k: current MD step
+    */
     void write_restartfile(std::size_t const k);
 
   public:
 
     /** constructor
-	@param coords::Coordinates &: coords-object whose movement should be simulated
-	*/
+  @param coords::Coordinates &: coords-object whose movement should be simulated
+  */
     simulation(coords::Coordinates &);
     /** start simulation
-	@param restart: set to true (default) if simulation should start from the beginning
-	*/
+  @param restart: set to true (default) if simulation should start from the beginning
+  */
     void run(bool const restart = true);
-	/**prints information about MD simulation before the run starts*/
-	void print_init_info(void);
+    /**prints information about MD simulation before the run starts*/
+    void print_init_info(void);
 
-	/** set up constraints for H-X bonds if requested
-	ideal bond lengths are taken from the foce field parameter file
-	specified by RATTpar in the INPUTFILE */
-	void rattlesetup(void);
+    /** set up constraints for H-X bonds if requested
+    ideal bond lengths are taken from the foce field parameter file
+    specified by RATTpar in the INPUTFILE */
+    void rattlesetup(void);
 
-	/** perform an umbrella sampling
-	@param restart: set to true (default) if simulation should start from the beginning
-	*/
+    /** perform an umbrella sampling
+    @param restart: set to true (default) if simulation should start from the beginning
+    */
     void umbrella_run(bool const restart = true);
-	
-	/** If FEP calculation is requested: calculate lambda values for each window
-	and print the scaling factors for van-der-Waals and electrostatics for each window */
+
+    /** If FEP calculation is requested: calculate lambda values for each window
+    and print the scaling factors for van-der-Waals and electrostatics for each window */
     void fepinit(void);
-	/** perform FEP calculation if requested */
+    /** perform FEP calculation if requested */
     void feprun();
-	/**Calculation of ensemble average and free energy change after every window if FEP calculation is performed
-	 calculation can be improved if at every step the current averages are stored
-	 currently calculation is performed at the end of each window */
+    /**Calculation of ensemble average and free energy change after every window if FEP calculation is performed
+     calculation can be improved if at every step the current averages are stored
+     currently calculation is performed at the end of each window */
     void freecalc();
-	/** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
+    /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(std::size_t);
-	/**bool that determines if the current run is a production run or an equilibration run*/
+    /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
-	/**current free energy difference*/
+    /**current free energy difference*/
     double FEPsum;
-    
-	//**overload for << operator*/
+
+    //**overload for << operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
+    friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
     {
-      std::array<std::size_t, 9u> const sizes = { {sim.P.size(), sim.P_old.size(),
-        sim.F.size(), sim.F_old.size(), sim.V.size(), sim.M.size(),
-        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()} };
+      std::array<std::size_t, 9u> const sizes = {
+        sim.P.size(), sim.P_old.size(), sim.F.size(), 
+        sim.F_old.size(), sim.V.size(), sim.M.size(),
+        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()};
       // sizes
-      for (auto const & s : sizes) strm << s;
+      for (auto const & s : sizes) 
+        strm << s;
+
       // logger
-      strm << sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm << sim.logging;
+
+
       // Non-Fundamental vectors
       for (auto const & x : sim.coordobj.xyz()) strm << x;
       for (auto const & p : sim.P) strm << p;
@@ -424,16 +431,21 @@ namespace md
       return strm;
     }
 
-	//**another overload for >> operator*/
+    //**another overload for >> operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
+    friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
     {
-      std::array<std::size_t, 10u> sizes;
+      std::array<std::size_t, 9u> sizes;
       // sizes
-      for (auto & s : sizes) strm >> s;
+      for (auto & s : sizes) 
+        strm >> s;
+
       // logger
-      strm >> sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm >> sim.logging;
+      //
       // non-fundamental vectors
       sim.P.resize(sizes[0]);
       sim.P_old.resize(sizes[1]);

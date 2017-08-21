@@ -151,8 +151,8 @@ namespace pca
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
 		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
-		cov_matr = cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
-		cov_matr = transposed(cov_matr) * cov_matr;
+		cov_matr = Matrix_Class (cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols()));
+		cov_matr = Matrix_Class (transposed(cov_matr) * cov_matr);
 		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
 		int *cov_rank = new int;
@@ -171,7 +171,7 @@ namespace pca
     if (Config::get().general.verbosity > 2u)
       std::cout << "Generating PCA modes from coordinate matrix and PCA Eigenvectors." << std::endl;
 
-		this->modes = transposed(eigenvectors) * this->coordinatesMatrix;
+		this->modes = Matrix_Class (transposed(eigenvectors) * this->coordinatesMatrix);
 	}
 	
 	void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
@@ -286,52 +286,82 @@ namespace pca
 	void PrincipalComponentRepresentation::writeHistogrammedProbabilityDensity(std::string const& filename)
 	{
 		using namespace histo;
-		std::vector<size_t> dimensionsToBeUsedInHistogramming = Config::get().PCA.pca_dimensions_for_histogramming;
+    if (!Config::get().PCA.pca_histogram_all_marginal_degrees_of_freedom)
+    {
+      std::vector<size_t> dimensionsToBeUsedInHistogramming = Config::get().PCA.pca_dimensions_for_histogramming;
 
-		if (dimensionsToBeUsedInHistogramming.size() > 2)
-		{
-			std::cout << "More than 2 dimensions for histogramming is not yet supported!\n";
-			std::cout << "Working with 2 dimensions";
-			dimensionsToBeUsedInHistogramming.resize(2);
-		}
-		else
-		{
-			DimensionalHistogram<float_type> *histograms_p;
-			if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
-			{
-				size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
-				//histograms_p = new DimensionalHistogram<float_type>((size_t)pca_modes.rows(), histogramBins);
-				histograms_p = new DimensionalHistogram<float_type>((size_t)dimensionsToBeUsedInHistogramming.size(), histogramBins);
-			}
-			else if (Config::get().PCA.pca_histogram_width > 0.)
-			{
-				float_type histogramWidth = Config::get().PCA.pca_histogram_width;
-				histograms_p = new DimensionalHistogram<float_type>((size_t)dimensionsToBeUsedInHistogramming.size(), histogramWidth);
-			}
-			else
-			{
-				throw "Error in output of probability density, exiting.\n You need to specify either a number of histogram bins or a bin width in the inputfile.\n";
-			}
+      DimensionalHistogram<float_type> *histograms_p;
+      if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
+      {
+        size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
+        //histograms_p = new DimensionalHistogram<float_type>((size_t)pca_modes.rows(), histogramBins);
+        histograms_p = new DimensionalHistogram<float_type>((size_t)dimensionsToBeUsedInHistogramming.size(), histogramBins);
+      }
+      else if (Config::get().PCA.pca_histogram_width > 0.)
+      {
+        float_type histogramWidth = Config::get().PCA.pca_histogram_width;
+        histograms_p = new DimensionalHistogram<float_type>((size_t)dimensionsToBeUsedInHistogramming.size(), histogramWidth);
+      }
+      else
+      {
+        throw "Error in output of probability density, exiting.\n You need to specify either a number of histogram bins or a bin width in the inputfile.\n";
+      }
 
       if (Config::get().general.verbosity > 2U)
         std::cout << "Writing histogrammed probability density to file " << filename << "." << std::endl;
 
-			//Filling the histogram
-			for (size_t j = 0u; j < modes.cols(); j++)
-			{
-				std::vector<float_type> temp(dimensionsToBeUsedInHistogramming.size());
-				for (size_t i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
-				{
-					temp[i] = modes(dimensionsToBeUsedInHistogramming[i] - 1, j);
-				}
-				histograms_p->add_value(temp);
-			}
+      //Filling the histogram
+      for (size_t j = 0u; j < modes.cols(); j++)
+      {
+        std::vector<float_type> temp(dimensionsToBeUsedInHistogramming.size());
+        for (size_t i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
+        {
+          temp[i] = modes(dimensionsToBeUsedInHistogramming[i] - 1, j);
+        }
+        histograms_p->add_value(temp);
+      }
 
-			histograms_p->distribute();
-			histograms_p->writeProbabilityDensity(filename);
-			histograms_p->writeAuxilaryData("auxdata_" + filename);
-			delete histograms_p;
-		}
+      histograms_p->distribute();
+      histograms_p->writeProbabilityDensity(filename);
+      histograms_p->writeAuxilaryData("auxdata_" + filename);
+      delete histograms_p;
+    }
+    else
+    {
+      std::vector<size_t> dimensionsToBeUsedInHistogramming = { 1u };
+
+      if (Config::get().general.verbosity > 2U)
+        std::cout << "Writing histogrammed probability density to file " << filename << "." << std::endl;
+      //Filling the histograms
+      for (size_t currentDimension = 0u; currentDimension < modes.rows(); currentDimension++)
+      {
+        DimensionalHistogram<float_type> *histograms_p;
+        if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
+        {
+          size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
+          //histograms_p = new DimensionalHistogram<float_type>((size_t)pca_modes.rows(), histogramBins);
+          histograms_p = new DimensionalHistogram<float_type>(1u, histogramBins);
+        }
+        else if (Config::get().PCA.pca_histogram_width > 0.)
+        {
+          float_type histogramWidth = Config::get().PCA.pca_histogram_width;
+          histograms_p = new DimensionalHistogram<float_type>(1u, histogramWidth);
+        }
+        else
+        {
+          throw "Error in output of probability density, exiting.\n You need to specify either a number of histogram bins or a bin width in the inputfile.\n";
+        }
+
+        for (size_t j = 0u; j < modes.cols(); j++)
+        {
+          histograms_p->add_value(std::vector<float_type>{modes(currentDimension, j)});
+        }
+        histograms_p->distribute();
+        histograms_p->writeProbabilityDensity("dim" + std::to_string(currentDimension + 1u) + "_" + filename);
+        histograms_p->writeAuxilaryData("auxdata_dim" + std::to_string(currentDimension + 1u) + "_" + filename);
+        delete histograms_p;
+      }
+    }
 	}
 
 	PrincipalComponentRepresentation::PrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, ::coords::Coordinates& coords)
@@ -650,7 +680,7 @@ namespace pca
   void ProcessedPrincipalComponentRepresentation::restoreCoordinatesMatrix()
   {
     //Undoing PCA
-    this->coordinatesMatrix = eigenvectors * modes;
+    this->coordinatesMatrix = Matrix_Class (eigenvectors * modes);
   }
 
   void ProcessedPrincipalComponentRepresentation::writeDeterminedStructures(::coords::Coordinates const& coord_in, std::string const& filenameExtension)

@@ -5,9 +5,11 @@
 #                                  #
 #                                  #
 #################################### 
+#
+# Lines beginning with a hashtag are ignored by CAST
 
 # Verbosity 
-# Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
+# Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
 verbosity              4
 
@@ -27,11 +29,11 @@ cores                  8
 
 # Input file name
 
-name                   DEVTEST_MD_SNAP.arc
+name                   input.arc
 
 # Output file name
 
-outname                center_test
+outname                SP
 
 # Input file type
 
@@ -53,35 +55,34 @@ amber_restrt           min.rst
 #                                  #
 ####################################
 
-# SP                   Single point eneryg calculation
-# GRAD                 Single point energy calculation
-# LOCOPT               Local optimization using Lib-LBFGS
-# MD                   Molecular dynamics simulation
-# GOSOL                Combined Solvation + Global Optimization
-# MC                   Monte Carlo
-# CENTER               Center of mass/geometry
-# TS                   Tabu Search (CAST: GOTS)
-# RMSD                 Root mean square deviation
-# DIMER                Dimer method using torsional space
-# NEB                  Nudged elastic band calculation
-# INTERNAL             Create Z-Matrix
+# SP                      Single point eneryg calculation
+# GRAD                    Single point energy calculation
+# LOCOPT                  Local optimization using Lib-LBFGS
+# MD                      Molecular dynamics simulation
+# GOSOL                   Combined Solvation + Global Optimization
+# MC                      Monte Carlo
+# XB_CENTER               Center of mass, Cutting out dimer pairs
+# TS                      Tabu Search (CAST: GOTS)
+# RMSD                    Root mean square deviation
+# DIMER                   Dimer method using torsional space
+# NEB                     Nudged elastic band calculation
+# INTERNAL                Create Z-Matrix
 # STARTOPT
-# UMBRELLA             Umbrella Sampling
-# PROFILE              Repeated Gradient Calculation of first input structure
-# FEP                  Alchemical transformations using FEP
-# ALIGN                Trajectory Alignment (Kabsch algorithm)
-# PCAgen               Principal Component Analysis
+# UMBRELLA                Umbrella Sampling
+# PROFILE                 Repeated Gradient Calculation of first input structure
+# FEP                     Alchemical transformations using FEP
+# ALIGN                   Trajectory Alignment (Kabsch algorithm)
+# PCAgen                  Principal Component Analysis
 # PCAproc
-# ENTROPY              Configurational and Conformational Entropy Calculations
-# GRID                 Grid Search
-# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
-# ADJUST
+# ENTROPY                 Configurational and Conformational Entropy Calculations
+# GRID                    Grid Search
+# PATHOPT                 Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# EXCITON_BREAKUP
-# INTERFACE_CREATION
-# COUPLINGS
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # SCAN2D
 
 task                  SCAN2D
@@ -93,11 +94,10 @@ task                  SCAN2D
 ####################################
 
 # AMBER                AMBER force field
-# (AMOEBA)             AMOEBA03 force field
+# AMOEBA             AMOEBA03 force field
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
-# (TINKER)             Tinker syscall interface
 # MOPAC                MOAPC2012 syscall Interface
 # Gaussian             Gaussian09 syscall Interface
 # CHEMSHELL            under developement
@@ -105,30 +105,26 @@ task                  SCAN2D
 interface              CHEMSHELL
 
 # Interface for preoptimizations
-
-preinterface           0
+#preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
 
-paramfile              amber99.prm
+paramfile              oplsaa.prm
 
 
 ### MOPAC OPTIONS ###
 
 # Keywords for MOPAC Call
-
 MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-
 MOPACdelete            1
 
 #MOPAC executable path
-
 MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
-#MOPACversion
+#MOPACversion          MOPAC2012
 
 
 ### GAUSSIAN OPTIONS ###
@@ -152,6 +148,10 @@ GAUSSIANcharge          0
 # Multiplicity
 
 GAUSSIANmultiplicity    1
+
+#Gaussian optimization with steepest descend (Newton-Raphson-Algorithm)
+
+GAUSSIANsteep          1
 
 #Gaussian executeable path
 
@@ -187,8 +187,10 @@ CHEMSHELL-delete 0
 #                                  #
 ####################################
 
-cutoff                 400.0
-switchdist             10.0
+#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
 
 
 ####################################
@@ -198,23 +200,14 @@ switchdist             10.0
 ####################################
 
 # Exclude nonbondeds between two fixed atoms in internal force fields
-
-FIXexclude             0
+FIXexclude             false
 
 # Remove rotations of hydrogens from main torsional angles
-
-REMOVEHROT             0
+REMOVEHROT             false
 
 # Fix a range of atoms 
-#FIXrange               <start index> <end index>
+#FIXrange               1-6,9,24,55-71,72
 
-#FIXrange               1 213
-
-# Fixation of single atoms
-#ATOMFIX                <INDEX> 
-
-#ATOMFIX                1
-#ATOMFIX                3
 
 
 ####################################
@@ -239,17 +232,21 @@ REMOVEHROT             0
 
 # Quadratic Dihedral Bias Potential (quadratic in degreees)
 
-#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <all atoms> 
+#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
+#BIASdih                1 2 3 5 0.0   10.0 
+#BIASdih                2 5 6 9 150.0 5.0  
+#BIASdih                1 2 5 6 150.0 5.0  
+#BIASdih                1 2 5 6 95.0  10.0 
 
-#BIASdih                1 2 3 5 0.0   10.0 1
-#BIASdih                2 5 6 9 150.0 5.0  1
-#BIASdih                1 2 5 6 150.0 5.0  1 
-#BIASdih                1 2 5 6 95.0  10.0 1
+####################################
+#                                  #
+#        DISTANCE FIXATIONS        #
+#                                  #
+####################################
 
-#BIASdih                1 2 5 6 60.0 0.01
+# Harmonic Distance Bias Potential (in angstrom)
 
-#BIASdih                1 2 5 6 30.0 1.0 1
-
+#BIASdist               <atom 1> <atom 2> <angstrom> <force>
 
 
 ####################################
@@ -280,54 +277,13 @@ REMOVEHROT             0
 
 #Periodicp              0
 
-
-####################################
-#                                  #
-#        INTERACTION OPTIONS       #
-#                                  #
-####################################
-
-# The interaction of substructures that are not bound to each other can be calculated
-# IAlimits <Start Index Substructure> <End Index Substructure>
-
-#IAlimits               1 122
-
-
-
-####################################
-#                                  #
-#        Implicit Solvation        #
-#                                  #
-####################################
-
-# solvmethod : VAC         (default) Vacuum
-#              ONION       Numerical Still method
-#              STILL       Analytical Still method
-#              HCT         HCT method
-#              OBC         OBC method
-#              GRYCUK      Grycuk's method
-#              ACE         ACE method
-# surface    : TINKER      (default) TINKER's accessible surface area calculation
-#              SASASTILL   Still's surface area calculation
-#              GAUSS       SASA according to the global theorem of Gauss-Bonnet
-#
-# ONION should only be combined with GAUSS
-
-solvmethod             VAC
-surface                TINKER
-
-
-#################################### 
-#                                  #
-#        PROFILE RUNS              #
-#                                  #
-####################################
-
-# Number of repeated gradient calculations for PROFILE task
-
-profileruns            10
-
-
+# Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
+PeriodicCutout true
+# 0: Remove entire molecule if any atom of molecule is outside box + CutoutDistance
+# 1: Remove entire molecule if center of mass is outside box + CutoutDistance
+PeriodicCutoutCriterion 1
+# Additional CutoutDistance from box edge in angstrom , where molecules are cut
+PeriodicCutoutDistance 0
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
@@ -339,9 +295,9 @@ BFGSmaxstep            5000
 
 
 ###################################
-#				  #
+#				  				  #
 #      NEB & PATHOPT OPTIONS      #
-#				  #
+#				  				  #
 ###################################
 
 # Second structure for double-ended search
@@ -570,7 +526,7 @@ SOtype                 1
 # startopt structure count
 # number of structures generated by startopt routines
 
-SOstructures           10
+SOstructures           1
 
 
 ####################################
@@ -603,13 +559,15 @@ RSgenerations          10
 #                                  #
 ####################################
 
+SOtype 1
+
 # Hydrogen bond length parameter [default: 1.8]
 
 SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-SAlimit                20
+#SAlimit                20
 
 # water boundary type
 #
@@ -617,11 +575,11 @@ SAlimit                20
 # 1    sphere
 # 2    box
 
-SAboundary             0
+SAboundary             2
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               10.0
+SAradius               40.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -638,11 +596,11 @@ SAtypes                53 54
 # 2    all waters
 # 3    1+2
 
-SAopt                  0
+SAopt                  3
 
 # fix initial structure
 
-SAfixinit              1
+SAfixinit              0
 
 
 
@@ -867,7 +825,7 @@ USsnap                 5
 
 ####################################
 #                                  #
-#          EXCITONBREAKUP          #
+#        XB_EXCITON_BREAKUP        #
 #                                  #
 ####################################
 
@@ -895,11 +853,29 @@ EXpscpairchrates            homodimer_ladung.txt
 
 EXpnscpairrates             heterodimer.txt
 
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
+
 
 
 ####################################
 #                                  #
-#        Interface Creation        #
+#      XB_Interface Creation       #           
 #                                  #
 ####################################
 
@@ -924,7 +900,7 @@ ICdistance					5.0
 
 ####################################
 #                                  #
-#              CENTER              #
+#             XB_CENTER            #
 #                                  #
 ####################################
 
@@ -935,7 +911,7 @@ CENTERdistance                  15.0
 
 ####################################
 #                                  #
-#             Couplings            #
+#           XB_Couplings           #
 #                                  #
 ####################################
 
@@ -1001,7 +977,7 @@ traj_print_bool                false
 
 
 # Should we align to an external reference structure? If yes, give file name
-align_external_file            reference.xyz
+#align_external_file            reference.xyz
 
 # Reference frame for alignment (using Kabsch algorithm)
 # default is "0"
