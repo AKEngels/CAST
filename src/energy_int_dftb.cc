@@ -129,12 +129,11 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     std::string result_str; 
     PyObject *modul, *funk, *prm, *ret;
     
-    std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
-    PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
+    PySys_SetPath("."); //set path
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("calc_E"); //import module 
+    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
 
     if(modul) 
         { 
@@ -183,16 +182,15 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   std::string result_str; 
   PyObject *modul, *funk, *prm, *ret;
     
-  std::string modulepath = Config::get().energy.dftb.path+"/DFTB";  //path to python module
-  PySys_SetPath(const_cast<char*>(modulepath.c_str())); //set path
+  PySys_SetPath("."); //set path
   const char *c = add_path.c_str();  //add paths from variable add_path
   PyRun_SimpleString(c);
 
-  modul = PyImport_ImportModule("LR_TDDFTB_cast"); //import module 
+  modul = PyImport_ImportModule("dftbaby_interface"); //import module 
 
   if(modul) 
     { 
-      funk = PyObject_GetAttrString(modul, "main"); //create function
+      funk = PyObject_GetAttrString(modul, "calc_gradients"); //create function
       prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
@@ -201,11 +199,11 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
       std::vector<std::string> result_vec = split(result_str, ',');
 
       //read energies and convert them to kcal/mol
-      e_bs = std::stod(result_vec[0])*627.503; 
-      e_coul = std::stod(result_vec[1])*627.503;
-      e_rep = std::stod(result_vec[3])*627.503;
-      e_lr = std::stod(result_vec[4])*627.503;
-      e_tot = std::stod(result_vec[5])*627.503;
+        e_bs = std::stod(result_vec[0])*627.503; 
+        e_coul = std::stod(result_vec[1])*627.503;
+        e_rep = std::stod(result_vec[3])*627.503;
+        e_tot = std::stod(result_vec[4])*627.503;
+        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
         
       //delete PyObjects
       Py_DECREF(prm); 
