@@ -867,7 +867,7 @@ namespace coords
       return m_atoms.atom(index);
     }
     //adapts indexation of coords object to initially read structure
-    void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
+    void adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
       std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
       coords::Coordinates const *cPtr);
   };
