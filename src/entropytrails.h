@@ -248,7 +248,7 @@ public:
       this->dimension = 1;
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -261,7 +261,7 @@ public:
     {
       this->dimension = 1;
       // Gaussian with sigma 10
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -276,7 +276,7 @@ public:
     {
       this->dimension = 1;
       // Parabola normated to integrate to 1 over [0;1]
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -285,7 +285,7 @@ public:
         else
           return (3. / 4.) * (-1. * ((x.at(0))*(x.at(0))) + 1.);
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0. });
+      maximumOfPDF = PDF(std::vector<double>{ 0. }, std::vector<unsigned int>());
       analyticEntropy_ = 0.568054;
       PDFrange = std::make_shared<std::pair<double, double>>(-1., 1.); // Function is only defined in [-1;1]
       this->m_identString = "parabolic";
@@ -294,7 +294,7 @@ public:
     {
       this->dimension = 1;
       // Beta Distribution https://en.wikipedia.org/wiki/Differential_entropy
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -318,7 +318,7 @@ public:
     {
       this->dimension = 3;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 3)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -345,7 +345,7 @@ public:
 
         return prefactor * std::exp(value(0u,0u) * -0.5);
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0.,0.,0. });
+      maximumOfPDF = PDF(std::vector<double>{ 0.,0.,0. }, std::vector<unsigned int>());
       Matrix_Class covariance(this->dimension, this->dimension, 0u);
       covariance(0, 0) = 1.;
       covariance(1, 0) = 0.7;
@@ -365,7 +365,7 @@ public:
     {
       this->dimension = 2;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 2)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -377,7 +377,7 @@ public:
 
         return prefactor * std::exp(exp_argument);
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. });
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>());
       const double coeff = 0.9;
       Matrix_Class covariance(2, 2, 0u);
       covariance(0, 0) = 1.;
@@ -393,7 +393,7 @@ public:
       // 7 GMM fittet to MD of tridecalanine dim 1,2
       this->dimension = 2;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 2)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -461,7 +461,7 @@ public:
 
         return returnValue;
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       PDFrange = std::make_shared<std::pair<double, double>>(-1e-10, 1e-10);
       this->m_identString = "GMM1";
@@ -471,7 +471,7 @@ public:
       // 10 GMM fittet to MD of tridecalanine dim 1,2,3
       this->dimension = 3;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() != 3)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -618,7 +618,7 @@ public:
 
         return returnValue;
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       PDFrange = std::make_shared<std::pair<double, double>>(-4e-11, 4e-11);
       this->m_identString = "GMM1";
@@ -628,7 +628,7 @@ public:
       // 10 GMM fittet to MD of tridecalanine dim 1,2,3
       this->dimension =2;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
         if (x.size() !=2)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -723,7 +723,7 @@ public:
 
         return returnValue;
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
+      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       PDFrange = std::make_shared<std::pair<double, double>>(-9e-11, 9e-11);
       this->m_identString = "GMM3";
@@ -735,60 +735,118 @@ public:
       std::cout << "Read gmmfile.dat with " << gmmdatafromfile.numberOfDimensions << " dimensions and " << gmmdatafromfile.numberOfGaussians << " gaussians." << std::endl;
       this->dimension = gmmdatafromfile.numberOfDimensions;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x)
+      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
       {
-        if (x.size() != this->dimension)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        unsigned int const numberOfGaussians = gmmdatafromfile.numberOfGaussians;
-
-        std::vector<double> weight = gmmdatafromfile.weights;
-        std::vector<Matrix_Class> mean = gmmdatafromfile.mean;
-        std::vector<Matrix_Class> covariance = gmmdatafromfile.covariance;
-
-        long double returnValue = 0.;
-        for (unsigned int i = 0u; i < numberOfGaussians; i++)
+        if (subdims == std::vector<unsigned int>())
         {
-          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
-          const long double cov_determ = covariance[i].determ();
-          const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+          if (x.size() != this->dimension)
+            throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
 
-          const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
-          if (addition != addition)
-            continue;
-          returnValue += addition;
+          Matrix_Class input(x.size(), 1u);
+          for (unsigned int i = 0u; i < x.size(); i++)
+            input(i, 0u) = x.at(i);
+
+          unsigned int const numberOfGaussians = gmmdatafromfile.numberOfGaussians;
+
+          std::vector<double> weight = gmmdatafromfile.weights;
+          std::vector<Matrix_Class> mean = gmmdatafromfile.mean;
+          std::vector<Matrix_Class> covariance = gmmdatafromfile.covariance;
+
+          long double returnValue = 0.;
+          for (unsigned int i = 0u; i < numberOfGaussians; i++)
+          {
+            Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+            const long double cov_determ = covariance[i].determ();
+            const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+
+            const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+            if (addition != addition)
+              continue;
+            returnValue += addition;
+          }
+
+          return returnValue;
+
+        }
+        else
+        {
+          if (x.size() != subdims.size())
+            throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
+
+          Matrix_Class input(x.size(), 1u);
+          for (unsigned int i = 0u; i < x.size(); i++)
+            input(i, 0u) = x.at(i);
+
+          unsigned int const numberOfGaussians = gmmdatafromfile.numberOfGaussians;
+
+          std::vector<double> weight = gmmdatafromfile.weights;
+          std::vector<Matrix_Class> mean;// .gmmdatafromfile.mean;
+          std::vector<Matrix_Class> covariance;// = gmmdatafromfile.covariance;
+
+
+          // Build smaller matrices of mean and covariance for subdimensions
+          for (auto&& mean_current : gmmdatafromfile.mean)
+          {
+            Matrix_Class current_new(subdims.size(), 1u);
+            for (unsigned int i = 0u; i < subdims.size(); i++)
+            {
+              current_new(i, 0u) = mean_current(subdims.at(i), 0u);
+            }
+            mean.push_back(current_new);
+          }
+
+          for (auto&& covariance_current : gmmdatafromfile.covariance)
+          {
+            Matrix_Class current_new(subdims.size(), subdims.size());
+            for (unsigned int i = 0u; i < subdims.size(); i++)
+            {
+              for (unsigned int j = 0u; j < subdims.size(); j++)
+              {
+                current_new(i, j) = covariance_current(subdims.at(i), subdims.at(j));
+              }
+            }
+            covariance.push_back(current_new);
+          }
+
+
+
+          long double returnValue = 0.;
+          for (unsigned int i = 0u; i < numberOfGaussians; i++)
+          {
+            Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+            const long double cov_determ = covariance[i].determ();
+            const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
+
+            const double addition = prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
+            if (addition != addition)
+              continue;
+            returnValue += addition;
+          }
+
+          return returnValue;
         }
 
-        return returnValue;
       };
-      maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.)) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
+      maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.), std::vector<unsigned int>()) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
       this->m_identString = "GMMfile";
     }
   };
 
-
-  std::vector<std::vector<double>> draw(size_t numberOfSamples)
+  std::vector<std::vector<double>> draw(size_t numberOfSamples, std::vector<unsigned int> const& subdims)
   {
     std::random_device rd;
     std::mt19937 gen;
     //
     std::vector<std::vector<double>> draws;
-    //draws.reserve(numberOfSamples);
-    std::normal_distribution<double> normDistrSigmaOne(0, 1);
-    std::function<double(double x)> normDistrSigmaOnePDF = [&, this](double x) { return (1. / sqrt(2. * pi)) * exp(-1.*(x*x) / double(2.)); };
-    double maximumOfNormalDistrWithSigmaOne = 1. / sqrt(2. * pi);
     std::uniform_real_distribution<double> unifDistr(0, 1);
 
     //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
     if (PDFrange == nullptr)
       PDFrange = std::make_shared<std::pair<double, double>>(meaningfulRange());
 
+    const unsigned int currentDimensionality = subdims.size() == 0 ? this->dimension : subdims.size();
 
 
     std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
@@ -801,12 +859,14 @@ public:
       //double drawUnifWithRange = unifDistrRange(gen);
       double M = maximumOfPDF / (1. / (2.*absrange));
       bool inRange = true;
-      for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+      for (unsigned int currentDim = 0u; currentDim < currentDimensionality; currentDim++)
       {
         drawUnifWithRange.push_back(unifDistrRange(gen));
       }
-      double drawUnif = unifDistr(gen);
-      inRange = inRange && (drawUnif < PDF(drawUnifWithRange) / (M * 1.5 * 1. / (2.*absrange)));
+      const double drawUnif = unifDistr(gen);
+      const double pdfvalue = PDF(drawUnifWithRange, subdims);
+      const double comparisonMultiplciatioNFactor = 1. / (M * 1.5 * 1. / (2.*absrange));
+      inRange = inRange && (drawUnif < pdfvalue * comparisonMultiplciatioNFactor);
 
       if (inRange)
       {
@@ -863,7 +923,7 @@ public:
       newPDFrange = 0.;
       while (run)
       {
-        if (PDF(std::vector<double> {newPDFrange}) < 0.00000001)
+        if (PDF(std::vector<double> {newPDFrange}, std::vector<unsigned int>()) < 0.00000001)
           break;
         else
           newPDFrange += 0.001;
@@ -872,7 +932,7 @@ public:
       newPDFrange = 0.;
       while (run)
       {
-        if (PDF(std::vector<double> {newPDFrange}) < 0.000000001)
+        if (PDF(std::vector<double> {newPDFrange}, std::vector<unsigned int>()) < 0.000000001)
           break;
         else
           newPDFrange -= 0.005;
@@ -893,7 +953,7 @@ private:
   int dimension = 0;
   std::shared_ptr<std::pair<double, double>> PDFrange = nullptr;
   std::string m_identString = "ERROR_NAME";
-  std::function<double(std::vector<double> const& x)> PDF;
+  std::function<double(std::vector<double> const& x, std::vector<unsigned int> const& subdims)> PDF;
 };
 
 
@@ -922,16 +982,19 @@ public:
   int identifierOfPDF;
   ProbabilityDensity probdens;
   double mean, standardDeviation;
-  entropyobj(size_t iter_, ProbabilityDensity probdens_) :
+  std::vector<unsigned int> subDimsGMM;
+  entropyobj(size_t iter_, ProbabilityDensity probdens_, std::vector<unsigned int> const& subdimsGMM_) :
     drawAndsEvaluateMatrix(iter_, 5),
     numberOfDraws(iter_), dimension(probdens_.getDimension()), drawMatrix(iter_, probdens_.getDimension()),
     probdens(probdens_), identifierOfPDF(probdens_.ident()),
-    mean(0.), standardDeviation(0.)
+    mean(0.), standardDeviation(0.), subDimsGMM(subdimsGMM_)
   {
     // Check if draw exists
     std::ifstream myfile;
     std::string line;
-    myfile.open(std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt"));
+    std::string filename;
+    filename = std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt");
+    myfile.open(filename);
     if (myfile.good())
     {
       std::cout << "Reading draw from file." << std::endl;
@@ -952,7 +1015,7 @@ public:
     {
       std::cout << "Creating new draw." << std::endl;
       // Draw 
-      std::vector<std::vector<double>> draws = probdens.draw(numberOfDraws);
+      std::vector<std::vector<double>> draws = probdens.draw(numberOfDraws, subDimsGMM);
 
       //Sort samples (entirely optional) if dimension == 1
       if (this->dimension == 1)
@@ -979,11 +1042,20 @@ public:
   }
 };
 
+struct informationForCubatureIntegration
+{
+  ProbabilityDensity& probdens;
+  std::vector<unsigned int>& subdims;
+  informationForCubatureIntegration(ProbabilityDensity& probdens_in, std::vector<unsigned int>& subdims_in)
+    : probdens(probdens_in), subdims(subdims_in) {}
+};
+
+
 int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
-  ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
+  informationForCubatureIntegration& info = *((informationForCubatureIntegration *)fdata);
 
-  if (ndim != probdens.getDimension())
+  if (ndim != info.probdens.getDimension())
     throw;
   if (fdim != 1)
     throw;
@@ -992,11 +1064,15 @@ int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *f
   { // evaluate the integrand for npts points
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
-      input.push_back(x[j*ndim + i]);
-    double probdens_result = probdens.function()(input);
+    {
+      if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+        input.push_back(x[j*ndim + i]);
+    }
+
+    double probdens_result = info.probdens.function()(input, info.subdims);
     if (probdens_result != 0.)
     {
-      double returner = probdens.function()(input) * std::log(probdens.function()(input));
+      double returner = info.probdens.function()(input, info.subdims) * std::log(info.probdens.function()(input, info.subdims));
       fval[j] = returner;
     }
     else
@@ -1009,9 +1085,9 @@ int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *f
 
 int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
-  ProbabilityDensity& probdens = *((ProbabilityDensity *)fdata);
+  informationForCubatureIntegration& info = *((informationForCubatureIntegration *)fdata);
 
-  if (ndim != probdens.getDimension())
+  if (ndim != info.probdens.getDimension())
     throw;
   if (fdim != 1)
     throw;
@@ -1020,15 +1096,16 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
   { // evaluate the integrand for npts points
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
-      input.push_back(x[j*ndim + i]);
+    {
+      if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+        input.push_back(x[j*ndim + i]);
+    }
 
-    double probdens_result = probdens.function()(input);
-    double returner = probdens.function()(input);
-    fval[j] = returner;
+    double probdens_result = info.probdens.function()(input, info.subdims);
+    fval[j] = probdens_result;
   }
   return 0;
 }
-
 
 // Calculated entropy object calculates estiamted entropy
 class calculatedentropyobj : public entropyobj
@@ -1067,6 +1144,7 @@ public:
     calculatedEntropyLombardiMaximum(std::numeric_limits<double>::quiet_NaN()),
     cubatureIntegral(std::numeric_limits<double>::quiet_NaN())
   {
+
   }
 
   double empiricalGaussianEntropy()
@@ -1200,7 +1278,7 @@ public:
         current.push_back(temp.at(currentDim).at(n));
       }
 
-      const double gvalue = static_cast<long double>(probdens.function()(current));
+      const double gvalue = static_cast<long double>(probdens.function()(current, this->subDimsGMM));
       if (gvalue == 0)
         continue;
       kahan_acc = KahanSum(kahan_acc, gvalue * log(gvalue));
@@ -1221,7 +1299,7 @@ public:
     for (size_t i = 0u; i < samples.size(); i++)
     {
       // Value of Distribution at point x
-      const double temp1 = probdens.function()(samples[i]);
+      double temp1 = probdens.function()(samples[i], this->subDimsGMM);
       kahan_acc = KahanSum(kahan_acc, log(temp1));
 
     }
@@ -1233,7 +1311,7 @@ public:
 
   double MCDrawEntropy(size_t& numberOfSamples)
   {
-    std::vector<std::vector<double>> samples = this->probdens.draw(numberOfSamples);
+    std::vector<std::vector<double>> samples = this->probdens.draw(numberOfSamples, this->subDimsGMM);
     return this->MCDrawEntropy(samples);
   };
 
@@ -1271,16 +1349,19 @@ public:
       val[i] = 0.;
       err[i] = 0.;
     }
-    
+
+    informationForCubatureIntegration info(this->probdens, this->subDimsGMM);
+
     double range = std::abs(this->probdens.meaningfulRange().first - this->probdens.meaningfulRange().second);
 
-    int returncode = hcubature_v(1, cubaturefunctionProbDens, &(this->probdens),
+    int returncode = hcubature_v(1, cubaturefunctionProbDens, &(info),
       this->dimension, xmin, xmax,
       0u, 0, 1e-3 * range, ERROR_INDIVIDUAL, val, err);
 
     std::cout << "Debug Output: Integral of ProbDens is: " << val[0] << "." << std::endl;
     
-    returncode = hcubature_v(1, cubaturefunctionEntropy, &(this->probdens),
+
+    returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
       this->dimension, xmin, xmax,
       0u, 0, 1e-3 *  range, ERROR_INDIVIDUAL, val, err);
 

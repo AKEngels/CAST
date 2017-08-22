@@ -1553,6 +1553,18 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropytrails.ident;
   }
+  else if (option == "et_subdims")
+  {
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropytrails.subDimsForGMM = configuration_range_int<unsigned int>(holder);
+  }
   else if (option == "et_NNcalculation")
   {
     std::string holder;

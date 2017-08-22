@@ -846,20 +846,37 @@ int main(int argc, char **argv)
 
       entropyobj entropyObject(
         Config::get().entropytrails.numberOfDraws,
-        probdens);
+        probdens, Config::get().entropytrails.subDimsForGMM);
 
       calculatedentropyobj calculatedDistribution(Config::get().entropytrails.k, entropyObject);
-      if (calculatedDistribution.dimension <= 2)
+      if (Config::get().entropytrails.subDimsForGMM.size() == 0)
       {
-        calculatedDistribution.histogramProbabilityDensity(60, "ident_" + std::to_string(Config::get().entropytrails.ident));
+        if (calculatedDistribution.dimension <= 2)
+        {
+          calculatedDistribution.histogramProbabilityDensity(60, "ident_" + std::to_string(Config::get().entropytrails.ident));
+        }
+        else if (calculatedDistribution.dimension == 3)
+        {
+          calculatedDistribution.histogramProbabilityDensity(20, "dim12_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 1});
+          calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{1, 2});
+          calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 2});
+        }
       }
-      else if (calculatedDistribution.dimension == 3)
+      else if (Config::get().entropytrails.subDimsForGMM.size() <= 2)
       {
-        calculatedDistribution.histogramProbabilityDensity(20, "dim12_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 1});
-        calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{1, 2});
-        calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{0, 2});
+        std::vector<unsigned int> const& subdims = Config::get().entropytrails.subDimsForGMM;
+        std::vector<size_t> subdims_temp;
+        for (auto&& item : subdims)
+          subdims_temp.push_back(item);
+
+        calculatedDistribution.histogramProbabilityDensity(60, "ident_" + std::to_string(Config::get().entropytrails.ident), subdims_temp);
       }
-       
+      else if (Config::get().entropytrails.subDimsForGMM.size() == 3)
+      {
+        calculatedDistribution.histogramProbabilityDensity(20, "dim12_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(0), Config::get().entropytrails.subDimsForGMM.at(1)});
+        calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(1), Config::get().entropytrails.subDimsForGMM.at(2)});
+        calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(0), Config::get().entropytrails.subDimsForGMM.at(2)});
+      }
 
       calculatedDistribution.calculate();
       calculatedDistribution.writeToFile();

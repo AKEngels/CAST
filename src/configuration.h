@@ -1122,7 +1122,8 @@ namespace config
     size_t numberOfDraws;
     int ident;
     bool NNcalculation;
-    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true) {}
+    std::vector<unsigned int> subDimsForGMM;
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), subDimsForGMM() {}
   };
 
   /**
