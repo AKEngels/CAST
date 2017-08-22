@@ -1,4 +1,4 @@
-#include "energy_int_chemshell.h"
+﻿#include "energy_int_chemshell.h"
 
 template<typename T, typename U>
 auto zip(T && a, U && b) {
@@ -185,6 +185,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	auto const & qm_ch = Config::get().energy.chemshell.qm_charge;
 	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
 	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
+    auto const & scale14 = Config::get().energy.chemshell.scale14;
 
 	std::string active_atoms, inactive_atoms;
 	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms();
@@ -200,7 +201,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		ofs << "    tolerance=" << tolerance << " \\\n";
 	}
 	ofs << "    active_atoms= {" << active_atoms << "} \\\n"
-		"    frozen= {" << inactive_atoms << "} \\\n" 
+//		"    frozen= {" << inactive_atoms << "} \\\n" 
 		"    residues= $residues \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
@@ -209,7 +210,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	if (qm_theory != "") {
 		ofs << "        qm_theory= " << qm_theory << " : [ list \\\n";
 		if (qm_ham != "") {
-			ofs << "            hamiltonian = " << qm_ham << " \\\n";
+			ofs << "            hamiltonian= " << qm_ham << " \\\n";
 		}
 		if (qm_basis != "") {
 			ofs << "            basis= " << qm_basis << " \\\n";
@@ -239,8 +240,13 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	if (cutoff != "") {
 		ofs << "        cutoff=" << cutoff << " \\\n";
 	}
-	ofs << "        scale14 = {1.2 2.0} \\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \n"
+    if (scale14 != "") {
+      ofs << "        scale14 = {" << scale14 << "} \\\n";
+    }
+    else {
+      ofs << "        scale14 = {1.2 2.0} \\\n";
+    }
+	ofs << "        amber_prmtop_file=$amber_prmtop ] ] \n"
 		"\n"
 		/*Consider qm_theory.energy and qm_theory.gradient as a way to produce output with the right name in the first place*/
 		"write_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << "_opt.c\n"

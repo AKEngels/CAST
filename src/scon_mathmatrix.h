@@ -1,4 +1,4 @@
-/**
+﻿/**
 CAST 3
 scon_mathmatrix.h
 Purpose: Enabling matrix calculations. Uses Armadillo for enhanced speed when available. Otherwise uses slow internal routines.
@@ -59,7 +59,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 #else
-#include "Eigen"
+#include <Eigen/Dense>
 #define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
 #endif
 

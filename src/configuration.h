@@ -566,6 +566,7 @@ namespace config
 		std::string tolerance = "";
 		std::string mxlist = "";
 		std::string cutoff = "";
+        std::string scale14 = "";
 		bool dispersion = false;
 		bool delete_input = true;
 	} chemshell;
