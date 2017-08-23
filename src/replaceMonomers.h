@@ -51,7 +51,7 @@ namespace monomerManipulation
   /** Replace monomers in structure with another molecule structure
   @param inputStructure: coords object containing structure
   @param reference: structure of monomer for replacement*/
-  coords::Coordinates replaceMonomers(coords::Coordinates const& inputCoords, coords::Coordinates const& reference)
+  coords::Coordinates replaceMonomers(coords::Coordinates const& inputCoords, coords::Coordinates const& reference1, coords::Coordinates const& reference2, std::size_t threshold_index)
   {
     std::size_t N = inputCoords.molecules().size(); //Number of Molecules in system
     std::vector<coords::Cartesian_Point> com;
@@ -66,32 +66,44 @@ namespace monomerManipulation
     coords::Atoms truncatedAtoms;
     coords::Representation_3D positions;
     std::vector<std::size_t> new_index_of_atom(inputCoords.atoms().size(), 0u);
+    std::size_t new_index_of_atom_offset = 0;
 
     for (std::size_t i = 0u; i < N; i++)//i iterates over all molecules
     {
       monomer = monomer_structure(inputCoords, i);
 
-      newCoords = matop::align::kabschAligned(reference, monomer, true);
+      if (i < threshold_index)
+      {
+        newCoords = matop::align::kabschAligned(reference1, monomer, true);
+      }
+      else
+      {
+        newCoords = matop::align::kabschAligned(reference2, monomer, true);
+      }
 
       for (std::vector<coords::Atom>::size_type j = 0u; j < newCoords.size(); ++j)
       {
         truncatedAtoms.add(newCoords.atoms(j));
         positions.push_back(newCoords.xyz(j) + com[i]);//positions of alinged molecule atoms are shifted by the position of the com of the original molecule
-        new_index_of_atom.at(newCoords.atoms().atomOfMolecule(0, j) + i *newCoords.size()) = truncatedAtoms.size() - 1u;
+        new_index_of_atom.at(newCoords.atoms().atomOfMolecule(0, j) + new_index_of_atom_offset) = truncatedAtoms.size() - 1u;
       }//j
-      unsigned int helperIterator = 0u;
+    
+      std::size_t helperIterator = 0u;
+
       for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - newCoords.size(); j < truncatedAtoms.size(); ++j, helperIterator++)
       {
         for (auto& bonding_partner : newCoords.atoms(newCoords.atoms().atomOfMolecule(0, helperIterator)).bonds())
         {
           truncatedAtoms.atom(j).detach_from(bonding_partner);
-          truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]);
+          truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner + new_index_of_atom_offset]);
         }
       }//j
+
+      new_index_of_atom_offset += newCoords.size();
+
     }//i
 
     coords::Coordinates returnCoords;
-
     coords::PES_Point x(positions);
 
     returnCoords.init_in(truncatedAtoms, x, true);

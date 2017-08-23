@@ -1806,7 +1806,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().layd.hetero_option = bool_from_iss(cv);
     }
-    else if (option.substr(4u, 4u) == "het_dist")
+    else if (option.substr(4u, 8u) == "het_dist")
     {
       cv >> Config::set().layd.sec_layddist;
     }
@@ -1814,7 +1814,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().layd.sec_amount;
     }
-    else if (option.substr(4u, 10u) == "het_del_number")
+    else if (option.substr(4u, 14u) == "het_del_number")
     {
       cv >> Config::set().layd.sec_del_amount;
     }

@@ -50,6 +50,7 @@
 #include "Center.h"
 #include "Couplings.h"
 #include "periodicCutout.h"
+#include "replaceMonomers.h"
 
 
 //////////////////////////
@@ -259,6 +260,19 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
+      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+      coords::Coordinates add_coords(add_strukt_uptr->read("benzol_x.xyz"));
+      std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+      coords::Coordinates add_coords2(add_strukt_uptr2->read("cyclopentan.xyz"));
+      coords::Coordinates newCoords(coords);
+
+      std::size_t mon_amount_type1 = (coords.molecules().size() - Config::get().layd.del_amount) * Config::get().layd.amount;
+
+      newCoords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, 6);
+
+      std::ofstream aligntest("aling_test.xyz", std::ios_base::out);
+      aligntest << newCoords;
+
       break;
     }
     case config::tasks::SP:
@@ -755,7 +769,7 @@ int main(int argc, char **argv)
 
         coords = newCoords;
 
-        std::ofstream new_structure(Config::set().general.outputFilename, std::ios_base::out);
+        std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
         new_structure << coords;
 
         break;
@@ -794,9 +808,11 @@ int main(int argc, char **argv)
         newCoords.set_xyz(ci->structure(0u).structure.cartesian);
         coords = newCoords;
 
+        
+
         for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
         {
-          // Molecular Dynamics Simulation
+          //Molecular Dynamics Simulation
           if (Config::get().md.pre_optimize) coords.o();
           md::simulation mdObject1(coords);
           mdObject1.run();
@@ -842,7 +858,7 @@ int main(int argc, char **argv)
             for (auto & pes : *ci)
             {
               newCoords.set_xyz(pes.structure.cartesian);
-              newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_sec_coords);
               pes = newCoords.pes();
             }
             newCoords.set_xyz(ci->structure(0u).structure.cartesian);
@@ -860,6 +876,8 @@ int main(int argc, char **argv)
           }
 
         }
+        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
+        output << coords;
 
         break;
       }
