@@ -826,7 +826,7 @@ int main(int argc, char **argv)
           for (auto & pes : *ci)
           {
             newCoords.set_xyz(pes.structure.cartesian);
-            newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
             pes = newCoords.pes();
           }
           newCoords.set_xyz(ci->structure(0u).structure.cartesian);
@@ -858,7 +858,7 @@ int main(int argc, char **argv)
             for (auto & pes : *ci)
             {
               newCoords.set_xyz(pes.structure.cartesian);
-              newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_sec_coords);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
               pes = newCoords.pes();
             }
             newCoords.set_xyz(ci->structure(0u).structure.cartesian);
