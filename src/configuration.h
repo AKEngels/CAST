@@ -547,6 +547,8 @@ namespace config
       /**name of dftbaby gradient file (deleted again but necessary because otherwise
       dftbaby doesn't calculate gradients)*/
       std::string gradfile;
+      /**total charge of the molecule*/
+      int charge;
       /**state for which DFTB gradients are calculated (ground state = 0)*/
       int gradstate;
       /**verbosity for dftbaby*/
@@ -577,7 +579,7 @@ namespace config
       exceptions: gradstate, verbose*/
       dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
-      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0") {}
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0) {}
     } dftb;
 
     struct gaussian_conf

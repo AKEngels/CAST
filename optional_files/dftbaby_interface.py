@@ -3,9 +3,12 @@ from DFTB.DFTB2 import DFTB2
 from DFTB.XYZ import read_xyz
 from DFTB.LR_TDDFTB import LR_TDDFTB
 from DFTB.ExcGradients import Gradients
+from DFTB.XYZ import extract_keywords_xyz
+from scipy import optimize
+import subprocess
 
 SCF_OPTIONLIST = ['scf_conv', 'start_from_previous', 'level_shift', 'density_mixer', 'fock_interpolator', 'mixing_threshold', 'HOMO_LUMO_tol', 'maxiter', 'linear_mixing_coefficient']
-TD_INIT_OPTIONLIST = ["parameter_set","point_charges_xyz", "initial_charge_guess", "save_converged_charges", "verbose", "distance_cutoff", "long_range_correction", "long_range_radius", "long_range_T", "long_range_switching", "lc_implementation", "tune_range_radius", "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry", "fluctuation_functions", "mulliken_dipoles", "dispersion_correction", "qmmm_partitioning", "qmmm_embedding", "periodic_force_field", "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver"]
+TD_INIT_OPTIONLIST = ["parameter_set", "point_charges_xyz", "initial_charge_guess", "save_converged_charges", "verbose", "distance_cutoff", "long_range_correction", "long_range_radius", "long_range_T", "long_range_switching", "lc_implementation", "tune_range_radius", "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry", "fluctuation_functions", "mulliken_dipoles", "dispersion_correction", "qmmm_partitioning", "qmmm_embedding", "periodic_force_field", "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver"]
 GRAD_OPTIONS = ['gradient_file', 'gradient_check', 'gradient_state']
 
 
@@ -13,7 +16,7 @@ def extract_options(options, optionlist):
     """extracts options for a given function (defined by optionlist) from total options"""
     scf_keylist = []
     scf_valuelist = []
-    for i,o in enumerate(options.keys()):
+    for i, o in enumerate(options.keys()):
         if o in optionlist:
             scf_keylist.append(o)
             scf_valuelist.append(options.values()[i])
@@ -79,15 +82,16 @@ def calc_energies(xyzfile, optionfile):
 
     options = read_options(optionfile)  # read options
     atomlist = read_xyz(xyzfile)[0]  # read structure
+    kwds = extract_keywords_xyz(xyzfile)
 
     dftb2 = DFTB2(atomlist, **options)  # create dftb object
-    dftb2.setGeometry(atomlist)
+    dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
 
-    scf_options = extract_options(options, SCF_OPTIONLIST) # calculate energy
+    scf_options = extract_options(options, SCF_OPTIONLIST)  # calculate energy
     dftb2.getEnergy(**scf_options)
     energies = list(dftb2.getEnergies())  # get partial energies
 
-    if dftb2.long_range_correction == 1: # add long range correction to partial energies
+    if dftb2.long_range_correction == 1:  # add long range correction to partial energies
         energies.append(dftb2.E_HF_x)
 
     return str(energies)
@@ -106,13 +110,15 @@ def calc_gradients(xyzfile, optionfile):
     init_options = extract_options(options, TD_INIT_OPTIONLIST)
     scf_options = extract_options(options, SCF_OPTIONLIST)
     grad_options = extract_options(options, GRAD_OPTIONS)
+    kwds = extract_keywords_xyz(xyzfile)
 
     tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
-    tddftb.setGeometry(atomlist)
+    tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
     tddftb.getEnergies(**scf_options)  # calculate energies
 
     grad = Gradients(tddftb)            # calculate gradients
     grad.getGradients(**grad_options)
+    grad_options = extract_options(options, GRAD_OPTIONS)
 
     energies = list(tddftb.dftb2.getEnergies())  # get partial energies
 

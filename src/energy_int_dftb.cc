@@ -160,7 +160,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         } 
     else 
     {
-        printf("ERROR: module calc_E not found\n"); 
+        printf("ERROR: module dftbaby_interface not found\n"); 
         std::exit(0);
     }
     std::remove("tmp_struc.xyz"); // delete file
@@ -213,7 +213,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     } 
     else 
     {
-      printf("ERROR: module LR_TDDFTB_cast not found\n"); 
+      printf("ERROR: module dftbaby_interface not found\n"); 
       std::exit(0);
     }
 

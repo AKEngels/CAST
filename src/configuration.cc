@@ -545,6 +545,8 @@ void config::parse_option(std::string const option, std::string const value_stri
          Config::set().energy.dftb.diag_conv = value_string; 
     else if (option.substr(4,12) == "diag_maxiter")
         Config::set().energy.dftb.diag_maxiter = std::stoi(value_string);
+    else if (option.substr(4,12) == "charge")
+        Config::set().energy.dftb.charge = std::stoi(value_string);
     else if (option.substr(4,7) == "lr_corr")
     {
        if (value_string == "1")
