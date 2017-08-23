@@ -156,7 +156,7 @@ int main(int argc, char **argv)
       printf("It is not possible to use DFTB without python!\n");
       std::exit(0);
 #endif
-      std::remove("scf_output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
     }
 
     // read coordinate input file
