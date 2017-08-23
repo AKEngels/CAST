@@ -181,7 +181,15 @@ void pathx::MCM_PO(ptrdiff_t opt)
 	  /**
 	  * Optimization using projection or biased gradients
 	  */
-	  MCmin = lbfgs(opt);
+
+	  if (!Config::get().neb.MCM_OPT)
+	  {
+		  MCmin = cPtr->g();
+	  }
+	  else
+	  {
+		  MCmin = lbfgs(opt);
+	  }
 	  /**
 	  * MCM Criteria for accepting new minimum
 	  */

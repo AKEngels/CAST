@@ -489,8 +489,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.COMPLETE_PATH;
 	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
 		  cv >> Config::set().neb.MULTIPLE_POINTS;
-    else if (option.substr(11, 27) == "-NEB-INTERNAL_INTERPOLATION")
+     else if (option.substr(11, 27) == "-NEB-INTERNAL_INTERPOLATION")
       cv >> Config::set().neb.INTERNAL_INTERPOLATION;
+	 else if (option.substr(11, 12) == "-NEB-MCM_OPT")
+		 cv >> Config::set().neb.MCM_OPT;
+
   }
 
   // MOPAC options
