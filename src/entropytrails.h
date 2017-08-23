@@ -1358,7 +1358,7 @@ public:
       this->dimension, xmin, xmax,
       0u, 0, 1e-3 * range, ERROR_INDIVIDUAL, val, err);
 
-    std::cout << "Debug Output: Integral of ProbDens is: " << val[0] << "." << std::endl;
+    std::cout << "Integral of ProbDens is: " << val[0] << "." << std::endl;
     
 
     returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
@@ -1367,7 +1367,7 @@ public:
 
     const double value = val[0];
 
-    std::cout << "Computed integral = " << value << " with error: " << err << std::endl;
+    std::cout << "Computed Entropy via cubature integration: " << value << " with error: " << err[0] << std::endl;
 
 
     delete[] xmin, xmax, err, val;

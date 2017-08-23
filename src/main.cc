@@ -842,8 +842,22 @@ int main(int argc, char **argv)
       // row 3: analytical density
       // row 4: (aux) NN distance at point
 
+      std::cout << "Entropy Evaluations from analytic distributions and Gaussian Mixtures.\n\n";
+      std::cout << "Number of draws for NN entropies: " << Config::get().entropytrails.numberOfDraws << ".\n";
+
       ProbabilityDensity probdens(Config::get().entropytrails.ident);
 
+      std::cout << "Probabilty Density: " << probdens.identString() << "\n";
+      if (Config::get().entropytrails.subDimsForGMM.size() > 0)
+      {
+        std::cout << "Subdimensions from this distribution: ";
+
+        for (auto&& subdim : Config::get().entropytrails.subDimsForGMM)
+          std::cout << std::to_string(subdim) << ",";
+
+        std::cout << std::endl << std::endl;
+
+      }
       entropyobj entropyObject(
         Config::get().entropytrails.numberOfDraws,
         probdens, Config::get().entropytrails.subDimsForGMM);
