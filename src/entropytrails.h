@@ -241,7 +241,7 @@ class ProbabilityDensity
 public:
   GMM_data gmmdatafromfile;
 
-  ProbabilityDensity(int ident_) : identif(ident_)
+  ProbabilityDensity(int ident_) : identif(ident_), maximumOfPDF(- std::numeric_limits<double>::max())
   {
     if (ident_ == 0)
     {
@@ -723,9 +723,13 @@ public:
 
         return returnValue;
       };
+      PDFrange = std::make_shared<std::pair<double, double>>(-9e-11, 9e-11);
+
+
+
       maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
-      PDFrange = std::make_shared<std::pair<double, double>>(-9e-11, 9e-11);
+
       this->m_identString = "GMM3";
     }
     else if (ident_ == 9)
@@ -827,9 +831,35 @@ public:
         }
 
       };
-      maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.), std::vector<unsigned int>()) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
-      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
+
       PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
+
+
+      //
+      //find maximum of pdf by drawing many times
+      std::random_device rd;
+      std::mt19937 gen;
+      std::cout << "Finding maximum of PDF by drawing 100k times, taking highest value x10." << std::endl;
+      std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
+      const double absrange = PDFrange->second - PDFrange->first;
+
+      for (unsigned int i = 0u; i < 100000u; i++)
+      {
+        std::vector<double> drawUnifWithRange;
+        for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+        {
+          drawUnifWithRange.push_back(unifDistrRange(gen));
+        }
+        const double pdfvalue = PDF(drawUnifWithRange, std::vector<unsigned int>());
+        maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
+      }
+      std::cout << "Maximum of current PDF is " << maximumOfPDF << std::endl;
+      maximumOfPDF *= 10.;
+      //
+      //
+
+      //maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.), std::vector<unsigned int>()) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
+      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       this->m_identString = "GMMfile";
     }
   };
@@ -850,23 +880,26 @@ public:
 
 
     std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
-    const double absrange = PDFrange->second - PDFrange->first;
+    const long double absrange = PDFrange->second - PDFrange->first;
+    const long double unifWithRangeProbability = 1. / absrange;
+    const long double k = maximumOfPDF *1.05 / unifWithRangeProbability;
+
 
     for (unsigned int n = 0; n < numberOfSamples; ++n)
     {
       std::vector<double> drawUnifWithRange;
       //double drawUnif = unifDistr(gen);
       //double drawUnifWithRange = unifDistrRange(gen);
-      double M = maximumOfPDF / (1. / (2.*absrange));
-      bool inRange = true;
+
+
       for (unsigned int currentDim = 0u; currentDim < currentDimensionality; currentDim++)
       {
         drawUnifWithRange.push_back(unifDistrRange(gen));
       }
-      const double drawUnif = unifDistr(gen);
-      const double pdfvalue = PDF(drawUnifWithRange, subdims);
-      const double comparisonMultiplciatioNFactor = 1. / (M * 1.5 * 1. / (2.*absrange));
-      inRange = inRange && (drawUnif < pdfvalue * comparisonMultiplciatioNFactor);
+      const long double drawUnif = unifDistr(gen);
+      const long double pdfvalue = PDF(drawUnifWithRange, subdims);
+      const long double p = pdfvalue / (k * unifWithRangeProbability);
+      bool inRange = drawUnif < p;
 
       if (inRange)
       {
@@ -1065,8 +1098,15 @@ int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *f
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
     {
-      if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+      if (info.subdims.size() != 0)
+      {
+        if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+          input.push_back(x[j*ndim + i]);
+      }
+      else
+      {
         input.push_back(x[j*ndim + i]);
+      }
     }
 
     double probdens_result = info.probdens.function()(input, info.subdims);
@@ -1097,8 +1137,15 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
     {
-      if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+      if (info.subdims.size() != 0)
+      {
+        if (std::find(info.subdims.begin(), info.subdims.end(), i) != info.subdims.end())
+          input.push_back(x[j*ndim + i]);
+      }
+      else
+      {
         input.push_back(x[j*ndim + i]);
+      }
     }
 
     double probdens_result = info.probdens.function()(input, info.subdims);
@@ -1164,68 +1211,55 @@ public:
 
       standardDeviation /= numberOfDraws;
       standardDeviation = sqrt(standardDeviation);
+      std::cout << "Mean of Empirical Gaussian: " << mean << "\n";
+      std::cout << "Standard Deviation of Empricial Gaussian: " << standardDeviation << std::endl;
 
       return log(standardDeviation * sqrt(2. * pi * e));
     }
     else
     {
       Matrix_Class cov_matr;
-      if (false && this->numberOfDraws < 10001)
+      cov_matr = Matrix_Class(this->dimension, this->dimension, 0.);
+      Matrix_Class meanPerDim(this->dimension, 1u, std::numeric_limits<double>::quiet_NaN());
+      for (unsigned int dim = 0u; dim < this->dimension; dim++)
       {
-        transpose(this->drawMatrix);
-        cov_matr = (transposed(this->drawMatrix));
-        //Matrix_Class cov_matr = (this->drawMatrix);
-        Matrix_Class ones(this->drawMatrix.cols(), this->drawMatrix.cols(), 1.0);
-
-        cov_matr = Matrix_Class(cov_matr - ones * cov_matr / static_cast<float_type>(this->drawMatrix.cols()));
-        cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
-        cov_matr = cov_matr / static_cast<float_type>(this->drawMatrix.cols());
-        transpose(this->drawMatrix);
-      }
-      else
-      {
-        cov_matr = Matrix_Class(this->dimension, this->dimension, 0.);
-        Matrix_Class meanPerDim(this->dimension, 1u, std::numeric_limits<double>::quiet_NaN());
-        for (unsigned int dim = 0u; dim < this->dimension; dim++)
+        double meanThisDim = 0u;
+        for (unsigned int i = 0u; i < this->numberOfDraws; i++)
         {
-          double meanThisDim = 0u;
-          for (unsigned int i = 0u; i < this->numberOfDraws; i++)
-          {
-            meanThisDim += this->drawMatrix(i, dim);
-          }
-          meanThisDim /= double(this->numberOfDraws);
-          meanPerDim(dim, 0u) = meanThisDim;
+          meanThisDim += this->drawMatrix(i, dim);
+        }
+        meanThisDim /= double(this->numberOfDraws);
+        meanPerDim(dim, 0u) = meanThisDim;
 
-          double sum = 0.;
-          for (unsigned int i = 0u; i < this->numberOfDraws; i++)
-          {
-            sum += std::pow(this->drawMatrix(i, dim) - meanThisDim, 2);
-          }
-          sum /= double(this->numberOfDraws);
-          cov_matr(dim, dim) = sum;
+        double sum = 0.;
+        for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+        {
+          sum += std::pow(this->drawMatrix(i, dim) - meanThisDim, 2);
+        }
+        sum /= double(this->numberOfDraws);
+        cov_matr(dim, dim) = sum;
 
-          for (unsigned int dim2 = dim + 1; dim2 < this->dimension; dim2++)
+        for (unsigned int dim2 = dim + 1; dim2 < this->dimension; dim2++)
+        {
+          if (meanPerDim(dim2, 0u) != meanPerDim(dim2, 0u))
           {
-            if (meanPerDim(dim2, 0u) != meanPerDim(dim2, 0u))
-            {
-              double mean = 0u;
-              for (unsigned int i = 0u; i < this->numberOfDraws; i++)
-              {
-                mean += this->drawMatrix(i, dim2);
-              }
-              mean /= double(this->numberOfDraws);
-              meanPerDim(dim2, 0u) = mean;
-            }
-
-            double sum2 = 0.;
+            double mean = 0u;
             for (unsigned int i = 0u; i < this->numberOfDraws; i++)
             {
-              sum2 += (this->drawMatrix(i, dim2) - meanPerDim(dim2, 0u)) * (this->drawMatrix(i, dim) - meanPerDim(dim,0u));
+              mean += this->drawMatrix(i, dim2);
             }
-            sum2 /= double(this->numberOfDraws);
-            cov_matr(dim, dim2) = sum2;
-            cov_matr(dim2, dim) = sum2;
+            mean /= double(this->numberOfDraws);
+            meanPerDim(dim2, 0u) = mean;
           }
+
+          double sum2 = 0.;
+          for (unsigned int i = 0u; i < this->numberOfDraws; i++)
+          {
+            sum2 += (this->drawMatrix(i, dim2) - meanPerDim(dim2, 0u)) * (this->drawMatrix(i, dim) - meanPerDim(dim, 0u));
+          }
+          sum2 /= double(this->numberOfDraws);
+          cov_matr(dim, dim2) = sum2;
+          cov_matr(dim2, dim) = sum2;
         }
       }
 
