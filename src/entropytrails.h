@@ -1540,7 +1540,7 @@ public:
 #pragma omp for
         for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
-        for (size_t i = 0u; i < drawAndEvaluateMatrix_TemporaryCopy.cols(); i++)
+        for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
 #endif
         {
           const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
