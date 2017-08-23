@@ -200,9 +200,11 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	if (tolerance != "") {
 		ofs << "    tolerance=" << tolerance << " \\\n";
 	}
-	ofs << "    active_atoms= {" << active_atoms << "} \\\n"
-//		"    frozen= {" << inactive_atoms << "} \\\n" 
-		"    residues= $residues \\\n"
+	ofs << "    active_atoms= {" << active_atoms << "} \\\n";
+    if (inactive_atoms != "") {
+      ofs << "    frozen= {" << inactive_atoms << "} \\\n";
+    }
+	ofs << "    residues= $residues \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
 		ofs << "        coupling=" << embedding_sheme << " \\\n";
