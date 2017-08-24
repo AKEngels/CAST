@@ -573,13 +573,15 @@ namespace config
       int diag_maxiter;
       /**convergence threshold for TD-DFTB matrix diagonalisation*/
       std::string diag_conv;
+      /**use own optimizer for optimization (otherwise steepest gradient)*/
+      bool opt;
       
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
       dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
-      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0) {}
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
     } dftb;
 
     struct gaussian_conf

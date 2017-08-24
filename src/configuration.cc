@@ -555,6 +555,10 @@ void config::parse_option(std::string const option, std::string const value_stri
        if (value_string == "1")
           Config::set().energy.dftb.longrange = true;
     }   
+    else if (option.substr(4,3) == "opt")
+    {
+      if (value_string == "1") Config::set().energy.dftb.opt = true;
+    }
   }
 
   //Gaussian options

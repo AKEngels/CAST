@@ -74,6 +74,7 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
     std::string scipath = get_python_modulepath("scipy");
     add_path = create_pythonpath(numpath, scipath);
     create_dftbaby_configfile();
+    optimizer = Config::get().energy.dftb.opt;
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -244,14 +245,81 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 {
   integrity = true;
   grad_var = false;
-  std::cout<<"no hessian yet\n";
+
+  //write inputstructure
+  std::ofstream file("tmp_struc.xyz");
+  file << coords::output::formats::xyz_dftb(*this->coords);
+  file.close();
+
   return energy;
 }
 
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  throw std::runtime_error("DFTB doesn't at the moment provide any optimization routines.");
+      //write inputstructure
+    std::ofstream file("tmp_struc.xyz");
+    file << coords::output::formats::xyz_dftb(*this->coords);
+    file.close();
+    
+    //call programme
+    std::string result_str; 
+    PyObject *modul, *funk, *prm, *ret;
+    
+    PySys_SetPath("."); //set path
+    const char *c = add_path.c_str();  //add paths from variable add_path
+    PyRun_SimpleString(c);
+
+    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
+
+    if(modul) 
+        { 
+        funk = PyObject_GetAttrString(modul, "opt"); //create function
+        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
+        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+
+        result_str = PyString_AsString(ret); //read function return (has to be a string)
+        result_str = result_str.substr(1,result_str.size()-2);  //process return
+        std::vector<std::string> result_vec = split(result_str, ',');
+
+        //read energies and convert them to kcal/mol
+        e_bs = std::stod(result_vec[0])*627.503; 
+        e_coul = std::stod(result_vec[1])*627.503;
+        e_rep = std::stod(result_vec[3])*627.503;
+        e_tot = std::stod(result_vec[4])*627.503;
+        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+        
+        //delete PyObjects
+        Py_DECREF(prm); 
+        Py_DECREF(ret); 
+        Py_DECREF(funk); 
+        Py_DECREF(modul); 
+        } 
+    else 
+    {
+        printf("ERROR: module dftbaby_interface not found\n"); 
+        std::exit(0);
+    }
+    
+    //read new geometry
+    std::string line;
+    coords::Representation_3D xyz_tmp;
+    std::ifstream infile("tmp_struc_opt.xyz");
+    std::getline(infile, line);  //discard fist two lines
+    std::getline(infile, line);
+    std::string element;
+    double x,y,z;
+    while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
+    {
+        coords::Cartesian_Point xyz(x*627.503,y*627.503,z*627.503);
+        xyz_tmp.push_back(xyz);
+    }
+    infile.close();
+    coords->set_xyz(std::move(xyz_tmp));
+
+    std::remove("tmp_struc_opt.xyz"); // delete file
+    std::remove("tmp_struc.xyz"); // delete file
+  return e_tot;
 }
 
 // Output functions

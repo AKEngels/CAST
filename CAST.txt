@@ -81,7 +81,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 
-task                  SP
+task                  LOCOPT
 
 
 ####################################
@@ -173,6 +173,9 @@ DFTBgradstate          0
 
 # convergence threshold for TD-DFTB matrix diagonalisation
 #DFTBdiag_conv           1e-05
+
+# use DFTBaby for optimization (otherwise steepest gradient) <0/1>
+DFTBopt                  0
 
 
 ####################################

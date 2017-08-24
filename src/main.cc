@@ -157,6 +157,7 @@ int main(int argc, char **argv)
       std::exit(0);
 #endif
       std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("tmp_struc_trace.xyz");
     }
 
     // read coordinate input file
