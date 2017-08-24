@@ -260,19 +260,6 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
-      std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-      coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
-      std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
-      coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
-      coords::Coordinates newCoords(coords);
-
-      std::size_t mon_amount_type1 = (coords.molecules().size() - Config::get().layd.del_amount) * Config::get().layd.amount;
-
-      newCoords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, 9);
-
-      std::ofstream aligntest("aling_test.xyz", std::ios_base::out);
-      aligntest << newCoords;
-
       break;
     }
     case config::tasks::SP:
@@ -877,7 +864,19 @@ int main(int argc, char **argv)
           }
         }
 
-        //replacing here
+        //option if monomers in structure shall be replaced
+        if (Config::get().layd.replace == true)
+        {
+          std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
+          std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+          coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+          coords::Coordinates newCoords(coords);
+
+          std::size_t mon_amount_type1 = (coords.molecules().size() - Config::get().layd.del_amount) * Config::get().layd.amount;
+
+          newCoords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+        }
 
         std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
         output << coords;
