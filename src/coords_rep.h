@@ -242,6 +242,13 @@ namespace coords
     typedef Representation_Dual::size_type size_type;
     Representation_Dual structure;
     Gradients_Dual gradient;
+    /**hessian matrix: outer vector is line, inner vector is column
+    the order of the values is like this: 
+              x(atom1)  y(atom1)  z(atom1)  x(atom2) ...
+    x(atom1) .............................................
+    y(atom1) .............................................
+    z(atom1) .............................................
+    x(atom2) .............................................*/
     std::vector<std::vector<double>> hessian;
     sub_ia_matrix_t ia_matrix;
     float_type energy;

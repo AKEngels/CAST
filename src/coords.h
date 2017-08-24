@@ -555,6 +555,19 @@ namespace coords
     {
       return m_representation.gradient.main[index];
     }
+    
+    /**sets hessian matrix
+    @param hess: vector of vectors of doubles (e.g. matrix of doubles) that contains values for hessian matrix*/
+    void set_hessian(std::vector<std::vector<double>> hess)
+    {
+      m_representation.hessian = hess;
+    }
+    
+    /**returns the hessian matrix*/
+    std::vector<std::vector<double>> get_hessian()
+    {
+      return m_representation.hessian;
+    }
 
     /**returns all subsystems*/
     size_2d const & subsystems() const { return m_atoms.subsystems(); }

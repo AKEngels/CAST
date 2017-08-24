@@ -291,6 +291,32 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
           printf("ERROR: module dftbaby_interface not found\n"); 
           std::exit(0);
       }
+      
+      std::vector<double> v;
+      v.push_back(1);
+      v.push_back(2);
+      v.push_back(3);
+      std::vector<double> w;
+      w.push_back(4);
+      w.push_back(5);
+      w.push_back(6);
+      std::vector<std::vector<double>> z;
+      z.push_back(v);
+      z.push_back(w);
+
+      coords->set_hessian(z);
+
+      std::vector<std::vector<double>> x = coords->get_hessian();
+      for (auto line : x)
+      {
+        for (auto c : line)
+        {
+          std::cout<<c<<" ";
+        }
+        std::cout<<"\n";
+      }
+
+
       std::remove("tmp_struc.xyz"); // delete file
 
   return energy;
