@@ -342,6 +342,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
         std::exit(0);
     }
     
+    double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
     //read new geometry
     std::string line;
     coords::Representation_3D xyz_tmp;
@@ -352,7 +353,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     double x,y,z;
     while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
     {
-        coords::Cartesian_Point xyz(x*627.503,y*627.503,z*627.503);
+        coords::Cartesian_Point xyz(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
         xyz_tmp.push_back(xyz);
     }
     infile.close();
