@@ -484,6 +484,43 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
   strm << '\n';
 }
 
+void coords::Coordinates::h_tostream(std::ostream &S,
+  energy::interface_base const * const ep) const
+{
+  std::vector<std::vector<double>> hess = m_representation.hessian;
+  S << "Hessian Matrix\n";
+  S << "           ";
+  for (unsigned i=0; i<size(); i++)  // headline
+  {
+    S << "|  X (atom"<<i/3<<")  |  Y (atom"<<i/3<<")  |  Z (atom"<<i/3<<"  ";
+  }
+   S<<"\n";
+  for (unsigned i; i<12*3*m_representation.size(); i++)  // second line
+  {
+    S << "-";
+  }
+  S<<"\n";
+  for (unsigned i=0; i<m_representation.size(); i++)  // lines
+  {
+    if (i%3 == 0)
+    {
+      S << "  X (atom"<<i/3<<")  ";
+    }
+    else if (i%3 == 1)
+    {
+      S << "  Y (atom"<<i/3<<")  ";
+    }
+    else
+    {
+      S << "  Z (atom"<<i/3<<")  ";
+    }
+    for (unsigned j=0; j<3*m_representation.size();j++)
+    {
+      S <<"|"<<std::right<<std::fixed<<std::setw(10)<<std::setprecision(4)<<hess[i][j]<<" ";
+    }
+  }
+}
+
 
 coords::Cartesian_Point coords::Coordinates::center_of_mass_mol(std::size_t index) const
 {

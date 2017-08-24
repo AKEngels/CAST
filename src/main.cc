@@ -278,6 +278,7 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       coords.h();
+      coords.h_tostream(std::cout);
       // DEVTEST: Room for Development testing
       break;
     }

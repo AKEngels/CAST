@@ -480,6 +480,7 @@ namespace coords
 
     void e_head_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
     void e_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
+    void h_tostream(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
 
     /**returns the PES point*/
     PES_Point const & pes() const { return m_representation; }
