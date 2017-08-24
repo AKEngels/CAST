@@ -277,6 +277,7 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
+      coords.h();
       // DEVTEST: Room for Development testing
       break;
     }

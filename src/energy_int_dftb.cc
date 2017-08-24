@@ -246,10 +246,51 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
   integrity = true;
   grad_var = false;
 
-  //write inputstructure
-  std::ofstream file("tmp_struc.xyz");
-  file << coords::output::formats::xyz_dftb(*this->coords);
-  file.close();
+  std::cout<<"calc hessian\n";
+      //write inputstructure
+      std::ofstream file("tmp_struc.xyz");
+      file << coords::output::formats::xyz_dftb(*this->coords);
+      file.close();
+      
+      //call programme
+      std::string result_str; 
+      PyObject *modul, *funk, *prm, *ret;
+      
+      PySys_SetPath("."); //set path
+      const char *c = add_path.c_str();  //add paths from variable add_path
+      PyRun_SimpleString(c);
+  
+      modul = PyImport_ImportModule("dftbaby_interface"); //import module 
+  
+      if(modul) 
+          { 
+          funk = PyObject_GetAttrString(modul, "hessian"); //create function
+          prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
+          ret = PyObject_CallObject(funk, prm);  //call function with parameters
+  
+          result_str = PyString_AsString(ret); //read function return (has to be a string)
+          result_str = result_str.substr(1,result_str.size()-2);  //process return
+          std::vector<std::string> result_vec = split(result_str, ',');
+  
+          //read energies and convert them to kcal/mol
+          e_bs = std::stod(result_vec[0])*627.503; 
+          e_coul = std::stod(result_vec[1])*627.503;
+          e_rep = std::stod(result_vec[3])*627.503;
+          e_tot = std::stod(result_vec[4])*627.503;
+          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+          
+          //delete PyObjects
+          Py_DECREF(prm); 
+          Py_DECREF(ret); 
+          Py_DECREF(funk); 
+          Py_DECREF(modul); 
+          } 
+      else 
+      {
+          printf("ERROR: module dftbaby_interface not found\n"); 
+          std::exit(0);
+      }
+      std::remove("tmp_struc.xyz"); // delete file
 
   return energy;
 }

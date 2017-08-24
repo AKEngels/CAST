@@ -396,6 +396,12 @@ namespace coords
       zero_fixed_g(); //nullt gradienten alelr fixed atrome
       return m_representation.energy;
     }
+    
+    /**calculated hessian matrix*/
+    coords::float_type h()
+    {
+      m_representation.energy = m_interface->h();
+    }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
 

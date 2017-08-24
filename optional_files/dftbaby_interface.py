@@ -1,13 +1,14 @@
 import sys
-#sys.path.append("../../../DFTBaby-0.1.0")
-from DFTB.DFTB2 import DFTB2
-from DFTB.XYZ import read_xyz
+from DFTB import utils
+from DFTB.DFTB2 import DFTB2, annotated_hessian
+from DFTB.XYZ import read_xyz, extract_keywords_xyz, atomlist2vector, write_xyz, vector2atomlist
 from DFTB.LR_TDDFTB import LR_TDDFTB
 from DFTB.ExcGradients import Gradients
-from DFTB import XYZ, utils
 from DFTB.PES import PotentialEnergySurfaces
 from DFTB.XYZ import extract_keywords_xyz
+from DFTB.Dynamics import HarmonicApproximation
 from scipy import optimize
+import numpy
 from copy import copy
 
 SCF_OPTIONLIST = ['scf_conv', 'start_from_previous', 'level_shift', 'density_mixer', 'fock_interpolator', 'mixing_threshold', 'HOMO_LUMO_tol', 'maxiter', 'linear_mixing_coefficient']
@@ -161,6 +162,10 @@ def calc_gradients(xyzfile, optionfile):
 
 
 def opt(xyzfile, optionfile):
+    """performs an optimization"""
+  
+    outputfile = open("output_dftb.txt", "a")  # redirect output to file
+    sys.stdout = outputfile
   
     I = 0  # index of electronic state (ground state)
   
@@ -173,7 +178,7 @@ def opt(xyzfile, optionfile):
     # optimization (taken from optimize.py)
     pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)
 
-    x0 = XYZ.atomlist2vector(atomlist)  #convert geometry to a vector
+    x0 = atomlist2vector(atomlist)  #convert geometry to a vector
 
     def f(x):
         save_xyz(x)  # also save geometries from line searches
@@ -195,8 +200,8 @@ def opt(xyzfile, optionfile):
     # This is a callback function that is executed by numpy for each optimization step.
     # It appends the current geometry to an xyz-file.
     def save_xyz(x, mode="a"):
-        atomlist_opt = XYZ.vector2atomlist(x, atomlist)
-        XYZ.write_xyz(xyz_trace, [atomlist_opt],
+        atomlist_opt = vector2atomlist(x, atomlist)
+        write_xyz(xyz_trace, [atomlist_opt],
                   title="charge=%s" % kwds.get("charge", 0),
                   mode=mode)
 
@@ -214,16 +219,80 @@ def opt(xyzfile, optionfile):
     
     
     # write optimized geometry into file
-    atomlist_opt = XYZ.vector2atomlist(xopt, atomlist)
+    atomlist_opt = vector2atomlist(xopt, atomlist)
     xyz_opt = xyzfile.replace(".xyz", "_opt.xyz")
-    XYZ.write_xyz(xyz_opt, [atomlist_opt],
+    write_xyz(xyz_opt, [atomlist_opt],
                   title="charge=%s" % kwds.get("charge", 0),
                   mode="w")
 
     # calculate energy for optimized geometry
-    dftb2 = DFTB2(atomlist, **options)  # create dftb object
+    dftb2 = DFTB2(atomlist_opt, **options)  # create dftb object
     dftb2.setGeometry(atomlist_opt, charge=kwds.get("charge", 0.0))
     
+    dftb2.getEnergy(**scf_options)
+    energies = list(dftb2.getEnergies())  # get partial energies
+
+    if dftb2.long_range_correction == 1:  # add long range correction to partial energies
+        energies.append(dftb2.E_HF_x)
+
+    return str(energies)
+
+
+def hessian(xyzfile, optionfile):
+    """calculates hessian matrix"""
+
+    outputfile = open("output_dftb.txt", "a")  # redirect output to file
+    sys.stdout = outputfile
+
+    I = 0  # index of electronic state (ground state)
+
+    atomlist = read_xyz(xyzfile)[0]  # read xyz file
+    kwds = extract_keywords_xyz(xyzfile)  # read keywords (charge)
+    options = read_options(optionfile)  # read options
+    scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
+    pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)  # create PES
+  
+    atomvec = atomlist2vector(atomlist)  # convert atomlist to vector
+  
+    # FIND ENERGY MINIMUM
+    # f is the objective function that should be minimized
+    # it returns (f(x), f'(x))
+    def f(x):
+        if I == 0 and type(pes.tddftb.XmY) != type(None):
+            # only ground state is needed. However, at the start
+            # a single TD-DFT calculation is performed to initialize
+            # all variables (e.g. X-Y), so that the program does not
+            # complain about non-existing variables.
+            enI, gradI = pes.getEnergyAndGradient_S0(x)
+        else:
+            energies, gradI = pes.getEnergiesAndGradient(x, I)
+            enI = energies[I]
+        return enI, gradI
+
+    options = {'gtol': 1.0e-7, 'norm': 2}
+    # somehow numerical_hessian does not work without doing this mimimization before
+    res = optimize.minimize(f, atomvec, method="CG", jac=True, options=options)
+  
+    # COMPUTE HESSIAN AND VIBRATIONAL MODES
+    # The hessian is calculated by numerical differentiation of the
+    # analytical gradients
+    def grad(x):
+        if I == 0:
+            enI, gradI = pes.getEnergyAndGradient_S0(x)
+        else:
+            energies, gradI = pes.getEnergiesAndGradient(x, I)
+        return gradI
+    
+    print "Computing Hessian"   # calculate hessians from gradients
+    hess = HarmonicApproximation.numerical_hessian_G(grad, atomvec)
+    
+    with open("hessian.txt", "w") as hessianfile:  # write hessian matrix to file
+        hessianfile.write(annotated_hessian(atomlist, hess))
+
+    # calculate energy for optimized geometry
+    dftb2 = DFTB2(atomlist, **options)  # create dftb object
+    dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
+
     dftb2.getEnergy(**scf_options)
     energies = list(dftb2.getEnergies())  # get partial energies
 
