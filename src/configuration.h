@@ -1167,8 +1167,8 @@ namespace config
     std::size_t amount, del_amount, sec_amount, sec_del_amount;
     char        laydaxis;
     double      layddist, sec_layddist;
-    bool        hetero_option;
-    std::string layd_secname;
+    bool        hetero_option, replace;
+    std::string layd_secname, reference1, reference2;
   };
 
   //////////////////////////////////////

@@ -1822,6 +1822,18 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().layd.layd_secname = value_string;
     }
+    else if (option.substr(4u, 7u) == "replace")
+    {
+      Config::set().layd.replace = bool_from_iss(cv);
+    }
+    else if (option.substr(4u, 10u) == "reference1")
+    {
+      Config::set().layd.reference1 = value_string;
+    }
+    else if (option.substr(4u, 10u) == "reference2")
+    {
+      Config::set().layd.reference2 = value_string;
+    }
   }
 
 }

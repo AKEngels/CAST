@@ -960,6 +960,14 @@ layDhet_layers                  4
 
 layDhet_het_del_numbers         1
 
+#Shall monomers be replaced
+
+LayDreplace                     0
+
+Laydreference1
+
+LayDreference2
+
 ####################################
 #                                  #
 #              ADJUST              #

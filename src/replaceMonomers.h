@@ -85,18 +85,25 @@ namespace monomerManipulation
       {
         truncatedAtoms.add(newCoords.atoms(j));
         positions.push_back(newCoords.xyz(j) + com[i]);//positions of alinged molecule atoms are shifted by the position of the com of the original molecule
-        new_index_of_atom.at(newCoords.atoms().atomOfMolecule(0, j) + new_index_of_atom_offset) = truncatedAtoms.size() - 1u;
+        new_index_of_atom.at(j /*newCoords.atoms().atomOfMolecule(0, j)*/ + new_index_of_atom_offset) = truncatedAtoms.size() - 1u;
       }//j
     
       std::size_t helperIterator = 0u;
 
       for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - newCoords.size(); j < truncatedAtoms.size(); ++j, helperIterator++)
       {
-        for (auto& bonding_partner : newCoords.atoms(newCoords.atoms().atomOfMolecule(0, helperIterator)).bonds())
+        std::vector<std::size_t> new_bond_indices;
+        std::size_t bindingpartners = truncatedAtoms.atom(j).bonds().size();
+        for (std::size_t k = 0u;  0 < truncatedAtoms.atom(j).bonds().size();)
         {
-          truncatedAtoms.atom(j).detach_from(bonding_partner);
-          truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner + new_index_of_atom_offset]);
-        }
+          auto& detach = truncatedAtoms.atom(j).bonds(k);
+          new_bond_indices.push_back(detach);
+          truncatedAtoms.atom(j).detach_from(detach);
+        }//k
+        for (std::size_t l = 0; l < new_bond_indices.size(); l++)
+        {
+          truncatedAtoms.atom(j).bind_to(new_index_of_atom[new_bond_indices[l] + new_index_of_atom_offset]);
+        }//l
       }//j
 
       new_index_of_atom_offset += newCoords.size();
