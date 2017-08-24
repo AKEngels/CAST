@@ -247,7 +247,6 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
   integrity = true;
   grad_var = false;
 
-  std::cout<<"calc hessian\n";
       //write inputstructure
       std::ofstream file("tmp_struc.xyz");
       file << coords::output::formats::xyz_dftb(*this->coords);
@@ -292,32 +291,27 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
           std::exit(0);
       }
       
-      std::vector<double> v;
-      v.push_back(1);
-      v.push_back(2);
-      v.push_back(3);
-      std::vector<double> w;
-      w.push_back(4);
-      w.push_back(5);
-      w.push_back(6);
-      std::vector<std::vector<double>> z;
-      z.push_back(v);
-      z.push_back(w);
-
-      coords->set_hessian(z);
-
-      std::vector<std::vector<double>> x = coords->get_hessian();
-      for (auto line : x)
+      double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
+      //read hessian
+      std::string line;
+      std::ifstream infile("hessian.txt");
+      std::vector<std::vector<double>> hess;
+      while(std::getline(infile, line))  //for every line
       {
-        for (auto c : line)
+        std::vector<std::string> linevec = split(line,' ');
+        std::vector<double> doublevec;
+        for (auto v : linevec)
         {
-          std::cout<<c<<" ";
+           doublevec.push_back(std::stod(v)*CONVERSION_FACTOR);
         }
-        std::cout<<"\n";
+        hess.push_back(doublevec);
       }
+      infile.close();
 
+      coords->set_hessian(hess);  //set hessian
 
       std::remove("tmp_struc.xyz"); // delete file
+      std::remove("hessian.txt"); // delete file
 
   return energy;
 }

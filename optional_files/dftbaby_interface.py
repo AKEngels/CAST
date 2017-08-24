@@ -286,8 +286,16 @@ def hessian(xyzfile, optionfile):
     print "Computing Hessian"   # calculate hessians from gradients
     hess = HarmonicApproximation.numerical_hessian_G(grad, atomvec)
     
+    string = ""   # create string that is to be written into file
+    for line in hess:
+        for column in line:
+            string += str(column) + " "
+        string = string[:-1] + "\n"
+    
     with open("hessian.txt", "w") as hessianfile:  # write hessian matrix to file
-        hessianfile.write(annotated_hessian(atomlist, hess))
+        hessianfile.write(string)
+        # this would look nicer but is not as exact
+        #hessianfile.write(annotated_hessian(atomlist, hess))
 
     # calculate energy for optimized geometry
     dftb2 = DFTB2(atomlist, **options)  # create dftb object
