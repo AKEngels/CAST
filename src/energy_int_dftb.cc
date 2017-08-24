@@ -217,7 +217,8 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
       printf("ERROR: module dftbaby_interface not found\n"); 
       std::exit(0);
     }
-
+    
+    double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
     //read gradients
     std::string line;
     coords::Representation_3D g_tmp;
@@ -228,7 +229,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     double x,y,z;
     while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
     {
-        coords::Cartesian_Point g(x*627.503,y*627.503,z*627.503);
+        coords::Cartesian_Point g(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
         g_tmp.push_back(g);
     }
     infile.close();
@@ -240,7 +241,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   return e_tot;
 }
 
-// Energy+Gradient+Hessian function
+// Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
   integrity = true;
@@ -342,7 +343,6 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
         std::exit(0);
     }
     
-    double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
     //read new geometry
     std::string line;
     coords::Representation_3D xyz_tmp;
@@ -353,7 +353,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     double x,y,z;
     while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
     {
-        coords::Cartesian_Point xyz(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
+        coords::Cartesian_Point xyz(x*627.503,y*627.503,z*627.503);
         xyz_tmp.push_back(xyz);
     }
     infile.close();

@@ -397,7 +397,7 @@ namespace coords
       return m_representation.energy;
     }
     
-    /**calculated hessian matrix*/
+    /**calculate hessian matrix*/
     coords::float_type h()
     {
       m_representation.energy = m_interface->h();

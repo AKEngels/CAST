@@ -242,6 +242,7 @@ namespace coords
     typedef Representation_Dual::size_type size_type;
     Representation_Dual structure;
     Gradients_Dual gradient;
+    std::vector<std::vector<double>> hessian;
     sub_ia_matrix_t ia_matrix;
     float_type energy;
     bool integrity;
