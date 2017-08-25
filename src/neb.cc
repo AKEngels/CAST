@@ -1,4 +1,4 @@
-#include "neb.h"
+﻿#include "neb.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -15,6 +15,7 @@
 #include "lbfgs.h"
 #include "coords.h"
 #include "optimization_global.h"
+#include "matop.h"
 
 /**
 * NEB constructor
@@ -59,16 +60,35 @@ void neb::preprocess(ptrdiff_t &count)
   final();
   if (Config::get().neb.IDPP)
   {
-    idpp_prep();
-    create();
-    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-    else run(count);
+    if (!Config::get().neb.INTERNAL_INTERPOLATION)
+    {
+      idpp_prep();
+      create_cartesian_interpolation();
+      if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+      else run(count);
+    }
+    else
+    {
+      idpp_prep();
+      create_internal_interpolation(imagi);
+      if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+      else run(count);
+    }
   }
   else
   {
-    create();
-    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-    else run(count);
+    if (!Config::get().neb.INTERNAL_INTERPOLATION)
+    {
+      create_cartesian_interpolation();
+      if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+      else run(count);
+    }
+    else
+    {
+      create_internal_interpolation(imagi);
+      if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+      else run(count);
+    }
   }
 }
 
@@ -103,7 +123,20 @@ void neb::preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Represent
   ts_pathstruc = ts_path;
   initial(start);
   final(fi);
-  create();
+  if (!Config::get().neb.INTERNAL_INTERPOLATION)
+  {
+    create_cartesian_interpolation();
+    images.clear();
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
+  }
+  else
+  {
+    create_internal_interpolation(imagi);
+    images.clear();
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
+  }
   images.clear();
   if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
   else run(count);
@@ -139,9 +172,18 @@ void neb::preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const 
   energies.resize(num_images);
   initial(start);
   final(fi);
-  create();
-  if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
-  else run(count);
+  if (!Config::get().neb.INTERNAL_INTERPOLATION)
+  {
+    create_cartesian_interpolation();
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
+  }
+  else
+  {
+    create_internal_interpolation(imagi);
+    if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
+    else run(count);
+  }
 }
 
 /**
@@ -173,7 +215,7 @@ void neb::preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_
 	initial(ini_path_x);
 	ini_path_x = ini_path[num_images-1];
 	final(ini_path_x);
-	create(ini_path);
+	create_ini_path(ini_path);
 	images.clear();
 	if (Config::get().neb.CONSTRAINT_GLOBAL)run(count, image_remember, atoms_remember);
 	else run(count);
@@ -192,6 +234,11 @@ void neb::initial(void)
 void neb::final(void)
 {
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
+  if (!final)
+  {
+    throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
+  }
+
   std::string buffer;
   getline(final, buffer);
   size_t number;
@@ -205,6 +252,38 @@ void neb::final(void)
   }
 
   
+}
+
+/**
+* Reading second structure for double ended optimization from special NEB INPUT definition
+*/
+void neb::final_align(void)
+{
+  std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
+  if (!final)
+  {
+    throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
+  }
+  std::string buffer;
+  getline(final, buffer);
+  size_t number;
+  char atom[3];
+  coords::Coordinates final_struct, initial_struct;
+  for (size_t i = 0; i < N; i++)
+  {
+    getline(final, buffer);
+    std::istringstream line_coord(buffer);
+    line_coord >> number >> atom >> images[i].x() >> images[i].y() >> images[i].z();
+  }
+  initial_struct.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
+  final_struct.init_in(cPtr->atoms(), coords::PES_Point(images), true);
+  //std::cout << initial_struct.size() << '\n' << final_struct.size() << '\n';
+  for (size_t i = 0; i < this->cPtr->size(); ++i)
+  {
+    scon::align_cog(final_struct.xyz(i), final_struct.center_of_geometry(), initial_struct.center_of_geometry());
+  }
+  matop::align::kabschAlignment(final_struct, initial_struct, false);
+  imagi[num_images - 1] = final_struct.xyz();
 }
 
 /**
@@ -235,7 +314,7 @@ void neb::final(const coords::Representation_3D &fi)
 /**
 * linear interpolation
 */
-void neb::create()
+void neb::create_cartesian_interpolation()
 {
 
   tempimage_ini = imagi[0];
@@ -275,7 +354,7 @@ void neb::create()
 }
 
 
-void neb::create(const std::vector<coords::Representation_3D> &ini)
+void neb::create_ini_path(const std::vector<coords::Representation_3D> &ini)
 {
 	for (size_t j = 1; j < (num_images - 1); j++)
 	{
@@ -2494,7 +2573,7 @@ double inline neb::dihedral(const double& x1, const double& x2, const double& x3
   length_reflection = sqrt(((x1 + a_norm) - x_1)*((x1 + a_norm) - x_1) + ((y1 + b_norm) - y_1)*((y1 + b_norm) - y_1) + ((z1 + c_norm) - z_1)*((z1 + c_norm) - z_1));
 
   re = (x*a + y*b + z*c) / (sqrt(x*x + y*y + z*z)*sqrt(a*a + b*b + c*c));
-
+  if (abs(re) > 1.) re = (re < 0. ? -1. : 1.);
   re = acos(re);
 
   if (length_normal < length_reflection) {
@@ -2584,3 +2663,1121 @@ double inline neb::dihedral_same_atom(const double& x1, const double& x2, const 
 ****************************************
 ***************************************/
 
+void neb::create_internal_interpolation(std::vector <coords::Representation_3D> &input)
+{
+  size_t i = 0U, j = 0U, imgs = num_images, N_main = 0U;
+
+  std::vector<double> x_input, y_input, z_input;
+  std::vector<std::vector<double>> imgs_x_input, imgs_y_input,
+    imgs_z_input, dist, anglevec,
+    dihedralvec;
+  std::vector<std::vector<std::vector<double>>> dist_all, anglevec_all,
+    dihedralvec_all;
+
+  std::vector<size_t> int_swap;
+  std::vector<std::vector<size_t>> bonds, which_bonds;
+  std::vector<std::vector<std::vector<size_t>>> which_img;
+  std::vector<std::vector<std::vector<std::vector<size_t>>>> involved_bonds;
+  std::vector<std::vector<std::vector<std::pair<std::vector<size_t>, double>>>> Z_matrices;
+  std::vector<size_t> backbone_indeces;
+  size_t backbone_iterator = 1;
+
+  for (i = 0U; i < N; i++)
+  {
+    int_swap.clear();
+
+    x_input.push_back(input[0][i].x());
+    y_input.push_back(input[0][i].y());
+    z_input.push_back(input[0][i].z());
+
+    int_swap.push_back(i + 1);
+    for (j = 0U; j < cPtr->atoms(i).bonds().size(); j++)
+    {
+      int_swap.push_back(cPtr->atoms(i).bonds()[j] + 1U);
+    }
+    bonds.push_back(int_swap);
+  }
+
+  imgs_x_input.push_back(x_input);
+  imgs_y_input.push_back(y_input);
+  imgs_z_input.push_back(z_input);
+
+  x_input.clear();
+  y_input.clear();
+  z_input.clear();
+
+  for (i = 0U; i < N; i++)
+  {
+    x_input.push_back(input[imgs - 1][i].x());
+    y_input.push_back(input[imgs - 1][i].y());
+    z_input.push_back(input[imgs - 1][i].z());
+  }
+
+  imgs_x_input.push_back(x_input);
+  imgs_y_input.push_back(y_input);
+  imgs_z_input.push_back(z_input);
+
+  //creates backbone enumeration (0 for terminal atoms)
+  for (i = 0U; i < N; i++)
+  {
+    if (bonds[i].size() > 2)
+    {
+      which_bonds.push_back(bonds[i]);
+      ++N_main;
+      backbone_indeces.push_back(backbone_iterator++);
+    }
+    else
+    {
+      backbone_indeces.push_back(0);
+    }
+  }
+  get_values(imgs_x_input[0], imgs_y_input[0], imgs_z_input[0],
+    N_main, which_bonds, &dist, &anglevec, &dihedralvec,
+    &involved_bonds, bonds);
+
+  dihedralvec_all.resize(imgs);
+  for (size_t i = 0; i < imgs; ++i)
+  {
+    dist_all.push_back(dist);
+    anglevec_all.push_back(anglevec);
+  }
+  dihedralvec_all[0] = dihedralvec;
+
+  dist.clear();
+  anglevec.clear();
+  dihedralvec.clear();
+
+  get_values(imgs_x_input[1], imgs_y_input[1], imgs_z_input[1],
+    &dist, &anglevec, &dihedralvec, involved_bonds,
+    bonds);
+
+  dihedralvec_all[imgs - 1] = dihedralvec;
+
+  dihedralvec.clear();
+
+  std::vector<std::vector<std::vector<std::pair<std::vector<size_t>, double>>>> redundant_dists,
+    redundant_angles,
+    redundant_dihedrals;
+  std::vector<size_t> temporary;
+
+  redundant_dists.resize(imgs);
+  redundant_angles.resize(imgs);
+  redundant_dihedrals.resize(imgs);
+
+  redundant_dists[0].resize(N_main);
+  redundant_angles[0].resize(N_main);
+  redundant_dihedrals[0].resize(N_main);
+
+  redundant_dists[imgs - 1].resize(N_main);
+  redundant_angles[imgs - 1].resize(N_main);
+  redundant_dihedrals[imgs - 1].resize(N_main);
+
+
+  /*for (auto &a : involved_bonds[DIHEDRAL])
+  {
+  for (auto &b : a)
+  {
+  for (auto &c : b)
+  {
+  std::cout << c << ' ';
+  }
+  std::cout << '\n';
+  }
+  }
+  system("pause");*/
+
+
+  for (size_t j = 0; j < N_main; ++j)
+  {
+    for (size_t k = 0; k < involved_bonds[DIST][j].size(); ++k)
+    {
+      redundant_dists[0][j].push_back(std::make_pair(involved_bonds[DIST][j][k],
+        dist_all[0][j][k]));
+      redundant_dists[imgs - 1][j].push_back(std::make_pair(involved_bonds[DIST][j][k],
+        dist_all[imgs - 1][j][k]));
+    }
+    for (size_t k = 0; k < involved_bonds[ANGLE][j].size(); ++k)
+    {
+      temporary = { involved_bonds[ANGLE][j][k][1],
+        involved_bonds[ANGLE][j][k][0],
+        involved_bonds[ANGLE][j][k][2] };
+      redundant_angles[0][j].push_back(std::make_pair(temporary,
+        anglevec_all[0][j][k]));
+      redundant_angles[imgs - 1][j].push_back(std::make_pair(temporary,
+        anglevec_all[imgs - 1][j][k]));
+    }
+    for (size_t k = 0; k < involved_bonds[DIHEDRAL][j].size(); ++k)
+    {
+      if (cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][1] - 1)
+        && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][2] - 1)
+        && cPtr->atoms(involved_bonds[DIHEDRAL][j][k][0] - 1).is_bound_to(involved_bonds[DIHEDRAL][j][k][3] - 1)) continue;
+      temporary = { involved_bonds[DIHEDRAL][j][k][2],
+        involved_bonds[DIHEDRAL][j][k][0],
+        involved_bonds[DIHEDRAL][j][k][1],
+        involved_bonds[DIHEDRAL][j][k][3] };
+      redundant_dihedrals[0][j].push_back(std::make_pair(temporary,
+        dihedralvec_all[0][j][k]));
+      redundant_dihedrals[imgs - 1][j].push_back(std::make_pair(temporary,
+        dihedralvec_all[imgs - 1][j][k]));
+    }
+  }
+
+
+  /*for (auto &a : redundant_dihedrals)
+  {
+  for (auto &b : a)
+  {
+  for (auto &c : b)
+  {
+  for (auto &d : c.first)
+  {
+  std::cout << d << ' ';
+  }
+  std::cout << c.second << '\n';
+  }
+  }
+  }
+  system("pause");*/
+
+
+  std::vector<std::vector<scon::sphericals<float_type>>> Z_matrices_s3;
+  coords::PES_Point point;
+  coords::Representation_Internal Rep;
+  Rep.resize(N);
+  Z_matrices.resize(imgs);
+  Z_matrices_s3.resize(imgs);
+
+  Z_matrices[0] = redundant_to_Z_backbone(redundant_dists[0],
+    redundant_angles[0],
+    redundant_dihedrals[0],
+    backbone_indeces);
+  Z_matrices[imgs - 1] = redundant_to_Z_backbone(redundant_dists[imgs - 1],
+    redundant_angles[imgs - 1],
+    redundant_dihedrals[imgs - 1],
+    backbone_indeces);
+
+  //for implementation of NeRF algorithm in CAST
+  double constexpr pi = 3.1415926535897932384626433832795;
+  coords::Cartesian_Point x_ref(1, 0, 0);
+  coords::Cartesian_Point y_ref(0, 1, 0);
+  coords::Cartesian_Point z_ref(0, 0, 1);
+  coords::Cartesian_Point atom_A(-Z_matrices[0][2][0].second + Z_matrices[0][1][0].second * std::sin((pi / 180) * (Z_matrices[0][2][1].second - 90)),
+    Z_matrices[0][1][0].second * std::cos(Z_matrices[0][2][1].second - 90),
+    0);
+  coords::Cartesian_Point atom_B(-Z_matrices[0][2][0].second,
+    0,
+    0);
+  coords::Cartesian_Point atom_C(0, 0, 0);
+  coords::s3 mega_temp;
+  coords::Coordinates coords_ini, coords_final;
+  coords_ini.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
+  coords_final.init_in(cPtr->atoms(), coords::PES_Point(imagi[imgs - 1]), true);
+  coords_ini.to_internal();
+  coords_final.to_internal();
+
+  double const incr(1. / imgs);
+  double change = 0, total_change = 0;
+
+  for (size_t i = 1; i < (imgs - 1); ++i)
+  {
+    Z_matrices[i].resize(N);
+    for (size_t j = 0; j < N; ++j)
+    {
+      if (j == 0)
+      {
+        Z_matrices[i][j].resize(3);
+
+        temporary = { 0, N };
+        Z_matrices[i][j][0].first = temporary;
+
+        temporary = { 0, N, N + 1 };
+        Z_matrices[i][j][1].first = temporary;
+
+        temporary = { 0, N, N + 1, N + 2 };
+        Z_matrices[i][j][2].first = temporary;
+
+        Z_matrices[i][j][0].second = coords_ini.intern(j).radius()
+          + (coords_final.intern(j).radius()
+            - coords_ini.intern(j).radius())	* incr * i;
+        Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
+          + (double)(coords_final.intern(j).inclination()
+            - coords_ini.intern(j).inclination()) * incr * (double)i;
+        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
+          + (double)(coords_final.intern(j).azimuth()
+            - coords_ini.intern(j).azimuth())			* incr * (double)i;
+      }
+      else if (j == 1)
+      {
+        Z_matrices[i][j].resize(3);
+
+        total_change = Z_matrices[imgs - 1][j][0].second
+          - Z_matrices[0][j][0].second;
+        change = i * incr * total_change;
+        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
+          Z_matrices[0][j][0].second + change);
+
+        mega_temp = spherical(atom_B, atom_A, x_ref - atom_A, y_ref - atom_A);
+
+        temporary = { 1, 0, N };
+        Z_matrices[i][j][1].first = temporary;
+
+        temporary = { 1, 0, N, N + 1 };
+        Z_matrices[i][j][2].first = temporary;
+
+        Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
+          + (double)(coords_final.intern(j).inclination()
+            - coords_ini.intern(j).inclination()) * incr * (double)i;
+        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
+          + (double)(coords_final.intern(j).azimuth()
+            - coords_ini.intern(j).azimuth())			* incr * (double)i;
+      }
+      else if (j == 2)
+      {
+        Z_matrices[i][j].resize(3);
+
+        total_change = Z_matrices[imgs - 1][j][0].second
+          - Z_matrices[0][j][0].second;
+        change = i * incr * total_change;
+        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
+          Z_matrices[0][j][0].second + change);
+
+        total_change = Z_matrices[imgs - 1][j][1].second
+          - Z_matrices[0][j][1].second;
+        if (abs(total_change) >= (180.))
+          total_change = total_change - (total_change < 0 ? -360. : 360.);
+        change = i * incr * total_change;
+        Z_matrices[i][j][1] = std::make_pair(Z_matrices[0][j][1].first,
+          Z_matrices[0][j][1].second + change);
+
+        mega_temp = spherical(atom_C, atom_B, atom_A - atom_B, x_ref - atom_B);
+
+        temporary = { 2, 1, 0, N };
+        Z_matrices[i][j][2].first = temporary;
+
+        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
+          + (double)(coords_final.intern(j).azimuth()
+            - coords_ini.intern(j).azimuth()) * incr * (double)i;
+      }
+      else
+      {
+        Z_matrices[i][j].resize(3);
+
+        total_change = Z_matrices[imgs - 1][j][0].second
+          - Z_matrices[0][j][0].second;
+        change = i * incr * total_change;
+        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
+          Z_matrices[0][j][0].second + change);
+
+        total_change = Z_matrices[imgs - 1][j][1].second
+          - Z_matrices[0][j][1].second;
+        if (abs(total_change) >= (180.))
+          total_change = total_change - (total_change < 0 ? -360. : 360.);
+        change = i * incr * total_change;
+        Z_matrices[i][j][1] = std::make_pair(Z_matrices[0][j][1].first,
+          Z_matrices[0][j][1].second + change);
+
+        total_change = Z_matrices[imgs - 1][j][2].second
+          - Z_matrices[0][j][2].second;
+        if (abs(total_change) >= (180.))
+          total_change = total_change - (total_change < 0 ? -360. : 360.);
+        change = i * incr * total_change;
+        Z_matrices[i][j][2] = std::make_pair(Z_matrices[0][j][2].first,
+          Z_matrices[0][j][2].second + change);
+      }
+    }
+    Z_matrices_s3[i].resize(N);
+    for (size_t j = 0; j < N; ++j)
+    {
+      Z_matrices_s3[i][j].radius() = Z_matrices[i][j][0].second;
+      Z_matrices_s3[i][j].inclination() = (coords::angle_type)Z_matrices[i][j][1].second;
+      Z_matrices_s3[i][j].azimuth() = (coords::angle_type)Z_matrices[i][j][2].second;
+    }
+  }
+
+  coords::Coordinates coords;
+  coords = *cPtr;
+  size_t no_dist = Z_matrices[0][N][0].first[0],
+    no_angle = Z_matrices[0][N][0].first[1],
+    no_dihedral = Z_matrices[0][N][0].first[2];
+
+  coords.adapt_indexation(no_dist, no_angle, no_dihedral,
+    Z_matrices[0], cPtr);
+  //system("pause");
+
+  //new coords object for saving newly generated structures
+  std::unique_ptr<coords::input::format> format_ptr(coords::input::new_format());
+  coords::Coordinates structure;
+  for (size_t i = 1; i < (imgs - 1); ++i)
+  {
+
+    //converts Z-matrix to cartesian structure using OpenBabel
+    write_gzmat("NEB_" + to_string(i) + ".gzmat", Z_matrices[i], coords);
+
+    std::string command = "obabel -i gzmat NEB_"
+      + to_string(i)
+      + ".gzmat -o txyz -O NEB_coordinates_cartesian_"
+      + to_string(i);
+    system(command.c_str());
+
+    //saves new structure
+    structure = format_ptr->read("NEB_coordinates_cartesian_"
+      + to_string(i));
+    structure.adapt_indexation(no_dist, no_angle, no_dihedral,
+      Z_matrices[0], cPtr);
+
+    //prepares parameters for NEB MEP finding
+    for (size_t j = 0; j < N; ++j)
+    {
+      images[j].x() = structure.xyz(j).x();
+      images[j].y() = structure.xyz(j).y();
+      images[j].z() = structure.xyz(j).z();
+
+      imagi[i].push_back(images[j]);
+      image_ini[i].push_back(images[j]);
+      images_initial.push_back(images[j]);
+    }
+  }
+  std::ostringstream names;
+  names << "IMAGES_INI" << cPtr->mult_struc_counter << ".dat";
+
+  std::ostringstream na;
+  na << "IMAGES_START" << this->cPtr->mult_struc_counter << ".arc";
+  std::ptrdiff_t s{ 0 };
+  print(na.str(), imagi, s);
+  if (Config::get().neb.INT_PATH) calc_shift();
+}
+
+//creates Z-matrix from redundant internal coords that are only defined for nonterminal atoms
+
+std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_to_Z_backbone(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dists,
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_angles,
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dihedrals,
+  std::vector<size_t> backbone_indeces)
+{
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> Z_matrix;
+  std::vector<std::string> atom_labels;
+  std::vector<size_t> terminal_enum;																//*terminality indeces
+  std::pair<std::vector<size_t>, double> temp, dihedral_vect;				//*for saving different index combinations which define the same geometrical instance
+  std::vector<std::pair<std::vector<size_t>, double>> unique_dists,
+    unique_angles,
+    unique_dihedrals;
+  std::vector<bool> defined;																				//for checking if there is an angle or dihedral defined for the current atom
+  bool doesnt_exist, linked = false;																//*for checking if parameter to be defined has already been defined for another atom
+                                                                    //* and if the atoms are linked properly
+  size_t no_dist = 0, no_angle = 0, no_dihedral = 0;								//for saving the indeces of the atoms that don't get any coords, no angle and no dihedral and no dihedral
+  size_t N = cPtr->atoms().size();
+  if (!(redundant_dists.size() == redundant_angles.size()
+    && redundant_angles.size() == redundant_dihedrals.size()))
+  {
+    throw std::logic_error("Wrong definition of parameter and index vectors.");
+  }
+  size_t N_main = redundant_dists.size();
+  size_t term_deepness;
+  Z_matrix.resize(N + 1);
+  unique_dists.resize(N);
+  unique_angles.resize(N);
+  unique_dihedrals.resize(N);
+  defined.resize(N);
+  for (size_t i = 0; i < N; ++i)
+  {
+    defined[i] = false;
+  }
+
+  terminal_enum = cPtr->terminal_enum();
+  term_deepness = *std::max_element(terminal_enum.begin(),
+    terminal_enum.end());
+
+
+  /*for (auto &a : terminal_enum)
+  {
+  std::cout << a << '\n';
+  }
+  system("pause");*/
+
+
+  //parameter reduction
+  //finding and treating first three atoms in Z-matrix differently
+  for (size_t j = 0; j < N; ++j)
+  {
+    if (!(terminal_enum[j] == term_deepness
+      || N == 3)) continue;
+    if (N == 3)
+    {
+      for (size_t k = 0; k < N; ++k)
+      {
+        if (terminal_enum[k] == term_deepness)
+        {
+          no_angle = k;
+          no_dist = cPtr->atoms(no_angle).bonds(0);
+          no_dihedral = cPtr->atoms(no_angle).bonds(1);
+          break;
+        }
+      }
+    }
+    else
+    {
+      no_dist = j;
+      for (size_t k = 0; k < cPtr->atoms(no_dist).bonds().size(); ++k)
+      {
+        if (terminal_enum[cPtr->atoms(no_dist).bonds(k)] == 1) continue;
+        no_angle = cPtr->atoms(no_dist).bonds(k);
+        break;
+      }
+      for (size_t k = 0; k < cPtr->atoms(no_angle).bonds().size(); ++k)
+      {
+        if ((terminal_enum[cPtr->atoms(no_angle).bonds(k)] == 1 && term_deepness > 3)
+          || cPtr->atoms(no_angle).bonds(k) == no_dist) continue;
+        no_dihedral = cPtr->atoms(no_angle).bonds(k);
+        break;
+      }
+    }
+    defined[no_dist] = true;
+    temp.first = { no_angle + 1,
+      no_dist + 1 };
+    for (size_t k = 0; k < redundant_dists[backbone_indeces[no_angle] - 1].size(); ++k)
+    {
+      if (find(redundant_dists[backbone_indeces[no_angle] - 1][k].first.begin(),
+        redundant_dists[backbone_indeces[no_angle] - 1][k].first.end(),
+        no_dist + 1) == redundant_dists[backbone_indeces[no_angle] - 1][k].first.end()) continue;
+      temp.second = redundant_dists[backbone_indeces[no_angle] - 1][k].second;
+      unique_dists[no_angle] = temp;
+      defined[no_angle] = true;
+      break;
+    }
+    temp.first = { no_dihedral + 1,
+      no_angle + 1 };
+    if (terminal_enum[no_dihedral] > 1)
+    {
+      for (size_t k = 0; k < redundant_dists[backbone_indeces[no_dihedral] - 1].size(); ++k)
+      {
+        if (find(redundant_dists[backbone_indeces[no_dihedral] - 1][k].first.begin(),
+          redundant_dists[backbone_indeces[no_dihedral] - 1][k].first.end(),
+          no_angle + 1) == redundant_dists[backbone_indeces[no_dihedral] - 1][k].first.end()) continue;
+        temp.second = redundant_dists[backbone_indeces[no_dihedral] - 1][k].second;
+        unique_dists[no_dihedral] = temp;
+        defined[no_dihedral] = true;
+        break;
+      }
+    }
+    else
+    {
+      for (size_t k = 0; k < redundant_dists[backbone_indeces[no_angle] - 1].size(); ++k)
+      {
+        if (find(redundant_dists[backbone_indeces[no_angle] - 1][k].first.begin(),
+          redundant_dists[backbone_indeces[no_angle] - 1][k].first.end(),
+          no_dihedral + 1) == redundant_dists[backbone_indeces[no_angle] - 1][k].first.end()) continue;
+        temp.second = redundant_dists[backbone_indeces[no_angle] - 1][k].second;
+        unique_dists[no_dihedral] = temp;
+        defined[no_dihedral] = true;
+        break;
+      }
+    }
+    temp.first = { no_dihedral + 1,
+      no_angle + 1,
+      no_dist + 1 };
+    for (size_t k = 0; k < redundant_angles[backbone_indeces[no_angle] - 1].size(); ++k)
+    {
+      if (find(redundant_angles[backbone_indeces[no_angle] - 1][k].first.begin(),
+        redundant_angles[backbone_indeces[no_angle] - 1][k].first.end(),
+        no_dist + 1) == redundant_angles[backbone_indeces[no_angle] - 1][k].first.end()
+        || find(redundant_angles[backbone_indeces[no_angle] - 1][k].first.begin(),
+          redundant_angles[backbone_indeces[no_angle] - 1][k].first.end(),
+          no_dihedral + 1) == redundant_angles[backbone_indeces[no_angle] - 1][k].first.end()) continue;
+      temp.second = redundant_angles[backbone_indeces[no_angle] - 1][k].second;
+      unique_angles[no_dihedral] = temp;
+      break;
+    }
+    break;
+  }
+
+  //gets distances
+  for (size_t i = 0; i < term_deepness; ++i)
+  {
+    for (size_t j = 0; j < N; ++j)
+    {
+      if (defined[j]) continue;
+      if (i + 1 == 1
+        && 1 == terminal_enum[j])
+      {
+        if (cPtr->atoms(j).bonds().size() != 1)
+          throw std::logic_error("Terminal atom "
+            + to_string(j + 1)
+            + "not actually terminal.");
+        for (size_t k = 0;
+          k < redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1].size();
+          ++k)
+        {
+          if (redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[1] != j + 1) continue;
+          temp.first = { redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[1],
+            redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[0] };
+          temp.second = redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].second;
+          doesnt_exist = find(unique_dists.begin(),
+            unique_dists.end(),
+            redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k]) == unique_dists.end()
+            && find(unique_dists.begin(),
+              unique_dists.end(),
+              temp) == unique_dists.end();
+          linked = cPtr->atoms(j).is_bound_to(redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[0] - 1);
+          if (!(doesnt_exist && linked)) continue;
+          unique_dists[j] = temp;
+          defined[j] = true;
+          break;
+        }
+      }
+      else if (terminal_enum[j] == i + 1)
+      {
+        if (backbone_indeces[j] == 0)
+          throw std::logic_error("Backbone atom "
+            + to_string(j + 1)
+            + " not actually part of backbone.");
+        for (size_t k = 0; k < redundant_dists[backbone_indeces[j] - 1].size(); ++k)
+        {
+          if (terminal_enum[redundant_dists[backbone_indeces[j] - 1][k].first[1] - 1] < terminal_enum[j]) continue;
+          temp.first = { redundant_dists[backbone_indeces[j] - 1][k].first[1],
+            redundant_dists[backbone_indeces[j] - 1][k].first[0] };
+          temp.second = redundant_dists[backbone_indeces[j] - 1][k].second;
+          doesnt_exist = find(unique_dists.begin(),
+            unique_dists.end(),
+            redundant_dists[backbone_indeces[j] - 1][k]) == unique_dists.end()
+            && find(unique_dists.begin(),
+              unique_dists.end(),
+              temp) == unique_dists.end();
+          linked = cPtr->atoms(j).is_bound_to(redundant_dists[backbone_indeces[j] - 1][k].first[1] - 1);
+          if (!(doesnt_exist && linked)) continue;
+          unique_dists[j] = redundant_dists[backbone_indeces[j] - 1][k];
+          defined[j] = true;
+          break;
+        }
+      }
+      else if (terminal_enum[j] < i + 1 && !defined[j])
+      {
+        for (size_t k = 0;
+          k < redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1].size();
+          ++k)
+        {
+          if (redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[1] != j + 1) continue;
+          temp.first = { redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[1],
+            redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[0] };
+          temp.second = redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].second;
+          doesnt_exist = find(unique_dists.begin(),
+            unique_dists.end(),
+            redundant_dists[cPtr->atoms(j).bonds(0)][0]) == unique_dists.end()
+            && find(unique_dists.begin(),
+              unique_dists.end(),
+              temp) == unique_dists.end();
+          linked = cPtr->atoms(j).is_bound_to(redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1][k].first[0] - 1);
+          if (!(doesnt_exist && linked)) continue;
+          unique_dists[j] = temp;
+          defined[j] = true;
+          break;
+        }
+      }
+    }
+  }
+  //checks, if distances have been defined for every atom
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (!defined[i])
+      throw std::runtime_error("No bond parameter could be defined for atom "
+        + to_string(i + 1));
+    defined[i] = false;
+  }
+  //gets angles
+  defined[no_dist] = true;
+  defined[no_angle] = true;
+  defined[no_dihedral] = true;
+  for (size_t i = 0; i < term_deepness; ++i)
+  {
+    for (size_t j = 0; j < N; ++j)
+    {
+      if (defined[j]) continue;
+      if (terminal_enum[j] == i + 1)
+      {
+        for (size_t k = 0;
+          k < cPtr->atoms(j).bonds().size() && !defined[j];
+          ++k)
+        {
+          if (terminal_enum[cPtr->atoms(j).bonds(k)] < terminal_enum[j]) continue;
+          for (size_t l = 0;
+            l < redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1].size();
+            ++l)
+          {
+            if (redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] == j + 1
+              && redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] != j + 1
+              && (terminal_enum[redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] - 1] > 2 || term_deepness == 2))
+            {
+              temp.first = { redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2],
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[1],
+                j + 1, };
+              temp.second = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].second;
+            }
+            else if (redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] != j + 1
+              && redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] == j + 1
+              && (terminal_enum[redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] - 1] > 2 || term_deepness == 2))
+            {
+              temp.first = { j + 1,
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[1],
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] };
+              temp.second = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].second;
+            }
+            else
+            {
+              continue;
+            }
+            doesnt_exist = find(unique_angles.begin(),
+              unique_angles.end(),
+              redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l]) == unique_angles.end()
+              && find(unique_angles.begin(),
+                unique_angles.end(),
+                temp) == unique_angles.end();
+            linked = cPtr->atoms(cPtr->atoms(j).bonds(k)).is_bound_to(redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] - 1)
+              && cPtr->atoms(cPtr->atoms(j).bonds(k)).is_bound_to(redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] - 1);
+            if (!(doesnt_exist && linked)) continue;
+            unique_angles[j] = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l];
+            defined[j] = true;
+            break;
+          }
+        }
+      }
+      else if (terminal_enum[j] < i + 1 && !defined[j])
+      {
+        for (size_t k = 0; k <
+          cPtr->atoms(j).bonds().size() && !defined[j];
+          ++k)
+        {
+          for (size_t l = 0;
+            l < redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1].size();
+            ++l)
+          {
+            if (redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] == j + 1
+              && redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] != j + 1)
+            {
+              temp.first = { redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2],
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[1],
+                j + 1 };
+              temp.second = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].second;
+            }
+            else if (redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] != j + 1
+              && redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] == j + 1)
+            {
+              temp.first = { j + 1,
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[1],
+                redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] };
+              temp.second = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].second;
+            }
+            else continue;
+            doesnt_exist = find(unique_angles.begin(),
+              unique_angles.end(),
+              redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l]) == unique_angles.end()
+              && find(unique_angles.begin(),
+                unique_angles.end(),
+                temp) == unique_angles.end();
+            linked = cPtr->atoms(cPtr->atoms(j).bonds(k)).is_bound_to(redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[0] - 1)
+              && cPtr->atoms(cPtr->atoms(j).bonds(k)).is_bound_to(redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l].first[2] - 1);
+            if (!(doesnt_exist && linked)) continue;
+            unique_angles[j] = redundant_angles[backbone_indeces[cPtr->atoms(j).bonds(k)] - 1][l];
+            defined[j] = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  //checks, if angles have been defined for every atom
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (!defined[i])
+      throw std::runtime_error("No angle parameter could be defined for atom "
+        + to_string(i + 1));
+    defined[i] = false;
+  }
+  //gets torsions
+  defined[no_dist] = true;
+  defined[no_angle] = true;
+  defined[no_dihedral] = true;
+  for (size_t i = 0; i < term_deepness; ++i)
+  {
+    for (size_t j = 0; j < N; ++j)
+    {
+      if (defined[j]) continue;
+      if (terminal_enum[j] == i + 1
+        && i + 1 == 1)
+      {
+        for (size_t k = 0;
+          k < cPtr->atoms(j).bonds().size() && !defined[j];
+          ++k)
+        {
+          if (terminal_enum[cPtr->atoms(j).bonds(k)] == 1) continue;
+          for (size_t m = 0;
+            m < cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds().size() && !defined[j];
+            ++m)
+          {
+            if (terminal_enum[cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)] == 1) continue;
+            for (size_t o = 0;
+              o < cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds().size() && !defined[j];
+              ++o)
+            {
+              if (terminal_enum[cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds(o)] == 1) continue;
+              for (size_t p = 0;
+                p < redundant_dihedrals[backbone_indeces[cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds(o)] - 1].size();
+                ++p)
+              {
+                dihedral_vect.first = redundant_dihedrals[backbone_indeces[cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds(o)] - 1][p].first;
+                if (!(terminal_enum[dihedral_vect.first[0] - 1] != 1
+                  || terminal_enum[dihedral_vect.first[3] - 1] != 1)) continue;
+                dihedral_vect.second = redundant_dihedrals[backbone_indeces[cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds(o)] - 1][p].second;
+                temp.first = { dihedral_vect.first[3],
+                  dihedral_vect.first[2],
+                  dihedral_vect.first[1],
+                  dihedral_vect.first[0] };
+                temp.second = redundant_dihedrals[backbone_indeces[cPtr->atoms(cPtr->atoms(cPtr->atoms(j).bonds(k)).bonds(m)).bonds(o)] - 1][p].second;
+                doesnt_exist = find(unique_dihedrals.begin(),
+                  unique_dihedrals.end(),
+                  dihedral_vect) == unique_dihedrals.end()
+                  && find(unique_dihedrals.begin(),
+                    unique_dihedrals.end(),
+                    temp) == unique_dihedrals.end();
+                linked = cPtr->atoms(dihedral_vect.first[0] - 1).is_bound_to(dihedral_vect.first[1] - 1)
+                  && cPtr->atoms(dihedral_vect.first[1] - 1).is_bound_to(dihedral_vect.first[2] - 1)
+                  && cPtr->atoms(dihedral_vect.first[2] - 1).is_bound_to(dihedral_vect.first[3] - 1);
+                if (!(doesnt_exist && linked)) continue;
+                if (dihedral_vect.first[3] == j + 1
+                  && dihedral_vect.first[0] != dihedral_vect.first[2]
+                  && dihedral_vect.first[0] != dihedral_vect.first[3]
+                  && dihedral_vect.first[1] != dihedral_vect.first[3])
+                {
+                  unique_dihedrals[j] = temp;
+                }
+                else if (dihedral_vect.first[0] == j + 1
+                  && dihedral_vect.first[0] != dihedral_vect.first[2]
+                  && dihedral_vect.first[0] != dihedral_vect.first[3]
+                  && dihedral_vect.first[1] != dihedral_vect.first[3])
+                {
+                  unique_dihedrals[j] = dihedral_vect;
+                }
+                else continue;
+                defined[j] = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      else if (i + 1 == terminal_enum[j])
+      {
+        for (auto &a : redundant_dihedrals)
+        {
+          if (defined[j]) break;
+          for (auto &dih : a)
+          {
+            if (terminal_enum[dih.first[0] - 1] == 1
+              || terminal_enum[dih.first[3] - 1] == 1) continue;
+            if ((dih.first[0] != j + 1)
+              && (dih.first[3] != j + 1)) continue;
+            temp.first = { dih.first[3],
+              dih.first[2],
+              dih.first[1],
+              dih.first[0] };
+            temp.second = dih.second;
+            doesnt_exist = find(unique_dihedrals.begin(),
+              unique_dihedrals.end(),
+              dih) == unique_dihedrals.end()
+              && find(unique_dihedrals.begin(),
+                unique_dihedrals.end(),
+                temp) == unique_dihedrals.end();
+            linked = cPtr->atoms(dih.first[0] - 1).is_bound_to(dih.first[1] - 1)
+              && cPtr->atoms(dih.first[1] - 1).is_bound_to(dih.first[2] - 1)
+              && cPtr->atoms(dih.first[2] - 1).is_bound_to(dih.first[3] - 1);
+            if (!(doesnt_exist && linked)) continue;
+            unique_dihedrals[j] = dih;
+            defined[j] = true;
+            break;
+          }
+        }
+      }
+      else if (i + 1 > terminal_enum[j] && !defined[j])
+      {
+        for (auto &a : redundant_dihedrals)
+        {
+          if (defined[j]) break;
+          for (auto &dih : a)
+          {
+            if ((dih.first[0] != j + 1)
+              && (dih.first[3] != j + 1)) continue;
+            temp.first = { dih.first[3],
+              dih.first[2],
+              dih.first[1],
+              dih.first[0] };
+            temp.second = dih.second;
+            doesnt_exist = find(unique_dihedrals.begin(),
+              unique_dihedrals.end(),
+              dih) == unique_dihedrals.end()
+              && find(unique_dihedrals.begin(),
+                unique_dihedrals.end(),
+                temp) == unique_dihedrals.end();
+            linked = cPtr->atoms(dih.first[0] - 1).is_bound_to(dih.first[1] - 1)
+              && cPtr->atoms(dih.first[1] - 1).is_bound_to(dih.first[2] - 1)
+              && cPtr->atoms(dih.first[2] - 1).is_bound_to(dih.first[3] - 1);
+            if (!(doesnt_exist && linked)) continue;
+            unique_dihedrals[j] = dih;
+            defined[j] = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  //checks, if torsions have been defined for every atom
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (!defined[i])
+      throw std::runtime_error("No torsion parameter could be defined for atom "
+        + to_string(i + 1));
+  }
+  //end of param reduction
+  //getting actual coords
+
+  //Needed for NeRF algorithm in i_to_c, but doesn't work properly, yet.
+  double constexpr pi = 3.1415926535897932384626433832795;
+  coords::Cartesian_Point x_ref(1, 0, 0);
+  coords::Cartesian_Point y_ref(0, 1, 0);
+  coords::Cartesian_Point z_ref(0, 0, 1);
+
+  //checks, if first three atoms for Z-matrix are bound to each other properly
+  if (!((unique_dists[no_angle].first[0] - 1 == no_dist || unique_dists[no_angle].first[1] - 1 == no_dist)
+    && (unique_dists[no_dihedral].first[0] - 1 == no_angle || unique_dists[no_dihedral].first[1] - 1 == no_angle)
+    && (unique_angles[no_dihedral].first[1] - 1 == no_angle && (unique_angles[no_dihedral].first[0] - 1 == no_dist
+      || unique_angles[no_dihedral].first[2] - 1 == no_dist)))) throw std::runtime_error("Z-Matrix couldn't be calculated in NEB.");
+
+  coords::Cartesian_Point atom_A(-unique_dists[no_dihedral].second + unique_dists[no_angle].second * std::sin((pi / 180) * (unique_angles[no_dihedral].second - 90)),
+    unique_dists[no_angle].second * std::cos(unique_angles[no_dihedral].second - 90),
+    0);
+  coords::Cartesian_Point atom_B(-unique_dists[no_dihedral].second,
+    0,
+    0);
+  coords::Cartesian_Point atom_C(0, 0, 0);
+  coords::s3 Rep;
+  std::vector<size_t> giga_temp;
+
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (i == no_dist)
+    {
+      Z_matrix[i].resize(3);
+      giga_temp = { 1, N + 1 };
+      Z_matrix[i][0].first = giga_temp;
+      giga_temp = { 1, N + 1, N + 2 };
+      Z_matrix[i][1].first = giga_temp;
+      giga_temp = { 1, N + 1, N + 2, N + 3 };
+      Z_matrix[i][2].first = giga_temp;
+      Rep = scon::spherical(atom_A, x_ref, y_ref - x_ref, z_ref - x_ref);
+      Z_matrix[i][0].second = (double)Rep.radius();
+      Z_matrix[i][1].second = (double)Rep.inclination();
+      Z_matrix[i][2].second = (double)Rep.azimuth();
+    }
+    else if (i == no_angle)
+    {
+      Z_matrix[i].resize(3);
+      Z_matrix[i][0] = unique_dists[i];
+      giga_temp = { 2, 1, N + 1 };
+      Z_matrix[i][1].first = giga_temp;
+      giga_temp = { 2, 1, N + 1, N + 2 };
+      Z_matrix[i][2].first = giga_temp;
+      Rep = scon::spherical(atom_B, atom_A, x_ref - atom_A, y_ref - atom_A);
+      Z_matrix[i][1].second = (double)Rep.inclination();
+      Z_matrix[i][2].second = (double)Rep.azimuth();
+    }
+    else if (i == no_dihedral)
+    {
+      Z_matrix[i].resize(3);
+      Z_matrix[i][0] = unique_dists[i];
+      Z_matrix[i][1] = unique_angles[i];
+      giga_temp = { 3, 2, 1, N + 1 };
+      Z_matrix[i][2].first = giga_temp;
+      Rep = scon::spherical(atom_C, atom_B, atom_A - atom_B, x_ref - atom_B);
+      Z_matrix[i][2].second = (double)Rep.azimuth();
+    }
+    else
+    {
+      Z_matrix[i].push_back(unique_dists[i]);
+      Z_matrix[i].push_back(unique_angles[i]);
+      Z_matrix[i].push_back(unique_dihedrals[i]);
+    }
+  }
+  //switching places in Z-matrix so that atom coords with undefined 
+  //internal coords are located at the start of the matrix
+  std::vector<std::pair<std::vector<size_t>, double>> tump;
+  std::vector<size_t> switch_rememberer_pre = { no_dist,
+    no_angle,
+    no_dihedral };
+  size_t ultra_temp = 0;
+  tump = Z_matrix[0];
+  Z_matrix[0] = Z_matrix[no_dist];
+  Z_matrix[no_dist] = tump;
+  if (no_angle == 0)
+  {
+    ultra_temp = no_angle;
+    no_angle = no_dist;
+    no_dist = ultra_temp;
+  }
+  else if (no_dihedral == 0)
+  {
+    ultra_temp = no_dihedral;
+    no_dihedral = no_dist;
+    no_dist = ultra_temp;
+  }
+  tump = Z_matrix[1];
+  Z_matrix[1] = Z_matrix[no_angle];
+  Z_matrix[no_angle] = tump;
+  if (no_dihedral == 1)
+  {
+    ultra_temp = no_dihedral;
+    no_dihedral = no_angle;
+    no_angle = ultra_temp;
+  }
+  tump = Z_matrix[2];
+  Z_matrix[2] = Z_matrix[no_dihedral];
+  Z_matrix[no_dihedral] = tump;
+  std::vector<size_t> switch_rememberer_post = { no_dist,
+    no_angle,
+    no_dihedral };
+
+  //for future reference
+  Z_matrix[N].push_back(std::make_pair(switch_rememberer_post, 0));
+
+  //switching indexation in Z-matrix, since atom numbers have been changed
+  for (size_t i = 1; i < N; ++i)
+  {
+    for (auto &cdist : Z_matrix[i][0].first)
+    {
+      if (cdist == switch_rememberer_post[0] + 1)
+      {
+        cdist = 1;
+      }
+      else if (cdist == switch_rememberer_post[1] + 1)
+      {
+        cdist = 2;
+      }
+      else if (cdist == switch_rememberer_post[2] + 1)
+      {
+        cdist = 3;
+      }
+      else if (cdist == 1)
+      {
+        cdist = switch_rememberer_post[0] + 1;
+      }
+      else if (cdist == 2)
+      {
+        cdist = switch_rememberer_post[1] + 1;
+      }
+      else if (cdist == 3)
+      {
+        cdist = switch_rememberer_post[2] + 1;
+      }
+    }
+    if (i == 1) continue;
+    for (auto &cangle : Z_matrix[i][1].first)
+    {
+      if (cangle == switch_rememberer_post[0] + 1)
+      {
+        cangle = 1;
+      }
+      else if (cangle == switch_rememberer_post[1] + 1)
+      {
+        cangle = 2;
+      }
+      else if (cangle == switch_rememberer_post[2] + 1)
+      {
+        cangle = 3;
+      }
+      else if (cangle == 1)
+      {
+        cangle = switch_rememberer_post[0] + 1;
+      }
+      else if (cangle == 2)
+      {
+        cangle = switch_rememberer_post[1] + 1;
+      }
+      else if (cangle == 3)
+      {
+        cangle = switch_rememberer_post[2] + 1;
+      }
+    }
+    if (i == 2) continue;
+    for (auto &cdih : Z_matrix[i][2].first)
+    {
+      if (cdih == switch_rememberer_post[0] + 1)
+      {
+        cdih = 1;
+      }
+      else if (cdih == switch_rememberer_post[1] + 1)
+      {
+        cdih = 2;
+      }
+      else if (cdih == switch_rememberer_post[2] + 1)
+      {
+        cdih = 3;
+      }
+      else if (cdih == 1)
+      {
+        cdih = switch_rememberer_post[0] + 1;
+      }
+      else if (cdih == 2)
+      {
+        cdih = switch_rememberer_post[1] + 1;
+      }
+      else if (cdih == 3)
+      {
+        cdih = switch_rememberer_post[2] + 1;
+      }
+    }
+  }
+  return Z_matrix;
+}
+
+void neb::write_gzmat(std::string const &filename,
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &Z_matrix,
+  coords::Coordinates const &coords) const
+{
+  size_t N = cPtr->atoms().size();
+  std::ofstream stream;
+  stream.open(filename);
+  stream << "#Put Keywords Here, check Charge and Multiplicity.\n\n \n\n0  1\n";
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (i == 0)
+    {
+      stream << coords.atoms(i).symbol() << '\n';
+    }
+    else if (i == 1)
+    {
+      stream << coords.atoms(i).symbol() << "  " << coords.atoms(i).ibond() + 1 << "  ";
+      stream << 'r' << i + 1 << '\n';
+    }
+    else if (i == 2)
+    {
+      stream << coords.atoms(i).symbol() << "  " << coords.atoms(i).ibond() + 1 << "  ";
+      stream << 'r' << i + 1 << "  " << coords.atoms(i).iangle() + 1 << "  ";
+      stream << 'a' << i + 1 << '\n';
+    }
+    else
+    {
+      stream << coords.atoms(i).symbol() << "  " << coords.atoms(i).ibond() + 1 << "  ";
+      stream << 'r' << i + 1 << "  " << coords.atoms(i).iangle() + 1 << "  ";
+      stream << 'a' << i + 1 << "  " << coords.atoms(i).idihedral() + 1 << "  ";
+      stream << 'd' << i + 1 << '\n';
+    }
+  }
+  stream << "Variables:\n";
+  double temp = 0;
+  for (size_t i = 1; i < N; ++i)
+  {
+    stream << 'r' << i + 1 << "= " << Z_matrix[i][0].second << '\n';
+    if (i == 1) continue;
+    stream << 'a' << i + 1 << "= " << Z_matrix[i][1].second << '\n';
+    if (i == 2) continue;
+    if (Z_matrix[i][2].second < 0.) temp = Z_matrix[i][2].second + 360.;
+    else temp = Z_matrix[i][2].second;
+    stream << 'd' << i + 1 << "= " << temp << '\n';
+  }
+}

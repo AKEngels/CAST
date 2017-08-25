@@ -1,4 +1,4 @@
-#include <cmath>
+﻿#include <cmath>
 #include <stdexcept>
 #include "atomic.h"
 #include "coords.h"
@@ -1057,4 +1057,276 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
     //std::cout << "totg " << scon::vector_delimeter('\n') << g << "\n";
   }
   return E;
+}
+void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
+  coords::Coordinates const *cPtr)
+{
+  size_t ibond = 0, iangle = 0, idihedral = 0;
+  size_t N = atoms().size();
+  for (size_t i = 0; i < N; ++i)
+  {
+    std::cout << atoms(i).a_to_i();
+    atoms_changeable(i).set_i_of_a(i);
+    std::cout << " changed to " << atoms(i).a_to_i() << " which is " << i << '\n';
+  }
+  for (size_t i = 0; i < N; ++i)
+  {
+
+    if (i == 0)
+    {
+      ibond = N;
+      iangle = N + 1;
+      idihedral = N + 2;
+    }
+
+    else if (i == 1)
+    {
+      ibond = 0;
+      iangle = N;
+      idihedral = N + 1;
+    }
+
+    else if (i == 2)
+    {
+      ibond = 1;
+      iangle = 0;
+      idihedral = N;
+    }
+    //shouldn't be needed anymore
+    /*else if (i == no_dist)
+    {
+    if (reference[no_dist][0].first[0] == 1)
+    {
+    ibond = atoms(reference[no_dist][0].first[1] - 1).a_to_i();
+    }
+    else
+    {
+    ibond = atoms(reference[no_dist][0].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_dist][1].first[0] == 1)
+    {
+    iangle = atoms(reference[no_dist][1].first[2] - 1).a_to_i();
+    }
+    else
+    {
+    iangle = atoms(reference[no_dist][1].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_dist][2].first[0] == 1)
+    {
+    idihedral = atoms(reference[no_dist][2].first[3] - 1).a_to_i();
+    }
+    else
+    {
+    idihedral = atoms(reference[no_dist][2].first[0] - 1).a_to_i();
+    }
+    }
+    else if (i == no_angle && i > 2)
+    {
+    if (reference[no_angle][0].first[0] == 2)
+    {
+    ibond = atoms(reference[no_angle][0].first[1] - 1).a_to_i();
+    }
+    else
+    {
+    ibond = atoms(reference[no_angle][0].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_angle][1].first[0] == 2)
+    {
+    iangle = atoms(reference[no_angle][1].first[2] - 1).a_to_i();
+    }
+    else
+    {
+    iangle = atoms(reference[no_angle][1].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_angle][2].first[0] == 2)
+    {
+    idihedral = atoms(reference[no_angle][2].first[3] - 1).a_to_i();
+    }
+    else
+    {
+    idihedral = atoms(reference[no_angle][2].first[0] - 1).a_to_i();
+    }
+    }
+    else if (i == no_dihedral && i > 2)
+    {
+    if (reference[no_dihedral][0].first[0] == 3)
+    {
+    ibond = atoms(reference[no_dihedral][0].first[1] - 1).a_to_i();
+    }
+    else
+    {
+    ibond = atoms(reference[no_dihedral][0].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_dihedral][1].first[0] == 3)
+    {
+    iangle = atoms(reference[no_dihedral][1].first[2] - 1).a_to_i();
+    }
+    else
+    {
+    iangle = atoms(reference[no_dihedral][1].first[0] - 1).a_to_i();
+    }
+
+    if (reference[no_dihedral][2].first[0] == 3)
+    {
+    idihedral = atoms(reference[no_dihedral][2].first[3] - 1).a_to_i();
+    }
+    else
+    {
+    idihedral = atoms(reference[no_dihedral][2].first[0] - 1).a_to_i();
+    }
+    }*/
+    else
+    {
+      if (reference[i][0].first[0] == i + 1)
+      {
+        ibond = atoms(reference[i][0].first[1] - 1).a_to_i();
+      }
+      else
+      {
+        ibond = atoms(reference[i][0].first[0] - 1).a_to_i();
+      }
+
+      if (reference[i][1].first[0] == i + 1)
+      {
+        iangle = atoms(reference[i][1].first[2] - 1).a_to_i();
+      }
+      else
+      {
+        iangle = atoms(reference[i][1].first[0] - 1).a_to_i();
+      }
+
+      if (reference[i][2].first[0] == i + 1)
+      {
+        idihedral = atoms(reference[i][2].first[3] - 1).a_to_i();
+      }
+      else
+      {
+        idihedral = atoms(reference[i][2].first[0] - 1).a_to_i();
+      }
+    }
+    atoms_changeable(i).set_ibond(ibond);
+    atoms_changeable(i).set_iangle(iangle);
+    atoms_changeable(i).set_idihedral(idihedral);
+
+    size_t temp = atoms(i).bonds().size();
+    for (size_t j = 0; j < temp; ++j)
+    {
+      atoms_changeable(i).detach_from(atoms(i).bonds(0));
+    }
+    for (size_t j = 0; j < cPtr->atoms(i).bonds().size(); ++j)
+    {
+      atoms_changeable(i).bind_to(cPtr->atoms(i).bonds(j));
+    }
+  }
+  for (size_t i = 0; i < N; ++i)
+  {
+    for (auto &a : atoms(i).bonds())
+    {
+      std::cout << a + 1 << ' ';
+    }
+    std::cout << '\n';
+  }
+}
+std::vector<bool> const coords::Coordinates::terminal()
+{
+  size_t N = this->atoms().size();
+  std::vector<bool> terminal;
+  terminal.resize(N);
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (this->atoms(i).bonds().size() == 1 && this->atoms(i).bonds().size() != 0)
+    {
+      terminal[i] = true;
+    }
+    else
+    {
+      terminal[i] = false;
+    }
+  }
+  return terminal;
+}
+
+//*gets terminal atoms and marks them with 1, ignores those atoms and gets atoms that become terminal in resulting replic, marks those with 2 and procedes analogously
+//*through the rest of the structure, until either all atoms have been marked, or a core of (linked) rings is the result
+std::vector<size_t> const coords::Coordinates::terminal_enum()
+{
+  std::vector<size_t> terminal_enum;
+  std::vector<bool> terminal;
+  coords::Coordinates red_replic = *this;
+  coords::Coordinates red_replic_temp;
+  size_t N = red_replic.atoms().size();
+  size_t enum_index = 1;
+  bool done;
+  terminal_enum.resize(N);
+  terminal = red_replic.terminal();
+  for (size_t i = 0; i < N; ++i)
+  {
+    terminal_enum[i] = 0;
+  }
+  while (true)
+  {
+    red_replic_temp = red_replic;
+    red_replic = red_replic.get_red_replic(terminal);
+    for (size_t i = 0; i < N; ++i)
+    {
+      if (terminal[i])
+      {
+        terminal_enum[i] = enum_index;
+      }
+    }
+    done = red_replic.atoms() == red_replic_temp.atoms();
+    if (!done)
+    {
+      for (size_t i = 0; i < N; ++i)
+      {
+        for (size_t j = 0; j < N; ++j)
+        {
+          if (terminal[j] && red_replic.atoms(i).is_bound_to(j))
+          {
+            red_replic.atoms_changeable(i).detach_from(j);
+          }
+        }
+      }
+      terminal = red_replic.terminal();
+      ++enum_index;
+    }
+    else
+    {
+      break;
+    }
+  }
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (terminal_enum[i] == 0)								//*terminal_enum-value for core atoms, as in rings and ring linking atoms, which will never become terminal, 
+    {																					//*no matter how many times the replic is reduced. Core atoms are given the highest value, so as to be able
+      terminal_enum[i] = enum_index;					//*to identify them more intuitively
+    }
+  }
+  return terminal_enum;
+}
+
+coords::Coordinates coords::Coordinates::get_red_replic(std::vector<bool> criterion)
+{
+  coords::Coordinates replic = *this;
+  size_t N = replic.atoms().size();
+  coords::Coordinates red_replic;
+  //red_replic.atoms().resize(N);
+  for (size_t i = 0; i < N; ++i)
+  {
+    if (!criterion[i])
+    {
+      red_replic.atoms_changable().add(replic.atoms(i));
+    }
+    else
+    {
+      red_replic.atoms_changable().add(coords::Atom());
+    }
+  }
+  return red_replic;
 }
