@@ -56,7 +56,8 @@ inputtype              TINKER
 ####################################
 
 # SP                   Single point eneryg calculation
-# GRAD                 Single point energy calculation
+# GRAD                 Single point gradient calculation
+# HESS                 Single point hessian matrix calculation
 # LOCOPT               Local optimization using Lib-LBFGS
 # MD                   Molecular dynamics simulation
 # GOSOL                Combined Solvation + Global Optimization
@@ -81,7 +82,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 
-task                  LOCOPT
+task                  HESS
 
 
 ####################################
@@ -175,7 +176,7 @@ DFTBgradstate          0
 #DFTBdiag_conv           1e-05
 
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
-DFTBopt                  0
+DFTBopt                  1
 
 
 ####################################

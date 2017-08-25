@@ -313,7 +313,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
       std::remove("tmp_struc.xyz"); // delete file
       std::remove("hessian.txt"); // delete file
 
-  return energy;
+  return e_tot;
 }
 
 // Optimization

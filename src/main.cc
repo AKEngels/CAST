@@ -277,9 +277,6 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
-      coords.h();
-      std::ofstream file("blub.txt");
-      coords.h_tostream(file);
       // DEVTEST: Room for Development testing
       break;
     }
@@ -325,6 +322,22 @@ int main(int argc, char **argv)
         std::cout << "Structure " << ++i << '\n';
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
+      }
+      break;
+    }
+    case config::tasks::HESS:
+    {
+      // calculate hessian matrix
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_HESS", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.h();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.h_tostream(gstream);
       }
       break;
     }
