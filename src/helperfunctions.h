@@ -37,6 +37,9 @@ inline void short_ene_stream_h(
   }
 }
 
+/**splits a string into a vector of strings
+@ param text: string that is to be splitted
+@ param sep: char where the string should be splitted*/
 inline std::vector<std::string> split(const std::string &text, char sep) {
   std::vector<std::string> tokens;
   std::size_t start = 0, end = 0;
@@ -48,6 +51,7 @@ inline std::vector<std::string> split(const std::string &text, char sep) {
   return tokens;
 }
 
+/**calculates the distance between two points in Cartesian Space*/
 inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
 {
   return sqrt( (a.x()-b.x())*(a.x()-b.x()) + (a.y()-b.y())*(a.y()-b.y()) + (a.z()-b.z())*(a.z()-b.z()) );
