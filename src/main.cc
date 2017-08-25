@@ -600,6 +600,12 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
+    case config::tasks::WRITE_TINKER:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
     case config::tasks::PCAgen:
     {
       /**
