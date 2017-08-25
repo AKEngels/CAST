@@ -278,7 +278,8 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       coords.h();
-      coords.h_tostream(std::cout);
+      std::ofstream file("blub.txt");
+      coords.h_tostream(file);
       // DEVTEST: Room for Development testing
       break;
     }
