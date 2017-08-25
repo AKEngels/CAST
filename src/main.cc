@@ -831,6 +831,8 @@ int main(int argc, char **argv)
           mdObject2.run();
         }
 
+        std::size_t mon_amount_type1 = coords.molecules().size();//save number of molecules of first kind for later use in replacement
+
         //option if a heterogenous structure shall be created
         if (Config::get().layd.hetero_option == true)
         {
@@ -872,8 +874,6 @@ int main(int argc, char **argv)
           std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
           coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
           coords::Coordinates newCoords(coords);
-
-          std::size_t mon_amount_type1 = (coords.molecules().size() - Config::get().layd.del_amount) * Config::get().layd.amount;
 
           newCoords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
         }

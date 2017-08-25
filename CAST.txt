@@ -954,17 +954,17 @@ LayDhet_struc                   1
 
 LayDhet_name
 
-layDhet_distance                5.0
+LayDhet_distance                5.0
 
-layDhet_layers                  4
+LayDhet_layers                  4
 
-layDhet_del_number         1
+LayDhet_del_number         1
 
 #Shall monomers be replaced
 
 LayDreplace                     0
 
-Laydreference1
+LayDreference1
 
 LayDreference2
 
