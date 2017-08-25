@@ -134,7 +134,6 @@ namespace config
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN"
   };
