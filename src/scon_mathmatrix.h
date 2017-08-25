@@ -43,10 +43,7 @@ CODING CONVENTIONS AS FOLLOWS:
 /////////////////////////////////
 
 #include "coords.h"
-typedef coords::
-
-
-float_type;
+typedef coords::float_type float_type;
 typedef int int_type;
 typedef size_t uint_type;
 unsigned int constexpr printFunctionCallVerbosity = 5u;
