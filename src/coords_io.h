@@ -109,6 +109,9 @@ namespace coords
       {
       public:
         Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
       };
 
       /*! Class to read from TINKER coordinate file (.arc)
