@@ -583,6 +583,12 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
+    case config::tasks::WRITE_TINKER:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
     case config::tasks::PCAgen:
     {
       /**
@@ -791,7 +797,7 @@ int main(int argc, char **argv)
     }
 
     }
-
+ 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";
