@@ -1787,6 +1787,60 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  /* Inputoptions for Layer_Deposition
+  */
+  else if (option.substr(0u, 4u) == "LayD")
+  {
+    if (option.substr(4u, 6u) == "layers")
+    {
+      cv >> Config::set().layd.amount;
+    }
+    else if (option.substr(4u, 10u) == "del_number")
+    {
+      cv >> Config::set().layd.del_amount;
+    }
+    else if (option.substr(4u, 4u) == "axis")
+    {
+      cv >> Config::set().layd.laydaxis;
+    }
+    else if (option.substr(4u, 8u) == "distance")
+    {
+      cv >> Config::set().layd.layddist;
+    }
+    else if (option.substr(4u, 9u) == "het_struc")
+    {
+      Config::set().layd.hetero_option = bool_from_iss(cv);
+    }
+    else if (option.substr(4u, 8u) == "het_dist")
+    {
+      cv >> Config::set().layd.sec_layddist;
+    }
+    else if (option.substr(4u, 10u) == "het_layers")
+    {
+      cv >> Config::set().layd.sec_amount;
+    }
+    else if (option.substr(4u, 14u) == "het_del_number")
+    {
+      cv >> Config::set().layd.sec_del_amount;
+    }
+    else if (option.substr(4u, 8u) == "het_name")
+    {
+      Config::set().layd.layd_secname = value_string;
+    }
+    else if (option.substr(4u, 7u) == "replace")
+    {
+      Config::set().layd.replace = bool_from_iss(cv);
+    }
+    else if (option.substr(4u, 10u) == "reference1")
+    {
+      Config::set().layd.reference1 = value_string;
+    }
+    else if (option.substr(4u, 10u) == "reference2")
+    {
+      Config::set().layd.reference2 = value_string;
+    }
+  }
+
 }
 
 

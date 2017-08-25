@@ -841,7 +841,7 @@ namespace matop
     {
       coords::Coordinates output(inputCoords);
       if (centerOfMassAlign) centerOfMassAlignment(output);
-      kabschAlignment(output, reference);
+      kabschAlignment(output, reference, centerOfMassAlign);
       return output;
     }
 

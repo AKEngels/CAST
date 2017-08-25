@@ -418,7 +418,6 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass() const
   return COM;
 }
 
-
 coords::Cartesian_Point coords::Coordinates::center_of_geometry() const
 {
   std::size_t const N = xyz().size();
@@ -619,7 +618,6 @@ void coords::Coordinates::periodic_boxjump()
     for (auto const atom : molecule(i)) move_atom_by(atom, tmp_com, true);
   }
 }
-
 
 bool coords::Coordinates::validate_bonds()
 {
