@@ -958,7 +958,7 @@ layDhet_distance                5.0
 
 layDhet_layers                  4
 
-layDhet_het_del_numbers         1
+layDhet_del_number         1
 
 #Shall monomers be replaced
 

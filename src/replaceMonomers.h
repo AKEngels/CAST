@@ -85,7 +85,7 @@ namespace monomerManipulation
       {
         truncatedAtoms.add(newCoords.atoms(j));
         positions.push_back(newCoords.xyz(j) + com[i]);//positions of alinged molecule atoms are shifted by the position of the com of the original molecule
-        new_index_of_atom.at(j /*newCoords.atoms().atomOfMolecule(0, j)*/ + new_index_of_atom_offset) = truncatedAtoms.size() - 1u;
+        new_index_of_atom.at(j + new_index_of_atom_offset) = truncatedAtoms.size() - 1u;
       }//j
     
       std::size_t helperIterator = 0u;
