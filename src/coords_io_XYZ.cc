@@ -5,8 +5,9 @@ Purpose: Reading from XYZ-files
 @author Susanne Sauer
 @version 1.0
 */
-
+#pragma once
 #include "coords_io.h"
+#include "helperfunctions.h"
 
 
 coords::Coordinates coords::input::formats::xyz::read(std::string file)
@@ -16,6 +17,7 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     std::cout<<"No atom types are read so you can't use the structure with a forcefield interface!\n";
 
     Coordinates coord_object;
+    double N = 3; // number of atoms
 
     Atom o("O");
     Atom h1("H");
@@ -29,11 +31,6 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     atoms.add(o);
     atoms.add(h1);
     atoms.add(h2);
-
-    atoms.atom(0).bind_to(1);
-    atoms.atom(0).bind_to(2);
-    atoms.atom(1).bind_to(0);
-    atoms.atom(2).bind_to(0);
     
     Representation_3D positions;
 
@@ -53,8 +50,23 @@ coords::Coordinates coords::input::formats::xyz::read(std::string file)
     positions.push_back(position);
 
     input_ensemble.push_back(positions);
-
     coords::PES_Point x(input_ensemble[0u]);
+
+    // loop over all atompairs and bind them if they fulfill distance criterion 
+    // i.e. the distance is smaller than 1.2 * sum of covalent radiuses
+    for (unsigned i=0; i<N; i++)
+    {
+        for(unsigned j=0; j<i; j++)
+        {
+            double d = dist(positions[i], positions[j]);
+            double d_max = 1.2*(atoms.atom(i).cov_radius() + atoms.atom(j).cov_radius());
+            if (d < d_max)
+            {
+                atoms.atom(i).bind_to(j);
+                atoms.atom(j).bind_to(i);
+            }
+        }
+    }
 
     coord_object.init_swap_in(atoms, x);
 

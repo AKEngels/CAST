@@ -47,3 +47,8 @@ inline std::vector<std::string> split(const std::string &text, char sep) {
   tokens.push_back(text.substr(start));
   return tokens;
 }
+
+inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
+{
+  return sqrt( (a.x()-b.x())*(a.x()-b.x()) + (a.y()-b.y())*(a.y()-b.y()) + (a.z()-b.z())*(a.z()-b.z()) );
+}
