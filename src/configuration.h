@@ -567,6 +567,11 @@ namespace config
 		std::string mxlist = "";
 		std::string cutoff = "";
         std::string scale14 = "";
+        /*
+        std::vector<std::string> tleap_sources;
+        std::vector<std::string> tleap_loadamberparams;
+        std::vector<std::string> tleap_loadoffs;
+        */
 		bool dispersion = false;
 		bool delete_input = true;
 	} chemshell;
@@ -1153,6 +1158,8 @@ namespace config
 
   struct scan2d {
 	  std::vector<std::string> AXES;
+
+      double change_from_atom_to_atom, max_change_to_rotate_whole_molecule;
   };
 
   /*

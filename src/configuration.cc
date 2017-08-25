@@ -1278,7 +1278,19 @@ void config::parse_option(std::string const option, std::string const value_stri
 
   else if (option.substr(0, 7) == "2DSCAN-")
   {
-	  Config::set().scan2d.AXES.emplace_back(option.substr(7) + " " + value_string);
+    auto const command = option.substr(7);
+    if (command == "bond" || command == "angle" || command == "dihedral") {
+      Config::set().scan2d.AXES.emplace_back(option.substr(7) + " " + value_string);
+    }
+    else if (command.substr(0,7) == "PREDEF-") {
+      auto const predef_command = command.substr(7);
+      if (predef_command == "change_from_atom_to_atom") {
+        Config::set().scan2d.change_from_atom_to_atom = std::stod(value_string);
+      }
+      else if (predef_command == "max_change_to_rotate_whole_molecule") {
+        Config::set().scan2d.max_change_to_rotate_whole_molecule = std::stod(value_string);
+      }
+    }
   }
 
   //Trajectory Alignment and Analasys options

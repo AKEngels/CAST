@@ -121,8 +121,6 @@ void energy::interfaces::chemshell::sysCallInterface::make_tleap_input(std::stri
 		"quit"
 		;
 
-	tleap_input.close();
-
 }
 
 void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream & ofs) const {

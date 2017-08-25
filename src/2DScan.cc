@@ -1,6 +1,8 @@
-#include "2DScan.h"
+﻿#include "2DScan.h"
 
-Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
+Scan2D::Scan2D(coords::Coordinates & coords) 
+  : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
+{
 	auto & both_whats = Config::get().scan2d.AXES;
 
 	if (both_whats.size() > 2) {
@@ -28,8 +30,7 @@ Scan2D::Scan2D(coords::Coordinates & coords) : _coords(coords) {
 }
 
 Scan2D::~Scan2D() {
-	logfile.close();
-	energies.close();
+	//Seems like it is empty ;)
 }
 
 void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) {
@@ -47,7 +48,7 @@ void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, c
 	auto position_of_begin_val = splitted_vals.size() - 3;
 	auto position_of_end_val = splitted_vals.size() - 2;
 
-	splitted_vals[position_of_begin_val].compare("current") != 0 ?
+	splitted_vals[position_of_begin_val] != "current" ?
 		what->from_position = std::stod(splitted_vals[position_of_begin_val]) : what->from_position = say_val();
 	what->to_position = std::stod(splitted_vals[position_of_end_val]);
 	what->scans = std::stoi(splitted_vals.back());
@@ -82,30 +83,30 @@ std::unique_ptr<Scan2D::Input_types> Scan2D::Input_Factory(std::size_t size, std
 
 	if(kind.compare("bond") == 0) {
 		if (size == 6) {
-			return std::make_unique<Normal_Bond_Input>();
+			return std::make_unique<Normal_Bond_Input>(shared_from_this());
 		}
 	}
 	else if (kind.compare("angle") == 0) {
 		if (size == 7) {
-			return std::make_unique<Normal_Angle_Input>();
+			return std::make_unique<Normal_Angle_Input>(shared_from_this());
 		}
 	}
 	else if (kind.compare("dihedral") == 0) {
 		if (size == 8) {
-			return std::make_unique<Normal_Dihedral_Input>();
+			return std::make_unique<Normal_Dihedral_Input>(shared_from_this());
 		}
 	}
 	throw std::runtime_error("Your Input is wrong. Excpected 'bond', 'angle' or 'dihedral' by specifieing your 2D Scan!");
 
 }
 
-Scan2D::length_type Scan2D::get_length(Scan2D::bond const & ab) {
+Scan2D::length_type Scan2D::get_length(cbond const & ab) {
 
 	auto const a_to_b = ab.a - ab.b;
 	return scon::geometric_length(a_to_b);
 }
 
-Scan2D::angle_type Scan2D::get_angle(Scan2D::angle const & abc) {
+Scan2D::angle_type Scan2D::get_angle(cangle const & abc) {
 	
 	auto const b_to_a = abc.b - abc.a;
 	auto const b_to_c = abc.b - abc.c;
@@ -115,7 +116,7 @@ Scan2D::angle_type Scan2D::get_angle(Scan2D::angle const & abc) {
 	return Scan2D::angle_type::from_rad(atan2(scon::geometric_length(AB_x_BC), AB_O_BC));
 }
 
-Scan2D::angle_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
+Scan2D::angle_type Scan2D::get_dihedral(cdihedral const & abcd) {
 	
 	auto const b_to_a = abcd.a - abcd.b;
 	auto const b_to_c = abcd.b - abcd.c;
@@ -140,7 +141,7 @@ Scan2D::angle_type Scan2D::get_dihedral(Scan2D::dihedral const & abcd) {
 	}
 }
 
-coords::Cartesian_Point Scan2D::change_length_of_bond(Scan2D::bond const & ab, length_type const & new_length) {
+coords::Cartesian_Point Scan2D::change_length_of_bond(cbond const & ab, length_type const & new_length) {
 
 	auto direction = scon::normalized(ab.a - ab.b);
 
@@ -148,9 +149,9 @@ coords::Cartesian_Point Scan2D::change_length_of_bond(Scan2D::bond const & ab, l
 
 }
 
-coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(Scan2D::angle const & abc, Scan2D::angle_type const & new_angle) {
+coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(cangle const & abc, Scan2D::angle_type const & new_angle) {
 
-	bond ab(abc.a, abc.b);
+	cbond ab(abc.a, abc.b);
 	
 	auto radius = Scan2D::get_length(ab);
 	auto sin_inclination = sin(new_angle);
@@ -167,10 +168,10 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(Scan2D::angle const & abc,
 
 }
 
-coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const & abcd, Scan2D::angle_type const & new_angle) {
+coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(cdihedral const & abcd, Scan2D::angle_type const & new_angle) {
 
-	bond ab(abcd.a, abcd.b);
-	angle abc(abcd.a, abcd.b, abcd.c);
+	cbond ab(abcd.a, abcd.b);
+	cangle abc(abcd.a, abcd.b, abcd.c);
 
 	auto radius = Scan2D::get_length(ab);
 	auto inclination = Scan2D::get_angle(abc);
@@ -192,6 +193,94 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(Scan2D::dihedral const 
 
 	return abcd.b + ZxAxZ * helper_point.x() + ZxA * helper_point.y() + BC * helper_point.z();
 
+}
+
+void Scan2D::rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg) {
+    auto xyz = _coords.xyz(); 
+    auto const & atoms = _coords.atoms();
+    auto tmp_axis = xyz[abcd[2] - 1] - xyz[abcd[1] - 1];
+    RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
+    RotationMatrix::Vector center{ xyz[abcd[1] - 1].x(), xyz[abcd[1] - 1].y(), xyz[abcd[1] - 1].z() };
+    auto backbone = go_along_backbone(abcd[0],abcd[1]);
+
+    for (auto const & atom_i : backbone) {
+        std::size_t atom_number, bond_count;
+        std::tie(atom_number, bond_count) = atom_i;
+
+        length_type const rad = angle_type::from_deg(deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
+
+        if (rad <= 0.0) {
+            break;
+        }
+
+        auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
+
+        auto && coord = xyz[atom_number - 1];
+        RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
+        tmp_coord = rot*tmp_coord;
+        coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
+    }
+    _coords.set_xyz(xyz);
+}
+
+
+void Scan2D::rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg) {
+  
+  auto xyz = _coords.xyz();
+  auto const & atoms = _coords.atoms();
+
+
+  auto ba = xyz[abc[0] - 1] - xyz[abc[1] - 1];
+  auto bc = xyz[abc[2] - 1] - xyz[abc[1] - 1];
+
+  RotationMatrix::Vector center{ xyz[abc[1] - 1].x(), xyz[abc[1] - 1].y(), xyz[abc[1] - 1].z() };
+
+  RotationMatrix::Vector axis = RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
+
+  auto list = go_along_backbone(abc[0], abc[1]);
+
+  for (auto const & l : list) {
+    std::size_t atom_number, bond_count;
+    std::tie(atom_number, bond_count) = l;
+
+    length_type const rad = angle_type::from_deg(deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
+
+    if (rad <= 0.) {
+      break;
+    }
+
+    auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
+
+    auto && coord = xyz[atom_number - 1];
+    RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
+    tmp_coord = rot*tmp_coord;
+    coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
+  }
+  _coords.set_xyz(xyz);
+
+}
+
+Scan2D::bond_set Scan2D::go_along_backbone(std::size_t const & atom, std::size_t const & border) {
+    auto const & atoms = this->_coords.atoms();
+    bond_set ret;
+    std::size_t recursion_count = 1;
+
+    ret.insert(std::make_pair(atom, 0));
+
+    std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
+        for (auto const & n : neigh) {
+            if (n == border) continue;
+            if (ret.insert(std::make_pair(n, recursion_count)).second) {
+                ++recursion_count;
+                parse_neighbors(atoms.atom(n - 1).bonds());
+                --recursion_count;
+            }
+        }
+    };
+
+  parse_neighbors(atoms.atom(atom-1).bonds());
+
+  return ret;
 }
 
 void Scan2D::make_scan() {
@@ -269,17 +358,17 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 void Scan2D::Normal_Bond_Input::set_coords(coords::Representation_3D const & xyz) {
 	auto & atoms = what->atoms;
-	bond = std::make_unique<Scan2D::bond>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u]);
+	bond = std::make_unique<Scan2D::cbond>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u]);
 }
 
 void Scan2D::Normal_Angle_Input::set_coords(coords::Representation_3D const & xyz) {
 	auto & atoms = what->atoms;
-	angle = std::make_unique<Scan2D::angle>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u], xyz[atoms[2] - 1u]);
+	angle = std::make_unique<Scan2D::cangle>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u], xyz[atoms[2] - 1u]);
 }
 
 void Scan2D::Normal_Dihedral_Input::set_coords(coords::Representation_3D const & xyz) {
 	auto & atoms = what->atoms;
-	dihedral = std::make_unique<Scan2D::dihedral>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u], xyz[atoms[2] - 1u], xyz[atoms[3] - 1u]);
+	dihedral = std::make_unique<Scan2D::cdihedral>(xyz[atoms[0] - 1u], xyz[atoms[1] - 1u], xyz[atoms[2] - 1u], xyz[atoms[3] - 1u]);
 }
 
 std::vector<Scan2D::length_type> Scan2D::Normal_Bond_Input::make_axis() {
@@ -335,6 +424,9 @@ coords::Cartesian_Point Scan2D::Normal_Angle_Input::make_move(length_type const 
 }
 
 coords::Cartesian_Point Scan2D::Normal_Dihedral_Input::make_move(length_type const & new_pos) {
+    if (fabs(new_pos - say_val()) > parent->max_change_rotation) {
+
+    }
 	return Scan2D::rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(new_pos));
 }
 

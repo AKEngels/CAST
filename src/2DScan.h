@@ -1,10 +1,11 @@
-#ifndef H_2DSCAN
+﻿#ifndef H_2DSCAN
 #define H_2DSCAN
 
 #include<vector>
 #include<sstream>
 #include<iterator>
 #include<memory>
+#include<unordered_set>
 
 #include"coords.h"
 #include"coords_rep.h"
@@ -13,8 +14,9 @@
 #include"scon_vect.h"
 #include"scon_angle.h"
 #include"scon_spherical.h"
+#include"scon_mathmatrix.h"
 
-class Scan2D {
+class Scan2D : public std::enable_shared_from_this<Scan2D> {
 private:
 	coords::Coordinates & _coords;
 
@@ -33,54 +35,108 @@ public:
 		using angle_type = U;
 	};
 
+    struct bond_hash;
+    struct compare_bond_pair;
+
 	using length_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::length_type;
 	using angle_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::angle_type;
+    using bond_set = std::unordered_set<std::pair<std::size_t, std::size_t>, bond_hash, compare_bond_pair>;
 
-	class dihedral {
+    class dihedral {
+    public:
+      coords::Cartesian_Point & a;
+      coords::Cartesian_Point & b;
+      coords::Cartesian_Point & c;
+      coords::Cartesian_Point & d;
+      dihedral(coords::Cartesian_Point & a, coords::Cartesian_Point & b, coords::Cartesian_Point & c, coords::Cartesian_Point & d)
+        : a(a), b(b), c(c), d(d)
+      {}
+    };
+
+    class angle {
+    public:
+      coords::Cartesian_Point & a;
+      coords::Cartesian_Point & b;
+      coords::Cartesian_Point & c;
+      angle(coords::Cartesian_Point & a, coords::Cartesian_Point & b, coords::Cartesian_Point & c)
+        : a(a), b(b), c(c)
+      {}
+    };
+
+    class bond {
+    public:
+      coords::Cartesian_Point & a;
+      coords::Cartesian_Point & b;
+      bond(coords::Cartesian_Point & a, coords::Cartesian_Point & b)
+        : a(a), b(b)
+      {}
+    };
+
+	class cdihedral {
 	public:
 		coords::Cartesian_Point const & a;
 		coords::Cartesian_Point const & b;
 		coords::Cartesian_Point const & c;
 		coords::Cartesian_Point const & d;
-		dihedral(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b, coords::Cartesian_Point const & c, coords::Cartesian_Point const & d)
+        cdihedral(dihedral const & d)
+            : a(d.a), b(d.b), c(d.c), d(d.d)
+        {}
+		cdihedral(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b, coords::Cartesian_Point const & c, coords::Cartesian_Point const & d)
 			: a(a), b(b), c(c), d(d)
 		{}
 	};
 
-	class angle {
+	class cangle {
 	public:
 		coords::Cartesian_Point const & a;
 		coords::Cartesian_Point const & b;
 		coords::Cartesian_Point const & c;
-		angle(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b, coords::Cartesian_Point const & c)
+        cangle(angle const & a)
+          : a(a.a), b(a.b), c(a.c)
+        {}
+		cangle(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b, coords::Cartesian_Point const & c)
 			: a(a), b(b), c(c)
 		{}
 	};
 
-	class bond {
+	class cbond {
 	public:
 		coords::Cartesian_Point const & a;
 		coords::Cartesian_Point const & b;
-		bond(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b)
+        cbond(bond const & b)
+          : a(b.a), b(b.a)
+        {}
+		cbond(coords::Cartesian_Point const & a, coords::Cartesian_Point const & b)
 			: a(a), b(b)
 		{}
 	};
 
 	Scan2D(coords::Coordinates & coords);
+    Scan2D() = delete;
 	~Scan2D();
 
-	static length_type get_length(bond const & ab);
-	static angle_type get_angle(angle const & abc);
-	static angle_type get_dihedral(dihedral const & abcd);
+	static length_type get_length(cbond const & ab);
+	static angle_type get_angle(cangle const & abc);
+	static angle_type get_dihedral(cdihedral const & abcd);
 
-	static coords::Cartesian_Point change_length_of_bond(Scan2D::bond const & ab, length_type const & new_length);
-	static coords::Cartesian_Point rotate_a_to_new_angle(angle const & abc, angle_type const & new_angle);
-	static coords::Cartesian_Point rotate_a_to_new_dihedral(dihedral const & abcd, angle_type const & new_dihedral);
+	static coords::Cartesian_Point change_length_of_bond(cbond const & ab, length_type const & new_length);
+	static coords::Cartesian_Point rotate_a_to_new_angle(cangle const & abc, angle_type const & new_angle);
+	static coords::Cartesian_Point rotate_a_to_new_dihedral(cdihedral const & abcd, angle_type const & new_dihedral);
 
+    Scan2D::bond_set go_along_backbone(std::size_t const & atom, std::size_t const & border);
+
+    struct bond_hash {
+      std::size_t operator()(std::pair<std::size_t, std::size_t> const & p)const {
+        return std::hash<std::size_t>()(p.first);
+      }
+    };
+    struct compare_bond_pair {
+      bool operator()(std::pair<std::size_t, std::size_t> const & lhs, std::pair<std::size_t, std::size_t> const & rhs)const {
+        return lhs.first == rhs.first;
+      }
+    };
 
 private:
-
-
 	struct what {
 		std::string what_kind;
 		std::vector<std::size_t> atoms;
@@ -98,6 +154,7 @@ private:
 		virtual coords::Cartesian_Point make_move(length_type const & new_pos) = 0;
 	public:
 		std::unique_ptr<Scan2D::what> what;
+        std::shared_ptr<Scan2D> parent;
 	};
 
 	class Normal_Input : public Input_types {
@@ -110,7 +167,8 @@ private:
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
-		std::unique_ptr<Scan2D::bond> bond;
+        Normal_Bond_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
+		std::unique_ptr<Scan2D::cbond> bond;
 	};
 
 	class Normal_Angle_Input : public Normal_Input {
@@ -119,7 +177,8 @@ private:
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
-		std::unique_ptr<Scan2D::angle> angle;
+        Normal_Angle_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
+		std::unique_ptr<Scan2D::cangle> angle;
 	};
 
 	class Normal_Dihedral_Input : public Normal_Input {
@@ -128,7 +187,8 @@ private:
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
 	public:
-		std::unique_ptr<Scan2D::dihedral> dihedral;
+      Normal_Dihedral_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
+		std::unique_ptr<Scan2D::cdihedral> dihedral;
 	};
 
 	class XY_Parser {
@@ -168,6 +228,9 @@ private:
 
 	}
 
+    double const change_from_atom_to_atom;
+    double const max_change_rotation;
+
 	std::ofstream logfile;
 	std::ofstream energies;
 
@@ -176,6 +239,9 @@ private:
 
 	std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");
 	std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");
+
+    void rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg);
+    void rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg);
 };
 
 #endif

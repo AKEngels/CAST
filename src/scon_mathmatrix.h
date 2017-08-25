@@ -1,4 +1,11 @@
-﻿/**
+﻿#pragma once
+
+
+
+
+
+
+/**
 CAST 3
 scon_mathmatrix.h
 Purpose: Enabling matrix calculations. Uses Armadillo for enhanced speed when available. Otherwise uses slow internal routines.
@@ -36,7 +43,10 @@ CODING CONVENTIONS AS FOLLOWS:
 /////////////////////////////////
 
 #include "coords.h"
-typedef coords::float_type float_type;
+typedef coords::
+
+
+float_type;
 typedef int int_type;
 typedef size_t uint_type;
 unsigned int constexpr printFunctionCallVerbosity = 5u;
@@ -47,7 +57,6 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 //                           //
 ///////////////////////////////
 
-#pragma once
 #include <iostream>
 #include <vector>
 #include <iomanip>
@@ -950,4 +959,35 @@ typedef size_t uint_type;
   }
 #endif
 
+  /**
+  * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix routines otherwise it uses the Eigen matrices.
+  * @author Julian Erdmannsdörfer
+  * @version 3.0
+  *
+  * 
+  *
+  */
+
+  class RotationMatrix {
+  public:
+#ifdef CAST_USE_ARMADILLO
+    //Too much work for now.
+#else
+    using Translation = Eigen::Translation3d;
+    using Rotation = Eigen::AngleAxisd;
+    using Transformation = Eigen::Affine3d;
+    using Vector = Eigen::Vector3d;
+#endif
+    static Transformation rotate_around_axis_with_center(double rad_deg, Vector axis, Vector center){
+      Translation back(center);
+      Translation to_center(-center);
+      return Transformation(back * Rotation(rad_deg, axis.normalized()) * to_center);
+    }
+    static Transformation rotate_around_axis_in_center(double rad_deg, Vector axis) {
+      Vector center{ 0., 0., 0. };
+      Translation back(center);
+      Translation to_center(-center);
+      return Transformation(back * Rotation(rad_deg, axis.normalized()) * to_center);
+    }
+  };
 //END HEADER
