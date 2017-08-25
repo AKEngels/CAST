@@ -83,11 +83,11 @@ namespace config
   };
 
   /** number of Input Types */
-  static std::size_t const NUM_INPUT = 2;
+  static std::size_t const NUM_INPUT = 3;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   {
-    "TINKER", "AMBER"
+    "TINKER", "AMBER", "XYZ"
   };
 
   /*! contains enum with all input_types currently supported in CAST
@@ -101,7 +101,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      TINKER, AMBER
+      TINKER, AMBER, XYZ
     };
   };
 
