@@ -875,7 +875,7 @@ int main(int argc, char **argv)
           coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
           coords::Coordinates newCoords(coords);
 
-          newCoords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+          coords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
         }
 
         std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
