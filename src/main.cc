@@ -260,20 +260,6 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
-      std::vector<std::vector<double>> b;  // creating an example matrix (should be calculated by h())
-      for (int i=1; i<coords.size()*3+1; i++)
-      {
-         std::vector<double> a;
-         for (int j=1; j<coords.size()*3+1; j++)
-         {
-            a.push_back(i*j);
-         }
-         b.push_back(a);
-      }
-      coords.set_hessian(b);   // set hessian matrix, this should be done by function h()
-
-      coords.h_tostream(std::cout);  // this is how to print hessian matrix
-
       // DEVTEST: Room for Development testing
       break;
     }
