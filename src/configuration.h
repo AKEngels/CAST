@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 26;
+  static std::size_t const NUM_TASKS = 27;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -59,7 +59,7 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
-    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", "HESS" 
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -78,7 +78,7 @@ namespace config
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
-      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS
+      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS, HESS
     };
   };
 
@@ -130,13 +130,13 @@ namespace config
 
   /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 7;
+
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
 
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
-
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -150,7 +150,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN
     }; 
   };
 

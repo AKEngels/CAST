@@ -260,6 +260,20 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
+      std::vector<std::vector<double>> b;  // creating an example matrix (should be calculated by h())
+      for (int i=1; i<coords.size()*3+1; i++)
+      {
+         std::vector<double> a;
+         for (int j=1; j<coords.size()*3+1; j++)
+         {
+            a.push_back(i*j);
+         }
+         b.push_back(a);
+      }
+      coords.set_hessian(b);   // set hessian matrix, this should be done by function h()
+
+      coords.h_tostream(std::cout);  // this is how to print hessian matrix
+
       // DEVTEST: Room for Development testing
       break;
     }
@@ -305,6 +319,22 @@ int main(int argc, char **argv)
         std::cout << "Structure " << ++i << '\n';
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
+      }
+      break;
+    }
+    case config::tasks::HESS:
+    {
+      // calculate hessian matrix
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_HESS", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.h();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.h_tostream(gstream);
       }
       break;
     }

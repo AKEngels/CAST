@@ -90,7 +90,8 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
 double energy::interfaces::amoeba::amoeba_ff::h(void)
 {
   pre();
-  //... 
+  printf("ERROR: this interface doesn't provide a hessian matrix\n"); 
+  std::exit(0);
   post();
   return energy;
 }
