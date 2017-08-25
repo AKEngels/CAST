@@ -89,6 +89,7 @@ public:
   ptrdiff_t global_image, counter, global_imagex;
   void pathx_ini();
   void MCM_PO(ptrdiff_t opt);
+  void MC_PO(ptrdiff_t opt);
   bool testcoord(coords::Representation_3D &coords);
   void randvect();
   void proof_connect();
