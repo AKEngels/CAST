@@ -74,7 +74,6 @@ void energy::interfaces::chemshell::sysCallInterface::write_xyz(std::string cons
 }
 
 void energy::interfaces::chemshell::sysCallInterface::call_tleap()const {
-	
 	make_tleap_input(tmp_file_name);
 	std::stringstream ss;
 

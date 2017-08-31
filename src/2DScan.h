@@ -6,6 +6,7 @@
 #include<iterator>
 #include<memory>
 #include<unordered_set>
+#include<boost/coroutine2/coroutine.hpp>
 
 #include"coords.h"
 #include"coords_rep.h"
@@ -123,8 +124,6 @@ public:
 	static coords::Cartesian_Point rotate_a_to_new_angle(cangle const & abc, angle_type const & new_angle);
 	static coords::Cartesian_Point rotate_a_to_new_dihedral(cdihedral const & abcd, angle_type const & new_dihedral);
 
-    Scan2D::bond_set go_along_backbone(std::size_t const & atom, std::size_t const & border);
-
     struct bond_hash {
       std::size_t operator()(std::pair<std::size_t, std::size_t> const & p)const {
         return std::hash<std::size_t>()(p.first);
@@ -151,13 +150,16 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) = 0;
 		virtual length_type say_val() = 0;
 		virtual std::vector<length_type> make_axis() = 0;
-		virtual coords::Cartesian_Point make_move(length_type const & new_pos) = 0;
+		virtual coords::Representation_3D make_move(length_type const & new_pos) = 0;
 	public:
+        Input_types(std::weak_ptr<Scan2D> p) : parent(p) {}
 		std::unique_ptr<Scan2D::what> what;
-        std::shared_ptr<Scan2D> parent;
+        std::weak_ptr<Scan2D> parent;
 	};
 
 	class Normal_Input : public Input_types {
+    public:
+        Normal_Input(std::weak_ptr<Scan2D> p) : Input_types(p) {}
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) override;
 	};
 
@@ -165,19 +167,19 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
 	public:
-        Normal_Bond_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
-		std::unique_ptr<Scan2D::cbond> bond;
+        Normal_Bond_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
+        std::unique_ptr<Scan2D::cbond> bond;
 	};
 
 	class Normal_Angle_Input : public Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
 	public:
-        Normal_Angle_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
+        Normal_Angle_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cangle> angle;
 	};
 
@@ -185,9 +187,9 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Cartesian_Point make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
 	public:
-      Normal_Dihedral_Input(std::shared_ptr<Scan2D> && p) { parent = std::move(p); }
+      Normal_Dihedral_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cdihedral> dihedral;
 	};
 
@@ -240,8 +242,15 @@ private:
 	std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");
 	std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");
 
-    void rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg);
-    void rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg);
+    coords::Representation_3D rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg);
+    coords::Representation_3D rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg);
+    coords::Representation_3D transform_molecule_behind_a_bond(std::vector<std::size_t> const & ab, Scan2D::length_type const & length);
+
+
+    using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
+
+    void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
+
 };
 
 #endif
