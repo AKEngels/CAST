@@ -281,9 +281,10 @@
 		\textbf{SAPT-FF} & internal &parameterfile and Spackman-input\\
 		\textbf{MOPAC} & external & MOPAC variables\\
 		\textbf{TeraChem} & external & TeraChem input\\
+		\textbf{DFTB} & external & path to DFTBaby\\
 	\end{tabularx}	\\~\\
 	\ifverbose
-	In contrast to the force fields, the \ac{MOPAC} and TeraChem interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
+	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
 	\fi
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -360,6 +361,40 @@ GAUSSIANpath            g09
 
 GAUSSIANdelete          1
 \end{lstlisting}
+
+\subsubsection{DFTB}
+
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
+
+\paragraph{Downloading and installing DFTBaby}\mbox{}\\
+
+If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
+
+In addition to python you also need the following:
+\begin{itemize}
+\item the python module numpy
+\item the python module scipy
+\item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
+\end{itemize}
+
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. 
+
+\paragraph{Fix bug in DFTBaby}\mbox{}\\
+
+There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
+\begin{lstlisting}[firstnumber=92]
+        else:
+				    self.dmax = max(reppot\_module.d)
+						self.tck = interpolate.splrep(reppot\_module.d, reppot_module.Vrep,s=0)
+						def smooth_tail(d,deriv=0)
+						    return 0.0
+				reppot\_module.d /= scaling
+				self.smooth_tail = smooth_tail
+\end{lstlisting}
+
+\paragraph{Run CAST with DFTB}\mbox{}\\
+
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -392,6 +427,8 @@ GAUSSIANdelete          1
 	
 	It is also possible to convert .pdb files (e.g. from the protein data bank \url{http://www.rcsb.org/pdb/home/home.do}) into tinkerstructures using the TINKER software you can get from the TINKER website (\url{https://dasher.wustl.edu/tinker/}). Open the TINKER Executables for your system and unpack the files ``pdbxyz.exe'' and ``libiomp5md.dll'' into a folder (this explanation is for windows but the procedure should be similar on other systems). Additionally you need a parameterfile of one of the forcefields supported by \ac{CAST} that you can also obtain from the TINKER website (\url{https://dasher.wustl.edu/tinker/distribution/params/}). Then put your pdb-structure in the same folder, open the cmd there and type ``pdbxyz.exe $<$pdb-name$>$.pdb $<$prmfile-name$>$.prm''. If there is more than one chain in the pdb file you might be asked which chain you want to convert and then again what the name of your parameter file is. Then you get a TINKER .xyz file that has already assigned the correct parameter types for the forcefield corresponding to the parameter file you used for the conversion. Some structures might contain atom types that are not supported by the forcefield you chose, then you get a warning and no tinkerstructure is produced.
 	
+	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. To do this in a comfortable way open it with LibreOfficeCalc, give as seperation option ``spaces'' and activate the option ``Feldtrenner zusammenfassen''. Then you can write the atom types in column G, mark the whole file and copy the text in a text editor. Then save the file from the texteditor as .arc. This file you can use as inputstructure for CAST forcefield calculations.
+	
 	\subsubsection{AMBER}
 
 \ac{CAST} can to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
@@ -420,6 +457,10 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 \item If you deactivate the option ``chargefile'' you need a TINKER-like forcefield with a charge section. A prototype of this is ``amber99\_gaff\_charge.prm''. The charges for atom types 1 to 2012 are provided by TINKER so it should not be necessary to change them. You have however to fill out the charge parameters for gaff atom types (3000 to 3070) that are present in your structure. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.
 \item If you activate the option ``chargefile'' the charges are taken from a file called ``charges.txt'' that is structured like the file described before but without dividing the charges by 18.2223. You get such a file by running the script ``amber\_find\_atomnumber\_and\_ambercharge.py'' over a .prmtop file.
 \end{itemize}
+
+\subsubsection{XYZ}
+
+If you use an energy interface that doesn't need atom types (i.\,e. no forcefield) you can also use .xyz files as input. Just set the inputtype to XYZ and run your calculation as usual. Be careful that the structure in the xyz-file is not too distorted because CAST uses a distance criterion to find bonds in the structure.
 
 
 %%%% Fixations and biases %%%%
