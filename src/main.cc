@@ -156,7 +156,8 @@ int main(int argc, char **argv)
       printf("It is not possible to use DFTB without python!\n");
       std::exit(0);
 #endif
-      std::remove("scf_output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("tmp_struc_trace.xyz");
     }
 
     // read coordinate input file
@@ -321,6 +322,22 @@ int main(int argc, char **argv)
         std::cout << "Structure " << ++i << '\n';
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
+      }
+      break;
+    }
+    case config::tasks::HESS:
+    {
+      // calculate hessian matrix
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_HESS", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.h();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.h_tostream(gstream);
       }
       break;
     }
@@ -583,6 +600,12 @@ int main(int argc, char **argv)
       std::cout << "Everything is done. Have a nice day." << std::endl;
       break;
     }
+    case config::tasks::WRITE_TINKER:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
     case config::tasks::PCAgen:
     {
       /**
@@ -791,14 +814,12 @@ int main(int argc, char **argv)
     }
 
     }
- 
 #ifdef USE_PYTHON
     if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
     {    // if DFTB interface: close python
       Py_Finalize();
     }
 #endif // 
-
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";

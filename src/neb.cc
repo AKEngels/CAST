@@ -234,6 +234,11 @@ void neb::initial(void)
 void neb::final(void)
 {
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
+  if (!final)
+  {
+    throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
+  }
+
   std::string buffer;
   getline(final, buffer);
   size_t number;
@@ -255,6 +260,10 @@ void neb::final(void)
 void neb::final_align(void)
 {
   std::ifstream final(Config::get().neb.FINAL_STRUCTURE.c_str());
+  if (!final)
+  {
+    throw std::runtime_error("Final NEB Structure specified was not found. Aborting.");
+  }
   std::string buffer;
   getline(final, buffer);
   size_t number;

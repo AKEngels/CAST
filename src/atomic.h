@@ -109,6 +109,22 @@ namespace atomic
     2.0, 2.0, 2.0, 2.0, 2.0 /*71-75*/, 2.0, 2.0, 2.0, 2.0, 2.0 /*76-80*/,
     2.0, 2.0, 2.0, 2.0, 2.0 /*81-85*/, 2.0 /*86*/
   };
+
+  /*!
++\brief Covalent radii of the first N_elem elements of the PSE in Angstrom.
++\details Corresponds to the symbol array.
++\see "Covalent radii revisited", Cordero et al., Dalton Trans., 21, 2008,
++pp. 2832-2838
++*/
+static const double cov_radiusMap[ATOMIC_H] = {
+      0.00, 0.31, 0.28, 1.28, 0.96, 0.84, 0.76, 0.71, 0.66, 0.57, 0.58, 1.66, 1.41,
+      1.21, 1.11, 1.07, 1.05, 1.02, 1.06, 2.03, 1.76, 1.70, 1.60, 1.53, 1.39, 1.61,
+      1.52, 1.50, 1.24, 1.32, 1.22, 1.22, 1.20, 1.19, 1.20, 1.20, 1.16, 2.20, 1.95,
+      1.90, 1.75, 1.64, 1.54, 1.47, 1.46, 1.42, 1.39, 1.45, 1.44, 1.42, 1.39, 1.39,
+      1.38, 1.39, 1.40, 2.44, 2.15, 2.07, 2.04, 2.03, 2.01, 1.99, 1.98, 1.98, 1.96,
+      1.94, 1.92, 1.92, 1.89, 1.90, 1.87, 1.87, 1.75, 1.70, 1.62, 1.51, 1.44, 1.41,
+      1.36, 1.36, 1.32, 1.45, 1.46, 1.48, 1.40, 1.50, 1.50
+    };
   
   /*! Returns atomic number of an element specified by its symbol.
    * @param symbol: Atomic symbol as string (such as "He" for helium)

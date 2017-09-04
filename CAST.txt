@@ -29,16 +29,16 @@ cores                  4
 
 # Input file name
 
-name                   3d7z_inh.arc
+name                   water1.arc
 
 # Output file name
 
-outname                SP
+outname                methan
 
 # Input file type
 
-inputtype              TINKER
 
+inputtype              TINKER
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -56,7 +56,8 @@ inputtype              TINKER
 ####################################
 
 # SP                   Single point eneryg calculation
-# GRAD                 Single point energy calculation
+# GRAD                 Single point gradient calculation
+# HESS                 Single point hessian matrix calculation
 # LOCOPT               Local optimization using Lib-LBFGS
 # MD                   Molecular dynamics simulation
 # GOSOL                Combined Solvation + Global Optimization
@@ -80,9 +81,12 @@ inputtype              TINKER
 # GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# WRITE_TINKER         Writes tinkerstructure into outname.arc
 
-task                  MD
-
+task                  WRITE_TINKER
 
 ####################################
 #                                  #
@@ -133,7 +137,10 @@ MOPACversion          MOPAC2012
 DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
 
 # verbosity (only for DFTBaby)
-DFTBverbose             1
+DFTBverbose             0
+
+# total charge of molecule (has to be closed shell)
+#DFTBcharge              0
 
 # distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
 #DFTBcutoff            30
@@ -142,7 +149,7 @@ DFTBverbose             1
 DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-#DFTBlr_dist            3.03     
+DFTBlr_dist            3.03     
 
 # maximum number of iterations for SCF-calculation
 #DFTBmaxiter            1000
@@ -157,19 +164,23 @@ DFTBgradfile            grad.xyz
 DFTBgradstate          0
 
 # limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
-DFTBstates            1
+#DFTBstates            1
 
 # number of occupied orbitals taken into account for TD-DFTB
-DFTBocc_orb            2
+#DFTBocc_orb            2
 
 # number of virtual orbitals taken into account for TD-DFTB
-DFTBvirt_orb            2
+#DFTBvirt_orb            2
 
 # maximum number of iterations for TD-DFTB matrix diagonalisation
 #DFTBdiag_maxiter        50
 
 # convergence threshold for TD-DFTB matrix diagonalisation
 #DFTBdiag_conv           1e-05
+
+# use DFTBaby for optimization (otherwise steepest gradient) <0/1>
+DFTBopt                  1
+
 
 
 ####################################
@@ -804,6 +815,137 @@ USsteps                60
 
 USsnap                 5
 
+
+
+####################################
+#                                  #
+#        XB_EXCITON_BREAKUP        #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters           CenterofMasses.out
+
+#Numbers of monomers
+
+EXnumbern               36
+
+EXnumberp               80
+
+#Orientation of the interface
+
+EXplaneinterf            z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              nSC_homodimer.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
+
+
+
+####################################
+#                                  #
+#      XB_Interface Creation       #           
+#                                  #
+####################################
+
+#Creation of a new Structure from the usual input structure and an additional one
+
+#Additional input file name
+
+ICname 						but_min.xyz
+
+#Additional input file type
+
+ICinputtype					TINKER
+
+#From which axis should tha additional atoms added
+
+ICaxis						x
+
+#How far apart should they be
+
+ICdistance					5.0
+
+
+####################################
+#                                  #
+#             XB_CENTER            #
+#                                  #
+####################################
+
+CENTERdimer                     1
+
+CENTERdistance                  15.0
+
+
+####################################
+#                                  #
+#           XB_Couplings           #
+#                                  #
+####################################
+
+#Number of p-type semiconductor monomers
+
+CouplingspSCnumber              80
+
+#Number of n-type semiconductor monomers         
+
+CouplingsnSCnumber              36
+
+#List of states relevant for ct-processes (no commata)
+
+CouplingsCTcharastates          3 4 7
+
+###p-type homodimer options
+
+CouplingspSCdimMultiplicity          1
+
+CouplingspSCdimCharge                0
+
+CouplingspSCdimElCalcmethod          INDO
+
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+###n-type homodimer options
+
+CouplingsnSCdimMultiplicity          1
+
+CouplingsnSCdimCharge                0
+
+CouplingsnSCdimholCalcmethod         INDO
+
+###heterodimer options
+
+CouplingsheterodimMultiplicity       1
+
+CouplingsheterodimCharge             0
+
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #

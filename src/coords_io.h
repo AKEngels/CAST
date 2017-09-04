@@ -94,8 +94,6 @@ namespace coords
           IPOL
         };
 
-
-
         //Important Stuff
         std::vector<unsigned int> sectionsPresent;
         std::vector<unsigned int> bondsWithHydrogen, bondsWithoutHydrogen; // [0] binds to [1], [2] to [3], [4] to [5] and so on....
@@ -105,6 +103,15 @@ namespace coords
         unsigned int numberOfAtoms;
         int pointers_raw[32];
 
+      };
+
+      class xyz : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
       };
 
       /*! Class to read from TINKER coordinate file (.arc)

@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 26;
+  static std::size_t const NUM_TASKS = 28;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -59,7 +59,7 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
-    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", "HESS", "WRITE_TINKER"
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -78,16 +78,16 @@ namespace config
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
-      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS
+      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS, HESS, WRITE_TINKER
     };
   };
 
   /** number of Input Types */
-  static std::size_t const NUM_INPUT = 2;
+  static std::size_t const NUM_INPUT = 3;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   {
-    "TINKER", "AMBER"
+    "TINKER", "AMBER", "XYZ"
   };
 
   /*! contains enum with all input_types currently supported in CAST
@@ -101,7 +101,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      TINKER, AMBER
+      TINKER, AMBER, XYZ
     };
   };
 
@@ -134,7 +134,6 @@ namespace config
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN"
   };
@@ -547,6 +546,8 @@ namespace config
       /**name of dftbaby gradient file (deleted again but necessary because otherwise
       dftbaby doesn't calculate gradients)*/
       std::string gradfile;
+      /**total charge of the molecule*/
+      int charge;
       /**state for which DFTB gradients are calculated (ground state = 0)*/
       int gradstate;
       /**verbosity for dftbaby*/
@@ -571,13 +572,15 @@ namespace config
       int diag_maxiter;
       /**convergence threshold for TD-DFTB matrix diagonalisation*/
       std::string diag_conv;
+      /**use own optimizer for optimization (otherwise steepest gradient)*/
+      bool opt;
       
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
       dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
-      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0") {}
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
     } dftb;
 
     struct gaussian_conf
@@ -1061,15 +1064,15 @@ namespace config
     std::size_t IMAGES, MCITERATION, GLOBALITERATION,
       CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
     bool NEB_CONN, CONSTRAINT_GLOBAL, TAU,
-      MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS, INTERNAL_INTERPOLATION;
-    neb() :
-      OPTMODE("PROJECTED"),
-      SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
-      BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
-      BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
-      GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
-      NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false),
-      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false), INTERNAL_INTERPOLATION(true)
+      MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS, INTERNAL_INTERPOLATION, MCM_OPT;
+	neb() :
+		OPTMODE("PROJECTED"),
+		SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
+		BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
+		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
+		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
+		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false),
+		INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false), INTERNAL_INTERPOLATION(false), MCM_OPT(true)
     {}
   };
 

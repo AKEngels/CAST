@@ -48,6 +48,9 @@ coords::input::format* coords::input::new_format(void)
       //AMBER
       return new formats::amber;
       break;
+    case config::input_types::XYZ:
+      return new formats::xyz;
+      break;
     default:
     {
       return new formats::tinker;
@@ -72,6 +75,9 @@ coords::input::format* coords::input::additional_format(void)
   case config::input_types::AMBER:
     //AMBER
     return new formats::amber;
+    break;
+  case config::input_types::XYZ:
+    return new formats::xyz;
     break;
   default:
   {
@@ -397,7 +403,15 @@ void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
   stream << N << '\n';
-  stream << Config::set().general.inputFilename<<"\n";
+  if (Config::get().energy.dftb.charge == 0)
+  {
+    stream << Config::get().general.inputFilename<<"\n";
+  }
+  else
+  {
+    stream << "charge=" + std::to_string(Config::get().energy.dftb.charge)<<"\n";
+  }
+  
   for (std::size_t i(0U); i < N; ++i)
   {
       stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];

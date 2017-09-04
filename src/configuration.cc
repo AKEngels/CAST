@@ -489,8 +489,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> Config::set().neb.COMPLETE_PATH;
 	  else if (option.substr(11, 20) == "-NEB-MULTIPLE_POINTS")
 		  cv >> Config::set().neb.MULTIPLE_POINTS;
-    else if (option.substr(11, 27) == "-NEB-INTERNAL_INTERPOLATION")
+     else if (option.substr(11, 27) == "-NEB-INTERNAL_INTERPOLATION")
       cv >> Config::set().neb.INTERNAL_INTERPOLATION;
+	 else if (option.substr(11, 12) == "-NEB-MCM_OPT")
+		 cv >> Config::set().neb.MCM_OPT;
+
   }
 
   // MOPAC options
@@ -545,11 +548,17 @@ void config::parse_option(std::string const option, std::string const value_stri
          Config::set().energy.dftb.diag_conv = value_string; 
     else if (option.substr(4,12) == "diag_maxiter")
         Config::set().energy.dftb.diag_maxiter = std::stoi(value_string);
+    else if (option.substr(4,12) == "charge")
+        Config::set().energy.dftb.charge = std::stoi(value_string);
     else if (option.substr(4,7) == "lr_corr")
     {
        if (value_string == "1")
           Config::set().energy.dftb.longrange = true;
     }   
+    else if (option.substr(4,3) == "opt")
+    {
+      if (value_string == "1") Config::set().energy.dftb.opt = true;
+    }
   }
 
   //Gaussian options
