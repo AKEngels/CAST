@@ -6,7 +6,7 @@
 #include<iterator>
 #include<memory>
 #include<unordered_set>
-#include<boost/coroutine2/coroutine.hpp>
+//#include<boost/coroutine2/coroutine.hpp>
 
 #include"coords.h"
 #include"coords_rep.h"
@@ -247,9 +247,10 @@ private:
     coords::Representation_3D transform_molecule_behind_a_bond(std::vector<std::size_t> const & ab, Scan2D::length_type const & length);
 
 
-    using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
+    //using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
 
-    void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
+    bond_set go_along_backbone(std::size_t const & atom, std::size_t const & border);
+    //void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
 
 };
 

@@ -201,7 +201,8 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::
     auto tmp_axis = xyz[abcd[2] - 1] - xyz[abcd[1] - 1];
     RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
     RotationMatrix::Vector center{ xyz[abcd[1] - 1].x(), xyz[abcd[1] - 1].y(), xyz[abcd[1] - 1].z() };
-    coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
+    //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
+    auto source = go_along_backbone(abcd[0], abcd[1]);
 
     for (auto const & dd : source) {
         std::size_t atom_number, bond_count;
@@ -237,7 +238,8 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_ang(std::vector<std::
 
   RotationMatrix::Vector axis = RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
 
-  coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
+  //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
+  auto source = go_along_backbone(abc[0], abc[1]);
 
   for (auto const & aa : source) {
     std::size_t atom_number, bond_count;
@@ -268,7 +270,8 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 
   auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() }.normalized();
 
-  coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
+  //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
+  auto source = go_along_backbone(ab[0], ab[1]);
 
     for (auto const & bb : source) {
       std::size_t atom_number, bond_count;
@@ -292,52 +295,52 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
     return xyz;
 }
 
-void Scan2D::go_along_backbone(coroutine_type::push_type & sink, std::size_t const & atom, std::size_t const & border) {
-    auto const & atoms = _coords.atoms();
-    std::unordered_set<int> check_list;
-    std::size_t recursion_count = 1;
-
-    check_list.insert(atom);
-
-    std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
-        std::vector<std::size_t> unchecked_bonds;
-        for (auto const & n : neigh) {
-            if (n == border) continue;
-            if (check_list.insert(n).second) {
-                sink(std::make_pair(n,recursion_count));
-                unchecked_bonds.emplace_back(n);
-            }
-        }
-        ++recursion_count;
-        parse_neighbors(unchecked_bonds);
-    };
-
-  parse_neighbors(atoms.atom(atom-1).bonds());
-
-}
-
-//Scan2D::bond_set Scan2D::go_along_backbone(std::size_t const & atom, std::size_t const & border) {
-//  auto const & atoms = _coords.atoms();
-//  bond_set ret;
-//  std::size_t recursion_count = 1;
+//void Scan2D::go_along_backbone(coroutine_type::push_type & sink, std::size_t const & atom, std::size_t const & border) {
+//    auto const & atoms = _coords.atoms();
+//    std::unordered_set<int> check_list;
+//    std::size_t recursion_count = 1;
 //
-//  ret.insert(std::make_pair(atom, 0));
+//    check_list.insert(atom);
 //
-//  std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
-//    for (auto const & n : neigh) {
-//      if (n == border) continue;
-//      if (ret.insert(std::make_pair(n, recursion_count)).second) {
+//    std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
+//        std::vector<std::size_t> unchecked_bonds;
+//        for (auto const & n : neigh) {
+//            if (n == border) continue;
+//            if (check_list.insert(n).second) {
+//                sink(std::make_pair(n,recursion_count));
+//                unchecked_bonds.emplace_back(n);
+//            }
+//        }
 //        ++recursion_count;
-//        parse_neighbors(atoms.atom(n - 1).bonds());
-//        --recursion_count;
-//      }
-//    }
-//  };
+//        parse_neighbors(unchecked_bonds);
+//    };
 //
-//  parse_neighbors(atoms.atom(atom - 1).bonds());
+//  parse_neighbors(atoms.atom(atom-1).bonds());
 //
-//  return ret;
 //}
+
+Scan2D::bond_set Scan2D::go_along_backbone(std::size_t const & atom, std::size_t const & border) {
+  auto const & atoms = _coords.atoms();
+  bond_set ret;
+  std::size_t recursion_count = 1;
+
+  ret.insert(std::make_pair(atom, 0));
+
+  std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
+    for (auto const & n : neigh) {
+      if (n == border) continue;
+      if (ret.insert(std::make_pair(n, recursion_count)).second) {
+        ++recursion_count;
+        parse_neighbors(atoms.atom(n - 1).bonds());
+        --recursion_count;
+      }
+    }
+  };
+
+  parse_neighbors(atoms.atom(atom - 1).bonds());
+
+  return ret;
+}
 
 void Scan2D::make_scan() {
 
