@@ -49,6 +49,7 @@ coords::input::format* coords::input::new_format(void)
       return new formats::amber;
       break;
     case config::input_types::XYZ:
+      //XYZ
       return new formats::xyz;
       break;
     default:
@@ -77,6 +78,7 @@ coords::input::format* coords::input::additional_format(void)
     return new formats::amber;
     break;
   case config::input_types::XYZ:
+    //XYZ
     return new formats::xyz;
     break;
   default:
