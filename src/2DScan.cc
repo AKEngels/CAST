@@ -3,30 +3,31 @@
 Scan2D::Scan2D(coords::Coordinates & coords) 
   : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
 {
-	auto & both_whats = Config::get().scan2d.AXES;
-
-	if (both_whats.size() > 2) {
-		throw std::runtime_error("You can't pass more than two axis!");
-	}
-
 	logfile.open(structures_file);
 	energies.open(energie_file);
+}
+
+void Scan2D::execute_scan(){
+	auto & both_whats = Config::get().scan2d.AXES;
+
+        if (both_whats.size() > 2) {
+                throw std::runtime_error("You can't pass more than two axis!");
+        }
 
 	auto x_input_parser = parse_input(both_whats.front());
-	auto y_input_parser = parse_input(both_whats.back());
+        auto y_input_parser = parse_input(both_whats.back());
 
-	x_input_parser->set_coords(_coords.xyz());
-	y_input_parser->set_coords(_coords.xyz());
+        x_input_parser->set_coords(_coords.xyz());
+        y_input_parser->set_coords(_coords.xyz());
 
-	auto x_changes = x_input_parser->make_axis();
-	auto y_changes = y_input_parser->make_axis();
+        auto x_changes = x_input_parser->make_axis();
+        auto y_changes = y_input_parser->make_axis();
 
-	parser = std::make_unique<XY_Parser>(std::move(x_input_parser), std::move(y_input_parser));
+        parser = std::make_unique<XY_Parser>(std::move(x_input_parser), std::move(y_input_parser));
 
-	axis = std::make_unique<XY_steps>(x_changes, y_changes);
+        axis = std::make_unique<XY_steps>(x_changes, y_changes);
 
-	make_scan();
-
+        make_scan();
 }
 
 Scan2D::~Scan2D() {
@@ -327,6 +328,7 @@ Scan2D::bond_set Scan2D::go_along_backbone(std::size_t const & atom, std::size_t
   ret.insert(std::make_pair(atom, 0));
 
   std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
+    if(neigh.size()==1) return;
     for (auto const & n : neigh) {
       if (n == border) continue;
       if (ret.insert(std::make_pair(n, recursion_count)).second) {
@@ -354,7 +356,6 @@ void Scan2D::make_scan() {
 		++x_circle;
 
 		_coords.set_xyz(parser->x_parser->make_move(x_step), true);
-
 		parser->fix_atoms(_coords);
 
 		write_energy_entry(_coords.o());

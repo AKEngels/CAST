@@ -38,7 +38,7 @@ public:
 
     struct bond_hash;
     struct compare_bond_pair;
-
+	void execute_scan();
 	using length_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::length_type;
 	using angle_type = typename get_spherical_types<remove_cr<decltype(_coords.intern(0))>>::angle_type;
     using bond_set = std::unordered_set<std::pair<std::size_t, std::size_t>, bond_hash, compare_bond_pair>;
@@ -152,14 +152,14 @@ private:
 		virtual std::vector<length_type> make_axis() = 0;
 		virtual coords::Representation_3D make_move(length_type const & new_pos) = 0;
 	public:
-        Input_types(std::weak_ptr<Scan2D> p) : parent(p) {}
+        Input_types(std::weak_ptr<Scan2D> & p) : parent(p) {}
 		std::unique_ptr<Scan2D::what> what;
         std::weak_ptr<Scan2D> parent;
 	};
 
 	class Normal_Input : public Input_types {
     public:
-        Normal_Input(std::weak_ptr<Scan2D> p) : Input_types(p) {}
+        Normal_Input(std::weak_ptr<Scan2D> & p) : Input_types(p) {}
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) override;
 	};
 

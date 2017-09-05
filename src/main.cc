@@ -734,6 +734,7 @@ int main(int argc, char **argv)
 	  case config::tasks::SCAN2D:
 	  {
 		  auto scan = std::make_shared<Scan2D>(coords);
+		scan->execute_scan();
 		  break;
 	  }
 	    case config::tasks::XB_EXCITON_BREAKUP:

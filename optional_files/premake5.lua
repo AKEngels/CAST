@@ -42,7 +42,7 @@ project "CAST"
 
 
   configuration "gmake"
-    includedirs { "../submodules/eigen/Eigen/" }
+    includedirs { "../submodules/eigen/", "../../../boost/boost_1_61_0/" }
     linkoptions { "-fopenmp" }
                 targetname "CAST_undefined.exe"
     filter { "options:mpi" }
@@ -71,7 +71,7 @@ project "CAST"
       filter { "configurations:Testing", "action:gmake" }
         optimize "Debug"
         defines { "GOOGLE_MOCK" }
-        includedirs { "./includes/gtest/", "../submodules/eigen/Eigen/"}
+        includedirs { "./includes/gtest/", "../submodules/eigen/"}
         buildoptions { "-I ../optional_files/includes" }
         linkoptions { "../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/" }
         flags { "LinkTimeOptimization" }
@@ -83,7 +83,7 @@ project "CAST"
     filter { "configurations:Debug", "action:gmake" }
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       optimize "Debug"
-    includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/"}
       flags { "Symbols" }
     filter { "configurations:Debug",  "platforms:x86", "action:gmake"}
       targetname "CAST_linux_x86_debug"
@@ -128,11 +128,11 @@ project "CAST"
     filter { "configurations:Release",  "platforms:x86", "action:vs2015"}
       targetname "CAST_win_x86_release"
     defines {"EIGEN_NO_DEBUG"}
-    includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/"}
     filter { "configurations:Release",  "platforms:x64", "action:vs2015"}
       targetname "CAST_win_x64_release"
     defines {"EIGEN_NO_DEBUG"}
-    includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/"}
 
     filter { "configurations:Armadillo_Release", "action:vs2015"}
       includedirs { "../optional_files/includes/armadillo/"}
@@ -165,7 +165,7 @@ project "CAST"
 
     filter { "configurations:Testing", "action:vs2015" }
       optimize "Debug"
-      includedirs { "../optional_files/includes/gtest/", "../submodules/eigen/Eigen/"}
+      includedirs { "../optional_files/includes/gtest/", "../submodules/eigen/"}
       defines { "GOOGLE_MOCK" }
       libdirs { "../optional_files/windows_precompiled_libs/" }
       links { "gmock" }
@@ -191,7 +191,7 @@ project "CAST"
     filter { "configurations:Debug", "action:vs2015" }
       removefiles { "./src/tests/**.cc", "./src/test/**.h"}
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-    includedirs { "../submodules/eigen/Eigen/"}
+    includedirs { "../submodules/eigen/"}
       optimize "Debug"
       flags { "Symbols" }
     filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
