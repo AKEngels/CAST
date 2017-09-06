@@ -358,9 +358,12 @@ void Scan2D::make_scan() {
 
 		++x_circle;
 
-		_coords.set_xyz(parser->x_parser->make_move(x_step,
-          parser->x_parser->what->atoms
-        ), true);
+        auto const & x_atoms = parser->x_parser->what->atoms;
+
+		_coords.set_xyz(
+          parser->x_parser->make_move(x_step,x_atoms), 
+          true
+        );
 		parser->fix_atoms(_coords);
 
 		write_energy_entry(_coords.o());
@@ -379,14 +382,17 @@ void Scan2D::prepare_scan() {
 
 	auto & x_move = parser->x_parser->what->from_position;
 	auto & y_move = parser->y_parser->what->from_position;
+    auto const & x_atoms = parser->x_parser->what->atoms;
+    auto const & y_atoms = parser->y_parser->what->atoms;
 
-    _coords.set_xyz(parser->x_parser->make_move(x_move,
-      parser->x_parser->what->atoms
-    ),true);
-    _coords.set_xyz(parser->y_parser->make_move(y_move,
-      parser->x_parser->what->atoms
-    ),true);
-
+    _coords.set_xyz(
+      parser->x_parser->make_move(x_move, x_atoms),
+      true
+    );
+    _coords.set_xyz(
+      parser->y_parser->make_move(y_move, y_atoms),
+      true
+    );
 }
 
 void Scan2D::go_along_y_axis(coords::Coordinates coords) {
@@ -398,9 +404,12 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 		++y_circle;
 
-		coords.set_xyz(parser->y_parser->make_move(y_step,
-          parser->y_parser->what->atoms
-        ), true);
+        auto const & y_atoms = parser->y_parser->what->atoms;
+
+		coords.set_xyz(
+          parser->y_parser->make_move(y_step, y_atoms),
+          true
+        );
 		parser->fix_atoms(coords);
 
 		this->write_energy_entry(coords.o());
