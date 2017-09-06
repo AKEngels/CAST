@@ -278,7 +278,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::o (void)
 // Output functions
 void energy::interfaces::terachem::mpiInterface::print_E (std::ostream &S) const
 {
-  S << "Total Energy T: ";
+  S << "Total Energy: ";
   S << std::right << std::setw(26) << std::fixed << std::setprecision(8) << energy << std::endl;
 }
 

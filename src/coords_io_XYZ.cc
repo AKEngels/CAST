@@ -16,9 +16,18 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 @ return: Coordinates object that is created out of file*/
 coords::Coordinates coords::input::formats::xyz::read(std::string file)
 {
-    std::cout<<"WARNING!!!\n";
-    std::cout<<"You are reading the structure from yxz-file.\n";
-    std::cout<<"No atom types are read so you can't use the structure with a forcefield interface!\n";
+    if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) ||
+    (Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
+    (Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
+    (Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
+    {
+        std::cout<<"ERROR: It is not possible to use XYZ files with a forcefield interface because no atom types are assigned!\n";
+        if (Config::get().general.task == config::tasks::WRITE_TINKER)
+        {
+            std::cout<<"Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
+        }
+        std::exit(0);
+    }
 
     Coordinates coord_object;
     std::ifstream config_file_stream(file.c_str(), std::ios_base::in);  // read file to ifstream
