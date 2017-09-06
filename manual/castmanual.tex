@@ -384,11 +384,11 @@ Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/hu
 There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
 \begin{lstlisting}[firstnumber=92]
         else:
-				    self.dmax = max(reppot\_module.d)
-						self.tck = interpolate.splrep(reppot\_module.d, reppot_module.Vrep,s=0)
+				    self.dmax = max(reppot_module.d)
+						self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
 						def smooth_tail(d,deriv=0)
 						    return 0.0
-				reppot\_module.d /= scaling
+				reppot_module.d /= scaling
 				self.smooth_tail = smooth_tail
 \end{lstlisting}
 
