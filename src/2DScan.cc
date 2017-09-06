@@ -286,7 +286,7 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
         break;
       }
 
-      change /= distance;
+      change -= distance;
 
       auto vec = axis * change;
 
