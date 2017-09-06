@@ -373,7 +373,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     double x,y,z;
     while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
     {
-        coords::Cartesian_Point xyz(x*627.503,y*627.503,z*627.503);
+        coords::Cartesian_Point xyz(x,y,z);
         xyz_tmp.push_back(xyz);
     }
     infile.close();
