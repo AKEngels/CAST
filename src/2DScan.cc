@@ -271,7 +271,6 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 
   auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
   auto distance = axis.norm();
-  axis.normalize();
 
   //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
   auto source = go_along_backbone(ab[0], ab[1]);
@@ -286,9 +285,9 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
         break;
       }
 
-      change /= distance;
+      change -= distance;
 
-      auto vec = axis * change;
+      auto vec = axis.normalized() * change;
 
       RotationMatrix::Translation trans(vec);
 
@@ -359,7 +358,9 @@ void Scan2D::make_scan() {
 
 		++x_circle;
 
-		_coords.set_xyz(parser->x_parser->make_move(x_step), true);
+		_coords.set_xyz(parser->x_parser->make_move(x_step,
+          parser->x_parser->what->atoms
+        ), true);
 		parser->fix_atoms(_coords);
 
 		write_energy_entry(_coords.o());
@@ -376,13 +377,15 @@ void Scan2D::make_scan() {
 void Scan2D::prepare_scan() {
 	auto xyz = _coords.xyz();
 
-	auto & x_atom = parser->x_parser->what->atoms[0];
-	auto & y_atom = parser->y_parser->what->atoms[0];
 	auto & x_move = parser->x_parser->what->from_position;
 	auto & y_move = parser->y_parser->what->from_position;
 
-    _coords.set_xyz(parser->x_parser->make_move(x_move),true);
-    _coords.set_xyz(parser->y_parser->make_move(y_move),true);
+    _coords.set_xyz(parser->x_parser->make_move(x_move,
+      parser->x_parser->what->atoms
+    ),true);
+    _coords.set_xyz(parser->y_parser->make_move(y_move,
+      parser->x_parser->what->atoms
+    ),true);
 
 }
 
@@ -395,7 +398,9 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 		++y_circle;
 
-		coords.set_xyz(parser->y_parser->make_move(y_step), true);
+		coords.set_xyz(parser->y_parser->make_move(y_step,
+          parser->y_parser->what->atoms
+        ), true);
 		parser->fix_atoms(coords);
 
 		this->write_energy_entry(coords.o());
@@ -468,15 +473,14 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 
 }
 
-coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(length_type const & new_pos) {
+coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) {
     auto p = parent.lock();
-    auto new_molecule = p->_coords.xyz();
-    auto const & atoms = p->parser->x_parser->what->atoms;
-
+    
     if (fabs(new_pos - say_val()) > p->max_change_rotation) {
       return p->transform_molecule_behind_a_bond(atoms, new_pos);
     }
     else {
+      auto new_molecule = p->_coords.xyz();
       new_molecule[atoms.at(0)] = change_length_of_bond(*bond, new_pos);
       return new_molecule;
     }
@@ -484,29 +488,27 @@ coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(length_type const
 	auto new_coord = Scan2D::change_length_of_bond(*bond, new_pos);
 }
 
-coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(length_type const & new_pos) {
+coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) {
     auto p = parent.lock();
-    auto new_molecule = p->_coords.xyz();
-    auto const & atoms = p->parser->x_parser->what->atoms;
 
     if (fabs(new_pos - say_val()) > p->max_change_rotation) {
         return p->rotate_molecule_behind_a_ang(atoms, new_pos);
     }
     else {
+        auto new_molecule = p->_coords.xyz();
         new_molecule[atoms.at(0)] = rotate_a_to_new_angle(*angle, angle_type::from_deg(new_pos));
         return new_molecule;
     }
 }
 
-coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(length_type const & new_pos) {
+coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) {
     auto p = parent.lock();
-    auto new_molecule = p->_coords.xyz();
-    auto const & atoms = p->parser->x_parser->what->atoms;
     
     if (fabs(new_pos - say_val()) > p->max_change_rotation) {
        return p->rotate_molecule_behind_a_dih(atoms, new_pos);
     }
     else {
+       auto new_molecule = p->_coords.xyz();
        new_molecule[atoms.at(0)] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(new_pos));
        return new_molecule;
     }
