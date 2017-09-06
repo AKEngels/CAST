@@ -269,7 +269,9 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 
   auto ba = xyz[ab[0] - 1] - xyz[ab[1] - 1];
 
-  auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() }.normalized();
+  auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
+  auto distance = axis.norm();
+  axis.normalize();
 
   //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
   auto source = go_along_backbone(ab[0], ab[1]);
@@ -278,11 +280,13 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
       std::size_t atom_number, bond_count;
       std::tie(atom_number, bond_count) = bb;
 
-      length_type const change = length - change_from_atom_to_atom*static_cast<double>(bond_count);
+      auto change = (length - change_from_atom_to_atom*static_cast<double>(bond_count));
 
       if (change <= 0.) {
         break;
       }
+
+      change /= distance;
 
       auto vec = axis * change;
 
