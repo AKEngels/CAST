@@ -363,6 +363,13 @@ void Scan2D::make_scan() {
 	
 	coords::output::formats::tinker output(_coords);
 	parser->x_parser->set_coords(_coords.xyz());
+    parser->fix_atoms(_coords);
+    write_energy_entry(_coords.o());
+    parser->x_parser->set_coords(_coords.xyz());
+
+    output.to_stream(logfile);
+
+    go_along_y_axis(_coords);
 
 	for (auto && x_step : axis->x_steps) {
 
