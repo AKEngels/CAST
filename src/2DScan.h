@@ -142,6 +142,7 @@ private:
 		double to_position;
 		double from_position;
 		std::size_t scans;
+        bool prepare_position = false;
 	};
 
 	class Input_types {

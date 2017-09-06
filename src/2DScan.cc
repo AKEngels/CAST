@@ -49,8 +49,18 @@ void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, c
 	auto position_of_begin_val = splitted_vals.size() - 3;
 	auto position_of_end_val = splitted_vals.size() - 2;
 
+    auto do_prepare_position = [&]() {
+      what->prepare_position = true;
+      what->from_position = std::stod(splitted_vals[position_of_begin_val]);
+    };
+
+    auto do_not_prepare_position = [&]() {
+      what->prepare_position = false;
+      what->from_position = say_val();
+    };
+
 	splitted_vals[position_of_begin_val] != "current" ?
-		what->from_position = std::stod(splitted_vals[position_of_begin_val]) : what->from_position = say_val();
+		do_prepare_position() : do_not_prepare_position();
 	what->to_position = std::stod(splitted_vals[position_of_end_val]);
 	what->scans = std::stoi(splitted_vals.back());
 
@@ -379,9 +389,16 @@ void Scan2D::make_scan() {
 
 void Scan2D::prepare_scan() {
 	auto xyz = _coords.xyz();
+   
+    auto x_move = parser->x_parser->what->prepare_position ?
+      parser->x_parser->what->from_position - parser->x_parser->say_val() :
+      parser->x_parser->what->from_position
+      ;
+    auto y_move = parser->y_parser->what->prepare_position ?
+      parser->y_parser->what->from_position - parser->y_parser->say_val() :
+      parser->y_parser->what->from_position
+      ;
 
-	auto & x_move = parser->x_parser->what->from_position;
-	auto & y_move = parser->y_parser->what->from_position;
     auto const & x_atoms = parser->x_parser->what->atoms;
     auto const & y_atoms = parser->y_parser->what->atoms;
 
