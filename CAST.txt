@@ -59,18 +59,14 @@ inputtype              TINKER
 # GRAD                 Single point gradient calculation
 # HESS                 Single point hessian matrix calculation
 # LOCOPT               Local optimization using Lib-LBFGS
-# MD                   Molecular dynamics simulation
 # GOSOL                Combined Solvation + Global Optimization
 # MC                   Monte Carlo
-# CENTER               Center of mass/geometry
 # TS                   Tabu Search (CAST: GOTS)
-# RMSD                 Root mean square deviation
 # DIMER                Dimer method using torsional space
+# MD                   Molecular dynamics simulation
 # NEB                  Nudged elastic band calculation
-# INTERNAL             Create Z-Matrix
 # STARTOPT
 # UMBRELLA             Umbrella Sampling
-# PROFILE              Repeated Gradient Calculation of first input structure
 # FEP                  Alchemical transformations using FEP
 # ALIGN                Trajectory Alignment (Kabsch algorithm)
 # PCAgen               Principal Component Analysis
@@ -78,13 +74,17 @@ inputtype              TINKER
 # ENTROPY              Configurational and Conformational Entropy Calculations
 # GRID                 Grid Search
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
-# GRID
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# INTERNAL             Create Z-Matrix
+# XB_CENTER            Center of mass/geometry
+# XB_EXCITON_BREAKUP
+# XB_INTEFACE_CREATION
+# XB_COUPLINGS
 
 task                  WRITE_TINKER
 
