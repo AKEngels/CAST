@@ -150,7 +150,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) = 0;
 		virtual length_type say_val() = 0;
 		virtual std::vector<length_type> make_axis() = 0;
-		virtual coords::Representation_3D make_move(length_type const & new_pos) = 0;
+		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) = 0;
 	public:
         Input_types(std::weak_ptr<Scan2D> & p) : parent(p) {}
 		std::unique_ptr<Scan2D::what> what;
@@ -167,7 +167,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
 	public:
         Normal_Bond_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
         std::unique_ptr<Scan2D::cbond> bond;
@@ -177,7 +177,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
 	public:
         Normal_Angle_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cangle> angle;
@@ -187,7 +187,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos) override;
+		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
 	public:
       Normal_Dihedral_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cdihedral> dihedral;
