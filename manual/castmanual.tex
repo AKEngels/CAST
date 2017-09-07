@@ -395,6 +395,31 @@ There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= sca
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
 If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
+
+\textbf{DFTB Options} 
+\\(default value none means defalt value is taken from DFTBaby)
+\\(bool values have to be given as 1=true and 0=false)
+
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{DFTBath} & Path to DFTBaby & string \\
+	\textbf{DFTBverbose} & verbosity for DFTBaby, i.\,e. how much information is printed in file output\_dftb.txt & int [0] \\	
+	\textbf{DFTBcharge} & total charge of the molecule & int [0] \\
+	\textbf{DFTBcutoff} & cutoff for orbital interactions \textbf{(in bohr!!!)} & float [none] \\
+	\textbf{DFTBlr\_corr} & Switch long range correction on and off & bool [false] \\
+	\textbf{DFTBlr\_dist} & R\textsubscript{lr} \textbf{(in bohr!!!)} for long range correction & float [none] \\
+	\textbf{DFTBmaxiter} & maximum number of iterations for SCF calculation & int [none] \\
+	\textbf{DFTBconv} & convergence threshold for relative change in SCF calculation & string [none] \\
+	\textbf{DFTBgradfile} & name of the DFTBaby gradient file (is deleted after calculation) & string [grad.xyz] \\
+	\textbf{DFTBgradstate} & state for which the gradients should be calculated & int [0] \\
+	\textbf{DFTBstates} & number of states taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBocc\_orb} & number of occupied orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBvirt\_orb} & number of virtual orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBdiag\_maxiter} & maximum number of iterations for TD-DFTB matrix diagonalisation & int [none] \\
+	\textbf{DFTBdiag\_conv} & convergence threshold for TD-DFTB matrix diagonalisation & string [none] \\
+	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient & bool [true] \\
+\end{longtable} 
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
