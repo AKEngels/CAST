@@ -340,7 +340,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-      //write inputstructure
+    //write inputstructure
     std::ofstream file("tmp_struc.xyz");
     file << coords::output::formats::xyz_dftb(*this->coords);
     file.close();
@@ -362,15 +362,26 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
         result_str = PyString_AsString(ret); //read function return (has to be a string)
-        result_str = result_str.substr(1,result_str.size()-2);  //process return
-        std::vector<std::string> result_vec = split(result_str, ',');
-
-        //read energies and convert them to kcal/mol
-        e_bs = std::stod(result_vec[0])*627.503; 
-        e_coul = std::stod(result_vec[1])*627.503;
-        e_rep = std::stod(result_vec[3])*627.503;
-        e_tot = std::stod(result_vec[4])*627.503;
-        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+        if (result_str != "error")
+        {
+          result_str = result_str.substr(1,result_str.size()-2);  //process return
+          std::vector<std::string> result_vec = split(result_str, ',');
+          
+          //read energies and convert them to kcal/mol
+          e_bs = std::stod(result_vec[0])*627.503; 
+          e_coul = std::stod(result_vec[1])*627.503;
+          e_rep = std::stod(result_vec[3])*627.503;
+          e_tot = std::stod(result_vec[4])*627.503;
+          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+        }
+        else
+        {
+          if (Config::get().general.verbosity >= 2)
+          {
+            std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
+          }
+          integrity = false;
+        }
         
         //delete PyObjects
         Py_DECREF(prm); 
@@ -384,23 +395,26 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
         std::exit(0);
     }
     
-    //read new geometry
-    std::string line;
-    coords::Representation_3D xyz_tmp;
-    std::ifstream infile("tmp_struc_opt.xyz");
-    std::getline(infile, line);  //discard fist two lines
-    std::getline(infile, line);
-    std::string element;
-    double x,y,z;
-    while (infile >> element >> x >> y >> z)  //new coordinates
+    if (integrity == true)   //read new geometry
     {
-        coords::Cartesian_Point xyz(x,y,z);
-        xyz_tmp.push_back(xyz);
+      std::string line;
+      coords::Representation_3D xyz_tmp;
+      std::ifstream infile("tmp_struc_opt.xyz");
+      std::getline(infile, line);  //discard fist two lines
+      std::getline(infile, line);
+      std::string element;
+      double x,y,z;
+      while (infile >> element >> x >> y >> z)  //new coordinates
+      {
+          coords::Cartesian_Point xyz(x,y,z);
+          xyz_tmp.push_back(xyz);
+      }
+      infile.close();
+      coords->set_xyz(std::move(xyz_tmp));
+  
+      std::remove("tmp_struc_opt.xyz"); // delete file
     }
-    infile.close();
-    coords->set_xyz(std::move(xyz_tmp));
-
-    std::remove("tmp_struc_opt.xyz"); // delete file
+   
     std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
 }

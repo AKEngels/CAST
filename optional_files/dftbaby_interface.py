@@ -180,63 +180,66 @@ def opt(xyzfile, optionfile):
     options = read_options(optionfile)  # read options
     scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
     
-    
-    # optimization (taken from optimize.py)
-    pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)
+    try:
+        # optimization (taken from optimize.py)
+        pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)
 
-    x0 = XYZ.atomlist2vector(atomlist)  #convert geometry to a vector
+        x0 = XYZ.atomlist2vector(atomlist)  #convert geometry to a vector
 
-    def f(x):
-        save_xyz(x)  # also save geometries from line searches
+        def f(x):
+            save_xyz(x)  # also save geometries from line searches
 
-        if I == 0 and type(pes.tddftb.XmY) != type(None):
-        # only ground state is needed. However, at the start
-        # a single TD-DFT calculation is performed to initialize
-        # all variables (e.g. X-Y), so that the program does not
-        # complain about non-existing variables.
-            enI, gradI = pes.getEnergyAndGradient_S0(x)
-        else:
-            energies, gradI = pes.getEnergiesAndGradient(x, I)
-            enI = energies[I]
-        print "E = %2.7f" % (enI)
-        return enI, gradI
+            if I == 0 and type(pes.tddftb.XmY) != type(None):
+            # only ground state is needed. However, at the start
+            # a single TD-DFT calculation is performed to initialize
+            # all variables (e.g. X-Y), so that the program does not
+            # complain about non-existing variables.
+                enI, gradI = pes.getEnergyAndGradient_S0(x)
+            else:
+                energies, gradI = pes.getEnergiesAndGradient(x, I)
+                enI = energies[I]
+            print "E = %2.7f" % (enI)
+            return enI, gradI
 
-    xyz_trace = xyzfile.replace(".xyz", "_trace.xyz")
+        xyz_trace = xyzfile.replace(".xyz", "_trace.xyz")
 
-    # This is a callback function that is executed by numpy for each optimization step.
-    # It appends the current geometry to an xyz-file.
-    def save_xyz(x, mode="a"):
-        atomlist_opt = XYZ.vector2atomlist(x, atomlist)
-        XYZ.write_xyz(xyz_trace, [atomlist_opt],
+        # This is a callback function that is executed by numpy for each optimization step.
+        # It appends the current geometry to an xyz-file.
+        def save_xyz(x, mode="a"):
+            atomlist_opt = XYZ.vector2atomlist(x, atomlist)
+            XYZ.write_xyz(xyz_trace, [atomlist_opt],
                   title="charge=%s" % kwds.get("charge", 0),
                   mode=mode)
 
-    save_xyz(x0, mode="w")  # write original geometry
+        save_xyz(x0, mode="w")  # write original geometry
 
-    Nat = len(atomlist)
-    min_options = {'gtol': 1.0e-7, 'norm': 2}
-    # The "BFGS" method is probably better than "CG", but the line search in BFGS is expensive.
-    res = optimize.minimize(f, x0, method="CG", jac=True, callback=save_xyz, options=min_options)
-    # res = optimize.minimize(f, x0, method="BFGS", jac=True, callback=save_xyz, options=options)
-    xopt = res.x
-    save_xyz(xopt)
+        Nat = len(atomlist)
+        min_options = {'gtol': 1.0e-7, 'norm': 2}
+        # The "BFGS" method is probably better than "CG", but the line search in BFGS is expensive.
+        res = optimize.minimize(f, x0, method="CG", jac=True, callback=save_xyz, options=min_options)
+        # res = optimize.minimize(f, x0, method="BFGS", jac=True, callback=save_xyz, options=options)
+        xopt = res.x
+        save_xyz(xopt)
 
-    print "Intermediate geometries written into file {}".format(xyz_trace)
+        print "Intermediate geometries written into file {}".format(xyz_trace)
     
     
-    # write optimized geometry into file
-    atomlist_opt = XYZ.vector2atomlist(xopt, atomlist)
-    xyz_opt = xyzfile.replace(".xyz", "_opt.xyz")
-    XYZ.write_xyz(xyz_opt, [atomlist_opt],
+        # write optimized geometry into file
+        atomlist_opt = XYZ.vector2atomlist(xopt, atomlist)
+        xyz_opt = xyzfile.replace(".xyz", "_opt.xyz")
+        XYZ.write_xyz(xyz_opt, [atomlist_opt],
                   title="charge=%s" % kwds.get("charge", 0),
                   mode="w")
 
-    # calculate energy for optimized geometry
-    dftb2 = DFTB2(atomlist_opt, **options)  # create dftb object
-    dftb2.setGeometry(atomlist_opt, charge=kwds.get("charge", 0.0))
+        # calculate energy for optimized geometry
+        dftb2 = DFTB2(atomlist_opt, **options)  # create dftb object
+        dftb2.setGeometry(atomlist_opt, charge=kwds.get("charge", 0.0))
     
-    dftb2.getEnergy(**scf_options)
-    energies = list(dftb2.getEnergies())  # get partial energies
+        dftb2.getEnergy(**scf_options)
+        energies = list(dftb2.getEnergies())  # get partial energies
+        
+    except:
+        return "error"
 
     if dftb2.long_range_correction == 1:  # add long range correction to partial energies
         energies.append(dftb2.E_HF_x)
