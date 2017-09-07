@@ -148,15 +148,18 @@ def calc_gradients(xyzfile, optionfile):
     scf_options = extract_options(options, SCF_OPTIONLIST)
     grad_options = extract_options(options, GRAD_OPTIONS)
     kwds = XYZ.extract_keywords_xyz(xyzfile)
+    
+    try:
+        tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
+        tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
+        tddftb.getEnergies(**scf_options)  # calculate energies
 
-    tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
-    tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
-    tddftb.getEnergies(**scf_options)  # calculate energies
+        grad = Gradients(tddftb)            # calculate gradients
+        grad.getGradients(**grad_options)
 
-    grad = Gradients(tddftb)            # calculate gradients
-    grad.getGradients(**grad_options)
-
-    energies = list(tddftb.dftb2.getEnergies())  # get partial energies
+        energies = list(tddftb.dftb2.getEnergies())  # get partial energies
+    except:
+        return "error"
 
     if tddftb.dftb2.long_range_correction == 1: # add long range correction to partial energies
         energies.append(tddftb.dftb2.E_HF_x)

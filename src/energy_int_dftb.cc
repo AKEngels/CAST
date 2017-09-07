@@ -159,7 +159,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
           {
             std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
           }
-          integrity == false;
+          integrity = false;
         }
 
         //delete PyObjects
@@ -204,15 +204,26 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
 
       result_str = PyString_AsString(ret); //read function return (has to be a string)
-      result_str = result_str.substr(1,result_str.size()-2);  //process return
-      std::vector<std::string> result_vec = split(result_str, ',');
-
-      //read energies and convert them to kcal/mol
+      if (result_str != "error")
+      {
+        result_str = result_str.substr(1,result_str.size()-2);  //process return
+        std::vector<std::string> result_vec = split(result_str, ',');
+        
+        //read energies and convert them to kcal/mol
         e_bs = std::stod(result_vec[0])*627.503; 
         e_coul = std::stod(result_vec[1])*627.503;
         e_rep = std::stod(result_vec[3])*627.503;
         e_tot = std::stod(result_vec[4])*627.503;
         if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+      }
+      else
+      {
+        if (Config::get().general.verbosity >= 2)
+        {
+          std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
+        }
+        integrity = false;
+      }
         
       //delete PyObjects
       Py_DECREF(prm); 
@@ -227,25 +238,28 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     }
     
     double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
-    //read gradients
-    std::string line;
-    coords::Representation_3D g_tmp;
-    std::ifstream infile(Config::get().energy.dftb.gradfile);
-    std::getline(infile, line);  //discard fist two lines
-    std::getline(infile, line);
-    std::string element;
-    double x,y,z;
-    while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
-    {
-        coords::Cartesian_Point g(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
-        g_tmp.push_back(g);
-    }
-    infile.close();
-    const char *gradfile = Config::get().energy.dftb.gradfile.c_str();
-    std::remove(gradfile); // delete file
-    std::remove("tmp_struc.xyz"); // delete file
-    coords->swap_g_xyz(g_tmp); //give gradients to coordobject
 
+    if (integrity == true) //read gradients
+    {
+      std::string line;
+      coords::Representation_3D g_tmp;
+      std::ifstream infile(Config::get().energy.dftb.gradfile);
+      std::getline(infile, line);  //discard fist two lines
+      std::getline(infile, line);
+      std::string element;
+      double x,y,z;
+      while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
+      {
+          coords::Cartesian_Point g(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
+          g_tmp.push_back(g);
+      }
+      infile.close();
+      const char *gradfile = Config::get().energy.dftb.gradfile.c_str();
+      std::remove(gradfile); // delete file
+      coords->swap_g_xyz(g_tmp); //give gradients to coordobject
+    }
+    
+    std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
 }
 
