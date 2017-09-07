@@ -394,7 +394,7 @@ There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= sca
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
 
 \textbf{DFTB Options} 
 \\(default value none means defalt value is taken from DFTBaby)
@@ -418,8 +418,10 @@ If you want to run CAST with DFTB, set the interface parameter in the CAST input
 	\textbf{DFTBvirt\_orb} & number of virtual orbitals taken into account for TD-DFTB matrix & int [none] \\
 	\textbf{DFTBdiag\_maxiter} & maximum number of iterations for TD-DFTB matrix diagonalisation & int [none] \\
 	\textbf{DFTBdiag\_conv} & convergence threshold for TD-DFTB matrix diagonalisation & string [none] \\
-	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient & bool [true] \\
+	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient that is implemented in CAST (of course this is not an option of DFTBaby) & bool [true] \\
 \end{longtable} 
+
+\textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Known Quirks and Work-Arounds)
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
