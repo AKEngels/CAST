@@ -290,16 +290,27 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
           ret = PyObject_CallObject(funk, prm);  //call function with parameters
   
           result_str = PyString_AsString(ret); //read function return (has to be a string)
-          result_str = result_str.substr(1,result_str.size()-2);  //process return
-          std::vector<std::string> result_vec = split(result_str, ',');
+          if (result_str != "error")
+          {
+            result_str = result_str.substr(1,result_str.size()-2);  //process return
+            std::vector<std::string> result_vec = split(result_str, ',');
+    
+            //read energies and convert them to kcal/mol
+            e_bs = std::stod(result_vec[0])*627.503; 
+            e_coul = std::stod(result_vec[1])*627.503;
+            e_rep = std::stod(result_vec[3])*627.503;
+            e_tot = std::stod(result_vec[4])*627.503;
+            if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+          }
+          else
+          {
+            if (Config::get().general.verbosity >= 2)
+            {
+              std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
+            }
+            integrity = false;
+          }
   
-          //read energies and convert them to kcal/mol
-          e_bs = std::stod(result_vec[0])*627.503; 
-          e_coul = std::stod(result_vec[1])*627.503;
-          e_rep = std::stod(result_vec[3])*627.503;
-          e_tot = std::stod(result_vec[4])*627.503;
-          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-          
           //delete PyObjects
           Py_DECREF(prm); 
           Py_DECREF(ret); 
@@ -313,26 +324,28 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
       }
       
       double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
-      //read hessian
-      std::string line;
-      std::ifstream infile("hessian.txt");
-      std::vector<std::vector<double>> hess;
-      while(std::getline(infile, line))  //for every line
+      
+      if (integrity == true) //read hessian
       {
-        std::vector<std::string> linevec = split(line,' ');
-        std::vector<double> doublevec;
-        for (auto v : linevec)
+        std::string line;
+        std::ifstream infile("hessian.txt");
+        std::vector<std::vector<double>> hess;
+        while(std::getline(infile, line))  //for every line
         {
-           doublevec.push_back(std::stod(v)*CONVERSION_FACTOR);
+          std::vector<std::string> linevec = split(line,' ');
+          std::vector<double> doublevec;
+          for (auto v : linevec)
+          {
+             doublevec.push_back(std::stod(v)*CONVERSION_FACTOR);
+          }
+          hess.push_back(doublevec);
         }
-        hess.push_back(doublevec);
+        infile.close();
+  
+        coords->set_hessian(hess);  //set hessian
+        std::remove("hessian.txt"); // delete file
       }
-      infile.close();
-
-      coords->set_hessian(hess);  //set hessian
-
       std::remove("tmp_struc.xyz"); // delete file
-      std::remove("hessian.txt"); // delete file
 
   return e_tot;
 }

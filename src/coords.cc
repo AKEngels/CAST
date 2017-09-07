@@ -488,37 +488,44 @@ void coords::Coordinates::h_tostream(std::ostream &S,
   energy::interface_base const * const ep) const
 {
   std::vector<std::vector<double>> hess = m_representation.hessian;
-  S << "HESSIAN MATRIX";
-  S << "\n\n           ";
-  for (unsigned i=0; i<size(); i++)  // headline
+  if (hess.size() == 0)
   {
-    S << "| X (atom"<<i+1<<") | Y (atom"<<i+1<<") | Z (atom"<<i+1<<") ";
+    std::cout<<"ERROR: no hessian can be printed!\n";
   }
-  S<<"\n";
-  for (unsigned i=0; i<(12*3*m_representation.size()+12); i++)  // second line
+  else
   {
-    S << "-";
-  }
-  S<<"\n";
-  for (unsigned i=0; i<m_representation.size()*3; i++)  // lines
-  {
-    if (i%3 == 0)
+    S << "HESSIAN MATRIX";
+    S << "\n\n           ";
+    for (unsigned i=0; i<size(); i++)  // headline
     {
-      S << " X (atom"<<i/3+1<<") ";
+      S << "| X (atom"<<i+1<<") | Y (atom"<<i+1<<") | Z (atom"<<i+1<<") ";
     }
-    else if (i%3 == 1)
+    S<<"\n";
+    for (unsigned i=0; i<(12*3*m_representation.size()+12); i++)  // second line
     {
-      S << " Y (atom"<<i/3+1<<") ";
+      S << "-";
     }
-    else
+    S<<"\n";
+    for (unsigned i=0; i<m_representation.size()*3; i++)  // lines
     {
-      S << " Z (atom"<<i/3+1<<") ";
+      if (i%3 == 0)
+      {
+        S << " X (atom"<<i/3+1<<") ";
+      }
+      else if (i%3 == 1)
+      {
+        S << " Y (atom"<<i/3+1<<") ";
+      }
+      else
+      {
+        S << " Z (atom"<<i/3+1<<") ";
+      }
+      for (unsigned j=0; j<3*m_representation.size();j++)  // columns
+      {
+        S <<"|"<<std::right<<std::fixed<<std::setw(10)<<std::setprecision(2)<<hess[i][j]<<" ";
+      }
+      S << "\n";
     }
-    for (unsigned j=0; j<3*m_representation.size();j++)  // columns
-    {
-      S <<"|"<<std::right<<std::fixed<<std::setw(10)<<std::setprecision(2)<<hess[i][j]<<" ";
-    }
-    S << "\n";
   }
 }
 
