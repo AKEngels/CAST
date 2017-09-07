@@ -117,13 +117,16 @@ def calc_energies(xyzfile, optionfile):
     options = read_options(optionfile)  # read options
     atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
     kwds = XYZ.extract_keywords_xyz(xyzfile)
+    
+    try:
+        dftb2 = DFTB2(atomlist, **options)  # create dftb object
+        dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
 
-    dftb2 = DFTB2(atomlist, **options)  # create dftb object
-    dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
-
-    scf_options = extract_options(options, SCF_OPTIONLIST)  # calculate energy
-    dftb2.getEnergy(**scf_options)
-    energies = list(dftb2.getEnergies())  # get partial energies
+        scf_options = extract_options(options, SCF_OPTIONLIST)  # calculate energy
+        dftb2.getEnergy(**scf_options)
+        energies = list(dftb2.getEnergies())  # get partial energies
+    except:
+        return "error"
 
     if dftb2.long_range_correction == 1:  # add long range correction to partial energies
         energies.append(dftb2.E_HF_x)

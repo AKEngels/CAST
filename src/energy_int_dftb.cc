@@ -119,7 +119,6 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   integrity = true;
-  grad_var = false;
 
     //write inputstructure
     std::ofstream file("tmp_struc.xyz");
@@ -141,18 +140,28 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
         funk = PyObject_GetAttrString(modul, "calc_energies"); //create function
         prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
+        result_str = PyString_AsString(ret); //convert result to a C++ string
+        if (result_str != "error")  //if DFTBaby was successfull
+        {
+          result_str = result_str.substr(1,result_str.size()-2);  //process return
+          std::vector<std::string> result_vec = split(result_str, ',');
+  
+          //read energies and convert them to kcal/mol
+          e_bs = std::stod(result_vec[0])*627.503; 
+          e_coul = std::stod(result_vec[1])*627.503;
+          e_rep = std::stod(result_vec[3])*627.503;
+          e_tot = std::stod(result_vec[4])*627.503;
+          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+        }
+        else
+        {
+          if (Config::get().general.verbosity >= 2)
+          {
+            std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
+          }
+          integrity == false;
+        }
 
-        result_str = PyString_AsString(ret); //read function return (has to be a string)
-        result_str = result_str.substr(1,result_str.size()-2);  //process return
-        std::vector<std::string> result_vec = split(result_str, ',');
-
-        //read energies and convert them to kcal/mol
-        e_bs = std::stod(result_vec[0])*627.503; 
-        e_coul = std::stod(result_vec[1])*627.503;
-        e_rep = std::stod(result_vec[3])*627.503;
-        e_tot = std::stod(result_vec[4])*627.503;
-        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-        
         //delete PyObjects
         Py_DECREF(prm); 
         Py_DECREF(ret); 
@@ -172,7 +181,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
   integrity = true;
-  grad_var = true;
 
   // write inputstructure
   std::ofstream file("tmp_struc.xyz");
@@ -245,7 +253,6 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
   integrity = true;
-  grad_var = false;
 
       //write inputstructure
       std::ofstream file("tmp_struc.xyz");
@@ -371,7 +378,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     std::getline(infile, line);
     std::string element;
     double x,y,z;
-    while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
+    while (infile >> element >> x >> y >> z)  //new coordinates
     {
         coords::Cartesian_Point xyz(x,y,z);
         xyz_tmp.push_back(xyz);
