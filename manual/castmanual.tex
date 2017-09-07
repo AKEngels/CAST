@@ -546,7 +546,7 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 	The result of a gradient calculation is the same as the result for a single point calculation with the addition that the gradients of the atoms are also calculated. The output is can be found as a file where the filename specified by the configuration parameter "output" is amended by the keyword "GRAD". This file contains the information about the gradients with respect to atoms, force field contributions and x-, y- and z-coordinates.
 	
 	\subsection{HESS - Single point energy and hessian calculation}
-	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is not implemented so this task will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
+	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is only implemented in the DFTB interface so it will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
 	
 
 	%%%% LOCOPT %%%%
