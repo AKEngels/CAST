@@ -56,14 +56,14 @@ project "CAST"
       targetname "CAST_linux_x64_release"
     filter { "configurations:Python_Release",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_python_release"
-      includedirs { "/usr/include/python2.7" }
+      includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7"}
+      links {"python2.7", "util"}
     filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
       targetname "CAST_linux_x86_python_release"
-      includedirs { "/usr/include/python2.7" }
+      includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7"}
+      links {"python2.7", "util"}
 
     filter { "configurations:Armadillo_Testing", "action:gmake" }
       optimize "Debug"
@@ -100,14 +100,14 @@ project "CAST"
       targetname "CAST_linux_x64_debug"
     filter { "configurations:Python_Debug",  "platforms:x86", "action:gmake"}
       targetname "CAST_linux_x86_python_debug"
-      includedirs { "/usr/include/python2.7" }
+      includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7"}
+      links {"python2.7", "util"}
     filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_python_debug"
-      includedirs { "/usr/include/python2.7" }
+      includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7"}
+      links {"python2.7", "util"}
 
     filter { "configurations:Armadillo_Debug", "action:gmake" }
       includedirs { "../optional_files/includes/armadillo/"}
