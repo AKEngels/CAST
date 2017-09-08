@@ -366,6 +366,11 @@ GAUSSIANdelete          1
 
 For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
 
+\textbf{For users on ECPC}: The python 2.7 version that is installed on ECPC is 64bit so you can only compile CAST with python in 64bit mode. Also you have to add the following line to your .cshrc so CAST can find python:
+\begin{lstlisting}
+setenv PYTHONHOME /apps/python27
+\end{lstlisting}
+
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
 If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.

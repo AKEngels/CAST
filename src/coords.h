@@ -401,6 +401,7 @@ namespace coords
     coords::float_type h()
     {
       m_representation.energy = m_interface->h();
+      return m_representation.energy;
     }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
