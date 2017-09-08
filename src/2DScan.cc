@@ -50,13 +50,13 @@ void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, c
 	auto position_of_end_val = splitted_vals.size() - 2;
 
     auto do_prepare_position = [&]() {
-      what->prepare_position = true;
-      what->from_position = std::stod(splitted_vals[position_of_begin_val]);
+      this->what->prepare_position = true;
+      this->what->from_position = std::stod(splitted_vals[position_of_begin_val]);
     };
 
     auto do_not_prepare_position = [&]() {
-      what->prepare_position = false;
-      what->from_position = say_val();
+      this->what->prepare_position = false;
+      this->what->from_position = say_val();
     };
 
 	splitted_vals[position_of_begin_val] != "current" ?
@@ -213,7 +213,7 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::
     RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
     RotationMatrix::Vector center{ xyz[abcd[1] - 1].x(), xyz[abcd[1] - 1].y(), xyz[abcd[1] - 1].z() };
     //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
-    auto source = go_along_backbone(abcd[0], abcd[1]);
+    auto source = go_along_backbone(abcd);
 
     for (auto const & dd : source) {
         std::size_t atom_number, bond_count;
@@ -227,7 +227,7 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::
 
         auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
 
-        auto && coord = xyz[atom_number - 1];
+        auto && coord = xyz[atom_number];
         RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
         tmp_coord = rot*tmp_coord;
         coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
@@ -250,7 +250,7 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_ang(std::vector<std::
   RotationMatrix::Vector axis = RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
 
   //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
-  auto source = go_along_backbone(abc[0], abc[1]);
+  auto source = go_along_backbone(abc);
 
   for (auto const & aa : source) {
     std::size_t atom_number, bond_count;
@@ -264,7 +264,7 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_ang(std::vector<std::
 
     auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
 
-    auto && coord = xyz[atom_number - 1];
+    auto && coord = xyz[atom_number];
     RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
     tmp_coord = rot*tmp_coord;
     coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
@@ -283,7 +283,7 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
   auto distance = axis.norm();
 
   //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
-  auto source = go_along_backbone(ab[0], ab[1]);
+  auto source = go_along_backbone(ab);
 
     for (auto const & bb : source) {
       std::size_t atom_number, bond_count;
@@ -301,7 +301,7 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 
       RotationMatrix::Translation trans(vec);
 
-      auto && coord = xyz[atom_number - 1];
+      auto && coord = xyz[atom_number];
       RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
       tmp_coord = trans*tmp_coord;
       coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
@@ -333,26 +333,45 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 //
 //}
 
-Scan2D::bond_set Scan2D::go_along_backbone(std::size_t const & atom, std::size_t const & border) {
+Scan2D::bond_set Scan2D::go_along_backbone(std::vector<std::size_t> const & kind) {
   auto const & atoms = _coords.atoms();
   bond_set ret;
   std::size_t recursion_count = 1;
 
-  ret.insert(std::make_pair(atom, 0));
-
-  std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
-    if(neigh.size()==1) return;
-    for (auto const & n : neigh) {
-      if (n == border) continue;
-      if (ret.insert(std::make_pair(n, recursion_count)).second) {
-        ++recursion_count;
-        parse_neighbors(atoms.atom(n - 1).bonds());
-        --recursion_count;
-      }
+  auto prepare_start_conditions = [&]() {
+    if (kind.size() == 2) {
+      ret.insert(std::make_pair(kind[0]-1, 0));
+      return std::make_pair(kind[0]-1, kind[1]-1);
+    }
+    else if (kind.size() == 3) {
+      ret.insert(std::make_pair(kind[0]-1, 0));
+      return std::make_pair(kind[0]-1, kind[1]-1);
+    }
+    else if (kind.size() == 4) {
+      --recursion_count;
+      return std::make_pair(kind[1]-1, kind[2]-1);
     }
   };
 
-  parse_neighbors(atoms.atom(atom - 1).bonds());
+  std::size_t atom, border;
+  std::tie(atom, border) = prepare_start_conditions();
+
+  std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
+    if(neigh.size()<=1) return;
+    std::vector<std::size_t> unchecked_bonds;
+    for (auto const & n : neigh) {
+      if (n == border) continue;
+      if (ret.insert(std::make_pair(n, recursion_count)).second) {
+        auto const & atoms_ref = atoms.atom(n).bonds();
+        unchecked_bonds.insert(unchecked_bonds.cend(), atoms_ref.cbegin(), atoms_ref.end());
+      }
+    }
+    ++recursion_count;
+    parse_neighbors(unchecked_bonds);
+    --recursion_count;
+  };
+
+  parse_neighbors(atoms.atom(atom).bonds());
 
   return ret;
 }
@@ -364,11 +383,11 @@ void Scan2D::make_scan() {
 	coords::output::formats::tinker output(_coords);
 	parser->x_parser->set_coords(_coords.xyz());
     parser->fix_atoms(_coords);
-    write_energy_entry(_coords.o());
+//    write_energy_entry(_coords.o());
     parser->x_parser->set_coords(_coords.xyz());
-
+    
     output.to_stream(logfile);
-
+    /*
     go_along_y_axis(_coords);
 
 	for (auto && x_step : axis->x_steps) {
@@ -383,7 +402,7 @@ void Scan2D::make_scan() {
         );
 		parser->fix_atoms(_coords);
 
-		write_energy_entry(_coords.o());
+//		write_energy_entry(_coords.o());
 		parser->x_parser->set_coords(_coords.xyz());
 
 		output.to_stream(logfile);
@@ -391,7 +410,7 @@ void Scan2D::make_scan() {
 		go_along_y_axis(_coords);
 		
 	}
-
+*/
 }
 
 void Scan2D::prepare_scan() {
@@ -413,10 +432,10 @@ void Scan2D::prepare_scan() {
       parser->x_parser->make_move(x_move, x_atoms),
       true
     );
-    _coords.set_xyz(
+    /*_coords.set_xyz(
       parser->y_parser->make_move(y_move, y_atoms),
       true
-    );
+    );*/
 }
 
 void Scan2D::go_along_y_axis(coords::Coordinates coords) {
@@ -436,7 +455,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
         );
 		parser->fix_atoms(coords);
 
-		this->write_energy_entry(coords.o());
+//		this->write_energy_entry(coords.o());
 		parser->y_parser->set_coords(coords.xyz());
 
 		output.to_stream(logfile);

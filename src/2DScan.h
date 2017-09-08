@@ -250,7 +250,7 @@ private:
 
     //using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
 
-    bond_set go_along_backbone(std::size_t const & atom, std::size_t const & border);
+    bond_set go_along_backbone(std::vector<std::size_t> const & kind);
     //void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
 
 };
