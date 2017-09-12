@@ -207,7 +207,10 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(cdihedral const & abcd,
 }
 
 coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg) {
-  using std::placeholders::_1;
+    using std::placeholders::_1;
+
+    auto const delta_deg = parser->x_parser->say_val() - deg;
+
     auto xyz = _coords.xyz(); 
     auto tmp_axis = xyz[abcd[2] - 1] - xyz[abcd[1] - 1];
     RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
@@ -215,17 +218,19 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::
     //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
     auto source = go_along_backbone(abcd);
 
+    auto const max_change_rotation_rad = angle_type::from_deg(max_change_rotation).radians();
+
     for (auto const & dd : source) {
         std::size_t atom_number, bond_count;
         std::tie(atom_number, bond_count) = dd;
 
-        length_type const rad = angle_type::from_deg(deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
+        length_type const change = angle_type::from_deg(delta_deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
 
-        if (rad <= 0.0) {
-            break;
+        if (fabs(change) <= max_change_rotation_rad) {
+          continue;
         }
 
-        auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
+        auto rot = RotationMatrix::rotate_around_axis_with_center(change, axis, center);
 
         auto && coord = xyz[atom_number];
         RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
@@ -239,11 +244,13 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_dih(std::vector<std::
 coords::Representation_3D Scan2D::rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg) {
   using std::placeholders::_1;
   
+  auto const delta_deg = parser->x_parser->say_val() - deg;
+
   auto xyz = _coords.xyz();
 
-  auto ba = xyz[abc[0] - 1] - xyz[abc[1] - 1];
-  auto bc = xyz[abc[2] - 1] - xyz[abc[1] - 1];
-  auto const & b = xyz[abc[1] - 1];
+  auto ba = xyz[abc[0u] - 1u] - xyz[abc[1u] - 1u];
+  auto bc = xyz[abc[2u] - 1u] - xyz[abc[1u] - 1u];
+  auto const & b = xyz[abc[1u] - 1u];
 
   RotationMatrix::Vector center{ b.x(),b.y(),b.z() };
 
@@ -252,20 +259,22 @@ coords::Representation_3D Scan2D::rotate_molecule_behind_a_ang(std::vector<std::
   //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
   auto source = go_along_backbone(abc);
 
+  auto const max_change_rotation_rad = angle_type::from_deg(max_change_rotation).radians();
+
   for (auto const & aa : source) {
     std::size_t atom_number, bond_count;
     std::tie(atom_number, bond_count) = aa;
 
-    length_type const rad = angle_type::from_deg(deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
+    length_type const change = angle_type::from_deg(delta_deg - change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
 
-    if (rad <= 0.) {
-      break;
+    if (fabs(change) <= max_change_rotation_rad) {
+      continue;
     }
 
-    auto rot = RotationMatrix::rotate_around_axis_with_center(rad, axis, center);
+    auto rot = RotationMatrix::rotate_around_axis_with_center(change, axis, center);
 
     auto && coord = xyz[atom_number];
-    RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
+    RotationMatrix::Vector tmp_coord{ coord.x(), coord.y(), coord.z() };
     tmp_coord = rot*tmp_coord;
     coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
   }
@@ -277,7 +286,7 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
   using std::placeholders::_1;
   auto xyz = _coords.xyz();
 
-  auto ba = xyz[ab[0] - 1] - xyz[ab[1] - 1];
+  auto ba = xyz[ab[0u] - 1u] - xyz[ab[1u] - 1u];
 
   auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
   auto distance = axis.norm();
@@ -291,8 +300,8 @@ coords::Representation_3D Scan2D::transform_molecule_behind_a_bond(std::vector<s
 
       auto change = (length - change_from_atom_to_atom*static_cast<double>(bond_count));
 
-      if (change <= 0.) {
-        break;
+      if (fabs(change) <= max_change_rotation) {
+        continue;
       }
 
       change -= distance;
@@ -338,19 +347,22 @@ Scan2D::bond_set Scan2D::go_along_backbone(std::vector<std::size_t> const & kind
   bond_set ret;
   std::size_t recursion_count = 1;
 
+  auto lock_depth = false;
+  auto fixed_depth = 0;
+
   auto prepare_start_conditions = [&]() {
-    if (kind.size() == 2) {
-      ret.insert(std::make_pair(kind[0]-1, 0));
-      return std::make_pair(kind[0]-1, kind[1]-1);
-    }
-    else if (kind.size() == 3) {
-      ret.insert(std::make_pair(kind[0]-1, 0));
-      return std::make_pair(kind[0]-1, kind[1]-1);
-    }
-    else if (kind.size() == 4) {
-      --recursion_count;
-      return std::make_pair(kind[1]-1, kind[2]-1);
-    }
+      if (kind.size() == 2) {
+          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
+          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
+      }
+      else if (kind.size() == 3) {
+          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
+          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
+      }
+      else if (kind.size() == 4) {
+          --recursion_count;
+          return std::make_pair(kind[1u] - 1u, kind[2u] - 1u);
+      } 
   };
 
   std::size_t atom, border;
@@ -359,12 +371,21 @@ Scan2D::bond_set Scan2D::go_along_backbone(std::vector<std::size_t> const & kind
   std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
     if(neigh.size()<=1) return;
     std::vector<std::size_t> unchecked_bonds;
+
+    auto insert_element = [&](std::size_t const & n, std::size_t const & m) {
+      if (ret.insert(std::make_pair(n, m)).second) {
+        auto const & atoms_ref = atoms.atom(n).bonds();
+        unchecked_bonds.insert(unchecked_bonds.cend(), atoms_ref.cbegin(), atoms_ref.cend());
+      }
+    };
+
     for (auto const & n : neigh) {
       if (n == border) continue;
-      if (ret.insert(std::make_pair(n, recursion_count)).second) {
-        auto const & atoms_ref = atoms.atom(n).bonds();
-        unchecked_bonds.insert(unchecked_bonds.cend(), atoms_ref.cbegin(), atoms_ref.end());
+      if(this->_coords.atoms().atom(n).fixed()){
+        fixed_depth = fixed_depth == 0 ? recursion_count : fixed_depth;
+        insert_element(n, fixed_depth);
       }
+      insert_element(n, recursion_count);
     }
     ++recursion_count;
     parse_neighbors(unchecked_bonds);
@@ -382,12 +403,13 @@ void Scan2D::make_scan() {
 	
 	coords::output::formats::tinker output(_coords);
 	parser->x_parser->set_coords(_coords.xyz());
+    std::cout << parser->x_parser->say_val() << " " << parser->y_parser->say_val() << std::endl;
     parser->fix_atoms(_coords);
-//    write_energy_entry(_coords.o());
+    //write_energy_entry(_coords.o());
     parser->x_parser->set_coords(_coords.xyz());
     
     output.to_stream(logfile);
-    /*
+    
     go_along_y_axis(_coords);
 
 	for (auto && x_step : axis->x_steps) {
@@ -396,34 +418,33 @@ void Scan2D::make_scan() {
 
         auto const & x_atoms = parser->x_parser->what->atoms;
 
+        std::cout << "step: " << x_circle << ". " << x_step << std::endl;
+
 		_coords.set_xyz(
           parser->x_parser->make_move(x_step,x_atoms), 
           true
         );
+        
 		parser->fix_atoms(_coords);
 
-//		write_energy_entry(_coords.o());
+    	//write_energy_entry(_coords.o());
 		parser->x_parser->set_coords(_coords.xyz());
+
+        std::cout << parser->x_parser->say_val() << std::endl;
 
 		output.to_stream(logfile);
 
 		go_along_y_axis(_coords);
 		
 	}
-*/
+
 }
 
 void Scan2D::prepare_scan() {
 	auto xyz = _coords.xyz();
    
-    auto x_move = parser->x_parser->what->prepare_position ?
-      parser->x_parser->what->from_position - parser->x_parser->say_val() :
-      parser->x_parser->what->from_position
-      ;
-    auto y_move = parser->y_parser->what->prepare_position ?
-      parser->y_parser->what->from_position - parser->y_parser->say_val() :
-      parser->y_parser->what->from_position
-      ;
+    auto const x_move = parser->x_parser->what->from_position;
+    auto const y_move = parser->y_parser->what->from_position;
 
     auto const & x_atoms = parser->x_parser->what->atoms;
     auto const & y_atoms = parser->y_parser->what->atoms;
@@ -432,10 +453,11 @@ void Scan2D::prepare_scan() {
       parser->x_parser->make_move(x_move, x_atoms),
       true
     );
-    /*_coords.set_xyz(
+    std::cout << parser->x_parser->say_val() << std::endl;
+    _coords.set_xyz(
       parser->y_parser->make_move(y_move, y_atoms),
       true
-    );*/
+    );
 }
 
 void Scan2D::go_along_y_axis(coords::Coordinates coords) {
@@ -455,8 +477,10 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
         );
 		parser->fix_atoms(coords);
 
-//		this->write_energy_entry(coords.o());
+		//this->write_energy_entry(coords.o());
 		parser->y_parser->set_coords(coords.xyz());
+
+        std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << std::endl;
 
 		output.to_stream(logfile);
 
@@ -533,11 +557,9 @@ coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(length_type const
     }
     else {
       auto new_molecule = p->_coords.xyz();
-      new_molecule[atoms.at(0)] = change_length_of_bond(*bond, new_pos);
+      new_molecule[atoms.at(0) - 1u] = change_length_of_bond(*bond, new_pos);
       return new_molecule;
     }
-
-	auto new_coord = Scan2D::change_length_of_bond(*bond, new_pos);
 }
 
 coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) {
@@ -548,7 +570,7 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(length_type cons
     }
     else {
         auto new_molecule = p->_coords.xyz();
-        new_molecule[atoms.at(0)] = rotate_a_to_new_angle(*angle, angle_type::from_deg(new_pos));
+        new_molecule[atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(new_pos));
         return new_molecule;
     }
 }
@@ -561,7 +583,7 @@ coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(length_type c
     }
     else {
        auto new_molecule = p->_coords.xyz();
-       new_molecule[atoms.at(0)] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(new_pos));
+       new_molecule[atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(new_pos));
        return new_molecule;
     }
 }
