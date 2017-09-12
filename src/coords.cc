@@ -1233,6 +1233,7 @@ void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size
     std::cout << '\n';
   }
 }
+
 std::vector<bool> const coords::Coordinates::terminal()
 {
   size_t N = this->atoms().size();

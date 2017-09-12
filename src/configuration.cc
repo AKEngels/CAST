@@ -1191,6 +1191,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   } // BIAS
 
+  else if (option.substr(0, 18) == "thresholdpotential")
+  {
+    config::biases::thresholdstr thrBuffer;
+    if (cv >> thrBuffer.th_dist && cv >> thrBuffer.forceconstant)
+    {
+      Config::set().coords.bias.threshold.push_back(thrBuffer);
+    }
+  }
+
   else if (option.substr(0, 9) == "Subsystem")
   {
     // indices from current option value

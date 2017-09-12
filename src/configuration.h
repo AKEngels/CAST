@@ -388,6 +388,17 @@ namespace config
         : dim(), force(), exponent()
       { }
     };
+    struct thresholdstr
+    {
+      /**force constant*/
+      double forceconstant;
+      /**threshold distance*/
+      double th_dist;
+      /**constructor*/
+      thresholdstr(void)
+        : forceconstant(), th_dist()
+      { }
+    };
   }
 
 
@@ -456,6 +467,8 @@ namespace config
       std::vector<biases::spherical> spherical;
       /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
+      /**threshold potentials*/
+      std::vector<biases::thresholdstr>     threshold;
       /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/

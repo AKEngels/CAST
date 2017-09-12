@@ -59,7 +59,8 @@ coords::bias::Potentials::Potentials()
   m_spherical(Config::get().coords.bias.spherical),
   m_cubic(Config::get().coords.bias.cubic),
   m_utors(Config::get().coords.bias.utors),
-  m_udist(Config::get().coords.bias.udist)
+  m_udist(Config::get().coords.bias.udist),
+  m_thresh(Config::get().coords.bias.threshold)
 { }
 
 bool coords::bias::Potentials::empty() const
@@ -69,7 +70,7 @@ bool coords::bias::Potentials::empty() const
 }
 
 double coords::bias::Potentials::apply(Representation_3D const & xyz,
-  Gradients_3D & g_xyz, Cartesian_Point const & center)
+  Gradients_3D & g_xyz, Cartesian_Point maxPos, Cartesian_Point const & center)
 {
   if (!m_dihedrals.empty()) 
     d = dih(xyz, g_xyz);
@@ -81,6 +82,8 @@ double coords::bias::Potentials::apply(Representation_3D const & xyz,
     s = spherical(xyz, g_xyz, center);
   if (!m_cubic.empty()) 
     c = cubic(xyz, g_xyz, center);
+  if( !m_thresh.empty())
+    thr = thresh(xyz, g_xyz, maxPos);
   return b + a + d + s + c;
 }
 
@@ -386,3 +389,47 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
   return totalEnergy;
 }
 
+double coords::bias::Potentials::thresh(Representation_3D const &positions, Gradients_3D &gradients, Cartesian_Point maxPos)//special potential for special task layerdeposiotion , who is a very spoecial task. SPECIAL!
+{
+  double E(0.0);
+  std::size_t const N(positions.size());
+
+  for (auto &thresholdstr : m_thresh)
+  {
+    for (std::size_t i = 0; i < N; ++i)
+    {
+      switch(Config::get().layd.laydaxis)
+      {
+      case 'x':
+      {
+        if (positions[i].x() > maxPos.x() + thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].x() - (maxPos.x() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+      }
+      case 'y':
+      {
+        if (positions[i].y() > maxPos.y() + 7)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].y() - (maxPos.y() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+      }
+      case 'z':
+      {
+        if (positions[i].z() > maxPos.z() + 7)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].z() - (maxPos.z() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+      }
+      default:
+      {
+        throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
+        break;
+      }//default end
+      }
+    }
+  }
+}
