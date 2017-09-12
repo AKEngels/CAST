@@ -419,7 +419,6 @@ void pathx::MC_PO(ptrdiff_t opt)
 			*/
 
 			MCmin = cPtr->g();
-			std::cout << MCmin << "  " << MCpmin_vec[mcstep] << "\n";
 			/**
 			* MCM Criteria for accepting new minimum
 			*/
@@ -437,35 +436,33 @@ void pathx::MC_PO(ptrdiff_t opt)
 			/**
 			* Metropolis Monte Carlo criterium and test for identical minima
 			*/
-			for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001) status = 2; nbad = 0; }
+			for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.00001) status = 2; nbad = 0; }
 			/**
 			* testing for identical minima
 			*/
 			if (status == 2)
 			{
-				nbad = 0;
+				nbad++;
 				///same minimum
-				MCpmin_vec[mcstep] = MCmin;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "same Minimum \n";
+				}
 			}
-			
-		/*	else if (MCmin < MCpmin_vec[mcstep])
+			else if (MCmin < MCpmin_vec[mcstep])
 			{
 				nbad = 0;
 				status = 1; ///accepted as next minimum
-				
 				MCpmin_vec[mcstep] = MCmin;
 				if (Config::get().general.verbosity > 4)
 				{
-					std::cout << "The minimum is accepted as next minimum due to lower energy criterium: " << MCmin << "\n";
+					std::cout << "Accepted due to lower energy criterium \n";
 				}
 			}
-			else*/
-				/**
-				* Metropolis Monte Carlo criterium
-				*/
+			else
 			{
 				nbad = 0;
-				boltzman = exp(-_KT_*(MCpmin_vec[mcstep]-start_image_energy));
+				boltzman = exp(-_KT_*(MCmin - start_image_energy));
 				trial = (double)rand() / (double)RAND_MAX;
 				if (boltzman < trial)
 				{
@@ -474,11 +471,13 @@ void pathx::MC_PO(ptrdiff_t opt)
 					{
 						std::cout << "Rejected due to Metropolis criterium \n";
 					}
+					nbad++;
 				}
 				else
 				{
 					status = 1;
 					MCpmin_vec[mcstep] = MCmin;
+					nbad = 0;
 					if (Config::get().general.verbosity > 4)
 					{
 						std::cout << "Accepted due to Metropolis criterium \n";
@@ -515,16 +514,24 @@ void pathx::MC_PO(ptrdiff_t opt)
 					std::cout << "New global minimum: " << MCgmin << "\n";
 				}
 			}
-			///restore global minimum after three bad iterations
+			///restore global minimum after five bad iterations
 			if (nbad>3)
 			{
 				nbad = 0;
 				cPtr->set_xyz(coord_glob);
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Restoring old coords due to bad_iterator \n";
+				}
 			}
 			///restore coords from previous iteration
 			else if (status != 1)
 			{
 				cPtr->set_xyz(coord_last);
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Restoring old coords \n";
+				}
 			}
 			///saving the accepted minima
 			else if (status == 1 && nanstatus == false)
