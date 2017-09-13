@@ -400,8 +400,7 @@ namespace coords
     /**calculate hessian matrix*/
     coords::float_type h()
     {
-      m_representation.energy = m_interface->h();
-      return m_representation.energy;
+     return m_representation.energy = m_interface->h();
     }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
