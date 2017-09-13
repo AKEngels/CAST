@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 27;
+  static std::size_t const NUM_TASKS = 29;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -60,7 +60,7 @@ namespace config
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
-    "LAYER_DEPOSITION",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -80,16 +80,16 @@ namespace config
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-      LAYER_DEPOSITION
+      LAYER_DEPOSITION, HESS, WRITE_TINKER
     };
   };
 
   /** number of Input Types */
-  static std::size_t const NUM_INPUT = 2;
+  static std::size_t const NUM_INPUT = 3;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   {
-    "TINKER", "AMBER"
+    "TINKER", "AMBER", "XYZ"
   };
 
   /*! contains enum with all input_types currently supported in CAST
@@ -103,7 +103,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      TINKER, AMBER
+      TINKER, AMBER, XYZ
     };
   };
 
@@ -132,13 +132,12 @@ namespace config
 
   /**number of Interface Types*/
   static std::size_t const NUM_INTERFACES = 7;
+
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-
   { 
     "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
-
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST

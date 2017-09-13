@@ -2,7 +2,7 @@
 #include "coords.h"
 
 // Define Function to output molar mass of a coords object
-double sys_mass(coords::Coordinates &sys)
+inline double sys_mass(coords::Coordinates &sys)
 {
   double m = 0;
   for (auto && a : sys.atoms())
@@ -14,7 +14,7 @@ double sys_mass(coords::Coordinates &sys)
 
 
 // Energy print functions
-void short_ene_stream(
+inline void short_ene_stream(
   coords::Coordinates const &coords,
   std::ostream &strm, std::streamsize const w)
 {
@@ -25,7 +25,7 @@ void short_ene_stream(
   }
 }
 
-void short_ene_stream_h(
+inline void short_ene_stream_h(
   coords::Coordinates const &coords,
   std::ostream &strm, std::streamsize const w)
 {
@@ -35,4 +35,24 @@ void short_ene_stream_h(
   {
     strm << std::setw(w) << ("WW" + std::to_string(i));
   }
+}
+
+/**splits a string into a vector of strings
+@ param text: string that is to be splitted
+@ param sep: char where the string should be splitted*/
+inline std::vector<std::string> split(const std::string &text, char sep) {
+  std::vector<std::string> tokens;
+  std::size_t start = 0, end = 0;
+  while ((end = text.find(sep, start)) != std::string::npos) {
+    tokens.push_back(text.substr(start, end - start));
+    start = end + 1;
+  }
+  tokens.push_back(text.substr(start));
+  return tokens;
+}
+
+/**calculates the distance between two points in Cartesian Space*/
+inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
+{
+  return sqrt( (a.x()-b.x())*(a.x()-b.x()) + (a.y()-b.y())*(a.y()-b.y()) + (a.z()-b.z())*(a.z()-b.z()) );
 }

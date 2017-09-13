@@ -16,7 +16,7 @@ verbosity              4
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
 
-cores                  8
+cores                  4
 
 
 ####################################
@@ -29,22 +29,22 @@ cores                  8
 
 # Input file name
 
-name                   input.arc
+name                   methan.xyz
 
 # Output file name
 
-outname                SP
+outname                methan
 
 # Input file type
 
-inputtype               TINKER
- 
+inputtype              XYZ
+
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
 #amber_mdvel
 #amber_inpcrd
-amber_restrt           min.rst
+#amber_restrt           min2.rst
 #amber_trajectory_at_constant_pressure
 
 
@@ -55,37 +55,39 @@ amber_restrt           min.rst
 #                                  #
 ####################################
 
-# SP                      Single point eneryg calculation
-# GRAD                    Single point energy calculation
-# LOCOPT                  Local optimization using Lib-LBFGS
-# MD                      Molecular dynamics simulation
-# GOSOL                   Combined Solvation + Global Optimization
-# MC                      Monte Carlo
-# XB_CENTER               Center of mass, Cutting out dimer pairs
-# TS                      Tabu Search (CAST: GOTS)
-# RMSD                    Root mean square deviation
-# DIMER                   Dimer method using torsional space
-# NEB                     Nudged elastic band calculation
-# INTERNAL                Create Z-Matrix
+# SP                   Single point eneryg calculation
+# GRAD                 Single point gradient calculation
+# HESS                 Single point hessian matrix calculation
+# LOCOPT               Local optimization using Lib-LBFGS
+# GOSOL                Combined Solvation + Global Optimization
+# MC                   Monte Carlo
+# TS                   Tabu Search (CAST: GOTS)
+# DIMER                Dimer method using torsional space
+# MD                   Molecular dynamics simulation
+# NEB                  Nudged elastic band calculation
 # STARTOPT
-# UMBRELLA                Umbrella Sampling
-# PROFILE                 Repeated Gradient Calculation of first input structure
-# FEP                     Alchemical transformations using FEP
-# ALIGN                   Trajectory Alignment (Kabsch algorithm)
-# PCAgen                  Principal Component Analysis
+# UMBRELLA             Umbrella Sampling
+# FEP                  Alchemical transformations using FEP
+# ALIGN                Trajectory Alignment (Kabsch algorithm)
+# PCAgen               Principal Component Analysis
 # PCAproc
-# ENTROPY                 Configurational and Conformational Entropy Calculations
-# GRID                    Grid Search
-# PATHOPT                 Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
-# GRID
+# ENTROPY              Configurational and Conformational Entropy Calculations
+# GRID                 Grid Search
+# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+# WRITE_TINKER         Writes tinkerstructure into outname.arc
+# INTERNAL             Create Z-Matrix
+# XB_CENTER            Center of mass/geometry
+# XB_EXCITON_BREAKUP
+# XB_INTEFACE_CREATION
+# XB_COUPLINGS
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                      EXCITON_BREAKUP
+task                  WRITE_TINKER
 
 
 ####################################
@@ -95,12 +97,12 @@ task                      EXCITON_BREAKUP
 ####################################
 
 # AMBER                AMBER force field
-# AMOEBA             AMOEBA03 force field
+# AMOEBA               AMOEBA03 force field
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
-#Gaussian              Gaussian09 syscall Interface
+# DFTB                 DFTB interface (with DFTBaby)
 
 interface              MOPAC
 
@@ -109,11 +111,11 @@ interface              MOPAC
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
+paramfile              oplsaa_mod.prm
 
-paramfile              oplsaa.prm
-
-
-### MOPAC OPTIONS ###
+# reading amber charges from separate file (called charges.txt) <0/1>,
+# necessary for reproducing AMBER forefields accuratly
+#chargefile             1
 
 # Keywords for MOPAC Call
 MOPACkey               PM7
@@ -124,53 +126,62 @@ MOPACdelete            1
 #MOPAC executable path
 MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
-#MOPACversion          MOPAC2012
+MOPACversion          MOPAC2012
 
-
-### GAUSSIAN OPTIONS ###
-
-# Link 0 Commands  
-
-GAUSSIANlink NProcShared=8 Mem=2GB 
-
-# Methods for Gaussian Call
-
-GAUSSIANmethod
-
-#Basisset for Gaussian Call
-
-GAUSSIANbasisset         
-
-# Charge of the Molecule
-
-GAUSSIANcharge          0
-
-# Multiplicity
-
-GAUSSIANmultiplicity    1
-
-#Gaussian optimization with steepest descend (Newton-Raphson-Algorithm)
-
-GAUSSIANsteep          1
-
-#Gaussian executeable path
-
-GAUSSIANpath            g09
-
-#Delete temporary Gaussian files?
-
-GAUSSIANdelete          1
-
-####################################
-#                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
 #switchdist             10.0
+
+################# DFTB options ################################################
+
+# path to DFTBaby
+DFTBath                 /home/susanne/Downloads/DFTBaby-0.1.0
+
+# verbosity (only for DFTBaby)
+DFTBverbose             0
+
+# total charge of molecule (has to be closed shell)
+#DFTBcharge              0
+
+# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
+#DFTBcutoff            30
+
+# switch on long range correction <0/1>
+DFTBlr_corr             1
+
+# distance (in bohr) where the long range correction is switched on
+DFTBlr_dist            3.03     
+
+# maximum number of iterations for SCF-calculation
+#DFTBmaxiter            1000
+
+# convergence threshold for relative change in SCF-calculation
+#DFTBconv               1e-10
+
+# name of the DFTBaby gradient file 
+DFTBgradfile            grad.xyz
+
+# state for which the DFTB gradients should be calculated (ground state = 0)
+DFTBgradstate          0
+
+# limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
+#DFTBstates            1
+
+# number of occupied orbitals taken into account for TD-DFTB
+#DFTBocc_orb            2
+
+# number of virtual orbitals taken into account for TD-DFTB
+#DFTBvirt_orb            2
+
+# maximum number of iterations for TD-DFTB matrix diagonalisation
+#DFTBdiag_maxiter        50
+
+# convergence threshold for TD-DFTB matrix diagonalisation
+#DFTBdiag_conv           1e-05
+
+# use DFTBaby for optimization (otherwise steepest gradient) <0/1>
+DFTBopt                  0
 
 
 ####################################
@@ -343,6 +354,21 @@ NEB-PATHOPT-INT_PATH 0
 #step size of interpolated images via spline interpolation approach
 NEB-PATHOPT-INT_IT 0.5
 
+#choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
+NEB-PATHOPT-MAXFLUX 1
+
+#determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
+NEB-PATHOPT-MF_PATHOPT 1
+
+#using image dependent pair potential (IDPP) for NEB pathway generation (0/1: no/yes)
+NEB-PATHOPT-NEB-IDPP 1
+
+#usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+
+NEB-PATHOPT-NEB-COMPLETE 1
+
+#complete pathways or points with interconnection via NEB (0/1: no/yes)
+NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
 
 
 ####################################
@@ -586,7 +612,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                100
  
 # Integrator
 #
@@ -601,7 +627,7 @@ MDveloscale            1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 
@@ -609,7 +635,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    1
+MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
@@ -633,11 +659,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0  0
-MDheat                 10000  200
-MDheat                 20000  250
-MDheat                 35000  280
-MDheat                 45000  300
+
 
 # Pressure control
 
@@ -793,7 +815,6 @@ USsteps                60
 # Offset for taking snapshots
 
 USsnap                 5
-
 
 
 ####################################

@@ -402,6 +402,12 @@ namespace coords
       zero_fixed_g(); //nullt gradienten alelr fixed atrome
       return m_representation.energy;
     }
+    
+    /**calculate hessian matrix*/
+    coords::float_type h()
+    {
+     return m_representation.energy = m_interface->h();
+    }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
 
@@ -480,6 +486,9 @@ namespace coords
 
     void e_head_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
     void e_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
+    /**writes hessian matrix
+    @param strm: can be std::cout or ofstream file*/
+    void h_tostream(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
 
     /**returns the PES point*/
     PES_Point const & pes() const { return m_representation; }
@@ -554,6 +563,19 @@ namespace coords
     main_gradient_type const & g_main(size_type const index) const
     {
       return m_representation.gradient.main[index];
+    }
+    
+    /**sets hessian matrix
+    @param hess: vector of vectors of doubles (e.g. matrix of doubles) that contains values for hessian matrix*/
+    void set_hessian(std::vector<std::vector<double>> hess)
+    {
+      m_representation.hessian = hess;
+    }
+    
+    /**returns the hessian matrix*/
+    std::vector<std::vector<double>> get_hessian()
+    {
+      return m_representation.hessian;
     }
 
     /**returns all subsystems*/

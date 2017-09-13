@@ -41,7 +41,8 @@ coords::float_type energy::interfaces::aco::aco_ff::g(void)
 coords::float_type energy::interfaces::aco::aco_ff::h(void)
 {
   pre();
-  //... 
+  printf("ERROR: this energy interface doesn't provide a hessian matrix\n"); 
+  std::exit(0);
   post();
   return energy;
 }
