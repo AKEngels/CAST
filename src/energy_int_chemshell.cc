@@ -161,7 +161,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 		ofs << "        cutoff=" << cutoff << " \\\n";
 	}
 	ofs << "        scale14 = {1.2 2.0}\\\n"
-		"        amber_prmtop_file=$amber_prmtop ] ] \n"
+		"        amber_prmtop_file=$amber_prmtop ] ]\\\n"
 		"    energy=" << tmp_file_name << ".energy\\\n"
 		"    gradient=" << tmp_file_name << ".gradient\n"
 		"\n\n\n";
@@ -375,7 +375,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 
     std::istringstream iss(qm_atoms);
     std::vector<std::string> qm_list_str{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
-    std::vector<std::size_t> qm_list;
+    std::vector<std::size_t> qm_list(qm_list_str.size());
     std::transform(qm_list_str.begin(), qm_list_str.end(), qm_list.begin(), [](auto const & a) {
       return std::stoi(a);
     });
@@ -386,10 +386,13 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
       auto const & xyz = coords->xyz();
       auto const & center = xyz[qm_atom - 1u];
       for (auto i = 0; i < xyz.size(); ++i) {
-        if (scon::geometric_length(center - xyz[i]) > border) {
+        if (scon::geometric_length(center - xyz[i]) < border) {
           active_atoms_set.insert(i+1);
         }
       }
+    }
+    for(auto const & qm_atom : qm_list){
+        active_atoms_set.erase(qm_atom);
     }
     for(auto const & aa : active_atoms_set){
         active_atoms += std::to_string(aa) + " ";
