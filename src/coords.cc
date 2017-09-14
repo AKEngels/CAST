@@ -498,7 +498,7 @@ void coords::Coordinates::h_tostream(std::ostream &S,
     S << "\n\n           ";
     for (unsigned i=0; i<size(); i++)  // headline
     {
-      S << "| X (atom"<<i+1<<") | Y (atom"<<i+1<<") | Z (atom"<<i+1<<") ";
+      S << "| X ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Y ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Z (" << std::right << std::fixed << std::setw(6) <<i+1<< ") ";
     }
     S<<"\n";
     for (unsigned i=0; i<(12*3*m_representation.size()+12); i++)  // second line
@@ -510,15 +510,15 @@ void coords::Coordinates::h_tostream(std::ostream &S,
     {
       if (i%3 == 0)
       {
-        S << " X (atom"<<i/3+1<<") ";
+        S << " X (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
       }
       else if (i%3 == 1)
       {
-        S << " Y (atom"<<i/3+1<<") ";
+        S << " Y (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
       }
       else
       {
-        S << " Z (atom"<<i/3+1<<") ";
+        S << " Z (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
       }
       for (unsigned j=0; j<3*m_representation.size();j++)  // columns
       {
