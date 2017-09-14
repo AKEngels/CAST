@@ -567,6 +567,7 @@ namespace config
 		std::string mxlist = "";
 		std::string cutoff = "";
         std::string scale14 = "";
+        std::string active_radius = "";
         /*
         std::vector<std::string> tleap_sources;
         std::vector<std::string> tleap_loadamberparams;
@@ -1159,7 +1160,7 @@ namespace config
   struct scan2d {
 	  std::vector<std::string> AXES;
 
-      double change_from_atom_to_atom, max_change_to_rotate_whole_molecule;
+      double change_from_atom_to_atom=0., max_change_to_rotate_whole_molecule=180.;
   };
 
   /*

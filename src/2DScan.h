@@ -142,8 +142,27 @@ private:
 		double to_position;
 		double from_position;
 		std::size_t scans;
-        bool prepare_position = false;
+//        bool prepare_position = false;
 	};
+
+    struct Move_Handler {
+      Move_Handler(coords::Coordinates & coords, std::vector<std::size_t> const & atoms, std::shared_ptr<Scan2D> & p) : _coords(coords), atoms(atoms), parent(p) {}
+      coords::Coordinates & _coords;
+      std::shared_ptr<Scan2D> parent;
+      std::vector<std::size_t> const & atoms;
+      length_type new_pos = 0.0;
+
+      void set_new_pos(length_type const & c) { new_pos = c; }
+
+      coords::Representation_3D rotate_molecule_behind_a_dih(Scan2D::length_type const & deg) const;
+      coords::Representation_3D rotate_molecule_behind_a_ang(Scan2D::length_type const & deg) const;
+      coords::Representation_3D transform_molecule_behind_a_bond(Scan2D::length_type const & length) const;
+
+      //using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
+
+      bond_set go_along_backbone(std::vector<std::size_t> const & kind) const;
+      //void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
+    };
 
 	class Input_types {
 	public:
@@ -151,7 +170,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) = 0;
 		virtual length_type say_val() = 0;
 		virtual std::vector<length_type> make_axis() = 0;
-		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) = 0;
+		virtual coords::Representation_3D make_move(Move_Handler const & mh) = 0;
 	public:
         Input_types(std::weak_ptr<Scan2D> & p) : parent(p) {}
 		std::unique_ptr<Scan2D::what> what;
@@ -168,7 +187,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
+		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
 	public:
         Normal_Bond_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
         std::unique_ptr<Scan2D::cbond> bond;
@@ -178,7 +197,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
+		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
 	public:
         Normal_Angle_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cangle> angle;
@@ -188,7 +207,7 @@ private:
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
-		virtual coords::Representation_3D make_move(length_type const & new_pos, std::vector<std::size_t> const & atoms) override;
+		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
 	public:
       Normal_Dihedral_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cdihedral> dihedral;
@@ -243,15 +262,8 @@ private:
 	std::string const energie_file = coords::output::filename("_ENERGIES", ".txt");
 	std::string const structures_file = coords::output::filename("_STRUCTURES", ".arc");
 
-    coords::Representation_3D rotate_molecule_behind_a_dih(std::vector<std::size_t> const & abcd, Scan2D::length_type const & deg);
-    coords::Representation_3D rotate_molecule_behind_a_ang(std::vector<std::size_t> const & abc, Scan2D::length_type const & deg);
-    coords::Representation_3D transform_molecule_behind_a_bond(std::vector<std::size_t> const & ab, Scan2D::length_type const & length);
+    
 
-
-    //using coroutine_type = boost::coroutines2::coroutine<std::pair<std::size_t, std::size_t>>;
-
-    bond_set go_along_backbone(std::size_t const & atom, std::size_t const & border);
-    //void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
 
 };
 

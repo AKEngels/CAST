@@ -603,6 +603,9 @@ void config::parse_option(std::string const option, std::string const value_stri
       else if (sub_option == "scale14") {
         Config::set().energy.chemshell.scale14 = value_string;
       }
+      else if (sub_option == "active_radius") {
+        Config::set().energy.chemshell.active_radius = value_string;
+      }
   }
 
   // convergence threshold for bfgs
