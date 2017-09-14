@@ -1,4 +1,4 @@
-#ifndef ENERGY_INT_CHEMSHELL_H
+﻿#ifndef ENERGY_INT_CHEMSHELL_H
 #define ENERGY_INT_CHEMSHELL_H
 
 #include<memory>
@@ -113,7 +113,7 @@ namespace energy {
 				void make_tleap_input(std::string const & o_file)const;
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
-				std::pair<std::string, std::string> find_active_and_inactive_atoms()const;
+				std::pair<std::string, std::string> find_active_and_inactive_atoms(std::string const & qm_atoms)const;
 				void read_gradients();
 
 				static std::string trim_space_and_tabs(std::string const & str);

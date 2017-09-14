@@ -567,6 +567,7 @@ namespace config
 		std::string mxlist = "";
 		std::string cutoff = "";
         std::string scale14 = "";
+        std::string active_radius = "";
         /*
         std::vector<std::string> tleap_sources;
         std::vector<std::string> tleap_loadamberparams;

@@ -185,7 +185,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
     auto const & scale14 = Config::get().energy.chemshell.scale14;
 
 	std::string active_atoms, inactive_atoms;
-	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms();
+	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms(qm_region);
 
 
 	ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
@@ -346,7 +346,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp()const {
 	call_chemshell();
 }
 
-std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterface::find_active_and_inactive_atoms() const {
+std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterface::find_active_and_inactive_atoms(std::string const & qm_atoms) const {
 	
 	/*std::vector<int> indices(coords->size());
 	std::iota(indices.begin(), indices.end(), 1);
@@ -368,15 +368,34 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 			final_atoms += std::to_string(i) + " ";
 		}
 	}*/
-	std::string active_atoms = "", fixed_atoms = "";
+
+    auto const border = std::stod(Config::get().energy.chemshell.active_radius);
+
+    std::string active_atoms = "";
+
+    std::istringstream iss(qm_atoms);
+    std::vector<std::string> qm_list_str{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+    std::vector<std::size_t> qm_list;
+    std::transform(qm_list_str.cbegin(), qm_list_str.cend(), qm_list.cbegin(), [](auto const & a) {
+      return std::stoi(a);
+    });
+
+    for (auto const & qm_atom : qm_list) {
+      auto const & xyz = coords->xyz();
+      auto const & center = xyz[qm_atom - 1u];
+      for (auto i = 0; i < xyz.size(); ++i) {
+        if (scon::geometric_length(center - xyz[i]) > border) {
+          active_atoms += std::to_string(i + 1) + " ";
+        }
+      }
+    }
+
+	std::string fixed_atoms = "";
 	auto const & atoms = coords->atoms();
 	for (auto i = 0; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
 		if (atom.fixed()) {
 			fixed_atoms += std::to_string(i + 1) + " ";
-		}
-		else {
-			active_atoms += std::to_string(i + 1) + " ";
 		}
 	}
 	return std::make_pair(trim_space_and_tabs(active_atoms), trim_space_and_tabs(fixed_atoms));
