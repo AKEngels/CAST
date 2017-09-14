@@ -58,12 +58,14 @@ project "CAST"
       targetname "CAST_linux_x64_python_release"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7", "util"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
     filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
       targetname "CAST_linux_x86_python_release"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7", "util"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Testing", "action:gmake" }
       optimize "Debug"
@@ -102,12 +104,14 @@ project "CAST"
       targetname "CAST_linux_x86_python_debug"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7", "util"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
     filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_python_debug"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
-      links {"python2.7", "util"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Debug", "action:gmake" }
       includedirs { "../optional_files/includes/armadillo/"}
