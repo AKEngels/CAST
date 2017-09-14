@@ -146,7 +146,7 @@ private:
 	};
 
     struct Move_Handler {
-      Move_Handler(coords::Coordinates & coords, std::vector<std::size_t> const & atoms, std::shared_ptr<Scan2D> & p) : _coords(coords), atoms(atoms), parent(p) {}
+      Move_Handler(coords::Coordinates & coords, std::vector<std::size_t> const & atoms, std::shared_ptr<Scan2D> p) : _coords(coords), atoms(atoms), parent(std::move(p)) {}
       coords::Coordinates & _coords;
       std::shared_ptr<Scan2D> parent;
       std::vector<std::size_t> const & atoms;

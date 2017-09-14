@@ -8,6 +8,7 @@
 #include<sstream>
 #include<istream>
 #include<iostream>
+#include<unordered_set>
 #include"coords_io.h"
 #include"energy.h"
 #include"coords.h"

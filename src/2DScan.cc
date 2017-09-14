@@ -478,7 +478,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
         auto const & y_atoms = parser->y_parser->what->atoms;
 
-        Move_Handler mh(coords, y_atoms, shared_from_this());
+        Move_Handler mh(coords, y_atoms, this->shared_from_this());
         mh.set_new_pos(y_step);
 
 		coords.set_xyz(
