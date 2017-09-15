@@ -323,3 +323,39 @@ def hessian(xyzfile, optionfile):
         energies.append(dftb2.E_HF_x)
 
     return str(energies)
+
+def get_active_space(xyzfile, optionfile):
+    """calculates the active space for a given molecule and excited state
+    (see http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md, Active Space)
+    
+    not implemented in CAST because no use for ground state calculations
+    for ground state calculations the active space can be set as small as desired"""
+  
+    outputfile = open("output_dftb.txt", "a")  # redirect output to file
+    sys.stdout = outputfile
+  
+    options = read_options(optionfile)  # read options
+    atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
+  
+    init_options = extract_options(options, TD_INIT_OPTIONLIST)
+    td_options = extract_options(options, TD_OPTIONLIST)
+    kwds = XYZ.extract_keywords_xyz(xyzfile)
+  
+    try:
+        tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
+        tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
+        tddftb.getEnergies(**td_options)  # calculate energies
+        occ, virt = tddftb.determineActiveSpace()
+    except:
+        return "error"
+    
+    return str((occ, virt))
+
+if __name__ == "__main__":
+    # example how to use this file without CAST
+    # you need to add the path to DFTbaby to the pythonpath, i.e.
+    # sys.path.append(".../DFTBaby-#.#.#")
+    saved_stdout = sys.stdout
+    x = get_active_space("ethanol.xyz", "dftbaby.cfg")
+    sys.stdout = saved_stdout
+    print "occupied active orbitals, virtual active orbitals: ",x
