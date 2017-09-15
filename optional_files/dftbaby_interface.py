@@ -13,6 +13,7 @@ from DFTB.Dynamics import HarmonicApproximation
 
 SCF_OPTIONLIST = ['scf_conv', 'start_from_previous', 'level_shift', 'density_mixer', 'fock_interpolator', 'mixing_threshold', 'HOMO_LUMO_tol', 'maxiter', 'linear_mixing_coefficient']
 TD_INIT_OPTIONLIST = ["parameter_set", "point_charges_xyz", "initial_charge_guess", "save_converged_charges", "verbose", "distance_cutoff", "long_range_correction", "long_range_radius", "long_range_T", "long_range_switching", "lc_implementation", "tune_range_radius", "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry", "fluctuation_functions", "mulliken_dipoles", "dispersion_correction", "qmmm_partitioning", "qmmm_embedding", "periodic_force_field", "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver"]
+TD_OPTIONLIST = ["nr_active_occ", "nr_active_virt", "select_lm", "oszis", "response_method", "multiplicity", "nstates", "diag_ifact", "diag_conv", "diag_maxiter", "diag_check", "diag_L2threshold", "diag_selected_irreps", "ct_correction"] + SCF_OPTIONLIST
 GRAD_OPTIONS = ['gradient_file', 'gradient_check', 'gradient_state']
 
 
@@ -145,14 +146,14 @@ def calc_gradients(xyzfile, optionfile):
     atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
 
     init_options = extract_options(options, TD_INIT_OPTIONLIST)
-    scf_options = extract_options(options, SCF_OPTIONLIST)
+    td_options = extract_options(options, TD_OPTIONLIST)
     grad_options = extract_options(options, GRAD_OPTIONS)
     kwds = XYZ.extract_keywords_xyz(xyzfile)
     
     try:
         tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
         tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
-        tddftb.getEnergies(**scf_options)  # calculate energies
+        tddftb.getEnergies(**td_options)  # calculate energies
 
         grad = Gradients(tddftb)            # calculate gradients
         grad.getGradients(**grad_options)
@@ -259,59 +260,64 @@ def hessian(xyzfile, optionfile):
     kwds = XYZ.extract_keywords_xyz(xyzfile)  # read keywords (charge)
     options = read_options(optionfile)  # read options
     scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
-    pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)  # create PES
+    
+    try:
+        pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)  # create PES
   
-    atomvec = XYZ.atomlist2vector(atomlist)  # convert atomlist to vector
+        atomvec = XYZ.atomlist2vector(atomlist)  # convert atomlist to vector
   
-    # FIND ENERGY MINIMUM
-    # f is the objective function that should be minimized
-    # it returns (f(x), f'(x))
-    def f(x):
-        if I == 0 and type(pes.tddftb.XmY) != type(None):
-            # only ground state is needed. However, at the start
-            # a single TD-DFT calculation is performed to initialize
-            # all variables (e.g. X-Y), so that the program does not
-            # complain about non-existing variables.
-            enI, gradI = pes.getEnergyAndGradient_S0(x)
-        else:
-            energies, gradI = pes.getEnergiesAndGradient(x, I)
-            enI = energies[I]
-        return enI, gradI
+        # FIND ENERGY MINIMUM
+        # f is the objective function that should be minimized
+        # it returns (f(x), f'(x))
+        def f(x):
+            if I == 0 and type(pes.tddftb.XmY) != type(None):
+                # only ground state is needed. However, at the start
+                # a single TD-DFT calculation is performed to initialize
+                # all variables (e.g. X-Y), so that the program does not
+                # complain about non-existing variables.
+                enI, gradI = pes.getEnergyAndGradient_S0(x)
+            else:
+                energies, gradI = pes.getEnergiesAndGradient(x, I)
+                enI = energies[I]
+            return enI, gradI
 
-    minoptions = {'gtol': 1.0e-7, 'norm': 2}
-    # somehow numerical_hessian does not work without doing this mimimization before
-    res = optimize.minimize(f, atomvec, method="CG", jac=True, options=minoptions)
+        minoptions = {'gtol': 1.0e-7, 'norm': 2}
+        # somehow numerical_hessian does not work without doing this mimimization before
+        res = optimize.minimize(f, atomvec, method="CG", jac=True, options=minoptions)
   
-    # COMPUTE HESSIAN AND VIBRATIONAL MODES
-    # The hessian is calculated by numerical differentiation of the
-    # analytical gradients
-    def grad(x):
-        if I == 0:
-            enI, gradI = pes.getEnergyAndGradient_S0(x)
-        else:
-            energies, gradI = pes.getEnergiesAndGradient(x, I)
-        return gradI
+        # COMPUTE HESSIAN AND VIBRATIONAL MODES
+        # The hessian is calculated by numerical differentiation of the
+        # analytical gradients
+        def grad(x):
+            if I == 0:
+                enI, gradI = pes.getEnergyAndGradient_S0(x)
+            else:
+                energies, gradI = pes.getEnergiesAndGradient(x, I)
+            return gradI
     
-    print "Computing Hessian"   # calculate hessians from gradients
-    hess = HarmonicApproximation.numerical_hessian_G(grad, atomvec)
+        print "Computing Hessian"   # calculate hessians from gradients
+        hess = HarmonicApproximation.numerical_hessian_G(grad, atomvec)
     
-    string = ""   # create string that is to be written into file
-    for line in hess:
-        for column in line:
-            string += str(column) + " "
-        string = string[:-1] + "\n"
+        string = ""   # create string that is to be written into file
+        for line in hess:
+            for column in line:
+                string += str(column) + " "
+            string = string[:-1] + "\n"
     
-    with open("hessian.txt", "w") as hessianfile:  # write hessian matrix to file
-        hessianfile.write(string)
-        # this would look nicer but is not as exact
-        #hessianfile.write(annotated_hessian(atomlist, hess))
+        with open("hessian.txt", "w") as hessianfile:  # write hessian matrix to file
+            hessianfile.write(string)
+            # this would look nicer but is not as exact
+            #hessianfile.write(annotated_hessian(atomlist, hess))
 
-    # calculate energy for optimized geometry
-    dftb2 = DFTB2(atomlist, **options)  # create dftb object
-    dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
+        # calculate energy for optimized geometry
+        dftb2 = DFTB2(atomlist, **options)  # create dftb object
+        dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
     
-    dftb2.getEnergy(**scf_options)
-    energies = list(dftb2.getEnergies())  # get partial energies
+        dftb2.getEnergy(**scf_options)
+        energies = list(dftb2.getEnergies())  # get partial energies
+        
+    except:
+        return "error"
 
     if dftb2.long_range_correction == 1:  # add long range correction to partial energies
         energies.append(dftb2.E_HF_x)
