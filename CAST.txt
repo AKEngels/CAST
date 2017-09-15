@@ -76,6 +76,7 @@ inputtype              XYZ
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+<<<<<<< HEAD
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
@@ -85,6 +86,14 @@ inputtype              XYZ
 
 task                  WRITE_TINKER
 
+=======
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# SCAN2D
+
+task                  SCAN2D
+>>>>>>> Gaussian2D
 
 ####################################
 #                                  #
@@ -98,9 +107,14 @@ task                  WRITE_TINKER
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
+<<<<<<< HEAD
 # DFTB                 DFTB interface (with DFTBaby)
+=======
+# Gaussian             Gaussian09 syscall Interface
+# CHEMSHELL            under developement
+>>>>>>> Gaussian2D
 
-interface              MOPAC
+interface              CHEMSHELL
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -176,8 +190,43 @@ DFTBgradstate          0
 # convergence threshold for TD-DFTB matrix diagonalisation
 #DFTBdiag_conv           1e-05
 
+<<<<<<< HEAD
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  0
+=======
+GAUSSIANdelete          1
+
+### CHEMSHELL OPTIONS #
+
+CHEMSHELL-path /apt/chemshell 
+
+CHEMSHELL-scheme shift
+
+CHEMSHELL-qm_theory turbomole
+
+CHEMSHELL-qm_hamiltonian b3lyp
+
+CHEMSHELL-qm_basisset def-TZVP
+
+CHEMSHELL-qm_charge 0
+
+CHEMSHELL-qm_atoms 337 - 341 2269 - 2279 32426 - 32428
+
+CHEMSHELL-residues CYS25 HIE162 WAT10006
+
+CHEMSHELL-delete 0
+
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
+
+#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
+>>>>>>> Gaussian2D
 
 
 ####################################
@@ -350,6 +399,7 @@ NEB-PATHOPT-INT_PATH 0
 #step size of interpolated images via spline interpolation approach
 NEB-PATHOPT-INT_IT 0.5
 
+<<<<<<< HEAD
 #choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
 NEB-PATHOPT-MAXFLUX 1
 
@@ -365,7 +415,16 @@ NEB-PATHOPT-NEB-COMPLETE 1
 
 #complete pathways or points with interconnection via NEB (0/1: no/yes)
 NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
+=======
+####################################
+#                                  #
+#          SCAN2D OPTIONS          #
+#                                  #
+####################################
+>>>>>>> Gaussian2D
 
+2DSCAN-dihedral 15 14 4 3 0 179 20
+2DSCAN-dihedral 1 2 3 4 0 179 20
 
 ####################################
 #                                  #

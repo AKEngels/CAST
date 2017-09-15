@@ -750,7 +750,7 @@ namespace coords
         m_representation.structure.cartesian = Representation_3D(new_xyz.begin(), new_xyz.end());
       m_stereo.update(xyz());
     }
-
+    //Irgendwer der das perfect forwarden will? Der move macht naemlich probleme
     //ifdef kann weg
 #if defined(SCON_CC11_RVALUE_REF) && defined(SCON_CC11_MOVE)
   /**set new cartisian coordinates
@@ -760,7 +760,6 @@ namespace coords
     {
       size_type const N(size());
       if (new_xyz.size() != N) throw std::logic_error("Wrong sized coordinates in set_xyz.");
-      m_representation.structure.cartesian.swap(new_xyz);
       if (!overwrite_fixed)
       {
         for (size_type i(0U); i < N; ++i)
@@ -769,7 +768,7 @@ namespace coords
         }
       }
       else
-        m_representation.structure.cartesian = Representation_3D(new_xyz.begin(), new_xyz.end());
+        m_representation.structure.cartesian = std::move(new_xyz);
       m_stereo.update(xyz());
     }
 #endif
