@@ -409,7 +409,7 @@ void Scan2D::make_scan() {
     
     go_along_y_axis(_coords);
 
-	/*for (auto && x_step : axis->x_steps) {
+	for (auto && x_step : axis->x_steps) {
 
 		++x_circle;
 
@@ -417,14 +417,17 @@ void Scan2D::make_scan() {
 
         std::cout << "step: " << x_circle << ". " << x_step << std::endl;
 
+        Move_Handler mh(_coords, x_atoms, shared_from_this());
+        mh.set_new_pos(x_step);
+
 		_coords.set_xyz(
-          parser->x_parser->make_move(x_step,x_atoms), 
+          parser->x_parser->make_move(mh), 
           true
         );
         
 		parser->fix_atoms(_coords);
 
-    	//write_energy_entry(_coords.o());
+    	write_energy_entry(_coords.o());
 		parser->x_parser->set_coords(_coords.xyz());
 
         std::cout << parser->x_parser->say_val() << std::endl;
@@ -433,7 +436,7 @@ void Scan2D::make_scan() {
 
 		go_along_y_axis(_coords);
 		
-	}*/
+	}
 
 }
 
@@ -563,48 +566,73 @@ std::vector<Scan2D::length_type> Scan2D::Normal_Dihedral_Input::make_axis() {
 coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const & mh) {
     auto p = parent.lock();
 
-    auto const change = mh.new_pos - say_val();
-    
-    if (fabs(change) > p->max_change_rotation) {
-      return mh.transform_molecule_behind_a_bond(change);
-    }
-    else {
       auto new_molecule = p->_coords.xyz();
       new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
       return new_molecule;
-    }
 }
+
+//This needs to be implemented rather than the other make_move methods
+//coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Handler const & mh) {
+//  auto p = parent.lock();
+//
+//  auto const change = mh.new_pos - say_val();
+//
+//  if (fabs(change) > p->max_change_rotation) {
+//    return mh.transform_molecule_behind_a_bond(change);
+//  }
+//  else {
+//    auto new_molecule = p->_coords.xyz();
+//    new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
+//    return new_molecule;
+//  }
+//}
 
 coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
     auto p = parent.lock();
 
-    auto const change = mh.new_pos - say_val();
-
-    if (fabs(change) > p->max_change_rotation) {
-        return mh.rotate_molecule_behind_a_ang(change);
-    }
-    else {
         auto new_molecule = p->_coords.xyz();
         new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
         return new_molecule;
-    }
 }
+
+//coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
+//  auto p = parent.lock();
+//
+//  auto const change = mh.new_pos - say_val();
+//
+//  if (fabs(change) > p->max_change_rotation) {
+//    return mh.rotate_molecule_behind_a_ang(change);
+//  }
+//  else {
+//    auto new_molecule = p->_coords.xyz();
+//    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
+//    return new_molecule;
+//  }
+//}
 
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
     auto p = parent.lock();
-    auto const poossss = say_val();
-    auto const change = mh.new_pos - say_val();
-    
-    if (fabs(change) > p->max_change_rotation) {
-      auto ret = mh.rotate_molecule_behind_a_dih(change);
-      return ret;
-    }
-    else {
+   
        auto new_molecule = mh._coords.xyz();
        new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
        return new_molecule;
-    }
 }
+
+//coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
+//  auto p = parent.lock();
+//  auto const poossss = say_val();
+//  auto const change = mh.new_pos - say_val();
+//
+//  if (fabs(change) > p->max_change_rotation) {
+//    auto ret = mh.rotate_molecule_behind_a_dih(change);
+//    return ret;
+//  }
+//  else {
+//    auto new_molecule = mh._coords.xyz();
+//    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
+//    return new_molecule;
+//  }
+//}
 
 Scan2D::length_type Scan2D::Normal_Bond_Input::say_val() {
 	return Scan2D::get_length(*bond);
