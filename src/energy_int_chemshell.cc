@@ -369,25 +369,51 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 		}
 	}*/
 
+    auto make_string_to_numbers = [&](std::string const & str){
+    
+        std::istringstream iss(str);
+        std::vector<std::string> str_num{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+    
+        std::vector<std::size_t> ret;
+    
+        for(auto i = 0; i<str_num.size();++i){
+            auto const & str_i = str_num[i];
+            if(i==str_num.size()-1){
+                ret.emplace_back(std::stoi(str_i));
+                break;
+            }
+        
+            if(str_num[i+1u] != "-" && this->check_if_number(str_i)){
+                ret.emplace_back(std::stoi(str_i));
+            }
+            else if(str_num[i+1u] == "-"){
+                auto start = std::stoi(str_i);
+                auto end = std::stoi(str_num[i+2u]);
+                std::vector<std::size_t> append_vec(end-start+1u);
+                std::iota(append_vec.begin(), append_vec.end(), start);
+                ret.insert(ret.end(), append_vec.begin(), append_vec.end());
+                i += 2u;
+            }
+        
+        }
+    
+        return ret;
+    };
+
     auto const border = std::stod(Config::get().energy.chemshell.active_radius);
 
     std::string active_atoms = "";
 
-    std::istringstream iss(qm_atoms);
-    std::vector<std::string> qm_list_str{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
-    std::vector<std::size_t> qm_list(qm_list_str.size());
-    std::transform(qm_list_str.begin(), qm_list_str.end(), qm_list.begin(), [](auto const & a) {
-      return std::stoi(a);
-    });
-    
+    auto qm_list = make_string_to_numbers(qm_atoms);    
+
     std::unordered_set<std::size_t> active_atoms_set;
 
     for (auto const & qm_atom : qm_list) {
       auto const & xyz = coords->xyz();
       auto const & center = xyz[qm_atom - 1u];
-      for (auto i = 0; i < xyz.size(); ++i) {
+      for (auto i = 0u; i < xyz.size(); ++i) {
         if (scon::geometric_length(center - xyz[i]) < border) {
-          active_atoms_set.insert(i+1);
+          active_atoms_set.insert(i + 1u);
         }
       }
     }
