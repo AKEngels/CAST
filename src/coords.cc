@@ -495,7 +495,7 @@ void coords::Coordinates::h_tostream(std::ostream &S,
   else
   {
     S << "HESSIAN MATRIX";
-    S << "\n\n           ";
+    S << "\n\n            ";
     for (unsigned i=0; i<size(); i++)  // headline
     {
       S << "| X ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Y ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Z (" << std::right << std::fixed << std::setw(6) <<i+1<< ") ";
@@ -522,7 +522,7 @@ void coords::Coordinates::h_tostream(std::ostream &S,
       }
       for (unsigned j=0; j<3*m_representation.size();j++)  // columns
       {
-        S <<"|"<<std::right<<std::fixed<<std::setw(10)<<std::setprecision(2)<<hess[i][j]<<" ";
+        S <<"|"<<std::right<<std::fixed<<std::setw(11)<<std::setprecision(2)<<hess[i][j]<<" ";
       }
       S << "\n";
     }
