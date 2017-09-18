@@ -764,7 +764,7 @@ namespace coords
       {
         for (size_type i(0U); i < N; ++i)
         {
-          if (atoms(i).fixed()) m_representation.structure.cartesian[i] = std::move(new_xyz[i]);
+          if (!atoms(i).fixed()) m_representation.structure.cartesian[i] = std::move(new_xyz[i]);
         }
       }
       else
