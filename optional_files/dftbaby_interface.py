@@ -1,5 +1,6 @@
 import sys
 import numpy
+import warnings
 from scipy import optimize
 from copy import copy
 
@@ -10,10 +11,23 @@ from DFTB.ExcGradients import Gradients
 from DFTB.PES import PotentialEnergySurfaces
 from DFTB.Dynamics import HarmonicApproximation
 
+warnings.filterwarnings("error")  # catch warnings like exceptions
 
-SCF_OPTIONLIST = ['scf_conv', 'start_from_previous', 'level_shift', 'density_mixer', 'fock_interpolator', 'mixing_threshold', 'HOMO_LUMO_tol', 'maxiter', 'linear_mixing_coefficient']
-TD_INIT_OPTIONLIST = ["parameter_set", "point_charges_xyz", "initial_charge_guess", "save_converged_charges", "verbose", "distance_cutoff", "long_range_correction", "long_range_radius", "long_range_T", "long_range_switching", "lc_implementation", "tune_range_radius", "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry", "fluctuation_functions", "mulliken_dipoles", "dispersion_correction", "qmmm_partitioning", "qmmm_embedding", "periodic_force_field", "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver"]
-TD_OPTIONLIST = ["nr_active_occ", "nr_active_virt", "select_lm", "oszis", "response_method", "multiplicity", "nstates", "diag_ifact", "diag_conv", "diag_maxiter", "diag_check", "diag_L2threshold", "diag_selected_irreps", "ct_correction"] + SCF_OPTIONLIST
+SCF_OPTIONLIST = ['scf_conv', 'start_from_previous', 'level_shift', 'density_mixer',
+                  'fock_interpolator', 'mixing_threshold', 'HOMO_LUMO_tol', 'maxiter',
+                  'linear_mixing_coefficient']
+TD_INIT_OPTIONLIST = ["parameter_set", "point_charges_xyz", "initial_charge_guess",
+                      "save_converged_charges", "verbose", "distance_cutoff",
+                      "long_range_correction", "long_range_radius", "long_range_T",
+                      "long_range_switching", "lc_implementation", "tune_range_radius",
+                      "save_tuning_curve", "nr_unpaired_electrons", "use_symmetry",
+                      "fluctuation_functions", "mulliken_dipoles", "dispersion_correction",
+                      "qmmm_partitioning", "qmmm_embedding", "periodic_force_field",
+                      "cavity_radius", "cavity_force_constant", "scratch_dir", "cpks_solver"]
+TD_OPTIONLIST = ["nr_active_occ", "nr_active_virt", "select_lm", "oszis",
+                 "response_method", "multiplicity", "nstates", "diag_ifact", "diag_conv",
+                 "diag_maxiter", "diag_check", "diag_L2threshold", "diag_selected_irreps",
+                 "ct_correction"] + SCF_OPTIONLIST
 GRAD_OPTIONS = ['gradient_file', 'gradient_check', 'gradient_state']
 
 
