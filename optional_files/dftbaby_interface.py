@@ -129,42 +129,43 @@ def calc_energies(xyzfile, optionfile):
     outputfile = open("output_dftb.txt", "a")  # redirect output to file
     sys.stdout = outputfile
 
-    options = read_options(optionfile)  # read options
-    atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
-    kwds = XYZ.extract_keywords_xyz(xyzfile)
-    
     try:
+        options = read_options(optionfile)  # read options
+        atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
+        kwds = XYZ.extract_keywords_xyz(xyzfile)
+        
         dftb2 = DFTB2(atomlist, **options)  # create dftb object
         dftb2.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
 
         scf_options = extract_options(options, SCF_OPTIONLIST)  # calculate energy
         dftb2.getEnergy(**scf_options)
         energies = list(dftb2.getEnergies())  # get partial energies
+
+        if dftb2.long_range_correction == 1:  # add long range correction to partial energies
+            energies.append(dftb2.E_HF_x)
+
+        return str(energies)
+        
     except:
         return "error"
 
-    if dftb2.long_range_correction == 1:  # add long range correction to partial energies
-        energies.append(dftb2.E_HF_x)
-
-    return str(energies)
-
-
+    
 def calc_gradients(xyzfile, optionfile):
     """calculates DFTB energies and gradients for a molecule in the xyz_file
     with the options given in the optionfile"""
 
     outputfile = open("output_dftb.txt", "a")  # redirect output to file
     sys.stdout = outputfile
-
-    options = read_options(optionfile)  # read options
-    atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
-
-    init_options = extract_options(options, TD_INIT_OPTIONLIST)
-    td_options = extract_options(options, TD_OPTIONLIST)
-    grad_options = extract_options(options, GRAD_OPTIONS)
-    kwds = XYZ.extract_keywords_xyz(xyzfile)
     
     try:
+        options = read_options(optionfile)  # read options
+        atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
+  
+        init_options = extract_options(options, TD_INIT_OPTIONLIST)
+        td_options = extract_options(options, TD_OPTIONLIST)
+        grad_options = extract_options(options, GRAD_OPTIONS)
+        kwds = XYZ.extract_keywords_xyz(xyzfile)
+      
         tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
         tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
         tddftb.getEnergies(**td_options)  # calculate energies
@@ -173,13 +174,16 @@ def calc_gradients(xyzfile, optionfile):
         grad.getGradients(**grad_options)
 
         energies = list(tddftb.dftb2.getEnergies())  # get partial energies
+
+        if tddftb.dftb2.long_range_correction == 1:  # add long range correction to partial energies
+            energies.append(tddftb.dftb2.E_HF_x)
+
+        return str(energies)
+    
     except:
         return "error"
 
-    if tddftb.dftb2.long_range_correction == 1: # add long range correction to partial energies
-        energies.append(tddftb.dftb2.E_HF_x)
-
-    return str(energies)
+    
 
 
 def opt(xyzfile, optionfile):
@@ -188,14 +192,14 @@ def opt(xyzfile, optionfile):
     outputfile = open("output_dftb.txt", "a")  # redirect output to file
     sys.stdout = outputfile
   
-    I = 0  # index of electronic state (ground state)
-  
-    atomlist = XYZ.read_xyz(xyzfile)[0]   # read atomlist
-    kwds = XYZ.extract_keywords_xyz(xyzfile)  # read keywords from xyz-file (charge)
-    options = read_options(optionfile)  # read options
-    scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
-    
     try:
+        I = 0  # index of electronic state (ground state)
+  
+        atomlist = XYZ.read_xyz(xyzfile)[0]  # read atomlist
+        kwds = XYZ.extract_keywords_xyz(xyzfile)  # read keywords from xyz-file (charge)
+        options = read_options(optionfile)  # read options
+        scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
+      
         # optimization (taken from optimize.py)
         pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)
 
@@ -252,30 +256,30 @@ def opt(xyzfile, optionfile):
     
         dftb2.getEnergy(**scf_options)
         energies = list(dftb2.getEnergies())  # get partial energies
+
+        if dftb2.long_range_correction == 1:  # add long range correction to partial energies
+            energies.append(dftb2.E_HF_x)
+
+        return str(energies)
         
     except:
         return "error"
 
-    if dftb2.long_range_correction == 1:  # add long range correction to partial energies
-        energies.append(dftb2.E_HF_x)
-
-    return str(energies)
-
-
+  
 def hessian(xyzfile, optionfile):
     """calculates hessian matrix"""
 
     outputfile = open("output_dftb.txt", "a")  # redirect output to file
     sys.stdout = outputfile
 
-    I = 0  # index of electronic state (ground state)
-
-    atomlist = XYZ.read_xyz(xyzfile)[0]  # read xyz file
-    kwds = XYZ.extract_keywords_xyz(xyzfile)  # read keywords (charge)
-    options = read_options(optionfile)  # read options
-    scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
-    
     try:
+        I = 0  # index of electronic state (ground state)
+  
+        atomlist = XYZ.read_xyz(xyzfile)[0]  # read xyz file
+        kwds = XYZ.extract_keywords_xyz(xyzfile)  # read keywords (charge)
+        options = read_options(optionfile)  # read options
+        scf_options = extract_options(options, SCF_OPTIONLIST)  # get scf-options
+      
         pes = MyPES(atomlist, options, Nst=max(I + 1, 2), **kwds)  # create PES
   
         atomvec = XYZ.atomlist2vector(atomlist)  # convert atomlist to vector
@@ -329,15 +333,16 @@ def hessian(xyzfile, optionfile):
     
         dftb2.getEnergy(**scf_options)
         energies = list(dftb2.getEnergies())  # get partial energies
+
+        if dftb2.long_range_correction == 1:  # add long range correction to partial energies
+            energies.append(dftb2.E_HF_x)
+
+        return str(energies)
         
     except:
         return "error"
 
-    if dftb2.long_range_correction == 1:  # add long range correction to partial energies
-        energies.append(dftb2.E_HF_x)
-
-    return str(energies)
-
+    
 def get_active_space(xyzfile, optionfile):
     """calculates the active space for a given molecule and excited state
     (see http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md, Active Space)
@@ -348,23 +353,23 @@ def get_active_space(xyzfile, optionfile):
     outputfile = open("output_dftb.txt", "a")  # redirect output to file
     sys.stdout = outputfile
   
-    options = read_options(optionfile)  # read options
-    atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
-  
-    init_options = extract_options(options, TD_INIT_OPTIONLIST)
-    td_options = extract_options(options, TD_OPTIONLIST)
-    kwds = XYZ.extract_keywords_xyz(xyzfile)
-  
     try:
+        options = read_options(optionfile)  # read options
+        atomlist = XYZ.read_xyz(xyzfile)[0]  # read structure
+  
+        init_options = extract_options(options, TD_INIT_OPTIONLIST)
+        td_options = extract_options(options, TD_OPTIONLIST)
+        kwds = XYZ.extract_keywords_xyz(xyzfile)
+      
         tddftb = LR_TDDFTB(atomlist, **init_options)  # create object
         tddftb.setGeometry(atomlist, charge=kwds.get("charge", 0.0))
         tddftb.getEnergies(**td_options)  # calculate energies
         occ, virt = tddftb.determineActiveSpace()
+        return str((occ, virt))
     except:
         return "error"
     
-    return str((occ, virt))
-
+    
 if __name__ == "__main__":
     # example how to use this file without CAST
     # you need to add the path to DFTbaby to the pythonpath, i.e.
