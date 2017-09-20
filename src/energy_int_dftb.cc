@@ -56,13 +56,13 @@ std::string energy::interfaces::dftb::create_pythonpath(std::string numpath, std
     std::string path;
     std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
     path = "import sys\n";
-    for (auto p : pythonpaths)
+    for (auto p : pythonpaths)  //keep pythonpath of system
     {
       path += "sys.path.append('"+p+"')\n";
     }
-    path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n";
-    path += "sys.path.append('"+numpath+"')\n";
-    path += "sys.path.append('"+scipath+"')\n";
+    path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n"; //path to DFTBaby
+    path += "sys.path.append('"+numpath+"')\n";                        //path to numpy
+    path += "sys.path.append('"+scipath+"')\n";                        //path to scipy
     return path;
 }
 

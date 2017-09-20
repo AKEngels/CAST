@@ -77,13 +77,13 @@ namespace energy
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
 
-				// Energy function
+				/** Energy function*/
 				double e(void);
-				// Energy+Gradient function
+				/** Energy+Gradient function*/
 				double g(void);
-				// Energy+Gradient+Hessian function
+				/** Energy+Hessian function*/
 				double h(void);
-				// Optimization in the interface(d program)
+				/** Optimization in the interface(d program)*/
 				double o(void);
 				// Output functions
 				/**prints total energy*/
