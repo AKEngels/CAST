@@ -553,6 +553,8 @@ namespace config
 		std::string optional_prmtop = "";
 		std::string path = "";
 		std::string babel_path = "";
+
+        std::string coords = "";
 		std::string scheme = "";
 		std::string qm_theory = "";
 		std::string qm_ham = "";

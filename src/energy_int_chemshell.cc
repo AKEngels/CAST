@@ -171,6 +171,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 
 void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream & ofs) const {
 
+    auto const & coordinates = Config::get().energy.chemshell.coords;
 	auto const & maxcycle = Config::get().energy.chemshell.maxcycle;
 	auto const & maxcyc = Config::get().energy.chemshell.maxcyc;
 	auto const & tolerance = Config::get().energy.chemshell.tolerance;
@@ -188,8 +189,15 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms(qm_region);
 
 
-	ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
-		"    coordinates=hdlc \\\n"
+    ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
+        "    coordinates=";
+    if (coordinates != "") {
+        ofs << coordinates;
+    }
+    else {
+        ofs << "hdlc";
+    }
+    ofs << "\\\n"
 		"    result=" << tmp_file_name << "_opt.c \\\n";
 	if (maxcycle != "") {
 		ofs << "    maxcycle=" << maxcycle << " \\\n";

@@ -546,6 +546,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  if (sub_option == "path") {
 		  Config::set().energy.chemshell.path = value_string;
 	  }
+      else if (sub_option == "coords") {
+          Config::set().energy.chemshell.coords = value_string;
+      }
 	  else if (sub_option == "pdb") {
 		  Config::set().energy.chemshell.extra_pdb = value_string;
 	  }
