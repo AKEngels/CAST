@@ -1,4 +1,4 @@
-#pragma once 
+﻿#pragma once 
 
 #if defined _OPENMP
   #include <omp.h>
@@ -78,11 +78,18 @@ namespace energy
   {
   protected:
 
+    /**pointer to coord object*/
     coords::Coordinates * const coords;
-    bool periodic, integrity, optimizer, interactions, internal_optimizer;
+    bool periodic;
+    /**is system intact?*/
+    bool integrity;
+    /**has energy interface its own optimizer?*/
+    bool optimizer;
+    bool interactions, internal_optimizer;
 
   public:
 
+    /**total energy, in dftb interface this is called e_tot*/
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
@@ -130,7 +137,7 @@ namespace energy
     /** Energy+Gradient function*/
     //virtual coords::float_type gi(void) = 0;
 
-    /** Energy+Gradient+Hessian function*/
+    /** Energy+Hessian function*/
     virtual coords::float_type h (void) = 0;
 
     /** Optimization in the intface or interfaced program*/
@@ -138,16 +145,21 @@ namespace energy
 
     // Feature getter
     bool has_periodics() const { return periodic; }
+    /**does energy interface has its own optimizer*/
     bool has_optimizer() const { return optimizer; }
     bool has_internal_optimizer() const { return optimizer; }
     bool has_interactions() const { return interactions; }
-
+    /**is system intact*/
     bool intact() const { return integrity; }
 
     // Output functions
+    /**print total energy*/
     virtual void print_E (std::ostream&) const = 0;
+    /**print headline for energies*/
     virtual void print_E_head (std::ostream&, bool const endline = true) const = 0;
+    /**print partial energies*/
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
+    /**print gradients*/
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
 
