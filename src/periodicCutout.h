@@ -154,9 +154,15 @@ namespace periodicsHelperfunctions
         unsigned int helperIterator = 0u;
         for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)
         {
-          for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
+          std::vector<std::size_t>  old_bonds = inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds();
+
+          for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())//range based loop for removal of old bondingpartners
           {
             truncatedAtoms.atom(k).detach_from(bonding_partner);
+          }
+
+          for (auto& bonding_partner : old_bonds) //range based loop to add new bonding partners | splitted removal and adding necessary to prevent deletion of false bonding index
+          {
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
           }
         }//k
