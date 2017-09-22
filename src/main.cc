@@ -9,7 +9,6 @@
 //////////   //      //   //////////       //
 /////conformational analysis and search tool/////
 
-
 // If we run our tests, we will
 // take the testing main from gtest/testing_main.cc
 #ifndef GOOGLE_MOCK
@@ -50,10 +49,10 @@
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
 #include "exciton_breakup.h"
-#include "interfcrea.h"
 #include "Center.h"
 #include "Couplings.h"
 #include "periodicCutout.h"
+#include "replaceMonomers.h"
 
 
 //////////////////////////
@@ -781,12 +780,24 @@ int main(int argc, char **argv)
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       break;
 	  }
-      case config::tasks::XB_INTEFACE_CREATION:
+      case config::tasks::XB_INTERFACE_CREATION:
       {
       /**
       * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
       */
-        coords = interface_creation(Config::get().interfcrea.icfilename, Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords);
+        //creating second coords object
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+        coords::Coordinates newCoords(coords);
+
+ 
+        newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+
+        coords = newCoords;
+
+        std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
+        new_structure << coords;
+
         break;
       }
       case config::tasks::XB_CENTER:
@@ -805,6 +816,109 @@ int main(int argc, char **argv)
 
         coup.kopplung();
 
+        break;
+      }
+      case config::tasks::LAYER_DEPOSITION:
+      {
+        //Generating layer with random defects
+        coords::Coordinates newCoords(coords);
+        coords::Coordinates inp_add_coords(coords);
+        coords::Coordinates add_coords;
+
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::delete_random_molecules(coords, Config::get().layd.del_amount);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+
+        
+
+        for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
+        {
+          //Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject1(coords);
+          mdObject1.run();
+        }
+
+        for (std::size_t i = 1; i < Config::get().layd.amount; i++)
+        {
+          add_coords = inp_add_coords;
+          add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
+  
+          for (auto & pes : *ci)
+          {
+            newCoords.set_xyz(pes.structure.cartesian);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
+            pes = newCoords.pes();
+          }
+          newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+          coords = newCoords;
+                                                                                                                            
+
+          for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
+          {
+            coords.set_fix(j, true);
+          }
+
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject2(coords);
+          mdObject2.run();
+        }
+
+        std::size_t mon_amount_type1 = coords.molecules().size();//save number of molecules of first kind for later use in replacement
+
+        //option if a heterogenous structure shall be created
+        if (Config::get().layd.hetero_option == true)
+        {
+          std::unique_ptr<coords::input::format> sec_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates sec_coords(sec_strukt_uptr->read(Config::get().layd.layd_secname));
+          coords::Coordinates add_sec_coords;
+
+          for (std::size_t i = 0; i < Config::get().layd.sec_amount; i++)
+          {
+            add_sec_coords = sec_coords;
+            add_sec_coords = periodicsHelperfunctions::delete_random_molecules(add_sec_coords, Config::get().layd.sec_del_amount);
+
+            for (auto & pes : *ci)
+            {
+              newCoords.set_xyz(pes.structure.cartesian);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
+              pes = newCoords.pes();
+            }
+            newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+            coords = newCoords;
+
+            for (std::size_t j = 0; j < (coords.size() - add_sec_coords.size()); j++)//fix all atoms already moved by md
+            {
+              coords.set_fix(j, true);
+            }
+
+            // Molecular Dynamics Simulation
+            if (Config::get().md.pre_optimize) coords.o();
+            md::simulation mdObject3(coords);
+            mdObject3.run();
+          }
+        }
+
+        //option if monomers in structure shall be replaced
+        if (Config::get().layd.replace == true)
+        {
+          std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
+          std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+          coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+          coords::Coordinates newCoords(coords);
+
+          coords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+        }
+
+        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
+        output << coords;
         break;
       }
 

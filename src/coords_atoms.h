@@ -344,6 +344,10 @@ namespace coords
     // stereo stuff
     bool res_is_equal(std::size_t a, std::size_t b, std::size_t from_a, std::size_t from_b, std::size_t deepth) const;
     
+
+    //check fixation of an atom
+    bool check_fix(std::size_t atom){ return m_atoms[atom].fixed(); }
+
     // DEPRECATED
     // internal to cartesian et vice versa
     //void internal_to_cartesian(PES_Point&) const;

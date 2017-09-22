@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 28;
+  static std::size_t const NUM_TASKS = 29;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -59,7 +59,8 @@ namespace config
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
-    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", "HESS", "WRITE_TINKER"
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -78,7 +79,8 @@ namespace config
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
-      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS, HESS, WRITE_TINKER
+      XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
+      LAYER_DEPOSITION, HESS, WRITE_TINKER
     };
   };
 
@@ -385,6 +387,17 @@ namespace config
         : dim(), force(), exponent()
       { }
     };
+    struct thresholdstr
+    {
+      /**force constant*/
+      double forceconstant;
+      /**threshold distance*/
+      double th_dist;
+      /**constructor*/
+      thresholdstr(void)
+        : forceconstant(), th_dist()
+      { }
+    };
   }
 
 
@@ -453,6 +466,8 @@ namespace config
       std::vector<biases::spherical> spherical;
       /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
+      /**threshold potentials*/
+      std::vector<biases::thresholdstr>     threshold;
       /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/
@@ -1205,6 +1220,15 @@ namespace config
                 hetmultipl, hetcharge, hetmethod;
   };
 
+  struct layd
+  {
+    std::size_t amount, del_amount, sec_amount, sec_del_amount;
+    char        laydaxis;
+    double      layddist, sec_layddist;
+    bool        hetero_option, replace;
+    std::string layd_secname, reference1, reference2;
+  };
+
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
@@ -1359,6 +1383,7 @@ public:
   config::center                center;
   config::couplings             couplings;
   config::periodics             periodics;
+  config::layd                 layd;
 
   /*! Constructor of Config object
    *

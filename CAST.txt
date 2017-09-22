@@ -85,6 +85,10 @@ inputtype              TINKER
 # XB_EXCITON_BREAKUP
 # XB_INTEFACE_CREATION
 # XB_COUPLINGS
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
 task                  WRITE_TINKER
 
@@ -946,6 +950,181 @@ CouplingsheterodimMultiplicity       1
 CouplingsheterodimCharge             0
 
 CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+####################################
+#                                  #
+#        XB_EXCITON_BREAKUP        #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters           CenterofMasses.out
+
+#Numbers of monomers
+
+EXnumbern               36
+
+EXnumberp               80
+
+#Orientation of the interface
+
+EXplaneinterf            z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              nSC_homodimer.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
+
+
+
+####################################
+#                                  #
+#      XB_Interface Creation       #           
+#                                  #
+####################################
+
+#Creation of a new Structure from the usual input structure and an additional one
+
+#Additional input file name
+
+ICname                     but_min.xyz
+
+#Additional input file type
+
+ICinputtype                TINKER
+
+#From which axis should tha additional atoms added
+
+ICaxis                      x
+
+#How far apart should they be
+
+ICdistance               5.0
+
+
+####################################
+#                                  #
+#             XB_CENTER            #
+#                                  #
+####################################
+
+CENTERdimer                     1
+
+CENTERdistance                  15.0
+
+
+####################################
+#                                  #
+#           XB_Couplings           #
+#                                  #
+####################################
+
+#Number of p-type semiconductor monomers
+
+CouplingspSCnumber              80
+
+#Number of n-type semiconductor monomers         
+
+CouplingsnSCnumber              36
+
+#List of states relevant for ct-processes (no commata)
+
+CouplingsCTcharastates          3 4 7
+
+###p-type homodimer options
+
+CouplingspSCdimMultiplicity          1
+
+CouplingspSCdimCharge                0
+
+CouplingspSCdimElCalcmethod          INDO
+
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+###n-type homodimer options
+
+CouplingsnSCdimMultiplicity          1
+
+CouplingsnSCdimCharge                0
+
+CouplingsnSCdimholCalcmethod         INDO
+
+###heterodimer options
+
+CouplingsheterodimMultiplicity       1
+
+CouplingsheterodimCharge             0
+
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+####################################
+#                                  #
+#         LAYER_DEPOSITION         #
+#                                  #
+####################################
+
+#Number of layers
+
+LayDlayers                     3
+
+#Number of molecules deleted per layer
+
+LayDdel_number                 1
+
+#From which axis should the layers be added
+
+LayDaxis                       y 
+
+#How far apart should they be
+
+LayDdistance                   5.0
+
+#Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
+thresholdpotential    7.0 2.0
+
+#Shall layers of a second moleculetype be added
+
+LayDhet_struc                   1
+
+LayDhet_name
+
+LayDhet_distance                5.0
+
+LayDhet_layers                  4
+
+LayDhet_del_number         1
+
+#Shall monomers be replaced
+
+LayDreplace                     0
+
+LayDreference1
+
+LayDreference2
 
 ####################################
 #                                  #
