@@ -107,6 +107,15 @@ namespace coords
 
       };
 
+      class xyz : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
+      };
+
       /*! Class to read from TINKER coordinate file (.arc)
        *
        * This class is used to read coordinates from

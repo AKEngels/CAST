@@ -154,9 +154,15 @@ namespace periodicsHelperfunctions
         unsigned int helperIterator = 0u;
         for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)
         {
-          for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
+          std::vector<std::size_t>  old_bonds = inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds();
+
+          for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())//range based loop for removal of old bondingpartners
           {
             truncatedAtoms.atom(k).detach_from(bonding_partner);
+          }
+
+          for (auto& bonding_partner : old_bonds) //range based loop to add new bonding partners | splitted removal and adding necessary to prevent deletion of false bonding index
+          {
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
           }
         }//k
@@ -228,11 +234,18 @@ namespace periodicsHelperfunctions
       unsigned int helperIterator = 0u;
       for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
       {
-        for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
+        std::vector<std::size_t>  old_bonds = inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds();
+
+        for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())//range based loop for removal of old bondingpartners
         {
-          truncatedAtoms.atom(k).detach_from(bonding_partner);
+          truncatedAtoms.atom(k).detach_from(bonding_partner);        
+        }
+
+        for (auto& bonding_partner : old_bonds) //range based loop to add new bonding partners | splitted removal and adding necessary to prevent deletion of false bonding index
+        {
           truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner]);
         }
+
       }//k
     }//i
 
@@ -264,11 +277,18 @@ namespace periodicsHelperfunctions
         unsigned int helperIterator = 0u;
         for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
         {
+          std::vector<std::size_t>  old_bonds = add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds();
+
           for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
           {
-            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file          
+          }
+
+          for (auto& bonding_partner : old_bonds)
+          {
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
           }
+
         }//k
       }//i
 
@@ -298,9 +318,15 @@ namespace periodicsHelperfunctions
         unsigned int helperIterator = 0u;
         for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
         {
+          std::vector<std::size_t>  old_bonds = add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds();
+
           for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
           {
-            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file          
+          }
+
+          for (auto& bonding_partner : old_bonds)
+          {
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
           }
         }//k
@@ -332,9 +358,15 @@ namespace periodicsHelperfunctions
         unsigned int helperIterator = 0u;
         for (std::vector<coords::Atom>::size_type k = truncatedAtoms.size() - add_atoms.molecule(i).size(); k < truncatedAtoms.size(); ++k, helperIterator++)//ashures only atoms of molecule considered at the moment are used
         {
+          std::vector<std::size_t>  old_bonds = add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds();
+
           for (auto& bonding_partner : add_inputStructure.atoms(add_atoms.atomOfMolecule(i, helperIterator)).bonds())
           {
-            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file
+            truncatedAtoms.atom(k).detach_from(bonding_partner);//remove indices of bonding partners from orig file          
+          }
+
+          for (auto& bonding_partner : old_bonds)
+          {
             truncatedAtoms.atom(k).bind_to(new_index_of_atom[bonding_partner + origN]); // add new indices of old bonding partners
           }
         }//k

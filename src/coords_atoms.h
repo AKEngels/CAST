@@ -150,7 +150,7 @@ namespace coords
     // data
     std::string m_symbol;
     std::size_t m_number;
-    double m_mass;
+    double m_mass, m_cov_rad;
     size_1d m_bonds, m_ibound;
     std::size_t m_system, m_etype;
     sub_types m_sub_id;
@@ -176,6 +176,8 @@ namespace coords
     std::size_t number() const { return m_number; }
     // return symbol
     std::string const & symbol() const { return m_symbol; }
+    // return covalent radius
+    double cov_radius() const {return m_cov_rad;}
     // return bonds
     size_1d const & bonds() const { return m_bonds; }
     std::size_t const & bonds(std::size_t const i) const { return m_bonds[i]; }
@@ -342,6 +344,10 @@ namespace coords
     // stereo stuff
     bool res_is_equal(std::size_t a, std::size_t b, std::size_t from_a, std::size_t from_b, std::size_t deepth) const;
     
+
+    //check fixation of an atom
+    bool check_fix(std::size_t atom){ return m_atoms[atom].fixed(); }
+
     // DEPRECATED
     // internal to cartesian et vice versa
     //void internal_to_cartesian(PES_Point&) const;
