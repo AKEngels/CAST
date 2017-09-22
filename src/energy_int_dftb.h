@@ -65,10 +65,11 @@ namespace energy
 				fills the string add_path for adding stuff to pythonpath
 				and creates configuration file for dftbaby*/
 				sysCallInterface(coords::Coordinates*);
+                /**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
-				Energy class functions that need to be overloaded
+				Energy class functions that need to be overloaded (for documentation see also energy.h)
 				*/
 
 				interface_base * clone(coords::Coordinates * coord_object) const;
@@ -77,13 +78,13 @@ namespace energy
 				void swap(interface_base&);
 				void swap(sysCallInterface&);
 
-				// Energy function
+				/** Energy function*/
 				double e(void);
-				// Energy+Gradient function
+				/** Energy+Gradient function*/
 				double g(void);
-				// Energy+Gradient+Hessian function
+				/** Energy+Hessian function*/
 				double h(void);
-				// Optimization in the interface(d program)
+				/** Optimization in the interface(d program)*/
 				double o(void);
 				// Output functions
 				/**prints total energy*/
