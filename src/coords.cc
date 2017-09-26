@@ -500,7 +500,7 @@ void coords::Coordinates::h_tostream(std::ostream &S,
       S << "| X ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Y ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Z (" << std::right << std::fixed << std::setw(6) <<i+1<< ") ";
     }
     S<<"\n";
-    for (unsigned i=0; i<(12*3*m_representation.size()+12); i++)  // second line
+    for (unsigned i=0; i<(13*3*m_representation.size()+13); i++)  // second line
     {
       S << "-";
     }
