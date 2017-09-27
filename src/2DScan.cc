@@ -232,7 +232,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
           continue;
         }
 
-	std::cout << atom_number << " " << bond_count << " " << deg << " " << change << " " << " " << max_change_rotation_rad << " " << parent->change_from_atom_to_atom << std::endl;
+//	std::cout << atom_number << " " << bond_count << " " << deg << " " << change << " " << " " << max_change_rotation_rad << " " << parent->change_from_atom_to_atom << std::endl;
 
         auto rot = RotationMatrix::rotate_around_axis_with_center(change, axis, center);
 
@@ -430,12 +430,11 @@ void Scan2D::make_scan() {
           parser->x_parser->make_move(mh), 
           true
         );
-
+        parser->x_parser->set_coords(_coords.xyz());
+        
 		parser->fix_atoms(_coords);
 
-    	//write_energy_entry(optimize(_coords));
-
-        //std::cout << parser->x_parser->say_val() << std::endl;
+    	write_energy_entry(optimize(_coords));
 
 		output.to_stream(logfile);
 
@@ -457,11 +456,12 @@ void Scan2D::prepare_scan() {
    
     auto const x_move = parser->x_parser->what->from_position;
     auto const y_move = parser->y_parser->what->from_position;
-
+    auto say_x = parser->x_parser->say_val();
+    auto say_y = parser->y_parser->say_val();
     auto const & x_atoms = parser->x_parser->what->atoms;
     auto const & y_atoms = parser->y_parser->what->atoms;
 
-    parser->fix_atoms(_coords);
+    parser->x_parser->set_coords(_coords.xyz());
 
     Move_Handler xmh(_coords, x_atoms, shared_from_this());
     xmh.set_new_pos(x_move);
@@ -470,6 +470,8 @@ void Scan2D::prepare_scan() {
       parser->x_parser->make_move(xmh),
       true
     );
+
+    parser->y_parser->set_coords(_coords.xyz());
 
     Move_Handler ymh(_coords, y_atoms, shared_from_this());
     ymh.set_new_pos(y_move);
@@ -504,7 +506,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
         );
 		parser->fix_atoms(coords);
 
-	//	this->write_energy_entry(this->optimize(coords));
+		this->write_energy_entry(this->optimize(coords));
 		parser->y_parser->set_coords(coords.xyz());
 
         //std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << " should be: " << y_step << std::endl;
