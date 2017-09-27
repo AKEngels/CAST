@@ -14,7 +14,7 @@ void Scan2D::execute_scan(){
                 throw std::runtime_error("You can't pass more than two axis!");
         }
 
-	auto x_input_parser = parse_input(both_whats.front());
+    	auto x_input_parser = parse_input(both_whats.front());
         auto y_input_parser = parse_input(both_whats.back());
 
         x_input_parser->set_coords(_coords.xyz());
@@ -25,7 +25,7 @@ void Scan2D::execute_scan(){
 
         parser = std::make_unique<XY_Parser>(std::move(x_input_parser), std::move(y_input_parser));
 
-        axis = std::make_unique<XY_steps>(x_changes, y_changes);
+        axis = std::make_unique<XY_Steps>(x_changes, y_changes);
 
         make_scan();
 }
@@ -46,8 +46,8 @@ void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, c
 
 	set_coords(xyz);
 
-	auto position_of_begin_val = splitted_vals.size() - 3;
-	auto position_of_end_val = splitted_vals.size() - 2;
+	auto const position_of_begin_val = splitted_vals.size() - 3;
+	auto const position_of_end_val = splitted_vals.size() - 2;
 
     auto do_prepare_position = [&]() {
 //      this->what->prepare_position = true;
@@ -130,21 +130,21 @@ Scan2D::angle_type Scan2D::get_angle(cangle const & abc) {
 Scan2D::angle_type Scan2D::get_dihedral(cdihedral const & abcd) {
 	
 	auto const b_to_a = abcd.a - abcd.b;
-	auto const b_to_c = abcd.b - abcd.c;
+	auto const b_to_c = abcd.b - abcd.c;//Shouldn't this be c-b?
 	auto const b_to_d = abcd.d - abcd.b;
 
 	auto const normal_vec_to_plain_ABC = scon::cross(b_to_c, b_to_a);
 	auto const normal_vec_to_plain_BCD = scon::cross(b_to_c, b_to_d);
 
-	auto const notmal_to_normals = scon::cross(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC);
+	auto const normal_to_normals = scon::cross(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC);
 
 	auto const orthonormal_reference = scon::normalized(b_to_c);
 
 	auto in_degrees = Scan2D::angle_type::from_rad(
-		atan2(scon::geometric_length(notmal_to_normals), scon::dot(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC))
+		atan2(scon::geometric_length(normal_to_normals), scon::dot(normal_vec_to_plain_BCD, normal_vec_to_plain_ABC))
 	);
 
-	if (scon::dot(orthonormal_reference, notmal_to_normals) > 0.0) {
+	if (scon::dot(orthonormal_reference, normal_to_normals) > 0.0) {
 		return in_degrees;
 	}
 	else {
@@ -175,7 +175,9 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(cangle const & abc, Scan2D
 	auto ZxA = scon::normalized(scon::cross(CB, abc.a - abc.b));
 	auto ZxAxZ = scon::normalized(scon::cross(ZxA, CB));
 
-	return abc.b + CB * new_x + ZxAxZ * new_y;
+    auto ret = abc.b + CB * new_x + ZxAxZ * new_y;
+
+      return ret;
 
 }
 
@@ -400,16 +402,16 @@ void Scan2D::make_scan() {
 	prepare_scan();
 	
 	coords::output::formats::tinker output(_coords);
-    std::cout << parser->x_parser->say_val() << " " << parser->y_parser->say_val() << std::endl;
-    parser->fix_atoms(_coords);
-    write_energy_entry(_coords.o());
-    parser->x_parser->set_coords(_coords.xyz());
+    //std::cout << parser->x_parser->say_val() << " " << parser->y_parser->say_val() << std::endl;
+    //parser->fix_atoms(_coords);
+    //write_energy_entry(optimize(_coords));
+    //parser->x_parser->set_coords(_coords.xyz());
     
-    output.to_stream(logfile);
+    //output.to_stream(logfile);
     
-    go_along_y_axis(_coords);
+    //go_along_y_axis(_coords);
 
-	for (auto && x_step : axis->x_steps) {
+	for (auto const & x_step : axis->x_steps) {
 
 		++x_circle;
 
@@ -420,15 +422,16 @@ void Scan2D::make_scan() {
         Move_Handler mh(_coords, x_atoms, shared_from_this());
         mh.set_new_pos(x_step);
 
+        parser->x_parser->set_coords(_coords.xyz());
+
 		_coords.set_xyz(
           parser->x_parser->make_move(mh), 
           true
         );
-        
+
 		parser->fix_atoms(_coords);
 
-    	write_energy_entry(_coords.o());
-		parser->x_parser->set_coords(_coords.xyz());
+    	write_energy_entry(optimize(_coords));
 
         std::cout << parser->x_parser->say_val() << std::endl;
 
@@ -438,6 +441,13 @@ void Scan2D::make_scan() {
 		
 	}
 
+}
+
+float_type Scan2D::optimize(coords::Coordinates & c) {
+  auto E_o = c.o();
+  parser->x_parser->set_coords(c.xyz());
+  parser->y_parser->set_coords(c.xyz());
+  return E_o;
 }
 
 void Scan2D::prepare_scan() {
@@ -484,14 +494,15 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
         Move_Handler mh(coords, y_atoms, this->shared_from_this());
         mh.set_new_pos(y_step);
 
+        this->parser->y_parser->set_coords(coords.xyz());
+
 		coords.set_xyz(
           parser->y_parser->make_move(mh),
           true
         );
 		parser->fix_atoms(coords);
 
-		this->write_energy_entry(coords.o());
-        auto bla = coords.xyz();
+		this->write_energy_entry(optimize(coords));
 		parser->y_parser->set_coords(coords.xyz());
 
         std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << " should be: " << y_step << std::endl;
@@ -499,7 +510,7 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 		output.to_stream(logfile);
 
 	});
-
+    energies << "\n";
 	y_circle = 0;
 
 }
@@ -581,58 +592,58 @@ coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Hand
     return mh.transform_molecule_behind_a_bond(change);
   }
   else {
-    auto new_molecule = p->_coords.xyz();
+    auto new_molecule = mh._coords.xyz();
     new_molecule[mh.atoms.at(0) - 1u] = change_length_of_bond(*bond, mh.new_pos);
     return new_molecule;
   }
 }
 
-//coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
-//    auto p = parent.lock();
-//
-//        auto new_molecule = p->_coords.xyz();
-//        new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
-//        return new_molecule;
-//}
-
 coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
-  auto p = parent.lock();
+    auto p = parent.lock();
 
-  auto const change = mh.new_pos - say_val();
-
-  if (fabs(change) > p->max_change_rotation) {
-    return mh.rotate_molecule_behind_a_ang(change);
-  }
-  else {
-    auto new_molecule = p->_coords.xyz();
+    auto new_molecule = mh._coords.xyz();
     new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
     return new_molecule;
-  }
 }
 
-//coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
-//    auto p = parent.lock();
-//   
-//       auto new_molecule = mh._coords.xyz();
-//       new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
-//       return new_molecule;
+//coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
+//  auto p = parent.lock();
+//
+//  auto const change = mh.new_pos - say_val();
+//
+//  if (fabs(change) > p->max_change_rotation) {
+//    return mh.rotate_molecule_behind_a_ang(change);
+//  }
+//  else {
+//    auto new_molecule = mh._coords.xyz();
+//    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
+//    return new_molecule;
+//  }
 //}
 
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
-  auto p = parent.lock();
-  auto const poossss = say_val();
-  auto const change = mh.new_pos - say_val();
-
-  if (fabs(change) > p->max_change_rotation) {
-    auto ret = mh.rotate_molecule_behind_a_dih(change);
-    return ret;
-  }
-  else {
+    auto p = parent.lock();
+   
     auto new_molecule = mh._coords.xyz();
     new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
     return new_molecule;
-  }
 }
+
+//coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
+//  auto p = parent.lock();
+//  auto const poossss = say_val();
+//  auto const change = mh.new_pos - say_val();
+//
+//  if (fabs(change) > p->max_change_rotation) {
+//    auto ret = mh.rotate_molecule_behind_a_dih(change);
+//    return ret;
+//  }
+//  else {
+//    auto new_molecule = mh._coords.xyz();
+//    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
+//    return new_molecule;
+//  }
+//}
 
 Scan2D::length_type Scan2D::Normal_Bond_Input::say_val() {
 	return Scan2D::get_length(*bond);

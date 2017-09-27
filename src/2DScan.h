@@ -164,52 +164,46 @@ private:
       //void go_along_backbone(coroutine_type::push_type & sink ,std::size_t const & atom, std::size_t const & border);
     };
 
-	class Input_types {
-	public:
+	struct Input_types {
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) = 0;
 		virtual void set_coords(coords::Representation_3D const & xyz) = 0;
 		virtual length_type say_val() = 0;
 		virtual std::vector<length_type> make_axis() = 0;
 		virtual coords::Representation_3D make_move(Move_Handler const & mh) = 0;
-	public:
         Input_types(std::weak_ptr<Scan2D> & p) : parent(p) {}
 		std::unique_ptr<Scan2D::what> what;
         std::weak_ptr<Scan2D> parent;
 	};
 
-	class Normal_Input : public Input_types {
-    public:
+	struct Normal_Input : Input_types {
         Normal_Input(std::weak_ptr<Scan2D> & p) : Input_types(p) {}
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) override;
 	};
 
-	class Normal_Bond_Input : public Normal_Input {
+	struct Normal_Bond_Input : Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
-	public:
         Normal_Bond_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
         std::unique_ptr<Scan2D::cbond> bond;
 	};
 
-	class Normal_Angle_Input : public Normal_Input {
+	struct Normal_Angle_Input : Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
-	public:
         Normal_Angle_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cangle> angle;
 	};
 
-	class Normal_Dihedral_Input : public Normal_Input {
+	struct Normal_Dihedral_Input : Normal_Input {
 		virtual void set_coords(coords::Representation_3D const & xyz) override;
 		virtual length_type say_val() override;
 		virtual std::vector<length_type> make_axis() override;
 		virtual coords::Representation_3D make_move(Move_Handler const & mh) override;
-	public:
-      Normal_Dihedral_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
+       Normal_Dihedral_Input(std::weak_ptr<Scan2D> p) : Normal_Input(p) {}
 		std::unique_ptr<Scan2D::cdihedral> dihedral;
 	};
 
@@ -222,11 +216,11 @@ private:
 		void fix_atoms(coords::Coordinates & coords)const;
 	};
 
-	class XY_steps {
+	class XY_Steps {
 	public:
 		std::vector<length_type> x_steps;
 		std::vector<length_type> y_steps;
-		XY_steps(std::vector<length_type> & x, std::vector<length_type> & y)
+		XY_Steps(std::vector<length_type> & x, std::vector<length_type> & y)
 			: x_steps(std::move(x)), y_steps(std::move(y)){}
 	};
 
@@ -237,11 +231,14 @@ private:
 	void prepare_scan();
 	//void make_x_change(length_type const & change, Scan2D::XY_Parser const & parser, coords::Representation_3D & y_steps);
 	void go_along_y_axis(coords::Coordinates coords);
+    float_type optimize(coords::Coordinates & c);
 
 	std::unique_ptr<XY_Parser> parser;
-	std::unique_ptr<XY_steps> axis;
+	std::unique_ptr<XY_Steps> axis;
 
 	inline void write_energy_entry(double const & e) {
+
+      auto bla = parser->x_parser->say_val();
 
 		energies << std::fixed << std::setprecision(5) <<
 			std::setw(12) << parser->x_parser->say_val() <<
