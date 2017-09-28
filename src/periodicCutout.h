@@ -74,10 +74,16 @@ namespace periodicsHelperfunctions
           unsigned int helperIterator = 0u;
           for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - atoms.molecule(i).size(); j < truncatedAtoms.size(); ++j, helperIterator++)
           {
+            std::vector<std::size_t>  old_bonds = inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds();
+
             for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
             {
-              truncatedAtoms.atom(j).detach_from(bonding_partner);
-              truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]);
+              truncatedAtoms.atom(j).detach_from(bonding_partner);//remove indices of bonding partners from orig file          
+            }
+
+            for (auto& bonding_partner : old_bonds)
+            {
+              truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]); // add new indices of old bonding partners
             }
           }
         }
@@ -111,11 +117,18 @@ namespace periodicsHelperfunctions
           unsigned int helperIterator = 0u;
           for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - atoms.molecule(i).size(); j < truncatedAtoms.size(); ++j, helperIterator++)
           {
+            std::vector<std::size_t>  old_bonds = inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds();
+
             for (auto& bonding_partner : inputStructure.atoms(atoms.atomOfMolecule(i, helperIterator)).bonds())
             {
-              truncatedAtoms.atom(j).detach_from(bonding_partner);
-              truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]);
+              truncatedAtoms.atom(j).detach_from(bonding_partner);//remove indices of bonding partners from orig file          
             }
+
+            for (auto& bonding_partner : old_bonds)
+            {
+              truncatedAtoms.atom(j).bind_to(new_index_of_atom[bonding_partner]); // add new indices of old bonding partners
+            }
+
           }
         }
       }
