@@ -226,7 +226,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
         std::size_t atom_number, bond_count;
         std::tie(atom_number, bond_count) = dd;
 
-        length_type const change = angle_type::from_deg(deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
+        auto const change = angle_type::from_deg(deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
 
         if (fabs(change) >= max_change_rotation_rad && (deg * change) < 0.){
           continue;
@@ -269,11 +269,11 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Sca
 
     length_type const change = angle_type::from_deg(deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
 
-    if (fabs(change) <= max_change_rotation_rad) {
+    if (fabs(change) >= max_change_rotation_rad && (deg * change) < 0.) {
       continue;
     }
 
-    auto rot = RotationMatrix::rotate_around_axis_with_center(change, axis, center);
+    auto rot = RotationMatrix::rotate_around_axis_with_center(change, -axis, center);
 
     auto && coord = xyz[atom_number];
     RotationMatrix::Vector tmp_coord{ coord.x(), coord.y(), coord.z() };
@@ -300,13 +300,11 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
       std::size_t atom_number, bond_count;
       std::tie(atom_number, bond_count) = bb;
 
-      auto change = (length - parent->change_from_atom_to_atom*static_cast<double>(bond_count));
+      auto const change = length - parent->change_from_atom_to_atom*static_cast<double>(bond_count);
 
       if (fabs(change) <= parent->max_change_rotation) {
         continue;
       }
-
-      change -= distance;
 
       auto vec = axis.normalized() * change;
 
@@ -445,7 +443,8 @@ void Scan2D::make_scan() {
 }
 
 float_type Scan2D::optimize(coords::Coordinates & c) {
-  auto E_o = c.o();
+  //auto E_o = 0.0;
+  auto E_o = c.o();//<- SUPPPPPPER WICHTIG!!!!!!!!!!!
   parser->x_parser->set_coords(c.xyz());
   parser->y_parser->set_coords(c.xyz());
   return E_o;
@@ -602,28 +601,28 @@ coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Hand
   }
 }
 
-coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
-    auto p = parent.lock();
-
-    auto new_molecule = mh._coords.xyz();
-    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
-    return new_molecule;
-}
-
 //coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
-//  auto p = parent.lock();
+//    auto p = parent.lock();
 //
-//  auto const change = mh.new_pos - say_val();
-//
-//  if (fabs(change) > p->max_change_rotation) {
-//    return mh.rotate_molecule_behind_a_ang(change);
-//  }
-//  else {
 //    auto new_molecule = mh._coords.xyz();
 //    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
 //    return new_molecule;
-//  }
 //}
+
+coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
+  auto p = parent.lock();
+  auto blub = say_val();
+  auto const change = mh.new_pos - say_val();
+
+  if (fabs(change) > p->max_change_rotation) {
+    return mh.rotate_molecule_behind_a_ang(change);
+  }
+  else {
+    auto new_molecule = mh._coords.xyz();
+    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_angle(*angle, angle_type::from_deg(mh.new_pos));
+    return new_molecule;
+  }
+}
 
 //coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
 //    auto p = parent.lock();
@@ -635,12 +634,10 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
   auto p = parent.lock();
-  auto const poossss = say_val();
   auto const change = mh.new_pos - say_val();
 
   if (fabs(change) > p->max_change_rotation) {
-    auto ret = mh.rotate_molecule_behind_a_dih(change);
-    return ret;
+    return mh.rotate_molecule_behind_a_dih(change);
   }
   else {
     auto new_molecule = mh._coords.xyz();
