@@ -878,7 +878,12 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 
 	%%%% STARTOPT %%%%
 	\subsection{STARTOPT - I dont even know}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	
+	This task can be used to add a waterbox around a given molecule. To do this set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	
+	As this task only optimizes the water shell but not your original molecule it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
+	
+	\colorbox{red}{describe all options of SOLVEADD and RINGSEARCH}
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
