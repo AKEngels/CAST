@@ -877,13 +877,34 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be cosntraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
 
 	%%%% STARTOPT %%%%
-	\subsection{STARTOPT - I dont even know}	
+	\subsection{STARTOPT}	
 	
-	This task can be used to add a waterbox around a given molecule. To do this set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
 	
-	As this task only optimizes the water shell but not your original molecule it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
+	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
 	
-	\colorbox{red}{describe all options of SOLVEADD and RINGSEARCH}
+	Other options of this task are described in the following table:
+	
+	\begin{tabularx}{\textwidth}{l|X|X}
+		variable & effect & default \\
+		\hline
+    \textbf{\underline{Startopt Options}} &  &  \\ 
+		\textbf{SOtype} & 0 = Ringsearch, 1 = Solvadd, 2 = Ringsearch + Solvadd	& int [1]\\
+		\textbf{SOstructures} & ??? & ??? \\
+		\hline
+		\textbf{\underline{Solvadd Options}} & &  \\
+		\textbf{SAhb} & ??? & float [1.8] \\
+		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
+		\textbf{SAboundary} & shape of the water shell (0 = layer, 1 = sphere, 2 = box) & integer [10] \\
+		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
+		\textbf{SAtypes} & force field parameter types of water oxygen and hydrogen & 2 integers \\
+		\textbf{SAopt} & how is structure optimised? (0 = not at all, 1 = after adding of each shell, 2 = once after adding all waters, 3 = each shell and all at the end & int \\
+		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
+		\hline
+		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
+
+		
+	\end{tabularx}\\~\\
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
