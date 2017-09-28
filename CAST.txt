@@ -1,4 +1,4 @@
-####################################
+﻿####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -29,11 +29,11 @@ cores                  4
 
 # Input file name
 
-name                   water1.arc
+name                   3d7z_inh_28_29.arc
 
 # Output file name
 
-outname                methan
+outname                output
 
 # Input file type
 
@@ -90,7 +90,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  WRITE_TINKER
+task                  STARTOPT
 
 ####################################
 #                                  #
@@ -106,14 +106,14 @@ task                  WRITE_TINKER
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              DFTB
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa_mod2.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -264,12 +264,12 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              0 70.0 70.0 70.0
+Periodics              0 24.0 24.0 24.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
 
-#Periodicp              0
+Periodicp              0
 
 # Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
 PeriodicCutout false
@@ -561,15 +561,13 @@ RSgenerations          10
 #                                  #
 ####################################
 
-SOtype 1
-
 # Hydrogen bond length parameter [default: 1.8]
 
 SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-#SAlimit                20
+#SAlimit                500
 
 # water boundary type
 #
@@ -577,11 +575,11 @@ SAhb                   1.8
 # 1    sphere
 # 2    box
 
-SAboundary             2
+SAboundary             1
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               40.0
+SAradius               12.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -589,7 +587,7 @@ SAradius               40.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                53 54
+SAtypes                63 64
 
 # Intermediate optimizations
 #
@@ -598,11 +596,11 @@ SAtypes                53 54
 # 2    all waters
 # 3    1+2
 
-SAopt                  3
+SAopt                  2
 
-# fix initial structure
+# fix initial structure <0/1>
 
-SAfixinit              0
+SAfixinit              1
 
 
 
@@ -626,7 +624,7 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            1
+MDveloscale            0
 
 # Thermostat (Nose-Hoover)
 
@@ -662,7 +660,8 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-
+MDheat                 0   1
+MDheat                 100 300
 
 # Pressure control
 
@@ -702,7 +701,7 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-MDactive_site        11
+MDactive_site        0
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
@@ -742,7 +741,7 @@ FEPeleccouple  0.5
 FEPvshift      0.1
 FEPcshift      2.0
 FEPequil       100
-FEPsteps       500
+FEPsteps       100
 FEPfreq        1000
 
 
