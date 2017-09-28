@@ -211,7 +211,7 @@ REMOVEHROT             false
 #Periodicp              0
 
 # Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
-PeriodicCutout true
+PeriodicCutout false
 # 0: Remove entire molecule if any atom of molecule is outside box + CutoutDistance
 # 1: Remove entire molecule if center of mass is outside box + CutoutDistance
 PeriodicCutoutCriterion 1
