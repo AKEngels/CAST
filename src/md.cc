@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <cmath>
 #include <algorithm>
 #include <limits>
@@ -1191,7 +1191,6 @@ coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, doubl
   }
   else if (distance <= inner_cutoff)  // normal movement inside inner cutoff
   {
-    inner_atoms.push_back(atom_number); // save atoms for temperature calculation 
     return velocity;
   }
   else    // should not happen
@@ -1291,7 +1290,6 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
       // update veloctiy
       V[i] += acceleration*dt_2;
 
-      inner_atoms.clear();
       if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
       {
         V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
@@ -1326,8 +1324,13 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     {
       distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
       movable_atoms.clear();            // determine again which atoms are moved
+      inner_atoms.clear();
       for (int i(0U); i < N; ++i)
       {
+        if (distances[i] < inner_cutoff)
+        {
+          inner_atoms.push_back(i);
+        }
         if (distances[i] <= outer_cutoff)
         {
           movable_atoms.push_back(i);
@@ -1358,7 +1361,6 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // If spherical boundaries are used apply boundary potential
     boundary_adjustments();
     // add new acceleration and calculate full step velocities
-    inner_atoms.clear();
     for (auto i : movable_atoms)
     {
       coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
@@ -1487,7 +1489,6 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
       // update veloctiy
       V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
 
-      inner_atoms.clear();
       if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
       {
         V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
@@ -1520,8 +1521,13 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
     {
       distances = init_active_center(static_cast<int>(k));
       movable_atoms.clear();            // determine again which atoms are moved
+      inner_atoms.clear();
       for (int i(0U); i < N; ++i)
       {
+        if (distances[i] < inner_cutoff)
+        {
+          inner_atoms.push_back(i);
+        }
         if (distances[i] <= outer_cutoff)
         {
           movable_atoms.push_back(i);
@@ -1557,7 +1563,6 @@ void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
     boundary_adjustments();
 
     // add new acceleration and calculate full step velocities
-    inner_atoms.clear();
     for (auto i : movable_atoms)
     {
       coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
