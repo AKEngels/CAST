@@ -65,7 +65,7 @@ inputtype              TINKER
 # DIMER                Dimer method using torsional space
 # MD                   Molecular dynamics simulation
 # NEB                  Nudged elastic band calculation
-# STARTOPT
+# STARTOPT             Adding water molecules and/or performing Ringsearch
 # UMBRELLA             Umbrella Sampling
 # FEP                  Alchemical transformations using FEP
 # ALIGN                Trajectory Alignment (Kabsch algorithm)
