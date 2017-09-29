@@ -131,7 +131,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
 	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
 
-	ofs << "eandg coords = ${dir}/" << tmp_file_name << ".c \\\n"
+	ofs << "eandg coords = ./" << tmp_file_name << ".c \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
 		ofs << "        coupling= " << embedding_sheme << " \\\n";
@@ -151,7 +151,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	ofs << "    debug=no \\\n"
 		"    mm_theory= dl_poly : [ list \\\n"
 		"        list_option=none \\\n"
-		"        conn= ${sys_name_id}.c \\\n"
+		"        conn=" << tmp_file_name << ".c \\\n"
 		"        mm_defs=$amber_prmtop \\\n"
 		"        exact_srf=yes \\\n";
 	if (mxlist != "") {
@@ -189,7 +189,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms(qm_region);
 
 
-    ofs << "dl-find coords = ${dir}/" << tmp_file_name << ".c \\\n"
+    ofs << "dl-find coords = ./" << tmp_file_name << ".c \\\n"
         "    coordinates=";
     if (coordinates != "") {
         ofs << coordinates;
@@ -308,12 +308,8 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 	std::ofstream chem_shell_input_stream(o_file);
 
 	chem_shell_input_stream <<
-		"global sys_name_id\n"
 		"global qm_theory\n"
-		"global ftupd\n"
-		"\n"
-		"set dir .\n"
-		"set sys_name_id " << tmp_file_name << "\n"
+//		"global ftupd\n"
 		"\n"
 		"set amber_prmtop " << tmp_file_name << ".prmtop\n"
 		"set amber_inpcrd " << tmp_file_name << ".inpcrd\n"
