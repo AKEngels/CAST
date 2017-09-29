@@ -320,17 +320,17 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"\n"
 		"set residues [pdb_to_res \"" << tmp_file_name << ".pdb\"]\n";
 	//Refactoring NEEDED!!!!!!
-	auto const & cov_res = Config::get().energy.chemshell.cov_residues;
+	auto const & com_res = Config::get().energy.chemshell.com_residues;
 	
-	if (cov_res != "") {
-		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << cov_res << "} target= MOX ]\n\n";
+	if (com_res != "") {
+		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << com_res << "} target= MOX ]\n\n";
 	}
 	else {
 		chem_shell_input_stream << "\n";
 	}
 	//	"flush $control_input_settings\n"
 	//	"\n"
-		;
+	//	;
 	if (sp) {
 		make_sp_inp(chem_shell_input_stream);
 	}

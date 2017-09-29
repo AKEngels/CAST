@@ -561,7 +561,7 @@ namespace config
 		std::string qm_basis = "";
 		std::string qm_charge = "";
 		std::string qm_atoms = "";
-		std::string cov_residues;
+		std::string com_residues = "";
 
 		std::string maxcycle = "";
 		std::string maxcyc = "";
