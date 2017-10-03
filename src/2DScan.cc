@@ -365,8 +365,8 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
       } 
   };
 
-  std::size_t atom, border;
-  std::tie(atom, border) = prepare_start_conditions();
+  std::size_t atom = kind[1u] - 1u, border = kind[2u] - 1u;
+  //std::tie(atom, border) = prepare_start_conditions();
 
   std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
     if(neigh.size()<=1) return;
