@@ -345,28 +345,19 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
 Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t> const & kind) const {
   auto const & atoms = _coords.atoms();
   bond_set ret;
-  std::size_t recursion_count = 1;
+  std::size_t recursion_count = 0;
 
   auto lock_depth = false;
   auto fixed_depth = 0;
 
-  auto prepare_start_conditions = [&]() {
-      if (kind.size() == 2) {
-          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
-          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
-      }
-      else if (kind.size() == 3) {
-          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
-          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
-      }
-      else if (kind.size() == 4) {
-          --recursion_count;
-          return std::make_pair(kind[1u] - 1u, kind[2u] - 1u);
-      } 
-  };
+  std::size_t atom = 0u;
+  std::size_t border = 0u;
 
-  std::size_t atom, border;
-  std::tie(atom, border) = prepare_start_conditions();
+  std::tie(atom, border) = kind.size() == 2 ?
+    std::make_pair(kind[0u] - 1u, kind[1u] - 1u) :
+    std::make_pair(kind[1u] - 1u, kind[2u] - 1u);
+
+  ret.insert(std::make_pair(atom, recursion_count));
 
   std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
     if(neigh.size()<=1) return;

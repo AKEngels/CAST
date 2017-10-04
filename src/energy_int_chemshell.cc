@@ -424,12 +424,15 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
     for(auto const & qm_atom : qm_list){
         active_atoms_set.erase(qm_atom);
     }
+
+    auto const & atoms = coords->atoms();
+
     for(auto const & aa : active_atoms_set){
+        if (atoms.atom(aa-1).fixed()) continue;
         active_atoms += std::to_string(aa) + " ";
     }
 
 	std::string fixed_atoms = "";
-	auto const & atoms = coords->atoms();
 	for (auto i = 0; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
 		if (atom.fixed()) {

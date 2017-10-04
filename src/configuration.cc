@@ -594,9 +594,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (sub_option == "tolerance") {
 		  Config::set().energy.chemshell.tolerance = value_string;
 	  }
-	  else if (sub_option == "tolerance") {
-		  Config::set().energy.chemshell.tolerance = value_string;
-	  }
 	  else if (sub_option == "mxlist") {
 		  Config::set().energy.chemshell.mxlist = value_string;
 	  }
