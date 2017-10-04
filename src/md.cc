@@ -695,20 +695,47 @@ void md::simulation::freecalc()
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
 }
 
+//Calculation of ensemble average and free energy change for backwards transformation
+void md::simulation::freecalc_back()
+{
+  std::size_t iterator(0U), k(0U);
+  // set conversion factors (conv) and constants (boltzmann, avogadro)
+  double de_ensemble, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+  // calculate ensemble average for current window
+  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
+  {                // for every conformation in window
+    iterator += 1;
+    k = 0;
+    de_ensemble = temp_avg = 0.0;
+    coordobj.fep.fepdata[i].de_ens = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
+    for (k = 0; k <= i; k++) {
+      temp_avg += coordobj.fep.fepdata[k].T;
+      de_ensemble += coordobj.fep.fepdata[k].de_ens;
+    }
+    de_ensemble = de_ensemble / iterator;
+    temp_avg = temp_avg / iterator;
+    coordobj.fep.fepdata[i].dG = std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
+  }// end of main loop
+   // calculate final free energy change for the current window
+  this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
+}
+
 // write the output FEP calculations
-// backward transformations are not supported anymore!!!!
 void md::simulation::freewrite(std::size_t i)
 {
-
   std::ofstream fep("alchemical.txt", std::ios_base::app);
   std::ofstream res("FEP_Results.txt", std::ios_base::app);
   // standard forward output
-  if (i*Config::get().fep.dlambda == 0 && this->prod == false)
+  if (i*Config::get().fep.dlambda == 0 && this->prod == false && !Config::get().fep.backwards)
   {
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << "0" << std::setw(10) << "0" << std::endl;
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << "0" << std::setw(10) << "0" << std::setw(10) << "0" << std::endl;
   }
   // equilibration is performed
   if (this->prod == false) {
+    if (Config::get().fep.backwards)
+    {
+      fep << "Backwards Transformation\n";
+    }
     fep << "Equilibration for Lambda =  " << i * Config::get().fep.dlambda <<
       "  and dLambda =  " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
   }
@@ -739,9 +766,16 @@ void md::simulation::freewrite(std::size_t i)
     fep << "Free energy change for the current window:  ";
     fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
-    //fep <<  FEPsum << std::endl;
-    fep << "End of collection. Increasing lambda value" << std::endl;
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum << std::endl;
+    if (Config::get().fep.backwards) fep << "End of collection. Increasing lambda value" << std::endl;
+
+    if (!Config::get().fep.backwards)
+    {
+      res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
+    }
+    else  // backwards results in third column
+    {
+      res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::endl;
+    }
   }
 }
 
@@ -767,6 +801,24 @@ void md::simulation::feprun()
     // calculate free energy change for window and write output
     freecalc();
     freewrite(i);
+
+    // backwards calculation
+    std::cout << "Doing backwards transformation\n";
+    Config::set().fep.backwards = true;
+    Config::set().md.num_steps = Config::get().fep.equil;
+    integrate(true);
+    // write output for equlibration and clear fep vector
+    this->prod = false;
+    freewrite(i);
+    coordobj.fep.fepdata.clear();
+    // production run for window i
+    Config::set().md.num_steps = Config::get().fep.steps;
+    integrate(true);
+    this->prod = true;
+    // calculate free energy change for window and write output
+    freecalc_back();
+    freewrite(i);
+    Config::set().fep.backwards = false;
   }// end of main window loop
 }
 

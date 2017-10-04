@@ -1,4 +1,4 @@
-#pragma once 
+﻿#pragma once 
 
 #include <vector>
 #include <string>
@@ -389,12 +389,16 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
+    /**Calculation of ensemble average and free energy change for backwards transformation*/
+    void freecalc_back();
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(std::size_t);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference*/
     double FEPsum;
+    /**current free energy difference for backwards transformation*/
+    double FEPsum_back;
 
     //**overload for << operator*/
     template<class Strm>

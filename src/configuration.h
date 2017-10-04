@@ -823,10 +823,12 @@ namespace config
     std::size_t equil;
     /**output frequency in alchemical.txt (does not affect calculation)*/
     std::size_t freq;
+    /**is currently a backwards transformation performed?*/
+    bool backwards;
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1)
+      steps(10), equil(10), freq(1), backwards(false)
     { }
   };
 
