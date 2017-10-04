@@ -189,6 +189,14 @@ namespace md
   */
   struct fepvar
   {
+    /**lambda_el of former window for appearing atoms*/
+    double mein;
+    /**lambda_el of former window for disappearing atoms*/
+    double meout;
+    /**lambda_vdw of former window for appearing atoms*/
+    double mvin;
+    /**lambda_vdw of former window for disappearing atoms*/
+    double mvout;
     /**lambda_el for appearing atoms*/
     double ein;
     /**lambda_el for disappearing atoms*/

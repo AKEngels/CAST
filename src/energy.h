@@ -14,6 +14,14 @@ namespace energy
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {
+      /**lambda_el of former window for appearing atoms*/
+      double mein;
+      /**lambda_el of former window for disappearing atoms*/
+      double meout;
+      /**lambda_vdw of former window for appearing atoms*/
+      double mvin;
+      /**lambda_vdw of former window for disappearing atoms*/
+      double mvout;
 	  /**current lambda_el for appearing atoms*/
 	  coords::float_type ein;
 	  /**current lambda_el for disappearing atoms*/
@@ -43,6 +51,10 @@ namespace energy
   which is relevant for FEP calculation*/
   struct fepvect
   {
+      /**coulomb-energy for this conformation with lambda-dlambda*/
+      coords::float_type e_c_l0;
+      /**vdw-energy for this conformation with lambda-dlambda*/
+      coords::float_type e_vdw_l0;
 	  /**coulomb-energy for this conformation with lambda*/
 	  coords::float_type e_c_l1;
 	  /**coulomb-energy for this conformation with lambda+dlambda*/
@@ -51,18 +63,24 @@ namespace energy
 	  coords::float_type e_vdw_l1;
 	  /**vdw-energy for this conformation with lambda+dlambda*/
 	  coords::float_type e_vdw_l2;
-	  /**difference in potential energy for this conformation
+	  /**difference in potential energy for this conformation (calculated in energy_int_aco_pot.cc line 1234)
 	  = (e_c_l2 + e_vdw_l2) - (e_c_l1 + e_vdw_l1)*/
 	  coords::float_type dE;
+      /**difference in potential energy for backwards transformation
+      = (e_c_l1 + e_vdw_l1) - (e_c_l0 + e_vdw_l0)*/
+      coords::float_type dE_back;
 	  /**difference in free energy calculated for all conformations 
 	  in this window until current conformation*/
 	  coords::float_type dG;
+      /**difference in free energy calculated for all conformations
+      in this window until current conformation in backwards transformation*/
+      coords::float_type dG_back;
 	  /**exp((-1 / (k_B*T))*dE ) for this conformation*/
 	  coords::float_type de_ens;
 	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
-      e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), 
+      e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), e_c_l0(0.0), e_vdw_l0(0.0),
       e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0)
     { }
   };

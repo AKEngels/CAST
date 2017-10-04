@@ -556,7 +556,7 @@ void md::simulation::fepinit(void)
   // center and temp var
   coordobj.move_all_by(-coordobj.center_of_geometry());
   double linear, dlin, linel;
-  double  increment, tempo, tempo2, diff;
+  double  increment, tempo, tempo2, diff, tempo0;
   Config::set().md.fep = true;
   FEPsum = 0.0;
   // increment electrostatics
@@ -567,13 +567,14 @@ void md::simulation::fepinit(void)
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
   std::cout << "Number of FEP windows:  " << increment << std::endl;
-  coordobj.fep.window.resize(std::size_t(increment));
+  coordobj.fep.window.resize(std::size_t(increment)+1); //because of backward transformation one window more necessary
   coordobj.fep.window[0].step = 0;
   // Calculate lambda and dlambda for Electrostatics
   for (std::size_t i = 0; i < coordobj.fep.window.size(); i++) {
-
+    // TODO: write this in a way I understand, not by trial and error
     tempo = i * Config::get().fep.dlambda;
     tempo2 = i *  Config::get().fep.dlambda + Config::get().fep.dlambda;
+    tempo0 = i *  Config::get().fep.dlambda - Config::get().fep.dlambda;
     if (tempo <= Config::get().fep.eleccouple)
     {
       coordobj.fep.window[i].ein = 0.0;
@@ -607,6 +608,22 @@ void md::simulation::fepinit(void)
       diff = tempo2 / Config::get().fep.dlambda;
       coordobj.fep.window[i].deout = 1.0 - (diff * linel);
     }
+    if (tempo0 <= Config::get().fep.eleccouple) {
+      coordobj.fep.window[i].mein = 0.0;
+    }
+    else {
+      diff = std::abs(tempo0 - Config::get().fep.eleccouple);
+      coordobj.fep.window[i].mein = (diff / Config::get().fep.dlambda) * linel;
+      if (coordobj.fep.window[i].mein > 1.0) coordobj.fep.window[i].mein = 1.0;
+    }
+    if (tempo0 >= (1 - Config::get().fep.eleccouple)) {
+      coordobj.fep.window[i].meout = 0.0;
+    }
+    else {
+      diff = tempo0 / Config::get().fep.dlambda;
+      coordobj.fep.window[i].meout = 1.0 - (diff * linel);
+      if (coordobj.fep.window[i].meout > 1.0) coordobj.fep.window[i].meout = 1.0;
+    }
     // calculate lambda and dlambda for van-der-Waals
     if (Config::get().fep.vdwcouple == 0) {
       coordobj.fep.window[i].vin = 1.0;
@@ -620,6 +637,9 @@ void md::simulation::fepinit(void)
 
       coordobj.fep.window[i].dvout = 1.0 - (i + 1) * Config::get().fep.dlambda;
       coordobj.fep.window[i].dvin = (i + 1) * Config::get().fep.dlambda;
+
+      coordobj.fep.window[i].mvout = 1.0 - (i - 1) * Config::get().fep.dlambda;
+      coordobj.fep.window[i].mvin = (i - 1) * Config::get().fep.dlambda;
     }
     else
     {
@@ -628,6 +648,10 @@ void md::simulation::fepinit(void)
 
       coordobj.fep.window[i].dvout = (1.0 - (i + 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
       coordobj.fep.window[i].dvin = ((i + 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
+
+      coordobj.fep.window[i].mvout = (1.0 - (i - 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
+      coordobj.fep.window[i].mvin = ((i - 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
+    }
       if (coordobj.fep.window[i].vout > 1)
       {
         coordobj.fep.window[i].vout = 1;
@@ -640,12 +664,30 @@ void md::simulation::fepinit(void)
       {
         coordobj.fep.window[i].dvout = 1;
       }
+      if (coordobj.fep.window[i].dvout < 0)
+      {
+        coordobj.fep.window[i].dvout = 0;
+      }
       if (coordobj.fep.window[i].dvin > 1)
       {
         coordobj.fep.window[i].dvin = 1;
       }
-
-    }
+      if (coordobj.fep.window[i].mvout > 1)
+      {
+        coordobj.fep.window[i].mvout = 1;
+      }
+      if (coordobj.fep.window[i].mvin > 1)
+      {
+        coordobj.fep.window[i].mvin = 0;
+      }
+      if (coordobj.fep.window[i].mvout < 0)
+      {
+        coordobj.fep.window[i].mvout = 1;
+      }
+      if (coordobj.fep.window[i].mvin < 0)
+      {
+        coordobj.fep.window[i].mvin = 0;
+      }
   }// end of loop
   // clear FEP output vector and print lambvda values
   std::ofstream fepclear;
@@ -657,13 +699,13 @@ void md::simulation::fepinit(void)
   std::cout << "Van-der-Waals Coupling: " << std::endl;
   for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
   {
-    std::cout << std::setw(8) << coordobj.fep.window[i].vout << std::setw(8) << coordobj.fep.window[i].dvout << std::setw(8) << coordobj.fep.window[i].vin << std::setw(8) << coordobj.fep.window[i].dvin << std::endl;
+    std::cout << std::setw(8) << coordobj.fep.window[i].mvout << std::setw(8) << coordobj.fep.window[i].vout << std::setw(8) << coordobj.fep.window[i].dvout << std::setw(8) << coordobj.fep.window[i].mvin << std::setw(8) << coordobj.fep.window[i].vin << std::setw(8) << coordobj.fep.window[i].dvin << std::endl;
   }
   std::cout << std::endl;
   std::cout << "Electrostatic Coupling:" << std::endl;
   for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
   {
-    std::cout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
+    std::cout << std::setw(8) << coordobj.fep.window[i].meout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].mein << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
   }
 
 }
@@ -707,17 +749,17 @@ void md::simulation::freecalc_back()
     iterator += 1;
     k = 0;
     de_ensemble = temp_avg = 0.0;
-    coordobj.fep.fepdata[i].de_ens = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
+    coordobj.fep.fepdata[i].de_ens = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad);
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
     }
     de_ensemble = de_ensemble / iterator;
     temp_avg = temp_avg / iterator;
-    coordobj.fep.fepdata[i].dG = std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
+    coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
   }// end of main loop
    // calculate final free energy change for the current window
-  this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
+  this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
 }
 
 // write the output FEP calculations
@@ -726,16 +768,12 @@ void md::simulation::freewrite(std::size_t i)
   std::ofstream fep("alchemical.txt", std::ios_base::app);
   std::ofstream res("FEP_Results.txt", std::ios_base::app);
   // standard forward output
-  if (i*Config::get().fep.dlambda == 0 && this->prod == false && !Config::get().fep.backwards)
+  if (i*Config::get().fep.dlambda == 0 && this->prod == false)
   {
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << "0" << std::setw(10) << "0" << std::setw(10) << "0" << std::endl;
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << "0" << std::setw(10) << "0";
   }
   // equilibration is performed
   if (this->prod == false) {
-    if (Config::get().fep.backwards)
-    {
-      fep << "Backwards Transformation\n";
-    }
     fep << "Equilibration for Lambda =  " << i * Config::get().fep.dlambda <<
       "  and dLambda =  " << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::endl;
   }
@@ -747,13 +785,17 @@ void md::simulation::freewrite(std::size_t i)
   // write output to alchemical.txt
   for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
     if (k%Config::get().fep.freq == 0) {
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l0;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l1;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_c_l2;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l0;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l1;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].e_vdw_l2;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].T;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dE;
       fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dG;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dE_back;
+      fep << std::fixed << std::right << std::setprecision(4) << std::setw(15) << coordobj.fep.fepdata[k].dG_back;
       fep << std::endl;
     }
     if (Config::get().general.verbosity > 3u)
@@ -766,15 +808,10 @@ void md::simulation::freewrite(std::size_t i)
     fep << "Free energy change for the current window:  ";
     fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
-    if (Config::get().fep.backwards) fep << "End of collection. Increasing lambda value" << std::endl;
 
-    if (!Config::get().fep.backwards)
-    {
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::endl;
+    if (i * Config::get().fep.dlambda < 1) {
       res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
-    }
-    else  // backwards results in third column
-    {
-      res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::endl;
     }
   }
 }
@@ -800,25 +837,9 @@ void md::simulation::feprun()
     this->prod = true;
     // calculate free energy change for window and write output
     freecalc();
-    freewrite(i);
-
-    // backwards calculation
-    std::cout << "Doing backwards transformation\n";
-    Config::set().fep.backwards = true;
-    Config::set().md.num_steps = Config::get().fep.equil;
-    integrate(true);
-    // write output for equlibration and clear fep vector
-    this->prod = false;
-    freewrite(i);
-    coordobj.fep.fepdata.clear();
-    // production run for window i
-    Config::set().md.num_steps = Config::get().fep.steps;
-    integrate(true);
-    this->prod = true;
-    // calculate free energy change for window and write output
     freecalc_back();
     freewrite(i);
-    Config::set().fep.backwards = false;
+
   }// end of main window loop
 }
 

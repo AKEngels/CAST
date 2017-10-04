@@ -1232,6 +1232,7 @@ namespace energy
         if (Config::get().md.fep)
         {
           coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
+          coords->fep.feptemp.dE_back = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l0 + coords->fep.feptemp.e_vdw_l0);
           coords->fep.feptemp.dG = 0;
           coords->fep.fepdata.push_back(coords->fep.feptemp);
         }
@@ -1652,7 +1653,7 @@ namespace energy
       )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
-        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
+        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
         std::ptrdiff_t const M(pairlist.size());
 #pragma omp parallel
@@ -1681,41 +1682,23 @@ namespace energy
               if (!cutob.factors(rr, r, fQ, fV)) continue;
               if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
               {
-                if (!Config::get().fep.backwards)
-                {
                   g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                     (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
                   coords::float_type trash(0.0);
                   g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
-                }
-                else  // for backwards transformation: sample final state
-                {
-                  coords::float_type trash(0.0);
-                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, e_c_l, e_vdw_l, trash);
-                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, Q, V, dE);
-                }
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
               else
               {
-                if (!Config::get().fep.backwards)
-                {
                   g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                     (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
                   coords::float_type trash(0.0);
                   g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
-                }
-                else  // for backwards transformation: sample final state
-                {
-                  coords::float_type trash(0.0);
-                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, e_c_l, e_vdw_l, trash);
-                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, Q, V, dE);
-                }
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
             }
             else    // not periodic
@@ -1728,41 +1711,23 @@ namespace energy
                 {
                   if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
                   {
-                    if (!Config::get().fep.backwards)
-                    {
                       g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                         (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
                       coords::float_type trash(0.0);
                       g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                         (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
-                    }
-                    else
-                    {
-                      coords::float_type trash(0.0);
-                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                        (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, e_c_l, e_vdw_l, trash);  //calculate nb-energy(lambda)
-                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                        (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda+dlambda)
-                    }
+                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                        (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                   else
                   {
-                    if (!Config::get().fep.backwards)
-                    {
                       g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                         (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
                       coords::float_type trash(0.0);
                       g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                         (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
-                    }
-                    else
-                    {
-                      coords::float_type trash(0.0);
-                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                        (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, e_c_l, e_vdw_l, trash);  //calculate nb-energy(lambda)
-                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                        (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda+dlambda)
-                    }
+                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                        (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                 }
               }
@@ -1771,56 +1736,30 @@ namespace energy
                 coords::float_type const r = sqrt(rr);
                 if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
                 {
-                  if (!Config::get().fep.backwards)
-                  {
                     g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                       (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
                     coords::float_type trash(0.0);
                     g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
-                  }
-                  else
-                  {
-                    coords::float_type trash(0.0);
-                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), e_c_l, e_vdw_l, trash);  //calculate nb-energy(lambda)
-                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), Q, V, dE); //calculate nb-energy(lambda+dlambda)
-                  }
+                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
                 else
                 {
-                  if (!Config::get().fep.backwards)
-                  {
                     g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
                       (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
                     coords::float_type trash(0.0);
                     g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
-                  }
-                  else
-                  {
-                    coords::float_type trash(0.0);
-                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), e_c_l, e_vdw_l, trash);  //calculate nb-energy(lambda)
-                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), Q, V, dE); //calculate nb-energy(lambda+dlambda)
-                  }
+                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
               }
             }
             dist = b;
             b *= dE;     // gradient dE/dr is getting a direction by muliplying it with vector between atoms
-            if (!Config::get().fep.backwards)
-            {
-              e_c_l += Q;
-              e_vdw_l += V;
-            }
-            else
-            {
-              e_c_dl += Q;
-              e_vdw_dl += V;
-            }
+            e_c_l += Q;
+            e_vdw_l += V;
             e_c += Q;
             e_v += V;
             tmp_grad[pairlist[i].a] += b;
@@ -1855,8 +1794,10 @@ namespace energy
         e_nb += e_c + e_v;
         coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
         coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
         coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->fep.feptemp.e_c_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }
