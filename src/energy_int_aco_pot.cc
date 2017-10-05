@@ -1377,7 +1377,7 @@ namespace energy
       )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
-        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
+        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
         std::ptrdiff_t const M(pairlist.size());
         {
@@ -1409,6 +1409,8 @@ namespace energy
                 coords::float_type trash(0.0);
                 g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                   (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
               else
               {
@@ -1417,6 +1419,8 @@ namespace energy
                 coords::float_type trash(0.0);
                 g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                   (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
             }
             else    // not periodic
@@ -1434,6 +1438,8 @@ namespace energy
                     coords::float_type trash(0.0);
                     g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                   else
                   {
@@ -1442,6 +1448,8 @@ namespace energy
                     coords::float_type trash(0.0);
                     g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                 }
               }
@@ -1455,6 +1463,8 @@ namespace energy
                   coords::float_type trash(0.0);
                   g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
                 else
                 {
@@ -1463,6 +1473,8 @@ namespace energy
                   coords::float_type trash(0.0);
                   g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
               }
             }
@@ -1503,8 +1515,10 @@ namespace energy
         e_nb += e_c + e_v;
         coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
         coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
         coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->fep.feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }
