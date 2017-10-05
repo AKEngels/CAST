@@ -555,139 +555,52 @@ void md::simulation::fepinit(void)
   init();
   // center and temp var
   coordobj.move_all_by(-coordobj.center_of_geometry());
-  double linear, dlin, linel;
-  double  increment, tempo, tempo2, diff, tempo0;
+  double  increment;
   Config::set().md.fep = true;
   FEPsum = 0.0;
-  // increment electrostatics
-  linear = 1.0 - Config::get().fep.eleccouple;
-  dlin = linear / Config::get().fep.dlambda;
-  linel = 1.0 / dlin;
+  FEPsum_back = 0.0;
   // fill vector with scaling increments
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
   std::cout << "Number of FEP windows:  " << increment << std::endl;
   coordobj.fep.window.resize(std::size_t(increment)+1); //because of backward transformation one window more necessary
   coordobj.fep.window[0].step = 0;
-  // Calculate lambda and dlambda for Electrostatics
-  for (std::size_t i = 0; i < coordobj.fep.window.size(); i++) {
-    // TODO: write this in a way I understand, not by trial and error
-    tempo = i * Config::get().fep.dlambda;
-    tempo2 = i *  Config::get().fep.dlambda + Config::get().fep.dlambda;
-    tempo0 = i *  Config::get().fep.dlambda - Config::get().fep.dlambda;
-    if (tempo <= Config::get().fep.eleccouple)
-    {
-      coordobj.fep.window[i].ein = 0.0;
-    }
-    else
-    {
-      diff = std::abs(tempo - Config::get().fep.eleccouple);
-      coordobj.fep.window[i].ein = (diff / Config::get().fep.dlambda) * linel;
-      if (coordobj.fep.window[i].ein > 1.0) coordobj.fep.window[i].ein = 1.0;
-    }
-    if (tempo >= (1 - Config::get().fep.eleccouple))
-    {
-      coordobj.fep.window[i].eout = 0.0;
-    }
-    else {
-      diff = tempo / Config::get().fep.dlambda;
-      coordobj.fep.window[i].eout = 1.0 - (diff * linel);
-    }
-    if (tempo2 <= Config::get().fep.eleccouple) {
-      coordobj.fep.window[i].dein = 0.0;
-    }
-    else {
-      diff = std::abs(tempo2 - Config::get().fep.eleccouple);
-      coordobj.fep.window[i].dein = (diff / Config::get().fep.dlambda) * linel;
-      if (coordobj.fep.window[i].dein > 1.0) coordobj.fep.window[i].dein = 1.0;
-    }
-    if (tempo2 >= (1 - Config::get().fep.eleccouple)) {
-      coordobj.fep.window[i].deout = 0.0;
-    }
-    else {
-      diff = tempo2 / Config::get().fep.dlambda;
-      coordobj.fep.window[i].deout = 1.0 - (diff * linel);
-    }
-    if (tempo0 <= Config::get().fep.eleccouple) {
-      coordobj.fep.window[i].mein = 0.0;
-    }
-    else {
-      diff = std::abs(tempo0 - Config::get().fep.eleccouple);
-      coordobj.fep.window[i].mein = (diff / Config::get().fep.dlambda) * linel;
-      if (coordobj.fep.window[i].mein > 1.0) coordobj.fep.window[i].mein = 1.0;
-    }
-    if (tempo0 >= (1 - Config::get().fep.eleccouple)) {
-      coordobj.fep.window[i].meout = 0.0;
-    }
-    else {
-      diff = tempo0 / Config::get().fep.dlambda;
-      coordobj.fep.window[i].meout = 1.0 - (diff * linel);
-      if (coordobj.fep.window[i].meout > 1.0) coordobj.fep.window[i].meout = 1.0;
-    }
-    // calculate lambda and dlambda for van-der-Waals
-    if (Config::get().fep.vdwcouple == 0) {
-      coordobj.fep.window[i].vin = 1.0;
-      coordobj.fep.window[i].dvin = 1.0;
-      coordobj.fep.window[i].vout = 1.0;
-      coordobj.fep.window[i].dvout = 1.0;
-    }
-    else if (Config::get().fep.vdwcouple == 1.0) {
-      coordobj.fep.window[i].vout = 1.0 - i * Config::get().fep.dlambda;
-      coordobj.fep.window[i].vin = i * Config::get().fep.dlambda;
+  // calculate all lambda values for every window
+  for (int i = 0; i < coordobj.fep.window.size(); i++) {
 
-      coordobj.fep.window[i].dvout = 1.0 - (i + 1) * Config::get().fep.dlambda;
-      coordobj.fep.window[i].dvin = (i + 1) * Config::get().fep.dlambda;
+    double lambda = i * Config::get().fep.dlambda;  // lambda
+    if (lambda < Config::get().fep.eleccouple) coordobj.fep.window[i].ein = 0;
+    else coordobj.fep.window[i].ein = 1 - (1-lambda)/(1- Config::get().fep.eleccouple);
+    if (lambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].vin = 1;
+    else coordobj.fep.window[i].vin = lambda / Config::get().fep.vdwcouple;
+    if (lambda > 1-Config::get().fep.eleccouple) coordobj.fep.window[i].eout = 0;
+    else coordobj.fep.window[i].eout = 1 - (lambda) / (1 - Config::get().fep.eleccouple);
+    if (lambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].vout = 1;
+    else coordobj.fep.window[i].vout = (1-lambda) / Config::get().fep.vdwcouple;
 
-      coordobj.fep.window[i].mvout = 1.0 - (i - 1) * Config::get().fep.dlambda;
-      coordobj.fep.window[i].mvin = (i - 1) * Config::get().fep.dlambda;
-    }
-    else
-    {
-      coordobj.fep.window[i].vout = (1.0 - i * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
-      coordobj.fep.window[i].vin = (i * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
+    double dlambda = (i+1) * Config::get().fep.dlambda;  // lambda + dlambda
+    if (dlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].dein = 0;
+    else if (dlambda > 1) coordobj.fep.window[i].dein = 1;
+    else coordobj.fep.window[i].dein = 1 - (1 - dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].dvin = 1;
+    else coordobj.fep.window[i].dvin = dlambda / Config::get().fep.vdwcouple;
+    if (dlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].deout = 0;
+    else coordobj.fep.window[i].deout = 1 - (dlambda) / (1 - Config::get().fep.eleccouple);
+    if (dlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].dvout = 1;
+    else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
+    else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
-      coordobj.fep.window[i].dvout = (1.0 - (i + 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
-      coordobj.fep.window[i].dvin = ((i + 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
-
-      coordobj.fep.window[i].mvout = (1.0 - (i - 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
-      coordobj.fep.window[i].mvin = ((i - 1) * Config::get().fep.dlambda) / Config::get().fep.vdwcouple;
-    }
-      if (coordobj.fep.window[i].vout > 1)
-      {
-        coordobj.fep.window[i].vout = 1;
-      }
-      if (coordobj.fep.window[i].vin > 1)
-      {
-        coordobj.fep.window[i].vin = 1;
-      }
-      if (coordobj.fep.window[i].dvout > 1)
-      {
-        coordobj.fep.window[i].dvout = 1;
-      }
-      if (coordobj.fep.window[i].dvout < 0)
-      {
-        coordobj.fep.window[i].dvout = 0;
-      }
-      if (coordobj.fep.window[i].dvin > 1)
-      {
-        coordobj.fep.window[i].dvin = 1;
-      }
-      if (coordobj.fep.window[i].mvout > 1)
-      {
-        coordobj.fep.window[i].mvout = 1;
-      }
-      if (coordobj.fep.window[i].mvin > 1)
-      {
-        coordobj.fep.window[i].mvin = 0;
-      }
-      if (coordobj.fep.window[i].mvout < 0)
-      {
-        coordobj.fep.window[i].mvout = 1;
-      }
-      if (coordobj.fep.window[i].mvin < 0)
-      {
-        coordobj.fep.window[i].mvin = 0;
-      }
+    double mlambda = (i-1) * Config::get().fep.dlambda;  // lambda - dlambda
+    if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
+    else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
+    else if (mlambda < 0) coordobj.fep.window[i].mvin = 0;
+    else coordobj.fep.window[i].mvin = mlambda / Config::get().fep.vdwcouple;
+    if (mlambda > 1 - Config::get().fep.eleccouple) coordobj.fep.window[i].meout = 0;
+    else if (mlambda < 0) coordobj.fep.window[i].meout = 1;
+    else coordobj.fep.window[i].meout = 1 - (mlambda) / (1 - Config::get().fep.eleccouple);
+    if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].mvout = 1;
+    else coordobj.fep.window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
   }// end of loop
   // clear FEP output vector and print lambvda values
   std::ofstream fepclear;
