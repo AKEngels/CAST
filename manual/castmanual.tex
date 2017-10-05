@@ -955,7 +955,24 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 	\end{tabularx}\\~\\
 
-	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
+	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
+	\begin{itemize}
+	\item electrostatic interactions for $\lambda - \Delta \lambda$
+	\item electrostatic interactions for $\lambda$
+	\item electrostatic interactions for $\lambda + \Delta \lambda$ (in the file also called dLambda)
+	\item Van der Waals interactions for $\lambda - \Delta \lambda$
+	\item Van der Waals interactions for $\lambda$
+	\item Van der Waals interactions for $\lambda + \Delta \lambda$ 
+	\item temperature
+	\item $\Delta E_{pot} = U(\lambda + \Delta \lambda) - U(\lambda)$
+	\item $\Delta G$ calculated from a forward transformation out of $\Delta E_{pot}$
+	\item $\Delta E_{pot, back} = U(\lambda) - U(\lambda - \Delta \lambda)$
+	\item $\Delta G_{back}$ calculated from a backward transformation out of $\Delta E_{pot,back}$
+	\end{itemize}
+	The free energy changes in the lines without columns are only from the forward transformation.
+	
+	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical).
+	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
 	If you use a temperature gradient it will only be applied in the initialisation run but not in the equilibration and production runs. In those the temperature is kept constant at the last temperature of your gradient.
