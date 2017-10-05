@@ -614,13 +614,13 @@ void md::simulation::fepinit(void)
   std::cout << "Van-der-Waals Coupling: " << std::endl;
   for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
   {
-    std::cout << std::setw(8) << coordobj.fep.window[i].mvout << std::setw(8) << coordobj.fep.window[i].vout << std::setw(8) << coordobj.fep.window[i].dvout << std::setw(8) << coordobj.fep.window[i].mvin << std::setw(8) << coordobj.fep.window[i].vin << std::setw(8) << coordobj.fep.window[i].dvin << std::endl;
+    std::cout << std::setprecision(4) << std::setw(8) << coordobj.fep.window[i].mvout << std::setw(8) << coordobj.fep.window[i].vout << std::setw(8) << coordobj.fep.window[i].dvout << std::setw(8) << coordobj.fep.window[i].mvin << std::setw(8) << coordobj.fep.window[i].vin << std::setw(8) << coordobj.fep.window[i].dvin << std::endl;
   }
   std::cout << std::endl;
   std::cout << "Electrostatic Coupling:" << std::endl;
   for (std::size_t i = 0; i < coordobj.fep.window.size(); i++)
   {
-    std::cout << std::setw(8) << coordobj.fep.window[i].meout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].mein << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
+    std::cout << std::setprecision(4) << std::setw(8) << coordobj.fep.window[i].meout << std::setw(8) << coordobj.fep.window[i].eout << std::setw(8) << coordobj.fep.window[i].deout << std::setw(8) << coordobj.fep.window[i].mein << std::setw(8) << coordobj.fep.window[i].ein << std::setw(8) << coordobj.fep.window[i].dein << std::endl;
   }
 
 }
