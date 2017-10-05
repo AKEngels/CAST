@@ -678,7 +678,7 @@ void md::simulation::freecalc_back()
 }
 
 // write the output FEP calculations
-void md::simulation::freewrite(std::size_t i)
+void md::simulation::freewrite(int i)
 {
   std::ofstream fep("alchemical.txt", std::ios_base::app);
   std::ofstream res("FEP_Results.txt", std::ios_base::app);
@@ -725,7 +725,8 @@ void md::simulation::freewrite(std::size_t i)
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
 
     res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::endl;
-    if (i * Config::get().fep.dlambda < 1) {
+    double rounded = std::stod(std::to_string(i * Config::get().fep.dlambda)); // round necessary when having a number of windows that is can't be expressed exactly in decimal numbers
+    if (rounded < 1) {
       res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
     }
   }
@@ -734,7 +735,7 @@ void md::simulation::freewrite(std::size_t i)
 // perform FEP calculation if requested
 void md::simulation::feprun()
 {
-  for (std::size_t i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
+  for (int i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
   {
     std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
     coordobj.fep.window[0U].step = static_cast<int>(i);

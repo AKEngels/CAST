@@ -400,7 +400,7 @@ namespace md
     /**Calculation of ensemble average and free energy change for backwards transformation*/
     void freecalc_back();
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
-    void freewrite(std::size_t);
+    void freewrite(int);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference*/
