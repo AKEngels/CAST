@@ -75,13 +75,13 @@ namespace energy
       /**difference in free energy calculated for all conformations
       in this window until current conformation in backwards transformation*/
       coords::float_type dG_back;
-	  /**exp((-1 / (k_B*T))*dE ) for this conformation*/
+	  /**exp((-1 / (k_B*T))*dE ) or exp((1 / (k_B*T))*dE_back ) for this conformation*/
 	  coords::float_type de_ens;
 	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
       e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), e_c_l0(0.0), e_vdw_l0(0.0),
-      e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0)
+      e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0), dE_back(0.0), dG_back(0.0)
     { }
   };
   

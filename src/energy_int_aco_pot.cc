@@ -1797,7 +1797,7 @@ namespace energy
         coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
         coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
-        coords->fep.feptemp.e_c_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
+        coords->fep.feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }
