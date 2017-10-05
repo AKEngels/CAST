@@ -565,6 +565,7 @@ void md::simulation::fepinit(void)
   std::cout << "Number of FEP windows:  " << increment << std::endl;
   coordobj.fep.window.resize(std::size_t(increment)+1); //because of backward transformation one window more necessary
   coordobj.fep.window[0].step = 0;
+
   // calculate all lambda values for every window
   for (int i = 0; i < coordobj.fep.window.size(); i++) {
 
@@ -602,6 +603,7 @@ void md::simulation::fepinit(void)
     if (mlambda < 1-Config::get().fep.vdwcouple) coordobj.fep.window[i].mvout = 1;
     else coordobj.fep.window[i].mvout = (1 - mlambda) / Config::get().fep.vdwcouple;
   }// end of loop
+
   // clear FEP output vector and print lambvda values
   std::ofstream fepclear;
   fepclear.open("alchemical.txt");

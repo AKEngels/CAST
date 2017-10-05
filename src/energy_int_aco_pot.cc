@@ -1660,7 +1660,7 @@ namespace energy
         {
           coords::Representation_3D tmp_grad(grad_vector.size());
           coords::virial_t tempvir(coords::empty_virial());
-#pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
+#pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
             double current_c;   // Q_a * Q_b from AMBER
