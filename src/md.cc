@@ -682,6 +682,7 @@ void md::simulation::freewrite(int i)
 {
   std::ofstream fep("alchemical.txt", std::ios_base::app);
   std::ofstream res("FEP_Results.txt", std::ios_base::app);
+  std::ofstream dEpot("dE_pot.txt", std::ios_base::app);
   // standard forward output
   if (i*Config::get().fep.dlambda == 0 && this->prod == false)
   {
@@ -718,6 +719,18 @@ void md::simulation::freewrite(int i)
       std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << " ,vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
     }
   }
+
+  dEpot << "dE_pot_back("<< i * Config::get().fep.dlambda<<"), ";
+  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+    dEpot << coordobj.fep.fepdata[k].dE_back << ", ";
+  }
+  dEpot << "\n";
+  dEpot << "dE_pot, ";
+  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+    dEpot << coordobj.fep.fepdata[k].dE << ", ";
+  }
+  dEpot << "\n";
+
   // at the end of production data in alchemical.txt sum up the results and print the before the new window starts
   if (this->prod == true) {
     fep << "Free energy change for the current window:  ";
