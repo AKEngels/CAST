@@ -955,7 +955,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 	\end{tabularx}\\~\\
 
-	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
+	\ac{FEP} calculations produce three output files: ``alchemical.txt'', ``FEP\_Results.txt'' and ``dE\_pot.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
 	\begin{itemize}
 	\item electrostatic interactions for $\lambda - \Delta \lambda$
 	\item electrostatic interactions for $\lambda$
@@ -972,6 +972,8 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	The free energy changes in the lines without columns are only from the forward transformation.
 	
 	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical).
+	
+	The third output file ``dE\_pot.txt'' contains the $\Delta E_{pot}$ values for all conformations in all windows for forward and backwards transformation. This file can be analysed by the script ``FEP\_histograms.py''. Just copy the script in the same folder as the output file and run it. It produces a picture for every window where the probability distributions of the potential energy differences of forward and backwards transformation for every window are plotted. Furthermore the overlap of these distributions for every window is calculated and printed. The quality of a calculation is better if the overlap between forward and backwards distribution is bigger.
 	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
