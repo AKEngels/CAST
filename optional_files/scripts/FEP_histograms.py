@@ -32,6 +32,6 @@ for i in range(len(pot_energies)/2):  # for every window plot distributions E_po
     for j in range(number):
         minimal_area.append(min(n[0][j], n[1][j]))
     overlap = sum(minimal_area)/value_number
-    print "Fenster {:2}: {:.1f} %".format(i+1, overlap*100) 
+    print "Window {:2}: {:.1f} %".format(i+1, overlap*100) 
     
     
