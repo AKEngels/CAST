@@ -686,7 +686,7 @@ void md::simulation::freewrite(int i)
 {
   std::ofstream fep("alchemical.txt", std::ios_base::app);
   std::ofstream res("FEP_Results.txt", std::ios_base::app);
-  std::ofstream dEpot("dE_pot.txt", std::ios_base::app);
+
   // standard forward output
   if (i*Config::get().fep.dlambda == 0 && this->prod == false)
   {
@@ -724,17 +724,6 @@ void md::simulation::freewrite(int i)
     }
   }
 
-  dEpot << "dE_pot_back("<< i * Config::get().fep.dlambda<<"), ";
-  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
-    dEpot << coordobj.fep.fepdata[k].dE_back << ", ";
-  }
-  dEpot << "\n";
-  dEpot << "dE_pot, ";
-  for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
-    dEpot << coordobj.fep.fepdata[k].dE << ", ";
-  }
-  dEpot << "\n";
-
   // at the end of production data in alchemical.txt sum up the results and print the before the new window starts
   if (this->prod == true) {
     fep << "Free energy change for the current window:  ";
@@ -752,6 +741,8 @@ void md::simulation::freewrite(int i)
 // perform FEP calculation if requested
 void md::simulation::feprun()
 {
+  std::vector<double> dE_pots;
+
   for (int i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
   {
     std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
@@ -794,45 +785,68 @@ void md::simulation::feprun()
       path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
 
       std::string result_str;
-      PyObject *modul, *funk, *prm, *ret, *pValue, *window;
+      PyObject *modul, *funk, *prm, *ret, *pValue;
 
-      PyObject *E_pots = PyList_New(coordobj.fep.fepdata.size());
-      for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
-        pValue = PyFloat_FromDouble(coordobj.fep.fepdata[k].dE);
-        PyList_SetItem(E_pots, k, pValue);
-      }
+      
       PyObject *E_pot_backs = PyList_New(coordobj.fep.fepdata.size());
       for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
         pValue = PyFloat_FromDouble(coordobj.fep.fepdata[k].dE_back);
         PyList_SetItem(E_pot_backs, k, pValue);
       }
 
-      PySys_SetPath("."); //set path
-      const char *c = path.c_str();  //add paths from variable add_path
-      PyRun_SimpleString(c);
+      
 
-      modul = PyImport_ImportModule("FEP_analysis"); //import module 
+      if (i > 0)
+      {
+        PyObject *E_pots = PyList_New(coordobj.fep.fepdata.size());
+        for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+          pValue = PyFloat_FromDouble(dE_pots[k]);
+          PyList_SetItem(E_pots, k, pValue);
+        }
 
-      if (modul)
-      {
-        funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap2"); //create function
-        prm = Py_BuildValue("OOi", E_pots, E_pot_backs, i); //give parameters
-        ret = PyObject_CallObject(funk, prm);  //call function with parameters
-        result_str = PyString_AsString(ret); //convert result to a C++ string
-        std::cout << result_str << "\n";
+        PySys_SetPath("."); //set path
+        const char *c = path.c_str();  //add paths from variable add_path
+        PyRun_SimpleString(c);
+
+        modul = PyImport_ImportModule("FEP_analysis"); //import module 
+
+        if (modul)
+        {
+          funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap"); //create function
+          prm = Py_BuildValue("OOi", E_pots, E_pot_backs, i); //give parameters
+          ret = PyObject_CallObject(funk, prm);  //call function with parameters
+          result_str = PyString_AsString(ret); //convert result to a C++ string
+          float result = std::stof(result_str);
+          if (result_str == "error")
+          {
+            std::cout << "An error occured during running python module 'FEP_analysis\n";
+          }
+          else
+          {
+            std::ofstream overlap("overlap.txt", std::ios_base::app);
+            overlap << "Window " << i << ": " << result * 100 << "%\n";
+          }
+        }
+        else
+        {
+          std::cout << "module not found\n";
+        }
+        //delete PyObjects
+        Py_DECREF(prm);
+        Py_DECREF(ret);
+        Py_DECREF(funk);
+        Py_DECREF(modul);
+        Py_DECREF(pValue);
+        Py_DECREF(E_pots);
+        Py_DECREF(E_pot_backs);
       }
-      else
-      {
-        std::cout << "module not found\n";
-      }
-      //delete PyObjects
-      Py_DECREF(prm);
-      Py_DECREF(ret);
-      Py_DECREF(funk);
-      Py_DECREF(modul);
-      Py_DECREF(pValue);
-      Py_DECREF(E_pots);
-      Py_DECREF(E_pot_backs);
+
+      dE_pots.clear();
+      for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {  // save for next run
+        dE_pots.push_back(coordobj.fep.fepdata[k].dE);
+    }
+
+
 #else
       std::cout << "Analyzing is not possible without python!\n";
 #endif

@@ -743,6 +743,7 @@ FEPcshift      2.0
 FEPequil       100
 FEPsteps       100
 FEPfreq        1000
+FEPanalyze     1
 
 
 ####################################
