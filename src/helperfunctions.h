@@ -74,7 +74,8 @@ inline std::string get_python_modulepath(std::string modulename)
   std::ifstream file("tmpfile.txt");  //open tmpfile and read content
   std::string content;
   file >> content;
-  remove("tmpfile.txt");  //delete tmpfile
+  file.close();
+  remove("tmpfile.txt");
   return content.substr(0, content.size() - 14 - modulename.size());  //give back path without filename __init__.pyc and modulename
 }
 #endif
