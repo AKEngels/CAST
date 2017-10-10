@@ -737,7 +737,7 @@ void md::simulation::freewrite(int i)
     }
   }
 }
-
+#ifdef USE_PYTHON
 std::string md::simulation::get_pythonpath()
 {
   std::string pythonpaths_str = Py_GetPath();
@@ -824,6 +824,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   }
   return dE_pots;
 }
+#endif
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -859,13 +860,12 @@ void md::simulation::feprun()
     {
 #ifdef USE_PYTHON
       dE_pots = fepanalyze(dE_pots, i);
-    }
 #else
       std::cout << "Analyzing is not possible without python!\n";
 #endif
     }
-
-  }// end of main window loop
+  }
+}// end of main window loop
 
 
 // eliminate translation and rotation of the system at the beginning of a MD simulation
