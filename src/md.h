@@ -401,6 +401,15 @@ namespace md
     void freecalc_back();
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
+    /**function that returns a string 
+    this string can be run as a pythonprogramme that adds all paths necessary for FEP analysis to pythonpath*/
+    std::string get_pythonpath();
+    /**function that performs an FEP analysis (histogram and overlap of probability distributions)
+    @param dE_pots: vector of dE_pot values for a conformation. 
+    this is used to transfer these values to the next window as the dE value of window i corresponds to the dE_back value of window i+1
+    @param window: number of current window
+    returns vector with dE_pot values (explanation see above)*/
+    std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference*/

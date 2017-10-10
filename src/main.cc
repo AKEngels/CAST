@@ -484,7 +484,6 @@ int main(int argc, char **argv)
     }
     case config::tasks::FEP:
     {
-      std::remove("overlap.txt");
       // Free energy perturbation
       md::simulation mdObject(coords);
       mdObject.fepinit();
