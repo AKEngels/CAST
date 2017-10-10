@@ -24,6 +24,7 @@
 #include <omp.h>
 #ifdef USE_PYTHON
 #include <Python.h>
+
 #endif
 
 //////////////////////////
@@ -86,7 +87,9 @@
 
 int main(int argc, char **argv)
 {
-
+#ifdef USE_PYTHON
+  Py_Initialize();
+#endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
@@ -149,8 +152,8 @@ int main(int argc, char **argv)
     if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
     {   // if DFTB energy interface: initialize python 
         // necessary to do it here because it can't be done more than once
+
 #ifdef USE_PYTHON
-      Py_Initialize();
 #else
       printf("It is not possible to use DFTB without python!\n");
       std::exit(0);

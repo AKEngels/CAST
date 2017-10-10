@@ -1,5 +1,8 @@
-#pragma once
+﻿#pragma once
 #include "coords.h"
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
@@ -56,3 +59,22 @@ inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
 {
   return sqrt( (a.x()-b.x())*(a.x()-b.x()) + (a.y()-b.y())*(a.y()-b.y()) + (a.z()-b.z())*(a.z()-b.z()) );
 }
+
+#ifdef USE_PYTHON
+/*
+function that returns the path to a pythonmodule
+(path has to be appended to pythonpath if you want to call this module)
+@param modulename: name of the module
+*/
+inline std::string get_python_modulepath(std::string modulename)
+{
+  std::string find = "import " + modulename + "\nwith open('tmpfile.txt','w') as fn:\n    fn.write(" + modulename + ".__file__)";
+  const char *c_find = find.c_str();
+  PyRun_SimpleString(c_find);  //call a python programme to find the modulepath and write it to tmpfile
+  std::ifstream file("tmpfile.txt");  //open tmpfile and read content
+  std::string content;
+  file >> content;
+  remove("tmpfile.txt");  //delete tmpfile
+  return content.substr(0, content.size() - 14 - modulename.size());  //give back path without filename __init__.pyc and modulename
+}
+#endif

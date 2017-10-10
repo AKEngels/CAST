@@ -1,22 +1,11 @@
 ﻿#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
+#include "helperfunctions.h"
 
 
 /*
 dftb sysCall functions
 */
-
-std::string energy::interfaces::dftb::get_python_modulepath(std::string modulename)
-{
-    std::string find = "import "+modulename+"\nwith open('tmpfile.txt','w') as fn:\n    fn.write("+modulename+".__file__)";
-    const char *c_find = find.c_str();
-    PyRun_SimpleString(c_find);  //call a python programme to find the modulepath and write it to tmpfile
-    std::ifstream file("tmpfile.txt");  //open tmpfile and read content
-    std::string content;
-    file >> content;
-    remove("tmpfile.txt");  //delete tmpfile
-    return content.substr(0,content.size()-14-modulename.size());  //give back path without filename __init__.pyc and modulename
-}
 
 void energy::interfaces::dftb::create_dftbaby_configfile()
 {

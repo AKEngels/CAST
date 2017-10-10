@@ -33,14 +33,7 @@ namespace energy
 	namespace interfaces
 	{
 		namespace dftb
-		{
-			/*
-			function that returns the path to a pythonmodule
-			(path has to be appended to pythonpath if you want to call this module)
-			@param modulename: name of the module
-			*/
-			std::string get_python_modulepath(std::string modulename);
-            
+		{           
 			/*
 			function that creates a string that can be run as a python programme
 			this programme sets the correct pythonpath

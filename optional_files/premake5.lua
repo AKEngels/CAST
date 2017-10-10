@@ -164,7 +164,7 @@ project "CAST"
       libdirs {"C:/Python27/libs"}
       links {"python27"}
     filter { "configurations:Python_Release",  "platforms:x86", "action:vs2015"}
-      targetname "CAST_win_x86_release"
+      targetname "CAST_win_x86_python_release"
       defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
       includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
       libdirs {"C:/Python27/libs"}
@@ -235,13 +235,13 @@ project "CAST"
     filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
       targetname "CAST_win_x64_debug"
     filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2015"}
-      targetname "CAST_win_x86_debug"
+      targetname "CAST_win_x86_python_debug"
       includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
       defines {"USE_PYTHON"}
       libdirs {"C:/Python27/libs"}
       links {"python27"}
     filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2015"}
-      targetname "CAST_win_x64_debug"
+      targetname "CAST_win_x64_python_debug"
       includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
       defines {"USE_PYTHON"}
       libdirs {"C:/Python27/libs"}

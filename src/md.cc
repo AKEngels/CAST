@@ -8,6 +8,9 @@
 #include <cstring>
 #include <stdexcept>
 #include <atomic>
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 
 #include "md.h"
 
@@ -16,6 +19,7 @@
 #include "scon_chrono.h"
 #include "scon_vect.h"
 #include "scon_utility.h"
+#include "helperfunctions.h"
 
 
 // Logging Functions
@@ -768,6 +772,71 @@ void md::simulation::feprun()
     freecalc();
     freecalc_back();
     freewrite(i);
+
+    if (Config::get().fep.analyze)
+    {
+#ifdef USE_PYTHON
+      std::string pythonpaths_str = Py_GetPath();
+      std::string path;
+      std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+      path = "import sys\n";
+      for (auto p : pythonpaths)  //keep pythonpath of system
+      {
+        path += "sys.path.append('" + p + "')\n";
+      }
+      path += "sys.path.append('" + get_python_modulepath("matplotlib") + "')\n";               
+      path += "sys.path.append('" + get_python_modulepath("fractions") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("csv") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("atexit") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("unicodedata") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("calendar") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("Tkinter") + "')\n";
+      path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
+
+      std::string result_str;
+      PyObject *modul, *funk, *prm, *ret, *pValue, *window;
+
+      PyObject *E_pots = PyList_New(coordobj.fep.fepdata.size());
+      for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+        pValue = PyFloat_FromDouble(coordobj.fep.fepdata[k].dE);
+        PyList_SetItem(E_pots, k, pValue);
+      }
+      PyObject *E_pot_backs = PyList_New(coordobj.fep.fepdata.size());
+      for (std::size_t k = 0; k < coordobj.fep.fepdata.size(); k++) {
+        pValue = PyFloat_FromDouble(coordobj.fep.fepdata[k].dE_back);
+        PyList_SetItem(E_pot_backs, k, pValue);
+      }
+
+      PySys_SetPath("."); //set path
+      const char *c = path.c_str();  //add paths from variable add_path
+      PyRun_SimpleString(c);
+
+      modul = PyImport_ImportModule("FEP_analysis"); //import module 
+
+      if (modul)
+      {
+        funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap2"); //create function
+        prm = Py_BuildValue("OOi", E_pots, E_pot_backs, i); //give parameters
+        ret = PyObject_CallObject(funk, prm);  //call function with parameters
+        result_str = PyString_AsString(ret); //convert result to a C++ string
+        std::cout << result_str << "\n";
+      }
+      else
+      {
+        std::cout << "module not found\n";
+      }
+      //delete PyObjects
+      Py_DECREF(prm);
+      Py_DECREF(ret);
+      Py_DECREF(funk);
+      Py_DECREF(modul);
+      Py_DECREF(pValue);
+      Py_DECREF(E_pots);
+      Py_DECREF(E_pot_backs);
+#else
+      std::cout << "Analyzing is not possible without python!\n";
+#endif
+    }
 
   }// end of main window loop
 }
