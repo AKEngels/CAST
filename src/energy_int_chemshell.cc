@@ -130,20 +130,21 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp_inp(std::ofstream 
 	auto const & qm_ham = Config::get().energy.chemshell.qm_ham;
 	auto const & qm_theory = Config::get().energy.chemshell.qm_theory;
 	auto const & qm_region = Config::get().energy.chemshell.qm_atoms;
+    auto const & qm_basis = Config::get().energy.chemshell.qm_basis;
 
 	ofs << "eandg coords = ./" << tmp_file_name << ".c \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
-		ofs << "        coupling= " << embedding_sheme << " \\\n";
+		ofs << "        coupling=" << embedding_sheme << " \\\n";
 	}
 	if (qm_theory != "") {
-		ofs << "        qm_theory= " << qm_theory << " : [ list \\\n";
+		ofs << "        qm_theory=" << qm_theory << " : [ list \\\n";
 		if (qm_ham != "") {
-			ofs << "            hamiltonian= " << qm_ham << " \\\n";
+			ofs << "            hamiltonian=" << qm_ham << " \\\n";
 		}
-		//This can't be right ask Daniel!
-		//		"            basis=$qm_basis\\\n"
-		ofs << "            ] \\\n";
+        if (qm_basis != "") {
+          ofs << "            basis=" << qm_basis << " ] \\\n";
+        }
 	}
 	if (qm_region != "") {
 		ofs << "    qm_region= { " << qm_region << " } \\\n";
