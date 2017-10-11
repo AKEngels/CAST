@@ -835,10 +835,10 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 // perform FEP calculation if requested
 void md::simulation::feprun()
 {
-  if (Config::get().fep.analyze)
-  {
-    std::remove("overlap.txt");
-  }
+  //if (Config::get().fep.analyze)
+  //{
+  //  std::remove("overlap.txt");
+  //}
   std::vector<double> dE_pots;
 
   for (int i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
