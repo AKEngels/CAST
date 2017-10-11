@@ -801,7 +801,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       else  // python function was successfull
       {
         std::ofstream overlap("overlap.txt", std::ios_base::app);
-        overlap << "Window " << window << ": " << result * 100 << "%\n";
+        overlap << "Window " << window << ": " << result * 100 << " %\n";
       }
     }
     else
