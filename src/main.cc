@@ -18,14 +18,13 @@
 //       L I B S        //
 //                      //
 //////////////////////////
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 #include <cstdlib>
 #include <fstream>
 #include <memory>
 #include <omp.h>
-#ifdef USE_PYTHON
-#include <Python.h>
-
-#endif
 
 //////////////////////////
 //                      //
