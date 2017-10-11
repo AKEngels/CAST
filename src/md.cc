@@ -835,15 +835,15 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 // perform FEP calculation if requested
 void md::simulation::feprun()
 {
-  //if (Config::get().fep.analyze)
-  //{
-  //  std::remove("overlap.txt");
-  //}
+  if (Config::get().fep.analyze)
+  {
+    std::remove("overlap.txt");
+  }
   std::vector<double> dE_pots;
 
   for (int i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
   {
-    std::cout << "Lambda:  " << i * Config::get().fep.dlambda << std::endl;
+    std::cout << "Lambda:  " << i * Config::get().fep.dlambda << "\n";
     coordobj.fep.window[0U].step = static_cast<int>(i);
     coordobj.fep.fepdata.clear();
     // equilibration run for window i
