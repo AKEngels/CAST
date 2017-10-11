@@ -1,4 +1,4 @@
-####################################
+﻿####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -29,16 +29,16 @@ cores                  4
 
 # Input file name
 
-name                   methan.xyz
+name                   3d7z_inh_28_29.arc
 
 # Output file name
 
-outname                methan
+outname                output
 
 # Input file type
 
-inputtype              XYZ
 
+inputtype              TINKER
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -65,7 +65,7 @@ inputtype              XYZ
 # DIMER                Dimer method using torsional space
 # MD                   Molecular dynamics simulation
 # NEB                  Nudged elastic band calculation
-# STARTOPT
+# STARTOPT             Adding water molecules and/or performing Ringsearch
 # UMBRELLA             Umbrella Sampling
 # FEP                  Alchemical transformations using FEP
 # ALIGN                Trajectory Alignment (Kabsch algorithm)
@@ -76,6 +76,9 @@ inputtype              XYZ
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
@@ -87,8 +90,7 @@ inputtype              XYZ
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  WRITE_TINKER
-
+task                  STARTOPT
 
 ####################################
 #                                  #
@@ -104,14 +106,14 @@ task                  WRITE_TINKER
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              MOPAC
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa_mod2.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -181,7 +183,8 @@ DFTBgradstate          0
 #DFTBdiag_conv           1e-05
 
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
-DFTBopt                  0
+DFTBopt                  1
+
 
 
 ####################################
@@ -261,15 +264,15 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-#Periodics              0 70.0 70.0 70.0
+Periodics              0 24.0 24.0 24.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
 
-#Periodicp              0
+Periodicp              0
 
 # Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
-PeriodicCutout true
+PeriodicCutout false
 # 0: Remove entire molecule if any atom of molecule is outside box + CutoutDistance
 # 1: Remove entire molecule if center of mass is outside box + CutoutDistance
 PeriodicCutoutCriterion 1
@@ -558,15 +561,13 @@ RSgenerations          10
 #                                  #
 ####################################
 
-SOtype 1
-
 # Hydrogen bond length parameter [default: 1.8]
 
 SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-#SAlimit                20
+#SAlimit                500
 
 # water boundary type
 #
@@ -574,11 +575,11 @@ SAhb                   1.8
 # 1    sphere
 # 2    box
 
-SAboundary             2
+SAboundary             1
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               40.0
+SAradius               12.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -586,7 +587,7 @@ SAradius               40.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                53 54
+SAtypes                63 64
 
 # Intermediate optimizations
 #
@@ -595,11 +596,11 @@ SAtypes                53 54
 # 2    all waters
 # 3    1+2
 
-SAopt                  3
+SAopt                  2
 
-# fix initial structure
+# fix initial structure <0/1>
 
-SAfixinit              0
+SAfixinit              1
 
 
 
@@ -623,7 +624,7 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            1
+MDveloscale            0
 
 # Thermostat (Nose-Hoover)
 
@@ -659,7 +660,8 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-
+MDheat                 0   1
+MDheat                 100 300
 
 # Pressure control
 
@@ -699,7 +701,7 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-MDactive_site        11
+MDactive_site        0
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
@@ -739,7 +741,7 @@ FEPeleccouple  0.5
 FEPvshift      0.1
 FEPcshift      2.0
 FEPequil       100
-FEPsteps       500
+FEPsteps       100
 FEPfreq        1000
 
 
@@ -816,6 +818,137 @@ USsteps                60
 
 USsnap                 5
 
+
+
+####################################
+#                                  #
+#        XB_EXCITON_BREAKUP        #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters           CenterofMasses.out
+
+#Numbers of monomers
+
+EXnumbern               36
+
+EXnumberp               80
+
+#Orientation of the interface
+
+EXplaneinterf            z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              nSC_homodimer.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
+
+
+
+####################################
+#                                  #
+#      XB_Interface Creation       #           
+#                                  #
+####################################
+
+#Creation of a new Structure from the usual input structure and an additional one
+
+#Additional input file name
+
+ICname 						but_min.xyz
+
+#Additional input file type
+
+ICinputtype					TINKER
+
+#From which axis should tha additional atoms added
+
+ICaxis						x
+
+#How far apart should they be
+
+ICdistance					5.0
+
+
+####################################
+#                                  #
+#             XB_CENTER            #
+#                                  #
+####################################
+
+CENTERdimer                     1
+
+CENTERdistance                  15.0
+
+
+####################################
+#                                  #
+#           XB_Couplings           #
+#                                  #
+####################################
+
+#Number of p-type semiconductor monomers
+
+CouplingspSCnumber              80
+
+#Number of n-type semiconductor monomers         
+
+CouplingsnSCnumber              36
+
+#List of states relevant for ct-processes (no commata)
+
+CouplingsCTcharastates          3 4 7
+
+###p-type homodimer options
+
+CouplingspSCdimMultiplicity          1
+
+CouplingspSCdimCharge                0
+
+CouplingspSCdimElCalcmethod          INDO
+
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+###n-type homodimer options
+
+CouplingsnSCdimMultiplicity          1
+
+CouplingsnSCdimCharge                0
+
+CouplingsnSCdimholCalcmethod         INDO
+
+###heterodimer options
+
+CouplingsheterodimMultiplicity       1
+
+CouplingsheterodimCharge             0
+
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 ####################################
 #                                  #

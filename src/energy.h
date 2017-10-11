@@ -1,4 +1,4 @@
-#pragma once 
+﻿#pragma once 
 
 #if defined _OPENMP
   #include <omp.h>
@@ -14,6 +14,14 @@ namespace energy
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {
+      /**lambda_el of former window for appearing atoms*/
+      double mein;
+      /**lambda_el of former window for disappearing atoms*/
+      double meout;
+      /**lambda_vdw of former window for appearing atoms*/
+      double mvin;
+      /**lambda_vdw of former window for disappearing atoms*/
+      double mvout;
 	  /**current lambda_el for appearing atoms*/
 	  coords::float_type ein;
 	  /**current lambda_el for disappearing atoms*/
@@ -43,6 +51,10 @@ namespace energy
   which is relevant for FEP calculation*/
   struct fepvect
   {
+      /**coulomb-energy for this conformation with lambda-dlambda*/
+      coords::float_type e_c_l0;
+      /**vdw-energy for this conformation with lambda-dlambda*/
+      coords::float_type e_vdw_l0;
 	  /**coulomb-energy for this conformation with lambda*/
 	  coords::float_type e_c_l1;
 	  /**coulomb-energy for this conformation with lambda+dlambda*/
@@ -51,19 +63,25 @@ namespace energy
 	  coords::float_type e_vdw_l1;
 	  /**vdw-energy for this conformation with lambda+dlambda*/
 	  coords::float_type e_vdw_l2;
-	  /**difference in potential energy for this conformation
+	  /**difference in potential energy for this conformation (calculated in energy_int_aco_pot.cc line 1234)
 	  = (e_c_l2 + e_vdw_l2) - (e_c_l1 + e_vdw_l1)*/
 	  coords::float_type dE;
+      /**difference in potential energy for backwards transformation
+      = (e_c_l1 + e_vdw_l1) - (e_c_l0 + e_vdw_l0)*/
+      coords::float_type dE_back;
 	  /**difference in free energy calculated for all conformations 
 	  in this window until current conformation*/
 	  coords::float_type dG;
-	  /**exp((-1 / (k_B*T))*dE ) for this conformation*/
+      /**difference in free energy calculated for all conformations
+      in this window until current conformation in backwards transformation*/
+      coords::float_type dG_back;
+	  /**exp((-1 / (k_B*T))*dE ) or exp((1 / (k_B*T))*dE_back ) for this conformation*/
 	  coords::float_type de_ens;
 	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
-      e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), 
-      e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0)
+      e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), e_c_l0(0.0), e_vdw_l0(0.0),
+      e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0), dE_back(0.0), dG_back(0.0)
     { }
   };
   
@@ -78,11 +96,18 @@ namespace energy
   {
   protected:
 
+    /**pointer to coord object*/
     coords::Coordinates * const coords;
-    bool periodic, integrity, optimizer, interactions, internal_optimizer;
+    bool periodic;
+    /**is system intact?*/
+    bool integrity;
+    /**has energy interface its own optimizer?*/
+    bool optimizer;
+    bool interactions, internal_optimizer;
 
   public:
 
+    /**total energy, in dftb interface this is called e_tot*/
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
@@ -130,7 +155,7 @@ namespace energy
     /** Energy+Gradient function*/
     //virtual coords::float_type gi(void) = 0;
 
-    /** Energy+Gradient+Hessian function*/
+    /** Energy+Hessian function*/
     virtual coords::float_type h (void) = 0;
 
     /** Optimization in the intface or interfaced program*/
@@ -138,16 +163,21 @@ namespace energy
 
     // Feature getter
     bool has_periodics() const { return periodic; }
+    /**does energy interface has its own optimizer*/
     bool has_optimizer() const { return optimizer; }
     bool has_internal_optimizer() const { return optimizer; }
     bool has_interactions() const { return interactions; }
-
+    /**is system intact*/
     bool intact() const { return integrity; }
 
     // Output functions
+    /**print total energy*/
     virtual void print_E (std::ostream&) const = 0;
+    /**print headline for energies*/
     virtual void print_E_head (std::ostream&, bool const endline = true) const = 0;
+    /**print partial energies*/
     virtual void print_E_short (std::ostream&, bool const endline = true) const = 0;
+    /**print gradients*/
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
 

@@ -1,4 +1,4 @@
-
+﻿
 //////////   //////////   //////////   ////////// 
 //           //      //   //               //
 //           //      //   //               //
@@ -22,7 +22,9 @@
 #include <fstream>
 #include <memory>
 #include <omp.h>
-
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 
 //////////////////////////
 //                      //
@@ -144,6 +146,19 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {   // if DFTB energy interface: initialize python 
+        // necessary to do it here because it can't be done more than once
+#ifdef USE_PYTHON
+      Py_Initialize();
+#else
+      printf("It is not possible to use DFTB without python!\n");
+      std::exit(0);
+#endif
+      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("tmp_struc_trace.xyz");
+    }
+
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
@@ -196,6 +211,8 @@ int main(int argc, char **argv)
         coords = newCoords;
       }
     }
+
+
 
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
@@ -464,6 +481,7 @@ int main(int argc, char **argv)
     }
     case config::tasks::FEP:
     {
+      std::remove("dE_pot.txt");
       // Free energy perturbation
       md::simulation mdObject(coords);
       mdObject.fepinit();
@@ -911,7 +929,12 @@ int main(int argc, char **argv)
     }
 
     }
- 
+#ifdef USE_PYTHON
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {    // if DFTB interface: close python
+      Py_Finalize();
+    }
+#endif // 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";

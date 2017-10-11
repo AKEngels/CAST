@@ -21,7 +21,7 @@ newoption {
 
 
 workspace "CAST"
-  configurations { "Debug", "Release", "Testing", "Armadillo_Testing", "Armadillo_Release", "Armadillo_Debug" }
+  configurations { "Debug", "Release", "Testing", "Armadillo_Testing", "Armadillo_Release", "Armadillo_Debug", "Python_Release", "Python_Debug" }
     location "../optional_files/project"
     platforms { "x86", "x64"}
   filter { "platforms:x86" }
@@ -54,6 +54,18 @@ project "CAST"
       targetname "CAST_linux_x86_release"
     filter { "configurations:Release",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_release"
+    filter { "configurations:Python_Release",  "platforms:x64", "action:gmake"}
+      targetname "CAST_linux_x64_python_release"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+    filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
+      targetname "CAST_linux_x86_python_release"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Testing", "action:gmake" }
       optimize "Debug"
@@ -88,6 +100,18 @@ project "CAST"
       targetname "CAST_linux_x86_debug"
     filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_debug"
+    filter { "configurations:Python_Debug",  "platforms:x86", "action:gmake"}
+      targetname "CAST_linux_x86_python_debug"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+    filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
+      targetname "CAST_linux_x64_python_debug"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Debug", "action:gmake" }
       includedirs { "../optional_files/includes/armadillo/"}
@@ -132,6 +156,19 @@ project "CAST"
       targetname "CAST_win_x64_release"
     defines {"EIGEN_NO_DEBUG"}
     includedirs { "../submodules/eigen/Eigen/"}
+
+    filter { "configurations:Python_Release",  "platforms:x64", "action:vs2015"}
+      targetname "CAST_win_x64_python_release"
+      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Release",  "platforms:x86", "action:vs2015"}
+      targetname "CAST_win_x86_release"
+      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
 
     filter { "configurations:Armadillo_Release", "action:vs2015"}
       includedirs { "../optional_files/includes/armadillo/"}
@@ -196,4 +233,16 @@ project "CAST"
     filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
       targetname "CAST_win_x86_debug"
     filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
-targetname "CAST_win_x64_debug"
+      targetname "CAST_win_x64_debug"
+    filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2015"}
+      targetname "CAST_win_x86_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      defines {"USE_PYTHON"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2015"}
+      targetname "CAST_win_x64_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      defines {"USE_PYTHON"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}

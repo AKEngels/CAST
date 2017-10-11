@@ -131,13 +131,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 7;
+  static std::size_t const NUM_INTERFACES = 8;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -151,7 +151,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN
     }; 
   };
 
@@ -553,6 +553,51 @@ namespace config
       {}
     } mopac;
 
+    /**struct that contains all information necessary for DFTB calculation*/
+    struct dftb_conf
+    {
+      /**path to dftbaby*/
+      std::string path;
+      /**name of dftbaby gradient file (deleted again but necessary because otherwise
+      dftbaby doesn't calculate gradients)*/
+      std::string gradfile;
+      /**total charge of the molecule*/
+      int charge;
+      /**state for which DFTB gradients are calculated (ground state = 0)*/
+      int gradstate;
+      /**verbosity for dftbaby*/
+      int verbose;
+      /**maximum number of SCF-iterations*/
+      int maxiter;
+      /**convergence threshold for relative change in SCF-calculation*/
+      std::string conv_threshold;
+      /**cutoff in bohr: orbitals that are further away don't interact*/
+      float cutoff;
+      /**long range correction on or off*/
+      bool longrange;
+      /**distance (in bohr) where long range correction is switched on*/
+      float lr_dist;
+      /**limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues*/
+      int states;
+      /**number of occupied orbitals taken into account for TD-DFTB*/
+      int orb_occ;
+      /**number of virtual orbitals taken into account for TD-DFTB*/
+      int orb_virt;
+      /**maximum number of iterations for TD-DFTB matrix diagonalisation*/
+      int diag_maxiter;
+      /**convergence threshold for TD-DFTB matrix diagonalisation*/
+      std::string diag_conv;
+      /**use own optimizer for optimization (otherwise steepest gradient)*/
+      bool opt;
+      
+      /**constructor
+      for most options if a value is set to 0, the default values from dftbaby are used
+      exceptions: gradstate, verbose*/
+      dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
+    } dftb;
+
     struct gaussian_conf
     {
       std::string path, link, charge, multipl, method, basisset, spec;
@@ -561,6 +606,7 @@ namespace config
         delete_input(true)
       {}
     } gaussian;
+
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),

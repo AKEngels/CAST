@@ -366,6 +366,11 @@ GAUSSIANdelete          1
 
 For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
 
+\textbf{For users on ECPC}: The python 2.7 version that is installed on ECPC is 64bit so you can only compile CAST with python in 64bit mode. Also you have to add the following line to your .cshrc so CAST can find python:
+\begin{lstlisting}
+setenv PYTHONHOME /apps/python27
+\end{lstlisting}
+
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
 If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
@@ -379,22 +384,56 @@ In addition to python you also need the following:
 
 Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. 
 
+\textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
+\begin{lstlisting}
+make clean
+make
+\end{lstlisting}
+DFTBaby should work.
+
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
 There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
 \begin{lstlisting}[firstnumber=92]
         else:
-				    self.dmax = max(reppot\_module.d)
-						self.tck = interpolate.splrep(reppot\_module.d, reppot_module.Vrep,s=0)
+				    self.dmax = max(reppot_module.d)
+						self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
 						def smooth_tail(d,deriv=0)
 						    return 0.0
-				reppot\_module.d /= scaling
+				reppot_module.d /= scaling
 				self.smooth_tail = smooth_tail
 \end{lstlisting}
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
+
+\textbf{DFTB Options} 
+\\(default value none means defalt value is taken from DFTBaby)
+\\(bool values have to be given as 1=true and 0=false)
+
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{DFTBath} & Path to DFTBaby & string \\
+	\textbf{DFTBverbose} & verbosity for DFTBaby, i.\,e. how much information is printed in file output\_dftb.txt & int [0] \\	
+	\textbf{DFTBcharge} & total charge of the molecule & int [0] \\
+	\textbf{DFTBcutoff} & cutoff for orbital interactions \textbf{(in bohr!!!)} & float [none] \\
+	\textbf{DFTBlr\_corr} & Switch long range correction on and off & bool [false] \\
+	\textbf{DFTBlr\_dist} & R\textsubscript{lr} \textbf{(in bohr!!!)} for long range correction & float [none] \\
+	\textbf{DFTBmaxiter} & maximum number of iterations for SCF calculation & int [none] \\
+	\textbf{DFTBconv} & convergence threshold for relative change in SCF calculation & string [none] \\
+	\textbf{DFTBgradfile} & name of the DFTBaby gradient file (is deleted after calculation) & string [grad.xyz] \\
+	\textbf{DFTBgradstate} & state for which the gradients should be calculated & int [0] \\
+	\textbf{DFTBstates} & number of states taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBocc\_orb} & number of occupied orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBvirt\_orb} & number of virtual orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBdiag\_maxiter} & maximum number of iterations for TD-DFTB matrix diagonalisation & int [none] \\
+	\textbf{DFTBdiag\_conv} & convergence threshold for TD-DFTB matrix diagonalisation & string [none] \\
+	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient that is implemented in CAST (of course this is not an option of DFTBaby) & bool [true] \\
+\end{longtable} 
+
+\textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Known Quirks and Work-Arounds)
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -519,7 +558,7 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 	The result of a gradient calculation is the same as the result for a single point calculation with the addition that the gradients of the atoms are also calculated. The output is can be found as a file where the filename specified by the configuration parameter "output" is amended by the keyword "GRAD". This file contains the information about the gradients with respect to atoms, force field contributions and x-, y- and z-coordinates.
 	
 	\subsection{HESS - Single point energy and hessian calculation}
-	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is not implemented so this task will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
+	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is only implemented in the DFTB interface so it will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
 	
 
 	%%%% LOCOPT %%%%
@@ -838,8 +877,34 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be cosntraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
 
 	%%%% STARTOPT %%%%
-	\subsection{STARTOPT - I dont even know}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	\subsection{STARTOPT}	
+	
+	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	
+	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
+	
+	Other options of this task are described in the following table:
+	
+	\begin{tabularx}{\textwidth}{l|X|X}
+		variable & effect & default \\
+		\hline
+    \textbf{\underline{Startopt Options}} &  &  \\ 
+		\textbf{SOtype} & 0 = Ringsearch, 1 = Solvadd, 2 = Ringsearch + Solvadd	& int [1]\\
+		\textbf{SOstructures} & ??? & ??? \\
+		\hline
+		\textbf{\underline{Solvadd Options}} & &  \\
+		\textbf{SAhb} & ??? & float [1.8] \\
+		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
+		\textbf{SAboundary} & shape of the water shell (0 = layer, 1 = sphere, 2 = box) & integer [10] \\
+		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
+		\textbf{SAtypes} & force field parameter types of water oxygen and hydrogen & 2 integers \\
+		\textbf{SAopt} & how is structure optimised? (0 = not at all, 1 = after adding of each shell, 2 = once after adding all waters, 3 = each shell and all at the end & int \\
+		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
+		\hline
+		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
+
+		
+	\end{tabularx}\\~\\
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
@@ -890,7 +955,26 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 	\end{tabularx}\\~\\
 
-	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
+	\ac{FEP} calculations produce three output files: ``alchemical.txt'', ``FEP\_Results.txt'' and ``dE\_pot.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
+	\begin{itemize}
+	\item electrostatic interactions for $\lambda - \Delta \lambda$
+	\item electrostatic interactions for $\lambda$
+	\item electrostatic interactions for $\lambda + \Delta \lambda$ (in the file also called dLambda)
+	\item Van der Waals interactions for $\lambda - \Delta \lambda$
+	\item Van der Waals interactions for $\lambda$
+	\item Van der Waals interactions for $\lambda + \Delta \lambda$ 
+	\item temperature
+	\item $\Delta E_{pot} = U(\lambda + \Delta \lambda) - U(\lambda)$
+	\item $\Delta G$ calculated from a forward transformation out of $\Delta E_{pot}$
+	\item $\Delta E_{pot, back} = U(\lambda) - U(\lambda - \Delta \lambda)$
+	\item $\Delta G_{back}$ calculated from a backward transformation out of $\Delta E_{pot,back}$
+	\end{itemize}
+	The free energy changes in the lines without columns are only from the forward transformation.
+	
+	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical).
+	
+	The third output file ``dE\_pot.txt'' contains the $\Delta E_{pot}$ values for all conformations in all windows for forward and backwards transformation. This file can be analysed by the script ``FEP\_histograms.py''. Just copy the script in the same folder as the output file and run it. It produces a picture for every window where the probability distributions of the potential energy differences of forward and backwards transformation for every window are plotted. Furthermore the overlap of these distributions for every window is calculated and printed. The quality of a calculation is better if the overlap between forward and backwards distribution is bigger.
+	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
 	If you use a temperature gradient it will only be applied in the initialisation run but not in the equilibration and production runs. In those the temperature is kept constant at the last temperature of your gradient.
