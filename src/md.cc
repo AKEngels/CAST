@@ -795,7 +795,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       std::string result_str = PyString_AsString(ret); //convert result to a C++ string
       if (result_str == "error")
       {
-        std::cout << "An error occured during running python module 'FEP_analysis\n";
+        std::cout << "An error occured during running python module 'FEP_analysis'\n";
       }
       else  // python function was successfull
       {
