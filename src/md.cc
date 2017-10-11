@@ -785,20 +785,13 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
     const char *c = add_path.c_str();  //add paths pythonpath
     PyRun_SimpleString(c);
 
-    std::cout << "call module\n";
     modul = PyImport_ImportModule("FEP_analysis"); //import module 
-    std::cout << "module called\n";
     if (modul)
     {
-      std::cout << "create function\n";
       funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap"); //create function
-      std::cout << "create parameters\n";
       prm = Py_BuildValue("OOi", E_pots, E_pot_backs, window); //give parameters
-      std::cout << "call function\n";
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
-      std::cout << "process result\n";
       std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-      std::cout << "result_str: " << result_str << "\n";
       if (result_str == "error")
       {
         std::cout << "An error occured during running python module 'FEP_analysis'\n";
@@ -1531,7 +1524,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   {
     std::cout << "Average pressure: " << p_average << "\n";
     //auto integration_time = integration_timer();
-    std::cout << "Velocity-Verlet integration took \n"; //<< integration_timer << '\n';
+    std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
   }
 }
 
