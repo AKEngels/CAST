@@ -1529,7 +1529,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   p_average /= CONFIG.num_steps;
   if (Config::get().general.verbosity > 2U)
   {
-    std::cout << "Average pressure: " << p_average << std::endl;
+    std::cout << "Average pressure: " << p_average << "\n";
     //auto integration_time = integration_timer();
     std::cout << "Velocity-Verlet integration took \n"; //<< integration_timer << '\n';
   }
