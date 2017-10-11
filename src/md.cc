@@ -1,4 +1,7 @@
-﻿#include <vector>
+﻿#ifdef USE_PYTHON
+#include <Python.h>
+#endif
+#include <vector>
 #include <cmath>
 #include <algorithm>
 #include <limits>
@@ -8,9 +11,6 @@
 #include <cstring>
 #include <stdexcept>
 #include <atomic>
-#ifdef USE_PYTHON
-#include <Python.h>
-#endif
 
 #include "md.h"
 
