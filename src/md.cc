@@ -793,13 +793,13 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       prm = Py_BuildValue("OOi", E_pots, E_pot_backs, window); //give parameters
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
       std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-      float result = std::stof(result_str);  // convert result to float
       if (result_str == "error")
       {
         std::cout << "An error occured during running python module 'FEP_analysis\n";
       }
       else  // python function was successfull
       {
+        float result = std::stof(result_str);  // convert result to float
         std::ofstream overlap("overlap.txt", std::ios_base::app);
         overlap << "Window " << window << ": " << result * 100 << " %\n";
       }
