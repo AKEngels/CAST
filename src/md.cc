@@ -1531,7 +1531,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   {
     std::cout << "Average pressure: " << p_average << std::endl;
     //auto integration_time = integration_timer();
-    std::cout << "Velocity-Verlet integration took \n" //<< integration_timer << '\n';
+    std::cout << "Velocity-Verlet integration took \n"; //<< integration_timer << '\n';
   }
 }
 
