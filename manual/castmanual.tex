@@ -149,6 +149,7 @@
 		\acro{GAFF}{General Amber Force Field}
 		\acro{GCC}{GNU Compiler Collection}
 		\acro{GPU}{graphics processing unit}
+		\acro{LAPACK}{Linear Algebra PACKage}
 		\acro{MC}{Monte-Carlo}
 		\acro{MCM}{Monte-Carlo with Minimization}
 		\acro{MD}{Molecular Dynamics}
@@ -188,12 +189,21 @@
 	%%%%                            %%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\ifdevelopment
-	\section{Compiling CAST}
+	\section{Compiling CAST} \label{sec:compile}
 	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
 	
 	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
 	
 	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. Precompiled binaries for windows and linux are included in \ac{CAST}.
+	
+	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
+	
+	\textbf{For users on ECPC:} The python 2.7 version that is installed on ECPC is 64bit so you can only compile \ac{CAST} in 64bit mode. Also you have to add the following lines to your .cshrc:
+\begin{lstlisting}
+setenv PYTHONHOME /apps/python27
+setenv LD_LIBRARY_PATH /apps/lib64:\${LD_LIBRARY_PATH}
+\end{lstlisting}	
+The first line tells CAST where python is installed, the second line adds the folder ``/apps/lib64'' to the paths where libraries are expected. This is necessary because not all libraries that python needs are originally installed on the nodes of ECPC so they have been copied here manually. 
 	
 	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
 	\fi
@@ -364,12 +374,8 @@ GAUSSIANdelete          1
 
 \subsubsection{DFTB} \label{DFTB}
 
-For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
 
-\textbf{For users on ECPC}: The python 2.7 version that is installed on ECPC is 64bit so you can only compile CAST with python in 64bit mode. Also you have to add the following line to your .cshrc so CAST can find python:
-\begin{lstlisting}
-setenv PYTHONHOME /apps/python27
-\end{lstlisting}
 
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
@@ -974,7 +980,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	
 	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical).
 	
-	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{DFTB} for a description how to do this. Python needs the module ``matplotlib''. 
+	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{sec:compile} for a description how to do this. Python needs the module ``matplotlib''. 
 	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
