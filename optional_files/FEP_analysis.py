@@ -1,4 +1,6 @@
 import math
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt    
     
 def plot_histograms_and_calculate_overlap(dE_pots, dE_pot_backs, window):
