@@ -195,7 +195,7 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
       for (auto const & a : c.atoms) {
         ret << " " << std::to_string(a);
       }
-      ret << "}";
+      ret << " } ";
       return ret.str();
     };
 
@@ -207,15 +207,15 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
     else {
         ofs << "hdlc";
     }
+    ofs << " \\\n";
     if (!cons.empty()) {
       std::string constraint_str = "";
       for (auto const & c : cons) {
         constraint_str += make_constraints(c);
       }
-      ofs << "constraints={ " << constraint_str << " } \\\n";
+      ofs << "    constraints= { " << constraint_str << "} \\\n";
     }
-    ofs << "\\\n"
-		"    result=" << tmp_file_name << "_opt.c \\\n";
+    ofs << "    result=" << tmp_file_name << "_opt.c \\\n";
 	if (maxcycle != "") {
 		ofs << "    maxcycle=" << maxcycle << " \\\n";
 	}
