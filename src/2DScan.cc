@@ -5,6 +5,7 @@ Scan2D::Scan2D(coords::Coordinates & coords)
 {
 	logfile.open(structures_file);
 	energies.open(energie_file);
+    Config::set().scan2d.constraints = true;
 }
 
 void Scan2D::execute_scan(){

@@ -189,6 +189,15 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 	std::string active_atoms, inactive_atoms;
 	std::tie(active_atoms, inactive_atoms) = find_active_and_inactive_atoms(qm_region);
 
+    auto make_constraints = [&](constraints const & c) {
+      std::stringstream ret;
+      ret << "{ " << c.kind;
+      for (auto const & a : c.atoms) {
+        ret << " " << std::to_string(a);
+      }
+      ret << "}";
+      return ret.str();
+    };
 
     ofs << "dl-find coords = ./" << tmp_file_name << ".c \\\n"
         "    coordinates=";
@@ -197,6 +206,13 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
     }
     else {
         ofs << "hdlc";
+    }
+    if (!cons.empty()) {
+      std::string constraint_str = "";
+      for (auto const & c : cons) {
+        constraint_str += make_constraints(c);
+      }
+      ofs << "constraints={ " << constraint_str << " } \\\n";
     }
     ofs << "\\\n"
 		"    result=" << tmp_file_name << "_opt.c \\\n";
@@ -207,9 +223,9 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		ofs << "    tolerance=" << tolerance << " \\\n";
 	}
 	ofs << "    active_atoms= {" << active_atoms << "} \\\n";
-    if (inactive_atoms != "") {
+    /*if (inactive_atoms != "") {
       ofs << "    frozen= {" << inactive_atoms << "} \\\n";
-    }
+    }*/
 	ofs << "    residues= $residues \\\n"
 		"    theory=hybrid : [ list \\\n";
 	if (embedding_sheme != "") {
@@ -267,6 +283,55 @@ void energy::interfaces::chemshell::sysCallInterface::make_opt_inp(std::ofstream
 		"catch {file delete dummy.coords}\n"
 		"\n"
 		"close $control_input_settings\n";*/
+}
+
+void energy::interfaces::chemshell::sysCallInterface::eval_constraints()
+{
+  auto which_bond = [&](std::vector<std::string> const & strs) {
+    constraints c;
+    c.kind = "bond";
+    c.atoms.emplace_back(std::stoi(strs[1]));
+    c.atoms.emplace_back(std::stoi(strs[2]));
+    this->cons.emplace_back(c);
+  };
+  auto which_angle = [&](std::vector<std::string> const & strs) {
+    constraints c;
+    c.kind = "angle";
+    c.atoms.emplace_back(std::stoi(strs[1]));
+    c.atoms.emplace_back(std::stoi(strs[2]));
+    c.atoms.emplace_back(std::stoi(strs[3]));
+    this->cons.emplace_back(c);
+  };
+  auto which_dihedral = [&](std::vector<std::string> const & strs) {
+    constraints c;
+    c.kind = "torsion";
+    c.atoms.emplace_back(std::stoi(strs[1]));
+    c.atoms.emplace_back(std::stoi(strs[2])); 
+    c.atoms.emplace_back(std::stoi(strs[3])); 
+    c.atoms.emplace_back(std::stoi(strs[4]));
+    this->cons.emplace_back(c);
+  };
+
+  auto which_const = [&](std::vector<std::string> const & strs) {
+    if (strs[0] == "bond") {
+      which_bond(strs);
+    }
+    else if (strs[0] == "angle") {
+      which_angle(strs);
+    }
+    else if (strs[0] == "dihedral") {
+      which_dihedral(strs);
+    }
+  };
+
+  if (!Config::get().scan2d.constraints) return;
+  if (cons.empty()) {
+    for (auto const & el : Config::get().scan2d.AXES) {
+      std::istringstream iss(el);
+      std::vector<std::string> split{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
+      which_const(split);
+    }
+  } 
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const {
@@ -422,9 +487,9 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
         }
       }
     }
-    for(auto const & qm_atom : qm_list){
+    /*for(auto const & qm_atom : qm_list){
         active_atoms_set.erase(qm_atom);
-    }
+    }*/
 
     auto const & atoms = coords->atoms();
 
