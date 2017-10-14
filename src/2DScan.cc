@@ -227,9 +227,12 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
         std::size_t atom_number, bond_count;
         std::tie(atom_number, bond_count) = dd;
 
-        auto const change = angle_type::from_deg(deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
-
-        if (fabs(change) >= max_change_rotation_rad && (deg * change) < 0.){
+        auto const change = angle_type::from_deg(deg < 0.0 ? 
+          deg + parent->change_from_atom_to_atom*static_cast<double>(bond_count) :
+          deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)
+        ).radians();
+        auto const change_in_deg = deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count);
+        if (fabs(change) <= max_change_rotation_rad || (deg * change) < 0.){
           continue;
         }
 
@@ -373,10 +376,10 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
 
     for (auto const & n : neigh) {
       if (n == border) continue;
-      if(this->_coords.atoms().atom(n).fixed() && n != atom){
+      /*if(this->_coords.atoms().atom(n).fixed() && n != atom){
         fixed_depth = fixed_depth == 0 ? recursion_count : fixed_depth;
         insert_element(n, fixed_depth);
-      }
+      }*/
       insert_element(n, recursion_count);
     }
     ++recursion_count;
@@ -627,7 +630,7 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
   auto p = parent.lock();
   auto const change = mh.new_pos - say_val();
-
+  auto const bla = say_val();
   if (fabs(change) > p->max_change_rotation) {
     return mh.rotate_molecule_behind_a_dih(change);
   }
