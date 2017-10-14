@@ -476,9 +476,10 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 
     auto qm_list = make_string_to_numbers(qm_atoms);    
 
-    std::unordered_set<std::size_t> active_atoms_set;
+    std::set<std::size_t> active_atoms_set;
 
     for (auto const & qm_atom : qm_list) {
+      active_atoms_set.insert(qm_atom);
       auto const & xyz = coords->xyz();
       auto const & center = xyz[qm_atom - 1u];
       for (auto i = 0u; i < xyz.size(); ++i) {
@@ -490,11 +491,15 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
     /*for(auto const & qm_atom : qm_list){
         active_atoms_set.erase(qm_atom);
     }*/
+    for(auto const & c : cons){
+        for(auto const & a : c.atoms){
+            active_atoms_set.insert(a);
+        }
+    }
 
     auto const & atoms = coords->atoms();
 
     for(auto const & aa : active_atoms_set){
-        if (atoms.atom(aa-1).fixed()) continue;
         active_atoms += std::to_string(aa) + " ";
     }
 

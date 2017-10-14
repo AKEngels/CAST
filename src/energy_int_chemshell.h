@@ -8,6 +8,7 @@
 #include<sstream>
 #include<istream>
 #include<iostream>
+#include<set>
 #include<unordered_set>
 #include"coords_io.h"
 #include"energy.h"
@@ -76,8 +77,9 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 					first_call = other.first_call;
-
-					change_input_file_names(other.tmp_file_name);
+                                        if(!first_call){
+					    change_input_file_names(other.tmp_file_name);
+                                        }
 				}
 
 
