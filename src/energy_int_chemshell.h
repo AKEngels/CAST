@@ -8,6 +8,7 @@
 #include<sstream>
 #include<istream>
 #include<iostream>
+#include<set>
 #include<unordered_set>
 #include"coords_io.h"
 #include"energy.h"
@@ -46,7 +47,6 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 					first_call = true;
-					
 				}
 				~sysCallInterface() final {
 					if (Config::get().energy.chemshell.delete_input)
@@ -77,8 +77,10 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 					first_call = other.first_call;
-
-					change_input_file_names(other.tmp_file_name);
+                    cons = other.cons;
+                    if(!first_call){
+					    change_input_file_names(other.tmp_file_name);
+                    }
 				}
 
 
@@ -137,6 +139,7 @@ namespace energy {
 				inline void check_for_first_call() {
 					if (first_call) {
 						first_call = false;
+                        eval_constraints();
 						initialize_before_first_use();
 					}
 				}
@@ -169,6 +172,14 @@ namespace energy {
 
 				void make_sp_inp(std::ofstream & ofs)const;
 				void make_opt_inp(std::ofstream & ofs)const;
+
+                void eval_constraints();
+
+                struct constraints {
+                  std::string kind = "";
+                  std::vector<std::size_t> atoms;
+                };
+                std::vector<constraints> cons;
 
 
 			};

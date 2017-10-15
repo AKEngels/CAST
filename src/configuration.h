@@ -1163,6 +1163,7 @@ namespace config
 	  std::vector<std::string> AXES;
 
       double change_from_atom_to_atom=0., max_change_to_rotate_whole_molecule=180.;
+      bool constraints = false;
   };
 
   /*

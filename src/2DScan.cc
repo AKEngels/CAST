@@ -5,6 +5,7 @@ Scan2D::Scan2D(coords::Coordinates & coords)
 {
 	logfile.open(structures_file);
 	energies.open(energie_file);
+    Config::set().scan2d.constraints = true;
 }
 
 void Scan2D::execute_scan(){
@@ -226,9 +227,12 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
         std::size_t atom_number, bond_count;
         std::tie(atom_number, bond_count) = dd;
 
-        auto const change = angle_type::from_deg(deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)).radians();
-
-        if (fabs(change) >= max_change_rotation_rad && (deg * change) < 0.){
+        auto const change = angle_type::from_deg(deg < 0.0 ? 
+          deg + parent->change_from_atom_to_atom*static_cast<double>(bond_count) :
+          deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)
+        ).radians();
+        auto const change_in_deg = deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count);
+        if (fabs(change) <= max_change_rotation_rad || (deg * change) < 0.){
           continue;
         }
 
@@ -345,28 +349,19 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
 Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t> const & kind) const {
   auto const & atoms = _coords.atoms();
   bond_set ret;
-  std::size_t recursion_count = 1;
+  std::size_t recursion_count = 0;
 
   auto lock_depth = false;
   auto fixed_depth = 0;
 
-  auto prepare_start_conditions = [&]() {
-      if (kind.size() == 2) {
-          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
-          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
-      }
-      else if (kind.size() == 3) {
-          ret.insert(std::make_pair(kind[0u] - 1u, 0u));
-          return std::make_pair(kind[0u] - 1u, kind[1u] - 1u);
-      }
-      else if (kind.size() == 4) {
-          --recursion_count;
-          return std::make_pair(kind[1u] - 1u, kind[2u] - 1u);
-      } 
-  };
+  std::size_t atom = 0u;
+  std::size_t border = 0u;
 
-  std::size_t atom = kind[1u] - 1u, border = kind[2u] - 1u;
-  //std::tie(atom, border) = prepare_start_conditions();
+  std::tie(atom, border) = kind.size() == 2 ?
+    std::make_pair(kind[0u] - 1u, kind[1u] - 1u) :
+    std::make_pair(kind[1u] - 1u, kind[2u] - 1u);
+
+  ret.insert(std::make_pair(atom, recursion_count));
 
   std::function<void(std::vector<std::size_t>)> parse_neighbors = [&](std::vector<std::size_t> const & neigh) -> void {
     if(neigh.size()<=1) return;
@@ -381,10 +376,10 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
 
     for (auto const & n : neigh) {
       if (n == border) continue;
-      if(this->_coords.atoms().atom(n).fixed() && n != atom){
+      /*if(this->_coords.atoms().atom(n).fixed() && n != atom){
         fixed_depth = fixed_depth == 0 ? recursion_count : fixed_depth;
         insert_element(n, fixed_depth);
-      }
+      }*/
       insert_element(n, recursion_count);
     }
     ++recursion_count;
@@ -635,7 +630,7 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
   auto p = parent.lock();
   auto const change = mh.new_pos - say_val();
-
+  auto const bla = say_val();
   if (fabs(change) > p->max_change_rotation) {
     return mh.rotate_molecule_behind_a_dih(change);
   }
