@@ -55,12 +55,14 @@ project "CAST"
     filter { "configurations:Release",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_release"
     filter { "configurations:Python_Release",  "platforms:x64", "action:gmake"}
+      optimize "Full"
       targetname "CAST_linux_x64_python_release"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
       links {"python2.7", "util", "lapack"}
       linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
     filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
+      optimize "Full"
       targetname "CAST_linux_x86_python_release"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
@@ -101,12 +103,14 @@ project "CAST"
     filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_debug"
     filter { "configurations:Python_Debug",  "platforms:x86", "action:gmake"}
+      optimize "Debug"
       targetname "CAST_linux_x86_python_debug"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
       links {"python2.7", "util", "lapack"}
       linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
     filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
+      optimize "Debug"
       targetname "CAST_linux_x64_python_debug"
       includedirs { "/apps/python27/include/python2.7" }
       defines {"USE_PYTHON"}
@@ -158,12 +162,14 @@ project "CAST"
     includedirs { "../submodules/eigen/Eigen/"}
 
     filter { "configurations:Python_Release",  "platforms:x64", "action:vs2015"}
+      optimize "Full"
       targetname "CAST_win_x64_python_release"
       defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
       includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
       libdirs {"C:/Python27/libs"}
       links {"python27"}
     filter { "configurations:Python_Release",  "platforms:x86", "action:vs2015"}
+      optimize "Full"
       targetname "CAST_win_x86_python_release"
       defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
       includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
@@ -173,7 +179,6 @@ project "CAST"
     filter { "configurations:Armadillo_Release", "action:vs2015"}
       includedirs { "../optional_files/includes/armadillo/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
-
       optimize "Full"
       defines { "CAST_USE_ARMADILLO" }
       flags { "LinkTimeOptimization" }
@@ -235,12 +240,14 @@ project "CAST"
     filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
       targetname "CAST_win_x64_debug"
     filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2015"}
+      optimize "Debug"
       targetname "CAST_win_x86_python_debug"
       includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
       defines {"USE_PYTHON"}
       libdirs {"C:/Python27/libs"}
       links {"python27"}
     filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2015"}
+      optimize "Debug"
       targetname "CAST_win_x64_python_debug"
       includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
       defines {"USE_PYTHON"}
