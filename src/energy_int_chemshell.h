@@ -47,6 +47,7 @@ namespace energy {
 					ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
 					tmp_file_name.append("_tmp_").append(ss.str());
 					first_call = true;
+					x = 1;
 				}
 				~sysCallInterface() final {
 					if (Config::get().energy.chemshell.delete_input)
@@ -81,6 +82,7 @@ namespace energy {
                     if(!first_call){
 					    change_input_file_names(other.tmp_file_name);
                     }
+					x=1;
 				}
 
 
@@ -105,6 +107,7 @@ namespace energy {
 				static auto constexpr au_to_kcalmol = 627.503;
 
 			private:
+				int x;
 				std::string tmp_file_name;
 				bool first_call;
 

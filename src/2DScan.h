@@ -252,7 +252,7 @@ private:
 
 	std::ofstream logfile;
 	std::ofstream energies;
-
+	std::ofstream before;
 	int x_circle = 0;
 	int y_circle = 0;
 

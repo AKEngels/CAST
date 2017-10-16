@@ -5,6 +5,7 @@ Scan2D::Scan2D(coords::Coordinates & coords)
 {
 	logfile.open(structures_file);
 	energies.open(energie_file);
+	before.open("Before_Opti.xyz");
     Config::set().scan2d.constraints = true;
 }
 
@@ -424,7 +425,7 @@ void Scan2D::make_scan() {
           true
         );
         parser->x_parser->set_coords(_coords.xyz());
-        
+        output.to_stream(before);
 		parser->fix_atoms(_coords);
 
     	write_energy_entry(optimize(_coords));
@@ -499,8 +500,9 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
           true
         );
 		parser->fix_atoms(coords);
-
+		output.to_stream(before);
 		this->write_energy_entry(this->optimize(coords));
+
 		parser->y_parser->set_coords(coords.xyz());
 
         //std::cout << "step: " << y_circle << ". " << parser->y_parser->say_val() << " should be: " << y_step << std::endl;

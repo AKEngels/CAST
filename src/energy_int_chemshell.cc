@@ -338,6 +338,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 
 	auto o_file = tmp_file_name + ".chm";
 	write_xyz(tmp_file_name + ".xyz");
+	write_xyz(tmp_file_name + std::to_string(x) + ".xyz");
 
 	std::ofstream chemshell_file_to_prepare_coords(o_file);
 
@@ -373,6 +374,12 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 
 	std::ofstream chem_shell_input_stream(o_file);
 
+
+
+
+        write_xyz(tmp_file_name + ".xyz");
+        write_xyz(tmp_file_name + std::to_string(x) + ".xyz");
+
 	chem_shell_input_stream <<
 		"global qm_theory\n"
 //		"global ftupd\n"
@@ -384,7 +391,9 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 //		"\n"
 		"load_amber_coords inpcrd=$amber_inpcrd prmtop=$amber_prmtop coords=" << tmp_file_name << ".c\n"
 		"\n"
-		"set residues [pdb_to_res \"" << tmp_file_name << ".pdb\"]\n";
+		"set residues [pdb_to_res \"" << tmp_file_name << ".pdb\"]\n"
+		"\n"
+		"read_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << ".c\n";
 	//Refactoring NEEDED!!!!!!
 	auto const & com_res = Config::get().energy.chemshell.com_residues;
 	
@@ -659,9 +668,10 @@ void energy::interfaces::chemshell::sysCallInterface::change_name_of_energy_and_
 
 	std::stringstream().swap(ss);
 
-	ss << "mv " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
+	ss << "rm " << tmp_file_name << "_opt.c " << tmp_file_name << ".c";
 
 	scon::system_call(ss.str());
+
 
 }
 
@@ -670,7 +680,7 @@ void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(st
 	std::string what_happens = copy_or_move == "cp" ? "copy" : "move";
 
 	std::stringstream ss;
-	ss << copy_or_move << " " << filename << ".c " << tmp_file_name << ".c";
+	/*ss << copy_or_move << " " << filename << ".c " << tmp_file_name << ".c";
 
 	auto ret = scon::system_call(ss.str());
 
@@ -678,11 +688,11 @@ void energy::interfaces::chemshell::sysCallInterface::change_input_file_names(st
 		throw std::runtime_error("Failed to " + what_happens + " the old .c file.");
 	}
 
-	std::stringstream().swap(ss);
+	std::stringstream().swap(ss);*/
 
 	ss << copy_or_move << " " << filename << ".prmtop " << tmp_file_name << ".prmtop";
 
-	ret = scon::system_call(ss.str());
+	auto ret = scon::system_call(ss.str());
 
 	if (ret) {
 		throw std::runtime_error("Failed to " + what_happens + " the old .prmtop file.");
@@ -733,6 +743,16 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords() {
 	coords->set_xyz(xyz,true);
 
 	ifile.close();
+
+	std::stringstream ss;
+
+        ss << "rm " << tmp_file_name << ".xyz";
+
+        auto ret = scon::system_call(ss.str());
+
+        if (ret) {
+                throw std::runtime_error("Failed to remove the red out .xyz file.");
+        }
 }
 
 void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}
@@ -743,26 +763,27 @@ void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_top
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
 	check_for_first_call();
-	write_chemshell_coords();
+	//write_chemshell_coords();
 	make_sp();
 	return read_energy()*au_to_kcalmol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	check_for_first_call();
-	write_chemshell_coords();
+	//write_chemshell_coords();
 	make_sp();
 	read_gradients();
 	return read_energy()*au_to_kcalmol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	check_for_first_call();
-	write_chemshell_coords();
+	//write_chemshell_coords();
 	return 0.0; 
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	check_for_first_call();
-	write_chemshell_coords();
+	//write_chemshell_coords();
 	make_opti();
+	++x;
 	change_name_of_energy_and_grad();
 	read_gradients();
 	read_coords();
