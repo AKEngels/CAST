@@ -781,7 +781,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       PyList_SetItem(E_pots, k, pValue);
     }
 
-    PySys_SetPath("."); //set path
+    PySys_SetPath("../python_modules"); //set path
     const char *c = add_path.c_str();  //add paths pythonpath
     PyRun_SimpleString(c);
 
