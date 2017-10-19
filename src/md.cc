@@ -1314,19 +1314,15 @@ void md::simulation::restart_broken()
     std::cout << "Start again...\n";
   }
   coordobj.set_xyz(P_start);   // set all positions to start
-  static double const twopi = 2.0*md::PI;
-  double const twokbT = 2.0*md::kB*T;
-  auto dist01 = std::uniform_real_distribution<double>{ 0,1 };
+
+  std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
+  auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
   std::size_t const N = coordobj.size();
   for (int i(0U); i < N; ++i)     // set random velocities around temperature T
   {
-    double const ratio(twopi*std::sqrt(twokbT / M[i]));
-    V[i].x() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-      std::cos(scon::random::threaded_rand(dist01)*ratio));
-    V[i].y() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-      std::cos(scon::random::threaded_rand(dist01)*ratio));
-    V[i].z() = (std::sqrt(std::fabs(-2.0*ldrand())) *
-      std::cos(scon::random::threaded_rand(dist01)*ratio));
+    V[i].x() = dist01(generator) * std::sqrt(kB*T / M[i]);
+    V[i].y() = dist01(generator) * std::sqrt(kB*T / M[i]);
+    V[i].z() = dist01(generator) * std::sqrt(kB*T / M[i]);
   }
   if (Config::get().md.set_active_center == 0)
   {
