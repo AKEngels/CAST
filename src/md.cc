@@ -805,7 +805,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
     }
     else
     {
-      std::cout << "Error: module 'FEP_analysis' not found!\nPlease copy the file 'FEP_analysis.py into the folder where you run CAST or switch off 'FEPanalyze' in your inputfile.\n";
+      std::cout << "Error: module 'FEP_analysis' not found!\n";
       std::exit(0);
     }
     //delete PyObjects
