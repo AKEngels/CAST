@@ -40,7 +40,7 @@
 	showstringspaces=false,          % underline spaces within strings only
 	showtabs=false,                  % show tabs within strings adding particular underscores
 	stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
-	tabsize=2,	                     % sets default tabsize to 2 spaces
+	tabsize=2,	                     % sets default tabsize to 2 spaces	
 }
 
 %%%%AUTHOR INFORMATION
@@ -192,6 +192,8 @@
 	\section{Compiling CAST} \label{sec:compile}
 	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
 	
+	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
+	
 	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
 	
 	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. Precompiled binaries for windows and linux are included in \ac{CAST}.
@@ -204,9 +206,41 @@ setenv PYTHONHOME /apps/python27
 setenv LD_LIBRARY_PATH /apps/lib64:\${LD_LIBRARY_PATH}
 \end{lstlisting}	
 The first line tells CAST where python is installed, the second line adds the folder ``/apps/lib64'' to the paths where libraries are expected. This is necessary because not all libraries that python needs are originally installed on the nodes of ECPC so they have been copied here manually. 
+
+Then you can submit your job by the following submit file:
+\begin{lstlisting}
+#!/bin/tcsh                                                                                    
+#PBS -l nodes=1:ppn=4                                                                          
+#PBS -l mem=4020MB
+#PBS -l walltime=999:00:00
+#PBS -N TITEL
+
+#setenv GAUSS_SCRDIR $TMPDIR
+cd $PBS_O_WORKDIR
+cp -pr * $TMPDIR
+cd $TMPDIR
+
+
+### enter commands here
+#ulimit -s unlimited
+setenv OMP_NUM_THREADS 4
+setenv MKL_NUM_THREADS 4
+setenv KMP_STACKSIZE 4000m
+
+
+cp -f <path to cast>/optional_files/build/CAST_linux_x64_python_release ./CAST
+cp -R <path to cast>/optional_files/build/python_modules/ ./python_modules/
+
+
+chmod +x CAST
+./CAST | tee CAST_OUTPUT
+rm CAST
+rm -r python_modules
+cp -pr * $PBS_O_WORKDIR   
+\end{lstlisting}	
+\ifx{\verb+$+}!\fi  % fixing bug in TeXnicCenter (https://tex.stackexchange.com/questions/145787/avoiding-math-mode-inside-a-lstlisting)
+
 	
-	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
-	\fi
 	\newpage
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -372,7 +406,7 @@ GAUSSIANpath            g09
 GAUSSIANdelete          1
 \end{lstlisting}
 
-\subsubsection{DFTB} \label{DFTB}
+\subsubsection{DFTB} \label{sec:DFTB}
 
 For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
 
@@ -412,16 +446,7 @@ There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= sca
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' (located in ``cast/optional\_files/python\_modules'') into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
-\\For runs on more than one processor add the following lines to your submit script:
-\begin{lstlisting}
-# request 4 processors on a single node
-#PBS -l nodes=1:ppn=4
-...
-export OMP_NUM_THREADS=4
-export MKL_NUM_THREADS=4
-\end{lstlisting}
-Requesting more that 4 processors does not speed up the calculations considerably (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Parallel Runs).
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby CAST needs access to the file ``dftbaby\_interface.py'', currently located in the folder ``cast/optional\_files/build/python\_modules''. If you run CAST from the build folder all is well. Otherwise you have to create a subfolder in the folder where you run CAST called ``python\_modules'' and copy the file there. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
 
 
 \textbf{DFTB Options} 
@@ -990,7 +1015,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 	
 	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical).
 	
-	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{sec:compile} for a description how to do this. Python needs the module ``matplotlib''. Furthermore the file ``FEP\_analysis.py'' (located in ``cast/optional\_files/python\_modules'') has to be copied into the folder where you run CAST (together with your structurefile, inputfile and parameterfile).  
+	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{sec:compile} for a description how to do this. Python needs the module ``matplotlib''. Furthermore the file ``FEP\_analysis.py'' has to be provided (compare section \ref{sec:DFTB}). 
 	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
