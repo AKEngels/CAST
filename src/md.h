@@ -397,8 +397,6 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
-    /**Calculation of ensemble average and free energy change for backwards transformation*/
-    void freecalc_back();
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
     /**function that returns a string 
@@ -412,10 +410,14 @@ namespace md
     std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
-    /**current free energy difference*/
+    /**current free energy difference for forward transformation*/
     double FEPsum;
     /**current free energy difference for backwards transformation*/
     double FEPsum_back;
+    /**current free energy difference for simple overlap sampling (SOS)*/
+    double FEPsum_SOS;
+    /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
+    double de_ensemble_v;
 
     //**overload for << operator*/
     template<class Strm>

@@ -563,6 +563,7 @@ void md::simulation::fepinit(void)
   Config::set().md.fep = true;
   FEPsum = 0.0;
   FEPsum_back = 0.0;
+  FEPsum_SOS = 0.0;
   // fill vector with scaling increments
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
@@ -636,49 +637,40 @@ void md::simulation::freecalc()
 {
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+  double de_ensemble, de_ensemble_back, de_ensemble_half, de_ensemble_back_half, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
   // calculate ensemble average for current window
   for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
   {                // for every conformation in window
     iterator += 1;
     k = 0;
-    de_ensemble = temp_avg = 0.0;
+    de_ensemble = de_ensemble_half = de_ensemble_back_half = de_ensemble_back = temp_avg = 0.0;
     coordobj.fep.fepdata[i].de_ens = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
+    coordobj.fep.fepdata[i].de_ens_back = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad);
+    double de_ens_half = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) /avogad);
+    double de_ens_back_half = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) /avogad);
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
+      de_ensemble_back += coordobj.fep.fepdata[k].de_ens_back;
+      de_ensemble_half += de_ens_half;
+      de_ensemble_back_half += de_ens_back_half;
     }
     de_ensemble = de_ensemble / iterator;
+    de_ensemble_back = de_ensemble_back / iterator;
+    de_ensemble_half = de_ensemble_half / iterator;
+    de_ensemble_back_half = de_ensemble_back_half / iterator;
     temp_avg = temp_avg / iterator;
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
+    coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
+  double dG_SOS;
+  if (de_ensemble_back_half == 1)  dG_SOS = 0;
+  else dG_SOS = -1 * std::log(de_ensemble_v / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
+  de_ensemble_v = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
   // calculate final free energy change for the current window
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
-}
-
-//Calculation of ensemble average and free energy change for backwards transformation
-void md::simulation::freecalc_back()
-{
-  std::size_t iterator(0U), k(0U);
-  // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-  // calculate ensemble average for current window
-  for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
-  {                // for every conformation in window
-    iterator += 1;
-    k = 0;
-    de_ensemble = temp_avg = 0.0;
-    coordobj.fep.fepdata[i].de_ens = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad);
-    for (k = 0; k <= i; k++) {
-      temp_avg += coordobj.fep.fepdata[k].T;
-      de_ensemble += coordobj.fep.fepdata[k].de_ens;
-    }
-    de_ensemble = de_ensemble / iterator;
-    temp_avg = temp_avg / iterator;
-    coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
-  }// end of main loop
-   // calculate final free energy change for the current window
   this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
+  this->FEPsum_SOS += dG_SOS;
 }
 
 // write the output FEP calculations
@@ -730,7 +722,7 @@ void md::simulation::freewrite(int i)
     fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
 
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::endl;
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::endl;
     double rounded = std::stod(std::to_string(i * Config::get().fep.dlambda)); // round necessary when having a number of windows that is can't be expressed exactly in decimal numbers
     if (rounded < 1) {
       res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
@@ -853,7 +845,6 @@ void md::simulation::feprun()
     this->prod = true;
     // calculate free energy change for window and write output
     freecalc();
-    freecalc_back();
     freewrite(i);
 
     if (Config::get().fep.analyze)
