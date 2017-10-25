@@ -11,7 +11,7 @@
 # Verbosity 
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              4
+verbosity              3
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   3d7z_inh_28_29.arc
+name                   ethan_FEP.arc
 
 # Output file name
 
@@ -90,7 +90,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  STARTOPT
+task                  FEP
 
 ####################################
 #                                  #
@@ -113,7 +113,7 @@ interface              OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod2.prm
+paramfile              oplsaa_mod.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -264,7 +264,7 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 24.0 24.0 24.0
+Periodics              0 25.0 25.0 25.0
 
 # Print periodic boundary dummy atoms to output?
 #Periodicp            <Active 1(on)/0(off)> 
@@ -613,7 +613,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                100
+MDsteps                10
  
 # Integrator
 #
@@ -636,7 +636,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    0
+MDrestart_if_broken    1
 
 # Activate Tracking (Log and Snapshots)
 
@@ -735,15 +735,16 @@ MDresume               0
 ####################################
 
 FEPlambda      1.0
-FEPdlambda     0.05
+FEPdlambda     0.1
 FEPvdwcouple   1.0
 FEPeleccouple  0.5
-FEPvshift      0.1
-FEPcshift      2.0
+FEPvshift      0.5
+FEPcshift      0.0
 FEPequil       100
-FEPsteps       100
-FEPfreq        1000
+FEPsteps       1000
+FEPfreq        10
 FEPanalyze     1
+FEPbar         1
 
 
 ####################################
