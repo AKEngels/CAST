@@ -676,11 +676,14 @@ void md::simulation::bar(int window)
 {
    double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
    double w;  // weighting function
-   double temp_avg = 0;
+   double temp_avg = 0;  // average temperature
    double dG_BAR = dG_SOS;  // start value for iteration
    double c; // constant C
 
-   std::cout << "dG_SOS: " << dG_SOS << "\n";
+   if (Config::get().general.verbosity > 3)
+   {
+     std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
+   }
    do    // iterative solution for BAR equation
    {
      c = dG_BAR;
@@ -695,17 +698,19 @@ void md::simulation::bar(int window)
        ensemble_back += ens_back;
        temp_avg += coordobj.fep.fepdata[i].T;
      }
-     ensemble = ensemble / coordobj.fep.fepdata.size();
+     ensemble = ensemble / coordobj.fep.fepdata.size();       // calculate averages
      ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
      temp_avg = temp_avg / coordobj.fep.fepdata.size();
 
-     if (window == 0)  dG_BAR = 0;
+     if (window == 0)  dG_BAR = 0;                            // calculate dG for current window
      else dG_BAR = -1 * std::log(de_ensemble_v / ensemble_back)*temp_avg*boltz*avogad / conv;
-     std::cout << "dG_BAR: " << dG_BAR << "\n";
-     de_ensemble_v = ensemble;
+     if (Config::get().general.verbosity > 3)
+     {
+       std::cout << "dG_BAR: " << dG_BAR << "\n";
+     }
+     de_ensemble_v = ensemble;  // this is needed in next step
      
-     
-   } while (fabs(c - dG_BAR) > 0.001);  //0.1 = convergence threshold (maybe later define by user?)
+   } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
    this->FEPsum_BAR += dG_BAR;
 }
 
