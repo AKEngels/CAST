@@ -942,6 +942,12 @@ void config::parse_option(std::string const option, std::string const value_stri
       cv >> a;
       if (a == "0") Config::set().fep.analyze = false;
     }
+    else if (option.substr(3, 3) == "bar")
+    {
+      std::string a;
+      cv >> a;
+      if (a == "1") Config::set().fep.bar = true;
+    }
   }
 
   else if (option.substr(0, 5) == "COORD")

@@ -397,6 +397,8 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
+    /**calculation of free energy from Bennets acceptance ratio*/
+    void bar(int window);
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
     /**function that returns a string 
@@ -416,6 +418,9 @@ namespace md
     double FEPsum_back;
     /**current free energy difference for simple overlap sampling (SOS)*/
     double FEPsum_SOS;
+    double dG_SOS;
+    /**free energy difference for bennets acceptance ratio (BAR)*/
+    double FEPsum_BAR;
     /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
     double de_ensemble_v;
 

@@ -663,7 +663,6 @@ void md::simulation::freecalc()
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
     coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
-  double dG_SOS;
   if (de_ensemble_back_half == 1)  dG_SOS = 0;
   else dG_SOS = -1 * std::log(de_ensemble_v / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
   de_ensemble_v = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
@@ -671,6 +670,43 @@ void md::simulation::freecalc()
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
   this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
   this->FEPsum_SOS += dG_SOS;
+}
+
+void md::simulation::bar(int window)
+{
+   double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+   double w;  // weighting function
+   double temp_avg = 0;
+   double dG_BAR = dG_SOS;  // start value for iteration
+   double c; // constant C
+
+   std::cout << "dG_SOS: " << dG_SOS << "\n";
+   do    // iterative solution for BAR equation
+   {
+     c = dG_BAR;
+     double ensemble = 0;
+     double ensemble_back = 0;
+     for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) // for every conformation in window
+     {
+       w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
+       double ens = w * exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) / avogad);
+       double ens_back = w * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
+       ensemble += ens;
+       ensemble_back += ens_back;
+       temp_avg += coordobj.fep.fepdata[i].T;
+     }
+     ensemble = ensemble / coordobj.fep.fepdata.size();
+     ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
+     temp_avg = temp_avg / coordobj.fep.fepdata.size();
+
+     if (window == 0)  dG_BAR = 0;
+     else dG_BAR = -1 * std::log(de_ensemble_v / ensemble_back)*temp_avg*boltz*avogad / conv;
+     std::cout << "dG_BAR: " << dG_BAR << "\n";
+     de_ensemble_v = ensemble;
+     
+     
+   } while (fabs(c - dG_BAR) > 0.001);  //0.1 = convergence threshold (maybe later define by user?)
+   this->FEPsum_BAR += dG_BAR;
 }
 
 // write the output FEP calculations
@@ -722,7 +758,7 @@ void md::simulation::freewrite(int i)
     fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
 
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::endl;
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::right << std::setprecision(4) << std::setw(10) << FEPsum_BAR << std::endl;
     double rounded = std::stod(std::to_string(i * Config::get().fep.dlambda)); // round necessary when having a number of windows that is can't be expressed exactly in decimal numbers
     if (rounded < 1) {
       res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
@@ -845,6 +881,7 @@ void md::simulation::feprun()
     this->prod = true;
     // calculate free energy change for window and write output
     freecalc();
+    if (Config::get().fep.bar == true) bar(i);
     freewrite(i);
 
     if (Config::get().fep.analyze)
