@@ -397,7 +397,8 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
-    /**calculation of free energy from Bennets acceptance ratio*/
+    /**calculation of free energy from Bennets acceptance ratio
+    @param window: current window*/
     void bar(int window);
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
