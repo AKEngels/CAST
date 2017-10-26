@@ -637,32 +637,34 @@ void md::simulation::freecalc()
 {
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, de_ensemble_back, de_ensemble_half, de_ensemble_back_half, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+  double de_ensemble, de_ensemble_back, de_ensemble_half=0, de_ensemble_back_half=0, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
   // calculate ensemble average for current window
   for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
   {                // for every conformation in window
     iterator += 1;
     k = 0;
-    de_ensemble = de_ensemble_half = de_ensemble_back_half = de_ensemble_back = temp_avg = 0.0;
-    coordobj.fep.fepdata[i].de_ens = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
-    coordobj.fep.fepdata[i].de_ens_back = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad);
-    double de_ens_half = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) /avogad);
-    double de_ens_back_half = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) /avogad);
+    de_ensemble = de_ensemble_back = temp_avg = 0.0;
+    double exponent = -1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad;
+    double exponent_back = 1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad;
+    coordobj.fep.fepdata[i].de_ens = exp(exponent);
+    coordobj.fep.fepdata[i].de_ens_back = exp(exponent_back);
+    double de_ens_half = exp(exponent/2);
+    double de_ens_back_half = exp(exponent_back/2);
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
       de_ensemble_back += coordobj.fep.fepdata[k].de_ens_back;
-      de_ensemble_half += de_ens_half;
-      de_ensemble_back_half += de_ens_back_half;
     }
     de_ensemble = de_ensemble / iterator;
     de_ensemble_back = de_ensemble_back / iterator;
-    de_ensemble_half = de_ensemble_half / iterator;
-    de_ensemble_back_half = de_ensemble_back_half / iterator;
+    de_ensemble_half += de_ens_half;
+    de_ensemble_back_half += de_ens_back_half;
     temp_avg = temp_avg / iterator;
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
     coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
+  de_ensemble_half = de_ensemble_half / coordobj.fep.fepdata.size();
+  de_ensemble_back_half = de_ensemble_back_half / coordobj.fep.fepdata.size();
   if (de_ensemble_back_half == 1)  dG_SOS = 0;
   else dG_SOS = -1 * std::log(de_ensemble_v / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
   de_ensemble_v = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
