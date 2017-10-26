@@ -630,7 +630,7 @@ void md::simulation::fepinit(void)
 
 }
 
-//Calculation of ensemble average and free energy change for each step if FEP calculation is performed
+// Calculation of ensemble average and free energy change for each step if FEP calculation is performed
 // calculation can be improved if at every step the current averages are stored
 // currently calculation is performed at the end of each window
 void md::simulation::freecalc()
@@ -663,11 +663,13 @@ void md::simulation::freecalc()
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
     coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
+
   de_ensemble_half = de_ensemble_half / coordobj.fep.fepdata.size();
   de_ensemble_back_half = de_ensemble_back_half / coordobj.fep.fepdata.size();
   if (de_ensemble_back_half == 1)  dG_SOS = 0;
-  else dG_SOS = -1 * std::log(de_ensemble_v / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
-  de_ensemble_v = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
+  else dG_SOS = -1 * std::log(de_ensemble_v_SOS / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
+  de_ensemble_v_SOS = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
+
   // calculate final free energy change for the current window
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
   this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
@@ -678,7 +680,6 @@ void md::simulation::bar(int window)
 {
    double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
    double w;  // weighting function
-   double temp_avg = 0;  // average temperature
    double dG_BAR = dG_SOS;  // start value for iteration
    double c; // constant C
 
@@ -691,6 +692,7 @@ void md::simulation::bar(int window)
      c = dG_BAR;
      double ensemble = 0;
      double ensemble_back = 0;
+     double temp_avg = 0;  // average temperature
      for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) // for every conformation in window
      {
        w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
@@ -705,12 +707,12 @@ void md::simulation::bar(int window)
      temp_avg = temp_avg / coordobj.fep.fepdata.size();
 
      if (window == 0)  dG_BAR = 0;                            // calculate dG for current window
-     else dG_BAR = -1 * std::log(de_ensemble_v / ensemble_back)*temp_avg*boltz*avogad / conv;
+     else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back)*temp_avg*boltz*avogad / conv;
      if (Config::get().general.verbosity > 3)
      {
        std::cout << "dG_BAR: " << dG_BAR << "\n";
      }
-     de_ensemble_v = ensemble;  // this is needed in next step
+     de_ensemble_v_BAR = ensemble;  // this is needed in next step
      
    } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
    this->FEPsum_BAR += dG_BAR;

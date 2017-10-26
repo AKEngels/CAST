@@ -422,8 +422,10 @@ namespace md
     double dG_SOS;
     /**free energy difference for bennets acceptance ratio (BAR)*/
     double FEPsum_BAR;
-    /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS) and <w*exp^(-1/kT)*dE/2> for BAR*/
-    double de_ensemble_v;
+    /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
+    double de_ensemble_v_SOS;
+    /**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
+    double de_ensemble_v_BAR;
 
     //**overload for << operator*/
     template<class Strm>
