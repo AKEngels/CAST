@@ -679,7 +679,7 @@ void md::simulation::freecalc()
 void md::simulation::bar(int window)
 {
    double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
-   double w;  // weighting function
+   double w, w_back;  // weighting function
    double dG_BAR = dG_SOS;  // start value for iteration
    double c; // constant C
 
@@ -697,6 +697,7 @@ void md::simulation::bar(int window)
      {
        w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
        double ens = w * exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) / avogad);
+       w_back = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad));
        double ens_back = w * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
        ensemble += ens;
        ensemble_back += ens_back;
@@ -757,7 +758,7 @@ void md::simulation::freewrite(int i)
     }
     if (Config::get().general.verbosity > 3u)
     {
-      std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << " ,vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
+      std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << ", vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
     }
   }
 
