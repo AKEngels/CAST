@@ -564,6 +564,7 @@ void md::simulation::fepinit(void)
   FEPsum = 0.0;
   FEPsum_back = 0.0;
   FEPsum_SOS = 0.0;
+  FEPsum_BAR = 0.0;
   // fill vector with scaling increments
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
