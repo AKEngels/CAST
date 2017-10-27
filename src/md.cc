@@ -699,7 +699,7 @@ void md::simulation::bar(int window)
        w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
        double ens = w * exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) / avogad);
        w_back = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad));
-       double ens_back = w * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
+       double ens_back = w_back * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
        ensemble += ens;
        ensemble_back += ens_back;
        temp_avg += coordobj.fep.fepdata[i].T;
