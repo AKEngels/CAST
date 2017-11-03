@@ -229,12 +229,12 @@ void md::simulation::integrate(bool fep, std::size_t const k_init)
   {
   case config::md_conf::integrators::BEEMAN:
   { // Beeman integrator
-    beemanintegrator(fep, k_init);
+    integrator(fep, k_init, true);
     break;
   }
   default:
   { // Velocity verlet integrator
-    velocity_verlet(fep, k_init);
+    integrator(fep, k_init, false);
   }
   }
 }
@@ -1371,13 +1371,13 @@ void md::simulation::restart_broken()
 
 
 // Velcoity verlet integrator
-void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
+void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 {
   scon::chrono::high_resolution_timer integration_timer;
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  // prepare tracking
+  std::vector<coords::Cartesian_Point> F_old; //only needed for beeman integrator
 
   std::size_t const N = this->coordobj.size();
   // set average pressure to zero
@@ -1400,6 +1400,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
   for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
   {
+    if (k == 0 && beeman == true)    // set F(t-dt) for first step to F(t)
+    {
+      for (size_t i = 0u; i < N; ++i)
+      {
+        F_old.push_back(coordobj.g_xyz(i));
+      }
+    }
+
     bool const HEATED(heat(k, fep));
     if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
     {
@@ -1417,11 +1425,18 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // Calculate new positions and half step velocities
     for (auto i : movable_atoms)
     {
-      // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-
-      // update veloctiy
-      V[i] += acceleration*dt_2;
+      coords::Cartesian_Point acceleration;
+      if (beeman == false)  //velocity-verlet
+      {
+        acceleration = coordobj.g_xyz(i)*md::negconvert / M[i];
+        V[i] += acceleration*dt_2;
+      }
+      else  //beeman
+      {
+        acceleration = coordobj.g_xyz(i)*md::negconvert / M[i];
+        coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
+        V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
+      }
 
       if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
       {
@@ -1477,6 +1492,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
 
+    if (beeman == true)
+    {
+      for (size_t i = 0u; i < N; ++i)   // save F(t) as F_old
+      {
+        F_old[i] = coordobj.g_xyz(i);
+      }
+    }
+
     // calculate new energy & gradients
     coordobj.g();
     // Apply umbrella potential if umbrella sampling is used
@@ -1487,7 +1510,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
     {
-      if (Config::get().general.verbosity > 3U) 
+      if (Config::get().general.verbosity > 3U)
         std::cout << "Refining structure/nonbondeds.\n";
       coordobj.energy_update(true);
     }
@@ -1496,8 +1519,18 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // add new acceleration and calculate full step velocities
     for (auto i : movable_atoms)
     {
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      V[i] += acceleration*dt_2;
+      if (beeman == false)  // velocity verlet
+      {
+        coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+        V[i] += acceleration*dt_2;
+      }
+      else  // beeman
+      {
+        coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
+        coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
+        V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
+      }
+
       if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
       {
         V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
@@ -1559,212 +1592,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   if (Config::get().general.verbosity > 2U)
   {
     std::cout << "Average pressure: " << p_average << "\n";
-    //auto integration_time = integration_timer();
-    std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
-  }
-}
-
-void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
-{
-  scon::chrono::high_resolution_timer integration_timer;
-
-  config::molecular_dynamics const & CONFIG(Config::get().md);
-
-  std::vector<coords::Cartesian_Point> F_old;
-
-  std::size_t const N = this->coordobj.size();
-  // set average pressure to zero
-  double p_average(0.0);
-
-  //inner and outer cutoff for biased potential
-  double inner_cutoff = Config::get().md.inner_cutoff;
-  double outer_cutoff = Config::get().md.outer_cutoff;
-
-  if (Config::get().general.verbosity > 0U)
-  {
-    std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
-  }
-  // Main MD Loop
-  auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
-  for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
-  {
-    if (k == 0)    // set F(t-dt) for first step to F(t)
+    if (beeman == false)
     {
-      for (size_t i = 0u; i < N; ++i)
-      {
-        F_old.push_back(coordobj.g_xyz(i));
-      }
+      std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
     }
-
-    bool const HEATED(heat(k, fep));
-    if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
+    else
     {
-      std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
+      std::cout << "Beeman integration took " << integration_timer << '\n';
     }
-
-    // apply half step temperature corrections
-    if (CONFIG.hooverHeatBath || HEATED)
-    {
-      temp = tempcontrol(CONFIG.hooverHeatBath, true);
-    }
-
-    // save old coordinates
-    P_old = coordobj.xyz();
-
-    // Calculate new positions and half step velocities
-    for (auto i : movable_atoms)
-    {
-      // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
-
-      // update veloctiy
-      V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
-
-      if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
-      }
-
-      if (Config::get().general.verbosity > 4)
-      {
-        std::cout << "Move " << i << " by " << (V[i] * dt)
-          << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
-      }
-      // update coordinates
-      coordobj.move_atom_by(i, V[i] * dt);
-    }
-    if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
-    {
-      if (Config::get().general.verbosity > 1U)
-      {                                            // give warning if there are broken bonds
-        std::cout << "Warning! Broken bonds between atoms...\n";
-        for (auto b : coordobj.broken_bonds)
-        {
-          std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
-        }
-        if (Config::get().md.broken_restart == 1)
-        {         // if desired: set simulation to original positions and random velocities
-          restart_broken();
-        }
-      }
-    }
-    if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
-    {
-      distances = init_active_center(static_cast<int>(k));
-      movable_atoms.clear();            // determine again which atoms are moved
-      inner_atoms.clear();
-      for (int i(0U); i < N; ++i)
-      {
-        if (distances[i] < inner_cutoff)
-        {
-          inner_atoms.push_back(i);
-        }
-        if (distances[i] <= outer_cutoff)
-        {
-          movable_atoms.push_back(i);
-        }
-        else
-        {
-          V[i] = coords::Cartesian_Point(0, 0, 0);
-        }
-      }
-    }
-    // Apply first part of RATTLE constraints if requested
-    if (CONFIG.rattle.use) rattle_pre();
-
-    for (size_t i = 0u; i < N; ++i)   // save F(t) as F_old
-    {
-      F_old[i] = coordobj.g_xyz(i);
-    }
-    // calculate new energy & gradients -> F(t+dt)
-    coordobj.g();
-
-    // Apply umbrella potential if umbrella sampling is used
-    if (CONFIG.umbrella == true)
-    {
-      coordobj.ubias(udatacontainer);
-    }
-    // refine nonbondeds if refinement is required due to configuration
-    if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
-    {
-      if (Config::get().general.verbosity > 3U) std::cout << "Refining structure/nonbondeds.\n";
-      coordobj.energy_update(true);
-    }
-    // If spherical boundaries are used apply boundary potential
-    boundary_adjustments();
-
-    // add new acceleration and calculate full step velocities
-    for (auto i : movable_atoms)
-    {
-      coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
-      V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
-      if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
-      }
-    }
-    if (Config::get().general.verbosity > 3 && Config::get().md.set_active_center == 1)
-    {
-      std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
-    }
-
-    // Apply full step RATTLE constraints
-    if (CONFIG.rattle.use) rattle_post();
-    // Apply full step temperature adjustments
-    if (CONFIG.hooverHeatBath || HEATED)
-    {
-      temp = tempcontrol(CONFIG.hooverHeatBath, false);
-    }
-    else  // calculate E_kin and T if no temperature control is active
-    {
-      double tempfactor(2.0 / (freedom*md::R));
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-    // Apply pressure adjustments
-    if (CONFIG.pressure)
-    {
-      berendsen(dt);
-    }
-    // save temperature for FEP
-    if (Config::get().md.fep)
-    {
-      coordobj.fep.fepdata.back().T = temp;
-    }
-    // if requested remove translation and rotation of the system
-    if (Config::get().md.veloScale) tune_momentum();
-
-    // Logging / Traces
-
-    if (CONFIG.track)
-    {
-      std::vector<coords::float_type> iae;
-      if (coordobj.interactions().size() > 1)
-      {
-        iae.reserve(coordobj.interactions().size());
-        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
-      }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
-    }
-
-    // Serialize to binary file if required.
-    if (k > 0 && Config::get().md.restart_offset > 0 && k % Config::get().md.restart_offset == 0)
-    {
-      write_restartfile(k);
-    }
-    // add up pressure value
-    p_average += press;
-  }
-  // calculate average pressure over whle simulation time
-  p_average /= CONFIG.num_steps;
-  if (Config::get().general.verbosity > 2U)
-  {
-    std::cout << "Average pressure: " << p_average << std::endl;
-    //auto integration_time = integration_timer();
-    std::cout << "Beeman integration took " << integration_timer << '\n';
   }
 }
 
