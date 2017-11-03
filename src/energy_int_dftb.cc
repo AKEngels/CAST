@@ -148,6 +148,11 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
           {
             std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
           }
+          e_bs = 0;
+          e_coul = 0;
+          e_rep = 0;
+          e_tot = 0;
+          e_lr = 0;
           integrity = false;
         }
 
