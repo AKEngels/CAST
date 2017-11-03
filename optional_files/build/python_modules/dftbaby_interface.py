@@ -147,6 +147,7 @@ def calc_energies(xyzfile, optionfile):
         return str(energies)
         
     except:
+        print sys.exc_info()
         return "error"
 
     
@@ -181,6 +182,7 @@ def calc_gradients(xyzfile, optionfile):
         return str(energies)
     
     except:
+        print sys.exc_info()
         return "error"
 
     
@@ -263,6 +265,7 @@ def opt(xyzfile, optionfile):
         return str(energies)
         
     except:
+        print sys.exc_info()
         return "error"
 
   
@@ -340,6 +343,7 @@ def hessian(xyzfile, optionfile):
         return str(energies)
         
     except:
+        print sys.exc_info()
         return "error"
 
     
@@ -367,6 +371,7 @@ def get_active_space(xyzfile, optionfile):
         occ, virt = tddftb.determineActiveSpace()
         return str((occ, virt))
     except:
+        print sys.exc_info()
         return "error"
     
     
