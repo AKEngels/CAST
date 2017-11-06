@@ -141,6 +141,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
           e_rep = std::stod(result_vec[3])*627.503;
           e_tot = std::stod(result_vec[4])*627.503;
           if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+          else e_lr = 0;
         }
         else
         {
@@ -209,6 +210,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
         e_rep = std::stod(result_vec[3])*627.503;
         e_tot = std::stod(result_vec[4])*627.503;
         if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+        else e_lr = 0;
       }
       else
       {
@@ -300,6 +302,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
             e_rep = std::stod(result_vec[3])*627.503;
             e_tot = std::stod(result_vec[4])*627.503;
             if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+            else e_lr = 0;
           }
           else
           {
@@ -390,6 +393,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
           e_rep = std::stod(result_vec[3])*627.503;
           e_tot = std::stod(result_vec[4])*627.503;
           if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
+          else e_lr = 0;
         }
         else
         {
