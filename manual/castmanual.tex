@@ -433,15 +433,16 @@ DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
-There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
-\begin{lstlisting}[firstnumber=92]
+There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 102 and 103 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
+\begin{lstlisting}[firstnumber=97]
         else:
-				    self.dmax = max(reppot_module.d)
-						self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
-						def smooth_tail(d,deriv=0)
-						    return 0.0
-				reppot_module.d /= scaling
-				self.smooth_tail = smooth_tail
+            self.dmin = min(reppot_module.d)
+            self.dmax = max(reppot_module.d)
+            self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
+            def smooth_tail(d,deriv=0):
+                return 0.0
+        reppot_module.d /= scaling
+        self.smooth_tail = smooth_tail
 \end{lstlisting}
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
