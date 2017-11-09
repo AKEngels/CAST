@@ -1,4 +1,4 @@
-﻿/**
+/**
  Reaction pathway optimization via various NEB methods
 
 @ Daniel Bellinger, Julian Erdmannsdoerfer, Michael Prem
@@ -132,6 +132,7 @@ public:
   double lbfgs();
   double lbfgs_int(std::vector <scon::c3 <float> > t);
   double lbfgs_maxflux();
+  void pauline();
 
   struct GradCallBack
   {
