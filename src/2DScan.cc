@@ -409,8 +409,6 @@ void Scan2D::make_scan() {
 
 	for (auto const & x_step : axis->x_steps) {
 
-		++x_circle;
-
         auto const & x_atoms = parser->x_parser->what->atoms;
 
         //std::cout << "step: " << x_circle << ". " << x_step << std::endl;
@@ -486,8 +484,6 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 	std::for_each(axis->y_steps.cbegin()+1, axis->y_steps.cend(), [&](auto && y_step){
 
-		++y_circle;
-
         auto const & y_atoms = parser->y_parser->what->atoms;
 
         Move_Handler mh(coords, y_atoms, this->shared_from_this());
@@ -511,7 +507,6 @@ void Scan2D::go_along_y_axis(coords::Coordinates coords) {
 
 	});
     energies << "\n";
-	y_circle = 0;
 
 }
 
