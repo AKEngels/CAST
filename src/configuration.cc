@@ -493,7 +493,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       cv >> Config::set().neb.INTERNAL_INTERPOLATION;
 	 else if (option.substr(11, 12) == "-NEB-MCM_OPT")
 		 cv >> Config::set().neb.MCM_OPT;
-
+	 else if (option.substr(11, 12) == "-NEB-MC_SAVE")
+		 cv >> Config::set().neb.MCM_SAVEITER;
+	 else if (option.substr(11, 5) == "-CONN")
+		 cv >> Config::set().neb.CONN;
   }
 
   // MOPAC options
