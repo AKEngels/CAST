@@ -229,12 +229,12 @@ void md::simulation::integrate(bool fep, std::size_t const k_init)
   {
   case config::md_conf::integrators::BEEMAN:
   { // Beeman integrator
-    beemanintegrator(fep, k_init);
+    integrator(fep, k_init, true);
     break;
   }
   default:
   { // Velocity verlet integrator
-    velocity_verlet(fep, k_init);
+    integrator(fep, k_init, false);
   }
   }
 }
@@ -564,6 +564,7 @@ void md::simulation::fepinit(void)
   FEPsum = 0.0;
   FEPsum_back = 0.0;
   FEPsum_SOS = 0.0;
+  FEPsum_BAR = 0.0;
   // fill vector with scaling increments
   increment = Config::get().fep.lambda / Config::get().fep.dlambda;
   //std::cout << Config::get().fep.lambda << "   " << Config::get().fep.dlambda << std::endl;
@@ -630,47 +631,93 @@ void md::simulation::fepinit(void)
 
 }
 
-//Calculation of ensemble average and free energy change for each step if FEP calculation is performed
+// Calculation of ensemble average and free energy change for each step if FEP calculation is performed
 // calculation can be improved if at every step the current averages are stored
 // currently calculation is performed at the end of each window
 void md::simulation::freecalc()
 {
   std::size_t iterator(0U), k(0U);
   // set conversion factors (conv) and constants (boltzmann, avogadro)
-  double de_ensemble, de_ensemble_back, de_ensemble_half, de_ensemble_back_half, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+  double de_ensemble, de_ensemble_back, de_ensemble_half=0, de_ensemble_back_half=0, temp_avg, boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
   // calculate ensemble average for current window
   for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++)
   {                // for every conformation in window
     iterator += 1;
     k = 0;
-    de_ensemble = de_ensemble_half = de_ensemble_back_half = de_ensemble_back = temp_avg = 0.0;
-    coordobj.fep.fepdata[i].de_ens = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad);
-    coordobj.fep.fepdata[i].de_ens_back = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad);
-    double de_ens_half = exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) /avogad);
-    double de_ens_back_half = exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) /avogad);
+    de_ensemble = de_ensemble_back = temp_avg = 0.0;
+    double exponent = -1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE / avogad;
+    double exponent_back = 1 / (boltz*coordobj.fep.fepdata[i].T)*conv*coordobj.fep.fepdata[i].dE_back / avogad;
+    coordobj.fep.fepdata[i].de_ens = exp(exponent);
+    coordobj.fep.fepdata[i].de_ens_back = exp(exponent_back);
+    double de_ens_half = exp(exponent/2);
+    double de_ens_back_half = exp(exponent_back/2);
     for (k = 0; k <= i; k++) {
       temp_avg += coordobj.fep.fepdata[k].T;
       de_ensemble += coordobj.fep.fepdata[k].de_ens;
       de_ensemble_back += coordobj.fep.fepdata[k].de_ens_back;
-      de_ensemble_half += de_ens_half;
-      de_ensemble_back_half += de_ens_back_half;
     }
     de_ensemble = de_ensemble / iterator;
     de_ensemble_back = de_ensemble_back / iterator;
-    de_ensemble_half = de_ensemble_half / iterator;
-    de_ensemble_back_half = de_ensemble_back_half / iterator;
+    de_ensemble_half += de_ens_half;
+    de_ensemble_back_half += de_ens_back_half;
     temp_avg = temp_avg / iterator;
     coordobj.fep.fepdata[i].dG = -1 * std::log(de_ensemble)*temp_avg*boltz*avogad / conv;
     coordobj.fep.fepdata[i].dG_back = std::log(de_ensemble_back)*temp_avg*boltz*avogad / conv;
   }// end of main loop
-  double dG_SOS;
+
+  de_ensemble_half = de_ensemble_half / coordobj.fep.fepdata.size();
+  de_ensemble_back_half = de_ensemble_back_half / coordobj.fep.fepdata.size();
   if (de_ensemble_back_half == 1)  dG_SOS = 0;
-  else dG_SOS = -1 * std::log(de_ensemble_v / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
-  de_ensemble_v = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
+  else dG_SOS = -1 * std::log(de_ensemble_v_SOS / de_ensemble_back_half)*temp_avg*boltz*avogad / conv;
+  de_ensemble_v_SOS = de_ensemble_half; //de_ensemble_half is needed for SOS-calculation in next step
+
   // calculate final free energy change for the current window
   this->FEPsum += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG;
   this->FEPsum_back += coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG_back;
   this->FEPsum_SOS += dG_SOS;
+}
+
+void md::simulation::bar(int window)
+{
+   double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
+   double w, w_back;  // weighting function
+   double dG_BAR = dG_SOS;  // start value for iteration
+   double c; // constant C
+
+   if (Config::get().general.verbosity > 3)
+   {
+     std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
+   }
+   do    // iterative solution for BAR equation
+   {
+     c = dG_BAR;
+     double ensemble = 0;
+     double ensemble_back = 0;
+     double temp_avg = 0;  // average temperature
+     for (std::size_t i = 0; i < coordobj.fep.fepdata.size(); i++) // for every conformation in window
+     {
+       w = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE - c) / 2) / avogad));
+       double ens = w * exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE / 2) / avogad);
+       w_back = 2 / (exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad) + exp(-1 / (boltz*coordobj.fep.fepdata[i].T)*conv*((coordobj.fep.fepdata[i].dE_back - c) / 2) / avogad));
+       double ens_back = w_back * exp(1 / (boltz*coordobj.fep.fepdata[i].T)*conv*(coordobj.fep.fepdata[i].dE_back / 2) / avogad);
+       ensemble += ens;
+       ensemble_back += ens_back;
+       temp_avg += coordobj.fep.fepdata[i].T;
+     }
+     ensemble = ensemble / coordobj.fep.fepdata.size();       // calculate averages
+     ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
+     temp_avg = temp_avg / coordobj.fep.fepdata.size();
+
+     if (window == 0)  dG_BAR = 0;                            // calculate dG for current window
+     else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back)*temp_avg*boltz*avogad / conv;
+     if (Config::get().general.verbosity > 3)
+     {
+       std::cout << "dG_BAR: " << dG_BAR << "\n";
+     }
+     de_ensemble_v_BAR = ensemble;  // this is needed in next step
+     
+   } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
+   this->FEPsum_BAR += dG_BAR;
 }
 
 // write the output FEP calculations
@@ -712,7 +759,7 @@ void md::simulation::freewrite(int i)
     }
     if (Config::get().general.verbosity > 3u)
     {
-      std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << " ,vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
+      std::cout << "Coulomb: " << coordobj.fep.fepdata[k].e_c_l2 - coordobj.fep.fepdata[k].e_c_l1 << ", vdW: " << coordobj.fep.fepdata[k].e_vdw_l2 - coordobj.fep.fepdata[k].e_vdw_l1 << "\n";
     }
   }
 
@@ -722,7 +769,7 @@ void md::simulation::freewrite(int i)
     fep << coordobj.fep.fepdata[coordobj.fep.fepdata.size() - 1].dG << std::endl;
     fep << "Total free energy change until current window:  " << FEPsum << std::endl;
 
-    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::endl;
+    res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << FEPsum_back << std::right << std::setprecision(4) << std::setw(10) << FEPsum_SOS<< std::right << std::setprecision(4) << std::setw(10) << FEPsum_BAR << std::endl;
     double rounded = std::stod(std::to_string(i * Config::get().fep.dlambda)); // round necessary when having a number of windows that is can't be expressed exactly in decimal numbers
     if (rounded < 1) {
       res << std::fixed << std::right << std::setprecision(4) << std::setw(10) << (i * Config::get().fep.dlambda) + Config::get().fep.dlambda << std::setw(10) << FEPsum;
@@ -845,6 +892,7 @@ void md::simulation::feprun()
     this->prod = true;
     // calculate free energy change for window and write output
     freecalc();
+    if (Config::get().fep.bar == true) bar(i);
     freewrite(i);
 
     if (Config::get().fep.analyze)
@@ -1323,13 +1371,13 @@ void md::simulation::restart_broken()
 
 
 // Velcoity verlet integrator
-void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
+void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 {
   scon::chrono::high_resolution_timer integration_timer;
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  // prepare tracking
+  std::vector<coords::Cartesian_Point> F_old; //only needed for beeman integrator
 
   std::size_t const N = this->coordobj.size();
   // set average pressure to zero
@@ -1352,6 +1400,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
   for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
   {
+    if (k == 0 && beeman == true)    // set F(t-dt) for first step to F(t)
+    {
+      for (size_t i = 0u; i < N; ++i)
+      {
+        F_old.push_back(coordobj.g_xyz(i));
+      }
+    }
+
     bool const HEATED(heat(k, fep));
     if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
     {
@@ -1369,11 +1425,18 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // Calculate new positions and half step velocities
     for (auto i : movable_atoms)
     {
-      // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-
-      // update veloctiy
-      V[i] += acceleration*dt_2;
+      coords::Cartesian_Point acceleration;
+      if (beeman == false)  //velocity-verlet
+      {
+        acceleration = coordobj.g_xyz(i)*md::negconvert / M[i];
+        V[i] += acceleration*dt_2;
+      }
+      else  //beeman
+      {
+        acceleration = coordobj.g_xyz(i)*md::negconvert / M[i];
+        coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
+        V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
+      }
 
       if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
       {
@@ -1429,6 +1492,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // Apply first part of RATTLE constraints if requested
     if (CONFIG.rattle.use) rattle_pre();
 
+    if (beeman == true)
+    {
+      for (size_t i = 0u; i < N; ++i)   // save F(t) as F_old
+      {
+        F_old[i] = coordobj.g_xyz(i);
+      }
+    }
+
     // calculate new energy & gradients
     coordobj.g();
     // Apply umbrella potential if umbrella sampling is used
@@ -1439,7 +1510,7 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
     {
-      if (Config::get().general.verbosity > 3U) 
+      if (Config::get().general.verbosity > 3U)
         std::cout << "Refining structure/nonbondeds.\n";
       coordobj.energy_update(true);
     }
@@ -1448,8 +1519,18 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
     // add new acceleration and calculate full step velocities
     for (auto i : movable_atoms)
     {
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      V[i] += acceleration*dt_2;
+      if (beeman == false)  // velocity verlet
+      {
+        coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
+        V[i] += acceleration*dt_2;
+      }
+      else  // beeman
+      {
+        coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
+        coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
+        V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
+      }
+
       if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
       {
         V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
@@ -1511,212 +1592,14 @@ void md::simulation::velocity_verlet(bool fep, std::size_t k_init)
   if (Config::get().general.verbosity > 2U)
   {
     std::cout << "Average pressure: " << p_average << "\n";
-    //auto integration_time = integration_timer();
-    std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
-  }
-}
-
-void md::simulation::beemanintegrator(bool fep, std::size_t k_init)
-{
-  scon::chrono::high_resolution_timer integration_timer;
-
-  config::molecular_dynamics const & CONFIG(Config::get().md);
-
-  std::vector<coords::Cartesian_Point> F_old;
-
-  std::size_t const N = this->coordobj.size();
-  // set average pressure to zero
-  double p_average(0.0);
-
-  //inner and outer cutoff for biased potential
-  double inner_cutoff = Config::get().md.inner_cutoff;
-  double outer_cutoff = Config::get().md.outer_cutoff;
-
-  if (Config::get().general.verbosity > 0U)
-  {
-    std::cout << "Saving " << std::size_t(snapGap > 0 ? (CONFIG.num_steps - k_init) / snapGap : 0);
-    std::cout << " snapshots (" << Config::get().md.num_snapShots << " in config)\n";
-  }
-  // Main MD Loop
-  auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
-  for (std::size_t k(k_init); k < CONFIG.num_steps; ++k)
-  {
-    if (k == 0)    // set F(t-dt) for first step to F(t)
+    if (beeman == false)
     {
-      for (size_t i = 0u; i < N; ++i)
-      {
-        F_old.push_back(coordobj.g_xyz(i));
-      }
+      std::cout << "Velocity-Verlet integration took " << integration_timer << '\n';
     }
-
-    bool const HEATED(heat(k, fep));
-    if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
+    else
     {
-      std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
+      std::cout << "Beeman integration took " << integration_timer << '\n';
     }
-
-    // apply half step temperature corrections
-    if (CONFIG.hooverHeatBath || HEATED)
-    {
-      temp = tempcontrol(CONFIG.hooverHeatBath, true);
-    }
-
-    // save old coordinates
-    P_old = coordobj.xyz();
-
-    // Calculate new positions and half step velocities
-    for (auto i : movable_atoms)
-    {
-      // calc acceleration
-      coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      coords::Cartesian_Point const acceleration_old(F_old[i] * md::negconvert / M[i]);
-
-      // update veloctiy
-      V[i] += acceleration*(2.0 / 3.0)*dt - acceleration_old*(1.0 / 6.0)*dt;
-
-      if (Config::get().md.set_active_center == 1)  //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
-      }
-
-      if (Config::get().general.verbosity > 4)
-      {
-        std::cout << "Move " << i << " by " << (V[i] * dt)
-          << " with g " << coordobj.g_xyz(i) << ", V: " << V[i] << std::endl;
-      }
-      // update coordinates
-      coordobj.move_atom_by(i, V[i] * dt);
-    }
-    if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
-    {
-      if (Config::get().general.verbosity > 1U)
-      {                                            // give warning if there are broken bonds
-        std::cout << "Warning! Broken bonds between atoms...\n";
-        for (auto b : coordobj.broken_bonds)
-        {
-          std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
-        }
-        if (Config::get().md.broken_restart == 1)
-        {         // if desired: set simulation to original positions and random velocities
-          restart_broken();
-        }
-      }
-    }
-    if (Config::get().md.set_active_center == 1 && Config::get().md.adjustment_by_step == 1)
-    {
-      distances = init_active_center(static_cast<int>(k));
-      movable_atoms.clear();            // determine again which atoms are moved
-      inner_atoms.clear();
-      for (int i(0U); i < N; ++i)
-      {
-        if (distances[i] < inner_cutoff)
-        {
-          inner_atoms.push_back(i);
-        }
-        if (distances[i] <= outer_cutoff)
-        {
-          movable_atoms.push_back(i);
-        }
-        else
-        {
-          V[i] = coords::Cartesian_Point(0, 0, 0);
-        }
-      }
-    }
-    // Apply first part of RATTLE constraints if requested
-    if (CONFIG.rattle.use) rattle_pre();
-
-    for (size_t i = 0u; i < N; ++i)   // save F(t) as F_old
-    {
-      F_old[i] = coordobj.g_xyz(i);
-    }
-    // calculate new energy & gradients -> F(t+dt)
-    coordobj.g();
-
-    // Apply umbrella potential if umbrella sampling is used
-    if (CONFIG.umbrella == true)
-    {
-      coordobj.ubias(udatacontainer);
-    }
-    // refine nonbondeds if refinement is required due to configuration
-    if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
-    {
-      if (Config::get().general.verbosity > 3U) std::cout << "Refining structure/nonbondeds.\n";
-      coordobj.energy_update(true);
-    }
-    // If spherical boundaries are used apply boundary potential
-    boundary_adjustments();
-
-    // add new acceleration and calculate full step velocities
-    for (auto i : movable_atoms)
-    {
-      coords::Cartesian_Point const acceleration_new(coordobj.g_xyz(i)*md::negconvert / M[i]);
-      coords::Cartesian_Point const acceleration(F_old[i] * md::negconvert / M[i]);
-      V[i] += acceleration_new*(1.0 / 3.0)*dt + acceleration*(1.0 / 6.0)*dt;
-      if (Config::get().md.set_active_center == 1)   //adjustment of velocities by distance to active center
-      {
-        V[i] = adjust_velocities(static_cast<int>(i), inner_cutoff, outer_cutoff);
-      }
-    }
-    if (Config::get().general.verbosity > 3 && Config::get().md.set_active_center == 1)
-    {
-      std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
-    }
-
-    // Apply full step RATTLE constraints
-    if (CONFIG.rattle.use) rattle_post();
-    // Apply full step temperature adjustments
-    if (CONFIG.hooverHeatBath || HEATED)
-    {
-      temp = tempcontrol(CONFIG.hooverHeatBath, false);
-    }
-    else  // calculate E_kin and T if no temperature control is active
-    {
-      double tempfactor(2.0 / (freedom*md::R));
-      updateEkin();
-      temp = E_kin * tempfactor;
-    }
-    // Apply pressure adjustments
-    if (CONFIG.pressure)
-    {
-      berendsen(dt);
-    }
-    // save temperature for FEP
-    if (Config::get().md.fep)
-    {
-      coordobj.fep.fepdata.back().T = temp;
-    }
-    // if requested remove translation and rotation of the system
-    if (Config::get().md.veloScale) tune_momentum();
-
-    // Logging / Traces
-
-    if (CONFIG.track)
-    {
-      std::vector<coords::float_type> iae;
-      if (coordobj.interactions().size() > 1)
-      {
-        iae.reserve(coordobj.interactions().size());
-        for (auto const & ia : coordobj.interactions()) iae.push_back(ia.energy);
-      }
-      logging(k, temp, press, E_kin, coordobj.pes().energy, iae, coordobj.xyz());
-    }
-
-    // Serialize to binary file if required.
-    if (k > 0 && Config::get().md.restart_offset > 0 && k % Config::get().md.restart_offset == 0)
-    {
-      write_restartfile(k);
-    }
-    // add up pressure value
-    p_average += press;
-  }
-  // calculate average pressure over whle simulation time
-  p_average /= CONFIG.num_steps;
-  if (Config::get().general.verbosity > 2U)
-  {
-    std::cout << "Average pressure: " << p_average << std::endl;
-    //auto integration_time = integration_timer();
-    std::cout << "Beeman integration took " << integration_timer << '\n';
   }
 }
 

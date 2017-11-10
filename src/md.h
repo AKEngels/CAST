@@ -331,17 +331,12 @@ namespace md
   */
     void integrate(bool fep = false, std::size_t const k_init = 0U);
 
-    /**beeman integrator
+    /**velocity-verlet or beeman integrator
     @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
     @param k_init: step where the MD starts (zero should be okay)
+    @param beeman: true if beeman integrator is used, false if velocity verlet integrator is used
     */
-    void beemanintegrator(bool fep, std::size_t const k_init = 0U);
-
-    /**velocity-verlet integrator
-    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-    @param k_init: step where the MD starts (zero should be okay)
-    */
-    void velocity_verlet(bool fep, std::size_t const k_init = 0U);
+    void integrator(bool fep, std::size_t const k_init = 0U, bool beeman = false);
 
     /** tell user that he applies spherical boundary conditions
   */
@@ -397,6 +392,9 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
+    /**calculation of free energy from Bennets acceptance ratio
+    @param window: current window*/
+    void bar(int window);
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
     /**function that returns a string 
@@ -416,8 +414,14 @@ namespace md
     double FEPsum_back;
     /**current free energy difference for simple overlap sampling (SOS)*/
     double FEPsum_SOS;
+    /**free energy change of current window from SOS (start value for BAR)*/
+    double dG_SOS;
+    /**free energy difference for bennets acceptance ratio (BAR)*/
+    double FEPsum_BAR;
     /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
-    double de_ensemble_v;
+    double de_ensemble_v_SOS;
+    /**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
+    double de_ensemble_v_BAR;
 
     //**overload for << operator*/
     template<class Strm>

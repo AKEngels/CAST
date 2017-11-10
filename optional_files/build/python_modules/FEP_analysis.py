@@ -16,5 +16,6 @@ def plot_histograms_and_calculate_overlap(dE_pots, dE_pot_backs, window):
         overlap = sum(minimal_area)/len(dE_pots)
         return str(overlap)
     except:
+        print sys.exc_info()
         return "error"
 
