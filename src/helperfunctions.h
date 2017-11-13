@@ -7,12 +7,12 @@
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
 {
-  double m = 0;
-  for (auto && a : sys.atoms())
-  {
-    m += a.mass();
-  }
-  return m;
+double m = 0;
+for (auto && a : sys.atoms())
+{
+  m += a.mass();
+}
+return m;
 }
 
 
@@ -57,7 +57,7 @@ inline std::vector<std::string> split(const std::string &text, char sep) {
 /**calculates the distance between two points in Cartesian Space*/
 inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
 {
-  return sqrt( (a.x()-b.x())*(a.x()-b.x()) + (a.y()-b.y())*(a.y()-b.y()) + (a.z()-b.z())*(a.z()-b.z()) );
+  return sqrt((a.x() - b.x())*(a.x() - b.x()) + (a.y() - b.y())*(a.y() - b.y()) + (a.z() - b.z())*(a.z() - b.z()));
 }
 
 #ifdef USE_PYTHON
@@ -103,3 +103,16 @@ inline bool is_in(int x, std::vector<int> v)
     return false;
   }
 }
+
+/**finds index of element x in vector v
+if not inside it returns 99998 (you might not think so but this has a reason)*/
+inline int find_index(int x, std::vector<int> v)
+{
+  int result = 99998;
+  for (int i = 0; i < v.size(); i++)
+  {
+    if (x == v[i]) result = i;
+  }
+  return result;
+}
+
