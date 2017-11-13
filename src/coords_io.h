@@ -1,4 +1,4 @@
-#pragma once 
+﻿#pragma once 
 
 #if defined _OPENMP
 #include <omp.h>
@@ -106,6 +106,15 @@ namespace coords
       };
 
       class xyz : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
+      };
+
+      class pdb : public coords::input::format
       {
       public:
         Coordinates read(std::string);
