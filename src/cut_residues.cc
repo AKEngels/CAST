@@ -25,6 +25,16 @@ void write_tinker(coords::Coordinates ref, std::vector<int> indizes, std::ostrea
   }
 }
 
+//void rebind(coords::Coordinates coordobj, std::vector<int> indizes)
+//{
+//  int counter = 0;
+//  std::vector<int> bonds;
+//  for (auto i : indizes)
+//  {
+//    std::vector<
+//  }
+//}
+
 
 std::string cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 {
@@ -37,20 +47,39 @@ std::string cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 
   int counter = 0;
   std::vector<int> remaining_atoms;
+  std::vector<int> remaining_resids;
   for (int i=0; i<coordobj.size();i++)
   {
     double distance = dist(react_site, coordobj.xyz(i));
     if (distance < Config::get().cut.distance)
     {
-      remaining_atoms.push_back(i);
       counter += 1;
+      int current_resid = coordobj.atoms(i).get_res_id();
+      if (!is_in(current_resid, remaining_resids))
+      {
+        remaining_resids.push_back(current_resid);
+      }
     }
   }
   if (Config::get().general.verbosity > 2)
   {
     std::cout << counter << " atoms in cutout radius\n";
+    std::cout << remaining_resids.size() << " residues remaining\n";
+  }
+
+  for (int i = 0; i < coordobj.size(); i++)
+  {
+    if (is_in(coordobj.atoms(i).get_res_id(), remaining_resids))
+    {
+      remaining_atoms.push_back(i);
+    }
+  }
+  if (Config::get().general.verbosity > 2)
+  {
+    std::cout << remaining_atoms.size() << " atoms remaining\n";
   }
   
+  //rebind(coordobj,remaining_atoms);
 
   write_tinker(coordobj, remaining_atoms, stream);
 };

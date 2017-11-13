@@ -91,3 +91,15 @@ inline bool is_in(std::string x, std::vector<std::string> v)
     return false;
   }
 }
+
+/**looks if vector v contains element x
+returns true if yes and false if no */
+inline bool is_in(int x, std::vector<int> v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
