@@ -11,6 +11,8 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "coords_io.h"
 #include "helperfunctions.h"
 
+std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "HID", "HIE", "HIP" };
+
 /**function that reads the structure
 @ param file: name of the pdb-file
 @ return: Coordinates object that is created out of file*/
@@ -32,9 +34,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 	Coordinates coord_object;
 	std::ifstream config_file_stream(file.c_str(), std::ios_base::in);  // read file to ifstream
 
-    std::vector<std::string> RESIDUE_NAMES = {"ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "HID", "HIE", "HIP" };
-
-    std::string line, element;
+    std::string line, element;  // some variables
     Representation_3D positions;
 
     int N = 0; // number of atoms
@@ -46,6 +46,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
             atom_name.erase(remove_if(atom_name.begin(), atom_name.end(), isspace), atom_name.end());
 
 			std::string res_name = line.substr(17, 3);  // read residue name
+            std::string res_number = line.substr(22, 4);  // read residue id
             
             // find element symbol
             if (is_in(res_name, RESIDUE_NAMES))
@@ -69,6 +70,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
             Atom current(element);
             current.set_energy_type(0);  // because of this no forcefield interfaces are available with PDB inputfile
             current.set_residue(res_name);  
+            current.set_res_id(std::stoi(res_number));
             atoms.add(current);
 
             // read and create positions

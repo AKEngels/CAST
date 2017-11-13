@@ -53,6 +53,7 @@
 #include "Couplings.h"
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
+#include "cut_residues.h"
 
 
 //////////////////////////
@@ -605,6 +606,12 @@ int main(int argc, char **argv)
     {
       std::ofstream gstream(coords::output::filename("", ".arc").c_str());
       gstream << coords::output::formats::tinker(coords);
+      break;
+    }
+    case config::tasks::CUT_RESIDUES:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      cut_residues(coords,gstream);
       break;
     }
     case config::tasks::PCAgen:

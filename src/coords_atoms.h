@@ -157,6 +157,8 @@ namespace coords
     bool m_fix, m_intern_root;
     /**name of the residue (from pdb)*/
     std::string residue;
+    /**unique residue id (from pdb)*/
+    int(res_id);
 
   public:
 
@@ -220,6 +222,10 @@ namespace coords
     void set_residue(std::string s) { residue = s; }
     /**get residue name*/
     std::string get_residue() const { return residue; }
+    /**set res_id*/
+    void set_res_id(int i) { res_id = i; }
+    /**get red_id*/
+    int get_res_id() const { return res_id; }
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
