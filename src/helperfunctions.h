@@ -78,6 +78,7 @@ inline std::string get_python_modulepath(std::string modulename)
   remove("tmpfile.txt");
   return content.substr(0, content.size() - 14 - modulename.size());  //give back path without filename __init__.pyc and modulename
 }
+#endif
 
 /**looks if vector v contains element x
 returns true if yes and false if no */
@@ -90,4 +91,3 @@ inline bool is_in(std::string x, std::vector<std::string> v)
     return false;
   }
 }
-#endif

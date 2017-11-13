@@ -42,7 +42,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 	{
 		if (line.substr(0, 4) == "ATOM")
 		{
-			std::string atom_name = line.substr(12, 4);  // read atom name
+			std::string atom_name = line.substr(12, 4);  // read atom name and remove spaces
             atom_name.erase(remove_if(atom_name.begin(), atom_name.end(), isspace), atom_name.end());
 
 			std::string res_name = line.substr(17, 3);  // read residue name
