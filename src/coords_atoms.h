@@ -155,6 +155,8 @@ namespace coords
     std::size_t m_system, m_etype;
     sub_types m_sub_id;
     bool m_fix, m_intern_root;
+    /**name of the residue (from pdb)*/
+    std::string residue;
 
   public:
 
@@ -214,6 +216,10 @@ namespace coords
     std::size_t energy_type() const { return m_etype; }
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
+    /**set residue name*/
+    void set_residue(std::string s) { residue = s; }
+    /**get residue name*/
+    std::string get_residue() const { return residue; }
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }

@@ -68,6 +68,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
             // create atom
             Atom current(element);
             current.set_energy_type(0);  // because of this no forcefield interfaces are available with PDB inputfile
+            current.set_residue(res_name);  
             atoms.add(current);
 
             // read and create positions
@@ -97,8 +98,18 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 			double d_max = 1.2*(atoms.atom(i).cov_radius() + atoms.atom(j).cov_radius());
 			if (d < d_max)
 			{
-				atoms.atom(i).bind_to(j);
-				atoms.atom(j).bind_to(i);
+              // do not bond ions
+              std::string res1 = atoms.atom(i).get_residue();
+              std::string res2 = atoms.atom(j).get_residue();
+              if (res1.substr(res1.size() - 1, 1) == "+" || res1.substr(res1.size() - 1, 1) == "-") {}
+              else if (res2.substr(res2.size() - 1, 1) == "+" || res2.substr(res2.size() - 1, 1) == "-") {}
+
+              //save bonds
+              else
+              {   
+                atoms.atom(i).bind_to(j);
+                atoms.atom(j).bind_to(i);
+              }
 			}
 		}
 	}
