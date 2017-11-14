@@ -25,9 +25,16 @@ void write_tinker(coords::Coordinates ref, std::vector<std::vector<int>> bondvec
   }
 }
 
+/**creates the new bonds in the following form:
+every element of the result is a vector that corresponds to one atom
+the first element of the vector is the the index of the atom (old indexation)
+the other elements are the atoms to which the current atom is bound (new indexation)
+the index of the current atom in new indexation is identical to the index in the vector
+@param coordobj: coordinates object (with all atoms)
+@param indizes: vector of indizes that remain in the new structure*/
 std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<int> indizes)
 {
-  std::vector<std::vector<int>> bondvector; // fist element is index (old indexation), other elements are atoms to which it is bound (new indexation)
+  std::vector<std::vector<int>> bondvector; 
   for (auto i : indizes)
   {
     std::vector<int> bond;
@@ -44,6 +51,7 @@ std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<i
 
 void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 {
+  // calculate geometrical center of reaction site
   coords::Cartesian_Point sum; 
   for (auto atom : Config::get().cut.react_atoms)
   {
@@ -51,6 +59,7 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
   }
   coords::Cartesian_Point react_site = sum / double(Config::get().cut.react_atoms.size());
 
+  // determine which residues to keep
   int counter = 0;
   std::vector<int> remaining_atoms;
   std::vector<int> remaining_resids;
@@ -73,6 +82,7 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
     std::cout << remaining_resids.size() << " residues remaining\n";
   }
 
+  // determine which atoms to keep
   for (int i = 0; i < coordobj.size(); i++)
   {
     if (is_in(coordobj.atoms(i).get_res_id(), remaining_resids))
@@ -85,7 +95,9 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
     std::cout << remaining_atoms.size() << " atoms remaining\n";
   }
   
+  // find new bonds
   std::vector<std::vector<int>> bondvector = rebind(coordobj,remaining_atoms);
 
+  // write tinkerstucture
   write_tinker(coordobj, bondvector, stream);
 };

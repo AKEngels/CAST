@@ -1,7 +1,7 @@
 ﻿/**
 CAST 3
 Purpose: Reading structures from PDB-files
-no atom types are assigned
+bullshit atom types are assigned
 bonds are created by distance criterion (1.2 times sum of covalent radii)
 
 @author Susanne Sauer
@@ -12,6 +12,21 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "helperfunctions.h"
 
 std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "HID", "HIE", "HIP" };
+
+/**function that assigns atom types (oplsaa) to atoms of protein backbone
+(they are not suitable for force field calucations)*/
+int find_energy_type(std::string atom_name)
+{
+  if (atom_name == "N") return 180;  // amid N 
+  else if (atom_name == "H") return 182;  // amid H 
+  else if (atom_name == "C") return 177;  // amid C
+  else if (atom_name == "O") return 178;  // amid O (also one of the C-terminal Os for now)
+  else if (atom_name == "CA") return 166; // alpha C atom (not differentiated if terminal or not for now)
+  else if (atom_name == "OXT") return 214; // C-terminal O
+  else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal N
+  else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1))) return 230; // N-terminal H
+  else return 0;
+}
 
 /**function that reads the structure
 @ param file: name of the pdb-file
@@ -47,11 +62,14 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
 			std::string res_name = line.substr(17, 3);  // read residue name
             std::string res_number = line.substr(22, 4);  // read residue id
+
+            int et = 0;
             
             // find element symbol
             if (is_in(res_name, RESIDUE_NAMES))
             {
               element = atom_name.substr(0, 1);
+              et = find_energy_type(atom_name);
             }
             else if (atom_name.substr(atom_name.size() - 1,1) == "+" || atom_name.substr(atom_name.size() - 1,1) == "-")
             {
@@ -68,7 +86,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
             // create atom
             Atom current(element);
-            current.set_energy_type(0);  // because of this no forcefield interfaces are available with PDB inputfile
+            current.set_energy_type(et);  // because of this no forcefield interfaces are available with PDB inputfile
             current.set_residue(res_name);  
             current.set_res_id(std::stoi(res_number));
             atoms.add(current);

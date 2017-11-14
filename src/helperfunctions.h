@@ -116,3 +116,9 @@ inline int find_index(int x, std::vector<int> v)
   return result;
 }
 
+/**tests if a (one-letter) string is a digit*/
+inline bool isdigit(std::string s)
+{
+  std::vector<std::string> DIGITS = { "0","1","2","3","4","5","6","7","8","9" };
+  return is_in(s, DIGITS);
+}
