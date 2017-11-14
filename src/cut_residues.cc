@@ -66,7 +66,7 @@ std::vector<coords::cartesian_type> find_position_Hs(coords::Coordinates coordob
       p = coordobj.xyz(b);
     }
   }
-  double d = n.x()*p.x() + n.y()*p.y() + n.z()*p.z(); // equation for plane: ax+by+c=d with (a,b,c) is normal vector
+  double d = n.x()*p.x() + n.y()*p.y() + n.z()*p.z(); // equation for plane: ax+by+cz=d with (a,b,c) is normal vector
 
   // calculate intersection of normal vector with plane
   double lambda = (d - coordobj.xyz(i).x()*n.x() - coordobj.xyz(i).y()*n.y() - coordobj.xyz(i).z()*n.z()) / (n.x()*n.x() + n.y()*n.y() + n.z()*n.z());
@@ -101,6 +101,45 @@ std::vector<coords::cartesian_type> find_position_Hs(coords::Coordinates coordob
   positions.push_back(pos_H2);
 
   return positions;
+}
+
+/**find positions for O-atom that fill the carboxyl group where a peptide bond is broken
+@param coordobj: (old) coordobject
+@param i: index of the C-atom which is to be saturated (old indexation)*/
+coords::cartesian_type find_position_O(coords::Coordinates coordobj, int i)
+{
+  std::vector<size_t> bonded_atoms_indizes = coordobj.atoms(i).bonds();
+  coords::cartesian_type n; // normal vector
+  coords::cartesian_type p; // point on plane (O-atom)
+  for (auto b : bonded_atoms_indizes)
+  {
+    if (coordobj.atoms(b).symbol() == "C")
+    {
+      n = coordobj.xyz(b) - coordobj.xyz(i);
+    }
+    else if (coordobj.atoms(b).symbol() == "O")
+    {
+      p = coordobj.xyz(b);
+    }
+  }
+  double d = n.x()*p.x() + n.y()*p.y() + n.z()*p.z(); // equation for plane: ax+by+cz=d with (a,b,c) is normal vector
+
+  // calculate intersection of normal vector with plane
+  double lambda = (d - coordobj.xyz(i).x()*n.x() - coordobj.xyz(i).y()*n.y() - coordobj.xyz(i).z()*n.z()) / (n.x()*n.x() + n.y()*n.y() + n.z()*n.z());
+
+  double sx = coordobj.xyz(i).x() + lambda * n.x();
+  double sy = coordobj.xyz(i).y() + lambda * n.y();
+  double sz = coordobj.xyz(i).z() + lambda * n.z();
+  coords::cartesian_type s(sx, sy, sz);  // intersection of normal vector with plane
+
+  // calculate position of O atom
+  double vx = p.x() - sx;
+  double vy = p.y() - sy;
+  double vz = p.z() - sz;
+  coords::cartesian_type v(vx, vy, vz);
+
+  coords::cartesian_type pos_O = s - v;
+  return pos_O;
 }
 
 /**creates the new bonds in the following form:
@@ -145,7 +184,19 @@ std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<i
         }
         else if (coordobj.atoms(i).energy_type() == 177) // amide C
         {
-          std::cout << "neuer C-Terminus\n";
+          // add bond to an O atom
+          bond.push_back(indizes.size() + counter);
+          counter += 1;
+
+          // add a C-terminal O atom
+          coords::Atom current_atom("O");
+          current_atom.set_energy_type(214);
+          current_atom.bind_to(find_index(i, indizes));
+          new_atoms.push_back(current_atom);  
+
+          // add position for the O atom
+          coords::cartesian_type position = find_position_O(coordobj, i);
+          new_positions.push_back(position);
         }
         else std::cout << "Strange things are happening.\n";
       }
@@ -207,6 +258,12 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
   std::vector<coords::Atom> new_atoms;
   std::vector<coords::cartesian_type> new_positions;
   std::vector<std::vector<int>> bondvector = rebind(coordobj,remaining_atoms,new_atoms,new_positions);
+
+  if (Config::get().general.verbosity > 2)
+  {
+    std::cout << new_atoms.size() << " added for saturation\n";
+    std::cout << remaining_atoms.size()+new_atoms.size() << " atoms in total\n";
+  }
 
   // write tinkerstucture
   write_tinker(coordobj, bondvector, new_atoms, new_positions, stream);
