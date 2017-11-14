@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 
@@ -65,7 +65,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 #else
-#include<Eigen/Dense>
+#include "Eigen"
 #define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
 #endif
 
@@ -958,7 +958,7 @@ typedef size_t uint_type;
 
   /**
   * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix routines otherwise it uses the Eigen matrices.
-  * @author Julian Erdmannsdörfer
+  * @author Julian Erdmannsd�rfer
   * @version 3.0
   *
   * 
