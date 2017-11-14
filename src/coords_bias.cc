@@ -398,6 +398,7 @@ double coords::bias::Potentials::thresh(Representation_3D const &positions, Grad
 {
   double E(0.0);
   std::size_t const N(positions.size());
+  if (maxPos);
 
   for (auto &thresholdstr : m_thresh)
   {
@@ -416,7 +417,7 @@ double coords::bias::Potentials::thresh(Representation_3D const &positions, Grad
       }
       case 'y':
       {
-        if (positions[i].y() > maxPos.y() + 7)
+        if (positions[i].y() > maxPos.y() + thresholdstr.th_dist)
         {
           double force = thresholdstr.forceconstant * (positions[i].y() - (maxPos.y() + thresholdstr.th_dist));
           gradients[i] += force;
@@ -425,7 +426,7 @@ double coords::bias::Potentials::thresh(Representation_3D const &positions, Grad
       }
       case 'z':
       {
-        if (positions[i].z() > maxPos.z() + 7)
+        if (positions[i].z() > maxPos.z() + thresholdstr.th_dist)
         {
           double force = thresholdstr.forceconstant * (positions[i].z() - (maxPos.z() + thresholdstr.th_dist));
           gradients[i] += force;
