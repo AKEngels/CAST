@@ -909,7 +909,7 @@ namespace coords
     Cartesian_Point max_valuePosfix()
     {
       Cartesian_Point maxV;
-      bool check_fix = false;
+      bool check_fix = true;
 
       maxV = m_representation.structure.cartesian[0];
       
@@ -917,7 +917,7 @@ namespace coords
       {
         if (m_atoms.check_fix(i) == true)
         {
-          check_fix=true;
+          check_fix=false;
           if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
