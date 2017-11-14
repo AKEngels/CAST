@@ -398,7 +398,6 @@ double coords::bias::Potentials::thresh(Representation_3D const &positions, Grad
 {
   double E(0.0);
   std::size_t const N(positions.size());
-  if (maxPos);
 
   for (auto &thresholdstr : m_thresh)
   {
