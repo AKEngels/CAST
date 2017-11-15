@@ -148,11 +148,12 @@ the first element of the vector is the the index of the atom (old indexation)
 the other elements are the atoms to which the current atom is bound (new indexation)
 the index of the current atom in new indexation is identical to the index in the vector
 @param coordobj: coordinates object (with all atoms)
-@param indizes: vector of indizes that remain in the new structure*/
-std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<int> indizes, std::vector<coords::Atom>&new_atoms, std::vector<coords::cartesian_type> &new_positions)
+@param indizes: vector of indizes that remain in the new structure
+@param fixed_atoms: vector of indizes of atoms that are to be fixed in following calculations (new indexation)*/
+std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<int> indizes, std::vector<coords::Atom>&new_atoms, std::vector<coords::cartesian_type> &new_positions, std::vector<int> &fixed_atoms)
 {
   std::vector<std::vector<int>> bondvector; 
-  int counter = 0;
+  int counter = 0;  // counts additional atoms
   for (auto i : indizes)
   {
     std::vector<int> bond;
@@ -164,10 +165,12 @@ std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<i
       {
         if (coordobj.atoms(i).energy_type() == 180) // amide N
         {
-          // add bond to 2 H atoms
-          bond.push_back(indizes.size()+counter);  
+          // add bonds to 2 H atoms and fix these new H atoms
+          bond.push_back(indizes.size()+counter); 
+          fixed_atoms.push_back(indizes.size() + counter);
           counter += 1;
           bond.push_back(indizes.size()+counter);
+          fixed_atoms.push_back(indizes.size() + counter);
           counter += 1;
           
           // add 2 H atoms
@@ -184,8 +187,9 @@ std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<i
         }
         else if (coordobj.atoms(i).energy_type() == 177) // amide C
         {
-          // add bond to an O atom
+          // add bond to an O atom and fix this new O atom
           bond.push_back(indizes.size() + counter);
+          fixed_atoms.push_back(indizes.size() + counter);
           counter += 1;
 
           // add a C-terminal O atom
@@ -241,12 +245,23 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
     std::cout << remaining_resids.size() << " residues remaining\n";
   }
 
-  // determine which atoms to keep
+  // determine which atoms to keep and to fix
+  std::vector<int> fixed_atoms;
   for (int i = 0; i < coordobj.size(); i++)
   {
     if (is_in(coordobj.atoms(i).get_res_id(), remaining_resids))
     {
-      remaining_atoms.push_back(i);
+      remaining_atoms.push_back(i); // keep 
+
+      // fix atoms of protein backbone (detemined by atom types assigned (see file coords_io_PDB.cc)
+      if (coordobj.atoms(i).energy_type() == 180) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 182) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 233) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 230) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 177) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 178) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 166) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 214) fixed_atoms.push_back(remaining_atoms.size() - 1);
     }
   }
   if (Config::get().general.verbosity > 2)
@@ -257,7 +272,7 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
   // find new bonds
   std::vector<coords::Atom> new_atoms;
   std::vector<coords::cartesian_type> new_positions;
-  std::vector<std::vector<int>> bondvector = rebind(coordobj,remaining_atoms,new_atoms,new_positions);
+  std::vector<std::vector<int>> bondvector = rebind(coordobj,remaining_atoms,new_atoms,new_positions,fixed_atoms);
 
   if (Config::get().general.verbosity > 2)
   {
@@ -267,4 +282,13 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 
   // write tinkerstucture
   write_tinker(coordobj, bondvector, new_atoms, new_positions, stream);
+
+  // write fixed atoms
+  std::ofstream gstream("fix.txt");
+  gstream << "FIXrange               " << fixed_atoms[0];
+  for (int i = 1; i < fixed_atoms.size(); i++)
+  {
+    gstream << "," << fixed_atoms[i];
+  }
+  gstream << "\n";
 };
