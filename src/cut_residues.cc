@@ -239,6 +239,12 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
       }
     }
   }
+  if (remaining_resids.size() == 0)
+  {
+    std::cout << "ERROR: no atoms in output structure!\n";
+    std::exit(0);
+  }
+
   if (Config::get().general.verbosity > 2)
   {
     std::cout << counter << " atoms in cutout radius\n";
