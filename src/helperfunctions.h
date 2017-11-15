@@ -105,7 +105,7 @@ inline bool is_in(int x, std::vector<int> v)
 }
 
 /**finds index of element x in vector v
-if not inside it returns 99998 (you might not think so but this has a reason)*/
+if not inside it returns 99998 (this is a number that still looks nice when printed)*/
 inline int find_index(int x, std::vector<int> v)
 {
   int result = 99998;
