@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water1.arc
+name                   Start.pdb
 
 # Output file name
 
@@ -38,7 +38,8 @@ outname                output
 # Input file type
 
 
-inputtype              TINKER
+inputtype              PDB
+
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -87,7 +88,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  SP
+task                  CUT_RESIDUES
 
 ####################################
 #                                  #
@@ -103,7 +104,7 @@ task                  SP
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              DFTB
+interface              GAUSSIAN
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -128,9 +129,9 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 MOPACversion          MOPAC2012
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
-#cutoff                 12.0
+cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
+switchdist             10.0
 
 ################# DFTB options ################################################
 
@@ -150,7 +151,7 @@ DFTBverbose             0
 DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-#DFTBlr_dist            3.03     
+DFTBlr_dist            3.03     
 
 # maximum number of iterations for SCF-calculation
 #DFTBmaxiter            1000
@@ -182,7 +183,12 @@ DFTBvirt_orb            2
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  1
 
+#################### OPTIONS FOR CUT_RESIDUES ###################
 
+CUTreact_atom            3149
+CUTreact_atom            347
+
+CUTdist                  1
 
 ####################################
 #                                  #
@@ -197,7 +203,7 @@ FIXexclude             false
 REMOVEHROT             false
 
 # Fix a range of atoms 
-#FIXrange               1-6,9,24,55-71,72
+#FIXrange               0,1,2,15,16,17,18,19,22,23,24,25,26,39,40,41,42,43,49,50,51,52,53,56,57,58,59,60,67,68,69,70,71,77,78,79,80,81,101,102,103,104,105,111,112,113,114,115,131,132,133,134,135,142,143,144,145,146,156,157,158,159,160,163,164,165,166,167,173,174,175,176,177,180,181,182,183,184,187,188,189,190,191,194,195,196,197,198,213,214,215,216,217,230,231,232,233,234,251,252,253,254,255,270,271,272,273,274,280,281,282,283,284,296,297,298,299,300,308,309,310,311,312,318,319,320,321,322,332,333,334,335,336,352,353,354,355,356,369,370,371,372,373,388,389,390,391,392,400,401,402,403,404,418,419,420,421,422,425,426,427,428,429,441,442,443,444,445,455,456,457,458,459,466,467,468,469,470,490,491,679,680,682,683,685,686,688,689,691,692,694,695,697,698
 
 
 
@@ -610,7 +616,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                10
+MDsteps                1000
  
 # Integrator
 #
@@ -625,7 +631,7 @@ MDveloscale            0
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           0
+MDthermostat           1
 
 # Timestep in picoseconds
 
@@ -633,7 +639,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    1
+MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
@@ -737,9 +743,9 @@ FEPvdwcouple   1.0
 FEPeleccouple  0.5
 FEPvshift      0.5
 FEPcshift      0.0
-FEPequil       100
-FEPsteps       1000
-FEPfreq        10
+FEPequil       10
+FEPsteps       10
+FEPfreq        100
 FEPanalyze     1
 FEPbar         1
 
