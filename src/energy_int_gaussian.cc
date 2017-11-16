@@ -81,9 +81,13 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::~sysCallInterfaceGauss(void
   }
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(char calc_type)
+void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(char calc_type, unsigned int* calc_counter)
 {
+  *calc_counter++;
   std::string outstring(id);
+  std::stringstream ss;
+  ss << *calc_counter;
+  outstring.append(ss.str());
   outstring.append(".gjf");
 
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
@@ -363,9 +367,11 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
    /* mos.close();*/
   }
 
-int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
+int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian(unsigned int* calc_counter)
 {
-  std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ".gjf";
+  std::stringstream ss;
+  ss << *calc_counter;
+  std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ss.str() +".gjf";
 
   int ret = scon::system_call(gaussian_call);
   if (ret != 0)
@@ -387,9 +393,9 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
 double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 {
   integrity = true;
-  print_gaussianInput('e');
+  print_gaussianInput('e', calc_counterP);
 
-  if (callGaussian() == 0)
+  if (callGaussian(calc_counterP) == 0)
   {
     read_gaussianOutput(false, false);
   }
@@ -410,8 +416,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   id = id + "_G_";
 
   integrity = true;
-  print_gaussianInput('g');
-  if (callGaussian() == 0) read_gaussianOutput(true, false);
+  print_gaussianInput('g', calc_counterP);
+  if (callGaussian(calc_counterP) == 0) read_gaussianOutput(true, false);
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -433,8 +439,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
     std::cout << "Hessian not implemented in CAST as yet.";
   }
   integrity = true;
-  print_gaussianInput('h');
-  if (callGaussian() == 0) read_gaussianOutput();
+  print_gaussianInput('h', calc_counterP);
+  if (callGaussian(calc_counterP) == 0) read_gaussianOutput();
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -452,8 +458,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
   id = id +"_O_";
 
   integrity = true;
-  print_gaussianInput('o');
-  if (callGaussian() == 0) read_gaussianOutput(true, true);
+  print_gaussianInput('o', calc_counterP);
+  if (callGaussian(calc_counterP) == 0) read_gaussianOutput(true, true);
   else
   {
     if (Config::get().general.verbosity >= 2)

@@ -74,12 +74,16 @@ namespace energy
 				// FAILCOUNTER
 				size_t failcounter;
 
+        //counter for neb file singlepoints
+        unsigned int calc_counter = 0;
+        unsigned int* calc_counterP = &calc_counter;
+
         /*
         Gaussian sysCall funcntions
         */
 
-        int callGaussian(void);
-        void print_gaussianInput(char);
+        int callGaussian(unsigned int*);
+        void print_gaussianInput(char, unsigned int*);
         void read_gaussianOutput(bool const grad = true, bool const opt = true);
         void removeTempFiles(void);
 
