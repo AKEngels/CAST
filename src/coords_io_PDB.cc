@@ -60,8 +60,8 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
       else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO") return 236; // alpha C atom 
       else if (atom_name == "CA" && res_name == "GLY") return 235; // alpha C atom
       else if (atom_name == "CA" && res_name == "PRO") return 237; // alpha C atom
-      else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1)) && res_name != "PRO") return 230; // terminal N
-      else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1)) && res_name == "PRO") return 252; // terminal N
+      else if (atom_name.substr(0, 1) == "N" && res_name != "PRO") return 230; // terminal N
+      else if (atom_name.substr(0, 1) == "N" && res_name == "PRO") return 252; // terminal N
       else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1)) && res_name == "PRO")
       {
         std::cout << "N terminal Prolin not implemented\n";
