@@ -156,17 +156,21 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      * Constructs an empty mathmatrix
     **/
 #ifndef CAST_USE_ARMADILLO
-    mathmatrix() : base_type()
+      using base_type::Matrix;
+      mathmatrix() = default;
+    /*mathmatrix() : base_type()
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
-    };
+    };*/
 #else
-    mathmatrix() : arma::Mat<T>() 
+      using base_type::Mat; 
+      mathmatrix() = default;
+    /*mathmatrix() : arma::Mat<T>() 
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
-    };
+    };*/
 #endif
 
 
@@ -176,7 +180,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      * @param rows: Number of rows
      * @param cols: Number of columns
      */
-#ifndef CAST_USE_ARMADILLO
+/*#ifndef CAST_USE_ARMADILLO
     mathmatrix(uint_type rows, uint_type cols) : base_type(rows, cols)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
@@ -188,7 +192,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
     };
-#endif
+#endif*/
 
     /*! Construct mathmatrix from parent matrix
      *
@@ -196,7 +200,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      * @NOTE Used only during internal functions.
      */
 
-#ifndef CAST_USE_ARMADILLO
+/*#ifndef CAST_USE_ARMADILLO
     mathmatrix(base_type const& in) : base_type(in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
@@ -205,11 +209,9 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     mathmatrix& operator=(base_type const& in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Assignment from eigen-matrix." << std::endl;
-      if (this != &in)
-      {
+      
         *this = mathmatrix(in);
-      }
+        return *this;
     };
 #else
     mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
@@ -217,7 +219,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
     };
-#endif
+#endif*/
 
     /*! Construct filled mathmatrix of certain size
      *
@@ -248,13 +250,13 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     // element access from base class
     using base_type::operator();
     using base_type::operator[];
-#ifdef CAST_USE_ARMADILLO
-    using base_type::resize;
-#else
+#ifndef CAST_USE_ARMADILLO
     void resize(uint_type const rows, uint_type const cols)
     {
       this->conservativeResize(rows, cols);
     }
+#else
+    using base_type::resize;
 #endif
 
 
@@ -275,41 +277,41 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      */
     mathmatrix operator+(mathmatrix const& in) const
     {
-        if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+        /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
           std::cout << "Function call: Operator+ for matrix-class" << std::endl;
     	if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
     	{
     		throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
     	}
         arma::Mat<T> const& base_this = *this;
-        arma::Mat<T> const& base_in = in;
-        return (mathmatrix(   base_this + base_in    ));
+        arma::Mat<T> const& base_in = in;*/
+        return mathmatrix(static_cast<base_type>(*this) + static_cast<base_type>(in));
     };
 
     mathmatrix operator*(mathmatrix const& in) const
     {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+      /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator+ for matrix-class" << std::endl;
       if (!(this->cols() == in.rows()))
       {
         throw("ERROR in mathmatrix multiplication: Sizes of matrices do not match!");
       }
       arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;
-      return (mathmatrix(base_this * base_in));
+      arma::Mat<T> const& base_in = in;*/
+      return mathmatrix(static_cast<base_type>(*this) * static_cast<base_type>(in));
     }
 
     mathmatrix operator/(mathmatrix const& in) const
     {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+     /* if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator+ for matrix-class" << std::endl;
       if (!(this->cols() == in.rows()))
       {
         throw("ERROR in mathmatrix divison: Sizes of matrices do not match!");
       }
       arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;
-      return (mathmatrix(base_this / base_in));
+      arma::Mat<T> const& base_in = in;*/
+      return (mathmatrix(static_cast<base_type>(*this) / static_cast<base_type>(in)));
     };
 
     /**
@@ -317,20 +319,21 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      */
     mathmatrix operator-(mathmatrix const& in) const
     {
-    	//Check if sizes match
-    	if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
-    	{
-    		throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
-    	}
-    	mathmatrix output = *this;
-    	for (uint_type i = 0; i < this->rows(); i++)
-    	{
-    		for (uint_type j = 0; j < this->cols(); j++)
-    		{
-    			output(i, j) -= in(i, j);
-    		}
-    	}
-    	return output;
+    	////Check if sizes match
+    	//if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
+    	//{
+    	//	throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
+    	//}
+    	//mathmatrix output = *this;
+    	//for (uint_type i = 0; i < this->rows(); i++)
+    	//{
+    	//	for (uint_type j = 0; j < this->cols(); j++)
+    	//	{
+    	//		output(i, j) -= in(i, j);
+    	//	}
+    	//}
+    	//return output;
+        return (mathmatrix(static_cast<base_type>(*this) / static_cast<base_type>(in)));
     }
 #endif
 
@@ -349,9 +352,9 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing identity matrix." << std::endl;
 #ifndef CAST_USE_ARMADILLO
-      return mathmatrix<T>(base_type::Identity(num_rows, num_cols));
+      return mathmatrix(base_type::Identity(num_rows, num_cols));
 #else
-      return mathmatrix<T>(mathmatrix(num_rows, num_cols).eye());
+      return mathmatrix(arma::eye<base_type>(num_rows, num_cols));
 #endif
     }
 
@@ -871,7 +874,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
 
 		/**
-		 * @breif Returns mathmatrix-obj as std vector of vector of float_type.
+		 * @brief Returns mathmatrix-obj as std vector of vector of float_type.
 		 * USE THIS TO DEBUG, not in production code.
 		 * This might be useful as the VS debugger cannot visualize content of arma arrays.
      *

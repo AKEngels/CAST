@@ -1,4 +1,4 @@
-// For more information see matop.h
+﻿// For more information see matop.h
 
 #include "matop.h"
 namespace matop
@@ -400,7 +400,7 @@ namespace matop
 
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-      cov_matr = Matrix_Class(cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
@@ -452,9 +452,9 @@ namespace matop
       // I. Create PCA-Modes matrix
       Matrix_Class eigenvectors_t(transposed(eigenvectors));
       Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
-      Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
-      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
-      Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
+      Matrix_Class entropy_anharmonic(static_cast<std::size_t>(pca_modes.rows()), std::size_t(1u), 0.);
+      Matrix_Class entropy_mi(static_cast<std::size_t>(pca_modes.rows()), static_cast<std::size_t>(pca_modes.rows()), 0.);
+      Matrix_Class classical_entropy(static_cast<std::size_t>(pca_modes.rows()), 1u, 0.);
       //std::size_t const size = entropy_anharmonic.rows();
 
 
@@ -593,7 +593,7 @@ namespace matop
       Matrix_Class const& input(input_);
 #endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)" << std::endl;
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
+      Matrix_Class marginal_entropy_storage(static_cast<std::size_t>(input.rows()), static_cast<std::size_t>(1u), 0.);
 
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
       float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)0u)));
@@ -654,7 +654,7 @@ namespace matop
       Matrix_Class const& input(input_);
 #endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)" << std::endl;
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
+      Matrix_Class marginal_entropy_storage(static_cast<std::size_t>(input.rows()), static_cast<std::size_t>(1u), 0u);
 
       //Calculate Non-Paramteric Entropies
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
@@ -703,7 +703,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols());
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.) * cov_matr / (float_type)input.cols());
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
@@ -756,7 +756,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols()));
+      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.) * cov_matr / static_cast<float_type>(input.cols()));
       cov_matr = Matrix_Class(cov_matr - temp_obj);
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr = cov_matr / static_cast<float_type>(input.cols());
@@ -779,7 +779,7 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
-      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
+      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
       cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
       cov_matr = Matrix_Class(cov_matr / static_cast<float_type>(input.cols()));
 

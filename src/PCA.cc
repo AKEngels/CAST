@@ -1,4 +1,4 @@
-#include "PCA.h"
+﻿#include "PCA.h"
 namespace pca
 {
 	void PrincipalComponentRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
@@ -150,14 +150,14 @@ namespace pca
 
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
 		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
-		Matrix_Class ones(this->coordinatesMatrix.cols(), this->coordinatesMatrix.cols(), 1.0);
+		Matrix_Class ones(static_cast<std::size_t>(this->coordinatesMatrix.cols()), static_cast<std::size_t>(this->coordinatesMatrix.cols()), 1.0);
 		cov_matr = Matrix_Class (cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols()));
 		cov_matr = Matrix_Class (transposed(cov_matr) * cov_matr);
 		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
 		int *cov_rank = new int;
 		cov_matr.eigensym(this->eigenvalues, this->eigenvectors, cov_rank);
-		if (*cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
+		if (*cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
 		{
 			std::cout << "Notice: covariance matrix is singular.\n";
 			std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
