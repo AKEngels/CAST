@@ -43,9 +43,9 @@ CODING CONVENTIONS AS FOLLOWS:
 /////////////////////////////////
 
 #include "coords.h"
-typedef coords::float_type float_type;
-typedef int int_type;
-typedef size_t uint_type;
+using float_type = coords::float_type;
+using int_type = int;
+using uint_type = std::size_t;
 unsigned int constexpr printFunctionCallVerbosity = 5u;
 
 ///////////////////////////////
@@ -64,9 +64,12 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
+template<typename T>
+using matrix_type = arma::Mat<T>;
 #else
 #include<Eigen/Dense>
-#define CAST_EIGEN_MATRIX_TYPE Eigen::Matrix<T,Eigen::Dynamic, Eigen::Dynamic>
+template<typename T>
+using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
 
 
@@ -83,19 +86,6 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 // It's all already automatized and integrated
 
 ///////////////////////////////
-
-
-/////////////////////////////////
-//                             //
-//	D E F S                    //
-//                             //
-/////////////////////////////////
-
-#include "coords.h"
-typedef coords::float_type float_type;
-typedef int int_type;
-typedef size_t uint_type;
-
 
 /**
  * @brief Class for handling matrix operations involving numerical entries.  Uses Armadillo for enhanced speed when available. Otherwise uses slow internal routines.
@@ -139,17 +129,17 @@ typedef size_t uint_type;
 	template <typename T>
   class mathmatrix
 #ifndef CAST_USE_ARMADILLO
-    : public CAST_EIGEN_MATRIX_TYPE
+    : public matrix_type<T>
 #else
-    : public arma::Mat<T>
+    : public matrix_type<T>
 #endif
 
 	{
   private:
 #ifdef CAST_USE_ARMADILLO
-    using base_type = arma::Mat<T>;
+    using base_type = matrix_type<T>;
 #else
-    using base_type = CAST_EIGEN_MATRIX_TYPE;
+    using base_type = matrix_type<T>;
 #endif
 
 
@@ -166,7 +156,7 @@ typedef size_t uint_type;
      * Constructs an empty mathmatrix
     **/
 #ifndef CAST_USE_ARMADILLO
-    mathmatrix() : CAST_EIGEN_MATRIX_TYPE()
+    mathmatrix() : base_type()
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty matrix." << std::endl;
@@ -187,7 +177,7 @@ typedef size_t uint_type;
      * @param cols: Number of columns
      */
 #ifndef CAST_USE_ARMADILLO
-    mathmatrix(uint_type rows, uint_type cols) : CAST_EIGEN_MATRIX_TYPE(rows, cols)
+    mathmatrix(uint_type rows, uint_type cols) : base_type(rows, cols)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
@@ -207,12 +197,12 @@ typedef size_t uint_type;
      */
 
 #ifndef CAST_USE_ARMADILLO
-    mathmatrix(CAST_EIGEN_MATRIX_TYPE const& in) : CAST_EIGEN_MATRIX_TYPE(in)
+    mathmatrix(base_type const& in) : base_type(in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Constructing matrix from eigen-matrix." << std::endl;
     };
-    mathmatrix& operator=(CAST_EIGEN_MATRIX_TYPE const& in)
+    mathmatrix& operator=(base_type const& in)
     {
       if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Assignment from eigen-matrix." << std::endl;
@@ -246,6 +236,9 @@ typedef size_t uint_type;
           (*this)(i, j) = fill;
     };
 
+    mathmatrix zero(uint_type rows, uint_type cols) {
+      return mathmatrix(rows, cols, T());
+    }
 
     // base row and col proxy
     using base_type::row;
@@ -458,7 +451,7 @@ typedef size_t uint_type;
 #ifdef CAST_USE_ARMADILLO
 			return static_cast<float_type>(det(*this));
 #else
-      return static_cast<float_type>(static_cast<CAST_EIGEN_MATRIX_TYPE const*>(this)->determinant());
+      return static_cast<float_type>(static_cast<base_type const*>(this)->determinant());
 #endif
 		}
 
@@ -811,7 +804,7 @@ typedef size_t uint_type;
 			s_in.resize(this->cols(), 1u);
 
 #ifndef CAST_USE_ARMADILLO
-      CAST_EIGEN_MATRIX_TYPE const* this_eigenptr= static_cast<CAST_EIGEN_MATRIX_TYPE const*>(this);
+      base_type const* this_eigenptr= static_cast<base_type const*>(this);
       auto bdcsvd_obj = this_eigenptr->bdcSvd();
       bdcsvd_obj.compute(*this_eigenptr, Eigen::ComputeFullU | Eigen::ComputeFullV);
       U_in = mathmatrix<T>(bdcsvd_obj.matrixU());
@@ -950,9 +943,9 @@ typedef size_t uint_type;
   }
 
   template<typename T>
-  void transpose(mathmatrix<T>& in)
+  void transpose(matrix_type<T>& in)
   {
-    static_cast<CAST_EIGEN_MATRIX_TYPE&>(in).transposeInPlace();
+    static_cast<matrix_type<T>&>(in).transposeInPlace();
   }
 #endif
 

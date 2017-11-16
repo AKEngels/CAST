@@ -53,6 +53,7 @@
 #include "Couplings.h"
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
+#include "ic_exec.h"
 
 
 //////////////////////////
@@ -279,6 +280,8 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
+      ic_testing exec_obj;
+      exec_obj.ic_execution(&coords);
       break;
     }
     case config::tasks::SP:
