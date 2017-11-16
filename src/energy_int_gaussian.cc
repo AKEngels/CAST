@@ -493,10 +493,10 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_head(std::ostr
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_short(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << hof_kcal_mol;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_total;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_electron;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_core;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(7) << hof_kcal_mol;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(7) << e_total;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(7) << e_electron;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(7) << e_core;
   if (endline) S << '\n';
 }
 
