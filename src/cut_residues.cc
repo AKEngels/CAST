@@ -211,7 +211,6 @@ std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<i
   return bondvector;
 }
 
-
 void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 {
   // calculate geometrical center of reaction site
@@ -224,7 +223,6 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
 
   // determine which residues to keep
   int counter = 0;
-  std::vector<int> remaining_atoms;
   std::vector<int> remaining_resids;
   for (int i=0; i<coordobj.size();i++)
   {
@@ -252,6 +250,7 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
   }
 
   // determine which atoms to keep and to fix
+  std::vector<int> remaining_atoms;
   std::vector<int> fixed_atoms;
   for (int i = 0; i < coordobj.size(); i++)
   {
@@ -259,15 +258,22 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
     {
       remaining_atoms.push_back(i); // keep 
 
-      // fix atoms of protein backbone (detemined by atom types assigned (see file coords_io_PDB.cc)
+      // fix atoms of protein backbone (detemined by atom types assigned (see file coords_io_PDB.cc))
       if (coordobj.atoms(i).energy_type() == 180) fixed_atoms.push_back(remaining_atoms.size() - 1);
-      else if (coordobj.atoms(i).energy_type() == 182) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 181) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 183) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 233) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 230) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 252) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 177) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 178) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 166) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 165) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 235) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 236) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 237) fixed_atoms.push_back(remaining_atoms.size() - 1);
       else if (coordobj.atoms(i).energy_type() == 214) fixed_atoms.push_back(remaining_atoms.size() - 1);
+      else if (coordobj.atoms(i).energy_type() == 213) fixed_atoms.push_back(remaining_atoms.size() - 1);
     }
   }
   if (Config::get().general.verbosity > 2)
@@ -297,4 +303,4 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
     gstream << "," << fixed_atoms[i];
   }
   gstream << "\n";
-};
+}

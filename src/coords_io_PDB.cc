@@ -13,19 +13,102 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 
 std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "HID", "HIE", "HIP" };
 
+/**struct that contains information about a residue*/
+struct residue
+{
+  /**name of the residue*/
+  std::string res_name;
+  /**atoms in the residue*/
+  std::vector<coords::Atom> atoms;
+  /**is an amino acid terminal or not
+  possible values: no (not terminal), C (C terminal), N (N terminal)*/
+  std::string terminal;
+};
+
 /**function that assigns atom types (oplsaa) to atoms of protein backbone
 (they are not suitable for force field calucations)*/
-int find_energy_type(std::string atom_name)
+int find_energy_type(std::string atom_name, std::string res_name, std::string terminal)
 {
-  if (atom_name == "N") return 180;  // amid N 
-  else if (atom_name == "H") return 182;  // amid H 
-  else if (atom_name == "C") return 177;  // amid C
-  else if (atom_name == "O") return 178;  // amid O (also one of the C-terminal Os for now)
-  else if (atom_name == "CA") return 166; // alpha C atom (not differentiated if terminal or not for now)
-  else if (atom_name == "OXT") return 214; // C-terminal O
-  else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal N
-  else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1))) return 230; // N-terminal H
+  if (is_in(res_name, RESIDUE_NAMES))
+  {
+    if (terminal == "no")
+    {
+      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N 
+      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N 
+      else if (atom_name == "H") return 183;  // amid H
+      else if (atom_name == "C") return 177;  // amid C
+      else if (atom_name == "O") return 178;  // amid O 
+      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
+      else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom
+      else return 0;
+    }
+    else if (terminal == "C")
+    {
+      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N 
+      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N 
+      else if (atom_name == "H") return 183; // amid H
+      else if (atom_name == "C") return 213;  // carbonyl C
+      else if (atom_name == "O" || atom_name == "OXT") return 214;  // C-terminal O
+      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
+      else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom 
+      else return 0;
+    }
+    else if (terminal == "N")
+    {
+      if (atom_name == "C") return 177;  // amid C
+      else if (atom_name == "O") return 178;  // amid O 
+      else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO") return 236; // alpha C atom 
+      else if (atom_name == "CA" && res_name == "GLY") return 235; // alpha C atom
+      else if (atom_name == "CA" && res_name == "PRO") return 237; // alpha C atom
+      else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1)) && res_name != "PRO") return 230; // terminal N
+      else if (atom_name.substr(0, 1) == "N" && isdigit(atom_name.substr(1, 1)) && res_name == "PRO") return 252; // terminal N
+      else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1)) && res_name == "PRO")
+      {
+        std::cout << "N terminal Prolin not implemented\n";
+        std::cout << "no atom type is assigned for H atom\n";
+        return 0;
+      }
+      else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal H(N)      
+      else return 0;
+    }
+  }
   else return 0;
+  
+}
+
+/**finds element symbol and energy type
+@param atom_name: atom name from pdb file
+@param res_name: residue name from pdb file
+returns element symbol*/
+std::string find_element_symbol(std::string atom_name, std::string res_name)
+{
+  std::string element;
+  if (is_in(res_name, RESIDUE_NAMES))  // protein
+  {
+    element = atom_name.substr(0, 1);
+  }
+  else if (atom_name.substr(atom_name.size() - 1, 1) == "+" || atom_name.substr(atom_name.size() - 1, 1) == "-")  // ion
+  {
+    element = atom_name.substr(0, atom_name.size() - 1);
+  }
+  else if (res_name == "WAT" || res_name == "LIG")  // water or ligand
+  {
+    element = "";
+    for (auto s : atom_name) // every sign in atom name
+    {
+      if (!isdigit(s)) element += s;
+    }
+  }
+  else  // unknown residue
+  {
+    std::cout << "WARNING: unknown residue: " << res_name << ". Guessing element symbol.\n";
+    element = "";
+    for (auto s : atom_name) // every sign in atom name
+    {
+      if (!isdigit(s)) element += s;
+    }
+  }
+  return element;
 }
 
 /**function that reads the structure
@@ -38,8 +121,8 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 		(Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
 		(Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
 	{
-		std::cout << "ERROR: It is not possible to use XYZ files with a forcefield interface because no atom types are assigned!\n";
-		if (Config::get().general.task == config::tasks::WRITE_TINKER)
+		std::cout << "ERROR: It is not possible to use PDB files with a forcefield interface because no atom types are assigned!\n";
+		if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::CUT_RESIDUES)
 		{
 			std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
 		}
@@ -51,6 +134,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
     std::string line, element;  // some variables
     Representation_3D positions;
+    std::vector<residue> residues;
 
     int N = 0; // number of atoms
 	while (std::getline(config_file_stream, line))
@@ -63,33 +147,25 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 			std::string res_name = line.substr(17, 3);  // read residue name
             std::string res_number = line.substr(22, 4);  // read residue id
 
-            int et = 0;
-            
             // find element symbol
-            if (is_in(res_name, RESIDUE_NAMES))
-            {
-              element = atom_name.substr(0, 1);
-              et = find_energy_type(atom_name);
-            }
-            else if (atom_name.substr(atom_name.size() - 1,1) == "+" || atom_name.substr(atom_name.size() - 1,1) == "-")
-            {
-              element = atom_name.substr(0, atom_name.size() - 1);
-            }
-            else
-            {
-              element = "";
-              for (auto s : atom_name) // every sign in atom name
-              {
-                if (!isdigit(s)) element += s; 
-              }
-            }
+            element = find_element_symbol(atom_name, res_name);
 
             // create atom
             Atom current(element);
-            current.set_energy_type(et);  // because of this no forcefield interfaces are available with PDB inputfile
             current.set_residue(res_name);  
             current.set_res_id(std::stoi(res_number));
+            current.set_pdb_atom_name(atom_name);
             atoms.add(current);
+
+            // create residues
+            if (std::stoi(res_number) > residues.size())
+            {
+              residue new_res;
+              new_res.res_name = res_name;
+              new_res.atoms.push_back(current);
+              residues.push_back(new_res);
+            }
+            else residues[std::stoi(res_number) - 1].atoms.push_back(current);
 
             // read and create positions
             std::string x = line.substr(30, 8);
@@ -133,6 +209,30 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 			}
 		}
 	}
+
+    // determine if protein residues are terminal or not
+    for (auto &r: residues)
+    {
+      r.terminal = "no";
+      if (is_in(r.res_name, RESIDUE_NAMES))
+      {
+        for (auto a : r.atoms)
+        {
+          if (a.get_pdb_atom_name() == "OXT") r.terminal = "C";
+          else if (a.get_pdb_atom_name() == "H1") r.terminal = "N";
+        }
+      }
+    }
+
+    // set energy type of every atom
+    for (auto &a : atoms)
+    {
+      if (Config::get().general.verbosity > 3)
+      {
+        std::cout << "Atom " << a.symbol() << " belongs to residue " << a.get_residue() << " that is terminal: " << residues[a.get_res_id() - 1].terminal << "\n";
+      }
+      a.set_energy_type(find_energy_type(a.get_pdb_atom_name(), a.get_residue(), residues[a.get_res_id() - 1].terminal));
+    }
 
 	coord_object.init_swap_in(atoms, pes);  // fill atoms and positions into coord_object
 

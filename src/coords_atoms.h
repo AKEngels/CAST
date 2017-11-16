@@ -159,6 +159,8 @@ namespace coords
     std::string residue;
     /**unique residue id (from pdb)*/
     int(res_id);
+    /**atom name from pdb*/
+    std::string pdb_atom_name;
 
   public:
 
@@ -226,6 +228,10 @@ namespace coords
     void set_res_id(int i) { res_id = i; }
     /**get red_id*/
     int get_res_id() const { return res_id; }
+    /**set pdb atom name*/
+    void set_pdb_atom_name(std::string i) { pdb_atom_name = i; }
+    /**get pdb atom name*/
+    std::string get_pdb_atom_name() const { return pdb_atom_name; }
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
