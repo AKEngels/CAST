@@ -335,7 +335,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
 (they are not suitable for force field calucations)*/
 int find_energy_type(std::string atom_name, std::string res_name, std::string terminal)
 {
-  if (is_in(res_name, RESIDUE_NAMES))
+  if (is_in(res_name, RESIDUE_NAMES))  // protein
   {
     if (terminal == "no")
     {
@@ -377,10 +377,33 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
       else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal H(N)      
       else return find_at_sidechain(atom_name, res_name);
     }
-    else std::cout << "This should not happen.\n";
+    else
+    {
+      std::cout << "This should not happen.\n";
+      return 0;
+    }
   }
-  else return 0;
-  
+  else if (res_name == "LIG")
+  {
+    std::cout << "I'm sorry it is not possible to assign atom types to ligands. This is something you have to do manually.\n";
+    return 0;
+  }
+  else if (res_name == "Na+") return 349;
+  else if (res_name == "WAT")
+  {
+    if (atom_name.substr(0, 1) == "O") return 63;
+    else if (atom_name.substr(0, 1) == "H") return 64;
+    else
+    {
+      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      return 0;
+    }
+  }
+  else
+  {
+    std::cout << "Unknown residue: " << res_name << ". No atom type assigned.\n";
+    return 0;
+  }
 }
 
 /**finds element symbol and energy type
@@ -425,10 +448,9 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 {
 	if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) ||
 		(Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
-		(Config::get().general.energy_interface == config::interface_types::T::CHARMM22) ||
-		(Config::get().general.energy_interface == config::interface_types::T::OPLSAA))
+		(Config::get().general.energy_interface == config::interface_types::T::CHARMM22))
 	{
-		std::cout << "ERROR: It is not possible to use PDB files with a forcefield interface because no atom types are assigned!\n";
+		std::cout << "ERROR: It is not possible to use PDB files with that interface because wrong atom types are assigned!\n";
 		if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::CUT_RESIDUES)
 		{
 			std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
