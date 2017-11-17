@@ -280,8 +280,24 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
-      ic_testing exec_obj;
-      exec_obj.ic_execution(&coords);
+      mathmatrix<coords::float_type> A{
+        {.5, 1., 1.},
+        {1., .5, 1.},
+        {1., 1., .5}
+      };
+      mathmatrix<coords::float_type> B{
+        {1., .5, .5},
+        {.5, 1., .5},
+        {.5, .5, 1.}
+      };
+      std::cout << A + B << std::endl;
+      std::cout << A - B << std::endl;
+      std::cout << A*B << std::endl;
+      
+      auto C = A + B;
+
+      //ic_testing exec_obj;
+      //exec_obj.ic_execution(&coords);
       break;
     }
     case config::tasks::SP:

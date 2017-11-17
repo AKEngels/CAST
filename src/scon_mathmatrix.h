@@ -62,15 +62,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #include <limits>
 #include <utility>
 
-#ifdef CAST_USE_ARMADILLO
-#include <armadillo>
-template<typename T>
-using matrix_type = arma::Mat<T>;
-#else
-#include<Eigen/Dense>
-template<typename T>
-using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-#endif
+
 
 
 ///////////////////////////////
@@ -80,10 +72,20 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 ///////////////////////////////
 
 // Further flag important here:
-// #define CAST_USE_ARMADILLO
+ #define CAST_USE_ARMADILLO
 // However, don't set this manually. This
 // flag is set by Visual Studio or make according to your desired configuration
 // It's all already automatized and integrated
+
+#ifdef CAST_USE_ARMADILLO
+#include <armadillo>
+template<typename T>
+using matrix_type = arma::Mat<T>;
+#else
+#include<Eigen/Dense>
+template<typename T>
+using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+#endif
 
 ///////////////////////////////
 
@@ -275,7 +277,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      * @param in: Matrix to the right of the summation (this + in)
      * @return: Result of the addition of this + in
      */
-    mathmatrix operator+(mathmatrix const& in) const
+    mathmatrix operator+(mathmatrix<T> const& in) const
     {
         /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
           std::cout << "Function call: Operator+ for matrix-class" << std::endl;
@@ -288,7 +290,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
         return mathmatrix(static_cast<base_type>(*this) + static_cast<base_type>(in));
     };
 
-    mathmatrix operator*(mathmatrix const& in) const
+    mathmatrix operator*(mathmatrix<T> const& in) const
     {
       /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator+ for matrix-class" << std::endl;
@@ -301,7 +303,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       return mathmatrix(static_cast<base_type>(*this) * static_cast<base_type>(in));
     }
 
-    mathmatrix operator/(mathmatrix const& in) const
+    mathmatrix operator/(mathmatrix<T> const& in) const
     {
      /* if (Config::get().general.verbosity >= printFunctionCallVerbosity)
         std::cout << "Function call: Operator+ for matrix-class" << std::endl;
@@ -317,7 +319,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     /**
      * @brief Overload "-" Operator for mathmatrix
      */
-    mathmatrix operator-(mathmatrix const& in) const
+    mathmatrix<T> operator-(mathmatrix<T> const& in) const
     {
     	////Check if sizes match
     	//if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
@@ -333,7 +335,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     	//	}
     	//}
     	//return output;
-        return (mathmatrix(static_cast<base_type>(*this) / static_cast<base_type>(in)));
+        return (mathmatrix<T>(static_cast<base_type>(*this) - static_cast<base_type>(in)));
     }
 #endif
 
@@ -970,7 +972,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     using Rotation = Eigen::AngleAxisd;
     using Transformation = Eigen::Affine3d;
     using Vector = Eigen::Vector3d;
-#endif
+
     static Transformation rotate_around_axis_with_center(double rad_deg, Vector axis, Vector center){
       Translation back(center);
       Translation to_center(-center);
@@ -982,5 +984,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
       Translation to_center(-center);
       return Transformation(back * Rotation(rad_deg, axis.normalized()) * to_center);
     }
+
+#endif
   };
 //END HEADER

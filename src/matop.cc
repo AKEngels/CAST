@@ -11,7 +11,7 @@ namespace matop
 
   Matrix_Class transfer_to_matr(coords::Coordinates const& in)
   {
-    Matrix_Class out_mat(in.size(), 3u);
+    Matrix_Class out_mat(static_cast<unsigned>(in.size()), 3u);
     for (size_t l = 0; l < in.size(); l++)
     {
       coords::cartesian_type tempcoord2;
