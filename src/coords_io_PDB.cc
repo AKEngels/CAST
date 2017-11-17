@@ -25,6 +25,9 @@ struct residue
   std::string terminal;
 };
 
+/**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
+@param atom_name: atom name from pdb file
+@param res_name: residue name from pdb file*/
 int find_at_sidechain(std::string atom_name, std::string res_name)
 {
   if (res_name == "ALA")
@@ -332,7 +335,10 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
 }
 
 /**function that assigns atom types (oplsaa) to atoms of protein backbone
-(they are not suitable for force field calucations)*/
+(they are not suitable for force field calucations)
+@param atom_name: atom name from pdb file
+@param res_name: residue name from pdb file
+@param terminal: is residue N-terminal, C-terminal or not?*/
 int find_energy_type(std::string atom_name, std::string res_name, std::string terminal)
 {
   if (is_in(res_name, RESIDUE_NAMES))  // protein
@@ -383,13 +389,13 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
       return 0;
     }
   }
-  else if (res_name == "LIG")
+  else if (res_name == "LIG")  // ligand
   {
     std::cout << "I'm sorry it is not possible to assign atom types to ligands. This is something you have to do manually.\n";
     return 0;
   }
-  else if (res_name == "Na+") return 349;
-  else if (res_name == "WAT")
+  else if (res_name == "Na+") return 349;  // sodium ion
+  else if (res_name == "WAT")   // water
   {
     if (atom_name.substr(0, 1) == "O") return 63;
     else if (atom_name.substr(0, 1) == "H") return 64;
@@ -560,7 +566,17 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
       {
         std::cout << "Atom " << a.symbol() << " belongs to residue " << a.get_residue() << " that is terminal: " << residues[a.get_res_id() - 1].terminal << "\n";
       }
-      a.set_energy_type(find_energy_type(a.get_pdb_atom_name(), a.get_residue(), residues[a.get_res_id() - 1].terminal));
+      int et = find_energy_type(a.get_pdb_atom_name(), a.get_residue(), residues[a.get_res_id() - 1].terminal);
+      if (et == 0 && Config::get().general.energy_interface == config::interface_types::T::OPLSAA)
+      {
+        std::cout << "Assigment of atom types failed. Please use another energy interface.\n";
+        if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::CUT_RESIDUES)
+        {
+          std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
+        }
+        std::exit(0);
+      }
+      a.set_energy_type(et);
     }
 
 	coord_object.init_swap_in(atoms, pes);  // fill atoms and positions into coord_object
