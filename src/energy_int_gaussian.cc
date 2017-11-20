@@ -83,10 +83,10 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::~sysCallInterfaceGauss(void
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(char calc_type, unsigned int* calc_counter)
 {
-  *calc_counter++;
+  calc_counter++;
   std::string outstring(id);
   std::stringstream ss;
-  ss << *calc_counter;
+  ss << calc_counter;
   outstring.append(ss.str());
   outstring.append(".gjf");
 
@@ -370,7 +370,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian(unsigned int* calc_counter)
 {
   std::stringstream ss;
-  ss << *calc_counter;
+  ss << calc_counter;
   std::string gaussian_call = Config::get().energy.gaussian.path + " " + id + ss.str() +".gjf";
 
   int ret = scon::system_call(gaussian_call);
