@@ -9,16 +9,6 @@
 namespace optimization
 {
 
-  struct empty_log
-  {
-    void operator() (...) { }
-  };
-
-  struct bool_false_functor
-  {
-    bool operator() (...) { return false; }
-  };
-
   template<class R, class G = R>
   struct State
   {

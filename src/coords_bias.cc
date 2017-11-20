@@ -1,4 +1,4 @@
-#include "coords.h"
+﻿#include "coords.h"
 #include "scon_angle.h"
 
 
@@ -19,9 +19,6 @@
 
 ###################################################### */
 
-
-
-
 void coords::bias::Potentials::append_config()
 {
   m_distances.insert(m_distances.end(),
@@ -36,6 +33,9 @@ void coords::bias::Potentials::append_config()
   m_utors.insert(m_utors.end(),
     Config::get().coords.bias.utors.begin(),
     Config::get().coords.bias.utors.end());
+  m_thresh.insert(m_thresh.end(),
+    Config::get().coords.bias.threshold.begin(),
+    Config::get().coords.bias.threshold.end());
 }
 
 void coords::bias::Potentials::swap(Potentials & rhs)
@@ -45,6 +45,7 @@ void coords::bias::Potentials::swap(Potentials & rhs)
   std::swap(d, rhs.d);
   std::swap(s, rhs.s);
   std::swap(c, rhs.c);
+  std::swap(thr, rhs.thr);
   m_dihedrals.swap(rhs.m_dihedrals);
   m_angles.swap(rhs.m_angles);
   m_distances.swap(rhs.m_distances);
@@ -52,8 +53,8 @@ void coords::bias::Potentials::swap(Potentials & rhs)
   m_cubic.swap(rhs.m_cubic);
   m_utors.swap(rhs.m_utors);
   m_udist.swap(rhs.m_udist);
+  m_thresh.swap(rhs.m_thresh);
 }
-
 
 coords::bias::Potentials::Potentials()
   : b(), a(), d(), s(), c(),
@@ -63,38 +64,42 @@ coords::bias::Potentials::Potentials()
   m_spherical(Config::get().coords.bias.spherical),
   m_cubic(Config::get().coords.bias.cubic),
   m_utors(Config::get().coords.bias.utors),
-  m_udist(Config::get().coords.bias.udist)
+  m_udist(Config::get().coords.bias.udist),
+  m_thresh(Config::get().coords.bias.threshold)
 { }
 
 bool coords::bias::Potentials::empty() const
 {
   return scon::empty(m_dihedrals, m_angles, m_distances,
-    m_spherical, m_cubic, m_utors, m_udist);
+    m_spherical, m_cubic, m_utors, m_udist, m_thresh);
 }
 
 double coords::bias::Potentials::apply(Representation_3D const & xyz,
-  Gradients_3D & g_xyz, Cartesian_Point const & center)
+  Gradients_3D & g_xyz, Cartesian_Point maxPos, Cartesian_Point const & center)
 {
-  if (!m_dihedrals.empty()) d = dih(xyz, g_xyz);
-  if (!m_angles.empty()) a = ang(xyz, g_xyz);
-  if (!m_distances.empty()) b = dist(xyz, g_xyz);
-  if (!m_spherical.empty()) s = spherical(xyz, g_xyz, center);
-  if (!m_cubic.empty()) c = cubic(xyz, g_xyz, center);
+  if (!m_dihedrals.empty()) 
+    d = dih(xyz, g_xyz);
+  if (!m_angles.empty()) 
+    a = ang(xyz, g_xyz);
+  if (!m_distances.empty()) 
+    b = dist(xyz, g_xyz);
+  if (!m_spherical.empty()) 
+    s = spherical(xyz, g_xyz, center);
+  if (!m_cubic.empty()) 
+    c = cubic(xyz, g_xyz, center);
+  if( !m_thresh.empty())
+    thr = thresh(xyz, g_xyz, maxPos);
   return b + a + d + s + c;
 }
 
-
 void coords::bias::Potentials::umbrellaapply(Representation_3D const & xyz,
-  Gradients_3D & g_xyz, std::vector<double> &uout) {
-  if (!m_utors.empty()) umbrelladih(xyz, g_xyz, uout);
-  if (!m_udist.empty()) umbrelladist(xyz, g_xyz, uout);
-}
-
-static inline double check_angle(double angle)
+  Gradients_3D & g_xyz, std::vector<double> &uout) 
 {
-  return angle > 180.0 ? -(360.0 - angle) : (angle < -180.0 ? 360.0 + angle : angle);
+  if (!m_utors.empty()) 
+    umbrelladih(xyz, g_xyz, uout);
+  if (!m_udist.empty()) 
+    umbrelladist(xyz, g_xyz, uout);
 }
-
 
 double coords::bias::Potentials::dih(Representation_3D const &positions,
   Gradients_3D & gradients)
@@ -256,7 +261,8 @@ void coords::bias::Potentials::umbrelladist(Representation_3D const &positions,
 double coords::bias::Potentials::dist(Representation_3D const &positions, Gradients_3D &gradients)
 {
   double E(0.0);
-  for (auto &distance : m_distances) {
+  for (auto &distance : m_distances) 
+  {
     auto bv = positions[distance.a] - positions[distance.b];
     auto md = len(bv);
     distance.value = md;
@@ -272,67 +278,67 @@ double coords::bias::Potentials::dist(Representation_3D const &positions, Gradie
   return E;
 }
 
-
 double coords::bias::Potentials::ang(Representation_3D const &, Gradients_3D &)
 {
+  throw std::runtime_error("Angular bias is currently not implemented. Restart the calculation without angular bias.");
   return 0.0;
 }
 
-double coords::bias::Potentials::spherical(Representation_3D const &positions,
+coords::float_type coords::bias::Potentials::spherical(Representation_3D const &positions,
   Gradients_3D & gradients, Cartesian_Point const & center)
 {
   using std::max;
   using std::pow;
-  double E(0.0);
-  std::size_t const N(positions.size());
+  coords::float_type energy_total(0.0);
+  std::size_t const numberOfAtoms(positions.size());
   for (auto const & orb : m_spherical)
   {
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
-      std::cout << "Applying spherical boundary with radius " << orb.radius;
+      std::cout << "Applying spherical bias with radius " << orb.radius;
       std::cout << " around " << center << " (exponent = " << orb.exponent << ")\n";
     }
-    for (std::size_t i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < numberOfAtoms; ++i)
     {
-      Cartesian_Point db = positions[i] - center;
-      double const l = geometric_length(db);
-      if (l < orb.radius)
+      Cartesian_Point sphericalBiasGradient = positions[i] - center;
+      coords::float_type const distanceFromCenterOfBias = geometric_length(sphericalBiasGradient);
+      if (distanceFromCenterOfBias < orb.radius)
       {
         continue;
       }
-      double const md = l - orb.radius;
-      db *= md / l;
-      double const e = max(1.0, orb.exponent);
-      double const ene = orb.force * pow(md, e);
-      E += ene;
-      double dE = orb.force * e * pow(md, e - 1.0);
-      db *= dE;
-      if (Config::get().general.verbosity > 49)
+      coords::float_type const delta = distanceFromCenterOfBias - orb.radius;
+      sphericalBiasGradient *= delta / distanceFromCenterOfBias;
+      coords::float_type const exponent = max(1.0, orb.exponent);
+      coords::float_type const energy_current = orb.force * pow(delta, exponent);
+      energy_total += energy_current;
+      coords::float_type dE = orb.force * exponent * pow(delta, exponent - 1.0);
+      sphericalBiasGradient *= dE;
+      if (Config::get().general.verbosity >= 4)
       {
-        std::cout << "Spherical boundary gradient of atom " << i + 1 << " at ";
-        std::cout << positions[i] << " (which is " << l << " from " << center;
-        std::cout << " making delta = " << md << ") is " << db << " with energy " << ene << '\n';
+        std::cout << "Spherical bias gradient of atom " << i + 1 << " at ";
+        std::cout << positions[i] << " (which is " << distanceFromCenterOfBias << " from " << center;
+        std::cout << " making delta = " << delta << ") is " << sphericalBiasGradient << " with energy " << energy_current << '\n';
       }
-      gradients[i] += db;
+      gradients[i] += sphericalBiasGradient;
     }
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
-      std::cout << "E = " << E << '\n';
+      std::cout << "Spherical Bias Energy = " << energy_total << '\n';
     }
   }
-  return E;
+  return energy_total;
 }
 
 double coords::bias::Potentials::cubic(Representation_3D const &positions,
   Gradients_3D & gradients, Cartesian_Point const & center)
 {
-  double E(0.0);
+  double totalEnergy(0.0);
   using scon::abs;
   std::size_t const N(positions.size());
   for (auto const & box : m_cubic)
   {
     Cartesian_Point const halfdim(box.dim / 2.);
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "Applying cubic boundary with side length " << box.dim;
       std::cout << " and halfdim " << halfdim << " around " << center;
@@ -344,13 +350,13 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       Cartesian_Point const delta = scon::abs(db) - scon::abs(halfdim);
       double const expo = std::max(1.0, box.exponent);
       double const fexpo = box.force * expo;
-      double energy = double();
+      double currentEnergy = 0.;
       Cartesian_Point de;
       if (delta.x() > 0.)
       {
-        energy += box.force * std::pow(delta.x(), expo);
+        currentEnergy += box.force * std::pow(delta.x(), expo);
         de.x() = (db.x() < 0. ? -fexpo : fexpo) * std::pow(delta.x(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].x() << " x out of " << center.x();
           std::cout << " +/- " << halfdim.x() << " by " << delta.x() << " (" << db.x() << ") ";
@@ -358,9 +364,9 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       }
       if (delta.y() > 0.)
       {
-        energy += box.force * std::pow(delta.y(), expo);
+        currentEnergy += box.force * std::pow(delta.y(), expo);
         de.y() = (db.y() < 0. ? -fexpo : fexpo) * std::pow(delta.y(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].y() << " y out of " << center.y();
           std::cout << " +/- " << halfdim.y() << " by " << delta.y() << " (" << db.y() << ") ";
@@ -368,23 +374,71 @@ double coords::bias::Potentials::cubic(Representation_3D const &positions,
       }
       if (delta.z() > 0.)
       {
-        energy += box.force * std::pow(delta.z(), expo);
+        currentEnergy += box.force * std::pow(delta.z(), expo);
         de.z() = (db.z() < 0. ? -fexpo : fexpo) * std::pow(delta.z(), expo - 1.);
-        if (Config::get().general.verbosity > 49)
+        if (Config::get().general.verbosity >= 4)
         {
           std::cout << positions[i].z() << " z out of " << center.z();
           std::cout << " +/- " << halfdim.z() << " by " << delta.z() << " (" << db.z() << ") ";
         }
       }
       Cartesian_Point const g = delta*de;
-      E += energy;
-      if (Config::get().general.verbosity > 49 && energy > 0.)
+      totalEnergy += currentEnergy;
+      if (Config::get().general.verbosity >= 4 && currentEnergy > 0.)
       {
-        std::cout << " E = " << energy << " and grad " << g << '\n';
+        std::cout << " E = " << currentEnergy << " and grad " << g << '\n';
       }
       gradients[i] += g;
     }
   }
-  return E;
+  return totalEnergy;
 }
 
+double coords::bias::Potentials::thresh(Representation_3D const &positions, Gradients_3D &gradients, Cartesian_Point maxPos)//special potential for special task layerdeposiotion , who is a very spoecial task. SPECIAL!
+{
+  double E(0.0);
+  std::size_t const N(positions.size());
+
+  for (auto &thresholdstr : m_thresh)
+  {
+    for (std::size_t i = 0u; i < N; ++i)
+    {
+      switch(Config::get().layd.laydaxis)
+      {
+      case 'x':
+      {
+        if (positions[i].x() > maxPos.x() + thresholdstr.th_dist)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].x() - (maxPos.x() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'y':
+      {
+        if (positions[i].y() > maxPos.y() + 7)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].y() - (maxPos.y() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      case 'z':
+      {
+        if (positions[i].z() > maxPos.z() + 7)
+        {
+          double force = thresholdstr.forceconstant * (positions[i].z() - (maxPos.z() + thresholdstr.th_dist));
+          gradients[i] += force;
+        }
+        break;
+      }
+      default:
+      {
+        throw std::runtime_error("Entered invalid dimension. Only x,y and z possible.");
+        break;
+      }//default end
+      }
+    }
+  }
+  return E;
+}

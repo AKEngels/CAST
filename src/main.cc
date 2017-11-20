@@ -1,9 +1,44 @@
+﻿
+//////////   //////////   //////////   ////////// 
+//           //      //   //               //
+//           //      //   //               //
+//           //      //   //////////       //
+//           //////////           //       //
+//           //      //           //       //
+//           //      //           //       //
+//////////   //      //   //////////       //
+/////conformational analysis and search tool/////
+
+// If we run our tests, we will
+// take the testing main from gtest/testing_main.cc
+#ifndef GOOGLE_MOCK
+
+//////////////////////////
+//                      //
+//       L I B S        //
+//                      //
+//////////////////////////
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 #include <cstdlib>
 #include <fstream>
 #include <memory>
+#include <omp.h>
+
+//////////////////////////
+//                      //
+//    H E A D E R S     //
+//                      //
+//////////////////////////
 #include "configuration.h"
 #include "coords_io.h"
 #include "scon_chrono.h"
+#include "helperfunctions.h"
+#include "scon_log.h"
+#ifdef _MSC_VER
+#include "win_inc.h"
+#endif
 // Task items
 #include "startopt_solvadd.h"
 #include "startopt_ringsearch.h"
@@ -11,13 +46,22 @@
 #include "optimization_global.h"
 #include "pathopt.h"
 #include "Path_perp.h"
-#include "reaccoord.h"
-#include "scon_log.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
-//#include "gbsa.h"
-#include <omp.h>
+#include "PCA.h"
+#include "exciton_breakup.h"
+#include "Center.h"
+#include "Couplings.h"
+#include "periodicCutout.h"
+#include "replaceMonomers.h"
 
 
+//////////////////////////
+//                      //
+//  R A N D O M         //
+//  N U M B E R         //
+//  G E N E R A T O R   //
+//                      //
+//////////////////////////
 #if defined(_MSC_VER)
 #include <process.h>
 #define pid_func _getpid
@@ -26,6 +70,16 @@
 #define pid_func getpid
 #endif
 
+
+// Enable this define to drop exceptions
+//
+// If CAST_DEBUG_DROP_EXCEPTIONS is set,
+// exceptions will be dropped (this is good for debugging
+// and default in Debug configuration.
+// Otherwise CAST will crash and print the string
+// attached to the exception. This is default behaviour 
+// in release mode.
+//
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
 #include "energy_int_qmmm.h"
@@ -36,12 +90,11 @@ namespace
 
 }
 
+
 int main(int argc, char **argv)
 {
-
-#ifdef _MSC_VER
-  //std::ios::sync_with_stdio(false);
-  //std::cout.sync_with_stdio(false);
+#ifdef USE_PYTHON
+  Py_Initialize();
 #endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
@@ -49,17 +102,19 @@ int main(int argc, char **argv)
   {
 #endif
 
-    /*
-    Preparation
-    */
+    //////////////////////////
+    //                      //
+    //      Preparation     //
+    //                      //
+    //////////////////////////
 
     std::cout << scon::c3_delimeter(',');
 
     // start execution and initialization timer
     scon::chrono::high_resolution_timer exec_timer, init_timer;
 
-    // initialize (old) RNG
-    srand((unsigned int)time(NULL)+pid_func());
+    // initialize (old) Random Number Generator
+    srand((unsigned int)time(NULL) + pid_func());
 
     // Parse config file and command line 
     auto config_filename = config::config_file_from_commandline(argc, argv);
@@ -69,30 +124,54 @@ int main(int argc, char **argv)
     // Print configuration
     if (Config::get().general.verbosity > 1U)
     {
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "\n";
+      std::cout << "  |-----------------------------------------------------|\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |  //////////   //////////   //////////   //////////  |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //               //      |\n";
+      std::cout << "  |  //           //      //   //////////       //      |\n";
+      std::cout << "  |  //           //////////           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //           //      //           //       //      |\n";
+      std::cout << "  |  //////////   //      //   //////////       //      |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |       conformational analysis and search tool       |\n";
+      std::cout << "  |                                                     |\n";
+      std::cout << "  |-----------------------------------------------------|\n\n\n";
+
+      std::cout << "-------------------------------------------------------\n";
       std::cout << "Configuration ('" << config_filename << "')\n";
-      std::cout << "-------------------------------------------------\n";
+      std::cout << "-------------------------------------------------------\n";
       std::cout << Config::get().general;
       std::cout << Config::get().coords;
       std::cout << Config::get().energy;
+      std::cout << Config::get().periodics;
     }
 
-    /*
+    //////////////////////////
+    //                      //
+    //    Initialization    //
+    //                      //
+    //////////////////////////
 
-    Initialization
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {   // if DFTB energy interface: initialize python 
+        // necessary to do it here because it can't be done more than once
 
-    */
+#ifdef USE_PYTHON
+#else
+      printf("It is not possible to use DFTB without python!\n");
+      std::exit(0);
+#endif
+      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("tmp_struc_trace.xyz");
+    }
 
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-    
-    //coords::input::format * ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
-	  // setting the methods for implicit solvation
-	  //GB::born::set(coords);
-	  //GB::born::SET_METHOD();
-	  //GB::born::SET_SURFACE();
 
     // Define Function to output molar mass of a coords object
     auto sys_mass = [](coords::Coordinates &sys) -> double
@@ -127,10 +206,10 @@ int main(int argc, char **argv)
         std::cout << '\n';
       }
     }
-    
+
     // If Periodic Boundry Conditions are used, translate all structures
     // so that their center of mass is on the origin of the coordinate system
-    if (Config::get().energy.periodic)
+    if (Config::get().periodics.periodic)
     {
       for (auto & pes : *ci)
       {
@@ -138,21 +217,20 @@ int main(int argc, char **argv)
         coords.move_all_by(-coords.center_of_mass());
         pes = coords.pes();
       }
+      // If Cutout option is on, cut off all atoms outside of box + radius
+      if (Config::get().periodics.periodicCutout)
+      {
+        coords::Coordinates newCoords(coords);
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::periodicCutout(coords);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+      }
     }
-
-
-	// Initialize PME STUFF
-	/* if (Config::get().energy.pme == true)
-	{
-	if (Config::get().energy.periodic == false)
-	{
-	std::cout << "PME can only be used with Periodic Boundary Conditions! Check your INPUTFILE!" << std::endl;
-	exit(0);
-	}
-	std::cout << "Initializing PME parameters" << std::endl;
-	int size = coords.size();
-	coords.pme_stuff(size);
-	}*/
 
 
 
@@ -162,11 +240,13 @@ int main(int argc, char **argv)
       std::cout << "-------------------------------------------------\n";
       std::cout << "Initialization done after " << init_timer << '\n';
     }
-    /*
 
-    Preoptimization
+    //////////////////////////
+    //                      //
+    //    Preoptimization   //
+    //                      //
+    //////////////////////////
 
-    */
     if (coords.preoptimize())
     {
       if (Config::get().general.verbosity > 1U)
@@ -193,57 +273,33 @@ int main(int argc, char **argv)
         }
       }
     }
-    
-    /*
-    
-      Energy print 
 
-    */
 
-    auto short_ene_stream = [](
-      coords::Coordinates const &coords, 
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << coords.pes().energy;
-      for (auto && ia : coords.pes().ia_matrix)
-      {
-        strm << std::setw(w) << ia.energy;
-      }
-    };
-
-    auto short_ene_stream_h = [](
-      coords::Coordinates const &coords,
-      std::ostream &strm, std::streamsize const w)
-    {
-      strm << std::setw(w) << "Energy";
-      auto const n = coords.pes().ia_matrix.size();
-      for (std::size_t i = 0; i < n; ++i)
-      {
-        strm << std::setw(w) << ("WW" + std::to_string(i));
-      }
-    };
-
-    /*
-
-    Tasks
-
-    */
+    //////////////////////////
+    //                      //
+    //       T A S K S      //
+    //                      //
+    //////////////////////////
 
     std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() << 
       ", mic: " << coords.energyinterface()->cop()<< "\n";
 
+    // print which task
     std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
     std::cout << "' (" << Config::get().general.task << ") computation:\n";
     std::cout << "-------------------------------------------------\n";
+
     // start task timer
     scon::chrono::high_resolution_timer task_timer;
+
     // select task
     switch (Config::get().general.task)
     {
-      // DEVTEST: Room for Development testing
+
     case config::tasks::DEVTEST:
     {
+
       
       // &coords
       /*if (!Config::get().energy.qmmm.qmatoms.empty())
@@ -338,374 +394,655 @@ int main(int argc, char **argv)
         }
         break;
       }
-    case config::tasks::ADJUST:
-      { // alignment / change strucutre
-        coords.e_head_tostream_short(std::cout);
-        std::size_t i(0u);
-        std::ofstream outputstream(coords::output::filename("_ADJUSTED").c_str(), std::ios_base::out);
-        for (auto const & pes : *ci)
+    case config::tasks::GRAD:
+    {
+      // calculate gradient
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_GRAD", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.g();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.energyinterface()->print_G_tinkerlike(gstream);
+      }
+      break;
+    }
+    case config::tasks::HESS:
+    {
+      // calculate hessian matrix
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_HESS", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.h();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.h_tostream(gstream);
+      }
+      break;
+    }
+    case config::tasks::LOCOPT:
+    {
+      // local optimization
+      coords.e_head_tostream_short(std::cout);
+      auto lo_structure_fn = coords::output::filename("_LOCOPT");
+      std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
+      if (!locoptstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT structures.");
+      auto lo_energies_fn = coords::output::filename("_LOCOPT", ".txt");
+      std::ofstream loclogstream(lo_energies_fn, std::ios_base::out);
+      if (!loclogstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT energies.");
+      loclogstream << std::setw(16) << "#";
+      short_ene_stream_h(coords, loclogstream, 16);
+      short_ene_stream_h(coords, loclogstream, 16);
+      loclogstream << std::setw(16) << "t";
+      loclogstream << '\n';
+      std::size_t i(0U);
+      for (auto const & pes : *ci)
+      {
+        using namespace std::chrono;
+        auto start = high_resolution_clock::now();
+        coords.set_xyz(pes.structure.cartesian);
+        coords.e();
+        std::cout << "Initial: " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        loclogstream << std::setw(16) << i;
+        short_ene_stream(coords, loclogstream, 16);
+        coords.o();
+        auto tim = duration_cast<duration<double>>
+          (high_resolution_clock::now() - start);
+        short_ene_stream(coords, loclogstream, 16);
+        loclogstream << std::setw(16) << tim.count() << '\n';
+        std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
+        coords.e_tostream_short(std::cout);
+        locoptstream << coords;
+      }
+      break;
+    }
+    case config::tasks::TS:
+    {
+      // Gradient only tabu search
+      std::cout << Config::get().coords.equals;
+      std::cout << "-------------------------------------------------\n";
+      std::cout << Config::get().optimization.global;
+      std::cout << "-------------------------------------------------\n";
+      if (Config::get().optimization.global.pre_optimize)
+      {
+        startopt::apply(coords, ci->PES());
+      }
+      optimization::global::optimizers::tabuSearch gots(coords, ci->PES());
+      gots.run(Config::get().optimization.global.iterations, true);
+      gots.write_range("_TS");
+      break;
+    }
+    case config::tasks::MC:
+    {
+      // MonteCarlo Simulation
+      std::cout << Config::get().coords.equals;
+      std::cout << "-------------------------------------------------\n";
+      std::cout << Config::get().optimization.global;
+      std::cout << "-------------------------------------------------\n";
+      if (Config::get().optimization.global.pre_optimize)
+      {
+        startopt::apply(coords, ci->PES());
+      }
+      optimization::global::optimizers::monteCarlo mc(coords, ci->PES());
+      mc.run(Config::get().optimization.global.iterations, true);
+      mc.write_range("_MCM");
+      break;
+    }
+    case config::tasks::GRID:
+    {
+      // Grid Search
+      std::cout << Config::get().coords.equals;
+      std::cout << "-------------------------------------------------\n";
+      std::cout << Config::get().optimization.global;
+      std::cout << "-------------------------------------------------\n";
+      optimization::global::optimizers::main_grid mc(coords, ci->PES(),
+        Config::get().optimization.global.grid.main_delta);
+      mc.run(Config::get().optimization.global.iterations, true);
+      mc.write_range("_GRID");
+      break;
+    }
+    case config::tasks::INTERNAL:
+    {
+      // Explicitly shows CAST conversion to internal coordiantes
+      // Beware when chaning this, PCA-task depend on this output and need to be adjusted accordingly.
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.to_internal();
+        std::cout << coords::output::formats::zmatrix(coords);
+        std::size_t const TX(coords.atoms().mains().size());
+        for (std::size_t i(0U); i < TX; ++i)
         {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.to_internal();
-          for (auto const &d : Config::get().adjustment.dihedrals)
+          std::size_t const j(coords.atoms().intern_of_main_idihedral(i));
+          std::size_t const bound_intern(coords.atoms(j).ibond());
+          std::size_t const angle_intern(coords.atoms(j).iangle());
+          std::cout << "Main " << i << " along " << coords.atoms(bound_intern).i_to_a();
+          std::cout << " and " << coords.atoms(angle_intern).i_to_a();
+          std::cout << " : " << coords.main(i) << '\n';
+        }
+
+        for (auto const & e : coords.main()) std::cout << e << '\n';
+
+      }
+      break;
+    }
+    case config::tasks::DIMER:
+    {
+      // Dimer method
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0U);
+      std::ofstream dimerstream(coords::output::filename("_DIMERTRANS").c_str(), std::ios_base::out);
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.o();
+        dimerstream << coords;
+        std::cout << "Pre-Dimer Minimum" << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.dimermethod_dihedral();
+        dimerstream << coords;
+        std::cout << "Dimer Transition" << i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.o();
+        dimerstream << coords;
+        std::cout << "Post-Dimer Minimum" << i << '\n';
+        coords.e_tostream_short(std::cout);
+      }
+      break;
+    }
+    case config::tasks::MD:
+    {
+      // Molecular Dynamics Simulation
+      if (Config::get().md.pre_optimize) coords.o();
+      md::simulation mdObject(coords);
+      mdObject.run();
+      break;
+    }
+    case config::tasks::FEP:
+    {
+      // Free energy perturbation
+      md::simulation mdObject(coords);
+      mdObject.fepinit();
+      mdObject.run();
+      mdObject.feprun();
+      break;
+    }
+    case config::tasks::UMBRELLA:
+    {
+      // Umbrella Sampling
+      Config::set().md.umbrella = true;
+      md::simulation mdObject(coords);
+      mdObject.umbrella_run();
+      break;
+    }
+    case config::tasks::STARTOPT:
+    {
+      // Preoptimization
+      //std::cout << "PreApply.\n";
+      startopt::apply(coords, ci->PES());
+      //std::cout << "PostApply.\n";
+      std::ofstream gstream(coords::output::filename("_SO").c_str());
+      for (auto const & pes : ci->PES())
+      {
+        //std::cout << "PreSet.\n";
+        coords.set_pes(pes, true);
+        //std::cout << "PostSet.\n";
+        gstream << coords;
+      }
+      break;
+    }
+    case config::tasks::GOSOL:
+    { // Combined Solvation + Global Optimization
+      std::cout << Config::get().startopt.solvadd;
+      std::cout << "-------------------------------------------------\n";
+      std::cout << Config::get().coords.equals;
+      std::cout << "-------------------------------------------------\n";
+      std::cout << Config::get().optimization.global;
+      std::cout << "-------------------------------------------------\n";
+      startopt::preoptimizers::GOSol sopt(coords, ci->PES());
+      sopt.run(Config::get().startopt.solvadd.maxNumWater);
+      break;
+    }
+    case config::tasks::NEB:
+    {
+      std::ptrdiff_t counter = 0;
+      std::vector<coords::Representation_3D> input_pathway;
+      coords::Representation_3D start_struc, final_struc;
+      ptrdiff_t image_connect = ptrdiff_t(Config::get().neb.CONNECT_NEB_NUMBER);
+
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.mult_struc_counter++;
+        if (Config::get().neb.COMPLETE_PATH)
+        {
+          input_pathway.push_back(pes.structure.cartesian);
+        }
+        else if (!Config::get().neb.MULTIPLE_POINTS)
+        {
+
+          neb nobj(&coords);
+          nobj.preprocess(counter);
+        }
+      }
+      if (Config::get().neb.COMPLETE_PATH && !(Config::get().neb.MULTIPLE_POINTS))
+      {
+        neb nobj(&coords);
+        nobj.preprocess(input_pathway, counter);
+      }
+      else if ((Config::get().neb.MULTIPLE_POINTS))
+      {
+        for (size_t i = 0; i < (input_pathway.size() - 1); ++i)
+        {
+          start_struc = input_pathway[i];
+          final_struc = input_pathway[i + 1];
+          neb nobj(&coords);
+          nobj.preprocess(counter, image_connect, counter, start_struc, final_struc, true);
+        }
+      }
+      break;
+    }
+    case config::tasks::PATHOPT:
+    {
+      std::ptrdiff_t counter = 0;
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.mult_struc_counter++;
+        neb nobj(&coords);
+        nobj.preprocess(counter);
+        pathx Pobj(&nobj, &coords);
+        Pobj.pathx_ini();
+      }
+      break;
+    }
+    case config::tasks::PATHSAMPLING:
+    {
+      coords::Coordinates const coord_obj(coords);
+      path_perp path_perpobj(&coords);
+      path_perpobj.pathx_ini();
+      break;
+    }
+    case config::tasks::ALIGN:
+    {
+      /*
+       * THIS TASK ALIGNES A SIMULATION TRAJECTORY
+       *
+       * This task will perform a translational- and rotational fit of the conformations
+       * obtained from a molecular simulation according to Kabsch's method.
+       * Furthermore, molecular distance meassures may be computed afterwards
+       *
+       * Now even fancier through OpenMP magic
+       */
+      alignment(ci, coords);
+      std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    case config::tasks::WRITE_TINKER:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
+    case config::tasks::PCAgen:
+    {
+      /**
+       * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
+       *
+       * This task will perform a principal component analysis (PCA) on a molecular simulation
+       * trajectory. Prior translational- and rotational fit of the conformations
+       * obtained is possible. Options can be specified in the INPUTFILE.
+       *
+       * Further processing can be done via PCAproc - Task
+       */
+
+       // Create empty pointer since we do not know yet if PCA eigenvectors etc.
+       // will be generated from coordinates or read from file
+      pca::PrincipalComponentRepresentation* pcaptr = nullptr;
+
+      // Create new PCA eigenvectors and modes
+      if (!Config::get().PCA.pca_read_modes && !Config::get().PCA.pca_read_vectors)
+      {
+        pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+        pcaptr->writePCAModesFile("pca_modes.dat");
+      }
+      // Read modes and eigenvectors from (properly formated) file "pca_modes.dat"
+      else if (Config::get().PCA.pca_read_modes && Config::get().PCA.pca_read_vectors) pcaptr = new pca::PrincipalComponentRepresentation("pca_modes.dat");
+      else
+      {
+        pcaptr = new pca::PrincipalComponentRepresentation(ci, coords);
+        // Read PCA-Modes from file but generate new eigenvectors from input coordinates
+        if (Config::get().PCA.pca_read_modes) pcaptr->readModes("pca_modes.dat");
+        // Read PCA-Eigenvectors from file but generate new modes using the eigenvectors
+        // and the input coordinates
+        else if (Config::get().PCA.pca_read_vectors)
+        {
+          pcaptr->readEigenvectors("pca_modes.dat");
+          pcaptr->generatePCAModesFromPCAEigenvectorsAndCoordinates();
+        }
+      }
+
+      // If modes or vectors have changed, write them to new file
+      if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+
+      // Create Histograms
+      // ATTENTION: This function read from Config::PCA
+      pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+
+      // Write Stock's Delta, see DOI 10.1063/1.2746330
+      // ATTENTION: This function read from Config::PCA
+      pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+
+      // Cleanup
+      delete pcaptr;
+      std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    case config::tasks::PCAproc:
+    {
+      /**
+       * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
+       * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
+       * see also: Task PCAgen
+       */
+      pca::ProcessedPrincipalComponentRepresentation pcaproc("pca_modes.dat");
+      pcaproc.determineStructures(ci, coords);
+      pcaproc.writeDeterminedStructures(coords);
+      std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    case config::tasks::ENTROPY:
+    {
+      /**
+       * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
+       *
+       * This task will perform verious configurational or conformational entropy calculations
+       * on a molecular simualtion trajectory. Prior translational- and rotational fit of the
+       * conformations obtained is possible. Options can be specified in the INPUTFILE
+       *
+       */
+      entropy(ci, coords);
+      std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    case config::tasks::REMOVE_EXPLICIT_WATER:
+    {
+      /**
+      * THIS TASK REMOVES EXPLICIT WATER FROM STRUCTURES AND WRITES THE TRUNCATED STRUCTURES TO FILE
+      *
+      */
+
+      std::ofstream out(coords::output::filename("_noexplwater").c_str(), std::ios::app);
+      std::string* hold_str = new std::string[ci->size()];
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
+#pragma omp parallel for firstprivate(coords) shared(hold_str)
+      for (std::ptrdiff_t iter = 0; iter < n_omp; ++iter)
+#else
+      for (std::size_t iter = 0; iter < ci->size(); ++iter)
+#endif
+      {
+        auto holder = ci->PES()[iter].structure.cartesian;
+        coords.set_xyz(holder);
+
+        std::vector<size_t> atomsToBePurged;
+        coords::Atoms truncAtoms;
+        coords::Representation_3D positions;
+        for (size_t i = 0u; i < coords.atoms().size(); i++)
+        {
+          coords::Atom atom(coords.atoms().atom(i));
+          if (atom.number() != 8u && atom.number() != 1u)
           {
-            std::size_t const di = coords.atoms().intern_of_dihedral(d.a, d.b, d.c, d.d);
-            if (di < coords.size() && coords.atoms(di).i_to_a() == d.d)
+            truncAtoms.add(atom);
+            positions.push_back(coords.xyz(i));
+          }
+          else if (atom.number() == 1u)
+          {
+            // Check if hydrogen is bound to something else than Oxygen
+            bool checker = true;
+            for (size_t j = 0u; j < atom.bonds().size(); j++)
             {
-              std::cout << "Setting dihedral " << di << " to " << d.value << "\n";
-              coords.set_dih(di, d.value, true, true);
+              if (coords.atoms().atom(atom.bonds()[j]).number() == 8u) checker = false;
+            }
+            if (checker)
+            {
+              truncAtoms.add(atom);
+              positions.push_back(coords.xyz(i));
             }
           }
-          coords.to_xyz();
-          coords.e();
-          std::cout << "Structure " << ++i << '\n';
-          coords.e_tostream_short(std::cout);
-          outputstream << coords;
-        }
-        break;
-      }
-    case config::tasks::GRAD:
-      { // gradients 
-        coords.e_head_tostream_short(std::cout);
-        std::size_t i(0u);
-        std::ofstream gstream(coords::output::filename("_GRAD", ".txt").c_str());
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.g();
-          std::cout << "Structure " << ++i << '\n';
-          coords.e_tostream_short(std::cout);
-          coords.energyinterface()->print_G_tinkerlike(gstream);
-        }
-        break;
-      }
-    case config::tasks::PROFILE:
-      { // gradient profiling 
-        coords.e_head_tostream_short(std::cout);
-        coords.set_xyz((*ci).PES()[0].structure.cartesian);
-        for (std::size_t i(0U); i < Config::get().general.profile_runs; ++i)
-        {
-          coords.g();
-        }
-        std::cout << "Energy \n";
-        coords.e_tostream_short(std::cout);
-        break;
-      }
-    case config::tasks::LOCOPT:
-      { // local optimization
-        coords.e_head_tostream_short(std::cout);
-        auto lo_structure_fn = coords::output::filename("_LOCOPT");
-        std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
-        if (!locoptstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT structures.");
-        auto lo_energies_fn = coords::output::filename("_LOCOPT", ".txt");
-        std::ofstream loclogstream(lo_energies_fn, std::ios_base::out );
-        if (!loclogstream) throw std::runtime_error("Cannot open '" + lo_structure_fn + "' for LOCOPT energies.");
-        loclogstream << std::setw(16) << "#";
-        short_ene_stream_h(coords, loclogstream, 16);
-        short_ene_stream_h(coords, loclogstream, 16);
-        loclogstream << std::setw(16) << "t";
-        loclogstream << '\n';
-        std::size_t i(0U);
-        for (auto const & pes : *ci)
-        {
-          using namespace std::chrono;
-          auto start = high_resolution_clock::now();
-          coords.set_xyz(pes.structure.cartesian);
-          coords.e();
-          std::cout << "Initial: " << ++i << '\n';
-          coords.e_tostream_short(std::cout);
-          loclogstream << std::setw(16) << i;
-          short_ene_stream(coords, loclogstream, 16);
-          coords.o();
-          auto tim = duration_cast<duration<double>>
-            (high_resolution_clock::now() - start);
-          short_ene_stream(coords, loclogstream, 16);
-          loclogstream << std::setw(16) << tim.count() << '\n';
-          std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
-          coords.e_tostream_short(std::cout);
-          locoptstream << coords;
-        }
-        break;
-      }
-    case config::tasks::TS:
-      { // Gradient only tabu search
-        std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------\n";
-        std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------\n";
-        if (Config::get().optimization.global.pre_optimize)
-        {
-          startopt::apply(coords, ci->PES());
-        }
-        optimization::global::optimizers::tabuSearch gots(coords, ci->PES());
-        gots.run(Config::get().optimization.global.iterations, true);
-        gots.write_range("_TS");
-        break;
-      }
-    case config::tasks::MC:
-      { // MonteCarlo
-        std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------\n";
-        std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------\n";
-        if (Config::get().optimization.global.pre_optimize)
-        {
-          startopt::apply(coords, ci->PES());
-        }
-        optimization::global::optimizers::monteCarlo mc(coords, ci->PES());
-        mc.run(Config::get().optimization.global.iterations, true);
-        mc.write_range("_MCM");
-        break;
-      }
-    case config::tasks::GRID:
-      { // Grid Search
-        std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------\n";
-        std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------\n";
-        optimization::global::optimizers::main_grid mc(coords, ci->PES(), 
-          Config::get().optimization.global.grid.main_delta);
-        mc.run(Config::get().optimization.global.iterations, true);
-        mc.write_range("_GRID");
-        break;
-      }
-    case config::tasks::INTERNAL:
-      { // Internal
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.to_internal();
-          std::cout << coords::output::formats::zmatrix(coords);
-          std::size_t const TX(coords.atoms().mains().size());
-          for (std::size_t i(0U); i < TX; ++i)
+          else if (atom.number() == 8u)
           {
-            std::size_t const j(coords.atoms().intern_of_main_idihedral(i));
-            std::size_t const bound_intern(coords.atoms(j).ibond());
-            std::size_t const angle_intern(coords.atoms(j).iangle());
-            std::cout << "Main " << i << " along " << coords.atoms(bound_intern).i_to_a();
-            std::cout << " and " << coords.atoms(angle_intern).i_to_a();
-            std::cout << " : " << coords.main(i) << '\n';
+            //checker checks if only hydrogens are bound to this current oxygen
+            bool checker = true;
+            for (size_t j = 0u; j < atom.bonds().size(); j++)
+            {
+              if (coords.atoms().atom(atom.bonds()[j]).number() != 1u) checker = false;
+            }
+            if (!checker)
+            {
+              truncAtoms.add(atom);
+              positions.push_back(coords.xyz(i));
+              for (auto const& bond : atom.bonds())
+              {
+                if (coords.atoms().atom(bond).number() == 1u)
+                {
+                  truncAtoms.add(coords.atoms().atom(bond));
+                  positions.push_back(coords.xyz(bond));
+                }
+              }
+            }
           }
-          for (auto const & e : coords.main()) std::cout << e << '\n';
         }
-        break;
+        coords::Coordinates newCoords;
+        coords::PES_Point x(positions);
+        newCoords.init_in(truncAtoms, x);
+        std::stringstream temporaryStringstream;
+        temporaryStringstream << newCoords;
+        hold_str[iter] = temporaryStringstream.str();
       }
-    case config::tasks::DIMER:
-      { // Dimer
-        coords.e_head_tostream_short(std::cout);
-        std::size_t i(0U);
-        std::ofstream dimerstream(coords::output::filename("_DIMERTRANS").c_str(), std::ios_base::out);
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.o();
-          dimerstream << coords;
-          std::cout << "Pre-Dimer Minimum" << ++i << '\n';
-          coords.e_tostream_short(std::cout);
-          coords.dimermethod_dihedral();
-          dimerstream << coords;
-          std::cout << "Dimer Transition" << i << '\n';
-          coords.e_tostream_short(std::cout);
-          coords.o();
-          dimerstream << coords;
-          std::cout << "Post-Dimer Minimum" << i << '\n';
-          coords.e_tostream_short(std::cout);
-        }
-        break;
-      }
-    case config::tasks::MD:
-      { // Molecular Dynamics
-        if (Config::get().md.pre_optimize) coords.o();
-        md::simulation mdObject(coords);
-        mdObject.run();
-        break;
-      }
-    case config::tasks::FEP:
-      { // Free energy perturbation
-        md::simulation mdObject(coords);
-        mdObject.fepinit();
-        mdObject.run();
-        mdObject.feprun();
-        break;
-      }
-    case config::tasks::UMBRELLA:
-      {
-        Config::set().md.umbrella = true;
-        md::simulation mdObject(coords);
-        mdObject.umbrella_run();
-        break;
-      }
-    case config::tasks::STARTOPT:
-      { // Preoptimization
-        //std::cout << "PreApply.\n";
-        startopt::apply(coords, ci->PES());
-        //std::cout << "PostApply.\n";
-        std::ofstream gstream(coords::output::filename("_SO").c_str());
-        for (auto const & pes : ci->PES())
-        {
-          //std::cout << "PreSet.\n";
-          coords.set_pes(pes,true);
-          //std::cout << "PostSet.\n";
-          gstream << coords;
-        }
-        break;
-      }
-    case config::tasks::GOSOL:
-      { // Combined Solvation + Global Optimization
-        std::cout << Config::get().startopt.solvadd;
-        std::cout << "-------------------------------------------------\n";
-        std::cout << Config::get().coords.equals;
-        std::cout << "-------------------------------------------------\n";
-        std::cout << Config::get().optimization.global;
-        std::cout << "-------------------------------------------------\n";
-        startopt::preoptimizers::GOSol sopt(coords, ci->PES());
-        sopt.run(Config::get().startopt.solvadd.maxNumWater);
-        break;
-      }
-    case config::tasks::NEB:
-      {
-        std::ptrdiff_t counter = 0;
-        coords::Coordinates const coord_obj(coords);
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.mult_struc_counter++;
-          neb nobj(&coords);
-          nobj.preprocess(counter);
-        }
-        break;
-      }
-    case config::tasks::PATHOPT:
-      {
-        std::ptrdiff_t counter = 0;
-        coords::Coordinates const coord_obj(coords);
-        for (auto const & pes : *ci)
-        {
-          coords.set_xyz(pes.structure.cartesian);
-          coords.mult_struc_counter++;
-          neb nobj(&coords);
-          nobj.preprocess(counter);
-          pathx Pobj(&nobj, &coords);
-          Pobj.pathx_ini();
-        }
-        break;
-      }
-    case config::tasks::PATHSAMPLING:
-      {
-        coords::Coordinates const coord_obj(coords);
-        path_perp path_perpobj(&coords);
-        path_perpobj.pathx_ini();
-			  break;
-		  }
-	  case config::tasks::REACTIONCOORDINATE:
-		  {
-			  coords::Coordinates coords2(coords),coords3(coords);
-			  reaccoords reac_obj(&coords,&coords2);
-			  std::fstream RMSD("RMSD_REAC.dat",std::ios::app);
+      for (size_t i = 0; i < ci->size(); i++)
 
-			  coords3.set_xyz((*ci).PES()[0].structure.cartesian);
-
-			   for (auto const & pes : *ci)
-			   {
-				  coords.mult_struc_counter++;
-				  coords.set_xyz(pes.structure.cartesian);
-				  reac_obj.rmsd_align(coords3);
-				  coords.set_xyz(reac_obj.rmsd_align(coords3));
-				  reac_obj.bonds();
-				  reac_obj.angles();
-			   }
-			 
-			   for (auto const & pes : *ci)
-			   {
-				  coords2.mult_struc_counter++;
-				  coords2.set_xyz(pes.structure.cartesian);
-          RMSD << "RMSD : " << scon::root_mean_square_deviation(coords2.xyz(), coords.xyz()) << '\n';
-
-			   }
-			   
-			  reac_obj.bonds_alteration();
-			  reac_obj.angles_alteration();
-
-			  break;
-		  }
-    case config::tasks::ALIGN:
       {
-        /*
-         * THIS TASK ALIGNES A SIMULATION TRAJECTORY
-         *
-         * This task will perform a translational- and rotational fit of the conformations
-         * obtained from a molecular simulation according to Kabsch's method. 
-         * Furthermore, molecular distance meassures may be computed afterwards
-         *
-         * Now even fancier through OpenMP magic
-         */
-        alignment(ci, coords);
-        std::cout << "Everything is done. Have a nice day." << std::endl;
+        out << hold_str[i];
+      }
+		    break;
+      }
+	    case config::tasks::XB_EXCITON_BREAKUP:
+	    {
+		  /**
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      break;
+	  }
+      case config::tasks::XB_INTERFACE_CREATION:
+      {
+      /**
+      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      */
+        //creating second coords object
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+        coords::Coordinates newCoords(coords);
+
+ 
+        newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+
+        coords = newCoords;
+
+        std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
+        new_structure << coords;
+
         break;
       }
-    case config::tasks::PCAgen:
+      case config::tasks::XB_CENTER:
       {
         /**
-         * THIS TASK PERFORMS PRINCIPAL COMPONENT ANALYSIS ON A SIMULATION TRAJECTORY
-         *
-         * This task will perform a principal component analysis (PCA) on a molecular simulation
-         * trajectory. Prior translational- and rotational fit of the conformations
-         * obtained is possible. Options can be specified in the INPUTFILE.
-         *
-         * Further processing can be done via PCAproc - Task
-         */
-        pca_gen(ci, coords);
-        std::cout << "Everything is done. Have a nice day." << std::endl;
+        * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+        * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
+        */
+
+        center(coords);
         break;
       }
-    case config::tasks::PCAproc:
+      case config::tasks::XB_COUPLINGS:
       {
-        /**
-         * THIS TASK PERFORMS Processing of previously obtained PRINCIPAL COMPONENTs
-         * To be precise, it will write out the structures coresponding to user specified PC-Ranges.
-         * see also: Task PCAgen
-         */
-        pca_proc(ci, coords);
-        std::cout << "Everything is done. Have a nice day." << std::endl;
+        couplings::coupling coup;
+
+        coup.kopplung();
+
         break;
       }
-    case config::tasks::ENTROPY:
+      case config::tasks::LAYER_DEPOSITION:
       {
-        /**
-         * THIS TASK PERFORMS CONFIGURATIONAL ENTROPY CALCULATIONS ON A SIMULATION TRAJECTORY
-         *
-         * This task will perform verious configurational or conformational entropy calculations
-         * on a molecular simualtion trajectory. Prior translational- and rotational fit of the
-         * conformations obtained is possible. Options can be specified in the INPUTFILE
-         *
-         */
-        entropy(ci, coords);
-        std::cout << "Everything is done. Have a nice day." << std::endl;
+        //Generating layer with random defects
+        coords::Coordinates newCoords(coords);
+        coords::Coordinates inp_add_coords(coords);
+        coords::Coordinates add_coords;
+
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::delete_random_molecules(coords, Config::get().layd.del_amount);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+
+        
+
+        for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
+        {
+          //Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject1(coords);
+          mdObject1.run();
+        }
+
+        for (std::size_t i = 1; i < Config::get().layd.amount; i++)
+        {
+          add_coords = inp_add_coords;
+          add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
+  
+          for (auto & pes : *ci)
+          {
+            newCoords.set_xyz(pes.structure.cartesian);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
+            pes = newCoords.pes();
+          }
+          newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+          coords = newCoords;
+                                                                                                                            
+
+          for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
+          {
+            coords.set_fix(j, true);
+          }
+
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject2(coords);
+          mdObject2.run();
+        }
+
+        std::size_t mon_amount_type1 = coords.molecules().size();//save number of molecules of first kind for later use in replacement
+
+        //option if a heterogenous structure shall be created
+        if (Config::get().layd.hetero_option == true)
+        {
+          std::unique_ptr<coords::input::format> sec_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates sec_coords(sec_strukt_uptr->read(Config::get().layd.layd_secname));
+          coords::Coordinates add_sec_coords;
+
+          for (std::size_t i = 0; i < Config::get().layd.sec_amount; i++)
+          {
+            add_sec_coords = sec_coords;
+            add_sec_coords = periodicsHelperfunctions::delete_random_molecules(add_sec_coords, Config::get().layd.sec_del_amount);
+
+            for (auto & pes : *ci)
+            {
+              newCoords.set_xyz(pes.structure.cartesian);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
+              pes = newCoords.pes();
+            }
+            newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+            coords = newCoords;
+
+            for (std::size_t j = 0; j < (coords.size() - add_sec_coords.size()); j++)//fix all atoms already moved by md
+            {
+              coords.set_fix(j, true);
+            }
+
+            // Molecular Dynamics Simulation
+            if (Config::get().md.pre_optimize) coords.o();
+            md::simulation mdObject3(coords);
+            mdObject3.run();
+          }
+        }
+
+        //option if monomers in structure shall be replaced
+        if (Config::get().layd.replace == true)
+        {
+          std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
+          std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+          coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+          coords::Coordinates newCoords(coords);
+
+          coords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+        }
+
+        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
+        output << coords;
         break;
       }
+
     default:
-      {
-      
-      }
+    {
 
     }
+
+    }
+#ifdef USE_PYTHON
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {    // if DFTB interface: close python
+      Py_Finalize();
+    }
+#endif // 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";
     std::cout << "Execution of " << config::Programname << " (" << config::Version << ")";
     std::cout << " ended after " << exec_timer << '\n';
 
+    //////////////////////////
+    //                      //
+    //       EXCEPTION      //
+    //       HANDLING       //
+    //                      //
+    //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
-#if !defined(COMPILEX64)
+#if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
+    std::cout << "Memory allocation failure. Input structure probably too large.\n";
   }
 #else
   catch (std::bad_alloc &)
   {
-    std::cout << "Memory allocation failure. Input structure probably too large.\n";
+    std::cout << "Memory allocation failure. CAST probably ran out of memory. Try using 64bit compiled " << config::Programname << " instead.\n";
   }
 #endif
   catch (std::exception & e)
@@ -714,6 +1051,10 @@ int main(int argc, char **argv)
     std::cout << "Error: " << e.what() << '\n';
   }
 #endif
-  //std::system("pause");
+#ifdef _MSC_VER 
+  // make window stay open in debug session on windows
+  if (IsDebuggerPresent()) std::system("pause");
+#endif
   return 0;
-}
+  }
+#endif

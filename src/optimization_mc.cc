@@ -185,7 +185,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
   auto m = scon::random::threaded_rand(dist);
   m = std::min<std::size_t>(m, n);
   // apply those torsions
-  if (Config::get().general.verbosity > 14U)
+  if (Config::get().general.verbosity > 4U)
   {
     std::cout << "Changing " << m << " of " << n << " mains.\n";
   }
@@ -195,7 +195,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main(coords::Coor
     std::size_t kk = scon::rand<std::size_t>(0u, n - 1u);
     coords::float_type const F = 
       scon::rand<coords::float_type>(-maxrot, maxrot);
-    if (Config::get().general.verbosity > 14U)
+    if (Config::get().general.verbosity > 4U)
     {
       std::cout << "Changing main " << k << " by " << F << '\n';
     }
@@ -234,7 +234,6 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coord
 {
   auto max_rot = std::abs(
     Config::get().optimization.global.montecarlo.dihedral_max_rot);
-  auto const & verb = Config::get().general.verbosity;
   auto const n = movecoords.main().size();
   coords::Representation_Main main_tors(n);
   // distributions
@@ -244,7 +243,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coord
   auto m = std::min<std::size_t>(
     scon::random::threaded_rand(std::geometric_distribution<std::size_t>{ 0.5 }), n);
   // apply those torsions
-  if (verb > 9U)
+  if (Config::get().general.verbosity > 4U)
   {
     std::cout << "Changing " << m << " of " << n << " mains.\n";
   }
@@ -256,7 +255,7 @@ std::size_t optimization::global::optimizers::monteCarlo::move_main_strain(coord
     auto rot_main = coords::main_type::from_deg(rotation);
     // select id of main to be modified by 'rotation' degrees
     auto o = scon::random::threaded_rand(select_distribution);
-    if (verb > 9U)
+    if (Config::get().general.verbosity > 4U)
     {
       std::cout << "Changing main " << o << " by " << rot_main << '\n';
     }

@@ -1,0 +1,963 @@
+% This file was created with JabRef 2.9.2.
+% Encoding: Cp1252
+
+@ARTICLE{Allinger1989,
+  author = {Allinger, N. L. and Yuh, Y. H. and Lii, J. H.},
+  title = {Molecluar Mechanics. The MM3 force field for Hydrocarbons 0.1},
+  journal = {Journal of American Chemical Society},
+  year = {1989},
+  volume = {111},
+  pages = {8551-8566},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{RATTLE,
+  author = {Hans C Andersen},
+  title = {Rattle: A velocity-verlet version of the shake algorithm for molecular
+	dynamics calculations},
+  journal = {Journal of Computational Physics},
+  year = {1983},
+  volume = {52},
+  pages = {24 - 34},
+  number = {1},
+  doi = {http://dx.doi.org/10.1016/0021-9991(83)90014-1},
+  issn = {0021-9991},
+  url = {http://www.sciencedirect.com/science/article/pii/0021999183900141}
+}
+
+@ARTICLE{Applequist1983,
+  author = {Jon Applequist},
+  title = {Cartesian polytensor},
+  journal = {Journal of Mathematical Physics},
+  year = {1983},
+  volume = {24},
+  pages = {736},
+  doi = {10.1063/1.525770},
+  owner = {bellinger},
+  timestamp = {2012.07.30},
+  url = {http://dx.doi.org/10.1063/1.525770}
+}
+
+@ARTICLE{Applequist1972,
+  author = {Applequist, J. and Carl, J. R. and Fung , K.-K.},
+  journal = {Journal of the American Chemical Society},
+  year = {1972},
+  volume = {94},
+  pages = {2952},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@ARTICLE{MC,
+  author = { W. F. Bauer},
+  title = {The Monte Carlo Method},
+  journal = {Journal of the Society for Industrial and Applied Mathematics},
+  year = {1958},
+  volume = {6},
+  pages = {438-451},
+  number = {4},
+  doi = {10.1137/0106028},
+  eprint = { http://dx.doi.org/10.1137/0106028},
+  url = { http://dx.doi.org/10.1137/0106028
+}
+}
+
+@ARTICLE{Bell1945,
+  author = {Bell, R. P.},
+  title = {Bond torsion in the vibrations of the benzene molecule},
+  journal = {Trans. Faraday Soc. },
+  year = {1945},
+  volume = {41},
+  pages = {-},
+  doi = {10.1039/TF945410293B},
+  owner = {bellinger},
+  publisher = {The Royal Society of Chemistry},
+  timestamp = {2012.02.28#TF945410293B#},
+  url = {http://dx.doi.org/10.1039/TF945410293B}
+}
+
+@ARTICLE{Berkowitz1983,
+  author = {Berkowitz, Max and Morgan, JD and McCammon, JA and Northrup, SH},
+  title = {Diffusion-controlled reactions: A variational formula for the optimum
+	reaction coordinate},
+  journal = {The Journal of chemical physics},
+  year = {1983},
+  volume = {79},
+  pages = {5563--5565},
+  number = {11},
+  owner = {Daniel},
+  publisher = {AIP Publishing},
+  timestamp = {2016.09.05}
+}
+
+@ARTICLE{Bredas2004,
+  author = {Bredas, J. L. and Beljonne, D. and Coropceanu, V. and Cornil, J.},
+  journal = {Journal of Chemical Review},
+  year = {2004},
+  volume = {104},
+  pages = {4971},
+  owner = {bellinger},
+  timestamp = {2012.07.24}
+}
+
+@ARTICLE{Briggs1990,
+  author = {Briggs, J. M. and Matsui, T. and Jorgensen, W. L.},
+  journal = {Journal of Computational Chemistry},
+  year = {1990},
+  volume = {11},
+  pages = {958},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Briggs1991,
+  author = {Briggs, J. M. and Nguyen, T. B. and Jorgensen, W. L.},
+  journal = {Journal Physical Chemistry},
+  year = {1991},
+  volume = {95},
+  pages = {3315},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Brooks1983,
+  author = {B. R. Brooks and R. E. Bruccoleri and B. D. Olafson and D. J. States
+	ans S. Swaminathan and M. J. Karplus},
+  journal = {Journal of Computational Chemistry},
+  year = {1983},
+  volume = {4},
+  pages = {187},
+  owner = {bellinger},
+  timestamp = {2012.02.23}
+}
+
+@ARTICLE{Brooks1988,
+  author = {Brooks, C.L. and Pettitt, B. M. and Karplus, M.},
+  journal = {Advanced Chemical Physics},
+  year = {1988},
+  volume = {71},
+  pages = {1},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Camerman1964,
+  author = {Camerman, A. and Trotter, J.},
+  journal = {Procedures of the Royal Society},
+  year = {1964},
+  volume = {129},
+  owner = {bellinger},
+  timestamp = {2012.08.08}
+}
+
+@ARTICLE{Chipot2005,
+  author = {Chipot, C. and Angyan, J. G.},
+  journal = {New Journal of Chemistry},
+  year = {2005},
+  volume = {29},
+  pages = {411},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@ARTICLE{Crehuet2003,
+  author = {Crehuet, R. and Field, M. J.},
+  title = {A temperature-dependent nudged-elastic-band algorithm},
+  journal = {Journal of Chemical Physics},
+  year = {2003},
+  volume = {118},
+  pages = {9563--9571},
+  number = {21},
+  month = jun,
+  abstract = {In this paper we present a method to introduce temperature corrections
+	to a minimum-energy reaction path. The method is based on the maximization
+	of the flux for the Smoluchowski equation and it is implemented using
+	a nudged-elastic-band algorithm. We present the results of applying
+	the algorithm to transitions in three systems-the three-well potential,
+	the alanine dipeptide, and a molecular ratchet-and also remark on
+	some points related to the location of temperature-dependent paths
+	and the nature of the transition state. (C) 2003 American Institute
+	of Physics.},
+  af = {Crehuet, REOLEOLField, MJ},
+  doi = {10.1063/1.1571817},
+  oi = {Crehuet, Ramon/0000-0002-6687-382X;},
+  owner = {Daniel},
+  ri = {Crehuet, Ramon/G-4140-2011; Crehuet, Ramon/A-5692-2013},
+  sn = {0021-9606},
+  timestamp = {2016.07.29},
+  ut = {WOS:000182890000013}
+}
+
+@ARTICLE{Duijnen1998,
+  author = {van Duijnen, P. T. and Swart, M.},
+  journal = {Journal of Physical Chemistry},
+  year = {1998},
+  volume = {102},
+  pages = {2399},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@ARTICLE{Dykstra1988,
+  author = {Dykstra, C. E.},
+  title = {Efficient Calculation of Electrically Based Intermolecular Potentials
+	of Weakly Bonded Clusters.},
+  journal = {Journal of Computational Chemistry},
+  year = {1988},
+  volume = {9},
+  pages = {476-487},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Engkvist2000,
+  author = {Engkvist, O. and Astrand, P. O. and Karlstrom, G.},
+  journal = {Chemical Reviews},
+  year = {2000},
+  volume = {100},
+  pages = {4087},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@ARTICLE{NoseHoover,
+  author = {D. J. Evans and B. L. Holian},
+  title = {The Nose–Hoover thermostat},
+  journal = {The Journal of Chemical Physics},
+  year = {1985},
+  volume = {83},
+  pages = {4069-4074},
+  number = {8},
+  doi = {10.1063/1.449071},
+  eprint = { http://dx.doi.org/10.1063/1.449071 },
+  url = { http://dx.doi.org/10.1063/1.449071 }
+}
+
+@ARTICLE{TS:1986,
+  author = {Fred Glover},
+  title = {Future paths for integer programming and links to artificial intelligence},
+  journal = {Computers \& Operations Research},
+  year = {1986},
+  volume = {13},
+  pages = {533 - 549},
+  number = {5},
+  doi = {http://dx.doi.org/10.1016/0305-0548(86)90048-1},
+  issn = {0305-0548},
+  url = {http://www.sciencedirect.com/science/article/pii/0305054886900481}
+}
+
+@ARTICLE{CAST:2014,
+  author = {Grebner, Christoph and Becker, Johannes and Weber, Daniel and Bellinger,
+	Daniel and Tafipolski, Maxim and Brückner, Charlotte and Engels,
+	Bernd},
+  title = {CAST: A new program package for the accurate characterization of
+	large and flexible molecular systems},
+  journal = {Journal of Computational Chemistry},
+  year = {2014},
+  volume = {35},
+  pages = {1801--1807},
+  number = {24},
+  doi = {10.1002/jcc.23687},
+  issn = {1096-987X},
+  keywords = {computer program, MOPAC, TeraChem, global optimization, conformational
+	analysis, free energy, solvation},
+  url = {http://dx.doi.org/10.1002/jcc.23687}
+}
+
+@UNPUBLISHED{Grebner,
+  author = {Grebner , C. and Becker, J. and Weber ,D. and Engels ,B.},
+  title = {CAST - a new molecular mechanics program for conformational search
+	problems},
+  note = {in preparation},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Grebner2013b,
+  author = {Grebner, Christoph and Pason, Lukas P. and Engels, Bernd},
+  title = {PathOpt-A Global Transition State Search Approach: Outline of Algorithm},
+  journal = {Journal of Computational Chemistry},
+  year = {2013},
+  volume = {34},
+  pages = {1810-1818},
+  number = {21},
+  doi = {10.1002/jcc.23307},
+  issn = {0192-8651},
+  owner = {Daniel},
+  timestamp = {2016.05.09},
+  type = {Journal Article},
+  url = {<Go to ISI>://WOS:000334387300003}
+}
+
+@ARTICLE{Halgren1992,
+  author = {Halgren, T. A.},
+  journal = {Journal of the American Chemical Society},
+  year = {1992},
+  volume = {114},
+  pages = {7827},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@INCOLLECTION{Henkelman2002,
+  author = {Henkelman, Graeme and J{\'o}hannesson, G{\'\i}sli and J{\'o}nsson,
+	Hannes},
+  title = {Methods for finding saddle points and minimum energy paths},
+  booktitle = {Theoretical Methods in Condensed Phase Chemistry},
+  publisher = {Springer},
+  year = {2002},
+  pages = {269--302},
+  owner = {Daniel},
+  timestamp = {2017.03.13}
+}
+
+@ARTICLE{Henkelman1999a,
+  author = {Henkelman, Graeme and J{\'o}nsson, Hannes},
+  title = {A dimer method for finding saddle points on high dimensional potential
+	surfaces using only first derivatives},
+  journal = {The Journal of chemical physics},
+  year = {1999},
+  volume = {111},
+  pages = {7010--7022},
+  number = {15},
+  owner = {Daniel},
+  publisher = {AIP Publishing},
+  timestamp = {2017.03.13}
+}
+
+@ARTICLE{Henkelman2000,
+  author = {Henkelman, G. and Jonsson, H.},
+  title = {Improved tangent estimate in the nudged elastic band method for finding
+	minimum energy paths and saddle points},
+  journal = {Journal of Chemical Physics},
+  year = {2000},
+  volume = {113},
+  pages = {9978-9985},
+  number = {22},
+  doi = {10.1063/1.1323224},
+  issn = {0021-9606},
+  owner = {Daniel},
+  timestamp = {2016.05.09},
+  type = {Journal Article},
+  url = {<Go to ISI>://WOS:000165584900014}
+}
+
+@ARTICLE{neb,
+  author = {Graeme Henkelman and Hannes Jonsson},
+  title = {Improved tangent estimate in the nudged elastic band method for finding
+	minimum energy paths and saddle points},
+  journal = {The Journal of Chemical Physics},
+  year = {2000},
+  volume = {113},
+  pages = {9978-9985},
+  number = {22},
+  doi = {10.1063/1.1323224},
+  eprint = { http://dx.doi.org/10.1063/1.1323224 },
+  url = { http://dx.doi.org/10.1063/1.1323224 }
+}
+
+@ARTICLE{Henkelman1999,
+  author = {Henkelman, G. and Jonsson, H.},
+  title = {A dimer method for finding saddle points on high dimensional potential
+	surfaces using only first derivatives},
+  journal = {Journal of Chemical Physics},
+  year = {1999},
+  volume = {111},
+  pages = {7010-7022},
+  number = {15},
+  doi = {Doi 10.1063/1.480097},
+  issn = {0021-9606},
+  owner = {Daniel},
+  timestamp = {2016.05.09},
+  type = {Journal Article},
+  url = {<Go to ISI>://WOS:000083051600040}
+}
+
+@ARTICLE{Henkelman2000a,
+  author = {Henkelman, G. and Uberuaga, B. P. and Jonsson, H.},
+  title = {A climbing image nudged elastic band method for finding saddle points
+	and minimum energy paths},
+  journal = {Journal of Chemical Physics},
+  year = {2000},
+  volume = {113},
+  pages = {9901-9904},
+  number = {22},
+  doi = {10.1063/1.1329672},
+  issn = {0021-9606},
+  owner = {Daniel},
+  timestamp = {2016.05.09},
+  type = {Journal Article},
+  url = {<Go to ISI>://WOS:000165584900005}
+}
+
+@ARTICLE{Hodsdon1996,
+  author = {Hodsdon, M. E. and Ponder, J. W. and Cistola D. P.},
+  journal = {Journal of Molecular Biology},
+  year = {1996},
+  volume = {264},
+  pages = {585-602},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@BOOK{Jensen2007,
+  title = {Introduction to Computational Chemistry},
+  publisher = {John Wiley and Sons Ltd},
+  year = {2007},
+  author = {Frank Jensen},
+  edition = {2nd},
+  owner = {bellinger},
+  timestamp = {2012.02.23}
+}
+
+@ARTICLE{Jeziorski1994,
+  author = {B. Jeziorski and R. Moszy\'nski and K. Szalewicz},
+  title = {Perturbation Theory Approach to Intermolecular Potential Energy Surfaces
+	of van der {W}aals Complexes},
+  journal = {Chem. Rev.},
+  year = {1994},
+  volume = {94},
+  pages = {1887--1930},
+  __markedentry = {[bellinger:6]},
+  owner = {bellinger},
+  timestamp = {2012.07.24}
+}
+
+@BOOK{JonssonH.1998,
+  title = {Nudged elastic band method for finding minimum energy paths of transitions.
+	In Classical and Quantum Dynamics in Condensed Phase Simulations
+	- Proceedings of the International School of Physics},
+  publisher = {World Scientific Publishing Co. Pte. Ltd.},
+  year = {1998},
+  author = {Jonsson H., Mills G., Jacobsen K. W.},
+  address = {Singapore},
+  owner = {Daniel},
+  timestamp = {2016.05.09},
+  type = {Book}
+}
+
+@ARTICLE{Jorgensen1986,
+  author = {Jorgensen, W. L.},
+  journal = {Journal of Physical Chemistry},
+  year = {1986},
+  volume = {90},
+  pages = {1276},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1986a,
+  author = {Jorgensen, W. L.},
+  journal = {Journal of Physical Chemistry},
+  year = {1986},
+  volume = {90},
+  pages = {6379},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1984,
+  author = {Jorgensen ,W. L. and Madura, J. D. and Swenson, C. J.},
+  journal = {Journal of the American Chemical Society},
+  year = {1984},
+  volume = {106},
+  pages = {6638},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1996,
+  author = {William L. Jorgensen and David S. Maxwell and Julian Tirado-Rives},
+  title = {Development and Testing of the OPLS All-Atom Force Field on Conformational
+	Energetics and Properties of Organic Liquids},
+  journal = {Journal of American Chemical Society},
+  year = {1996},
+  volume = {118},
+  pages = {11225-11236},
+  owner = {bellinger},
+  timestamp = {2012.02.22}
+}
+
+@ARTICLE{Jorgensen1993,
+  author = {Jorgensen, W. L. and Nguyen, T. B.},
+  journal = {Journal of Computational Chemistry},
+  year = {1993},
+  volume = {14},
+  pages = {195},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1990,
+  author = {Jorgensen, W. L. and Severance, D. L.},
+  journal = {Journal of American Chemical Society},
+  year = {1990},
+  volume = {112},
+  pages = {4768},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1985,
+  author = {Jorgensen, W. L. and Swenson, C. J.},
+  journal = {Journal of the American Chemical Society},
+  year = {1985},
+  volume = {107},
+  pages = {569,1489},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Jorgensen1988,
+  author = {William L. Jorgensen and Julian Tirado-Rives},
+  title = {The OPLS Potential Functions for Proteins. Energy Minimization for
+	Crystals for Cyclic Peptides and Crambin},
+  journal = {Journal of American Chemical Society},
+  year = {1988},
+  volume = {110},
+  pages = {1657-1666},
+  owner = {bellinger},
+  timestamp = {2012.02.22}
+}
+
+@PHDTHESIS{Kong1997,
+  author = {Kong, Y.},
+  title = {Multipole Electrostatci Methods for Protein Modelling with Reaction
+	Field Treatment},
+  school = {Washington University Medical School},
+  year = {1997},
+  address = {Saint Louis},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Kundrot1991,
+  author = {Kundrot , C. E. and Ponder, J. W. and Richards, F. M.},
+  journal = {Journal of Computational Chemistry},
+  year = {1991},
+  volume = {12},
+  pages = {402-409},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{MacKerell2004,
+  author = {Mac Kerell, A. D. J.},
+  title = {Empirical Force Fields for Biological Macromolecules: Overview and
+	Issues},
+  journal = {Journal of Computational Chemistry},
+  year = {2004},
+  volume = {25},
+  pages = {1584-1604},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Maxwell1994,
+  author = {Maxwell, D. S. and Tirado-Rives, J. and Jorgensen, W. L.},
+  journal = {Journal of Physical Chemistry},
+  year = {1994},
+  volume = {98},
+  pages = {13077},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Mishra2012,
+  author = {Mishra, A. and Baeuerle, P.},
+  title = {Niedermolekulare organische Halbleiter auf dem Vormarsch-Ausblick
+	auf k�nftige Solartechnik},
+  journal = {Angewandte Chemie},
+  year = {2012},
+  volume = {124},
+  pages = {2060-2109},
+  owner = {bellinger},
+  timestamp = {2012.08.08}
+}
+
+@ARTICLE{Olsen2004,
+  author = {Olsen, RA and Kroes, GJ and Henkelman, G and Arnaldsson, A and J{\'o}nsson,
+	H},
+  title = {Comparison of methods for finding saddle points without knowledge
+	of the final states},
+  journal = {The Journal of chemical physics},
+  year = {2004},
+  volume = {121},
+  pages = {9776--9792},
+  number = {20},
+  owner = {Daniel},
+  publisher = {AIP Publishing},
+  timestamp = {2017.03.13}
+}
+
+@ARTICLE{Pappu1998,
+  author = {Pappu, R. V. and Hart, R. K. and Ponder, J. W.},
+  journal = {Journal of Physical Chemistry},
+  year = {1998},
+  volume = {102},
+  pages = {9725-9742},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Ponder2003,
+  author = {Ponder, J. W. and Case, D. A.},
+  title = {Force fields for potein simulaitons},
+  journal = {Protein Simulations},
+  year = {2003},
+  volume = {66},
+  pages = {27+},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@ARTICLE{Ponder1987,
+  author = {Ponder, J. W. and Richards, F. M.},
+  journal = {Journal of Computational Chemistry},
+  year = {1987},
+  volume = {8},
+  pages = {1016-1024},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Ponder2010,
+  author = {Ponder, J. W. et al.},
+  title = {Current Status of the AMOEBA Polarizable Force FIeld},
+  journal = {Journal of Physical Chemistry},
+  year = {2010},
+  volume = {114},
+  pages = {2549-2564},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Pranata1991,
+  author = {Pranata, J. and Wierschke, S. G. and Jorgensen, W. L.},
+  journal = {Journal of the American Chemical Society},
+  year = {1991},
+  volume = {113},
+  pages = {2810},
+  owner = {bellinger},
+  timestamp = {2012.07.30}
+}
+
+@BOOK{Press2007,
+  title = {Numerical Recipes - The Art of scientific Computing},
+  publisher = {Cambridge University Press},
+  year = {2007},
+  author = {William H. Press and Saul A. Teukolsky and William T. Vetterling
+	and Brian P. Flannery},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Ren2003,
+  author = {Pengyu Ren and Jay W. Ponder},
+  title = {Polarizable Atomic Multipole Water Model for Molecular Mechanics
+	Simulation},
+  journal = {Journal of Physical Chemistry},
+  year = {2003},
+  volume = {107},
+  pages = {5933-5947},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Ren2011,
+  author = {Ren, P. and W, C. and Ponder, J.W.},
+  journal = {Journal of Chemical Theory and Computation},
+  year = {2011},
+  volume = {7},
+  pages = {3143-3161},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{MOLDEN,
+  author = {Schaftenaar, G. and Noordik, J.H.},
+  title = {Molden: a pre- and post-processing program for molecular and electronic
+	structures*},
+  journal = {Journal of Computer-Aided Molecular Design},
+  year = {2000},
+  volume = {14},
+  pages = {123--134},
+  number = {2},
+  abstract = {Molden is a software package for pre- and postprocessing of computational
+	chemistry program data. Interfacing to the ab initio programs Gamess-US/UK
+	and Gaussian and to the semi-empirical package MOPAC is provided.
+	The emphasis is on computation and visualization of electronic and
+	molecular properties but, e.g., reaction pathways can be simulated
+	as well. Some molecular properties of interest are processed directly
+	from the output of the computational chemistry programs, others are
+	calculated in MOLDEN before display. The package features different
+	options to display MOLecular electronic DENsity, each focusing on
+	a different structural aspect: molecular orbitals, electron density,
+	molecular minus atomic density and the Laplacian of the electron
+	density. To display difference density, either the spherically averaged
+	atomic density or the oriented ground state atomic density can be
+	used for a number of standard basis sets. The quantum mechanical
+	electrostatic potential or a distributed multipole expansion derived
+	electrostatic potential can be calculated and atomic charges can
+	be fitted to these potentials calculated on Connolly surface(s).
+	Reaction pathways and molecular vibrations can be visualized. Input
+	structures can be generated with a Z-matrix editor. A variety of
+	graphics languages is supported: XWindows, postscript, VRML and Povray
+	format.},
+  doi = {10.1023/A:1008193805436},
+  issn = {1573-4951},
+  url = {http://dx.doi.org/10.1023/A:1008193805436}
+}
+
+@ARTICLE{Schnieders2007,
+  author = {Schnieders, M. J. and Ponder, J. W.},
+  journal = {Journal of Chemical Theory and Computation},
+  year = {2007},
+  volume = {3},
+  pages = {2083-2097},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Smidstrup2014,
+  author = {Smidstrup, S. and Pedersen, A. and Stokbro, K. and Jonsson, H.},
+  title = {Improved initial guess for minimum energy path calculations},
+  journal = {Journal of Chemical Physics},
+  year = {2014},
+  volume = {140},
+  pages = {214106},
+  number = {21},
+  month = jun,
+  abstract = {A method is presented for generating a good initial guess of a transition
+	path between given initial and final states of a system without evaluation
+	of the energy. An objective function surface is constructed using
+	an interpolation of pairwise distances at each discretization point
+	along the path and the nudged elastic band method then used to find
+	an optimal path on this image dependent pair potential (IDPP) surface.
+	This provides an initial path for the more computationally intensive
+	calculations of a minimum energy path on an energy surface obtained,
+	for example, by ab initio or density functional theory. The optimal
+	path on the IDPP surface is significantly closer to a minimum energy
+	path than a linear interpolation of the Cartesian coordinates and,
+	therefore, reduces the number of iterations needed to reach convergence
+	and averts divergence in the electronic structure calculations when
+	atoms are brought too close to each other in the initial path. The
+	method is illustrated with three examples: (1) rotation of a methyl
+	group in an ethane molecule, (2) an exchange of atoms in an island
+	on a crystal surface, and (3) an exchange of two Si-atoms in amorphous
+	silicon. In all three cases, the computational effort in finding
+	the minimum energy path with DFT was reduced by a factor ranging
+	from 50% to an order of magnitude by using an IDPP path as the initial
+	path. The time required for parallel computations was reduced even
+	more because of load imbalance when linear interpolation of Cartesian
+	coordinates was used. (C) 2014 AIP Publishing LLC.},
+  af = {Smidstrup, SorenEOLEOLPedersen, AndreasEOLEOLStokbro, KurtEOLEOLJonsson,
+	Hannes},
+  doi = {10.1063/1.4878664},
+  ei = {1089-7690},
+  oi = {Jonsson, Hannes/0000-0001-8285-5421; Pedersen,EOLEOLAndreas/0000-0002-5084-8881},
+  owner = {Daniel},
+  pm = {24907989},
+  ri = {Jonsson, Hannes/G-2267-2013;},
+  sn = {0021-9606},
+  timestamp = {2016.07.29},
+  ut = {WOS:000337108900009}
+}
+
+@ARTICLE{Smoluchowski1916,
+  author = {Smoluchowski, Marian V},
+  title = {{\"U}ber Brownsche Molekularbewegung unter Einwirkung {\"a}u{\ss}erer
+	Kr{\"a}fte und deren Zusammenhang mit der verallgemeinerten Diffusionsgleichung},
+  journal = {Annalen der Physik},
+  year = {1916},
+  volume = {353},
+  pages = {1103--1112},
+  number = {24},
+  owner = {Daniel},
+  publisher = {Wiley Online Library},
+  timestamp = {2016.09.05}
+}
+
+@ARTICLE{Spackman2006,
+  author = {Mark A. Spackman},
+  title = {The use of the promolecular charge density to approximate the penetration
+	contribution to intermolecular electrostatic energies},
+  journal = {Chemical Physics Letters},
+  year = {2006},
+  volume = {418},
+  pages = {158-162},
+  owner = {bellinger},
+  timestamp = {2012.02.22}
+}
+
+@ARTICLE{Spackman1986a,
+  author = {Spackman, M. A.},
+  journal = {Journal of Chemical Physics},
+  year = {1986},
+  volume = {85},
+  pages = {6587},
+  owner = {bellinger},
+  timestamp = {2012.08.24}
+}
+
+@ARTICLE{Spackman1986,
+  author = {Spackman, M. A. and Maslen, E. N.},
+  journal = {Journal of Physical Chemistry},
+  year = {1986},
+  volume = {90},
+  pages = {2020},
+  owner = {bellinger},
+  timestamp = {2012.08.24}
+}
+
+@ARTICLE{Stewart1965,
+  author = {Stewart, R. F. and Davidson, E. R. and Simpson, W. T.},
+  title = {Scattering of the Hydrogen Atom in the Hydrogen Molecule.},
+  journal = {Journal of Chemical Physics},
+  year = {1965},
+  volume = {42},
+  pages = {3175-3187},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Stone1981,
+  author = {Stone, A.J.},
+  title = {Distributed Multipole Analysis, or How to Describe a Molecular Charge
+	Distribution.},
+  journal = {Chemical Physics Letters},
+  year = {1981},
+  volume = {83},
+  pages = {233-239},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Stone2008,
+  author = {Stone, A. J.},
+  journal = {Science},
+  year = {2008},
+  volume = {321},
+  pages = {787},
+  owner = {bellinger},
+  timestamp = {2012.07.31}
+}
+
+@BOOK{Stone1996,
+  title = {The Theory of Intermolecular Forces},
+  publisher = {Oxford Univerity Press},
+  year = {1996},
+  author = {Stone, A. J.},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{Su1998,
+  author = {Su, Z. and Coppens, P.},
+  title = {{Nonlinear Least-Squares Fitting of Numerical Relativistic Atomic
+	Wave Functions by a Linear Combination of Slater-Type Functions for
+	Atoms with {\it Z} = 1{--}36}},
+  journal = {Acta Crystallographica Section A},
+  year = {1998},
+  volume = {54},
+  pages = {646--652},
+  number = {5},
+  month = {Sep},
+  __markedentry = {[bellinger:]},
+  doi = {10.1107/S0108767398003390},
+  owner = {bellinger},
+  timestamp = {2012.07.09},
+  url = {http://dx.doi.org/10.1107/S0108767398003390}
+}
+
+@ARTICLE{Su1990,
+  author = {Su, Z. and Coppens, P.},
+  title = {{Closed-form expressions for Fourier{--}Bessel transform of Slater-type
+	functions}},
+  journal = {Journal of Applied Crystallography},
+  year = {1990},
+  volume = {23},
+  pages = {71--73},
+  number = {1},
+  month = {Feb},
+  doi = {10.1107/S0021889889010484},
+  owner = {bellinger},
+  timestamp = {2012.07.09},
+  url = {http://dx.doi.org/10.1107/S0021889889010484}
+}
+
+@ARTICLE{Tafipolsky2011,
+  author = {Maxim Tafipolsky and Bernds Engels},
+  title = {Accurate Intermolecular Potentials with Physically Grounded Electrostatics},
+  journal = {Journal of Chemical Theory and Computation},
+  year = {2011},
+  owner = {bellinger},
+  timestamp = {2012.02.22}
+}
+
+@ARTICLE{Thole1981,
+  author = {Thole, B. T.},
+  journal = {Chemical Physics},
+  year = {1981},
+  volume = {59},
+  pages = {341},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ARTICLE{VelVer,
+  author = {Verlet, Loup},
+  title = {Computer "Experiments" on Classical Fluids. I. Thermodynamical Properties
+	of Lennard-Jones Molecules},
+  journal = {Phys. Rev.},
+  year = {1967},
+  volume = {159},
+  pages = {98--103},
+  month = {Jul},
+  doi = {10.1103/PhysRev.159.98},
+  issue = {1},
+  numpages = {0},
+  publisher = {American Physical Society},
+  url = {http://link.aps.org/doi/10.1103/PhysRev.159.98}
+}
+
+@ARTICLE{Weber2016,
+  author = {Weber, D and Bellinger, D and Engels, B},
+  title = {Chapter Seven-New Algorithms for Global Optimization and Reaction
+	Path Determination},
+  journal = {Methods in Enzymology},
+  year = {2016},
+  volume = {578},
+  pages = {145--167},
+  owner = {Daniel},
+  publisher = {Elsevier},
+  timestamp = {2017.03.21}
+}
+
+@ARTICLE{Weiner1995,
+  author = {S. J. Weiner and P. A. Kollman},
+  journal = {Journal of American Chemical Society},
+  year = {1995},
+  volume = {117},
+  pages = {5179},
+  owner = {bellinger},
+  timestamp = {2012.02.23}
+}
+
+@BOOK{Young1971,
+  title = {Iterative Solution of Large Linear Systems.},
+  publisher = {Academic Press},
+  year = {1971},
+  author = {Young, D. M.},
+  owner = {bellinger},
+  timestamp = {2012.07.23}
+}
+
+@ELECTRONIC{forcefieldterm_picture,
+  language = {english},
+  url = {http://www.stanford.edu/},
+  owner = {bellinger},
+  timestamp = {2012.02.23}
+}
+

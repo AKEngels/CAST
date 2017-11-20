@@ -1,4 +1,4 @@
-#pragma once 
+ï»¿#pragma once 
 
 #include <vector>
 #include <string>
@@ -11,34 +11,53 @@
 #include "scon_serialization.h"
 #include "scon_log.h"
 
-/*
-Q an J:
-- refine nach e() ?
-- Quelle Nosé-Hoover
-- Inertia Tensor Fehler in Init?
+/**
+*namespace for everything that has to do with molecular dynamics simulatinons
 */
-
-//class coordinates;
-
 namespace md
 {
-
+  /**boltzmann constant*/
   static const double kB = 0.83144725;
-  static const double convert = 418.4; //kcal to g*A^2/ps^2
-  static const double negconvert = -418.4; //kcal to g*A^2/ps^2
-  static const double hnconvert = -209.2; //kcal to g*A^2/ps^2
+  /**conversion factor kcal to g*A^2/ps^2*/
+  static const double convert = 418.4;
+  /**negativ conversion factor kcal to g*A^2/ps^2*/
+  static const double negconvert = -convert;
+  /**pi*/
   static const double PI = 3.14159265358979323;
+  /**gas constant*/
   static const double R = 1.9872066e-3;
-  static const double presc = 6.85684112e4;
+  /**conversion factor: (kcal/mol) / (atm*A^3) */
+  static const double presc = 6.85684112e4;   // 1.0/6.85684112e4 would make more sense in my opinion 
+                                              // but the program wouldn't always give 0.00000 for pressure
 
+  /**
+  *collection of current simulation data
+  */
   struct trace_data
   {
+    /**energy of subsystems???*/
     std::vector<coords::float_type> Eia;
-    coords::float_type T, Ek, Ep, P;
-    std::size_t i, snapshot;
+    /**temperature*/
+    coords::float_type T;
+    /**kinetic energy*/
+    coords::float_type Ek;
+    /**potential energy*/
+    coords::float_type Ep;
+    /**pressure*/
+    coords::float_type P;
+    /**step-number*/
+    std::size_t i;
+    /**snapshot-number*/
+    std::size_t snapshot;
+    /**
+    * default constructor
+    */
     trace_data() : Eia(), T(), Ek(), Ep(), P(), i(), snapshot() {}
+    /**
+    * another constructor that already takes all the public members as parameters
+    */
     trace_data(std::vector<coords::float_type> const &E_ia,
-      coords::float_type temp, coords::float_type E_kin, 
+      coords::float_type temp, coords::float_type E_kin,
       coords::float_type E_pot, coords::float_type press,
       std::size_t iteration, std::size_t snap_number) :
       Eia(E_ia), T(temp), Ek(E_kin), Ep(E_pot), P(press),
@@ -46,8 +65,14 @@ namespace md
     { }
   };
 
+  /**
+  writes content of trace_data object d into a stream
+  */
   std::ostream& operator<< (std::ostream &, trace_data const &);
 
+  /**
+  overload of << operator
+  */
   template<class Strm>
   scon::binary_stream<Strm> & operator<< (scon::binary_stream<Strm> &str, trace_data const &t)
   {
@@ -56,11 +81,14 @@ namespace md
     return str;
   }
 
+  /**
+  overload of >> operator
+  */
   template<class Strm>
-  scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, trace_data &t)
+  scon::binary_stream<Strm> & operator >> (scon::binary_stream<Strm> &str, trace_data &t)
   {
     decltype(t.Eia.size()) x = 0;
-    if (str >> t.T && str >> t.Ek && str >> t.Ep && 
+    if (str >> t.T && str >> t.Ek && str >> t.Ep &&
       str >> t.P && str >> t.i && str >> t.snapshot && str >> x)
     {
       t.Eia.resize(x);
@@ -69,17 +97,30 @@ namespace md
     return str;
   }
 
+  /**
+  class for writing trace_data into a file
+  */
   class trace_writer
   {
     std::unique_ptr<std::ofstream> strm;
   public:
+    /**default constructor*/
     trace_writer() : strm() {}
+    /**another constructor
+    * @param filename: name of the file where the information should be written
+    */
     trace_writer(char const * const filename)
       : strm(new std::ofstream(filename, std::ios::out))
     {}
+    /** function for writing the data
+    * @param xyz: trace_data object where information should be taken
+    */
     void operator() (trace_data  const & xyz);
   };
 
+  /**
+  class for collecting logging information (trace data and snapshots)
+  */
   class Logger
   {
 
@@ -89,16 +130,25 @@ namespace md
 
   public:
 
+    /**writes snapshots
+    @param coords: coords-object
+    @param snap_offset: has something to do with MDsnapbuffer???
+    */
     Logger(coords::Coordinates &coords, std::size_t snap_offset);
 
+    /**looks every 5000 steps if temperature, pressure or energy is nan and throws an error if yes
+    */
     bool operator() (std::size_t const iter,
-      coords::float_type const T, 
+      coords::float_type const T,
       coords::float_type const P,
-      coords::float_type const Ek, 
+      coords::float_type const Ek,
       coords::float_type const Ep,
       std::vector<coords::float_type> const Eia,
       coords::Representation_3D const & x);
 
+    /**
+    overload of << operator
+    */
     template<class Strm>
     friend scon::binary_stream<Strm> & operator<< (scon::binary_stream<Strm> &str, Logger const &l)
     {
@@ -108,17 +158,23 @@ namespace md
       return str;
     }
 
+    /**
+    overload of >> operator
+    */
     template<class Strm>
-    friend scon::binary_stream<Strm> & operator>> (scon::binary_stream<Strm> &str, Logger &l)
+    friend scon::binary_stream<Strm> & operator >> (scon::binary_stream<Strm> &str, Logger &l)
     {
       str >> l.snapnum;
       str >> l.snap_buffer;
-      str >> l.data_buffer;
+      //str >> l.data_buffer;
       return str;
     }
 
   };
 
+
+  /** Nose-Hover thermostat. Variable names and implementation are identical to the book of
+  Frenkel and Smit, Understanding Molecular Simulation, Appendix E */
   struct nose_hoover
   {
     double v1, v2, x1, x2;
@@ -127,256 +183,265 @@ namespace md
       v1(0.0), v2(0.0), x1(0.0), x2(0.0),
       Q1(0.1), Q2(0.1), G1(0.0), G2(0.0)
     { }
-    //std::size_t bytesize (void) const { return sizeof(double)* 8; }
-    //void copy_to_buffer(std::vector<char>&) const;
-    //void deserialize_from_stream(std::istream &);
   };
 
+  /** collection of variables for FEP calculation
+  */
   struct fepvar
   {
-    double ein, eout, vin, vout;
-    double dein, deout, dvin, dvout;
+    /**lambda_el of former window for appearing atoms*/
+    double mein;
+    /**lambda_el of former window for disappearing atoms*/
+    double meout;
+    /**lambda_vdw of former window for appearing atoms*/
+    double mvin;
+    /**lambda_vdw of former window for disappearing atoms*/
+    double mvout;
+    /**lambda_el for appearing atoms*/
+    double ein;
+    /**lambda_el for disappearing atoms*/
+    double eout;
+    /**lambda_vdw for appearing atoms*/
+    double vin;
+    /**lambda_vdw for disappearing atoms*/
+    double vout;
+    /**lambda_el of next window for appearing atoms*/
+    double dein;
+    /**lambda_el of next window for disappearing atoms*/
+    double deout;
+    /**lambda_vdw of next window for appearing atoms*/
+    double dvin;
+    /**lambda_vdw of next window for disappearing atoms*/
+    double dvout;
   };
 
-  namespace thermostat
-  {
 
-    class velocity_rescaling
-    {
-
-      double temp_factor;
-
-    public:
-
-      velocity_rescaling(std::size_t const degrees_of_freedom)
-        : temp_factor(2. / (R*degrees_of_freedom)) {}
-
-      template<class V>
-      double operator() (V & velocity_range, 
-        double E_kin, double const target_temperature)
-      {
-        using std::sqrt;
-        auto const is_temperature = E_kin * temp_factor;
-        auto const F = sqrt(target_temperature / is_temperature);
-        for (auto & v : velocity_range) v *= F;
-        return E_kin * F * F;
-      }
-
-    };
-
-    struct nose_hoover
-    {
-      double v1, v2, x1, x2, Q1, Q2, G1, G2;
-      double d2, d4, d8;
-      std::size_t freedom;
-
-      nose_hoover(double const timestep,
-        std::size_t const degrees_of_freedom) :
-        v1(), v2(), x1(), x2(), Q1(0.1), Q2(.1), G1(), G2(),
-        d2(timestep / double(2.)), d4(d2 / double(2.)),
-        d8(d4 / double(2.)), freedom(degrees_of_freedom)
-      { }
-
-      template<class V>
-      double operator() (V & velocity_range, double E_kin,
-        double const target_temperature)
-      {
-        using std::exp;
-        auto const TR = target_temperature*md::R;
-        auto const fTR = TR*freedom;
-        G1 = (2.0*E_kin - fTR) / Q1;
-        G2 = (Q1*v1*v1 - TR) / Q2;
-        v2 += G2*d4;
-        v1 *= exp(-v2*d8);
-        v1 += G1*d4;
-        v1 *= exp(-v2*d8);
-        x1 += v1*d2;
-        x2 += v2*d2;
-        auto tempscale = exp(-v1*d2);
-        for (auto & v : velocity_range) v *= tempscale;
-        E_kin *= tempscale*tempscale;
-        v1 *= exp(-v2*d8);
-        G1 = (2.0*E_kin - fTR) / Q1;
-        v1 += G1*d4;
-        v1 *= exp(-v2*d8);
-        G2 = (Q1*v1*v1 - TR) / Q2;
-        v2 += G2*d4;
-        return E_kin;
-      }
-    };
-
-  }
-
-  namespace barostat
-  {
-
-    struct berendsen
-    {
-
-      double target, delay, compress;
-      bool isotropic;
-
-      double operator() (double const time, coords::Representation_3D & p,
-        coords::Tensor const & Ek_T, coords::Tensor const & Vir_T, 
-        coords::Cartesian_Point & box);
-
-    };
-  }
-  
-  namespace integrator
-  {
-
-    template<class Thermostat_T, class Barostat_T>
-    class veloctiy_verlet
-    {
-
-      // Thermostat
-      Thermostat_T thermo;
-
-      // Barostat
-      Barostat_T baro;
-
-      // Logging
-      Logger log;
-
-      // Data
-      coords::Tensor E_kin_tensor;
-      coords::Tensor Virial_tensor;
-      coords::Representation_3D x, g;
-
-      std::size_t freedom;
-
-
-
-
-    };
-
-    using default_vv = veloctiy_verlet<thermostat::nose_hoover, barostat::berendsen>;
-
-
-  }
-
+  /** class for MD simulation
+  */
   class simulation
   {
 
   private:
 
-    simulation& operator= (simulation const &);
-
-    // pointer to coordinates
+    /**pointer to coordinates*/
     coords::Coordinates & coordobj;
 
-    // Logger
+    /** Logger */
     Logger logging;
 
     // positions, forces, velocities
-    coords::Representation_3D P, P_old, F, F_old, V;
-    // masses
+  /**positions*/
+    coords::Representation_3D P;
+    /**old positions*/
+    coords::Representation_3D P_old;
+    /**positions at the beginning of the simulation*/
+    coords::Representation_3D P_start;
+    /**forces*/
+    coords::Representation_3D F;
+    /**old forces*/
+    coords::Representation_3D F_old;
+    /**velocities*/
+    coords::Representation_3D V;
+    /** masses */
     std::vector<double> M;
-    // total Mass of the System
+    /** total Mass of the System */
     double M_total;
-    //! Kinetic Energy
-    //std::array<std::array<double, 3>, 3> E_kin_tensor;
+    /**tensor for kinetic energy*/
     coords::Tensor E_kin_tensor;
+    /**tensor for kinetic energy*/
     double E_kin;
-    //! Temperature
-    double T, temp;
-    //! Pressure
+    /** desired temperature */
+    double T;
+    /** current temperature */
+    double temp;
+    /** Pressure stuff*/
     double press, presstemp;
-    //! timestep
+    /** timestep */
     double dt;
-    // degrees of freedom, snapshot offset
-    std::size_t freedom, snapGap;
-    // geometric center and center of mass
-    coords::Cartesian_Point C_geo, C_mass;
-    // trace temperature and energy evolvation
-    //md::trace traces;
-    //md::traces trace;
-    // nose hoover thermostat values
+    /** degrees of freedom */
+    std::size_t freedom;
+    /**snapshot offset (gap between two snapshots) */
+    std::size_t snapGap;
+    /** geometric center */
+    coords::Cartesian_Point C_geo;
+    /**center of mass*/
+    coords::Cartesian_Point C_mass;
+    /** nose hoover thermostat values */
     md::nose_hoover nht;
-    // rattle constraints
+    /** rattle constraints */
     std::vector<config::md_conf::config_rattle::rattle_constraint_bond> rattle_bonds;
 
-    //! Fep progress vector
+    // stuff for biased potential
+    /**distances to active site for every atom*/
+    std::vector<double> distances;  // distances to active site for every atom
+    /**atoms with a distance smaller than the inner cutoff*/
+    std::vector<int> inner_atoms;   //
+    /**atoms that move (distance smaller than outer cutoff)*/
+    std::vector<int> movable_atoms; // 
+
+      /** vector with lambda-values for every FEP window */
     std::vector<fepvar> window;
-    //! Umbrella sampling vectors
+    /** Umbrella sampling vectors */
     std::vector<double> udatacontainer;
 
-    // save restarted status
+    /** save restarted status */
     bool restarted;
 
-    // initialization
+    /** initialization */
     void init(void);
-    // remove translational and rotational momentum of the whole system
+    /** remove translational and rotational momentum of the whole system */
     void tune_momentum(void);
 
-    //! heating
-    bool heat(std::size_t const step);
-    // nose hoover thermostat
+    /**function for calculation of current target temperature
+    @param step: current MD step
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    */
+    bool heat(std::size_t const step, bool fep);
+    /** nose hoover thermostat */
     void nose_hoover_thermostat(void);
 
-    //! rattle feature
+    /**sets coordinates to original values and assigns random velocities*/
+    void restart_broken();
+
+    /** function to control the temperature
+    @param thermostat: determines if nose-hoover-thermostat or direct velocity scaling
+    @param half: determines if half or fullstep (only relevant for console output)
+    */
+    double tempcontrol(bool thermostat, bool half);
+
+    /** calculate distances to active center
+    @param counter: current MD step
+    */
+    std::vector<double> init_active_center(int counter);
+    /** scale down velocities according to distance to active site
+    @param atom_number: atom number (starting with zero)
+    @param inner_cutoff: radius of inner cutoff
+    @param outer_cutoff: radius of outer cutoff
+    */
+    coords::Cartesian_Point adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff);
+
+    /** rattle feature pre */
     void rattle_pre(void);
+    /** rattle feature post */
     void rattle_post(void);
 
-    // integrator selector
-    void integrate(std::size_t const k_init = 0U);
+    /**select an integrator (velocity-verlet or beeman)
+  @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+  @param k_init: step where the MD starts (zero should be okay)
+  */
+    void integrate(bool fep = false, std::size_t const k_init = 0U);
 
-    //! verlet integrator
-    void verletintegrator(std::size_t const k_init = 0U);
-    //! beeman integrator
-    void beemanintegrator(std::size_t const k_init = 0U);
-    //! velocity_verlet
-    void velocity_verlet(std::size_t const k_init = 0u);
+    /**velocity-verlet or beeman integrator
+    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
+    @param k_init: step where the MD starts (zero should be okay)
+    @param beeman: true if beeman integrator is used, false if velocity verlet integrator is used
+    */
+    void integrator(bool fep, std::size_t const k_init = 0U, bool beeman = false);
 
-    //! adjusting boundary conditions
+    /** tell user that he applies spherical boundary conditions
+  */
     void boundary_adjustments(void);
+    /** adjusting spherical boundary conditions (yet to be tested)
+    */
     void spherical_adjust(void);
 
-    //! Kinetic Energy update
+    /** Kinetic Energy update */
     void updateEkin(void);
+    /** Kinetic Energy update for a selection of atoms
+    @param atom_list: vector of atom numbers whose energy should be calculated
+    */
+    void updateEkin_some_atoms(std::vector<int> atom_list);
 
-    //! Berendsen pressure coupling
+    /** Berendsen pressure coupling (doesn't work */
     void berendsen(double const &);
 
-    //std::size_t data_bytesize(void) const;
-    //void serialize_to_stream(std::ostream &, std::size_t const & current_step) const;
-    //std::size_t deserialize_from_stream(std::istream &);
-
-    //// read restart file and return iteration
-    //std::size_t read_restartfile(void);
-
-    void write_restartfile(std::size_t const);
+    /**write a restartfile
+    @param k: current MD step
+    */
+    void write_restartfile(std::size_t const k);
 
   public:
 
-    // construct
+    /** constructor
+  @param coords::Coordinates &: coords-object whose movement should be simulated
+  */
     simulation(coords::Coordinates &);
-    // start
+    /** start simulation
+  @param restart: set to true (default) if simulation should start from the beginning
+  */
     void run(bool const restart = true);
-    //umbrella sampling
-    void umbrella_run(bool const restart = true);
-    //! FEP calculation
-    void rattlesetup(void);
-    void fepinit(void);
-    void feprun();
-    void freecalc();
-    void freewrite(std::size_t);
-    bool prod;
-    double FEPsum;
+    /**prints information about MD simulation before the run starts*/
     void print_init_info(void);
 
+    /** set up constraints for H-X bonds if requested
+    ideal bond lengths are taken from the foce field parameter file
+    specified by RATTpar in the INPUTFILE */
+    void rattlesetup(void);
+
+    /** perform an umbrella sampling
+    @param restart: set to true (default) if simulation should start from the beginning
+    */
+    void umbrella_run(bool const restart = true);
+
+    /** If FEP calculation is requested: calculate lambda values for each window
+    and print the scaling factors for van-der-Waals and electrostatics for each window */
+    void fepinit(void);
+    /** perform FEP calculation if requested */
+    void feprun();
+    /**Calculation of ensemble average and free energy change after every window if FEP calculation is performed
+     calculation can be improved if at every step the current averages are stored
+     currently calculation is performed at the end of each window */
+    void freecalc();
+    /**calculation of free energy from Bennets acceptance ratio
+    @param window: current window*/
+    void bar(int window);
+    /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
+    void freewrite(int);
+    /**function that returns a string 
+    this string can be run as a pythonprogramme that adds all paths necessary for FEP analysis to pythonpath*/
+    std::string get_pythonpath();
+    /**function that performs an FEP analysis (histogram and overlap of probability distributions)
+    @param dE_pots: vector of dE_pot values for a conformation. 
+    this is used to transfer these values to the next window as the dE value of window i corresponds to the dE_back value of window i+1
+    @param window: number of current window
+    returns vector with dE_pot values (explanation see above)*/
+    std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
+    /**bool that determines if the current run is a production run or an equilibration run*/
+    bool prod;
+    /**current free energy difference for forward transformation*/
+    double FEPsum;
+    /**current free energy difference for backwards transformation*/
+    double FEPsum_back;
+    /**current free energy difference for simple overlap sampling (SOS)*/
+    double FEPsum_SOS;
+    /**free energy change of current window from SOS (start value for BAR)*/
+    double dG_SOS;
+    /**free energy difference for bennets acceptance ratio (BAR)*/
+    double FEPsum_BAR;
+    /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
+    double de_ensemble_v_SOS;
+    /**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
+    double de_ensemble_v_BAR;
+
+    //**overload for << operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
+    friend scon::binary_stream<Strm>& operator<< (scon::binary_stream<Strm> &strm, simulation const &sim)
     {
-      std::array<std::size_t, 9u> const sizes = { {sim.P.size(), sim.P_old.size(),
-        sim.F.size(), sim.F_old.size(), sim.V.size(), sim.M.size(),
-        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()} };
+      std::array<std::size_t, 9u> const sizes = {
+        sim.P.size(), sim.P_old.size(), sim.F.size(), 
+        sim.F_old.size(), sim.V.size(), sim.M.size(),
+        sim.rattle_bonds.size(), sim.window.size(), sim.udatacontainer.size()};
       // sizes
-      for (auto const & s : sizes) strm << s;
+      for (auto const & s : sizes) 
+        strm << s;
+
       // logger
-      strm << sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm << sim.logging;
+
+
       // Non-Fundamental vectors
       for (auto const & x : sim.coordobj.xyz()) strm << x;
       for (auto const & p : sim.P) strm << p;
@@ -393,15 +458,21 @@ namespace md
       return strm;
     }
 
+    //**another overload for >> operator*/
     template<class Strm>
-    friend scon::binary_stream<Strm> &
-      operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
+    friend scon::binary_stream<Strm>& operator>> (scon::binary_stream<Strm> &strm, simulation &sim)
     {
-      std::array<std::size_t, 10u> sizes;
+      std::array<std::size_t, 9u> sizes;
       // sizes
-      for (auto & s : sizes) strm >> s;
+      for (auto & s : sizes) 
+        strm >> s;
+
       // logger
-      strm >> sim.logging;
+      // Disabled 09.08.17 by Dustin Kaiser
+      // as there is some bug in the I/O of the logger
+      // data from binary streams
+      //strm >> sim.logging;
+      //
       // non-fundamental vectors
       sim.P.resize(sizes[0]);
       sim.P_old.resize(sizes[1]);

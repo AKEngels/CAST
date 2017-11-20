@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <array>
 #include <vector>
@@ -184,11 +184,12 @@ namespace tinker
       double angleunit;
       double bondunit;
       double torsionunit;
+      double imptorunit;
       double dielectric;
       double electric;
 
       global (void) 
-        : angleunit(SCON_PI180*SCON_PI180), bondunit(1.0), torsionunit(1.0), dielectric(1.0), electric(332.06)
+        : angleunit(SCON_PI180*SCON_PI180), bondunit(1.0), torsionunit(1.0), imptorunit(1.0), dielectric(1.0), electric(332.06)
       {
         vdw_scale.use[0u] = vdw_scale.use[1u] = vdw_scale.use[2u] = false; // do not use vdw 11,12,13 per default
         vdw_scale.value[0u] = vdw_scale.value[1u] = vdw_scale.value[2u] = 0.0; // do not use vdw 11,12,13 per default
@@ -212,18 +213,43 @@ namespace tinker
 
     struct atom
     {
+      // Used in STL functions such as sort to account
+      // for atoms that have no types.
       struct typeless
       { 
         bool operator() (atom const &a, atom const &b) { return a.type < b.type; }
       };
+
       double mass;
       std::size_t type, group, atomic, bonds;
       std::string symbol, description;
       atom (void) : mass(), type(), group(), atomic(), bonds() {}
       atom (std::string const &);
+      friend bool operator==(const atom& lhs, const atom& rhs);
+      friend bool operator!=(const atom& lhs, const atom& rhs);
+
+      // Calculates the amount of memory (in byte) neccessary
+      // to store a specific tinker::parameter::atom
       std::size_t req_mem (void) const;
     };
     std::ostream& operator<< (std::ostream & stream, atom const & a);
+
+    inline bool operator==(const atom& lhs, const atom& rhs)
+    {
+      return (lhs.mass == rhs.mass
+        && lhs.type == rhs.type
+        && lhs.group == rhs.group
+        && lhs.atomic == rhs.atomic
+        && lhs.bonds == rhs.bonds
+        && lhs.symbol == rhs.symbol
+        && lhs.description == rhs.description
+        );
+    }
+
+    inline bool operator!=(const atom& lhs, const atom& rhs)
+    {
+      return (!(lhs == rhs));
+    }
 
     // angles
 
@@ -488,6 +514,7 @@ namespace tinker
       std::vector<combi::vdwc> const & vdwsc(void) const { return m_vdwsc; }
 
       double torsionunit (void) const { return m_general.torsionunit; }
+      double imptorunit(void) const { return m_general.imptorunit; }
       double angleunit (void) const { return m_general.angleunit; }
       double bondunit (void) const { return m_general.bondunit; }
 

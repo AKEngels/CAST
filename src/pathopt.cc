@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include "scon_utility.h"
 #include "ls.h"
-#include "lbfgs.h"
 #if defined(_WIN32)
 #include <direct.h>
 #include "sys/stat.h"
@@ -17,8 +16,18 @@
 #include <sys/stat.h>
 
 #endif
+#if defined(_MSC_VER)
+#include <process.h>
+#define pid_func _getpid
+#else 
+#include <unistd.h>
+#define pid_func getpid
+#endif
 
-pathx::pathx(neb *NEB, coords::Coordinates *c)
+/** 
+* CONSTRUCTOR OF PATHX-CLASS AND INITIALIZATION OF GLOBAL VARIABLES
+*/
+pathx::pathx(neb *NEB, coords::Coordinates *c) :_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
   N = NEB;
   cPtr = c;
@@ -30,6 +39,9 @@ pathx::pathx(neb *NEB, coords::Coordinates *c)
   ENDENERGY = N->energies[N->num_images - 1];
 }
 
+/**
+* INITIALIZATION FUNCTION FOR PATHOPT RUN
+*/
 void pathx::pathx_ini()
 {
   std::cout << "**************INITIALIZATION OF PATHOPT*************\n";
@@ -38,32 +50,66 @@ void pathx::pathx_ini()
   temp_image = N->num_images;
   for (ptrdiff_t i = 1; i < temp_image - 1; i++)
   {
+	   
     N->num_images = temp_image;
+	/**
+	* initialize global optimization by using NEB starting structure 
+	*/
     cPtr->set_xyz(N->imagi[i]);
-    MCM_NEB(i);
+	/**
+	* performing global optimization on i-th n-1 dimensional hyperplane 
+	*/
+
+	if (Config::get().neb.MCM_OPT)
+	{
+		MCM_PO(i);
+	}
+	else
+	{
+		MC_PO(i);
+	}
+		
+	
   }
-  proof_connect();
+  /**
+  * Connection procedure on the total number of obtained minima
+  * after optimizaiton on n-1 subspace
+  */
+  if (Config::get().neb.CONN)
+  {
+	  proof_connect();
+  }
+ 
 }
 
-//BASIN HOPPING BY USING MODIFIED RANDOM JUMPS AND CONSTRAINT MINIMIZATION
-void pathx::MCM_NEB(ptrdiff_t opt)
+/**
+* BASIN HOPPING BY USING MODIFIED RANDOM JUMPS AND CONSTRAINT MINIMIZATION 
+*/
+void pathx::MCM_PO(ptrdiff_t opt)
 {
-
+  
   double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };
   std::vector <double> MCpmin_vec;
-  double boltzman {0.0}, kt = 1 / (0.0019872966*Config::get().neb.TEMPERATURE), trial = (double)rand() / (double)RAND_MAX;
+  /**
+  * initialize Boltzman and trial number generation
+  */
+  double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
-  bool  l_disp (false);
+  bool  l_disp (false),nanstatus(false);
   global_image = 0;
   counter = 0;
   coords::Representation_3D positions;
-  std::ofstream output("PATHOPT_BASIN_ENERGIES.dat", std::ios::app);
+  std::ostringstream basinout;
+  basinout << "PATHOPT_BASIN_ENERGIES_" << cPtr->mult_struc_counter << ".dat";
+  std::ofstream output(basinout.str(), std::ios::app);
   coords::Representation_3D  coord_in, coord_glob, coord_last;
   global_path_minima.resize(N->num_images);
   global_path_minima_temp.resize(N->num_images);
   global_path_minima_energy.resize(N->num_images);
 
-  //GLOBAL ITERATIONS
+  /**
+  * global iterations for multiple runs
+  */
   for (size_t t = 0; t < Config::get().neb.GLOBALITERATION; t++) 
   {
 	for (size_t i = 0; i < global_path_minima.size(); i++)
@@ -72,23 +118,32 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 		global_path_minima_temp[i].resize(mciteration*(t + 1));
 		global_path_minima_energy[i].resize(mciteration*(t + 1));
     }
-    //INITIALIZE COORDS
+    /**
+	* initialize coords
+	*/
     coord_in = cPtr->xyz();
     coord_glob = cPtr->xyz();
-	//CALCULATE SP ENERGY
+	/** 
+	* calculate SP-energies and setting start global minimum
+	*/
     MCmin = cPtr->g();
     MCgmin = MCmin;
-    //ITERATIONS
-
+    /**
+	* MCM iterations
+	*/
     for (ptrdiff_t mcstep = 0; mcstep <= mciteration; mcstep++)
 	{
-      bool move_control(false);
       coord_last = cPtr->xyz();
 	  MCpmin_vec.push_back(MCmin);
 	  positions.clear();
       positions.resize(cPtr->size());
-	  move_control = Config::get().neb.MIXED_MOVE;
-	  if (move_control && (mcstep % 10 == 0 && mcstep > 1)) 
+	  nanstatus = false;
+	  /**
+	  * Decision which jump strategy is used
+	  * 1. possibility --> MIXED MOVE / rotation of main dihedrals
+	  * 2. possibility --> STANDARD MOVE / Cartesian steps
+	  */
+	  if (Config::get().neb.MIXED_MOVE && (mcstep % 10 == 0 && mcstep > 1))
 		  {
 			for (size_t j = 0; j < cPtr->size(); j++)
 			{
@@ -116,8 +171,6 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			test_perp = perp_point(temp_perp.pes());
 			move_main(test_perp);
 			positions = cPtr->xyz();
-			//cPtr->o();
-			positions = cPtr->xyz();	  
 	  }
 	  else
 	  {
@@ -144,44 +197,60 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			}
       }
       cPtr->set_xyz(positions);
-      this->cPtr->mult_struc_counter = 0;
       this->cPtr->NEB_control = false;
-	  MCmin = lbfgs(opt);
+	  /**
+	  * Optimization using projection or biased gradients
+	  */
+
+		  MCmin = lbfgs(opt);
+
+	  /**
+	  * MCM Criteria for accepting new minimum
+	  */
+	  if(Config::get().general.verbosity > 4) std::cout << "MCM energy of step (not proofed) " << mcstep << " is " << MCmin << '\n';
 	  if (MCmin != MCmin) 
 	  {
 		nancounter++;
-		//std::cout << "***size of counter***:  "<<nancounter << lineend;
+		nanstatus = true;
 		status = 0;
 		nbad++;
 		cPtr->set_xyz(coord_in);
-		if (nancounter>10) break;
+		if (nancounter>(mcstep/2)) break;
 	  }
-	  //TEST FOR LOW ENERGIES THAT ARE NOT REASONABLE
-	  if (MCmin< (-1.5*std::abs(STARTENERGY))) 
+	  /**
+	  * test for low energies that are not reasonable
+	  */
+	  if (MCmin< (-2.5*std::abs(STARTENERGY))) 
 	  {
 		MCmin = 1000000.00;
 		nbad++;
 	  }
-	  //METROPOLIS MONTE CARLO CRITERIUM AND TEST FOR IDENTICAL MINIMA
+	  /**
+	  * Metropolis Monte Carlo criterium and test for identical minima
+	  */
 	  for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.001 ) status = 2; nbad = 0; }
-      //TEST FOR IDENTICAL MINIMA
+      /**
+	  * testing for identical minima
+	  */
 	  if (status == 2) 
 	  {
 		nbad = 0;
-	    //!same minimum
+	    ///same minimum
 		MCpmin_vec[mcstep] = MCmin;
 	  }
 	 else if (MCmin < MCpmin_vec[mcstep])
 	 {
 		nbad = 0;
-		status = 1; //accepted as next minimum
+		status = 1; ///accepted as next minimum
 		MCpmin_vec[mcstep] = MCmin;
 	 }
 	 else 
-     //METROPOLIS MONTE CARLO CRITERIUM
+     /**
+	 * Metropolis Monte Carlo criterium
+	 */
 	 {
 		nbad = 0;
-		boltzman = exp(-kt*(MCmin - MCpmin_vec[mcstep]));
+		boltzman = exp(-_KT_*(MCmin - MCpmin_vec[mcstep]));
 		trial = (double)rand() / (double)RAND_MAX;
 		if (boltzman < trial)
 		{
@@ -193,7 +262,7 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 			MCpmin_vec[mcstep] = MCmin;
 		}
 	 }
-	 //TEST IF THE DISPLACEMENT IS IN AN ACCEPTABLE RANGE
+	 /// test if the displacement is in an acceptable range 
 	 if (testcoord(coord_in)) 
 	 {
 		l_disp = false;
@@ -203,38 +272,37 @@ void pathx::MCM_NEB(ptrdiff_t opt)
 		l_disp = true;
 		status = 0;
 	 }
-	 //APPLYING ENERGY RANGE CRITERIUM
+	 ///apply energy range criterium
 	 if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY) 
 	 {
-		MCmin = 1000000.00;
 		status = 0;
 		nbad++;
 	 }
-	 //SAVE ENERGY OF NEXT GLOBAL MINIMUM
+	 ///save energy of next global minimum
 	 if ((MCmin < MCgmin) && status == 1) 
 	 {
 		coord_glob = cPtr->xyz();
 		MCgmin = MCmin;
 	}
-	//RESTORE GLOBAL MINIMUM AFTER 3 BAD ITERATIONS
+	///restore global minimum after three bad iterations
 	if (nbad>3)
 	{
 		nbad = 0;
 		cPtr->set_xyz(coord_glob);
 	}
-	//RESTORE COORDS FROM PREVIOUS ITERATION
+	///restore coords from previous iteration
 	else if (status != 1)
 	{
 		cPtr->set_xyz(coord_last);
 	}
-	//SAVING THE ACCEPTED MINIMA
-	else if (status == 1) 
+	///saving the accepted minima
+	else if (status == 1 && nanstatus == false) 
 	{
 		MCEN = MCmin;
 		global_image = opt;
 		std::ostringstream struc_opt;
-		struc_opt << "PATHOPT_STRUCTURES_" << opt << ".arc";
-		output << mcstep << "    " << opt << "    " << MCEN << "\n";
+		struc_opt << "PATHOPT_STRUCTURES_" << cPtr->mult_struc_counter << "_" << opt << ".arc";
+		output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 		counter++;
 		global_path_minima_energy[opt][counter] = MCEN;
 		for (size_t i = 0; i<cPtr->size(); i++)
@@ -248,8 +316,281 @@ void pathx::MCM_NEB(ptrdiff_t opt)
   }
 }
 
+void pathx::MC_PO(ptrdiff_t opt)
+{
 
-//CONNECTION PROCEDURE FOR THE FOUND MINIMA ON N-HYPERPLANES
+	double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };
+	
+	/**
+	* initialize Boltzman and trial number generation
+	*/
+	double boltzman{ 0.0 }, trial = (double)rand() / (double)RAND_MAX, start_image_energy{ 0.0 };
+	ptrdiff_t nancounter(0), nbad(0), status(0),same_counter(0);
+	bool  l_disp(false), nanstatus(false);
+	global_image = 0;
+	counter = 0;
+	coords::Representation_3D positions;
+	std::ostringstream basinout;
+	basinout << "PATHOPT_MC_ENERGIES_" << cPtr->mult_struc_counter << ".dat";
+	std::ofstream output(basinout.str(), std::ios::app);
+	coords::Representation_3D  coord_in, coord_glob, coord_last;
+	global_path_minima.resize(N->num_images);
+	global_path_minima_temp.resize(N->num_images);
+	global_path_minima_energy.resize(N->num_images);
+
+	/**
+	* global iterations for multiple runs
+	*/
+	for (size_t t = 0; t < Config::get().neb.GLOBALITERATION; t++)
+	{
+		std::cout << "global iterator: " << t << "\n";
+		srand((unsigned int)time(NULL) + pid_func());
+		for (size_t i = 0; i < global_path_minima.size(); i++)
+		{
+			global_path_minima[i].resize(mciteration*(t + 1));
+			global_path_minima_temp[i].resize(mciteration*(t + 1));
+			global_path_minima_energy[i].resize(mciteration*(t + 1));
+		}
+		/**
+		* initialize coords
+		*/
+		cPtr->set_xyz(N->imagi[opt]);
+		coord_in = cPtr->xyz();
+		coord_glob = cPtr->xyz();
+		/**
+		* calculate SP-energies and setting start global minimum
+		*/
+		MCmin = cPtr->g();
+		MCgmin = MCmin;
+		start_image_energy = MCmin;
+		std::vector <double> MCpmin_vec;
+		MCpmin_vec.clear();
+		/**
+		* MCM iterations
+		*/
+		for (ptrdiff_t mcstep = 0; mcstep <= mciteration; mcstep++)
+		{
+			coord_last = cPtr->xyz();
+			MCpmin_vec.push_back(MCmin);
+			positions.clear();
+			positions.resize(cPtr->size());
+			nanstatus = false;
+			status = 0;
+			if (same_counter > 10) same_counter = 0;
+			/**
+			* Decision which jump strategy is used
+			* 1. possibility --> MIXED MOVE / rotation of main dihedrals
+			* 2. possibility --> STANDARD MOVE / Cartesian steps
+			*/
+			if (Config::get().neb.MIXED_MOVE && (mcstep % 10 == 0 && mcstep > 1))
+			{
+				for (size_t j = 0; j < cPtr->size(); j++)
+				{
+					randvect();
+					factor = mcstepsize * (double)rand() / (double)RAND_MAX;
+					scon::c3 <double> rv_p{ 3 };
+					coords::Cartesian_Point RV;
+					double abs = 0.0;
+					rv_p.x() = N->tau[opt][j].y() * randvec[2] - N->tau[opt][j].z() * randvec[1];
+					rv_p.y() = N->tau[opt][j].z() * randvec[0] - N->tau[opt][j].x() * randvec[2];
+					rv_p.z() = N->tau[opt][j].x() * randvec[1] - N->tau[opt][j].y() * randvec[0];
+					if (rv_p.x() - rv_p.x() != 0) rv_p.x() = 0.0;
+					if (rv_p.y() - rv_p.y() != 0) rv_p.y() = 0.0;
+					if (rv_p.z() - rv_p.z() != 0) rv_p.z() = 0.0;
+					abs = len(rv_p);
+					if (abs != 0.0) normalize(rv_p);
+					RV.x() = rv_p.x();
+					RV.y() = rv_p.y();
+					RV.z() = rv_p.z();
+					positions[j] = RV;
+				}
+				coords::Coordinates temp_perp(*cPtr);
+				temp_perp.set_xyz(positions);
+				perp_point test_perp;
+				test_perp = perp_point(temp_perp.pes());
+				move_main(test_perp);
+				positions = cPtr->xyz();
+			}
+			else
+			{
+				positions = cPtr->xyz();
+				for (size_t j = 0; j < cPtr->size(); j++)
+				{
+					randvect();
+					factor = mcstepsize * (double)rand() / (double)RAND_MAX;
+					scon::c3 <double> rv_p{ 3 };
+					coords::Cartesian_Point RV;
+					double abs = 0.0;
+					rv_p.x() = N->tau[opt][j].y() * randvec[2] - N->tau[opt][j].z() * randvec[1];
+					rv_p.y() = N->tau[opt][j].z() * randvec[0] - N->tau[opt][j].x() * randvec[2];
+					rv_p.z() = N->tau[opt][j].x() * randvec[1] - N->tau[opt][j].y() * randvec[0];
+					if (rv_p.x() - rv_p.x() != 0) rv_p.x() = 0.0;
+					if (rv_p.y() - rv_p.y() != 0) rv_p.y() = 0.0;
+					if (rv_p.z() - rv_p.z() != 0) rv_p.z() = 0.0;
+					abs = len(rv_p);
+					if (abs != 0.0) normalize(rv_p);
+					RV.x() = (factor*rv_p.x());
+					RV.y() = (factor*rv_p.y());
+					RV.z() = (factor*rv_p.z());
+					positions[j] += RV;
+				}
+			}
+			cPtr->set_xyz(positions);
+			this->cPtr->NEB_control = false;
+			/**
+			* Optimization using projection or biased gradients
+			*/
+
+			MCmin = cPtr->g();
+			/**
+			* MCM Criteria for accepting new minimum
+			*/
+			if (Config::get().general.verbosity > 5) std::cout << "MCM energy of step (not proofed) " << mcstep << " is " << MCmin << '\n';
+			if (MCmin != MCmin)
+			{
+				nancounter++;
+				nanstatus = true;
+				status = 0;
+				nbad++;
+				cPtr->set_xyz(coord_in);
+				if (nancounter > (mcstep / 2)) break;
+			}
+
+			/**
+			* Metropolis Monte Carlo criterium and test for identical minima
+			*/
+			for (auto mp : MCpmin_vec) { if (abs(MCmin - mp) < 0.00001) status = 2; nbad = 0; }
+			/**
+			* testing for identical minima
+			*/
+			if (status == 2)
+			{
+				nbad++;
+				///same minimum
+				same_counter++;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "same Minimum \n";
+				}
+			}
+			else if (MCmin < MCpmin_vec[mcstep])
+			{
+				nbad = 0;
+				status = 1; ///accepted as next minimum
+				MCpmin_vec[mcstep] = MCmin;
+				coord_glob = cPtr->xyz();
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Accepted due to lower energy criterium \n";
+				}
+			}
+			else
+			{
+				nbad = 0;
+				boltzman = exp(-_KT_*(MCmin - start_image_energy));
+				trial = (double)rand() / (double)RAND_MAX;
+				if (boltzman < trial)
+				{
+					status = 0;
+					if (Config::get().general.verbosity > 4)
+					{
+						std::cout << "Rejected due to Metropolis criterium \n";
+					}
+					nbad++;
+				}
+				else
+				{
+					status = 1;
+					MCpmin_vec[mcstep] = MCmin;
+					nbad = 0;
+					if (Config::get().general.verbosity > 4)
+					{
+						std::cout << "Accepted due to Metropolis criterium \n";
+					}
+				}
+			}
+			/// test if the displacement is in an acceptable range 
+			if (testcoord(coord_in))
+			{
+				l_disp = false;
+			}
+			else
+			{
+				l_disp = true;
+				status = 0;
+			}
+			///apply energy range criterium
+			if (std::abs(MCmin - STARTENERGY) > Config::get().neb.PO_ENERGY_RANGE || std::abs(MCmin) == INFINITY)
+			{
+				status = 0;
+				nbad++;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Out of Energy Range: " << MCmin << "\n";
+				}
+			}
+			///save energy of next global minimum
+			if ((MCmin < MCgmin) && status == 1)
+			{
+				coord_glob = cPtr->xyz();
+				MCgmin = MCmin;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "New global minimum: " << MCgmin << "\n";
+				}
+			}
+			///restore global minimum after five bad iterations
+			if (nbad > 3 || same_counter >= 10)
+			{
+				nbad = 0;
+				cPtr->set_xyz(coord_glob);
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Restoring old coords due to bad_iterator \n";
+				}
+			}
+			///restore coords from previous iteration
+			else if (status != 1)
+			{
+				cPtr->set_xyz(coord_last);
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Restoring old coords \n";
+				}
+			}
+			///saving the accepted minima
+			else if (status == 1 && nanstatus == false)
+			{
+				
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "structure is saved \n";
+				}
+				MCEN = MCmin;
+				global_image = opt;
+				std::ostringstream struc_opt;
+				struc_opt << "PATHOPT_STRUCTURES_" << cPtr->mult_struc_counter << "_" << opt << ".arc";
+				output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
+				counter++;
+				global_path_minima_energy[opt][counter] = MCEN;
+				for (size_t i = 0; i < cPtr->size(); i++)
+				{
+					global_path_minima[opt][counter].push_back(cPtr->xyz(i));
+				}
+				if (counter % Config::get().neb.MCM_SAVEITER == 0 && mcstep > 1)
+				{
+					printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
+				}
+			}
+			else if (status == 2) status = 0;
+		}
+	}
+}
+
+/*
+* CONNECTION PROCEDURE FOR THE FOUND MINIMA ON N-HYPERPLANES
+*/
+
 void pathx::proof_connect()
 {
 
@@ -266,17 +607,15 @@ void pathx::proof_connect()
 	bool reverse(false);
 	coords::Representation_3D tempstart{ N->imagi[0] }, tempstart2{ N->imagi[N->num_images - 1] };
 	coord1.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
-	coord2.init_in(cPtr->atoms(), coords::PES_Point(N->imagi[0]), true);
-	//CENTER OF GEOMETRY ALIGNMENT
+	coord2.init_in(cPtr->atoms(), N->imagi[0], true);
+	/// center of geometry 
 	for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 	{
 		N->num_images = temp_image;
-		coord2.set_xyz(N->imagi[0]);
 		cog2 = coord2.center_of_geometry();
 		for (size_t j = 0; j < global_path_minima[i].size(); j++)
 		{
 			if (global_path_minima[i][j].size() == 0) continue;
-			//coord1.init_in(cPtr->atoms(), coords::PES_Point(global_path_minima[i][j]), true);
 			coord1.set_xyz(global_path_minima[i][j]);
 			cog1 = coord1.center_of_geometry();
 			for (size_t l = 0; l < global_path_minima[i][j].size(); l++)
@@ -288,7 +627,7 @@ void pathx::proof_connect()
 
 		}
 	  }
-	 //CALCULATING THE RMSD VALUE STARTING FROM HYPERPLANE N TO N+1	
+	 ///caclulating the rmsd value starting from hyperplane n to n+1
 	 for (ptrdiff_t i = 1; i < temp_image - 1; i++)
 		{
 			N->num_images = temp_image;
@@ -303,7 +642,10 @@ void pathx::proof_connect()
 				}
 			}
 		}
-	 //LOOP OVER THE FIRST NEXT UP TO THE THIRD NEAREST NEIGHBORS
+	 /// loop over the first next up to the third nearest neighbors
+	 size_t arrhenius_counter(0U);
+	 double arrhenius(0.0);
+	 ofstream arrhenius_file("arrhenius_global.dat", ios::app);
 	 for (size_t mm = 1; mm < 4; mm++) 
 	 {
 		std::ostringstream NEB1;
@@ -320,7 +662,7 @@ void pathx::proof_connect()
 
 
 
-	    //ASSIGNING THE PARTNERS WITH RESPECT TO THE NEAREST NEIGHBORS ON THE NEXT HYPERPLANE
+	    /// assigning the partners with respect to the nearest neighbors on the next hyperplane
 		for (ptrdiff_t i = 1; i < temp_image - 1; i++)	
 		{
 			for (size_t j = 0; j < global_path_minima[i].size(); j++)
@@ -343,7 +685,7 @@ void pathx::proof_connect()
 		ptrdiff_t i(0U), jj(0U);
 		ptrdiff_t tempcount (0U);
 		bool tempproof = false;
-		//CONNECTING PROCEDURE I/O 1: VIA NEB 2: DIRECT 
+		///Connecting I/O 1: VIA NEB 2: DIRECT 
 		if (Config::get().neb.NEB_CONN == true)
 		{
 			for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
@@ -372,34 +714,76 @@ void pathx::proof_connect()
 			{
 				for (ptrdiff_t j = 0; j < ptrdiff_t(global_path_minima[1].size()); j++)
 				{
+					std::vector <double> energy_connect;
 					if (global_path_minima[1][j].empty()) continue;
 					reverse = false;
 					std::ostringstream en, img;
-					en << "ENERGY_" << j << ".dat";
-					img << "PATH_" << j << ".arc";
+					en << "ENERGY_" <<cPtr->mult_struc_counter<<"_"<< j << ".dat";
+					img << "PATH_" << cPtr->mult_struc_counter << "_"<< j << ".arc";
 					std::ofstream energy(en.str().c_str(), std::ios::app);
 					printmono(img.str().c_str(), tempstart, j);
 					cPtr->set_xyz(tempstart);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[0] << '\n';
 					printmono(img.str().c_str(), global_path_minima[1][j], j);
 					cPtr->set_xyz(global_path_minima[1][j]);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[1] << '\n';
 					tempcount = 0;
 					tempproof = false;
 					jj = j;
+
+					//During the path sempling each path is written in an array and printed out later
+					std::vector<coords::Representation_3D>* final_path = nullptr;
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						final_path = new std::vector<coords::Representation_3D>;
+						final_path->resize(temp_image);
+						final_path->at(0) = tempstart;
+						final_path->at(1) = global_path_minima[1][j];
+					}
+
 					for (i = 1; i < temp_image - 2; i++)
 					{
 						if (global_path_minima[i - tempcount][jj].empty()) continue;
 						if (global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]].empty()) continue;
 						printmono(img.str().c_str(), global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], j);
+						
+						if (Config::get().neb.MAXFLUX_PATHOPT) {
+							final_path->at(i + 1) = global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]];
+						}
+						
 						cPtr->set_xyz(global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]]);
-						energy << cPtr->g() << '\n';
+						energy_connect.push_back(cPtr->g());
+						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
 						jj = PARTNER[i - tempcount][jj];
 						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
+
+					if (Config::get().neb.MAXFLUX_PATHOPT) {
+						auto kill = false;
+						final_path->at(final_path->size() - 1U) = tempstart2;
+						for (auto && path : *(final_path)) {
+							if (path.empty()) kill = true;
+						}
+						if (!kill) {
+							N->preprocess(*(final_path), j);
+						}
+						/*std::for_each(final_path->begin(), final_path->end(), [&](auto && path) {
+						printmono(std::string("MAXFLUX_PATH_" + std::to_string(j) + ".arc").c_str(), path, j);
+						});*/
+						delete final_path;
+						final_path = nullptr;
+					}
+
 					cPtr->set_xyz(tempstart2);
-					energy << cPtr->g() << '\n';
+					energy_connect.push_back(cPtr->g());
+					energy << std::right << std::fixed << std::setprecision(6) << energy_connect.back() << '\n';
+					energy << "Barrier_rel to start: "<< *max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]<<'\n';
+					energy << "RATE via Arrhenius: " << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
+					arrhenius += exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_));
+					arrhenius_counter++;
+					arrhenius_file << exp(-((*max_element(energy_connect.begin(), energy_connect.end()) - energy_connect[0]) / _KT_)) << '\n';
 				}
 			}
 #if defined (_MSC_VER)
@@ -408,11 +792,14 @@ void pathx::proof_connect()
     chdir("..");
 #endif
   }
+  arrhenius_file << arrhenius/arrhenius_counter << '\n';
 }
 
 
-//GENERATES 3D-UNIT VECTOR
-//G: MARSAGLIA, ANN. MATH. STAT., 43, 645 (1972)
+/**
+ *GENERATES 3D-UNIT VECTOR
+ *G: MARSAGLIA, ANN. MATH. STAT., 43, 645 (1972)
+ */
 void pathx::randvect(void)
 {
   double x(0.0), y(0.0), s(0.0);
@@ -431,7 +818,9 @@ void pathx::randvect(void)
 
 }
 
-//FUNCTION FOR TESTING THE COORDINATE VARIATION WITH RESPECT TO MAXVARIATION LIMIT
+/** 
+* FUNCTION FOR TESTING THE COORDINATE VARIATION WITH RESPECT TO MAXVARIATION LIMIT 
+*/
 bool pathx::testcoord(coords::Representation_3D &coords)
 {
 
@@ -445,46 +834,50 @@ bool pathx::testcoord(coords::Representation_3D &coords)
   return true;
 }
 
-//LBFGS WITH PATHOPT CALLBACK FOR GRADIENTS
+/** 
+* LBFGS WITH PATHOPT CALLBACK FOR GRADIENTS 
+*/
 double pathx::lbfgs(ptrdiff_t imagex)
 {
 
 	using namespace  optimization::local;
-	//typedef coords::Container<scon::c3<float>> nc3_type;
-	// Create optimizer
+
+	/**
+	* Create optimizer
+	*/
 	global_imagex = imagex;
 	coords::Cartesian_Point g;
 	auto optimizer = make_lbfgs(
 		make_more_thuente(GradCallBack(*this))
 	);
-	//optimizer.ls.config.ignore_callback_stop = true;
-	// Create Point
+	/** 
+	* Create Point 
+	*/
 	using op_type = decltype(optimizer);
 	op_type::point_type x(scon::explicit_transform<op_type::rep_type>(cPtr->xyz()));
-	// Optimize point
+	/** 
+	* Optimize point 
+	*/
 	optimizer.config.max_iterations = Config::get().optimization.local.bfgs.maxstep;
-	//optimizer.config.max_iterations = Config::get().neb.LBFGS_IT;
 	optimizer.config.epsilon = (float)Config::get().optimization.local.bfgs.grad;
 	optimizer(x);
 
-	if (Config::get().general.verbosity > 4)
+	if (Config::get().general.verbosity > 3)
 	{
 		std::cout << "Optimization done (status " << optimizer.state() << "). Evaluations:" << optimizer.iter() << '\n';
 	}
-
-
- 
-
 
   return optimizer.p().f;
 }
 
 
-//MODIFICATION OF GRADIENT CALCULATION
+/** 
+* MODIFICATION OF GRADIENT CALCULATION 
+*/
 double pathx::g_new(ptrdiff_t im)
 {
-  double cosi, energytemp, pot(0.0), dpot(0.0);
-  coords::Cartesian_Point rv_p;
+  double cosi(0.0), energytemp(0.0), pot(0.0), dpot(0.0);
+  coords::Cartesian_Point rv_p, rv_n;
   energytemp = cPtr->g();
   if (Config::get().neb.OPTMODE == "PROJECTED")
   {
@@ -525,12 +918,14 @@ double pathx::g_new(ptrdiff_t im)
       rv_p.z() = cPtr->g_xyz(i).z() + dpot*cPtr->xyz(i).z();
       cPtr->update_g_xyz(i, rv_p);
     }
-    cosi = 0.0;
-  }
+
+  }	  
   return energytemp;
 }
 
-
+/**
+* PRINT FCT FOR SINGLE STRUCTURE
+*/
 void pathx::printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t &count)
 {
 
@@ -555,24 +950,28 @@ void pathx::printmono(std::string const &name, coords::Representation_3D &print,
   out.close();
 }
 
+/*
+* FUNCTION FOR CHANGING RANDOM DIHEDRAL ALONG GIVEN DIRECTION
+*/
+
 void pathx::move_main(perp_point & direction)
 {
   size_t const NUM(cPtr->main().size());
   coords::Representation_Main main_tors(NUM), bla(NUM);
-  // choose number of torsions to modify
+  /// choose number of torsions to modify
   coords::float_type const NUM_MAINS(static_cast<coords::float_type>(NUM));
   size_t const NUM_MOD(std::min((static_cast<size_t>(-std::log(scon::rand<coords::float_type>(0.0, 1.0))) + 1U), NUM));
-  // apply those torsions
-  if (Config::get().general.verbosity > 9U) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
+  /// apply those torsions
+  if (Config::get().general.verbosity > 4) std::cout << "Changing " << NUM_MOD << " of " << NUM << " mains.\n";
   for (size_t i(0U); i < NUM_MOD; ++i)
   {
     size_t const K(static_cast<size_t>(NUM_MAINS*scon::rand<coords::float_type>(0.0, 1.0)));
     coords::float_type const F = scon::rand<coords::float_type>(-Config::get().optimization.global.montecarlo.dihedral_max_rot,
       Config::get().optimization.global.montecarlo.dihedral_max_rot);
-    if (Config::get().general.verbosity > 9U) std::cout << "Changing main " << K << " by " << F << '\n';
+    if (Config::get().general.verbosity > 4) std::cout << "Changing main " << K << " by " << F << '\n';
     main_tors[K] = coords::main_type::from_deg(F);
   }
-  // orthogonalize movement to main directions
+  /// orthogonalize movement to main directions
   for (auto perp_direction : direction.main_direction)
   {
     perp_direction.resize(main_tors.size());
@@ -582,6 +981,6 @@ void pathx::move_main(perp_point & direction)
   {
     cPtr->rotate_main(i, main_tors[i]);
   }
-  //main_tors.print(cout);
+  /// main_tors.print(cout);
   cPtr->to_xyz();
 }

@@ -97,11 +97,11 @@ std::size_t startopt::ringsearch::Search::find_rings()
     m_ringcontainer[0u] = m_donors[i];
     find_route(m_donors[i], 0u, std::vector<bool>(n, false));
   }
-  if (Config::get().general.verbosity > 4)
+  if (Config::get().general.verbosity > 3)
   {
     std::cout << "Found " << m_rings.size()
       << " potential rings.\n";
-    if (Config::get().general.verbosity > 9)
+    if (Config::get().general.verbosity > 4)
     {
       std::cout << "Ring-routes:\n";
       for (auto const & r : m_rings)
@@ -383,12 +383,12 @@ namespace
         fitness_values[i] = fitness(i);
       }
       // print individuals and energies
-      if (Config::get().general.verbosity > 4)
+      if (Config::get().general.verbosity > 3)
       {
         mean /= n;
         std::cout << "Mean population energy value = " <<
           mean << "\n";
-        if (Config::get().general.verbosity > 9)
+        if (Config::get().general.verbosity > 4)
         {
           for (auto & individual : pop)
           {

@@ -7,8 +7,8 @@
 #include "configuration.h"
 #include "scon_utility.h"
 #include "scon_c3.h"
-#include "interp_1d1.h"
 #include <algorithm>
+#include "math.h"
 
 
 #ifdef _MSC_VER
@@ -34,8 +34,6 @@ double energy::interfaces::amoeba::amoeba_ff::e(void)
   {
     Spackman_mol();
     Spackman_vec();
-    Spackman_list_analytical1();
-    parameters();
     Spackman1();
 
   }
@@ -72,8 +70,8 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
   {
     Spackman_mol();
     Spackman_vec();
-    Spackman_list_analytical1();
-    parameters();
+    Spackman1();
+
     if (Config::get().energy.spackman.interp)
       SpackmanGrad_3();
     else Spackman_GRAD();
@@ -92,7 +90,8 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
 double energy::interfaces::amoeba::amoeba_ff::h(void)
 {
   pre();
-  //... 
+  printf("ERROR: this interface doesn't provide a hessian matrix\n"); 
+  std::exit(0);
   post();
   return energy;
 }
@@ -158,27 +157,6 @@ void energy::interfaces::amoeba::amoeba_ff::calc(void)
   }
 }
 
-void energy::interfaces::amoeba::amoeba_ff::boxjump(void)
-{
-  size_t const N(coords->molecules().size());
-  coords::Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
-  for (size_t i = 0; i < N; ++i)
-  {
-    coords::Cartesian_Point tmp_com(coords->center_of_mass_mol(i));
-    tmp_com = -tmp_com;
-    //tmp_com /= halfbox;
-    tmp_com.x() = (std::abs(tmp_com.x()) > halfbox.x()) ? tmp_com.x() / Config::get().energy.pb_box.x() : 0.0;
-    tmp_com.y() = (std::abs(tmp_com.y()) > halfbox.y()) ? tmp_com.y() / Config::get().energy.pb_box.y() : 0.0;
-    tmp_com.z() = (std::abs(tmp_com.z()) > halfbox.z()) ? tmp_com.z() / Config::get().energy.pb_box.z() : 0.0;
-    tmp_com = round(tmp_com);
-    tmp_com *= Config::get().energy.pb_box;
-    for (auto const atom : coords->molecules(i))
-    {
-      coords->move_atom_by(atom, tmp_com);
-    }
-
-  } // end of molecules loop
-}
 
 
 /****************************************
@@ -1002,33 +980,31 @@ namespace energy
 
       void energy::interfaces::amoeba::amoeba_ff::boundary(double & x, double & y, double & z) const
       {
-        static coords::Cartesian_Point const halfbox(Config::get().energy.pb_box / 2.0);
+        static coords::Cartesian_Point const halfbox(Config::get().periodics.pb_box / 2.0);
 
         if (x > halfbox.x())
         {
-          x -= Config::get().energy.pb_box.x();
+          x -= Config::get().periodics.pb_box.x();
         }
         else if (x < -halfbox.x())
         {
-          x += Config::get().energy.pb_box.x();
+          x += Config::get().periodics.pb_box.x();
         }
-
         if (y > halfbox.y())
         {
-          y -= Config::get().energy.pb_box.y();
+          y -= Config::get().periodics.pb_box.y();
         }
         else if (y < -halfbox.y())
         {
-          y += Config::get().energy.pb_box.y();
+          y += Config::get().periodics.pb_box.y();
         }
-
         if (z > halfbox.z())
         {
-          z -= Config::get().energy.pb_box.z();
+          z -= Config::get().periodics.pb_box.z();
         }
         else if (z < -halfbox.z())
         {
-          z += Config::get().energy.pb_box.z();
+          z += Config::get().periodics.pb_box.z();
         }
       }
 
@@ -1161,8 +1137,8 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::e_QV
-        (double const C, double const E, double const R, double const d,
-          double &e_c, double &e_v) const
+      (double const C, double const E, double const R, double const d,
+        double &e_c, double &e_v) const
       {
         //e_c += eQ(C, d);
         e_v += eV<RT>(E, R, d);
@@ -1171,8 +1147,8 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV
-        (double const E, double const R, double const d,
-          double &e_v, double &dE) const
+      (double const E, double const R, double const d,
+        double &e_v, double &dE) const
       {
         double  dV(0.0);
         //e_c += gQ(C, d, dQ);
@@ -1183,9 +1159,9 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_fep
-        (double const E, double const R, double const d,
-          double const v_io,
-          double &e_v, double &dE) const
+      (double const E, double const R, double const d,
+        double const v_io,
+        double &e_v, double &dE) const
       {
         double  dV(0.0);
         //e_c += gQ_fep(C, d, c_io, dQ);
@@ -1195,9 +1171,9 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::e_QV_cutoff
-        (double const C, double const E, double const R, double const d,
-          double const fQ, double const fV,
-          double &e_c, double &e_v) const
+      (double const C, double const E, double const R, double const d,
+        double const fQ, double const fV,
+        double &e_c, double &e_v) const
       {
         //e_c += eQ(C, d)*fQ;
         e_v += eV<RT>(E, R, d)*fV;
@@ -1206,9 +1182,9 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_cutoff
-        (double const E, double const R, double const d,
-          double const fV,
-          double &e_v, double &dE) const
+      (double const E, double const R, double const d,
+        double const fV,
+        double &e_v, double &dE) const
       {
         double  dV(0.0);
         //e_c += gQ(C, d, dQ)*fQ;
@@ -1218,8 +1194,8 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       inline void energy::interfaces::amoeba::amoeba_ff::g_QV_fep_cutoff
-        (double const E, double const R, double const d,
-          double const v_out, double const fV, double &e_v, double &dE) const
+      (double const E, double const R, double const d,
+        double const v_out, double const fV, double &e_v, double &dE) const
       {
         double/* dQ,*/ dV;
         //e_c += gQ_fep(C, d, c_out, dQ)*fQ;
@@ -1255,7 +1231,7 @@ namespace energy
             refine_vdw_h_bonds(pl, par);
             if (Config::get().md.fep)
             {
-              if (Config::get().energy.periodic)
+              if (Config::get().periodics.periodic)
               {
                 if (coords->atoms().in_exists() && (coords->atoms().sub_in() == row || coords->atoms().sub_in() == col))
                   g_nb_QV_pairs_fep_io<RT, true, false>(e, g, pl, par);
@@ -1278,7 +1254,7 @@ namespace energy
             }
             else
             {
-              if (Config::get().energy.periodic)
+              if (Config::get().periodics.periodic)
                 g_nb_QV_pairs_cutoff<RT, true>(e, g, pl, par);
               else if (Config::get().energy.cutoff < 1000.0)
                 g_nb_QV_pairs_cutoff<RT, false>(e, g, pl, par);
@@ -1297,26 +1273,17 @@ namespace energy
         if (Config::get().md.fep)
         {
           // std::cout << coords->fep.feptemp.e_c_l2 << "  " << coords->fep.feptemp.e_vdw_l2 << "   " << coords->fep.feptemp.e_c_l1 << "   " << coords->fep.feptemp.e_vdw_l1 << std::endl;
-          if (Config::get().fep.backward == 0)
-          {
-            coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
-            coords->fep.feptemp.dG = 0;
-            coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
-          else if (Config::get().fep.backward == 1)
-          {
-            coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2);
-            coords->fep.feptemp.dG = 0;
-            coords->fep.fepdata.push_back(coords->fep.feptemp);
-          }
+          coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
+          coords->fep.feptemp.dG = 0;
+          coords->fep.fepdata.push_back(coords->fep.feptemp);
         }
       }
 
       template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
       void energy::interfaces::amoeba::amoeba_ff::g_nb_QV_pairs_fep_switch_periodic
-        (coords::float_type &e_nb, coords::Representation_3D &grad_vector,
-          std::vector< ::tinker::refine::types::nbpair> const & pairs,
-          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters)
+      (coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+        std::vector< ::tinker::refine::types::nbpair> const & pairs,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters)
       {
 
       }
@@ -1325,11 +1292,11 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT>
       void energy::interfaces::amoeba::amoeba_ff::g_nb_QV_pairs
-        (
-          coords::float_type &e_nb, coords::Representation_3D &grad_vector,
-          std::vector< ::tinker::refine::types::nbpair> const & pairlist,
-          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
-          )
+      (
+        coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+        std::vector< ::tinker::refine::types::nbpair> const & pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
+      )
       {
         coords::float_type  e_v(0.0);
         for (auto const & pair : pairlist)
@@ -1360,11 +1327,11 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT, bool PERIODIC>
       void energy::interfaces::amoeba::amoeba_ff::g_nb_QV_pairs_cutoff
-        (
-          coords::float_type &e_nb, coords::Representation_3D &grad_vector,
-          std::vector< ::tinker::refine::types::nbpair> const & pairlist,
-          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
-          )
+      (
+        coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+        std::vector< ::tinker::refine::types::nbpair> const & pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
+      )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         coords::float_type  e_v(0.0);
@@ -1417,11 +1384,11 @@ namespace energy
 
       template< ::tinker::parameter::radius_types::T RT, bool PERIODIC, bool ALCH_OUT>
       void energy::interfaces::amoeba::amoeba_ff::g_nb_QV_pairs_fep_io
-        (
-          double &e_nb, coords::Representation_3D &grad_vector,
-          std::vector< ::tinker::refine::types::nbpair> const & pairlist,
-          scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
-          )
+      (
+        double &e_nb, coords::Representation_3D &grad_vector,
+        std::vector< ::tinker::refine::types::nbpair> const & pairlist,
+        scon::matrix< ::tinker::parameter::combi::vdwc, true> const & params
+      )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
         double e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
@@ -1843,10 +1810,11 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
   p4scale = 1.0;
   double cutoff(Config::get().energy.cutoff);
 
-  /*if (configuration::e.periodic == true){
-  cutoff = configuration::e.pbcut;
+  if (Config::get().periodics.periodic == true) 
+  {
+    cutoff = len(Config::get().periodics.pb_box);
   }
-  else cutoff = configuration::e.cutoff;*/
+  else cutoff = Config::get().energy.cutoff;
 
   double pdi, pti, pgamma;
 
@@ -2004,9 +1972,10 @@ void energy::interfaces::amoeba::amoeba_ff::e_ind(void)
       yr = positions[kk - 1].y() - positions[ii - 1].y();
       zr = positions[kk - 1].z() - positions[ii - 1].z();
 
-      /*if (configuration::e.periodic == true){
-      boundary(xr, yr, zr);
-      }*/
+      if (Config::get().periodics.periodic == true) 
+      {
+        boundary(xr, yr, zr);
+      }
       /*	std::cout << "TEST8\n";*/
       r2 = xr*xr + yr*yr + zr*zr;
       r = sqrt(r2);
@@ -2332,15 +2301,16 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
   double temp3(0.0), temp5(0.0), temp7(0.0);
   double psc3(0.0), psc5(0.0), psc7(0.0), dsc3(0.0), dsc5(0.0), dsc7(0.0);
   double xr(0.0), yr(0.0), zr(0.0);
-  double r1(0.0), r2(0.0), rr1(0.0), /*rr(0.0),*/ rr3(0.0), rr5(0.0), rr7(0.0), rr9(0.0), rr11(0.0);
+  double r1(0.0), r2(0.0), rr1(0.0), rr(0.0), rr3(0.0), rr5(0.0), rr7(0.0), rr9(0.0), rr11(0.0);
   double ci(0.0), ck(0.0);
-  double cutoff(0.0),/* dd(0.0),*/ cc(0.0)/*, fQ(0.0)*/;
+  double cutoff(0.0), dd(0.0), cc(0.0), fQ(0.0);
 
 
-  /*if (configuration::e.periodic == true){
-  cutoff = configuration::e.pbcut;
+  if (Config::get().periodics.periodic == true)
+  {
+    cutoff = len(Config::get().periodics.pb_box);
   }
-  else */ cutoff = Config::get().energy.cutoff;
+  else  cutoff = Config::get().energy.cutoff;
   cc = cutoff *cutoff;
 
   std::vector <double> di(3), qi(9), dk(3), qk(9);
@@ -2471,9 +2441,10 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
       yr = positions[kk - 1].y() - positions[ii - 1].y();
       zr = positions[kk - 1].z() - positions[ii - 1].z();
 
-      /*if (configuration::e.periodic == true){
-      boundary(xr, yr, zr);
-      }*/
+      if (Config::get().periodics.periodic == true) 
+      {
+        boundary(xr, yr, zr);
+      }
 
       r2 = xr*xr + yr*yr + zr*zr;
       r1 = sqrt(r2);
@@ -2481,9 +2452,9 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
       if (r1 < cutoff) {
 
-        /*dd = r2;
+        dd = r2;
         fQ = (1 - dd / cc);
-        fQ *= fQ;*/
+        fQ *= fQ;
         //cout << cutoff << "   " << fQ << endl;
 
         ck = rp[0][k];
@@ -2759,18 +2730,19 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         glip[7] = 2.0 * (scip[7] - scip[8]);
 
         //! compute the energy contribution
-        /*	if (configuration::e.periodic == true){
-        e = rr1*gl[0] + rr3*(gl[1] + gl[6]) + rr5*(gl[2] + gl[7] + gl[8]) + rr7*(gl[3] + gl[5]) + rr9*gl[4];
-        ei = 0.50*(rr3*(gli[1] + gli[6])*psc3 + rr5*(gli[2] + gli[7])*psc5 + rr7*gli[3] * psc7);
-        e = f*mscale[kk] * e * fQ;
-        ei = f *ei * fQ;
+        if (Config::get().periodics.periodic == true)
+        {
+          e = rr1*gl[0] + rr3*(gl[1] + gl[6]) + rr5*(gl[2] + gl[7] + gl[8]) + rr7*(gl[3] + gl[5]) + rr9*gl[4];
+          ei = 0.50*(rr3*(gli[1] + gli[6])*psc3 + rr5*(gli[2] + gli[7])*psc5 + rr7*gli[3] * psc7);
+          e = f*mscale[kk] * e * fQ;
+          ei = f *ei * fQ;
         }
-        else{*/
-        e = rr1*gl[0] + rr3*(gl[1] + gl[6]) + rr5*(gl[2] + gl[7] + gl[8]) + rr7*(gl[3] + gl[5]) + rr9*gl[4];
-        ei = 0.50*(rr3*(gli[1] + gli[6])*psc3 + rr5*(gli[2] + gli[7])*psc5 + rr7*gli[3] * psc7);
-        e = f*mscale[kk] * e;
-        ei = f *ei;
-        //}
+        else {
+          e = rr1*gl[0] + rr3*(gl[1] + gl[6]) + rr5*(gl[2] + gl[7] + gl[8]) + rr7*(gl[3] + gl[5]) + rr9*gl[4];
+          ei = 0.50*(rr3*(gli[1] + gli[6])*psc3 + rr5*(gli[2] + gli[7])*psc5 + rr7*gli[3] * psc7);
+          e = f*mscale[kk] * e;
+          ei = f *ei;
+        }
 
 
         em = em + e;
@@ -4306,61 +4278,61 @@ void energy::interfaces::amoeba::amoeba_ff::rot_matrix(coords::Representation_3D
       switch (mult.p_rot.axt)
       {
 
-        case multipole::axtype::NONE: // 0
-        {
-          am.x().x() = 1.0;
-          am.z().z() = 1.0;
-          break;
-        }
+      case multipole::axtype::NONE: // 0
+      {
+        am.x().x() = 1.0;
+        am.z().z() = 1.0;
+        break;
+      }
 
-        case multipole::axtype::Z_AXIS: // 1
-        {
-          am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
-          coords::Cartesian_Point d = scon::randomized<coords::Cartesian_Point>();
-          d -= am.z() * dot(d, am.z());
-          am.x() = normalized(d);
-          break;
-        }
+      case multipole::axtype::Z_AXIS: // 1
+      {
+        am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
+        coords::Cartesian_Point d = scon::randomized<coords::Cartesian_Point>();
+        d -= am.z() * dot(d, am.z());
+        am.x() = normalized(d);
+        break;
+      }
 
-        case multipole::axtype::Z_THEN_X: // 2
-        {
-          am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
-          coords::Cartesian_Point d(pos[mult.axes.x()] - pos[mult.center]);
-          d -= am.z()*dot(d, am.z());
-          am.x() = normalized(d);
-          break;
-        }
+      case multipole::axtype::Z_THEN_X: // 2
+      {
+        am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
+        coords::Cartesian_Point d(pos[mult.axes.x()] - pos[mult.center]);
+        d -= am.z()*dot(d, am.z());
+        am.x() = normalized(d);
+        break;
+      }
 
-        case multipole::axtype::BISECTOR: // 3
-        {
-          coords::Cartesian_Point const d1(normalized(pos[mult.axes.z()] - pos[mult.center]));
-          coords::Cartesian_Point const d2(normalized(pos[mult.axes.x()] - pos[mult.center]));
-          am.z() = normalized(d1 + d2);
-          am.x() = normalized(d2 - (am.z() * scon::dot(d2, am.z())));
-          break;
-        }
+      case multipole::axtype::BISECTOR: // 3
+      {
+        coords::Cartesian_Point const d1(normalized(pos[mult.axes.z()] - pos[mult.center]));
+        coords::Cartesian_Point const d2(normalized(pos[mult.axes.x()] - pos[mult.center]));
+        am.z() = normalized(d1 + d2);
+        am.x() = normalized(d2 - (am.z() * scon::dot(d2, am.z())));
+        break;
+      }
 
-        case multipole::axtype::Z_BISECTOR: // 4
-        {
-          am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
-          coords::Cartesian_Point const d1(normalized(pos[mult.axes.x()] - pos[mult.center]));
-          coords::Cartesian_Point const d2(normalized(pos[mult.axes.y()] - pos[mult.center]));
-          coords::Cartesian_Point d(normalized(d1 + d2));
-          d -= am.z()*dot(d, am.z());
-          am.x() = normalized(d);
-          break;
-        }
+      case multipole::axtype::Z_BISECTOR: // 4
+      {
+        am.z() = normalized(pos[mult.axes.z()] - pos[mult.center]);
+        coords::Cartesian_Point const d1(normalized(pos[mult.axes.x()] - pos[mult.center]));
+        coords::Cartesian_Point const d2(normalized(pos[mult.axes.y()] - pos[mult.center]));
+        coords::Cartesian_Point d(normalized(d1 + d2));
+        d -= am.z()*dot(d, am.z());
+        am.x() = normalized(d);
+        break;
+      }
 
-        case multipole::axtype::THREEFOLD: // 5
-        {
-          coords::Cartesian_Point const d1(normalized(pos[mult.axes.z()] - pos[mult.center]));
-          coords::Cartesian_Point const d2(normalized(pos[mult.axes.x()] - pos[mult.center]));
-          coords::Cartesian_Point const d3(normalized(pos[mult.axes.y()] - pos[mult.center]));
-          am.z() = normalized(d1 + d2 + d3);
-          am.x() = normalized(d2 - am.z()*scon::dot(d2, am.z()));
-          break;
+      case multipole::axtype::THREEFOLD: // 5
+      {
+        coords::Cartesian_Point const d1(normalized(pos[mult.axes.z()] - pos[mult.center]));
+        coords::Cartesian_Point const d2(normalized(pos[mult.axes.x()] - pos[mult.center]));
+        coords::Cartesian_Point const d3(normalized(pos[mult.axes.y()] - pos[mult.center]));
+        am.z() = normalized(d1 + d2 + d3);
+        am.x() = normalized(d2 - am.z()*scon::dot(d2, am.z()));
+        break;
 
-        }
+      }
 
       }
 
@@ -4609,7 +4581,7 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
   nijx.clear();
   zetax.clear();
   char buffer[200];
-  ifstream nijf("spackman.prm", ios::in);
+  std::ifstream nijf("spackman.prm", std::ios::in);
 
 
   while (!nijf.eof())
@@ -4620,9 +4592,11 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
 
     k kbuffer;
     hh hbuffer;
+    oo oobuffer;
+    nn nnbuffer;
 
 
-    string forcefield;
+    std::string forcefield;
 
 
 
@@ -4667,16 +4641,27 @@ void energy::interfaces::amoeba::amoeba_ff::parameters()
     }
 
 
-    else if (control == 'k') {
+    else if (control == '6') {
 
       sscanf(buffer, "%*s %lf ", &kbuffer.temp5);
       kappan.push_back(kbuffer.temp5);
 
     }
-    else if (control == 'h') {
+    else if (control == '1') {
 
       sscanf(buffer, "%*s %lf ", &hbuffer.temp6);
       kappan.push_back(hbuffer.temp6);
+
+    }
+    else if (control == '5') {
+
+      sscanf(buffer, "%*s %lf ", &nnbuffer.temp7);
+      kappan.push_back(nnbuffer.temp7);
+    }
+    else if (control == '8') {
+
+      sscanf(buffer, "%*s %lf ", &oobuffer.temp8);
+      kappan.push_back(oobuffer.temp8);
 
     }
     else if (control == 'e') break;
@@ -4700,37 +4685,36 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   //double bohr=0.52917720859;
   //double pi=3.141592653589793238;
   //double coulomb=332.063709;
-  //		  vector <vector<double> > coef;
-  //		  vector <vector<vector<double> > > pij;
-  //		  vector <double> sscat;
+  //		  std::vector <std::vector<double> > coef;
+  //		  std::vector <std::vector<std::vector<double> > > pij;
+  //		  std::vector <double> sscat;
   //		  double aLimes,bLimes,fak,smax;
   //double sum1, sum2, tnm,del,ddel,sum,kap,f,argBessel0,e,q,qsum=0,esum=0;
   //double zz,pp;
   //		  //ptrdiff_t n_atom=24;
   //		 // vector <double> kappa/*atomic(24)*/;
-  //vector <size_t>  atomic;		
+  //std::vector <size_t>  atomic;		
   //		  double distx=0, disty=0, distz=0, dist=0, dist_3=0;
-  //vector <double> kappa;
+  //std::vector <double> kappa;
   //size_t n_atom=2;
 
-  //const _scon::nv3d_ &positions = C->positions;
+  //const scon::c3<double> &positions = coords->xyz();
 
 
 
 
   //double dextemp1;
-  // Coord::vect gradient;
-  //ofstream fout1("grad1.out");
-  //ofstream fout2("grad2.out");
-  //ofstream fout3("grad3.out");
-  //ofstream fout4("grad4.out");
-  //ofstream fout5("grad5.out");
-  //ofstream fout6("grad6.out");
+  //Coord::vect gradient;
+  //std::ofstream fout1("grad1.in");
+  //std::ofstream fout2("grad2.in");
+  //std::ofstream fout3("grad3.in");
+  //std::ofstream fout4("grad4.in");
+  //std::ofstream fout5("grad5.in");
+  //std::ofstream fout6("grad6.in");
   /* size_t kappamax=2;  */
   double dist;
   int cut = 11002;
   //double cut=(10.0*1000)+1001;  
-  int i;
 
   exa11.resize(cut);
   exa22.resize(cut);
@@ -4740,21 +4724,55 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   dex22.resize(cut);
   dex33.resize(cut);
 
-  ifstream in1("HH_GRAD.in", ios::in);
-  ifstream in2("CC_GRAD.in", ios::in);
-  ifstream in3("CH_GRAD.in", ios::in);
-  ifstream in4("HH_EN.in", ios::in);
-  ifstream in5("CC_EN.in", ios::in);
-  ifstream in6("CH_EN.in", ios::in);
-  char buffer[200];
-  Doub temp;
+  exa44.resize(cut);
+  exa55.resize(cut);
+  exa66.resize(cut);
+  dex44.resize(cut);
+  dex55.resize(cut);
+  dex66.resize(cut);
 
-  i = 0;
+  exa77.resize(cut);
+  exa88.resize(cut);
+  exa99.resize(cut);
+  exa1010.resize(cut);
+  dex77.resize(cut);
+  dex88.resize(cut);
+  dex99.resize(cut);
+  dex1010.resize(cut);
+
+
+  std::ifstream in1("HH_GRAD.in", std::ios::in);
+  std::ifstream in2("CC_GRAD.in", std::ios::in);
+  std::ifstream in3("CH_GRAD.in", std::ios::in);
+  std::ifstream in4("HH_EN.in", std::ios::in);
+  std::ifstream in5("CC_EN.in", std::ios::in);
+  std::ifstream in6("CH_EN.in", std::ios::in);
+
+  std::ifstream in7("OH_GRAD.in", std::ios::in);
+  std::ifstream in8("OC_GRAD.in", std::ios::in);
+  std::ifstream in9("OO_GRAD.in", std::ios::in);
+  std::ifstream in10("OH_EN.in", std::ios::in);
+  std::ifstream in11("OC_EN.in", std::ios::in);
+  std::ifstream in12("OO_EN.in", std::ios::in);
+
+  std::ifstream in13("NH_GRAD.in", std::ios::in);
+  std::ifstream in14("NC_GRAD.in", std::ios::in);
+  std::ifstream in15("NN_GRAD.in", std::ios::in);
+  std::ifstream in16("NO_GRAD.in", std::ios::in);
+  std::ifstream in17("NH_EN.in", std::ios::in);
+  std::ifstream in18("NC_EN.in", std::ios::in);
+  std::ifstream in19("NN_EN.in", std::ios::in);
+  std::ifstream in20("NO_EN.in", std::ios::in);
+
+  char buffer[200];
+  double temp;
+
+  size_t i = 0;
   while (!in1.eof())
   {
     in1.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa11[i + 1] = temp;
+    exa11[i] = temp;
     i++;
   }
   i = 0;
@@ -4762,7 +4780,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in2.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa22[i + 1] = temp;
+    exa22[i] = temp;
     i++;
   }
   i = 0;
@@ -4770,7 +4788,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in3.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    exa33[i + 1] = temp;
+    exa33[i] = temp;
     i++;
   }
   i = 0;
@@ -4778,7 +4796,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in4.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex11[i + 1] = temp;
+    dex11[i] = temp;
 
     i++;
   }
@@ -4787,7 +4805,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in5.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex22[i + 1] = temp;
+    dex22[i] = temp;
     i++;
   }
   i = 0;
@@ -4795,17 +4813,146 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   {
     in6.getline(buffer, 200);
     sscanf(buffer, "%lf", &temp);
-    dex33[i + 1] = temp;
+    dex33[i] = temp;
     i++;
   }
-  for (i = 1; i < 11002; i++) {
+  i = 0;
+  while (!in7.eof())
+  {
+    in7.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa44[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in8.eof())
+  {
+    in8.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa55[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in9.eof())
+  {
+    in9.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa66[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in10.eof())
+  {
+    in10.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex44[i] = temp;
+
+    i++;
+  }
+  i = 0;
+  while (!in11.eof())
+  {
+    in11.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex55[i] = temp;
+
+    i++;
+  }
+  i = 0;
+  while (!in12.eof())
+  {
+    in12.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex66[i] = temp;
+
+    i++;
+  }
+  i = 0;
+
+
+
+  while (!in13.eof())
+  {
+    in13.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa77[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in14.eof())
+  {
+    in14.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa88[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in15.eof())
+  {
+    in15.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa99[i] = temp;
+    i++;
+  }
+  i = 0;
+  while (!in16.eof())
+  {
+    in16.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    exa1010[i] = temp;
+    i++;
+  }
+  i = 0;
+
+
+  while (!in17.eof())
+  {
+    in17.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex77[i] = temp;
+
+    i++;
+  }
+  i = 0;
+  while (!in18.eof())
+  {
+    in18.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex88[i] = temp;
+
+    i++;
+  }
+  i = 0;
+  while (!in19.eof())
+  {
+    in19.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex99[i] = temp;
+
+    i++;
+  }
+  i = 0;
+  while (!in20.eof())
+  {
+    in20.getline(buffer, 200);
+    sscanf(buffer, "%lf", &temp);
+    dex1010[i] = temp;
+
+    i++;
+  }
+
+
+
+
+
+  for (i = 1; i <= 11002; i++) {
     dist = i*0.001;
-    eveca1[i] = dist;
+    eveca1[i - 1] = dist;
 
   }
 
   // 	//	!Initialisierung	
-  // 		
+
   //
   // //!Initialsisierung	
   // atomic.clear();
@@ -4944,21 +5091,21 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   //     }
   //     for (i=1;i<2;i++){
   //       		
-  //       atomic.push_back(1);
-  //       kappa.push_back(kappan[1]);
+  //       atomic.push_back(7);
+  //       kappa.push_back(1.0);
   //     }
 
 
   //     }
   //   //  !C-C
   //     else if (nn == 1 ){ for (i=1;i<2;i++){
-  //       atomic.push_back(6);
-  //       kappa.push_back(kappan[0]);
+  //       atomic.push_back(7);
+  //       kappa.push_back(1.0);
   //     }
   //     for (i=1;i<2;i++){
   //       	
-  //       atomic.push_back(6);
-  //       kappa.push_back(kappan[0]);
+  //       atomic.push_back(8);
+  //       kappa.push_back(1.0);
   //     }
 
 
@@ -4970,13 +5117,13 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
 
   //   //  !c-H
   //     else if (nn == 2 ){ for (i=1;i<2;i++){
-  //       atomic.push_back(6);
-  //       kappa.push_back(kappan[0]); 
+  //       atomic.push_back(7);
+  //       kappa.push_back(1.0); 
   //     }
   //     for (i=1;i<2;i++){
   //   
-  //       atomic.push_back(1);
-  //       kappa.push_back(kappan[1]);
+  //       atomic.push_back(6);
+  //       kappa.push_back(kappan[0]);
   //     }
 
 
@@ -4997,10 +5144,8 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   // //   //  				}
   // //   //// !......
 
-
-  //     for(ia=0; ia <2 ; ia++){
+  //     for( ia=0; ia <2 ; ia++){
   //       i1=atomic[ia];
-  //       //cout<<atomic[ia]<<"atomic2"<<endl;
   //       kap=1.0;
   //       //!Core
   //       if( (i1 == 1) && (kappa[ia] != 0.0)) kap=kappa[ia]; 			
@@ -5036,7 +5181,6 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   //           for(j2=j1;j2<nbas;j2++){
   //             zz=(zetax[i1-1][j1]+zetax[i1-1][j2])/bohr;
   //             k=nijx[i1-1][j1]+nijx[i1-1][j2];
-  //             //cout<<zz<<endl;
   //             pp=pij[j1][j2][i1-1];
   //             if(j1 != j2) {pp=2.0*pp;}
   //             sum2+= pp*coef[i1-1][j1]*coef[i1-1][j2]*(fff_f1(k,(this->sscat[i+1]/kap),zz)); //!function
@@ -5054,7 +5198,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
   //     eveca1[ii]=((ii)*0.001);
 
   //     n_atom=1;
-  //   cout << "TEST5" << endl;
+
 
   //     for(size_t i=1; i<2;i++){
   //       kk=2;
@@ -5107,7 +5251,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
 
 
 
-  //       e=(qsum+((2.0*esum)/PI))*coulomb;
+  //       e=(qsum+((2.0*esum)/pi))*coulomb;
 
 
 
@@ -5116,16 +5260,16 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
 
   //       if ( nn == 0) {
   //         exa11[ii]=e;
-  //         fout1<<setprecision(16)<<exa11[ii]<<endl;
+  //         fout1<<std::setprecision(16)<<exa11[ii]<<std::endl;
   //       }
 
   //       else if ( nn == 1) {
   //         exa22[ii]=e;
-  //	  fout2<<setprecision(16)<<exa22[ii]<<endl;
+  //	  fout2<<std::setprecision(16)<<exa22[ii]<<std::endl;
   //       }
   //       else if ( nn == 2 ) {
   //         exa33[ii]=e;
-  //	  fout3<<setprecision(16)<<exa33[ii]<<endl;
+  //	  fout3<<std::setprecision(16)<<exa33[ii]<<std::endl;
   //       }
   //  }
   //  
@@ -5187,20 +5331,20 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_list_analytical1() {
 
   //	  
 
-  //       e=(qsum+((2.0*esum)/PI))*coulomb;
+  //       e=(qsum+((2.0*esum)/pi))*coulomb;
 
   //	  if ( nn == 0) {
   //         dex11[ii]=e;
-  //        fout4<<setprecision(16)<<dex11[ii]<<endl;
+  //        fout4<<std::setprecision(16)<<dex11[ii]<<std::endl;
   //       }
 
   //       else if ( nn == 1) {
   //         dex22[ii]=e;
-  //       fout5<<setprecision(16)<<dex22[ii]<<endl;
+  //       fout5<<std::setprecision(16)<<dex22[ii]<<std::endl;
   //       }
   //       else if ( nn == 2 ) {
   //         dex33[ii]=e;
-  //	fout6<<setprecision(16)<<dex33[ii]<<endl;
+  //	fout6<<std::setprecision(16)<<dex33[ii]<<std::endl;
   //       }
   //  
   //	  }
@@ -5352,7 +5496,8 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman1() {
     atomic.push_back(coords->atoms(i).number());
     if (coords->atoms(i).symbol() == "h" || coords->atoms(i).symbol() == "H") kappa[i] = kappan[1];
     else if (coords->atoms(i).symbol() == "c" || coords->atoms(i).symbol() == "C") kappa[i] = kappan[0];
-    else kappa[i] = 1.0;
+    else if (coords->atoms(i).symbol() == "n" || coords->atoms(i).symbol() == "N") kappa[i] = kappan[2];
+    else if (coords->atoms(i).symbol() == "o" || coords->atoms(i).symbol() == "O") kappa[i] = kappan[3];
   }
 
   //!getting atomic charges
@@ -5384,6 +5529,7 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman1() {
     //!Core
 
     if ((i1 == 1) && (kappa[ia] != 0.0)) kap = kappa[ia];
+
     for (i = 0; i < kp; i++) {
       sum1 = 0.0;
       for (j1 = 0; j1 < 7; j1++) {
@@ -5621,17 +5767,14 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_GRAD() {
 //!calculation of analytical gradients for Spackman correction using generated list from Spackman_list	  
 void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 {
-  double distx = 0, disty = 0, distz = 0, dist_3 = 0;
-  vector <double> dist_2;
-  Doub xx_in;
-  double fac_x, fac_y, fac_z;
-  double xgrad, ygrad, zgrad;
-  size_t n;
-  size_t contr = 0;
+  size_t n(0), contr(0);
+  double distx(0.0), disty(0.0), distz(0.0), dist_3(0.0),
+    xx_in(0.0), fac_x(0.0), fac_y(0.0), fac_z(0.0),
+    xgrad(0.0), ygrad(0.0), zgrad(0.0), y(0.0);
+  std::vector <double> dist_2;
   auto const &positions = coords->xyz();
   coords::Cartesian_Point bv, b, gv;
   //scon::nv3d &gradients = part_grad[energy::interfaces::amoeba::types::short_range_an];
-  Doub y;
   //	    double start = omp_get_wtime();
   //
   //	    
@@ -5645,9 +5788,26 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
   //!Spline_interp == cubic spline
   //!Poly_interp == polynominal spline
   //!Linear_interp == linear spline	    
-  Spline_interp myfunc11(eveca1, exa22);
-  Spline_interp myfunc22(eveca1, exa11);
-  Spline_interp myfunc33(eveca1, exa33);
+  ///CC-interaction
+  Linear_interp_sorted myfunc11(eveca1, exa22);
+  ///HH-interaction
+  Linear_interp_sorted myfunc22(eveca1, exa11);
+  ///CH-interaction
+  Linear_interp_sorted myfunc33(eveca1, exa33);
+  ///OH-interaction
+  Linear_interp_sorted myfunc44(eveca1, exa44);
+  ///OO-interaction
+  Linear_interp_sorted myfunc55(eveca1, exa55);
+  ///OC-interaction
+  Linear_interp_sorted myfunc66(eveca1, exa66);
+  ///NH-interaction
+  Linear_interp_sorted myfunc77(eveca1, exa77);
+  ///NN-interaction
+  Linear_interp_sorted myfunc88(eveca1, exa88);
+  ///NC-interaction
+  Linear_interp_sorted myfunc99(eveca1, exa99);
+  ///NO-interaction
+  Linear_interp_sorted myfunc1010(eveca1, exa1010);
   //
   //
   ////!loop over monomer interactions 	    
@@ -5663,6 +5823,20 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 2;
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 3;
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 3;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 4;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 4;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 5;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 6;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 6;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 7;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 7;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 8;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 9;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 9;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 10;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 10;
+
+
     distx = positions[vec_spack[i].atom[0]].x() - positions[vec_spack[i].atom[1]].x();
     disty = positions[vec_spack[i].atom[0]].y() - positions[vec_spack[i].atom[1]].y();
     distz = positions[vec_spack[i].atom[0]].z() - positions[vec_spack[i].atom[1]].z();
@@ -5690,59 +5864,96 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
       n = 1000;
       if (contr == 1) {
 
-        //!interpolation 
 
-        // 			  y=dex22[l];
-
-        y = myfunc11.interp(xx_in);
+        y = myfunc11.interpolate(xx_in);
 
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
         zgrad = (fac_z*y);
-        // 			   if(y < 0.001) {
-        // 			    xgrad = 0.0;
-        // 			    ygrad = 0.0;
-        // 			    zgrad = 0.0;}
 
       }
 
       else if (contr == 2) {
 
-
-
-
-        // 			 y=dex11[l];
-
-
-        y = myfunc22.interp(xx_in);
+        y = myfunc22.interpolate(xx_in);
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
         zgrad = (fac_z*y);
-        // 			  if(y < 0.001) {
-        // 			    xgrad = 0.0;
-        // 			    ygrad = 0.0;
-        // 			    zgrad = 0.0;}
 
       }
 
       else if (contr == 3) {
 
-
-
-
-        // 			y=dex33[l];
-
-
-        y = myfunc33.interp(xx_in);
+        y = myfunc33.interpolate(xx_in);
         xgrad = (fac_x*y);
         ygrad = (fac_y*y);
         zgrad = (fac_z*y);
-        // 			 if(y < 0.001) {
-        // 			    xgrad = 0.0;
-        // 			    ygrad = 0.0;
-        // 			    zgrad = 0.0;}
 
       }
+      else if (contr == 4) {
+
+        y = myfunc44.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 5) {
+
+        y = myfunc55.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 6) {
+
+        y = myfunc66.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 7) {
+
+        y = myfunc77.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 8) {
+
+        y = myfunc88.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 9) {
+
+        y = myfunc99.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+      else if (contr == 10) {
+
+        y = myfunc1010.interpolate(xx_in);
+
+        xgrad = (fac_x*y);
+        ygrad = (fac_y*y);
+        zgrad = (fac_z*y);
+
+      }
+
     }
     else  continue;
 
@@ -5751,8 +5962,6 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
     gv.y() = ygrad;
     gv.z() = zgrad;
 
-    /*	gradients[vec_spack[i].atom[0]] += gv;
-      gradients[vec_spack[i].atom[1]] -= gv;*/
     part_grad[SHORTRANGE][vec_spack[i].atom[0]] += gv;
     part_grad[SHORTRANGE][vec_spack[i].atom[1]] -= gv;
 
@@ -5762,34 +5971,41 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 //
 double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
 {
-  double distx = 0, disty = 0, distz = 0, dist_3 = 0;
-  vector <double> dist_2;
-  Doub xx_in;
-  size_t n;
-  size_t contr = 0;
+  size_t n(0), contr(0);
+  double distx = 0, disty = 0, distz = 0, dist_3 = 0, xx_in(0.0),
+    y(0.0), energytemp(0.0);
+  std::vector <double> dist_2;
   auto const &positions = coords->xyz();
-  coords::Cartesian_Point bv, b, gv;
-  Doub y;
-  double energytemp(0.0);
-  //	    double start = omp_get_wtime();
-  //
-  //	    
-  //
-  //
-  //
-  /* cout<<"ENERGY INTERPOLATION" << endl;*/
+  coords::Cartesian_Point bv;
+
   //!initialize Spline routine
   //!Spline_interp == cubic spline
   //!Poly_interp == polynominal spline
-  //!Linear_interp == linear spline	    
-  Spline_interp myfunc11(eveca1, dex22);
-  Spline_interp myfunc22(eveca1, dex11);
-  Spline_interp myfunc33(eveca1, dex33);
+  //!Linear_interp == linear spline
+  ///CC-interaction
+  Linear_interp_sorted myfunc11(eveca1, dex22);
+  ///HH-interaction
+  Linear_interp_sorted myfunc22(eveca1, dex11);
+  ///CH-interaction
+  Linear_interp_sorted myfunc33(eveca1, dex33);
+  ///OH-interaction
+  Linear_interp_sorted myfunc44(eveca1, dex44);
+  ///OO-interaction
+  Linear_interp_sorted myfunc55(eveca1, dex55);
+  ///OC-interaction
+  Linear_interp_sorted myfunc66(eveca1, dex66);
+  ///NH-interaction
+  Linear_interp_sorted myfunc77(eveca1, dex77);
+  ///NN-interaction
+  Linear_interp_sorted myfunc88(eveca1, dex88);
+  ///NC-interaction
+  Linear_interp_sorted myfunc99(eveca1, dex99);
+  ///NO-interaction
+  Linear_interp_sorted myfunc1010(eveca1, dex1010);
   //
   //
   ////!loop over monomer interactions 	    
   //	
-  y = 0.0;
   for (size_t i = 0; i < vec_spack.size(); i++) {
     //	    
     //	    
@@ -5800,6 +6016,19 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 2;
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 3;
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 3;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 4;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 4;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 5;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 6;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 6;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "H") contr = 7;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "H" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 7;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 8;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "C") contr = 9;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "C" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 9;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 10;
+    if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 10;
+
     distx = positions[vec_spack[i].atom[0]].x() - positions[vec_spack[i].atom[1]].x();
     disty = positions[vec_spack[i].atom[0]].y() - positions[vec_spack[i].atom[1]].y();
     distz = positions[vec_spack[i].atom[0]].z() - positions[vec_spack[i].atom[1]].z();
@@ -5812,19 +6041,61 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
       xx_in = dist_3;
       n = 1000;
       if (contr == 1) {
-        y = myfunc11.interp(xx_in);
+        y = myfunc11.interpolate(xx_in);
 
       }
 
       else if (contr == 2) {
-        y = myfunc22.interp(xx_in);
+        y = myfunc22.interpolate(xx_in);
 
 
       }
 
       else if (contr == 3) {
 
-        y = myfunc33.interp(xx_in);
+        y = myfunc33.interpolate(xx_in);
+
+      }
+      else if (contr == 4) {
+
+        y = myfunc44.interpolate(xx_in);
+
+
+      }
+      else if (contr == 5) {
+
+        y = myfunc55.interpolate(xx_in);
+
+
+      }
+      else if (contr == 6) {
+
+        y = myfunc66.interpolate(xx_in);
+
+
+      }
+      else if (contr == 7) {
+
+        y = myfunc77.interpolate(xx_in);
+
+
+      }
+      else if (contr == 8) {
+
+        y = myfunc88.interpolate(xx_in);
+
+
+      }
+      else if (contr == 9) {
+
+        y = myfunc99.interpolate(xx_in);
+
+
+      }
+      else if (contr == 10) {
+
+        y = myfunc1010.interpolate(xx_in);
+
 
       }
     }

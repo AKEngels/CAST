@@ -2,9 +2,7 @@
 #include "configuration.h"
 #include "coords_atoms.h"
 
-#include <string>
-#include <cstddef>
-#include <utility>
+
 
 /* ############################################
 
@@ -27,21 +25,21 @@
 coords::Atom::Atom(std::string s)
   : m_symbol(s), m_number(atomic::atomic_number_by_symbol(s)),
   m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
-  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
+  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[m_number])
 { }
 
 
 coords::Atom::Atom(std::size_t n)
   : m_symbol(atomic::symbolMap[n]), m_number(n),
   m_mass(atomic::massMap[m_number]), m_system(0U), m_etype(0U),
-  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
+  m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[m_number])
 { }
 
 
 coords::Atom::Atom(double m)
   : m_symbol(atomic::symbolMap[atomic::atomic_number_by_mass(m)]),
   m_number(atomic::atomic_number_by_mass(m)), m_mass(m), m_system(0U),
-  m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false)
+  m_etype(0U), m_sub_id(ST_DEFAULT), m_fix(false), m_intern_root(false), m_cov_rad(atomic::cov_radiusMap[atomic::atomic_number_by_mass(m)])
 { }
 
 
@@ -214,6 +212,8 @@ struct Part_of_Ring
 
 //#define PRINT_MAIN_AXIS
 
+/// DEOX
+/// @return VOID
 void coords::Atoms::refine_mains()
 {
   fix_rotation(m_atoms);
@@ -226,7 +226,7 @@ void coords::Atoms::refine_mains()
     if (atom(mti).ibond() <= N)
       atom_has_main_torsion_attached[atom(mti).ibond()] = mti;
   }
-  std::cout << std::boolalpha;
+  //std::cout << std::boolalpha;
 
   bool const decoupled_molecules = m_molecules.size() > 1 &&
     Config::get().coords.decouple_internals &&
@@ -270,8 +270,7 @@ void coords::Atoms::refine_mains()
     bool const not_only_hydrogen = !rotates_single_atom ||
       atom(atom(i).i_to_a()).number() > 1u;
     // is hydrogen only rotation to be removed?
-    bool const non_removed_rotation = not_only_hydrogen ||
-      !Config::get().coords.remove_hydrogen_rot;
+    bool const non_removed_rotation = not_only_hydrogen || !Config::get().coords.remove_hydrogen_rot;
     //! is this atom fixed?
     bool const not_fixed = !m_atoms[i].ifix();
     // does a main torsion exist for the current axis?
@@ -287,7 +286,7 @@ void coords::Atoms::refine_mains()
       (!molecule_rotation && saturated_bond && non_removed_rotation && list_allowed &&
         main_does_not_yet_exist && rotates_no_ringbond && not_fixed))
     {
-#ifdef PRINT_MAIN_AXIS
+#ifdef _CAST_DEBUG_PRINT_MAIN_AXIS
       std::cout << "Atom " << atom(i).i_to_a() << " is rotated as main with axis ";
       std::cout << (ib < N ? atom(ib).i_to_a() : ib) << "--";
       std::cout << (ia < N ? atom(ia).i_to_a() : ia) << "\n";
@@ -301,7 +300,7 @@ void coords::Atoms::refine_mains()
     }
 
   }
-  if (Config::get().general.verbosity > 4)
+  if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Identified " << main_torsion_indices.size() << " main torsions.\n";
   }
@@ -332,15 +331,18 @@ void coords::Atoms::refine_internals()
   main_angle_indices.clear();
   main_torsion_indices.clear();
   // Build internals
-  std::size_t const N(size());
-  std::vector<bool> done(N, false);
+  std::size_t const numberOfAtoms(size());
+  std::deque<bool> done(numberOfAtoms, false);
   std::size_t current_internal(0u);
   // cycle rest
-  for (std::size_t i(0U); i < N; ++i)
+  for (std::size_t i = 0u; i < numberOfAtoms; ++i)
   {
-    if (done[i]) continue;
+    if (done[i]) 
+      continue;
+
     auto connect_it = Config::get().coords.internal.connect.find(i);
     std::size_t j = 0;
+
     //std::cout << "Atom " << i << " begins new molecule with internal " << current_internal << '\n';
     //// If current internal is not done yet we have a new molecule
     //// Internals of new molcules are always "main" coordinates
@@ -351,14 +353,14 @@ void coords::Atoms::refine_internals()
     //  scon::sorted::insert_unique(main_torsion_indices, current_internal);
     //}
     if (connect_it != Config::get().coords.internal.connect.end() &&
-      (*connect_it).second < N && done[(*connect_it).second])
+      (*connect_it).second < numberOfAtoms && done[(*connect_it).second])
     { // ...  if we find a required connection we add it
       j = atom((*connect_it).second).a_to_i();
     }
     else if (Config::get().coords.decouple_internals || current_internal == 0)
     { // else if we decouple internals we root every new molecule ...
       atom(current_internal).root();
-      j = N;
+      j = numberOfAtoms;
     }
     // ...  otherwise we attach to the last known internal
     else
@@ -378,7 +380,7 @@ void coords::Atoms::refine_internals()
 
 
 void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
-  size_1d &molecule, std::size_t &index_size, std::vector<bool> &done)
+  size_1d &molecule, std::size_t &index_size, std::deque<bool> &done)
 {
   std::size_t const nBound = m_atoms[A].bonds().size();
   //std::cout << "Appending " << nBound << " atoms bound to " << A << "\n";
@@ -398,7 +400,6 @@ void coords::Atoms::append_atoms(std::size_t const lvl, std::size_t const A,
     }
   }
 }
-
 
 void coords::Atoms::get_relatives(std::size_t const i, const std::size_t b)
 {
@@ -658,8 +659,6 @@ void coords::Atoms::c_to_i(PES_Point &p) const
     coords::Cartesian_Point const & rel_dihedral = rel_xyz(atom(i).idihedral(), xyz);
 
     intern[i] = spherical(xyz[ind_i], rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
-
-    //intern[i] = xyz[ind_i].spherical(rel_bond, rel_angle - rel_bond, rel_dihedral - rel_bond);
 
     auto j(i);
     while (j < N)

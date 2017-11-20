@@ -1,15 +1,17 @@
-####################################
+﻿####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
 #                                  #
 #                                  #
 #################################### 
+#
+# Lines beginning with a hashtag are ignored by CAST
 
 # Verbosity 
-# Amount of output information from CAST [0-5] (do not use verbosity > 4 :-)
+# Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
-verbosity              10
+verbosity              3
 
 # Cores
 # Number of OpenMP Threads (if compiled with openmp support)
@@ -27,16 +29,24 @@ cores                  4
 
 # Input file name
 
-name                   nacl.arc
+
+name                   water1.arc
 
 # Output file name
 
-outname                DEVTEST
+outname                output
 
 # Input file type
 
-inputtype              TINKER
 
+inputtype              TINKER
+### AMBER I/O OPTIONS
+
+#amber_mdcrd           
+#amber_mdvel
+#amber_inpcrd
+#amber_restrt           min2.rst
+#amber_trajectory_at_constant_pressure
 
 
 
@@ -46,38 +56,39 @@ inputtype              TINKER
 #                                  #
 ####################################
 
-# SP                   Single point stepcalculation
-# GRAD                 Single point energy calculation
+# SP                   Single point eneryg calculation
+# GRAD                 Single point gradient calculation
+# HESS                 Single point hessian matrix calculation
 # LOCOPT               Local optimization using Lib-LBFGS
-# MD                   Molecular dynamics simulation
-# SOLVADD              Solvation using Solvadd
+# GOSOL                Combined Solvation + Global Optimization
 # MC                   Monte Carlo
-# CENTER               Center of mass/geometry
 # TS                   Tabu Search (CAST: GOTS)
-# WTINKER              Print Tinker structure (e.g. if started from PDB) (CAST: WRITE)
-# RMSD                 Root mean square deviation
 # DIMER                Dimer method using torsional space
+# MD                   Molecular dynamics simulation
 # NEB                  Nudged elastic band calculation
-# INTERACTION          Dividing the Molecule into two parts and calculate the interaction energy
-# RDF                  Radial distribution of water around specified atom groups
-# INTERNAL             Create Z-Matrix
+# STARTOPT             Adding water molecules and/or performing Ringsearch
 # UMBRELLA             Umbrella Sampling
-# PROFILE              Repeated Gradient Calculation of first input structure
-# GOSOL                Globally optimized solvation
+# FEP                  Alchemical transformations using FEP
+# ALIGN                Trajectory Alignment (Kabsch algorithm)
+# PCAgen               Principal Component Analysis
+# PCAproc
+# ENTROPY              Configurational and Conformational Entropy Calculations
 # GRID                 Grid Search
+# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# PATHSAMPLING
+# REMOVE_EXPLICIT_WATER
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# WRITE_TINKER         Writes tinkerstructure into outname.arc
+# INTERNAL             Create Z-Matrix
+# XB_CENTER            Center of mass/geometry
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
 task                   DEVTEST
-
-
-#################################### 
-#                                  #
-#        PROFILE RUNS              #
-#                                  #
-####################################
-
-# Number of repeated gradient calculations for PROFILE task
-
-profileruns            10
 
 
 ####################################
@@ -87,29 +98,40 @@ profileruns            10
 ####################################
 
 # AMBER                AMBER force field
-# (AMOEBA)             AMOEBA03 force field
+# AMOEBA               AMOEBA03 force field
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOPAC2016 syscall Interface
-# QMMM			 QMMM interface (MOPAC + ff)
+# QMMM		       QMMM interface (MOPAC + ff)
+# MOPAC                MOAPC2012 syscall Interface
+# DFTB                 DFTB interface (with DFTBaby)
 
-interface              QMMM
+interface              DFTB
+
 
 # Interface for preoptimizations
-
-preinterface           0
+#preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-
 paramfile              oplsaa_mod.prm
+
+# reading amber charges from separate file (called charges.txt) <0/1>,
+# necessary for reproducing AMBER forefields accuratly
+#chargefile             1
+
+MOPACversion          MOPAC2012
+
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
 
 # Keywords for MOPAC Call
 
 MOPACkey               PM7 QMMM AUX CHARGE=-1
-
 
 # Delete temporary MOPAC comm files?
 
@@ -118,6 +140,15 @@ MOPACdelete            0
 #MOPAC executable path
 
 MOPACpath              "C:\Program Files\mopac\MOPAC2016.exe"
+
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
+
+cutoff                 400.0
+switchdist             10.0
 
 ####################################
 #                                  #
@@ -130,16 +161,149 @@ QMMMqmatoms        	 1
 QMMMmminterface       OPLSAA
 
 
+################# DFTB options ################################################
+
+# path to DFTBaby
+DFTBath                 /home/susanne/DFTBaby-0.1.0
+
+# verbosity (only for DFTBaby)
+DFTBverbose             0
+
+# total charge of molecule (has to be closed shell)
+#DFTBcharge              0
+
+# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
+#DFTBcutoff            30
+
+# switch on long range correction <0/1>
+DFTBlr_corr             1
+
+# distance (in bohr) where the long range correction is switched on
+#DFTBlr_dist            3.03     
+
+# maximum number of iterations for SCF-calculation
+#DFTBmaxiter            1000
+
+# convergence threshold for relative change in SCF-calculation
+#DFTBconv               1e-10
+
+# name of the DFTBaby gradient file 
+DFTBgradfile            grad.xyz
+
+# state for which the DFTB gradients should be calculated (ground state = 0)
+DFTBgradstate          0
+
+# limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
+DFTBstates            1
+
+# number of occupied orbitals taken into account for TD-DFTB
+DFTBocc_orb            2
+
+# number of virtual orbitals taken into account for TD-DFTB
+DFTBvirt_orb            2
+
+# maximum number of iterations for TD-DFTB matrix diagonalisation
+#DFTBdiag_maxiter        50
+
+# convergence threshold for TD-DFTB matrix diagonalisation
+#DFTBdiag_conv           1e-05
+
+# use DFTBaby for optimization (otherwise steepest gradient) <0/1>
+DFTBopt                  1
+
+
+
 ####################################
 #                                  #
-#          CUTOFF RADIUS           #
+#          ATOM FIXATIONS          #
 #                                  #
 ####################################
 
-cutoff                 400.0
-switchdist             10.0
+# Exclude nonbondeds between two fixed atoms in internal force fields
+FIXexclude             false
+
+# Remove rotations of hydrogens from main torsional angles
+REMOVEHROT             false
+
+# Fix a range of atoms 
+#FIXrange               1-6,9,24,55-71,72
 
 
+
+####################################
+#                                  #
+#          Boundary Bias           #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential
+#BIASspherical                <radius> <force> <exponent>
+#BIAScubic                    <x> <y> <z> <force> <exponent>
+
+#BIASspherical  25.0 1.0 2.0
+#BIAScubic 40.0 40.0 40.0 1.0 2.0
+
+
+####################################
+#                                  #
+#        DIHEDRAL FIXATIONS        #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential (quadratic in degreees)
+
+#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
+#BIASdih                1 2 3 5 0.0   10.0 
+#BIASdih                2 5 6 9 150.0 5.0  
+#BIASdih                1 2 5 6 150.0 5.0  
+#BIASdih                1 2 5 6 95.0  10.0 
+
+####################################
+#                                  #
+#        DISTANCE FIXATIONS        #
+#                                  #
+####################################
+
+# Harmonic Distance Bias Potential (in angstrom)
+
+#BIASdist               <atom 1> <atom 2> <angstrom> <force>
+
+
+####################################
+#                                  #
+#             MAINlists            #
+#                                  #
+####################################
+
+# Black- or Whitelist a rotation around a bond
+# for the selection as main rotation
+
+#MAINblacklist 2 5
+
+#MAINwhitelist 2 5
+
+
+####################################
+#                                  #
+#       Periodic Boundaries        #
+#                                  #
+####################################
+
+#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
+Periodics              0 25.0 25.0 25.0
+
+# Print periodic boundary dummy atoms to output?
+#Periodicp            <Active 1(on)/0(off)> 
+
+Periodicp              0
+
+# Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
+PeriodicCutout false
+# 0: Remove entire molecule if any atom of molecule is outside box + CutoutDistance
+# 1: Remove entire molecule if center of mass is outside box + CutoutDistance
+PeriodicCutoutCriterion 1
+# Additional CutoutDistance from box edge in angstrom , where molecules are cut
+PeriodicCutoutDistance 0
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
@@ -150,22 +314,105 @@ BFGSgrad               0.0001
 BFGSmaxstep            5000
 
 
+###################################
+#				  				  #
+#      NEB & PATHOPT OPTIONS      #
+#				  				  #
+###################################
+
+# Second structure for double-ended search
+NEB-PATHOPT-FINAL input.xyz
+
+# Number of NEB images
+NEB-PATHOPT-IMAGES 12
+
+# Force constant in kcal/molA^2 for NEB calculation defining the force component along the connecting band
+NEB-PATHOPT-SPRING 1.0
+
+# Climbing image in NEB 0/1 (off/on)
+NEB-PATHOPT-CLIMBING 1
+
+# Standard tau or improved tau method in NEB 0/1 (standard/improved)
+NEB-PATHOPT-TAU 1
+
+# Definition of the Temperature settings for the Monte Carlo run
+NEB-PATHOPT-TEMP 298.15
+
+# MCM iterations in Pathopt
+NEB-PATHOPT-ITER 60
+
+# Number of multiple MCM simulations
+NEB-PATHOPT-GLOBITER 1
+
+# Optimization mode BIAS/GRADIENT Projection
+NEB-PATHOPT-MODE PROJECTED
+
+# Bias constant (Pathopt)
+NEB-PATHOPT-BIASCONSTANT 0.1
+
+# Maximum displacement in Angstrom for accepted coordinates in MCM 
+NEB-PATHOPT-MAXVAR 3.0
+
+# Maximum energy range in kcal/mol for MCM in Pathopt
+NEB-PATHOPT-ENERGY_RANGE 20.0
+
+# MCM stepsize in Angstrom
+NEB-PATHOPT-STEPSIZE 1.4
+
+# Move strategy by applying dihedral changes at several steps of MCM 0/1 (off/on)
+NEB-PATHOPT-MIXMOVE 0 
+
+# Using NEB connection within Pathopt 0/1 (off/on) 
+NEB-PATHOPT-NEBCONN 0
+
+# Number of NEB images within Pathopt-NEB connection procedure
+NEB-PATHOPT-NEBCONN_NUMBER 12
+
+# Constraint global optimization (MCM standard) by fixation of
+# dihedrals which change the most during NEB
+NEB-PATHOPT-CONSTRAINT_GLOBAL 0
+
+# Number of dihedrals within constraint global optimization 
+# (MCM standard) which should be fixed along the NEB path
+NEB-PATHOPT-CONSTRAINT_NUMBER_DIHEDRALS 1
+
+# Interpolation via spline method between the linear constructed NEB pathway
+# by locally optimizing with perpendicular force projection 0/1 (off/on) 
+NEB-PATHOPT-INT_PATH 0
+
+#step size of interpolated images via spline interpolation approach
+NEB-PATHOPT-INT_IT 0.5
+
+#choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
+NEB-PATHOPT-MAXFLUX 1
+
+#determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
+NEB-PATHOPT-MF_PATHOPT 1
+
+#using image dependent pair potential (IDPP) for NEB pathway generation (0/1: no/yes)
+NEB-PATHOPT-NEB-IDPP 1
+
+#usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+
+NEB-PATHOPT-NEB-COMPLETE 1
+
+#complete pathways or points with interconnection via NEB (0/1: no/yes)
+NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
+
+
 ####################################
 #                                  #
 #        SIMULATION OPTIONS        #
-#          (MC, TS, MD)            #
+#            (MC, TS)              #
 #                                  #
 ####################################
 
 # Simulation Temperature 
 # for TS and MC important for Metropolis Criterion
-# overwritten for MD by MDheatramp
 
 Temperature            298.15
 
 # Number of iterations in global optimization routine 
-# or number of MD simulation steps
-# (overwritten for MD by MDsteps)
 
 Iterations             2000
 
@@ -293,23 +540,6 @@ TSdivers_limit         20
 
 ####################################
 #                                  #
-#       Periodic Boundaries        #
-#                                  #
-####################################
-
-#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 70.0 70.0 70.0
-
-# Print periodic boundary dummy atoms to output?
-#Periodicp            <Active 1(on)/0(off)> 
-
-Periodicp              0
-
-
-
-
-####################################
-#                                  #
 #         STARTOPT OPTIONS         #
 #                                  #
 ####################################
@@ -324,7 +554,7 @@ SOtype                 1
 # startopt structure count
 # number of structures generated by startopt routines
 
-SOstructures           10
+SOstructures           1
 
 
 ####################################
@@ -363,7 +593,7 @@ SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-SAlimit                20
+#SAlimit                500
 
 # water boundary type
 #
@@ -371,11 +601,11 @@ SAlimit                20
 # 1    sphere
 # 2    box
 
-SAboundary             0
+SAboundary             1
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               10.0
+SAradius               12.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -383,7 +613,7 @@ SAradius               10.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                53 54
+SAtypes                63 64
 
 # Intermediate optimizations
 #
@@ -392,9 +622,9 @@ SAtypes                53 54
 # 2    all waters
 # 3    1+2
 
-SAopt                  0
+SAopt                  2
 
-# fix initial structure
+# fix initial structure <0/1>
 
 SAfixinit              1
 
@@ -409,7 +639,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                50000
+MDsteps                10
  
 # Integrator
 #
@@ -420,19 +650,25 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            1
+MDveloscale            0
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 
 MDtimestep             0.001
 
+# start MD again from beginning if molecule gets destroyed
+
+MDrestart_if_broken    1
+
 # Activate Tracking (Log and Snapshots)
 
 MDtrack                1
+
+#MDtrackoffset         0
 
 #
 #   Snapshots
@@ -450,9 +686,16 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0    273.15
-MDheat                 10000 300.15
-MDheat                 50000 0.15
+MDheat                 0   1
+MDheat                 100 300
+
+# Pressure control
+
+#MDpress               0
+
+#MDpcompress
+#MDpdelay
+#MDptarget
  
 # Spehrical boundaries' options
 # 
@@ -468,25 +711,47 @@ MDheat                 50000 0.15
  
 MDrattle               0
 
+#MDrattpar
+
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
  
 #MDrattlebond           7 12
 
+#apply a biased potential
+#MDbiased potential        <0/1>
+
+MDbiased_potential         0
+
+#atom number(s) of active site <every atom a new line>
+#MDactive_site        14
+
+MDactive_site        0
+
+#cutoff around active site <inner/outer>
+#MDcutoff                10 20
+
+MDcutoff                 15  20
+
+#adjust active center + distances with every step
+#MDadjust_by_step     <0/1>
+
+MDadjust_by_step      1
+
 # Iteration offset for restart files
 
 MDrestart_offset       10000
 
-# Iteration offset for structure refinement
+# Iteration offset for building up non-bonded pairlist
 
-MDrestart_offset       100
+MDrefine_offset        100
 
 # Resume simulation from restart file?
 
 MDresume               0
 
-
+#MDpre_optimize
 
 
 ####################################
@@ -496,47 +761,16 @@ MDresume               0
 ####################################
 
 FEPlambda      1.0
-FEPdlambda     0.05
+FEPdlambda     0.1
 FEPvdwcouple   1.0
 FEPeleccouple  0.5
-FEPvshift      0.1
-FEPcshift      2.0
+FEPvshift      0.5
+FEPcshift      0.0
 FEPequil       100
-FEPsteps       500
-FEPfreq        1000
-
-#FEPcoupling  <0> Inter subsystem interactions are scaled <1> inter subsystem interactions are not scaled
-
-FEPcouple   0
-
-
-
-
-####################################
-#                                  #
-#        INTERACTION OPTIONS       #
-#                                  #
-####################################
-
-# The interaction of substructures that are not bound to each other can be calculated
-# IAlimits <Start Index Substructure> <End Index Substructure>
-
-#IAlimits               1 122
-
-
-
-
-####################################
-#                                  #
-#            RDF OPTIONS           #
-#                                  #
-####################################
-
-# Distribution width
-
-RDFwidth               0.5
-
-
+FEPsteps       1000
+FEPfreq        10
+FEPanalyze     1
+FEPbar         1
 
 
 ####################################
@@ -544,7 +778,7 @@ RDFwidth               0.5
 #            PATH OPTIONS          #
 #                                  #
 ####################################
-#
+
 # File containing the desired path end
 
 PRendfile              PATHREL_END.xyz
@@ -556,8 +790,6 @@ PRdeltae               0.5
 # Maximum structure distance with the path
 
 PRdeltax               0.5
-
-
 
 
 ####################################
@@ -615,106 +847,376 @@ USsteps                60
 USsnap                 5
 
 
+####################################
+#                                  #
+#        XB_EXCITON_BREAKUP        #
+#                                  #
+####################################
+
+#Center of masses of all semiconductor molecules
+
+EXmasscenters           CenterofMasses.out
+
+#Numbers of monomers
+
+EXnumbern               36
+
+EXnumberp               80
+
+#Orientation of the interface
+
+EXplaneinterf            z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              nSC_homodimer.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
 
 
 ####################################
 #                                  #
-#       INTERNAL INDEXATION        #
+#      XB_Interface Creation       #           
 #                                  #
 ####################################
 
-#intdex                7
-#intdex                9
-#intdex                10
-#intdex                11 
+#Creation of a new Structure from the usual input structure and an additional one
 
+#Additional input file name
 
+ICname 						but_min.xyz
 
+#Additional input file type
 
-####################################
-#                                  #
-#        DIHEDRAL FIXATIONS        #
-#                                  #
-####################################
+ICinputtype					TINKER
 
-# Quadratic Dihedral Bias Potential (quadratic in degreees)
+#From which axis should tha additional atoms added
 
-#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force> <all atoms> 
+ICaxis						x
 
-#BIASdih                1 2 3 5 0.0   10.0 1
-#BIASdih                2 5 6 9 150.0 5.0  1
-#BIASdih                1 2 5 6 150.0 5.0  1 
-#BIASdih                1 2 5 6 95.0  10.0 1
+#How far apart should they be
 
-#BIASdih                1 2 5 6 60.0 0.01
-
-#BIASdih                1 2 5 6 30.0 1.0 1
-
+ICdistance					5.0
 
 
 ####################################
 #                                  #
-#          Boundary Bias           #
+#             XB_CENTER            #
 #                                  #
 ####################################
 
-# Quadratic Dihedral Bias Potential
-#BIASspherical                <radius> <force> <exponent>
-#BIAScubic                    <x> <y> <z> <force> <exponent>
+CENTERdimer                     1
 
-#BIASspherical  25.0 1.0 2.0
-#BIAScubic 40.0 40.0 40.0 1.0 2.0
+CENTERdistance                  15.0
 
 
 ####################################
 #                                  #
-#          ATOM FIXATIONS          #
+#           XB_Couplings           #
 #                                  #
 ####################################
 
-# Exclude nonbondeds between two fixed atoms in internal force fields
+#Number of p-type semiconductor monomers
 
-FIXexclude             0
+CouplingspSCnumber              80
 
-# Remove rotations of hydrogens from main torsional angles
+#Number of n-type semiconductor monomers         
 
-REMOVEHROT             0
+CouplingsnSCnumber              36
 
-# Fix a range of atoms 
-#FIXrange               <start index> <end index>
+#List of states relevant for ct-processes (no commata)
 
-#FIXrange               1 213
+CouplingsCTcharastates          3 4 7
 
-# Fixation of single atoms
-#ATOMFIX                <INDEX> 
+###p-type homodimer options
 
-#ATOMFIX                1
-#ATOMFIX                3
+CouplingspSCdimMultiplicity          1
+
+CouplingspSCdimCharge                0
+
+CouplingspSCdimElCalcmethod          INDO
+
+CouplingspSCdimExciCalcmethod        ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
+
+###n-type homodimer options
+
+CouplingsnSCdimMultiplicity          1
+
+CouplingsnSCdimCharge                0
+
+CouplingsnSCdimholCalcmethod         INDO
+
+###heterodimer options
+
+CouplingsheterodimMultiplicity       1
+
+CouplingsheterodimCharge             0
+
+CouplingsheterodimCalcmethod         ZINDO TD=(NStates=9, Singlets,AllTransitiondensities, ListWindow) gfinput IOP(6/7=3)
 
 
 ####################################
 #                                  #
-#             MAINlists            #
+#        XB_EXCITON_BREAKUP        #
 #                                  #
 ####################################
 
-# Black- or Whitelist a rotation around a bond
-# for the selection as main rotation
+#Center of masses of all semiconductor molecules
 
-#MAINblacklist 2 5
+EXmasscenters           CenterofMasses.out
 
-#MAINwhitelist 2 5
+#Numbers of monomers
+
+EXnumbern               36
+
+EXnumberp               80
+
+#Orientation of the interface
+
+EXplaneinterf            z
+
+#transition rates for all possible dimers
+
+EXnscpairrates              nSC_homodimer.txt
+
+EXpscpairexrates            homodimer_exciton.txt
+
+EXpscpairchrates            homodimer_ladung.txt
+
+EXpnscpairrates             heterodimer.txt
+
+EXReorgE_exc                0.561
+
+EXReorgE_ch                 0.194
+
+EXReorgE_nSC                0.178
+
+EXReorgE_ct                 0.156
+
+EXReorgE_rek                0.184
+
+EXct_triebkraft             1.550
+
+EXrek_triebkraft           -4.913
+
+EXoscillatorstrength        0.0852
+
+EXwellenzahl                28514.9
 
 
 ####################################
 #                                  #
-#            "ALIGNMENT"           #
+#         LAYER_DEPOSITION         #
+#                                  #
+####################################
+
+#Number of layers
+
+LayDlayers                     3
+
+#Number of molecules deleted per layer
+
+LayDdel_number                 1
+
+#From which axis should the layers be added
+
+LayDaxis                       y 
+
+#How far apart should they be
+
+LayDdistance                   5.0
+
+#Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
+#thresholdpotential    7.0 2.0
+
+#Shall layers of a second moleculetype be added
+
+LayDhet_struc                   1
+
+LayDhet_name
+
+LayDhet_distance                5.0
+
+LayDhet_layers                  4
+
+LayDhet_del_number         1
+
+#Shall monomers be replaced
+
+LayDreplace                     0
+
+LayDreference1
+
+LayDreference2
+
+####################################
+#                                  #
+#              ADJUST              #
 #                                  #
 ####################################
 
 
-#ALIGNdih 1 2 3 4 180.0
-#ALIGNdih 2 3 4 5 180.0
-#ALIGNdih 3 4 5 10 180.0
-#ALIGNdih 4 5 10 11 180.0
-#ALIGNdih 5 10 11 14 180.0
+#ADJUSTdih 1 2 3 4 180.0
+#ADJUSTdih 2 3 4 5 180.0
+
+
+####################################
+#                                  #
+#   TRAJECTORY ALIGNMENT OPTIONS   #
+#                                  #
+####################################
+
+# Should alignment be performed?
+traj_align_bool                true
+# Should distance meassures be calculated and printed?
+traj_print_bool                false
+
+
+# Should we align to an external reference structure? If yes, give file name
+#align_external_file            reference.xyz
+
+# Reference frame for alignment (using Kabsch algorithm)
+# default is "0"
+ref_frame_num                   110
+
+
+# Desired distance masurement unit for output
+# 0: RMSD (default)
+# 1: dRMSD
+# 2: Hold and Sander Score
+
+dist_unit                       0
+
+# if Holm and Sander Score is chosen, pick value for r_c
+# (contact cutoff distance)
+# default is "20", as in original publication
+
+holm_sand_r0                    5
+
+
+####################################
+#                                  #
+#       ENTROPY-CALC OPTIONS   	   #
+#                                  #
+####################################
+
+# Should alignment (Kabsch algorithm, minimizes RMSD) be performed
+# prior to calculations? (options: false / true; true is default)
+# entropy_ref_frame_num gives reference frame for alignment (default is 0)
+entropy_alignment                 true
+entropy_ref_frame_num             0
+
+# Specify first frame to be used in entropy calculations
+# default is 0
+entropy_start_frame_num           0
+# Specify offset value (only every n'th frame will be used in calculations)
+entropy_offset                    1
+
+# Temperature needed for Entropy etc. calculations in K
+entropy_temp                      300.00
+
+# Should the removal of degrees of freedom for rotation / translation be attempted?
+entropy_remove_dof                true
+
+# Use internal coordinates instead of cartesian coordinates?
+# Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
+# "none" also possible
+entropy_use_internal              false
+entropy_internal_bnd              none
+entropy_internal_ang              none
+entropy_internal_dih              4-23
+
+# Should only specific atoms be used for entropy calculations?
+# (only use with cartesian coordinates)
+entropy_trunc_atoms_bool          false
+entropy_trunc_atoms_num           3,4
+
+# Specify method used in entropy-calculations:
+# 1 : Quasi-Harmonic-Approx., configurational entropy, according to Karplus et. al. (DOI 10.1021/ma50003a019)
+# 2 : Quasi-Harmonic-Approx., conformational entropy, according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)
+# 3 : Quasi-Harmonic-Approx., conformational entropy, according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)
+# 4 : Nearest-Neighbor Nonparametric Method, configurational entropy, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)
+# 5 : Nearest-Neighbor Nonparametric Method - Sum of Marginal Entropies, configurational entropy, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)
+# 6 : Quasi-Harmonic-Approx., conformational entropy, according to Schlitter (use cartesians only)
+# 0 : All of the above
+entropy_method                    0
+# if entropy_method = 3 || 4 || 5 : specify value for k in kNN-Algorithm (default is 4)
+entropy_method_knn_k              4
+
+
+####################################
+#                                  #
+#     	PCAgen OPTIONS             #
+#                                  #
+####################################
+
+# Should alignment (Kabsch algorithm, minimizes RMSD) be performed
+# prior to PCA-Analysis? (options: false / true; true is default)
+# pca_ref_frame_num gives reference frame for alignment (default is 0)
+pca_alignment                 true
+pca_ref_frame_num             0
+
+# Specify first frame to be used in PCA-Analysis
+# default is 0
+pca_start_frame_num           0
+
+# Specify offset value (only every n'th frame will be used in calculations)
+#pca_offset                    1
+
+# Should PCA-Mode-Coordinates and Eigenvalues of the covariance-matrix be written to file?
+# If false, we are expecting to read Eigenvectors and PCA-Modes from a previously CAST-generated file.
+pca_read_vectors              false
+pca_read_modes                false
+
+# Use internal coordinates instead of cartesian coordinates? If yes, should they converted to metric coordinate space?
+# Use the CAST task to display the internal z-mat and then enter desired atom-indexes of bondlengths (bnd), angles (ang) and dihedral angles (dih).
+# "none" also possible. Atom indices start at 0.
+pca_use_internal              true
+pca_internal_dih             5-20
+pca_internal_ignore_hydrogen  false
+
+# Should only specific atoms be used for PCA-Analysis?
+pca_trunc_atoms_bool              true
+pca_trunc_atoms_num              5-50
+pca_trunc_atoms_ignore_hydrogen   false
+
+# Print probability density of generated PCA modes?
+pca_print_probability_density  true
+# If true, specify the number of bins or a bin-width for histogramming the data
+pca_histogram_width              0
+pca_histogram_number_of_bins     42
+pca_dimensions_for_histogramming 1,2
+
+
+####################################
+#                                  #
+#     	PCAproc OPTIONS            #
+#                                  #
+####################################
+
+# Desired range of coordinates as principal components to be written.
+# Specify as such: 5.0,7.0,9.0 (this means: dim1, dim2, dim3 etc....)
+proc_desired_start      -5.0
+proc_desired_stop       5.0

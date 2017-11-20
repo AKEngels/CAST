@@ -1,14 +1,44 @@
-#ifndef ATOMIC_H
+/**
+CAST 3
+atomic.h
+Purpose:
+Provides fundamental atomic properties
 
+@author Daniel W
+@version 1.0
+*/
+
+#ifndef ATOMIC_H
 #define ATOMIC_H 87U
 
+#pragma once
 #include <string>
 #include <cmath>
 #include <cstddef>
-  
+#include <exception>
+
+/**
+The namespace atomic contains all the necessary tools to deal with chemical elements
+ans especially their place in the periodic system. The members of this namespace are
+used mainly by the coords::atom class. 
+
+@see \link ::coords::Atoms::refine_mains refine_mains function \endlink
+
+Helper-Functions to convert
+between the atomic mass, number, name, etc. of atoms are provided. 
+
+@warning All access to arrays in this namespace is not zero-based but one-based.
+This means for example that if you want to access the symbolMap at the postition
+relating to "Hydrogen", the first element in the periodic system, you need to write
+@code symbolMap[1]; @endcode
+
+@author unknown PhD student
+@version 1.0
+*/
 namespace atomic 
 {
-
+  /// A map of the element symbols of all chemcial elements.
+  /// @note Access starts using "1" for Hydrogen.
   static const std::string symbolMap[ATOMIC_H] = 
   { "XX", 
    "H",                                                                                                                                                                                       "He", 
@@ -19,6 +49,8 @@ namespace atomic
    "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb",  "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn" 
   };
 
+  /// For each element the "usual" number of bonds this element engages in is provided.
+  /// @note Access starts using "1" for Hydrogen.
   static const std::size_t num_saturated_bonds[ATOMIC_H] =
   { 0,
     1,                                                                                           0,
@@ -29,6 +61,8 @@ namespace atomic
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   };
 
+  /// For each element the full name is provided.
+  /// @note Access starts using "1" for Hydrogen.
   enum nameMap 
   {
     HYDROGEN=1,                                                                                                                                                                            HELIUM, 
@@ -41,6 +75,8 @@ namespace atomic
                                     HAFNIUM, TANTALUM,     WOLFRAM,   RHENIUM,    OSMIUM,   IRIDIUM,  PLATINUM,   GOLD,   MERCURY,    THALLIUM,  LEAD, BISMUTH, POLONIUM,   ASTATINE, RADON
   };
 
+  /// For each element the mass in atomic units.
+  /// @note Access starts using "1" for Hydrogen.
   static const double massMap[ATOMIC_H] = 
   { 0.0, 
     1.00794,                                                                                                                                                          4.0026, 
@@ -52,6 +88,8 @@ namespace atomic
                                 178.49,  180.9479, 183.84,  186.207,  190.23,  192.217,  195.078, 196.9665, 200.59,  204.383, 207.2,   208.908, 208.9824, 209.9871, 222.0176 
   };
 
+  /// For each element a radius in Angstrom.
+  /// @note Access starts using "1" for Hydrogen.
   static const double radiusMap[ATOMIC_H] =
   {
     0.0,
@@ -72,6 +110,29 @@ namespace atomic
     2.0, 2.0, 2.0, 2.0, 2.0 /*81-85*/, 2.0 /*86*/
   };
 
+  /*!
++\brief Covalent radii of the first N_elem elements of the PSE in Angstrom.
++\details Corresponds to the symbol array.
++\see "Covalent radii revisited", Cordero et al., Dalton Trans., 21, 2008,
++pp. 2832-2838
++*/
+static const double cov_radiusMap[ATOMIC_H] = {
+      0.00, 0.31, 0.28, 1.28, 0.96, 0.84, 0.76, 0.71, 0.66, 0.57, 0.58, 1.66, 1.41,
+      1.21, 1.11, 1.07, 1.05, 1.02, 1.06, 2.03, 1.76, 1.70, 1.60, 1.53, 1.39, 1.61,
+      1.52, 1.50, 1.24, 1.32, 1.22, 1.22, 1.20, 1.19, 1.20, 1.20, 1.16, 2.20, 1.95,
+      1.90, 1.75, 1.64, 1.54, 1.47, 1.46, 1.42, 1.39, 1.45, 1.44, 1.42, 1.39, 1.39,
+      1.38, 1.39, 1.40, 2.44, 2.15, 2.07, 2.04, 2.03, 2.01, 1.99, 1.98, 1.98, 1.96,
+      1.94, 1.92, 1.92, 1.89, 1.90, 1.87, 1.87, 1.75, 1.70, 1.62, 1.51, 1.44, 1.41,
+      1.36, 1.36, 1.32, 1.45, 1.46, 1.48, 1.40, 1.50, 1.50
+    };
+  
+  /*! Returns atomic number of an element specified by its symbol.
+   * @param symbol: Atomic symbol as string (such as "He" for helium)
+   * @note This function is sensitive to lower and upper case letters. 
+   If you want to mach the element symbol of Helium correctly to its atomic number,
+   the symbol string needs to be "He" and not "he".
+   * @return:Atomic number of the element. 
+   */
   inline std::size_t atomic_number_by_symbol (std::string const & symbol)
   {
     std::size_t ret(0U);
@@ -86,6 +147,15 @@ namespace atomic
     return ret;
   }
 
+  /*! Returns atomic number of an element specified by its mass.
+  * @param value: Atomic mass in atomic units.
+  * @note Checks the periodic system starting from light elements. The algorithm finds the
+  two elements encompassing the input value. Therefore, the element lighter and the element heavier
+  than the input value is then considered and by comparison the number is matched. Therefore even
+  "impossible" atomic weights can be used as input without error.
+  * @warning This function does not throw an error if the input value is an erroneus atomic mass (which does not exist).
+  * @return Atomic number of the element. Returns zero in case anything went wrong.
+  */
   inline std::size_t atomic_number_by_mass (double const value)
   {
     if (value < 0.0 || atomic::massMap[ATOMIC_H-1U] < value) return 0U;
@@ -97,11 +167,18 @@ namespace atomic
       else high = buffer;
     }
     if (std::fabs(atomic::massMap[low] - value) < 1.0) return low;
-    if ((low < ATOMIC_H-1U) && std::fabs(atomic::massMap[low+1U] - value) < 1.0) return low+1U;
-    if ((low > 1U) && std::fabs(atomic::massMap[low-1U] - value) < 1.0) return low-1U;
+    else if ((low < ATOMIC_H-1U) && std::fabs(atomic::massMap[low+1U] - value) < 1.0) return low+1U;
+    else if ((low > 1U) && std::fabs(atomic::massMap[low-1U] - value) < 1.0) return low-1U;
     return 0;
   } 
 
+  /*! Returns wether an atom is considered a "heteroatom"
+  * @param atomic_number: Atomic number of the element to be checked. 
+  * @note Heteroatoms are considered Nitrogen, Oxygen, Fluorine, Phosphorus, Sulfur, Chlorine, Selenium, Bromine and Iodine.
+  * @return Returns true if the atomic type is considered a heteroatom. Else returns false
+  */
+  /**tests if atom is a heteroatom, i.e. N, O, F, P, S, Cl, Se, Br, I
+  @param atomic_number: atomic number of atoms that is to be tested*/
   inline bool number_is_heteroatom (std::size_t const atomic_number) 
   {
     return atomic_number ==  7u || atomic_number ==  8u || atomic_number ==  9u || 
@@ -109,6 +186,15 @@ namespace atomic
            atomic_number == 34u || atomic_number == 35u || atomic_number == 53u;
   }
 
+  /*! Returns wether an atom's bond situation is considered "saturated". 
+  * Matching is done via @See atomic::num_saturated_bonds .
+  * Used in refine_mains() function(@see coords::Atoms::refine_mains())
+  *
+  * @param atomic_number: Atomic number of the element to be checked.
+  * @param bonds: The number of bonds this atom currently has
+  * 
+  * @return Returns true if the atom is considered saturated.
+  */
   inline bool saturated(std::size_t const atomic_number, std::size_t const bonds)
   {
     return num_saturated_bonds[atomic_number >= ATOMIC_H ? 0u : atomic_number] == bonds;

@@ -1,3 +1,14 @@
+/**
+* PATHOPT class - Global reaction pathway determination 
+* via constraint minimization on "n-1" dimensional hyperplanes
+*
+*  Version 1.1
+*  
+*  @ Daniel Bellinger
+*
+*/
+
+
 #include <vector>
 #include "coords.h"
 #include <ostream>
@@ -19,6 +30,7 @@ private:
   ptrdiff_t mciteration;
   double STARTENERGY, ENDENERGY, MCEN;
   std::vector<double>  MCcoordglob, MCcoordlast, MCcoordin;
+  const double _KT_;
   std::vector <std::vector <double> > global_path_minima_energy;
   std::vector < std::vector <coords::Representation_3D> >  global_path_minima, global_path_minima_temp;
 
@@ -76,7 +88,8 @@ public:
   std::vector <coords::Representation_3D> global_maxima, global_minima;
   ptrdiff_t global_image, counter, global_imagex;
   void pathx_ini();
-  void MCM_NEB(ptrdiff_t opt);
+  void MCM_PO(ptrdiff_t opt);
+  void MC_PO(ptrdiff_t opt);
   bool testcoord(coords::Representation_3D &coords);
   void randvect();
   void proof_connect();

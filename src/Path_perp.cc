@@ -8,7 +8,6 @@
 #include "Path_perp.h"
 #include "scon_utility.h"
 #include "ls.h"
-#include "lbfgs.h"
 #include "scon_vect.h"
 #if defined(_WIN32)
 
@@ -120,7 +119,7 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
   double MCmin,MCpmin,MCgmin,factor;
   double boltzman=0.0, kt=1/(0.0019872966*Config::get().neb.TEMPERATURE), trial=(double)rand()/(double)RAND_MAX;
   ptrdiff_t mciteration=Config::get().neb.MCITERATION;
-  ptrdiff_t nancounter=0, nbad=0, status;
+  ptrdiff_t nancounter{ 0 }, nbad{ 0 }, status{ 0 };
   bool  l_disp=false;
   MCSTEPSIZE=Config::get().neb.MCSTEPSIZE;
   counter =0;
@@ -200,7 +199,6 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 	
 	cPtr->set_xyz(positions);
 
-	this->cPtr->mult_struc_counter=0;
 	//this->cPtr->biascontrol=true;
 	this->cPtr->NEB_control=false;
 	
@@ -401,11 +399,11 @@ double path_perp::lbfgs (ptrdiff_t imagex)
   using vec_type = op_type::rep_type;
   op_type::point_type point(vec_type(cPtr->xyz().begin(), cPtr->xyz().end()));
   optimizer(point);
-  if (Config::get().general.verbosity > 4 && optimizer.state() != status::SUCCESS)
+  if (Config::get().general.verbosity > 3 && optimizer.state() != status::SUCCESS)
   {
     std::cout << "Optimization returned " << optimizer.state() << '\n';
   }
-  if (Config::get().general.verbosity > 5)
+  if (Config::get().general.verbosity > 3)
   {
     std::cout << "Optimization done. Evaluations:" << optimizer.iter() << '\n';
   }

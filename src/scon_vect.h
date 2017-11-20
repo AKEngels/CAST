@@ -1,4 +1,4 @@
-#ifndef SCON_VEC_HEADER
+﻿#ifndef SCON_VEC_HEADER
 
 #define SCON_VEC_HEADER
 
@@ -652,6 +652,9 @@ namespace scon
     return sqrt(dot(a, a));
   }
 
+  /**
+   * Returns eucledean norm of vector
+   */
   template<class T>
   typename std::enable_if<std::is_arithmetic<T>::value, 
     length_type<T>>::type geometric_length(c3<T> const &a)
@@ -1072,6 +1075,11 @@ namespace scon
   c3<T> cog_align(c3<T> const &P, c3<T> const &cog_1, c3<T> const &cog_2)
   {
     return P - cog_1 + cog_2 - cog_1;
+  }
+  template<class T>
+  c3<T> align_cog(c3<T> const &P, c3<T> const &cog_1, c3<T> const &cog_2)
+  {
+    return P - cog_1 + cog_2;
   }
 
 

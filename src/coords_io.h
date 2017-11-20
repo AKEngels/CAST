@@ -10,6 +10,7 @@
 #include "scon_utility.h"
 #include "coords.h"
 #include "configuration.h"
+#pragma once
 
 namespace coords
 {
@@ -50,6 +51,9 @@ namespace coords
 
     // new format creator
     input::format* new_format(void);
+    //new format creator for interface creation
+    input::format* additional_format(void);
+    input::format* new_interf_format(void);
 
     namespace formats
     {
@@ -90,8 +94,6 @@ namespace coords
           IPOL
         };
 
-
-
         //Important Stuff
         std::vector<unsigned int> sectionsPresent;
         std::vector<unsigned int> bondsWithHydrogen, bondsWithoutHydrogen; // [0] binds to [1], [2] to [3], [4] to [5] and so on....
@@ -103,6 +105,22 @@ namespace coords
 
       };
 
+      class xyz : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
+      };
+
+      /*! Class to read from TINKER coordinate file (.arc)
+       *
+       * This class is used to read coordinates from
+       * a tinker xyz file (.arc or sometimes .xyz).
+       * The coordinates are then put into a
+       * coords::Coordinates object.
+       */
       class tinker : public coords::input::format
       {
       public:
@@ -179,6 +197,20 @@ namespace coords
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
         }
       };
+
+      class xyz_dftb
+        : public output::format
+      {
+        xyz& operator= (xyz_dftb const &);
+      public:
+        xyz_dftb(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
+        {
+          return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
+        }
+      };
+
 
       class xyz_mopac
         : public output::format

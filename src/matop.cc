@@ -54,7 +54,7 @@ namespace matop
 
     for (size_t i = 0; i < input.cols(); i++)
     {
-      coords::Cartesian_Point tempcoord2(input(0, i), input(1, i), input(2, i));
+      coords::Cartesian_Point tempcoord2(input(0u, i), input(1u, i), input(2u, i));
       tempcoord1.push_back(tempcoord2);
     }
     return tempcoord1;
@@ -66,7 +66,7 @@ namespace matop
 
     for (size_t i = 0; i < input.cols(); i++)
     {
-      coords::internal_type tempcoord2(input(0, i), scon::ang<float_type>(input(1, i)), scon::ang<float_type>(input(2, i)));
+      coords::internal_type tempcoord2(input(0u, i), scon::ang<float_type>(input(1u, i)), scon::ang<float_type>(input(2u, i)));
       tempcoord1.push_back(tempcoord2);
     }
     return tempcoord1;
@@ -154,7 +154,7 @@ namespace matop
     }
   }
 
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates, bool ignoreHydrogen)
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates)
   {
     //First, some range checks
     if (/*if not all atoms*/ includedAtoms.size() != 0 && includedAtoms[includedAtoms.size() - 1u] > coords.atoms().size())
@@ -170,25 +170,6 @@ namespace matop
     {
       // Matrix Size
       Matrix_Class transformed_matrix(1u, (includedAtoms.size() * 2));
-      if (ignoreHydrogen)
-      {
-        size_t countIncludedDihedrals = 0u;
-        for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
-        {
-          if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
-          {
-            continue;
-          }
-          else
-          {
-            countIncludedDihedrals++;
-          }
-        }
-        transformed_matrix = Matrix_Class(1u, (countIncludedDihedrals * 2));
-      }
 
       size_t j = 0;
       size_t quicksearch_dih = 0;
@@ -204,14 +185,6 @@ namespace matop
             {
               checker_dih = true;
               quicksearch_dih++;
-              // If ignore Hydrogen, check if dihedral includes hydrogen
-              if (ignoreHydrogen)
-              {
-                if (coords.atoms(i).number() == 1u
-                  || coords.atoms(coords.atoms(i).ibond()).number() == 1u
-                  || coords.atoms(coords.atoms(i).iangle()).number() == 1u
-                  || coords.atoms(coords.atoms(i).idihedral()).number() == 1u) checker_dih = false;
-              }
               break;
             }
           }
@@ -230,7 +203,9 @@ namespace matop
     {
       if (includedAtoms.size() != 0u)
       {
-        Matrix_Class transformed_matrix(1u, (3 * (includedAtoms.size() - coords.atoms().getNumberOfAtomsWithAtomicNumber(1u)) ));
+        Matrix_Class transformed_matrix;
+        transformed_matrix = Matrix_Class(1u, (3 * includedAtoms.size()));
+
         int j = 0;
         size_t quicksearch = 0;
         for (size_t i = 0; i < coords.atoms().size(); i++) //iterate over atoms
@@ -238,11 +213,8 @@ namespace matop
           bool checker = false;
           for (size_t l = quicksearch; l < includedAtoms.size(); l++) //iterate over vector of atoms to account for
           {
-            if (includedAtoms[l] - 1 == i)
+            if (includedAtoms[l] == i)
             {
-              //ignoreHydrogens
-              if (ignoreHydrogen && coords.atoms(i).number() == 1u) break;
-              
               checker = true;
               quicksearch++;
               break;
@@ -260,225 +232,19 @@ namespace matop
       }
       else
       {
-        Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
-        int j = 0;
-        for (size_t i = 0; i < coords.atoms().size(); i++)
-        {
-          for (size_t k = 0; k < 3; k++)
+          Matrix_Class transformed_matrix(1, (coords.atoms().size() * 3u));
+          int j = 0;
+          for (size_t i = 0; i < coords.atoms().size(); i++)
           {
-            //transformed_matrix(0, j + k) = input(k, i);
-            transformed_matrix(0, j + 0u) = coords.xyz(i).x();
-            transformed_matrix(0, j + 1u) = coords.xyz(i).y();
-            transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            for (size_t k = 0; k < 3; k++)
+            {
+              transformed_matrix(0, j + 0u) = coords.xyz(i).x();
+              transformed_matrix(0, j + 1u) = coords.xyz(i).y();
+              transformed_matrix(0, j + 2u) = coords.xyz(i).z();
+            }
+            j = j + 3u;
           }
-          j = j + 3u;
-        }
-        return transformed_matrix;
-      }
-    }
-  }
-
-  /////////////////////////////////////
-  //                              /////
-  //    E X C L U S I V E L Y     /////
-  //            P C A             /////
-  //                              /////
-  /////////////////////////////////////
-  namespace pca
-  {
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, int rank)
-    {
-      Matrix_Class cov_matr = (transposed(input));
-      Matrix_Class ones(input.cols(), input.cols(), 1.0);
-      cov_matr = cov_matr - ones * cov_matr / input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / input.cols();
-      float_type cov_determ = 0.;
-      int *cov_rank = new int;
-      cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
-      rank = *cov_rank;
-      delete cov_rank;
-      if (rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
-      {
-        std::cout << "Notice: covariance matrix is singular.\n";
-        std::cout << "Details: rank of covariance matrix is " << rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-        if (Config::get().PCA.pca_remove_dof)
-        {
-          size_t temp = std::max(6, int((cov_matr.rows() - rank)));
-          eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1);
-          eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1);
-        }
-      }
-      else if (Config::get().PCA.pca_remove_dof)
-      {
-        eigenvectors.shed_cols(eigenvalues.rows() - 6, eigenvalues.rows() - 1);
-        eigenvalues.shed_rows(eigenvectors.cols() - 6, eigenvectors.cols() - 1);
-      }
-    }
-
-    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename, std::string additionalInformation)
-    {
-      std::cout << "\nWriting PCA-Modes and Eigenvectors of covariance matrix to file\n";
-
-      double sum_of_all_variances = 0.0;
-      for (size_t i = 0; i < eigenvalues.rows(); i++)
-      {
-        sum_of_all_variances += eigenvalues(i);
-      }
-
-      if (Config::get().PCA.pca_trunc_var != 1 && Config::get().PCA.pca_trunc_var < 1 && Config::get().PCA.pca_trunc_var > 0)
-      {
-        double temporary_sum_of_variances = 0.0;
-        Matrix_Class pca_modes2 = pca_modes;
-        if (eigenvalues.rows() < 2u) throw("Eigenvalues not initialized, error in truncating PCA values. You are in trouble.");
-        for (size_t i = 0u - 1; i < eigenvalues.rows(); i++)
-        {
-          if (Config::get().PCA.pca_trunc_var < temporary_sum_of_variances / sum_of_all_variances)
-          {
-            size_t rows_of_pca_modes2 = pca_modes2.rows();
-            pca_modes2.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-            eigenvalues.shed_rows(rows_of_pca_modes2 - i, rows_of_pca_modes2 - 1);
-            break;
-          }
-          temporary_sum_of_variances += eigenvalues(i);
-        }
-        pca_modes = pca_modes2;
-      }
-      else if (Config::get().PCA.pca_trunc_var != 1)
-      {
-        throw("Error in pca task, check specified trunc_var. (It should be > 0. and < 1.)");
-      }
-      if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim < pca_modes.rows())
-      {
-        Matrix_Class pca_modes2 = pca_modes;
-        pca_modes2.shed_rows(Config::get().PCA.pca_trunc_dim, pca_modes.rows() - 1u);
-        eigenvalues.shed_rows(Config::get().PCA.pca_trunc_dim, pca_modes.rows() - 1u);
-        pca_modes = pca_modes2;
-      }
-      else if (Config::get().PCA.pca_trunc_dim != 0 && Config::get().PCA.pca_trunc_dim >= pca_modes.rows())
-      {
-        std::cout << "Notice: Inputfile-specified truncation for PCA is too large, there are less DOFs than the user specified truncation value for dimensionality.\n";
-      }
-      std::cout << "Working with " << pca_modes.rows() << " dimensions.\n";
-
-      std::ofstream pca_modes_stream(filename, std::ios::out);
-      pca_modes_stream << "Working with " << pca_modes.rows() << " dimensions.\n";
-      pca_modes_stream << "PCA-Modes are ordered with descending variances.\n\n\n\n";
-      pca_modes_stream << "Eigenvalues of Covariance Matrix:\n";
-      pca_modes_stream << eigenvalues << "\n\n\n";
-      pca_modes_stream << "Eigenvectors of Covariance Matrix:\nSize = " << std::setw(10) <<  eigenvectors.rows() << " x " << std::setw(10) << eigenvectors.cols() << "\n";
-      pca_modes_stream << eigenvectors << "\n\n\n";
-      pca_modes_stream << "Trajectory in PCA - Modes following (columns are frames, rows are modes)\nSize = " << std::setw(10) << pca_modes.rows() << " x " << std::setw(10) << pca_modes.cols() << "\n";
-      pca_modes_stream << pca_modes << "\n";
-      pca_modes_stream << "Additional Information following:\n" << additionalInformation << "\n";
-    }
-
-    void output_probability_density(Matrix_Class& pca_modes)
-    {
-      using namespace histo;
-      std::vector<size_t> dimensionsToBeUsedInHistogramming = Config::get().PCA.pca_dimensions_for_histogramming;
-
-      if (dimensionsToBeUsedInHistogramming.size() > 2)
-      {
-        std::cout << "More than 2 dimensions for histogramming is not yet supported!\n";
-        std::cout << "Working with 2 dimensions";
-        dimensionsToBeUsedInHistogramming.resize(2);
-      }
-      else
-      {
-        DimensionalHistogram<float_type> *histograms_p;
-        if (Config::get().PCA.pca_histogram_number_of_bins > 0u)
-        {
-          size_t histogramBins = Config::get().PCA.pca_histogram_number_of_bins;
-          //histograms_p = new DimensionalHistogram<float_type>((size_t)pca_modes.rows(), histogramBins);
-          histograms_p = new DimensionalHistogram<float_type>( (size_t)dimensionsToBeUsedInHistogramming.size(), histogramBins);
-        }
-        else if (Config::get().PCA.pca_histogram_width > 0.)
-        {
-          float_type histogramWidth = Config::get().PCA.pca_histogram_width;
-          histograms_p = new DimensionalHistogram<float_type>( (size_t)dimensionsToBeUsedInHistogramming.size(), histogramWidth);
-        }
-        else
-        {
-          throw "Error in output_probability_density, exiting.\n You need to specify either a numbger of histogram bins or a bin width in the inputfile.\n";
-        }
-
-        std::cout << "Starting: Histogramming...";
-        //Filling the histogram
-        for (size_t j = 0u; j < pca_modes.cols(); j++)
-        {
-          std::vector<float_type> temp(dimensionsToBeUsedInHistogramming.size());
-          for (size_t i = 0u; i < dimensionsToBeUsedInHistogramming.size(); i++)
-          {
-            temp[i] = pca_modes(dimensionsToBeUsedInHistogramming[i] - 1, j);
-          }
-          histograms_p->add_value(temp);
-        }
-        
-        histograms_p->distribute();
-        histograms_p->writeProbabilityDensity("pca_histograms");
-        histograms_p->writeAuxilaryData("pca_histograms_auxdata");
-        delete histograms_p;
-      }
-    }
-
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename)
-    {
-      std::ifstream pca_modes_stream(filename, std::ios::in);
-      std::string line;
-      std::getline(pca_modes_stream, line);
-      //int dimensions = std::stoi(line.substr(13, 2));
-      while (line.find("Eigenvectors") == std::string::npos)
-      {
-        std::getline(pca_modes_stream, line);
-      }
-
-      std::getline(pca_modes_stream, line);
-      eigenvectors.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
-
-      for (size_t i = 0u; i < eigenvectors.rows(); i++)
-      {
-        std::getline(pca_modes_stream, line);
-        size_t whitespace = 0u, lastWhitespace = 0u;
-        for (size_t j = 0u; j < eigenvectors.cols(); j++)
-        {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          eigenvectors(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-        }
-      }
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      std::getline(pca_modes_stream, line);
-      trajectory.resize(stoi(line.substr(7, 10)), stoi(line.substr(20, 10)));
-
-      for (size_t i = 0u; i < trajectory.rows(); i++)
-      {
-        std::getline(pca_modes_stream, line);
-        size_t whitespace = 0u, lastWhitespace = 0u;
-        for (size_t j = 0u; j < trajectory.cols(); j++)
-        {
-          lastWhitespace = whitespace;
-          whitespace = line.find(" ", lastWhitespace + 1u);
-
-          trajectory(i, j) = stod(line.substr(lastWhitespace, whitespace - lastWhitespace));
-        }
-      }
-      //Additional options following:
-      if (std::getline(pca_modes_stream, line))
-      {
-        std::getline(pca_modes_stream, line);
-        if (std::getline(pca_modes_stream, line))
-        {
-          additionalInformation = line;
-        }
-        else
-        {
-          std::cout << "Could not read additional Information from pca_modes file.\n";
-        }
+          return transformed_matrix;
       }
     }
   }
@@ -519,7 +285,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -589,7 +355,7 @@ namespace matop
           if (j == col_queryPt) { continue; }
 
           // For number of dimensions, add the squared distance of the queryPt
-          // to the current point ("j") of each dimensions which equals a 
+          // to the current point ("j") of each dimensions which equals a
           // squared distance in euclidean space
           temp_distance = 0.0;
           for (size_t l = 0; l < dimension_in; l++)
@@ -634,13 +400,13 @@ namespace matop
 
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1. / (float_type) input.cols() );
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
-	    float_type cov_determ = 0.;
-	    int *cov_rank = new int;
+	  float_type cov_determ = 0.;
+	  int *cov_rank = new int;
       cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
 
       //Remove Eigenvalues that should be zero if cov_matr is singular
@@ -665,19 +431,19 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-      delete cov_rank; 
+      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-      Matrix_Class pca_frequencies(eigenvalues.rows());
-      Matrix_Class alpha_i(pca_frequencies.rows());
-      Matrix_Class quantum_entropy(pca_frequencies.rows());
+      Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+      Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+      Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
       float_type entropy_sho = 0;
       for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
-        pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
-        alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
-        quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-        entropy_sho += quantum_entropy(i);
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_sho += quantum_entropy(i, 0u);
       }
       std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
       std::cout << "Starting corrections for anharmonicity and M.I... \n";
@@ -685,7 +451,7 @@ namespace matop
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
       Matrix_Class eigenvectors_t(transposed(eigenvectors));
-      Matrix_Class pca_modes = eigenvectors_t * input;
+      Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
       Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
       Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
       Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
@@ -722,7 +488,7 @@ namespace matop
         }
         distance -= temp;
         distance += 0.5772156649015328606065;
-        entropy_anharmonic(i) = distance;
+        entropy_anharmonic(i, 0u) = distance;
         distance = 0;
 
         //MI
@@ -759,9 +525,10 @@ namespace matop
       {
         for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
-          if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) && pca_frequencies(j) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+          if (pca_frequencies(i, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) 
+            && pca_frequencies(j, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
           {
-            entropy_mi(i, j) = entropy_anharmonic(i) + entropy_anharmonic(j) - entropy_mi(i, j);
+            entropy_mi(i, j) = entropy_anharmonic(i, 0u) + entropy_anharmonic(j, 0u) - entropy_mi(i, j);
             if (entropy_mi(i, j) < 0)
             {
               if (entropy_mi(i, j) < -1)
@@ -774,7 +541,7 @@ namespace matop
           }
           else
           {
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit\n";
             entropy_mi(i, j) = 0.0;
           }
         }
@@ -785,21 +552,21 @@ namespace matop
       }
       for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
-        if (pca_frequencies(i) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+        if (pca_frequencies(i, 0u) < (Config::get().entropy.entropy_temp * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
         {
-          classical_entropy(i) = -1.0 * (log(alpha_i(i)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
-          entropy_anharmonic(i) = classical_entropy(i) - entropy_anharmonic(i);
-          entropy_anharmonic(i) *= 1.380648813 * 6.02214129 * 0.239005736;
-          if ((entropy_anharmonic(i) / quantum_entropy(i)) < 0.007)
+          classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) + log(sqrt(2 * 3.14159265358979323846 * 2.71828182845904523536)));
+          entropy_anharmonic(i, 0u) = classical_entropy(i, 0u) - entropy_anharmonic(i, 0u);
+          entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+          if ((entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
           {
-            entropy_anharmonic(i) = 0.0;
-            if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
+            entropy_anharmonic(i, 0u) = 0.0;
+            if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small)";
           }
         }
         else
         {
-          if (Config::get().general.verbosity > 4u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
-          entropy_anharmonic(i) = 0.0;
+          if (Config::get().general.verbosity > 1u) std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit\n";
+          entropy_anharmonic(i, 0u) = 0.0;
         }
       }
 
@@ -807,7 +574,7 @@ namespace matop
       double delta_entropy = 0;
       for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
       {
-        delta_entropy += entropy_anharmonic(i);
+        delta_entropy += entropy_anharmonic(i, 0u);
         for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
         {
           delta_entropy += entropy_mi(i, j);
@@ -917,7 +684,7 @@ namespace matop
         }
         distance -= temp;
         distance += 0.5772156649015328606065;
-        marginal_entropy_storage(i) = distance;
+        marginal_entropy_storage(i, 0u) = distance;
         delete[] buffer;
       }
 
@@ -925,7 +692,7 @@ namespace matop
       float_type entropy = 0;
       for (size_t i = 0; i < marginal_entropy_storage.rows(); i++)
       {
-        entropy += marginal_entropy_storage(i);
+        entropy += marginal_entropy_storage(i, 0u);
       }
       std::cout << "entropy (dimensionless): " << entropy << '\n';
       std::cout << "entropy: " << entropy * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)" << "\n";
@@ -936,9 +703,9 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr * (1.0 / (float_type)input.cols());
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols());
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
@@ -970,16 +737,16 @@ namespace matop
       delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-      Matrix_Class pca_frequencies(eigenvalues.rows());
-      Matrix_Class alpha_i(pca_frequencies.rows());
-      Matrix_Class quantum_entropy(pca_frequencies.rows());
+      Matrix_Class pca_frequencies(eigenvalues.rows(), 0u);
+      Matrix_Class alpha_i(pca_frequencies.rows(), 0u);
+      Matrix_Class quantum_entropy(pca_frequencies.rows(), 0u);
       float_type entropy_sho = 0;
       for (size_t i = 0; i < eigenvalues.rows(); i++)
       {
-        pca_frequencies(i) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i));
-        alpha_i(i) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i)));
-        quantum_entropy(i) = ((alpha_i(i) / (exp(alpha_i(i)) - 1)) - log(1 - exp(-1 * alpha_i(i)))) * 1.380648813 * 6.02214129 * 0.239005736;
-        entropy_sho += quantum_entropy(i);
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_sho += quantum_entropy(i, 0u);
       }
       std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
       return entropy_sho;
@@ -989,9 +756,10 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
       Matrix_Class cov_matr = (transposed(input));
-      cov_matr = cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / input.cols();
+      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(cov_matr - temp_obj);
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr = cov_matr / static_cast<float_type>(input.cols());
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
       {
@@ -1011,12 +779,12 @@ namespace matop
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
       Matrix_Class cov_matr = transposed(input);
-      cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / input.cols();
-      cov_matr = transposed(cov_matr) * cov_matr;
-      cov_matr = cov_matr / input.cols();
+      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
+      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr = Matrix_Class(cov_matr / static_cast<float_type>(input.cols()));
 
-      cov_matr = cov_matr * (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
-      cov_matr = cov_matr + Matrix_Class::identity(cov_matr.rows(), cov_matr.cols());
+      cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
+      cov_matr = Matrix_Class(cov_matr + Matrix_Class(Matrix_Class::Identity(cov_matr.rows(), cov_matr.cols())));
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -1041,7 +809,7 @@ namespace matop
       if (input.atoms().size() != ref.atoms().size()) throw std::logic_error("Number of atoms of structures passed to drmsd_calc to not match.");
 
       float_type value = 0;
-      for (size_t i = 0; i < input.atoms().size(); i++) 
+      for (size_t i = 0; i < input.atoms().size(); i++)
       {
         for (size_t j = 0; j < i; j++)
         {
@@ -1073,7 +841,7 @@ namespace matop
     {
       coords::Coordinates output(inputCoords);
       if (centerOfMassAlign) centerOfMassAlignment(output);
-      kabschAlignment(output, reference);
+      kabschAlignment(output, reference, centerOfMassAlign);
       return output;
     }
 
@@ -1093,15 +861,15 @@ namespace matop
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit = Matrix_Class::identity(c.rows(), c.rows());
+      Matrix_Class unit = Matrix_Class(Matrix_Class::Identity(c.rows(), c.rows()));
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;
       }
       transpose(U);
-      unit = unit * U;
-      unit = V * unit;
-      input = unit * input;
+      unit = Matrix_Class(unit * U);
+      unit = Matrix_Class(V * unit);
+      input = Matrix_Class(unit * input);
 
       inputCoords.set_xyz(transfer_to_3DRepressentation(input));
     }
@@ -1130,14 +898,27 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
   using namespace matop::align;
 
   coords::Coordinates coordsReferenceStructure(coords), coordsTemporaryStructure(coords);
+
+  // Check if reference structure is in range
+  if (Config::get().alignment.reference_frame_num >= ci->size()) 
+    throw std::runtime_error("Reference frame number in ALIGN task is bigger than number of frames in the input structure ensemble.");
+
   auto temporaryPESpoint = ci->PES()[Config::get().alignment.reference_frame_num].structure.cartesian;
 
   //Alignment to external reference frame (different file)
   if (!Config::get().alignment.align_external_file.empty())
   {
     std::unique_ptr<coords::input::format> externalReferenceStructurePtr(coords::input::new_format());
-    coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
-    if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size())
+    try
+    {
+      coords::Coordinates externalReferenceStructure(externalReferenceStructurePtr->read(Config::get().alignment.align_external_file));
+    }
+    catch (std::exception& e)
+    {
+      e.what();
+      std::cout << "Reading the external reference structure for the ALIGN task failed.\n";
+    }
+    if (Config::get().alignment.reference_frame_num >= externalReferenceStructurePtr->PES().size() || externalReferenceStructurePtr == nullptr)
     {
       throw std::out_of_range("Requested reference frame number not within reference structure ensemble.");
     }
@@ -1158,12 +939,19 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
     centerOfMassAlignment(coordsReferenceStructure);
   }
 
+  // Output text
+  if (Config::get().general.verbosity > 2U) std::cout << "ALIGN preparations done. Starting actual alignment.\n";
+
 #ifdef _OPENMP
+  if (Config::get().general.verbosity > 2U) std::cout << "Using openMP for alignment.\n";
+  auto const n_omp = static_cast<std::ptrdiff_t>(ci->size());
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
+  for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+  for (std::size_t i = 0; i < ci->size(); ++i)
 #endif
-  for (int i = 0; i < (int)ci->size(); i++)
   {
-    if (i != Config::get().alignment.reference_frame_num)
+    if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
     {
       auto temporaryPESpoint2 = ci->PES()[i].structure.cartesian;
       coordsTemporaryStructure.set_xyz(temporaryPESpoint2);
@@ -1181,7 +969,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       if (Config::get().alignment.traj_print_bool)
       {
         if (Config::get().alignment.dist_unit == 0)
-          //RMSD 
+          //RMSD
         {
           std::stringstream temporaryStringstream;
           double currentRootMeanSquareDevaition = root_mean_square_deviation(coordsTemporaryStructure.xyz(), coordsReferenceStructure.xyz());
@@ -1218,7 +1006,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
       //Formatted string-output
     }
 
-    else if (i == Config::get().alignment.reference_frame_num)
+    else if (i == static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))
     {
       std::stringstream hold_coords;
       hold_coords << coordsReferenceStructure;
@@ -1229,451 +1017,27 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 
   std::ofstream distance(coords::output::filename("_distances").c_str(), std::ios::app);
   std::ofstream outputstream(coords::output::filename("_aligned").c_str(), std::ios::app);
+
+  if (Config::get().general.verbosity > 2U) std::cout << "Alignment done. Writing structures to file.\n";
+
   for (size_t i = 0; i < ci->size(); i++)
   {
     if (Config::get().alignment.traj_print_bool)
     {
       distance << hold_str[i];
     }
-    if (Config::get().alignment.traj_align_translational || Config::get().alignment.traj_align_rotational)
-    {
-      outputstream << hold_coords_str[i];
-    }
+    outputstream << hold_coords_str[i];
   }
-  distance << "\n";
-  distance << "Mean value: " << (mean_value / (double) (ci->size() - 1)) << "\n";
+  if (Config::get().alignment.traj_print_bool)
+  {
+    distance << "\n";
+    distance << "Mean value: " << (mean_value / (double)(ci->size() - 1)) << "\n";
+  }
   //Formatted string-output
 
   delete[] hold_str;
   delete[] hold_coords_str;
   //Cleaning Up
-}
-
-void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
-{
-  using namespace matop;
-  using namespace matop::pca;
-
-  //First, adjust number of truncated atoms to be used to zero, in case truncation is not to be used (duh)
-  if (!Config::get().PCA.pca_trunc_atoms_bool) Config::set().PCA.pca_trunc_atoms_num = std::vector<size_t>();
-
-  Matrix_Class pca_modes, eigenvalues, eigenvectors, matrix_aligned;
-
-  if (!Config::get().PCA.pca_read_modes)
-  {
-    coords::Coordinates coords_ref(coords);
-    auto holder = ci->PES()[Config::get().PCA.pca_ref_frame_num].structure.cartesian;
-    coords_ref.set_xyz(holder);
-    //Constructs two coordinate objects and sets reference frame according to INPUTFILE
-
-    //Perform translational alignment for reference frame
-    if (Config::get().PCA.pca_alignment)
-    {
-      ::matop::align::centerOfMassAlignment(coords_ref);
-    }
-
-    const size_t FRAME_SIZE = (size_t)ci->size();
-    //Initializing some stuff
-
-    //Prepare size of huge coordinates / frames matrix
-    if (Config::get().PCA.pca_use_internal)
-    {
-      if (Config::get().PCA.pca_internal_ignore_hydrogen)
-      {
-        size_t countIncludedDihedrals = 0u;
-        for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
-        {
-          if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-            || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
-          {
-            continue;
-          }
-          else
-          {
-            countIncludedDihedrals++;
-          }
-        }
-
-        matrix_aligned = 
-          Matrix_Class((size_t) /* explicitly casting to round down */ 
-            ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset),
-            countIncludedDihedrals * 2u);
-
-      }
-      else
-      {
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), Config::get().PCA.pca_internal_dih.size() * 2u);
-
-      }
-    }
-    else if (Config::get().PCA.pca_trunc_atoms_bool)
-    {
-      if (!Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
-      {
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
-          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
-            Config::get().PCA.pca_offset), Config::get().PCA.pca_trunc_atoms_num.size() * 3u);
-      }
-      else
-      {
-        size_t numberOfHydrogen = coords.atoms().getNumberOfAtomsWithAtomicNumber(1u);
-        matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ \
-          ((ci->size() - Config::get().PCA.pca_start_frame_num) / \
-            Config::get().PCA.pca_offset), (Config::get().PCA.pca_trunc_atoms_num.size() - numberOfHydrogen) * 3u);
-      }
-    } 
-    else
-    {
-      matrix_aligned = Matrix_Class((size_t) /* explicitly casting to round down */ ((ci->size() - Config::get().PCA.pca_start_frame_num) / Config::get().PCA.pca_offset), coords.atoms().size() * 3u);
-    }
-
-    /* j counts the (truncated) matrix access, i the frames in ci */
-    {
-      size_t j = 0;
-      if (Config::get().PCA.pca_use_internal)
-      {
-        for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
-        {
-          auto holder2 = ci->PES()[i].structure.cartesian;
-          coords.set_xyz(holder2);
-          bool ignoreHydrogen = Config::get().PCA.pca_internal_ignore_hydrogen;
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_internal_dih, true, ignoreHydrogen);
-        }
-      }
-      else
-      {
-        for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
-        {
-          auto holder2 = ci->PES()[i].structure.cartesian;
-          coords.set_xyz(holder2);
-          if (Config::get().PCA.pca_alignment)        //Translational and rotational alignment
-          {
-            ::matop::align::centerOfMassAlignment(coords); //Alignes center of mass
-            ::matop::align::kabschAlignment(coords, coords_ref); //Rotates
-          }
-          bool ignoreHydrogen = Config::get().PCA.pca_trunc_atoms_ignore_hydrogen;
-          matrix_aligned.row(j) = ::matop::transformToOneline(coords, Config::get().PCA.pca_trunc_atoms_num, false, ignoreHydrogen);
-        }
-      }
-    }
-
-    transpose(matrix_aligned);
-    // NECESSARY because of implementation details, don't worry about it for now
-    // Matrix is now [coordinates] x [frames] !!! !!!
-    // THIS IS THE CONVENTION FOR USAGE, STICK TO IT!
-
-    if (!Config::get().PCA.pca_use_internal)
-    {
-      coords_ref.set_xyz(holder);
-      if (!Config::get().PCA.pca_trunc_atoms_bool)
-      {
-        ::matop::massweight(matrix_aligned, coords_ref, false);
-      }
-      else
-      {
-        ::matop::massweight(matrix_aligned, coords_ref, false, Config::get().PCA.pca_trunc_atoms_num);
-      }
-    }
-    //Mass-weightening coordinates if cartesians are used
-    prepare_pca(matrix_aligned, eigenvalues, eigenvectors);
-  }
-
-  if (Config::get().PCA.pca_read_vectors)
-  {
-    std::string iAmNotImportant_YouMayDiscardMe;
-    readEigenvectorsAndModes(eigenvectors, pca_modes, iAmNotImportant_YouMayDiscardMe);
-  }
-
-  if (!Config::get().PCA.pca_read_modes)
-  {
-    pca_modes = transposed(eigenvectors) * matrix_aligned;
-  }
-
-  ///////////////////////////////////////
-
-  std::string additionalInformation;
-  if (Config::get().PCA.pca_use_internal)
-  {
-    additionalInformation += "int ";
-    for (size_t i = 0u; i < Config::get().PCA.pca_internal_dih.size(); i++)
-    {
-      if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen)
-      {
-        if (coords.atoms(Config::get().PCA.pca_internal_dih[i]).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).ibond()).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).iangle()).number() == 1u
-          || coords.atoms(coords.atoms(Config::get().PCA.pca_internal_dih[i]).idihedral()).number() == 1u)
-        {
-          continue;
-        }
-        else
-        {
-          additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
-        }
-      }
-      else
-      {
-        additionalInformation += "d" + std::to_string(Config::get().PCA.pca_internal_dih[i]) + " ";
-      }
-    }
-  }
-  else
-  {
-    additionalInformation += "car ";
-    if (Config::get().PCA.pca_trunc_atoms_ignore_hydrogen) // If hydrogens are to be ignored
-    {
-      for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
-      {
-        if(coords.atoms(i).number() != 1u) additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
-      }
-    }
-    else
-    {
-      for (size_t i = 0u; Config::get().PCA.pca_trunc_atoms_bool && i < Config::get().PCA.pca_trunc_atoms_num.size(); i++)
-      {
-        additionalInformation += std::to_string(Config::get().PCA.pca_trunc_atoms_num[i]) + " ";
-      }
-    }
-  }
-
-  ///////////////////////////////////////
-
-  if (Config::get().PCA.pca_read_vectors)
-  {
-    output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes_new.dat", additionalInformation);
-  }
-  else
-  {
-    output_pca_modes(eigenvalues, eigenvectors, pca_modes, "pca_modes.dat", additionalInformation);
-  }
-
-  if (Config::get().PCA.pca_print_probability_density)
-  {
-    output_probability_density(pca_modes);
-  }
-
-  ///////////////////////////////////////
-}
-
-void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
-{
-  using namespace matop;
-  using namespace matop::pca;
-  Matrix_Class eigenvectors, trajectory;
-  std::vector<size_t> structuresToBeWrittenToFile;
-  std::string additionalInformation;
-  readEigenvectorsAndModes(eigenvectors, trajectory, additionalInformation);
-  if (Config::get().PCA.proc_desired_start.size() > trajectory.rows() || Config::get().PCA.proc_desired_stop.size() > trajectory.rows())
-  {
-    std::cout << "Desired PCA-Ranges have higher dimensionality then modes. Omitting the last values.\n";
-  }
-
-  for (size_t j = 0u; j < trajectory.cols(); j++)
-  {
-    bool isStructureInRange = true;
-    for (size_t i = 0u; i < trajectory.rows() && i < std::max(Config::get().PCA.proc_desired_stop.size(), Config::get().PCA.proc_desired_start.size()); i++)
-
-    {
-      if (i < Config::get().PCA.proc_desired_start.size())
-      {
-        if (trajectory(i, j) < Config::get().PCA.proc_desired_start[i])
-        {
-          isStructureInRange = false;
-        }
-      }
-      if (i < Config::get().PCA.proc_desired_stop.size())
-      {
-        if (trajectory(i, j) > Config::get().PCA.proc_desired_stop[i])
-        {
-          isStructureInRange = false;
-        }
-      }
-    }
-    if (isStructureInRange)
-    {
-      structuresToBeWrittenToFile.push_back(j);
-    }
-  }
-
-  if (Config::get().general.verbosity >= 3u) std::cout << "Found " << structuresToBeWrittenToFile.size() << " structures in desired range.\n";
-
-  //Undoing PCA
-  trajectory = eigenvectors * trajectory;
-
-  std::ofstream outstream(coords::output::filename("_pca_selection").c_str(), std::ios::app);
-
-  // Case: Cartesian Coordinates.
-  if (additionalInformation.substr(0, 3) == "car")
-  {
-    //Additional Information Processing -> Read "DOFS that were used" from file. Put their identifying numbers in vector.
-    std::stringstream ss(additionalInformation.substr(4));
-    std::string buffer;
-    std::vector<size_t> tokens;
-    std::deque<bool> alreadyFoundStructures(ci->size(), false);
-
-    while (ss >> buffer) tokens.push_back((size_t)std::stoi(buffer));
-
-    if (tokens.size() != 0u)
-    {
-      ::matop::undoMassweight(trajectory, coords, false, tokens);
-      for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-      {
-        Matrix_Class out_mat(3, trajectory.rows() / 3u);
-        for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
-        {
-          out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
-          out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
-          out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
-        }
-        coords::Coordinates current(coords);
-
-        // For every partial (truncated) structure that is inside the user-defined 
-        // range regarding its PCA-Modes,
-        // we now search the matching full structure in the input trajectory.
-        bool structureFound = false;
-        auto structureCartesian = ci->PES()[0].structure.cartesian;
-        int structureNumber = -1;
-
-        for (size_t k = 0u; k < ci->size() && !structureFound; k++)
-        {
-          if (alreadyFoundStructures[k]) continue;
-
-          structureCartesian = ci->PES()[k].structure.cartesian; //Current structure
-          structureFound = true;
-          structureNumber = (int)k;
-          // Remeber, we are now iterating over certain atoms (those to which
-          // the PCA was truncated.
-          for (size_t l = 0u; l < tokens.size(); l++)
-          {
-            // If abs() of diff of every coordinate is smaller than 0.5% of coordinate (or, if this value
-            // is very small, the arbitrary cutoff 2e-4), consider it a match.
-            // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
-            // Thats why we negate the criterion in the if clause (!)
-            float_type xCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].x()), 2e-4);
-            float_type yCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].y()), 2e-4);
-            float_type zCompare = 0.005 * std::max(std::abs(structureCartesian[tokens[l]].z()), 2e-4);
-
-            if (!(std::abs(out_mat(0, l) - structureCartesian[tokens[l]].x()) <= xCompare &&
-              std::abs(out_mat(1, l) - structureCartesian[tokens[l]].y()) <= yCompare &&
-              std::abs(out_mat(2, l) - structureCartesian[tokens[l]].z()) <= zCompare))
-            {
-              structureFound = false;
-              break;
-            }
-          }
-        }
-        if (structureFound)
-        {
-          // Horray, we found it, now write it out!
-          alreadyFoundStructures[structureNumber] = true;
-          current.set_xyz(structureCartesian);
-          current.to_internal();
-          outstream << current;
-        }
-        else
-        {
-          std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-          std::cout << "This means that there was no provided structure with a deviance of less than 0.5% to the current restored structure.\n\n";
-        }
-      }
-    }
-    else
-    {
-      // Here, we merely restore the coordinates from the PCA-modes
-      // since no truncation took place, and write them out.
-      ::matop::undoMassweight(trajectory, coords, false);
-      for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-      {
-        Matrix_Class out_mat(3, trajectory.rows() / 3u);
-        for (size_t j = 0u; j < trajectory.rows(); j = j + 3)
-        {
-          out_mat(0, j / 3u) = trajectory(j, structuresToBeWrittenToFile[i]);
-          out_mat(1, j / 3u) = trajectory(j + 1u, structuresToBeWrittenToFile[i]);
-          out_mat(2, j / 3u) = trajectory(j + 2u, structuresToBeWrittenToFile[i]);
-        }
-        coords::Coordinates out(coords);
-        out.set_xyz(::matop::transfer_to_3DRepressentation(out_mat));
-        out.to_internal();
-        outstream << out;
-      }
-    }
-  }
-
-  // Case: Internal Coordiantes
-  else if (additionalInformation.substr(0, 3) == "int")
-  {
-    // [0]: bond distance tokens, [1]: bond angle tokens [2]: dihedrals tokens.
-    // Here we keep track of which DOFs are to be considered
-    std::deque<bool> tokens(coords.atoms().size(), false);
-    std::deque<bool> alreadyFoundStructures(ci->size(), false);
-
-    //Additional Information Processing -> Read "DOFS that were used" from file. Store in "tokens".
-    std::stringstream ss(additionalInformation.substr(4));
-    std::string buffer;
-    // Read the additional information
-    while (ss >> buffer)
-    {
-      if (buffer.substr(0, 1) == "d") tokens[(size_t)std::stoi(buffer.substr(1))] = true;
-    }
-
-    // This is gonna be complicated. Im sorry.
-    // Iterate over structures chosen from PCA-Ensemble
-    for (size_t i = 0u; i < structuresToBeWrittenToFile.size(); i++)
-    {
-      bool structureFound = false;
-      //auto structureCartesian = ci->PES()[0].structure.cartesian;
-      int structureNumber = -1;
-
-      //Iterate over input strucutures -> find matching structure
-      for (size_t k = 0u; k < ci->size() && !structureFound; k++)
-      {
-        if (alreadyFoundStructures[k]) continue;
-        coords.set_internal(ci->PES()[k].structure.intern);
-        size_t quicksearch = 0u;
-        structureFound = true;
-        structureNumber = (int)k;
-        //Iterating over atoms, see if they all match
-        for (size_t j = 0u; j < tokens.size(); j++)
-        {
-          // If abs() of diff of every coordinate is smaller than 0.1% of coordinate, consider it a match.
-          // However, we look for "not-matching" and break the loop. If everything matches, we continue. 
-          // Thats why we negate the criterion in the if clause (!)
-          if (tokens[j] == true)
-          {
-            float_type compareFromPCA1 = trajectory(quicksearch, structuresToBeWrittenToFile[i]);
-            float_type compareFromTrajectory1 = std::cos(coords.intern(j).azimuth().radians());
-            float_type compareFromPCA2 = trajectory(quicksearch + 1u, structuresToBeWrittenToFile[i]);
-            float_type compareFromTrajectory2 = std::sin(coords.intern(j).azimuth().radians());
-            bool found1 = std::abs(compareFromTrajectory1 - compareFromPCA1) <= 0.001 * std::abs(compareFromPCA1) \
-              || std::abs(compareFromTrajectory1 - compareFromPCA1) < 0.0000001;
-            bool found2 = std::abs(compareFromTrajectory2 - compareFromPCA2) <= 0.001 * std::abs(compareFromPCA2) \
-              || std::abs(compareFromTrajectory2 - compareFromPCA2) < 0.0000001;
-            //If structures did not match
-            if (!(found1 && found2))
-            {
-              structureFound = false;
-              break;
-            }
-            quicksearch += 2u;
-          }
-        }
-        //If match was found, write out.
-        if (structureFound)
-        {
-          alreadyFoundStructures[structureNumber] = true;
-          coords.set_pes(ci->PES()[k]);
-          outstream << coords;
-        }
-      }
-      if (!structureFound)
-      {
-        std::cout << "Could not find structure restored from PCA-Modes in ensemble of structures from original coordinates.\n";
-        std::cout << "You probably made a mistake somewhere in your INPUTFILE.\nDo not consider structures written out after this message as valid.\n";
-      }
-    }
-  }
 }
 
 void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
@@ -1696,7 +1060,7 @@ void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& co
    }
 
    Matrix_Class matrix_aligned;
-   const size_t FRAME_SIZE = int(ci->size());
+   //const size_t FRAME_SIZE = int(ci->size());
    if (Config::get().entropy.entropy_alignment && Config::get().entropy.entropy_use_internal)
    {
      std::cout << "Alignment is (in this case) redundant since internal coordinates are used. Alignment is skipped. Check your INPUTFILE please.\n";

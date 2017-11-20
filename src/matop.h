@@ -3,7 +3,7 @@ CAST 3
 matop.h
 Purpose: 
 Specific algorithms for specific problems are placed here.
-Calculations are done using scon::mathmatrix
+Calculations are done using mathmatrix
 
 @author Dustin Kaiser
 @version 2.0
@@ -17,7 +17,7 @@ Calculations are done using scon::mathmatrix
 #include "scon_angle.h"
 #include <stdexcept>
 
-typedef scon::mathmatrix<float_type> Matrix_Class;
+typedef mathmatrix<float_type> Matrix_Class;
 
 namespace matop
 {
@@ -86,47 +86,7 @@ namespace matop
    * into a mathmatrix-obj suitable for creating the single-trajectory-matrix (oneliner)
    * This is of course a very specific and not a general transformation.
    */
-  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false, bool ignoreHydrogen = false);
-
-  /////////////////////////////////////
-  //                              /////
-  //    E X C L U S I V E L Y     /////
-  //            P C A             /////
-  //                              /////
-  /////////////////////////////////////
-  namespace pca
-  {
-    /**
-     * Preparation for PCA, returns eigenvalues and eigenvectors of covariance matrix
-     * as well as pca_modes (columns is frames, rows are modes).
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    void prepare_pca(Matrix_Class const& input, Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, int rank = 0);
-
-    /**
-     * Writes aproximated probability density of each mode.
-     * Histogramming is used to genereate PD.
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    void output_probability_density(Matrix_Class& pca_modes);
-
-    /**
-     * Formatted output of PCA-Modes to file
-     *
-     * ##DIRECTLY READS INPUTFILE! CAUTION WHEN USING!##
-     */
-    void output_pca_modes(Matrix_Class& eigenvalues, Matrix_Class& eigenvectors, Matrix_Class& pca_modes, std::string filename = "pca_modes.dat", std::string additionalInformation = "void");
-
-    /**
-     * Reads Eigenvectors and PCA-trajectory from correctly formatted file.
-     * File is correctly formatted if it was created using the CAST::matop::output_pca_modes
-     * function.
-     */
-    void readEigenvectorsAndModes(Matrix_Class& eigenvectors, Matrix_Class& trajectory, std::string& additionalInformation, std::string filename = "pca_modes.dat");
-  }
-
+  Matrix_Class transformToOneline(coords::Coordinates const& coords, std::vector<size_t> const& includedAtoms, bool internalCoordinates = false);
 
   /////////////////////////////////////
   //                              /////
@@ -301,9 +261,5 @@ namespace matop
  */
 
 void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-void pca_gen(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-void pca_proc(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
 void entropy(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);

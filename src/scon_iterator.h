@@ -583,7 +583,7 @@ namespace scon
       using std::end;
       auto first = begin(rhs);
       auto last = end(rhs);
-      if (size() != std::distance(first, last))
+      if (size() != static_cast<size_type>(std::distance(first, last)))
         throw std::logic_error("range_proxy assignment size mismatch");
       // copy if reference is given (lvalue, const value)
       // move if rvalue is passed

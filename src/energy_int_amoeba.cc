@@ -14,10 +14,8 @@ energy::interfaces::amoeba::amoeba_ff::amoeba_ff(coords::Coordinates *cobj)
   for (auto atom : (*cobj).atoms()) scon::sorted::insert_unique(ntypes, atom.energy_type());
   cparams = tp.contract(ntypes);
   refined.refine(*cobj, cparams);
-  ref(cobj);
-
-
-
+  parameters();
+  Spackman_list_analytical1();
 
 }
 
@@ -94,8 +92,8 @@ void energy::interfaces::amoeba::amoeba_ff::print_E_head(std::ostream &S, bool c
   S << std::right << std::setw(24) << "V";
   S << std::right << std::setw(24) << "MUL";
   S << std::right << std::setw(24) << "POL";
+  S << std::right << std::setw(24) << "SR";
   S << std::right << std::setw(24) << "OOP";
-  S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "SUM\n";
   size_t const SSS(coords->subsystems().size());

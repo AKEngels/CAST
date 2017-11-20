@@ -1,3 +1,10 @@
+﻿/**
+ Reaction pathway optimization via various NEB methods
+
+@ Daniel Bellinger, Julian Erdmannsdoerfer, Michael Prem
+*/
+
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -14,12 +21,14 @@
 #include "optimization_global.h"
 #include <math.h>
 #include <algorithm>
-#include<cmath>
-#include<fstream>
-#include<iomanip>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include "interpolation.h"
 #include "nr3.h"
 
-using namespace scon;
+
+
 class neb
 {
 public:
@@ -39,16 +48,44 @@ public:
   double grad_v, grad_v_temp;
   size_t N, num_images, global_imagex;
 
+  coords::Representation_3D start_structure, final_structure;
+
+  void idpp_prep();
+
+  template<typename ContainerIt, typename Result>
+  void concatenate(ContainerIt, ContainerIt, Result);
+
+  template<typename T>
+  using dist_T = std::vector<std::vector<T>>;
+
+  template<typename T>
+  dist_T<T> euclid_dist(coords::Representation_3D const&);
+
+  std::vector<coords::Representation_3D> bond_dir(coords::Representation_3D const&);
+
+  template<typename T, typename Euclid>
+  std::vector<T> interpol_dist(Euclid&, Euclid&, size_t const);
+
+  template<typename T, typename Euclid>
+  coords::Representation_3D idpp_gradients(std::vector<coords::Representation_3D> const&,
+	  Euclid&, Euclid&, Euclid&, size_t const);
+
+
 
   void run(ptrdiff_t &count);
   void preprocess(ptrdiff_t &count);
   void preprocess(ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, const std::vector <double> &ts_energy, const std::vector <double> &min_energy, bool reverse, const coords::Representation_3D &ts_path);
   void preprocess(ptrdiff_t &file, ptrdiff_t &image, ptrdiff_t &count, const coords::Representation_3D &start, const coords::Representation_3D &fi, bool reverse);
+  void preprocess(std::vector<coords::Representation_3D> & ini_path, ptrdiff_t &count);
   void initial(void);
   void final(void);
   void initial(const coords::Representation_3D &start);
   void final(const coords::Representation_3D &fi);
-  void create(ptrdiff_t &count);
+  void final_align(void);
+  void create_cartesian_interpolation();
+  void create_internal_interpolation(std::vector <coords::Representation_3D> &input);
+  void create_ini_path(const std::vector<coords::Representation_3D> &ini);
+  void create_internal_interpolation(const std::vector<coords::Representation_3D> &ini);
   void get_energies(void);
   void calc_tau(void);
   void opt_io(ptrdiff_t &count);
@@ -56,8 +93,12 @@ public:
   void print_rev(std::string const &, std::vector <coords::Representation_3D > &, ptrdiff_t &);
   void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t &);
   double g_new();
+  double g_new_maxflux();
   double g_int(std::vector <scon::c3 <float> >  tx);
   void calc_shift(void);
+  double dot_uneq(coords::Representation_3D const &a, coords::Representation_3D const &b);
+  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> redundant_to_Z_backbone(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dists, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_angles, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> &redundant_dihedrals, std::vector<size_t> backbone_indeces);
+  void write_gzmat(std::string const &filename, std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &Z_matrix, coords::Coordinates const &coords) const;
 
   //Julians implementation
   void run(ptrdiff_t &count, std::vector<size_t>& image_remember, std::vector<std::vector<size_t> >& atoms_remember);
@@ -90,6 +131,7 @@ public:
 
   double lbfgs();
   double lbfgs_int(std::vector <scon::c3 <float> > t);
+  double lbfgs_maxflux();
 
   struct GradCallBack
   {
@@ -110,6 +152,25 @@ public:
     }
   };
 
+  struct GradCallBackMaxFlux
+  {
+	  neb * p;
+	  GradCallBackMaxFlux(neb & nebo) : p(&nebo) {}
+	  float operator() (scon::vector< scon::c3<float> > const &x,
+		  scon::vector< scon::c3<float> > &g, size_t const, bool & go_on)
+	  {
+		  using ot = scon::vector< scon::c3<float> >;
+
+		  using ct = coords::Representation_3D;
+		  //p->cPtr->set_xyz(std::move(scon::explicit_transform<ct>(x)));
+		  p->images_initial = scon::explicit_transform<ct>(x);
+		  float E = static_cast<float>(p->g_new_maxflux());
+		  go_on = p->cPtr->integrity();
+		  g = scon::explicit_transform<ot>(p->grad_tot);
+		  return E;
+	  }
+  };
+
   struct GradCallBack_int
   {
     neb * p;
@@ -127,219 +188,19 @@ public:
       return E;
     }
   };
-  struct Base_interp
-
-
-  {
-    int n, mm, jsav, cor, dj;
-    const double *xx, *yy;
-    Base_interp(const std::vector<double> &x, const double *y, int m)
-      : n(int(x.size())), mm(m), jsav(0), cor(0), xx(&x[0]), yy(y) {
-      dj = MIN(1, (int)pow((double)n, 0.25));
-    }
-
-
-
-
-    double interp(double x) {
-      int j1o = cor ? hunt(x) : locate(x);
-      return rawinterp(j1o, x);
-    }
-
-    int locate(const double x)
-
-    {
-      int ju, jm, j1;
-      if (n < 2 || mm < 2 || mm > n) throw ("locate size error");
-      bool ascnd = (xx[n - 1] >= xx[0]);
-      j1 = 0;
-      ju = n - 1;
-      while (ju - j1 > 1) {
-        jm = (ju + j1) >> 1;
-        if ((x >= xx[jm]) == ascnd)
-          j1 = jm;
-        else
-          ju = jm;
-      }
-      cor = abs(j1 - jsav) > dj ? 0 : 1;
-      jsav = j1;
-      return MAX(0, MIN(n - mm, j1 - ((mm - 2) >> 1)));
-    }
-
-    int hunt(const double x)
-    {
-      int j1 = jsav, jm, ju, inc = 1;
-      if (n < 2 || mm<2 || mm > n) throw ("hunt size error");
-      bool ascnd = (xx[n - 1] >= xx[0]);
-      if (j1< 0 || j1>n - 1) {
-        j1 = 0;
-        ju = n - 1;
-      }
-      else {
-        if ((x >= xx[j1]) == ascnd) {
-          for (;;) {
-            ju = j1 + inc;
-            if (ju >= n - 1) { ju = n - 1; break; }
-            else if ((x < xx[ju]) == ascnd) break;
-            else {
-              j1 = ju;
-              inc += inc;
-            }
-          }
-        }
-        else {
-          ju = j1;
-          for (;;) {
-            j1 = j1 - inc;
-            if (j1 <= 0) { j1 = 0; break; }
-            else if ((x >= xx[j1]) == ascnd) break;
-            else {
-              ju = j1;
-              inc += inc;
-            }
-          }
-        }
-      }
-      while (ju - j1 > 1) {
-        jm = (ju + j1) >> 1;
-        if ((x >= xx[jm]) == ascnd)
-          j1 = jm;
-        else
-          ju = jm;
-      }
-      cor = abs(j1 - jsav) < dj ? 0 : 1;
-      jsav = j1;
-      return MAX(0, MIN(n - mm, j1 - ((mm - 2) >> 1)));
-    }
-
-    double virtual rawinterp(int j1o, double x) = 0;
-
-
-  };
-
-  struct Poly_interp : Base_interp
-  {
-
-    double dy;
-    Poly_interp(const std::vector<double> &xv, const std::vector<double>  &yv, int m)
-      : Base_interp(xv, &yv[0], m), dy(0.) {}
-
-
-
-
-    double rawinterp(int j1, double x)
-    {
-
-      int i, m, ns = 0;
-      double y, den, dif, dift, ho, hp, w;
-      const double *xa = &xx[j1], *ya = &yy[j1];
-      std::vector<double> c(mm), d(mm);
-      dif = abs(x - xa[0]);
-      for (i = 0; i < mm; i++) {
-        if ((dift = abs(x - xa[i])) < dif) {
-          ns = i;
-          dif = dift;
-        }
-        c[i] = ya[i];
-        d[i] = ya[i];
-      }
-      y = ya[ns--];
-      for (m = 1; m < mm; m++) {
-        for (i = 0; i < mm - m; i++) {
-          ho = xa[i] - x;
-          hp = xa[i + m] - x;
-          w = c[i + 1] - d[i];
-          if ((den = ho - hp) == 0.0) throw ("Poly_interp error");
-          den = w / den;
-          d[i] = hp*den;
-          c[i] = ho*den;
-        }
-        y += (dy = (2 * (ns + 1) < (mm - m) ? c[ns + 1] : d[ns--]));
-      }
-      return y;
-
-    }
-
-  };
-
-
-  struct Spline_interp : Base_interp
-  {
-    std::vector<double> y2;
-
-    Spline_interp(const std::vector<double> &xv, const std::vector<double> &yv, double yp1 = 1.e99, double ypn = 1.e99)
-      : Base_interp(xv, &yv[0], 2), y2(xv.size())
-    {
-      sety2(&xv[0], &yv[0], yp1, ypn);
-    }
-
-    Spline_interp(const std::vector<double> &xv, const double *yv, double yp1 = 1.e99, double ypn = 1.e99)
-      : Base_interp(xv, yv, 2), y2(xv.size())
-    {
-      sety2(&xv[0], yv, yp1, ypn);
-    }
-
-
-
-
-
-
-
-    void sety2(const double *xv, const double *yv, double yp1, double ypn)
-    {
-      Int i, k;
-      double p, qn, sig, un;
-      n = int(y2.size());
-      std::vector<double> u(n - 1);
-      if (yp1 > 0.99e99)
-        y2[0] = u[0] = 0.0;
-      else {
-        y2[0] = -0.5;
-        u[0] = (3.0 / (xv[1] - xv[0]))*((yv[1] - yv[0]) / (xv[1] - xv[0]) - yp1);
-      }
-      for (i = 1; i < n - 1; i++) {
-        sig = (xv[i] - xv[i - 1]) / (xv[i + 1] - xv[i - 1]);
-        p = sig*y2[i - 1] + 2.0;
-        y2[i] = (sig - 1.0) / p;
-        u[i] = (yv[i + 1] - yv[i]) / (xv[i + 1] - xv[i]) - (yv[i] - yv[i - 1]) / (xv[i] - xv[i - 1]);
-        u[i] = (6.0*u[i] / (xv[i + 1] - xv[i - 1]) - sig*u[i - 1]) / p;
-      }
-      if (ypn > 0.99e99)
-        qn = un = 0.0;
-      else {
-        qn = 0.5;
-        un = (3.0 / (xv[n - 1] - xv[n - 2]))*(ypn - (yv[n - 1] - yv[n - 2]) / (xv[n - 1] - xv[n - 2]));
-      }
-      y2[n - 1] = (un - qn*u[n - 2]) / (qn*y2[n - 2] + 1.0);
-      for (k = n - 2; k >= 0; k--)
-        y2[k] = y2[k] * y2[k + 1] + u[k];
-    }
-    Doub rawinterp(Int jl, double x)
-    {
-      Int klo = jl, khi = jl + 1;
-      double y, h, b, a;
-      h = xx[khi] - xx[klo];
-      if (h == 0.0) throw("Bad input to routine splint");
-      a = (xx[khi] - x) / h;
-      b = (x - xx[klo]) / h;
-      y = a*yy[klo] + b*yy[khi] + ((a*a*a - a)*y2[klo]
-        + (b*b*b - b)*y2[khi])*(h*h) / 6.0;
-      return y;
-    }
-
-  };
-
-
-
-
-
-
-
+  
 
 private:
+
+  std::vector<coords::Representation_3D> bond_st;
+  coords::Representation_3D Fidpp;
+  std::vector<std::vector<double>> eu_st, eu_fi;
+		// IDPP end
+
   double springconstant;
   double tauderiv;
   double EnergyPml, EnergyPpl;
+  const double _KT_;
 
   ptrdiff_t natoms;
   ptrdiff_t nvar;

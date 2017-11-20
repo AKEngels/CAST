@@ -3,9 +3,21 @@
 *.xgcc
 *.obj
 *.oo
+*.exe
+
+.*
 
 optional_files/build/*
 optional_files/project/*
+optional_files/project/Makefile
+optional_files/project/CAST.make
+!optional_files/build/python_modules
+optional_files/build/python_modules/*.pyc
+
+
+
+/src/documentation/html
+/src/documentation/latex
 
 /manual/castmanual-blx.bib
 /manual/castmanual.bcf
@@ -22,5 +34,32 @@ optional_files/project/*
 /manual/texput.log
 /manual/castmanual.synctex.gz
 
-/src/documentation/html
-/src/documentation/latex
+/manual/Tutorial/LaTeX/*-blx.bib
+/manual/Tutorial/LaTeX/*.bcf
+/manual/Tutorial/LaTeX/*.aux
+/manual/Tutorial/LaTeX/*.bbl
+/manual/Tutorial/LaTeX/*.blg
+/manual/Tutorial/LaTeX/*.pdf
+/manual/Tutorial/LaTeX/*.lof
+/manual/Tutorial/LaTeX/*.log
+/manual/Tutorial/LaTeX/*.out
+/manual/Tutorial/LaTeX/*.run.xml
+/manual/Tutorial/LaTeX/*.synctex
+/manual/Tutorial/LaTeX/*.toc
+/manual/Tutorial/LaTeX/*.synctex.gz
+
+
+examples/taskMD/*
+!examples/taskMD/*.rar
+examples/taskFEP/*
+!examples/taskFEP/*.rar
+/CAST_2016/CAST_2016.VC.VC.opendb
+/CAST_2016
+/CAST_YORICK
+/CAST_YORICK
+/CAST_YORICK
+/CAST_YORICK
+
+/INPUTstructures
+/src/.vscode
+
