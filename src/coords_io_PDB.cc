@@ -197,7 +197,10 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
   }
   else if (res_name == "CYM")
   {
-    std::cout << "Warning! Residue " << res_name << " can't be parametrized with OPLSAA. Taken parameters for CYS instead.\n";
+    if (Config::get().general.verbosity > 1)
+    {
+      std::cout << "Warning! Residue " << res_name << " can't be parametrized with OPLSAA. Taken parameters for CYS instead.\n";
+    }
     if (atom_name.substr(0, 1) == "S") return 142;
     else if (atom_name.substr(0, 1) == "C") return 148;
     else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
@@ -391,7 +394,10 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
   }
   else if (res_name == "LIG")  // ligand
   {
-    std::cout << "I'm sorry it is not possible to assign atom types to ligands. This is something you have to do manually.\n";
+    if (Config::get().general.verbosity > 2)
+    {
+      std::cout << "I'm sorry it is not possible to assign atom types to ligands. This is something you have to do manually.\n";
+    }
     return 0;
   }
   else if (res_name == "Na+") return 349;  // sodium ion
@@ -521,6 +527,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 
 	// loop over all atompairs and bind them if they fulfill distance criterion 
 	// i.e. the distance is smaller than 1.2 * sum of covalent radiuses
+    // ions are not bonded to anything
 	for (unsigned i = 0; i<N; i++)
 	{
 		for (unsigned j = 0; j<i; j++)

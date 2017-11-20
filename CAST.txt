@@ -81,6 +81,7 @@ inputtype              PDB
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# CUT_RESIDUES         Cuts out residues and writes them into new tinkerfile outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
@@ -104,14 +105,14 @@ task                  CUT_RESIDUES
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              GAUSSIAN
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa_mod2.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -188,7 +189,7 @@ DFTBopt                  1
 CUTreact_atom            3149
 CUTreact_atom            347
 
-CUTdist                  1
+CUTdist                  10
 
 ####################################
 #                                  #
@@ -664,7 +665,7 @@ MDsnap_opt             0
 # MDheat               2000   293.15
 
 MDheat                 0   1
-MDheat                 100 300
+MDheat                 100  300
 
 # Pressure control
 
