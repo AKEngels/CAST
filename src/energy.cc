@@ -44,13 +44,18 @@ static inline energy::interface_base * get_interface (coords::Coordinates * cp, 
     }
     return new energy::interfaces::qmmm::QMMM(cp);
   }
-#if defined(USE_MPI)
+
   case config::interface_types::T::TERACHEM:
     {
+#if defined(USE_MPI)
       if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations.\n";
       return new energy::interfaces::terachem::mpiInterface(cp);
-    }
+#else
+	  std::cout << "You need to include MPI for this.\n";
+	  std::exit(0);
 #endif
+    }
+
   default:
     {
     if (Config::get().general.verbosity > 29) std::cout << "Default (force field) energy interface choosen.\n";
