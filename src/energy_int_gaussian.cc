@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -520,4 +520,11 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
     }
   }
   return true;
+}
+
+std::vector<coords::float_type>
+energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
+{
+  std::vector<coords::float_type> bullshit;
+  return bullshit;
 }

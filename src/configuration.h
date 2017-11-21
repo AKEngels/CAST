@@ -32,12 +32,13 @@ Purpose: class for extraction of information from inputfile
 #include "scon_vect.h"
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
+ 
 
 /*! Namespace containing relevant configuration options
  */
 namespace config
 {
-
+  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
   // Here we find some static members that only
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
@@ -131,13 +132,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 8;
+  static std::size_t const NUM_INTERFACES = 9;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN", "QMMM"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -151,7 +152,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN, QMMM
     }; 
   };
 
@@ -231,6 +232,9 @@ namespace config
     output_types::T output;
     /** Current task*/
     config::tasks::T task;
+    std::ofstream * trackstream;
+    bool forcefield;
+
     /**Energy interface used for current run*/
     interface_types::T energy_interface;
     /**Energy interface used pre-optimization performed before the current run*/
@@ -536,10 +540,17 @@ namespace config
 
     struct spack
     {
-      bool on, interp;
       double cut;
-      spack(void) : on(false), interp(false), cut(10.0) { }
+      bool on, interp;
+      spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
+
+    struct qmmm_conf
+    {
+      std::vector <size_t> qmatoms;
+      interface_types::T mminterface{ interface_types::T::OPLSAA };
+      bool use{ false };
+    } qmmm{};
 
     struct mopac_conf
     {
@@ -1498,5 +1509,4 @@ private:
    * If no object exists (yet), this will be a nullpointer.
    */
   static Config * m_instance;
-
 };

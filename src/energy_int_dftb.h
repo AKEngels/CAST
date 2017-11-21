@@ -92,6 +92,8 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
+                /**function that has to overwritten (at the moment returns bullshit)*/
+                std::vector<coords::float_type> charges() const override;
 
 			private:
 

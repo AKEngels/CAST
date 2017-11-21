@@ -83,6 +83,13 @@
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
+#include "energy_int_qmmm.h"
+//#include "scon_utility.h"
+
+namespace
+{
+
+}
 
 
 int main(int argc, char **argv)
@@ -166,6 +173,17 @@ int main(int argc, char **argv)
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
+
+    // Define Function to output molar mass of a coords object
+    auto sys_mass = [](coords::Coordinates &sys) -> double
+    {
+      double m = 0;
+      for (auto && a : sys.atoms())
+      {
+        m += a.mass();
+      }
+      return m;
+    };
 
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
@@ -264,6 +282,9 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
+    std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() << 
+      ", mic: " << coords.energyinterface()->cop()<< "\n";
+
     // print which task
     std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
@@ -279,38 +300,101 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
-      // DEVTEST: Room for Development testing
+
+      
+      // &coords
+      /*if (!Config::get().energy.qmmm.qmatoms.empty())
+      {
+   
+        auto aco_coord = make_aco_coords(&coords, get_mm_atoms(coords.size()));
+        aco_coord.g();
+        aco_coord.energyinterface()->print_E_head(std::cout);
+        aco_coord.energyinterface()->print_E_short(std::cout);
+        auto mopac_coord = make_mopac_coords(&coords, Config::get().energy.qmmm.qmatoms);
+        mopac_coord.g();
+        mopac_coord.energyinterface()->print_E_head(std::cout);
+        mopac_coord.energyinterface()->print_E_short(std::cout);
+      }
+      else
+      {
+        auto aco_coord = make_aco_coords(&coords, get_mm_atoms(coords.size()));
+        aco_coord.g();
+        aco_coord.energyinterface()->print_E_head(std::cout);
+        aco_coord.energyinterface()->print_E_short(std::cout);
+      }*/
+
+      //coords.g();
+      coords.energyinterface()->print_E_head(std::cout);
+      //coords.energyinterface()->print_E_short(std::cout);
+      
+  
+      std::ofstream outd("to_gnuplot.txt");
+      
+      
+      for (auto const & pes : *ci)
+      {
+        std::cout << "CS: " << pes.structure.cartesian << "\n";
+        coords.set_xyz(pes.structure.cartesian);
+        coords.g();
+        coords.energyinterface()->print_E_short(std::cout);
+      //  coords.set_xyz(pes.structure.cartesian);
+      //  energy::interfaces::qmmm::QMMM qmobj(&coords);
+      //  qmobj.g();
+      //  qmobj.print_E_short(std::cout);
+      //  qmobj.charges();
+      //  qmobj.print_gnuplot(outd);
+    
+      //  
+     
+      }
+      
+      
+
+      
+
+/*
+      auto mm_in = get_mm_atoms(coords.size());
+      for (auto && qma : Config::get().energy.qmmm.qmatoms)
+      {
+        std::cout<< "qma: " << qma << '\n';
+      }
+      for (auto && mma : mm_in)
+      {
+        std::cout << "mma: " << mma << '\n';
+      }
+      break;*/
       break;
     }
     case config::tasks::SP:
-    {
-      // singlepoint calculation
-      coords.e_head_tostream_short(std::cout);
-      std::size_t i(0u);
-      auto sp_energies_fn = coords::output::filename("_SP", ".txt");
-      std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-      if (!sp_estr) throw std::runtime_error("Cannot open '" +
-        sp_energies_fn + "' to write SP energies.");
-      sp_estr << std::setw(16) << "#";
-      short_ene_stream_h(coords, sp_estr, 16);
-      sp_estr << std::setw(16) << 't';
-      sp_estr << '\n';
-      i = 0;
-      for (auto const & pes : *ci)
-      {
-        using namespace std::chrono;
-        coords.set_xyz(pes.structure.cartesian);
-        auto start = high_resolution_clock::now();
-        coords.e();
-        auto tim = duration_cast<duration<double>>
-          (high_resolution_clock::now() - start);
-        std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-        short_ene_stream(coords, sp_estr, 16);
-        sp_estr << std::setw(16) << tim.count() << '\n';
-        coords.e_tostream_short(std::cout);
+      { // singlepoint
+        coords.e_head_tostream_short(std::cout);
+        std::size_t i(0u);
+        auto sp_energies_fn = coords::output::filename("_SP", ".txt");
+        std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+          sp_energies_fn + "' to write SP energies.");
+        sp_estr << std::setw(16) << "#";
+        short_ene_stream_h(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << 't';
+        sp_estr << '\n';
+        i = 0;
+        std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() <<
+          ", mic: " << coords.energyinterface()->cop() << "\n";
+        for (auto const& pes : *ci)
+        {
+          using namespace std::chrono;
+          coords.set_xyz(pes.structure.cartesian, true);
+          auto start = high_resolution_clock::now();
+          coords.e();
+          auto tim = duration_cast<duration<double>>
+            (high_resolution_clock::now() - start);
+          std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+          short_ene_stream(coords, sp_estr, 16);
+          sp_estr << std::setw(16) << tim.count() << '\n';
+          coords.e_tostream_short(std::cout);
+        }
+        break;
       }
-      break;
-    }
     case config::tasks::GRAD:
     {
       // calculate gradient

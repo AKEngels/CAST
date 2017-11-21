@@ -44,6 +44,9 @@ namespace energy
 				double h(void);
 				// Optimization in the interface(d program)
 				double o(void);
+
+        std::vector<coords::float_type> charges() const override;
+
 				//MOPAC7_HB VAR
 				bool grad_var;
 				// Output functions

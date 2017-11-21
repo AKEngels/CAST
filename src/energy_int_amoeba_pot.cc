@@ -3689,7 +3689,7 @@ size_t energy::interfaces::amoeba::amoeba_ff::multipole_sites(void)
   }
   quadro.clear();
   dipole.clear();
-  charges.clear();
+  m_charges.clear();
   ipole.clear();
   pdamp.clear();
   axistype.clear();
@@ -3700,7 +3700,7 @@ size_t energy::interfaces::amoeba::amoeba_ff::multipole_sites(void)
   yaxis.clear();
   quadro.resize(alloc_glob + 1);
   dipole.resize(alloc_glob + 1);
-  charges.resize(alloc_glob + 1);
+  m_charges.resize(alloc_glob + 1);
   ipole.resize(alloc_glob + 1);
   pdamp.resize(alloc_glob + 1);
   thole.resize(alloc_glob + 1);
@@ -3716,7 +3716,7 @@ size_t energy::interfaces::amoeba::amoeba_ff::multipole_sites(void)
     for (auto mult : axes)
     {
       m++;
-      charges[m] = (mult.p_rot.charge);
+      m_charges[m] = (mult.p_rot.charge);
       dipole[m].push_back(mult.p_rot.dipole.x());
       dipole[m].push_back(mult.p_rot.dipole.y());
       dipole[m].push_back(mult.p_rot.dipole.z());
@@ -4353,7 +4353,7 @@ void energy::interfaces::amoeba::amoeba_ff::rot_matrix(coords::Representation_3D
       //ROTATION of MONOPOLES
 
 
-      rp[0][n] = charges[n];
+      rp[0][n] = m_charges[n];
 
 
 

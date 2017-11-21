@@ -510,4 +510,11 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
   }
   return true;
 }
+
+std::vector<coords::float_type>
+energy::interfaces::dftb::sysCallInterface::charges() const
+{
+  std::vector<coords::float_type> bullshit;
+  return bullshit;
+}
 #endif

@@ -6,6 +6,104 @@
  */
 Config * Config::m_instance = nullptr;
 
+/**
+* Helper function that sorts numerical
+* integer type numbers into a vector. Every number
+* is only inserted once ("uniquely").
+*
+* @param str: String containing number range (ex. "0-2, 7, 2, 3, 3, 13-15")
+* @return: vector containing sorted unique numbers (ex. "0, 1, 2, 3, 7, 13, 14, 15")
+*/
+std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, bool minus_1)
+{
+  // remove all spaces
+  str.erase(std::remove_if(str.begin(), str.end(),
+    [](char c) -> bool {return std::isspace(c) > 0; }),
+    str.end());
+  // replace all commas with spaces
+  std::replace(str.begin(), str.end(), ',', ' ');
+  std::string d;
+  std::stringstream iss(str);
+  std::vector<std::size_t> re;
+  // get each seperated value as single string d
+  while (iss >> d)
+  {
+    auto dash_pos = d.find('-');
+    // if element is a range (contains '-')
+    if (dash_pos != std::string::npos)
+    {
+      d[dash_pos] = ' ';
+      std::stringstream pss{ d };
+      std::size_t first(0), last(0);
+      if (pss >> first && pss >> last)
+      {
+        if (first <= last && (!minus_1 || first > 0))
+        {
+          for (auto i = first; i <= last; ++i)
+          {
+            re.push_back(minus_1 ? i - 1u : i);
+          }
+        }
+        else
+        {
+          throw std::runtime_error("Invalid range for indices: '" +
+            std::to_string(first) + " - " + std::to_string(last) + "'.");
+        }
+      }
+
+      else
+      {
+        throw std::runtime_error("Cannot read index range from '" + d + "'.");
+      }
+    }
+    // throw if non-numeric character is found
+    else if (d.find_first_not_of("0123456789") != std::string::npos)
+    {
+      throw std::runtime_error("Non numeric character found in '" + d + "'.");
+    }
+    // read number from stringstream of d
+    else
+    {
+      std::stringstream pss{ d };
+      std::size_t value;
+      if (pss >> value && (!minus_1 || value > 0))
+      {
+        re.push_back(minus_1 ? value- 1u : value);
+      }
+      else
+      {
+        throw std::runtime_error("Cannot read index from '" + d + "'.");
+      }
+    }
+  }
+  // sort resulting numbers
+  std::sort(re.begin(), re.end());
+  // remove duplicates and return rest
+  return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
+}
+
+
+
+template<typename T>
+static T clip(T value, T const LOW, T const HIGH)
+{
+  using std::min;
+  using std::max;
+  return min(HIGH, max(LOW, value));
+}
+
+
+template<typename ENUM_T, std::size_t ARR_SIZE>
+static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
+{
+  for (std::size_t i = 0; i < ARR_SIZE; ++i)
+  {
+    if (S.find(arr[i]) != S.npos) return static_cast<ENUM_T>(i);
+  }
+  return static_cast<ENUM_T>(-1);
+}
+
+
 config::tasks::T Config::getTask(std::string const & S)
 {
   for (std::size_t i = 0; i < config::NUM_TASKS; ++i)
@@ -422,6 +520,33 @@ void config::parse_option(std::string const option, std::string const value_stri
     std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
 #endif
   }
+
+  //! Qmmm-Option
+  else if (option.substr(0, 4u) == "QMMM")
+  {
+    if (option.substr(4u) == "qmatoms")
+    {
+      Config::set().energy.qmmm.qmatoms = 
+        sorted_indices_from_cs_string(value_string, true);
+      if (Config::get().energy.qmmm.qmatoms.size() != 0)
+      {
+        Config::set().energy.qmmm.use = true;
+      }
+    }
+    else if (option.substr(4u) == "mminterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.mminterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+  }
+
 
   //!SPACKMAN
   else if (option == "Spackman")

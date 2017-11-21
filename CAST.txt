@@ -1,4 +1,4 @@
-﻿####################################
+####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -640,6 +640,695 @@ MDtimestep             0.001
 # start MD again from beginning if molecule gets destroyed
 
 MDrestart_if_broken    0
+
+# Activate Tracking (Log and Snapshots)
+
+MDtrack                1
+
+#MDtrackoffset         0
+
+#
+#   Snapshots
+#
+
+# Number
+MDsnap                 1000
+# Buffer size
+MDsnap_buffer          100
+# Optimize snapshots
+MDsnap_opt             0
+
+# Heating process control
+#
+# MDheat               <step> <temperature at that step>
+# MDheat               2000   293.15
+
+=======
+﻿####################################
+#                                  #
+#                                  #
+#         CAST CONFIGFILE          #
+#                                  #
+#                                  #
+#################################### 
+#
+# Lines beginning with a hashtag are ignored by CAST
+
+# Verbosity 
+# Amount of output information from CAST [0-5] (do not use verbosity > 4)
+
+verbosity              3
+
+# Cores
+# Number of OpenMP Threads (if compiled with openmp support)
+
+cores                  4
+
+
+####################################
+#                                  #
+#                                  #
+#        I/O: FILES & TYPES        #
+#                                  #
+#                                  #
+####################################
+
+# Input file name
+
+
+name                   water1.arc
+
+# Output file name
+
+outname                output
+
+# Input file type
+
+
+inputtype              TINKER
+### AMBER I/O OPTIONS
+
+#amber_mdcrd           
+#amber_mdvel
+#amber_inpcrd
+#amber_restrt           min2.rst
+#amber_trajectory_at_constant_pressure
+
+
+
+#################################### 
+#                                  #
+#          PROGRAM TASK            #
+#                                  #
+####################################
+
+# SP                   Single point eneryg calculation
+# GRAD                 Single point gradient calculation
+# HESS                 Single point hessian matrix calculation
+# LOCOPT               Local optimization using Lib-LBFGS
+# GOSOL                Combined Solvation + Global Optimization
+# MC                   Monte Carlo
+# TS                   Tabu Search (CAST: GOTS)
+# DIMER                Dimer method using torsional space
+# MD                   Molecular dynamics simulation
+# NEB                  Nudged elastic band calculation
+# STARTOPT             Adding water molecules and/or performing Ringsearch
+# UMBRELLA             Umbrella Sampling
+# FEP                  Alchemical transformations using FEP
+# ALIGN                Trajectory Alignment (Kabsch algorithm)
+# PCAgen               Principal Component Analysis
+# PCAproc
+# ENTROPY              Configurational and Conformational Entropy Calculations
+# GRID                 Grid Search
+# PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
+# PATHSAMPLING
+# REMOVE_EXPLICIT_WATER
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# WRITE_TINKER         Writes tinkerstructure into outname.arc
+# INTERNAL             Create Z-Matrix
+# XB_CENTER            Center of mass/geometry
+# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
+# XB_INTERFACE_CREATION   Combinig two structures
+# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
+
+task                   DEVTEST
+
+
+####################################
+#                                  #
+#        ENERGY INTERFACES         #
+#                                  #
+####################################
+
+# AMBER                AMBER force field
+# AMOEBA               AMOEBA03 force field
+# CHARMM22             CHARMM22 force field
+# OPLSAA               OPLS all atoms force field
+# TERACHEM             Terachem MPI Interface
+# (TINKER)             Tinker syscall interface
+# MOPAC                MOPAC2016 syscall Interface
+# QMMM		       QMMM interface (MOPAC + ff)
+# MOPAC                MOAPC2012 syscall Interface
+# DFTB                 DFTB interface (with DFTBaby)
+
+interface              DFTB
+
+
+# Interface for preoptimizations
+#preinterface           OPLSAA
+
+# PARAMETER FILE FOR FF
+# paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
+paramfile              oplsaa_mod.prm
+
+# reading amber charges from separate file (called charges.txt) <0/1>,
+# necessary for reproducing AMBER forefields accuratly
+#chargefile             1
+
+MOPACversion          MOPAC2012
+
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
+
+# Keywords for MOPAC Call
+
+MOPACkey               PM7 QMMM AUX CHARGE=-1
+
+# Delete temporary MOPAC comm files?
+
+MOPACdelete            0
+
+#MOPAC executable path
+
+MOPACpath              "C:\Program Files\mopac\MOPAC2016.exe"
+
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
+
+cutoff                 400.0
+switchdist             10.0
+
+####################################
+#                                  #
+#          QMMM                    #
+#                                  #
+####################################
+
+
+QMMMqmatoms        	 1
+QMMMmminterface       OPLSAA
+
+
+################# DFTB options ################################################
+
+# path to DFTBaby
+DFTBath                 /home/susanne/DFTBaby-0.1.0
+
+# verbosity (only for DFTBaby)
+DFTBverbose             0
+
+# total charge of molecule (has to be closed shell)
+#DFTBcharge              0
+
+# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
+#DFTBcutoff            30
+
+# switch on long range correction <0/1>
+DFTBlr_corr             1
+
+# distance (in bohr) where the long range correction is switched on
+#DFTBlr_dist            3.03     
+
+# maximum number of iterations for SCF-calculation
+#DFTBmaxiter            1000
+
+# convergence threshold for relative change in SCF-calculation
+#DFTBconv               1e-10
+
+# name of the DFTBaby gradient file 
+DFTBgradfile            grad.xyz
+
+# state for which the DFTB gradients should be calculated (ground state = 0)
+DFTBgradstate          0
+
+# limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
+DFTBstates            1
+
+# number of occupied orbitals taken into account for TD-DFTB
+DFTBocc_orb            2
+
+# number of virtual orbitals taken into account for TD-DFTB
+DFTBvirt_orb            2
+
+# maximum number of iterations for TD-DFTB matrix diagonalisation
+#DFTBdiag_maxiter        50
+
+# convergence threshold for TD-DFTB matrix diagonalisation
+#DFTBdiag_conv           1e-05
+
+# use DFTBaby for optimization (otherwise steepest gradient) <0/1>
+DFTBopt                  1
+
+
+
+####################################
+#                                  #
+#          ATOM FIXATIONS          #
+#                                  #
+####################################
+
+# Exclude nonbondeds between two fixed atoms in internal force fields
+FIXexclude             false
+
+# Remove rotations of hydrogens from main torsional angles
+REMOVEHROT             false
+
+# Fix a range of atoms 
+#FIXrange               1-6,9,24,55-71,72
+
+
+
+####################################
+#                                  #
+#          Boundary Bias           #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential
+#BIASspherical                <radius> <force> <exponent>
+#BIAScubic                    <x> <y> <z> <force> <exponent>
+
+#BIASspherical  25.0 1.0 2.0
+#BIAScubic 40.0 40.0 40.0 1.0 2.0
+
+
+####################################
+#                                  #
+#        DIHEDRAL FIXATIONS        #
+#                                  #
+####################################
+
+# Quadratic Dihedral Bias Potential (quadratic in degreees)
+
+#BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
+#BIASdih                1 2 3 5 0.0   10.0 
+#BIASdih                2 5 6 9 150.0 5.0  
+#BIASdih                1 2 5 6 150.0 5.0  
+#BIASdih                1 2 5 6 95.0  10.0 
+
+####################################
+#                                  #
+#        DISTANCE FIXATIONS        #
+#                                  #
+####################################
+
+# Harmonic Distance Bias Potential (in angstrom)
+
+#BIASdist               <atom 1> <atom 2> <angstrom> <force>
+
+
+####################################
+#                                  #
+#             MAINlists            #
+#                                  #
+####################################
+
+# Black- or Whitelist a rotation around a bond
+# for the selection as main rotation
+
+#MAINblacklist 2 5
+
+#MAINwhitelist 2 5
+
+
+####################################
+#                                  #
+#       Periodic Boundaries        #
+#                                  #
+####################################
+
+#Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
+Periodics              0 25.0 25.0 25.0
+
+# Print periodic boundary dummy atoms to output?
+#Periodicp            <Active 1(on)/0(off)> 
+
+Periodicp              0
+
+# Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
+PeriodicCutout false
+# 0: Remove entire molecule if any atom of molecule is outside box + CutoutDistance
+# 1: Remove entire molecule if center of mass is outside box + CutoutDistance
+PeriodicCutoutCriterion 1
+# Additional CutoutDistance from box edge in angstrom , where molecules are cut
+PeriodicCutoutDistance 0
+####################################
+#                                  #
+#         libLBFGS OPTIONS         #
+#                                  #
+####################################
+
+BFGSgrad               0.0001
+BFGSmaxstep            5000
+
+
+###################################
+#				  				  #
+#      NEB & PATHOPT OPTIONS      #
+#				  				  #
+###################################
+
+# Second structure for double-ended search
+NEB-PATHOPT-FINAL input.xyz
+
+# Number of NEB images
+NEB-PATHOPT-IMAGES 12
+
+# Force constant in kcal/molA^2 for NEB calculation defining the force component along the connecting band
+NEB-PATHOPT-SPRING 1.0
+
+# Climbing image in NEB 0/1 (off/on)
+NEB-PATHOPT-CLIMBING 1
+
+# Standard tau or improved tau method in NEB 0/1 (standard/improved)
+NEB-PATHOPT-TAU 1
+
+# Definition of the Temperature settings for the Monte Carlo run
+NEB-PATHOPT-TEMP 298.15
+
+# MCM iterations in Pathopt
+NEB-PATHOPT-ITER 60
+
+# Number of multiple MCM simulations
+NEB-PATHOPT-GLOBITER 1
+
+# Optimization mode BIAS/GRADIENT Projection
+NEB-PATHOPT-MODE PROJECTED
+
+# Bias constant (Pathopt)
+NEB-PATHOPT-BIASCONSTANT 0.1
+
+# Maximum displacement in Angstrom for accepted coordinates in MCM 
+NEB-PATHOPT-MAXVAR 3.0
+
+# Maximum energy range in kcal/mol for MCM in Pathopt
+NEB-PATHOPT-ENERGY_RANGE 20.0
+
+# MCM stepsize in Angstrom
+NEB-PATHOPT-STEPSIZE 1.4
+
+# Move strategy by applying dihedral changes at several steps of MCM 0/1 (off/on)
+NEB-PATHOPT-MIXMOVE 0 
+
+# Using NEB connection within Pathopt 0/1 (off/on) 
+NEB-PATHOPT-NEBCONN 0
+
+# Number of NEB images within Pathopt-NEB connection procedure
+NEB-PATHOPT-NEBCONN_NUMBER 12
+
+# Constraint global optimization (MCM standard) by fixation of
+# dihedrals which change the most during NEB
+NEB-PATHOPT-CONSTRAINT_GLOBAL 0
+
+# Number of dihedrals within constraint global optimization 
+# (MCM standard) which should be fixed along the NEB path
+NEB-PATHOPT-CONSTRAINT_NUMBER_DIHEDRALS 1
+
+# Interpolation via spline method between the linear constructed NEB pathway
+# by locally optimizing with perpendicular force projection 0/1 (off/on) 
+NEB-PATHOPT-INT_PATH 0
+
+#step size of interpolated images via spline interpolation approach
+NEB-PATHOPT-INT_IT 0.5
+
+#choose if the MaxFlux method is used to simulate a NEB method with temperature dependencies (0/1 no/yes)
+NEB-PATHOPT-MAXFLUX 1
+
+#determine if a neb calculation is performed for every found path in PATHOPT (0/1: no/yes)
+NEB-PATHOPT-MF_PATHOPT 1
+
+#using image dependent pair potential (IDPP) for NEB pathway generation (0/1: no/yes)
+NEB-PATHOPT-NEB-IDPP 1
+
+#usin complete pathway (multiple structure file) for NEB calculation (0/1: no/yes)
+
+NEB-PATHOPT-NEB-COMPLETE 1
+
+#complete pathways or points with interconnection via NEB (0/1: no/yes)
+NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
+
+
+####################################
+#                                  #
+#        SIMULATION OPTIONS        #
+#            (MC, TS)              #
+#                                  #
+####################################
+
+# Simulation Temperature 
+# for TS and MC important for Metropolis Criterion
+
+Temperature            298.15
+
+# Number of iterations in global optimization routine 
+
+Iterations             2000
+
+
+####################################
+#                                  #
+#           GLOBOPTIONS            #
+#            (MC, TS)              #
+#                                  #
+####################################
+
+# Save all (minimized) structures 
+# which are within "Erange" kcal/mol from the final global minimum
+# default = 0.0
+
+GOerange                 10.0
+
+# use the current local minimum energy for metropolis criterion?
+# default = 0
+
+GOmetrolocal           0
+
+# startopt before starting simulation/optimization?
+# default = 0
+
+GOstartopt             0
+
+# Temperature Scaling Factor applied to the Temperature, 
+# once a new minimum is found during GlobOpt
+# default = 1.0
+
+Tempscale              0.98
+
+# Precision of values printed
+
+GOprecision            6
+
+# Fallback type 
+# 
+# LAST_GLOBAL (default) = fall back to last minimum and then to global minimum if stuck
+# EVOLUTION = select new minimum via evolutionary algorithm if stuck
+
+GOfallback             FITNESS_ROULETTE
+
+# Maximum number of tries from one structure before it is set
+# tabu as a starting point
+# default = 20
+
+GOfallback_limit       500
+
+# Fitness function type for evolutionary fallback
+#
+# LINEAR (default) = linear ranking
+# EXPONENTIAL = exponential ranking
+
+GOfallback_fr_fit              EXPONENTIAL
+
+# Number of minima included in the ranking for evolutionary fallback
+# default = 10
+
+GOfallback_fr_minima    10
+
+# Lower and upper bounardy for fitness value
+# rank 1 is assign second value, rank X 
+# (determined via GOincluded_minima) is assigned the first value
+# default = 0.5 1.0
+
+GOfallback_fr_bounds       0.5 1.0
+
+
+####################################
+#                                  #
+#           GRID OPTIONS           #
+#                                  #
+####################################
+ 
+GOmain_grid            60.0     
+
+
+####################################
+#                                  #
+#            MCM OPTIONS           #
+#                                  #
+####################################
+
+# Step size in cartesian space 
+
+MCstep_size            1.4
+
+# Use minimization
+
+MCminimization         1
+
+# Use dihedral (1), cartesian (2) or biased dihedral (0) randomization
+
+MCmovetype             1
+
+# Maximum dihedral deviation
+
+MCmax_dihedral         30.0
+
+
+####################################
+#                                  #
+#            TS OPTIONS            #
+#                                  #
+####################################
+
+# Do diversification before first TS steps?
+
+TSmc_first             1
+
+# How many TS steps need to fail in finding new minimum before diversification?
+
+TSdivers_threshold      10
+
+# How many diversification steps are applied?
+
+TSdivers_iter          30
+
+# How often will diversification be applied before termination?
+
+TSdivers_limit         20
+
+
+####################################
+#                                  #
+#         STARTOPT OPTIONS         #
+#                                  #
+####################################
+
+# startopt type
+# 0                  Ringsearch
+# 1                  Solvadd [default]
+# 2                  Ringsearch + Solvadd
+
+SOtype                 1
+
+# startopt structure count
+# number of structures generated by startopt routines
+
+SOstructures           1
+
+
+####################################
+#                                  #
+#        RINGSEARCH OPTIONS        #
+#                                  #
+####################################
+
+# Force, applied to close rings 
+# (multiplied with quadratic in degrees of dihedral deviation)
+
+RSbias_force           10.0
+
+# Chance to close a ring in the initial random population generation
+
+RSchance_close         0.33
+
+# Number of individuals in the ringsearch evolution
+
+RSpopulation           10
+
+# Number of propagated generations during ringsearch evolution
+
+RSgenerations          10
+
+
+####################################
+#                                  #
+#          SOLVADD OPTIONS         #
+#                                  #
+####################################
+
+# Hydrogen bond length parameter [default: 1.8]
+
+SAhb                   1.8
+
+# number of desired water molecules [default: 0(=no limit)]
+
+#SAlimit                500
+
+# water boundary type
+#
+# 0    layer [default]
+# 1    sphere
+# 2    box
+
+SAboundary             1
+
+# water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
+
+SAradius               12.0
+
+# force field parameter types of oxygen and hydrogen
+#
+# 53 54   OPLS-AA
+# 101 88   CHARMM
+# 2001 2002  AMBER
+
+SAtypes                63 64
+
+# Intermediate optimizations
+#
+# 0    none
+# 1    each "shell"
+# 2    all waters
+# 3    1+2
+
+SAopt                  2
+
+# fix initial structure <0/1>
+
+SAfixinit              1
+
+
+
+
+####################################
+#                                  #
+#            MD OPTIONS            #
+#                                  #
+####################################
+
+# Number of Steps
+
+MDsteps                10
+ 
+# Integrator
+#
+# 0                    Velocity-Verlet
+# 1                    Beeman
+
+MDintegrator           0
+
+# Velocity Scaling
+
+MDveloscale            0
+
+# Thermostat (Nose-Hoover)
+
+MDthermostat           0
+
+# Timestep in picoseconds
+
+MDtimestep             0.001
+
+# start MD again from beginning if molecule gets destroyed
+
+MDrestart_if_broken    1
 
 # Activate Tracking (Log and Snapshots)
 
