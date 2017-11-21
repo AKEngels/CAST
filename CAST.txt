@@ -652,6 +652,11 @@ MDintegrator           0
 
 MDveloscale            0
 
+# temperature control <0/1> 
+# (direct velocity scaling and Nose-Hoover only work if this option is activated)
+
+MDtemp_control 0
+
 # Thermostat (Nose-Hoover)
 
 MDthermostat           0
