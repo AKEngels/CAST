@@ -422,7 +422,7 @@ In addition to python you also need the following:
 \item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
 \end{itemize}
 
-Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. 
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. It is recommended to use the version from July 20, 2017 because newer versions can't deal with atoms different from C, H, N and O.
 
 \textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
 \begin{lstlisting}
@@ -433,10 +433,9 @@ DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
-There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 102 and 103 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
-\begin{lstlisting}[firstnumber=97]
+There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
+\begin{lstlisting}[firstnumber=92]
         else:
-            self.dmin = min(reppot_module.d)
             self.dmax = max(reppot_module.d)
             self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
             def smooth_tail(d,deriv=0):
@@ -510,6 +509,8 @@ If you want to run CAST with DFTB, set the interface parameter in the CAST input
 	
 	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. To do this in a comfortable way open it with LibreOfficeCalc, give as seperation option ``spaces'' and activate the option ``Feldtrenner zusammenfassen''. Then you can write the atom types in column G, mark the whole file and copy the text in a text editor. Then save the file from the texteditor as .arc. This file you can use as inputstructure for CAST forcefield calculations.
 	
+	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}).
+	
 	\subsubsection{AMBER}
 
 \ac{CAST} can to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
@@ -542,6 +543,14 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 \subsubsection{XYZ}
 
 If you use an energy interface that doesn't need atom types (i.\,e. no forcefield) you can also use .xyz files as input. Just set the inputtype to XYZ and run your calculation as usual. Be careful that the structure in the xyz-file is not too distorted because CAST uses a distance criterion to find bonds in the structure.
+
+\subsubsection{PDB}  \label{sec:pdb}
+
+CAST can also read in PDB files. It only uses the lines starting with ``ATOM''. In principle they must look like described in this file: \url{ftp://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf}, p. 180 but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). There can be problems if amino acids other than the 20 standard amino acids + those from AMBER (CYX, CYM, HID, HIE, HIP, see \url{http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm}) are used. Because CAST doesn't assign bonds to ions (residue names end with + or -) there can be problems if you have charged molecules in your structure. 
+
+CAST tries to assign atom types according to the OPLSAA force field to the atoms. To do so it uses the atom name and the residue name from the PDB file. The atom names have to be something like CA, CB, ... according to the position where they are in the amino acid relative to the carboxyl group. If there is more than one atom of the same element in the same relative position those atoms have to be numbered. H atoms have to be named by the atom they are bound to, e.\,g. HE2 for a hydrogen that is bound to the atom with the position E2 to the carboxyl group. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to comnplement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
+
+If CAST is able to assign atom types to all atoms in the structure (this is probably a rare event) you can use the OPLSAA forcefield for calculations. Otherwise you have to use an energy interface that doesn't need atom types. You can use this interface to write out a tinkerstructure, assign atom types to this tinkerstructure and use it as input for a forcefield calculation. 
 
 
 %%%% Fixations and biases %%%%
@@ -1309,6 +1318,10 @@ EXwellenzahl                  28514.91
 	
 	\subsection{WRITE\_TINKER}
 	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	
+	\subsection{CUT\_RESIDUES}
+	
+	This task takes a structure from a PDB input file (see section \ref{sec:pdb}) and cuts out a smaller structure around a user determined reaction site. You can determine the active site by the keyword ``CUTreact\_atom''. Use this keyword several times to add the atoms numbers of the atoms that make up the reaction site (numbering starting with 1). By the keyword ``CUTdist'' you determine the size of your new structure (distance from active site that is the geometrical center of all reactive atoms). However this task just cuts between residues so if one atom of a residue is inside that radius the whole residue is kept. If a peptide is cut the N-terminus is complemented by a NH\textsubscript{3}\textsuperscript{+} group and the C-terminus is complemented by a COO\textsuperscript{-} group. Because of the stuff with the residues this task only works with PDB as input. The new (smaller) structure is written into a new .arc file in tinker format. The atom types that are assigned are similar to those of an OPLSAA force field but can't be used for force field calculations. If you want to perform a follow-up calculation with the output structure where you fix the protein backbone, copy the content of the file ``fix.txt'' to your inputfile ``CAST.txt''. 
 		
 
 	%%%% Boundry Conditions %%%%

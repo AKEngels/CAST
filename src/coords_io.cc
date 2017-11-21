@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -52,6 +52,10 @@ coords::input::format* coords::input::new_format(void)
       //XYZ
       return new formats::xyz;
       break;
+    case config::input_types::PDB:
+      //PDB
+      return new formats::pdb;
+      break;
     default:
     {
       return new formats::tinker;
@@ -80,6 +84,10 @@ coords::input::format* coords::input::additional_format(void)
   case config::input_types::XYZ:
     //XYZ
     return new formats::xyz;
+    break;
+  case config::input_types::PDB:
+    //PDB
+    return new formats::pdb;
     break;
   default:
   {

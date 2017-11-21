@@ -1,6 +1,5 @@
 ﻿#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
-#include "helperfunctions.h"
 
 
 /*
