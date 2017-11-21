@@ -722,6 +722,8 @@ namespace config
 
   struct molecular_dynamics
   {
+    /**temperature control active?*/
+    bool temp_control;
     /**timestep in picoseconds*/
     double timeStep;
     /**initial temperature*/
@@ -800,7 +802,7 @@ namespace config
       refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath(false), veloScale(false), fep(false), track(true),
+      hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }

@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   Start.pdb
+name                   tridecaalanin.arc
 
 # Output file name
 
@@ -37,8 +37,7 @@ outname                output
 
 # Input file type
 
-
-inputtype              PDB
+inputtype              TINKER
 
 ### AMBER I/O OPTIONS
 
@@ -89,7 +88,8 @@ inputtype              PDB
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  CUT_RESIDUES
+task                  SP
+
 
 ####################################
 #                                  #
@@ -112,7 +112,8 @@ interface              OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod2.prm
+
+paramfile              oplsaa_mod.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -191,6 +192,7 @@ CUTreact_atom            347
 
 CUTdist                  10
 
+
 ####################################
 #                                  #
 #          ATOM FIXATIONS          #
@@ -204,8 +206,8 @@ FIXexclude             false
 REMOVEHROT             false
 
 # Fix a range of atoms 
-#FIXrange               0,1,2,15,16,17,18,19,22,23,24,25,26,39,40,41,42,43,49,50,51,52,53,56,57,58,59,60,67,68,69,70,71,77,78,79,80,81,101,102,103,104,105,111,112,113,114,115,131,132,133,134,135,142,143,144,145,146,156,157,158,159,160,163,164,165,166,167,173,174,175,176,177,180,181,182,183,184,187,188,189,190,191,194,195,196,197,198,213,214,215,216,217,230,231,232,233,234,251,252,253,254,255,270,271,272,273,274,280,281,282,283,284,296,297,298,299,300,308,309,310,311,312,318,319,320,321,322,332,333,334,335,336,352,353,354,355,356,369,370,371,372,373,388,389,390,391,392,400,401,402,403,404,418,419,420,421,422,425,426,427,428,429,441,442,443,444,445,455,456,457,458,459,466,467,468,469,470,490,491,679,680,682,683,685,686,688,689,691,692,694,695,697,698
 
+#FIXrange               1-6,9,24,55-71,72
 
 
 ####################################
@@ -630,9 +632,14 @@ MDintegrator           0
 
 MDveloscale            0
 
+# temperature control <0/1> 
+# (direct velocity scaling and Nose-Hoover only work if this option is activated)
+
+MDtemp_control         1
+
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 
