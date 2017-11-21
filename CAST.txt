@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   water1.arc
+name                   tridecaalanin.arc
 
 # Output file name
 
@@ -39,6 +39,7 @@ outname                output
 
 
 inputtype              TINKER
+
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -87,7 +88,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  SP
+task                  MD
 
 ####################################
 #                                  #
@@ -103,7 +104,7 @@ task                  SP
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              DFTB
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -128,9 +129,9 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 MOPACversion          MOPAC2012
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
-#cutoff                 12.0
+cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
+switchdist             10.0
 
 ################# DFTB options ################################################
 
@@ -150,7 +151,7 @@ DFTBverbose             0
 DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-#DFTBlr_dist            3.03     
+DFTBlr_dist            3.03     
 
 # maximum number of iterations for SCF-calculation
 #DFTBmaxiter            1000
@@ -610,7 +611,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                10
+MDsteps                10000
  
 # Integrator
 #
@@ -623,6 +624,11 @@ MDintegrator           0
 
 MDveloscale            0
 
+# temperature control <0/1> 
+# (direct velocity scaling and Nose-Hoover only work if this option is activated)
+
+MDtemp_control         0
+
 # Thermostat (Nose-Hoover)
 
 MDthermostat           0
@@ -633,7 +639,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    1
+MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
@@ -657,8 +663,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0   1
-MDheat                 100 300
+MDheat                 0   300
 
 # Pressure control
 
@@ -737,9 +742,9 @@ FEPvdwcouple   1.0
 FEPeleccouple  0.5
 FEPvshift      0.5
 FEPcshift      0.0
-FEPequil       100
-FEPsteps       1000
-FEPfreq        10
+FEPequil       10
+FEPsteps       10
+FEPfreq        100
 FEPanalyze     1
 FEPbar         1
 

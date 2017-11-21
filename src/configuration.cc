@@ -717,6 +717,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.veloScale;
 	  }
+      else if (option.substr(2, 12) == "temp_control")
+      {
+        if (cv.str() == "0") Config::set().md.temp_control = false;
+      }
 	  else if (option.substr(2, 10) == "thermostat")
 	  {
 		  Config::set().md.hooverHeatBath = bool_from_iss(cv);

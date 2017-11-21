@@ -1414,12 +1414,15 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
-    // apply half step temperature corrections
-    //if (CONFIG.hooverHeatBath || HEATED)
-    //{
-      //temp = tempcontrol(CONFIG.hooverHeatBath, true);
-    //}
-
+    if (Config::get().md.temp_control == true)
+    {
+      // apply half step temperature corrections
+      if (CONFIG.hooverHeatBath || HEATED)
+      {
+        temp = tempcontrol(CONFIG.hooverHeatBath, true);
+      }
+    }
+    
     // save old coordinates
     P_old = coordobj.xyz();
     // Calculate new positions and half step velocities
@@ -1541,18 +1544,29 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       std::cout << "number of atoms around active site: " << inner_atoms.size() << "\n";
     }
     // Apply full step RATTLE constraints
-    //if (CONFIG.rattle.use) rattle_post();
+    if (CONFIG.rattle.use) rattle_post();
+
     // Apply full step temperature adjustments
-    //if (CONFIG.hooverHeatBath || HEATED)
-    //{
-      //temp = tempcontrol(CONFIG.hooverHeatBath, false);
-    //}
-    //else  // calculate E_kin and T if no temperature control is active
-    //{
+    if (Config::get().md.temp_control == true)
+    {
+      if (CONFIG.hooverHeatBath || HEATED)
+      {
+        temp = tempcontrol(CONFIG.hooverHeatBath, false);
+      }
+      else  // calculate E_kin and T if no temperature control is active (just nothing switched on)
+      {
+        double tempfactor(2.0 / (freedom*md::R));
+        updateEkin();
+        temp = E_kin * tempfactor;
+      }
+    }
+    else  // calculate E_kin and T if no temperature control is active (switched off by MDtemp_control)
+    {
       double tempfactor(2.0 / (freedom*md::R));
       updateEkin();
       temp = E_kin * tempfactor;
-    //}
+    }
+
     // Apply pressure adjustments
     if (CONFIG.pressure)
     {
