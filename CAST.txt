@@ -104,6 +104,7 @@ task                  SP
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
+# GAUSSIAN             GAUSSIAN interface
 
 interface              OPLSAA
 
@@ -115,9 +116,17 @@ interface              OPLSAA
 
 paramfile              oplsaa_mod.prm
 
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
+cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+switchdist             10.0
+
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
+
+
+######################### MOPAC OPTIONS ############### 
 
 # Keywords for MOPAC Call
 MOPACkey               PM7
@@ -130,10 +139,6 @@ MOPACpath              "C:\Program Files\mopac\MOPAC2012.exe"
 
 MOPACversion          MOPAC2012
 
-#Cutoff radius for non bonded interactions for forcefields energy interfaces
-cutoff                 12.0
-#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-switchdist             10.0
 
 ################# DFTB options ################################################
 
@@ -184,6 +189,39 @@ DFTBvirt_orb            2
 
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  1
+
+
+############################ GAUSSIAN OPTIONS ########################
+
+GAUSSIANlink NProcShared=1 Mem=2GB
+
+#Methods for Gaussian Call
+
+GAUSSIANmethod HF
+
+#Basisset for Gaussian Call
+
+GAUSSIANbasisset 6-31G
+
+#Charge of the Molecule
+
+GAUSSIANcharge 0
+
+#Multiplicity
+
+GAUSSIANmultiplicity 1
+
+#Gaussian optimization with steepest descend
+
+GAUSSIANsteep 0
+
+#Gaussian executeable path
+
+GAUSSIANpath g09
+
+#Delete temporary Gaussian f i l e s ?
+
+GAUSSIANdelete 0
 
 #################### OPTIONS FOR CUT_RESIDUES ###################
 
