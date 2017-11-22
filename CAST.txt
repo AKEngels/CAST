@@ -1,4 +1,4 @@
-﻿####################################
+####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -30,7 +30,7 @@ cores                  4
 # Input file name
 
 
-name                   water1.arc
+name                   ethan.arc
 
 # Output file name
 
@@ -38,8 +38,9 @@ outname                output
 
 # Input file type
 
-
 inputtype              TINKER
+
+
 ### AMBER I/O OPTIONS
 
 #amber_mdcrd           
@@ -88,7 +89,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                   DEVTEST
+task                   SP
 
 
 ####################################
@@ -104,11 +105,11 @@ task                   DEVTEST
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOPAC2016 syscall Interface
-# QMMM		       QMMM interface (MOPAC + ff)
+# QMMM		             QMMM interface (MOPAC + ff)
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              DFTB
+interface              MOPAC
 
 
 # Interface for preoptimizations
@@ -122,24 +123,18 @@ paramfile              oplsaa_mod.prm
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
-MOPACversion          MOPAC2012
-
-#Cutoff radius for non bonded interactions for forcefields energy interfaces
-#cutoff                 12.0
-#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
+######################### MOPAC OPTIONS ############### 
 
 # Keywords for MOPAC Call
-
-MOPACkey               PM7 QMMM AUX CHARGE=-1
+MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-
 MOPACdelete            0
 
 #MOPAC executable path
+MOPACpath              /apps/mopac/MOPAC2016.exe
 
-MOPACpath              "C:\Program Files\mopac\MOPAC2016.exe"
+MOPACversion MOPAC2016
 
 ####################################
 #                                  #
