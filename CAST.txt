@@ -103,6 +103,7 @@ task                  SP
 # TERACHEM             Terachem MPI Interface
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
+# GAUSSIAN             GAUSSIAN interface
 
 interface              GAUSSIAN
 
