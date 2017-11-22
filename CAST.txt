@@ -30,7 +30,7 @@ cores                  4
 # Input file name
 
 
-name                   ethan.arc
+name                   water2.arc
 
 # Output file name
 
@@ -89,7 +89,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                   SP
+task                   MD
 
 
 ####################################
@@ -109,7 +109,7 @@ task                   SP
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
 
-interface              MOPAC
+interface              QMMM
 
 
 # Interface for preoptimizations
@@ -126,7 +126,7 @@ paramfile              oplsaa_mod.prm
 ######################### MOPAC OPTIONS ############### 
 
 # Keywords for MOPAC Call
-MOPACkey               PM7
+MOPACkey               PM7 QMMM AUX CHARGE=0
 
 # Delete temporary MOPAC comm files?
 MOPACdelete            0
@@ -152,7 +152,7 @@ switchdist             10.0
 ####################################
 
 
-QMMMqmatoms        	 1
+QMMMqmatoms        	  4-6
 QMMMmminterface       OPLSAA
 
 
@@ -634,7 +634,7 @@ SAfixinit              1
 
 # Number of Steps
 
-MDsteps                10
+MDsteps                1000
  
 # Integrator
 #
@@ -650,11 +650,11 @@ MDveloscale            0
 # temperature control <0/1> 
 # (direct velocity scaling and Nose-Hoover only work if this option is activated)
 
-MDtemp_control 0
+MDtemp_control         1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           0
+MDthermostat           1
 
 # Timestep in picoseconds
 
@@ -662,7 +662,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-MDrestart_if_broken    1
+MDrestart_if_broken    0
 
 # Activate Tracking (Log and Snapshots)
 
