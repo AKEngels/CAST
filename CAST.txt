@@ -1,4 +1,4 @@
-﻿####################################
+####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -29,6 +29,7 @@ cores                  4
 
 # Input file name
 
+
 name                   ethan.arc
 
 # Output file name
@@ -38,6 +39,7 @@ outname                output
 # Input file type
 
 inputtype              TINKER
+
 
 ### AMBER I/O OPTIONS
 
@@ -87,8 +89,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                  SP
-
+task                   SP
 
 
 ####################################
@@ -102,47 +103,47 @@ task                  SP
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
+# (TINKER)             Tinker syscall interface
 # MOPAC                MOPAC2016 syscall Interface
-# QMMM		       QMMM interface (MOPAC + ff)
-# GAUSSIAN             GAUSSIAN interface
+# QMMM		             QMMM interface (MOPAC + ff)
+# MOPAC                MOAPC2012 syscall Interface
+# DFTB                 DFTB interface (with DFTBaby)
 
-interface              GAUSSIAN
+interface              MOPAC
+
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-
 paramfile              oplsaa_mod.prm
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
-MOPACversion          MOPAC2012
-
-#Cutoff radius for non bonded interactions for forcefields energy interfaces
-#cutoff                 12.0
-#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-#switchdist             10.0
-
 ######################### MOPAC OPTIONS ############### 
 
 # Keywords for MOPAC Call
-
-MOPACkey               PM7 QMMM AUX CHARGE=-1
+MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-
 MOPACdelete            0
 
 #MOPAC executable path
+MOPACpath              /apps/mopac/MOPAC2016.exe
 
-MOPACpath              "C:\Program Files\mopac\MOPAC2016.exe"
+MOPACversion MOPAC2016
 
-MOPACversion          MOPAC2016
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
 
+cutoff                 400.0
+switchdist             10.0
 
 ####################################
 #                                  #
@@ -173,7 +174,7 @@ DFTBverbose             0
 DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-DFTBlr_dist            3.03     
+#DFTBlr_dist            3.03     
 
 # maximum number of iterations for SCF-calculation
 #DFTBmaxiter            1000
@@ -205,37 +206,7 @@ DFTBvirt_orb            2
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  1
 
-############################ GAUSSIAN OPTIONS ########################
 
-GAUSSIANlink NProcShared=1 Mem=2GB
-
-#Methods for Gaussian Call
-
-GAUSSIANmethod HF
-
-#Basisset for Gaussian Call
-
-GAUSSIANbasisset 6-31G
-
-#Charge of the Molecule
-
-GAUSSIANcharge 0
-
-#Multiplicity
-
-GAUSSIANmultiplicity 1
-
-#Gaussian optimization with steepest descend
-
-GAUSSIANsteep 0
-
-#Gaussian executeable path
-
-GAUSSIANpath g09
-
-#Delete temporary Gaussian f i l e s ?
-
-GAUSSIANdelete 0
 
 ####################################
 #                                  #
@@ -250,8 +221,8 @@ FIXexclude             false
 REMOVEHROT             false
 
 # Fix a range of atoms 
-
 #FIXrange               1-6,9,24,55-71,72
+
 
 
 ####################################
@@ -663,11 +634,7 @@ SAfixinit              1
 
 # Number of Steps
 
-<<<<<<< HEAD
 MDsteps                10
-=======
-MDsteps                1000
->>>>>>> devel
  
 # Integrator
 #
@@ -683,11 +650,7 @@ MDveloscale            0
 # temperature control <0/1> 
 # (direct velocity scaling and Nose-Hoover only work if this option is activated)
 
-<<<<<<< HEAD
 MDtemp_control 0
-=======
-MDtemp_control         1
->>>>>>> devel
 
 # Thermostat (Nose-Hoover)
 
@@ -699,11 +662,7 @@ MDtimestep             0.001
 
 # start MD again from beginning if molecule gets destroyed
 
-<<<<<<< HEAD
 MDrestart_if_broken    1
-=======
-MDrestart_if_broken    0
->>>>>>> devel
 
 # Activate Tracking (Log and Snapshots)
 
@@ -728,11 +687,7 @@ MDsnap_opt             0
 # MDheat               2000   293.15
 
 MDheat                 0   1
-<<<<<<< HEAD
 MDheat                 100 300
-=======
-MDheat                 100  300
->>>>>>> devel
 
 # Pressure control
 
@@ -811,15 +766,9 @@ FEPvdwcouple   1.0
 FEPeleccouple  0.5
 FEPvshift      0.5
 FEPcshift      0.0
-<<<<<<< HEAD
 FEPequil       100
 FEPsteps       1000
 FEPfreq        10
-=======
-FEPequil       10
-FEPsteps       10
-FEPfreq        100
->>>>>>> devel
 FEPanalyze     1
 FEPbar         1
 
