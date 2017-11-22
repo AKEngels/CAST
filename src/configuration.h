@@ -468,6 +468,7 @@ namespace config
       std::vector<biases::cubic>     cubic;
       /**threshold potentials*/
       std::vector<biases::thresholdstr>     threshold;
+      std::vector<biases::thresholdstr>     thresholdBottom;
       /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/
@@ -1383,7 +1384,7 @@ public:
   config::center                center;
   config::couplings             couplings;
   config::periodics             periodics;
-  config::layd                 layd;
+  config::layd                  layd;
 
   /*! Constructor of Config object
    *

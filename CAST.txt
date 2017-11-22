@@ -1104,6 +1104,7 @@ LayDdistance                   5.0
 
 #Thresholdpotential fror layerdeposition  <distance from which active> <force constant [kcal/A]>
 thresholdpotential    7.0 2.0
+thresholdpotentialBottom    7.0 2.0
 
 #Shall layers of a second moleculetype be added
 

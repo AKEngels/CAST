@@ -157,7 +157,7 @@ namespace coords
       std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
 
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
-        Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
+        Cartesian_Point maxPos, Cartesian_Point minPos, Cartesian_Point const & center = Cartesian_Point());
       void umbrellaapply(Representation_3D const & xyz,
         Representation_3D & g_xyz, std::vector<double> &uout);
 
@@ -167,13 +167,14 @@ namespace coords
 
     private:
 
-      double b, a, d, s, c, thr;
+      double b, a, d, s, c, thr, thrB;
       std::vector<config::biases::dihedral>  m_dihedrals;
       std::vector<config::biases::angle>     m_angles;
       std::vector<config::biases::distance>  m_distances;
       std::vector<config::biases::spherical> m_spherical;
       std::vector<config::biases::cubic>     m_cubic;
       std::vector<config::biases::thresholdstr>  m_thresh;
+      std::vector<config::biases::thresholdstr>  m_threshBottom;
       std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
       std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
 
@@ -187,6 +188,7 @@ namespace coords
       void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
       void umbrelladist(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
+      double thresh_bottom(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point minPos);
     };
   }
 
@@ -325,7 +327,7 @@ namespace coords
         m_representation.energy += m_potentials.apply(
           m_representation.structure.cartesian,
           m_representation.gradient.cartesian,
-          max_valuePosfix(),
+          max_valuePosfix(), min_valuePosfix(),
           Cartesian_Point());
       }
     }
@@ -909,7 +911,7 @@ namespace coords
     Cartesian_Point max_valuePosfix()
     {
       Cartesian_Point maxV;
-      bool check_fix = true;
+      bool check_fix = false;
 
       maxV = m_representation.structure.cartesian[0];
       
@@ -917,15 +919,37 @@ namespace coords
       {
         if (m_atoms.check_fix(i) == true)
         {
-          check_fix=false;
+          check_fix=true;
           if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
         }
       }
-      if(check_fix == true){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
 
       return maxV;
+    }
+
+    Cartesian_Point min_valuePosfix()
+    {
+      Cartesian_Point minV;
+      bool check_fix = false;
+
+      minV = m_representation.structure.cartesian[0];
+
+      for (std::size_t i = 1u; i < m_atoms.size(); i++)
+      {
+        if (m_atoms.check_fix(i) == true)
+        {
+          check_fix = true;
+          if (m_representation.structure.cartesian[i].x() < minV.x()) { minV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() < minV.y()) { minV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+
+      return minV;
     }
   };
 
