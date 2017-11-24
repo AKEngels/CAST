@@ -149,20 +149,19 @@ namespace pca
       std::cout << "Generating PCA Eigenvectors from coordinate matrix." << std::endl;
 
 		if (Config::get().general.verbosity > 2U) std::cout << "Performing PCA transformation. This might take quite a while.\n";
-		Matrix_Class cov_matr = (transposed(this->coordinatesMatrix));
+		Matrix_Class cov_matr = (transpose(this->coordinatesMatrix));
 		Matrix_Class ones(static_cast<std::size_t>(this->coordinatesMatrix.cols()), static_cast<std::size_t>(this->coordinatesMatrix.cols()), 1.0);
 		cov_matr = Matrix_Class (cov_matr - ones * cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols()));
-		cov_matr = Matrix_Class (transposed(cov_matr) * cov_matr);
+		cov_matr = Matrix_Class (transpose(cov_matr) * cov_matr);
 		cov_matr = cov_matr / static_cast<float_type>(this->coordinatesMatrix.cols());
 		float_type cov_determ = 0.;
-		int *cov_rank = new int;
-		cov_matr.eigensym(this->eigenvalues, this->eigenvectors, cov_rank);
-		if (*cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
+		int cov_rank = cov_matr.rank();
+		std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym();
+		if (cov_rank < (int)eigenvalues.rows() || (cov_determ = cov_matr.determ(), abs(cov_determ) < 1e-10))//changed the thresholf from -89 (10e-90) to -10 (1e-10)
 		{
 			std::cout << "Notice: covariance matrix is singular.\n";
-			std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+			std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
 		}
-		delete cov_rank;
 	}
 
 	void PrincipalComponentRepresentation::generatePCAModesFromPCAEigenvectorsAndCoordinates()
@@ -171,7 +170,7 @@ namespace pca
     if (Config::get().general.verbosity > 2u)
       std::cout << "Generating PCA modes from coordinate matrix and PCA Eigenvectors." << std::endl;
 
-		this->modes = Matrix_Class (transposed(eigenvectors) * this->coordinatesMatrix);
+		this->modes = Matrix_Class (transpose(eigenvectors) * this->coordinatesMatrix);
 	}
 	
 	void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)

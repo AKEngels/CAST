@@ -61,7 +61,7 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 #include <cmath>
 #include <limits>
 #include <utility>
-
+#include <initializer_list>
 
 
 
@@ -72,10 +72,12 @@ unsigned int constexpr printFunctionCallVerbosity = 5u;
 ///////////////////////////////
 
 // Further flag important here:
- #define CAST_USE_ARMADILLO
+// #define CAST_USE_ARMADILLO
 // However, don't set this manually. This
 // flag is set by Visual Studio or make according to your desired configuration
 // It's all already automatized and integrated
+
+
 
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
@@ -83,6 +85,7 @@ template<typename T>
 using matrix_type = arma::Mat<T>;
 #else
 #include<Eigen/Dense>
+#include<Eigen/Eigenvalues>
 template<typename T>
 using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
@@ -127,7 +130,7 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
  * - mathmatrix(coords, frames) for a matrix of a whole (MD) trajectory.
  *
  */
- 
+
 	template <typename T>
   class mathmatrix
 #ifndef CAST_USE_ARMADILLO
@@ -136,8 +139,8 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
     : public matrix_type<T>
 #endif
 
-	{
-  private:
+  {
+private:
 #ifdef CAST_USE_ARMADILLO
     using base_type = matrix_type<T>;
 #else
@@ -145,351 +148,247 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
 
 
-	public:
+    public:
 
-		/////////////////////////////////////
-		/////                           /////
-		/////  C O N S T R U C T O R S  /////
-		/////                           /////
-		/////////////////////////////////////
+      /////////////////////////////////////
+      /////                           /////
+      /////  C O N S T R U C T O R S  /////
+      /////                           /////
+      /////////////////////////////////////
 
-    /*! Construct empty mathmatrix
-     *
-     * Constructs an empty mathmatrix
-    **/
+  /*! Construct empty mathmatrix
+   *
+   * Constructs an empty mathmatrix
+  **/
 #ifndef CAST_USE_ARMADILLO
       using base_type::Matrix;
-      mathmatrix() = default;
-    /*mathmatrix() : base_type()
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing empty matrix." << std::endl;
-    };*/
-#else
-      using base_type::Mat; 
-      mathmatrix() = default;
-    /*mathmatrix() : arma::Mat<T>() 
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing empty matrix." << std::endl;
-    };*/
-#endif
+      mathmatrix(std::initializer_list<std::initializer_list<T>> ini) {
+        if (ini.size() == 0) {
+          *this = mathmatrix();
+          return;
+  }
 
+        *this = mathmatrix(ini.size(), (*ini.begin()).size());
 
-    /*! Construct mathmatrix of certain size
-     *
-     * Elements are undefined
-     * @param rows: Number of rows
-     * @param cols: Number of columns
-     */
-/*#ifndef CAST_USE_ARMADILLO
-    mathmatrix(uint_type rows, uint_type cols) : base_type(rows, cols)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
-    };
-#else
-    mathmatrix(uint_type rows, uint_type cols) : arma::Mat<T>(rows, cols) 
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing empty " << rows << " x " << cols << " matrix." << std::endl;
-    };
-#endif*/
+        auto dat = data();
 
-    /*! Construct mathmatrix from parent matrix
-     *
-     * @warning Do not call this manually. This is only used in internal operations.
-     * @NOTE Used only during internal functions.
-     */
-
-/*#ifndef CAST_USE_ARMADILLO
-    mathmatrix(base_type const& in) : base_type(in)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing matrix from eigen-matrix." << std::endl;
-    };
-    mathmatrix& operator=(base_type const& in)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-      
-        *this = mathmatrix(in);
-        return *this;
-    };
-#else
-    mathmatrix(arma::Mat<T> in) : arma::Mat<T>(in) 
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing matrix from arma-matrix." << std::endl;
-    };
-#endif*/
-
-    /*! Construct filled mathmatrix of certain size
-     *
-     * All values initialized to the same value
-     * @param rows: Number of rows
-     * @param cols: Number of columns
-     * @param fill: Value to which all matrix elements will be initialized
-     */
-    mathmatrix(uint_type rows, uint_type cols, T fill)
-      :mathmatrix(rows, cols)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing filled matrix." << std::endl;
-      for (uint_type i = 0u; i < rows; i++)
-        for (uint_type j = 0u; j < cols; j++)
-          (*this)(i, j) = fill;
-    };
-
-    mathmatrix zero(uint_type rows, uint_type cols) {
-      return mathmatrix(rows, cols, T());
-    }
-
-    // base row and col proxy
-    using base_type::row;
-    using base_type::col;
-
-
-    // element access from base class
-    using base_type::operator();
-    using base_type::operator[];
-#ifndef CAST_USE_ARMADILLO
-    void resize(uint_type const rows, uint_type const cols)
-    {
-      this->conservativeResize(rows, cols);
-    }
-#else
-    using base_type::resize;
-#endif
-
-
-    using base_type::operator*=;
-    using base_type::operator-=;
-    using base_type::operator/=;
-    using base_type::operator+=;
-#ifndef CAST_USE_ARMADILLO
-    using base_type::operator+;
-    using base_type::operator-;
-    using base_type::operator/;
-    using base_type::operator*;
-#else
-    /*! mathmatrix += operator
-     * 
-     * @param in: Matrix to the right of the summation (this + in)
-     * @return: Result of the addition of this + in
-     */
-    mathmatrix operator+(mathmatrix<T> const& in) const
-    {
-        /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-          std::cout << "Function call: Operator+ for matrix-class" << std::endl;
-    	if (!(this->rows() == in.rows() && this->cols() == in.cols() ))
-    	{
-    		throw("ERROR in mathmatrix Addition: Sizes of matrices do not match!");
-    	}
-        arma::Mat<T> const& base_this = *this;
-        arma::Mat<T> const& base_in = in;*/
-        return mathmatrix(static_cast<base_type>(*this) + static_cast<base_type>(in));
-    };
-
-    mathmatrix operator*(mathmatrix<T> const& in) const
-    {
-      /*if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
-      if (!(this->cols() == in.rows()))
-      {
-        throw("ERROR in mathmatrix multiplication: Sizes of matrices do not match!");
-      }
-      arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;*/
-      return mathmatrix(static_cast<base_type>(*this) * static_cast<base_type>(in));
-    }
-
-    mathmatrix operator/(mathmatrix<T> const& in) const
-    {
-     /* if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator+ for matrix-class" << std::endl;
-      if (!(this->cols() == in.rows()))
-      {
-        throw("ERROR in mathmatrix divison: Sizes of matrices do not match!");
-      }
-      arma::Mat<T> const& base_this = *this;
-      arma::Mat<T> const& base_in = in;*/
-      return (mathmatrix(static_cast<base_type>(*this) / static_cast<base_type>(in)));
-    };
-
-    /**
-     * @brief Overload "-" Operator for mathmatrix
-     */
-    mathmatrix<T> operator-(mathmatrix<T> const& in) const
-    {
-    	////Check if sizes match
-    	//if ((in.rows() != this->rows()) || (in.cols() != this->cols()))
-    	//{
-    	//	throw std::runtime_error("Error in Matrix mathmatrix subtraction, wrong input sizes");
-    	//}
-    	//mathmatrix output = *this;
-    	//for (uint_type i = 0; i < this->rows(); i++)
-    	//{
-    	//	for (uint_type j = 0; j < this->cols(); j++)
-    	//	{
-    	//		output(i, j) -= in(i, j);
-    	//	}
-    	//}
-    	//return output;
-        return (mathmatrix<T>(static_cast<base_type>(*this) - static_cast<base_type>(in)));
-    }
-#endif
-
-
-    /*! Returns an "identity matrix" of certain size
-     *
-     * All diagonal elements will be initialized to one
-     * All off-diagonal elements will be initialized to zero
-     * @param num_rows: Number of rows
-     * @param num_cols: Number of columns
-     * @todo: Write as free function!!
-     */
-    static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
-      Identity(std::size_t const num_rows, std::size_t const num_cols)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Constructing identity matrix." << std::endl;
-#ifndef CAST_USE_ARMADILLO
-      return mathmatrix(base_type::Identity(num_rows, num_cols));
-#else
-      return mathmatrix(arma::eye<base_type>(num_rows, num_cols));
-#endif
-    }
-
-
-    // in case you are wondering:
-    // transposed and some more stuff is available as free functions
-    // eg transpose().
-
-		/////////////////////////////////////
-		/////                           /////
-		/////  O P E R A T I O N S      /////
-		/////                           /////
-		/////////////////////////////////////
-
-
-    /*! mathmatrix stream operator for writing output
-     *
-     * @param os: Stream to which data is passed on
-     * @param object: mathmatrix whose contents are to be printed
-     *
-     * @return: Formatted contents of the matrix as strings (without a header)
-     */
-    friend std::ostream& operator<<(std::ostream& os, mathmatrix const & object)
-    {
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Operator>> for matrix-class" << std::endl;
-      for (size_t i = 0u; i < object.rows(); ++i)
-      {
-        for (size_t j = 0u; j < object.cols(); ++j)
-        {
-          os << std::setw(18) << std::scientific << std::left << std::setprecision(8) << object(i, j) << " ";
+        for (auto const & i : ini) {
+          for (auto const & ii : i) {
+            *dat = ii;
+            dat++;
+          }
         }
-        os << "\n";
-      }
-      return os;
-    };
-
-		/**
-		 * Checks for positive_definite matrix
-		 */
-		bool positive_definite_check()
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: positive_definite_check() for mathmatrix." << std::endl;
-			bool positive_definite = true;
-      if (!this->return_quadratic()) return false;
-      for (unsigned int i = 1; i < (this->rows() + 1); i++)
-      {
-        if (mathmatrix( this->upper_left_submatrix(i, i) ).determ() <= 0)
-        {
-          return false;
-        }
-      }
-			return true;
-		};
-
-		/**
-		 * @brief Returns sign of the determinant (-1 / 1).
-     * @return -1 if determinant is negative or zero, +1 if determinant is greater than zero.
-		 */
-    int_type det_sign() const
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: det_sign() for mathmatrix." << std::endl;
-			return ((this->determ() <= 0) ? -1 : 1);
-		};
-
-		/**
-		 * @brief Returns rank of the underlying matrix.
-     * @return rank of the matrix.
-     * @note A singular value decompostition is performed to determine the rank. This may be quite costly.
-		 */
-		size_t rank() const
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: rank() for mathmatrix." << std::endl;
-#ifdef CAST_USE_ARMADILLO
-      arma::Mat<T> const& base_this = *this;
-      return static_cast<size_t>(arma::rank(base_this));
+    }
 #else
-      Eigen::ColPivHouseholderQR<CAST_EIGEN_MATRIX_TYPE> rank_colpivmat (*this);
-      return static_cast<size_t>(rank_colpivmat.rank());
+      using base_type::Mat;
 #endif
-		};
 
-		/**
-		 * @brief Calculates determinant of the mathmatrix-obj
-     *
-     * Internal code uses a LU decompostion.
-     * @return determinant
-		 */
-		float_type determ() const
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Starting determinant calculation of " << this->rows() << " x " << this->cols() << " matrix." << std::endl;
+      mathmatrix() = default;
+      mathmatrix(mathmatrix const & other) : base_type(static_cast<base_type>(other)) {}
+      mathmatrix(base_type const & other) : base_type(other) {}
 
+      /*! Construct filled mathmatrix of certain size
+       *
+       * All values initialized to the same value
+       * @param rows: Number of rows
+       * @param cols: Number of columns
+       * @param fill: Value to which all matrix elements will be initialized
+       */
+      mathmatrix(uint_type rows, uint_type cols, T fill)
+        :mathmatrix(rows, cols)
+      {
+        if (Config::get().general.verbosity >= printFunctionCallVerbosity)
+          std::cout << "Function call: Constructing filled matrix." << std::endl;
+        for (uint_type i = 0u; i < rows; i++)
+          for (uint_type j = 0u; j < cols; j++)
+            (*this)(i, j) = fill;
+      };
+
+      mathmatrix zero(uint_type rows, uint_type cols) {
+        return mathmatrix(rows, cols, T());
+      }
+
+      // base row and col proxy
+      using base_type::row;
+      using base_type::col;
+
+
+      // element access from base class
+      using base_type::operator();
+      using base_type::operator[];
+  #ifndef CAST_USE_ARMADILLO
+      void resize(uint_type const rows, uint_type const cols)
+      {
+        this->conservativeResize(rows, cols);
+      }
+  #else
+      using base_type::resize;
+  #endif
+
+
+      using base_type::operator*=;
+      using base_type::operator-=;
+      using base_type::operator/=;
+      using base_type::operator+=;
+      /*! mathmatrix += operator
+       *
+       * @param in: Matrix to the right of the summation (this + in)
+       * @return: Result of the addition of this + in
+       */
+      mathmatrix operator+(mathmatrix const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator+(in);
+#else
+        return arma::operator+(static_cast<base_type>(*this),static_cast<base_type>(in));
+#endif
+      }
+
+      mathmatrix operator*(mathmatrix const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator*(in);
+#else
+        return arma::operator*(static_cast<base_type>(*this),static_cast<base_type>(in));
+#endif
+      }
+
+      mathmatrix operator/(mathmatrix const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator/(in);
+#else
+        return arma::operator/(static_cast<base_type>(*this),static_cast<base_type>(in));
+#endif
+      }
+
+      /**
+       * @brief Overload "-" Operator for mathmatrix
+       */
+      mathmatrix operator-(mathmatrix const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator-(in);
+#else
+        return arma::operator-(static_cast<arma::Mat<T>>(*this),static_cast<arma::Mat<T>>(in));
+#endif
+      }
+
+      /**
+      * @brief Overload "/" Operator for mathmatrix and scalars
+      */
+      mathmatrix operator/(T const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator/(in);
+#else
+        return arma::operator/(static_cast<base_type>(*this), in);
+#endif
+      }
+      mathmatrix operator*(T const& in) const
+      {
+#ifndef CAST_USE_ARMADILLO
+        return base_type::operator*(in);
+#else
+        return arma::operator*(static_cast<base_type>(*this), in);
+#endif
+      }
+      /*! Returns an "identity matrix" of certain size
+       *
+       * All diagonal elements will be initialized to one
+       * All off-diagonal elements will be initialized to zero
+       * @param num_rows: Number of rows
+       * @param num_cols: Number of columns
+       * @todo: Write as free function!!
+       */
+      static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
+        Identity(std::size_t const num_rows, std::size_t const num_cols)
+      {
+  #ifndef CAST_USE_ARMADILLO
+        return mathmatrix(base_type::Identity(num_rows, num_cols));
+  #else
+        return mathmatrix(arma::eye<base_type>(num_rows, num_cols));
+  #endif
+      }
+
+
+      // in case you are wondering:
+      // transposed and some more stuff is available as free functions
+      // eg transpose().
+
+          /////////////////////////////////////
+          /////                           /////
+          /////  O P E R A T I O N S      /////
+          /////                           /////
+          /////////////////////////////////////
+
+          /**
+           * Checks for positive_definite matrix
+           */
+          bool positive_definite_check()
+          {
+        if (!this->return_quadratic()) return false;
+        for (unsigned int i = 1; i < (this->rows() + 1); i++)
+        {
+          if (mathmatrix(this->upper_left_submatrix(i, i)).determ() <= 0)
+          {
+            return false;
+          }
+        }
+              return true;
+          }
+
+          /**
+           * @brief Returns sign of the determinant (-1 / 1).
+       * @return -1 if determinant is negative or zero, +1 if determinant is greater than zero.
+           */
+      int_type det_sign() const
+          {
+              return ((this->determ() <= 0) ? -1 : 1);
+          }
+
+      /**
+       * @brief Returns rank of the underlying matrix.
+   * @return rank of the matrix.
+   * @note A singular value decompostition is performed to determine the rank. This may be quite costly.
+       */
+      size_t rank() const
+      {
+#ifndef CAST_USE_ARMADILLO
+          Eigen::ColPivHouseholderQR<base_type> rank_colpivmat(*this);
+          return static_cast<size_t>(rank_colpivmat.rank());
+#else
+          return static_cast<size_t>(arma::rank(static_cast<base_type>(*this)));
+#endif
+        }
+
+      /**
+       * @brief Calculates determinant of the mathmatrix-obj
+   *
+   * Internal code uses a LU decompostion.
+   * @return determinant
+       */
+      float_type determ() const
+      {
 #ifdef CAST_USE_ARMADILLO
-			return static_cast<float_type>(det(*this));
+            return static_cast<float_type>(det(*this));
 #else
       return static_cast<float_type>(static_cast<base_type const*>(this)->determinant());
 #endif
-		}
+        }
 
 
-		/**
-		 * @brief Overload "/" Operator for mathmatrix and scalars
-		 */
-		mathmatrix operator/(T const& in) const
-		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: operator/ for mathmatrix." << std::endl;
-			mathmatrix tempCopy(*this);
-			for (uint_type i = 0; i < this->rows(); i++)
-			{
-				for (uint_type j = 0; j < this->cols(); j++)
-				{
-					tempCopy(i, j) = (*this)(i, j) / in;
-				}
-			}
-			return tempCopy;
-		}
+ 
 
 		/**
 		 * @brief Append one matrix to another, will check if sizes match, appends at the bottom end (rows are added)
 		 */
 		void append_bottom(const mathmatrix& I_will_be_the_bottom_part)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: append_bottom for mathmatrix." << std::endl;
-			//if this is transposed, append bottom means append right on underlying obj
+      
 			if (this->cols() != I_will_be_the_bottom_part.cols())
 			{
-				throw "Wrong Matrix size in mathmatrix:append()";
+				throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
 			}
 			//Old size needs to be kept
 			size_t holder = this->rows();
@@ -511,11 +410,9 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		void append_top(const mathmatrix& I_will_be_the_top_part)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: append_top for mathmatrix." << std::endl;
 			if (this->cols() != I_will_be_the_top_part.cols())
 			{
-				throw "Wrong Matrix size in mathmatrix:append()";
+				throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
 			}
       const size_t thisOldRows = this->rows();
 			this->resize(this->rows() + I_will_be_the_top_part.rows(), this->cols());
@@ -545,11 +442,9 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		void append_left(const mathmatrix& I_will_be_the_left_part)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: append_left for mathmatrix." << std::endl;
 			if (this->rows() != I_will_be_the_left_part.rows())
 			{
-				throw "Wrong Matrix size in mathmatrix:append()";
+				throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
 			}
       const size_t thisOldCols = this->cols();
 
@@ -580,11 +475,10 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
   	 */
 		void append_right(const mathmatrix& I_will_be_the_right_part)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: append_right for mathmatrix." << std::endl;
+      
 			if (this->rows() != I_will_be_the_right_part.rows())
 			{
-				throw "Wrong Matrix size in mathmatrix:append()";
+				throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
 			}
 
 			//Old size needs to be kept
@@ -608,8 +502,6 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		void shed_rows(size_t first_in, size_t last_in)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: shed_rows for mathmatrix." << std::endl;
       if (first_in > last_in || last_in >= this->rows())
       {
         throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
@@ -637,8 +529,6 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		void shed_cols(size_t first_in, size_t last_in)
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: shed_cols for mathmatrix." << std::endl;
       if (last_in >= this->cols() || first_in > last_in)
       {
         throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
@@ -716,10 +606,8 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		/**
 		 * @brief Returns whether mathmatrix-obj is quadratic
 		 */
-		bool return_quadratic() const
+		inline bool return_quadratic() const
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: return_quadratic for mathmatrix." << std::endl;
       return this->rows() == this->cols();
 		}
 
@@ -731,20 +619,11 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		mathmatrix upper_left_submatrix(uint_type rows_in, uint_type columns_in = 0) const
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: upper_left_submatrix for mathmatrix." << std::endl;
-      if (columns_in == 0)
-        columns_in = rows_in;
-      if (rows_in <= this->rows() && columns_in <= this->cols())
-      {
-        mathmatrix copied(*this);
-        copied.resize(rows_in, columns_in);
-        return copied;
-      }
-      else
-      {
-        return *this;
-      }
+#ifndef CAST_USE_ARMADILLO
+          return this->block(0, 0, rows_in, columns_in == 0 ? rows_in : columns_in);
+#else
+          return this->submat(0, 0, rows_in - 1, columns_in == 0 ? rows_in - 1 : columns_in - 1);
+#endif
 		}
 
     /*! Equality operator for armadillo mathmatrix
@@ -762,26 +641,10 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
     bool operator== (mathmatrix const& in) const
     {
-#ifdef CAST_USE_ARMADILLO
-      arma::Mat<T> const& a = *this;
-      arma::Mat<T> const& b = in;
-      return (approx_equal(a,b,"reldiff", CAST_TOLERANCE_FOR_MATRIX_COMPARISSON) );
+#ifndef CAST_USE_ARMADILLO
+      return this->isApprox(in, CAST_TOLERANCE_FOR_MATRIX_COMPARISSON);
 #else
-      if (this->rows() != in.rows() || this->cols() != in.cols()) return false;
-      else
-      {
-        for (size_t i = 0u; i < this->rows(); i++)
-        {
-          for (size_t j = 0u; j < this->cols(); j++)
-          {
-            if (abs((*this)(i, j) - in(i, j)) > CAST_TOLERANCE_FOR_MATRIX_COMPARISSON * abs(in(i, j)))
-            {
-              return false;
-            }
-          }
-        }
-        return true;
-      }
+      return (approx_equal(static_cast<base_type>(*this), static_cast<base_type>(b), "reldiff", CAST_TOLERANCE_FOR_MATRIX_COMPARISSON));
 #endif
     }
 
@@ -798,25 +661,17 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
      * bool intrinsically through nullptr and therefore stores information
      * wether rank should be passed through this function.
 		 */
-		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in, int* rank = nullptr) const
+		void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in) const
 		{
-      U_in = *this;
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: Starting singular value decomposition of " << U_in.rows() << " x " << U_in.cols() << " matrix." << std::endl;
-
-			//"Constructor"
-			V_in.resize(this->cols(), this->cols());
-			s_in.resize(this->cols(), 1u);
 
 #ifndef CAST_USE_ARMADILLO
-      base_type const* this_eigenptr= static_cast<base_type const*>(this);
-      auto bdcsvd_obj = this_eigenptr->bdcSvd();
-      bdcsvd_obj.compute(*this_eigenptr, Eigen::ComputeFullU | Eigen::ComputeFullV);
-      U_in = mathmatrix<T>(bdcsvd_obj.matrixU());
-      V_in = mathmatrix<T>(bdcsvd_obj.matrixV());
-      for (size_t i = 0; i < U_in.rows(); i++)
+      auto svd = this->bdcSvd();
+      svd.compute(static_cast<base_type>(*this), Eigen::ComputeFullU | Eigen::ComputeFullV);
+      U_in = svd.matrixU();
+      V_in = svd.matrixV();
+      for (size_t i = 0; i < U_in.rows(); ++i)
       {
-        s_in(i) = bdcsvd_obj.singularValues()(i);
+        s_in(i) = svd.singularValues()(i);
       }
 #else
 			arma::Col<float_type> s;
@@ -825,7 +680,6 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 			{
 			  s_in(i) = s(i);
 			}
-      if (rank != nullptr) *rank = arma::rank(*this);
 #endif
 		}
 
@@ -843,38 +697,63 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 *
 		 * @note Matrix is assumed to be symmetric.
 		 */
-		void eigensym(mathmatrix& eigenval_in, mathmatrix& eigenvec_in, int* rank_in = nullptr) const
+		std::pair<mathmatrix, mathmatrix> eigensym() const
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: eigensym for mathmatrix." << std::endl;
-			//On basis of SVD, so take care that your matrix is symmetrical
-
-			//And if you are unsure about your symmetry, try this beforehand:
-			//this->symmetry_check();
-			//(Although it might slow stuff down considerably)
 #ifndef CAST_USE_ARMADILLO
-			mathmatrix V;
-			this->singular_value_decomposition(eigenvec_in, eigenval_in, V, rank_in);
-#else
-      eigenvec_in.resize(this->cols(), this->cols());
-      eigenval_in.resize(this->cols(), 1u);
-      arma::Col<float_type> s;
-      arma::Mat<float_type> eigVecUnordered(eigenvec_in.rows(), eigenvec_in.cols());
-      eig_sym(s, eigVecUnordered, *this);
 
-      for (size_t i = 0; i < (*this).rows(); i++)
-      {
-        for (size_t j = 0; j < (*this).cols(); j++)
-        {
-          eigenvec_in(i, (*this).cols() - j - 1u) = eigVecUnordered(i, j);
-        }
-        eigenval_in((*this).rows() - i - 1u) = s(i);
-      }
-      if (rank_in != nullptr) *rank_in = arma::rank(*this);
+          auto sort_eigenpairs = [](auto & EVals, auto & EVecs) {
+            std::cout << "Hallo" << std::endl;
+            std::vector<std::size_t> perms(EVals.cols());
+            std::iota(perms.begin(), perms.end(), 0);
+
+            std::sort(perms.begin(), perms.end(), [&](std::size_t const & i, std::size_t const & j) {
+              std::cout << std::boolalpha << (EVals(i, 0) < EVals(j, 0)) << std::endl;
+              return EVals(i, 0) < EVals(j, 0);
+            });
+
+            auto EVals_temp = EVals, EVecs_temp = EVecs;
+            for (auto i = 0; i < perms.size(); ++i) {
+              
+              EVals(i, 0) = EVals_temp(perms.at(i),0);
+              EVecs.col(i) = EVecs_temp.col(i);
+            }
+          };
+
+          Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));
+          mathmatrix eigenval = es.eigenvalues().real();
+          mathmatrix eigenvec = es.eigenvectors().real();
+
+          std::cout << eigenval << "\n\n";
+
+          sort_eigenpairs(eigenval, eigenvec);
+#else
+          arma::Col<T> eigVal;
+          arma::Mat<T> eigVec;
+          eig_sym(eigVal, eigVec, *this);
+
+          mathmatrix eigenval = mathmatrix(eigVal);
+          mathmatrix eigenvec = mathmatrix(eigVec);
 #endif
+          return std::make_pair(eigenval, eigenvec);
 		}
 
+        auto diag() {
+          auto ret = eigensym();
 
+          auto const & EVal = ret.first;
+          auto const & EVec = ret.second;
+
+          *this = EVec.t() * (*this) * EVec;
+          return ret;
+        }
+
+        mathmatrix t() const {
+#ifndef CAST_USE_ARMADILLO
+          return this->transpose();
+#else
+          return arma::trans(static_cast<base_type>(*this));
+#endif
+        }
 		/**
 		 * @brief Returns mathmatrix-obj as std vector of vector of float_type.
 		 * USE THIS TO DEBUG, not in production code.
@@ -884,18 +763,21 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		 */
 		std::vector <std::vector<T> > to_std_vector(void) const
 		{
-      if (Config::get().general.verbosity >= printFunctionCallVerbosity)
-        std::cout << "Function call: to_std_vector for mathmatrix" << std::endl;
-			std::vector <T> temp1(this->cols());
-			std::vector < std::vector <T> > temp2(this->rows(), temp1);
-			for (uint_type i = 0; i < this->rows(); i++)
-			{
-				for (uint_type j = 0; j < this->cols(); j++)
-				{
-					temp2[i][j] = (*this)(i, j);
-				}
-			}
-			return temp2;
+          std::vector<std::vector<T>> ret;
+          ret.reserve(rows());
+#ifndef CAST_USE_ARMADILLO
+          auto dat = data();
+          auto const & c = cols();
+          for (auto i = 0; i < rows(); ++i) {
+            ret.emplace_back(std::vector<double>(dat, dat + c));
+            dat += c;
+          }
+#else
+          for (auto i = 0; i < rows(); ++i) {
+            ret.emplace_back(arma::conv_to<std::vector<T>>::from(row(i)));
+          }
+#endif
+          return ret;
 		}
 
 		/**
@@ -925,34 +807,11 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 		}
 	};
 
-
-  //FREE FUNCTIONS
-#ifdef CAST_USE_ARMADILLO
   template<typename T>
-  mathmatrix<T> transposed(mathmatrix<T> const& in)
+  mathmatrix<T> transpose(mathmatrix<T> const& in)
   {
-    return mathmatrix<T>(in.t());
+    return in.t();
   }
-
-  template<typename T>
-  void transpose(mathmatrix<T>& in)
-  {
-    in = transposed(in);
-  }
-
-#else
-  template<typename T>
-  mathmatrix<T> transposed(mathmatrix<T> const& in)
-  {
-    return mathmatrix<T>(in.transpose());
-  }
-
-  template<typename T>
-  void transpose(matrix_type<T>& in)
-  {
-    static_cast<matrix_type<T>&>(in).transposeInPlace();
-  }
-#endif
 
   /**
   * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix routines otherwise it uses the Eigen matrices.

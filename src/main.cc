@@ -54,7 +54,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "ic_exec.h"
-
+#include<armadillo>
 
 //////////////////////////
 //                      //
@@ -280,21 +280,37 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
-      mathmatrix<coords::float_type> A{
+
+      using mat = mathmatrix<coords::float_type>;
+
+      auto printMat = [](auto const & X) {
+        std::cout << X << "\n\n";
+      };
+
+      mat A{
         {.5, 1., 1.},
         {1., .5, 1.},
         {1., 1., .5}
       };
-      mathmatrix<coords::float_type> B{
+      mat B{
         {1., .5, .5},
         {.5, 1., .5},
         {.5, .5, 1.}
       };
-      std::cout << A + B << std::endl;
-      std::cout << A - B << std::endl;
-      std::cout << A*B << std::endl;
+      printMat(A + B);
+      printMat(A - B);
+      printMat(A*B);
       
-      auto C = A + B;
+      mat C = A*B;
+      printMat(C.upper_left_submatrix(2,2));
+
+      mat Eval, Evec;
+
+      std::tie(Eval, Evec) = C.diag();
+
+      printMat(Eval);
+      printMat(Evec);
+      printMat(C);
 
       //ic_testing exec_obj;
       //exec_obj.ic_execution(&coords);

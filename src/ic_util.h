@@ -1,4 +1,4 @@
-#ifndef cast_ic_util_h_guard
+﻿#ifndef cast_ic_util_h_guard
 #define cast_ic_util_h_guard
 
 #pragma once
@@ -13,7 +13,7 @@
 #include "scon_vect.h"
 
 #include <algorithm>
-#include <armadillo>
+#include "scon_mathmatrix.h"
 #include <array>
 #include <boost/graph/adjacency_list.hpp>
 #include <cmath>

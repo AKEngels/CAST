@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ic_exec.h"
 #include "coords.h"
@@ -13,7 +13,7 @@
 #include "scon_spherical.h"
 #include "scon_vect.h"
 
-#include <armadillo>
+#include "scon_mathmatrix.h"
 #include <array>
 #include <iostream>
 #include <vector>

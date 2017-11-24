@@ -1,4 +1,4 @@
-#ifndef cast_ic_rotation_h_guard
+﻿#ifndef cast_ic_rotation_h_guard
 #define cast_ic_rotation_h_guard
 
 #pragma once
@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <armadillo>
+#include "scon_mathmatrix.h"
 #include <array>
 #include <utility>
 #include <vector>
