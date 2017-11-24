@@ -10,6 +10,8 @@ Only non-bonded interactions are implemented so there must not be bonds between 
 Gradients of coulomb interactions between QM and MM part are calculated by CAST using the derived charge distribution for QM atoms from MOPAC.
 (see http://openmopac.net/manual/QMMM.html)
 
+Attention: Problems occur if charged atoms are in MM part near QM part! This situation has to be avoided!!!
+
 @version 1.0
 */
 
