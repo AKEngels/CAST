@@ -282,9 +282,6 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
-    std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() << 
-      ", mic: " << coords.energyinterface()->cop()<< "\n";
-
     // print which task
     std::cout << "-------------------------------------------------\n";
     std::cout << "Task '" << config::task_strings[Config::get().general.task];
@@ -378,8 +375,6 @@ int main(int argc, char **argv)
         sp_estr << std::setw(16) << 't';
         sp_estr << '\n';
         i = 0;
-        std::cout << "mc: " << &coords << ", mi: " << coords.energyinterface() <<
-          ", mic: " << coords.energyinterface()->cop() << "\n";
         for (auto const& pes : *ci)
         {
           using namespace std::chrono;

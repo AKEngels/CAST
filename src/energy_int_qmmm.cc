@@ -165,8 +165,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
-  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
-  //c_energy(rhs.c_energy),  
+  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),  
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
   c_gradient(rhs.c_gradient)
 {
@@ -182,7 +181,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)), 
   qm_charge_vector(std::move(rhs.qm_charge_vector)),
   mm_charge_vector(std::move(rhs.mm_charge_vector)),
-  //c_energy(std::move(rhs.c_energy)), vdw_energy(std::move(rhs.vdw_energy)),
+  vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
   c_gradient(std::move(rhs.c_gradient)), 
   vdw_gradient(std::move(rhs.vdw_gradient))
@@ -206,9 +205,11 @@ void energy::interfaces::qmmm::QMMM::update_representation()
   }
 
 }
+
+/**calculates energies and gradients
+@paran if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
-
   auto elec_factor = 332.0;
   mm_charge_vector = mmc.energyinterface()->charges();
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
@@ -217,7 +218,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     elec_factor = aco_p->params().general().electric;
   }
 
-  // mol.in schreiben
+  // mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
   std::cout << std::setprecision(6);
 
   std::ofstream molstream{ "mol.in" };
@@ -245,23 +246,20 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   update_representation();
 
-  qm_energy = qmc.g();
+  qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
 
   if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
-  ww_calc(if_gradient);
+  ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
-  if (if_gradient)
+  if (if_gradient)  // if gradients should be calculated
   {
-    mm_energy = mmc.g();
-	auto new_grad = vdw_gradient + c_gradient;
-    //for (auto g : new_grad)
-    //{
-    //  std::cout << "WW-Gradienten: " << g << '\n';
-    //}
+    mm_energy = mmc.g(); // get energy for MM part
 
-    auto g_qm = qmc.g_xyz();
-    auto g_mm = mmc.g_xyz();
+    // get gradients are QM + MM + vdW + Coulomb
+	auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+    auto g_qm = qmc.g_xyz(); // QM
+    auto g_mm = mmc.g_xyz(); // MM
 
     for (auto&& qmi : qm_indices)
     {
@@ -274,9 +272,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     }
     coords->swap_g_xyz(new_grad);
   }
-  else
+  else  // only energy 
   {
-    mm_energy = mmc.e();
+    mm_energy = mmc.e();  // get energy for MM part
   }
 
   this->energy = qm_energy + mm_energy + vdw_energy;
@@ -284,8 +282,12 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   return energy;
 }
 
+/**calculates interaction between QM and MM part
+energy is only vdW interactions, gradients are coulomb and vdW
+@param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
+  // preparation for calculation
   auto elec_factor = 332.0;
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
@@ -300,37 +302,27 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   auto const & p = cparams.vdwc_matrices();
   auto const & p_vdw = p[5];
   vdw_energy = 0;
-  //c_energy = 0;
-  for (auto i : qm_indices)
+
+  for (auto i : qm_indices)  // for every QM atom
   {
-    //std::cout << "I: " << i << '\n';
     auto z = qmc.atoms(i2).energy_type();
-    //std::cout << "TI: " << z << '\n';
     std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);
-    //std::cout << "CTI: " << i_vdw << '\n';
     coords::float_type charge_i = qm_charge_vector[i2];
-    //std::cout << "QM_CHARGE: " << charge_i << '\n';
     std::size_t j2 = 0u;
-    for (auto j : mm_indices)
+    for (auto j : mm_indices)  // for every MM atom
     {
-      //std::cout << "J: " << j << '\n';
+      // preparation (parameters and so on)
       auto e_type = mmc.atoms(j2).energy_type();
-      //std::cout << "TJ: " << e_type << '\n';
       std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW);
-      //std::cout << "CTJ: " << j_vdw << '\n';
       auto const & p_ij = p_vdw(i_vdw, j_vdw);
-      //std::cout <<"Parameter: "<< p_ij << '\n';
       coords::float_type charge_j = mm_charge_vector[j2];
-      //std::cout << "MM_CHARGE: " << charge_j << '\n';
       auto r_ij = coords->xyz(j) - coords->xyz(i);
-      //std::cout << "Verbindungsvektor: " << r_ij << '\n';
       coords::float_type d = len(r_ij);
       set_distance(d);
       coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-      //c_energy += b;
-      //EVDW
+
+      // calculate vdW interaction
       auto R_r = std::pow(p_ij.R / d, 6);
-      
       if (cparams.general().radiustype.value == 
         ::tinker::parameter::radius_types::T::SIGMA)
       {
@@ -345,14 +337,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       {
         throw std::runtime_error("no valid radius_type");
       }
-      if (if_gradient)
+
+      if (if_gradient)  // gradients
       {
+        // gradients of coulomb interaction
         coords::float_type db = b / d;
         auto c_gradient_ij = r_ij * db / d;
-        //std::cout << "Db: " << db << '\n';
         c_gradient[i] += c_gradient_ij;
         c_gradient[j] -= c_gradient_ij;
 
+        // gradients of vdW interaction
         coords::float_type const V = p_ij.E*R_r;
 
         if (cparams.general().radiustype.value 
@@ -360,7 +354,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         {
           auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
           auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma)/d;
-          //std::cout << "vdw_g: " << vdw_gradient_ij;
           vdw_gradient[i] -= vdw_gradient_ij_sigma;
           vdw_gradient[j] += vdw_gradient_ij_sigma;
         }
@@ -409,7 +402,6 @@ void energy::interfaces::qmmm::QMMM::swap(QMMM& rhs)
   mmc.swap(rhs.mmc);
   qm_charge_vector.swap(rhs.qm_charge_vector);
   mm_charge_vector.swap(rhs.mm_charge_vector);
-  //std::swap(c_energy, rhs.c_energy);
   std::swap(vdw_energy, rhs.vdw_energy);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(mm_energy, rhs.mm_energy);
