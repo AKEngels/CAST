@@ -165,10 +165,10 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
-  mm_charge_vector(rhs.mm_charge_vector),
-  //c_energy(rhs.c_energy), vdw_energy(rhs.vdw_energy), 
-  qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy),
-  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient)
+  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
+  //c_energy(rhs.c_energy),  
+  qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
+  c_gradient(rhs.c_gradient)
 {
   interface_base::operator=(rhs);
 }
@@ -254,7 +254,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   if (if_gradient)
   {
     mm_energy = mmc.g();
-    auto new_grad = c_gradient + vdw_gradient;
+	auto new_grad = vdw_gradient + c_gradient;
     //for (auto g : new_grad)
     //{
     //  std::cout << "WW-Gradienten: " << g << '\n';
@@ -401,7 +401,6 @@ void energy::interfaces::qmmm::QMMM::swap(QMMM& rhs)
 {
   interface_base::swap(rhs);
   std::swap(cparams, rhs.cparams);
-  //cparams.swap(rhs.cparams);
   qm_indices.swap(rhs.qm_indices);
   mm_indices.swap(rhs.mm_indices);
   new_indices_mm.swap(rhs.new_indices_mm);
@@ -498,7 +497,7 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
   S << "Potentials\n";
   S << std::right << std::setw(24) << "QM";
   S << std::right << std::setw(24) << "MM";
-  S << std::right << std::setw(24) << "C";
+  //S << std::right << std::setw(24) << "C";
   S << std::right << std::setw(24) << "VDW";
   S << std::right << std::setw(24) << "TOTAL";
   if (endline) S << '\n';
@@ -519,7 +518,7 @@ void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const e
 {
   
   S << std::right << std::setw(24) << distance;
-  S << std::right << std::setw(24) << c_gradient + vdw_gradient;
+  S << std::right << std::setw(24) << vdw_gradient + c_gradient;
   if (endline) S << '\n';
 }
 
