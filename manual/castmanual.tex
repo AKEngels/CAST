@@ -478,7 +478,7 @@ If you want to run CAST with DFTB, set the interface parameter in the CAST input
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM as energy interface. The QM part is calculated with MOPAC, for the MM part you can choose one of the force fields OPLSAA, CHARMM and AMBER. Interactions between QM and MM part are only calculated as non-bonded interactions so there must not be any bonds between these systems. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part.
+There is also the possibility to use QM/MM as energy interface. The QM part is calculated with MOPAC, for the MM part you can choose one of the force fields OPLSAA, CHARMM and AMBER. Interactions between QM and MM part are only calculated as non-bonded interactions so there must not be any bonds between these systems. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part. Coulomb interaction is done by electrostatic embedding so the charges of the MM atoms are taken into account when calculating the energy and the charge distribution of the QM part.
 
 To use this interface set the energy interface to ``QMMM'' (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for MOPAC. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see http://openmopac.net/manual/QMMM.html). 
 
