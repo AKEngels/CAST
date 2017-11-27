@@ -210,6 +210,8 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 @paran if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+  integrity = true;
+
   auto elec_factor = 332.0;
   mm_charge_vector = mmc.energyinterface()->charges();
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
@@ -246,7 +248,13 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   update_representation();
 
-  qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
+  try {
+    qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
+  }
+  catch(...)
+  {
+    integrity = false;  // if MOPAC fails: integrity is destroyed
+  }
 
   if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
@@ -278,6 +286,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
 
   this->energy = qm_energy + mm_energy + vdw_energy;
+  if (check_bond_preservation() == false) integrity = false;
  
   return energy;
 }
@@ -540,4 +549,22 @@ void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
   S << '\n';
   interface_base::to_stream(S);
   throw std::runtime_error("no QMMM-function yet");
+}
+
+bool energy::interfaces::qmmm::QMMM::check_bond_preservation(void) const
+{
+  std::size_t const N(coords->size());
+  for (std::size_t i(0U); i < N; ++i)
+  { // cycle over all atoms i
+    if (!coords->atoms(i).bonds().empty())
+    {
+      std::size_t const M(coords->atoms(i).bonds().size());
+      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
+      { // cycle over all atoms bound to i
+        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
+        if (L > 2.2) return false;
+      }
+    }
+  }
+  return true;
 }

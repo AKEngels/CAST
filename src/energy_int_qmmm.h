@@ -128,11 +128,11 @@ namespace energy
         coords::Gradients_3D c_gradient;
         coords::Gradients_3D vdw_gradient;
                
-        
-        
-        
+        /*
+        Helper functions
+        */
+        bool check_bond_preservation(void) const;
 
-        
       };
     }
   }
