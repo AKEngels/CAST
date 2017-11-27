@@ -297,69 +297,7 @@ int main(int argc, char **argv)
 
     case config::tasks::DEVTEST:
     {
-
-      
-      // &coords
-      /*if (!Config::get().energy.qmmm.qmatoms.empty())
-      {
-   
-        auto aco_coord = make_aco_coords(&coords, get_mm_atoms(coords.size()));
-        aco_coord.g();
-        aco_coord.energyinterface()->print_E_head(std::cout);
-        aco_coord.energyinterface()->print_E_short(std::cout);
-        auto mopac_coord = make_mopac_coords(&coords, Config::get().energy.qmmm.qmatoms);
-        mopac_coord.g();
-        mopac_coord.energyinterface()->print_E_head(std::cout);
-        mopac_coord.energyinterface()->print_E_short(std::cout);
-      }
-      else
-      {
-        auto aco_coord = make_aco_coords(&coords, get_mm_atoms(coords.size()));
-        aco_coord.g();
-        aco_coord.energyinterface()->print_E_head(std::cout);
-        aco_coord.energyinterface()->print_E_short(std::cout);
-      }*/
-
-      //coords.g();
-      coords.energyinterface()->print_E_head(std::cout);
-      //coords.energyinterface()->print_E_short(std::cout);
-      
-  
-      std::ofstream outd("to_gnuplot.txt");
-      
-      
-      for (auto const & pes : *ci)
-      {
-        std::cout << "CS: " << pes.structure.cartesian << "\n";
-        coords.set_xyz(pes.structure.cartesian);
-        coords.g();
-        coords.energyinterface()->print_E_short(std::cout);
-      //  coords.set_xyz(pes.structure.cartesian);
-      //  energy::interfaces::qmmm::QMMM qmobj(&coords);
-      //  qmobj.g();
-      //  qmobj.print_E_short(std::cout);
-      //  qmobj.charges();
-      //  qmobj.print_gnuplot(outd);
-    
-      //  
-     
-      }
-      
-      
-
-      
-
-/*
-      auto mm_in = get_mm_atoms(coords.size());
-      for (auto && qma : Config::get().energy.qmmm.qmatoms)
-      {
-        std::cout<< "qma: " << qma << '\n';
-      }
-      for (auto && mma : mm_in)
-      {
-        std::cout << "mma: " << mma << '\n';
-      }
-      break;*/
+      // DEVTEST: Room for Development testing
       break;
     }
     case config::tasks::SP:
