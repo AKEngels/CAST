@@ -475,6 +475,16 @@ If you want to run CAST with DFTB, set the interface parameter in the CAST input
 \end{longtable} 
 
 \textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Known Quirks and Work-Arounds)
+
+\subsubsection{QM/MM}
+
+There is also the possibility to use QM/MM as energy interface. The QM part is calculated with MOPAC, for the MM part you can choose one of the force fields OPLSAA, CHARMM and AMBER. Interactions between QM and MM part are only calculated as non-bonded interactions so there must not be any bonds between these systems. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part.
+
+To use this interface set the energy interface to ``QMMM'' (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for MOPAC. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see http://openmopac.net/manual/QMMM.html). 
+
+By ``QMMMqatoms'' you define which atoms belong to the QM system (of course all other atoms then belong to the MM system). Write the indizes in TINKER indexation (i.\,e. starting with 1) either separated by comma (``1,5,7'') or as a range (``1-4''). The keyword ``QMMMmminterface'' tells CAST which forcefield to use as MM interface (this has to be in accordance with the parameter file and the parametrization of your input structure.
+
+\textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group are in the MM part near the QM part. So try to avoid this situation.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
