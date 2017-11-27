@@ -117,7 +117,7 @@ namespace energy
 				std::string add_path;
 
 				/*
-				Helper functions
+				checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
 				*/
 				bool check_bond_preservation(void) const;
 

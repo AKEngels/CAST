@@ -129,7 +129,7 @@ namespace energy
         coords::Gradients_3D vdw_gradient;
                
         /*
-        Helper functions
+        checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
         */
         bool check_bond_preservation(void) const;
 
