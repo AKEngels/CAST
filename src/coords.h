@@ -365,7 +365,7 @@ namespace coords
       if (m_preinterface)
       {
         if (Config::get().general.verbosity >= 4)
-          std::cout << "Preotimization will be performed.\n";
+          std::cout << "Preoptimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
@@ -385,7 +385,6 @@ namespace coords
     /**performs an optimisation by steepest gradient method*/
     coords::float_type o()
     {
-      if (preoptimize()) po();
       energy_valid = true;
       if (m_interface->has_optimizer()
         && m_potentials.empty() //bias
