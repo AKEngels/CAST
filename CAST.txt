@@ -1,4 +1,4 @@
-####################################
+﻿####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
@@ -29,8 +29,7 @@ cores                  4
 
 # Input file name
 
-
-name                   water2.arc
+name                   tridecaalanin.arc
 
 # Output file name
 
@@ -39,7 +38,6 @@ outname                output
 # Input file type
 
 inputtype              TINKER
-
 
 ### AMBER I/O OPTIONS
 
@@ -82,6 +80,7 @@ inputtype              TINKER
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# CUT_RESIDUES         Cuts out residues and writes them into new tinkerfile outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
@@ -89,7 +88,7 @@ inputtype              TINKER
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
 
-task                   MD
+task                  SP
 
 
 ####################################
@@ -108,16 +107,22 @@ task                   MD
 # QMMM		             QMMM interface (MOPAC + ff)
 # MOPAC                MOAPC2012 syscall Interface
 # DFTB                 DFTB interface (with DFTBaby)
+# GAUSSIAN             GAUSSIAN interface
 
 interface              QMMM
-
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
+
 paramfile              oplsaa_mod.prm
+
+#Cutoff radius for non bonded interactions for forcefields energy interfaces
+cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+switchdist             10.0
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -138,21 +143,12 @@ MOPACversion MOPAC2016
 
 ####################################
 #                                  #
-#          CUTOFF RADIUS           #
-#                                  #
-####################################
-
-cutoff                 400.0
-switchdist             10.0
-
-####################################
-#                                  #
 #          QMMM                    #
 #                                  #
 ####################################
 
 
-QMMMqmatoms        	  4-6
+QMMMqmatoms           4-6
 QMMMmminterface       OPLSAA
 
 
@@ -206,7 +202,44 @@ DFTBvirt_orb            2
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBopt                  1
 
+############################ GAUSSIAN OPTIONS ########################
 
+GAUSSIANlink NProcShared=1 Mem=2GB
+
+#Methods for Gaussian Call
+
+GAUSSIANmethod HF
+
+#Basisset for Gaussian Call
+
+GAUSSIANbasisset 6-31G
+
+#Charge of the Molecule
+
+GAUSSIANcharge 0
+
+#Multiplicity
+
+GAUSSIANmultiplicity 1
+
+#Gaussian optimization with steepest descend
+
+GAUSSIANsteep 0
+
+#Gaussian executeable path
+
+GAUSSIANpath g09
+
+#Delete temporary Gaussian f i l e s ?
+
+GAUSSIANdelete 0
+
+#################### OPTIONS FOR CUT_RESIDUES ###################
+
+CUTreact_atom            3149
+CUTreact_atom            347
+
+CUTdist                  10
 
 ####################################
 #                                  #
@@ -222,7 +255,6 @@ REMOVEHROT             false
 
 # Fix a range of atoms 
 #FIXrange               1-6,9,24,55-71,72
-
 
 
 ####################################
@@ -654,7 +686,7 @@ MDtemp_control         1
 
 # Thermostat (Nose-Hoover)
 
-MDthermostat           1
+MDthermostat           0
 
 # Timestep in picoseconds
 

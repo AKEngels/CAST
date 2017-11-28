@@ -148,7 +148,7 @@ the first element of the vector is the the index of the atom (old indexation)
 the other elements are the atoms to which the current atom is bound (new indexation)
 the index of the current atom in new indexation is identical to the index in the vector
 @param coordobj: coordinates object (with all atoms)
-@param indizes: vector of indizes that remain in the new structure
+@param indizes: vector of indizes that remain in the new structure (old indexation)
 @param fixed_atoms: vector of indizes of atoms that are to be fixed in following calculations (new indexation)*/
 std::vector<std::vector<int>> rebind(coords::Coordinates coordobj, std::vector<int> indizes, std::vector<coords::Atom>&new_atoms, std::vector<coords::cartesian_type> &new_positions, std::vector<int> &fixed_atoms)
 {
@@ -250,8 +250,8 @@ void cut_residues(coords::Coordinates coordobj, std::ostream & stream)
   }
 
   // determine which atoms to keep and to fix
-  std::vector<int> remaining_atoms;
-  std::vector<int> fixed_atoms;
+  std::vector<int> remaining_atoms; // old indexation
+  std::vector<int> fixed_atoms;     // new indexation
   for (int i = 0; i < coordobj.size(); i++)
   {
     if (is_in(coordobj.atoms(i).get_res_id(), remaining_resids))
