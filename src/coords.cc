@@ -339,11 +339,10 @@ double coords::Coordinates::prelbfgs()
   op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
   // Optimize point
   optimizer(x);
-  m_representation.energy = x.f;
+  m_representation.energy = optimizer.p().f;
   m_representation.structure.cartesian =
-    coords::Representation_3D(x.x.begin(), x.x.end());
-  m_representation.gradient.cartesian =
-    coords::Gradients_3D(x.g.begin(), x.g.end());
+    coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
+  m_representation.gradient.cartesian = coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
   if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization done (status " << optimizer.state() <<

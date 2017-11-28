@@ -238,7 +238,7 @@ int main(int argc, char **argv)
         std::cout << "-------------------------------------------------\n";
       }
       std::size_t i(0);
-      for (auto const & pes : *ci)
+      for (auto & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
         coords.pe();
@@ -248,6 +248,7 @@ int main(int argc, char **argv)
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
         coords.po();
+        pes.structure.cartesian = coords.xyz();
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization post-opt: " << i << '\n';
