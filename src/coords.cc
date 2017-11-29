@@ -350,13 +350,7 @@ double coords::Coordinates::prelbfgs()
       "). Evaluations:" << optimizer.iter() << '\n';
   }
 
-  if (Config::get().general.verbosity >= 4 && m_interface->intact())
-  {
-    std::cout << "Energy after optimization: \n";
-    e_head_tostream_short(std::cout, m_interface);
-    e_tostream_short(std::cout, m_interface);
-  }
-  return x.f;
+  return optimizer.p().f;
 }
 
 coords::Gradients_Main coords::Coordinates::dimermethod_dihedral

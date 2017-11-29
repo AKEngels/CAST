@@ -213,7 +213,7 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
 
 void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const endline) const
 {
-
+  S << "Energies\n";
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::BOND];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::ANGLE];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::UREY];
@@ -222,6 +222,7 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::TORSION];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::VDW];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::CHARGE];
+  S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << energy;
   std::size_t const IAS(coords->interactions().size());
