@@ -260,34 +260,36 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
-  if (if_gradient)  // if gradients should be calculated
+  if (integrity == true)
   {
-    mm_energy = mmc.g(); // get energy for MM part
-
-    // get gradients are QM + MM + vdW + Coulomb
-	auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
-    auto g_qm = qmc.g_xyz(); // QM
-    auto g_mm = mmc.g_xyz(); // MM
-
-    for (auto&& qmi : qm_indices)
+    if (if_gradient)  // if gradients should be calculated
     {
-      new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+      mm_energy = mmc.g(); // get energy for MM part
+
+                           // get gradients are QM + MM + vdW + Coulomb
+      auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+      auto g_qm = qmc.g_xyz(); // QM
+      auto g_mm = mmc.g_xyz(); // MM
+
+      for (auto&& qmi : qm_indices)
+      {
+        new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+      }
+
+      for (auto && mmi : mm_indices)
+      {
+        new_grad[mmi] += g_mm[new_indices_mm[mmi]];
+      }
+      coords->swap_g_xyz(new_grad);
+    }
+    else  // only energy 
+    {
+      mm_energy = mmc.e();  // get energy for MM part
     }
 
-    for (auto && mmi : mm_indices)
-    {
-      new_grad[mmi] += g_mm[new_indices_mm[mmi]];
-    }
-    coords->swap_g_xyz(new_grad);
+    this->energy = qm_energy + mm_energy + vdw_energy;
+    if (check_bond_preservation() == false) integrity = false;
   }
-  else  // only energy 
-  {
-    mm_energy = mmc.e();  // get energy for MM part
-  }
-
-  this->energy = qm_energy + mm_energy + vdw_energy;
-  if (check_bond_preservation() == false) integrity = false;
- 
   return energy;
 }
 
@@ -303,80 +305,84 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   {
     elec_factor = aco_p->params().general().electric;
   }
-  qm_charge_vector = qmc.energyinterface()->charges();
-  c_gradient.assign(coords->size(), coords::r3{});
-  vdw_gradient.assign(coords->size(), coords::r3{});
-
-  std::size_t i2 = 0u;
-  auto const & p = cparams.vdwc_matrices();
-  auto const & p_vdw = p[5];
-  vdw_energy = 0;
-
-  for (auto i : qm_indices)  // for every QM atom
+  try { qm_charge_vector = qmc.energyinterface()->charges(); }
+  catch (...) { integrity = false; }
+  if (integrity == true)
   {
-    auto z = qmc.atoms(i2).energy_type();
-    std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);
-    coords::float_type charge_i = qm_charge_vector[i2];
-    std::size_t j2 = 0u;
-    for (auto j : mm_indices)  // for every MM atom
+    c_gradient.assign(coords->size(), coords::r3{});
+    vdw_gradient.assign(coords->size(), coords::r3{});
+
+    std::size_t i2 = 0u;
+    auto const & p = cparams.vdwc_matrices();
+    auto const & p_vdw = p[5];
+    vdw_energy = 0;
+
+    for (auto i : qm_indices)  // for every QM atom
     {
-      // preparation (parameters and so on)
-      auto e_type = mmc.atoms(j2).energy_type();
-      std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW);
-      auto const & p_ij = p_vdw(i_vdw, j_vdw);
-      coords::float_type charge_j = mm_charge_vector[j2];
-      auto r_ij = coords->xyz(j) - coords->xyz(i);
-      coords::float_type d = len(r_ij);
-      set_distance(d);
-      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-
-      // calculate vdW interaction
-      auto R_r = std::pow(p_ij.R / d, 6);
-      if (cparams.general().radiustype.value == 
-        ::tinker::parameter::radius_types::T::SIGMA)
+      auto z = qmc.atoms(i2).energy_type();
+      std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);
+      coords::float_type charge_i = qm_charge_vector[i2];
+      std::size_t j2 = 0u;
+      for (auto j : mm_indices)  // for every MM atom
       {
-        vdw_energy += R_r*p_ij.E*(R_r - 1.0);
-      }
-      else if (cparams.general().radiustype.value == 
-        ::tinker::parameter::radius_types::T::R_MIN)
-      {
-        vdw_energy += R_r*p_ij.E*(R_r - 2.0);
-      }
-      else
-      {
-        throw std::runtime_error("no valid radius_type");
-      }
+        // preparation (parameters and so on)
+        auto e_type = mmc.atoms(j2).energy_type();
+        std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW);
+        auto const & p_ij = p_vdw(i_vdw, j_vdw);
+        coords::float_type charge_j = mm_charge_vector[j2];
+        auto r_ij = coords->xyz(j) - coords->xyz(i);
+        coords::float_type d = len(r_ij);
+        set_distance(d);
+        coords::float_type b = (charge_i*charge_j) / d * elec_factor;
 
-      if (if_gradient)  // gradients
-      {
-        // gradients of coulomb interaction
-        coords::float_type db = b / d;
-        auto c_gradient_ij = r_ij * db / d;
-        c_gradient[i] += c_gradient_ij;
-        c_gradient[j] -= c_gradient_ij;
-
-        // gradients of vdW interaction
-        coords::float_type const V = p_ij.E*R_r;
-
-        if (cparams.general().radiustype.value 
-          == ::tinker::parameter::radius_types::T::SIGMA)
+        // calculate vdW interaction
+        auto R_r = std::pow(p_ij.R / d, 6);
+        if (cparams.general().radiustype.value ==
+          ::tinker::parameter::radius_types::T::SIGMA)
         {
-          auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
-          auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma)/d;
-          vdw_gradient[i] -= vdw_gradient_ij_sigma;
-          vdw_gradient[j] += vdw_gradient_ij_sigma;
+          vdw_energy += R_r*p_ij.E*(R_r - 1.0);
         }
-        else 
+        else if (cparams.general().radiustype.value ==
+          ::tinker::parameter::radius_types::T::R_MIN)
         {
-          auto vdw_r_grad_R_MIN = (V / d)*12*(1.0 - R_r);
-          auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN)/d;
-          vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
-          vdw_gradient[j] += vdw_gradient_ij_R_MIN;
+          vdw_energy += R_r*p_ij.E*(R_r - 2.0);
         }
+        else
+        {
+          throw std::runtime_error("no valid radius_type");
+        }
+
+        if (if_gradient)  // gradients
+        {
+          // gradients of coulomb interaction
+          coords::float_type db = b / d;
+          auto c_gradient_ij = r_ij * db / d;
+          c_gradient[i] += c_gradient_ij;
+          c_gradient[j] -= c_gradient_ij;
+
+          // gradients of vdW interaction
+          coords::float_type const V = p_ij.E*R_r;
+
+          if (cparams.general().radiustype.value
+            == ::tinker::parameter::radius_types::T::SIGMA)
+          {
+            auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
+            auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
+            vdw_gradient[i] -= vdw_gradient_ij_sigma;
+            vdw_gradient[j] += vdw_gradient_ij_sigma;
+          }
+          else
+          {
+            auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
+            auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
+            vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
+            vdw_gradient[j] += vdw_gradient_ij_R_MIN;
+          }
+        }
+        ++j2;
       }
-      ++j2;
+      ++i2;
     }
-    ++i2;
   }
 }
 
