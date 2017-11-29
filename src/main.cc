@@ -245,6 +245,7 @@ int main(int argc, char **argv)
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization initial: " << ++i << '\n';
+          coords.e_head_tostream_short(std::cout, coords.preinterface());
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
         coords.po();
