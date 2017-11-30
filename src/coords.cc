@@ -349,7 +349,6 @@ double coords::Coordinates::prelbfgs()
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
-
   return optimizer.p().f;
 }
 
