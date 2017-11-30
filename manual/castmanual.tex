@@ -801,7 +801,18 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 	
 	%% Monte Carlo
 	\subsubsection{MC - Monte Carlo}
-	The \ac{MC} simulation will move the system randomly across the \ac{PES} and evaluate the reached point either directly or after local optimization. The ``MCminimization'' option turns minimization on (value ``1''; default) or off (value ``0''). \\~\\
+	The \ac{MC} simulation will move the system randomly across the \ac{PES} and evaluate the reached point either directly or after local optimization. The ``MCminimization'' option turns minimization on (value ``1''; default) or off (value ``0''). 
+	
+	\textbf{Attention!}
+	If you use an energy interface that doesn't work with bonding information when calculating the energy it is possible that you get a minimum structure that looks very strange to you. For an example see figure \ref{fig:dist_eth} which is an ethanole molecule. This is not a bug because if you rebind the atoms by a distance criterion everything will be fine again. The atoms are just shuffled around randomly and then the energy is evaluated out of the atom positions. So it doesn't matter to the program if for example two hydrogen atoms have swapped positions. One possibility to avoid this is to use the move type ``main dihedral'' instead of ``cartesian''. 
+	
+		\begin{figure}[htb]
+		\centering
+		\includegraphics[width=0.5\textwidth]{img/distorted_ethanol.png}
+		\caption{Ethanole molecule that is distorted by MC calculation}
+		\label{fig:dist_eth}
+	\end{figure}
+	
 	\textbf{Move types}\\~\\
 	\ac{CAST} can move to the next sampling point during \ac{MC} in three different ways, controlled via the ``MCmovetype'' option (default ``1''). A value of ``2'' will make the program carry out the contortion in Cartesian space (where the ``MCstep\_size'' option with a default value of ``2.0'' will restrict the absolute value of the distortion vector). The value ``1'' represents direct rotation of randomly selected main dihedral angles (see 1.5). A value of ``0'' means that the target conformation is not obtained directly by adjusting dihedrals but the conformational change will be achieved by applying quadratic bias potentials on the main dihedrals towards the target conformation during a local optimization process (``MCmax\_dihedral'' restricts the maximum distortion of a dihedral angle; default ``160.0''). \\
 		
