@@ -581,7 +581,7 @@ bool energy::interfaces::qmmm::QMMM::check_atom_dist(void) const
   std::size_t const N(coords->size());
   for (std::size_t i(0U); i < N; ++i)
   {
-    for (std::size_t j(0U); j < N; j++)
+    for (std::size_t j(0U); j < i; j++)
     {
       if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
       {
