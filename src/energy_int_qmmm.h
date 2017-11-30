@@ -22,6 +22,7 @@ Attention: Problems occur if charged atoms are in MM part near QM part! This sit
 #include "energy_int_aco.h"
 #include "energy_int_mopac.h"
 #include "tinker_parameters.h"
+#include "helperfunctions.h"
 
 namespace energy
 {
@@ -132,6 +133,9 @@ namespace energy
         checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
         */
         bool check_bond_preservation(void) const;
+
+        /**checks if there is a minimum atom distance between atoms*/
+        bool check_atom_dist(void) const;
 
       };
     }

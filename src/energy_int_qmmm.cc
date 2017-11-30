@@ -289,6 +289,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
     this->energy = qm_energy + mm_energy + vdw_energy;
     if (check_bond_preservation() == false) integrity = false;
+    else if (check_atom_dist() == false) integrity = false;
   }
   return energy;
 }
@@ -569,6 +570,22 @@ bool energy::interfaces::qmmm::QMMM::check_bond_preservation(void) const
       { // cycle over all atoms bound to i
         double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
         if (L > 2.2) return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool energy::interfaces::qmmm::QMMM::check_atom_dist(void) const
+{
+  std::size_t const N(coords->size());
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    for (std::size_t j(0U); j < N; j++)
+    {
+      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
+      {
+        return false;
       }
     }
   }
