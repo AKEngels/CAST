@@ -385,6 +385,7 @@ namespace coords
     /**performs an optimisation by steepest gradient method*/
     coords::float_type o()
     {
+      if (preoptimize()) po();
       energy_valid = true;
       if (m_interface->has_optimizer()
         && m_potentials.empty() //bias
