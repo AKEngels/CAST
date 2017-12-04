@@ -1203,6 +1203,42 @@ void md::simulation::nose_hoover_thermostat(void)
   nht.v2 += nht.G2*d4;
 }
 
+// Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
+// Frenkel and Smit, Understanding Molecular Simulation, Appendix E
+double md::simulation::nose_hoover_thermostat_biased(void)
+{
+  double tempscale(0.0);
+  double freedom_inner = 3U * inner_atoms.size();
+  if (Config::get().periodics.periodic == true)
+    freedom -= 3;
+  else
+    freedom -= 6;
+  double const delt(Config::get().md.timeStep),
+    d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
+    TR(T*md::R), fTR(freedom_inner*TR);
+  nht.G2 = (nht.Q1*nht.v1*nht.v1 - TR) / nht.Q2;
+  nht.v2 += nht.G2*d4;
+  nht.v1 *= exp(-nht.v2*d8);
+  nht.G1 = (2.0*E_kin - fTR) / nht.Q1;
+  nht.v1 += nht.G1*d4;
+  nht.v1 *= exp(-nht.v2*d8);
+  nht.x1 += nht.v1*d2;
+  nht.x2 += nht.v2*d2;
+  tempscale = exp(-nht.v1*d2);
+  E_kin *= tempscale*tempscale;
+  if (Config::get().general.verbosity > 4u)
+  {
+    std::cout << "Nose-Hoover-Adjustment; Scaling factor: " << tempscale << '\n';
+  }
+  nht.v1 *= exp(-nht.v2*d8);
+  nht.G1 = (2.0*E_kin - fTR) / nht.Q1;
+  nht.v1 += nht.G1*d4;
+  nht.v1 *= exp(-nht.v2*d8);
+  nht.G2 = (nht.Q1*nht.v1*nht.v1 - TR) / nht.Q2;
+  nht.v2 += nht.G2*d4;
+  return tempscale;
+}
+
 double md::simulation::tempcontrol(bool thermostat, bool half)
 {
   std::size_t const N = this->coordobj.size();  // total number of atoms
@@ -1219,9 +1255,25 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     {
       std::cout << "hoover fullstep\n";
     }
-    updateEkin();
-    nose_hoover_thermostat();
-    temp2 = E_kin * tempfactor;
+    if (Config::get().md.set_active_center == 1)  // if biased potential
+    {
+      size_t dof = 3u * inner_atoms.size();
+      double T_factor = (2.0 / (dof*md::R));
+      updateEkin_some_atoms(inner_atoms);           // calculate kinetic energy of inner atoms
+      factor = nose_hoover_thermostat_biased();     // calculate temperature scaling factor
+      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
+      if (half == false)
+      {
+        updateEkin();  // new kinetic energy (whole molecule)
+      }
+    }
+    else  // "normal" nose-hoover thermostat
+    {
+      updateEkin();
+      nose_hoover_thermostat();
+      temp2 = E_kin * tempfactor;
+    }
   }
   else // no thermostat -> direct scaling
   {
