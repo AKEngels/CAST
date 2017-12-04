@@ -704,7 +704,7 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	
 If an FEP calculation is done you can set the ``MDactive\_site'' to zero instead of atom numbers. Then the active site is defined by all atoms that appear or disappear during the reaction, e.\,g. that are marked by ``IN'' or ``OUT'' in the coordinate file. 
 	
-If you use the ``MDheat'' option without switching on the Nosé-Hoover thermostat (``MDthermostat'') the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. The Nosé-Hoover thermostat might not work together well with the biased potential as the temperature and the scaling factor are calculated by the velocities of all atoms after the adjustment according to the biased potential when many of them are zero.
+If you use the ``MDheat'' option the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. 
 
 Don't use ``MDveloscale'' with biased potential because it doesn't make sense to rotate the whole molecule if only a part of it moves during the simulation.
 
