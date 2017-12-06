@@ -609,6 +609,14 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::tinker(coords);
       break;
     }
+    case config::tasks::MODIFY_SK_FILES:
+    {
+      for (auto a : coords.atoms())
+      {
+        std::cout << a << "\n";
+      }
+      break;
+    }
     case config::tasks::PCAgen:
     {
       /**

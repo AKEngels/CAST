@@ -49,7 +49,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 29;
+  static std::size_t const NUM_TASKS = 30;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -60,7 +60,7 @@ namespace config
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
-    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -80,7 +80,7 @@ namespace config
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-      LAYER_DEPOSITION, HESS, WRITE_TINKER
+      LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES
     };
   };
 
