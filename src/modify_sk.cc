@@ -50,22 +50,28 @@ bool modify_file(std::vector<std::string> pair)
   std::getline(file_stream, line); // get first line
   std::vector<std::string> linevec = split(line, ',');
   double starting_number = std::stod(linevec[0]); // get first number out of first line
-
-  int second_number, counter = 1;
+  bool search = true; //still search for first line containing grid points
+  int begin, end;
+  int counter = 1;
   std::string new_string = "";
   while (file_stream)
   {
     std::getline(file_stream, line);
     new_string += "\n"+line;  // write every line from the second on in a new string (only first line is modified)
     counter += 1;
-    if (line == "Spline")  // get second number for new first line
+    if (search && is_in('*', line))
     {
-      if (pair[0] == pair[1]) second_number = counter - 3;  
-      else second_number = counter - 2;
+      begin = counter;
+      search = false;
+    }
+    if (search == false && line == "Spline")  // get second number for new first line
+    {
+      end = counter;
     }
   }
 
   // construct new first line
+  int second_number = end - begin;
   std::string new_first_line = std::to_string(starting_number) + "  " + std::to_string(second_number) + "  " + std::to_string(atom_number1) + " " + std::to_string(atom_number2);
 
   // delete old file

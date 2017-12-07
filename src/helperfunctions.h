@@ -92,6 +92,18 @@ inline bool is_in(std::vector<std::string> x, std::vector<std::vector<std::strin
   }
 }
 
+/**looks if string v contains char x
+returns true if yes and false if no */
+inline bool is_in(char x, std::string v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 /**tests if a file exists
 @param name: name of the file*/
 inline bool file_exists(const std::string& name) {
