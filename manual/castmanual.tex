@@ -1309,6 +1309,9 @@ EXwellenzahl                  28514.91
 	
 	\subsection{WRITE\_TINKER}
 	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	
+	\subsection{MODIFY\_SK\_FILES}
+	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see: \url{http://gaussian.com/dftb/}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
 		
 
 	%%%% Boundry Conditions %%%%

@@ -35,7 +35,7 @@ bool modify_file(std::vector<std::string> pair)
   // look if slater koster file exists
   if (file_exists(filename) == false)
   {
-    std::cout << "Slater Koster file " << filename << " does not exist. Please download it from dftb.org!\n";
+    std::cout << "WARNING! Slater Koster file " << filename << " does not exist. Please download it from dftb.org!\n";
     return false;
   }
 
@@ -59,19 +59,19 @@ bool modify_file(std::vector<std::string> pair)
     std::getline(file_stream, line);
     new_string += "\n"+line;  // write every line from the second on in a new string (only first line is modified)
     counter += 1;
-    if (search && is_in('*', line))
+    if (search && is_in('*', line))  // where is the first grid point?
     {
       begin = counter;
       search = false;
     }
-    if (search == false && line == "Spline")  // get second number for new first line
+    if (search == false && line == "Spline")  // where is the end of the grid points?
     {
       end = counter;
     }
   }
 
   // construct new first line
-  int second_number = end - begin;
+  int second_number = end - begin;  // second number = number of lines with grid points
   std::string new_first_line = std::to_string(starting_number) + "  " + std::to_string(second_number) + "  " + std::to_string(atom_number1) + " " + std::to_string(atom_number2);
 
   // delete old file
