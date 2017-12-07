@@ -259,11 +259,11 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
         for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.x());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &g.x());
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.y());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &g.y());
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.z());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &g.z());
 
           std::getline(in_file, buffer);
 
