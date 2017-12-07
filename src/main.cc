@@ -53,6 +53,7 @@
 #include "Couplings.h"
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
+#include "modify_sk.h"
 
 
 //////////////////////////
@@ -611,9 +612,10 @@ int main(int argc, char **argv)
     }
     case config::tasks::MODIFY_SK_FILES:
     {
-      for (auto a : coords.atoms())
+      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
+      for (auto p : pairs)
       {
-        std::cout << a << "\n";
+        modify_file(p);
       }
       break;
     }
