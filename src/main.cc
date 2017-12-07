@@ -54,6 +54,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "cut_residues.h"
+#include "modify_sk.h"
 
 
 //////////////////////////
@@ -296,7 +297,6 @@ int main(int argc, char **argv)
     // select task
     switch (Config::get().general.task)
     {
-
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
@@ -630,7 +630,15 @@ int main(int argc, char **argv)
     case config::tasks::CUT_RESIDUES:
     {
       std::ofstream gstream(coords::output::filename("", ".arc").c_str());
-      cut_residues(coords,gstream);
+      cut_residues(coords, gstream);
+    }
+    case config::tasks::MODIFY_SK_FILES:
+    {
+      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
+      for (auto p : pairs)
+      {
+        modify_file(p);
+      }
       break;
     }
     case config::tasks::PCAgen:

@@ -94,7 +94,31 @@ inline bool is_in(std::string x, std::vector<std::string> v)
 
 /**looks if vector v contains element x
 returns true if yes and false if no */
+inline bool is_in(std::vector<std::string> x, std::vector<std::vector<std::string>> v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**looks if vector v contains element x
+returns true if yes and false if no */
 inline bool is_in(int x, std::vector<int> v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**looks if string v contains char x
+returns true if yes and false if no */
+inline bool is_in(char x, std::string v)
 {
   if (std::find(v.begin(), v.end(), x) != v.end()) {
     return true;
@@ -121,4 +145,11 @@ inline bool isdigit(std::string s)
 {
   std::vector<std::string> DIGITS = { "0","1","2","3","4","5","6","7","8","9" };
   return is_in(s, DIGITS);
+}
+
+/**tests if a file exists
+@param name: name of the file*/
+inline bool file_exists(const std::string& name) {
+  std::ifstream f(name.c_str());
+  return f.good();
 }
