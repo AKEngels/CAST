@@ -8,13 +8,14 @@
 #include "scon_angle.h"
 #include "scon_spherical.h"
 #include "scon_vect.h"
+#include "scon_mathmatrix.h"
 
 #include <algorithm>
-#include <armadillo>
-#include "scon_mathmatrix.h"
 #include <array>
 #include <utility>
 #include <vector>
+#include <functional>
+#include <numeric>
 
 namespace ic_rotation {
 
@@ -22,9 +23,20 @@ using coords::float_type;
 
 static constexpr auto q_thres{ 1e-6 };
 
+template<typename T>
+struct identity {
+  typename T type;
+};
+
+auto get_mean = [](auto const & vec, auto add) {
+  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
+  mean /= static_cast<coords::Cartesian_Point::type> (vec.size());
+  return mean;
+};
+
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-arma::Mat<T> correlation_matrix(const coords::Representation_3D& trial,
+scon::mathmatrix<T> correlation_matrix(const coords::Representation_3D& trial,
                                 const coords::Representation_3D& target) {
   auto trial_mat = ic_util::Rep3D_to_arma<T>(trial);
   auto target_mat = ic_util::Rep3D_to_arma<T>(target);
@@ -33,9 +45,9 @@ arma::Mat<T> correlation_matrix(const coords::Representation_3D& trial,
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-arma::Mat<T> F_matrix(const coords::Representation_3D& trial,
-                      const coords::Representation_3D& target) {
-  using Mat = arma::Mat<T>;
+  scon::mathmatrix<T> F_matrix(coords::Representation_3D const & trial,
+                       coords::Representation_3D const & target) {
+  using Mat = scon::mathmatrix<T>;
 
   auto correl_mat = correlation_matrix<T>(trial, target);
   auto R11 = correl_mat(0, 0);
@@ -70,42 +82,34 @@ arma::Mat<T> F_matrix(const coords::Representation_3D& trial,
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 std::pair<T, ic_util::Quaternion<T>>
-quaternion(const coords::Representation_3D& trial,
-           const coords::Representation_3D& target) {
-  using Col = arma::Col<T>;
-  using Mat = arma::Mat<T>;
-  using arma::conv_to;
-  using arma::eig_sym;
-  using arma::size;
-  using arma::sort;
+quaternion(coords::Representation_3D const & trial,
+           coords::Representation_3D const & target) {
+  using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
+  auto const & add_cp = std::plus<Cartesian_Point>();
+  
 
-  Cartesian_Point mean_trial(0.0, 0.0, 0.0);
-  for (auto& i : trial) {
-    mean_trial += i;
-  }
-  mean_trial /= (T)trial.size();
-  Cartesian_Point mean_target(0.0, 0.0, 0.0);
-  for (auto& i : target) {
-    mean_target += i;
-  }
-  mean_target /= (T)target.size();
+  auto mean_trial = get_mean(trial, add_cp);
+  auto mean_target = get_mean(target, add_cp);
+
   auto trial_shift = trial - mean_trial;
   auto target_shift = target - mean_target;
+  
   auto F_mat = F_matrix<T>(trial_shift, target_shift);
-  Col eigval;
-  Mat eigvec;
-  eig_sym(eigval, eigvec, F_mat);
-  auto eigval_sz = eigval.n_rows;
-  Col q = eigvec.col(eigval_sz - 1);
-  std::vector<T> q_std = conv_to<std::vector<T>>::from(q);
+
+  Mat eigvec, eigval;
+  
+  std::tie(eigvec, eigval) = F_mat.eigensym();
+
+  auto q_std = eigvec.col_to_std_vector(eigval.rows() - 1);
   ic_util::Quaternion<T> res_q(q_std);
   if (res_q.q_.at(0) < 0) {
     res_q = res_q * -1;
   }
-  Col eigval_high = sort(eigval, "descend");
-  T res_val = eigval_high.at(0);
-  return std::make_pair(res_val, res_q);
+
+  auto eigval_high = eigval.sort_col_to_vec([](auto const & a, auto const & b) { return a < b; });
+
+  return std::make_pair(eigval_high.at(0), res_q);
 }
 
 template <typename T,
@@ -118,37 +122,27 @@ std::array<T, 3u> exponential_map(const coords::Representation_3D& trial,
   auto t1 = std::acos(q0);
   auto t2 = std::sqrt(1 - std::pow(q0, 2));
   auto p = 2 * (t1 / t2);
-  std::array<T, 3u> result = { p * quat.q_.at(1), p * quat.q_.at(2),
-                               p * quat.q_.at(3) };
-  return result;
+  return { p * quat.q_.at(1), p * quat.q_.at(2), p * quat.q_.at(3) };
 }
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<arma::Cube<T>>
-correlation_matrix_derivs(const arma::Mat<T>& R,
+std::vector<std::array<scon::mathmatrix<T>, 3> >
+correlation_matrix_derivs(const scon::mathmatrix<T>& R,
                           const coords::Representation_3D& target) {
-  using Cube = arma::Cube<T>;
-  using Mat = arma::Mat<T>;
-  using arma::zeros;
+  using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
 
-  Cartesian_Point mean_target(0.0, 0.0, 0.0);
-  for (auto& i : target) {
-    mean_target += i;
-  }
-  mean_target /= (T)target.size();
+  auto mean_target = get_mean(traget, std::plus<Cartesian_Point>());
+
   auto tshift = target - mean_target;
   auto S = ic_util::Rep3D_to_arma<T>(tshift);
-  std::vector<Cube> result;
-  for (std::size_t c = 0; c < S.n_rows; ++c) {
-    Cube A = zeros<Cube>(3, 3, 3);
-    for (std::size_t l = 0; l < 3; ++l) {
-      for (std::size_t r = 0; r < 3; ++r) {
-        if (l == r) {
-          A.slice(l).row(r) = S.row(c);
-        }
-      }
+  std::vector<std::array<Mat, 3> > result;
+  for (std::size_t c = 0; c < S.rows(); ++c) {
+    std::array<Mat, 3> A;
+    A.fill(scon::mathmatrix<T>::zero(3, 3));
+    for (std::size_t l = 0; l < A.size(); ++l) {
+      A.[l].row(l) = S.row(c);
     }
     result.emplace_back(A);
   }
@@ -160,31 +154,24 @@ template <typename T,
 std::vector<arma::Cube<T>>
 F_matrix_derivs(const coords::Representation_3D& trial,
                 const coords::Representation_3D& target) {
-  using Cube = arma::Cube<T>;
-  using Mat = arma::Mat<T>;
-  using arma::zeros;
+  using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
+  auto const & add = std::plus<Cartesian_Point>();
 
-  Cartesian_Point mean_target(0.0, 0.0, 0.0);
-  for (auto& i : target) {
-    mean_target += i;
-  }
-  mean_target /= (T)target.size();
-  Cartesian_Point mean_trial(0.0, 0.0, 0.0);
-  for (auto& i : trial) {
-    mean_trial += i;
-  }
-  mean_trial /= (T)trial.size();
+  auto mean_target = get_mean(target, add);
+  auto mean_trial = get_mean(trial, add);
+
   auto tashift = target - mean_target;
   auto trshift = trial - mean_trial;
   auto R = correlation_matrix<T>(tashift, trshift);
   auto dR = correlation_matrix_derivs(R, tashift);
-  std::vector<Cube> result;
+  std::vector<std::array<Mat, 3> > result;
   for (auto& S : dR) {
-    Cube Q = zeros<Cube>(4, 4, 3);
-    for (std::size_t c = 0; c < S.n_slices; ++c) {
-      Mat F = zeros<Mat>(4, 4);
-      Mat M = S.slice(c);
+    std::array<Mat, 3> Q;
+    Q.fill(scon::mathmatrix<float_type>::zero(4, 4));
+    for (std::size_t c = 0; c < S.size(); ++c) {
+      Mat F = scon::mathmatrix<float_type>::zero(4, 4);
+      Mat M = S.at(c);
       auto dR11 = M(0, 0);
       auto dR12 = M(0, 1);
       auto dR13 = M(0, 2);
@@ -210,7 +197,7 @@ F_matrix_derivs(const coords::Representation_3D& trial,
       F(3, 1) = dR13 + dR31;
       F(3, 2) = dR23 + dR32;
       F(3, 3) = -dR11 - dR22 + dR33;
-      Q.slice(c) = F;
+      Q.at(c) = F;
     }
     result.emplace_back(Q);
   }
@@ -219,31 +206,27 @@ F_matrix_derivs(const coords::Representation_3D& trial,
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<arma::Mat<T>>
+std::vector<scon::mathmatrix<T>>
 quaternion_derivs(const coords::Representation_3D& trial,
                   const coords::Representation_3D& target) {
-  using Mat = arma::Mat<T>;
-  using Row = arma::Row<T>;
-  using arma::conv_to;
-  using arma::eye;
-  using arma::pinv;
+  using Mat = scon::mathmatrix<T>;
 
   auto q_eigval = quaternion<T>(trial, target);
   auto F = F_matrix<T>(trial, target);
   auto F_der = F_matrix_derivs<T>(trial, target);
-  auto identity = eye<Mat>(4, 4);
-  auto lambda = q_eigval.first;
-  auto t1 = lambda * identity - F;
-  auto t2 = pinv(t1);
+
+  auto t1 = Mat::fill_diag(4, 4, q_eigval.first) -F;
+  auto t2 = t1.pinv();
+
   std::vector<Mat> result;
   auto q = q_eigval.second;
   auto q_in_vec = ic_util::arr_to_vec(q.q_);
-  Row qrow = conv_to<Row>::from(q_in_vec);
+  Mat qrow(q_in_vec);
   for (std::size_t i = 0; i < target.size(); ++i) {
     auto F_dtemp = F_der.at(i);
     Mat qtemp(3, 4);
     for (std::size_t c = 0; c < 3; ++c) {
-      auto F_sl = F_dtemp.slice(c);
+      auto F_sl = F_dtemp.at(c);
       auto temp_res = t2 * F_sl * qrow.t();
       qtemp.row(c) = temp_res.t();
     }
@@ -254,10 +237,10 @@ quaternion_derivs(const coords::Representation_3D& trial,
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<arma::Mat<T>>
+std::vector<scon::mathmatrix<T>>
 exponential_derivs(const coords::Representation_3D& trial,
                    const coords::Representation_3D& target) {
-  using Mat = arma::Mat<T>;
+  using Mat = scon::mathmatrix<T>;
 
   auto q_val = quaternion<T>(trial, target);
   auto q = q_val.second;

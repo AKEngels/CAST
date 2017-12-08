@@ -281,7 +281,7 @@ int main(int argc, char **argv)
     {
       // DEVTEST: Room for Development testing
 
-      using mat = mathmatrix<coords::float_type>;
+      using mat = scon::mathmatrix<coords::float_type>;
 
       auto printMat = [](auto const & X) {
         std::cout << X << "\n\n";
@@ -305,6 +305,12 @@ int main(int argc, char **argv)
       printMat(C.upper_left_submatrix(2,2));
 
       mat Eval, Evec;
+
+      C=mat{
+        {.5, 2., 2.},
+        { 2., .5, 1. },
+        { 2., 1., .5 }
+      };
 
       std::tie(Eval, Evec) = C.diag();
 

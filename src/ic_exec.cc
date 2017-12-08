@@ -59,21 +59,20 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   icSystem.create_ic_system(graph.g);
   std::cout << "IC creation test: \n";
   std::cout << "Initial hessian: \n";
-  arma::Mat<coords::float_type> hessian = icSystem.initial_hessian();
-  hessian.save("Hessian", arma::arma_ascii);
+  auto hessian = icSystem.initial_hessian();
+  std::cout << "Hessian:\n" << hessian << "\n\n";
   //hessian.print();
   auto DLC = icSystem.delocalize_ic_system(9, trial);
   auto DLC_matrix = DLC.first;
   auto G_matrix = DLC.second;
-  DLC_matrix.save("DLCmatrix", arma::arma_ascii);
   std::cout << "DLC matrix: \n";
-  DLC_matrix.print();
-  arma::Mat<coords::float_type> del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
-  del_hessian.save("DelHessian", arma::arma_ascii);
-  del_hessian.print();
-  arma::Mat<coords::float_type> G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
-  G_matrix_inv.save("Ginversed", arma::arma_ascii);
-  G_matrix.save("Gmatrix", arma::arma_ascii);
+  std::cout << DLC_matrix << "\n\n";
+  auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
+  
+  std::cout << "DelHessian:\n" << del_hessian << "\n\n";
+  auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
+  std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
+  std::cout << "Gmatrix:\n" << G_matrix << "\n\n";
   
   std::cout << icSystem.angle_vec_.size() << "||" << icSystem.distance_vec_.size() << "||" << icSystem.dihed_vec_.size() << "||" << icSystem.oop_vec_.size() << "||" << icSystem.rotation_vec_.size() << "||" << icSystem.trans_x_vec_.size() << std::endl;
   /*for (auto& i : icSystem.distance_vec_)

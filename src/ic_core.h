@@ -228,8 +228,8 @@ private:
 
 public:
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&);
-  std::vector<arma::Mat<float_type>> rot_der(const coords::Representation_3D&);
-  arma::Mat<float_type> rot_der_mat(const std::size_t&,
+  std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
+  scon::mathmatrix<float_type> rot_der_mat(const std::size_t&,
                                     const coords::Representation_3D&);
   float_type radius_gyration(const coords::Representation_3D&);
 };
@@ -296,12 +296,12 @@ public:
   template <typename Graph>
   void create_ic_system(const Graph&);
 
-  std::pair<arma::Mat<float_type>, arma::Mat<float_type>>
-  delocalize_ic_system(const std::size_t&, const coords::Representation_3D&);
-  arma::Mat<float_type> initial_hessian();
-  arma::Mat<float_type> delocalize_hessian(const arma::Mat<float_type>&,
-                                           const arma::Mat<float_type>&);
-  arma::Mat<float_type> G_mat_inversion(const arma::Mat<float_type>&);
+  std::pair<scon::mathmatrix<float_type>, scon::mathmatrix<float_type>>
+  delocalize_ic_system(std::size_t const &, coords::Representation_3D const &);
+  scon::mathmatrix<float_type> initial_hessian();
+  scon::mathmatrix<float_type> delocalize_hessian(scon::mathmatrix<float_type> const &,
+                                                  scon::mathmatrix<float_type> const &);
+  scon::mathmatrix<float_type> G_mat_inversion(scon::mathmatrix<float_type> const &);
 };
 
 template <typename Graph>

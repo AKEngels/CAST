@@ -11,9 +11,9 @@
 #include "scon_angle.h"
 #include "scon_spherical.h"
 #include "scon_vect.h"
+#include "scon_mathmatrix.h"
 
 #include <algorithm>
-#include "scon_mathmatrix.h"
 #include <array>
 #include <boost/graph/adjacency_list.hpp>
 #include <cmath>
@@ -236,8 +236,8 @@ normal_unit_vector(const coords::Cartesian_Point& a,
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline arma::Mat<T> Rep3D_to_arma(const coords::Representation_3D& rep) {
-  using Mat = arma::Mat<T>;
+inline scon::mathmatrix<T> Rep3D_to_arma(const coords::Representation_3D& rep) {
+  using Mat = scon::mathmatrix<T>;
 
   Mat A(rep.size(), 3);
   for (std::size_t i = 0; i != rep.size(); ++i) {

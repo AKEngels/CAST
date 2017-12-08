@@ -1,4 +1,4 @@
-#include "ic_core.h"
+﻿#include "ic_core.h"
 
 using coords::float_type;
 
@@ -313,25 +313,25 @@ ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
   return result;
 }
 
-std::vector<arma::Mat<float_type>>
+std::vector<scon::mathmatrix<float_type>>
 ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
-  auto result = ic_rotation::exponential_derivs<float_type>(trial, reference_);
-  return result;
+  return ic_rotation::exponential_derivs<float_type>(trial, reference_);
 }
 
-arma::Mat<float_type>
+scon::mathmatrix<float_type>
 ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
                                const coords::Representation_3D& trial) {
-  using Mat = arma::Mat<float_type>;
+  using Mat = scon::mathmatrix<float_type>;
   using arma::vectorise;
   using arma::zeros;
+  auto const & zero = scon::mathmatrix<float_type>::zero;
 
-  Mat X = zeros<Mat>(sys_size, 3);
-  Mat Y = zeros<Mat>(sys_size, 3);
-  Mat Z = zeros<Mat>(sys_size, 3);
+  Mat X = zero(sys_size, 3);
+  Mat Y = zero(sys_size, 3);
+  Mat Z = zero(sys_size, 3);
   auto first_ders = ic_core::rotation::rot_der(trial);
   std::size_t index{ 1 };
-  for (auto&& i : first_ders) {
+  for (auto const & i : first_ders) {
     auto val_index = indices_.at(index - 1) - 1;
     X.row(val_index) = i.row(0);
     Y.row(val_index) = i.row(1);
@@ -339,9 +339,9 @@ ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
     ++index;
   }
   Mat result(3, sys_size * 3);
-  result.row(0) = vectorise(X, 1);
-  result.row(1) = vectorise(Y, 1);
-  result.row(2) = vectorise(Z, 1);
+  result.row(0) = X.vectorise(1);
+  result.row(1) = Y.vectorise(1);
+  result.row(2) = Z.vectorise(1);
   return result;
 }
 
@@ -407,16 +407,11 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
   return result;
 }
 
-std::pair<arma::Mat<float_type>, arma::Mat<float_type>>
+std::pair<scon::mathmatrix<float_type>, scon::mathmatrix<float_type>>
 ic_core::system::delocalize_ic_system(const std::size_t& sys_size,
                                       const coords::Representation_3D& trial) {
-  using Col = arma::Col<float_type>;
-  using Col_u = arma::Col<arma::uword>;
-  using Mat = arma::Mat<float_type>;
-  using arma::conv_to;
-  using arma::eig_sym;
-  using arma::find;
-  using arma::sort_index;
+
+  using Mat = scon::mathmatrix<float_type>;
 
   std::vector<std::vector<float_type>> result;
   for (auto& i : trans_x_vec_) {
@@ -442,12 +437,9 @@ ic_core::system::delocalize_ic_system(const std::size_t& sys_size,
   }
   for (auto& i : rotation_vec_) {
     auto temp = i.rot_der_mat(sys_size, trial);
-    std::vector<float_type> vec_X =
-        conv_to<std::vector<float_type>>::from(temp.row(0));
-    std::vector<float_type> vec_Y =
-        conv_to<std::vector<float_type>>::from(temp.row(1));
-    std::vector<float_type> vec_Z =
-        conv_to<std::vector<float_type>>::from(temp.row(2));
+    auto vec_X = temp.col_to_std_vector(0);
+    auto vec_Y = temp.col_to_std_vector(1);
+    auto vec_Z = temp.col_to_std_vector(2);
     result.emplace_back(vec_X);
     result.emplace_back(vec_Y);
     result.emplace_back(vec_Z);
@@ -456,28 +448,26 @@ ic_core::system::delocalize_ic_system(const std::size_t& sys_size,
   std::size_t n_rows = result.at(0).size();
   Mat B_matrix_t(n_rows, n_cols);
   for (std::size_t h = 0; h < n_cols; ++h) {
-    Col col_vec(result.at(h));
+    Mat col_vec(result.at(h));
     B_matrix_t.col(h) = col_vec;
   }
   auto B_matrix = B_matrix_t.t();
   auto G_matrix = B_matrix * B_matrix.t();
-  Col eigval;
-  Mat eigvec;
-  eig_sym(eigval, eigvec, G_matrix);
-  Col_u row_index_vec = sort_index(eigval);
-  Col_u col_index_vec = find(eigval > 1e-6);
+  Mat eigval, eigvec;
+  std::tie(eigval, eigvec) = G_matrix.eigensym();
+  auto row_index_vec = eigval.sort_idx();
+  auto col_index_vec = eigval.find_idx([](float_type const & a) {
+    return a > 1e-6;
+  });
   Mat del_mat = eigvec.submat(row_index_vec, col_index_vec);
   return std::make_pair(del_mat, G_matrix);
 }
 
-arma::Mat<float_type> ic_core::system::initial_hessian() {
+scon::mathmatrix<float_type> ic_core::system::initial_hessian() {
   using ic_atom::period_one;
   using ic_atom::period_two;
   using ic_atom::period_three;
-  using Col = arma::Col<float_type>;
-  using Mat = arma::Mat<float_type>;
-  using arma::conv_to;
-  using arma::diagmat;
+  using Mat = scon::mathmatrix<float_type>;
   using scon::cross;
   using scon::dot;
   using scon::len;
@@ -542,38 +532,39 @@ arma::Mat<float_type> ic_core::system::initial_hessian() {
   }
   values.insert(values.end(), trans_x_vec_.size() * 3, 0.05);
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
-  Col val_col = conv_to<Col>::from(values);
-  val_col.print(); //test output
-  Mat hessian = diagmat(val_col);
+  auto val_col = scon::mathmatrix<float_type>(values);
+  //val_col.print(); //test output
+  Mat hessian = val_col.diagmat();
   return hessian;
 }
 
-arma::Mat<float_type>
-ic_core::system::delocalize_hessian(const arma::Mat<float_type>& del_mat,
-                                    const arma::Mat<float_type>& hessian) {
-  using Mat = arma::Mat<float_type>;
+scon::mathmatrix<float_type>
+ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& del_mat,
+                                    const scon::mathmatrix<float_type>& hessian) {
+  using Mat = scon::mathmatrix<float_type>;
 
   Mat del_hessian;
   del_hessian = del_mat.t() * hessian * del_mat;
   return del_hessian;
 }
 
-arma::Mat<float_type>
-ic_core::system::G_mat_inversion(const arma::Mat<float_type>& G_matrix) {
-  using Col = arma::Col<float_type>;
-  using Col_u = arma::Col<arma::uword>;
-  using Mat = arma::Mat<float_type>;
-  using arma::diagmat;
-  using arma::find;
-  using arma::svd;
+scon::mathmatrix<float_type>
+ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
+  
+  using Mat = scon::mathmatrix<float_type>;
 
-  Mat U;
-  Col s;
-  Mat V;
-  svd(U, s, V, G_matrix);
-  s.elem(find(s <= 1e-6)).zeros();
-  Col_u index = find(s > 1e-6);
-  s.elem(index) = 1 / s.elem(index);
-  auto G_mat_inv = U * diagmat(s) * V.t();
+  Mat U, s, V;
+  G_matrix.singular_value_decomposition(U, s, V);
+  //remplace values smaller than 1e-6 with 0.0
+  s.replace_idx_with(s.find_idx([](float_type const & a) {
+    return a <= 1e-6;
+  }), 0.0);
+  auto index = s.find_idx([](float_type const & a) {
+    return a > 1e-6;
+  });
+  for (auto && el : s.elem(index)) {
+    el.get() = 1. / el.get();
+  }
+  auto G_mat_inv = U * s.diagmat() * V.t();
   return G_mat_inv;
 }
