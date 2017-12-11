@@ -87,11 +87,6 @@
 #include "energy_int_qmmm.h"
 //#include "scon_utility.h"
 
-namespace
-{
-
-}
-
 
 int main(int argc, char **argv)
 {
