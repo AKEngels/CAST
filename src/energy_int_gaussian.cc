@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -253,17 +253,21 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
         coords::Cartesian_Point g;
+        double temp;
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
         for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.x());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.x() = -temp;
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.y());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.y() = -temp;
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.z());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.z() = -temp;
 
           std::getline(in_file, buffer);
 
