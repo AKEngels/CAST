@@ -960,11 +960,9 @@ int main(int argc, char **argv)
 
     }
 #ifdef USE_PYTHON
-    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
-    {    // if DFTB interface: close python
-      Py_Finalize();
-    }
-#endif // 
+      Py_Finalize(); //  close python
+#endif 
+
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";
