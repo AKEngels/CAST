@@ -547,6 +547,33 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
 std::vector<coords::float_type>
 energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 {
-  std::vector<coords::float_type> bullshit;
-  return bullshit;
+  std::vector<coords::float_type> charges;
+
+  auto in_string = id + ".log";
+  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
+
+  if (in_file)
+  {
+    std::string buffer;
+    double charge;
+    std::getline(in_file, buffer);
+
+    if (buffer.find("Mulliken Charges"))
+    {
+      std::getline(in_file, buffer); // discard next line
+      for (std::size_t i(0); i < coords->size(); ++i)
+      {
+        std::getline(in_file, buffer);
+        std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
+        charges.push_back(charge);
+      }
+    }
+  }
+
+  if (charges.size() != coords->size())
+  {
+    throw std::logic_error("Found " + std::to_string(charges.size()) +
+      " charges instead of " + std::to_string(coords->size()) + " charges.");
+  }
+  return charges;
 }
