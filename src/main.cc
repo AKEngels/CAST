@@ -294,9 +294,6 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-      coords.e();
-      std::vector<coords::float_type> cg = coords.energyinterface()->charges();
-      for (auto c : cg) std::cout << c << "\n";
       // DEVTEST: Room for Development testing
       break;
     }
