@@ -59,15 +59,15 @@ namespace
     return new_indices_mm;
   }
 
-  coords::Coordinates make_mopac_coords(coords::Coordinates const * cp,
+  coords::Coordinates make_qm_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = config::interface_types::T::MOPAC;
-    coords::Coordinates new_mopac_coords;
+    coords::Coordinates new_qm_coords;
     if (cp->size() >= indices.size())
     {
-      coords::Atoms new_mopac_atoms;
+      coords::Atoms new_qm_atoms;
       coords::PES_Point pes;
       pes.structure.cartesian.reserve(indices.size());
       for (auto && a : indices)
@@ -84,13 +84,13 @@ namespace
         {
           at.bind_to(new_indices.at(b));
         }
-        new_mopac_atoms.add(at);
+        new_qm_atoms.add(at);
         pes.structure.cartesian.push_back(cp->xyz(a));
       }
-      new_mopac_coords.init_swap_in(new_mopac_atoms, pes);
+      new_qm_coords.init_swap_in(new_qm_atoms, pes);
     }
     Config::set().general.energy_interface = tmp_i;
-    return new_mopac_coords;
+    return new_qm_coords;
   }
 
   coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
@@ -134,7 +134,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mm_indices(get_mm_atoms(cp->size())),
   new_indices_qm(make_new_indices_qm(cp->size())),
   new_indices_mm(make_new_indices_mm(cp->size(), mm_indices)),
-  qmc(make_mopac_coords(cp, qm_indices, new_indices_qm)),
+  qmc(make_qm_coords(cp, qm_indices, new_indices_qm)),
   mmc(make_aco_coords(cp, mm_indices, new_indices_mm))
 {
   if (!tp.valid())
