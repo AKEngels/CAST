@@ -550,8 +550,12 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
   std::vector<coords::float_type> charges;
 
   auto in_string = id + ".log";
-  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
+  if (file_exists(in_string) == false)
+  {
+    throw std::runtime_error("gaussian logfile not found.");
+  }
 
+  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   if (in_file)
   {
     std::string buffer;

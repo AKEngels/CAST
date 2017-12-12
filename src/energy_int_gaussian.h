@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include "energy.h"
+#include "helperfunctions.h"
 
 
 namespace energy
