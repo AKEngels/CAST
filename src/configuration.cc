@@ -545,6 +545,18 @@ void config::parse_option(std::string const option, std::string const value_stri
         std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
       }
     }
+    else if (option.substr(4u) == "qminterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.qminterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
+      }
+    }
   }
 
 

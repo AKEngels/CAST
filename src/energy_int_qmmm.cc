@@ -63,7 +63,7 @@ namespace
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
     auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = config::interface_types::T::MOPAC;
+    Config::set().general.energy_interface = Config::get().energy.qmmm.qminterface;
     coords::Coordinates new_qm_coords;
     if (cp->size() >= indices.size())
     {
@@ -220,32 +220,37 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     elec_factor = aco_p->params().general().electric;
   }
 
-  // mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
-  std::cout << std::setprecision(6);
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+  {
+    // mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
+    std::cout << std::setprecision(6);
 
-  std::ofstream molstream{ "mol.in" };
-  if (molstream)
-  {
-    auto const n_qm = qm_indices.size();
-    molstream << '\n';
-    molstream << n_qm << " 0\n";
-    for (std::size_t i = 0; i < n_qm; ++i)
+    std::ofstream molstream{ "mol.in" };
+    if (molstream)
     {
-      double qi{};
-      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
+      auto const n_qm = qm_indices.size();
+      molstream << '\n';
+      molstream << n_qm << " 0\n";
+      for (std::size_t i = 0; i < n_qm; ++i)
       {
-        auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
-        qi += mm_charge_vector[j] / d;
+        double qi{};
+        for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
+        {
+          auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
+          qi += mm_charge_vector[j] / d;
+        }
+        qi *= elec_factor;
+        molstream << "0 0 0 0 " << qi << "\n";
       }
-      qi *= elec_factor;
-      molstream << "0 0 0 0 " << qi << "\n";
+      molstream.close();
     }
-    molstream.close();
+    else
+    {
+      throw std::runtime_error("Cannot write mol.in file.");
+    }
   }
-  else
-  {
-    throw std::runtime_error("Cannot write mol.in file.");
-  }
+  else std::cout << "Chosen QM interface not implemented for QM/MM!";
+  
   update_representation();
 
   try {
@@ -256,7 +261,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     integrity = false;  // if MOPAC fails: integrity is destroyed
   }
 
-  if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 

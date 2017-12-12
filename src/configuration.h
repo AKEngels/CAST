@@ -549,6 +549,7 @@ namespace config
     {
       std::vector <size_t> qmatoms;
       interface_types::T mminterface{ interface_types::T::OPLSAA };
+      interface_types::T qminterface{ interface_types::T::MOPAC };
       bool use{ false };
     } qmmm{};
 
