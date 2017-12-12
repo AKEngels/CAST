@@ -300,7 +300,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
     }//end while(!in_file.eof())
 
-    if (grad || opt)
+    if (grad && opt)
     {
       coords->set_xyz(std::move(xyz_tmp));
     }
