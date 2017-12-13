@@ -167,8 +167,11 @@ namespace energy
     /** Optimization in the intface or interfaced program*/
     virtual coords::float_type o (void) = 0;
 
-    // Return charges
+    /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
+
+    /**get id for gaussian call*/
+    virtual std::string get_id() const = 0;
 
     // Feature getter
     bool has_periodics() const { return periodic; }

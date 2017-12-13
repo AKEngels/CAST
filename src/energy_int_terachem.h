@@ -1,4 +1,4 @@
-/*DW                            *
+﻿/*DW                            *
     TeraChem MPI Interface
 *                            DW*/
 
@@ -64,6 +64,8 @@ namespace energy
         {
           throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
         }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
         // Output functions
         void print_E (std::ostream&) const;

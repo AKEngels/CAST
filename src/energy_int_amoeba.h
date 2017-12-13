@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "energy.h"
 #include "tinker_parameters.h"
 #include "tinker_refine.h"
@@ -51,6 +51,8 @@ namespace energy
         {
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
         }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
         // Output functions
         void print_E (std::ostream&) const;

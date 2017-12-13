@@ -206,13 +206,97 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 
 }
 
+// mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
+void energy::interfaces::qmmm::QMMM::write_mol_in()
+{
+  auto elec_factor = 332.0;
+  std::cout << std::setprecision(6);
+
+  std::ofstream molstream{ "mol.in" };
+  if (molstream)
+  {
+    auto const n_qm = qm_indices.size();
+    molstream << '\n';
+    molstream << n_qm << " 0\n";
+    for (std::size_t i = 0; i < n_qm; ++i)
+    {
+      double qi{};
+      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
+      {
+        auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
+        qi += mm_charge_vector[j] / d;
+      }
+      qi *= elec_factor;
+      molstream << "0 0 0 0 " << qi << "\n";
+    }
+    molstream.close();
+  }
+  else
+  {
+    throw std::runtime_error("Cannot write mol.in file.");
+  }
+}
+
+// write gaussian inputfile
+void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
+{
+  outstring = qmc.energyinterface()->get_id();
+  outstring+=".gjf";
+
+  std::ofstream out_file(outstring.c_str(), std::ios_base::out);
+
+  if (out_file)
+  {
+    if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
+
+      std::istringstream iss(Config::get().energy.gaussian.link);
+
+      std::vector<std::string> splitted_str(
+        std::istream_iterator<std::string>{iss},
+        std::istream_iterator<std::string>{}
+      );
+
+      for (std::size_t i = 0; i < splitted_str.size(); i++)
+      {
+        out_file << '%' << splitted_str[i] << '\n';
+      }
+
+    }
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " " << "Charge ";
+
+    switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
+    case 'g':
+      out_file << " Force";
+      break;
+    }
+
+    out_file << '\n';
+    out_file << '\n';
+    out_file << Config::get().general.outputFilename;
+    out_file << '\n';
+    out_file << '\n';
+    out_file << Config::get().energy.gaussian.charge << " ";
+    out_file << Config::get().energy.gaussian.multipl;
+    out_file << '\n';
+    out_file << coords::output::formats::xyz(qmc);
+    out_file << '\n';
+    out_file << '\n';
+    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
+    {
+      out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
+    }
+    out_file.close();
+  }
+  else std::runtime_error("Writing Gaussian Inputfile failed.");
+}
+
 /**calculates energies and gradients
 @paran if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
   integrity = true;
-
   auto elec_factor = 332.0;
+  
   mm_charge_vector = mmc.energyinterface()->charges();
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
@@ -222,32 +306,13 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
-    // mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
-    std::cout << std::setprecision(6);
-
-    std::ofstream molstream{ "mol.in" };
-    if (molstream)
-    {
-      auto const n_qm = qm_indices.size();
-      molstream << '\n';
-      molstream << n_qm << " 0\n";
-      for (std::size_t i = 0; i < n_qm; ++i)
-      {
-        double qi{};
-        for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
-        {
-          auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
-          qi += mm_charge_vector[j] / d;
-        }
-        qi *= elec_factor;
-        molstream << "0 0 0 0 " << qi << "\n";
-      }
-      molstream.close();
-    }
-    else
-    {
-      throw std::runtime_error("Cannot write mol.in file.");
-    }
+    write_mol_in();
+  }
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
+  {
+    char calc_type = 'e';
+    if (if_gradient == true) calc_type = 'g';
+    write_gaussian_in(calc_type);
   }
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
   
@@ -258,7 +323,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   catch(...)
   {
-    integrity = false;  // if MOPAC fails: integrity is destroyed
+    integrity = false;  // if QM programme fails: integrity is destroyed
   }
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");

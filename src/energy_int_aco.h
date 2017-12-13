@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "energy.h"
 #include "tinker_parameters.h"
 #include "tinker_refine.h"
@@ -64,7 +64,10 @@ namespace energy
 		/** Optimization in the intface or interfaced program*/
 		coords::float_type o(void);
 
+        /**get charges*/
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
         // Virial Tensor
         std::array<std::array<coords::float_type, 3>, 3> virial();

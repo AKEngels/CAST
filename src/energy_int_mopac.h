@@ -1,4 +1,4 @@
-/*DW                            *
+﻿/*DW                            *
 MOPAC Interface
 *                            DW*/
 
@@ -46,6 +46,8 @@ namespace energy
 				double o(void);
 
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
 				//MOPAC7_HB VAR
 				bool grad_var;

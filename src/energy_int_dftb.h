@@ -94,6 +94,8 @@ namespace energy
 				void update(bool const) { }
                 /**function that has to overwritten (at the moment returns bullshit)*/
                 std::vector<coords::float_type> charges() const override;
+                /**overwritten function*/
+                std::string get_id() const override { return "bullshit"; }
 
 			private:
 

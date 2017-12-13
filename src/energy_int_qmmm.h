@@ -17,6 +17,7 @@ Attention: Problems occur if charged atoms are in MM part near QM part! This sit
 
 #pragma once
 #include "coords.h"
+#include "coords_io.h"
 #include <vector>
 #include "coords_atoms.h"
 #include "energy_int_aco.h"
@@ -73,6 +74,8 @@ namespace energy
 
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
         /**prints total energy (not implemented)*/
         void print_E(std::ostream&) const override;
         /**prints 'headline' for energies*/
@@ -101,6 +104,13 @@ namespace energy
         void update_representation();
 
       private:
+
+        /**
+        writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html)
+        */
+        void write_mol_in();
+        /**writes inputfile for gaussian calculation*/
+        void write_gaussian_in(char);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW

@@ -54,7 +54,10 @@ namespace energy
         void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
 
+        /**return charges*/
         std::vector<coords::float_type> charges() const override;
+        /**return id for gaussian call*/
+        std::string get_id() const override { return id;};
 
       private:
 
