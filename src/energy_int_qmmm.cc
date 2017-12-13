@@ -249,7 +249,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       throw std::runtime_error("Cannot write mol.in file.");
     }
   }
-  else std::cout << "Chosen QM interface not implemented for QM/MM!";
+  else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
   
   update_representation();
 
