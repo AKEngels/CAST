@@ -240,8 +240,9 @@ void energy::interfaces::qmmm::QMMM::write_mol_in()
 // write gaussian inputfile
 void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
 {
-  outstring = qmc.energyinterface()->get_id();
-  outstring+=".gjf";
+  std::string id = qmc.energyinterface()->get_id();
+  std::string outstring(id);
+  outstring.append(".gjf");
 
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
 
