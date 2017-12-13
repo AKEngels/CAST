@@ -46,6 +46,7 @@ arma::Mat kind
 #include <string>
 #include <utility>
 #include <vector>
+#include<tuple>
 
 ///////////////////////////////
 //                           //
@@ -151,7 +152,7 @@ public:
   using int_type = int;
   using uint_type = std::size_t;
   static auto constexpr printFunctionCallVerbosity = 5u;
-  static auto constexpr mat_comp_tol = 0.001;
+  static auto constexpr mat_comp_tol = 0.1;
 
   /////////////////////////////////////
   /////                           /////
@@ -165,7 +166,7 @@ public:
    **/
 #ifndef CAST_USE_ARMADILLO
   using base_type::Matrix;
-  mathmatrix(std::initializer_list<std::initializer_list<T>> ini);
+  mathmatrix(std::initializer_list<std::initializer_list<T>> const & ini);
 #else
   using base_type::Mat;
 #endif
@@ -175,6 +176,8 @@ public:
       : base_type(static_cast<base_type>(other)) {}
   mathmatrix(base_type const& other) : base_type(other) {}
 
+  static mathmatrix col_from_vec(std::vector<T> const & col);
+
   /*! Construct filled mathmatrix of certain size
    *
    * All values initialized to the same value
@@ -183,10 +186,20 @@ public:
    * @param fill: Value to which all matrix elements will be initialized
    */
       mathmatrix(uint_type rows, uint_type cols, T fill);
+      mathmatrix(T, T, T) = delete;
 
       static mathmatrix zero(uint_type rows, uint_type cols);
-      static mathmatrix eye(uint_type rows, uint_type cols);
-      static mathmatrix fill_diag(uint_type rows, uint_type cols, T fill);
+      /*! Returns an "identity matrix" of certain size
+      *
+      * All diagonal elements will be initialized to one
+      * All off-diagonal elements will be initialized to zero
+      * @param num_rows: Number of rows
+      * @param num_cols: Number of columns
+      * @todo: Write as free function!!
+      */
+      static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
+        identity(std::size_t const num_rows, std::size_t const num_cols);
+      static mathmatrix fill_diag(uint_type const & rows, uint_type const & cols, T const & fill);
 
       // base row and col proxy
       using base_type::row;
@@ -218,19 +231,9 @@ public:
       mathmatrix operator-(mathmatrix const& in) const;
       mathmatrix operator/(T const& in) const;
       mathmatrix operator*(T const& in) const;
-
-      /*! Returns an "identity matrix" of certain size
-       *
-       * All diagonal elements will be initialized to one
-       * All off-diagonal elements will be initialized to zero
-       * @param num_rows: Number of rows
-       * @param num_cols: Number of columns
-       * @todo: Write as free function!!
-       */
-      static typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix>::type
-        Identity(std::size_t const num_rows, std::size_t const num_cols);
-
-
+      mathmatrix operator+(T const& in)const;
+      mathmatrix operator-(T const& in) const;
+      
       // in case you are wondering:
       // transposed and some more stuff is available as free functions
       // eg transpose().
@@ -293,12 +296,12 @@ public:
       /**
        * @brief Sheds the specified rows from the matrix
        */
-      void shed_rows(size_t first_in, size_t last_in);
+      void shed_rows(long const & first_in, long const & last_in);
 
       /**
        * @brief Sheds the specified columns from the matrix
        */
-      void shed_cols(size_t first_in, size_t last_in);
+      void shed_cols(long const & first_in, long const & last_in);
 
       /**
        * @brief Returns number of rows
@@ -317,6 +320,9 @@ public:
 #else
       std::size_t cols() const;
 #endif
+
+      mathmatrix row() const;
+      mathmatrix col() const;
 
     /*! Performs Cholesky Decompostion on Matrix.
      *
@@ -365,11 +371,14 @@ public:
      */
     void singular_value_decomposition(mathmatrix& U_in, mathmatrix& s_in, mathmatrix& V_in) const;
 
+    std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
+
     template<typename Comp>
     std::vector<T> sort_col_to_vec(Comp comp, std::size_t const & ind = 0) const;
 
     template<typename Comp>
     mathmatrix sort_col(Comp comp, std::size_t const & ind = 0) const;
+    mathmatrix sort_col_asc(std::size_t const & ind = 0) const;
 
     std::vector<std::size_t> sort_idx(std::size_t const & ind = 0) const;
 
@@ -385,6 +394,8 @@ public:
 #endif
 
   mathmatrix submat(std::vector<std::size_t> const & columns, std::vector<std::size_t> const & rows) const;
+  mathmatrix submat(std::size_t const & cb, std::size_t const & ce,
+    std::size_t const & rb, std::size_t const & re)const;
 
     mathmatrix pinv() const;
 
@@ -490,20 +501,20 @@ public:
 
 #ifndef CAST_USE_ARMADILLO
 template <typename T>
-mathmatrix<T>::mathmatrix(std::initializer_list<std::initializer_list<T>> ini) {
+mathmatrix<T>::mathmatrix(std::initializer_list<std::initializer_list<T>> const & ini) {
   if (ini.size() == 0) {
     *this = mathmatrix();
     return;
   }
 
-  *this = mathmatrix(ini.size(), (*ini.begin()).size());
+  auto const & rows = ini.size();
+  auto const & cols = (*ini.begin()).size();
 
-  auto dat = data();
+  *this = mathmatrix(rows, cols);
 
-  for (auto const& i : ini) {
-    for (auto const& ii : i) {
-      *dat = ii;
-      dat++;
+  for (auto i = 0u; i < rows;++i) {
+    for (auto j = 0u; j < cols; ++j) {
+      (*this)(i, j) = *((*(ini.begin() + i)).begin() + j);
     }
   }
 }
@@ -521,24 +532,26 @@ mathmatrix<T>::mathmatrix(uint_type rows, uint_type cols, T fill)
       (*this)(i, j) = fill;
 }
 
+template<typename T>
+mathmatrix<T> mathmatrix<T>::col_from_vec(std::vector<T> const & col) {
+  std::vector<std::vector<T>> ret;
+  ret.reserve(col.size());
+  for (auto const & c : col) {
+    ret.emplace_back(std::vector<T>{c, });
+  }
+  return base_type(ret);
+}
+
+
 template <typename T>
 mathmatrix<T> mathmatrix<T>::zero(uint_type rows, uint_type cols) {
   return mathmatrix(rows, cols, T());
 }
 
 template <typename T>
-mathmatrix<T> mathmatrix<T>::eye(uint_type rows, uint_type cols) {
+mathmatrix<T> mathmatrix<T>::fill_diag(uint_type const & rows, uint_type  const & cols, T  const & fill) {
   mathmatrix ret(rows, cols, T());
-  for (std::size_t i = 0; i < rows; ++i) {
-    ret(i, i) = static_cast<T>(1.0);
-  }
-  return ret;
-}
-
-template <typename T>
-mathmatrix<T> mathmatrix<T>::fill_diag(uint_type rows, uint_type cols, T fill) {
-  mathmatrix ret(rows, cols, T());
-  for (std::size_t i = 0; i < rows; ++i) {
+  for (uint_type i = 0; i < rows; ++i) {
     ret(i, i) = fill;
   }
   return ret;
@@ -546,6 +559,9 @@ mathmatrix<T> mathmatrix<T>::fill_diag(uint_type rows, uint_type cols, T fill) {
 
 template <typename T>
 mathmatrix<T> mathmatrix<T>::operator+(mathmatrix const& in) const {
+  if (cols() != in.cols() || rows() != in.rows()) {
+    throw std::runtime_error("Either the rows or the columns of the added matrices are not equal!");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::operator+(in);
 #else
@@ -556,6 +572,10 @@ mathmatrix<T> mathmatrix<T>::operator+(mathmatrix const& in) const {
 
 template <typename T>
 mathmatrix<T> mathmatrix<T>::operator*(mathmatrix const& in) const {
+  if (cols() != in.rows()) {
+    throw std::runtime_error("The number of colums of the left hand matrix got to be equal to the rows of the right hand matrix!");
+  }
+
 #ifndef CAST_USE_ARMADILLO
   return base_type::operator*(in);
 #else
@@ -576,6 +596,9 @@ mathmatrix<T> mathmatrix<T>::operator/(mathmatrix const& in) const {
 
 template <typename T>
 mathmatrix<T> mathmatrix<T>::operator-(mathmatrix const& in) const {
+  if (cols() != in.cols() || rows() != in.rows()) {
+    throw std::runtime_error("Either the rows or the columns of the substracted matrices are not equal!");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::operator-(in);
 #else
@@ -603,8 +626,26 @@ mathmatrix<T> mathmatrix<T>::operator*(T const& in) const {
 }
 
 template <typename T>
+mathmatrix<T> mathmatrix<T>::operator+(T const& in) const {
+#ifndef CAST_USE_ARMADILLO
+  return this->array() + in;
+#else
+  return arma::operator+(static_cast<base_type>(*this), in);
+#endif
+}
+
+template <typename T>
+mathmatrix<T> mathmatrix<T>::operator-(T const& in) const {
+#ifndef CAST_USE_ARMADILLO
+  return this->array() - in;
+#else
+  return arma::operator-(static_cast<base_type>(*this), in);
+#endif
+}
+
+template <typename T>
 typename std::enable_if<std::is_arithmetic<T>::value, mathmatrix<T>>::type
-mathmatrix<T>::Identity(std::size_t const num_rows,
+mathmatrix<T>::identity(std::size_t const num_rows,
                         std::size_t const num_cols) {
 #ifndef CAST_USE_ARMADILLO
   return mathmatrix(base_type::Identity(num_rows, num_cols));
@@ -655,17 +696,25 @@ void mathmatrix<T>::append_bottom(const mathmatrix& I_will_be_the_bottom_part) {
   if (this->cols() != I_will_be_the_bottom_part.cols()) {
     throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
   }
-  // Old size needs to be kept
-  size_t holder = this->rows();
 
-  this->resize(this->rows() + I_will_be_the_bottom_part.rows(), this->cols());
+#ifndef CAST_USE_ARMADILLO
+  auto old_mat = *this;
+  resize(rows() + I_will_be_the_bottom_part.rows(), cols());
+  *this << old_mat, I_will_be_the_bottom_part;
+#else
+
+  // Old size needs to be kept
+  auto const holder = rows();
+
+  resize(holder + I_will_be_the_bottom_part.rows(), cols());
 
   // Add "in" to newly created space.
-  for (uint_type i = 0; i < I_will_be_the_bottom_part.rows(); i++) {
-    for (uint_type j = 0; j < this->cols(); j++) {
+  for (auto i = 0u; i < I_will_be_the_bottom_part.rows(); ++i) {
+    for (auto j = 0u; j < cols(); ++j) {
       (*this)(i + holder, j) = I_will_be_the_bottom_part(i, j);
     }
   }
+#endif
 }
 
 template <typename T>
@@ -673,24 +722,32 @@ void mathmatrix<T>::append_top(const mathmatrix& I_will_be_the_top_part) {
   if (this->cols() != I_will_be_the_top_part.cols()) {
     throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
   }
-  const size_t thisOldRows = this->rows();
-  this->resize(this->rows() + I_will_be_the_top_part.rows(), this->cols());
 
-  // Move the entries in the parent matrix downward
-  // We count downwards so that we dont overwrite
-  for (uint_type i = thisOldRows - 1u; i > 0; i--) {
-    for (uint_type j = 0; j < this->cols(); j++) {
-      (*this)(i + I_will_be_the_top_part.rows(), j) = (*this)(i, j);
+#ifndef CAST_USE_ARMADILLO
+  auto old_mat = *this;
+  resize(rows() + I_will_be_the_top_part.rows(), cols());
+  *this << I_will_be_the_top_part, old_mat;
+#else
+  
+  auto const otherRows = I_will_be_the_top_part.rows();
+  auto const old_mat = *this;
+
+  this->resize(rows() + otherRows, cols());
+
+
+  for (auto i = 0u; i < cols(); ++i) {
+    // Move the entries in the parent matrix rightward
+    // We count right so that we dont overwrite
+    for (auto j = 0u; j < old_mat.rows(); ++j) {
+      (*this)(otherRows + j,i) = old_mat(j, i);
+    }
+    // Add "I_will_be_the_left_part" to now absolete top space of the parent
+    // matrix (this).
+    for (auto j = 0u; j < otherRows; ++j) {
+      (*this)(j, i) = I_will_be_the_top_part(j, i);
     }
   }
-
-  // Add "I_will_be_the_top_part" to now absolete top space of the parent matrix
-  // (this).
-  for (uint_type i = 0; i < I_will_be_the_top_part.rows(); i++) {
-    for (uint_type j = 0; j < this->cols(); j++) {
-      (*this)(i, j) = I_will_be_the_top_part(i, j);
-    }
-  }
+#endif
 }
 
 template <typename T>
@@ -698,25 +755,35 @@ void mathmatrix<T>::append_left(const mathmatrix& I_will_be_the_left_part) {
   if (this->rows() != I_will_be_the_left_part.rows()) {
     throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
   }
-  const size_t thisOldCols = this->cols();
 
-  this->resize(this->rows(), this->cols() + I_will_be_the_left_part.cols());
+#ifndef CAST_USE_ARMADILLO
+  auto old_mat = *this;
+  resize(rows(), cols() + I_will_be_the_left_part.cols());
+  *this << I_will_be_the_left_part, old_mat;
+#else
 
-  // Move the entries in the parent matrix rightward
-  // We count right so that we dont overwrite
-  for (uint_type j = thisOldCols - 1u; j > 0; j--) {
-    for (uint_type i = 0u; i < this->rows(); i++) {
-      (*this)(i, j + I_will_be_the_left_part.cols()) = (*this)(i, j);
+  auto const otherCols = I_will_be_the_left_part.cols();
+  auto const old_mat = *this;
+
+  this->resize(rows(), cols() + otherCols);
+
+  
+  for (auto i = 0u; i < rows(); ++i) {
+    // Move the entries in the parent matrix rightward
+    // We count right so that we dont overwrite
+    for (auto j = 0u; j < old_mat.cols(); ++j) {
+      (*this)(i, otherCols + j) = old_mat(i, j);
     }
-  }
-
-  // Add "I_will_be_the_left_part" to now absolete top space of the parent
-  // matrix (this).
-  for (uint_type j = 0; j < I_will_be_the_left_part.cols(); j++) {
-    for (uint_type i = 0; i < this->rows(); i++) {
+    // Add "I_will_be_the_left_part" to now absolete top space of the parent
+    // matrix (this).
+    for (auto j = 0u; j < otherCols; ++j) {
       (*this)(i, j) = I_will_be_the_left_part(i, j);
     }
   }
+
+  
+  
+#endif
 }
 
 template <typename T>
@@ -725,33 +792,38 @@ void mathmatrix<T>::append_right(const mathmatrix& I_will_be_the_right_part) {
   if (this->rows() != I_will_be_the_right_part.rows()) {
     throw std::runtime_error("Wrong Matrix size in mathmatrix:append()");
   }
-
+#ifndef CAST_USE_ARMADILLO
+  auto old_mat = *this;
+  resize(rows(), cols() + I_will_be_the_right_part.cols());
+  *this << old_mat, I_will_be_the_right_part;
+#else
   // Old size needs to be kept
-  uint_type holder = this->cols();
+  auto const holder = cols();
 
-  this->resize(this->rows(), this->cols() + I_will_be_the_right_part.cols());
+  resize(rows(), holder + I_will_be_the_right_part.cols());
 
   // Add "in" to newly created space.
-  for (uint_type j = 0; j < I_will_be_the_right_part.cols(); j++) {
-    for (uint_type i = 0; i < this->rows(); i++) {
-      (*this)(i, j + holder - 1) = I_will_be_the_right_part(i, j);
+  for (auto i = 0u; i < I_will_be_the_right_part.cols(); ++i) {
+    for (auto j = 0u; j < rows(); ++j) {
+      (*this)(j, i + holder) = I_will_be_the_right_part(j, i);
     }
   }
+#endif
 }
 
 template <typename T>
-void mathmatrix<T>::shed_rows(size_t first_in, size_t last_in) {
-  if (first_in > last_in || last_in >= this->rows()) {
+void mathmatrix<T>::shed_rows(long const & first_in, long const & last_in) {
+  if (first_in <= 0 || first_in > last_in || last_in >= this->rows()) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
   }
   mathmatrix newOne(this->rows() - (last_in - first_in + 1u), this->cols());
-  for (size_t i = 0u; i < first_in; i++) {
-    for (size_t j = 0u; j < this->cols(); j++) {
+  for (auto i = 0; i < first_in; ++i) {
+    for (auto j = 0; j < this->cols(); ++j) {
       newOne(i, j) = (*this)(i, j);
     }
   }
-  for (size_t i = first_in; i < this->rows() - last_in - 1 + first_in; i++) {
-    for (size_t j = 0u; j < this->cols(); j++) {
+  for (auto i = first_in; i < this->rows() - last_in - 1 + first_in; ++i) {
+    for (auto j = 0u; j < this->cols(); ++j) {
       newOne(i, j) = (*this)(i + (last_in - first_in) + 1, j);
     }
   }
@@ -759,18 +831,18 @@ void mathmatrix<T>::shed_rows(size_t first_in, size_t last_in) {
 }
 
 template <typename T>
-void mathmatrix<T>::shed_cols(size_t first_in, size_t last_in) {
-  if (last_in >= this->cols() || first_in > last_in) {
+void mathmatrix<T>::shed_cols(long const & first_in, long const & last_in) {
+  if (first_in <= 0 || last_in >= this->cols() || first_in > last_in) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
   }
   mathmatrix newOne(this->rows(), this->cols() - (last_in - first_in + 1u));
-  for (size_t j = 0u; j < this->rows(); j++) {
-    for (size_t i = 0u; i < first_in; i++) {
+  for (auto j = 0; j < this->rows(); ++j) {
+    for (auto i = 0; i < first_in; ++i) {
       newOne(j, i) = (*this)(j, i);
     }
   }
-  for (size_t j = 0u; j < this->rows(); j++) {
-    for (size_t i = first_in; i < this->cols() - last_in - 1 + first_in; i++) {
+  for (auto j = 0; j < this->rows(); ++j) {
+    for (auto i = first_in; i < this->cols() - last_in - 1 + first_in; ++i) {
       newOne(j, i) = (*this)(j, i + (last_in - first_in) + 1);
     }
   }
@@ -790,6 +862,17 @@ std::size_t mathmatrix<T>::cols() const {
   return this->n_cols;
 }
 #endif
+
+template<typename T>
+inline mathmatrix<T> mathmatrix<T>::row() const
+{
+  return mathmatrix();
+}
+template<typename T>
+inline mathmatrix<T> mathmatrix<T>::col() const
+{
+  return mathmatrix();
+}
 
 template <typename T>
 void mathmatrix<T>::choleskyDecomposition(mathmatrix& result) const {
@@ -814,25 +897,30 @@ bool mathmatrix<T>::return_quadratic() const {
   return this->rows() == this->cols();
 }
 
-template <typename T>
-mathmatrix<T>
-mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
-                                    uint_type columns_in = 0) const {
+template<typename T>
+mathmatrix<T> mathmatrix<T>::submat(std::size_t const & rb, std::size_t const & cb,
+  std::size_t const & re, std::size_t const & ce)const {
 #ifndef CAST_USE_ARMADILLO
-  return this->block(0, 0, rows_in, columns_in == 0 ? rows_in : columns_in);
+  return this->block(rb, cb, re, ce);
 #else
-  return this->submat(0, 0, rows_in - 1,
-                      columns_in == 0 ? rows_in - 1 : columns_in - 1);
+  return base_type::submat(rb, cb, re-1, ce-1);
 #endif
 }
 
 template <typename T>
-bool mathmatrix<T>::operator==(mathmatrix const& in) const {
+mathmatrix<T>
+mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
+                                    uint_type columns_in) const {
+  return submat(0, 0, rows_in, columns_in == 0 ? rows_in : columns_in);
+}
+
+template <typename T>
+bool mathmatrix<T>::operator==(mathmatrix<T> const& in) const {
 #ifndef CAST_USE_ARMADILLO
   return this->isApprox(in, mat_comp_tol);
 #else
-  return (approx_equal(static_cast<base_type>(*this), static_cast<base_type>(b),
-                       "reldiff", mat_comp_tol));
+  return (arma::approx_equal(static_cast<base_type>(*this), static_cast<base_type>(in),
+                       "absdiff", mat_comp_tol));
 #endif
 }
 
@@ -840,24 +928,29 @@ template <typename T>
 void mathmatrix<T>::singular_value_decomposition(mathmatrix& U_in,
                                                  mathmatrix& s_in,
                                                  mathmatrix& V_in) const {
+  std::tie(U_in,s_in,V_in) = svd();
+}
+
+template<typename T>
+inline std::tuple<mathmatrix<T>, mathmatrix<T>, mathmatrix<T>> mathmatrix<T>::svd() const
+{
 
 #ifndef CAST_USE_ARMADILLO
   auto svd = this->bdcSvd();
   svd.compute(static_cast<base_type>(*this),
-              Eigen::ComputeFullU | Eigen::ComputeFullV);
-  U_in = svd.matrixU();
-  V_in = svd.matrixV();
-
-  s_in = static_cast<base_type>(svd.singularValues());
+    Eigen::ComputeFullU | Eigen::ComputeFullV);
+  mathmatrix U = svd.matrixU(),
+  V = svd.matrixV(),
+  s = static_cast<base_type>(svd.singularValues());
 
 #else
-  arma::Col<T> s;
-  if (!svd_econ(U_in, s, V_in, *this))
+  arma::Col<T> s_arma;
+  mathmatrix U, V;
+  if (!svd_econ(U, s_arma, V, *this))
     throw std::runtime_error("Error in armadillo SVD: failed.");
-  for (size_t i = 0; i < U_in.rows(); i++) {
-    s_in(i) = s(i);
-  }
+  mathmatrix s(s_arma);
 #endif
+  return std::make_tuple(U,s,V);
 }
 
 template <typename T>
@@ -878,14 +971,21 @@ mathmatrix<T> mathmatrix<T>::sort_col(Comp comp, std::size_t const& ind) const {
   auto sorted_vec = sort_col_to_vec(comp, ind);
 
   std::vector<std::vector<T>> ret;
-  ret.reserve(val_vec.size());
-  for (auto const& val : val_vec) {
+  ret.reserve(sorted_vec.size());
+  for (auto const& val : sorted_vec) {
     ret.emplace_back(std::vector<T>{
-        val,
+      std::initializer_list<double>{val,},
     });
   }
 
   return mathmatrix(ret);
+}
+
+template<typename T>
+mathmatrix<T> mathmatrix<T>::sort_col_asc(std::size_t const & ind) const{
+  return sort_col([](auto const & a, auto const & b) {
+    return a < b;
+  }, ind);
 }
 
 template <typename T>
@@ -1027,7 +1127,7 @@ mathmatrix<T> mathmatrix<T>::diagmat() const {
   }
   return this->diagonal().asDiagonal();
 #else
-  return arma::diagmat(*this);
+  return arma::diagmat(static_cast<base_type>(*this));
 #endif
 }
 
