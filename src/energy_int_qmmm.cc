@@ -316,7 +316,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     write_gaussian_in(calc_type);
   }
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
-  
+
   update_representation();
 
   try {
@@ -324,9 +324,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   catch(...)
   {
+	std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
-
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
