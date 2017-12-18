@@ -1,4 +1,4 @@
-﻿#include <vector>
+#include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -414,7 +414,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   id = id + "_G_";
 
   integrity = true;
-  print_gaussianInput('g');
+  if (Config::get().energy.qmmm.use == false) print_gaussianInput('g');
   if (callGaussian() == 0) read_gaussianOutput(true, false);
   else
   {

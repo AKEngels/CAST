@@ -1,4 +1,4 @@
-﻿#include <cstddef>
+#include <cstddef>
 
 #include "energy_int_qmmm.h"
 #include "scon_utility.h"
