@@ -1,4 +1,4 @@
-﻿#include "configuration.h"
+#include "configuration.h"
 
 /**
  * Global static instance of the config-object. 
@@ -2092,6 +2092,7 @@ void Config::parse_file(std::string const & filename)
 
   auto data = LBL_FileReader(filename).data;
   std::size_t const N(data.size());
+  Config::set().energy.qmmm.use == false;
   for (std::size_t i = 0; i < N; i++)
   {
     // In the configfile, first there will be an option, then a varying number of whitespaces
