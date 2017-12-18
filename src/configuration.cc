@@ -501,6 +501,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
+    if (inter == interface_types::QMMM) Config::set().energy.qmmm.use = true;
+    else Config::set().energy.qmmm.use = false;
   }
 
   // Preoptimizazion energy calculation interface
@@ -528,10 +530,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       Config::set().energy.qmmm.qmatoms = 
         sorted_indices_from_cs_string(value_string, true);
-      if (Config::get().energy.qmmm.qmatoms.size() != 0)
-      {
-        Config::set().energy.qmmm.use = true;
-      }
     }
     else if (option.substr(4u) == "mminterface")
     {

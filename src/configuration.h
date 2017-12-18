@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 configuration.h
 Purpose: class for extraction of information from inputfile
