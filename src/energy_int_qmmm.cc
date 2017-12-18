@@ -576,7 +576,6 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
   S << "Potentials\n";
   S << std::right << std::setw(24) << "QM";
   S << std::right << std::setw(24) << "MM";
-  //S << std::right << std::setw(24) << "C";
   S << std::right << std::setw(24) << "VDW";
   S << std::right << std::setw(24) << "TOTAL";
   if (endline) S << '\n';
@@ -587,7 +586,6 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << '\n';
   S << std::right << std::setw(24) << qm_energy;
   S << std::right << std::setw(24) << mm_energy;
-  //S << std::right << std::setw(24) << c_energy;
   S << std::right << std::setw(24) << vdw_energy;
   S << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
