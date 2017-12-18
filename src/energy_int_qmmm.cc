@@ -241,6 +241,7 @@ void energy::interfaces::qmmm::QMMM::write_mol_in()
 void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
 {
   std::string id = qmc.energyinterface()->get_id();
+  id += "_G_";
   std::string outstring(id);
   outstring.append(".gjf");
 
