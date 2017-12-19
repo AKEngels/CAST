@@ -429,7 +429,10 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           // gradients of coulomb interaction
           coords::float_type db = b / d;
           auto c_gradient_ij = r_ij * db / d;
-          c_gradient[i] += c_gradient_ij;
+          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+          {    // in gaussian coulomb gradients for QM atoms are calculated via QM gradients
+            c_gradient[i] += c_gradient_ij;
+          }
           c_gradient[j] -= c_gradient_ij;
 
           // gradients of vdW interaction
