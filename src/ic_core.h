@@ -247,6 +247,39 @@ private:
   const coords::Representation_3D rep_;
 
 public:
+  struct IC_System {
+  public:
+    template<typename Graph>
+    IC_System() = default;
+    void configure_translations(std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>> && t) {
+      std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) = t;
+    }
+    void configure_rotations(std::vector<rotation> && rot) {
+      rotation_vec_ = rot;
+    }
+    void configure_distances(std::vector<distance> && dist) {
+      distance_vec_ = dist;
+    }
+    void configure_angles(std::vector<angle> && ang) {
+      angle_vec_ = ang;
+    }
+    void configure_oops(std::vector<out_of_plane> && oop) {
+      oop_vec_ = oop;
+    }
+    void configure_dihedrals(std::vector<dihedral> && dih) {
+      dihed_vec_ = dih;
+    }
+    std::vector<trans_x> trans_x_vec_;
+    std::vector<trans_y> trans_y_vec_;
+    std::vector<trans_z> trans_z_vec_;
+    std::vector<rotation> rotation_vec_;
+    std::vector<distance> distance_vec_;
+    std::vector<angle> angle_vec_;
+    std::vector<out_of_plane> oop_vec_;
+    std::vector<dihedral> dihed_vec_;
+  };
+
+public:
   std::vector<trans_x> trans_x_vec_;
   std::vector<trans_y> trans_y_vec_;
   std::vector<trans_z> trans_z_vec_;
@@ -269,9 +302,16 @@ public:
   create_trans_z(const std::vector<coords::Representation_3D>&,
                  const std::vector<std::vector<std::size_t>>&);
 
+  std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>>
+    create_translations(const std::vector<coords::Representation_3D>&,
+      const std::vector<std::vector<std::size_t>>&);
+
   std::vector<rotation>
   create_rotations(const std::vector<coords::Representation_3D>&,
                    const std::vector<std::vector<std::size_t>>&);
+
+  template<typename Graph>
+  IC_System create_system(Graph const &);
 
   template <typename Graph>
   std::vector<distance> create_distances(const coords::Representation_3D&,
@@ -302,6 +342,7 @@ public:
   scon::mathmatrix<float_type> delocalize_hessian(scon::mathmatrix<float_type> const &,
                                                   scon::mathmatrix<float_type> const &);
   scon::mathmatrix<float_type> G_mat_inversion(scon::mathmatrix<float_type> const &);
+
 };
 
 template <typename Graph>
@@ -458,16 +499,52 @@ system::create_ic_system(const std::vector<coords::Representation_3D>& res_vec,
   dihed_vec_ = create_dihedrals(coords, g);
 }
 
+//template <typename Graph>
+//inline void system::create_ic_system(const Graph& g) {
+//  trans_x_vec_ = create_trans_x(res_vec_, res_index_vec_);
+//  trans_y_vec_ = create_trans_y(res_vec_, res_index_vec_);
+//  trans_z_vec_ = create_trans_z(res_vec_, res_index_vec_);
+//  rotation_vec_ = create_rotations(res_vec_, res_index_vec_);
+//  distance_vec_ = create_distances(rep_, g);
+//  angle_vec_ = create_angles(rep_, g);
+//  oop_vec_ = create_oops(rep_, g);
+//  dihed_vec_ = create_dihedrals(rep_, g);
+//}
+
+inline std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>>
+system::create_translations(const std::vector<coords::Representation_3D>& res_vec,
+  const std::vector<std::vector<std::size_t>>& res_index_vec) {
+  return std::make_tuple(
+    create_trans_x(res_vec, res_index_vec),
+    create_trans_y(res_vec, res_index_vec),
+    create_trans_z(res_vec, res_index_vec)
+  );
+}
+
 template <typename Graph>
 inline void system::create_ic_system(const Graph& g) {
-  trans_x_vec_ = create_trans_x(res_vec_, res_index_vec_);
-  trans_y_vec_ = create_trans_y(res_vec_, res_index_vec_);
-  trans_z_vec_ = create_trans_z(res_vec_, res_index_vec_);
+  std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) =
+      create_translations(res_vec_, res_index_vec_);
   rotation_vec_ = create_rotations(res_vec_, res_index_vec_);
   distance_vec_ = create_distances(rep_, g);
   angle_vec_ = create_angles(rep_, g);
   oop_vec_ = create_oops(rep_, g);
   dihed_vec_ = create_dihedrals(rep_, g);
+}
+
+template <typename Graph>
+inline system::IC_System system::create_system(Graph const& g) {
+  IC_System new_ic_system;
+
+  new_ic_system.configure_translations(
+      create_translations(res_vec_, res_index_vec_));
+  new_ic_system.configure_rotations(create_rotations(res_vec_, res_index_vec_));
+  new_ic_system.configure_distances(create_distances(rep_, g));
+  new_ic_system.configure_angles(create_angles(rep_, g));
+  new_ic_system.configure_oops(create_oops(rep_, g));
+  new_ic_system.configure_dihedrals(create_dihedrals(rep_, g));
+
+  return new_ic_system;
 }
 }
 #endif // cast_ic_core_h_guard
