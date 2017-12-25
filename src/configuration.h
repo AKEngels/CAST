@@ -1122,8 +1122,11 @@ namespace config
     size_t numberOfDraws;
     int ident;
     bool NNcalculation;
+    bool cubatureIntegration;
+    bool meanNNcalculation;
+    std::pair<double, double> rangeForGMM;
     std::vector<unsigned int> subDimsForGMM;
-    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), subDimsForGMM() {}
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), subDimsForGMM(), rangeForGMM(0.,0.) {}
   };
 
   /**

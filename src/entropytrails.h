@@ -832,7 +832,17 @@ public:
 
       };
 
-      PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
+      if (Config::get().entropytrails.rangeForGMM.first == Config::get().entropytrails.rangeForGMM.second
+        && Config::get().entropytrails.rangeForGMM.first == 0.)
+      {
+        PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
+      }
+      else
+      {
+        PDFrange = std::make_shared<std::pair<double, double>>(Config::get().entropytrails.rangeForGMM);
+      }
+
+      std::cout << "Range for GMM probability density is from " << PDFrange->first << " to " << PDFrange->second << "." << std::endl;
 
 
       //
@@ -1082,7 +1092,6 @@ struct informationForCubatureIntegration
   informationForCubatureIntegration(ProbabilityDensity& probdens_in, std::vector<unsigned int>& subdims_in)
     : probdens(probdens_in), subdims(subdims_in) {}
 };
-
 
 int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *fdata, unsigned fdim, double *fval)
 {
@@ -1522,7 +1531,8 @@ public:
 
   void calculate()
   {
-    this->cubatureIntegral = cubatureIntegrationEntropy();
+    if(Config::get().entropytrails.cubatureIntegration)
+      this->cubatureIntegral = cubatureIntegrationEntropy();
 
     //mcdrawEntropy = this->MCDrawEntropy(drawMatrix);
 
@@ -1530,14 +1540,17 @@ public:
 
     empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
 
-    //meanNNEntropyFaivishevsky();
 
-    std::cout << "Commencing NNEntropy calculation." << std::endl;
+    if(Config::get().entropytrails.meanNNcalculation)
+      meanNNEntropyFaivishevsky();
+
+    
 
 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
     if (Config::get().entropytrails.NNcalculation)
     {
+      std::cout << "Commencing NNEntropy calculation." << std::endl;
       // Matrix Layout after calculation:
       // First col: Drawn samples
       // Second col: k / iter * kNNdistance
@@ -1729,8 +1742,8 @@ public:
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(eucl)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(max)|";
       myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
-      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
-      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
+      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
 
       myfile2 << "\n=========================================================================";
       myfile2 << "==================================================================================";
@@ -1751,8 +1764,8 @@ public:
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoriaMaximum << "|";
     myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
-    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
-    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
     myfile2.close();
   }
 };

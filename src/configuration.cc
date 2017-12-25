@@ -1537,10 +1537,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropy.entropy_remove_dof = false;
     }
   }
-  else if (option == "et_dimension")
-  {
-    cv >> Config::set().entropytrails.dimension;
-  }
   else if (option == "et_k")
   {
     cv >> Config::set().entropytrails.k;
@@ -1552,6 +1548,14 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option == "et_ident")
   {
     cv >> Config::set().entropytrails.ident;
+  }
+  else if (option == "et_rangestart")
+  {
+    cv >> Config::set().entropytrails.rangeForGMM.first;
+  }
+  else if (option == "et_rangestop")
+  {
+    cv >> Config::set().entropytrails.rangeForGMM.second;
   }
   else if (option == "et_subdims")
   {
@@ -1576,6 +1580,32 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (holder == "false" || holder == "False" || holder == "FALSE")
     {
       Config::set().entropytrails.NNcalculation = false;
+    }
+  }
+  else if (option == "et_meanNNcalculation")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropytrails.meanNNcalculation = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropytrails.meanNNcalculation = false;
+    }
+  }
+  else if (option == "et_cubatureIntegration")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropytrails.cubatureIntegration = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropytrails.cubatureIntegration = false;
     }
   }
   // NOT IMPLEMENTED AS OF NOW!
