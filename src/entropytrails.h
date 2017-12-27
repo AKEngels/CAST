@@ -937,7 +937,8 @@ public:
     return this->analyticEntropy_;
   };
 
-  auto function() {
+  auto function() -> std::function<double(std::vector<double> const& x, std::vector<unsigned int> const& subdims)>
+  {
     return this->PDF;
   };
 
