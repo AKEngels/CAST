@@ -863,8 +863,9 @@ public:
         const double pdfvalue = PDF(drawUnifWithRange, std::vector<unsigned int>());
         maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
       }
-      std::cout << "Maximum of current PDF is " << maximumOfPDF << std::endl;
       maximumOfPDF *= 10.;
+      std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << std::endl;
+      
       //
       //
 
