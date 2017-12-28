@@ -684,8 +684,10 @@ namespace pca
   }
 
 #ifdef CAST_USE_ARMADILLO
-  void PrincipalComponentRepresentation::createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians)
+  void PrincipalComponentRepresentation::createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians, std::string nameOfOutfile)
   {
+    std::ofstream outstream(nameOfOutfile.c_str());
+
     using namespace arma;
     Matrix_Class submodes(dimensions.size(), this->modes.cols());
     for (unsigned int i = 0u; i < dimensions.size(); i++)
@@ -702,46 +704,48 @@ namespace pca
     bool status = model.learn(pca_modes_matrix, numberOfGaussians, eucl_dist, random_spread, 10, 7, 0, true);
     if (status == false)
     {
-      std::cout << "learning failed" << std::endl;
+      std::cout << "learning failed ofr GMM model with " << dimensions.size() << " dimensions and " << numberOfGaussians << " number of gaussians." << std::endl;
     }
-
-    Matrix_Class means = model.means;
-
-    std::cout << "Number of Gaussians: " << means.cols() << "\n";
-    std::cout << "Number of Dimensions: " << dimensions.size() << "\n\n";
-
-    for (unsigned int i = 0u; i < means.cols(); i++)
+    else
     {
-      std::cout << "Mean of Gaussian " << i << ":\n";
-      for (unsigned int j = 0u; j < means.rows(); j++)
-      {
-        std::cout << std::setw(10) << means(j, i) << " ";
-      }
-      std::cout << "\n";
-    }
+      Matrix_Class means = model.means;
 
-    for (unsigned int i = 0u; i < means.cols(); i++)
-    {
-      std::cout << "Covariance Matrix of Gaussian " << i << ":\n";
-      Matrix_Class current = model.fcovs.slice(i);
-      for (unsigned int j = 0u; j < current.rows(); j++)
+      outstream << "Number of Gaussians: " << means.cols() << "\n";
+      outstream << "Number of Dimensions: " << dimensions.size() << "\n\n";
+
+      for (unsigned int i = 0u; i < means.cols(); i++)
       {
-        for (unsigned int k = j; k < current.cols(); k++)
+        outstream << "Mean of Gaussian " << i << ":\n";
+        for (unsigned int j = 0u; j < means.rows(); j++)
         {
-          std::cout << j << "," << k << " : " << std::setw(10) << current(j, k) << "\n";
+          outstream << std::setw(10) << means(j, i) << " ";
         }
+        outstream << "\n";
       }
-      std::cout << "\n" << "\n";
+
+      for (unsigned int i = 0u; i < means.cols(); i++)
+      {
+        outstream << "Covariance Matrix of Gaussian " << i << ":\n";
+        Matrix_Class current = model.fcovs.slice(i);
+        for (unsigned int j = 0u; j < current.rows(); j++)
+        {
+          for (unsigned int k = j; k < current.cols(); k++)
+          {
+            outstream << j << "," << k << " : " << std::setw(10) << current(j, k) << "\n";
+          }
+        }
+        outstream << "\n" << "\n";
+      }
+      outstream << "\n";
+      for (unsigned int i = 0u; i < means.cols(); i++)
+      {
+        outstream << "Weight of Gaussian " << i << ": ";
+        outstream << std::setw(10) << model.hefts(i) << "\n";
+      }
+      outstream << "\n";
+      outstream << "\n";
+      outstream << "\n";
     }
-    std::cout << "\n";
-    for (unsigned int i = 0u; i < means.cols(); i++)
-    {
-      std::cout << "Weight of Gaussian " << i << ": ";
-      std::cout << std::setw(10) << model.hefts(i) << "\n";
-    }
-    std::cout << "\n";
-    std::cout << "\n";
-    std::cout << "\n";
   }
 #endif
 

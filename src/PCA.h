@@ -36,7 +36,7 @@ namespace pca
 		void generatePCAModesFromPCAEigenvectorsAndCoordinates();
 
 #ifdef CAST_USE_ARMADILLO
-    void createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians);
+    void createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians, std::string nameOfOutfile = "gmm_model.dat");
 #endif
 
 	protected:
