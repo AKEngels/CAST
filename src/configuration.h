@@ -1126,7 +1126,9 @@ namespace config
     bool meanNNcalculation;
     std::pair<double, double> rangeForGMM;
     std::vector<unsigned int> subDimsForGMM;
-    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), subDimsForGMM(), rangeForGMM(0.,0.) {}
+    double errorThresholdForCubatureIntegration;
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), subDimsForGMM(), 
+      rangeForGMM(0.,0.), errorThresholdForCubatureIntegration(1e-4) {}
   };
 
   /**

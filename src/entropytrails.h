@@ -1399,16 +1399,29 @@ public:
 
     double range = std::abs(this->probdens.meaningfulRange().first - this->probdens.meaningfulRange().second);
 
+    std::cout << "Relative error (L2 norm) for cubature integration is " << std::scientific <<
+      std::setw(5) << Config::get().entropytrails.errorThresholdForCubatureIntegration << "." << std::endl;
+
     int returncode = hcubature_v(1, cubaturefunctionProbDens, &(info),
       this->dimension, xmin, xmax,
-      0u, 0, 1e-3 * range, ERROR_INDIVIDUAL, val, err);
+      0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
 
-    std::cout << "Integral of ProbDens is: " << val[0] << "." << std::endl;
+    if (returncode != 0)
+    {
+      std::cout << "Returncode was not zero. An error occured." << std::endl;
+    }
+
+    std::cout << "Integral of ProbDens is: " << std::defaultfloat << val[0] << " with error " << err[0] << "." << std::endl;
     
 
     returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
       this->dimension, xmin, xmax,
-      0u, 0, 1e-3 *  range, ERROR_INDIVIDUAL, val, err);
+      0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
+
+    if (returncode != 0)
+    {
+      std::cout << "Returncode was not zero. An error occured." << std::endl;
+    }
 
     const double value = val[0];
 

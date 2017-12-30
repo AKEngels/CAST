@@ -1557,6 +1557,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropytrails.rangeForGMM.second;
   }
+  else if (option == "et_cubatureError")
+  {
+    cv >> Config::set().entropytrails.errorThresholdForCubatureIntegration;
+  }
   else if (option == "et_subdims")
   {
     std::vector<std::string> holder;
