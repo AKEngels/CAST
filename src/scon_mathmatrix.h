@@ -1001,14 +1001,15 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
 
   /**
   * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix routines otherwise it uses the Eigen matrices.
-  * @author Julian Erdmannsd�rfer
+  * @author Julian Erdmannsdoerfer
   * @version 3.0
   *
   * 
   *
   */
 
-  class RotationMatrix {
+  class RotationMatrix 
+  {
   public:
 #ifdef CAST_USE_ARMADILLO
     //Too much work for now.
@@ -1017,7 +1018,7 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
     using Rotation = Eigen::AngleAxisd;
     using Transformation = Eigen::Affine3d;
     using Vector = Eigen::Vector3d;
-#endif
+
     static Transformation rotate_around_axis_with_center(double rad_deg, Vector axis, Vector center){
       Translation back(center);
       Translation to_center(-center);
@@ -1029,5 +1030,6 @@ void pow(mathmatrix<T> &matrix_in, T const& exp)
       Translation to_center(-center);
       return Transformation(back * Rotation(rad_deg, axis.normalized()) * to_center);
     }
+#endif
   };
 //END HEADER
