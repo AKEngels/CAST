@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -253,17 +253,21 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
         coords::Cartesian_Point g;
+        double temp;
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
         for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
         {
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.x());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.x() = -temp;
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.y());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.y() = -temp;
           std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %*s %*s %*s %lf %*s", &g.z());
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.z() = -temp;
 
           std::getline(in_file, buffer);
 
@@ -296,7 +300,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
     }//end while(!in_file.eof())
 
-    if (grad || opt)
+    if (grad && opt)
     {
       coords->set_xyz(std::move(xyz_tmp));
     }
@@ -500,7 +504,25 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_short(std::ost
   if (endline) S << '\n';
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::print_G_tinkerlike(std::ostream &, bool const) const { }
+void energy::interfaces::gaussian::sysCallInterfaceGauss::print_G_tinkerlike(std::ostream &S, bool const) const
+{
+	S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+	S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+	for (std::size_t k = 0; k < coords->size(); ++k)
+	{
+		S << " Anlyt";
+		S << std::right << std::setw(10) << k + 1U;
+		S << "       ";
+		S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+		S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+		S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+		S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+		S << std::sqrt(
+			coords->g_xyz(k).x() * coords->g_xyz(k).x()
+			+ coords->g_xyz(k).y() * coords->g_xyz(k).y()
+			+ coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
+	}
+}
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::to_stream(std::ostream&) const { }
 
@@ -520,4 +542,46 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
     }
   }
   return true;
+}
+
+std::vector<coords::float_type>
+energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
+{
+  std::vector<coords::float_type> charges;
+
+  auto in_string = id + ".log";
+  if (file_exists(in_string) == false)
+  {
+    throw std::runtime_error("gaussian logfile not found.");
+  }
+
+  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
+  if (in_file)
+  {
+	  std::string buffer;
+	  while (!in_file.eof())
+	  {
+		  double charge;
+		  std::getline(in_file, buffer);
+
+		  if (buffer.find("Mulliken charges:") != std::string::npos)
+		  {
+			  std::getline(in_file, buffer); // discard next line
+			  for (std::size_t i(0); i < coords->size(); ++i)
+			  {
+				  std::getline(in_file, buffer);
+				  std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
+				  charges.push_back(charge);
+			  }
+		  }
+	  }
+  }
+    
+
+  if (charges.size() != coords->size())
+  {
+    throw std::logic_error("Found " + std::to_string(charges.size()) +
+      " charges instead of " + std::to_string(coords->size()) + " charges.");
+  }
+  return charges;
 }

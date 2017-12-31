@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -48,6 +48,14 @@ coords::input::format* coords::input::new_format(void)
       //AMBER
       return new formats::amber;
       break;
+    case config::input_types::XYZ:
+      //XYZ
+      return new formats::xyz;
+      break;
+    case config::input_types::PDB:
+      //PDB
+      return new formats::pdb;
+      break;
     default:
     {
       return new formats::tinker;
@@ -72,6 +80,14 @@ coords::input::format* coords::input::additional_format(void)
   case config::input_types::AMBER:
     //AMBER
     return new formats::amber;
+    break;
+  case config::input_types::XYZ:
+    //XYZ
+    return new formats::xyz;
+    break;
+  case config::input_types::PDB:
+    //PDB
+    return new formats::pdb;
     break;
   default:
   {
@@ -170,7 +186,8 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           if ((i - input_ensemble.size()*(N + 1u)) == N)
           { // if we are at the end of a structure 
             if (positions.size() != atoms.size())
-              throw std::logic_error("The size of an additionally provided structure does not match the number of atoms.");
+              throw std::logic_error("The size of an additionally provided"
+                " structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
             positions.clear();
           }
@@ -192,8 +209,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           }
         }
       }
-
-
     }
 
     if (indexation_not_contiguous)
@@ -223,7 +238,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     for (auto & p : input_ensemble)
     {
       p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian);
+      coord_object.set_xyz(p.structure.cartesian, true);
       coord_object.to_internal_light();
       p = coord_object.pes();
     }
@@ -276,6 +291,8 @@ std::ostream& coords::operator<< (std::ostream &stream, coords::Coordinates cons
     stream << coords::output::formats::tinker(coord);
   else if (Config::get().general.output == config::output_types::XYZ)
     stream << coords::output::formats::xyz(coord);
+  else if (Config::get().general.output == config::output_types::XYZ)
+    stream << coords::output::formats::xyz_dftb(coord);
   else if (Config::get().general.output == config::output_types::MOLDEN)
     stream << coords::output::formats::moldenxyz(coord);
   else if (Config::get().general.output == config::output_types::ZMATRIX)
@@ -388,6 +405,29 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
      stream << '\n';
+  }
+}
+
+void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
+{
+  std::size_t const N(ref.size());
+  stream << N << '\n';
+  if (Config::get().energy.dftb.charge == 0)
+  {
+    stream << Config::get().general.inputFilename<<"\n";
+  }
+  else
+  {
+    stream << "charge=" + std::to_string(Config::get().energy.dftb.charge)<<"\n";
+  }
+  
+  for (std::size_t i(0U); i < N; ++i)
+  {
+      stream << std::left << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
+      stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+      stream << '\n';
   }
 }
 

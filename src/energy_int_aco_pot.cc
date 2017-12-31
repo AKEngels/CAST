@@ -1,4 +1,4 @@
-/**
+﻿/**
 This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
 */
 
@@ -41,7 +41,8 @@ coords::float_type energy::interfaces::aco::aco_ff::g(void)
 coords::float_type energy::interfaces::aco::aco_ff::h(void)
 {
   pre();
-  //... 
+  printf("ERROR: this energy interface doesn't provide a hessian matrix\n"); 
+  std::exit(0);
   post();
   return energy;
 }
@@ -1231,6 +1232,7 @@ namespace energy
         if (Config::get().md.fep)
         {
           coords->fep.feptemp.dE = (coords->fep.feptemp.e_c_l2 + coords->fep.feptemp.e_vdw_l2) - (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1);
+          coords->fep.feptemp.dE_back = (coords->fep.feptemp.e_c_l1 + coords->fep.feptemp.e_vdw_l1) - (coords->fep.feptemp.e_c_l0 + coords->fep.feptemp.e_vdw_l0);
           coords->fep.feptemp.dG = 0;
           coords->fep.fepdata.push_back(coords->fep.feptemp);
         }
@@ -1249,6 +1251,8 @@ namespace energy
       {
         std::ptrdiff_t const M(pairlist.size());
         coords::float_type e_c(0.0), e_v(0.0);
+		    //std::vector <coords::float_type> charge_vector(coords->size());
+        for (auto const & pair : pairlist)
         {
           coords::Representation_3D tmp_grad(grad_vector.size());
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
@@ -1375,7 +1379,7 @@ namespace energy
       )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
-        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
+        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
         std::ptrdiff_t const M(pairlist.size());
         {
@@ -1407,6 +1411,8 @@ namespace energy
                 coords::float_type trash(0.0);
                 g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                   (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
               else
               {
@@ -1415,6 +1421,8 @@ namespace energy
                 coords::float_type trash(0.0);
                 g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                   (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                  (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
             }
             else    // not periodic
@@ -1432,6 +1440,8 @@ namespace energy
                     coords::float_type trash(0.0);
                     g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                   else
                   {
@@ -1440,6 +1450,8 @@ namespace energy
                     coords::float_type trash(0.0);
                     g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                       (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                 }
               }
@@ -1453,6 +1465,8 @@ namespace energy
                   coords::float_type trash(0.0);
                   g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
                 else
                 {
@@ -1461,6 +1475,8 @@ namespace energy
                   coords::float_type trash(0.0);
                   g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
                     (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
               }
             }
@@ -1501,8 +1517,10 @@ namespace energy
         e_nb += e_c + e_v;
         coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
         coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
         coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->fep.feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }
@@ -1651,14 +1669,14 @@ namespace energy
       )
       {
         nb_cutoff cutob(Config::get().energy.cutoff, Config::get().energy.switchdist);
-        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0);
+        coords::float_type e_c(0.0), e_v(0.0), e_c_l(0.0), e_vdw_l(0.0), e_c_dl(0.0), e_vdw_dl(0.0), e_c_ml(0.0), e_vdw_ml(0.0);
         fepvar const & fep = coords->fep.window[coords->fep.window[0].step];
         std::ptrdiff_t const M(pairlist.size());
 #pragma omp parallel
         {
           coords::Representation_3D tmp_grad(grad_vector.size());
           coords::virial_t tempvir(coords::empty_virial());
-#pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl)
+#pragma omp for reduction (+: e_c, e_v, e_c_l, e_c_dl, e_vdw_l, e_vdw_dl, e_c_ml, e_vdw_ml)
           for (std::ptrdiff_t i = 0; i < M; ++i)      //for every pair in pairlist
           {
             double current_c;   // Q_a * Q_b from AMBER
@@ -1680,19 +1698,23 @@ namespace energy
               if (!cutob.factors(rr, r, fQ, fV)) continue;
               if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
               {
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
-                coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
+                  coords::float_type trash(0.0);
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                  g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
               else
               {
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                  (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
-                coords::float_type trash(0.0);
-                g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                  (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                    (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);
+                  coords::float_type trash(0.0);
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                    (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);
+                  g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                    (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);
               }
             }
             else    // not periodic
@@ -1705,19 +1727,23 @@ namespace energy
                 {
                   if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
                   {
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
-                    coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                        (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                      coords::float_type trash(0.0);
+                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                        (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                      g_QV_fep_cutoff<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                        (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                   else
                   {
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                      (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
-                    coords::float_type trash(0.0);
-                    g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                      (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                        (ALCH_OUT ? fep.vout : fep.vin), fQ, fV, Q, V, dE);  //calculate nb-energy(lambda)
+                      coords::float_type trash(0.0);
+                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                        (ALCH_OUT ? fep.dvout : fep.dvin), fQ, fV, e_c_dl, e_vdw_dl, trash);  //calculate nb-energy(lambda+dlambda)
+                      g_QV_fep_cutoff<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                        (ALCH_OUT ? fep.mvout : fep.mvin), fQ, fV, e_c_ml, e_vdw_ml, trash);  //calculate nb-energy(lambda-dlambda)
                   }
                 }
               }
@@ -1726,19 +1752,23 @@ namespace energy
                 coords::float_type const r = sqrt(rr);
                 if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
                 {
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
-                  coords::float_type trash(0.0);
-                  g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                      (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
+                    coords::float_type trash(0.0);
+                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                      (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep<RT>(current_c, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
                 else
                 {
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
-                    (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
-                  coords::float_type trash(0.0);
-                  g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
-                    (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.eout : fep.ein),
+                      (ALCH_OUT ? fep.vout : fep.vin), Q, V, dE);  //calculate nb-energy(lambda)
+                    coords::float_type trash(0.0);
+                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.deout : fep.dein),
+                      (ALCH_OUT ? fep.dvout : fep.dvin), e_c_dl, e_vdw_dl, trash); //calculate nb-energy(lambda+dlambda)
+                    g_QV_fep<RT>(p.C, p.E, p.R, r, (ALCH_OUT ? fep.meout : fep.mein),
+                      (ALCH_OUT ? fep.mvout : fep.mvin), e_c_ml, e_vdw_ml, trash); //calculate nb-energy(lambda-dlambda)
                 }
               }
             }
@@ -1780,8 +1810,10 @@ namespace energy
         e_nb += e_c + e_v;
         coords->fep.feptemp.e_c_l1 += e_c_l;    //lambda (Coulomb energy)
         coords->fep.feptemp.e_c_l2 += e_c_dl;   //lambda + dlambda (Coulomb energy)
+        coords->fep.feptemp.e_c_l0 += e_c_ml;    //lambda - dlambda (Coulomb energy)
         coords->fep.feptemp.e_vdw_l1 += e_vdw_l;  //lambda (vdW energy)
         coords->fep.feptemp.e_vdw_l2 += e_vdw_dl;  //lambda + dlambda (vdW energy)
+        coords->fep.feptemp.e_vdw_l0 += e_vdw_ml;  //lambda - dlambda (vdW energy)
         part_energy[types::CHARGE] += e_c;  //gradients (coulomb)
         part_energy[types::VDW] += e_v;     //gradients (vdW)
       }

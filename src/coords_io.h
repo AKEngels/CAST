@@ -1,4 +1,4 @@
-#pragma once 
+﻿#pragma once 
 
 #if defined _OPENMP
 #include <omp.h>
@@ -94,8 +94,6 @@ namespace coords
           IPOL
         };
 
-
-
         //Important Stuff
         std::vector<unsigned int> sectionsPresent;
         std::vector<unsigned int> bondsWithHydrogen, bondsWithoutHydrogen; // [0] binds to [1], [2] to [3], [4] to [5] and so on....
@@ -105,6 +103,24 @@ namespace coords
         unsigned int numberOfAtoms;
         int pointers_raw[32];
 
+      };
+
+      class xyz : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
+      };
+
+      class pdb : public coords::input::format
+      {
+      public:
+        Coordinates read(std::string);
+      private:
+        Atoms atoms;
+        Cartesian_Point position;
       };
 
       /*! Class to read from TINKER coordinate file (.arc)
@@ -190,6 +206,20 @@ namespace coords
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
         }
       };
+
+      class xyz_dftb
+        : public output::format
+      {
+        xyz& operator= (xyz_dftb const &);
+      public:
+        xyz_dftb(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
+        {
+          return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
+        }
+      };
+
 
       class xyz_mopac
         : public output::format

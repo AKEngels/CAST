@@ -1,4 +1,4 @@
-/*
+﻿/*
 * GAUSSIAN Interface
 */
 
@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include "energy.h"
+#include "helperfunctions.h"
 
 
 namespace energy
@@ -52,6 +53,8 @@ namespace energy
         void print_E_short(std::ostream&, bool const endline = true) const;
         void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
+
+        std::vector<coords::float_type> charges() const override;
 
       private:
 

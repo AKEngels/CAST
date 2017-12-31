@@ -2,9 +2,9 @@
 -- Get Premake5 via https://premake.github.io/
 --
 -- CAST automatic build configuration
--- Targeted at VS2015 and our own Linux-Cluster "ECPC"
+-- Targeted at VS2017 and our own Linux-Cluster "ECPC"
 --
--- Build for windows: "premake5 vs2015"
+-- Build for windows: "premake5 vs2017"
 -- Open CAST.sln in project/
 --
 -- Build for Linux on ECPC "premake5 gmake"
@@ -19,9 +19,15 @@ newoption {
    description = "Target SMURF cluster with MPI"
 }
 
+function os.winSdkVersion()
+    local reg_arch = iif( os.is64bit(), "\\Wow6432Node\\", "\\" )
+    local sdk_version = os.getWindowsRegistry( "HKLM:SOFTWARE" .. reg_arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion" )
+    if sdk_version ~= nil then return sdk_version end
+end
+
 
 workspace "CAST"
-  configurations { "Debug", "Release", "Testing", "Armadillo_Testing", "Armadillo_Release", "Armadillo_Debug" }
+  configurations { "Debug", "Release", "Testing", "Armadillo_Testing", "Armadillo_Release", "Armadillo_Debug", "Python_Release", "Python_Debug" }
     location "../optional_files/project"
     platforms { "x86", "x64"}
   filter { "platforms:x86" }
@@ -58,6 +64,20 @@ project "CAST"
       targetname "CAST_linux_x86_release"
     filter { "configurations:Release",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_release"
+    filter { "configurations:Python_Release",  "platforms:x64", "action:gmake"}
+      optimize "Full"
+      targetname "CAST_linux_x64_python_release"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+    filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
+      optimize "Full"
+      targetname "CAST_linux_x86_python_release"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Testing", "action:gmake" }
       optimize "Debug"
@@ -92,6 +112,20 @@ project "CAST"
       targetname "CAST_linux_x86_debug"
     filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_debug"
+    filter { "configurations:Python_Debug",  "platforms:x86", "action:gmake"}
+      optimize "Debug"
+      targetname "CAST_linux_x86_python_debug"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+    filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
+      optimize "Debug"
+      targetname "CAST_linux_x64_python_debug"
+      includedirs { "/apps/python27/include/python2.7" }
+      defines {"USE_PYTHON"}
+      links {"python2.7", "util", "lapack"}
+      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
 
     filter { "configurations:Armadillo_Debug", "action:gmake" }
       includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
@@ -120,83 +154,113 @@ project "CAST"
 
 
 
-  configuration "vs2015"
+  configuration "vs2017"
+    systemversion(os.winSdkVersion() .. ".0")
     targetname "CAST_undefined.exe"
     debugdir "../optional_files/build"
     buildoptions { "/openmp" }
     flags { "MultiProcessorCompile" }
-    filter { "configurations:Release", "action:vs2015" }
+    filter { "configurations:Release", "action:vs2017" }
       optimize "Full"
       flags { "LinkTimeOptimization" }
-    filter { "configurations:Release",  "platforms:x86", "action:vs2015"}
+    filter { "configurations:Release",  "platforms:x86", "action:vs2017"}
       targetname "CAST_win_x86_release"
       defines {"EIGEN_NO_DEBUG"}
       includedirs { "../submodules/eigen/Eigen/", "../submodules/cubature/"}
-    filter { "configurations:Release",  "platforms:x64", "action:vs2015"}
+    filter { "configurations:Release",  "platforms:x64", "action:vs2017"}
       targetname "CAST_win_x64_release"
       defines {"EIGEN_NO_DEBUG"}
       includedirs { "../submodules/eigen/Eigen/", "../submodules/cubature/"}
 
-    filter { "configurations:Armadillo_Release", "action:vs2015"}
-      includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
+    filter { "configurations:Python_Release",  "platforms:x64", "action:vs2017"}
+      optimize "Full"
+      targetname "CAST_win_x64_python_release"
+      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Release",  "platforms:x86", "action:vs2017"}
+      optimize "Full"
+      targetname "CAST_win_x86_python_release"
+      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
+      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+
+    filter { "configurations:Armadillo_Release", "action:vs2017"}
+      includedirs { "../optional_files/includes/armadillo/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
       optimize "Full"
       defines { "CAST_USE_ARMADILLO" }
       flags { "LinkTimeOptimization" }
-    filter { "configurations:Armadillo_Release",  "platforms:x86", "action:vs2015"}
+    filter { "configurations:Armadillo_Release",  "platforms:x86", "action:vs2017"}
       targetname "CAST_win_x86_release_lapack"
       links { "blas_x86rel", "lapack_x86rel" }
-    filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2015"}
+    filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2017"}
       targetname "CAST_win_x64_release_lapack"
       links { "blas_win64_MT", "lapack_win64_MT" }
 
-    filter { "configurations:Armadillo_Debug", "action:vs2015"}
-      includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
+    filter { "configurations:Armadillo_Debug", "action:vs2017"}
+      includedirs { "../optional_files/includes/armadillo/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       optimize "Debug"
       flags { "Symbols" }
       defines { "CAST_USE_ARMADILLO" }
-    filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:vs2015"}
+    filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:vs2017"}
       targetname "CAST_win_x86_debug_lapack"
       links { "blas_x86rel", "lapack_x86rel" }
-    filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:vs2015"}
+    filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:vs2017"}
       targetname "CAST_win_x64_debug_lapack"
       links { "blas_win64_MT", "lapack_win64_MT" }
 
 
-    filter { "configurations:Testing", "action:vs2015" }
+    filter { "configurations:Testing", "action:vs2017" }
       optimize "Debug"
       includedirs { "../optional_files/includes/gtest/", "../submodules/eigen/Eigen/", "../submodules/cubature/"}
       defines { "GOOGLE_MOCK" }
       libdirs { "../optional_files/windows_precompiled_libs/" }
       links { "gmock" }
     linkoptions {"/DEBUG"}
-    filter { "configurations:Testing",  "platforms:x86", "action:vs2015"}
+    filter { "configurations:Testing",  "platforms:x86", "action:vs2017"}
     targetname "CAST_win_x86_testing"
-    filter { "configurations:Testing",  "platforms:x64", "action:vs2015"}
+    filter { "configurations:Testing",  "platforms:x64", "action:vs2017"}
     targetname "CAST_win_x64_testing"
 
-    filter { "configurations:Armadillo_Testing", "action:vs2015" }
+    filter { "configurations:Armadillo_Testing", "action:vs2017" }
       optimize "Debug"
       defines { "GOOGLE_MOCK", "CAST_USE_ARMADILLO" }
       includedirs { "../optional_files/includes/armadillo/", "../optional_files/includes/gtest/", "../submodules/cubature/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
-      linkoptions {"/DEBUG"}
-    filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2015"}
-      targetname "CAST_win_x86_testing_lapack"
-      links { "blas_x86rel", "lapack_x86rel", "gmock" }
-    filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:vs2015"}
-      targetname "CAST_win_x64_testing_lapack"
-      links { "blas_win64_MT", "lapack_win64_MT", "gmock" }
+    linkoptions {"/DEBUG"}
+      filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2017"}
+        targetname "CAST_win_x86_testing_lapack"
+        links { "blas_x86rel", "lapack_x86rel", "gmock" }
+      filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:vs2017"}
+        targetname "CAST_win_x64_testing_lapack"
+        links { "blas_win64_MT", "lapack_win64_MT", "gmock" }
 
-    filter { "configurations:Debug", "action:vs2015" }
+    filter { "configurations:Debug", "action:vs2017" }
       removefiles { "./src/tests/**.cc", "./src/test/**.h"}
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       includedirs { "../submodules/eigen/Eigen/", "../submodules/cubature/"}
       optimize "Debug"
       flags { "Symbols" }
-    filter { "configurations:Debug",  "platforms:x86", "action:vs2015"}
+    filter { "configurations:Debug",  "platforms:x86", "action:vs2017"}
       targetname "CAST_win_x86_debug"
-    filter { "configurations:Debug",  "platforms:x64", "action:vs2015"}
+    filter { "configurations:Debug",  "platforms:x64", "action:vs2017"}
       targetname "CAST_win_x64_debug"
+    filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2017"}
+      optimize "Debug"
+      targetname "CAST_win_x86_python_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      defines {"USE_PYTHON"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}
+    filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2017"}
+      optimize "Debug"
+      targetname "CAST_win_x64_python_debug"
+      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
+      defines {"USE_PYTHON"}
+      libdirs {"C:/Python27/libs"}
+      links {"python27"}

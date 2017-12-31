@@ -1,4 +1,4 @@
-/**
+﻿/**
 CAST 3
 configurationHelperfunctions.h
 Purpose: Functions to parse input / output / etc.
@@ -217,15 +217,8 @@ namespace config
     return temp;
   }
 
-  /**
-   * Helper function that sorts numerical
-   * integer type numbers into a vector. Every number
-   * is only inserted once ("uniquely").
-   *
-   * @param str: String containing number range (ex. "0-2, 7, 2, 3, 3, 13-15")
-   * @return: vector containing sorted unique numbers (ex. "0, 1, 2, 3, 7, 13, 14, 15")
-   */
-  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str);
+
+
 
   /**
    * Helperfunction that (tries to)

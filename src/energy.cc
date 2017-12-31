@@ -1,10 +1,14 @@
-#include <stdexcept>
+﻿#include <stdexcept>
 #include "configuration.h"
 #include "energy.h"
 #include "energy_int_aco.h"
 #include "energy_int_mopac.h"
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
+#include "energy_int_qmmm.h"
+#ifdef USE_PYTHON
+#include "energy_int_dftb.h"
+#endif
 #include "energy_int_gaussian.h"
 #include "coords.h"
 #include "scon_utility.h"
@@ -50,6 +54,34 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       }
       return new energy::interfaces::mopac::sysCallInterface(coordinates);
     }
+  case config::interface_types::T::QMMM:
+  {
+    if (Config::get().general.verbosity > 29)
+    {
+      std::cout << "QMMM-Interface choosen for energy calculations.\n";
+    }
+    return new energy::interfaces::qmmm::QMMM(coordinates);
+  }
+
+  case config::interface_types::T::TERACHEM:
+    {
+#if defined(USE_MPI)
+      if (Config::get().general.verbosity > 29) std::cout << "Terachem choosen for energy calculations.\n";
+      return new energy::interfaces::terachem::mpiInterface(coordinates);
+#else
+	  std::cout << "You need to include MPI for this.\n";
+	  std::exit(0);
+#endif
+#ifdef USE_PYTHON
+  case config::interface_types::T::DFTB:
+   {
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "DFTB choosen for energy calculations.\n";
+      }
+      return new energy::interfaces::dftb::sysCallInterface(coordinates);
+    }
+#endif
   case config::interface_types::T::GAUSSIAN:
     {
      if (Config::get().general.verbosity >= 3)
@@ -65,6 +97,8 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       return new energy::interfaces::terachem::mpiInterface(coordinates);
     }
 #endif
+    }
+
   default:
     {
     if (Config::get().general.verbosity >= 3) std::cout << "Default (force field) interface choosen for energy calculations.\n";
@@ -96,8 +130,6 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 }
 
 //energy::interface_base::interface_base(void)  //Constructor
-
-
 /*! Override of virtual void swap
 *
 * Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is

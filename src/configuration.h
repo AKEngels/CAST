@@ -1,4 +1,4 @@
-/**
+﻿/**
 CAST 3
 configuration.h
 Purpose: class for extraction of information from inputfile
@@ -32,12 +32,13 @@ Purpose: class for extraction of information from inputfile
 #include "scon_vect.h"
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
+ 
 
 /*! Namespace containing relevant configuration options
  */
 namespace config
 {
-
+  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
   // Here we find some static members that only
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
@@ -49,7 +50,8 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 27;
+  static std::size_t const NUM_TASKS = 32;
+
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -61,6 +63,7 @@ namespace config
     "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
     "ENTROP_DEVTASK",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "CUT_RESIDUES", "MODIFY_SK_FILES",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -79,17 +82,18 @@ namespace config
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
-      XB_INTEFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-      ENTROP_DEVTASK
+      XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
+      ENTROP_DEVTASK,
+      LAYER_DEPOSITION, HESS, WRITE_TINKER, CUT_RESIDUES, MODIFY_SK_FILES
     };
   };
 
   /** number of Input Types */
-  static std::size_t const NUM_INPUT = 2;
+  static std::size_t const NUM_INPUT = 4;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   {
-    "TINKER", "AMBER"
+    "TINKER", "AMBER", "XYZ", "PDB"
   };
 
   /*! contains enum with all input_types currently supported in CAST
@@ -103,7 +107,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      TINKER, AMBER
+      TINKER, AMBER, XYZ, PDB
     };
   };
 
@@ -131,14 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 7;
+  static std::size_t const NUM_INTERFACES = 9;
+
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "GAUSSIAN"
-
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN", "QMMM"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -152,7 +155,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN, QMMM
     }; 
   };
 
@@ -232,6 +235,9 @@ namespace config
     output_types::T output;
     /** Current task*/
     config::tasks::T task;
+    std::ofstream * trackstream;
+    bool forcefield;
+
     /**Energy interface used for current run*/
     interface_types::T energy_interface;
     /**Energy interface used pre-optimization performed before the current run*/
@@ -277,6 +283,12 @@ namespace config
         throw std::runtime_error("Cutout distance cannot be bigger than box size for periodic boundries. Aborting.");
       }
     }
+  };
+
+  struct cut
+  {
+    double distance;
+    std::vector<int> react_atoms;
   };
 
   /*! Stream operator for config::periodics
@@ -388,6 +400,17 @@ namespace config
         : dim(), force(), exponent()
       { }
     };
+    struct thresholdstr
+    {
+      /**force constant*/
+      double forceconstant;
+      /**threshold distance*/
+      double th_dist;
+      /**constructor*/
+      thresholdstr(void)
+        : forceconstant(), th_dist()
+      { }
+    };
   }
 
 
@@ -456,6 +479,8 @@ namespace config
       std::vector<biases::spherical> spherical;
       /**cubic potentials*/
       std::vector<biases::cubic>     cubic;
+      /**threshold potentials*/
+      std::vector<biases::thresholdstr>     threshold;
       /**biased pot on torsions for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/
@@ -518,10 +543,17 @@ namespace config
 
     struct spack
     {
-      bool on, interp;
       double cut;
-      spack(void) : on(false), interp(false), cut(10.0) { }
+      bool on, interp;
+      spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
+
+    struct qmmm_conf
+    {
+      std::vector <size_t> qmatoms;
+      interface_types::T mminterface{ interface_types::T::OPLSAA };
+      bool use{ false };
+    } qmmm{};
 
     struct mopac_conf
     {
@@ -541,6 +573,51 @@ namespace config
       {}
     } mopac;
 
+    /**struct that contains all information necessary for DFTB calculation*/
+    struct dftb_conf
+    {
+      /**path to dftbaby*/
+      std::string path;
+      /**name of dftbaby gradient file (deleted again but necessary because otherwise
+      dftbaby doesn't calculate gradients)*/
+      std::string gradfile;
+      /**total charge of the molecule*/
+      int charge;
+      /**state for which DFTB gradients are calculated (ground state = 0)*/
+      int gradstate;
+      /**verbosity for dftbaby*/
+      int verbose;
+      /**maximum number of SCF-iterations*/
+      int maxiter;
+      /**convergence threshold for relative change in SCF-calculation*/
+      std::string conv_threshold;
+      /**cutoff in bohr: orbitals that are further away don't interact*/
+      float cutoff;
+      /**long range correction on or off*/
+      bool longrange;
+      /**distance (in bohr) where long range correction is switched on*/
+      float lr_dist;
+      /**limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues*/
+      int states;
+      /**number of occupied orbitals taken into account for TD-DFTB*/
+      int orb_occ;
+      /**number of virtual orbitals taken into account for TD-DFTB*/
+      int orb_virt;
+      /**maximum number of iterations for TD-DFTB matrix diagonalisation*/
+      int diag_maxiter;
+      /**convergence threshold for TD-DFTB matrix diagonalisation*/
+      std::string diag_conv;
+      /**use own optimizer for optimization (otherwise steepest gradient)*/
+      bool opt;
+      
+      /**constructor
+      for most options if a value is set to 0, the default values from dftbaby are used
+      exceptions: gradstate, verbose*/
+      dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
+      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
+    } dftb;
+
     struct gaussian_conf
     {
       std::string path, link, charge, multipl, method, basisset, spec;
@@ -549,6 +626,7 @@ namespace config
         delete_input(true)
       {}
     } gaussian;
+
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
@@ -658,6 +736,8 @@ namespace config
 
   struct molecular_dynamics
   {
+    /**temperature control active?*/
+    bool temp_control;
     /**timestep in picoseconds*/
     double timeStep;
     /**initial temperature*/
@@ -736,7 +816,7 @@ namespace config
       refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath(false), veloScale(false), fep(false), track(true),
+      hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }
@@ -765,10 +845,14 @@ namespace config
     std::size_t equil;
     /**output frequency in alchemical.txt (does not affect calculation)*/
     std::size_t freq;
+    /**perform graphical analysis?*/
+    bool analyze;
+    /**use Bennets acceptance ratio?*/
+    bool bar;
     /**constructor*/
     fep(void) :
       lambda(1.0), dlambda(0.1), vdwcouple(1.0), eleccouple(1.0), ljshift(1.0), cshift(1.0),
-      steps(10), equil(10), freq(1)
+      steps(10), equil(10), freq(1), analyze(true), bar(false)
     { }
   };
 
@@ -1019,17 +1103,17 @@ namespace config
     double SPRINGCONSTANT, TEMPERATURE, MCSTEPSIZE, BIASCONSTANT,
       VARIATION, PO_ENERGY_RANGE, BOND_PARAM, INT_IT;
     std::size_t IMAGES, MCITERATION, GLOBALITERATION,
-      CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS;
-    bool NEB_CONN, CONSTRAINT_GLOBAL, TAU,
-      MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS;
-    neb() :
-      OPTMODE("PROJECTED"),
-      SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
-      BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
-      BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
-      GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
-      NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false),
-      INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false)
+      CONNECT_NEB_NUMBER, NUMBER_OF_DIHEDRALS, MCM_SAVEITER;
+    bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, CONN,
+      MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS, INTERNAL_INTERPOLATION, MCM_OPT;
+	neb() :
+		OPTMODE("PROJECTED"),
+		SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
+		BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
+		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),MCM_SAVEITER(1),
+		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
+		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), CONN(true),
+		INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false), INTERNAL_INTERPOLATION(false), MCM_OPT(true)
     {}
   };
 
@@ -1180,6 +1264,15 @@ namespace config
                 pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
                 nSCmultipl, nSCcharge, nSCmethod,
                 hetmultipl, hetcharge, hetmethod;
+  };
+
+  struct layd
+  {
+    std::size_t amount, del_amount, sec_amount, sec_del_amount;
+    char        laydaxis;
+    double      layddist, sec_layddist;
+    bool        hetero_option, replace;
+    std::string layd_secname, reference1, reference2;
   };
 
   //////////////////////////////////////
@@ -1337,6 +1430,9 @@ public:
   config::couplings             couplings;
   config::periodics             periodics;
   config::entropytrails         entropytrails;
+  config::layd                  layd;
+  config::cut                   cut;
+
 
   /*! Constructor of Config object
    *
@@ -1440,5 +1536,4 @@ private:
    * If no object exists (yet), this will be a nullpointer.
    */
   static Config * m_instance;
-
 };

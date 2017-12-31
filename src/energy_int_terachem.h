@@ -59,6 +59,12 @@ namespace energy
         coords::float_type h (void);
         // Optimization in the interface(d program)
         coords::float_type o (void);
+
+        std::vector<coords::float_type> charges() const override
+        {
+          throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
+        }
+
         // Output functions
         void print_E (std::ostream&) const;
         void print_E_head (std::ostream&, bool const endline = true) const;
