@@ -136,7 +136,7 @@ project "CAST"
       flags { "Symbols" }
       defines { "CAST_USE_ARMADILLO" }
     filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_debug"
+      targetname "CAST_linux_x86_armadillo_debug"
     filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
       targetname "CAST_linux_x64_armadillo_debug"
 
@@ -201,7 +201,7 @@ project "CAST"
       links { "blas_win64_MT", "lapack_win64_MT" }
 
     filter { "configurations:Armadillo_Debug", "action:vs2017"}
-      includedirs { "../optional_files/includes/armadillo/"}
+      includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       optimize "Debug"
