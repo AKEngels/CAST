@@ -336,7 +336,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
     e_total *= au2kcal_mol;
     energy = e_total;
 
-    //test output for interface, shound be outcommented
+    //test output for interface, should be commented, only for debug
 
    /* for (unsigned int i = 0; i < xyz_tmp.size(); i++)
     { mos << xyz_tmp[i] << '\n'; }*/
@@ -376,12 +376,13 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
   {
     ++failcounter;
     std::cout << "Warning Gaussian call to '" << gaussian_call
-      << " ' did not return 0 and probably failes.\n( A total of "
+      << " ' did not return 0 and probably failed.\n( A total of "
       << failcounter << " Gaussian call" << (failcounter != 1 ? "s have" : " has")
       << " failed so far.)\n";
-    if (failcounter > 100u)
+
+    if (failcounter > 1000u)
     {
-      throw std::runtime_error("More than 100 Gaussian calls have failed.");
+      throw std::runtime_error("More than 1000 Gaussian calls have failed.");
     }
   }
   return ret;
@@ -401,7 +402,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
   {
     if (Config::get().general.verbosity >=2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.e\n";
+      std::cout << "Gaussian call (e) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
@@ -420,7 +421,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.g\n";
+      std::cout << "Gaussian call (g) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
@@ -432,10 +433,9 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 {
-  if (Config::get().general.verbosity >= 2)
-  {
-    std::cout << "Hessian not implemented in CAST as yet.";
-  }
+
+  throw std::runtime_error("Hessian not implemented in CAST as yet.");
+
   integrity = true;
   print_gaussianInput('h');
   if (callGaussian() == 0) read_gaussianOutput();
@@ -443,7 +443,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.h\n";
+      std::cout << "Gaussian call (h) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }
@@ -462,7 +462,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
   {
     if (Config::get().general.verbosity >= 2)
     {
-      std::cout << "Gaussian call return value was not 0. Treating structure as broken.o\n";
+      std::cout << "Gaussian call (o) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
   }

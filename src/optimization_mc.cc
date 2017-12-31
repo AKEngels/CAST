@@ -60,12 +60,19 @@ bool optimization::global::optimizers::monteCarlo::run(std::size_t const iterati
       movecount = move(tmp);
       // set coords to rehydrated version of dehydrated coords
       coordobj = rehydrate(tmp);
-      if (coordobj.size() != current_size) throw std::logic_error("Rehydrated coords after dehydrated movement exhibit wrong number of atoms.");
-    } else movecount = move(coordobj);
+      if (coordobj.size() != current_size) 
+        throw std::logic_error("Rehydrated coords after dehydrated movement exhibit wrong number of atoms.");
+    } 
+    else 
+      movecount = move(coordobj);
+
     coordobj.to_internal();
     coordobj.to_xyz();
-    if (transf && *transf) { *transf << coordobj; }
-   // if (coordobj.preoptimize()) coordobj.po();
+    if (transf && *transf) 
+    { 
+      *transf << coordobj; 
+    }
+    // if (coordobj.preoptimize()) coordobj.po();
     // Print Method, Iteration, Start Minimum and Transition energy
 
     if (Config::get().general.verbosity > 1U)
