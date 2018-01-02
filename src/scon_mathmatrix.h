@@ -958,14 +958,15 @@ typedef size_t uint_type;
 
   /**
   * @brief Rotation Class. If armadillo is enabled it uses the LAPACK matrix routines otherwise it uses the Eigen matrices.
-  * @author Julian Erdmannsdörfer
+  * @author Julian Erdmannsdoerfer
   * @version 3.0
   *
   * 
   *
   */
 
-  class RotationMatrix {
+  class RotationMatrix 
+  {
   public:
 #ifdef CAST_USE_ARMADILLO
     //Too much work for now.
@@ -974,7 +975,7 @@ typedef size_t uint_type;
     using Rotation = Eigen::AngleAxisd;
     using Transformation = Eigen::Affine3d;
     using Vector = Eigen::Vector3d;
-#endif
+
     static Transformation rotate_around_axis_with_center(double rad_deg, Vector axis, Vector center){
       Translation back(center);
       Translation to_center(-center);
@@ -986,5 +987,6 @@ typedef size_t uint_type;
       Translation to_center(-center);
       return Transformation(back * Rotation(rad_deg, axis.normalized()) * to_center);
     }
+#endif
   };
 //END HEADER
