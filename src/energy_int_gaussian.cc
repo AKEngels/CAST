@@ -248,7 +248,33 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
+	  if (qmmm)
+	  {
+		  if (buffer.find("-------- Electric Field --------") != std::string::npos)
+		  {
+			  std::cout << "section found\n";
+			  coords::Cartesian_Point p;
+			  std::vector<coords::Cartesian_Point> el_field_tmp;
+			  std::getline(in_file, buffer);
+			  std::getline(in_file, buffer);
 
+			  std::getline(in_file, buffer);
+			  while (buffer.substr(0, 15) != " --------------")
+			  {
+				  p.x() = std::stod(buffer.substr(24, 14));
+				  p.y() = std::stod(buffer.substr(38, 14));
+				  p.z() = std::stod(buffer.substr(52, 14));
+
+				  std::cout << p << "\n";
+				  el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+				  std::getline(in_file, buffer);
+			  }
+
+			  std::cout << "after conversion: \n";
+			  for (auto e : el_field_tmp) std::cout << e << "\n";
+			  electric_field = el_field_tmp;
+		  }
+	  }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
@@ -297,31 +323,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
       }//end coordinater reading
 
-      if (qmmm)
-      {
-        std::cout << "read electric field\n";
-        if (buffer.find("-------- Electric Field --------") != std::string::npos)
-        {
-          std::cout << "section found\n";
-          coords::Cartesian_Point p;
-          std::vector<coords::Cartesian_Point> el_field_tmp;
-          std::getline(in_file, buffer);
-          std::getline(in_file, buffer);
 
-          while (buffer.substr(0, 15) != " --------------")
-          {
-            std::getline(in_file, buffer);
-            std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
-
-            std::cout << p << "\n";
-            el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
-          }
-
-          std::cout << "after conversion: \n";
-          for (auto e : el_field_tmp) std::cout << e << "\n";
-          electric_field = el_field_tmp;
-        }
-      }
 
     }//end while(!in_file.eof())
 
