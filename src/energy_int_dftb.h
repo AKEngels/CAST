@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 
 #pragma once 
 
@@ -94,6 +94,10 @@ namespace energy
 				void update(bool const) { }
                 /**function that has to overwritten (at the moment returns bullshit)*/
                 std::vector<coords::float_type> charges() const override;
+                std::vector<coords::Cartesian_Point> get_el_field() const override
+                {
+                  throw std::runtime_error("TODO: Implement electric field.\n");
+                }
                 /**overwritten function*/
                 std::string get_id() const override { return "bullshit"; }
 

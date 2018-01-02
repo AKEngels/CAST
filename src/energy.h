@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #if defined _OPENMP
   #include <omp.h>
@@ -169,6 +169,7 @@ namespace energy
 
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
+    virtual std::vector<coords::Cartesian_Point> get_el_field() const = 0;
 
     /**get id for gaussian call*/
     virtual std::string get_id() const = 0;

@@ -138,7 +138,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
+void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt, bool const qmmm)
 {
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
@@ -297,6 +297,31 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
       }//end coordinater reading
 
+      if (qmmm)
+      {
+        std::cout << "read electric field\n";
+        if (buffer.find("-------- Electric Field --------") != std::string::npos)
+        {
+          std::cout << "section found\n";
+          coords::Cartesian_Point p;
+          std::vector<coords::Cartesian_Point> el_field_tmp;
+          std::getline(in_file, buffer);
+          std::getline(in_file, buffer);
+
+          while (buffer.substr(0, 15) != "---------------")
+          {
+            std::getline(in_file, buffer);
+            std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());
+
+            std::cout << p << "\n";
+            el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+          }
+
+          std::cout << "after conversion: \n";
+          for (auto e : el_field_tmp) std::cout << e << "\n";
+          electric_field = el_field_tmp;
+        }
+      }
 
     }//end while(!in_file.eof())
 
@@ -416,7 +441,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 
   integrity = true;
   if (Config::get().energy.qmmm.use == false) print_gaussianInput('g');
-  if (callGaussian() == 0) read_gaussianOutput(true, false);
+  if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -584,4 +609,10 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
   return charges;
+}
+
+std::vector<coords::Cartesian_Point>
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_el_field() const
+{
+  return electric_field;
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
 * GAUSSIAN Interface
 */
 
@@ -56,6 +56,7 @@ namespace energy
 
         /**return charges*/
         std::vector<coords::float_type> charges() const override;
+        std::vector<coords::Cartesian_Point> get_el_field() const override;
         /**return id for gaussian call*/
         std::string get_id() const override { return id;};
 
@@ -80,13 +81,15 @@ namespace energy
 				// FAILCOUNTER
 				size_t failcounter;
 
+        std::vector<coords::Cartesian_Point> electric_field;
+
         /*
         Gaussian sysCall funcntions
         */
 
         int callGaussian(void);
         void print_gaussianInput(char);
-        void read_gaussianOutput(bool const grad = true, bool const opt = true);
+        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm=false);
         void removeTempFiles(void);
 
         /*

@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 energy_int_qmmm.h
 Purpose: QM/MM interface
@@ -74,6 +74,10 @@ namespace energy
 
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
         /**overwritten function*/
         std::string get_id() const override { return "bullshit"; }
         /**prints total energy (not implemented)*/
@@ -138,6 +142,8 @@ namespace energy
 
         coords::Gradients_3D c_gradient;
         coords::Gradients_3D vdw_gradient;
+
+        std::vector<coords::Cartesian_Point> qm_electric_field;
                
         /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
         bool check_bond_preservation(void) const;

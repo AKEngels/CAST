@@ -1,4 +1,4 @@
-﻿/*DW                            *
+/*DW                            *
 MOPAC Interface
 *                            DW*/
 
@@ -46,6 +46,10 @@ namespace energy
 				double o(void);
 
         std::vector<coords::float_type> charges() const override;
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
         /**overwritten function*/
         std::string get_id() const override { return "bullshit"; }
 
