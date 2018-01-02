@@ -308,7 +308,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           std::getline(in_file, buffer);
           std::getline(in_file, buffer);
 
-          while (buffer.substr(0, 15) != "---------------")
+          while (buffer.substr(0, 15) != " --------------")
           {
             std::getline(in_file, buffer);
             std::sscanf(buffer.c_str(), "%*s %*s %*s %lf %lf %lf", &p.x(), &p.y(), &p.z());

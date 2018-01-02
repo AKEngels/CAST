@@ -470,7 +470,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     }
 
     std::cout << "c_grad before: " << c_gradient << "\n";
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
     {
       for (auto j : mm_indices)
       {
