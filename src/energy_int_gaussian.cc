@@ -145,6 +145,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
+  double mm_el_energy;
 
   auto in_string = id + ".log";
 
@@ -243,25 +244,18 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         excitE.push_back(std::stof(buffer.substr(38)));
       }
 
-      if (qmmm)
-      {
-        if (buffer.find("Self energy of the charges"))
-        {
-          float mm_el_energy = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
-          std::cout << "total energy: " << e_total << "\n";
-          std::cout << "MM electrostatic energy: " << mm_el_energy << "\n";
-          e_total = e_total - mm_el_energy;
-          std::cout << "QM total energy: " << e_total << "\n";
-        }
-      }
-
       if (buffer.find(" SCF Done:") != std::string::npos)
       {
-        e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
+        e_total = std::stod(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
 	  if (qmmm)
 	  {
+		  if (buffer.find("Self energy of the charges") != std::string::npos)
+		  {
+			  mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
+		  }
+
 		  if (buffer.find("-------- Electric Field --------") != std::string::npos)
 		  {
 			  std::cout << "section found\n";
@@ -338,6 +332,14 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
 
     }//end while(!in_file.eof())
+
+	if (qmmm)
+	{
+		std::cout << "total energy: " << e_total << "\n";
+		std::cout << "MM electrostatic energy: " << mm_el_energy << "\n";
+		e_total = e_total - mm_el_energy;
+		std::cout << "QM total energy: " << e_total << "\n";
+	}
 
     if (grad && opt)
     {
