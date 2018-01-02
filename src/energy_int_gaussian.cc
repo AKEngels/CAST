@@ -243,6 +243,18 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         excitE.push_back(std::stof(buffer.substr(38)));
       }
 
+      if (qmmm)
+      {
+        if (buffer.find("Self energy of the charges"))
+        {
+          float mm_el_energy = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
+          std::cout << "total energy: " << e_total << "\n";
+          std::cout << "MM electrostatic energy: " << mm_el_energy << "\n";
+          e_total = e_total - mm_el_energy;
+          std::cout << "QM total energy: " << e_total << "\n";
+        }
+      }
+
       if (buffer.find(" SCF Done:") != std::string::npos)
       {
         e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
