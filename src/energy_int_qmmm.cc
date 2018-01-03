@@ -348,7 +348,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.g(); // get energy for MM part
 
       // get gradients are QM + MM + vdW + Coulomb
-      auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+	  coords::Gradients_3D new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -365,10 +365,10 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     }
     else  // only energy 
     {
-      mm_energy = mmc.e();  // get energy for MM part
+      //mm_energy = mmc.e();  // get energy for MM part
     }
 
-	this->energy = qm_energy; // + mm_energy + vdw_energy;
+	this->energy = qm_energy; // +mm_energy + vdw_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
