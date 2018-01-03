@@ -249,34 +249,37 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         e_total = std::stod(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
-	  if (qmmm)
-	  {
-		  if (buffer.find("Self energy of the charges") != std::string::npos)
-		  {
-			  mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
-		  }
+	    if (qmmm)
+	    {
+        // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
+		    if (buffer.find("Self energy of the charges") != std::string::npos)
+		    {
+			    mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
+		    }
 
-		  if (buffer.find("-------- Electric Field --------") != std::string::npos)
-		  {
-			  coords::Cartesian_Point p;
-			  std::vector<coords::Cartesian_Point> el_field_tmp;
-			  std::getline(in_file, buffer);
-			  std::getline(in_file, buffer);
+        // get the electric field 
+        // the electric field at MM atoms due to QM atoms is used to calculate gradients of electrostatic interaction on MM atoms
+		    if (buffer.find("-------- Electric Field --------") != std::string::npos)
+		    {
+			    coords::Cartesian_Point p;
+			    std::vector<coords::Cartesian_Point> el_field_tmp;
+			    std::getline(in_file, buffer);
+			    std::getline(in_file, buffer);
 
-			  std::getline(in_file, buffer);
-			  while (buffer.substr(0, 15) != " --------------")
-			  {
-				  p.x() = std::stod(buffer.substr(24, 14));
-				  p.y() = std::stod(buffer.substr(38, 14));
-				  p.z() = std::stod(buffer.substr(52, 14));
+			    std::getline(in_file, buffer);
+			    while (buffer.substr(0, 15) != " --------------")
+			    {
+				    p.x() = std::stod(buffer.substr(24, 14));
+				    p.y() = std::stod(buffer.substr(38, 14));
+				    p.z() = std::stod(buffer.substr(52, 14));
 
-				  el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
-				  std::getline(in_file, buffer);
-			  }
+				    el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+				    std::getline(in_file, buffer);
+			    }
 
-			  electric_field = el_field_tmp;
-		  }
-	  }
+			    electric_field = el_field_tmp;
+		    }
+	    }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {

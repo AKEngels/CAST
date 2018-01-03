@@ -74,6 +74,7 @@ namespace energy
 
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_el_field() const override
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
@@ -104,7 +105,7 @@ namespace energy
           distance = d;
         }
 
-        /**???*/
+        /**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
         void update_representation();
 
       private:
@@ -124,25 +125,41 @@ namespace energy
         @paran if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool);
 
+        /**indizes of QM atoms*/
         std::vector<std::size_t> qm_indices;
+        /**indizes of MM atoms*/
         std::vector<std::size_t> mm_indices;
   
         std::vector<std::size_t> new_indices_qm;
         std::vector<std::size_t> new_indices_mm;
        
+        /**coordinates object for QM part*/
         coords::Coordinates qmc;
+        /**coordinates object for MM part*/
         coords::Coordinates mmc;
         
+        /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
+        /**atom charges of MM atoms*/
         std::vector<double> mm_charge_vector;
 
+        /**van der Waals interaction energy between QM and MM atoms*/
         coords::float_type vdw_energy;
+        /**energy of only QM system*/
         coords::float_type qm_energy;
+        /**energy of only MM system*/
         coords::float_type mm_energy;
 
+        /**gradients of electrostatic interaction between QM and MM atoms
+        for MOPAC gradients on QM as well as on MM atoms
+        for GAUSSIAN only gradients on MM atoms (those on QM atoms are calculated by GAUSSIAN)*/
         coords::Gradients_3D c_gradient;
+        /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;
 
+        /**electric field from gaussian calculation for QM and MM atoms(first QM, then MM)
+        only those of the MM atoms are used to calculate the gradients of the electrostatic interaction
+        between QM and MM atoms on the MM atoms*/
         std::vector<coords::Cartesian_Point> qm_electric_field;
                
         /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/

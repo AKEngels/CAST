@@ -287,7 +287,7 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
       out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
     }
     out_file << '\n';
-    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field
+    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
     {
       out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() <<"\n";
     }
@@ -310,7 +310,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     elec_factor = aco_p->params().general().electric;
   }
 
-  update_representation();
+  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
@@ -329,7 +329,6 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
     {   // electric field for QM and MM atoms (from QM)
       qm_electric_field = qmc.energyinterface()->get_el_field();  
-	  //for (auto e : qm_electric_field) std::cout << e << "\n";
     } 
   }
   catch(...)
@@ -347,8 +346,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     {
       mm_energy = mmc.g(); // get energy for MM part
 
-      // get gradients are QM + MM + vdW + Coulomb
-	  auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+      // get gradients: QM + MM + vdW + Coulomb
+	    auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -368,7 +367,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.e();  // get energy for MM part
     }
 
-	this->energy = qm_energy + mm_energy + vdw_energy;
+    // energy = QM + MM + vdW (Coulomb is in QM energy)
+	  this->energy = qm_energy + mm_energy + vdw_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
@@ -376,7 +376,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 }
 
 /**calculates interaction between QM and MM part
-energy is only vdW interactions, gradients are coulomb and vdW
+energy is only vdW interactions
+for MOPAC gradients are coulomb and vdW
+for GAUSSIAN gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
@@ -438,9 +440,9 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         {
           
           if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
-          {    // gradients of coulomb interaction
-			coords::float_type db = b / d;  
-			auto c_gradient_ij = r_ij * db / d;
+          {    // gradients of coulomb interaction (only for MOPAC here)
+			      coords::float_type db = b / d;  
+			      auto c_gradient_ij = r_ij * db / d;
             c_gradient[i] += c_gradient_ij;
             c_gradient[j] -= c_gradient_ij;
           }
@@ -471,8 +473,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     }
 
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
-    {
-	  int j2 = 0;
+    {    // Coulomb gradients for GAUSSIAN (only on MM atoms)
+	    int j2 = 0;
       for (auto j : mm_indices)
       {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
         double charge = mm_charge_vector[j2];
@@ -485,7 +487,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         new_grad.y() = y;
         new_grad.z() = z;
         c_gradient[j] += new_grad;
-		j2++;
+		    j2++;
       }
     }
   }

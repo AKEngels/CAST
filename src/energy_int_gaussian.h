@@ -56,6 +56,8 @@ namespace energy
 
         /**return charges*/
         std::vector<coords::float_type> charges() const override;
+        /**returns electric field that is given by GAUSSIAN
+        (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> get_el_field() const override;
         /**return id for gaussian call*/
         std::string get_id() const override { return id;};
@@ -81,6 +83,8 @@ namespace energy
 				// FAILCOUNTER
 				size_t failcounter;
 
+        /**electric field that is given by GAUSSIAN
+        (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 
         /*

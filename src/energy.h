@@ -169,6 +169,7 @@ namespace energy
 
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
+    /**returns the electric field (used for QM/MM calculations with GAUSSIAN)*/
     virtual std::vector<coords::Cartesian_Point> get_el_field() const = 0;
 
     /**get id for gaussian call*/

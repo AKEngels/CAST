@@ -45,7 +45,9 @@ namespace energy
 				// Optimization in the interface(d program)
 				double o(void);
 
+        /**get atom charges*/
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_el_field() const override
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
