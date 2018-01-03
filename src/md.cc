@@ -1480,14 +1480,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // Calculate new positions and half step velocities
     for (auto i : movable_atoms)
     {
-		std::cout << "Atom " << i << "\n";
       coords::Cartesian_Point acceleration;
       if (beeman == false)  //velocity-verlet
       {
         acceleration = coordobj.g_xyz(i)*md::negconvert / M[i];
-		std::cout << "Gradient: " << coordobj.g_xyz(i) << " Masse: " << M[i] << "Beschleinigung: " << acceleration << "\n";
         V[i] += acceleration*dt_2;
-		std::cout << "Geschwindigkeit: " << V[i] << "\n";
       }
       else  //beeman
       {
@@ -1510,8 +1507,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       // update coordinates
       coordobj.move_atom_by(i, V[i] * dt);
     }
-
-	std::cout << "Position: " << coordobj.xyz() << "\n";
 
     if (coordobj.validate_bonds() == false)  // look if all bonds are okay and save those which aren't 
     {
@@ -1562,7 +1557,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 
     // calculate new energy & gradients
     coordobj.g();
-	std::cout << "Gradienten: " << coordobj.g_xyz() << "\n";
 
     // Apply umbrella potential if umbrella sampling is used
     if (CONFIG.umbrella == true)
@@ -1581,12 +1575,10 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     // add new acceleration and calculate full step velocities
     for (auto i : movable_atoms)
     {
-		std::cout << "Atom " << i << "\n";
       if (beeman == false)  // velocity verlet
       {
         coords::Cartesian_Point const acceleration(coordobj.g_xyz(i)*md::negconvert / M[i]);
         V[i] += acceleration*dt_2;
-		std::cout << "Beschleunigung: "<<acceleration<< " Geschwindigkeit: "<<V[i] << "\n";
       }
       else  // beeman
       {

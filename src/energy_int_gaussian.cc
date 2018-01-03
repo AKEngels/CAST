@@ -105,7 +105,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
       }
       
     }
-    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " NoSymm Charge Density ";
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
@@ -132,17 +132,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
-	std::cout<<"Input given to gaussian: "<< coords::output::formats::xyz(*coords)<<"\n";
-    out_file << '\n';
-	out_file << "-2.622640 -0.189960 -2.436070 -0.180000\n";
-	out_file << "-4.050910 0.024430 -1.982850 0.145000\n";
-	out_file << "-2.341400 -1.243610 -2.340740 0.060000\n";
-	out_file << "-1.929360 0.380940 -1.809650 0.060000\n";
-	out_file << "-2.492800 0.118410 -3.476960 0.060000\n";
-	out_file << "-4.173710 -0.341230 -0.612320 -0.683000\n";
-	out_file << "-4.751160 -0.573190 -2.574300 0.060000\n";
-	out_file << "-4.328520 1.077810 -2.079310 0.060000\n";
-	out_file << "-4.090980 -1.311040 -0.569940 0.418000\n";
 	out_file << '\n';
     out_file.close();
   }
@@ -342,9 +331,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
 	if (qmmm)
 	{
-		
-		//e_total = e_total - mm_el_energy;
-		
+		e_total = e_total - mm_el_energy;	
 	}
 
     if (grad && opt)
@@ -354,7 +341,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
     if (grad || opt)
     {
-	  std::cout << "Gradients read from gaussian: " << g_tmp << "\n";
       coords->swap_g_xyz(g_tmp);
     }
 

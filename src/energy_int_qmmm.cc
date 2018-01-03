@@ -194,7 +194,6 @@ void energy::interfaces::qmmm::QMMM::update_representation()
   std::size_t qi = 0u;
   for (auto i : qm_indices)
   {
-	std::cout << "update atom " << qi << " to " << coords->xyz()[i] << "\n";
     qmc.move_atom_to(qi, coords->xyz()[i], true);
     ++qi;
   }
@@ -282,7 +281,6 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(qmc);
-	std::cout << "Input given to gaussian: " << coords::output::formats::xyz(qmc) << "\n";
     out_file << '\n';
     for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
     {
