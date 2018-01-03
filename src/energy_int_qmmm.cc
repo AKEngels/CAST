@@ -194,6 +194,7 @@ void energy::interfaces::qmmm::QMMM::update_representation()
   std::size_t qi = 0u;
   for (auto i : qm_indices)
   {
+	std::cout << "update atom " << qi << " to " << coords->xyz()[i] << "\n";
     qmc.move_atom_to(qi, coords->xyz()[i], true);
     ++qi;
   }
@@ -281,6 +282,7 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(qmc);
+	std::cout << "Input given to gaussian: " << coords::output::formats::xyz(qmc) << "\n";
     out_file << '\n';
     for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
     {
@@ -310,6 +312,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     elec_factor = aco_p->params().general().electric;
   }
 
+  update_representation();
+
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
     write_mol_in();
@@ -322,14 +326,12 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
-  update_representation();
-
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
     {   // electric field for QM and MM atoms (from QM)
       qm_electric_field = qmc.energyinterface()->get_el_field();  
-	  for (auto e : qm_electric_field) std::cout << e << "\n";
+	  //for (auto e : qm_electric_field) std::cout << e << "\n";
     } 
   }
   catch(...)
@@ -359,7 +361,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
       for (auto && mmi : mm_indices)
       {
-        new_grad[mmi] += g_mm[new_indices_mm[mmi]];
+        //new_grad[mmi] += g_mm[new_indices_mm[mmi]];
       }
       coords->swap_g_xyz(new_grad);
     }
@@ -368,7 +370,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.e();  // get energy for MM part
     }
 
-    this->energy = qm_energy + mm_energy + vdw_energy;
+	this->energy = qm_energy; // + mm_energy + vdw_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
@@ -454,15 +456,15 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           {
             auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
             auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
-            vdw_gradient[i] -= vdw_gradient_ij_sigma;
-            vdw_gradient[j] += vdw_gradient_ij_sigma;
+            //vdw_gradient[i] -= vdw_gradient_ij_sigma;
+            //vdw_gradient[j] += vdw_gradient_ij_sigma;
           }
           else
           {
             auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
             auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
-            vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
-            vdw_gradient[j] += vdw_gradient_ij_R_MIN;
+            //vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
+            //vdw_gradient[j] += vdw_gradient_ij_R_MIN;
           }
         }
         ++j2;
@@ -470,27 +472,27 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    std::cout << "c_grad before: " << c_gradient << "\n";
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
-    {
-	  int j2 = 0;
-      for (auto j : mm_indices)
-      {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
-        double charge = mm_charge_vector[j2];
-        coords::Cartesian_Point el_field = qm_electric_field[j2 + qm_indices.size()];
-		std::cout << "charge: " << charge << ", electric field : " << el_field << "\n";
-        double x = charge * el_field.x();
-        double y = charge * el_field.y();
-        double z = charge * el_field.z();
-        coords::Cartesian_Point new_grad;
-        new_grad.x() = x;
-        new_grad.y() = y;
-        new_grad.z() = z;
-        std::cout << new_grad << "\n";
-        c_gradient[j] += new_grad;
-		j2++;
-      }
-    }
+  //  std::cout << "c_grad before: " << c_gradient << "\n";
+  //  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
+  //  {
+	 // int j2 = 0;
+  //    for (auto j : mm_indices)
+  //    {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
+  //      double charge = mm_charge_vector[j2];
+  //      coords::Cartesian_Point el_field = qm_electric_field[j2 + qm_indices.size()];
+		//std::cout << "charge: " << charge << ", electric field : " << el_field << "\n";
+  //      double x = charge * el_field.x();
+  //      double y = charge * el_field.y();
+  //      double z = charge * el_field.z();
+  //      coords::Cartesian_Point new_grad;
+  //      new_grad.x() = x;
+  //      new_grad.y() = y;
+  //      new_grad.z() = z;
+  //      std::cout << new_grad << "\n";
+  //      c_gradient[j] += new_grad;
+		//j2++;
+  //    }
+  //  }
   }
 }
 
