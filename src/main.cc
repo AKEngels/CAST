@@ -988,7 +988,7 @@ int main(int argc, char **argv)
 
       calculatedDistribution.calculate();
       calculatedDistribution.writeToFile();
-
+      break;
     }
     case config::tasks::LAYER_DEPOSITION:
     {

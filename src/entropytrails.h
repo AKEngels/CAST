@@ -864,7 +864,7 @@ public:
         maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
       }
       maximumOfPDF *= 10.;
-      std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << std::endl;
+      std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
       
       //
       //

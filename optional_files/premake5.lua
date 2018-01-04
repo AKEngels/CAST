@@ -190,7 +190,7 @@ project "CAST"
       links {"python27"}
 
     filter { "configurations:Armadillo_Release", "action:vs2017"}
-      includedirs { "../optional_files/includes/armadillo/"}
+      includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
       libdirs { "../optional_files/windows_precompiled_libs/" }
       optimize "Full"
       defines { "CAST_USE_ARMADILLO" }
