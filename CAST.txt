@@ -204,7 +204,7 @@ DFTBopt                  1
 
 ############################ GAUSSIAN OPTIONS ########################
 
-GAUSSIANlink NProcShared=1 Mem=2GB
+GAUSSIANlink NProcShared=4 Mem=4GB
 
 #Methods for Gaussian Call
 
@@ -228,7 +228,7 @@ GAUSSIANsteep 0
 
 #Gaussian executeable path
 
-GAUSSIANpath g09
+GAUSSIANpath g16
 
 #Delete temporary Gaussian f i l e s ?
 
