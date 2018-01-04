@@ -1433,7 +1433,7 @@ public:
 
   }
 
-  double meanNNEntropyFaivishevsky()
+  void meanNNEntropyFaivishevsky()
   {
     std::cout << "Commencing meanNNEntropyFaivishevsky calculation." << std::endl;
 
@@ -1640,7 +1640,7 @@ public:
         ardakaniSum += log(EvaluateMatrix(2, i));
       ardakaniSum /= double(numberOfDraws);
       ardakaniSum *= double(dimension);
-      ardakaniSum += (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      ardakaniSum += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
       ardakaniSum += digammal(double(numberOfDraws));
       ardakaniSum -= digammal(double(k));
 
@@ -1653,6 +1653,9 @@ public:
       maxArdakaniEntropy += log(pow(2., this->dimension));
       maxArdakaniEntropy += digammal(double(numberOfDraws));
       maxArdakaniEntropy -= digammal(double(k));
+      double maxNormSum = 0.;
+      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
+        maxNormSum += log(EvaluateMatrix(1, i));
 
       // ENTROPY according to Hnzido
       double hnizdoSum = 0.;
@@ -1664,11 +1667,11 @@ public:
 
       // Einschub
       // Entropy according to Lombardi (traditional)
-      double lombardi_without_correction = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      double lombardi_without_correction = hnizdoSum + log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
       lombardi_without_correction += digammal(double(numberOfDraws));
       lombardi_without_correction -= digammal(double(k));
       //
-      double lobardi_maximum_norm = maxArdakaniSum / double(numberOfDraws);
+      double lobardi_maximum_norm = maxNormSum / double(numberOfDraws);
       lobardi_maximum_norm *= double(dimension);
       lobardi_maximum_norm += log(pow(2., this->dimension));
       lobardi_maximum_norm += digammal(double(numberOfDraws));
@@ -1677,19 +1680,20 @@ public:
 
 
       //Einschub calcualtedEntropyGoria
-      double tempsum_knn_goria = hnizdoSum + (log(pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      double tempsum_knn_goria = hnizdoSum;
+      tempsum_knn_goria += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
       tempsum_knn_goria += log(double(numberOfDraws - 1.));
       tempsum_knn_goria -= digammal(double(k));
 
       //MaxNormGoria:
-      double maxnorm_knn_goria = maxArdakaniSum;
+      double maxnorm_knn_goria = maxNormSum;
       maxnorm_knn_goria /= double(numberOfDraws);
       maxnorm_knn_goria *= double(dimension);
       maxnorm_knn_goria += log(pow(2., this->dimension));
       maxnorm_knn_goria += log(double(numberOfDraws - 1.));
       maxnorm_knn_goria -= digammal(double(k));
 
-      hnizdoSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.)) / (tgamma(0.5 * dimension + 1)));
+      hnizdoSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1))));
 
       // The following is identical to -digamma(double(k))
       double tempsum2 = 0;
