@@ -483,9 +483,9 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         double y = charge * el_field.y();
         double z = charge * el_field.z();
         coords::Cartesian_Point new_grad;
-        new_grad.x() = x;
-        new_grad.y() = y;
-        new_grad.z() = z;
+        new_grad.x() = -x;
+        new_grad.y() = -y;
+        new_grad.z() = -z;
         c_gradient[j] += new_grad;
 		    j2++;
       }
