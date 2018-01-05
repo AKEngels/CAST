@@ -264,11 +264,11 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
       }
 
     }
-    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " " << "Charge NoSymm Density ";
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " " << "Charge NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
     case 'g':
-      out_file << " Force Prop=(Field,Read)";
+      out_file << " Force Prop=(Field,Read) Density";
       break;
     }
 
