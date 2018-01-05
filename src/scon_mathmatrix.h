@@ -134,26 +134,17 @@ using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
  */
 namespace scon {
 template <typename T>
-class mathmatrix
-#ifndef CAST_USE_ARMADILLO
-    : public matrix_type<T>
-#else
-    : public matrix_type<T>
-#endif
+class mathmatrix : public matrix_type<T>{
 
-{
 private:
-#ifdef CAST_USE_ARMADILLO
   using base_type = matrix_type<T>;
-#else
-  using base_type = matrix_type<T>;
-#endif
 
 public:
   using int_type = int;
   using uint_type = std::size_t;
   static auto constexpr printFunctionCallVerbosity = 5u;
   static auto constexpr mat_comp_tol = 0.1;
+  static auto constexpr close_to_zero_tol = 1.e-7;
 
   /////////////////////////////////////
   /////                           /////
@@ -204,8 +195,8 @@ public:
                               T const& fill);
 
   // base row and col proxy
-  using base_type::col;
-  using base_type::row;
+  /*using base_type::col;
+  using base_type::row;*/
 
   // element access from base class
   using base_type::operator();
@@ -369,81 +360,81 @@ public:
                                     mathmatrix& V_in) const;
 
   /**
-  * @brief Performs singular value decomposition on *this and returns results
-  * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
-  *
-  * @see singular_value_decomposition(mathmatrix&, mathmatrix&, mathmatrix&)
-  */
+   * @brief Performs singular value decomposition on *this and returns results
+   * to the three resulting matrices U, s, V in a tuple in this sepcific sequence.
+   *
+   * @see singular_value_decomposition(mathmatrix&, mathmatrix&, mathmatrix&)
+   */
   std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
 
   /**
-  * @brief Sorts the column of a matrix and returns a standard vector with the sorted values.
-  * 
-  * The sorting order of the vector is determined by the passed compare fcunction which got to take two values of
-  * type T and returns a boolean vaule. If no specific column is passed the first one is used.
-  * @see sort_col(Comp, std::size_t const&)
-  * @see sort_idx(std::size_t const&)
-  * @see sort_col_asc(std::size_t const&)
-  * @see sort_col_disc(std::size_t const&)
-  */
+   * @brief Sorts the column of a matrix and returns a standard vector with the sorted values.
+   * 
+   * The sorting order of the vector is determined by the passed compare fcunction which got to take two values of
+   * type T and returns a boolean vaule. If no specific column is passed the first one is used.
+   * @see sort_col(Comp, std::size_t const&)
+   * @see sort_idx(std::size_t const&)
+   * @see sort_col_asc(std::size_t const&)
+   * @see sort_col_disc(std::size_t const&)
+   */
   template <typename Comp>
   std::vector<T> sort_col_to_vec(Comp comp, std::size_t const& ind = 0) const;
 
   /**
-  * @brief Sorts the column of a matrix and returns a column matrix with the sorted values.
-  *
-  * The sorting order of the vector is determined by the passed compare fcunction which got to take two values of
-  * type T and returns a boolean vaule. If no specific column is passed the first one is used.
-  * @see sort_col_to_vec(Comp, std::size_t const&)
-  * @see sort_idx(std::size_t const&)
-  * @see sort_col_asc(std::size_t const&)
-  * @see sort_col_disc(std::size_t const&)
-  */
+   * @brief Sorts the column of a matrix and returns a column matrix with the sorted values.
+   *
+   * The sorting order of the vector is determined by the passed compare fcunction which got to take two values of
+   * type T and returns a boolean vaule. If no specific column is passed the first one is used.
+   * @see sort_col_to_vec(Comp, std::size_t const&)
+   * @see sort_idx(std::size_t const&)
+   * @see sort_col_asc(std::size_t const&)
+   * @see sort_col_disc(std::size_t const&)
+   */
   template <typename Comp>
   mathmatrix sort_col(Comp comp, std::size_t const& ind = 0) const;
 
   /**
-  * @brief Sorts the column of a matrix and returns a column matrix in ascending order.
-  *
-  * If no specific column is passed the first one is used.
-  * @see sort_col_to_vec(Comp, std::size_t const&)
-  * @see sort_col(Comp, std::size_t const&)
-  * @see sort_idx(std::size_t const&)
-  * @see sort_col_disc(std::size_t const&)
-  */
+   * @brief Sorts the column of a matrix and returns a column matrix in ascending order.
+   *
+   * If no specific column is passed the first one is used.
+   * @see sort_col_to_vec(Comp, std::size_t const&)
+   * @see sort_col(Comp, std::size_t const&)
+   * @see sort_idx(std::size_t const&)
+   * @see sort_col_disc(std::size_t const&)
+   */
   mathmatrix sort_col_asc(std::size_t const& ind = 0) const;
 
   /**
-  * @brief Sorts the column of a matrix and returns a column matrix in discending order.
-  *
-  * If no specific column is passed the first one is used.
-  * @see sort_col_to_vec(Comp, std::size_t const&)
-  * @see sort_col(Comp, std::size_t const&)
-  * @see sort_idx(std::size_t const&)
-  * @see sort_col_asc(std::size_t const&)
-  */
+   * @brief Sorts the column of a matrix and returns a column matrix in discending order.
+   *
+   * If no specific column is passed the first one is used.
+   * @see sort_col_to_vec(Comp, std::size_t const&)
+   * @see sort_col(Comp, std::size_t const&)
+   * @see sort_idx(std::size_t const&)
+   * @see sort_col_asc(std::size_t const&)
+   */
   mathmatrix sort_col_disc(std::size_t const& ind = 0) const;
 
   /**
-  * @brief Sorts the column of a matrix and returns the indexes in which the entries got to be sorted.
-  *
-  * If no specific column is passed the first one is used. The order is always ascending.
-  * @see sort_col_to_vec(Comp, std::size_t const&)
-  * @see sort_col(Comp, std::size_t const&)
-  * @see sort_col_asc(std::size_t const&)
-  * @see sort_col_disc(std::size_t const&)
-  */
+   * @brief Sorts the column of a matrix and returns the indexes in which the entries got to be sorted.
+   *
+   * If no specific column is passed the first one is used. The order is always ascending.
+   * @see sort_col_to_vec(Comp, std::size_t const&)
+   * @see sort_col(Comp, std::size_t const&)
+   * @see sort_col_asc(std::size_t const&)
+   * @see sort_col_disc(std::size_t const&)
+   */
   std::vector<std::size_t> sort_idx(std::size_t const& ind = 0) const;
 
   /**
-  * @brief Finds all elements in a column compared with a passed function.
-  *
-  * The passed function got to take one agrument of type T and returns a boolean
-  * value. An example would be to pass this lambda [](T const& a){return a<1.0;} 
-  * which would generate a vector containing all indices of elements less than 1.0.
-  * If no column is specified the first one is used.
-  * @return vector of integer which holds the indices of found elements
-  */
+   * @brief Finds all elements in a column compared with a passed function.
+   *
+   * The passed function got to take one agrument of type T and returns a boolean
+   * value. An example would be to pass this lambda [](T const& a){return a<1.0;} 
+   * which would generate a vector containing all indices of elements less than 1.0.
+   * If no column is specified the first one is used.
+   * @return vector of integer which holds the indices of found elements
+   */
   template <typename Comp>
   std::vector<std::size_t> find_idx(Comp comp,
                                     std::size_t const& ind = 0) const;
@@ -457,47 +448,127 @@ public:
 //public:
 //#endif
 
+  /**
+   * @brief Builds a new matrix out of the columns and rows passed by two standard vectors.
+   *
+   * The vectors determining the cloumns and rows got to be the indices starting at 0.
+   * There is no need to keep the passed vectors sorted.
+   * @return new matrix with the desired columns and rows.
+   */
   mathmatrix submat(std::vector<std::size_t> const& columns,
                     std::vector<std::size_t> const& rows) const;
-  mathmatrix submat(std::size_t const& cb, std::size_t const& ce,
-                    std::size_t const& rb, std::size_t const& re) const;
 
+   /**
+    * @brief Builds a new matrix spanning between passed rows and columns.
+    *
+    * The first and third argument determine which rows are taken for the new matirx as do 
+    * the second and fourth argument for the columns.
+    * @return new matrix with the desired columns and rows.
+    */
+  mathmatrix submat(std::size_t const& rb, std::size_t const& cb,
+                    std::size_t const& re, std::size_t const& ce) const;
+
+//#ifdef CAST_USE_ARMADILLO
+//  private:
+//    mathmatrix _submat(std::vector<std::size_t> const& columns,
+//      std::vector<std::size_t> const& rows) {
+//      return base_type::submat(columns, rows);
+//    }
+//    public:
+//#endif
+
+  /**
+   * @brief Compute the pseudoinverse of the matrix.
+   *
+   * If Eigen is used the computation of the pseudoinverse is done via a singular value decomposition.
+   * Otherwise armadillo's intern routine is used.
+   * @return The pseudoinverse of the matrix.
+   */
   mathmatrix pinv() const;
 
-  mathmatrix vectorise(std::size_t const& i = 0) const;
+  /**
+   * @brief transforms the matrix into a column matrix.
+   *
+   * The elements are taken row by row and stored in a column matrix.
+   * @return resulting column matrix
+   */
+  mathmatrix vectorise() const;
 
+  /**
+   * @brief Replaces the specific elements with the passed values.
+   * 
+   * The passed vector got to consist of indices which are to change to the value passed.
+   * The indices start again by 0. If a matrix and not a column matrix is changed the indices
+   * are evaluated column major.
+   */
   void replace_idx_with(std::vector<std::size_t> const& idx, T const& val);
 
+  /**
+   * @brief Picks specific elements of the matrix and returns them as references.
+   *
+   * The passed vector got to consist of indices of the elements desired to be returned as references.
+   * The indices start again by 0. If a matrix and not a column matrix is changed the indices
+   * are evaluated column major.
+   * @return a vector of references_wrapper referencing the desired elements.
+   */
   std::vector<std::reference_wrapper<T>>
-  elem(std::vector<std::size_t> const& idx) const;
+  elem(std::vector<std::size_t> const& idx);
 
+  /**
+   * @brief Builds a diagonal matrix.
+   *
+   * If the passed matrix is a column matrix the elements are set as diagonal elements, otherwise
+   * the diabonal elements are picked and the others are set to zero.
+   * @return A diagonal matrix.
+   */
   mathmatrix diagmat() const;
 
   /**
-   * @brief Performs eigenvalue decomposition on *this and returns eigenval and
-   * eigenvec as well as the rank of *this matrix.
+   * @brief Performs a eigenvalue decomposition.
    *
-   * @param eigenval_in Eigenvalues will be written to this matrix
-   * @param eigenvec_in Eigenvectors will be written to this matrix
-   * @param rank_in Rank of the matrix is stored here
-   *
-   * justification: ptr is used for rank because in can represent a
-   * bool intrinsically through nullptr and therefore stores information
-   * weather rank should be passed through this function.
-   *
+   * The resulting eigenvalues and eigenvectors are calculated and returned. The object itself 
+   * keeps unchanged.
    * @note Matrix is assumed to be symmetric.
+   * @return the eigenvalues and eigenvectors as a std::pair.
+   * @see diag()
    */
   std::pair<mathmatrix, mathmatrix>
       eigensym(/*bool const & sort = false*/) const;
 
+  /**
+   * @brief uses eigensym to diagonalize the matrix
+   *
+   * The object is changed to the eigenvalues as diagonal matrix.
+   * @return the eigenvalues and eigenvectors as a std::pair.
+   * @see eigensym()
+   */
   std::pair<mathmatrix, mathmatrix> diag();
 
+  /**
+   * @brief returns the transpose of the matrix
+   */
   mathmatrix t() const;
 
+  /**
+   * @brief tranforms the specific column into a vector.
+   *
+   * The passed index of the column is transformed into a standard vector.
+   * If no value is passed the first column is used.
+   * @return standard vector with the specific column.
+   */
   std::vector<T> col_to_std_vector(std::size_t const& iter = 0) const;
 
   /**
-   * @brief Returns mathmatrix-obj as std vector of vector of float_type.
+  * @brief tranforms the specific row into a vector.
+  *
+  * The passed index of the row is transformed into a standard vector.
+  * If no value is passed the first row is used.
+  * @return standard vector with the specific row.
+  */
+  std::vector<T> row_to_std_vector(std::size_t const& iter = 0) const;
+
+  /**
+   * @brief Returns mathmatrix-obj as std vector of vector of T.
    * USE THIS TO DEBUG, not in production code.
    * This might be useful as the VS debugger cannot visualize content of arma
    * arrays.
@@ -512,6 +583,9 @@ public:
    */
   void update_debugview(void) const;
 
+  /**
+   * @brief returns true if a matrix is a column matrix
+   */
   bool is_vec() const;
 
 #ifndef CAST_USE_ARMADILLO
@@ -882,11 +956,13 @@ void mathmatrix<T>::append_right(const mathmatrix& I_will_be_the_right_part) {
 
 template <typename T>
 void mathmatrix<T>::shed_rows(long const& first_in, long const& last_in) {
-  if (first_in <= 0 || first_in > last_in || last_in >= this->rows()) {
+
+  auto const last_in_ = last_in == 0 ? first_in : last_in;
+
+  if (first_in < 0 || first_in > last_in_ || last_in >= this->rows()) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
   }
 
-  auto const last_in_ = last_in == 0 ? first_in : last_in;
 
   mathmatrix newOne(this->rows() - (last_in_ - first_in + 1u), this->cols());
   for (auto i = 0; i < first_in; ++i) {
@@ -904,11 +980,12 @@ void mathmatrix<T>::shed_rows(long const& first_in, long const& last_in) {
 
 template <typename T>
 void mathmatrix<T>::shed_cols(long const& first_in, long const& last_in) {
-  if (first_in <= 0 || last_in >= this->cols() || first_in > last_in) {
-    throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
-  }
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
+
+  if (first_in < 0 || first_in > last_in_ || last_in >= this->cols()) {
+    throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_cols()");
+  }
 
   mathmatrix newOne(this->rows(), this->cols() - (last_in_ - first_in + 1u));
   for (auto j = 0; j < this->rows(); ++j) {
@@ -996,16 +1073,20 @@ mathmatrix<T>
 mathmatrix<T>::submat(std::size_t const& rb, std::size_t const& cb,
                       std::size_t const& re, std::size_t const& ce) const {
 #ifndef CAST_USE_ARMADILLO
-  return this->block(rb, cb, re, ce);
+  //Strange behaviour of Eigen if the submatrix spans from index 0. To circumvent:
+  auto re_ = rb == 0 ? re + 1 : re;
+  auto ce_ = cb == 0 ? ce + 1 : ce;
+
+  return this->block(rb, cb, re_, ce_);
 #else
-  return base_type::submat(rb, cb, re - 1, ce - 1);
+  return base_type::submat(rb, cb, re, ce);
 #endif
 }
 
 template <typename T>
 mathmatrix<T> mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
                                                   uint_type columns_in) const {
-  return submat(0, 0, rows_in, columns_in == 0 ? rows_in : columns_in);
+  return submat(0, 0, rows_in-1, (columns_in == 0 ? rows_in : columns_in)-1);
 }
 
 template <typename T>
@@ -1018,6 +1099,11 @@ bool mathmatrix<T>::operator==(mathmatrix<T> const& in) const {
                              mat_comp_tol));
 #endif
 }
+
+//template<typename T>
+//bool operator==(mathmatrix<T> const& lhs, mathmatrix<T> const& rhs) {
+//  return lhs.operator==(rhs);
+//}
 
 template <typename T>
 void mathmatrix<T>::singular_value_decomposition(mathmatrix& U_in,
@@ -1146,21 +1232,36 @@ std::vector<std::size_t> mathmatrix<T>::find_idx(Comp comp,
 
 template <typename T>
 mathmatrix<T>
-mathmatrix<T>::submat(std::vector<std::size_t> const& columns,
-                      std::vector<std::size_t> const& rows) const {
+mathmatrix<T>::submat(std::vector<std::size_t> const& rows,
+                      std::vector<std::size_t> const& columns) const {
 
-#ifndef CAST_USE_ARMADILLO
+//#ifndef CAST_USE_ARMADILLO
+
+  auto reverse_vec = [&](std::vector<std::size_t> const& vec, std::size_t const & size) {
+    std::vector<std::size_t> ret(size);
+    std::iota(ret.rbegin(), ret.rend(), 0);
+    ret.erase(std::remove_if(ret.begin(), ret.end(), [&](std::size_t const & x) {
+      return std::find(vec.begin(), vec.end(),x) != vec.end();
+    }), ret.end());
+    return ret;
+  };
+
   mathmatrix ret(*this);
-  for (auto const& i : columns) {
-    ret.shed_cols(i + 1);
+
+  std::vector<std::size_t> del_rows = reverse_vec(rows, this->rows());
+  std::vector<std::size_t> del_cols = reverse_vec(columns, cols());
+
+  for (auto const& i : del_rows) {
+    ret.shed_rows(i);
   }
-  for (auto const& i : rows) {
-    ret.shed_rows(i + 1);
+  for (auto const& i : del_cols) {
+    ret.shed_cols(i);
   }
   return ret;
-#else
-  return base_type::submat(columns, rows);
-#endif
+//#else
+//  auto ret = *this;
+//  return ret._submat(rows, columns);
+//#endif
 }
 
 template <typename T>
@@ -1168,10 +1269,10 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
 #ifndef CAST_USE_ARMADILLO
   mathmatrix U, V, s;
   singular_value_decomposition(U, s, V);
-  mathmatrix s_inv(cols(), rows(), T());
+  mathmatrix s_inv = zero(rows(), cols());
 
   for (std::size_t i = 0; i < s.rows(); ++i) {
-    s_inv(i, i) = 1. / s(i);
+    s_inv(i, i) = s(i) > close_to_zero_tol ? 1. / s(i) : 0.0;
   }
 
   return V * s_inv * U.t();
@@ -1180,13 +1281,26 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
 #endif
 }
 
-template <typename T>
-mathmatrix<T> mathmatrix<T>::vectorise(std::size_t const& i) const {
-#ifndef CAST_USE_ARMADILLO
-  return mathmatrix(Eigen::Map<Eigen::RowVectorXd>(this->data(), this->size()));
-#else
-  return arma::vectorise(*this, i);
-#endif
+//template <typename T>
+//mathmatrix<T> mathmatrix<T>::vectorise(std::size_t const& i) const {
+//#ifndef CAST_USE_ARMADILLO
+//  return base_type(Eigen::Map<Eigen::RowVectorXd>(this->data(), this->size()));
+//#else
+//  return arma::vectorise(*this, i);
+//#endif
+//}
+
+template<typename T>
+mathmatrix<T> mathmatrix<T>::vectorise() const {
+
+  std::vector<T> ret;
+  ret.reserve(rows()*cols());
+  for (auto i = 0; i < rows(); ++i) {
+    auto tmp_row = row_to_std_vector(i);
+    ret.insert(ret.end(), tmp_row.begin(), tmp_row.end());
+  }
+
+  return col_from_vec(ret);
 }
 
 template <typename T>
@@ -1204,7 +1318,7 @@ void mathmatrix<T>::replace_idx_with(std::vector<std::size_t> const& idx,
 
 template <typename T>
 inline std::vector<std::reference_wrapper<T>>
-mathmatrix<T>::elem(std::vector<std::size_t> const& idx) const {
+mathmatrix<T>::elem(std::vector<std::size_t> const& idx) {
   std::vector<std::reference_wrapper<T>> ret;
 #ifndef CAST_USE_ARMADILLO
   auto dat = data();
@@ -1292,36 +1406,50 @@ mathmatrix<T> mathmatrix<T>::t() const {
 
 template <typename T>
 std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const& iter) const {
-  if (cols() != 1 && iter == 0) {
-    throw std::runtime_error("This is not a vector it is a matrix!");
+  if (cols() <= iter) {
+    throw std::runtime_error("The required col is out of bounds!");
   }
-  std::vector<T> ret;
-  ret.reserve(rows());
 #ifndef CAST_USE_ARMADILLO
   auto const& dat = data();
+#else
+  auto const& dat = memptr();
+#endif
   auto const& r = rows();
   return std::vector<T>(dat + r * iter, dat + r * (iter + 1));
+//#else
+//  return arma::conv_to<std::vector<T>>::from(static_cast<arma::Col>(col(iter)));
+//#endif
+}
+
+template <typename T>
+std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const& iter) const {
+  if (rows() <= iter) {
+    throw std::runtime_error("The required row is out of bounds!");
+  }
+  std::vector<T> ret;
+  ret.reserve(cols());
+#ifndef CAST_USE_ARMADILLO
+  auto const& dat = data();
 #else
-  return arma::conv_to<std::vector<T>>::from(row(iter))
+  auto const& dat = memptr();
 #endif
+  auto const& r = rows();
+  for (auto i = 0; i < cols(); ++i) {
+    ret.emplace_back(*(dat + (r*i) + iter));
+  }
+  return ret;
+  //#else
+  //  return arma::conv_to<std::vector<T>>::from(static_cast<arma::Col>(col(iter)));
+  //#endif
 }
 
 template <typename T>
 std::vector<std::vector<T>> mathmatrix<T>::to_std_vector() const {
   std::vector<std::vector<T>> ret;
   ret.reserve(rows());
-#ifndef CAST_USE_ARMADILLO
-  auto dat = data();
-  auto const& c = cols();
   for (auto i = 0; i < rows(); ++i) {
-    ret.emplace_back(std::vector<double>(dat, dat + c));
-    dat += c;
+    ret.emplace_back(row_to_std_vector(i));
   }
-#else
-  for (auto i = 0; i < rows(); ++i) {
-    ret.emplace_back(arma::conv_to<std::vector<T>>::from(row(i)));
-  }
-#endif
   return ret;
 }
 
@@ -1346,7 +1474,7 @@ void mathmatrix<T>::update_debugview(void) const {
 }
 
 template <typename T>
-bool mathmatrix<T>::is_vec() const {
+inline bool mathmatrix<T>::is_vec() const {
   return cols() == 1;
 }
 
