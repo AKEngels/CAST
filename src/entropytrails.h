@@ -1007,32 +1007,18 @@ private:
 // the number of draws(iter), dimensionality(dimension)
 // and standard deviation (sigma)
 // 
-// No calculations have been done here
-//
-// CURRENTLY ONLY WORKS WITH NORMAL DISTRIBUTION
-// CURRENTLY DIMENSION NEEDS TO BE 1
-//
-// drawAndEvaluateMatrix:
-// Matrix Layout after calculation:
-// First col: Drawn samples
-// Second col: k / iter * kNNdistance
-// Third col: Value of real distribution
-// Fourth col: kNN Distance
 class entropyobj
 {
 public:
   size_t numberOfDraws, dimension;
-  Matrix_Class drawAndsEvaluateMatrix;
   Matrix_Class drawMatrix;
   int identifierOfPDF;
   ProbabilityDensity probdens;
-  double mean, standardDeviation;
   std::vector<unsigned int> subDimsGMM;
   entropyobj(size_t iter_, ProbabilityDensity probdens_, std::vector<unsigned int> const& subdimsGMM_) :
-    drawAndsEvaluateMatrix(iter_, 5),
     numberOfDraws(iter_), dimension(probdens_.getDimension()), drawMatrix(iter_, probdens_.getDimension()),
     probdens(probdens_), identifierOfPDF(probdens_.ident()),
-    mean(0.), standardDeviation(0.), subDimsGMM(subdimsGMM_)
+    subDimsGMM(subdimsGMM_)
   {
     // Check if draw exists
     std::ifstream myfile;
@@ -1170,6 +1156,7 @@ class calculatedentropyobj : public entropyobj
 {
 public:
   size_t k;
+  double mean, standardDeviation;
   double calculatedEntropyHnizdo;
   double calculatedEntropyLombardi;
   double calculatedEntropyMeanFaivishevskyMaximum;
@@ -1187,6 +1174,8 @@ public:
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
     k(k_),
+    mean(std::numeric_limits<double>::quiet_NaN()),
+    standardDeviation(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyHnizdo(std::numeric_limits<double>::quiet_NaN()),
     calculatedEntropyLombardi(std::numeric_limits<double>::quiet_NaN()),
     mcintegrationEntropy(std::numeric_limits<double>::quiet_NaN()),
@@ -1559,8 +1548,6 @@ public:
     if(Config::get().entropytrails.meanNNcalculation)
       meanNNEntropyFaivishevsky();
 
-    
-
 
     // Calculate Hnizdo as well as Lombardi/Pant entropy
     if (Config::get().entropytrails.NNcalculation)
@@ -1575,7 +1562,10 @@ public:
       //Neccessarry
       transpose(drawMatrix);
       Matrix_Class copytemp = drawMatrix;
-      Matrix_Class EvaluateMatrix(4, numberOfDraws, 0.);
+      Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
+      Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
+      Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
+      Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
       //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
       std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
       std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
@@ -1592,30 +1582,31 @@ public:
       }
 
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) shared(EvaluateMatrix)
+#pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
+      shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
       {
 #endif
         float_type* buffer = new float_type[k];
 #ifdef _OPENMP
-        auto const n_omp = static_cast<std::ptrdiff_t>(EvaluateMatrix.cols());
+        auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
 
 #pragma omp for
         for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
-        for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
+        for (size_t i = 0u; i < numberOfDraws; i++)
 #endif
         {
-          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance(copytemp, this->dimension, k, 0u, i, buffer));
-          EvaluateMatrix(0, i) = holdNNdistanceEucl;
-
           std::vector<size_t> rowQueryPts;
           for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
           {
             rowQueryPts.push_back(currentDim);
           }
 
+          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, this->dimension, k, rowQueryPts, i, buffer));
+          eucl_kNN_distances(0, i) = holdNNdistanceEucl;
+
           const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, rowQueryPts, i, buffer);
-          EvaluateMatrix(1, i) = holdNNdistanceMax;
+          maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
           //EvaluateMatrix(2, i) = PDFtemporary(copytemp(0, i));
           //EvaluateMatrix(3, i) = holdNNdistance;
           // Ardakani Correction
@@ -1623,9 +1614,10 @@ public:
           std::vector<double> current;
           for (unsigned int j = 0u; j < this->dimension; j++)
             current.push_back(copytemp(j, i));
-          EvaluateMatrix(2, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
+
+          eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
             ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
-          EvaluateMatrix(3, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
+          maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
             ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
           // Lombardi kPN hier, fehlt bisher noch
         }
@@ -1635,33 +1627,40 @@ public:
 
 
       // Eucledean ArdakaniSum
-      double ardakaniSum = 0.f;
-      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-        ardakaniSum += log(EvaluateMatrix(2, i));
-      ardakaniSum /= double(numberOfDraws);
+      KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum,log(eucl_kNN_distances_ardakani_corrected(0, i)));
+
+      double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
       ardakaniSum *= double(dimension);
       ardakaniSum += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
       ardakaniSum += digammal(double(numberOfDraws));
       ardakaniSum -= digammal(double(k));
 
       // Maximum Norm ArdakaniSum
-      double maxArdakaniSum = 0.f;
-      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-        maxArdakaniSum += log(EvaluateMatrix(3, i));
-      double maxArdakaniEntropy = maxArdakaniSum / double(numberOfDraws);
+      KahanAccumulation<double> kahan_acc_max_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum,log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+
+      double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
       maxArdakaniEntropy *= double(dimension);
       maxArdakaniEntropy += log(pow(2., this->dimension));
       maxArdakaniEntropy += digammal(double(numberOfDraws));
       maxArdakaniEntropy -= digammal(double(k));
-      double maxNormSum = 0.;
-      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-        maxNormSum += log(EvaluateMatrix(1, i));
+
+
+      KahanAccumulation<double> kahan_acc_max_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum,log(maxnorm_kNN_distances(0, i)));
+      double maxNormSum = kahan_acc_max_sum.sum;
 
       // ENTROPY according to Hnzido
-      double hnizdoSum = 0.;
-      for (size_t i = 0u; i < EvaluateMatrix.cols(); i++)
-        hnizdoSum += log(EvaluateMatrix(0, i));
+      KahanAccumulation<double> kahan_acc_eucl_sum;
 
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+
+      double hnizdoSum = kahan_acc_eucl_sum.sum;
       hnizdoSum /= double(numberOfDraws);
       hnizdoSum *= double(dimension);
 
@@ -1676,8 +1675,6 @@ public:
       lobardi_maximum_norm += log(pow(2., this->dimension));
       lobardi_maximum_norm += digammal(double(numberOfDraws));
       lobardi_maximum_norm -= digammal(double(k));
-
-
 
       //Einschub calcualtedEntropyGoria
       double tempsum_knn_goria = hnizdoSum;

@@ -15,6 +15,7 @@ Hnizdo, Hnizdo marginal, Knapp
 #pragma once
 #include "matop.h"
 #include "alignment.h"
+#include "kaham_summation.h"
 
 namespace entropy
 {
@@ -30,33 +31,22 @@ namespace entropy
   * used in the search (example {1, 4, 5}).
   * @param col_querypt Columns index of the query Points.
   */
-  float_type knn_distance(
-    Matrix_Class const& input, size_t
-    const& dimension_in, size_t const& k_in,
+  float_type knn_distance_eucl_squared(
+    Matrix_Class const& input, 
+    size_t const& dimension_in, 
+    size_t const& k_in,
     std::vector<size_t>& row_querypts,
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
 
   float_type maximum_norm_knn_distance(
-    Matrix_Class const& input, size_t
-    const& dimension_in, size_t const& k_in,
+    Matrix_Class const& input, 
+    size_t const& dimension_in, 
+    size_t const& k_in,
     std::vector<size_t> const& row_querypts,
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
-
-  /**
-  * Outputs the !SQUARED! next-neighbor distance in eucledean space
-  * of the k-nearest neighbor to the query-Point. Rows are dimensions
-  * of the data points, columns are the actual data points.
-  *
-  * @param dimension_in Dimensionality of the search (will simply use
-  * subsequent rows starting from "row_query_Pt").
-  * @param k_in The k-th nearest neighbor will be searched.
-  * @param row_querypt Row index of the query Point.
-  * @param col_querypt Columns index of the query Point.
-  */
-  float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_querypt, size_t const& col_querypt, coords::float_type* buffer = nullptr);
 
 
   /**

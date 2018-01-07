@@ -5,70 +5,7 @@
 namespace entropy
 {
 
-
-  float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, size_t const& row_queryPt, size_t const& col_queryPt, coords::float_type* buffer)
-  {
-    float_type temp_distance = 0.0;
-    float_type hold_distance;
-    float_type *distanceList = buffer;
-    if (buffer == nullptr)
-    {
-      distanceList = new float_type[k_in];
-    }
-    distanceList[0] = std::numeric_limits<float_type>::max();
-    // This iterates over the "n-th" next neighbors
-    // (to get the second next neighbor you have to find the first next neighbor etc. )
-    for (size_t i = 0; i < k_in; i++)
-    {
-      // Get max() is initial value for distance comparison.
-      // This garantues that the first calcualted value is smaller than
-      // hold_distance.
-      hold_distance = std::numeric_limits<float_type>::max();
-
-      // This iterates over all points in the set
-      for (size_t j = 0; j < input.cols(); j++)
-      {
-        // Of course we cannot count the distance of an member to itself
-        // since it is =0.0
-        if (j == col_queryPt) { continue; }
-
-        // For number of dimensions, add the squared distance of the queryPt
-        // to the current point ("j") of each dimensions which equals a
-        // squared distance in euclidean space
-        temp_distance = 0.0;
-        for (size_t l = 0; l < dimension_in; l++)
-        {
-          temp_distance += pow((input)(row_queryPt + l, j) - (input)(row_queryPt + l, col_queryPt), 2);
-        }
-
-        // If we are searching for the actual, "first" nearest neighbor
-        // we will compare the distance in "hold_distance", initialized as a huge number,
-        // to the calcualted temp_distance ("Is this point nearer to the query point
-        // than the previously established nearest point?"). We will, of course,
-        // keep the smaller (squared) distance of the two.
-        if (i == 0 && temp_distance < hold_distance)
-        {
-          hold_distance = temp_distance;
-        }
-
-        // If we are searching for the "(i + 1)-th" nearest neighbot
-        // we will compare "hold_distance" to "temp_distance". If temp_distance is smaller, it
-        // will be kept, however, only if it is also larger than the previously established
-        // "i-th" nearest neighbor. Otherwise we would always just get the absolute nearest neighbor in
-        // a set of points, and not the k-th nearest neighbor.
-        else if (i > 0 && temp_distance < hold_distance && temp_distance > distanceList[i - 1])
-        {
-          hold_distance = temp_distance;
-        }
-      }
-      distanceList[i] = hold_distance;
-    }
-    float_type keeper = distanceList[k_in - 1u];
-    if (buffer == nullptr) delete[] distanceList;
-    return keeper;
-  }
-
-  float_type knn_distance(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
+  float_type knn_distance_eucl_squared(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
     //Will throw if input is wrong
   {
@@ -337,7 +274,7 @@ namespace entropy
     }
   }
 
-  float_type TrajectoryMatrixRepresentation::hnizdo(size_t const k)
+  float_type TrajectoryMatrixRepresentation::hnizdo(size_t const kNN)
   {
     // If openMP is used, every thread needs its own copy
     // Otherwise we may work with a reference
@@ -348,25 +285,34 @@ namespace entropy
 #endif
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)" << std::endl;
       
+      std::vector<size_t> row_queryPoints;
+      for (unsigned int i = 0u; i < input.rows(); ++i)
+        row_queryPoints.push_back(i);
       
-      float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), k, (size_t)0u, (size_t)0u)));
+
+
+      float_type distance = 0.;
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(input, k) reduction(+:distance)
+#pragma omp parallel firstprivate(input, kNN) reduction(+:distance)
       {
 #endif
-        float_type* buffer = new float_type[k];
+        KahanAccumulation<double> kahan_acc;
+        float_type* buffer = new float_type[kNN];
 #ifdef _OPENMP
 #pragma omp for
 #endif
-        for (int k = 1; k < (int)input.cols(); k++)
+        for (int i = 1; i < (int)input.cols(); i++)
         {
           // NOTE: This should be reviewed!
           //
           // Should be equivalent to the original version but with less costly sqrt:
           // This is the squared distance btw
           // distance *= knn_distance(input_workobj,  input.rows(), k, (size_t) 0u, (size_t) k);
-          distance += std::log(std::sqrt(knn_distance(input, input.rows(), k, (size_t)0u, (size_t)k, buffer)));
+          float_type distance = std::log(std::sqrt(knn_distance_eucl_squared(input, input.rows(), kNN, std::vector<size_t>{0u}, (size_t)i, buffer)));
+        
+          kahan_acc = KahanSum(kahan_acc, distance);
         }
+        distance += kahan_acc.sum;
         delete[] buffer;
 #ifdef _OPENMP
       }
@@ -375,11 +321,12 @@ namespace entropy
       // Adding constants according to original publication
       float_type temporary = float_type(input.cols()) * pow(3.14159265358979323846, 0.5);
       temporary /= tgamma((1 / 2) + 1);
+      
       distance += log(temporary);
       temporary = 0;
-      if (k != 1)
+      if (kNN != 1)
       {
-        for (size_t i = 1; i < k; i++)
+        for (size_t i = 1; i < kNN; i++)
         {
           temporary += 1.0 / float_type(i);
         }
@@ -393,7 +340,7 @@ namespace entropy
       return entropy;
   }
 
-  float_type TrajectoryMatrixRepresentation::hnizdo_marginal(size_t const k)
+  float_type TrajectoryMatrixRepresentation::hnizdo_marginal(size_t const kNN)
   {
     // If openMP is used, every thread needs its own copy
     // Otherwise we may work with a reference
@@ -409,26 +356,28 @@ namespace entropy
 
     //Calculate Non-Paramteric Entropies
 #ifdef _OPENMP
-#pragma omp parallel for firstprivate(input, k) shared(marginal_entropy_storage)
+#pragma omp parallel for firstprivate(input, kNN) shared(marginal_entropy_storage)
 #endif // _OPENMP
     for (int i = 0; i < (int)input.rows(); i++)
     {
-      float_type* buffer = new float_type[k];
-      double distance = 0.0;
-      for (size_t k = 0; k < input.cols(); k++)
+      KahanAccumulation<double> kahan_acc;
+
+      float_type* buffer = new float_type[kNN];
+      for (size_t j = 0; j < input.cols(); j++)
       {
-        distance += log(sqrt(knn_distance(input, 1, k, (size_t)i, k, buffer))); // set eucledean distance to ouptut
+        float_type distance = log(sqrt(knn_distance_eucl_squared(input, 1, kNN, std::vector<size_t>{static_cast<size_t>(i)}, j, buffer))); // set eucledean distance to ouptut
+        kahan_acc = KahanSum(kahan_acc, distance);
       }
-      distance /= float_type(input.cols());
+      float_type distance = kahan_acc.sum / float_type(input.cols());
 
       // Adding mathematical constants according to original publication
       float_type temp = float_type(input.cols()) * pow(3.14159265358979323846, 0.5);
       temp /= tgamma((1 / 2) + 1);
       distance += log(temp);
       temp = 0;
-      if (k != 1)
+      if (kNN != 1)
       {
-        for (size_t l = 1; l < k; l++)
+        for (size_t l = 1; l < kNN; l++)
         {
           temp += 1.0 / float_type(l);
         }
@@ -540,7 +489,7 @@ namespace entropy
       quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
       entropy_sho += quantum_entropy(i, 0u);
     }
-    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
+    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
     return entropy_sho;
   }
 
@@ -599,8 +548,8 @@ namespace entropy
       quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
       entropy_sho += quantum_entropy(i, 0u);
     }
-    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)\n";
-    std::cout << "Starting corrections for anharmonicity and M.I... \n";
+    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
+    std::cout << "Starting corrections for anharmonicity and Mutual Information to second order." << std::endl;
 
     //Corrections for anharmonicity and M.I.
     // I. Create PCA-Modes matrix
@@ -613,7 +562,8 @@ namespace entropy
     Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
 
 
-    // Remove this for release, debug
+    // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
+    // but sensible and reasonable to obtain valid values.
     pow(pca_modes, -1.);
     pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp));
     //
@@ -627,14 +577,20 @@ namespace entropy
     for (int i = 0; i < (int)pca_modes.rows(); i++)
     {
       float_type* buffer = new float_type[k_kNN];
-      float_type distance = 0.0;
+
+      KahanAccumulation<float_type> summedDistances;
       {
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(pca_modes, 1, k_kNN, i, k, buffer)));
+          float_type distance = log(sqrt(knn_distance_eucl_squared(pca_modes, 1, k_kNN, std::vector<size_t>{static_cast<size_t>(i)}, k, buffer)));
+          KahanSum(summedDistances, distance);
         }
       }
-      distance /= float_type(pca_modes.cols());
+
+
+      float_type distance = summedDistances.sum;
+
+      distance /= float_type(pca_modes.cols()); // Number of draws
       float_type temp = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 0.5);
       temp /= tgamma((1 / 2) + 1);
       distance += log(temp);
@@ -656,13 +612,17 @@ namespace entropy
       for (size_t j = i + 1; j < pca_modes.rows(); j++)
       {
         std::vector<size_t> query_rows{ (size_t)i,j };
+        KahanAccumulation<float_type> kahan_acc;
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
-          distance += log(sqrt(knn_distance(pca_modes, 2, k_kNN, query_rows, k, buffer)));
+          float_type dist_temp = log(sqrt(knn_distance_eucl_squared(pca_modes, 2, k_kNN, query_rows, k, buffer)));
+          KahanSum(kahan_acc, dist_temp);
         }
-
-        distance /= 2 * float_type(pca_modes.cols());
+        distance = kahan_acc.sum;
+        distance *= 2.;
+        distance /= float_type(pca_modes.cols());
         float_type temp2 = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 1);
+        // Gamma(2) = 1. We omit temp2 /= 1.
 
         distance += log(temp2);
         temp2 = 0;
