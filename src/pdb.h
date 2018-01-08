@@ -1,8 +1,6 @@
 #ifndef cast_pdb_h_guard
 #define cast_pdb_h_guard
 
-#pragma once
-
 #include "coords_rep.h"
 
 #include <array>

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /**
 CAST 3

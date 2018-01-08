@@ -1,4 +1,4 @@
-﻿
+
 //////////   //////////   //////////   ////////// 
 //           //      //   //               //
 //           //      //   //               //
@@ -281,45 +281,9 @@ int main(int argc, char **argv)
     {
       // DEVTEST: Room for Development testing
 
-      using mat = scon::mathmatrix<coords::float_type>;
-
-      auto printMat = [](auto const & X) {
-        std::cout << X << "\n\n";
-      };
-
-      mat A{
-        {.5, 1., 1.},
-        {1., .5, 1.},
-        {1., 1., .5}
-      };
-      mat B{
-        {1., .5, .5},
-        {.5, 1., .5},
-        {.5, .5, 1.}
-      };
-      printMat(A + B);
-      printMat(A - B);
-      printMat(A*B);
-      
-      mat C = A*B;
-      printMat(C.upper_left_submatrix(2,2));
-
-      mat Eval, Evec;
-
-      C=mat{
-        {.5, 2., 2.},
-        { 2., .5, 1. },
-        { 2., 1., .5 }
-      };
-
-      std::tie(Eval, Evec) = C.diag();
-
-      printMat(Eval);
-      printMat(Evec);
-      printMat(C);
-
-      //ic_testing exec_obj;
-      //exec_obj.ic_execution(&coords);
+     
+      ic_testing exec_obj;
+      exec_obj.ic_execution(&coords);
       break;
     }
     case config::tasks::SP:
