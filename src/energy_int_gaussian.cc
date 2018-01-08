@@ -1,4 +1,4 @@
-﻿#include <vector>
+#include <vector>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -132,6 +132,21 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
+    out_file << '\n';
+    if (Config::get().energy.gaussian.method == "DFTB=read")
+    {
+      std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
+      for (auto p : pairs)
+      {
+        std::string filename = p[0] + "-" + p[1] + ".skf";
+        if (file_exists(filename) == false)
+        {
+          std::cout << "ERROR! Slater Koster file " << filename << " does not exist. Please download it from dftb.org and convert it with the task MODIFY_SK_FILES!\n";
+          std::exit(0);
+        }
+        out_file << "@./" << filename <<" /N\n";
+      }
+    }
     out_file << '\n';
     out_file.close();
   }

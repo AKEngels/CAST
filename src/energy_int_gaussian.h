@@ -1,4 +1,4 @@
-﻿/*
+/*
 * GAUSSIAN Interface
 */
 
@@ -8,6 +8,7 @@
 #include <string>
 #include "energy.h"
 #include "helperfunctions.h"
+#include "modify_sk.h"
 
 
 namespace energy

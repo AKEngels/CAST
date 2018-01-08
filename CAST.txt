@@ -214,6 +214,10 @@ GAUSSIANmethod HF
 
 GAUSSIANbasisset 6-31G
 
+#Further specifications for Gaussian Call
+
+#GAUSSIANspecifications
+
 #Charge of the Molecule
 
 GAUSSIANcharge 0

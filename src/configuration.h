@@ -619,7 +619,7 @@ namespace config
     {
       std::string path, link, charge, multipl, method, basisset, spec;
       bool delete_input, steep;
-      gaussian_conf(void) : method("Hf/ "), basisset ("6-31G"),
+      gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""),
         delete_input(true)
       {}
     } gaussian;
