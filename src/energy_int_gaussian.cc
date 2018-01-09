@@ -421,10 +421,6 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
     std::string oldname = id + ".log";
     std::string newname = "fail_" + std::to_string(failcounter) + ".log";  
     int result = rename(oldname.c_str(), newname.c_str());
-    if (result == 0)
-      std::cout<<"File successfully renamed\n";
-    else
-      std::cout << "Error renaming file\n";
 
     if (failcounter > 1000u)
     {
