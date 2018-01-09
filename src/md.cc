@@ -1557,6 +1557,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 
     // calculate new energy & gradients
     coordobj.g();
+
     // Apply umbrella potential if umbrella sampling is used
     if (CONFIG.umbrella == true)
     {

@@ -150,6 +150,7 @@ MOPACversion MOPAC2016
 
 QMMMqmatoms           4-6
 QMMMmminterface       OPLSAA
+QMMMqminterface       MOPAC
 
 
 ################# DFTB options ################################################

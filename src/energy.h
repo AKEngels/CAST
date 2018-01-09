@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #if defined _OPENMP
   #include <omp.h>
@@ -167,8 +167,13 @@ namespace energy
     /** Optimization in the intface or interfaced program*/
     virtual coords::float_type o (void) = 0;
 
-    // Return charges
+    /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
+    /**returns the electric field (used for QM/MM calculations with GAUSSIAN)*/
+    virtual std::vector<coords::Cartesian_Point> get_el_field() const = 0;
+
+    /**get id for gaussian call*/
+    virtual std::string get_id() const = 0;
 
     // Feature getter
     bool has_periodics() const { return periodic; }

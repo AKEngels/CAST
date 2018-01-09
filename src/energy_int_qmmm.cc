@@ -1,4 +1,4 @@
-﻿#include <cstddef>
+#include <cstddef>
 
 #include "energy_int_qmmm.h"
 #include "scon_utility.h"
@@ -59,15 +59,15 @@ namespace
     return new_indices_mm;
   }
 
-  coords::Coordinates make_mopac_coords(coords::Coordinates const * cp,
+  coords::Coordinates make_qm_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
     auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = config::interface_types::T::MOPAC;
-    coords::Coordinates new_mopac_coords;
+    Config::set().general.energy_interface = Config::get().energy.qmmm.qminterface;
+    coords::Coordinates new_qm_coords;
     if (cp->size() >= indices.size())
     {
-      coords::Atoms new_mopac_atoms;
+      coords::Atoms new_qm_atoms;
       coords::PES_Point pes;
       pes.structure.cartesian.reserve(indices.size());
       for (auto && a : indices)
@@ -84,13 +84,13 @@ namespace
         {
           at.bind_to(new_indices.at(b));
         }
-        new_mopac_atoms.add(at);
+        new_qm_atoms.add(at);
         pes.structure.cartesian.push_back(cp->xyz(a));
       }
-      new_mopac_coords.init_swap_in(new_mopac_atoms, pes);
+      new_qm_coords.init_swap_in(new_qm_atoms, pes);
     }
     Config::set().general.energy_interface = tmp_i;
-    return new_mopac_coords;
+    return new_qm_coords;
   }
 
   coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
@@ -134,7 +134,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mm_indices(get_mm_atoms(cp->size())),
   new_indices_qm(make_new_indices_qm(cp->size())),
   new_indices_mm(make_new_indices_mm(cp->size(), mm_indices)),
-  qmc(make_mopac_coords(cp, qm_indices, new_indices_qm)),
+  qmc(make_qm_coords(cp, qm_indices, new_indices_qm)),
   mmc(make_aco_coords(cp, mm_indices, new_indices_mm))
 {
   if (!tp.valid())
@@ -206,21 +206,10 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 
 }
 
-/**calculates energies and gradients
-@paran if_gradient: true if gradients should be calculated, false if not*/
-coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
+// mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
+void energy::interfaces::qmmm::QMMM::write_mol_in()
 {
-  integrity = true;
-
   auto elec_factor = 332.0;
-  mm_charge_vector = mmc.energyinterface()->charges();
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
-  }
-
-  // mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
   std::cout << std::setprecision(6);
 
   std::ofstream molstream{ "mol.in" };
@@ -246,17 +235,108 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   {
     throw std::runtime_error("Cannot write mol.in file.");
   }
-  update_representation();
+}
+
+// write gaussian inputfile
+void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
+{
+  std::string id = qmc.energyinterface()->get_id();
+  id += "_G_";
+  std::string outstring(id);
+  outstring.append(".gjf");
+
+  std::ofstream out_file(outstring.c_str(), std::ios_base::out);
+
+  if (out_file)
+  {
+    if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
+
+      std::istringstream iss(Config::get().energy.gaussian.link);
+
+      std::vector<std::string> splitted_str(
+        std::istream_iterator<std::string>{iss},
+        std::istream_iterator<std::string>{}
+      );
+
+      for (std::size_t i = 0; i < splitted_str.size(); i++)
+      {
+        out_file << '%' << splitted_str[i] << '\n';
+      }
+
+    }
+    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " " << "Charge NoSymm ";
+
+    switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
+    case 'g':
+      out_file << " Force Prop=(Field,Read) Density";
+      break;
+    }
+
+    out_file << '\n';
+    out_file << '\n';
+    out_file << Config::get().general.outputFilename;
+    out_file << '\n';
+    out_file << '\n';
+    out_file << Config::get().energy.gaussian.charge << " ";
+    out_file << Config::get().energy.gaussian.multipl;
+    out_file << '\n';
+    out_file << coords::output::formats::xyz(qmc);
+    out_file << '\n';
+    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
+    {
+      out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
+    }
+    out_file << '\n';
+    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
+    {
+      out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() <<"\n";
+    }
+    out_file.close();
+  }
+  else std::runtime_error("Writing Gaussian Inputfile failed.");
+}
+
+/**calculates energies and gradients
+@paran if_gradient: true if gradients should be calculated, false if not*/
+coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
+{
+  integrity = true;
+  auto elec_factor = 332.0;
+  
+  mm_charge_vector = mmc.energyinterface()->charges();
+  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
+  if (aco_p)
+  {
+    elec_factor = aco_p->params().general().electric;
+  }
+
+  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
+
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+  {
+    write_mol_in();
+  }
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
+  {
+    char calc_type = 'e';
+    if (if_gradient == true) calc_type = 'g';
+    write_gaussian_in(calc_type);
+  }
+  else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
+    {   // electric field for QM and MM atoms (from QM)
+      qm_electric_field = qmc.energyinterface()->get_el_field();  
+    } 
   }
   catch(...)
   {
-    integrity = false;  // if MOPAC fails: integrity is destroyed
+	std::cout << "QM programme failed. Treating structure as broken.\n";
+    integrity = false;  // if QM programme fails: integrity is destroyed
   }
-
-  if (Config::get().energy.mopac.delete_input) std::remove("mol.in");
+  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
@@ -266,8 +346,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     {
       mm_energy = mmc.g(); // get energy for MM part
 
-                           // get gradients are QM + MM + vdW + Coulomb
-      auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+      // get gradients: QM + MM + vdW + Coulomb
+	    auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -287,7 +367,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.e();  // get energy for MM part
     }
 
-    this->energy = qm_energy + mm_energy + vdw_energy;
+    // energy = QM + MM + vdW (Coulomb is in QM energy)
+	  this->energy = qm_energy + mm_energy + vdw_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
@@ -295,7 +376,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 }
 
 /**calculates interaction between QM and MM part
-energy is only vdW interactions, gradients are coulomb and vdW
+energy is only vdW interactions
+for MOPAC gradients are coulomb and vdW
+for GAUSSIAN gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
@@ -355,11 +438,15 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         if (if_gradient)  // gradients
         {
-          // gradients of coulomb interaction
-          coords::float_type db = b / d;
-          auto c_gradient_ij = r_ij * db / d;
-          c_gradient[i] += c_gradient_ij;
-          c_gradient[j] -= c_gradient_ij;
+          
+          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+          {    // gradients of coulomb interaction (only for MOPAC here)
+			      coords::float_type db = b / d;  
+			      auto c_gradient_ij = r_ij * db / d;
+            c_gradient[i] += c_gradient_ij;
+            c_gradient[j] -= c_gradient_ij;
+          }
+          
 
           // gradients of vdW interaction
           coords::float_type const V = p_ij.E*R_r;
@@ -383,6 +470,25 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         ++j2;
       }
       ++i2;
+    }
+
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
+    {    // Coulomb gradients for GAUSSIAN (only on MM atoms)
+	    int j2 = 0;
+      for (auto j : mm_indices)
+      {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
+        double charge = mm_charge_vector[j2];
+        coords::Cartesian_Point el_field = qm_electric_field[j2 + qm_indices.size()];
+        double x = charge * el_field.x();
+        double y = charge * el_field.y();
+        double z = charge * el_field.z();
+        coords::Cartesian_Point new_grad;
+        new_grad.x() = -x;
+        new_grad.y() = -y;
+        new_grad.z() = -z;
+        c_gradient[j] += new_grad;
+		    j2++;
+      }
     }
   }
 }
@@ -505,7 +611,6 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
   S << "Potentials\n";
   S << std::right << std::setw(24) << "QM";
   S << std::right << std::setw(24) << "MM";
-  //S << std::right << std::setw(24) << "C";
   S << std::right << std::setw(24) << "VDW";
   S << std::right << std::setw(24) << "TOTAL";
   if (endline) S << '\n';
@@ -516,7 +621,6 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << '\n';
   S << std::right << std::setw(24) << qm_energy;
   S << std::right << std::setw(24) << mm_energy;
-  //S << std::right << std::setw(24) << c_energy;
   S << std::right << std::setw(24) << vdw_energy;
   S << std::right << std::setw(24) << energy;
   if (endline) S << '\n';

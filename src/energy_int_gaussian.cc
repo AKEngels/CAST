@@ -153,13 +153,14 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
-void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt)
+void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bool const grad, bool const opt, bool const qmmm)
 {
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
+  double mm_el_energy;
 
   auto in_string = id + ".log";
 
@@ -260,10 +261,40 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (buffer.find(" SCF Done:") != std::string::npos)
       {
-        e_total = std::stof(buffer.substr(buffer.find_first_of("=") + 1));
+        e_total = std::stod(buffer.substr(buffer.find_first_of("=") + 1));
       }
 
+	    if (qmmm)
+	    {
+        // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
+		    if (buffer.find("Self energy of the charges") != std::string::npos)
+		    {
+			    mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
+		    }
 
+        // get the electric field 
+        // the electric field at MM atoms due to QM atoms is used to calculate gradients of electrostatic interaction on MM atoms
+		    if (buffer.find("-------- Electric Field --------") != std::string::npos)
+		    {
+			    coords::Cartesian_Point p;
+			    std::vector<coords::Cartesian_Point> el_field_tmp;
+			    std::getline(in_file, buffer);
+			    std::getline(in_file, buffer);
+
+			    std::getline(in_file, buffer);
+			    while (buffer.substr(0, 15) != " --------------")
+			    {
+				    p.x() = std::stod(buffer.substr(24, 14));
+				    p.y() = std::stod(buffer.substr(38, 14));
+				    p.z() = std::stod(buffer.substr(52, 14));
+
+				    el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+				    std::getline(in_file, buffer);
+			    }
+
+			    electric_field = el_field_tmp;
+		    }
+	    }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
@@ -313,7 +344,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       }//end coordinater reading
 
 
+
     }//end while(!in_file.eof())
+
+	if (qmmm)
+	{
+		e_total = e_total - mm_el_energy;	
+	}
 
     if (grad && opt)
     {
@@ -395,6 +432,13 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       << failcounter << " Gaussian call" << (failcounter != 1 ? "s have" : " has")
       << " failed so far.)\n";
 
+    if (Config::set().energy.gaussian.delete_input == false)
+    {                                   // save logfile for failed gaussian calls
+      std::string oldname = id + ".log";
+      std::string newname = "fail_" + std::to_string(failcounter) + ".log";
+      int result = rename(oldname.c_str(), newname.c_str());
+    }
+    
     if (failcounter > 1000u)
     {
       throw std::runtime_error("More than 1000 Gaussian calls have failed.");
@@ -430,8 +474,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   id = id + "_G_";
 
   integrity = true;
-  print_gaussianInput('g');
-  if (callGaussian() == 0) read_gaussianOutput(true, false);
+  if (Config::get().energy.qmmm.use == false) print_gaussianInput('g');
+  if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -564,7 +608,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 {
   std::vector<coords::float_type> charges;
 
-  auto in_string = id + ".log";
+  auto in_string = id + "_G_.log";
   if (file_exists(in_string) == false)
   {
     throw std::runtime_error("gaussian logfile not found.");
@@ -599,4 +643,10 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
   return charges;
+}
+
+std::vector<coords::Cartesian_Point>
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_el_field() const
+{
+  return electric_field;
 }
