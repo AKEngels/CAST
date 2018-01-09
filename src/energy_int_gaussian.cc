@@ -418,7 +418,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       << " failed so far.)\n";
 
     // save logfile for failed gaussian calls
-    std::string oldname = Config::get().energy.gaussian.path + " " + id + ".log";
+    std::string oldname = id + ".log";
     std::string newname = "fail_" + std::to_string(failcounter) + ".log";  
     int result = rename(oldname.c_str(), newname.c_str());
     if (result == 0)
