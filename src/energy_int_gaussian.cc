@@ -417,11 +417,13 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       << failcounter << " Gaussian call" << (failcounter != 1 ? "s have" : " has")
       << " failed so far.)\n";
 
-    // save logfile for failed gaussian calls
-    std::string oldname = id + ".log";
-    std::string newname = "fail_" + std::to_string(failcounter) + ".log";  
-    int result = rename(oldname.c_str(), newname.c_str());
-
+    if (Config::set().energy.gaussian.delete_input == false)
+    {                                   // save logfile for failed gaussian calls
+      std::string oldname = id + ".log";
+      std::string newname = "fail_" + std::to_string(failcounter) + ".log";
+      int result = rename(oldname.c_str(), newname.c_str());
+    }
+    
     if (failcounter > 1000u)
     {
       throw std::runtime_error("More than 1000 Gaussian calls have failed.");
