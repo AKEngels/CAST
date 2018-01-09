@@ -1,4 +1,4 @@
-﻿#ifndef cast_ic_util_h_guard
+#ifndef cast_ic_util_h_guard
 #define cast_ic_util_h_guard
 
 #pragma once
@@ -6,6 +6,7 @@
 #include "coords.h"
 #include "coords_rep.h"
 #include "graph.h"
+#include "pdb.h"
 #include "ic_atom.h"
 #include "ic_rotation.h"
 #include "scon_angle.h"
@@ -15,7 +16,7 @@
 
 #include <algorithm>
 #include <array>
-#include <boost/graph/adjacency_list.hpp>
+//#include <boost/graph/adjacency_list.hpp>
 #include <cmath>
 #include <iterator>
 #include <map>

@@ -492,7 +492,9 @@ public:
    * The elements are taken row by row and stored in a column matrix.
    * @return resulting column matrix
    */
-  mathmatrix vectorise() const;
+  mathmatrix vectorise_col() const;
+
+  mathmatrix vectorise_row() const;
 
   /**
    * @brief Replaces the specific elements with the passed values.
@@ -1291,7 +1293,20 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
 //}
 
 template<typename T>
-mathmatrix<T> mathmatrix<T>::vectorise() const {
+mathmatrix<T> mathmatrix<T>::vectorise_col() const {
+
+  std::vector<T> ret;
+  ret.reserve(rows()*cols());
+  for (auto i = 0; i < rows(); ++i) {
+    auto tmp_col = col_to_std_vector(i);
+    ret.insert(ret.end(), tmp_col.begin(), tmp_col.end());
+  }
+
+  return col_from_vec(ret);
+}
+
+template<typename T>
+mathmatrix<T> mathmatrix<T>::vectorise_row() const {
 
   std::vector<T> ret;
   ret.reserve(rows()*cols());

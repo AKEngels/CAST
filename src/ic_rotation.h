@@ -151,7 +151,7 @@ correlation_matrix_derivs(const scon::mathmatrix<T>& R,
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<std::array<Mat, 3> >
+std::vector<std::array<scon::mathmatrix<T>, 3> >
 F_matrix_derivs(const coords::Representation_3D& trial,
                 const coords::Representation_3D& target) {
   using Mat = scon::mathmatrix<T>;

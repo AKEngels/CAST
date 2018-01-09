@@ -1,4 +1,4 @@
-﻿#include "neb.h"
+#include "neb.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -2840,7 +2840,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   system("pause");*/
 
 
-  std::vector<std::vector<scon::sphericals<float_type>>> Z_matrices_s3;
+  std::vector < std::vector < scon::sphericals < coords::float_type >> > Z_matrices_s3;
   coords::PES_Point point;
   coords::Representation_Internal Rep;
   Rep.resize(N);

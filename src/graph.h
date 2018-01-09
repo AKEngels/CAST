@@ -1,16 +1,14 @@
 #ifndef cast_graph_h_guard
 #define cast_graph_h_guard
 
-#pragma once
-
 #include "coords.h"
 #include "coords_rep.h"
 
 #include <algorithm>
 #include <array>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <boost/variant/get.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <cmath>
 #include <fstream>
 #include <iterator>
@@ -153,14 +151,14 @@ public:
   \see http://www.graphviz.org/content/dot-language
   \see http://www.graphviz.org/
   */
-  void visualize_graph(const std::string& out_file) {
+  /*void visualize_graph(const std::string& out_file) {
     using boost::get;
     using boost::make_label_writer;
     using boost::write_graphviz;
 
     std::ofstream output(out_file);
     write_graphviz(output, g, make_label_writer(get(&Node::atom_serial, g)));
-  }
+  }*/
 };
 }
 

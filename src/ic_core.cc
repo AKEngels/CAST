@@ -1,4 +1,4 @@
-﻿#include "ic_core.h"
+#include "ic_core.h"
 
 using coords::float_type;
 
@@ -322,8 +322,6 @@ scon::mathmatrix<float_type>
 ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
                                const coords::Representation_3D& trial) {
   using Mat = scon::mathmatrix<float_type>;
-  using arma::vectorise;
-  using arma::zeros;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
   Mat X = zero(sys_size, 3);
@@ -339,9 +337,9 @@ ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
     ++index;
   }
   Mat result(3, sys_size * 3);
-  result.row(0) = X.vectorise(1);
-  result.row(1) = Y.vectorise(1);
-  result.row(2) = Z.vectorise(1);
+  result.row(0) = X.vectorise_row();
+  result.row(1) = Y.vectorise_row();
+  result.row(2) = Z.vectorise_row();
   return result;
 }
 
