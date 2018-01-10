@@ -657,7 +657,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //DFTB options
+  //DFTBaby options
   else if (option.substr(0,4) == "DFTB")
   {
     if (option.substr(4,3) == "ath")
