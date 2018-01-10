@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
 
 
@@ -17,6 +17,8 @@ void energy::interfaces::dftb::create_dftbaby_configfile()
     {    //in dftbaby long range correction is standard
       file << "long_range_correction = 0\n\n";
     }
+    if (Config::get().energy.dftb.paramset != "0")
+        file << "parameter_set = " + Config::get().energy.dftb.paramset + "\n\n";
     if (Config::get().energy.dftb.cutoff != 0)
         file << "distance_cutoff = "+std::to_string(Config::get().energy.dftb.cutoff)+"\n\n";
     if (Config::get().energy.dftb.lr_dist != 0)

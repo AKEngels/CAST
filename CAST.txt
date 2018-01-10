@@ -160,6 +160,10 @@ DFTBath                 /home/susanne/DFTBaby-0.1.0
 # verbosity (only for DFTBaby)
 DFTBverbose             0
 
+# parameter set (options are 'homegrown', 'hotbit' and 'mio')
+
+DFTBparamset             homegrown
+
 # total charge of molecule (has to be closed shell)
 #DFTBcharge              0
 
