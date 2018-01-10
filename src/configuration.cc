@@ -724,18 +724,6 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
 
-  else if (option.substr(0, 3) == "CUT")
-  {
-    if (option.substr(3, 10) == "react_atom")
-    {
-      Config::set().cut.react_atoms.push_back(std::stoi(value_string));
-    }
-    else if (option.substr(3, 4) == "dist")
-    {
-      Config::set().cut.distance = std::stod(value_string);
-    }
-  }
-
   // convergence threshold for bfgs
   // Default 0.001
   else if (option == "BFGSgrad")

@@ -80,7 +80,6 @@ inputtype              TINKER
 # XB_INTERFACE_CREATION   Combinig two structures
 # XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
-# CUT_RESIDUES         Cuts out residues and writes them into new tinkerfile outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
 # XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
@@ -243,12 +242,6 @@ GAUSSIANpath g16
 
 GAUSSIANdelete 0
 
-#################### OPTIONS FOR CUT_RESIDUES ###################
-
-CUTreact_atom            3149
-CUTreact_atom            347
-
-CUTdist                  10
 
 ####################################
 #                                  #
