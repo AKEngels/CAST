@@ -227,6 +227,10 @@ GAUSSIANcharge 0
 
 GAUSSIANmultiplicity 1
 
+#Use of gaussian optimizer
+
+GAUSSIANopt   1
+
 #Gaussian optimization with steepest descend
 
 GAUSSIANsteep 0

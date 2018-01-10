@@ -37,7 +37,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coord
   std::srand(std::time(0));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
-  optimizer = true;
+  optimizer = Config::get().energy.gaussian.opt;
 }
 
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj) :
