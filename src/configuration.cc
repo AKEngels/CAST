@@ -660,10 +660,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   //DFTBaby options
   else if (option.substr(0,4) == "DFTB")
   {
-    if (option.substr(4, 3) == "ath")
-      Config::set().energy.dftb.path = value_string;
-    else if (option.substr(4, 8) == "paramset")
-      Config::set().energy.dftb.paramset = value_string;
+    if (option.substr(4,3) == "ath")
+        Config::set().energy.dftb.path = value_string;
     else if (option.substr(4,8) == "gradfile")
         Config::set().energy.dftb.gradfile = value_string;
     else if (option.substr(4,9) == "gradstate")

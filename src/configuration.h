@@ -576,8 +576,6 @@ namespace config
     {
       /**path to dftbaby*/
       std::string path;
-      /**parameter set*/
-      std::string paramset;
       /**name of dftbaby gradient file (deleted again but necessary because otherwise
       dftbaby doesn't calculate gradients)*/
       std::string gradfile;
@@ -613,7 +611,7 @@ namespace config
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
-      dftb_conf(void): paramset("0"), gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
       states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
     } dftb;
