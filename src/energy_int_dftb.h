@@ -92,7 +92,7 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
-        /**function that has to overwritten (at the moment returns bullshit)*/
+        /**returns partial atomic charges*/
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_el_field() const override

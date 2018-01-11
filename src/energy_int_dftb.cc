@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
 
 
@@ -514,7 +514,18 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
 std::vector<coords::float_type>
 energy::interfaces::dftb::sysCallInterface::charges() const
 {
-  std::vector<coords::float_type> bullshit;
-  return bullshit;
+  std::vector<coords::float_type> charges;
+  std::vector<std::string> chargestrings;
+  std::string line;
+
+  std::ifstream chargefile("dftb_charges.txt", std::ios_base::in);
+  std::getline(chargefile, line);
+  chargestrings = split(line, ';"');
+
+  for (auto charge : chargestrings)
+  {
+    charges.push_back(std::stof(charge));
+  }
+  return charges;
 }
 #endif
