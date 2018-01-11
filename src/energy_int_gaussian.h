@@ -1,4 +1,4 @@
-﻿/*
+/*
 * GAUSSIAN Interface
 */
 
@@ -54,7 +54,13 @@ namespace energy
         void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
 
+        /**return charges*/
         std::vector<coords::float_type> charges() const override;
+        /**returns electric field that is given by GAUSSIAN
+        (is used for QM/MM)*/
+        std::vector<coords::Cartesian_Point> get_el_field() const override;
+        /**return id for gaussian call*/
+        std::string get_id() const override { return id;};
 
       private:
 
@@ -77,13 +83,17 @@ namespace energy
 				// FAILCOUNTER
 				size_t failcounter;
 
+        /**electric field that is given by GAUSSIAN
+        (is used for QM/MM)*/
+        std::vector<coords::Cartesian_Point> electric_field;
+
         /*
         Gaussian sysCall funcntions
         */
 
         int callGaussian(void);
         void print_gaussianInput(char);
-        void read_gaussianOutput(bool const grad = true, bool const opt = true);
+        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm=false);
         void removeTempFiles(void);
 
         /*

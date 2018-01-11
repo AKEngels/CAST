@@ -64,7 +64,15 @@ namespace energy
 		/** Optimization in the intface or interfaced program*/
 		coords::float_type o(void);
 
+        /**get charges*/
         std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
         // Virial Tensor
         std::array<std::array<coords::float_type, 3>, 3> virial();

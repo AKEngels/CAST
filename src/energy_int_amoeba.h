@@ -47,10 +47,18 @@ namespace energy
         // Optimization in the intface or interfaced program
         double o (void);
 
+        /**overwritten function, should not be called*/
         std::vector<coords::float_type> charges() const override
         {
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
         }
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
         // Output functions
         void print_E (std::ostream&) const;
