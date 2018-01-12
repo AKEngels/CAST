@@ -514,6 +514,11 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
 std::vector<coords::float_type>
 energy::interfaces::dftb::sysCallInterface::charges() const
 {
+  if (file_exists("dftb_charges.txt") == false)
+  {
+    throw std::runtime_error("dftbaby chargefile not found.");
+  }
+
   std::vector<coords::float_type> charges;
   std::vector<std::string> chargestrings;
   std::string line;
