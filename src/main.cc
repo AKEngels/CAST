@@ -322,9 +322,6 @@ int main(int argc, char **argv)
           sp_estr << std::setw(16) << tim.count() << '\n';
           coords.e_tostream_short(std::cout);
         }
-        std::vector<double> charges;
-        charges = coords.energyinterface()->charges();
-        for (auto c : charges) std::cout << c << "\n";
         break;
       }
     case config::tasks::GRAD:
