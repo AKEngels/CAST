@@ -287,14 +287,6 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
       out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
     }
     out_file << '\n';
-    if (calc_type == 'g')
-    {
-      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
-      {
-        out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "\n";
-      }
-      out_file << '\n';
-    }
     if (Config::get().energy.gaussian.method == "DFTB=read")
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
@@ -312,6 +304,14 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     else if (Config::get().energy.gaussian.method == "DFTBA")
     {
       out_file << "@GAUSS_EXEDIR:dftba.prm\n";
+    }
+    if (calc_type == 'g')
+    {
+      out_file << '\n';
+      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
+      {
+        out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "\n";
+      }
     }
     out_file.close();
   }
