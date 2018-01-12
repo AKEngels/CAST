@@ -2,7 +2,7 @@
 #include "coords.h"
 #include "coords_rep.h"
 #include "graph.h"
-//#include "ic_core.h"
+#include "ic_core.h"
 #include "ic_rotation.h"
 #include "ic_util.h"
 #include "pdb.h"
@@ -51,8 +51,8 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   // output graphviz file from graph
   //graph.visualize_graph("Graphviz");
 
-  //// create initial internal coordinates system
-  //ic_core::system icSystem(residue_vec, cp_vec, index_vec);
+  // create initial internal coordinates system
+  ic_core::system icSystem(residue_vec, cp_vec, index_vec);
 
   //icSystem.create_ic_system(graph.g);
   //std::cout << "IC creation test: \n";

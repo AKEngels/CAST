@@ -1,4 +1,4 @@
-﻿////////////////////////////////
+////////////////////////////////
 // new functions to be tested //
 ////////////////////////////////
 #ifndef cast_ic_core_h_guard
@@ -83,7 +83,38 @@ public:
   std::vector<float_type> angle_der_vec(const std::size_t&);
 };
 
+template<typename T, bool isLValue>
+class dihedral_points;
+
+template<typename T>
+class dihedral_points<T, true> {
+private:
+  template<typename T>
+  using rw = std::reference_wrapper<T>;
+  rw<coords::Cartesian_Point const> a_;
+  rw<coords::Cartesian_Point const> b_;
+  rw<coords::Cartesian_Point const> c_;
+  rw<coords::Cartesian_Point const> d_;
+};
+
+template<typename T>
+class dihedral_points<T, false> {
+private:
+  coords::Cartesian_Point a_;
+  coords::Cartesian_Point b_;
+  coords::Cartesian_Point c_;
+  coords::Cartesian_Point d_;
+};
+
+template<typename T, bool is LValue>
+class dihedral_indices;
+
+template<typename T>
+class dihedral_indices<T,true>
+
 class dihedral {
+private:
+  
 public:
   dihedral(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
            const coords::Cartesian_Point& c, const coords::Cartesian_Point& d,
@@ -98,10 +129,7 @@ public:
   const std::size_t index_d_;
 
 private:
-  const coords::Cartesian_Point a_;
-  const coords::Cartesian_Point b_;
-  const coords::Cartesian_Point c_;
-  const coords::Cartesian_Point d_;
+  
 
 public:
   coords::float_type dihed();
