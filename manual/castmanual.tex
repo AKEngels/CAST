@@ -410,7 +410,7 @@ GAUSSIANpath            g16
 GAUSSIANdelete          1
 \end{lstlisting}
 
-If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' and comment out GAUSSIANbasisset in the inputfile. Furthermore you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual. 
+If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual. It is not recommended to use DFTB because molecules with oxygen atoms explode due to very big gradients from the gaussian calculation with MIO parameters. DFTBA however seems to work fine.
 
 \subsubsection{DFTBaby} \label{sec:DFTB}
 
