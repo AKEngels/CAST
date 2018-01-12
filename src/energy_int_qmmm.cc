@@ -282,6 +282,7 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     out_file << '\n';
     out_file << coords::output::formats::xyz(qmc);
     out_file << '\n';
+    std::cout << Config::get().energy.gaussian.method << "\n";
     if (Config::get().energy.gaussian.method == "DFTB=read")
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
@@ -295,12 +296,14 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
         }
         out_file << "@./" << filename << " /N\n";
       }
+      out_file << '\n';
     }
     else if (Config::get().energy.gaussian.method == "DFTBA")
     {
+      std::cout << "dftba\n";
       out_file << "@GAUSS_EXEDIR:dftba.prm\n";
+      out_file << '\n';
     }
-    out_file << '\n';
     for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
     {
       out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
