@@ -282,6 +282,25 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     out_file << '\n';
     out_file << coords::output::formats::xyz(qmc);
     out_file << '\n';
+    if (Config::get().energy.gaussian.method == "DFTB=read")
+    {
+      std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
+      for (auto p : pairs)
+      {
+        std::string filename = p[0] + "-" + p[1] + ".skf";
+        if (file_exists(filename) == false)
+        {
+          std::cout << "ERROR! Slater Koster file " << filename << " does not exist. Please download it from dftb.org and convert it with the task MODIFY_SK_FILES!\n";
+          std::exit(0);
+        }
+        out_file << "@./" << filename << " /N\n";
+      }
+    }
+    else if (Config::get().energy.gaussian.method == "DFTBA")
+    {
+      out_file << "@GAUSS_EXEDIR:dftba.prm\n";
+    }
+    out_file << '\n';
     for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
     {
       out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";

@@ -29,6 +29,7 @@ Attention: Problems occur if charged atoms are in MM part near QM part! This sit
 #include "energy_int_mopac.h"
 #include "tinker_parameters.h"
 #include "helperfunctions.h"
+#include "modify_sk.h"
 
 namespace energy
 {
