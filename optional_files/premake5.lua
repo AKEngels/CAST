@@ -34,10 +34,11 @@ workspace "CAST"
 		files { "../src/*.h", "../src/*.cc" }
 		--flags "C++14"
 		cppdialect "C++14"
+		warnings "Extra"
 
 		filter "not Armadillo_*"
 				includedirs "../submodules/eigen"
-		filter { "not Armadillo_*", "*Debug" }
+		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
 		filter "*Release"
@@ -49,7 +50,7 @@ workspace "CAST"
 			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
 		filter "Armadillo_*"
-			includedirs { "/includes/armadillo/", "includes" }
+			includedirs { "includes/armadillo", "includes" }
 			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
 		filter "Python_*"
@@ -59,107 +60,120 @@ workspace "CAST"
 				files "../src/gtest/*.cc"
 				symbols "On"
 				defines "GOOGLE_MOCK"
-				includedirs {"includes/gtest"}
+				includedirs {"includes/gtest", "includes"}
 				links "gmock"
 
-		configuration "gmake"
+		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
 
-			filter "options:mpi"
-				linkoptions "-fopenmp"
-				defines "USE_MPI"
+		filter { "options:mpi", "action:gmake" }
+			linkoptions "-fopenmp"
+			defines "USE_MPI"
 
-			filter {"Release", "platforms:x86"}
-				targetname "CAST_linux_x86_release"
-			filter {"Release", "platforms:x64"}
-				targetname "CAST_linux_x64_release"
+		filter {"Release", "platforms:x86", "action:gmake"}
+			targetname "CAST_linux_x86_release"
+		filter {"Release", "platforms:x64"}
+			targetname "CAST_linux_x64_release"
 
-			
-			filter { "Debug", "platforms:x86" }
-				targetname "CAST_linux_x86_debug"
-			filter { "Debug", "platforms:x64" }
-				targetname "CAST_linux_x64_debug"
+		filter { "Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_debug"
+		filter { "Debug", "platforms:x64" }
+			targetname "CAST_linux_x64_debug"
 
-			filter "Armadillo_*"
-				links { "gfortran", "openblas", "lapack", "pthread" }
-				libdirs { "linux_precompiled_libs" }
+		filter {"Armadillo_*", "action:gmake"}
+			links { "gfortran", "openblas", "lapack", "pthread" }
+			libdirs { "linux_precompiled_libs" }
 
-			filter {"Armadillo_Release", "platforms:x86" }
-				targetname "CAST_linux_x86_armadillo_release"
-			filter {"Armadillo_Release", "platforms:x64" }
-				targetname "CAST_linux_x64_armadillo_release"
+		filter {"Armadillo_Release", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_release"
+		filter {"Armadillo_Release", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_release"
 
-			filter {"Armadillo_Debug", "platforms:x86" }
-				targetname "CAST_linux_x86_armadillo_debug"
-			filter {"Armadillo_Debug", "platforms:x64" }
-				targetname "CAST_linux_x64_armadillo_debug"
+		filter {"Armadillo_Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_debug"
+		filter {"Armadillo_Debug", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_debug"
 
-			filter "*Testing"
-				libdirs "linux_precompiled_libs"
-			filter {"Testing", "platforms:x86" }
-				targetname "CAST_linux_x86_testing"
-			filter {"Testing", "platforms:x64" }
-				targetname "CAST_linux_x64_testing"
-			filter {"Armadillo_Testing", "platforms:x86" }
-				targetname "CAST_linux_x86_armadillo_testing"
-			filter {"Armadillo_Testing", "platforms:x64" }
-				targetname "CAST_linux_x64_armadillo_testing"
+		filter "*Testing"
+			libdirs "linux_precompiled_libs"
+		filter {"Testing", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_testing"
+		filter {"Testing", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_testing"
+		filter {"Armadillo_Testing", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_testing"
+		filter {"Armadillo_Testing", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_testing"
 
-			filter "Python_*"
-				links { "python2.7", "util", "lapack" }
-				linkoptions {  "-export-dynamic", --[["-Wl"--]] }
-				libdirs { "linux_precompiled_libs" }
+		filter {"Python_*", "action:gmake"}
+			links { "python2.7", "util", "lapack" }
+			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
+			libdirs { "linux_precompiled_libs" }
 
-			filter {"Python_Release", "platforms:x86" }
-				targetname "CAST_linux_x86_python_release"
-			filter {"Python_Release", "platforms:x64" }
-				targetname "CAST_linux_x64_python_release"
+		filter {"Python_Release", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_python_release"
+		filter {"Python_Release", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_python_release"
 
-			filter {"Python_Debug", "platforms:x86" }
-				targetname "CAST_linux_x86_python_debug"
-			filter {"Python_Debug", "platforms:x64" }
-				targetname "CAST_linux_x64_python_debug"
+		filter {"Python_Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_python_debug"
+		filter {"Python_Debug", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_python_debug"
 
-		configuration "vs*"
+		filter "action:vs*"
 			systemversion(os.winSdkVersion() .. ".0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
-			filter { "Release", "platforms:x86" }
-				targetname "CAST_win_x86_release"
-			filter { "Release", "platforms:x64" }
-				targetname "CAST_win_x64_release"
+		filter { "Release", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_release"
+		filter { "Release", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_release"
 
-			filter { "Debug", "platforms:x86" }
-				targetname "CAST_win_x86_debug"
-			filter { "Debug", "platforms:x64" }
-				targetname "CAST_win_x64_debug"
+		filter { "Debug", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_debug"
+		filter { "Debug", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_debug"
 
-			filter "Armadillo_*"
-				libdirs "windows_precompiled_libs"
+		filter {"Armadillo_*", "action:vs*"}
+			libdirs "windows_precompiled_libs"
+		filter {"Armadillo_*", "platforms:x86", "action:vs*"}
+			links {"lapack_x86rel", "blas_x86rel"}
+		filter {"Armadillo_*", "platforms:x64", "action:vs*"}
+			links {"lapack_win64_MT", "blas_win64_MT"}
 
-			filter { "Armadillo_Release", "platforms:x86" }
-				targetname "CAST_win_x86_armadillo_release"
-			filter { "Armadillo_Release", "platforms:x64" }
-				targetname "CAST_win_x64_armadillo_release"
+		filter { "Armadillo_Release", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_armadillo_release"
+		filter { "Armadillo_Release", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_armadillo_release"
 
-			filter { "Armadillo_Debug", "platforms:x86"}
-				targetname "CAST_win_x86_armadillo_debug"
-			filter { "Armadillo_Debug", "platforms:x64" }
-				targetname "CAST_win_x64_armadillo_debug"
+		filter { "Armadillo_Debug", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_armadillo_debug"
+		filter { "Armadillo_Debug", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_armadillo_debug"
 
-			filter "Python_*"
-				includedirs(python27_dir .. "/include")
-				libdirs(python27_dir .. "/libs")
-				links "python27"
+		filter {"Python_*", "action:vs*"}
+			includedirs(python27_dir .. "/include")
+			libdirs(python27_dir .. "/libs")
+			links "python27"
 
-			filter {"Python_Release", "platforms:x86"}
-				targetname "CAST_win_x86_python_release"
-			filter {"Python_Release", "platforms:x64"}
-				targetname "CAST_win_x64_python_release"
+		filter {"Python_Release", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_python_release"
+		filter {"Python_Release", "platforms:x64", "action:vs*"}
+			targetname "CAST_win_x64_python_release"
 
-			filter {"Python_Debug", "platforms:x86"}
-				targetname "CAST_win_x86_python_debug"
-			filter {"Python_Debug", "platforms:x64"}
-				targetname "CAST_win_x64_python_debug"
+		filter {"Python_Debug", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_python_debug"
+		filter {"Python_Debug", "platforms:x64", "action:vs*"}
+			targetname "CAST_win_x64_python_debug"
+
+		filter { "Testing", "platforms:x86" }
+			targetname "CAST_win_x86_testing"
+		filter { "Testing", "platforms:x64"}
+			targetname "CAST_win_x64_testing"
+
+		filter { "Armadillo_Testing", "platforms:x86" }
+			targetname "CAST_win_x86_armadillo_testing"
+		filter { "Armadillo_Testing", "platforms:x64"}
+			targetname "CAST_win_x64_armadillo_testing"
