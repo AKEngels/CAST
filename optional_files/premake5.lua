@@ -35,6 +35,8 @@ workspace "CAST"
 		--flags "C++14"
 		cppdialect "C++14"
 		warnings "Extra"
+		includedirs "../submodules/boost"
+		libdirs "../submodules/boost/stage/lib"
 
 		filter "not Armadillo_*"
 				includedirs "../submodules/eigen"

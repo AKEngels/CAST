@@ -83,36 +83,44 @@ public:
   std::vector<float_type> angle_der_vec(const std::size_t&);
 };
 
-template<typename T, bool isLValue>
+template<bool isLValue>
 class dihedral_points;
 
-template<typename T>
-class dihedral_points<T, true> {
-private:
-  template<typename T>
-  using rw = std::reference_wrapper<T>;
-  rw<coords::Cartesian_Point const> a_;
-  rw<coords::Cartesian_Point const> b_;
-  rw<coords::Cartesian_Point const> c_;
-  rw<coords::Cartesian_Point const> d_;
+class dihedral_points<true> {
+  using rwcp = std::reference_wrapper<coords::Cartesian_Point const>;
+  rwcp a_;
+  rwcp b_;
+  rwcp c_;
+  rwcp d_;
 };
 
-template<typename T>
-class dihedral_points<T, false> {
-private:
+class dihedral_points<false> {
   coords::Cartesian_Point a_;
   coords::Cartesian_Point b_;
   coords::Cartesian_Point c_;
   coords::Cartesian_Point d_;
 };
 
-template<typename T, bool is LValue>
+template<bool isLValue>
 class dihedral_indices;
 
-template<typename T>
-class dihedral_indices<T,true>
+class dihedral_indices<true> {
+  using rwst = std::reference_wrapper<std::size_t const>;
+  rwst index_a_;
+  rwst index_b_;
+  rwst index_c_;
+  rwst index_d_;
+};
 
-class dihedral {
+class dihedral_indices<false> {
+  std::size_t index_a_;
+  std::size_t index_b_;
+  std::size_t index_c_;
+  std::size_t index_d_;
+};
+
+template<bool CP_isLVal, bool Ind_isLVal>
+class dihedral : public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal>{
 private:
   
 public:
@@ -122,14 +130,6 @@ public:
            const unsigned int& index_c, const unsigned int& index_d)
       : a_{ a }, b_{ b }, c_{ c }, d_{ d }, index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
-
-  const std::size_t index_a_;
-  const std::size_t index_b_;
-  const std::size_t index_c_;
-  const std::size_t index_d_;
-
-private:
-  
 
 public:
   coords::float_type dihed();
