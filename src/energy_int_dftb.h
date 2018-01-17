@@ -34,19 +34,7 @@ namespace energy
 	{
 		namespace dftb
 		{           
-			/*
-			function that creates a string that can be run as a python programme
-			this programme sets the correct pythonpath
-			@param numpath: path to module numpy
-			@param scipath: path to param scipy
-			*/
-			std::string create_pythonpath(std::string numpath, std::string scipath);
-            
-			/*
-			function that creates a configfile for dftbaby (dftbaby.cfg)
-			out of configuration options in CAST inputfile
-			*/
-			void create_dftbaby_configfile();
+			
 
 			class sysCallInterface
 				: public energy::interface_base
@@ -118,10 +106,6 @@ namespace energy
 				double e_rep;
 				/**total energy*/
 				double e_tot;
-
-				/**string that contains pythonprogramme to 
-				add all necessary paths to pythonpath*/
-				std::string add_path;
 
 				/*
 				checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)

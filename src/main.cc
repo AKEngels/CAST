@@ -151,13 +151,13 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
-    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTBABY)
     {   // if DFTB energy interface: initialize python 
         // necessary to do it here because it can't be done more than once
 
 #ifdef USE_PYTHON
 #else
-      printf("It is not possible to use DFTB without python!\n");
+      printf("It is not possible to use DFTBaby without python!\n");
       std::exit(0);
 #endif
       std::remove("output_dftb.txt"); // delete dftbaby output file from former run

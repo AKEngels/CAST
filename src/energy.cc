@@ -1,4 +1,4 @@
-﻿#include <stdexcept>
+#include <stdexcept>
 #include "configuration.h"
 #include "energy.h"
 #include "energy_int_aco.h"
@@ -7,7 +7,7 @@
 #include "energy_int_amoeba.h"
 #include "energy_int_qmmm.h"
 #ifdef USE_PYTHON
-#include "energy_int_dftb.h"
+#include "energy_int_dftbaby.h"
 #endif
 #include "energy_int_gaussian.h"
 #include "coords.h"
@@ -73,13 +73,13 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 	  std::exit(0);
 #endif
 #ifdef USE_PYTHON
-  case config::interface_types::T::DFTB:
+  case config::interface_types::T::DFTBABY:
    {
       if (Config::get().general.verbosity >= 3)
       {
-        std::cout << "DFTB choosen for energy calculations.\n";
+        std::cout << "DFTBaby choosen for energy calculations.\n";
       }
-      return new energy::interfaces::dftb::sysCallInterface(coordinates);
+      return new energy::interfaces::dftbaby::sysCallInterface(coordinates);
     }
 #endif
   case config::interface_types::T::GAUSSIAN:

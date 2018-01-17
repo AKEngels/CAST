@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -412,13 +412,13 @@ void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
   stream << N << '\n';
-  if (Config::get().energy.dftb.charge == 0)
+  if (Config::get().energy.dftbaby.charge == 0)
   {
     stream << Config::get().general.inputFilename<<"\n";
   }
   else
   {
-    stream << "charge=" + std::to_string(Config::get().energy.dftb.charge)<<"\n";
+    stream << "charge=" + std::to_string(Config::get().energy.dftbaby.charge)<<"\n";
   }
   
   for (std::size_t i(0U); i < N; ++i)

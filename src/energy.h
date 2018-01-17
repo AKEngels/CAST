@@ -109,7 +109,7 @@ namespace energy
 
   public:
 
-    /**total energy, in dftb interface this is called e_tot*/
+    /**total energy, in dftbaby interface this is called e_tot*/
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
