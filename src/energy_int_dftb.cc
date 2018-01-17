@@ -61,7 +61,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  SCC = Yes\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
   file << "    Prefix = '/home/susanne/mio-1-1/'\n";
-  file << "    Seperator = '-'\n";
+  file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
   file << "  MaxAngularMomentum {\n";
@@ -81,7 +81,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "}\n\n";
 
   file << "Options {\n";
-  file << "  WriteResultTag = Yes\n";
+  file << "  WriteResultsTag = Yes\n";
   file << "}\n\n";
 
   file << "ParserOptions {\n";
@@ -115,7 +115,7 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   write_inputfile(0);
-  scon::system_call("dftb+");
+  scon::system_call("/home/susanne/dftbplus/bin/dftb+");
   energy = read_output(0);
 
   return energy;
