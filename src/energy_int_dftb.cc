@@ -77,7 +77,8 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
     file << "    " << s << " = " << angular_momentum << "\n";
   }
-  file << "  }\n\n";
+  file << "  }\n";
+  file << "}\n\n";
 
   file << "Options {\n";
   file << "  WriteResultTag = Yes\n";
