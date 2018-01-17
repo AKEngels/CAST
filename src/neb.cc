@@ -1,4 +1,4 @@
-﻿#include "neb.h"
+#include "neb.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -11,11 +11,14 @@
 #include <iterator>  
 #include <algorithm>  
 #include <utility>
+#include <unordered_set>
 #include "ls.h"
 #include "lbfgs.h"
 #include "coords.h"
 #include "optimization_global.h"
 #include "matop.h"
+#include "scon_mathmatrix.h"
+
 
 /**
 * NEB constructor
@@ -721,7 +724,7 @@ void neb::opt_io(ptrdiff_t &count)
   }
 }
 
-void neb::print(std::string const &name, std::vector <coords::Representation_3D> &print, ptrdiff_t &count)
+void neb::print(std::string const &name, std::vector <coords::Representation_3D> &print, ptrdiff_t const &count)
 {
 
   std::ofstream out(name.c_str(), std::ios::app);
@@ -780,7 +783,7 @@ void neb::print_rev(std::string const &name, std::vector <coords::Representation
 }
 
 
-void neb::printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t &count)
+void neb::printmono(std::string const &name, coords::Representation_3D &print, ptrdiff_t const &count)
 {
 
   std::ofstream out(name.c_str(), std::ios::app);
@@ -1400,6 +1403,7 @@ void neb::opt_internals(std::ptrdiff_t &count, const std::vector<std::vector<siz
     cPtr->set_xyz(imagi[i]);
     cPtr->to_internal();
     cPtr->to_xyz();
+
     imagi[i] = cPtr->xyz();
   }
   //Get output for comparison
@@ -2122,7 +2126,7 @@ void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std
         if (bonds[which_bonds[i][j + 1] - 1].size() > 1) {
           for (l = 0U; l < (bonds[which_bonds[i][j + 1] - 1].size() - 1); l++) {
 
-            if (bonds[which_bonds[i][j + 1] - 1][l + 1] != which_bonds[i][0] && bonds[which_bonds[i][j + 1] - 1][l + 1] != bonds[i][(j + 1) + (k + 1)]) {
+            if ((bonds[which_bonds[i][j + 1] - 1][l + 1] != which_bonds[i][0]) && (bonds[which_bonds[i][j + 1] - 1][l + 1] != which_bonds[i][(j + 1) + (k + 1)])) {
 
               x4 = x_val[bonds[which_bonds[i][j + 1] - 1][l + 1] - 1];
               y4 = y_val[bonds[which_bonds[i][j + 1] - 1][l + 1] - 1];
@@ -2663,6 +2667,7 @@ double inline neb::dihedral_same_atom(const double& x1, const double& x2, const 
 ****************************************
 ***************************************/
 
+
 void neb::create_internal_interpolation(std::vector <coords::Representation_3D> &input)
 {
   size_t i = 0U, j = 0U, imgs = num_images, N_main = 0U;
@@ -2847,17 +2852,70 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   Z_matrices.resize(imgs);
   Z_matrices_s3.resize(imgs);
 
-  Z_matrices[0] = redundant_to_Z_backbone(redundant_dists[0],
-    redundant_angles[0],
-    redundant_dihedrals[0],
-    backbone_indeces);
-  Z_matrices[imgs - 1] = redundant_to_Z_backbone(redundant_dists[imgs - 1],
-    redundant_angles[imgs - 1],
-    redundant_dihedrals[imgs - 1],
-    backbone_indeces);
+  //Z_matrices[0] = redundant_to_Z_backbone(redundant_dists[0],
+  //  redundant_angles[0],
+  //  redundant_dihedrals[0],
+  //  backbone_indeces);
+  //Z_matrices[imgs - 1] = redundant_to_Z_backbone(redundant_dists[imgs - 1],
+  //  redundant_angles[imgs - 1],
+  //  redundant_dihedrals[imgs - 1],
+  //  backbone_indeces);
+
+
 
   //for implementation of NeRF algorithm in CAST
   double constexpr pi = 3.1415926535897932384626433832795;
+  coords::s3 mega_temp;
+  coords::Coordinates coords_initial, coords_fi;
+  coords_initial.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
+  coords_fi.init_in(cPtr->atoms(), coords::PES_Point(imagi[imgs - 1]), true);
+  std::tuple<coords::Coordinates, std::vector<size_t>> ini = coords_initial.to_internal();
+  std::tuple<coords::Coordinates, std::vector<size_t>> final = coords_fi.to_internal();
+
+  coords::Coordinates coords_ini, coords_final;
+  std::vector<size_t> new_order_ini, new_order_final;
+  std::tie(coords_ini, new_order_ini) = ini;
+  std::tie(coords_final, new_order_final) = final;
+
+  coords::output::formats::tinker tinker_ini_writer(coords_ini);
+  tinker_ini_writer.to_stream(std::cout);
+  coords::output::formats::zmatrix intern_ini_writer(coords_ini);
+  intern_ini_writer.to_stream(std::cout);
+
+  std::cout << coords_final << std::endl;
+  coords::output::formats::zmatrix intern_final_writer(coords_final);
+  intern_final_writer.to_stream(std::cout);
+
+
+
+  Z_matrices[0].clear();
+  Z_matrices[0].reserve(N);
+  Z_matrices[imgs - 1].clear();
+  Z_matrices[imgs - 1].reserve(N);
+  for (size_t j = 0; j < N; ++j) {
+    Z_matrices[0].emplace_back(j);
+    Z_matrices[0][j].resize(3);
+
+    Z_matrices[0][j][0].first = std::vector<std::size_t>{ j + 1, coords_ini.atoms_changeable(j).ibond() + 1 };
+    Z_matrices[0][j][0].second = coords_ini.intern(j).radius();
+    Z_matrices[0][j][1].first = std::vector<std::size_t>{ j + 1, coords_ini.atoms_changeable(j).ibond() + 1, coords_ini.atoms_changeable(j).iangle() + 1 };
+    Z_matrices[0][j][1].second = coords_ini.intern(j).inclination().degrees();
+    Z_matrices[0][j][2].first = std::vector<std::size_t>{ j + 1, coords_ini.atoms_changeable(j).ibond() + 1, coords_ini.atoms_changeable(j).iangle() + 1 , coords_ini.atoms_changeable(j).idihedral() + 1 };
+    Z_matrices[0][j][2].second = coords_ini.intern(j).azimuth().degrees();
+
+    Z_matrices[imgs - 1].emplace_back(j);
+    Z_matrices[imgs - 1][j].resize(3);
+
+    Z_matrices[imgs - 1][j][0].first = std::vector<std::size_t>{ j + 1, coords_final.atoms_changeable(j).ibond() + 1 };
+    Z_matrices[imgs - 1][j][0].second = coords_final.intern(j).radius();
+    Z_matrices[imgs - 1][j][1].first = std::vector<std::size_t>{ j + 1, coords_final.atoms_changeable(j).ibond() + 1, coords_final.atoms_changeable(j).iangle() + 1 };
+    Z_matrices[imgs - 1][j][1].second = coords_final.intern(j).inclination().degrees();
+    Z_matrices[imgs - 1][j][2].first = std::vector<std::size_t>{ j + 1, coords_final.atoms_changeable(j).ibond() + 1, coords_final.atoms_changeable(j).iangle() + 1 , coords_final.atoms_changeable(j).idihedral() + 1 };
+    Z_matrices[imgs - 1][j][2].second = coords_final.intern(j).azimuth().degrees();
+  }
+
+
+
   coords::Cartesian_Point x_ref(1, 0, 0);
   coords::Cartesian_Point y_ref(0, 1, 0);
   coords::Cartesian_Point z_ref(0, 0, 1);
@@ -2868,12 +2926,6 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     0,
     0);
   coords::Cartesian_Point atom_C(0, 0, 0);
-  coords::s3 mega_temp;
-  coords::Coordinates coords_ini, coords_final;
-  coords_ini.init_in(cPtr->atoms(), coords::PES_Point(imagi[0]), true);
-  coords_final.init_in(cPtr->atoms(), coords::PES_Point(imagi[imgs - 1]), true);
-  coords_ini.to_internal();
-  coords_final.to_internal();
 
   double const incr(1. / imgs);
   double change = 0, total_change = 0;
@@ -2996,47 +3048,163 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   coords::Coordinates coords;
   coords = *cPtr;
-  size_t no_dist = Z_matrices[0][N][0].first[0],
-    no_angle = Z_matrices[0][N][0].first[1],
-    no_dihedral = Z_matrices[0][N][0].first[2];
+
+  /*write_gzmat("Cyclohexan_Zmat3.gzmat", Z_matrices[3], coords_ini);*/
+
+  /*size_t no_dist = Z_matrices[0][N - 1][2].first[1],
+    no_angle = Z_matrices[0][N - 1][2].first[2],
+    no_dihedral = Z_matrices[0][N - 1][2].first[3];
+
 
   coords.adapt_indexation(no_dist, no_angle, no_dihedral,
-    Z_matrices[0], cPtr);
+    Z_matrices[0], cPtr);*/
+ 
+
   //system("pause");
 
   //new coords object for saving newly generated structures
   std::unique_ptr<coords::input::format> format_ptr(coords::input::new_format());
   coords::Coordinates structure;
-  for (size_t i = 1; i < (imgs - 1); ++i)
-  {
 
-    //converts Z-matrix to cartesian structure using OpenBabel
-    write_gzmat("NEB_" + to_string(i) + ".gzmat", Z_matrices[i], coords);
+    ////converts Z-matrix to cartesian structure using OpenBabel
+    //write_gzmat("NEB_" + to_string(i) + ".gzmat", Z_matrices[i], coords);
 
-    std::string command = "obabel -i gzmat NEB_"
-      + to_string(i)
-      + ".gzmat -o txyz -O NEB_coordinates_cartesian_"
-      + to_string(i);
-    system(command.c_str());
+    //std::string command = "obabel -i gzmat NEB_"
+    //  + to_string(i)
+    //  + ".gzmat -o txyz -O NEB_coordinates_cartesian_"
+    //  + to_string(i);
+    //system(command.c_str());
 
-    //saves new structure
-    structure = format_ptr->read("NEB_coordinates_cartesian_"
-      + to_string(i));
-    structure.adapt_indexation(no_dist, no_angle, no_dihedral,
-      Z_matrices[0], cPtr);
+    ////saves new structure
+    //structure = format_ptr->read("NEB_coordinates_cartesian_"
+    //  + to_string(i));
+    //structure.adapt_indexation(no_dist, no_angle, no_dihedral,
+    //  Z_matrices[0], cPtr);
 
     //prepares parameters for NEB MEP finding
-    for (size_t j = 0; j < N; ++j)
-    {
-      images[j].x() = structure.xyz(j).x();
-      images[j].y() = structure.xyz(j).y();
-      images[j].z() = structure.xyz(j).z();
 
-      imagi[i].push_back(images[j]);
-      image_ini[i].push_back(images[j]);
-      images_initial.push_back(images[j]);
+
+    /*images[j].x() = structure.xyz(j).x();
+    images[j].y() = structure.xyz(j).y();
+    images[j].z() = structure.xyz(j).z();
+    */
+
+  //converting Z-matrix to cartesian structure, NeRF
+
+  for (size_t i = 1; i < (imgs - 1); ++i)
+  { 
+    coords::Representation_3D current_images(N);
+    coords::Representation_3D CartesianStructure(N);
+    
+    for (size_t j = 0; j < N; ++j){
+        if (j == 0) {
+          CartesianStructure[j] = coords::Cartesian_Point(0.,0.,0.);
+
+        }
+        else if (j == 1) {
+          CartesianStructure[j] = coords::Cartesian_Point(
+            Z_matrices[i][j][0].second,
+            0.,
+            0.
+          );
+
+        }
+        else if (j == 2) {
+          auto const & ABC = Z_matrices[i][j][1].first;
+          auto const & A = Z_matrices[i][ABC[0] - 1];
+          auto const & B = Z_matrices[i][ABC[1] - 1];
+          auto const & C = Z_matrices[i][ABC[2] - 1];
+
+          auto r1 = B[0].second;
+          auto r2 = C[0].second;
+          auto theta = scon::ang<coords::float_type>::from_deg(C[1].second).radians();
+
+          auto x = r2 * cos(pi - theta);
+          auto y = r2 * sin(pi - theta);
+          
+          CartesianStructure[j] = coords::Cartesian_Point(
+            (r1 + x), y, 0.
+          );
+
+         }
+        else {
+          std::unordered_set<std::size_t> check_list;
+          auto is_not_in_vec = [&](std::vector<std::size_t> const & vec) -> std::size_t {
+            for (auto const & v : vec) {
+              if (check_list.insert(v).second) {
+                return v;
+              }
+            }
+            return 0;
+          };
+
+          auto const & D = is_not_in_vec({ j + 1 })-1;
+          auto const & C = is_not_in_vec(Z_matrices[i][j][0].first)-1;
+          auto const & B = is_not_in_vec(Z_matrices[i][j][1].first)-1;
+          auto const & A = is_not_in_vec(Z_matrices[i][j][2].first)-1;
+
+          auto const & DD = Z_matrices[i][D];
+
+          auto r = DD[0].second;
+          auto theta = scon::ang<coords::float_type>::from_deg(DD[1].second).radians();
+          auto phi = scon::ang<coords::float_type>::from_deg(DD[2].second).radians();
+
+          auto x = r * cos(phi) * sin(theta);
+          auto y = r * sin(phi) * sin(theta);
+          auto z = r * cos(theta);
+
+          Eigen::Vector3d D2(z, x, y);
+          Eigen::Vector3d Dvec;
+
+          coords::Cartesian_Point BA = normalized(CartesianStructure[B] - CartesianStructure[A]);
+          coords::Cartesian_Point BC = normalized(CartesianStructure[B] - CartesianStructure[C]);
+          coords::Cartesian_Point N = normalized(cross(BA, BC)); 
+          coords::Cartesian_Point NcrBC = normalized(cross(N, BC));
+
+          Eigen::Matrix3d M;
+          M << BC.x(), NcrBC.x(), N.x(),
+               BC.y(), NcrBC.y(), N.y(),
+               BC.z(), NcrBC.z(), N.z();
+
+          Dvec = (M*D2);
+
+          CartesianStructure[j] = coords::Cartesian_Point(Dvec(0), Dvec(1), Dvec(2)) + CartesianStructure[C];
+
+        }
+
+      current_images[j].x() = CartesianStructure[j].x();
+      current_images[j].y() = CartesianStructure[j].y();
+      current_images[j].z() = CartesianStructure[j].z();
+
     }
+    // Nach Konvertierung in xyz müssen die Images wieder in die alte Reihenfolge gebracht werden:
+
+    for (auto const & n : new_order_ini) {
+      images[new_order_ini[n]].x() = current_images[n].x();
+      images[new_order_ini[n]].y() = current_images[n].y();
+      images[new_order_ini[n]].z() = current_images[n].z();
+    }
+
+    for (auto const & j : images) {
+      imagi[i].emplace_back(j);
+      image_ini[i].emplace_back(j);
+      images_initial.emplace_back(j);
+    }
+
   }
+  
+
+  coords::Coordinates new_coords = coords;
+  new_coords.set_xyz(imagi[1], false);
+  coords::output::formats::tinker tinker_writer(new_coords);
+  tinker_writer.to_stream(std::cout);
+
+
+
+  /*printmono("Cyclohexan_Image2.xyz", imagi[1], 1);*/
+  //print("Trideca_All_Images_z_to_xyz.xyz", imagi, 1);
+  /*printmono("Cyclohexan_test_image2.xyz", images, 1);*/
+
   std::ostringstream names;
   names << "IMAGES_INI" << cPtr->mult_struc_counter << ".dat";
 

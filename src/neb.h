@@ -89,9 +89,9 @@ public:
   void get_energies(void);
   void calc_tau(void);
   void opt_io(ptrdiff_t &count);
-  void print(std::string const&, std::vector <coords::Representation_3D > &, ptrdiff_t &);
+  void print(std::string const&, std::vector <coords::Representation_3D > &, ptrdiff_t const &);
   void print_rev(std::string const &, std::vector <coords::Representation_3D > &, ptrdiff_t &);
-  void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t &);
+  void printmono(std::string const &, coords::Representation_3D &print, ptrdiff_t const &);
   double g_new();
   double g_new_maxflux();
   double g_int(std::vector <scon::c3 <float> >  tx);
@@ -132,7 +132,7 @@ public:
   double lbfgs();
   double lbfgs_int(std::vector <scon::c3 <float> > t);
   double lbfgs_maxflux();
-  void pauline();
+ 
 
   struct GradCallBack
   {

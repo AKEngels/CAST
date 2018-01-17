@@ -1,6 +1,10 @@
 #include "atomic.h"
 #include "configuration.h"
 #include "coords_atoms.h"
+#include <set>
+#include <algorithm>
+#include "coords.h"
+#include "coords_io.h"
 
 
 
@@ -710,13 +714,13 @@ void coords::Atoms::c_to_i(PES_Point &p) const
   for (std::size_t j = 0; j < M; ++j)
   {
     auto const mti = main_torsion_indices[j];
-    //std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << '\n';
+    /*std::cout << "Main Torsion " << j << " which is internal " << mti << " is " << intern[mti].azimuth() << '\n';*/
     p.structure.main[j] = intern[mti].azimuth();
     if (atom(mti).ibond() < N)
     {
       for (auto const rotating : atom(atom(mti).ibond()).bound_internals())
       {
-        //std::cout << "Rotates: " << rotating << " which is atom " << atom(rotating).i_to_a() << '\n';
+        /*std::cout << "Rotates: " << rotating << " which is atom " << atom(rotating).i_to_a() << '\n';*/
         p.gradient.main[j] += gintern[rotating].z();
       }
 
@@ -724,6 +728,319 @@ void coords::Atoms::c_to_i(PES_Point &p) const
 
   }
 
+}
+
+
+std::vector<coords::ZmatHandler::internal_type> coords::ZmatHandler::check_for_partners(coords::Atoms const & atoms, std::vector<std::vector<std::size_t>> const & bonds) const {
+
+  auto check_for_bonds = [&](std::vector<std::size_t> const & bonds, std::vector<std::size_t> & checked_atoms) {
+    std::vector<std::size_t> possible_bonds;
+    for (auto const & b : bonds) {
+      if (find(checked_atoms.begin(), checked_atoms.end(), b) != checked_atoms.end()) {
+        possible_bonds.emplace_back(b);
+      }
+    }
+    return possible_bonds;
+  };
+
+
+  auto check_for_angles = [&](std::vector<std::size_t> const & possible_bonds, std::vector<std::size_t> & checked_atoms) {
+    std::vector<std::pair<std::size_t, std::size_t>> possible_angles;
+    for (auto const & p_b : possible_bonds) {
+      auto const angles = bonds.at(p_b);
+      for (auto const & a : angles) {
+        if (find(checked_atoms.begin(), checked_atoms.end(), a) != checked_atoms.end()) {
+          possible_angles.emplace_back(std::make_pair(p_b, a));
+        }
+      }
+    }
+    if (possible_angles.size() == 0) {
+      throw std::logic_error("Could not build internal partners. Need to reorder molecule.");
+    }
+    return possible_angles;
+  };
+
+  auto check_for_dihedral = [&](std::vector<std::pair<std::size_t, std::size_t>> const & possible_angles, std::vector<std::size_t> const & checked_atoms) {
+    for (auto const & p_a : possible_angles) {
+      for (auto const & d : bonds.at(p_a.second)) {
+        if (find(checked_atoms.begin(), checked_atoms.end(), d) != checked_atoms.end() && d != p_a.first) {
+          return std::make_tuple(p_a.first, p_a.second, d);
+        }
+      }
+    }
+    throw std::logic_error("Could not build internal partners. Need to reorder molecule.");
+  };
+
+  std::vector<internal_type> ret{ std::make_tuple(0,0,0), };
+  std::vector<std::size_t> checked_atoms{ 0, };
+
+  for (std::size_t i = 1; i < atoms.size(); ++i) {
+    auto const & possible_bonds = check_for_bonds(bonds.at(i), checked_atoms);
+
+    if (i == 1) {
+      ret.emplace_back(std::make_tuple(possible_bonds.at(0), 0, 0));
+      checked_atoms.emplace_back(i);
+      continue;
+    }
+    auto const & possible_angles = check_for_angles(possible_bonds, checked_atoms);
+
+    if (i == 2) {
+      auto const & ang = possible_angles.at(0);
+      ret.emplace_back(std::make_tuple(ang.first, ang.second, 0));
+      checked_atoms.emplace_back(i);
+      continue;
+    }
+
+    ret.emplace_back(check_for_dihedral(possible_angles, checked_atoms));
+    checked_atoms.emplace_back(i);
+
+    
+
+  }
+  return ret;
+
+}
+
+
+std::unique_ptr<coords::AtomRep> coords::ZmatHandler::new_order(coords::Atoms const & atoms, PES_Point const & p) const {
+
+  std::vector<size_t> new_mol{ 0, };
+  new_mol.reserve(atoms.size());
+
+  std::vector<coords::ZmatHandler::internal_type> neighbors;
+  std::vector<std::vector<std::size_t>> bonds;
+ 
+  auto ar = std::make_unique<coords::AtomRep>(reference_atoms(atoms), p, neighbors, bonds, new_mol);
+
+  ar->ref_atoms.reserve(atoms.size());
+ 
+  try {
+    for (size_t i = 0; i < atoms.size(); ++i) {
+      ar->bonds.emplace_back(i);
+     /* auto & a = ar->ref_atoms.atom(i);
+      ar->ref_atoms.emplace_back(a);*/
+      ar->bonds.at(i).clear();
+      for (auto const & b : atoms.atom(i).bonds()){
+        ar->bonds.at(i).emplace_back(b);
+      }
+    }
+    for (size_t i = 0; i < atoms.size(); ++i) {
+      ar->new_order.emplace_back(i);
+    }
+
+    ar->neighbors = check_for_partners(ar->ref_atoms, ar->bonds);
+    return ar;
+  }
+
+  catch (std::logic_error) {
+
+    ar->new_order.clear();
+
+    auto find_if_atom_is_set = [&new_mol](auto const & i) {
+      return (std::find_if(new_mol.begin(), new_mol.end(), [&](auto const & other) {
+        return i == other; }) != new_mol.end());
+    };
+
+
+    for (size_t i = 1; i < atoms.size(); ++i){
+      for (size_t a = 0; a < atoms.size(); ++a) {
+        if (find_if_atom_is_set(a)) {
+          continue;
+        }
+          if (new_mol.size() == 1) {
+            auto const & bond = atoms.atom(a).bonds();
+            for (auto const & b : bond) {
+              if (find_if_atom_is_set(b)) {
+                new_mol.emplace_back(a);
+                break;
+              } 
+              else { continue; }
+            }
+          }
+          else if (new_mol.size() == 2) {
+            [&]() {
+              auto const & bond = atoms.atom(a).bonds();
+
+              for (auto const & b : bond) {
+                if (find_if_atom_is_set(b)) {
+                  auto const & bonds = atoms.atom(b).bonds();
+                  for (auto const bb : bonds) {
+                    if (find_if_atom_is_set(bb) && bb != a) {
+                      new_mol.emplace_back(a);
+                      return;
+                    }
+                  }
+                }
+              }
+            }();
+          }
+          else {
+            [&]() {
+              auto const & bond = atoms.atom(a).bonds();
+
+              for (auto const & b : bond) {
+                if (find_if_atom_is_set(b)) {
+                  auto const & bonds = atoms.atom(b).bonds();
+                  for (auto const bb : bonds) {
+                    if (find_if_atom_is_set(bb) && bb != a) {
+                      auto const & dihedrals = atoms.atom(bb).bonds();
+                      for (auto const bbb : dihedrals) {
+                        if (find_if_atom_is_set(bbb) && bb != a && bbb != b && bbb != a) {
+                          new_mol.emplace_back(a);
+                          return;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }();
+          }
+      }
+    }
+    
+    
+    for (auto const & m : new_mol) {
+      ar->pes.structure.cartesian.pop_back();
+      ar->new_order.emplace_back(m);
+    }
+    ar->bonds.clear();
+    ar->bonds.reserve(atoms.size());
+    
+    
+    for (auto const & n_m : new_mol) {
+
+       auto & a = ar->ref_atoms.atom(n_m);
+       ar->ref_atoms.emplace_back(a);
+       ar->pes.structure.cartesian.emplace_back(p.structure.cartesian[n_m]);
+
+       ar->bonds.emplace_back(n_m);
+       ar->bonds.at(ar->bonds.size() - 1).clear();
+       ar->bonds.at(ar->bonds.size() - 1).reserve(ar->ref_atoms.atom(n_m).bonds().size());
+
+       for (auto const & b : ar->ref_atoms.atom(n_m).bonds()) {
+          for (auto const & n : new_mol) {
+           if (b == new_mol[n]) {
+             ar->bonds.at(ar->bonds.size() - 1).emplace_back(n);
+           }
+         }
+       }
+    }
+    ar->neighbors = check_for_partners(ar->ref_atoms, ar->bonds);
+    return ar;
+  }
+}
+
+     
+
+std::tuple<coords::Coordinates, std::vector<size_t>> coords::Atoms::cart_to_int(PES_Point &p) const {
+  using scon::dot;
+  using scon::cross;
+  using scon::geometric_length;
+  using std::acos;
+
+  std::size_t const N(m_atoms.size());
+  if (N != p.structure.cartesian.size())
+    throw std::logic_error("ERR_COORD_internal_INDEXATION");
+  Representation_Internal & intern(p.structure.intern);
+  Representation_3D const & xyz(p.structure.cartesian);
+  intern.reserve(N);
+  coords::Coordinates new_coords;
+  coords::Atoms atoms;
+ 
+  coords::ZmatHandler zmatHandler(*this);
+  auto ret = zmatHandler.new_order(*this, p);
+
+
+  ret->pes.structure.intern.clear();
+  
+  for (auto i = 0; i < ret->ref_atoms.size(); ++i) {
+    atoms.add(ret->ref_atoms.at(i));
+
+    coords::Cartesian_Point const I = ret->pes.structure.cartesian[i];
+
+    auto const b = std::get<0>(ret->neighbors[i]);
+    coords::Cartesian_Point const bond = ret->pes.structure.cartesian[b];
+    auto const a = std::get<1>(ret->neighbors[i]);
+    coords::Cartesian_Point const angle = ret->pes.structure.cartesian[a];
+    auto const d = std::get<2>(ret->neighbors[i]);
+    coords::Cartesian_Point const dihedral = ret->pes.structure.cartesian[d];
+
+    intern[i] = spherical(I, bond, angle - bond, dihedral - bond);
+
+    if (i == 0) {
+      atoms.atom(i).set_ibond(b);
+      atoms.atom(i).set_iangle(a);
+      atoms.atom(i).set_idihedral(d);
+
+      /*intern[i] = coords::internal_type(0.0, angle_type(0.0), angle_type(0.0));*/
+    }
+
+    else if (i == 1) {
+      atoms.atom(i).set_ibond(b);
+      atoms.atom(i).set_iangle(a);
+      atoms.atom(i).set_idihedral(d);
+     
+      /*intern[i] = coords::internal_type(
+        geometric_length(I - bond),
+        angle_type(0.0), 
+        angle_type(0.0));*/
+    }
+
+    else if (i == 2) {
+      atoms.atom(i).set_ibond(b);
+      atoms.atom(i).set_iangle(a);
+      atoms.atom(i).set_idihedral(d);
+
+      /*auto const q = normalized(I - bond);
+      auto const r = normalized(angle - bond);
+
+      auto const a = coords::angle_type::from_rad(acos(dot(-q, r))).degrees();
+
+      intern[i] = coords::internal_type(
+        geometric_length(I - bond),
+        angle_type(acos(dot(-q, r))),
+        angle_type(0.0));*/
+    }
+
+    else {
+      atoms.atom(i).set_ibond(b);
+      atoms.atom(i).set_iangle(a);
+      atoms.atom(i).set_idihedral(d);
+
+      /*auto const q = normalized(I - bond);
+      auto const r = normalized(angle - bond);
+      auto const s = normalized(dihedral - bond);
+
+      auto const cross1 = cross((I - bond), (angle - bond));
+      auto const cross2 = cross((angle - bond), (dihedral - angle));
+
+      auto const dihedral = acos(dot(cross1, cross2) / (geometric_length(cross1) * geometric_length(cross2)));
+
+      auto const a = coords::angle_type::from_rad(acos(dot(-q, r))).degrees();
+      auto const b = coords::angle_type::from_rad(dihedral).degrees();
+     
+      intern[i] = coords::internal_type(
+        geometric_length(I - bond),
+        angle_type(acos(dot(-q, r))),
+        angle_type(dihedral));*/
+    }
+    ret->pes.structure.intern.emplace_back(intern[i]);
+
+    for (auto & x : ret->ref_atoms.at(i).bonds()) {
+      atoms.atom(i).detach_from(x);
+    }
+    for (auto const & y : ret->bonds.at(i)) {
+      atoms.atom(i).bind_to(y);
+    }
+  }
+  
+  new_coords.init_in_without_refine(atoms, ret->pes, true);
+ /* coords::output::formats::zmatrix intern_writer(new_coords);
+  intern_writer.to_stream(std::cout);*/
+
+  auto tuple = std::make_tuple(new_coords, ret->new_order);
+  return tuple;
 }
 
 void coords::Atoms::i_to_c(PES_Point &p) const

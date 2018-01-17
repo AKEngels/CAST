@@ -1,4 +1,4 @@
-﻿#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
+#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 #define coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 
 #pragma once
@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <utility>
 #include <deque>
+#include<initializer_list>
+#include<vector>
 #include "coords_rep.h"
 #include "scon_matrix.h"
 
@@ -241,7 +243,6 @@ namespace coords
     a.swap(b);
   }
 
-
   /* ##############################################
 
 
@@ -255,7 +256,6 @@ namespace coords
 
 
   ############################################## */
-
 
   class Atoms
   {
@@ -317,8 +317,8 @@ namespace coords
     // general stuff
     void add(Atom const &atom) { m_atoms.push_back(atom); }
     void pop_back() { m_atoms.pop_back(); }
-    Atom & atom(std::size_t index) { return m_atoms[index]; }
-    Atom const & atom(std::size_t index) const { return m_atoms[index]; }
+    virtual Atom & atom(std::size_t index) { return m_atoms[index]; }
+    virtual Atom const & atom(std::size_t index) const { return m_atoms[index]; }
     size_2d const & molecules() const { return m_molecules; }
     size_1d const & molecule(std::size_t index) const { return m_molecules[index]; }
     std::size_t const & atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
@@ -357,7 +357,7 @@ namespace coords
     void i_to_c(PES_Point&) const;
     void c_to_i(PES_Point&) const;
     void c_to_i_light(PES_Point&) const;
-
+    std::tuple<coords::Coordinates, std::vector<size_t>> cart_to_int(PES_Point &p) const;
     // Helper
     size_t getNumberOfAtomsWithAtomicNumber(size_t searchedNumber) const;
     void fix_all(bool const fix_it = true);
@@ -382,11 +382,66 @@ namespace coords
 
   };
 
+
   inline void swap(Atoms &a, Atoms &b)
   {
     a.swap(b);
   }
 
-}
+  class reference_atoms :
+    public Atoms {
+  public:
+    using rw = std::reference_wrapper<Atom>;
+    reference_atoms(Atoms const & atoms) : Atoms(atoms) {}
+    void emplace_back(Atom & atom) {
+      ref_atoms.emplace_back(atom);
+    }
+    void reserve(std::size_t const & i) {
+      ref_atoms.reserve(i);
+    }
+    std::size_t size()const {
+      return ref_atoms.size();
+    }
+    auto begin() {
+      return ref_atoms.begin();
+    }
+    auto end() {
+      return ref_atoms.end();
+    }
+    /*Atom & atom(std::size_t index) override { return ref_atoms[index].get(); }
+    Atom const & atom(std::size_t index) const override { return ref_atoms[index].get(); }*/
+    Atom const& at(std::size_t index) const { return ref_atoms.at(index).get(); }
+    Atom & at(std::size_t index) { return ref_atoms.at(index).get(); }
+    Atom & back() { return ref_atoms.back().get(); }
+    Atom const& back() const { return ref_atoms.back().get(); }
 
+
+  private:
+    std::vector<rw> ref_atoms;
+  };
+
+  struct AtomRep;
+
+  class ZmatHandler {
+  public:
+    using internal_type = std::tuple<std::size_t, std::size_t, std::size_t>;
+    ZmatHandler(Atoms const & atoms) : m_atoms(atoms) {}
+    std::unique_ptr<coords::AtomRep> new_order(coords::Atoms const & atoms, PES_Point const & p) const;
+     
+  private:
+
+    std::vector<internal_type> check_for_partners(coords::Atoms const &  m_atoms, std::vector<std::vector<std::size_t>> const & bonds) const;
+    Atoms const & m_atoms;
+  };
+
+  struct AtomRep {
+    AtomRep(reference_atoms const& a, PES_Point const& b, std::vector<coords::ZmatHandler::internal_type> const& c, std::vector<std::vector<std::size_t>> const& d, std::vector<size_t> & e) 
+      : ref_atoms(a), pes(b), neighbors(c), bonds(d), new_order(e) {};
+    reference_atoms ref_atoms;
+    PES_Point pes;
+    std::vector<coords::ZmatHandler::internal_type> neighbors;
+    std::vector<std::vector<std::size_t>> bonds;
+    std::vector<size_t> new_order;
+  };
+}
 #endif // coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926

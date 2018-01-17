@@ -1,4 +1,4 @@
-﻿#include <cmath>
+#include <cmath>
 #include <stdexcept>
 #include "atomic.h"
 #include "coords.h"
@@ -281,6 +281,38 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
 void coords::Coordinates::init_in(Atoms a, PES_Point p, bool const update)
 {
   init_swap_in(a, p, update);
+}
+
+void coords::Coordinates::init_in_without_refine(Atoms &a, PES_Point &p, bool const update){
+  if (a.size() != p.size())
+  {
+    std::cout << "Can't swap in. Number of atoms " << a.size() << " versus " << p.size() << ". Does not match.\n";
+    throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
+  }
+  energy_valid = false;
+  a.swap(m_atoms);
+  p.swap(m_representation);
+  Stereo(m_atoms, m_representation.structure.cartesian).swap(m_stereo);
+  m_representation.ia_matrix.resize(subsystems().size());
+  for (auto & interact : m_representation.ia_matrix)
+  {
+    interact.grad.resize(size());
+    interact.energy = 0.0;
+  }
+  if (update)
+  {
+    std::size_t const N = m_atoms.size(), M = m_atoms.mains().size();
+    m_representation.structure.cartesian.resize(N);
+    m_representation.gradient.cartesian.resize(N);
+    m_representation.structure.intern.resize(N);
+    m_representation.gradient.intern.resize(N);
+    m_representation.structure.main.resize(M);
+    m_representation.gradient.main.resize(M);
+    //m_atoms.c_to_i(m_representation); 
+    /*m_interface->update(false);
+    if (m_preinterface)
+      m_preinterface->update(false);*/
+  }
 }
 
 coords::float_type coords::Coordinates::lbfgs()

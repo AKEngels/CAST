@@ -1,4 +1,4 @@
-﻿#ifndef coords_h_guard_
+#ifndef coords_h_guard_
 #define coords_h_guard_  
 
 #include <vector>
@@ -476,6 +476,7 @@ namespace coords
     @param a: atoms object
     @param p: PES_point*/
     void init_in(Atoms a, PES_Point p, bool const energy_update = true);
+    void init_in_without_refine(Atoms &a, PES_Point &p, bool const energy_update = true);
     /**updates the topology*/
     void energy_update(bool const skip_topology = false) { m_interface->update(skip_topology); }
     /**fixes all atoms, i.e. nothing can move anymore*/
@@ -866,7 +867,7 @@ namespace coords
     }
 
     /**converts cartesian to internal coordinates*/
-    void to_internal() { m_atoms.c_to_i(m_representation); }
+    std::tuple<coords::Coordinates, std::vector<size_t>> to_internal() { return m_atoms.cart_to_int(m_representation); }
     /**converts cartesian to internal coordinates (light???)*/
     void to_internal_light() { m_atoms.c_to_i_light(m_representation); }
 

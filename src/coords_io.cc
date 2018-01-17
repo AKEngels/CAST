@@ -431,45 +431,54 @@ void coords::output::formats::zmatrix::to_stream(std::ostream & stream) const
   std::size_t const N(ref.size());
   if (stream.good() && N > 0)
   {
-    stream << "zmat angstroms\n";
-    stream << std::left << std::setw(10) << 1U;
-    stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a() + 1;
-    stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << '\n';
+    stream << "#Put Keywords Here, check Charge and Multiplicity.\n\n \n\n0  1\n";
+    /*stream << std::left << std::setw(10) << 1U;
+    stream << std::left << std::setw(10) << ref.atoms(0u).i_to_a() + 1;*/
+    /*stream << std::left << std::setw(4) << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << '\n';*/
+    stream << ref.atoms(ref.atoms(0u).i_to_a()).symbol() << '\n';
     if (N > 1)
     {
-      stream << std::left << std::setw(10) << 2U;
+      /*stream << std::left << std::setw(10) << 2U;*/
       std::size_t const A = ref.atoms(1u).i_to_a();
-      stream << std::left << std::setw(10) << A + 1;
-      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
+      /*stream << std::left << std::setw(10) << A + 1;*/
+      /*stream << std::left << std::setw(4) << ref.atoms(A).symbol();
       stream << std::right << std::setw(10) << ref.atoms(1u).ibond() + 1;
-      stream << std::right << std::setw(10) << "bnd" << 1u;
+      stream << std::right << std::setw(10) << "bnd" << 1u;*/
+      stream << ref.atoms(1).symbol();
+      stream << "  "<< ref.atoms(1u).ibond() + 1;
+      stream << "  "<< "bnd" << 1u;
       stream << '\n';
     }
     if (N > 2)
     {
-      stream << std::left << std::setw(10) << 3U;
+      /*stream << std::left << std::setw(10) << 3U;*/
       std::size_t const A = ref.atoms(2u).i_to_a();
-      stream << std::left << std::setw(10) << A + 1;
-      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
+      /*stream << std::left << std::setw(10) << A + 1;*/
+     /* stream << std::left << std::setw(4) << ref.atoms(A).symbol();
       stream << std::right << std::setw(10) << ref.atoms(2u).ibond() + 1;
       stream << std::right << std::setw(10) << "bnd" << 2u;
       stream << std::right << std::setw(10) << ref.atoms(2u).iangle() + 1;
-      stream << std::right << std::setw(10) << "ang" << 2u;
+      stream << std::right << std::setw(10) << "ang" << 2u;*/
+      stream << ref.atoms(2).symbol();
+      stream << "  " << ref.atoms(2u).ibond() + 1;
+      stream << "  " << "bnd" << 2u;
+      stream << "  " << ref.atoms(2u).iangle() + 1;
+      stream << "  " << "ang" << 2u;
       stream << '\n';
     }
 
     for (std::size_t i = 3; i < N; ++i)
     {
-      stream << std::left << std::setw(10) << i + 1U;
+      /*stream << std::left << std::setw(10) << i + 1U;*/
       std::size_t const A = ref.atoms(i).i_to_a();
-      stream << std::left << std::setw(10) << A + 1;
-      stream << std::left << std::setw(4) << ref.atoms(A).symbol();
-      stream << std::right << std::setw(10) << ref.atoms(i).ibond() + 1;
-      stream << std::right << std::setw(10) << "bnd" << i;
-      stream << std::right << std::setw(10) << ref.atoms(i).iangle() + 1;
-      stream << std::right << std::setw(10) << "ang" << i;
-      stream << std::right << std::setw(10) << ref.atoms(i).idihedral() + 1;
-      stream << std::right << std::setw(10) << "dih" << i;
+      /*stream << std::left << std::setw(10) << A + 1;*/
+      stream << ref.atoms(i).symbol();
+      stream << "  " << ref.atoms(i).ibond() + 1;
+      stream << "  " << "bnd" << i;
+      stream << "  " << ref.atoms(i).iangle() + 1;
+      stream << "  " << "ang" << i;
+      stream << "  " << ref.atoms(i).idihedral() + 1;
+      stream << "  " << "dih" << i;
       stream << '\n';
     }
     stream << "variables\n";

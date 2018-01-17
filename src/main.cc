@@ -1,4 +1,4 @@
-﻿
+
 //////////   //////////   //////////   ////////// 
 //           //      //   //               //
 //           //      //   //               //
@@ -279,6 +279,16 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
+
+
+      coords.to_internal();
+
+      std::cout << "Test:" << coords << std::endl;
+      auto intern_ini = coords.intern();
+
+      coords::output::formats::zmatrix intern_ini_writer(coords);
+      intern_ini_writer.to_stream(std::cout); 
+
       break;
     }
     case config::tasks::SP:
