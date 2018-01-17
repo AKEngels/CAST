@@ -1,4 +1,4 @@
-#ifndef coords_h_guard_
+﻿#ifndef coords_h_guard_
 #define coords_h_guard_  
 
 #include <vector>
@@ -130,9 +130,9 @@ namespace coords
 
       void clear()
       {
-        b = a = d = s = c = 0.0;
+        b = a = d = s = c = thr = 0.0;
         scon::clear(m_dihedrals, m_angles, m_distances,
-          m_spherical, m_cubic, m_utors, m_udist);
+          m_spherical, m_cubic, m_utors, m_udist, m_thresh);
       }
 
       double e_dist() const { return b; }
@@ -140,21 +140,24 @@ namespace coords
       double e_dihedral() const { return d; }
       double e_spherical() const { return s; }
       double e_cubic() const { return c; }
+      double e_thresh() const {return thr;}
 
       void add(config::biases::dihedral const &new_d) { m_dihedrals.push_back(new_d); }
       void add(config::biases::angle const &new_a) { m_angles.push_back(new_a); }
       void add(config::biases::distance const &new_d) { m_distances.push_back(new_d); }
       void add(config::biases::spherical const &new_d) { m_spherical.push_back(new_d); }
       void add(config::biases::cubic const &new_d) { m_cubic.push_back(new_d); }
+      void add(config::biases::thresholdstr const &new_thr) {m_thresh.push_back(new_thr); }
 
       std::vector<config::biases::dihedral> const & dihedrals() const { return m_dihedrals; }
       std::vector<config::biases::angle> const & angles() const { return m_angles; }
       std::vector<config::biases::distance> const & distances() const { return m_distances; }
       std::vector<config::biases::spherical> const & sphericals() const { return m_spherical; }
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
+      std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
 
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
-        Cartesian_Point const & center = Cartesian_Point());
+        Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
       void umbrellaapply(Representation_3D const & xyz,
         Representation_3D & g_xyz, std::vector<double> &uout);
 
@@ -164,12 +167,13 @@ namespace coords
 
     private:
 
-      double b, a, d, s, c;
+      double b, a, d, s, c, thr;
       std::vector<config::biases::dihedral>  m_dihedrals;
       std::vector<config::biases::angle>     m_angles;
       std::vector<config::biases::distance>  m_distances;
       std::vector<config::biases::spherical> m_spherical;
       std::vector<config::biases::cubic>     m_cubic;
+      std::vector<config::biases::thresholdstr>  m_thresh;
       std::vector<config::coords::umbrellas::umbrella_tor> m_utors;
       std::vector<config::coords::umbrellas::umbrella_dist> m_udist;
 
@@ -182,6 +186,7 @@ namespace coords
         Cartesian_Point const & center = Cartesian_Point());
       void umbrelladih(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
       void umbrelladist(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }
 
@@ -277,6 +282,13 @@ namespace coords
 
   public:
 
+    energy::interface_base   *catch_interface = m_interface;
+
+    void get_catch_interface()
+    {
+      energy::interface_base   *catch_interface = m_interface;
+    }
+
     fep_data              fep;
 
     bool                  NEB_control, PathOpt_control;
@@ -313,6 +325,7 @@ namespace coords
         m_representation.energy += m_potentials.apply(
           m_representation.structure.cartesian,
           m_representation.gradient.cartesian,
+          max_valuePosfix(),
           Cartesian_Point());
       }
     }
@@ -352,7 +365,7 @@ namespace coords
       if (m_preinterface)
       {
         if (Config::get().general.verbosity >= 4)
-          std::cout << "Preotimization will be performed.\n";
+          std::cout << "Preoptimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
@@ -388,6 +401,12 @@ namespace coords
       m_stereo.update(xyz());
       zero_fixed_g(); //nullt gradienten alelr fixed atrome
       return m_representation.energy;
+    }
+    
+    /**calculate hessian matrix*/
+    coords::float_type h()
+    {
+     return m_representation.energy = m_interface->h();
     }
 
     bool preoptimize() const { return m_preinterface ? true : false; }
@@ -467,6 +486,9 @@ namespace coords
 
     void e_head_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
     void e_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
+    /**writes hessian matrix
+    @param strm: can be std::cout or ofstream file*/
+    void h_tostream(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
 
     /**returns the PES point*/
     PES_Point const & pes() const { return m_representation; }
@@ -541,6 +563,19 @@ namespace coords
     main_gradient_type const & g_main(size_type const index) const
     {
       return m_representation.gradient.main[index];
+    }
+    
+    /**sets hessian matrix
+    @param hess: vector of vectors of doubles (e.g. matrix of doubles) that contains values for hessian matrix*/
+    void set_hessian(std::vector<std::vector<double>> hess)
+    {
+      m_representation.hessian = hess;
+    }
+    
+    /**returns the hessian matrix*/
+    std::vector<std::vector<double>> get_hessian()
+    {
+      return m_representation.hessian;
     }
 
     /**returns all subsystems*/
@@ -709,7 +744,10 @@ namespace coords
     void set_xyz(Representation_3D const & new_xyz, bool const overwrite_fixed = false)
     {
       size_type const N(size());
-      if (new_xyz.size() != N) throw std::logic_error("Wrong sized coordinates in set_xyz.");
+      if (new_xyz.size() != N)
+      {
+        throw std::logic_error("Wrong sized coordinates in set_xyz.");
+      }
       if (!overwrite_fixed)
       {
         for (size_type i(0U); i < N; ++i)
@@ -730,7 +768,10 @@ namespace coords
     void set_xyz(Representation_3D && new_xyz, bool const overwrite_fixed = false)
     {
       size_type const N(size());
-      if (new_xyz.size() != N) throw std::logic_error("Wrong sized coordinates in set_xyz.");
+      if (new_xyz.size() != N)
+      {
+        throw std::logic_error("Wrong sized coordinates in set_xyz.");
+      }
       m_representation.structure.cartesian.swap(new_xyz);
       if (!overwrite_fixed)
       {
@@ -844,7 +885,45 @@ namespace coords
       Representation_3D const &b, double const x = 0.35) const;
 
     bool is_equal_structure(coords::PES_Point const &a, coords::PES_Point const &b) const;
+    //returns if the atom is terminal for every atom
+    std::vector<bool> const terminal();
+    //returns 1 for terminal atoms, 2 for atoms that are terminal when ignoring actually terminal atoms, etc.
+    std::vector<size_t> const terminal_enum();
+    //returns a Coordinates object reduced by all atoms with bool "false"
+    coords::Coordinates get_red_replic(std::vector<bool> criterion);
+    //for changing atoms list. Only to be used with replics of importent coords::Coordinates objects
+    Atoms & atoms_changable()
+    {
+      return m_atoms;
+    }
+    Atom & atoms_changeable(size_type const index)
+    {
+      return m_atoms.atom(index);
+    }
+    //adapts indexation of coords object to initially read structure
+    void adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
+      std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
+      coords::Coordinates const *cPtr);
 
+    //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms
+    Cartesian_Point max_valuePosfix()
+    {
+      Cartesian_Point maxV;
+
+      maxV = m_representation.structure.cartesian[0];
+      
+      for (std::size_t i=1u;i < m_atoms.size();i++)
+      {
+        if (m_atoms.check_fix(i) == true)
+        {
+          if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
+          if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
+          if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
+        }
+      }
+
+      return maxV;
+    }
   };
 
   std::ostream& operator<< (std::ostream &stream, Coordinates const & coord);

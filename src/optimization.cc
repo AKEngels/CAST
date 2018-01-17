@@ -173,6 +173,7 @@ optimization::global::optimizer::optimizer (
   coords::Ensemble_3d brokens;
   for (std::size_t kit = 0; kit < N; ++kit)
   {
+
     coordobj.set_xyz(initial_structures[kit].structure.cartesian);
     if (!minimized)
     {
@@ -189,6 +190,7 @@ optimization::global::optimizer::optimizer (
     {
       coordobj.set_pes(initial_structures[kit]);
     }
+
     min_status::T S(check_pes_of_coords());
     if (Config::get().general.verbosity > 1)
     {
@@ -200,6 +202,7 @@ optimization::global::optimizer::optimizer (
       }
     }
   }
+
   if (Config::get().general.verbosity > 1)
   {
     std::cout << '\n';
@@ -216,10 +219,14 @@ optimization::global::optimizer::optimizer (
       outputstream << coords::output::formats::tinker(coordobj);
     }
   }
+
   if (!found_new_minimum)
-  {
+  { 
+    std::cout << "No valid initial structure for global optimization.";
     throw std::runtime_error("No valid initial structure for global optimization.");
   }
+
+
 }
 
 

@@ -54,15 +54,28 @@ namespace energy
         /**update structure (account for topology or rep change, or just non-bonded list)*/
         void update(bool const skip_topology = false);
 
-        /**Energy function*/
-        coords::float_type e(void);
-        /**Energy+Gradient function*/
-        coords::float_type g(void);
-        /** Energy+Gradient+Hessian function
-        at the moment does nothing because Hessians are not implemented yet*/
-        coords::float_type h(void);
-        /** Optimization in the intface or interfaced program*/
-        coords::float_type o(void);
+		/**Energy function*/
+		coords::float_type e(void);
+		/**Energy+Gradient function*/
+		coords::float_type g(void);
+		/** Energy+Gradient+Hessian function
+		at the moment does nothing because Hessians are not implemented yet*/
+		coords::float_type h(void);
+		/** Optimization in the intface or interfaced program*/
+		coords::float_type o(void);
+
+        /**get charges*/
+        std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
+
+        // Virial Tensor
+        std::array<std::array<coords::float_type, 3>, 3> virial();
 
         // Output functions
         void print_E(std::ostream&) const;
@@ -73,6 +86,12 @@ namespace energy
         void swap(interface_base&);
         void swap(aco_ff&);
 
+
+        ::tinker::parameter::parameters const & params() const
+        {
+          return cparams;
+        }
+
       private:
 
         aco_ff(aco_ff const & rhs, coords::Coordinates *cobj);
@@ -81,7 +100,7 @@ namespace energy
 
         enum types {
           BOND = 0, ANGLE, IMPROPER, IMPTORSION, TORSION, MULTIPOLE, CHARGE,
-          POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, SOLVATE, TYPENUM
+          POLARIZE, VDW, UREY, STRBEND, OPBEND, VDWC, TYPENUM
         };
 
         /** Parameters*/
@@ -145,7 +164,7 @@ namespace energy
         /**charge energy */
         coords::float_type eQ(coords::float_type const C, coords::float_type const r) const;
         /** charge gradients */
-        inline coords::float_type gQ(coords::float_type const C, coords::float_type const r, coords::float_type &dQ) const;
+        coords::float_type gQ(coords::float_type const C, coords::float_type const r, coords::float_type &dQ) const;
         /** charge gradients fep version */
         inline coords::float_type gQ_fep(coords::float_type const C, coords::float_type const r, coords::float_type const c_out, coords::float_type &dQ) const;
         /** vdw energy */
@@ -167,7 +186,7 @@ namespace energy
           coords::float_type &e_c, coords::float_type &e_v) const;
         /** charge+vdw gradients (no cutoff, no fep, no periodics) */
         template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE>
-        inline void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
+        void g_QV(coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const;
 
         /** charge+vdw gradients fep version (no cutoff, no periodics) */

@@ -9,7 +9,6 @@
 //////////   //      //   //////////       //
 /////conformational analysis and search tool/////
 
-
 // If we run our tests, we will
 // take the testing main from gtest/testing_main.cc
 #ifndef GOOGLE_MOCK
@@ -19,11 +18,13 @@
 //       L I B S        //
 //                      //
 //////////////////////////
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 #include <cstdlib>
 #include <fstream>
 #include <memory>
 #include <omp.h>
-
 
 //////////////////////////
 //                      //
@@ -47,7 +48,13 @@
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
+#include "exciton_breakup.h"
+#include "Center.h"
+#include "Couplings.h"
 #include "periodicCutout.h"
+#include "replaceMonomers.h"
+#include "modify_sk.h"
+
 
 //////////////////////////
 //                      //
@@ -76,11 +83,15 @@
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
+#include "energy_int_qmmm.h"
+//#include "scon_utility.h"
 
 
 int main(int argc, char **argv)
 {
-
+#ifdef USE_PYTHON
+  Py_Initialize();
+#endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   try
@@ -140,10 +151,34 @@ int main(int argc, char **argv)
     //                      //
     //////////////////////////
 
+    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
+    {   // if DFTB energy interface: initialize python 
+        // necessary to do it here because it can't be done more than once
+
+#ifdef USE_PYTHON
+#else
+      printf("It is not possible to use DFTB without python!\n");
+      std::exit(0);
+#endif
+      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("tmp_struc_trace.xyz");
+    }
+
     // read coordinate input file
     // "ci" contains all the input structures
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
+
+    // Define Function to output molar mass of a coords object
+    auto sys_mass = [](coords::Coordinates &sys) -> double
+    {
+      double m = 0;
+      for (auto && a : sys.atoms())
+      {
+        m += a.mass();
+      }
+      return m;
+    };
 
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
@@ -193,6 +228,8 @@ int main(int argc, char **argv)
       }
     }
 
+
+
     // stop and print initialization time
     if (Config::get().general.verbosity > 1U)
     {
@@ -215,16 +252,18 @@ int main(int argc, char **argv)
         std::cout << "-------------------------------------------------\n";
       }
       std::size_t i(0);
-      for (auto const & pes : *ci)
+      for (auto & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
         coords.pe();
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization initial: " << ++i << '\n';
+          coords.e_head_tostream_short(std::cout, coords.preinterface());
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
         coords.po();
+        pes.structure.cartesian = coords.xyz();
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization post-opt: " << i << '\n';
@@ -252,41 +291,39 @@ int main(int argc, char **argv)
     // select task
     switch (Config::get().general.task)
     {
-
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
       break;
     }
     case config::tasks::SP:
-    {
-      // singlepoint calculation
-      coords.e_head_tostream_short(std::cout);
-      std::size_t i(0u);
-      auto sp_energies_fn = coords::output::filename("_SP", ".txt");
-      std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-      if (!sp_estr) throw std::runtime_error("Cannot open '" +
-        sp_energies_fn + "' to write SP energies.");
-      sp_estr << std::setw(16) << "#";
-      short_ene_stream_h(coords, sp_estr, 16);
-      sp_estr << std::setw(16) << 't';
-      sp_estr << '\n';
-      i = 0;
-      for (auto const & pes : *ci)
-      {
-        using namespace std::chrono;
-        coords.set_xyz(pes.structure.cartesian);
-        auto start = high_resolution_clock::now();
-        coords.e();
-        auto tim = duration_cast<duration<double>>
-          (high_resolution_clock::now() - start);
-        std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-        short_ene_stream(coords, sp_estr, 16);
-        sp_estr << std::setw(16) << tim.count() << '\n';
-        coords.e_tostream_short(std::cout);
+      { // singlepoint
+        coords.e_head_tostream_short(std::cout);
+        std::size_t i(0u);
+        auto sp_energies_fn = coords::output::filename("_SP", ".txt");
+        std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+          sp_energies_fn + "' to write SP energies.");
+        sp_estr << std::setw(16) << "#";
+        short_ene_stream_h(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << 't';
+        sp_estr << '\n';
+        i = 0;
+        for (auto const& pes : *ci)
+        {
+          using namespace std::chrono;
+          coords.set_xyz(pes.structure.cartesian, true);
+          auto start = high_resolution_clock::now();
+          coords.e();
+          auto tim = duration_cast<duration<double>>
+            (high_resolution_clock::now() - start);
+          std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+          short_ene_stream(coords, sp_estr, 16);
+          sp_estr << std::setw(16) << tim.count() << '\n';
+          coords.e_tostream_short(std::cout);
+        }
+        break;
       }
-      break;
-    }
     case config::tasks::GRAD:
     {
       // calculate gradient
@@ -300,6 +337,22 @@ int main(int argc, char **argv)
         std::cout << "Structure " << ++i << '\n';
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
+      }
+      break;
+    }
+    case config::tasks::HESS:
+    {
+      // calculate hessian matrix
+      coords.e_head_tostream_short(std::cout);
+      std::size_t i(0u);
+      std::ofstream gstream(coords::output::filename("_HESS", ".txt").c_str());
+      for (auto const & pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.h();
+        std::cout << "Structure " << ++i << '\n';
+        coords.e_tostream_short(std::cout);
+        coords.h_tostream(gstream);
       }
       break;
     }
@@ -404,7 +457,9 @@ int main(int argc, char **argv)
           std::cout << " and " << coords.atoms(angle_intern).i_to_a();
           std::cout << " : " << coords.main(i) << '\n';
         }
+
         for (auto const & e : coords.main()) std::cout << e << '\n';
+
       }
       break;
     }
@@ -558,6 +613,21 @@ int main(int argc, char **argv)
        */
       alignment(ci, coords);
       std::cout << "Everything is done. Have a nice day." << std::endl;
+      break;
+    }
+    case config::tasks::WRITE_TINKER:
+    {
+      std::ofstream gstream(coords::output::filename("", ".arc").c_str());
+      gstream << coords::output::formats::tinker(coords);
+      break;
+    }
+    case config::tasks::MODIFY_SK_FILES:
+    {
+      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
+      for (auto p : pairs)
+      {
+        modify_file(p);
+      }
       break;
     }
     case config::tasks::PCAgen:
@@ -717,16 +787,175 @@ int main(int argc, char **argv)
         hold_str[iter] = temporaryStringstream.str();
       }
       for (size_t i = 0; i < ci->size(); i++)
+
       {
         out << hold_str[i];
       }
-    }
+		    break;
+      }
+	    case config::tasks::XB_EXCITON_BREAKUP:
+	    {
+		  /**
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
+		  * NEEDS SPECIALLY PREPEARED INPUT
+		  */  
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
+      break;
+	  }
+      case config::tasks::XB_INTERFACE_CREATION:
+      {
+      /**
+      * THIS TASK CREATES A NEW COORDINATE SET FROM TWO PRECURSORS
+      */
+        //creating second coords object
+        std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+        coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
+        coords::Coordinates newCoords(coords);
+
+ 
+        newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
+
+        coords = newCoords;
+
+        std::ofstream new_structure(Config::get().general.outputFilename, std::ios_base::out);
+        new_structure << coords;
+
+        break;
+      }
+      case config::tasks::XB_CENTER:
+      {
+        /**
+        * THIS  TASK CALCULATES THE CENTERS OF MASSES FOR ALL MONOMERS IN THE STRUCTURE AND IF WANTED GIVES STRUCTURE FILES FOR DIMERS
+        * WITHIN A DEFINED DISTANCE BETWEEN THE MONOMERS
+        */
+
+        center(coords);
+        break;
+      }
+      case config::tasks::XB_COUPLINGS:
+      {
+        couplings::coupling coup;
+
+        coup.kopplung();
+
+        break;
+      }
+      case config::tasks::LAYER_DEPOSITION:
+      {
+        //Generating layer with random defects
+        coords::Coordinates newCoords(coords);
+        coords::Coordinates inp_add_coords(coords);
+        coords::Coordinates add_coords;
+
+        for (auto & pes : *ci)
+        {
+          newCoords.set_xyz(pes.structure.cartesian);
+          newCoords = periodicsHelperfunctions::delete_random_molecules(coords, Config::get().layd.del_amount);
+          pes = newCoords.pes();
+        }
+        newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+        coords = newCoords;
+
+        
+
+        for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
+        {
+          //Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject1(coords);
+          mdObject1.run();
+        }
+
+        for (std::size_t i = 1; i < Config::get().layd.amount; i++)
+        {
+          add_coords = inp_add_coords;
+          add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
+  
+          for (auto & pes : *ci)
+          {
+            newCoords.set_xyz(pes.structure.cartesian);
+            newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.layddist, coords, add_coords);
+            pes = newCoords.pes();
+          }
+          newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+          coords = newCoords;
+                                                                                                                            
+
+          for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
+          {
+            coords.set_fix(j, true);
+          }
+
+          // Molecular Dynamics Simulation
+          if (Config::get().md.pre_optimize) coords.o();
+          md::simulation mdObject2(coords);
+          mdObject2.run();
+        }
+
+        std::size_t mon_amount_type1 = coords.molecules().size();//save number of molecules of first kind for later use in replacement
+
+        //option if a heterogenous structure shall be created
+        if (Config::get().layd.hetero_option == true)
+        {
+          std::unique_ptr<coords::input::format> sec_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates sec_coords(sec_strukt_uptr->read(Config::get().layd.layd_secname));
+          coords::Coordinates add_sec_coords;
+
+          for (std::size_t i = 0; i < Config::get().layd.sec_amount; i++)
+          {
+            add_sec_coords = sec_coords;
+            add_sec_coords = periodicsHelperfunctions::delete_random_molecules(add_sec_coords, Config::get().layd.sec_del_amount);
+
+            for (auto & pes : *ci)
+            {
+              newCoords.set_xyz(pes.structure.cartesian);
+              newCoords = periodicsHelperfunctions::interface_creation(Config::get().layd.laydaxis, Config::get().layd.sec_layddist, coords, add_sec_coords);
+              pes = newCoords.pes();
+            }
+            newCoords.set_xyz(ci->structure(0u).structure.cartesian);
+            coords = newCoords;
+
+            for (std::size_t j = 0; j < (coords.size() - add_sec_coords.size()); j++)//fix all atoms already moved by md
+            {
+              coords.set_fix(j, true);
+            }
+
+            // Molecular Dynamics Simulation
+            if (Config::get().md.pre_optimize) coords.o();
+            md::simulation mdObject3(coords);
+            mdObject3.run();
+          }
+        }
+
+        //option if monomers in structure shall be replaced
+        if (Config::get().layd.replace == true)
+        {
+          std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
+          coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
+          std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
+          coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
+          coords::Coordinates newCoords(coords);
+
+          coords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+        }
+
+        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
+        output << coords;
+        break;
+      }
+
     default:
     {
 
     }
 
     }
+#ifdef USE_PYTHON
+      Py_Finalize(); //  close python
+#endif 
 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];

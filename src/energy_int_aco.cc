@@ -1,4 +1,4 @@
-#include <sstream>
+﻿#include <sstream>
 #include <cstddef>
 #include "energy_int_aco.h"
 #include "configuration.h"
@@ -52,7 +52,6 @@ energy::interfaces::aco::aco_ff::aco_ff (aco_ff && rhs,
   cparams(std::move(rhs.cparams)), refined(std::move(rhs.refined))
 {
   interface_base::swap(rhs);
-  
   /** 
    * This is necessary because the compiler-provided move-constructor for
    * tinker::refined is sometimes malfunctioning and containing a faulty pointer.
@@ -72,18 +71,23 @@ void energy::interfaces::aco::aco_ff::swap (aco_ff &rhs)
 {
   interface_base::swap(rhs);
   refined.swap_data(rhs.refined);
-  cparams.swap(rhs.cparams);
+  std::swap(cparams, rhs.cparams);
   std::swap(part_energy, rhs.part_energy);
-  for (std::size_t i(0u); i<part_grad.size(); ++i) part_grad[i].swap(rhs.part_grad[i]);
+  for (std::size_t i(0u); i < part_grad.size(); ++i)
+  {
+    part_grad[i].swap(rhs.part_grad[i]);
+  }
 }
 
-energy::interface_base * energy::interfaces::aco::aco_ff::clone (coords::Coordinates * coord_object) const
+energy::interface_base * energy::interfaces::aco::aco_ff::clone (
+  coords::Coordinates * coord_object) const
 {
   aco_ff * tmp = new aco_ff(*this, coord_object);
   return tmp;
 }
 
-energy::interface_base * energy::interfaces::aco::aco_ff::move (coords::Coordinates * coord_object)
+energy::interface_base * energy::interfaces::aco::aco_ff::move (
+  coords::Coordinates * coord_object)
 {
   aco_ff * tmp = new aco_ff(std::move(*this), coord_object);
   return tmp;
@@ -100,8 +104,10 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   if (!skip_topology) 
   {
     std::vector<std::size_t> types;
-    for (auto atom : (*coords).atoms()) 
+    for (auto && atom : (*coords).atoms())
+    {
       scon::sorted::insert_unique(types, atom.energy_type());
+    }
     cparams = tp.contract(types);
     refined.refine((*coords), cparams);
   }
@@ -109,6 +115,32 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
   {
     refined.refine_nb((*coords));
   }
+}
+ 
+std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
+{
+  std::vector<coords::float_type> c;
+  if (cparams.charges().empty())
+  {
+    throw std::runtime_error("No charges in parameters.");
+  }
+  for (auto && atom : coords->atoms())
+  {
+    for (auto && chg : cparams.charges())
+    {
+      auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
+      if (chg.index == t_of_atom)
+      {
+        c.push_back(chg.c);
+        break;
+      }
+    }
+  }
+  if (c.size() != coords->size())
+  {
+    throw std::runtime_error("Didn't find all charges.");
+  }
+  return c;
 }
 
 // Output functions
@@ -181,7 +213,7 @@ void energy::interfaces::aco::aco_ff::print_E_head (std::ostream &S, bool const 
 
 void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const endline) const
 {
-
+  S << "Energies\n";
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::BOND];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::ANGLE];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::UREY];
@@ -190,7 +222,7 @@ void energy::interfaces::aco::aco_ff::print_E_short (std::ostream &S, bool const
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::TORSION];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::VDW];
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::CHARGE];
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << part_energy[types::SOLVATE];
+  S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << "-";
   S << std::right << std::setw(24) << std::fixed << std::setprecision(12) << energy;
   std::size_t const IAS(coords->interactions().size());

@@ -1,4 +1,4 @@
-#ifndef lbfgs_header
+﻿#ifndef lbfgs_header
 
 #define lbfgs_header
 
@@ -101,8 +101,8 @@ namespace optimization
         float_type epsilon;
         // Constructor with initializer list for default values
         configuration () :
-          m(6u), k(), max_iterations(1000u), 
-          delta(), epsilon(F(1.e-5))
+          m(6u), k(), max_iterations(5000u), 
+          delta(), epsilon(F(1.e-4))
         { }
       } config;
 

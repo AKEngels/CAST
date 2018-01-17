@@ -251,11 +251,14 @@ namespace scon
     template<class Stream, class T>
     static auto test_out_op(int) -> 
       sfinae_true<decltype(std::declval<Stream>() << std::declval<T>())>;
+
     template<class , class T>
     static auto test_out_op(long) -> std::false_type;
+
     template<class Stream, class T>
     static auto test_in_op(int) ->
       sfinae_true<decltype(std::declval<Stream>() >> std::declval<typename std::remove_reference<T>::type &>())>;
+
     template<class, class T>
     static auto test_in_op(long)->std::false_type;
   } // detail::

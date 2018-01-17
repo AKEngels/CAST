@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstdlib>
 #include <utility>
+#include <cstdio>
+
 #include "atomic.h"
 #include "energy_int_mopac.h"
 #include "configuration.h"
@@ -29,6 +31,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
   e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
   std::stringstream ss;
+  std::srand(std::time(0));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
@@ -70,19 +73,51 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   std::string rem_file(id);
   if (Config::get().energy.mopac.delete_input)
   {
-    remove(std::string(id).append(".xyz").c_str());
-    remove(std::string(id).append(".out").c_str());
-    remove(std::string(id).append(".arc").c_str());
-    remove(std::string(id).append("_sys.out").c_str());
-    remove(std::string(id).append(".xyz.out").c_str());
+    std::remove(std::string(id).append(".xyz").c_str());
+    std::remove(std::string(id).append(".out").c_str());
+    std::remove(std::string(id).append(".arc").c_str());
+    std::remove(std::string(id).append("_sys.out").c_str());
+    std::remove(std::string(id).append(".xyz.out").c_str());
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
-      remove("FOR005");
-      remove("FOR006");
-      remove("FOR012");
+      std::remove("FOR005");
+      std::remove("FOR006");
+      std::remove("FOR012");
     }
 
   }
+}
+
+std::vector<coords::float_type> 
+energy::interfaces::mopac::sysCallInterface::charges() const
+{
+  auto file = id + ".xyz.aux";
+  std::ifstream auxstream{ file };
+  if (!auxstream)
+  {
+    throw std::runtime_error("AUX file not found.");
+  }
+  std::vector<coords::float_type> v;
+  v.reserve(coords->size());
+  std::string auxline;
+  while (std::getline(auxstream, auxline))
+  {
+    if (auxline.find("ATOM_CHARGES") != std::string::npos)
+    {
+      break;
+    }
+  }
+  double charge{};
+  while (auxstream >> charge)
+  {
+    v.push_back(charge);
+  }
+  if (v.size() != coords->size())
+  {
+    throw std::logic_error("Found " + std::to_string(v.size()) + 
+      " charges instead of " + std::to_string(coords->size()) + " charges.");
+  }
+  return v;
 }
 
 
@@ -90,17 +125,24 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 {
   std::string outstring(id);
   outstring.append(".xyz");
+
+  /*! Special Input for modified MOPAC7
+  *
+  * MOPAC7_HB is a modified version of MOPAC7 which 
+  * neglects hydrogenbonding and needs a special input.
+  */
   if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
   {
     outstring = "FOR005";
   }
+
   std::ofstream out_file(outstring.c_str(), std::ios_base::out);
   if (out_file)
   {
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
     {
       out_file << Config::get().energy.mopac.command;
-      out_file << (opt ? (coords->size() > 250 ? " LINMIN" : " LINMIN") : " 1SCF");
+      out_file << (opt ?  " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
     }
     else if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
@@ -137,16 +179,12 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       out_file << " THREADS=1";
 #endif 
     }
+
     out_file << '\n';
     out_file << '\n' << '\n';
-    if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7 || Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
-    {
-      out_file << coords::output::formats::xyz_mopac7(*coords);
-    }
-    else
-    {
-      out_file << coords::output::formats::xyz(*coords);
-    }
+    
+    out_file << coords::output::formats::xyz_mopac7(*coords);
+    
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -461,40 +499,43 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   integrity = bpv;
 }
 
-namespace
-{
-  int mopac_system_call(std::string const & command_line)
-  {
-#if defined (_MSC_VER)
-    // get a modifiable character sequence of the command: 
-#if defined _UNICODE
-    using cur_char = wchar_t;
-    using cur_string = std::wstring;
-#else
-    using cur_char = char;
-    using cur_string = std::string;
-#endif
-    cur_string wide_cmd(command_line.begin(), command_line.end());
-    std::vector<cur_char> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
-    STARTUPINFO si;
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
 
-    if (CreateProcess(NULL, w_cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
-    {
-      WaitForSingleObject(pi.hProcess, INFINITE);
-      CloseHandle(pi.hProcess);
-      CloseHandle(pi.hThread);
-      return 0;
-    }
-    else /*if MOPAC call failed*/ return 666;
-#else
-    return system(command_line.c_str());
-#endif
-  }
-}
+/*Old system call for programs (mopac)
+*/
+//namespace
+//{
+//  int mopac_system_call(std::string const & command_line)
+//  {
+//#if defined (_MSC_VER)
+//    // get a modifiable character sequence of the command: 
+//#if defined _UNICODE
+//    using cur_char = wchar_t;
+//    using cur_string = std::wstring;
+//#else
+//    using cur_char = char;
+//    using cur_string = std::string;
+//#endif
+//    cur_string wide_cmd(command_line.begin(), command_line.end());
+//    std::vector<cur_char> w_cmdl(wide_cmd.c_str(), wide_cmd.c_str() + wide_cmd.length() + 1u);
+//    STARTUPINFO si;
+//    PROCESS_INFORMATION pi;
+//    ZeroMemory(&si, sizeof(si));
+//    si.cb = sizeof(si);
+//    ZeroMemory(&pi, sizeof(pi));
+//
+//    if (CreateProcess(NULL, w_cmdl.data(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+//    {
+//      WaitForSingleObject(pi.hProcess, INFINITE);
+//      CloseHandle(pi.hProcess);
+//      CloseHandle(pi.hThread);
+//      return 0;
+//    }
+//    else /*if MOPAC call failed*/ return 666;
+//#else
+//    return system(command_line.c_str());
+//#endif
+//  }
+//}
 
 
 int energy::interfaces::mopac::sysCallInterface::callMopac()
@@ -505,7 +546,7 @@ int energy::interfaces::mopac::sysCallInterface::callMopac()
 #else
   mopac_call.append(" > /dev/null 2>&1");
 #endif // _MSC_VER
-  auto ret = mopac_system_call(mopac_call);
+  auto ret = scon::system_call(mopac_call);
   if (ret != 0)
   {
     ++failcounter;
@@ -634,7 +675,25 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
   if (endline) S << '\n';
 }
 
-void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }
+void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
+{
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for (std::size_t k = 0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k + 1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
+  }
+}
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }
 

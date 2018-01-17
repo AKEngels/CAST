@@ -5,8 +5,16 @@
 *.oo
 *.exe
 
+.*
+
 optional_files/build/*
 optional_files/project/*
+optional_files/project/Makefile
+optional_files/project/CAST.make
+!optional_files/build/python_modules
+optional_files/build/python_modules/*.pyc
+
+
 
 /src/documentation/html
 /src/documentation/latex
@@ -47,3 +55,11 @@ examples/taskFEP/*
 !examples/taskFEP/*.rar
 /CAST_2016/CAST_2016.VC.VC.opendb
 /CAST_2016
+/CAST_YORICK
+/CAST_YORICK
+/CAST_YORICK
+/CAST_YORICK
+
+/INPUTstructures
+/src/.vscode
+
