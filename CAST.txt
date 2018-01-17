@@ -103,8 +103,9 @@ task                  SP
 # TERACHEM             Terachem MPI Interface
 # (TINKER)             Tinker syscall interface
 # MOPAC                MOPAC2016 syscall Interface
-# QMMM		       QMMM interface (MOPAC + ff)
+# QMMM                 QMMM interface 
 # MOPAC                MOAPC2012 syscall Interface
+# DFTB                 Interface to DFTB+
 # DFTBABY              DFTBaby interface 
 # GAUSSIAN             GAUSSIAN interface
 
