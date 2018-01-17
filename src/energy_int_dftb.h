@@ -96,6 +96,10 @@ namespace energy
         @param t: type of calculation (0 = energy)*/
         void write_inputfile(int t);
 
+        /**reads dftb+ outputfile (results.tag)
+        @param t: type of calculation (0 = energy)*/
+        double read_output(int t);
+
         /**total energy*/
 				double energy;
 

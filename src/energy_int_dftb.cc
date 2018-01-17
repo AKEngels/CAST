@@ -88,6 +88,24 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "}";
 }
 
+double energy::interfaces::dftb::sysCallInterface::read_output(int t)
+{
+  std::ifstream in_file("results.tag", std::ios_base::in);
+  std::string line;
+  
+  while (!in_file.eof())
+  {
+    std::getline(in_file, line);
+    if (line == "total_energy        :real:0:")
+    {
+      std::getline(in_file, line);
+      energy = std::stod(line);
+    }
+  }
+   
+  return energy;
+}
+
 /*
 Energy class functions that need to be overloaded
 */
@@ -96,7 +114,8 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   write_inputfile(0);
-
+  scon::system_call("dftb+");
+  energy = read_output(0);
 
   return energy;
 }
