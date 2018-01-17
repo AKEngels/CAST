@@ -1,4 +1,4 @@
-﻿There is currently no final license for CAST
+
 
 The following subsections of CAST have licenses and are not developed by us:
 
@@ -14,7 +14,6 @@ The following subsections of CAST have licenses and are not developed by us:
 - Convolution.h: GPL3 or higher
 - lbfgs.h: BSD
 - ls.h: BSD
-- nr3.h: Numerical Recipies, _COMMERCIAL_
 
-Somewhat unclear:
-- interp_1d1.h: Looks like Numerical Recipies code, therefore commercial?
+
+
