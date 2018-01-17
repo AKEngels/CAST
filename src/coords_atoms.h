@@ -1,4 +1,4 @@
-﻿#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
+#ifndef coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 #define coords_atoms_h_3336f4e7_81a8_4d3f_994f_e4104ee90926
 
 #pragma once

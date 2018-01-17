@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "coords.h"
 #ifdef USE_PYTHON
 #include <Python.h>
@@ -131,6 +131,18 @@ inline bool is_in(char x, std::string v)
 /**finds index of element x in vector v
 if not inside it returns 99998 (this is a number that still looks nice when printed)*/
 inline int find_index(int x, std::vector<int> v)
+{
+  int result = 99998;
+  for (int i = 0; i < v.size(); i++)
+  {
+    if (x == v[i]) result = i;
+  }
+  return result;
+}
+
+/**finds index of element x in vector v
+if not inside it returns 99998 (this is a number that still looks nice when printed)*/
+inline int find_index(std::string x, std::vector<std::string> v)
 {
   int result = 99998;
   for (int i = 0; i < v.size(); i++)

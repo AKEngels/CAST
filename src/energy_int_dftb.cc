@@ -1,25 +1,15 @@
-#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
-
-
-/*
-dftb sysCall functions
-*/
-
-
 
 
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp),
-  e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0)
+  energy::interface_base(cp),energy(0.0)
 {
     
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
-  interface_base(cobj),
-  e_bs(rhs.e_bs), e_coul(rhs.e_coul), e_rep(rhs.e_rep), e_tot(rhs.e_tot)
+  interface_base(cobj), energy(rhs.energy)
 {
   interface_base::operator=(rhs);
 }
@@ -51,6 +41,53 @@ energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 
 }
 
+void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
+{
+  std::vector<std::string> elements;
+  for (auto a : (*this->coords).atoms())
+  {
+    if (is_in(a.symbol(), elements) == false)
+    {
+      elements.push_back(a.symbol());
+    }
+  }
+
+  std::ofstream file("dftb_in.hsd");
+  file << "Geometry = GenFormat {\n";
+  file << coords::output::formats::xyz_gen(*this->coords);
+  file << "}\n\n";
+
+  file << "Hamiltonian = DFTB {\n";
+  file << "  SCC = Yes\n";
+  file << "  SlaterKosterFiles = Type2FileNames {\n";
+  file << "    Prefix = '/home/susanne/mio-1-1/'\n";
+  file << "    Seperator = '-'\n";
+  file << "    Suffix = '.skf'\n";
+  file << "  }\n";
+  file << "  MaxAngularMomentum {\n";
+  for (auto s : elements)
+  {
+    char angular_momentum = atomic::angular_momentum_by_symbol(s);
+    if (angular_momentum == 'e')
+    {
+      std::cout << "Angular momentum for element " << s << " not defined. \n";
+      std::cout << "Please go to file 'atomic.h' and define an angular momentum(s, p, d or f) in the array 'angular_momentum'.\n";
+      std::cout << "Talk to a CAST developer if this is not possible for you.";
+      std::exit(0);
+    }
+    file << "    " << s << " = " << angular_momentum << "\n";
+  }
+  file << "  }\n\n";
+
+  file << "Options {\n";
+  file << "  WriteResultTag = Yes\n";
+  file << "}\n\n";
+
+  file << "ParserOptions {\n";
+  file << "  ParserVersion = 5\n";
+  file << "}";
+}
+
 /*
 Energy class functions that need to be overloaded
 */
@@ -58,37 +95,36 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  
-  return e_tot;
+  write_inputfile(0);
+
+
+  return energy;
 }
 
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
   
-  return e_tot;
+  return energy;
 }
 
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  
-
-  return e_tot;
+  throw std::runtime_error("Hessian not implemented in DFTBplus interface.");
 }
 
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-    
-  return e_tot;
+  throw std::runtime_error("DFTBplus has no own optimizer.");
 }
 
 // Output functions
 void energy::interfaces::dftb::sysCallInterface::print_E(std::ostream &S) const
 {
   S << "Total Energy:      ";
-  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_tot;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << energy;
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const
@@ -96,18 +132,16 @@ void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, b
   S << "Energies\n";
   S << std::right << std::setw(24) << "E_bs";
   S << std::right << std::setw(24) << "E_coul";
-  S << std::right << std::setw(24) << "E_lr";
   S << std::right << std::setw(24) << "E_rep";
   S << std::right << std::setw(24) << "SUM\n\n";
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_bs;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_coul;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_lr;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
   S << "\n";
 }
 
@@ -157,4 +191,3 @@ energy::interfaces::dftb::sysCallInterface::charges() const
   std::vector<coords::float_type> charges;
   return charges;
 }
-#endif

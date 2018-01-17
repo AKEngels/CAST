@@ -408,6 +408,37 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
   }
 }
 
+/**writes the geometry of the coord object in the gen format (description of format see manual of dftb+, appendix C)*/
+void coords::output::formats::xyz_gen::to_stream(std::ostream & stream) const
+{
+  // create a vector with all element symbols of the input structure 
+  std::vector<std::string> existing_symbols;
+  for (auto a : ref.atoms())
+  {
+    if (is_in(a.symbol(), existing_symbols) == false)
+    {
+      existing_symbols.push_back(a.symbol());
+    }
+  }
+
+  // write structure
+  std::size_t const N(ref.size());
+  stream << N << "  C\n";  // no supercells possible
+  for (auto s : existing_symbols)
+  {
+    stream << s << " ";
+  }
+  stream << "\n";
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    stream << std::left << std::setw(5) << i + 1 << std::left << std::setw(5) << find_index(ref.atoms(i).symbol(), existing_symbols)+1;
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+    stream << '\n';
+  }
+}
+
 void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());

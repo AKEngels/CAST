@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #if defined _OPENMP
 #include <omp.h>
@@ -10,6 +10,7 @@
 #include "scon_utility.h"
 #include "coords.h"
 #include "configuration.h"
+#include "helperfunctions.h"
 #pragma once
 
 namespace coords
@@ -220,6 +221,18 @@ namespace coords
         }
       };
 
+      class xyz_gen
+        : public output::format
+      {
+        xyz& operator= (xyz_gen const &);
+      public:
+        xyz_gen(Coordinates const &coord_obj) : output::format(coord_obj) {}
+        void to_stream(std::ostream&) const;
+        static std::string filename(std::string postfix)
+        {
+          return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".xyz")).get_unique_path();
+        }
+      };
 
       class xyz_mopac
         : public output::format

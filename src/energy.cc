@@ -9,6 +9,7 @@
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
 #endif
+#include "energy_int_dftb.h"
 #include "energy_int_gaussian.h"
 #include "coords.h"
 #include "scon_utility.h"
@@ -82,6 +83,14 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
       return new energy::interfaces::dftbaby::sysCallInterface(coordinates);
     }
 #endif
+  case config::interface_types::T::DFTB:
+  {
+    if (Config::get().general.verbosity >= 3)
+    {
+      std::cout << "DFTBplus choosen for energy calculations.\n";
+    }
+    return new energy::interfaces::dftb::sysCallInterface(coordinates);
+  }
   case config::interface_types::T::GAUSSIAN:
     {
      if (Config::get().general.verbosity >= 3)

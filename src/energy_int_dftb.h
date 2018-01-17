@@ -1,5 +1,3 @@
-#ifdef USE_PYTHON
-
 #pragma once 
 
 #include <vector>
@@ -18,7 +16,6 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include <Python.h>
 
 #if defined (_MSC_VER)
 #include "win_inc.h"
@@ -41,12 +38,12 @@ namespace energy
 			{
 
 			public:
-                /**constructor
+        /**constructor
 				when called first, sets all partial energies to 0,
 				fills the string add_path for adding stuff to pythonpath
 				and creates configuration file for dftbaby*/
 				sysCallInterface(coords::Coordinates*);
-                /**delete interface?*/
+         /**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
@@ -95,17 +92,12 @@ namespace energy
 				// constructor for clone and move functions
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
-				// energies
-				/**band structure energy*/
-				double e_bs;
-				/**coulomb energy*/
-				double e_coul;
-				/**long range correction*/
-				double e_lr;
-				/**repulsion energy (nuclear)*/
-				double e_rep;
-				/**total energy*/
-				double e_tot;
+        /**writes dftb+ inputfile
+        @param t: type of calculation (0 = energy)*/
+        void write_inputfile(int t);
+
+        /**total energy*/
+				double energy;
 
 				/*
 				checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
@@ -117,4 +109,3 @@ namespace energy
 		}
 	}
 }
-#endif
