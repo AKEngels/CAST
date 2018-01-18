@@ -57,6 +57,11 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << coords::output::formats::xyz_gen(*this->coords);
   file << "}\n\n";
 
+  if (t == 2)
+  {
+    file << "Driver = SecondDerivatives {}\n\n";
+  }
+
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
@@ -106,6 +111,8 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
   else
   {
+    int N = (*this->coords).size();
+
     std::ifstream in_file("results.tag", std::ios_base::in);
     std::string line;
 
@@ -123,7 +130,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         double x, y, z;
         coords::Representation_3D g_tmp;
 
-        for (int i = 0; i < (*this->coords).size(); i++)
+        for (int i = 0; i < N; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -134,6 +141,38 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);
+      }
+
+      else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)
+      {
+        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
+
+        std::vector<double> tmp;
+        double x, y, z;
+
+        for (int i=0; i < (N*N)/3; i++)
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          tmp.push_back(x*CONVERSION_FACTOR);
+          tmp.push_back(y*CONVERSION_FACTOR);
+          tmp.push_back(z*CONVERSION_FACTOR);
+        }
+
+        std::vector<double> linevec;
+        std::vector<std::vector<double>> hess;
+        for (int i = 0; i < N; i++)
+        {
+          linevec.resize(0);
+          for (int j = 0; j < N; j++)
+          {
+            linevec.push_back(tmp[(i*N)+j]);
+          }
+          hess.push_back(linevec);
+        }
+
+        coords->set_hessian(hess);  //set hessian
+        std::remove("hessian.out"); // delete file
       }
     }
   }
@@ -178,7 +217,11 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  throw std::runtime_error("Hessian not implemented in DFTBplus interface.");
+  integrity = true;
+  write_inputfile(2);
+  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+  energy = read_output(2);
+  return energy;
 }
 
 // Optimization
