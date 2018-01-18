@@ -623,9 +623,11 @@ namespace config
       std::string path;
       /**path to slater-koster files*/
       std::string sk_files;
+      /**verbosity for dftb+*/
+      int verbosity;
 
       /**constructor*/
-      dftb_conf(void) {}
+      dftb_conf(void): verbosity(0) {}
     } dftb;
 
     struct gaussian_conf

@@ -200,6 +200,8 @@ DFTB+path         /home/susanne/dftbplus/bin/dftb+
 
 DFTB+skfiles      /home/susanne/mio-1-1/
 
+DFTB+verbose      1
+
 
 ################# DFTBaby options ################################################
 

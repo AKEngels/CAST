@@ -82,14 +82,14 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   file << "Options {\n";
   file << "  WriteResultsTag = Yes\n";
+  file << "  RestartFrequency = 0\n";
+  if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
   file << "}\n\n";
 
-  if (t == 1)
-  {
-    file << "Analysis = {\n";
-    file << "  CalculateForces = Yes\n";
-    file << "}\n\n";
-  }
+  file << "Analysis = {\n";
+  file << "  WriteBandOut = No\n";
+  if (t == 1) file << "  CalculateForces = Yes\n";
+  file << "}\n\n";
 
   file << "ParserOptions {\n";
   file << "  ParserVersion = 5\n";
@@ -126,6 +126,16 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         g_tmp.push_back(g);
       }
       coords->swap_g_xyz(g_tmp);
+    }
+  }
+
+  if (Config::get().energy.dftb.verbosity < 2)
+  {
+    std::remove("dftb_pin.hsd");
+    if (Config::get().energy.dftb.verbosity == 0)
+    {
+      std::remove("dftb_in.hsd");
+      std::remove("output_dftb.hsd");
     }
   }
    
