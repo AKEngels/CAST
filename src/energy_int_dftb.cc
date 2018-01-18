@@ -64,7 +64,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
-  file << "  SCCTolerance = " << Config::get().energy.dftb.scctol << "\n";
+  file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
   file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
   file << "    Separator = '-'\n";
