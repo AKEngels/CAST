@@ -150,7 +150,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::vector<double> tmp;
         double x, y, z;
 
-        for (int i=0; i < (N*N)/3; i++)
+        for (int i=0; i < (3*N*3*N)/3; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -161,12 +161,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
         std::vector<double> linevec;
         std::vector<std::vector<double>> hess;
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < 3*N; i++)
         {
           linevec.resize(0);
-          for (int j = 0; j < N; j++)
+          for (int j = 0; j < 3*N; j++)
           {
-            linevec.push_back(tmp[(i*N)+j]);
+            linevec.push_back(tmp[(i*3*N)+j]);
           }
           hess.push_back(linevec);
         }
