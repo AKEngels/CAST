@@ -202,7 +202,7 @@ DFTB+skfiles      /home/susanne/mio-1-1/
 
 DFTB+verbose      1
 
-DFTB+scctol       1e-7
+DFTB+scctol       0.00001
 
 
 ################# DFTBaby options ################################################
