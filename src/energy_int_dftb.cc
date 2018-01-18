@@ -135,7 +135,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     if (Config::get().energy.dftb.verbosity == 0)
     {
       std::remove("dftb_in.hsd");
-      std::remove("output_dftb.hsd");
+      std::remove("output_dftb.txt");
     }
   }
    
