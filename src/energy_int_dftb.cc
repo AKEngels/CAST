@@ -98,37 +98,46 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 {
-  std::ifstream in_file("results.tag", std::ios_base::in);
-  std::string line;
-  
-  while (!in_file.eof())
+  if (file_exists("results.tag") == false)
   {
-    std::getline(in_file, line);
-    if (line == "total_energy        :real:0:")
-    {
-      std::getline(in_file, line);
-      energy = std::stod(line)*627.503;
-    }
-
-    else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)
-    {
-      double x, y, z;
-      coords::Representation_3D g_tmp;
-      
-      for (int i = 0; i < (*this->coords).size(); i++)
-      {
-        std::getline(in_file, line);
-        std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-        x = (-x) * (627.503 / 0.5291172107);
-        y = (-y) * (627.503 / 0.5291172107);
-        z = (-z) * (627.503 / 0.5291172107);
-        coords::Cartesian_Point g(x,y,z);
-        g_tmp.push_back(g);
-      }
-      coords->swap_g_xyz(g_tmp);
-    }
+    std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
+    integrity = false;
   }
 
+  else
+  {
+    std::ifstream in_file("results.tag", std::ios_base::in);
+    std::string line;
+
+    while (!in_file.eof())
+    {
+      std::getline(in_file, line);
+      if (line == "total_energy        :real:0:")
+      {
+        std::getline(in_file, line);
+        energy = std::stod(line)*627.503;
+      }
+
+      else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)
+      {
+        double x, y, z;
+        coords::Representation_3D g_tmp;
+
+        for (int i = 0; i < (*this->coords).size(); i++)
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          x = (-x) * (627.503 / 0.5291172107);
+          y = (-y) * (627.503 / 0.5291172107);
+          z = (-z) * (627.503 / 0.5291172107);
+          coords::Cartesian_Point g(x, y, z);
+          g_tmp.push_back(g);
+        }
+        coords->swap_g_xyz(g_tmp);
+      }
+    }
+  }
+  
   if (Config::get().energy.dftb.verbosity < 2)
   {
     std::remove("dftb_pin.hsd");
@@ -149,21 +158,17 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
+  integrity = true;
   write_inputfile(0);
-  int ret = scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
-  if (ret != 0)
-  {
-    std::cout << "DFTB+ has failed. Treating structure as broken.\n";
-    integrity = false;
-  }
+  scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
   energy = read_output(0);
-
   return energy;
 }
 
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
+  integrity = true;
   write_inputfile(1);
   scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
   energy = read_output(1);
