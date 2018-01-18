@@ -71,7 +71,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     if (angular_momentum == 'e')
     {
       std::cout << "Angular momentum for element " << s << " not defined. \n";
-      std::cout << "Please go to file 'atomic.h' and define an angular momentum(s, p, d or f) in the array 'angular_momentum'.\n";
+      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
       std::cout << "Talk to a CAST developer if this is not possible for you.";
       std::exit(0);
     }
