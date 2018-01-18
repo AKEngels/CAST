@@ -616,6 +616,18 @@ namespace config
       states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
     } dftbaby;
 
+    /**struct that contains all information necessary for DFTB+ calculation*/
+    struct dftb_conf
+    {
+      /**path to dftb+*/
+      std::string path;
+      /**path to slater-koster files*/
+      std::string sk_files;
+
+      /**constructor*/
+      dftb_conf(void) {}
+    } dftb;
+
     struct gaussian_conf
     {
       std::string path, link, charge, multipl, method, basisset, spec;

@@ -699,6 +699,15 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
+  //DFTB+ Options
+  else if (option.substr(0, 5) == "DFTB+")
+  {
+    if (option.substr(5, 4) == "path")
+      Config::set().energy.dftb.path = value_string;
+    else if (option.substr(5, 7) == "skfiles")
+      Config::set().energy.dftb.sk_files = value_string;
+  }
+
   //Gaussian options
   else if (option.substr(0, 8) == "GAUSSIAN")
   {

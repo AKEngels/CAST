@@ -60,7 +60,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
-  file << "    Prefix = '/home/susanne/mio-1-1/'\n";
+  file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
@@ -100,7 +100,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     if (line == "total_energy        :real:0:")
     {
       std::getline(in_file, line);
-      energy = std::stod(line);
+      energy = std::stod(line)*627.503;
     }
   }
    
@@ -115,7 +115,7 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   write_inputfile(0);
-  scon::system_call("/home/susanne/dftbplus/bin/dftb+");
+  scon::system_call(Config::get().energy.dftb.sk_files);
   energy = read_output(0);
 
   return energy;
@@ -124,7 +124,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  
   return energy;
 }
 

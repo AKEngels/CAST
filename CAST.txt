@@ -153,6 +153,54 @@ QMMMmminterface       OPLSAA
 QMMMqminterface       MOPAC
 
 
+############################ GAUSSIAN OPTIONS ########################
+
+GAUSSIANlink NProcShared=4 Mem=4GB
+
+#Methods for Gaussian Call
+
+GAUSSIANmethod HF
+
+#Basisset for Gaussian Call
+
+GAUSSIANbasisset 6-31G
+
+#Further specifications for Gaussian Call
+
+#GAUSSIANspecifications
+
+#Charge of the Molecule
+
+GAUSSIANcharge 0
+
+#Multiplicity
+
+GAUSSIANmultiplicity 1
+
+#Use of gaussian optimizer
+
+GAUSSIANopt   1
+
+#Gaussian optimization with steepest descend
+
+GAUSSIANsteep 0
+
+#Gaussian executeable path
+
+GAUSSIANpath g16
+
+#Delete temporary Gaussian f i l e s ?
+
+GAUSSIANdelete 0
+
+
+################# DFTB+ Options #################################################
+
+DFTB+path         /home/susanne/dftbplus/bin/dftb+
+
+DFTB+skfiles      /home/susanne/mio-1-1/
+
+
 ################# DFTBaby options ################################################
 
 # path to DFTBaby
@@ -202,46 +250,6 @@ DFTBABYvirt_orb            2
 
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
 DFTBABYopt                  1
-
-############################ GAUSSIAN OPTIONS ########################
-
-GAUSSIANlink NProcShared=4 Mem=4GB
-
-#Methods for Gaussian Call
-
-GAUSSIANmethod HF
-
-#Basisset for Gaussian Call
-
-GAUSSIANbasisset 6-31G
-
-#Further specifications for Gaussian Call
-
-#GAUSSIANspecifications
-
-#Charge of the Molecule
-
-GAUSSIANcharge 0
-
-#Multiplicity
-
-GAUSSIANmultiplicity 1
-
-#Use of gaussian optimizer
-
-GAUSSIANopt   1
-
-#Gaussian optimization with steepest descend
-
-GAUSSIANsteep 0
-
-#Gaussian executeable path
-
-GAUSSIANpath g16
-
-#Delete temporary Gaussian f i l e s ?
-
-GAUSSIANdelete 0
 
 
 ####################################
