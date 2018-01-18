@@ -128,6 +128,9 @@ workspace "CAST"
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
+		filter { "not Armadillo_*", "action:vs*" }
+				buildoptions "/bigobj"
+
 		filter { "Release", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_release"
 		filter { "Release", "platforms:x64", "action:vs*" }

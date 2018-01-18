@@ -151,14 +151,14 @@ public:
   \see http://www.graphviz.org/content/dot-language
   \see http://www.graphviz.org/
   */
-  /*void visualize_graph(const std::string& out_file) {
+  void visualize_graph(const std::string& out_file) {
     using boost::get;
     using boost::make_label_writer;
     using boost::write_graphviz;
 
     std::ofstream output(out_file);
     write_graphviz(output, g, make_label_writer(get(&Node::atom_serial, g)));
-  }*/
+  }
 };
 }
 

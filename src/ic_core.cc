@@ -446,7 +446,7 @@ ic_core::system::delocalize_ic_system(const std::size_t& sys_size,
   std::size_t n_rows = result.at(0).size();
   Mat B_matrix_t(n_rows, n_cols);
   for (std::size_t h = 0; h < n_cols; ++h) {
-    Mat col_vec(result.at(h));
+    Mat col_vec = Mat::col_from_vec(result.at(h));
     B_matrix_t.col(h) = col_vec;
   }
   auto B_matrix = B_matrix_t.t();
@@ -530,7 +530,8 @@ scon::mathmatrix<float_type> ic_core::system::initial_hessian() {
   }
   values.insert(values.end(), trans_x_vec_.size() * 3, 0.05);
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
-  auto val_col = scon::mathmatrix<float_type>(values);
+  
+  auto val_col = Mat::col_from_vec(values);
   //val_col.print(); //test output
   Mat hessian = val_col.diagmat();
   return hessian;
@@ -541,8 +542,8 @@ ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& del_mat,
                                     const scon::mathmatrix<float_type>& hessian) {
   using Mat = scon::mathmatrix<float_type>;
 
-  Mat del_hessian;
-  del_hessian = del_mat.t() * hessian * del_mat;
+  Mat del_hessian = del_mat.t() * hessian * del_mat;
+
   return del_hessian;
 }
 

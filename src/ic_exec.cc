@@ -49,26 +49,26 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);
 
   // output graphviz file from graph
-  //graph.visualize_graph("Graphviz");
+  graph.visualize_graph("Graphviz");
 
   // create initial internal coordinates system
   ic_core::system icSystem(residue_vec, cp_vec, index_vec);
 
-  //icSystem.create_ic_system(graph.g);
-  //std::cout << "IC creation test: \n";
-  //std::cout << "Initial hessian: \n";
-  //auto hessian = icSystem.initial_hessian();
-  //std::cout << "Hessian:\n" << hessian << "\n\n";
-  ////hessian.print();
-  //auto DLC = icSystem.delocalize_ic_system(9, trial);
-  //auto DLC_matrix = DLC.first;
-  //auto G_matrix = DLC.second;
-  //std::cout << "DLC matrix: \n";
-  //std::cout << DLC_matrix << "\n\n";
-  //auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
-  //
-  //std::cout << "DelHessian:\n" << del_hessian << "\n\n";
-  //auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
+  icSystem.create_ic_system(graph.g);
+  std::cout << "IC creation test: \n";
+  std::cout << "Initial hessian: \n";
+  auto hessian = icSystem.initial_hessian();
+  std::cout << "Hessian:\n" << hessian << "\n\n";
+  std::cout << hessian << "\n";
+  auto DLC = icSystem.delocalize_ic_system(9, trial);
+  auto DLC_matrix = DLC.first;
+  auto G_matrix = DLC.second;
+  std::cout << "DLC matrix: \n";
+  std::cout << DLC_matrix << "\n\n";
+  auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
+  
+  std::cout << "DelHessian:\n" << del_hessian << "\n\n";
+  auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
   //std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   //std::cout << "Gmatrix:\n" << G_matrix << "\n\n";
   //

@@ -1,8 +1,6 @@
 #ifndef cast_ic_rotation_h_guard
 #define cast_ic_rotation_h_guard
 
-#pragma once
-
 #include "ic_util.h"
 #include "quaternion.h"
 #include "scon_angle.h"
@@ -28,11 +26,18 @@ struct identity {
   typename T type;
 };
 
-auto get_mean = [](auto const & vec, auto add) {
+template<typename Vec, typename Add>
+auto get_mean(Vec const & vec, Add add) {
   auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
-  mean /= static_cast<coords::Cartesian_Point::type> (vec.size());
+  mean /= static_cast<float_type> (vec.size());
   return mean;
-};
+}
+
+//auto const get_mean = [](auto const & vec, auto add) {
+//  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
+//  mean /= static_cast<coords::Cartesian_Point::type> (vec.size());
+//  return mean;
+//};
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
@@ -133,7 +138,7 @@ correlation_matrix_derivs(const scon::mathmatrix<T>& R,
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
 
-  auto mean_target = get_mean(traget, std::plus<Cartesian_Point>());
+  auto mean_target = get_mean(target, [](auto const& a, auto const& b) { return a + b; });
 
   auto tshift = target - mean_target;
   auto S = ic_util::Rep3D_to_arma<T>(tshift);
@@ -142,7 +147,7 @@ correlation_matrix_derivs(const scon::mathmatrix<T>& R,
     std::array<Mat, 3> A;
     A.fill(scon::mathmatrix<T>::zero(3, 3));
     for (std::size_t l = 0; l < A.size(); ++l) {
-      A.[l].row(l) = S.row(c);
+      A[l].row(l) = S.row(c);
     }
     result.emplace_back(A);
   }
@@ -221,7 +226,7 @@ quaternion_derivs(const coords::Representation_3D& trial,
   std::vector<Mat> result;
   auto q = q_eigval.second;
   auto q_in_vec = ic_util::arr_to_vec(q.q_);
-  Mat qrow(q_in_vec);
+  auto qrow = Mat::col_from_vec(q_in_vec);
   for (std::size_t i = 0; i < target.size(); ++i) {
     auto F_dtemp = F_der.at(i);
     Mat qtemp(3, 4);

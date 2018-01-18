@@ -54,7 +54,6 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "ic_exec.h"
-#include<armadillo>
 
 //////////////////////////
 //                      //

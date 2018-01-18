@@ -30,31 +30,26 @@ namespace ic_core {
 
 using coords::float_type;
 
-class distance {
-public:
+struct distance {
   distance(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
            const unsigned int& index_a, const unsigned int& index_b,
            const std::string& elem_a, const std::string& elem_b)
       : a_{ a }, b_{ b }, index_a_{ index_a }, index_b_{ index_b },
         elem_a_{ elem_a }, elem_b_{ elem_b } {}
 
-  const std::size_t index_a_;
-  const std::size_t index_b_;
-  const std::string elem_a_;
-  const std::string elem_b_;
+  std::size_t index_a_;
+  std::size_t index_b_;
+  std::string elem_a_;
+  std::string elem_b_;
+  coords::Cartesian_Point a_;
+  coords::Cartesian_Point b_;
 
-private:
-  const coords::Cartesian_Point a_;
-  const coords::Cartesian_Point b_;
-
-public:
   coords::float_type dist();
   std::vector<scon::c3<float_type>> bond_der();
   std::vector<float_type> bond_der_vec(const std::size_t&);
 };
 
-class angle {
-public:
+struct angle {
   angle(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
         const coords::Cartesian_Point& c, const unsigned int& index_a,
         const unsigned int& index_b, const unsigned int& index_c,
@@ -65,65 +60,59 @@ public:
           elem_c
         } {}
 
-  const std::size_t index_a_;
-  const std::size_t index_b_;
-  const std::size_t index_c_;
-  const std::string elem_a_;
-  const std::string elem_b_;
-  const std::string elem_c_;
+  std::size_t index_a_;
+  std::size_t index_b_;
+  std::size_t index_c_;
+  std::string elem_a_;
+  std::string elem_b_;
+  std::string elem_c_;
+  coords::Cartesian_Point a_;
+  coords::Cartesian_Point b_;
+  coords::Cartesian_Point c_;
 
-private:
-  const coords::Cartesian_Point a_;
-  const coords::Cartesian_Point b_;
-  const coords::Cartesian_Point c_;
-
-public:
   coords::float_type ang();
   std::vector<scon::c3<float_type>> angle_der();
   std::vector<float_type> angle_der_vec(const std::size_t&);
 };
+//
+//template<bool isLValue>
+//class dihedral_points;
+//
+//class dihedral_points<true> {
+//  using rwcp = std::reference_wrapper<coords::Cartesian_Point const>;
+//  rwcp a_;
+//  rwcp b_;
+//  rwcp c_;
+//  rwcp d_;
+//};
+//
+//class dihedral_points<false> {
+//  coords::Cartesian_Point a_;
+//  coords::Cartesian_Point b_;
+//  coords::Cartesian_Point c_;
+//  coords::Cartesian_Point d_;
+//};
+//
+//template<bool isLValue>
+//class dihedral_indices;
+//
+//class dihedral_indices<true> {
+//  using rwst = std::reference_wrapper<std::size_t const>;
+//  rwst index_a_;
+//  rwst index_b_;
+//  rwst index_c_;
+//  rwst index_d_;
+//};
+//
+//class dihedral_indices<false> {
+//  std::size_t index_a_;
+//  std::size_t index_b_;
+//  std::size_t index_c_;
+//  std::size_t index_d_;
+//};
 
-template<bool isLValue>
-class dihedral_points;
-
-class dihedral_points<true> {
-  using rwcp = std::reference_wrapper<coords::Cartesian_Point const>;
-  rwcp a_;
-  rwcp b_;
-  rwcp c_;
-  rwcp d_;
-};
-
-class dihedral_points<false> {
-  coords::Cartesian_Point a_;
-  coords::Cartesian_Point b_;
-  coords::Cartesian_Point c_;
-  coords::Cartesian_Point d_;
-};
-
-template<bool isLValue>
-class dihedral_indices;
-
-class dihedral_indices<true> {
-  using rwst = std::reference_wrapper<std::size_t const>;
-  rwst index_a_;
-  rwst index_b_;
-  rwst index_c_;
-  rwst index_d_;
-};
-
-class dihedral_indices<false> {
-  std::size_t index_a_;
-  std::size_t index_b_;
-  std::size_t index_c_;
-  std::size_t index_d_;
-};
-
-template<bool CP_isLVal, bool Ind_isLVal>
-class dihedral : public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal>{
-private:
-  
-public:
+//template<bool CP_isLVal, bool Ind_isLVal>
+struct dihedral /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
   dihedral(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
            const coords::Cartesian_Point& c, const coords::Cartesian_Point& d,
            const unsigned int& index_a, const unsigned int& index_b,
@@ -131,14 +120,27 @@ public:
       : a_{ a }, b_{ b }, c_{ c }, d_{ d }, index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
-public:
   coords::float_type dihed();
   std::vector<scon::c3<float_type>> dihed_der();
   std::vector<float_type> dihed_der_vec(const std::size_t&);
+
+  std::size_t get_ind_a() { return index_a_; }
+  std::size_t get_ind_b() { return index_b_; }
+  std::size_t get_ind_c() { return index_c_; }
+  std::size_t get_ind_d() { return index_d_; }
+
+  std::size_t index_a_;
+  std::size_t index_b_;
+  std::size_t index_c_;
+  std::size_t index_d_;
+
+  coords::Cartesian_Point a_;
+  coords::Cartesian_Point b_;
+  coords::Cartesian_Point c_;
+  coords::Cartesian_Point d_;
 };
 
-class out_of_plane {
-public:
+struct out_of_plane {
   out_of_plane(const coords::Cartesian_Point& a,
                const coords::Cartesian_Point& b,
                const coords::Cartesian_Point& c,
@@ -148,36 +150,37 @@ public:
       : a_{ a }, b_{ b }, c_{ c }, d_{ d }, index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
-  const std::size_t index_a_;
-  const std::size_t index_b_;
-  const std::size_t index_c_;
-  const std::size_t index_d_;
+  std::size_t index_a_;
+  std::size_t index_b_;
+  std::size_t index_c_;
+  std::size_t index_d_;
 
-public:
-  const coords::Cartesian_Point a_;
-  const coords::Cartesian_Point b_;
-  const coords::Cartesian_Point c_;
-  const coords::Cartesian_Point d_;
+  coords::Cartesian_Point a_;
+  coords::Cartesian_Point b_;
+  coords::Cartesian_Point c_;
+  coords::Cartesian_Point d_;
 
-public:
   coords::float_type oop();
   std::vector<scon::c3<float_type>> oop_der();
   std::vector<float_type> oop_der_vec(const std::size_t&);
 };
+//TODO make them all inherit some super trans class
 
-class trans_x {
-public:
+struct trans {
+  trans(float_type && val, coords::Representation_3D const& rep, std::vector<std::size_t> const& index_vec)
+    : val_{std::move(val)}, rep_(rep), indices_(index_vec) {}
+
+  float_type val_;
+  std::vector<std::size_t> indices_;
+
+  coords::Representation_3D rep_;
+};
+
+struct trans_x : trans{
   trans_x(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : val_{ create_trans_x(rep) }, rep_{ rep }, indices_{ index_vec } {}
+      : trans(create_trans_x(rep) , rep , index_vec) {}
 
-  const float_type val_;
-  const std::vector<std::size_t> indices_;
-
-private:
-  const coords::Representation_3D rep_;
-
-public:
   float_type create_trans_x(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
@@ -190,19 +193,16 @@ public:
   std::vector<float_type> trans_x_der_vec(const std::size_t&);
 };
 
-class trans_y {
-public:
+struct trans_y : trans {
   trans_y(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : val_{ create_trans_y(rep) }, rep_{ rep }, indices_{ index_vec } {}
+      : trans(create_trans_y(rep), rep, index_vec) {}
 
-  const float_type val_;
-  const std::vector<std::size_t> indices_;
+  float_type val_;
+  std::vector<std::size_t> indices_;
 
-private:
-  const coords::Representation_3D rep_;
+  coords::Representation_3D rep_;
 
-public:
   float_type create_trans_y(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
@@ -215,19 +215,11 @@ public:
   std::vector<float_type> trans_y_der_vec(const std::size_t&);
 };
 
-class trans_z {
-public:
+struct trans_z : trans {
   trans_z(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : val_{ create_trans_z(rep) }, rep_{ rep }, indices_{ index_vec } {}
+      : trans(create_trans_z(rep), rep, index_vec) {}
 
-  const float_type val_;
-  const std::vector<std::size_t> indices_;
-
-private:
-  const coords::Representation_3D rep_;
-
-public:
   float_type create_trans_z(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
@@ -240,21 +232,18 @@ public:
   std::vector<float_type> trans_z_der_vec(const std::size_t&);
 };
 
-class rotation {
-public:
+struct rotation {
   rotation(const coords::Representation_3D& target,
            const std::vector<std::size_t>& index_vec)
       : reference_{ target }, rad_gyr_{ radius_gyration(target) }, indices_{
           index_vec
         } {}
 
-  const std::vector<std::size_t> indices_;
+  std::vector<std::size_t> indices_;
 
-private:
-  const coords::Representation_3D reference_;
-  const float_type rad_gyr_;
+  coords::Representation_3D reference_;
+  float_type rad_gyr_;
 
-public:
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&);
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
   scon::mathmatrix<float_type> rot_der_mat(const std::size_t&,
