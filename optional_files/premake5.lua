@@ -32,8 +32,6 @@ workspace "CAST"
 		language "C++"
 		targetdir "build"
 		files { "../src/*.h", "../src/*.cc" }
-		--flags "C++14"
-		cppdialect "C++14"
 		warnings "Extra"
 
 		filter "not Armadillo_*"
@@ -64,7 +62,7 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" ,"-std=c++0x"}
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
@@ -107,15 +105,9 @@ workspace "CAST"
 
 		filter {"Python_*", "action:gmake"}
 			links { "util", "lapack" }
-			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
-			libdirs { "linux_precompiled_libs" }
-
-		filter { "Python_Release", "action:gmake" }
-			includedirs "/usr/include/python2.7"
+			linkoptions { "-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib" , "-pthread", "-ldl"}
+                        includedirs "/apps/python27/include/python2.7"
 			links "python2.7"
-		filter { "Python_Debug", "action:gmake" }
-			includedirs "/usr/include/python2.7_d"
-			links "python2.7_d"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
