@@ -625,9 +625,11 @@ namespace config
       std::string sk_files;
       /**verbosity for dftb+*/
       int verbosity;
+      /**convergence threshold for SCC-DFTB calculation*/
+      double scctol;
 
       /**constructor*/
-      dftb_conf(void): verbosity(0) {}
+      dftb_conf(void): verbosity(0), scctol(0.00001) {}
     } dftb;
 
     struct gaussian_conf
