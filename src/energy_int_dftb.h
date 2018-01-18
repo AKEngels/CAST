@@ -93,11 +93,11 @@ namespace energy
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
         /**writes dftb+ inputfile
-        @param t: type of calculation (0 = energy)*/
+        @param t: type of calculation (0 = energy, 1 = gradient)*/
         void write_inputfile(int t);
 
         /**reads dftb+ outputfile (results.tag)
-        @param t: type of calculation (0 = energy)*/
+        @param t: type of calculation (0 = energy, 1 = gradient)*/
         double read_output(int t);
 
         /**total energy*/

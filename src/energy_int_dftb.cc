@@ -84,6 +84,13 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  WriteResultsTag = Yes\n";
   file << "}\n\n";
 
+  if (t == 1)
+  {
+    file << "Analysis = {\n";
+    file << "  CalculateForces = Yes\n";
+    file << "}\n\n";
+  }
+
   file << "ParserOptions {\n";
   file << "  ParserVersion = 5\n";
   file << "}";
@@ -101,6 +108,24 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     {
       std::getline(in_file, line);
       energy = std::stod(line)*627.503;
+    }
+
+    else if (line.substr(0, 6) == "forces" && t == 1)
+    {
+      double x, y, z;
+      coords::Representation_3D g_tmp;
+      
+      for (int i = 0; i < (*this->coords).size(); i++)
+      {
+        std::getline(in_file, line);
+        std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+        x = (-x) * (627.503 / 0.5291172107);
+        y = (-y) * (627.503 / 0.5291172107);
+        z = (-z) * (627.503 / 0.5291172107);
+        coords::Cartesian_Point g(x,y,z);
+        g_tmp.push_back(g);
+      }
+      coords->swap_g_xyz(g_tmp);
     }
   }
    
@@ -124,6 +149,9 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
+  write_inputfile(1);
+  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+  energy = read_output(1);
   return energy;
 }
 
