@@ -115,7 +115,7 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   write_inputfile(0);
-  scon::system_call(Config::get().energy.dftb.sk_files);
+  scon::system_call(Config::get().energy.dftb.path);
   energy = read_output(0);
 
   return energy;
