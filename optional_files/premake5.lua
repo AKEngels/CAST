@@ -1,18 +1,7 @@
--- premake5.lua
--- Get Premake5 via https://premake.github.io/
---
--- CAST automatic build configuration
--- Targeted at VS2017 and our own Linux-Cluster "ECPC"
---
--- Build for windows: "premake5 vs2017"
--- Open CAST.sln in project/
---
--- Build for Linux on ECPC "premake5 gmake"
--- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
---
--- Build for Linux on Smurf: "premake5 gmake --mpi"
--- Run "make config=armadillo_release_x64 CXX='/apps/mpich/2.1.4.1p1/bin/mpicxx -cxx=/apps/gcc-6.1/bin/g++-6.1 -static-libstdc++ -static-libgcc'" in project/
---
+
+
+-- If using Windows and using Python these values depend on the directory your Python27 is installed
+local python27_dir = "C:/Python27"
 
 newoption {
    trigger     = "mpi",
@@ -27,238 +16,171 @@ function os.winSdkVersion()
     else return "nothing" end
 end
 
-
 workspace "CAST"
-  configurations { "Debug", "Release", "Testing", "Armadillo_Testing", "Armadillo_Release", "Armadillo_Debug", "Python_Release", "Python_Debug" }
-    location "../optional_files/project"
-    platforms { "x86", "x64"}
-  filter { "platforms:x86" }
-    architecture "x32"
-  filter { "platforms:x64" }
-    defines { "COMPILEX64"}
-    architecture "x64"
-  filter{}
+	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug"}
+		location "project"
+		platforms { "x86", "x64" }
+		filter "platforms:x86"
+			architecture "x32"
+		filter "platforms:x64"
+			defines "COMPILEX64"
+			architecture "x64"
+		filter{}
 
-project "CAST"
-  kind "ConsoleApp"
-  language "C++"
-  targetdir "../optional_files/build/"
-  files { "../src/**.h", "../src/**.cc", "../src/gtest/**.cc" }
+	project "CAST"
+		kind "ConsoleApp"
+		language "C++"
+		targetdir "build"
+		files { "../src/*.h", "../src/*.cc" }
+		--flags "C++14"
+		cppdialect "C++14"
+		warnings "Extra"
 
-  vpaths { ["Headers"] = "../src/**.h" , ["Sources"] = "../src/*.cc", ["Testing"] = "../src/gtest/**.cc" }
+		filter "not Armadillo_*"
+				includedirs "../submodules/eigen"
+		filter { "not Armadillo_*", "not *Debug" }
+			defines "EIGEN_NO_DEBUG"
 
+		filter "*Release"
+			optimize "Full"
+			flags "LinkTimeOptimization"
 
-  configuration "gmake"
-    includedirs { "../submodules/eigen/Eigen/" }
-    linkoptions { "-fopenmp" }
-                targetname "CAST_undefined.exe"
-    filter { "options:mpi" }
-      defines { "USE_MPI" }
-    filter { "action:gmake" }
-      buildoptions { "-Wextra", "-Wall", "-std=c++0x", "-pedantic", "-fopenmp", "-static", }
-    filter { "configurations:Release", "action:gmake" }
-      optimize "Full"
-    filter { "configurations:Release",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x86_release"
-    filter { "configurations:Release",  "platforms:x64", "action:gmake"}
-      targetname "CAST_linux_x64_release"
-    filter { "configurations:Python_Release",  "platforms:x64", "action:gmake"}
-      optimize "Full"
-      targetname "CAST_linux_x64_python_release"
-      includedirs { "/apps/python27/include/python2.7" }
-      defines {"USE_PYTHON"}
-      links {"python2.7", "util", "lapack"}
-      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
-    filter { "configurations:Python_Release",  "platforms:x86", "action:gmake"}
-      optimize "Full"
-      targetname "CAST_linux_x86_python_release"
-      includedirs { "/apps/python27/include/python2.7" }
-      defines {"USE_PYTHON"}
-      links {"python2.7", "util", "lapack"}
-      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+		filter "*Debug"
+			symbols "On"
+			defines "CAST_DEBUG_DROP_EXCEPTIONS"
 
-    filter { "configurations:Armadillo_Testing", "action:gmake" }
-      optimize "Debug"
-      defines { "GOOGLE_MOCK", "USE_ARMADILLO", "ARMA_DONT_USE_WRAPPER" }
-      includedirs { "./includes/gtest/", "../optional_files/includes/armadillo/" }
-      buildoptions { "-I ../optional_files/includes -I ../includes -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libgmock.a ../linux_precompiled_libs/libopenblas.a ../linux_precompiled_libs/liblapack.a -lgfortran" }
-      flags { "LinkTimeOptimization" }
-    filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x86_armadillo_testing"
-    filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_testing"
+		filter "Armadillo_*"
+			includedirs { "includes/armadillo", "includes" }
+			defines { "ARMA_DONT_USE_WRAPPER", "CAST_USE_ARMADILLO" }
 
-      filter { "configurations:Testing", "action:gmake" }
-        optimize "Debug"
-        defines { "GOOGLE_MOCK" }
-        includedirs { "./includes/gtest/", "../submodules/eigen/Eigen/"}
-        buildoptions { "-I ../optional_files/includes" }
-        linkoptions { "../linux_precompiled_libs/libgmock.a -I ../optional_files/includes/" }
-        flags { "LinkTimeOptimization" }
-      filter { "configurations:Testing",  "platforms:x86", "action:gmake"}
-        targetname "CAST_linux_x86_testing"
-      filter { "configurations:Testing",  "platforms:x64", "action:gmake"}
-        targetname "CAST_linux_x64_testing"
+		filter "Python_*"
+			defines "USE_PYTHON"
 
-    filter { "configurations:Debug", "action:gmake" }
-      defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-      optimize "Debug"
-    includedirs { "../submodules/eigen/Eigen/"}
-      flags { "Symbols" }
-    filter { "configurations:Debug",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x86_debug"
-    filter { "configurations:Debug",  "platforms:x64", "action:gmake"}
-      targetname "CAST_linux_x64_debug"
-    filter { "configurations:Python_Debug",  "platforms:x86", "action:gmake"}
-      optimize "Debug"
-      targetname "CAST_linux_x86_python_debug"
-      includedirs { "/apps/python27/include/python2.7" }
-      defines {"USE_PYTHON"}
-      links {"python2.7", "util", "lapack"}
-      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
-    filter { "configurations:Python_Debug",  "platforms:x64", "action:gmake"}
-      optimize "Debug"
-      targetname "CAST_linux_x64_python_debug"
-      includedirs { "/apps/python27/include/python2.7" }
-      defines {"USE_PYTHON"}
-      links {"python2.7", "util", "lapack"}
-      linkoptions {"-Xlinker", "-export-dynamic", "-Wl,-rpath,/apps/lapack-3.4.2/lib"}
+		filter "*Testing"
+				files "../src/gtest/*.cc"
+				symbols "On"
+				defines "GOOGLE_MOCK"
+				includedirs {"includes/gtest", "includes"}
+				links "gmock"
 
-    filter { "configurations:Armadillo_Debug", "action:gmake" }
-      includedirs { "../optional_files/includes/armadillo/"}
-      buildoptions { "-I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
-      defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-      optimize "Debug"
-      flags { "Symbols" }
-      defines { "CAST_USE_ARMADILLO" }
-    filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_debug"
-    filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_debug"
+		filter "action:gmake"
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
 
-    filter { "configurations:Armadillo_Release", "action:gmake" }
-      includedirs { "./includes/armadillo/"}
-      buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
-      optimize "Full"
-      flags { "LinkTimeOptimization" }
-      defines { "CAST_USE_ARMADILLO"}
-    filter { "configurations:Armadillo_Release",  "platforms:x86", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_release"
-    filter { "configurations:Armadillo_Release",  "platforms:x64", "action:gmake"}
-      targetname "CAST_linux_x64_armadillo_release"
+		filter { "options:mpi", "action:gmake" }
+			linkoptions "-fopenmp"
+			defines "USE_MPI"
 
+		filter {"Release", "platforms:x86", "action:gmake"}
+			targetname "CAST_linux_x86_release"
+		filter {"Release", "platforms:x64"}
+			targetname "CAST_linux_x64_release"
 
+		filter { "Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_debug"
+		filter { "Debug", "platforms:x64" }
+			targetname "CAST_linux_x64_debug"
 
-  configuration "vs2017"
-    systemversion(os.winSdkVersion() .. ".0")
-    targetname "CAST_undefined.exe"
-    debugdir "../optional_files/build"
-    buildoptions { "/openmp" }
-    flags { "MultiProcessorCompile" }
-    filter { "configurations:Release", "action:vs2017" }
-      optimize "Full"
-      flags { "LinkTimeOptimization" }
-    filter { "configurations:Release",  "platforms:x86", "action:vs2017"}
-      targetname "CAST_win_x86_release"
-    defines {"EIGEN_NO_DEBUG"}
-    includedirs { "../submodules/eigen/Eigen/"}
-    filter { "configurations:Release",  "platforms:x64", "action:vs2017"}
-      targetname "CAST_win_x64_release"
-    defines {"EIGEN_NO_DEBUG"}
-    includedirs { "../submodules/eigen/Eigen/"}
+		filter {"Armadillo_*", "action:gmake"}
+			links { "gfortran", "openblas", "lapack", "pthread" }
+			libdirs { "linux_precompiled_libs" }
 
-    filter { "configurations:Python_Release",  "platforms:x64", "action:vs2017"}
-      optimize "Full"
-      targetname "CAST_win_x64_python_release"
-      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
-      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
-      libdirs {"C:/Python27/libs"}
-      links {"python27"}
-    filter { "configurations:Python_Release",  "platforms:x86", "action:vs2017"}
-      optimize "Full"
-      targetname "CAST_win_x86_python_release"
-      defines {"EIGEN_NO_DEBUG", "USE_PYTHON"}
-      includedirs { "../submodules/eigen/Eigen/", "C:/Python27/include"}
-      libdirs {"C:/Python27/libs"}
-      links {"python27"}
+		filter {"Armadillo_Release", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_release"
+		filter {"Armadillo_Release", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_release"
 
-    filter { "configurations:Armadillo_Release", "action:vs2017"}
-      includedirs { "../optional_files/includes/armadillo/"}
-      libdirs { "../optional_files/windows_precompiled_libs/" }
-      optimize "Full"
-      defines { "CAST_USE_ARMADILLO" }
-      flags { "LinkTimeOptimization" }
-    filter { "configurations:Armadillo_Release",  "platforms:x86", "action:vs2017"}
-      targetname "CAST_win_x86_release_lapack"
-      links { "blas_x86rel", "lapack_x86rel" }
-    filter { "configurations:Armadillo_Release",  "platforms:x64", "action:vs2017"}
-      targetname "CAST_win_x64_release_lapack"
-      links { "blas_win64_MT", "lapack_win64_MT" }
+		filter {"Armadillo_Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_debug"
+		filter {"Armadillo_Debug", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_debug"
 
-    filter { "configurations:Armadillo_Debug", "action:vs2017"}
-      includedirs { "../optional_files/includes/armadillo/"}
-      libdirs { "../optional_files/windows_precompiled_libs/" }
-      defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-      optimize "Debug"
-      flags { "Symbols" }
-      defines { "CAST_USE_ARMADILLO" }
-    filter { "configurations:Armadillo_Debug",  "platforms:x86", "action:vs2017"}
-      targetname "CAST_win_x86_debug_lapack"
-      links { "blas_x86rel", "lapack_x86rel" }
-    filter { "configurations:Armadillo_Debug",  "platforms:x64", "action:vs2017"}
-      targetname "CAST_win_x64_debug_lapack"
-      links { "blas_win64_MT", "lapack_win64_MT" }
+		filter "*Testing"
+			libdirs "linux_precompiled_libs"
+		filter {"Testing", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_testing"
+		filter {"Testing", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_testing"
+		filter {"Armadillo_Testing", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_armadillo_testing"
+		filter {"Armadillo_Testing", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_armadillo_testing"
 
+		filter {"Python_*", "action:gmake"}
+			links { "util", "lapack" }
+			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
+			libdirs { "linux_precompiled_libs" }
 
-    filter { "configurations:Testing", "action:vs2017" }
-      optimize "Debug"
-      includedirs { "../optional_files/includes/gtest/", "../submodules/eigen/Eigen/"}
-      defines { "GOOGLE_MOCK" }
-      libdirs { "../optional_files/windows_precompiled_libs/" }
-      links { "gmock" }
-    linkoptions {"/DEBUG"}
-    filter { "configurations:Testing",  "platforms:x86", "action:vs2017"}
-    targetname "CAST_win_x86_testing"
-    filter { "configurations:Testing",  "platforms:x64", "action:vs2017"}
-    targetname "CAST_win_x64_testing"
+		filter { "Python_Release", "action:gmake" }
+			includedirs "/usr/include/python2.7"
+			links "python2.7"
+		filter { "Python_Debug", "action:gmake" }
+			includedirs "/usr/include/python2.7_d"
+			links "python2.7_d"
 
-    filter { "configurations:Armadillo_Testing", "action:vs2017" }
-      optimize "Debug"
-      defines { "GOOGLE_MOCK", "CAST_USE_ARMADILLO" }
-      includedirs { "../optional_files/includes/armadillo/", "../optional_files/includes/gtest/"}
-      libdirs { "../optional_files/windows_precompiled_libs/" }
-    linkoptions {"/DEBUG"}
-      filter { "configurations:Armadillo_Testing",  "platforms:x86", "action:vs2017"}
-        targetname "CAST_win_x86_testing_lapack"
-        links { "blas_x86rel", "lapack_x86rel", "gmock" }
-      filter { "configurations:Armadillo_Testing",  "platforms:x64", "action:vs2017"}
-        targetname "CAST_win_x64_testing_lapack"
-        links { "blas_win64_MT", "lapack_win64_MT", "gmock" }
+		filter {"Python_Release", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_python_release"
+		filter {"Python_Release", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_python_release"
 
-    filter { "configurations:Debug", "action:vs2017" }
-      removefiles { "./src/tests/**.cc", "./src/test/**.h"}
-      defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
-    includedirs { "../submodules/eigen/Eigen/"}
-      optimize "Debug"
-      flags { "Symbols" }
-    filter { "configurations:Debug",  "platforms:x86", "action:vs2017"}
-      targetname "CAST_win_x86_debug"
-    filter { "configurations:Debug",  "platforms:x64", "action:vs2017"}
-      targetname "CAST_win_x64_debug"
-    filter { "configurations:Python_Debug",  "platforms:x86", "action:vs2017"}
-      optimize "Debug"
-      targetname "CAST_win_x86_python_debug"
-      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
-      defines {"USE_PYTHON"}
-      libdirs {"C:/Python27/libs"}
-      links {"python27"}
-    filter { "configurations:Python_Debug",  "platforms:x64", "action:vs2017"}
-      optimize "Debug"
-      targetname "CAST_win_x64_python_debug"
-      includedirs {"../submodules/eigen/Eigen/", "C:/Python27/include"}
-      defines {"USE_PYTHON"}
-      libdirs {"C:/Python27/libs"}
-      links {"python27"}
+		filter {"Python_Debug", "platforms:x86", "action:gmake" }
+			targetname "CAST_linux_x86_python_debug"
+		filter {"Python_Debug", "platforms:x64", "action:gmake" }
+			targetname "CAST_linux_x64_python_debug"
+
+		filter "action:vs*"
+			systemversion(os.winSdkVersion() .. ".0")
+
+			buildoptions "/openmp"
+			flags "MultiProcessorCompile"
+
+		filter { "Release", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_release"
+		filter { "Release", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_release"
+
+		filter { "Debug", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_debug"
+		filter { "Debug", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_debug"
+
+		filter {"Armadillo_*", "action:vs*"}
+			libdirs "windows_precompiled_libs"
+		filter {"Armadillo_*", "platforms:x86", "action:vs*"}
+			links {"lapack_x86rel", "blas_x86rel"}
+		filter {"Armadillo_*", "platforms:x64", "action:vs*"}
+			links {"lapack_win64_MT", "blas_win64_MT"}
+
+		filter { "Armadillo_Release", "platforms:x86", "action:vs*" }
+			targetname "CAST_win_x86_armadillo_release"
+		filter { "Armadillo_Release", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_armadillo_release"
+
+		filter { "Armadillo_Debug", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_armadillo_debug"
+		filter { "Armadillo_Debug", "platforms:x64", "action:vs*" }
+			targetname "CAST_win_x64_armadillo_debug"
+
+		filter {"Python_*", "action:vs*"}
+			includedirs(python27_dir .. "/include")
+			libdirs(python27_dir .. "/libs")
+			links "python27"
+
+		filter {"Python_Release", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_python_release"
+		filter {"Python_Release", "platforms:x64", "action:vs*"}
+			targetname "CAST_win_x64_python_release"
+
+		filter {"Python_Debug", "platforms:x86", "action:vs*"}
+			targetname "CAST_win_x86_python_debug"
+		filter {"Python_Debug", "platforms:x64", "action:vs*"}
+			targetname "CAST_win_x64_python_debug"
+
+		filter { "Testing", "platforms:x86" }
+			targetname "CAST_win_x86_testing"
+		filter { "Testing", "platforms:x64"}
+			targetname "CAST_win_x64_testing"
+
+		filter { "Armadillo_Testing", "platforms:x86" }
+			targetname "CAST_win_x86_armadillo_testing"
+		filter { "Armadillo_Testing", "platforms:x64"}
+			targetname "CAST_win_x64_armadillo_testing"
