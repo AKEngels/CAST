@@ -150,7 +150,12 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   write_inputfile(0);
-  scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
+  int ret = scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
+  if (ret != 0)
+  {
+    std::cout << "DFTB+ has failed. Treating structure as broken.\n";
+    integrity = false;
+  }
   energy = read_output(0);
 
   return energy;
