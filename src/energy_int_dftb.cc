@@ -110,7 +110,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       energy = std::stod(line)*627.503;
     }
 
-    else if (line.substr(0, 6) == "forces" && t == 1)
+    else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)
     {
       double x, y, z;
       coords::Representation_3D g_tmp;
