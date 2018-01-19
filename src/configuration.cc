@@ -710,6 +710,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.dftb.verbosity = std::stoi(value_string);
     else if (option.substr(5, 6) == "scctol")
       Config::set().energy.dftb.scctol = std::stod(value_string);
+    else if (option.substr(5, 13) == "max_steps_scc")
+      Config::set().energy.dftb.max_steps = std::stoi(value_string);     
+    else if (option.substr(5, 6) == "charge")
+      Config::set().energy.dftb.charge = std::stod(value_string);
     else if (option.substr(5, 9) == "optimizer")
       Config::set().energy.dftb.opt = std::stoi(value_string);
     else if (option.substr(5, 13) == "max_steps_opt")

@@ -208,6 +208,12 @@ DFTB+verbose      1
 # convergence tolerence for SCC procedure (raise for calcualation for hessian matrix)
 DFTB+scctol       0.00001
 
+# maximum number of steps for SCC procedure
+DFTB+max_steps   1000
+
+# total charge of the system
+DFTB+charge      0.0
+
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
 DFTB+optimizer    1
 

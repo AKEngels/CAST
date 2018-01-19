@@ -1,7 +1,5 @@
 #include "energy_int_dftb.h"
 
-
-
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp),energy(0.0)
 {
@@ -77,6 +75,8 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
   file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
+  file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
+  file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
   file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
   file << "    Separator = '-'\n";
