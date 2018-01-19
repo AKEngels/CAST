@@ -220,8 +220,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
         std::ifstream file("output_dftb.txt");  // check for geometry convergence
         line = last_line(file);
-        std::cout << line << "\n";
-        if (line == " Geometry converged") {}
+        if (line == "Geometry converged") {}
         else
         {
           std::cout << "Geometry did not converge. Treating structure as broken.\n";
