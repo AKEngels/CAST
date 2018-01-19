@@ -100,7 +100,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   file << "Options {\n";
   file << "  WriteResultsTag = Yes\n";
-  if (t < 2) file << "  RestartFrequency = 0\n";
+  if (t < 2) file << "  RestartFrequency = 0\n";   // does not work together with driver
   if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
   file << "}\n\n";
 
@@ -220,6 +220,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
         std::ifstream file("output_dftb.txt");  // check for geometry convergence
         line = last_line(file);
+        std::cout << line << "\n";
         if (line == " Geometry converged") {}
         else
         {
@@ -231,6 +232,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
   
+  if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
   {
     std::remove("dftb_pin.hsd");
