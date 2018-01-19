@@ -209,7 +209,7 @@ DFTB+verbose      1
 DFTB+scctol       0.00001
 
 # maximum number of steps for SCC procedure
-DFTB+max_steps   1000
+DFTB+max_steps_scc   1000
 
 # total charge of the system
 DFTB+charge      0.0
