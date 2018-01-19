@@ -202,7 +202,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
     if (t == 3)  // optimization
     {
-      if (file_exists("geo_end.gen") == false)  // normally doesn't happen but who knows?
+      if (file_exists("geo_end.gen") == false)  // sometimes happens when moving randomly (tasks MC and TS)
       {
         std::cout << "DFTB+ did not produce a geometry file. Treating structure as broken.\n";
         integrity = false;
