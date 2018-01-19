@@ -638,7 +638,7 @@ namespace config
 
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        opt(1), max_steps_opt(5000) {}
+        opt(2), max_steps_opt(5000) {}
     } dftb;
 
     struct gaussian_conf

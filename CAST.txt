@@ -215,9 +215,9 @@ DFTB+max_steps_scc   1000
 DFTB+charge      0.0
 
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
-DFTB+optimizer    1
+DFTB+optimizer    2
 
-# maximal number of steps for optimization with DFTB+ optimizer
+# maximum number of steps for optimization with DFTB+ optimizer
 DFTB+max_steps_opt    5000
 
 
