@@ -710,6 +710,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.dftb.verbosity = std::stoi(value_string);
     else if (option.substr(5, 6) == "scctol")
       Config::set().energy.dftb.scctol = std::stod(value_string);
+    else if (option.substr(5, 9) == "optimizer")
+      Config::set().energy.dftb.opt = std::stoi(value_string);
   }
 
   //Gaussian options

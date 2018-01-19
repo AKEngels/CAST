@@ -61,6 +61,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   {
     file << "Driver = SecondDerivatives {}\n\n";
   }
+  else if (t == 3)
+  {
+    if (Config::get().energy.dftb.opt == 1) file << "Driver = SteepestDescent {}\n\n";
+    else if (Config::get().energy.dftb.opt == 2) file << "Driver = ConjugateGradient {}\n\n";
+    else throw std::runtime_error("Cannot write correct inputfile for DFTB+.\n");
+  }
 
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
@@ -176,6 +182,36 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("hessian.out"); // delete file
       }
     }
+
+    if (t == 3)
+    {
+      if (file_exists("geo_end.gen") == false)
+      {
+        std::cout << "DFTB+ did not produce a geometry file. Treating structure as broken.\n";
+        integrity = false;
+      }
+      else
+      {
+        std::ifstream geom_file("geo_end.gen", std::ios_base::in);
+
+        std::getline(geom_file, line);
+        std::getline(geom_file, line);
+
+        coords::Representation_3D xyz_tmp;
+        std::string number, type;
+        double x, y, z;
+
+        while (geom_file >> number >> type >> x >> y >> z)  //new coordinates
+        {
+          coords::Cartesian_Point xyz(x, y, z);
+          xyz_tmp.push_back(xyz);
+        }
+        geom_file.close();
+        coords->set_xyz(std::move(xyz_tmp));
+
+        std::remove("geo_end.gen"); // delete file
+      }
+    }
   }
   
   if (Config::get().energy.dftb.verbosity < 2)
@@ -228,7 +264,11 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  throw std::runtime_error("DFTBplus has no own optimizer.");
+  integrity = true;
+  write_inputfile(3);
+  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+  energy = read_output(3);
+  return energy;
 }
 
 // Output functions

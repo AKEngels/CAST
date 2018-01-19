@@ -627,9 +627,11 @@ namespace config
       int verbosity;
       /**convergence threshold for SCC-DFTB calculation*/
       double scctol;
+      /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
+      int opt;
 
       /**constructor*/
-      dftb_conf(void): verbosity(0), scctol(0.00001) {}
+      dftb_conf(void): verbosity(0), scctol(0.00001), opt(1) {}
     } dftb;
 
     struct gaussian_conf

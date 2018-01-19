@@ -196,13 +196,20 @@ GAUSSIANdelete 0
 
 ################# DFTB+ Options #################################################
 
+# path to DFTB+
 DFTB+path         /home/susanne/dftbplus/bin/dftb+
 
+# path to slater koster files (download at https://www.dftb.org/parameters/download/)
 DFTB+skfiles      /home/susanne/mio-1-1/
 
+# verbosity of DFTB+
 DFTB+verbose      1
 
+# convergence tolerence for SCC procedure (raise for calcualation for hessian matrix)
 DFTB+scctol       0.00001
+
+# optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
+DFTB+optimizer    1
 
 
 ################# DFTBaby options ################################################
