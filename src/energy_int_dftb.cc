@@ -5,7 +5,8 @@
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp),energy(0.0)
 {
-    
+  if (Config::get().energy.dftb.opt > 0) optimizer = true;
+  else optimizer = false;
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :

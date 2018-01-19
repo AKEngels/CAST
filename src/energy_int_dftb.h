@@ -82,10 +82,13 @@ namespace energy
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_el_field() const override
         {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+          throw std::runtime_error("Function not implemented.\n");
         }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
+        /**overwritten function, should not be called*/
+        std::string get_id() const override
+        {
+          throw std::runtime_error("Function not implemented.\n");
+        }
 
 			private:
 
