@@ -95,7 +95,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   file << "Options {\n";
   file << "  WriteResultsTag = Yes\n";
-  file << "  RestartFrequency = 0\n";
+  if (t < 2) file << "  RestartFrequency = 0\n";
   if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
   file << "}\n\n";
 
