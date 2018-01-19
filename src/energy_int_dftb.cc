@@ -70,7 +70,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     else throw std::runtime_error("Cannot write correct inputfile for DFTB+. Unknown driver\n");
 
     file << "Driver = " << driver << " {\n";
-    file << " MaxSteps = " << Config::get().energy.dftb.max_steps_opt << "\n";
+    file << "  MaxSteps = " << Config::get().energy.dftb.max_steps_opt << "\n";
     file << "}\n\n";
   }
 
