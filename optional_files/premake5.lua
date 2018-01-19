@@ -35,7 +35,7 @@ workspace "CAST"
 		warnings "Extra"
 
 		filter "not Armadillo_*"
-				includedirs "../submodules/eigen"
+			includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -62,11 +62,11 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" ,"-std=c++0x"}
-
-		filter { "options:mpi", "action:gmake" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" ,"-std=c++0x", "-fopenmp" }
 			linkoptions "-fopenmp"
-			defines "USE_MPI"
+			if(_OPTIONS["mpi"]) then
+				defines "USE_MPI"
+			end
 
 		filter {"Release", "platforms:x86", "action:gmake"}
 			targetname "CAST_linux_x86_release"
