@@ -167,7 +167,7 @@ inline bool file_exists(const std::string& name) {
 }
 
 /**returns last line of a file*/
-std::string get_last_line(std::ifstream& in)
+inline std::string last_line(std::ifstream& in)
 {
   std::string line;
   while (in >> std::ws && std::getline(in, line)); // skip empty lines

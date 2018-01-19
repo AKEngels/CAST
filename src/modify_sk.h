@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 modify_sk.h
 Purpose: modify Slater-Koster files from dftb.org format to gaussian format
@@ -6,6 +6,7 @@ Purpose: modify Slater-Koster files from dftb.org format to gaussian format
 @author Susanne Sauer
 @version 1.0
 */
+#pragma once
 
 #include "helperfunctions.h"
 #include "atomic.h"

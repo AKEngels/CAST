@@ -1428,7 +1428,6 @@ public:
   config::couplings             couplings;
   config::periodics             periodics;
   config::layd                  layd;
-  config::cut                   cut;
 
   /*! Constructor of Config object
    *

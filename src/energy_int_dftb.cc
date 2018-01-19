@@ -219,7 +219,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("geo_end.xyz"); // delete file
 
         std::ifstream file("output_dftb.txt");  // check for geometry convergence
-        line = get_last_line(file);
+        line = last_line(file);
         if (line == " Geometry converged") {}
         else
         {
