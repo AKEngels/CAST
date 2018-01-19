@@ -629,9 +629,11 @@ namespace config
       double scctol;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
+      /**maximal number of steps for optimization with DFTB+ optimizer*/
+      int max_steps_opt;
 
       /**constructor*/
-      dftb_conf(void): verbosity(0), scctol(0.00001), opt(1) {}
+      dftb_conf(void): verbosity(0), scctol(0.00001), opt(1), max_steps_opt(5000) {}
     } dftb;
 
     struct gaussian_conf

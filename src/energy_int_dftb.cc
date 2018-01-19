@@ -64,9 +64,14 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   }
   else if (t == 3)
   {
-    if (Config::get().energy.dftb.opt == 1) file << "Driver = SteepestDescent {}\n\n";
-    else if (Config::get().energy.dftb.opt == 2) file << "Driver = ConjugateGradient {}\n\n";
-    else throw std::runtime_error("Cannot write correct inputfile for DFTB+.\n");
+    std::string driver;
+    if (Config::get().energy.dftb.opt == 1) driver = "SteepestDescent";
+    else if (Config::get().energy.dftb.opt == 2) driver = "ConjugateGradient";
+    else throw std::runtime_error("Cannot write correct inputfile for DFTB+. Unknown driver\n");
+
+    file << "Driver = " << driver << " {\n";
+    file << " MaxSteps = " << Config::get().energy.dftb.max_steps_opt << "\n";
+    file << "}\n\n";
   }
 
   file << "Hamiltonian = DFTB {\n";
@@ -184,7 +189,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       }
     }
 
-    if (t == 3)
+    if (t == 3)  // optimization
     {
       if (file_exists("geo_end.gen") == false)
       {
@@ -211,6 +216,17 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         coords->set_xyz(std::move(xyz_tmp));
 
         std::remove("geo_end.gen"); // delete file
+        std::remove("geo_end.xyz"); // delete file
+
+        std::ifstream file("output_dftb.txt");  // check for geometry convergence
+        line = get_last_line(file);
+        if (line == " Geometry converged") {}
+        else
+        {
+          std::cout << "Geometry did not converge. Treating structure as broken.\n";
+          std::cout << "If this is a problem for you use a bigger value for 'DFTB+max_steps_opt'!\n";
+          integrity = false;
+        }
       }
     }
   }

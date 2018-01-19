@@ -211,6 +211,9 @@ DFTB+scctol       0.00001
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
 DFTB+optimizer    1
 
+# maximal number of steps for optimization with DFTB+ optimizer
+DFTB+max_steps_opt    5000
+
 
 ################# DFTBaby options ################################################
 

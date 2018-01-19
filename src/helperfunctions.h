@@ -165,3 +165,11 @@ inline bool file_exists(const std::string& name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
+
+/**returns last line of a file*/
+std::string get_last_line(std::ifstream& in)
+{
+  std::string line;
+  while (in >> std::ws && std::getline(in, line)); // skip empty lines
+  return line;
+}
