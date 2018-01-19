@@ -1,4 +1,20 @@
 
+-- premake5.lua
+-- Get Premake5 via https://premake.github.io/
+--
+-- CAST automatic build configuration
+-- Targeted at VS2015 and our own Linux-Cluster "ECPC"
+--
+-- Build for windows: "premake5 vs2015"
+-- Open CAST.sln in project/
+--
+-- Build for Linux on ECPC "premake5 gmake"
+-- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
+--
+-- Build for Linux on Smurf: "premake5 gmake --mpi"
+-- Run "make config=armadillo_release_x64 CXX='/apps/mpich/2.1.4.1p1/bin/mpicxx -cxx=/apps/gcc-6.1/bin/g++-6.1 -static-libstdc++ -static-libgcc'" in project/
+--
+
 
 -- If using Windows and using Python these values depend on the directory your Python27 is installed
 local python27_dir = "C:/Python27"
