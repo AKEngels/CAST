@@ -38,10 +38,7 @@ namespace energy
 			{
 
 			public:
-        /**constructor
-				when called first, sets all partial energies to 0,
-				fills the string add_path for adding stuff to pythonpath
-				and creates configuration file for dftbaby*/
+        /**constructor: sets optimizer*/
 				sysCallInterface(coords::Coordinates*);
          /**delete interface?*/
 				~sysCallInterface(void);
@@ -69,7 +66,7 @@ namespace energy
 				void print_E(std::ostream&) const;
 				/**prints 'headline' for energies*/
 				void print_E_head(std::ostream&, bool const endline = true) const;
-				/**prints partial energies*/
+				/**prints partial energies (not much sense in it because not partial energies are read)*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
 				/**prints gradients*/
 				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;

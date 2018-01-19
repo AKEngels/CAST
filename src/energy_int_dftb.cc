@@ -42,7 +42,9 @@ energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 
 void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
-  std::vector<std::string> elements;
+  // create a vector with all element symbols that are found in the structure
+  // are needed for writing angular momenta into inputfile
+  std::vector<std::string> elements;  
   for (auto a : (*this->coords).atoms())
   {
     if (is_in(a.symbol(), elements) == false)
@@ -51,16 +53,19 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
   }
 
+  // create inputfile
   std::ofstream file("dftb_in.hsd");
+
+  // write geometry
   file << "Geometry = GenFormat {\n";
   file << coords::output::formats::xyz_gen(*this->coords);
   file << "}\n\n";
 
-  if (t == 2)
+  if (t == 2)  // hessian matrix is to be calculated
   {
     file << "Driver = SecondDerivatives {}\n\n";
   }
-  else if (t == 3)
+  else if (t == 3) // optimization is to be performed
   {
     std::string driver;
     if (Config::get().energy.dftb.opt == 1) driver = "SteepestDescent";
@@ -72,6 +77,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     file << "}\n\n";
   }
 
+  // write information that is needed for SCC calculation
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
   file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
@@ -98,17 +104,20 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  }\n";
   file << "}\n\n";
 
+  // which information will be saved after calculation?
   file << "Options {\n";
   file << "  WriteResultsTag = Yes\n";
   if (t < 2) file << "  RestartFrequency = 0\n";   // does not work together with driver
   if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
   file << "}\n\n";
 
+  // additional analysis that should be performed
   file << "Analysis = {\n";
   file << "  WriteBandOut = No\n";
   if (t == 1) file << "  CalculateForces = Yes\n";
   file << "}\n\n";
 
+  // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
   file << "ParserOptions {\n";
   file << "  ParserVersion = 5\n";
   file << "}";
@@ -116,12 +125,13 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 {
-  if (file_exists("results.tag") == false)
+  if (file_exists("results.tag") == false) // if SCC does not converge DFTB+ doesn't produce this file
   {
     std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
     integrity = false;
   }
 
+  // successfull SCC -> read output
   else
   {
     int N = (*this->coords).size();
@@ -132,13 +142,13 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line == "total_energy        :real:0:")
+      if (line == "total_energy        :real:0:")  // read energy
       {
         std::getline(in_file, line);
-        energy = std::stod(line)*627.503;
+        energy = std::stod(line)*627.503; // convert hartree to kcal/mol
       }
 
-      else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)
+      else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
         double x, y, z;
         coords::Representation_3D g_tmp;
@@ -147,23 +157,23 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);
+          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
           y = (-y) * (627.503 / 0.5291172107);
           z = (-z) * (627.503 / 0.5291172107);
           coords::Cartesian_Point g(x, y, z);
           g_tmp.push_back(g);
         }
-        coords->swap_g_xyz(g_tmp);
+        coords->swap_g_xyz(g_tmp);  // set gradients
       }
 
-      else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)
+      else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
-        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
+        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
 
+        // read all values into one vector (tmp)
         std::vector<double> tmp;
         double x, y, z;
-
-        for (int i=0; i < (3*N*3*N)/3; i++)
+        for (int i=0; i < (3*N*3*N)/3; i++)  
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -172,8 +182,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           tmp.push_back(z*CONVERSION_FACTOR);
         }
 
-        std::vector<double> linevec;
+        // format values in vector tmp into matrix hess
         std::vector<std::vector<double>> hess;
+        std::vector<double> linevec;
         for (int i = 0; i < 3*N; i++)
         {
           linevec.resize(0);
@@ -191,29 +202,29 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
     if (t == 3)  // optimization
     {
-      if (file_exists("geo_end.gen") == false)
+      if (file_exists("geo_end.gen") == false)  // normally doesn't happen but who knows?
       {
         std::cout << "DFTB+ did not produce a geometry file. Treating structure as broken.\n";
         integrity = false;
       }
-      else
+      else  // if optimized geometry present -> read geometry from gen-file
       {
         std::ifstream geom_file("geo_end.gen", std::ios_base::in);
 
-        std::getline(geom_file, line);
+        std::getline(geom_file, line);  
         std::getline(geom_file, line);
 
         coords::Representation_3D xyz_tmp;
         std::string number, type;
         double x, y, z;
 
-        while (geom_file >> number >> type >> x >> y >> z)  //new coordinates
+        while (geom_file >> number >> type >> x >> y >> z) 
         {
           coords::Cartesian_Point xyz(x, y, z);
           xyz_tmp.push_back(xyz);
         }
         geom_file.close();
-        coords->set_xyz(std::move(xyz_tmp));
+        coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
 
         std::remove("geo_end.gen"); // delete file
         std::remove("geo_end.xyz"); // delete file
@@ -231,6 +242,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
   
+  // remove files
   if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
   {
@@ -357,6 +369,5 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
 std::vector<coords::float_type>
 energy::interfaces::dftb::sysCallInterface::charges() const
 {
-  std::vector<coords::float_type> charges;
-  return charges;
+  throw std::runtime_error("Function not implemented. TODO for QM/MM.\n");
 }
