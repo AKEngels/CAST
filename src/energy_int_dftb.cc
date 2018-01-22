@@ -389,5 +389,35 @@ bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
 std::vector<coords::float_type>
 energy::interfaces::dftb::sysCallInterface::charges() const
 {
-  throw std::runtime_error("Function not implemented. TODO for QM/MM.\n");
+  std::vector<coords::float_type> charges;
+
+  auto in_string = "results.tag";
+  if (file_exists(in_string) == false)
+  {
+    throw std::runtime_error("DFTB+ logfile results.tag not found.");
+  }
+
+  else
+  {
+    std::ifstream in_file("results.tag", std::ios_base::in);
+    std::string line;
+    double q;
+
+    while (!in_file.eof())
+    {
+      std::getline(in_file, line);
+      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  // read energy
+      {
+        for (int i = 0; i < coords->size(); i++)
+        {
+          in_file >> q;
+          charges.push_back(q);
+        }
+      }
+    }
+  }
+
+  for (auto c : charges) std::cout << "Charge: " << c << "\n";
+
+  return charges;
 }
