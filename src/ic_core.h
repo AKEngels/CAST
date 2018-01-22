@@ -179,9 +179,9 @@ struct trans {
 struct trans_x : trans{
   trans_x(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : trans(create_trans_x(rep) , rep , index_vec) {}
+      : trans(create_trans(rep) , rep , index_vec) {}
 
-  float_type create_trans_x(const coords::Representation_3D& res) {
+  static float_type create_trans(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
       coord_sum += i.x();
@@ -196,14 +196,9 @@ struct trans_x : trans{
 struct trans_y : trans {
   trans_y(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : trans(create_trans_y(rep), rep, index_vec) {}
+      : trans(create_trans(rep), rep, index_vec) {}
 
-  float_type val_;
-  std::vector<std::size_t> indices_;
-
-  coords::Representation_3D rep_;
-
-  float_type create_trans_y(const coords::Representation_3D& res) {
+  static float_type create_trans(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
       coord_sum += i.y();
@@ -218,9 +213,9 @@ struct trans_y : trans {
 struct trans_z : trans {
   trans_z(const coords::Representation_3D& rep,
           const std::vector<std::size_t>& index_vec)
-      : trans(create_trans_z(rep), rep, index_vec) {}
+      : trans(create_trans(rep), rep, index_vec) {}
 
-  float_type create_trans_z(const coords::Representation_3D& res) {
+  static float_type create_trans(const coords::Representation_3D& res) {
     auto coord_sum{ 0.0 };
     for (auto& i : res) {
       coord_sum += i.z();
@@ -506,9 +501,9 @@ inline void
 system::create_ic_system(const std::vector<coords::Representation_3D>& res_vec,
                          const coords::Representation_3D& coords,
                          const Graph& g) {
-  trans_x_vec_ = create_trans_x(res_vec);
-  trans_y_vec_ = create_trans_y(res_vec);
-  trans_z_vec_ = create_trans_z(res_vec);
+  trans_x_vec_ = trans_x::create_trans(res_vec);
+  trans_y_vec_ = trans_y::create_trans(res_vec);
+  trans_z_vec_ = trans_z::create_trans(res_vec);
   rotation_vec_ = create_rotations(res_vec);
   distance_vec_ = create_distances(coords, g);
   angle_vec_ = create_angles(coords, g);
