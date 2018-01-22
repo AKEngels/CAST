@@ -3,7 +3,7 @@ CAST 3
 energy_int_qmmm.h
 Purpose: QM/MM interface
 
-This is a QM/MM interface between one of the forcefields OPLSAA, AMBER and CHARM with MOPAC or GAUSSIAN.
+This is a QM/MM interface between one of the forcefields OPLSAA, AMBER and CHARM with MOPAC, GAUSSIAN or DFTB+.
 Interactions between QM and MM part are done by electrostatic embedding (see Gerrit Groenhof "Introduction to QM/MM Simulations", figure 4).
 Only non-bonded interactions are implemented so there must not be bonds between the QM and the MM part.
 
@@ -13,6 +13,8 @@ MOPAC: Gradients of coulomb interactions between QM and MM part are calculated b
 GAUSSIAN: Gradients of coulomb interactions between QM and MM part on QM atoms are calculated by GAUSSIAN,
 on MM atoms they are calculated by CAST using the electric field from GAUSSIAN. 
 (see T. Okamoto et. al., A minimal implementation of the AMBER-GAUSSIAN interface for Ab Initio QM/MM-MD Simulation, DOI 10.1002/jcc.21678)
+
+DFTB+: Gradients of coulomb interactions between QM and MM part are read from DFTB+ outputfile "results.tag".
 
 Attention: Problems occur if charged atoms are in MM part near QM part! This situation has to be avoided!!!
 
@@ -81,7 +83,7 @@ namespace energy
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_el_field() const override
+        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
         }
@@ -165,10 +167,12 @@ namespace energy
         /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;
 
-        /**electric field from gaussian calculation for QM and MM atoms(first QM, then MM)
+        /**information needed to calculate coulomb gradients on MM atoms
+        for GAUSSIAN: electric field from gaussian calculation for QM and MM atoms (first QM, then MM)
         only those of the MM atoms are used to calculate the gradients of the electrostatic interaction
-        between QM and MM atoms on the MM atoms*/
-        std::vector<coords::Cartesian_Point> qm_electric_field;
+        between QM and MM atoms on the MM atoms
+        for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
+        std::vector<coords::Cartesian_Point> g_coul_mm;
                
         /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
         bool check_bond_preservation(void) const;

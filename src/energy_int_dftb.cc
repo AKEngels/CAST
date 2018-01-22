@@ -88,8 +88,8 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
-  if (Config::get().energy.qmmm.use == true)
-  {
+  if (Config::get().energy.qmmm.use == true)  // if QM/MM calculation: tell DFTB+ to read external charges
+  {                          
     file << "  ElectricField = {\n";
     file << "    PointCharges = {\n";
     file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
@@ -178,7 +178,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       }
 
       else if (Config::get().energy.qmmm.use == true)
-      {
+      {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
           std::vector<coords::Cartesian_Point> grad_tmp;
@@ -449,4 +449,10 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     }
   }
   return charges;
+}
+
+std::vector<coords::Cartesian_Point>
+energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
+{
+  return grad_ext_charges;
 }

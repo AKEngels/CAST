@@ -319,6 +319,7 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
+// write file with MM charges for DFTB+
 void energy::interfaces::qmmm::QMMM::write_dftb_in()
 {
   std::ofstream chargefile("charges.dat");
@@ -364,9 +365,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
-		Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
-    {   // electric field for QM and MM atoms (from QM)
-      qm_electric_field = qmc.energyinterface()->get_el_field();  
+		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
+    {   // electric field for QM and MM atoms (for GAUSSIAN) or coulomb gradients on MM atoms (for DFTB+)
+      g_coul_mm = qmc.energyinterface()->get_g_coul_mm();  
     } 
   }
   catch(...)
@@ -516,7 +517,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       for (auto j : mm_indices)
       {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
         double charge = mm_charge_vector[j2];
-        coords::Cartesian_Point el_field = qm_electric_field[j2 + qm_indices.size()];
+        coords::Cartesian_Point el_field = g_coul_mm[j2 + qm_indices.size()];
         double x = charge * el_field.x();
         double y = charge * el_field.y();
         double z = charge * el_field.z();
@@ -529,11 +530,11 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       }
     }
     else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
-    {
+    {     // Coulomb gradients on MM atoms for DFTB+
       int j2 = 0;
       for (auto j : mm_indices)
       {
-        c_gradient[j] += qm_electric_field[j2];
+        c_gradient[j] += g_coul_mm[j2];
         j2++;
       }
     }

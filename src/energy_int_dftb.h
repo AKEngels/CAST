@@ -76,11 +76,8 @@ namespace energy
 				void update(bool const) { }
         /**returns partial atomic charges*/
         std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_el_field() const override
-        {
-          return grad_ext_charges;
-        }
+        /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
+        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
         /**overwritten function, should not be called*/
         std::string get_id() const override
         {

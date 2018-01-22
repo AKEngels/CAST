@@ -66,7 +66,7 @@ namespace energy
           throw std::runtime_error("TODO: Implement charge getter for TeraChem.\n");
         }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_el_field() const override
+        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
         }

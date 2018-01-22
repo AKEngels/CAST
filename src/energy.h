@@ -169,8 +169,10 @@ namespace energy
 
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
-    /**returns the electric field (used for QM/MM calculations with GAUSSIAN)*/
-    virtual std::vector<coords::Cartesian_Point> get_el_field() const = 0;
+    /**this is something that is needed for QM/MM calculations
+    for GAUSSIAN it returns the electric field for QM and MM atoms
+    for DFTB+ it returns the coulomb gradients on the MM atoms due to the QM atoms*/
+    virtual std::vector<coords::Cartesian_Point> get_g_coul_mm() const = 0;
 
     /**get id for gaussian call*/
     virtual std::string get_id() const = 0;
