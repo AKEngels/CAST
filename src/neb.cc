@@ -2928,42 +2928,41 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords::Cartesian_Point atom_C(0, 0, 0);
 
   double const incr(1. / imgs);
-  double change = 0, total_change = 0;
 
   for (size_t i = 1; i < (imgs - 1); ++i)
   {
     Z_matrices[i].resize(N);
     for (size_t j = 0; j < N; ++j)
     {
+
+      auto const start_radius = coords_final.intern(j).radius();
+      auto const start_inclination = coords_final.intern(j).inclination().degrees();
+      auto const start_azimuth = coords_final.intern(j).azimuth().degrees();
+
+      auto const total_change_radius = start_radius - coords_ini.intern(j).radius();
+      auto const total_change_inclination = start_inclination - coords_ini.intern(j).inclination().degrees();
+      auto const total_change_azimuth = start_azimuth - coords_ini.intern(j).azimuth().degrees();
+
+      auto const change_radius = total_change_radius * static_cast<double>(i) / static_cast<double>(imgs);
+      auto const change_inclination = total_change_inclination * static_cast<double>(i) / static_cast<double>(imgs);
+      auto const change_azimuth = total_change_azimuth * static_cast<double>(i) / static_cast<double>(imgs);
+
+      Z_matrices[i][j].resize(3);
+/*
       if (j == 0)
-      {
-        Z_matrices[i][j].resize(3);
+      {*/
 
-        temporary = { 0, N };
-        Z_matrices[i][j][0].first = temporary;
+        Z_matrices[i][j][0].first = Z_matrices[0][j][0].first;
+        Z_matrices[i][j][1].first = Z_matrices[0][j][1].first;
+        Z_matrices[i][j][2].first = Z_matrices[0][j][2].first;
 
-        temporary = { 0, N, N + 1 };
-        Z_matrices[i][j][1].first = temporary;
-
-        temporary = { 0, N, N + 1, N + 2 };
-        Z_matrices[i][j][2].first = temporary;
-
-        Z_matrices[i][j][0].second = coords_ini.intern(j).radius()
-          + (coords_final.intern(j).radius()
-            - coords_ini.intern(j).radius())	* incr * i;
-        Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
-          + (double)(coords_final.intern(j).inclination()
-            - coords_ini.intern(j).inclination()) * incr * (double)i;
-        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
-          + (double)(coords_final.intern(j).azimuth()
-            - coords_ini.intern(j).azimuth())			* incr * (double)i;
-      }
+        Z_matrices[i][j][0].second = start_radius + change_radius;
+        Z_matrices[i][j][1].second = start_inclination + change_inclination;
+        Z_matrices[i][j][2].second = start_azimuth + change_azimuth;
+     /* }
       else if (j == 1)
       {
-        Z_matrices[i][j].resize(3);
 
-        total_change = Z_matrices[imgs - 1][j][0].second
-          - Z_matrices[0][j][0].second;
         change = i * incr * total_change;
         Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
           Z_matrices[0][j][0].second + change);
@@ -2985,7 +2984,6 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       }
       else if (j == 2)
       {
-        Z_matrices[i][j].resize(3);
 
         total_change = Z_matrices[imgs - 1][j][0].second
           - Z_matrices[0][j][0].second;
@@ -3012,7 +3010,6 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       }
       else
       {
-        Z_matrices[i][j].resize(3);
 
         total_change = Z_matrices[imgs - 1][j][0].second
           - Z_matrices[0][j][0].second;
@@ -3035,7 +3032,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
         change = i * incr * total_change;
         Z_matrices[i][j][2] = std::make_pair(Z_matrices[0][j][2].first,
           Z_matrices[0][j][2].second + change);
-      }
+      }*/
     }
     Z_matrices_s3[i].resize(N);
     for (size_t j = 0; j < N; ++j)
