@@ -363,7 +363,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
+    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
+		Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
     {   // electric field for QM and MM atoms (from QM)
       qm_electric_field = qmc.energyinterface()->get_el_field();  
     } 
