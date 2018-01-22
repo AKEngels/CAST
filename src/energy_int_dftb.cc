@@ -240,11 +240,11 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
     }
-
-    // check if geometry is still intact
-    if (check_bond_preservation() == false) integrity = false;
-    else if (check_atom_dist() == false) integrity = false;
   }
+
+  // check if geometry is still intact
+  if (check_bond_preservation() == false) integrity = false;
+  else if (check_atom_dist() == false) integrity = false;
   
   // remove files
   if (t > 1) std::remove("charges.bin");
