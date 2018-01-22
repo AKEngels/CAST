@@ -3049,15 +3049,15 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords::Coordinates coords;
   coords = *cPtr;
 
-  /*write_gzmat("Cyclohexan_Zmat3.gzmat", Z_matrices[3], coords_ini);*/
+  /*write_gzmat("Pentan_Zmat0_new.gzmat", Z_matrices[0], coords_ini);*/
 
-  /*size_t no_dist = Z_matrices[0][N - 1][2].first[1],
+  size_t no_dist = Z_matrices[0][N - 1][2].first[1],
     no_angle = Z_matrices[0][N - 1][2].first[2],
     no_dihedral = Z_matrices[0][N - 1][2].first[3];
 
 
   coords.adapt_indexation(no_dist, no_angle, no_dihedral,
-    Z_matrices[0], cPtr);*/
+    Z_matrices[0], cPtr);
  
 
   //system("pause");
@@ -3091,9 +3091,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   //converting Z-matrix to cartesian structure, NeRF
 
+  /*imagi[0].clear();
+  imagi[imgs - 1].clear();*/
+
+  coords::Representation_3D current_images(N);
   for (size_t i = 1; i < (imgs - 1); ++i)
   { 
-    coords::Representation_3D current_images(N);
     coords::Representation_3D CartesianStructure(N);
     
     for (size_t j = 0; j < N; ++j){
@@ -3116,8 +3119,9 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           auto const & C = Z_matrices[i][ABC[2] - 1];
 
           auto r1 = B[0].second;
-          auto r2 = C[0].second;
-          auto theta = scon::ang<coords::float_type>::from_deg(C[1].second).radians();
+          // C[0] ..
+          auto r2 = A[0].second;
+          auto theta = scon::ang<coords::float_type>::from_deg(A[1].second).radians();
 
           auto x = r2 * cos(pi - theta);
           auto y = r2 * sin(pi - theta);
@@ -3143,21 +3147,22 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           auto const & B = is_not_in_vec(Z_matrices[i][j][1].first)-1;
           auto const & A = is_not_in_vec(Z_matrices[i][j][2].first)-1;
 
+
           auto const & DD = Z_matrices[i][D];
 
           auto r = DD[0].second;
           auto theta = scon::ang<coords::float_type>::from_deg(DD[1].second).radians();
           auto phi = scon::ang<coords::float_type>::from_deg(DD[2].second).radians();
 
-          auto x = r * cos(phi) * sin(theta);
-          auto y = r * sin(phi) * sin(theta);
-          auto z = r * cos(theta);
+          auto x = r * cos(theta); 
+          auto y = r * cos(phi) * sin(theta); 
+          auto z = r * sin(phi) * sin(theta); 
 
-          Eigen::Vector3d D2(z, x, y);
+          Eigen::Vector3d D2(x, y, z);
           Eigen::Vector3d Dvec;
 
           coords::Cartesian_Point BA = normalized(CartesianStructure[B] - CartesianStructure[A]);
-          coords::Cartesian_Point BC = normalized(CartesianStructure[B] - CartesianStructure[C]);
+          coords::Cartesian_Point BC = normalized(CartesianStructure[B] - CartesianStructure[C]); 
           coords::Cartesian_Point N = normalized(cross(BA, BC)); 
           coords::Cartesian_Point NcrBC = normalized(cross(N, BC));
 
@@ -3195,10 +3200,9 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   
 
   coords::Coordinates new_coords = coords;
-  new_coords.set_xyz(imagi[1], false);
+  new_coords.set_xyz(current_images, false);
   coords::output::formats::tinker tinker_writer(new_coords);
   tinker_writer.to_stream(std::cout);
-
 
 
   /*printmono("Cyclohexan_Image2.xyz", imagi[1], 1);*/

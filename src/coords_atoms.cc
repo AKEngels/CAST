@@ -815,17 +815,18 @@ std::unique_ptr<coords::AtomRep> coords::ZmatHandler::new_order(coords::Atoms co
   ar->ref_atoms.reserve(atoms.size());
  
   try {
+    ar->new_order.clear();
     for (size_t i = 0; i < atoms.size(); ++i) {
+      ar->new_order.emplace_back(i);
+
+      auto & a = ar->ref_atoms.atom(i);
+      ar->ref_atoms.emplace_back(a);
+
       ar->bonds.emplace_back(i);
-     /* auto & a = ar->ref_atoms.atom(i);
-      ar->ref_atoms.emplace_back(a);*/
       ar->bonds.at(i).clear();
       for (auto const & b : atoms.atom(i).bonds()){
         ar->bonds.at(i).emplace_back(b);
       }
-    }
-    for (size_t i = 0; i < atoms.size(); ++i) {
-      ar->new_order.emplace_back(i);
     }
 
     ar->neighbors = check_for_partners(ar->ref_atoms, ar->bonds);
@@ -835,6 +836,7 @@ std::unique_ptr<coords::AtomRep> coords::ZmatHandler::new_order(coords::Atoms co
   catch (std::logic_error) {
 
     ar->new_order.clear();
+    ar->ref_atoms.clear_ref_atoms();
 
     auto find_if_atom_is_set = [&new_mol](auto const & i) {
       return (std::find_if(new_mol.begin(), new_mol.end(), [&](auto const & other) {
@@ -951,7 +953,6 @@ std::tuple<coords::Coordinates, std::vector<size_t>> coords::Atoms::cart_to_int(
   coords::ZmatHandler zmatHandler(*this);
   auto ret = zmatHandler.new_order(*this, p);
 
-
   ret->pes.structure.intern.clear();
   
   for (auto i = 0; i < ret->ref_atoms.size(); ++i) {
@@ -1032,6 +1033,13 @@ std::tuple<coords::Coordinates, std::vector<size_t>> coords::Atoms::cart_to_int(
     }
     for (auto const & y : ret->bonds.at(i)) {
       atoms.atom(i).bind_to(y);
+    }
+  }
+
+  if (ret->ref_atoms.size() == 0) {
+    for (size_t i = 0; i < atoms.size(); ++i) {
+      auto & a = atoms.atom(i);
+      ret->ref_atoms.emplace_back(a);
     }
   }
   

@@ -408,6 +408,9 @@ namespace coords
     auto end() {
       return ref_atoms.end();
     }
+    void clear_ref_atoms() {
+      ref_atoms.clear();
+    }
     /*Atom & atom(std::size_t index) override { return ref_atoms[index].get(); }
     Atom const & atom(std::size_t index) const override { return ref_atoms[index].get(); }*/
     Atom const& at(std::size_t index) const { return ref_atoms.at(index).get(); }
