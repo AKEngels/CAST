@@ -272,7 +272,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
   write_inputfile(0);
   scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
   energy = read_output(0);
-  charges();
   return energy;
 }
 
@@ -417,8 +416,5 @@ energy::interfaces::dftb::sysCallInterface::charges() const
       }
     }
   }
-
-  for (auto c : charges) std::cout << "Charge: " << c << "\n";
-
   return charges;
 }
