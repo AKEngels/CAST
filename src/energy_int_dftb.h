@@ -79,7 +79,7 @@ namespace energy
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_el_field() const override
         {
-          throw std::runtime_error("Function not implemented.\n");
+          return grad_ext_charges;
         }
         /**overwritten function, should not be called*/
         std::string get_id() const override
@@ -102,6 +102,8 @@ namespace energy
 
         /**total energy*/
 				double energy;
+
+        std::vector<coords::Cartesian_Point> grad_ext_charges;
 
         /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
         bool check_bond_preservation(void) const;

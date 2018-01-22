@@ -461,12 +461,12 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::SIGMA)
         {
-          vdw_energy += R_r*p_ij.E*(R_r - 1.0);
+          vdw_energy += R_r * p_ij.E*(R_r - 1.0);
         }
         else if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::R_MIN)
         {
-          vdw_energy += R_r*p_ij.E*(R_r - 2.0);
+          vdw_energy += R_r * p_ij.E*(R_r - 2.0);
         }
         else
         {
@@ -475,15 +475,15 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         if (if_gradient)  // gradients
         {
-          
+
           if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
           {    // gradients of coulomb interaction (only for MOPAC here)
-			      coords::float_type db = b / d;  
-			      auto c_gradient_ij = r_ij * db / d;
+            coords::float_type db = b / d;
+            auto c_gradient_ij = r_ij * db / d;
             c_gradient[i] += c_gradient_ij;
             c_gradient[j] -= c_gradient_ij;
           }
-          
+
 
           // gradients of vdW interaction
           coords::float_type const V = p_ij.E*R_r;
@@ -511,7 +511,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
     {    // Coulomb gradients for GAUSSIAN (only on MM atoms)
-	    int j2 = 0;
+      int j2 = 0;
       for (auto j : mm_indices)
       {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
         double charge = mm_charge_vector[j2];
@@ -524,7 +524,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         new_grad.y() = -y;
         new_grad.z() = -z;
         c_gradient[j] += new_grad;
-		    j2++;
+        j2++;
+      }
+    }
+    else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
+    {
+      int j2 = 0;
+      for (auto j : mm_indices)
+      {
+        c_gradient[j] += qm_electric_field[j2];
+        j2++;
       }
     }
   }

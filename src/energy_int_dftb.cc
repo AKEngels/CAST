@@ -177,6 +177,27 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         coords->swap_g_xyz(g_tmp);  // set gradients
       }
 
+      else if (Config::get().energy.qmmm.use == true)
+      {
+        if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
+        {
+          std::vector<coords::Cartesian_Point> grad_tmp;
+          double x, y, z;
+
+          for (int i = 0; i < Config::get().energy.qmmm.mm_atoms_number; i++)
+          {
+            std::getline(in_file, line);
+            std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+            x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
+            y = (-y) * (627.503 / 0.5291172107);
+            z = (-z) * (627.503 / 0.5291172107);
+            coords::Cartesian_Point g(x, y, z);
+            grad_tmp.push_back(g);
+          }
+          grad_ext_charges = grad_tmp;
+        }
+      }
+
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
         double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
