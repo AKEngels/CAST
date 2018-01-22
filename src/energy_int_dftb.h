@@ -103,10 +103,11 @@ namespace energy
         /**total energy*/
 				double energy;
 
-				/*
-				checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
-				*/
-				bool check_bond_preservation(void) const;
+        /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
+        bool check_bond_preservation(void) const;
+
+        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
+        bool check_atom_dist(void) const;
 
 			};
 
