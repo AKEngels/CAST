@@ -122,6 +122,8 @@ namespace energy
         void write_mol_in();
         /**writes inputfile for gaussian calculation*/
         void write_gaussian_in(char);
+        /**writes charges inputfile for DFTB+ calculation*/
+        void write_dftb_in();
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW

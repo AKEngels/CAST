@@ -137,6 +137,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   qmc(make_qm_coords(cp, qm_indices, new_indices_qm)),
   mmc(make_aco_coords(cp, mm_indices, new_indices_mm))
 {
+  Config::set().energy.qmmm.mm_atoms_number = cp->size() - qm_indices.size();
   if (!tp.valid())
   {
     tp.from_file(Config::get().get().general.paramFilename);
@@ -318,6 +319,16 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
   else std::runtime_error("Writing Gaussian Inputfile failed.");
 }
 
+void energy::interfaces::qmmm::QMMM::write_dftb_in()
+{
+  std::ofstream chargefile("charges.dat");
+  for (int j = 0; j < mm_charge_vector.size(); j++)
+  {
+    chargefile << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "  " << mm_charge_vector[j] << "\n";
+  }
+  chargefile.close();
+}
+
 /**calculates energies and gradients
 @paran if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
@@ -343,6 +354,10 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     char calc_type = 'e';
     if (if_gradient == true) calc_type = 'g';
     write_gaussian_in(calc_type);
+  }
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
+  {
+    write_dftb_in();
   }
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 

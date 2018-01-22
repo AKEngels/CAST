@@ -545,11 +545,18 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
+    /**struct that contains information necessary for QM/MM calculation*/
     struct qmmm_conf
     {
+      /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
+      /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
+      /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
+      /**number of MM atoms*/
+      int mm_atoms_number;
+      /**is QM/MM interface active?*/
       bool use{ false };
     } qmmm{};
 

@@ -88,6 +88,17 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
+  if (Config::get().energy.qmmm.use == true)
+  {
+    file << "  ElectricField = {\n";
+    file << "    PointCharges = {\n";
+    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+    file << "        Records = " << Config::get().energy.qmmm.mm_atoms_number << "\n";
+    file << "        File = 'charges.dat'\n";
+    file << "      }\n";
+    file << "    }\n";
+    file << "  }\n";
+  }
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
