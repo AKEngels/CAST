@@ -204,7 +204,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_gradients (void)
   for (std::size_t i=0; i<N; ++i) 
   {
     std::size_t const P(i*3U);
-    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+1U]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+2U])*(hartree_to_kcal*bohr_to_angstroem)));
+    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+1U]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+2U]*(hartree_to_kcal*bohr_to_angstroem)));
   }
 }
 

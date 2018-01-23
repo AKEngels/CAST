@@ -155,6 +155,12 @@ namespace coords
     std::size_t m_system, m_etype;
     sub_types m_sub_id;
     bool m_fix, m_intern_root;
+    /**name of the residue (from pdb)*/
+    std::string residue;
+    /**unique residue id (from pdb)*/
+    int(res_id);
+    /**atom name from pdb*/
+    std::string pdb_atom_name;
 
   public:
 
@@ -214,6 +220,18 @@ namespace coords
     std::size_t energy_type() const { return m_etype; }
     // set type
     void set_energy_type(std::size_t const id) { m_etype = id; }
+    /**set residue name*/
+    void set_residue(std::string s) { residue = s; }
+    /**get residue name*/
+    std::string get_residue() const { return residue; }
+    /**set res_id*/
+    void set_res_id(int i) { res_id = i; }
+    /**get red_id*/
+    int get_res_id() const { return res_id; }
+    /**set pdb atom name*/
+    void set_pdb_atom_name(std::string i) { pdb_atom_name = i; }
+    /**get pdb atom name*/
+    std::string get_pdb_atom_name() const { return pdb_atom_name; }
 
     // Note (DK): This function does not seem to be used currently
     void set_relation(internal_relations const &r) { internal_relations::operator=(r); }
@@ -344,6 +362,10 @@ namespace coords
     // stereo stuff
     bool res_is_equal(std::size_t a, std::size_t b, std::size_t from_a, std::size_t from_b, std::size_t deepth) const;
     
+
+    //check fixation of an atom
+    bool check_fix(std::size_t atom){ return m_atoms[atom].fixed(); }
+
     // DEPRECATED
     // internal to cartesian et vice versa
     //void internal_to_cartesian(PES_Point&) const;

@@ -252,6 +252,7 @@ void coords::Coordinates::init_swap_in(Atoms &a, PES_Point &p, bool const update
     throw std::logic_error("Initialization of Coordinates failed. Invalid sizes.");
   }
   energy_valid = false;
+  m_atoms.clear();
   a.swap(m_atoms);
   m_atoms.refine();
   p.swap(m_representation);
@@ -339,24 +340,16 @@ double coords::Coordinates::prelbfgs()
   op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
   // Optimize point
   optimizer(x);
-  m_representation.energy = x.f;
+  m_representation.energy = optimizer.p().f;
   m_representation.structure.cartesian =
-    coords::Representation_3D(x.x.begin(), x.x.end());
-  m_representation.gradient.cartesian =
-    coords::Gradients_3D(x.g.begin(), x.g.end());
+    coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
+  m_representation.gradient.cartesian = coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
   if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
-
-  if (Config::get().general.verbosity >= 4 && m_interface->intact())
-  {
-    std::cout << "Energy after optimization: \n";
-    e_head_tostream_short(std::cout, m_interface);
-    e_tostream_short(std::cout, m_interface);
-  }
-  return x.f;
+  return optimizer.p().f;
 }
 
 coords::Gradients_Main coords::Coordinates::dimermethod_dihedral
@@ -417,7 +410,6 @@ coords::Cartesian_Point coords::Coordinates::center_of_mass() const
   COM /= M;
   return COM;
 }
-
 
 coords::Cartesian_Point coords::Coordinates::center_of_geometry() const
 {
@@ -488,37 +480,44 @@ void coords::Coordinates::h_tostream(std::ostream &S,
   energy::interface_base const * const ep) const
 {
   std::vector<std::vector<double>> hess = m_representation.hessian;
-  S << "HESSIAN MATRIX";
-  S << "\n\n           ";
-  for (unsigned i=0; i<size(); i++)  // headline
+  if (hess.size() == 0)
   {
-    S << "| X (atom"<<i+1<<") | Y (atom"<<i+1<<") | Z (atom"<<i+1<<") ";
+    std::cout<<"ERROR: no hessian can be printed!\n";
   }
-  S<<"\n";
-  for (unsigned i=0; i<(12*3*m_representation.size()+12); i++)  // second line
+  else
   {
-    S << "-";
-  }
-  S<<"\n";
-  for (unsigned i=0; i<m_representation.size()*3; i++)  // lines
-  {
-    if (i%3 == 0)
+    S << "HESSIAN MATRIX";
+    S << "\n\n            ";
+    for (unsigned i=0; i<size(); i++)  // headline
     {
-      S << " X (atom"<<i/3+1<<") ";
+      S << "| X ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Y ("<< std::right << std::fixed << std::setw(6)<<i+1 <<") | Z (" << std::right << std::fixed << std::setw(6) <<i+1<< ") ";
     }
-    else if (i%3 == 1)
+    S<<"\n";
+    for (unsigned i=0; i<(13*3*m_representation.size()+13); i++)  // second line
     {
-      S << " Y (atom"<<i/3+1<<") ";
+      S << "-";
     }
-    else
+    S<<"\n";
+    for (unsigned i=0; i<m_representation.size()*3; i++)  // lines
     {
-      S << " Z (atom"<<i/3+1<<") ";
+      if (i%3 == 0)
+      {
+        S << " X (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
+      }
+      else if (i%3 == 1)
+      {
+        S << " Y (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
+      }
+      else
+      {
+        S << " Z (" << std::right << std::fixed << std::setw(6) << i/3 + 1 << ") ";
+      }
+      for (unsigned j=0; j<3*m_representation.size();j++)  // columns
+      {
+        S <<"|"<<std::right<<std::fixed<<std::setw(11)<<std::setprecision(2)<<hess[i][j]<<" ";
+      }
+      S << "\n";
     }
-    for (unsigned j=0; j<3*m_representation.size();j++)  // columns
-    {
-      S <<"|"<<std::right<<std::fixed<<std::setw(10)<<std::setprecision(2)<<hess[i][j]<<" ";
-    }
-    S << "\n";
   }
 }
 
@@ -657,7 +656,6 @@ void coords::Coordinates::periodic_boxjump()
     for (auto const atom : molecule(i)) move_atom_by(atom, tmp_com, true);
   }
 }
-
 
 bool coords::Coordinates::validate_bonds()
 {
@@ -1273,6 +1271,7 @@ void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size
     std::cout << '\n';
   }
 }
+
 std::vector<bool> const coords::Coordinates::terminal()
 {
   size_t N = this->atoms().size();

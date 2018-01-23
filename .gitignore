@@ -5,10 +5,16 @@
 *.oo
 *.exe
 
+.*
+
 optional_files/build/*
 optional_files/project/*
 optional_files/project/Makefile
 optional_files/project/CAST.make
+!optional_files/build/python_modules
+optional_files/build/python_modules/*.pyc
+
+
 
 /src/documentation/html
 /src/documentation/latex
@@ -56,3 +62,4 @@ examples/taskFEP/*
 
 /INPUTstructures
 /src/.vscode
+

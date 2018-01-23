@@ -40,7 +40,7 @@
 	showstringspaces=false,          % underline spaces within strings only
 	showtabs=false,                  % show tabs within strings adding particular underscores
 	stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
-	tabsize=2,	                     % sets default tabsize to 2 spaces
+	tabsize=2,	                     % sets default tabsize to 2 spaces	
 }
 
 %%%%AUTHOR INFORMATION
@@ -149,6 +149,7 @@
 		\acro{GAFF}{General Amber Force Field}
 		\acro{GCC}{GNU Compiler Collection}
 		\acro{GPU}{graphics processing unit}
+		\acro{LAPACK}{Linear Algebra PACKage}
 		\acro{MC}{Monte-Carlo}
 		\acro{MCM}{Monte-Carlo with Minimization}
 		\acro{MD}{Molecular Dynamics}
@@ -188,15 +189,58 @@
 	%%%%                            %%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\ifdevelopment
-	\section{Compiling CAST}
+	\section{Compiling CAST} \label{sec:compile}
 	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
+	
+	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
 	
 	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
 	
 	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. Precompiled binaries for windows and linux are included in \ac{CAST}.
 	
-	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
-	\fi
+	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
+	
+	\textbf{For users on ECPC:} The python 2.7 version that is installed on ECPC is 64bit so you can only compile \ac{CAST} in 64bit mode. Also you have to add the following lines to your .cshrc:
+\begin{lstlisting}
+setenv PYTHONHOME /apps/python27
+setenv LD_LIBRARY_PATH /apps/lib64:\${LD_LIBRARY_PATH}
+\end{lstlisting}	
+The first line tells CAST where python is installed, the second line adds the folder ``/apps/lib64'' to the paths where libraries are expected. This is necessary because not all libraries that python needs are originally installed on the nodes of ECPC so they have been copied here manually. 
+
+Then you can submit your job by the following submit file:
+\begin{lstlisting}
+#!/bin/tcsh                                                                                    
+#PBS -l nodes=1:ppn=4                                                                          
+#PBS -l mem=4020MB
+#PBS -l walltime=999:00:00
+#PBS -N TITEL
+
+#setenv GAUSS_SCRDIR $TMPDIR
+cd $PBS_O_WORKDIR
+cp -pr * $TMPDIR
+cd $TMPDIR
+
+
+### enter commands here
+#ulimit -s unlimited
+setenv OMP_NUM_THREADS 4
+setenv MKL_NUM_THREADS 4
+setenv KMP_STACKSIZE 4000m
+
+
+cp -f <path to cast>/optional_files/build/CAST_linux_x64_python_release ./CAST
+cp -R <path to cast>/optional_files/build/python_modules/ ./python_modules/
+
+
+chmod +x CAST
+./CAST | tee CAST_OUTPUT
+rm CAST
+rm -r python_modules
+cp -pr * $PBS_O_WORKDIR   
+\end{lstlisting}	
+\ifx{\verb+$+}!\fi  % fixing bug in TeXnicCenter (https://tex.stackexchange.com/questions/145787/avoiding-math-mode-inside-a-lstlisting)
+
+	
 	\newpage
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -324,7 +368,7 @@
 			
 			%Gaussian
 			\subsubsection{Gaussian}
- When it is requested the options specified in the exemplary input shown below are put to use. The commands are the same as in Gaussian09\supercite{M.J.Frisch2009} itself.\\
+ When it is requested the options specified in the exemplary input shown below are put to use. The commands are the same as in Gaussian09\supercite{M.J.Frisch2009} or Gaussian16 itself.\\
 The \textit{GAUSSIANlink} option is used for the link 0 commands from Gaussian, these commands are used to control computing resources for the calculation. For example, the number of processors used, the amount of memory or if checkpoint files should be created. A difference to the link 0 commands in Gaussian is that there is no need to put every command in a separate line and ``\%'' mustn't to be put in front of every line but within a command no blank may be used.\\
 In the Gaussian program the options for the calculation like applied method or basis set or further specifying options like the request for an excited state calculation are all written in a single line. For user convenience and as a reminder this was split into two for the implementation in CAST. The lines \textit{GAUSSIANmethod} and \textit{GAUSSIANbasisset} perform this function in the implementation. This was done in an attempt to make the user consider if a basis set is needed, as methods like INDO\supercite{Pople1967} and ZINDO\supercite{Ridley1973,Ridley1976} do not need one, and which basis set would be appropriate.\\
 The Gaussian program needs information about the charge of the system and the multiplicity. These information are to be given at the options \textit{GAUSSIANcharge} and \textit{GAUSSIANmultiplicity}, respectively.\\
@@ -339,7 +383,11 @@ GAUSSIANmethod        HF
 
 #Basisset for Gaussian Call
 
-GAUSSIANbasisset   6-31G    
+GAUSSIANbasisset   6-31G   
+
+#Further specifications for Gaussian Call
+
+GAUSSIANspecifications 
 
 #Charge of the Molecule
 
@@ -355,16 +403,19 @@ GAUSSIANsteep          0
 
 #Gaussian executeable path 
 
-GAUSSIANpath            g09 
+GAUSSIANpath            g16
 
 #Delete temporary Gaussian files?
 
 GAUSSIANdelete          1
 \end{lstlisting}
 
-\subsubsection{DFTB}
+If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual. It is not recommended to use DFTB because molecules with oxygen atoms explode due to very big gradients from the gaussian calculation with MIO parameters. DFTBA however seems to work fine.
 
-For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. This can be done by premake. Just use premake as usual and choose the configuration Python\_Release or Python\_Debug. To be able to do this you have to install python before. \textbf{IMPORTANT}: If you want to compile CAST in the 32bit modus you have to install python 32bit, if you want to compile CAST in 64bit modus you have to install python 64bit!
+\subsubsection{DFTBaby} \label{sec:DFTB}
+
+For running DFTB calculations an interface to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}) is implemented. Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
+
 
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
@@ -377,24 +428,69 @@ In addition to python you also need the following:
 \item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
 \end{itemize}
 
-Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. 
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. It is recommended to use the version from July 20, 2017 because newer versions can't deal with atoms different from C, H, N and O.
+
+\textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
+\begin{lstlisting}
+make clean
+make
+\end{lstlisting}
+DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
 There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
 \begin{lstlisting}[firstnumber=92]
         else:
-				    self.dmax = max(reppot\_module.d)
-						self.tck = interpolate.splrep(reppot\_module.d, reppot_module.Vrep,s=0)
-						def smooth_tail(d,deriv=0)
-						    return 0.0
-				reppot\_module.d /= scaling
-				self.smooth_tail = smooth_tail
+            self.dmax = max(reppot_module.d)
+            self.tck = interpolate.splrep(reppot_module.d, reppot_module.Vrep,s=0)
+            def smooth_tail(d,deriv=0):
+                return 0.0
+        reppot_module.d /= scaling
+        self.smooth_tail = smooth_tail
 \end{lstlisting}
 
 \paragraph{Run CAST with DFTB}\mbox{}\\
 
-If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby it is necessary to copy the file ``dftbaby\_interface.py'' into the folder where you run CAST. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run a SP or GRAD calculation with a tinkerstructure (LOCOPT and MD should also work). The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. They are explained in the inputfile ``CAST.txt'' or in the documentation for DFTBaby.
+If you want to run CAST with DFTB, set the interface parameter in the CAST inputfile to DFTB. To interact with DFTBaby CAST needs access to the file ``dftbaby\_interface.py'', currently located in the folder ``cast/optional\_files/build/python\_modules''. If you run CAST from the build folder all is well. Otherwise you have to create a subfolder in the folder where you run CAST called ``python\_modules'' and copy the file there. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
+
+
+\textbf{DFTB Options} 
+\\(default value none means defalt value is taken from DFTBaby)
+\\(bool values have to be given as 1=true and 0=false)
+
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	\textbf{DFTBath} & Path to DFTBaby & string \\
+	\textbf{DFTBverbose} & verbosity for DFTBaby, i.\,e. how much information is printed in file output\_dftb.txt & int [0] \\	
+	\textbf{DFTBcharge} & total charge of the molecule & int [0] \\
+	\textbf{DFTBcutoff} & cutoff for orbital interactions \textbf{(in bohr!!!)} & float [none] \\
+	\textbf{DFTBlr\_corr} & Switch long range correction on and off & bool [false] \\
+	\textbf{DFTBlr\_dist} & R\textsubscript{lr} \textbf{(in bohr!!!)} for long range correction & float [none] \\
+	\textbf{DFTBmaxiter} & maximum number of iterations for SCF calculation & int [none] \\
+	\textbf{DFTBconv} & convergence threshold for relative change in SCF calculation & string [none] \\
+	\textbf{DFTBgradfile} & name of the DFTBaby gradient file (is deleted after calculation) & string [grad.xyz] \\
+	\textbf{DFTBgradstate} & state for which the gradients should be calculated & int [0] \\
+	\textbf{DFTBstates} & number of states taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBocc\_orb} & number of occupied orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBvirt\_orb} & number of virtual orbitals taken into account for TD-DFTB matrix & int [none] \\
+	\textbf{DFTBdiag\_maxiter} & maximum number of iterations for TD-DFTB matrix diagonalisation & int [none] \\
+	\textbf{DFTBdiag\_conv} & convergence threshold for TD-DFTB matrix diagonalisation & string [none] \\
+	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient that is implemented in CAST (of course this is not an option of DFTBaby) & bool [true] \\
+\end{longtable} 
+
+\textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Known Quirks and Work-Arounds)
+
+\subsubsection{QM/MM}
+
+There is also the possibility to use QM/MM as energy interface. For the QM part you can choose between MOPAC and GAUSSIAN, for the MM part you can choose one of the force fields OPLSAA, CHARMM and AMBER. Interactions between QM and MM part are only calculated as non-bonded interactions so there must not be any bonds between these systems. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part. Coulomb interaction is done by electrostatic embedding so the charges of the MM atoms are taken into account when calculating the energy and the charge distribution of the QM part.
+
+To use this interface set the energy interface to ``QMMM'' (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see \url{http://openmopac.net/manual/QMMM.html}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}.
+
+By ``QMMMqmatoms'' you define which atoms belong to the QM system (of course all other atoms then belong to the MM system). Write the indizes in TINKER indexation (i.\,e. starting with 1) either separated by comma (``1,5,7'') or as a range (``1-4''). The keyword ``QMMMmminterface'' tells CAST which forcefield to use as MM interface (this has to be in accordance with the parameter file and the parametrization of your input structure). The keyword ``QMMMqminterface'' sets the QM program. 
+
+\textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group) are in the MM part near the QM part. So try to avoid this situation.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -429,6 +525,8 @@ If you want to run CAST with DFTB, set the interface parameter in the CAST input
 	
 	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. To do this in a comfortable way open it with LibreOfficeCalc, give as seperation option ``spaces'' and activate the option ``Feldtrenner zusammenfassen''. Then you can write the atom types in column G, mark the whole file and copy the text in a text editor. Then save the file from the texteditor as .arc. This file you can use as inputstructure for CAST forcefield calculations.
 	
+	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}).
+	
 	\subsubsection{AMBER}
 
 \ac{CAST} can to some extent read structures from \ac{AMBER} files. In order to do this a few options have to be changed in the CAST input file:
@@ -461,6 +559,14 @@ In contrast to other forcefields (and the ``normal'' design of CAST) amber atom 
 \subsubsection{XYZ}
 
 If you use an energy interface that doesn't need atom types (i.\,e. no forcefield) you can also use .xyz files as input. Just set the inputtype to XYZ and run your calculation as usual. Be careful that the structure in the xyz-file is not too distorted because CAST uses a distance criterion to find bonds in the structure.
+
+\subsubsection{PDB}  \label{sec:pdb}
+
+CAST can also read in PDB files. It only uses the lines starting with ``ATOM''. In principle they must look like described in this file: \url{ftp://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf}, p. 180 but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). There can be problems if amino acids other than the 20 standard amino acids + those from AMBER (CYX, CYM, HID, HIE, HIP, see \url{http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm}) are used. Because CAST doesn't assign bonds to ions (residue names end with + or -) there can be problems if you have charged molecules in your structure. 
+
+CAST tries to assign atom types according to the OPLSAA force field to the atoms. To do so it uses the atom name and the residue name from the PDB file. The atom names have to be something like CA, CB, ... according to the position where they are in the amino acid relative to the carboxyl group. If there is more than one atom of the same element in the same relative position those atoms have to be numbered. H atoms have to be named by the atom they are bound to, e.\,g. HE2 for a hydrogen that is bound to the atom with the position E2 to the carboxyl group. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to comnplement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
+
+If CAST is able to assign atom types to all atoms in the structure (this is probably a rare event) you can use the OPLSAA forcefield for calculations. Otherwise you have to use an energy interface that doesn't need atom types. You can use this interface to write out a tinkerstructure, assign atom types to this tinkerstructure and use it as input for a forcefield calculation. 
 
 
 %%%% Fixations and biases %%%%
@@ -519,7 +625,7 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 	The result of a gradient calculation is the same as the result for a single point calculation with the addition that the gradients of the atoms are also calculated. The output is can be found as a file where the filename specified by the configuration parameter "output" is amended by the keyword "GRAD". This file contains the information about the gradients with respect to atoms, force field contributions and x-, y- and z-coordinates.
 	
 	\subsection{HESS - Single point energy and hessian calculation}
-	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is not implemented so this task will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
+	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is only implemented in the DFTB interface so it will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
 	
 
 	%%%% LOCOPT %%%%
@@ -550,6 +656,7 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 			\end{itemize} 	
 		& integer [0] \\
 		\textbf{MDveloscale} & Remove translation and rotation at every step\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
+		\textbf{MDtemp\_control} & Activate temperature control\begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& bool [1] \\
 		\textbf{MDthermostat} & Nosé-Hoover thermostat\begin{itemize} \item 0 = no \item 1 = yes\end{itemize} if yes, you have to define heatsteps by the option ``MDheat'', otherwise the results won't make sense
 		 & integer [0] \\
 		\textbf{MDtimestep} & Timestep in picoseconds & float [0.001] \\
@@ -593,7 +700,7 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 	\end{lstlisting}~\\~\\
 	In the above example the simulation starts at 0 Kelvin and is then heated to 300K within the first 1000 steps. The temperature is kept steady for 4000 steps until step 5000 is reached. Now the system is cooled back to 0 Kelvin during steps 5000 to 10000. The user has to take care that enough total steps are performed for the temperature scaling sequence!\\
 	
-	There are two possible ways for temperature control in CAST: 
+	There are two possible ways for temperature control in CAST (for both of them MDtemp\_control has to be activated!): 
 
 If you disable the option ``MDthermostat'' a simple velocity scaling is used for heating up. After reaching the desired temperature the control mechanism will keep the temperature constant. Setting the start temperature to zero will result in an error because there's a division by zero. So your settings for first heating up and then keeping the temperature constant (after 1000 steps) might be:
 	\begin{lstlisting}
@@ -606,6 +713,15 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat			    0  	  0
 	MDheat 			 1000     300
 	\end{lstlisting}
+	
+\textbf{	Running an MD without temperature contol}
+	
+	\ac{CAST} can also be run without temperature control. One option to do this is just to set MDthermostat to 0 and delete all lines starting with MDheat. Then the simulation starts at 0\,K and no thermostat is applied during the run so the total energy is kept constant. If you don't want to start the simulation at 0\,K you can set MDtemp\_control to 0. Then every kind of temperature control is also switched off but you can set a starting temperature different from 0\,K. To do so use the option MDheat. The starting temperature is always the first temperature that you set with that option, no matter which step you set. So if you write this:
+			\begin{lstlisting}
+	MDheat			  200  	  50
+	MDheat 			 1000     300
+	\end{lstlisting}
+	the starting temperature (at step 0) is 50\,K and the second line is just ignored. To avoid confusion it is recommended only to use one line of MDheat and set it to step 0: \\MDheat  \hspace{2cm}  0 \hspace{0.5cm}  300
 		
 	\subsubsection{MD with biased potential}
 	
@@ -613,7 +729,7 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	
 If an FEP calculation is done you can set the ``MDactive\_site'' to zero instead of atom numbers. Then the active site is defined by all atoms that appear or disappear during the reaction, e.\,g. that are marked by ``IN'' or ``OUT'' in the coordinate file. 
 	
-If you use the ``MDheat'' option without switching on the Nosé-Hoover thermostat (``MDthermostat'') the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. The Nosé-Hoover thermostat might not work together well with the biased potential as the temperature and the scaling factor are calculated by the velocities of all atoms after the adjustment according to the biased potential when many of them are zero.
+If you use the ``MDheat'' option the temperature (and thus the scaling factor) is only calculated by the velocities for the atoms inside the inner cutoff radius where the movement is not manipulated. The kinetic energy is however calculated for all atoms so they do not fit together directly. 
 
 Don't use ``MDveloscale'' with biased potential because it doesn't make sense to rotate the whole molecule if only a part of it moves during the simulation.
 
@@ -691,7 +807,18 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 	
 	%% Monte Carlo
 	\subsubsection{MC - Monte Carlo}
-	The \ac{MC} simulation will move the system randomly across the \ac{PES} and evaluate the reached point either directly or after local optimization. The ``MCminimization'' option turns minimization on (value ``1''; default) or off (value ``0''). \\~\\
+	The \ac{MC} simulation will move the system randomly across the \ac{PES} and evaluate the reached point either directly or after local optimization. The ``MCminimization'' option turns minimization on (value ``1''; default) or off (value ``0''). 
+	
+	\textbf{Attention!}
+	If you use an energy interface that doesn't work with bonding information when calculating the energy it is possible that you get a minimum structure that looks very strange to you. For an example see figure \ref{fig:dist_eth} which is an ethanole molecule. This is not a bug because if you rebind the atoms by a distance criterion everything will be fine again. The atoms are just shuffled around randomly and then the energy is evaluated out of the atom positions. So it doesn't matter to the program if for example two hydrogen atoms have swapped positions. One possibility to avoid this is to use the move type ``main dihedral'' instead of ``cartesian''. Another possibility is to turn on preoptimization with a force field as energy interface.
+	
+		\begin{figure}[htb]
+		\centering
+		\includegraphics[width=0.5\textwidth]{img/distorted_ethanol.png}
+		\caption{Ethanole molecule that is distorted by MC calculation}
+		\label{fig:dist_eth}
+	\end{figure}
+	
 	\textbf{Move types}\\~\\
 	\ac{CAST} can move to the next sampling point during \ac{MC} in three different ways, controlled via the ``MCmovetype'' option (default ``1''). A value of ``2'' will make the program carry out the contortion in Cartesian space (where the ``MCstep\_size'' option with a default value of ``2.0'' will restrict the absolute value of the distortion vector). The value ``1'' represents direct rotation of randomly selected main dihedral angles (see 1.5). A value of ``0'' means that the target conformation is not obtained directly by adjusting dihedrals but the conformational change will be achieved by applying quadratic bias potentials on the main dihedrals towards the target conformation during a local optimization process (``MCmax\_dihedral'' restricts the maximum distortion of a dihedral angle; default ``160.0''). \\
 		
@@ -838,8 +965,34 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 	The INTERNAL task converts cartesian coordinates to the internal coordinates used in CAST (z-matrix-like). The internal coordinates are then printed. This task can - for example - be run to identify dihedrals or angles which are to be cosntraint in a subsequent optimization task. \ac{PCA} task may be run on internal coordinates.
 
 	%%%% STARTOPT %%%%
-	\subsection{STARTOPT - I dont even know}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	\subsection{STARTOPT}	
+	
+	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	
+	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
+	
+	Other options of this task are described in the following table:
+	
+	\begin{tabularx}{\textwidth}{l|X|X}
+		variable & effect & default \\
+		\hline
+    \textbf{\underline{Startopt Options}} &  &  \\ 
+		\textbf{SOtype} & 0 = Ringsearch, 1 = Solvadd, 2 = Ringsearch + Solvadd	& int [1]\\
+		\textbf{SOstructures} & ??? & ??? \\
+		\hline
+		\textbf{\underline{Solvadd Options}} & &  \\
+		\textbf{SAhb} & ??? & float [1.8] \\
+		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
+		\textbf{SAboundary} & shape of the water shell (0 = layer, 1 = sphere, 2 = box) & integer [10] \\
+		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
+		\textbf{SAtypes} & force field parameter types of water oxygen and hydrogen & 2 integers \\
+		\textbf{SAopt} & how is structure optimised? (0 = not at all, 1 = after adding of each shell, 2 = once after adding all waters, 3 = each shell and all at the end & int \\
+		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
+		\hline
+		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
+
+		
+	\end{tabularx}\\~\\
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
@@ -888,16 +1041,36 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPequil} & Number of equilibration steps in each window & integer [10] \\
 		\textbf{FEPsteps} & Number of production steps in each window & integer [10]\\
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
+		\textbf{FEPanalyze} & switch on or off analyzing of FEP calculation (0 or 1) & bool [1] \\
+		\textbf{FEPbar} & switch on or off calculating $\Delta G$ from Bennets Acceptance Ratio (BAR) (0 or 1)  & bool [0] \\
 	\end{tabularx}\\~\\
 
-	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window.
+	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
+	\begin{itemize}
+	\item electrostatic interactions for $\lambda - \Delta \lambda$
+	\item electrostatic interactions for $\lambda$
+	\item electrostatic interactions for $\lambda + \Delta \lambda$ (in the file also called dLambda)
+	\item Van der Waals interactions for $\lambda - \Delta \lambda$
+	\item Van der Waals interactions for $\lambda$
+	\item Van der Waals interactions for $\lambda + \Delta \lambda$ 
+	\item temperature
+	\item $\Delta E_{pot} = U(\lambda + \Delta \lambda) - U(\lambda)$
+	\item $\Delta G$ calculated from a forward transformation out of $\Delta E_{pot}$
+	\item $\Delta E_{pot, back} = U(\lambda) - U(\lambda - \Delta \lambda)$
+	\item $\Delta G_{back}$ calculated from a backward transformation out of $\Delta E_{pot,back}$
+	\end{itemize}
+	The free energy changes in the lines without columns are only from the forward transformation.
+	
+	The file ``FEP\_Results.txt'' contains the total free energy change for the simulation and for each window. The first column is the $\lambda$-Value where the current window ends, the second line the total free energy change until this window from the forward transformation, the third line the total free energy change until this window from the backward transformation. The total free energy changes for forward and backward simulation should be similar (in theory identical). The fourth line is the total free energy from Simple Overlap Sampling (SOS), a combination of forward and backwards transformation. If you have switched on BAR the results for the BAR calculation are in the fifth column. Otherwise this column is filled with zeros.
+	
+	If you have switched on FEPanalyze for every window the probability distributions of $\Delta E_{pot}$ are plotted for the forward and backwards transformation and saved as a .png image. Furthermore the overlap of these distributions is calculated and written into a file ``overlap.txt''. The quality of a calculation is better if the overlap is bigger, i.\,e. the distributions for forward and backwards transformation are similar. To perform such an analysis CAST has to be compiled with python. See section \ref{sec:compile} for a description how to do this. Python needs the module ``matplotlib''. Furthermore the file ``FEP\_analysis.py'' has to be provided (compare section \ref{sec:DFTB}). 
+	
 	The \ac{FEP} implementation is part of the \ac{MD} code. Thermostats, barostats boundary conditions and all other parameters needed can be controlled with the corresponding \ac{MD} variables.
 	
 	If you use a temperature gradient it will only be applied in the initialisation run but not in the equilibration and production runs. In those the temperature is kept constant at the last temperature of your gradient.
 	
 \textbf{Attention!} The fact that during an FEP run several MD simulations with possibly different settings are done can cause some problems you should be aware of: \\
 For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' is 50000 you will have MD runs with 1000 (for the initialisation at the very beginning), 10000 (for the equilibration of every FEP window) and 50000 steps. The stepsize between two snapshots is however calculated from the number ``MDsteps''. So if in the above example ``MDsnap'' is 1000 the program will will calculate the stepsize so that a snapshot is taken for every MD step not only in the initialisation MD with 1000 steps but also in every equilibration run with 10000 steps and in every production run with 50000 steps. So it is strongly recommended to set the ``MDsnap'' option to a very low number when doing an FEP calculation in order to avoid getting snapshot files that are much too big to deal with. \\
-\textbf{Attention!} Currently there is some kind of error in the function that calculates $\Delta G$ out of $\Delta E$. However the values for $\Delta E$ are given in the file ``alchemical.txt'' so $\Delta G$ can be calculated from this file without the use of CAST. You can use the script ``FEP\_check.py'' that is found in the directory ``\textbackslash optional\_files\textbackslash scripts''. For every window it prints the $\Delta G$ value of the window and the total $\Delta G$ until the window. The results obtained with this script are not expected to be identical with the ones of CAST because CAST takes into account every conformation of the MD and the script only those which are written into the output (controlled by FEPfreq).
 
 	
 	%%%% Trajectory alignment (ALIGN) %%%%
@@ -1159,7 +1332,7 @@ EXwellenzahl                  28514.91
 	\subsection{GRID - jajajajjajaja blub}	
 	
 	%%%% PATHOPT %%%%
-	\subsection{GRID - I dont even know}	
+	\subsection{PATHOPT - I dont even know}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
 	
 	%%%% PATHSAMPLING %%%%
@@ -1172,6 +1345,11 @@ EXwellenzahl                  28514.91
 	
 	\subsection{WRITE\_TINKER}
 	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
+	
+	\subsection{MODIFY\_SK\_FILES}
+	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see: \url{http://gaussian.com/dftb/}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
+	
+\textbf{Important!} If you run this task the symbol column of the tinkerfile has to contain the element symbol and nothing else. Otherwise CAST is not able to find the correct element pairs!
 		
 
 	%%%% Boundry Conditions %%%%
