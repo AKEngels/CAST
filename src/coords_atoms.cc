@@ -663,7 +663,7 @@ void coords::Atoms::c_to_i(PES_Point &p) const
     auto j(i);
     while (j < N)
     {
-
+      std::cout << "start c to i calculation\n";
       auto const ind_j = atom(j).i_to_a();
 
       auto const rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
@@ -677,23 +677,18 @@ void coords::Atoms::c_to_i(PES_Point &p) const
       auto const PA = normalized(cross(RA, Di));
       auto const PT = normalized(cross(Zj, Di));
       auto const dA = i == j ? geometric_length(Di) : geometric_length((Di - RA*dot(Di, RA)));
-      std::cout << "Di: " << Di << ", Zj: " << Zj << "\n";
       auto const dT = geometric_length(Di - Zj*dot(Di, Zj));
 
-      std::cout << "gxyz[ind_i]: " << gxyz[ind_i] << ", PD: " << PD << ", PA: "<<PA<<", PT: "<<PT<< "\n";
       coords::internal_gradient_type ig(
         dot(gxyz[ind_i], PD),
         dot(gxyz[ind_i], PA)*dA,
         dot(gxyz[ind_i], PT)*dT
         );
 
-      std::cout << "the same again: \n";
       gintern[j].x() += dot(gxyz[ind_i], PD);    // dot(gxyz[ind_i], PD)
-      std::cout << "G*PD successful\n";
       gintern[j].y() += dot(gxyz[ind_i], PA)*dA; // dot(gxyz[ind_i], PA)*dA
-      std::cout << "G*PA successful\n";
       gintern[j].z() += dot(gxyz[ind_i], PT)*dT; // dot(gxyz[ind_i], PT)*dT
-      std::cout << "end of calculation\n";
+      std::cout << "end of c to i calculation\n";
 
       //if (i == j)
       //{
@@ -798,12 +793,15 @@ void coords::Atoms::i_to_c(PES_Point &p) const
       //Cartesian_Point const PA = normalized(cross(RA, Di));
       auto const PA = normalized(cross(RA, Di));
       //float_type const dA = len(Di - RA*dot(Di, RA));
+      std::cout << "Di: " << Di << ", RA: " << RA << "\n";
       auto const dA = geometric_length(Di - RA*dot(Di, RA));
       //Cartesian_Point const PT = normalized(Zj.crossd(Di));
       auto const PT = normalized(cross(Zj, Di));
       //float_type const dT = len(Di - Zj*dot(Di, Zj));
+      std::cout << "Di: " << Di << ", Zj: " << Zj << "\n";
       auto const dT = geometric_length(Di - Zj*dot(Di, Zj));
 
+      std::cout << "gxyz[ind_i]: " << gxyz[ind_i] << ", PD: " << PD << ", PA: " << PA << ", PT: " << PT << "\n";
       gintern[j].x() -= dot(gxyz[ind_i], PD);
       gintern[j].y() -= dot(gxyz[ind_i], PA)*dA;
       gintern[j].z() -= dot(gxyz[ind_i], PT)*dT;
