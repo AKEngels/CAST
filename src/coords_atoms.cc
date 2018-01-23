@@ -689,8 +689,11 @@ void coords::Atoms::c_to_i(PES_Point &p) const
 
       std::cout << "the same again: \n";
       gintern[j].x() += dot(gxyz[ind_i], PD);    // dot(gxyz[ind_i], PD)
+      std::cout << "G*PD successful\n";
       gintern[j].y() += dot(gxyz[ind_i], PA)*dA; // dot(gxyz[ind_i], PA)*dA
+      std::cout << "G*PA successful\n";
       gintern[j].z() += dot(gxyz[ind_i], PT)*dT; // dot(gxyz[ind_i], PT)*dT
+      std::cout << "end of calculation\n";
 
       //if (i == j)
       //{
