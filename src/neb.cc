@@ -2886,7 +2886,16 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   coords::output::formats::zmatrix intern_final_writer(coords_final);
   intern_final_writer.to_stream(std::cout);
 
+  std::vector<std::size_t> rereorder;
 
+  for (auto i = 0; i < N; ++i) {
+    for (auto j = 0; j < N; ++j) {
+      if (i == new_order_ini[j]) {
+        rereorder.emplace_back(j);
+        break;
+      }
+    }
+  }
 
   Z_matrices[0].clear();
   Z_matrices[0].reserve(N);
@@ -2935,22 +2944,19 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     for (size_t j = 0; j < N; ++j)
     {
 
-      auto const start_radius = coords_final.intern(j).radius();
-      auto const start_inclination = coords_final.intern(j).inclination().degrees();
-      auto const start_azimuth = coords_final.intern(j).azimuth().degrees();
+      auto const start_radius = coords_ini.intern(j).radius();
+      auto const start_inclination = coords_ini.intern(j).inclination().degrees();
+      auto const start_azimuth = coords_ini.intern(j).azimuth().degrees();
 
-      auto const total_change_radius = start_radius - coords_ini.intern(j).radius();
-      auto const total_change_inclination = start_inclination - coords_ini.intern(j).inclination().degrees();
-      auto const total_change_azimuth = start_azimuth - coords_ini.intern(j).azimuth().degrees();
+      auto const total_change_radius = coords_final.intern(j).radius() - start_radius;
+      auto const total_change_inclination = coords_final.intern(j).inclination().degrees() - start_inclination;
+      auto const total_change_azimuth = coords_final.intern(j).azimuth().degrees() - start_azimuth;
 
       auto const change_radius = total_change_radius * static_cast<double>(i) / static_cast<double>(imgs);
       auto const change_inclination = total_change_inclination * static_cast<double>(i) / static_cast<double>(imgs);
       auto const change_azimuth = total_change_azimuth * static_cast<double>(i) / static_cast<double>(imgs);
 
       Z_matrices[i][j].resize(3);
-/*
-      if (j == 0)
-      {*/
 
         Z_matrices[i][j][0].first = Z_matrices[0][j][0].first;
         Z_matrices[i][j][1].first = Z_matrices[0][j][1].first;
@@ -2959,80 +2965,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
         Z_matrices[i][j][0].second = start_radius + change_radius;
         Z_matrices[i][j][1].second = start_inclination + change_inclination;
         Z_matrices[i][j][2].second = start_azimuth + change_azimuth;
-     /* }
-      else if (j == 1)
-      {
-
-        change = i * incr * total_change;
-        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
-          Z_matrices[0][j][0].second + change);
-
-        mega_temp = spherical(atom_B, atom_A, x_ref - atom_A, y_ref - atom_A);
-
-        temporary = { 1, 0, N };
-        Z_matrices[i][j][1].first = temporary;
-
-        temporary = { 1, 0, N, N + 1 };
-        Z_matrices[i][j][2].first = temporary;
-
-        Z_matrices[i][j][1].second = (double)coords_ini.intern(j).inclination()
-          + (double)(coords_final.intern(j).inclination()
-            - coords_ini.intern(j).inclination()) * incr * (double)i;
-        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
-          + (double)(coords_final.intern(j).azimuth()
-            - coords_ini.intern(j).azimuth())			* incr * (double)i;
-      }
-      else if (j == 2)
-      {
-
-        total_change = Z_matrices[imgs - 1][j][0].second
-          - Z_matrices[0][j][0].second;
-        change = i * incr * total_change;
-        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
-          Z_matrices[0][j][0].second + change);
-
-        total_change = Z_matrices[imgs - 1][j][1].second
-          - Z_matrices[0][j][1].second;
-        if (abs(total_change) >= (180.))
-          total_change = total_change - (total_change < 0 ? -360. : 360.);
-        change = i * incr * total_change;
-        Z_matrices[i][j][1] = std::make_pair(Z_matrices[0][j][1].first,
-          Z_matrices[0][j][1].second + change);
-
-        mega_temp = spherical(atom_C, atom_B, atom_A - atom_B, x_ref - atom_B);
-
-        temporary = { 2, 1, 0, N };
-        Z_matrices[i][j][2].first = temporary;
-
-        Z_matrices[i][j][2].second = (double)coords_ini.intern(j).azimuth()
-          + (double)(coords_final.intern(j).azimuth()
-            - coords_ini.intern(j).azimuth()) * incr * (double)i;
-      }
-      else
-      {
-
-        total_change = Z_matrices[imgs - 1][j][0].second
-          - Z_matrices[0][j][0].second;
-        change = i * incr * total_change;
-        Z_matrices[i][j][0] = std::make_pair(Z_matrices[0][j][0].first,
-          Z_matrices[0][j][0].second + change);
-
-        total_change = Z_matrices[imgs - 1][j][1].second
-          - Z_matrices[0][j][1].second;
-        if (abs(total_change) >= (180.))
-          total_change = total_change - (total_change < 0 ? -360. : 360.);
-        change = i * incr * total_change;
-        Z_matrices[i][j][1] = std::make_pair(Z_matrices[0][j][1].first,
-          Z_matrices[0][j][1].second + change);
-
-        total_change = Z_matrices[imgs - 1][j][2].second
-          - Z_matrices[0][j][2].second;
-        if (abs(total_change) >= (180.))
-          total_change = total_change - (total_change < 0 ? -360. : 360.);
-        change = i * incr * total_change;
-        Z_matrices[i][j][2] = std::make_pair(Z_matrices[0][j][2].first,
-          Z_matrices[0][j][2].second + change);
-      }*/
+     
     }
     Z_matrices_s3[i].resize(N);
     for (size_t j = 0; j < N; ++j)
@@ -3042,7 +2975,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       Z_matrices_s3[i][j].azimuth() = (coords::angle_type)Z_matrices[i][j][2].second;
     }
   }
-
+  /*for (auto i = 0; i < imgs; ++i) {
+    auto const _atom__ = 6;
+    std::cout << Z_matrices[i][_atom__][0].second << " "
+      << Z_matrices[i][_atom__][1].second << " "
+      << Z_matrices[i][_atom__][2].second << "\n";
+  }*/
   coords::Coordinates coords;
   coords = *cPtr;
 
@@ -3087,7 +3025,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     */
 
   //converting Z-matrix to cartesian structure, NeRF
-
+  
   for (size_t i = 1; i < (imgs - 1); ++i)
   { 
     coords::Representation_3D current_images(N);
@@ -3175,6 +3113,34 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
     }
     // Nach Konvertierung in xyz müssen die Images wieder in die alte Reihenfolge gebracht werden:
+
+    std::ofstream off_intern("off_int" + std::to_string(i) + ".zmat");
+    std::ofstream off_cart_new_order("off_cart_new_order" + std::to_string(i) + ".xyz");
+    std::ofstream off_cart_old_order("off_cart_old_order" + std::to_string(i) + ".xyz");
+
+    off_cart_new_order << N << "\n\n";
+    off_cart_old_order << N << "\n\n";
+
+    for (auto j = 0; j < N; ++j) {
+      off_cart_new_order << std::setw(4) << coords.atoms(new_order_ini[j]).symbol() << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].x()
+        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].y()
+        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].z() << "\n";
+      off_cart_old_order << std::setw(4) << coords.atoms(j).symbol() << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].x()
+        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].y()
+        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].z() << "\n";
+
+      off_intern << std::setw(4) << coords.atoms(new_order_ini[j]).symbol();
+      if (j > 0)
+        off_intern << std::setw(4) << Z_matrices[i][j][0].first[1] << std::setw(15) << std::fixed << Z_matrices[i][j][0].second;
+      if (j > 1)
+        off_intern << std::setw(4) << Z_matrices[i][j][1].first[2] << std::setw(15) << std::fixed << Z_matrices[i][j][1].second;
+      if(j > 2)
+        off_intern << std::setw(4) << Z_matrices[i][j][2].first[3] << std::setw(15) << std::fixed << Z_matrices[i][j][2].second;
+      off_intern << "\n";
+    }
+    off_cart_new_order << "\n\n\n";
+    off_cart_old_order << "\n\n\n";
+    off_intern << "\n\n\n";
 
     for (auto const & n : new_order_ini) {
       images[new_order_ini[n]].x() = current_images[n].x();
