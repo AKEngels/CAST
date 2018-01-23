@@ -293,6 +293,13 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
+      for (auto const& pes : *ci)
+      {
+        coords.set_xyz(pes.structure.cartesian);
+        coords.g();
+        coords.to_internal();
+        coords.to_xyz();
+      }
       // DEVTEST: Room for Development testing
       break;
     }
