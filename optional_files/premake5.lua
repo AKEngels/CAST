@@ -36,8 +36,6 @@ workspace "CAST"
 			["Headers"] = "../src/**.h",
 			["Sources"] = "../src/*.cc"
 		}
-		--flags "C++14"
-		cppdialect "C++14"
 		warnings "Extra"
 		includedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
@@ -70,7 +68,7 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-std=c++11", "-std=c++14",  "-fopenmp" }
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
@@ -113,7 +111,8 @@ workspace "CAST"
 
 		filter {"Python_*", "action:gmake"}
 			links { "python2.7", "util", "lapack" }
-			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
+			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
+			includedirs "/apps/python27/include/python2.7"
 			libdirs { "linux_precompiled_libs" }
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
