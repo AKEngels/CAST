@@ -369,7 +369,7 @@ public:
 
   /**
    * @brief Sorts the column of a matrix and returns a standard vector with the sorted values.
-   * 
+   *
    * The sorting order of the vector is determined by the passed compare fcunction which got to take two values of
    * type T and returns a boolean vaule. If no specific column is passed the first one is used.
    * @see sort_col(Comp, std::size_t const&)
@@ -430,7 +430,7 @@ public:
    * @brief Finds all elements in a column compared with a passed function.
    *
    * The passed function got to take one agrument of type T and returns a boolean
-   * value. An example would be to pass this lambda [](T const& a){return a<1.0;} 
+   * value. An example would be to pass this lambda [](T const& a){return a<1.0;}
    * which would generate a vector containing all indices of elements less than 1.0.
    * If no column is specified the first one is used.
    * @return vector of integer which holds the indices of found elements
@@ -461,7 +461,7 @@ public:
    /**
     * @brief Builds a new matrix spanning between passed rows and columns.
     *
-    * The first and third argument determine which rows are taken for the new matirx as do 
+    * The first and third argument determine which rows are taken for the new matirx as do
     * the second and fourth argument for the columns.
     * @return new matrix with the desired columns and rows.
     */
@@ -498,7 +498,7 @@ public:
 
   /**
    * @brief Replaces the specific elements with the passed values.
-   * 
+   *
    * The passed vector got to consist of indices which are to change to the value passed.
    * The indices start again by 0. If a matrix and not a column matrix is changed the indices
    * are evaluated column major.
@@ -528,7 +528,7 @@ public:
   /**
    * @brief Performs a eigenvalue decomposition.
    *
-   * The resulting eigenvalues and eigenvectors are calculated and returned. The object itself 
+   * The resulting eigenvalues and eigenvectors are calculated and returned. The object itself
    * keeps unchanged.
    * @note Matrix is assumed to be symmetric.
    * @return the eigenvalues and eigenvectors as a std::pair.
@@ -1322,9 +1322,9 @@ template <typename T>
 void mathmatrix<T>::replace_idx_with(std::vector<std::size_t> const& idx,
                                      T const& val) {
 #ifndef CAST_USE_ARMADILLO
-  auto dat = data();
+  auto dat = base_type::data();
 #else
-  auto dat = memptr();
+  auto dat = base_type::memptr();
 #endif
   for (auto const& i : idx) {
     *(dat + i) = val;
@@ -1336,9 +1336,9 @@ inline std::vector<std::reference_wrapper<T>>
 mathmatrix<T>::elem(std::vector<std::size_t> const& idx) {
   std::vector<std::reference_wrapper<T>> ret;
 #ifndef CAST_USE_ARMADILLO
-  auto dat = data();
+  auto dat = base_type::data();
 #else
-  auto dat = memptr();
+  auto dat = base_type::memptr();
 #endif
   for (auto const& i : idx) {
     ret.emplace_back(*(dat + i));
@@ -1425,9 +1425,9 @@ std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const& iter) const {
     throw std::runtime_error("The required col is out of bounds!");
   }
 #ifndef CAST_USE_ARMADILLO
-  auto const& dat = data();
+  auto const& dat = base_type::data();
 #else
-  auto const& dat = memptr();
+  auto const& dat = base_type::memptr();
 #endif
   auto const& r = rows();
   return std::vector<T>(dat + r * iter, dat + r * (iter + 1));
@@ -1444,9 +1444,9 @@ std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const& iter) const {
   std::vector<T> ret;
   ret.reserve(cols());
 #ifndef CAST_USE_ARMADILLO
-  auto const& dat = data();
+  auto const& dat = base_type::data();
 #else
-  auto const& dat = memptr();
+  auto const& dat = base_type::memptr();
 #endif
   auto const& r = rows();
   for (auto i = 0; i < cols(); ++i) {
