@@ -663,7 +663,6 @@ void coords::Atoms::c_to_i(PES_Point &p) const
     auto j(i);
     while (j < N)
     {
-      std::cout << "start c to i calculation\n";
       auto const ind_j = atom(j).i_to_a();
 
       auto const rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
@@ -688,7 +687,6 @@ void coords::Atoms::c_to_i(PES_Point &p) const
       gintern[j].x() += dot(gxyz[ind_i], PD);    // dot(gxyz[ind_i], PD)
       gintern[j].y() += dot(gxyz[ind_i], PA)*dA; // dot(gxyz[ind_i], PA)*dA
       gintern[j].z() += dot(gxyz[ind_i], PT)*dT; // dot(gxyz[ind_i], PT)*dT
-      std::cout << "end of c to i calculation\n";
 
       //if (i == j)
       //{
@@ -778,7 +776,6 @@ void coords::Atoms::i_to_c(PES_Point &p) const
     std::size_t j(i);
     while (j < N)
     {
-
       Representation_3D::size_type const ind_j = atom(j).i_to_a();
 
       coords::Cartesian_Point const & rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
@@ -793,21 +790,17 @@ void coords::Atoms::i_to_c(PES_Point &p) const
       //Cartesian_Point const PA = normalized(cross(RA, Di));
       auto const PA = normalized(cross(RA, Di));
       //float_type const dA = len(Di - RA*dot(Di, RA));
-      std::cout << "Di: " << Di << ", RA: " << RA << "\n";
       auto const dA = geometric_length(Di - RA*dot(Di, RA));
       //Cartesian_Point const PT = normalized(Zj.crossd(Di));
       auto const PT = normalized(cross(Zj, Di));
       //float_type const dT = len(Di - Zj*dot(Di, Zj));
-      std::cout << "Di: " << Di << ", Zj: " << Zj << "\n";
       auto const dT = geometric_length(Di - Zj*dot(Di, Zj));
 
-      std::cout << "gxyz[ind_i]: " << gxyz[ind_i] << ", PD: " << PD << ", PA: " << PA << ", PT: " << PT << "\n";
       gintern[j].x() -= dot(gxyz[ind_i], PD);
       gintern[j].y() -= dot(gxyz[ind_i], PA)*dA;
       gintern[j].z() -= dot(gxyz[ind_i], PT)*dT;
 
       j = atom(j).ibond();
-
     }
 
   }
