@@ -1,9 +1,9 @@
-#ifndef coords_h_guard_
-#define coords_h_guard_  
+﻿#ifndef coords_h_guard_
+#define coords_h_guard_
 
 #include <vector>
 #include <string>
-#include <utility> 
+#include <utility>
 #include <array>
 #include <stdexcept>
 #include <iostream>
@@ -253,7 +253,7 @@ namespace coords
       if (p)
       {
         energy_valid = true;
-        if (Config::get().periodics.periodic) 
+        if (Config::get().periodics.periodic)
           periodic_boxjump();
         m_representation.energy = p->e();
         m_representation.integrity = p->intact();
@@ -365,7 +365,7 @@ namespace coords
       if (m_preinterface)
       {
         if (Config::get().general.verbosity >= 4)
-          std::cout << "Preotimization will be performed.\n";
+          std::cout << "Preoptimization will be performed.\n";
         energy_valid = true;
         if (m_preinterface->has_optimizer()
           && m_potentials.empty()
@@ -402,7 +402,7 @@ namespace coords
       zero_fixed_g(); //nullt gradienten alelr fixed atrome
       return m_representation.energy;
     }
-    
+
     /**calculate hessian matrix*/
     coords::float_type h()
     {
@@ -565,14 +565,14 @@ namespace coords
     {
       return m_representation.gradient.main[index];
     }
-    
+
     /**sets hessian matrix
     @param hess: vector of vectors of doubles (e.g. matrix of doubles) that contains values for hessian matrix*/
     void set_hessian(std::vector<std::vector<double>> hess)
     {
       m_representation.hessian = hess;
     }
-    
+
     /**returns the hessian matrix*/
     std::vector<std::vector<double>> get_hessian()
     {
@@ -760,7 +760,7 @@ namespace coords
         m_representation.structure.cartesian = Representation_3D(new_xyz.begin(), new_xyz.end());
       m_stereo.update(xyz());
     }
-
+    //Irgendwer der das perfect forwarden will? Der move macht naemlich probleme
     //ifdef kann weg
 #if defined(SCON_CC11_RVALUE_REF) && defined(SCON_CC11_MOVE)
   /**set new cartisian coordinates
@@ -769,20 +769,16 @@ namespace coords
     void set_xyz(Representation_3D && new_xyz, bool const overwrite_fixed = false)
     {
       size_type const N(size());
-      if (new_xyz.size() != N)
-      {
-        throw std::logic_error("Wrong sized coordinates in set_xyz.");
-      }
-      m_representation.structure.cartesian.swap(new_xyz);
+      if (new_xyz.size() != N) throw std::logic_error("Wrong sized coordinates in set_xyz.");
       if (!overwrite_fixed)
       {
         for (size_type i(0U); i < N; ++i)
         {
-          if (atoms(i).fixed()) m_representation.structure.cartesian[i] = std::move(new_xyz[i]);
+          if (!atoms(i).fixed()) m_representation.structure.cartesian[i] = std::move(new_xyz[i]);
         }
       }
       else
-        m_representation.structure.cartesian = Representation_3D(new_xyz.begin(), new_xyz.end());
+        m_representation.structure.cartesian = std::move(new_xyz);
       m_stereo.update(xyz());
     }
 #endif
@@ -875,9 +871,9 @@ namespace coords
     void to_xyz()
     {
       m_atoms.i_to_c(m_representation);
-      if (Config::get().periodics.periodic) 
-      { 
-        periodic_boxjump(); 
+      if (Config::get().periodics.periodic)
+      {
+        periodic_boxjump();
       }
       m_stereo.update(xyz());
     }
@@ -912,7 +908,7 @@ namespace coords
       Cartesian_Point maxV;
 
       maxV = m_representation.structure.cartesian[0];
-      
+
       for (std::size_t i=1u;i < m_atoms.size();i++)
       {
         if (m_atoms.check_fix(i) == true)
