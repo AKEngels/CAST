@@ -1,4 +1,4 @@
-﻿#include <cmath>
+#include <cmath>
 #include <stdexcept>
 #include "atomic.h"
 #include "coords.h"
@@ -301,19 +301,17 @@ coords::float_type coords::Coordinates::lbfgs()
     Config::get().optimization.local.bfgs.maxstep;
   optimizer.config.epsilon =
     (float)Config::get().optimization.local.bfgs.grad;
-  optimizer(x);
-  // Get structure, gradients and energy into coords
-  m_representation.energy = optimizer.p().f;
-  m_representation.structure.cartesian =
+  optimizer(x);  // perform optimization
+  m_representation.structure.cartesian =   // get optimized structure into coordobj
     coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
-  //g();
-  //std::cout << "Ene = " << m_representation.energy << "\n";
-  m_representation.gradient.cartesian =
-    coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
+  // calculate energy and gradients (numerical difference to the one from lbfgs)
+  m_representation.energy = g();  
+  m_representation.gradient.cartesian = g_xyz();
   // Output
   if (Config::get().general.verbosity >= 4 ||
     (optimizer.state() < 0 && Config::get().general.verbosity >= 4))
   {
+    std::cout << "Energy calculated from energy interface = " << m_representation.energy << "\n";
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
@@ -324,7 +322,7 @@ coords::float_type coords::Coordinates::lbfgs()
     e_tostream_short(std::cout, energyinterface());
   }
   // Return floating point
-  return optimizer.p().f;
+  return m_representation.energy; 
 }
 
 double coords::Coordinates::prelbfgs()
@@ -340,16 +338,18 @@ double coords::Coordinates::prelbfgs()
   op_type::point_type x(nc3_type(xyz().begin(), xyz().end()));
   // Optimize point
   optimizer(x);
-  m_representation.energy = optimizer.p().f;
+  // get optimized structure
   m_representation.structure.cartesian =
     coords::Representation_3D(optimizer.p().x.begin(), optimizer.p().x.end());
-  m_representation.gradient.cartesian = coords::Gradients_3D(optimizer.p().g.begin(), optimizer.p().g.end());
+  // calculate energy and gradients (numerical difference to the one from lbfgs)
+  m_representation.energy = g(); 
+  m_representation.gradient.cartesian = g_xyz();
   if (Config::get().general.verbosity >= 4)
   {
     std::cout << "Optimization done (status " << optimizer.state() <<
       "). Evaluations:" << optimizer.iter() << '\n';
   }
-  return optimizer.p().f;
+  return m_representation.energy;
 }
 
 coords::Gradients_Main coords::Coordinates::dimermethod_dihedral
@@ -969,7 +969,7 @@ coords::float_type coords::Internal_Callback::operator()
   }
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: Energy of step " << S;
+    std::cout << "Optimization: LBFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
@@ -1021,7 +1021,7 @@ coords::float_type coords::Main_Callback::operator() (coords::Gradients_Main con
   g = cp->g_main();
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: Energy of step " << S;
+    std::cout << "Optimization: LBFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
@@ -1058,7 +1058,7 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   go_on = cp->integrity();
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
   if (Config::get().general.verbosity >= 4)
-    std::cout << "Optimization: Energy of step " <<
+    std::cout << "Optimization: LBFGS-Energy of step " <<
     S << " is " << E << " integrity " << go_on << '\n';
   return E;
 }
@@ -1090,7 +1090,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   g = from(cp->g_xyz());
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: Energy of step " << S;
+    std::cout << "Optimization: LBFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
     //std::cout << "totg " << scon::vector_delimeter('\n') << g << "\n";
   }
