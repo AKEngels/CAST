@@ -1,14 +1,14 @@
-﻿####################################
+####################################
 #                                  #
 #                                  #
 #         CAST CONFIGFILE          #
 #                                  #
 #                                  #
-#################################### 
+####################################
 #
 # Lines beginning with a hashtag are ignored by CAST
 
-# Verbosity 
+# Verbosity
 # Amount of output information from CAST [0-5] (do not use verbosity > 4)
 
 verbosity              3
@@ -41,7 +41,7 @@ inputtype              TINKER
 
 ### AMBER I/O OPTIONS
 
-#amber_mdcrd           
+#amber_mdcrd
 #amber_mdvel
 #amber_inpcrd
 #amber_restrt           min2.rst
@@ -49,7 +49,7 @@ inputtype              TINKER
 
 
 
-#################################### 
+####################################
 #                                  #
 #          PROGRAM TASK            #
 #                                  #
@@ -65,7 +65,7 @@ inputtype              TINKER
 # DIMER                Dimer method using torsional space
 # MD                   Molecular dynamics simulation
 # NEB                  Nudged elastic band calculation
-# STARTOPT             Adding water molecules and/or performing Ringsearch
+# STARTOPT             Adding water molecules and / or performing Ringsearch
 # UMBRELLA             Umbrella Sampling
 # FEP                  Alchemical transformations using FEP
 # ALIGN                Trajectory Alignment (Kabsch algorithm)
@@ -76,16 +76,14 @@ inputtype              TINKER
 # PATHOPT              Global reaction path search by constraint optimization on n-1 dim. hyperplane(s)
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
-# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
-# XB_INTERFACE_CREATION   Combinig two structures
-# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
-# XB_EXCITON_BREAKUP      Simulation of excitons at an semiconductor interface
-# XB_INTERFACE_CREATION   Combinig two structures
-# XB_COUPLINGS            Calculation of couplings for XB_EXCITON_BREAKUP
-# LAYER_DEPOSITION        Simulation of layerdeposition to construct a structure
+# XB_EXCITON_BREAKUP   Simulation of excitons at an semiconductor interface
+# XB_INTEFACE_CREATION Combinig two structures
+# XB_COUPLINGS         Calculation of couplings for XB_EXCITON_BREAKUP
+# LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
+# SCAN2D
 
 task                  SP
 
@@ -101,22 +99,19 @@ task                  SP
 # CHARMM22             CHARMM22 force field
 # OPLSAA               OPLS all atoms force field
 # TERACHEM             Terachem MPI Interface
-# (TINKER)             Tinker syscall interface
-# MOPAC                MOPAC2016 syscall Interface
-# QMMM                 QMMM interface 
-# MOPAC                MOAPC2012 syscall Interface
+# MOPAC                MOAPC syscall Interface
 # DFTB                 Interface to DFTB+
-# DFTBABY              DFTBaby interface 
-# GAUSSIAN             GAUSSIAN interface
+# DFTBABY              DFTBaby interface
+# GAUSSIAN             GAUSSIAN interface 
+# CHEMSHELL            under developement
 
-interface              QMMM
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-
 paramfile              oplsaa_mod.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
@@ -128,29 +123,26 @@ switchdist             10.0
 # necessary for reproducing AMBER forefields accuratly
 #chargefile             1
 
-######################### MOPAC OPTIONS ############### 
 
-# Keywords for MOPAC Call
-MOPACkey               PM7 QMMM AUX CHARGE=0
-
-# Delete temporary MOPAC comm files?
-MOPACdelete            0
-
-#MOPAC executable path
-MOPACpath              /apps/mopac/MOPAC2016.exe
-
-MOPACversion MOPAC2016
-
-####################################
-#                                  #
-#          QMMM                    #
-#                                  #
-####################################
-
+################## QM/MM OPTIONS ####################
 
 QMMMqmatoms           4-6
 QMMMmminterface       OPLSAA
 QMMMqminterface       MOPAC
+
+
+######################### MOPAC OPTIONS ###############
+
+# Keywords for MOPAC Call
+MOPACkey               PM7
+
+# Delete temporary MOPAC comm files?
+MOPACdelete            1
+
+#MOPAC executable path
+MOPACpath              /apps/mopac/MOPAC2016.exe
+
+MOPACversion           MOPAC2016
 
 
 ############################ GAUSSIAN OPTIONS ########################
@@ -224,53 +216,85 @@ DFTB+max_steps_opt    5000
 ################# DFTBaby options ################################################
 
 # path to DFTBaby
-DFTBABYath                 /home/susanne/DFTBaby-0.1.0
+DFTBath                 /home/susanne/DFTBaby-0.1.0
 
 # verbosity (only for DFTBaby)
-DFTBABYverbose             0
+DFTBverbose             0
 
 # total charge of molecule (has to be closed shell)
-#DFTBABYcharge              0
+#DFTBcharge              0
 
-# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact 
-#DFTBABYcutoff            30
+# distance cutoff (in bohr): orbitals whose centers are further away than this cutoff do not interact
+#DFTBcutoff            30
 
 # switch on long range correction <0/1>
-DFTBABYlr_corr             1
+DFTBlr_corr             1
 
 # distance (in bohr) where the long range correction is switched on
-#DFTBABYlr_dist            3.03     
+DFTBlr_dist            3.03
 
 # maximum number of iterations for SCF-calculation
-#DFTBABYmaxiter            1000
+#DFTBmaxiter            1000
 
 # convergence threshold for relative change in SCF-calculation
-#DFTBABYconv               1e-10
+#DFTBconv               1e-10
 
-# name of the DFTBaby gradient file 
-DFTBABYgradfile            grad.xyz
+# name of the DFTBaby gradient file
+DFTBgradfile            grad.xyz
 
 # state for which the DFTB gradients should be calculated (ground state = 0)
-DFTBABYgradstate          0
+DFTBgradstate          0
 
 # limit the TD-DFTB matrix (used for gradients) to the lowest ... eigenvalues
-DFTBABYstates            1
+DFTBstates            1
 
 # number of occupied orbitals taken into account for TD-DFTB
-DFTBABYocc_orb            2
+DFTBocc_orb            2
 
 # number of virtual orbitals taken into account for TD-DFTB
-DFTBABYvirt_orb            2
+DFTBvirt_orb            2
 
 # maximum number of iterations for TD-DFTB matrix diagonalisation
-#DFTBABYdiag_maxiter        50
+#DFTBdiag_maxiter        50
 
 # convergence threshold for TD-DFTB matrix diagonalisation
-#DFTBABYdiag_conv           1e-05
+#DFTBdiag_conv           1e-05
 
 # use DFTBaby for optimization (otherwise steepest gradient) <0/1>
-DFTBABYopt                  1
+DFTBopt                  0
 
+
+################### CHEMSHELL OPTIONS #########################
+
+CHEMSHELL-path /apt/chemshell
+
+CHEMSHELL-scheme shift
+
+CHEMSHELL-qm_theory turbomole
+
+CHEMSHELL-qm_hamiltonian b3lyp
+
+CHEMSHELL-qm_basisset def-TZVP
+
+CHEMSHELL-qm_charge 0
+
+CHEMSHELL-qm_atoms 337 - 341 2269 - 2279 32426 - 32428
+
+CHEMSHELL-residues CYS25 HIE162 WAT10006
+
+CHEMSHELL-delete 0
+
+
+####################################
+#                                  #
+#          CUTOFF RADIUS           #
+#                                  #
+####################################
+
+#Cutoff radius for non bonded interactions for forcefields energy itnerfaces
+#cutoff                 12.0
+#Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
+#switchdist             10.0
 
 ####################################
 #                                  #
@@ -284,7 +308,7 @@ FIXexclude             false
 # Remove rotations of hydrogens from main torsional angles
 REMOVEHROT             false
 
-# Fix a range of atoms 
+# Fix a range of atoms
 #FIXrange               1-6,9,24,55-71,72
 
 
@@ -311,10 +335,10 @@ REMOVEHROT             false
 # Quadratic Dihedral Bias Potential (quadratic in degreees)
 
 #BIASdih                <atom 1> <atom 2> <atom 3> <atom 4> <angle> <force>
-#BIASdih                1 2 3 5 0.0   10.0 
-#BIASdih                2 5 6 9 150.0 5.0  
-#BIASdih                1 2 5 6 150.0 5.0  
-#BIASdih                1 2 5 6 95.0  10.0 
+#BIASdih                1 2 3 5 0.0   10.0
+#BIASdih                2 5 6 9 150.0 5.0
+#BIASdih                1 2 5 6 150.0 5.0
+#BIASdih                1 2 5 6 95.0  10.0
 
 ####################################
 #                                  #
@@ -348,12 +372,12 @@ REMOVEHROT             false
 ####################################
 
 #Periodics            <Active 1(on)/0(off)> <box-x> <box-y> <box-z>
-Periodics              0 25.0 25.0 25.0
+#Periodics              0 70.0 70.0 70.0
 
 # Print periodic boundary dummy atoms to output?
-#Periodicp            <Active 1(on)/0(off)> 
+#Periodicp            <Active 1(on)/0(off)>
 
-Periodicp              0
+#Periodicp              0
 
 # Periodic Cutoout: Cut out all molecules that are not in periodic boundry box
 PeriodicCutout false
@@ -408,7 +432,7 @@ NEB-PATHOPT-MODE PROJECTED
 # Bias constant (Pathopt)
 NEB-PATHOPT-BIASCONSTANT 0.1
 
-# Maximum displacement in Angstrom for accepted coordinates in MCM 
+# Maximum displacement in Angstrom for accepted coordinates in MCM
 NEB-PATHOPT-MAXVAR 3.0
 
 # Maximum energy range in kcal/mol for MCM in Pathopt
@@ -418,9 +442,9 @@ NEB-PATHOPT-ENERGY_RANGE 20.0
 NEB-PATHOPT-STEPSIZE 1.4
 
 # Move strategy by applying dihedral changes at several steps of MCM 0/1 (off/on)
-NEB-PATHOPT-MIXMOVE 0 
+NEB-PATHOPT-MIXMOVE 0
 
-# Using NEB connection within Pathopt 0/1 (off/on) 
+# Using NEB connection within Pathopt 0/1 (off/on)
 NEB-PATHOPT-NEBCONN 0
 
 # Number of NEB images within Pathopt-NEB connection procedure
@@ -430,12 +454,12 @@ NEB-PATHOPT-NEBCONN_NUMBER 12
 # dihedrals which change the most during NEB
 NEB-PATHOPT-CONSTRAINT_GLOBAL 0
 
-# Number of dihedrals within constraint global optimization 
+# Number of dihedrals within constraint global optimization
 # (MCM standard) which should be fixed along the NEB path
 NEB-PATHOPT-CONSTRAINT_NUMBER_DIHEDRALS 1
 
 # Interpolation via spline method between the linear constructed NEB pathway
-# by locally optimizing with perpendicular force projection 0/1 (off/on) 
+# by locally optimizing with perpendicular force projection 0/1 (off/on)
 NEB-PATHOPT-INT_PATH 0
 
 #step size of interpolated images via spline interpolation approach
@@ -457,6 +481,14 @@ NEB-PATHOPT-NEB-COMPLETE 1
 #complete pathways or points with interconnection via NEB (0/1: no/yes)
 NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
 
+####################################
+#                                  #
+#          SCAN2D OPTIONS          #
+#                                  #
+####################################
+
+2DSCAN-dihedral 15 14 4 3 0 179 20
+2DSCAN-dihedral 1 2 3 4 0 179 20
 
 ####################################
 #                                  #
@@ -465,12 +497,12 @@ NEB-PATHOPT-NEB-MULTIPLE_POINTS 0
 #                                  #
 ####################################
 
-# Simulation Temperature 
+# Simulation Temperature
 # for TS and MC important for Metropolis Criterion
 
 Temperature            298.15
 
-# Number of iterations in global optimization routine 
+# Number of iterations in global optimization routine
 
 Iterations             2000
 
@@ -482,7 +514,7 @@ Iterations             2000
 #                                  #
 ####################################
 
-# Save all (minimized) structures 
+# Save all (minimized) structures
 # which are within "Erange" kcal/mol from the final global minimum
 # default = 0.0
 
@@ -498,7 +530,7 @@ GOmetrolocal           0
 
 GOstartopt             0
 
-# Temperature Scaling Factor applied to the Temperature, 
+# Temperature Scaling Factor applied to the Temperature,
 # once a new minimum is found during GlobOpt
 # default = 1.0
 
@@ -508,8 +540,8 @@ Tempscale              0.98
 
 GOprecision            6
 
-# Fallback type 
-# 
+# Fallback type
+#
 # LAST_GLOBAL (default) = fall back to last minimum and then to global minimum if stuck
 # EVOLUTION = select new minimum via evolutionary algorithm if stuck
 
@@ -534,7 +566,7 @@ GOfallback_fr_fit              EXPONENTIAL
 GOfallback_fr_minima    10
 
 # Lower and upper bounardy for fitness value
-# rank 1 is assign second value, rank X 
+# rank 1 is assign second value, rank X
 # (determined via GOincluded_minima) is assigned the first value
 # default = 0.5 1.0
 
@@ -546,8 +578,8 @@ GOfallback_fr_bounds       0.5 1.0
 #           GRID OPTIONS           #
 #                                  #
 ####################################
- 
-GOmain_grid            60.0     
+
+GOmain_grid            60.0
 
 
 ####################################
@@ -556,7 +588,7 @@ GOmain_grid            60.0
 #                                  #
 ####################################
 
-# Step size in cartesian space 
+# Step size in cartesian space
 
 MCstep_size            1.4
 
@@ -621,7 +653,7 @@ SOstructures           1
 #                                  #
 ####################################
 
-# Force, applied to close rings 
+# Force, applied to close rings
 # (multiplied with quadratic in degrees of dihedral deviation)
 
 RSbias_force           10.0
@@ -651,7 +683,7 @@ SAhb                   1.8
 
 # number of desired water molecules [default: 0(=no limit)]
 
-#SAlimit                500
+#SAlimit                20
 
 # water boundary type
 #
@@ -659,11 +691,11 @@ SAhb                   1.8
 # 1    sphere
 # 2    box
 
-SAboundary             1
+SAboundary             2
 
 # water boundary extent [default: 10.0] and push length (elongation of radius if limit is not reached)
 
-SAradius               12.0
+SAradius               40.0
 
 # force field parameter types of oxygen and hydrogen
 #
@@ -671,7 +703,7 @@ SAradius               12.0
 # 101 88   CHARMM
 # 2001 2002  AMBER
 
-SAtypes                63 64
+SAtypes                53 54
 
 # Intermediate optimizations
 #
@@ -680,13 +712,11 @@ SAtypes                63 64
 # 2    all waters
 # 3    1+2
 
-SAopt                  2
+SAopt                  3
 
 # fix initial structure <0/1>
 
-SAfixinit              1
-
-
+SAfixinit              0
 
 
 ####################################
@@ -698,7 +728,7 @@ SAfixinit              1
 # Number of Steps
 
 MDsteps                1000
- 
+
 # Integrator
 #
 # 0                    Velocity-Verlet
@@ -708,9 +738,9 @@ MDintegrator           0
 
 # Velocity Scaling
 
-MDveloscale            0
+MDveloscale            1
 
-# temperature control <0/1> 
+# temperature control <0/1>
 # (direct velocity scaling and Nose-Hoover only work if this option is activated)
 
 MDtemp_control         1
@@ -749,8 +779,7 @@ MDsnap_opt             0
 # MDheat               <step> <temperature at that step>
 # MDheat               2000   293.15
 
-MDheat                 0   1
-MDheat                 100 300
+
 
 # Pressure control
 
@@ -759,9 +788,9 @@ MDheat                 100 300
 #MDpcompress
 #MDpdelay
 #MDptarget
- 
+
 # Spehrical boundaries' options
-# 
+#
 # MDspehrical          <Active 0/1> <Radius 1> <Radius 2> <Force 1> <Force 2> <Exp 1> <Exp 2>
 
 #MDspherical            0 34.0 34.1 10.0 10.0 2.0 4.0
@@ -771,7 +800,7 @@ MDheat                 100 300
 # 0                    No Constraints
 # 1                    All Hydrogend Bonds
 # 2                    Specific Hydrogen Bonds
- 
+
 MDrattle               0
 
 #MDrattpar
@@ -779,7 +808,7 @@ MDrattle               0
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
- 
+
 #MDrattlebond           7 12
 
 #apply a biased potential
@@ -790,7 +819,7 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-MDactive_site        0
+MDactive_site        11
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
@@ -824,15 +853,15 @@ MDresume               0
 ####################################
 
 FEPlambda      1.0
-FEPdlambda     0.1
+FEPdlambda     0.05
 FEPvdwcouple   1.0
 FEPeleccouple  0.5
 FEPvshift      0.5
 FEPcshift      0.0
-FEPequil       100
-FEPsteps       1000
-FEPfreq        10
-FEPanalyze     1
+FEPequil       10000
+FEPsteps       50000
+FEPfreq        1000
+FEPanalyze     0
 FEPbar         1
 
 
@@ -896,7 +925,7 @@ USsteps                60
 #[float] phi0           start angle
 #[float] phi1           ending angle
 #[int] steps            number of sampling steps
-#[bool/int]             switch to activate fixation of all torsions around the specified 
+#[bool/int]             switch to activate fixation of all torsions around the specified
 
 #UStorsion              1 2 5 6 100.0 180.0 120.0 1
 
@@ -961,7 +990,7 @@ EXwellenzahl                28514.9
 
 ####################################
 #                                  #
-#      XB_Interface Creation       #           
+#      XB_Interface Creation       #
 #                                  #
 ####################################
 
@@ -1005,7 +1034,7 @@ CENTERdistance                  15.0
 
 CouplingspSCnumber              80
 
-#Number of n-type semiconductor monomers         
+#Number of n-type semiconductor monomers
 
 CouplingsnSCnumber              36
 
@@ -1105,7 +1134,7 @@ LayDdel_number                 1
 
 #From which axis should the layers be added
 
-LayDaxis                       y 
+LayDaxis                       y
 
 #How far apart should they be
 
@@ -1133,6 +1162,7 @@ LayDreplace                     0
 LayDreference1
 
 LayDreference2
+
 
 ####################################
 #                                  #

@@ -744,6 +744,75 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
   }
+  else if (option.substr(0, 9) == "CHEMSHELL") {
+	  auto sub_option = option.substr(10);
+	  if (sub_option == "path") {
+		  Config::set().energy.chemshell.path = value_string;
+	  }
+      else if (sub_option == "coords") {
+          Config::set().energy.chemshell.coords = value_string;
+      }
+	  else if (sub_option == "pdb") {
+		  Config::set().energy.chemshell.extra_pdb = value_string;
+	  }
+	  else if (sub_option == "inpcrd") {
+		  Config::set().energy.chemshell.optional_inpcrd = value_string;
+	  }
+	  else if (sub_option == "prmtop") {
+		  Config::set().energy.chemshell.optional_prmtop = value_string;
+	  }
+	  else if (sub_option == "babel_path") {
+		  Config::set().energy.chemshell.babel_path = value_string;
+	  }
+	  else if (sub_option == "scheme") {
+		  Config::set().energy.chemshell.scheme = value_string;
+	  }
+	  else if (sub_option == "qm_theory") {
+		  Config::set().energy.chemshell.qm_theory = value_string;
+	  }
+	  else if (sub_option == "qm_hamiltonian") {
+		  Config::set().energy.chemshell.qm_ham = value_string;
+	  }
+	  else if (sub_option == "qm_basisset") {
+		  Config::set().energy.chemshell.qm_basis = value_string;
+	  }
+	  else if (sub_option == "qm_charge") {
+		  Config::set().energy.chemshell.qm_charge = value_string;
+	  }
+	  else if (sub_option == "combine_residues") {
+		  Config::set().energy.chemshell.com_residues = value_string;
+	  }
+	  else if (sub_option == "qm_atoms") {
+		  Config::set().energy.chemshell.qm_atoms = value_string;
+	  }
+	  else if (sub_option == "delete") {
+		  Config::set().energy.chemshell.delete_input = bool_from_iss(cv);
+	  }
+	  else if (sub_option == "maxcyc") {
+		  Config::set().energy.chemshell.maxcyc = value_string;
+	  }
+	  else if (sub_option == "maxcycle") {
+		  Config::set().energy.chemshell.maxcycle = value_string;
+	  }
+	  else if (sub_option == "tolerance") {
+		  Config::set().energy.chemshell.tolerance = value_string;
+	  }
+	  else if (sub_option == "mxlist") {
+		  Config::set().energy.chemshell.mxlist = value_string;
+	  }
+	  else if (sub_option == "cutoff") {
+		  Config::set().energy.chemshell.cutoff = value_string;
+	  }
+	  else if (sub_option == "dispersion_correction") {
+		  Config::set().energy.chemshell.dispersion = bool_from_iss(cv);
+	  }
+      else if (sub_option == "scale14") {
+        Config::set().energy.chemshell.scale14 = value_string;
+      }
+      else if (sub_option == "active_radius") {
+        Config::set().energy.chemshell.active_radius = value_string;
+      }
+  }
 
   // convergence threshold for bfgs
   // Default 0.001
@@ -1441,6 +1510,22 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.subsystems.push_back(std::move(ssi));
   }
 
+  else if (option.substr(0, 7) == "2DSCAN-")
+  {
+    auto const command = option.substr(7);
+    if (command == "bond" || command == "angle" || command == "dihedral") {
+      Config::set().scan2d.AXES.emplace_back(option.substr(7) + " " + value_string);
+    }
+    else if (command.substr(0,7) == "PREDEF-") {
+      auto const predef_command = command.substr(7);
+      if (predef_command == "change_from_atom_to_atom") {
+        Config::set().scan2d.change_from_atom_to_atom = std::stod(value_string);
+      }
+      else if (predef_command == "max_change_to_rotate_whole_molecule") {
+        Config::set().scan2d.max_change_to_rotate_whole_molecule = std::stod(value_string);
+      }
+    }
+  }
 
   //Trajectory Alignment and Analasys options
   else if (option == "dist_unit")
@@ -2277,10 +2362,13 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
   }
-  if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
+  else if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
   {
     strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
          << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
+  }
+  else if (Config::get().general.energy_interface == interface_types::CHEMSHELL) {
+	  strm << "Chemshell path is '" << p.chemshell.path << " magic!" << "'.\n"; //<- Not done here!!!!!!
   }
   return strm;
 }

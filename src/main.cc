@@ -1,4 +1,4 @@
-
+﻿
 //////////   //////////   //////////   ////////// 
 //           //      //   //               //
 //           //      //   //               //
@@ -48,6 +48,7 @@
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
+#include "2DScan.h"
 #include "exciton_breakup.h"
 #include "Center.h"
 #include "Couplings.h"
@@ -793,6 +794,12 @@ int main(int argc, char **argv)
       }
 		    break;
       }
+	  case config::tasks::SCAN2D:
+	  {
+		  auto scan = std::make_shared<Scan2D>(coords);
+		scan->execute_scan();
+		  break;
+	  }
 	    case config::tasks::XB_EXCITON_BREAKUP:
 	    {
 		  /**
@@ -947,11 +954,10 @@ int main(int argc, char **argv)
         break;
       }
 
-    default:
-    {
-
-    }
-
+      default:
+      {
+      
+      }
     }
 #ifdef USE_PYTHON
       Py_Finalize(); //  close python
