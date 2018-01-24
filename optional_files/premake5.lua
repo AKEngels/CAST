@@ -32,6 +32,10 @@ workspace "CAST"
 		language "C++"
 		targetdir "build"
 		files { "../src/*.h", "../src/*.cc" }
+		vpaths {
+			["Headers"] = "../src/**.h",
+			["Sources"] = "../src/*.cc"
+		}
 		--flags "C++14"
 		cppdialect "C++14"
 		warnings "Extra"
