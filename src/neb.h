@@ -25,7 +25,6 @@
 #include <fstream>
 #include <iomanip>
 #include "interpolation.h"
-#include "nr3.h"
 
 
 
