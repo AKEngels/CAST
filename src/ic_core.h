@@ -4,8 +4,6 @@
 #ifndef cast_ic_core_h_guard
 #define cast_ic_core_h_guard
 
-#pragma once
-
 #include "coords.h"
 #include "coords_rep.h"
 #include "ic_atom.h"
@@ -262,7 +260,7 @@ public:
   struct IC_System {
   public:
     template<typename Graph>
-    IC_System() = default;
+    IC_System(){};
     void configure_translations(std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>> && t) {
       std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) = t;
     }
@@ -496,20 +494,20 @@ system::create_dihedrals(const coords::Representation_3D& coords,
   return result;
 }
 
-template <typename Graph>
-inline void
-system::create_ic_system(const std::vector<coords::Representation_3D>& res_vec,
-                         const coords::Representation_3D& coords,
-                         const Graph& g) {
-  trans_x_vec_ = trans_x::create_trans(res_vec);
-  trans_y_vec_ = trans_y::create_trans(res_vec);
-  trans_z_vec_ = trans_z::create_trans(res_vec);
-  rotation_vec_ = create_rotations(res_vec);
-  distance_vec_ = create_distances(coords, g);
-  angle_vec_ = create_angles(coords, g);
-  oop_vec_ = create_oops(coords, g);
-  dihed_vec_ = create_dihedrals(coords, g);
-}
+// template <typename Graph>
+// inline void
+// system::create_ic_system(const std::vector<coords::Representation_3D>& res_vec,
+//                          const coords::Representation_3D& coords,
+//                          const Graph& g) {
+//   trans_x_vec_.emplace_back(trans_x::create_trans(res_vec));
+//   trans_y_vec_.emplace_back(trans_y::create_trans(res_vec));
+//   trans_z_vec_.emplace_back(trans_z::create_trans(res_vec));
+//   rotation_vec_ = create_rotations(res_vec);
+//   distance_vec_ = create_distances(coords, g);
+//   angle_vec_ = create_angles(coords, g);
+//   oop_vec_ = create_oops(coords, g);
+//   dihed_vec_ = create_dihedrals(coords, g);
+// }
 
 //template <typename Graph>
 //inline void system::create_ic_system(const Graph& g) {

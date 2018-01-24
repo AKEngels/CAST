@@ -21,11 +21,6 @@ using coords::float_type;
 
 static constexpr auto q_thres{ 1e-6 };
 
-template<typename T>
-struct identity {
-  typename T type;
-};
-
 template<typename Vec, typename Add>
 auto get_mean(Vec const & vec, Add add) {
   auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
@@ -43,8 +38,8 @@ template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 scon::mathmatrix<T> correlation_matrix(const coords::Representation_3D& trial,
                                 const coords::Representation_3D& target) {
-  auto trial_mat = ic_util::Rep3D_to_arma<T>(trial);
-  auto target_mat = ic_util::Rep3D_to_arma<T>(target);
+  auto trial_mat = ic_util::Rep3D_to_arma(trial);
+  auto target_mat = ic_util::Rep3D_to_arma(target);
   return trial_mat.t() * target_mat;
 }
 
@@ -92,18 +87,18 @@ quaternion(coords::Representation_3D const & trial,
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
   auto const & add_cp = std::plus<Cartesian_Point>();
-  
+
 
   auto mean_trial = get_mean(trial, add_cp);
   auto mean_target = get_mean(target, add_cp);
 
   auto trial_shift = trial - mean_trial;
   auto target_shift = target - mean_target;
-  
+
   auto F_mat = F_matrix<T>(trial_shift, target_shift);
 
   Mat eigvec, eigval;
-  
+
   std::tie(eigvec, eigval) = F_mat.eigensym();
 
   auto q_std = eigvec.col_to_std_vector(eigval.rows() - 1);
@@ -141,7 +136,7 @@ correlation_matrix_derivs(const scon::mathmatrix<T>& R,
   auto mean_target = get_mean(target, [](auto const& a, auto const& b) { return a + b; });
 
   auto tshift = target - mean_target;
-  auto S = ic_util::Rep3D_to_arma<T>(tshift);
+  auto S = ic_util::Rep3D_to_arma(tshift);
   std::vector<std::array<Mat, 3> > result;
   for (std::size_t c = 0; c < S.rows(); ++c) {
     std::array<Mat, 3> A;

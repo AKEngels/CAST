@@ -80,7 +80,7 @@ inline std::ostream& operator<<(std::ostream& os, Record c) {
 template <typename Line, typename T>
 struct Atom {
 public:
-  Atom() : {};
+  Atom() = default;
 
   Atom(const Line& func, const std::string& file)
       : rec_name{ func.line_type(file) }, atom_serial{ func.atom_serial(file) },
@@ -104,8 +104,8 @@ public:
   std::string element;
 
 private:
-  template <typename Line, typename T>
-  friend std::ostream& operator<<(std::ostream& os, const Atom<Line, T>& atom);
+  template <typename _Line, typename _T>
+  friend std::ostream& operator<<(std::ostream& os, const Atom<_Line, _T>& atom);
 };
 
 /*!

@@ -1,8 +1,6 @@
 #ifndef cast_ic_util_h_guard
 #define cast_ic_util_h_guard
 
-#pragma once
-
 #include "coords.h"
 #include "coords_rep.h"
 #include "graph.h"
@@ -235,9 +233,9 @@ normal_unit_vector(const coords::Cartesian_Point& a,
   return result;
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline scon::mathmatrix<T> Rep3D_to_arma(const coords::Representation_3D& rep) {
+template <typename T, template<typename> class CoordType, template <typename,typename...> class Container, typename ... ArgsContainer>
+inline typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
+Rep3D_to_arma(const Container<CoordType<T>>& rep) {
   using Mat = scon::mathmatrix<T>;
 
   Mat A(rep.size(), 3);

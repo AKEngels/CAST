@@ -81,8 +81,8 @@ public:
   /*!
   \brief Templated and overloaded output operator.
   */
-  template <typename T>
-  friend std::ostream& operator<<(std::ostream& os, const Quaternion<T>& quat);
+  template <typename _T>
+  friend std::ostream& operator<<(std::ostream& os, const Quaternion<_T>& quat);
 };
 
 /*!
