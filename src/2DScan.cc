@@ -1,4 +1,6 @@
-﻿#include "2DScan.h"
+#include "2DScan.h"
+
+using length_type = Scan2D::length_type;
 
 Scan2D::Scan2D(coords::Coordinates & coords) 
   : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
@@ -215,8 +217,8 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
 
     auto xyz = _coords.xyz(); 
     auto tmp_axis = xyz[atoms[1] - 1] - xyz[atoms[2] - 1];
-    RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
-    RotationMatrix::Vector center{ xyz[atoms[1] - 1].x(), xyz[atoms[1] - 1].y(), xyz[atoms[1] - 1].z() };
+    scon::RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
+    scon::RotationMatrix::Vector center{ xyz[atoms[1] - 1].x(), xyz[atoms[1] - 1].y(), xyz[atoms[1] - 1].z() };
     //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
     auto source = go_along_backbone(atoms);
 
@@ -239,10 +241,10 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
 
 //	std::cout << atom_number << " " << bond_count << " " << deg << " " << change << " " << " " << max_change_rotation_rad << " " << parent->change_from_atom_to_atom << std::endl;
 
-        auto rot = RotationMatrix::rotate_around_axis_with_center(change, axis, center);
+        auto rot = scon::RotationMatrix::rotate_around_axis_with_center(change, axis, center);
 
         auto && coord = xyz[atom_number];
-        RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
+        scon::RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
         tmp_coord = rot*tmp_coord;
         coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
     }
@@ -259,9 +261,9 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Sca
   auto bc = xyz[atoms[2u] - 1u] - xyz[atoms[1u] - 1u];
   auto const & b = xyz[atoms[1u] - 1u];
 
-  RotationMatrix::Vector center{ b.x(),b.y(),b.z() };
+  scon::RotationMatrix::Vector center{ b.x(),b.y(),b.z() };
 
-  RotationMatrix::Vector axis = RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
+  auto axis = scon::RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(scon::RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
 
   //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
   auto source = go_along_backbone(atoms);
@@ -278,10 +280,10 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Sca
       continue;
     }
 
-    auto rot = RotationMatrix::rotate_around_axis_with_center(change, -axis, center);
+    auto rot = scon:: RotationMatrix::rotate_around_axis_with_center(change, -axis, center);
 
     auto && coord = xyz[atom_number];
-    RotationMatrix::Vector tmp_coord{ coord.x(), coord.y(), coord.z() };
+    scon::RotationMatrix::Vector tmp_coord{ coord.x(), coord.y(), coord.z() };
     tmp_coord = rot*tmp_coord;
     coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
   }
@@ -295,7 +297,7 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
 
   auto ba = xyz[atoms[0u] - 1u] - xyz[atoms[1u] - 1u];
 
-  auto axis = RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
+  auto axis = scon::RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
   auto distance = axis.norm();
 
   //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
@@ -313,10 +315,10 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
 
       auto vec = axis.normalized() * change;
 
-      RotationMatrix::Translation trans(vec);
+      scon::RotationMatrix::Translation trans(vec);
 
       auto && coord = xyz[atom_number];
-      RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
+      scon::RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
       tmp_coord = trans*tmp_coord;
       coord = coords::r3(tmp_coord[0], tmp_coord[1], tmp_coord[2]);
     }
@@ -436,7 +438,7 @@ void Scan2D::make_scan() {
 
 }
 
-float_type Scan2D::optimize(coords::Coordinates & c) {
+length_type Scan2D::optimize(coords::Coordinates & c) {
   //auto E_o = 0.0;
   auto E_o = c.o();//<- SUPPPPPPER WICHTIG!!!!!!!!!!!
   parser->x_parser->set_coords(c.xyz());

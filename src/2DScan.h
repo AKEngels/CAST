@@ -1,4 +1,4 @@
-﻿#ifndef H_2DSCAN
+#ifndef H_2DSCAN
 #define H_2DSCAN
 
 #include<vector>
@@ -376,7 +376,7 @@ private:
     /**
     * @brief The function calls the optimization routine of the coords object and sets the optimized Cartesian coordinates.
     */
-    float_type optimize(coords::Coordinates & c);
+    length_type optimize(coords::Coordinates & c);
 
 	std::unique_ptr<XY_Parser> parser;/**<Instance of the wrapper tyoe XY_Parser as unique pointer to store the axes information*/
 	std::unique_ptr<XY_Steps> axis;/**<Instance of the wrapper tyoe XY_Steps as unique pointer to store the axis-grids*/
