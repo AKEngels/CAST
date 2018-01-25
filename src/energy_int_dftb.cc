@@ -252,12 +252,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
         while (geom_file >> number >> type >> x >> y >> z) 
         {
-          if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-          {
-            rename("dftb_in.hsd", "broken_input.hsd");
-            std::cout << "NaN in molecule coordinates. Treating structure as broken!" << std::endl;
-            integrity = false;
-          }
           coords::Cartesian_Point xyz(x, y, z);
           xyz_tmp.push_back(xyz);
         }
