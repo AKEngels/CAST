@@ -160,7 +160,6 @@ project "CAST"
     systemversion(os.winSdkVersion() .. ".0")
     targetname "CAST_undefined.exe"
     debugdir "../optional_files/build"
-    buildoptions { "/openmp" }
     flags { "MultiProcessorCompile" }
     filter { "configurations:Release", "action:vs2017" }
       optimize "Full"

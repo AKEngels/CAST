@@ -1,4 +1,4 @@
-﻿#include "configuration.h"
+#include "configuration.h"
 
 /**
  * Global static instance of the config-object. 
@@ -1783,7 +1783,19 @@ void config::parse_option(std::string const option, std::string const value_stri
       holder.push_back(temp2);
     }
     holder.pop_back();
-    Config::set().entropytrails.subDimsForGMM = configuration_range_int<unsigned int>(holder);
+    Config::set().entropytrails.subDimsForGMM = configuration_range_int<size_t>(holder);
+  }
+  else if (option == "et_mie")
+  {
+    std::vector<std::string> holder;
+    while (cv)
+    {
+      std::string temp2;
+      cv >> temp2;
+      holder.push_back(temp2);
+    }
+    holder.pop_back();
+    Config::set().entropytrails.MI_Expansions = configuration_range_int<size_t>(holder);
   }
   else if (option == "et_NNcalculation")
   {

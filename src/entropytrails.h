@@ -40,7 +40,6 @@ T	eucledeanDistance(const std::vector<T>& a, std::vector<T> b = std::vector<T>{}
 
 } // end template vectors_distance
 
-
 // Returns the ardakani Corrected NN distance, see PHYSICAL REVIEW E 83, 051121 (2011)
 float_type ardakaniCorrection1D(float_type const& globMin, float_type const& globMax, float_type const& currentPoint, float_type const& NNdistance)
 {
@@ -121,6 +120,8 @@ float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMi
 
 }
 
+//For reading in data of a gaussian mixture model from file
+//GMM Files can be written using armadillo in the PCA task
 struct GMM_data
 {
   unsigned int numberOfDimensions = 0u;
@@ -231,9 +232,7 @@ struct GMM_data
 };
 
 
-
-
-// Class for PDF
+// Class for PDFunctions
 //
 // PDF Function needs to be centered at 0,0
 class ProbabilityDensity
@@ -248,7 +247,7 @@ public:
       this->dimension = 1;
       maximumOfPDF = 1. / sqrt(2. * pi);
       analyticEntropy_ = log(1. * sqrt(2. * pi * e));
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
+      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -261,7 +260,7 @@ public:
     {
       this->dimension = 1;
       // Gaussian with sigma 10
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
+      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -276,7 +275,7 @@ public:
     {
       this->dimension = 1;
       // Parabola normated to integrate to 1 over [0;1]
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
+      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
@@ -285,7 +284,7 @@ public:
         else
           return (3. / 4.) * (-1. * ((x.at(0))*(x.at(0))) + 1.);
       };
-      maximumOfPDF = PDF(std::vector<double>{ 0. }, std::vector<unsigned int>());
+      maximumOfPDF = PDF(std::vector<double>{ 0. }, std::vector<size_t>());
       analyticEntropy_ = 0.568054;
       PDFrange = std::make_shared<std::pair<double, double>>(-1., 1.); // Function is only defined in [-1;1]
       this->m_identString = "parabolic";
@@ -294,7 +293,7 @@ public:
     {
       this->dimension = 1;
       // Beta Distribution https://en.wikipedia.org/wiki/Differential_entropy
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
+      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
           throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -314,424 +313,6 @@ public:
       PDFrange = std::make_shared<std::pair<double, double>>(0., 1.); // Function is only defined in [0;1]
       this->m_identString = "Beta Distr.";
     }
-    else if (ident_ == 4)
-    {
-      this->dimension = 3;
-      // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
-      {
-        if (x.size() != 3)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        Matrix_Class mean(x.size(), 1u, 0.);
-        Matrix_Class covariance(x.size(), x.size(), 0u);
-        covariance(0, 0) = 1.;
-        covariance(1, 0) = 0.7;
-        covariance(2, 1) = 0.9;
-        covariance(0, 1) = 0.7;
-        covariance(1, 1) = 1.5;
-        covariance(1, 2) = 0.9;
-        covariance(2, 2) = 1.5;
-        covariance(0, 2) = 0.56;
-        covariance(2, 0) = 0.56;
-
-        Matrix_Class value = transposed(Matrix_Class(input - mean)) * covariance.inversed() * Matrix_Class(input - mean);
-        const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance.determ());
-
-
-        return prefactor * std::exp(value(0u,0u) * -0.5);
-      };
-      maximumOfPDF = PDF(std::vector<double>{ 0.,0.,0. }, std::vector<unsigned int>());
-      Matrix_Class covariance(this->dimension, this->dimension, 0u);
-      covariance(0, 0) = 1.;
-      covariance(1, 0) = 0.7;
-      covariance(2, 1) = 0.9;
-      covariance(0, 1) = 0.7;
-      covariance(1, 1) = 1.5;
-      covariance(1, 2) = 0.9;
-      covariance(2, 2) = 1.5;
-      covariance(0, 2) = 0.56;
-      covariance(2, 0) = 0.56;
-
-      analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension)/2. * std::log(2. * ::constants::pi * ::constants::e);
-      PDFrange = std::make_shared<std::pair<double, double>>(-8, 8.);
-      this->m_identString = "3varGauss";
-    }
-    else if (ident_ == 5)
-    {
-      this->dimension = 2;
-      // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
-      {
-        if (x.size() != 2)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-        const double coeff = 0.9;
-
-        const double exp_argument = -0.5 * (1. / (1. - coeff * coeff)) * (x.at(0) * x.at(0) - 2. * coeff * x.at(0)* x.at(1) + x.at(1) * x.at(1));
-        const double prefactor = 1. / ((2 * ::constants::pi) * sqrt(1 -  coeff *  coeff));
-
-
-        return prefactor * std::exp(exp_argument);
-      };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>());
-      const double coeff = 0.9;
-      Matrix_Class covariance(2, 2, 0u);
-      covariance(0, 0) = 1.;
-      covariance(1, 0) = coeff;
-      covariance(1, 1) = 1.;
-      covariance(0, 1) = coeff;
-      analyticEntropy_ = 0.5 * log(covariance.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
-      PDFrange = std::make_shared<std::pair<double, double>>(-8, 8.);
-      this->m_identString = "2varGauss";
-    }
-    else if (ident_ == 6)
-    {
-      // 7 GMM fittet to MD of tridecalanine dim 1,2
-      this->dimension = 2;
-      // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
-      {
-        if (x.size() != 2)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        std::vector<double> weight(7u,0.);
-        std::vector<Matrix_Class> mean(7u, Matrix_Class(x.size(), 1u, 0.));
-        std::vector<Matrix_Class> covariance(7u, Matrix_Class(2, 2, 0u));
-
-        weight[0] = 4.59166833e-01;
-        weight[1] = 1.81156684e-01;
-        weight[2] = 4.40929007e-02;
-        weight[3] = 1.11308104e-01;
-        weight[4] = 9.41269069e-02;
-        weight[5] = 8.58282250e-02;
-        weight[6] = 2.43203471e-02;
-
-        mean[0](0, 0) = 8.56364042e-12;  mean[0](1, 0) = 3.34079765e-13;
-        mean[1](0, 0) = -2.96791360e-12; mean[1](1, 0) = -2.69003397e-12;
-        mean[2](0, 0) = 8.47527692e-12;  mean[2](1, 0) = 9.86326412e-12;
-        mean[3](0, 0) = 1.26754874e-11;  mean[3](1, 0) = -4.38271175e-12;
-        mean[4](0, 0) = 1.05388512e-12;  mean[4](1, 0) = 4.78499853e-12;
-        mean[5](0, 0) = 4.78838598e-12;  mean[5](1, 0) = -6.31405122e-12;
-        mean[6](0, 0) = 3.82288827e-12;  mean[6](1, 0) = 1.34958334e-11;
-
-        covariance[0](0, 0) = 1.46117966e-23;
-        covariance[0](1, 0) = -9.62323794e-26;
-        covariance[0](1, 1) = 5.74205745e-24;
-        covariance[0](0, 1) = covariance[0](1, 0);
-        covariance[1](0, 0) = 5.56924448e-24;
-        covariance[1](1, 0) = 8.28644834e-25;
-        covariance[1](1, 1) = 4.53278335e-24;
-        covariance[1](0, 1) = covariance[1](1, 0);
-        covariance[2](0, 0) = 1.20196030e-23;
-        covariance[2](1, 0) = -4.14350002e-24;
-        covariance[2](1, 1) = 8.64760265e-24;
-        covariance[2](0, 1) = covariance[2](1, 0);
-        covariance[3](0, 0) = 4.04029907e-24;
-        covariance[3](1, 0) = 4.25933021e-25;
-        covariance[3](1, 1) = 1.20733036e-23;
-        covariance[3](0, 1) = covariance[3](1, 0);
-        covariance[4](0, 0) = 5.61578290e-24;
-        covariance[4](1, 0) = -5.66515611e-25;
-        covariance[4](1, 1) = 7.56044583e-24;
-        covariance[4](0, 1) = covariance[4](1, 0);
-        covariance[5](0, 0) = 7.97900136e-24;
-        covariance[5](1, 0) = -1.89541174e-24;
-        covariance[5](1, 1) = 7.87990277e-24;
-        covariance[5](0, 1) = covariance[5](1, 0);
-        covariance[6](0, 0) = 4.20157802e-24;
-        covariance[6](1, 0) = -8.10342841e-25;
-        covariance[6](1, 1) = 1.80154978e-24;
-        covariance[6](0, 1) = covariance[6](1, 0);
-
-        double returnValue = 0.;
-        for (unsigned int i = 0u; i < 7; i++)
-        {
-          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
-          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
-          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
-        }
-
-        return returnValue;
-      };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
-      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
-      PDFrange = std::make_shared<std::pair<double, double>>(-1e-10, 1e-10);
-      this->m_identString = "GMM1";
-    }
-    else if (ident_ == 7)
-    {
-      // 10 GMM fittet to MD of tridecalanine dim 1,2,3
-      this->dimension = 3;
-      // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
-      {
-        if (x.size() != 3)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        std::vector<double> weight(10u, 0.);
-        std::vector<Matrix_Class> mean(10u, Matrix_Class(x.size(), 1u, 0.));
-        std::vector<Matrix_Class> covariance(10u, Matrix_Class(3, 3, 0u));
-
-        weight[0] = 0.297859;
-        weight[1] = 0.0322744;
-        weight[2] = 0.147175;
-        weight[3] = 0.0242578;
-        weight[4] = 0.087544;
-        weight[5] = 0.0482769;
-        weight[6] = 0.154248;
-        weight[7] = 0.0822646;
-        weight[8] = 0.105497;
-        weight[9] = 0.0206026;
-
-        mean[0](0, 0) = 1.01991e-11; mean[0](1, 0) = 6.2136e-13 ; mean[0](2, 0)   = -2.22955e-12    ;
-        mean[1](0, 0) = 2.02376e-12; mean[1](1, 0) = 5.60621e-12; mean[1](2, 0) = -4.73088e-12    ;
-        mean[2](0, 0) = 3.67781e-12; mean[2](1, 0) = -1.86976e-12; mean[2](2, 0) = -1.83584e-12   ;
-        mean[3](0, 0) = 3.9285e-12; mean[3](1, 0) = 1.25377e-11; mean[3](2, 0) = -8.63069e-12     ;
-        mean[4](0, 0) = 8.38703e-12; mean[4](1, 0) = -6.51049e-12; mean[4](2, 0) = -6.30375e-12   ;
-        mean[5](0, 0) = 1.0033e-11; mean[5](1, 0) = 8.74454e-12; mean[5](2, 0) = -5.99058e-12     ;
-        mean[6](0, 0) = -3.60727e-12; mean[6](1, 0) = -2.87797e-12; mean[6](2, 0) = -4.07751e-12  ;
-        mean[7](0, 0) = 1.20153e-11; mean[7](1, 0) = -1.8596e-12; mean[7](2, 0) = 4.33388e-14     ;
-        mean[8](0, 0) = 1.37377e-12; mean[8](1, 0) = 3.74631e-12; mean[8](2, 0) = -1.55544e-12    ;
-        mean[9](0, 0) = 1.19832e-11; mean[9](1, 0) = -9.49643e-12; mean[9](2, 0) = -3.73347e-13   ;
-
-        covariance[0](0, 0) = 9.03379e-24 ;
-        covariance[0](1, 0) = -1.59016e-24;
-        covariance[0](2, 0) = -3.71382e-24;
-        covariance[0](1, 1) = 5.02031e-24 ;
-        covariance[0](2, 1) = -5.47595e-25;
-        covariance[0](2, 2) = 1.39e-23    ;
-        covariance[0](0, 1) = covariance[0](1, 0);
-        covariance[0](0, 2) = covariance[0](2, 0);
-        covariance[0](1, 2) = covariance[0](2, 1);
-
-        covariance[1](0, 0) = 4.72767e-24  ;
-        covariance[1](1, 0) = 3.64308e-25;
-        covariance[1](2, 0) = 4.1357e-25 ;
-        covariance[1](1, 1) = 2.70482e-23;
-        covariance[1](2, 1) = 6.36459e-24;
-        covariance[1](2, 2) = 7.4303e-24 ;
-        covariance[1](0, 1) = covariance[1](1, 0);
-        covariance[1](0, 2) = covariance[1](2, 0);
-        covariance[1](1, 2) = covariance[1](2, 1);
-
-
-        covariance[2](0, 0) = 4.81709e-24  ;
-        covariance[2](1, 0) = 3.40596e-25  ;
-        covariance[2](2, 0) = -8.31425e-25 ;
-        covariance[2](1, 1) = 6.35518e-24  ;
-        covariance[2](2, 1) = 2.17662e-24  ;
-        covariance[2](2, 2) = 1.1871e-23   ;
-        covariance[2](0, 1) = covariance[2](1, 0);
-        covariance[2](0, 2) = covariance[2](2, 0);
-        covariance[2](1, 2) = covariance[2](2, 1);
-
-        covariance[3](0, 0) = 2.67491e-24;
-        covariance[3](1, 0) = -1.73085e-24;
-        covariance[3](2, 0) = -1.32122e-24;
-        covariance[3](1, 1) = 4.93419e-24;
-        covariance[3](2, 1) = 3.15282e-24;
-        covariance[3](2, 2) = 3.7244e-24;
-        covariance[3](0, 1) = covariance[3](1, 0);
-        covariance[3](0, 2) = covariance[3](2, 0);
-        covariance[3](1, 2) = covariance[3](2, 1);
-
-        covariance[4](0, 0) = 1.68382e-23;
-        covariance[4](1, 0) = 4.61495e-24;
-        covariance[4](2, 0) = -5.11702e-24;
-        covariance[4](1, 1) = 6.54348e-24;
-        covariance[4](2, 1) = -3.82479e-24;
-        covariance[4](2, 2) = 1.5579e-23;
-        covariance[4](0, 1) = covariance[4](1, 0);
-        covariance[4](0, 2) = covariance[4](2, 0);
-        covariance[4](1, 2) = covariance[4](2, 1);
-
-        covariance[5](0, 0) = 9.38482e-24;
-        covariance[5](1, 0) = -7.38849e-24;
-        covariance[5](2, 0) = -3.31397e-24;
-        covariance[5](1, 1) = 1.51979e-23;
-        covariance[5](2, 1) = 2.51153e-24;
-        covariance[5](2, 2) = 4.87609e-24;
-        covariance[5](0, 1) = covariance[5](1, 0);
-        covariance[5](0, 2) = covariance[5](2, 0);
-        covariance[5](1, 2) = covariance[5](2, 1);
-
-        covariance[6](0, 0) = 3.33945e-24;
-        covariance[6](1, 0) = 1.59445e-25;
-        covariance[6](2, 0) = -8.61476e-25;
-        covariance[6](1, 1) = 3.94627e-24;
-        covariance[6](2, 1) = 4.21489e-24;
-        covariance[6](2, 2) = 9.25474e-24;
-        covariance[6](0, 1) = covariance[6](1, 0);
-        covariance[6](0, 2) = covariance[6](2, 0);
-        covariance[6](1, 2) = covariance[6](2, 1);
-
-        covariance[7](0, 0) = 3.83925e-24;
-        covariance[7](1, 0) = -2.37765e-24;
-        covariance[7](2, 0) = -1.75374e-24;
-        covariance[7](1, 1) = 5.72715e-24;
-        covariance[7](2, 1) = 3.57909e-24;
-        covariance[7](2, 2) = 4.99204e-24;
-        covariance[7](0, 1) = covariance[7](1, 0);
-        covariance[7](0, 2) = covariance[7](2, 0);
-        covariance[7](1, 2) = covariance[7](2, 1);
-
-        covariance[8](0, 0) = 6.9919e-24;
-        covariance[8](1, 0) = -1.45301e-24;
-        covariance[8](2, 0) = -3.2444e-24;
-        covariance[8](1, 1) = 7.4847e-24;
-        covariance[8](2, 1) = 2.61163e-24;
-        covariance[8](2, 2) = 9.62358e-24;
-        covariance[8](0, 1) = covariance[8](1, 0);
-        covariance[8](0, 2) = covariance[8](2, 0);
-        covariance[8](1, 2) = covariance[8](2, 1);
-
-        covariance[9](0, 0) = 5.27517e-24;
-        covariance[9](1, 0) = 4.34838e-25;
-        covariance[9](2, 0) = -2.87762e-24;
-        covariance[9](1, 1) = 2.49859e-24;
-        covariance[9](2, 1) = 2.80166e-24;
-        covariance[9](2, 2) = 9.32401e-24;
-        covariance[9](0, 1) = covariance[9](1, 0);
-        covariance[9](0, 2) = covariance[9](2, 0);
-        covariance[9](1, 2) = covariance[9](2, 1);
-
-
-        double returnValue = 0.;
-        for (unsigned int i = 0u; i < 10; i++)
-        {
-          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
-          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
-          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
-        }
-
-        return returnValue;
-      };
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
-      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
-      PDFrange = std::make_shared<std::pair<double, double>>(-4e-11, 4e-11);
-      this->m_identString = "GMM1";
-    }
-    else if (ident_ == 8)
-    {
-      // 10 GMM fittet to MD of tridecalanine dim 1,2,3
-      this->dimension =2;
-      // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
-      {
-        if (x.size() !=2)
-          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
-
-        Matrix_Class input(x.size(), 1u);
-        for (unsigned int i = 0u; i < x.size(); i++)
-          input(i, 0u) = x.at(i);
-
-        std::vector<double> weight(10u, 0.);
-        std::vector<Matrix_Class> mean(10u, Matrix_Class(x.size(), 1u, 0.));
-        std::vector<Matrix_Class> covariance(10u, Matrix_Class(2, 2, 0u));
-
-        weight[0] = 0.296898      ;
-        weight[1] = 0.11709     ;
-        weight[2] = 0.00502877  ;
-        weight[3] = 0.186937    ;
-        weight[4] = 0.0422829   ;
-        weight[5] = 0.0138878   ;
-        weight[6] = 0.000274472 ;
-        weight[7] = 0.0144979   ;
-        weight[8] = 0.286551    ;
-        weight[9] = 0.0365531   ;
-
-        mean[0](0, 0) = 4.78981e-12 ; mean[0](1, 0) = -1.36579e-12   ;
-        mean[1](0, 0) = 5.51715e-12; mean[1](1, 0) = 4.76378e-12   ;
-        mean[2](0, 0) = 4.21048e-12; mean[2](1, 0) = -1.14226e-11  ;
-        mean[3](0, 0) = -2.85438e-12; mean[3](1, 0) = -1.61024e-12 ;
-        mean[4](0, 0) = 9.96989e-12; mean[4](1, 0) = -8.20098e-12  ;
-        mean[5](0, 0) = 3.36488e-12; mean[5](1, 0) = 1.33293e-11   ;
-        mean[6](0, 0) = 4.71386e-1;   mean[6](1, 0) = 1.65182e-11  ;
-        mean[7](0, 0) = 1.44319e-11; mean[7](1, 0) = -7.62714e-12  ;
-        mean[8](0, 0) = 1.15107e-11; mean[8](1, 0) = -4.21604e-13  ;
-        mean[9](0, 0) = 6.82143e-12; mean[9](1, 0) = 1.21607e-11   ;
-
-        covariance[0](0, 0) = 1.11731e-23  ;
-          covariance[0](1, 0) = 2.00613e-24;
-          covariance[0](1, 1) = 1.15219e-23;
-        covariance[0](0, 1) = covariance[0](1, 0);
-
-        covariance[1](0, 0) = 2.47926e-23;
-          covariance[1](1, 0) = -4.84533e-24 ;
-          covariance[1](1, 1) = 8.67598e-24  ;
-        covariance[1](0, 1) = covariance[1](1, 0);
-
-        covariance[2](0, 0) = 5.57373e-24     ;
-          covariance[2](1, 0) = -1.0595e-24   ;
-          covariance[2](1, 1) = 8.4526e-25    ;
-        covariance[2](0, 1) = covariance[2](1, 0);
-
-        covariance[3](0, 0) = 5.61383e-24;
-        covariance[3](1, 0) = 3.79572e-24;
-        covariance[3](1, 1) = 9.50937e-24;
-        covariance[3](0, 1) = covariance[3](1, 0);
-
-        covariance[4](0, 0) = 7.01799e-24;
-        covariance[4](1, 0) = -1.14537e-25;
-        covariance[4](1, 1) = 3.25432e-24;
-        covariance[4](0, 1) = covariance[4](1, 0);
-
-        covariance[5](0, 0) = 3.02747e-24;
-        covariance[5](1, 0) = -7.55053e-25;
-        covariance[5](1, 1) = 2.16706e-24;
-        covariance[5](0, 1) = covariance[5](1, 0);
-
-        covariance[6](0, 0) = 5.70972e-25;
-        covariance[6](1, 0) = -1.83951e-25;
-        covariance[6](1, 1) = 2.22965e-25;
-        covariance[6](0, 1) = covariance[6](1, 0);
-
-        covariance[7](0, 0) = 1.90793e-24;
-        covariance[7](1, 0) = 1.96845e-24;
-        covariance[7](1, 1) = 5.79567e-24;
-        covariance[7](0, 1) = covariance[7](1, 0);
-
-        covariance[8](0, 0) = 5.49353e-24;
-        covariance[8](1, 0) = -1.62023e-24;
-        covariance[8](1, 1) = 6.07475e-24;
-        covariance[8](0, 1) = covariance[8](1, 0);
-
-        covariance[9](0, 0) = 1.31776e-23;
-        covariance[9](1, 0) = -3.69162e-24;
-        covariance[9](1, 1) = 4.42914e-24;
-        covariance[9](0, 1) = covariance[9](1, 0);
-
-        double returnValue = 0.;
-        for (unsigned int i = 0u; i < 10; i++)
-        {
-          Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
-          const double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * covariance[i].determ());
-          returnValue += prefactor * std::exp(value(0u, 0u) * -0.5) * weight[i];
-        }
-
-        return returnValue;
-      };
-      PDFrange = std::make_shared<std::pair<double, double>>(-9e-11, 9e-11);
-
-
-
-      maximumOfPDF = PDF(std::vector<double>{ 0., 0. }, std::vector<unsigned int>()) + 0.7; //I DONT KNOW IF THIS IS OK, CHECK
-      analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
-
-      this->m_identString = "GMM3";
-    }
     else if (ident_ == 9)
     {
       // Read GMM from file
@@ -739,9 +320,9 @@ public:
       std::cout << "Read gmmfile.dat with " << gmmdatafromfile.numberOfDimensions << " dimensions and " << gmmdatafromfile.numberOfGaussians << " gaussians." << std::endl;
       this->dimension = gmmdatafromfile.numberOfDimensions;
       // Multivariate gaussian
-      PDF = [&, this](std::vector<double> const& x, std::vector<unsigned int> const& subdims = std::vector<unsigned int>())
+      PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
-        if (subdims == std::vector<unsigned int>())
+        if (subdims == std::vector<size_t>())
         {
           if (x.size() != this->dimension)
             throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
@@ -835,7 +416,7 @@ public:
       if (Config::get().entropytrails.rangeForGMM.first == Config::get().entropytrails.rangeForGMM.second
         && Config::get().entropytrails.rangeForGMM.first == 0.)
       {
-        PDFrange = std::make_shared<std::pair<double, double>>(-2e-11, 4e-11);
+        PDFrange = std::make_shared<std::pair<double, double>>(-1e-11, 4e-11);
       }
       else
       {
@@ -853,77 +434,104 @@ public:
       std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
       const double absrange = PDFrange->second - PDFrange->first;
 
-      for (unsigned int i = 0u; i < 100000u; i++)
-      {
-        std::vector<double> drawUnifWithRange;
-        for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+      //if (false)
+      //{
+        for (unsigned int i = 0u; i < 100000u; i++)
         {
-          drawUnifWithRange.push_back(unifDistrRange(gen));
+          std::vector<double> drawUnifWithRange;
+          for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+          {
+            drawUnifWithRange.push_back(unifDistrRange(gen));
+          }
+          const double pdfvalue = PDF(drawUnifWithRange, std::vector<size_t>());
+          maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
         }
-        const double pdfvalue = PDF(drawUnifWithRange, std::vector<unsigned int>());
-        maximumOfPDF = std::max(pdfvalue, maximumOfPDF);
-      }
-      maximumOfPDF *= 10.;
-      std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
-      
+        maximumOfPDF *= 10.;
+        std::cout << "Estimated maximum of current PDF is " << maximumOfPDF << "." << std::endl;
+      //}
       //
       //
-
-      //maximumOfPDF = PDF(std::vector<double>(this->dimension, 0.), std::vector<unsigned int>()) * 1.5; //I DONT KNOW IF THIS IS OK, CHECK
       analyticEntropy_ = std::numeric_limits<double>::quiet_NaN();
       this->m_identString = "GMMfile";
     }
   };
 
-  std::vector<std::vector<double>> draw(size_t numberOfSamples, std::vector<unsigned int> const& subdims)
+  std::vector<std::vector<double>> draw(size_t numberOfSamples, std::vector<size_t> const subdims)
   {
-    std::random_device rd;
-    std::mt19937 gen;
+
     //
     std::vector<std::vector<double>> draws;
-    std::uniform_real_distribution<double> unifDistr(0, 1);
+    std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)> cPDF = this->PDF;
 
     //Target PDF in 0.1er Schritten auswerten und schauen wann es kleiner ist
     if (PDFrange == nullptr)
       PDFrange = std::make_shared<std::pair<double, double>>(meaningfulRange());
+    auto cPDFrange = PDFrange;
 
-    const unsigned int currentDimensionality = subdims.size() == 0 ? this->dimension : subdims.size();
+    const size_t currentDimensionality = subdims.size() == 0 ? this->dimension : subdims.size();
 
-
-    std::uniform_real_distribution<double> unifDistrRange(PDFrange->first, PDFrange->second);
-    const long double absrange = PDFrange->second - PDFrange->first;
-    const long double unifWithRangeProbability = 1. / absrange;
-    const long double k = maximumOfPDF *1.05 / unifWithRangeProbability;
-
-
-    for (unsigned int n = 0; n < numberOfSamples; ++n)
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(currentDimensionality, cPDFrange,cPDF,subdims ) \
+    shared(draws)
     {
-      std::vector<double> drawUnifWithRange;
-      //double drawUnif = unifDistr(gen);
-      //double drawUnifWithRange = unifDistrRange(gen);
+#endif
 
+      std::random_device rd;
+      std::mt19937 gen;
+      std::uniform_real_distribution<double> unifDistr(0, 1);
+      std::uniform_real_distribution<double> unifDistrRange(cPDFrange->first, cPDFrange->second);
+      const long double absrange = cPDFrange->second - cPDFrange->first;
+      const long double unifWithRangeProbability = 1. / absrange;
+      const long double k = maximumOfPDF * 1.05 / unifWithRangeProbability;
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfSamples);
 
-      for (unsigned int currentDim = 0u; currentDim < currentDimensionality; currentDim++)
+#pragma omp for
+      for (std::ptrdiff_t n = 0; n < n_omp; ++n)
+#else
+      for (size_t n = 0u; n < numberOfSamples; n++)
+#endif
       {
-        drawUnifWithRange.push_back(unifDistrRange(gen));
-      }
-      const long double drawUnif = unifDistr(gen);
-      const long double pdfvalue = PDF(drawUnifWithRange, subdims);
-      const long double p = pdfvalue / (k * unifWithRangeProbability);
-      bool inRange = drawUnif < p;
+        bool inRange = false;
 
-      if (inRange)
-      {
-        draws.push_back(drawUnifWithRange);
+        while (!inRange)
+        {
 
-        if (draws.size() % 25 == 0)
-          std::cout << "Number of draws: " << draws.size() << std::endl;
+          std::vector<double> drawUnifWithRange;
+          //double drawUnif = unifDistr(gen);
+          //double drawUnifWithRange = unifDistrRange(gen);
+
+
+          for (unsigned int currentDim = 0u; currentDim < currentDimensionality; currentDim++)
+          {
+            drawUnifWithRange.push_back(unifDistrRange(gen));
+          }
+          const long double drawUnif = unifDistr(gen);
+          const long double pdfvalue = cPDF(drawUnifWithRange, subdims);
+          const long double p = pdfvalue / (k * unifWithRangeProbability);
+          inRange = drawUnif < p;
+
+          if (inRange)
+          {
+
+              draws.push_back(drawUnifWithRange);
+
+              if (draws.size() % 25 == 0)
+#ifdef _OPENMP
+#pragma omp critical
+              {
+#endif
+                std::cout << "Number of draws: " << draws.size() << std::endl;
+#ifdef _OPENMP
+              }
+#endif
+          }
+        }
       }
-      else
-      {
-        --n;
-      }
+#ifdef _OPENMP
     }
+#endif
+
     return draws;
   };
 
@@ -938,17 +546,17 @@ public:
     return this->analyticEntropy_;
   };
 
-  auto function() -> std::function<double(std::vector<double> const& x, std::vector<unsigned int> const& subdims)>
+  auto function() -> std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)>
   {
     return this->PDF;
   };
 
-  unsigned int getDimension() const
+  size_t getDimension() const
   {
     return this->dimension;
   }
 
-  std::pair<double, double> meaningfulRange()
+  std::pair<double, double> meaningfulRange() const
   {
     if (PDFrange != nullptr)
       return *PDFrange;
@@ -968,7 +576,7 @@ public:
       newPDFrange = 0.;
       while (run)
       {
-        if (PDF(std::vector<double> {newPDFrange}, std::vector<unsigned int>()) < 0.00000001)
+        if (PDF(std::vector<double> {newPDFrange}, std::vector<size_t>()) < 0.00000001)
           break;
         else
           newPDFrange += 0.001;
@@ -977,7 +585,7 @@ public:
       newPDFrange = 0.;
       while (run)
       {
-        if (PDF(std::vector<double> {newPDFrange}, std::vector<unsigned int>()) < 0.000000001)
+        if (PDF(std::vector<double> {newPDFrange}, std::vector<size_t>()) < 0.000000001)
           break;
         else
           newPDFrange -= 0.005;
@@ -995,10 +603,10 @@ private:
   double analyticEntropy_ = 0.f;
   double maximumOfPDF;
   int identif;
-  int dimension = 0;
+  size_t dimension = 0;
   std::shared_ptr<std::pair<double, double>> PDFrange = nullptr;
   std::string m_identString = "ERROR_NAME";
-  std::function<double(std::vector<double> const& x, std::vector<unsigned int> const& subdims)> PDF;
+  std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)> PDF;
 };
 
 
@@ -1012,19 +620,16 @@ class entropyobj
 public:
   size_t numberOfDraws, dimension;
   Matrix_Class drawMatrix;
-  int identifierOfPDF;
-  ProbabilityDensity probdens;
-  std::vector<unsigned int> subDimsGMM;
-  entropyobj(size_t iter_, ProbabilityDensity probdens_, std::vector<unsigned int> const& subdimsGMM_) :
+  std::vector<size_t> subDims;
+  entropyobj(size_t iter_, ProbabilityDensity probdens_, std::vector<size_t> const& subdimsGMM_) :
     numberOfDraws(iter_), dimension(probdens_.getDimension()), drawMatrix(iter_, probdens_.getDimension()),
-    probdens(probdens_), identifierOfPDF(probdens_.ident()),
-    subDimsGMM(subdimsGMM_)
+    subDims(subdimsGMM_)
   {
     // Check if draw exists
     std::ifstream myfile;
     std::string line;
     std::string filename;
-    filename = std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt");
+    filename = std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(probdens_.ident()) + ".txt");
     myfile.open(filename);
     if (myfile.good())
     {
@@ -1046,7 +651,7 @@ public:
     {
       std::cout << "Creating new draw." << std::endl;
       // Draw 
-      std::vector<std::vector<double>> draws = probdens.draw(numberOfDraws, subDimsGMM);
+      std::vector<std::vector<double>> draws = probdens_.draw(numberOfDraws, subDims);
 
       //Sort samples (entirely optional) if dimension == 1
       if (this->dimension == 1)
@@ -1058,7 +663,7 @@ public:
 
       // Write 
       std::ofstream myfile2;
-      myfile2.open(std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt"));
+      myfile2.open(std::string("draw_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(probdens_.ident()) + ".txt"));
       for (unsigned int currentDim = 0; currentDim < this->dimension; ++currentDim)
       {
         for (size_t w = 0u; w < drawMatrix.rows(); w++)
@@ -1071,13 +676,29 @@ public:
     }
     myfile.close();
   }
+
+  entropyobj(Matrix_Class const& drawMatrix_, size_t dimensions_, size_t numberOfDraws_)
+    : numberOfDraws(numberOfDraws_), dimension(dimensions_)
+  {
+    this->drawMatrix = drawMatrix_;
+    this->dimension = dimensions_;
+    this->numberOfDraws = numberOfDraws_;
+  }
+
+  entropyobj(entropy::TrajectoryMatrixRepresentation const& traj)
+  {
+    this->drawMatrix = traj.getCoordsMatrix();
+    this->dimension = traj.getCoordsMatrix().rows();
+    this->numberOfDraws = traj.getCoordsMatrix().cols();
+    transpose(this->drawMatrix);
+  }
 };
 
 struct informationForCubatureIntegration
 {
   ProbabilityDensity& probdens;
-  std::vector<unsigned int>& subdims;
-  informationForCubatureIntegration(ProbabilityDensity& probdens_in, std::vector<unsigned int>& subdims_in)
+  std::vector<size_t>& subdims;
+  informationForCubatureIntegration(ProbabilityDensity& probdens_in, std::vector<size_t>& subdims_in)
     : probdens(probdens_in), subdims(subdims_in) {}
 };
 
@@ -1151,50 +772,48 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
   return 0;
 }
 
+enum kNN_NORM
+{
+  EUCLEDEAN = 0,
+  MAXIMUM
+};
+
+enum kNN_FUNCTION
+{
+  GORIA = 0,
+  LOMBARDI,
+  HNIZDO
+};
+
 // Calculated entropy object calculates estiamted entropy
 class calculatedentropyobj : public entropyobj
 {
 public:
-  size_t k;
+  size_t kNN;
   double mean, standardDeviation;
-  double calculatedEntropyHnizdo;
-  double calculatedEntropyLombardi;
-  double calculatedEntropyMeanFaivishevskyMaximum;
-  double calculatedEntropyMeanFaivishevskyEucledean;
-  double mcintegrationEntropy;
-  double mcdrawEntropy;
   double analyticalEntropy;
   double empiricalNormalDistributionEntropy;
-  double calculatedEntropyGoria; // http://www.tandfonline.com/doi/abs/10.1080/104852504200026815
-  double ardakaniEntropyEucledean;
-  double ardakaniEntropyMaximum;
-  double calculatedEntropyGoriaMaximum;
-  double calculatedEntropyLombardiMaximum;
-  double cubatureIntegral;
+
+
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
-    k(k_),
+    kNN(k_),
     mean(std::numeric_limits<double>::quiet_NaN()),
     standardDeviation(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyHnizdo(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyLombardi(std::numeric_limits<double>::quiet_NaN()),
-    mcintegrationEntropy(std::numeric_limits<double>::quiet_NaN()),
-    mcdrawEntropy(std::numeric_limits<double>::quiet_NaN()),
-    analyticalEntropy(this->probdens.analyticEntropy()),
-    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyMeanFaivishevskyEucledean(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyMeanFaivishevskyMaximum(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyGoria(std::numeric_limits<double>::quiet_NaN()),
-    ardakaniEntropyEucledean(std::numeric_limits<double>::quiet_NaN()),
-    ardakaniEntropyMaximum(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyGoriaMaximum(std::numeric_limits<double>::quiet_NaN()),
-    calculatedEntropyLombardiMaximum(std::numeric_limits<double>::quiet_NaN()),
-    cubatureIntegral(std::numeric_limits<double>::quiet_NaN())
+    analyticalEntropy(std::numeric_limits<double>::quiet_NaN()),
+    empiricalNormalDistributionEntropy(std::numeric_limits<double>::quiet_NaN())
   {
 
   }
 
-  double empiricalGaussianEntropy()
+  void setAnalyticalEntropy(ProbabilityDensity probdens)
+  {
+    analyticalEntropy = probdens.analyticEntropy();
+    writeToCSV("entropy.csv", "analytic", analyticalEntropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+
+  }
+
+  void empiricalGaussianEntropy()
   {
     std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
 
@@ -1214,7 +833,7 @@ public:
       std::cout << "Mean of Empirical Gaussian: " << mean << "\n";
       std::cout << "Standard Deviation of Empricial Gaussian: " << standardDeviation << std::endl;
 
-      return log(standardDeviation * sqrt(2. * pi * e));
+      empiricalNormalDistributionEntropy = log(standardDeviation * sqrt(2. * pi * e));
     }
     else
     {
@@ -1269,16 +888,17 @@ public:
       double determinant = cov_matr.determ();
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
-      return gaussentropy;
+      empiricalNormalDistributionEntropy =  gaussentropy;
+      writeToCSV("entropy.csv", "empricial_gaussian", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
       //Covariance Matrix
     }
   }
 
-  double cubatureIntegrationEntropy()
+  double cubatureIntegrationEntropy(ProbabilityDensity probdens)
   {
     std::cout << "Commencing cubature integration of entropy." << std::endl;
-    const double min_ = (this->probdens.meaningfulRange().first);
-    const double max_ = (this->probdens.meaningfulRange().second);
+    const double min_ = (probdens.meaningfulRange().first);
+    const double max_ = (probdens.meaningfulRange().second);
     double* xmin, *xmax, *val, *err;
     xmin = new double[this->dimension];
     xmax = new double[this->dimension];
@@ -1292,15 +912,15 @@ public:
       err[i] = 0.;
     }
 
-    informationForCubatureIntegration info(this->probdens, this->subDimsGMM);
+    informationForCubatureIntegration info(probdens, this->subDims);
 
-    double range = std::abs(this->probdens.meaningfulRange().first - this->probdens.meaningfulRange().second);
+    double range = std::abs(probdens.meaningfulRange().first - probdens.meaningfulRange().second);
 
     std::cout << "Relative error (L2 norm) for cubature integration is " << std::scientific <<
       std::setw(5) << Config::get().entropytrails.errorThresholdForCubatureIntegration << "." << std::endl;
 
     int returncode = hcubature_v(1, cubaturefunctionProbDens, &(info),
-      this->dimension, xmin, xmax,
+      static_cast<unsigned int>(this->dimension), xmin, xmax,
       0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
 
     if (returncode != 0)
@@ -1312,7 +932,7 @@ public:
     
 
     returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
-      this->dimension, xmin, xmax,
+      static_cast<unsigned int>(this->dimension), xmin, xmax,
       0u, 0, Config::get().entropytrails.errorThresholdForCubatureIntegration, ERROR_L2, val, err);
 
     if (returncode != 0)
@@ -1324,6 +944,7 @@ public:
 
     std::cout << "Computed Entropy via cubature integration: " << value << " with error: " << err[0] << std::endl;
 
+    writeToCSV("entropy.csv", "cubature_with_error_" + std::to_string(err[0]), value, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
 
     delete[] xmin, xmax, err, val;
     return value * -1.;
@@ -1379,7 +1000,7 @@ public:
     const double mod_summation_max = sum_final_max * static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
 
     double sum_gamma_k = 0.f;
-    const int n_of_samples = drawMatrix_TemporaryCopy.cols() - 1u;
+    const int n_of_samples = static_cast<int>(drawMatrix_TemporaryCopy.cols() - 1u);
 
 #ifdef _OPENMP
 #pragma omp parallel firstprivate(n_of_samples) reduction(+:sum_gamma_k)
@@ -1392,11 +1013,11 @@ public:
 #else
       for (size_t i = 1u; i < n_of_samples; i++)
 #endif
-        sum_gamma_k += digammal(i);
+        sum_gamma_k += digammal(static_cast<long double>(i));
     }
     sum_gamma_k *= -1;
     sum_gamma_k *= static_cast<double>(this->dimension) / static_cast<double>(drawMatrix_TemporaryCopy.cols() * (drawMatrix_TemporaryCopy.cols() - 1));
-    sum_gamma_k += digammal(drawMatrix_TemporaryCopy.cols());
+    sum_gamma_k += digammal(static_cast<long double>(drawMatrix_TemporaryCopy.cols()));
 
 
     const double volume_of_unit_ball_for_eucledean_norm = pow(pi, static_cast<double>(this->dimension) / 2.) / tgamma(1. + static_cast<double>(this->dimension) / 2.);
@@ -1404,8 +1025,10 @@ public:
 
 
     transpose(drawMatrix);
-    this->calculatedEntropyMeanFaivishevskyEucledean = mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm);
-    this->calculatedEntropyMeanFaivishevskyMaximum = mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm);
+
+    writeToCSV("entropy.csv", "faivishevsky", mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm), kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "faivishevsky", mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm), kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
+
   }
 
   void histogramProbabilityDensity(size_t numberOFBins, std::string filename, std::vector<size_t> dimensionsToBeUsed = std::vector<size_t>())
@@ -1441,60 +1064,866 @@ public:
     delete histograms_p;
   }
 
-  void calculate()
+  double calculateNN(const kNN_NORM norm, bool const& ardakaniCorrection , const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
   {
-    if(Config::get().entropytrails.cubatureIntegration)
-      this->cubatureIntegral = cubatureIntegrationEntropy();
+    std::cout << "Commencing NNEntropy calculation." << std::endl;
 
-    //mcdrawEntropy = this->MCDrawEntropy(drawMatrix);
+    //Neccessarry
+    transpose(drawMatrix);
 
-    //mcintegrationEntropy = this->MCIntegrationEntropy(this->probdens.meaningfulRange(), numberOfDraws);
-
-    empiricalNormalDistributionEntropy = this->empiricalGaussianEntropy();
-
-
-    if(Config::get().entropytrails.meanNNcalculation)
-      meanNNEntropyFaivishevsky();
+    Matrix_Class copytemp = drawMatrix;
+    Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
+    Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
+    Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
+    Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
 
 
-    // Calculate Hnizdo as well as Lombardi/Pant entropy
-    if (Config::get().entropytrails.NNcalculation)
+    //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
+    std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
+    std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
+    if (ardakaniCorrection)
     {
-      std::cout << "Commencing NNEntropy calculation." << std::endl;
-      // Matrix Layout after calculation:
-      // First col: Drawn samples
-      // Second col: k / iter * kNNdistance
-      // Third col: Value of real distribution
-      // Fourth col: kNN Distance
+      for (size_t j = 0; j < drawMatrix.cols(); j++)
+      {
+        for (unsigned int i = 0u; i < this->dimension; i++)
+        {
+          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, j))
+            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, j);
 
-      //Neccessarry
-      transpose(drawMatrix);
+          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(i, j))
+            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(i, j);
+        }
+      }
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
+    shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
+    {
+#endif
+      float_type* buffer = new float_type[kNN];
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
+
+#pragma omp for
+      for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+      for (size_t i = 0u; i < numberOfDraws; i++)
+#endif
+      {
+        std::vector<size_t> rowQueryPts;
+        for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+        {
+          rowQueryPts.push_back(currentDim);
+        }
+
+        std::vector<double> current;
+        if (ardakaniCorrection)
+        {
+          for (unsigned int j = 0u; j < this->dimension; j++)
+            current.push_back(copytemp(j, i));
+        }
+
+        if (norm == kNN_NORM::EUCLEDEAN)
+        {
+          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, this->dimension, kNN, rowQueryPts, i, buffer));
+          eucl_kNN_distances(0, i) = holdNNdistanceEucl;
+
+          if (ardakaniCorrection)
+          {
+            eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
+              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
+          }
+        }
+        else // norm == kNN_NORM::MAX
+        {
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, kNN, rowQueryPts, i, buffer);
+          maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
+
+          if (ardakaniCorrection)
+          {
+            maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
+              ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
+          }
+        }
+
+
+
+
+        // Lombardi kPN hier, fehlt bisher noch
+      }
+      delete[] buffer;
+#ifdef _OPENMP
+    }
+#endif
+    double returnValue = std::numeric_limits<double>::quiet_NaN();
+
+    // Eucledean ArdakaniSum
+    if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
+    {
+      KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+
+      double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
+      ardakaniSum *= double(dimension);
+      ardakaniSum += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
+  
+      ardakaniSum -= digammal(double(kNN));
+
+      double ardakaniSum_lombardi = ardakaniSum + digammal(double(numberOfDraws));
+      double ardakaniSum_goria = ardakaniSum + log(double(numberOfDraws - 1.));
+      double ardakaniSum_hnizdo = ardakaniSum + log(double(numberOfDraws));
+
+
+
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI);
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = ardakaniSum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = ardakaniSum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = ardakaniSum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+    else if (norm == kNN_NORM::MAXIMUM && ardakaniCorrection)
+    {
+      // Maximum Norm ArdakaniSum
+      KahanAccumulation<double> kahan_acc_max_ardakani_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+
+      double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
+      maxArdakaniEntropy *= double(dimension);
+      maxArdakaniEntropy += log(pow(2., this->dimension));
+      
+
+
+
+      maxArdakaniEntropy -= digammal(double(kNN));
+
+      double ardakaniSum_lombardi = maxArdakaniEntropy + digammal(double(numberOfDraws));
+      double ardakaniSum_goria = maxArdakaniEntropy + log(double(numberOfDraws - 1.));
+      double ardakaniSum_hnizdo = maxArdakaniEntropy + log(double(numberOfDraws));
+
+
+
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI);
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = ardakaniSum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = ardakaniSum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = ardakaniSum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+    else if (norm == kNN_NORM::EUCLEDEAN && !ardakaniCorrection)
+    {
+      // ENTROPY according to Hnzido
+      KahanAccumulation<double> kahan_acc_eucl_sum;
+
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+
+      double sum = kahan_acc_eucl_sum.sum;
+      sum /= double(numberOfDraws);
+      sum *= double(dimension);
+
+      sum = sum + log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
+
+      sum -= digammal(double(kNN));
+
+      double sum_lombardi = sum + digammal(double(numberOfDraws));
+      double sum_goria = sum + log(double(numberOfDraws - 1.));
+      double sum_hnizdo = sum + log(double(numberOfDraws));
+
+
+
+      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI);
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = sum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = sum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = sum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+
+    }
+    else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
+    {
+      KahanAccumulation<double> kahan_acc_max_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+      double maxNormSum = kahan_acc_max_sum.sum;
+
+      //
+      maxNormSum = maxNormSum / double(numberOfDraws);
+      maxNormSum *= double(dimension);
+      maxNormSum += log(pow(2., this->dimension));
+      
+      maxNormSum -= digammal(double(kNN));
+
+      double sum_lombardi = maxNormSum + digammal(double(numberOfDraws));
+      double sum_goria = maxNormSum + log(double(numberOfDraws - 1.));
+      double sum_hnizdo = maxNormSum + log(double(numberOfDraws));
+
+
+
+      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI);
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = sum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = sum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = sum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
+
+    //Neccessarry
+    transpose(drawMatrix);
+    return returnValue;
+  }
+
+  double pcaTransformDraws(Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, bool removeDOF)
+  {
+    Matrix_Class input(this->drawMatrix);
+    transpose(input);
+
+    Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
+    cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
+    cov_matr = transposed(cov_matr) * cov_matr;
+    cov_matr *= (1.f / static_cast<float_type>(input.cols()));
+    Matrix_Class eigenvalues;
+    Matrix_Class eigenvectors;
+    float_type cov_determ = 0.;
+    int *cov_rank = new int;
+    cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
+
+
+    //Remove Eigenvalues that should be zero if cov_matr is singular
+    if ((*cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
+    {
+      std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
+      std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+      if (removeDOF)
+      {
+        size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+        eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
+        eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
+      }
+      else
+      {
+        eigenvalues.shed_rows((*cov_rank), eigenvalues.rows() - 1u);
+        eigenvectors.shed_cols((*cov_rank), eigenvectors.cols() - 1u);
+      }
+    }
+    else if (removeDOF)
+    {
+      eigenvectors.shed_cols(0, 5);
+      eigenvalues.shed_rows(0, 5);
+    }
+    delete cov_rank;
+
+    eigenvaluesPCA = eigenvalues;
+    eigenvectorsPCA = eigenvectors;
+
+    //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
+    Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
+    float_type entropy_sho = 0;
+    for (std::size_t i = 0; i < eigenvalues.rows(); i++)
+    {
+      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      entropy_sho += quantum_entropy(i, 0u);
+    }
+    std::cout << "Entropy in QH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
+
+    writeToCSV("entropy.csv", "numata_no_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+
+    return entropy_sho;
+  }
+
+  double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, 
+    const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI)
+  {
+    //Corrections for anharmonicity and M.I.
+    // I. Create PCA-Modes matrix
+    Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
+
+    Matrix_Class input(this->drawMatrix);
+    transpose(input);
+
+    Matrix_Class pca_modes = eigenvectors_t * input;
+    Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
+
+    Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
+    Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
+
+
+    // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
+    // but sensible and reasonable to obtain valid values.
+    pow(pca_modes, -1.);
+    pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK));
+    //
+
+    const Matrix_Class storeDrawMatrix = this->drawMatrix;
+    this->drawMatrix = transposed(pca_modes);
+    const size_t storeDim = this->dimension;
+    this->dimension = pca_modes.rows();
+
+    this->calculateNN_MIExpansion(orderOfCorrection, norm, func, false);
+
+
+    Matrix_Class pca_frequencies(eigenvaluesPCA.rows(), 1u);
+    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
+    float_type entropy_sho = 0;
+    for (std::size_t i = 0; i < eigenvaluesPCA.rows(); i++)
+    {
+      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvaluesPCA(i, 0u));
+      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      entropy_sho += quantum_entropy(i, 0u);
+    }
+
+    std::vector<calcBuffer> tempMIs = this->calculatedMIs;
+
+    Matrix_Class entropy_kNN(pca_modes.rows(), 1u, 0.);
+    for (auto&& element : tempMIs)
+    {
+      for (size_t i = 1u; i <= orderOfCorrection; i++)
+      {
+        if (element.dim == i)
+        {
+          bool isOneModeNotInClassicalLimit = false;
+          for (auto&& rowNr : element.rowIdent)
+          {
+            if (pca_frequencies(rowNr, 0u) > (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+            {
+              isOneModeNotInClassicalLimit = true;
+            }
+          }
+          if (isOneModeNotInClassicalLimit)
+          {
+            element.entropyValue = 0.0;
+          }
+
+        }
+
+        if (element.dim == 1u)
+        {
+          entropy_kNN(element.rowIdent.at(0), 0u) = element.entropyValue;
+        }
+      }
+    }
+
+
+    for (size_t i = 0; i < entropy_kNN.rows(); i++)
+    {
+      statistical_entropy(i, 0u) = /*-1.0*  */ (log(alpha_i(i, 0u)) + log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.);
+      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
+
+      // Debug output for developers
+      if (Config::get().general.verbosity >= 4)
+      {
+        std::cout << "mode " << i << ". entropy kNN: " << entropy_kNN(i, 0u) << "\n";
+        std::cout << "mode " << i << ". entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
+        std::cout << "mode " << i << ". classical entropy: " << classical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". pca freq: " << pca_frequencies(i, 0u) << "\n";
+        std::cout << "mode " << i << ". alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
+        std::cout << "mode " << i << ". standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << "\n";
+      }
+
+      if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+      {
+        if (abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
+        {
+          entropy_anharmonic(i, 0u) = 0.0;
+          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small).\n";
+        }
+      }
+      else
+      {
+        std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit.\n";
+        entropy_anharmonic(i, 0u) = 0.0;
+      }
+
+      // Change dimensionless entropy to cal / K * mol
+      entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+
+    }
+
+    // III. Calculate Difference of Entropies
+    double delta_entropy = 0;
+    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
+    {
+      delta_entropy += entropy_anharmonic(i, 0u);
+      if (i == entropy_anharmonic.rows() - 1u)
+        std::cout << "Correction for entropy (order 1): " << delta_entropy << " cal / (mol * K)\n";
+    }
+
+    float_type higher_order_entropy = 0.;
+    for (size_t i = 2u; i <= orderOfCorrection; i++)
+    {
+      for (auto&& element : tempMIs)
+      {
+        if (element.dim == i && i != 1u)
+        {
+          if (removeNegativeMI)
+          {
+            if (element.dim != 2 || element.entropyValue > 0.)
+            {
+              higher_order_entropy += element.entropyValue *= 1.380648813 * 6.02214129 * 0.239005736;
+            }
+          }
+          else
+          {
+            higher_order_entropy += element.entropyValue *= 1.380648813 * 6.02214129 * 0.239005736;
+          }
+        }
+      }
+      std::cout << "Correction for entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)\n";
+    }
+
+    std::cout << "Correction for entropy: " << delta_entropy + higher_order_entropy << " cal / (mol * K)\n";
+    std::cout << "Entropy after correction: " << entropy_sho - delta_entropy - higher_order_entropy << " cal / (mol * K)\n";
+
+    this->drawMatrix = storeDrawMatrix;
+    this->dimension = storeDim;
+
+    writeToCSV("entropy.csv", "numata_without_corrections", entropy_sho, norm, func);
+    writeToCSV("entropy.csv", "numata_with_anharmonicity_corrections", entropy_sho - delta_entropy, norm, func);
+
+    std::string ident = "numata_with_generalized_corrections_order_" + std::to_string(orderOfCorrection);
+    if (removeNegativeMI)
+      ident += "secondOrderMIHardZero";
+    writeToCSV("entropy.csv", ident, entropy_sho - delta_entropy - higher_order_entropy, norm, func);
+
+    return entropy_sho - delta_entropy;
+  }
+
+  // Calculates the Mutual Information Expansion of the entropy up to order "N"
+  double calculateNN_MIExpansion(const size_t order_N, const kNN_NORM norm, 
+    const kNN_FUNCTION func, bool const& ardakaniCorrection)
+  {
+    double miEntropy = 0.;
+    std::vector<calcBuffer> buffer;
+
+    // Permutate all var combinatins of size "dim".
+    // Calculate jointEntropies of each combination
+    // Calculate HMI from joint Entropies up to order dim
+    // Sum HMIs accordingly
+
+    std::vector<size_t> rowPts;
+    if (this->subDims != std::vector<size_t>())
+      rowPts = this->subDims;
+    else
+    {
+      for (size_t i = 0u; i < this->dimension; i++)
+        rowPts.push_back(i);
+    }
+    transpose(drawMatrix);
+    helperFKT(norm, func, ardakaniCorrection, order_N, buffer, rowPts);
+    transpose(drawMatrix);
+    //Insert unique
+    for (auto&& element : buffer)
+    {
+      if (std::find(this->calculatedMIs.begin(), this->calculatedMIs.end(), element) == this->calculatedMIs.end())
+      {
+        this->calculatedMIs.push_back(element);
+      }
+    }
+
+    for (size_t i = 0u; i < buffer.size(); i++)
+    {
+      miEntropy += std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
+    }
+
+    storeMI mi;
+    mi.order = order_N;
+    mi.value = miEntropy;
+    this->calculatedMIEs.push_back(mi);
+
+    writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func);
+
+    return miEntropy;
+
+  }
+
+  // this is quivalent to performing pcaTransformDraws and then NumataCorectionsFromMI(2,,,,EUCLEDEAN,HNIZDO,true)
+  double numataEntropy(double temperatureInKelvin, bool removeDOF = false)
+  {
+    Matrix_Class input(this->drawMatrix);
+    transpose(input);
+
+    std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
+    Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
+    cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
+    cov_matr = transposed(cov_matr) * cov_matr;
+    cov_matr *= (1.f / static_cast<float_type>(input.cols()));
+    Matrix_Class eigenvalues;
+    Matrix_Class eigenvectors;
+    float_type cov_determ = 0.;
+    int *cov_rank = new int;
+    cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
+
+    //Remove Eigenvalues that should be zero if cov_matr is singular
+    if ((*cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
+    {
+      std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
+      std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+      if (removeDOF)
+      {
+        size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+        eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
+        eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
+      }
+      else
+      {
+        eigenvalues.shed_rows((*cov_rank), eigenvalues.rows() - 1u);
+        eigenvectors.shed_cols((*cov_rank), eigenvectors.cols() - 1u);
+      }
+    }
+    else if (removeDOF)
+    {
+      eigenvectors.shed_cols(0, 5);
+      eigenvalues.shed_rows(0, 5);
+    }
+    delete cov_rank;
+
+    //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
+    Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
+    float_type entropy_sho = 0;
+    for (std::size_t i = 0; i < eigenvalues.rows(); i++)
+    {
+      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+      entropy_sho += quantum_entropy(i, 0u);
+    }
+    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
+    std::cout << "Starting corrections for anharmonicity and Mutual Information to second order." << std::endl;
+
+    //Corrections for anharmonicity and M.I.
+    // I. Create PCA-Modes matrix
+    Matrix_Class eigenvectors_t(transposed(eigenvectors));
+    Matrix_Class pca_modes = eigenvectors_t * input;
+    Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
+    Matrix_Class entropy_kNN(pca_modes.rows(), 1u, 0.);
+    Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
+    Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
+    Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
+
+
+    // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
+    // but sensible and reasonable to obtain valid values.
+    pow(pca_modes, -1.);
+    pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp));
+    //
+
+    //auto vis_this = pca_modes.to_std_vector();
+    //std::cout << std::endl << vis_this[0][0] << " " << vis_this[0][1] << " " << vis_this[0][2] << std::endl;
+    //std::cout << " " << vis_this[1][0] << " " << vis_this[2][0] << std::endl;
+
+    // II. Calculate Non-Paramteric Entropies
+    // Marginal
+    const size_t kNN_k = this->kNN;
+#ifdef _OPENMP
+#pragma omp parallel for firstprivate(pca_modes, kNN_k) shared(entropy_anharmonic, entropy_mi)
+#endif
+    for (int i = 0; i < (int)pca_modes.rows(); i++)
+    {
+      float_type* buffer = new float_type[kNN_k];
+
+      KahanAccumulation<float_type> summedDistances;
+      {
+        for (size_t k = 0; k < pca_modes.cols(); k++)
+        {
+          float_type distance = log(sqrt(entropy::knn_distance_eucl_squared(pca_modes, 1, kNN_k, std::vector<size_t>{static_cast<size_t>(i)}, k, buffer)));
+          summedDistances = KahanSum(summedDistances, distance);
+        }
+      }
+
+
+      float_type distance = summedDistances.sum;
+
+      distance /= float_type(pca_modes.cols()); // Number of draws
+      float_type temp = pow(3.14159265358979323846, 0.5);
+      temp /= tgamma((1. / 2.) + 1.);
+      distance += log(temp);
+
+      distance += log(float_type(pca_modes.cols()));
+
+      temp = 0;
+      if (kNN_k != 1u)
+      {
+        for (size_t l = 1; l < kNN_k; l++)
+        {
+          temp += 1.0 / float_type(l);
+        }
+      }
+      distance -= temp;
+      distance += 0.5772156649015328606065;
+      entropy_kNN(i, 0u) = distance;
+      distance = 0;
+
+      //MI
+      // Mutual Information Correction
+      for (size_t j = i + 1; j < pca_modes.rows(); j++)
+      {
+        std::vector<size_t> query_rows{ (size_t)i,j };
+        KahanAccumulation<float_type> kahan_acc;
+        for (size_t k = 0; k < pca_modes.cols(); k++)
+        {
+          float_type dist_temp = log(sqrt(entropy::knn_distance_eucl_squared(pca_modes, 2, kNN_k, query_rows, k, buffer)));
+          kahan_acc = KahanSum(kahan_acc, dist_temp);
+        }
+        distance = kahan_acc.sum;
+        distance *= 2.;
+        distance /= float_type(pca_modes.cols());
+        float_type temp2 = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 1);
+        // Gamma(2) = 1. We omit temp2 /= 1.
+
+        distance += log(temp2);
+        temp2 = 0;
+        if (kNN_k != 1)
+        {
+          for (size_t u = 1; u < kNN_k; u++)
+          {
+            temp2 += 1.0 / float_type(u);
+          }
+        }
+        distance -= temp2;
+        distance += 0.5772156649015328606065;
+        entropy_mi(i, j) = distance;
+        
+
+      }
+      delete[] buffer;
+    }
+
+    size_t counterForLargeNegativeM_I_Terms = 0u;
+    for (size_t i = 0; i < entropy_kNN.rows(); i++)
+    {
+      for (size_t j = (i + 1); j < entropy_kNN.rows(); j++)
+      {
+        
+        if (
+          pca_frequencies(i, 0u) <  (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
+          && pca_frequencies(j, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
+          )
+        {
+          //std::cout << "i: " << entropy_kNN(i, 0u) << " j: " << entropy_kNN(j, 0u) << " mu: " << entropy_mi(i, j);
+          entropy_mi(i, j) = entropy_kNN(i, 0u) + entropy_kNN(j, 0u) - entropy_mi(i, j);
+          //std::cout << " mi: " << entropy_mi(i, j) << "\n";
+          if (entropy_mi(i, j) < 0)
+          {
+            if (entropy_mi(i, j) < -1)
+            {
+              counterForLargeNegativeM_I_Terms++;
+            }
+            entropy_mi(i, j) = 0.0;
+          }
+          entropy_mi(i, j) *= 1.380648813 * 6.02214129 * 0.239005736;
+          //std::cout << "MI " << i << " " << j << " " << entropy_mi(i, j) << "\n";
+        }
+        else
+        {
+          std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit.\n";
+          entropy_mi(i, j) = 0.0;
+        }
+      }
+    }
+    if (counterForLargeNegativeM_I_Terms > 0u)
+    {
+      std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)\n";
+    }
+    for (size_t i = 0; i < entropy_kNN.rows(); i++)
+    {
+      statistical_entropy(i, 0u) = /*-1.0*  */ (log(alpha_i(i, 0u)) + log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.);
+      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
+
+      // Debug output for developers
+      if (Config::get().general.verbosity >= 4)
+      {
+        std::cout << "mode " << i << ". entropy kNN: " << entropy_kNN(i, 0u) << "\n";
+        std::cout << "mode " << i << ". entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
+        std::cout << "mode " << i << ". classical entropy: " << classical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+        std::cout << "mode " << i << ". pca freq: " << pca_frequencies(i, 0u) << "\n";
+        std::cout << "mode " << i << ". alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
+        std::cout << "mode " << i << ". standard deviation in mw-pca-units: " << sqrt(eigenvalues(i, 0u)) << "\n";
+      }
+
+      if (pca_frequencies(i, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+      {
+        if (abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
+        {
+          entropy_anharmonic(i, 0u) = 0.0;
+          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small).\n";
+        }
+      }
+      else
+      {
+        std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit.\n";
+        entropy_anharmonic(i, 0u) = 0.0;
+      }
+
+      // Change dimensionless entropy to cal / K * mol
+      entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+      
+    }
+
+    // III. Calculate Difference of Entropies
+    double delta_entropy = 0;
+    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
+    {
+      delta_entropy += entropy_anharmonic(i, 0u);
+
+      if (i == entropy_anharmonic.rows() - 1u)
+        std::cout << "Correction for entropy (order 1): " << delta_entropy << " cal / (mol * K)\n";
+    }
+
+    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
+    {
+      for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
+      {
+        delta_entropy += entropy_mi(i, j);
+      }
+    }
+    std::cout << "Correction for entropy: " << delta_entropy << " cal / (mol * K)\n";
+    std::cout << "Entropy after correction: " << entropy_sho - delta_entropy << " cal / (mol * K)\n";
+
+    writeToCSV("entropy.csv", "numata_without_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "numata_with_correction", entropy_sho - delta_entropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+
+    return entropy_sho - delta_entropy;
+  }
+
+
+private:
+
+  void writeToCSV(std::string nameToFile, std::string ident, const float_type & value, kNN_NORM norm, kNN_FUNCTION func)
+  {
+    std::ofstream myfile2;
+    myfile2.open(std::string(nameToFile), std::ios::app);
+
+    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << kNN << ",";
+    if (norm == kNN_NORM::EUCLEDEAN)
+      myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "eucledean,";
+    else
+      myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "maxnorm,";
+
+    if (func == kNN_FUNCTION::GORIA)
+      myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "goria,";
+    else if (func == kNN_FUNCTION::LOMBARDI)
+      myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "lombardi,";
+    else
+      myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "hnizdo,";
+
+    myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << ident << ",";
+    myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << value << "\n";
+
+    myfile2.close();
+  }
+
+  struct storeMI
+  {
+    size_t order = 0u;
+    double value = 0u;
+  };
+
+  std::vector<storeMI> calculatedMIEs;
+
+  struct calcBuffer
+    {
+      size_t dim = 0u;
+      std::vector<size_t> rowIdent;
+      double entropyValue = 0u;
+
+      inline bool operator == (const calcBuffer &b) const
+      {
+        return this->dim == b.dim && this->rowIdent == b.rowIdent && this->entropyValue == b.entropyValue;
+      }
+
+      inline bool operator != (const calcBuffer &b) const
+      {
+        return !((*this) == b);
+      }
+    };
+
+  std::vector<calcBuffer> calculatedMIs;
+
+  // Calculates the NN entropy for the specified row indicices
+  double calculateNNsubentropy(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, std::vector<size_t> const& rowIndices)
+    {
+      //transpose(drawMatrix);
+
       Matrix_Class copytemp = drawMatrix;
       Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
       Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
       Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
       Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
-      //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
-      std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
-      std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
-      for (size_t k = 0; k < drawMatrix.cols(); k++)
-      {
-        for (unsigned int i = 0u; i < this->dimension; i++)
-        {
-          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, k))
-            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, k);
 
-          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(i, k))
-            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(i, k);
+      std::vector<float_type> ardakaniCorrection_minimumValueInDataset(rowIndices.size(), std::numeric_limits<float_type>::max());
+      std::vector<float_type> ardakaniCorrection_maximumValueInDataset(rowIndices.size(), -std::numeric_limits<float_type>::max());
+
+      if (ardakaniCorrection)
+      {
+        for (size_t j = 0; j < drawMatrix.cols(); j++)
+        {
+          for (unsigned int i = 0u; i < rowIndices.size(); i++)
+          {
+            if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(rowIndices.at(i), j))
+              ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(rowIndices.at(i), j);
+
+            if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(rowIndices.at(i), j))
+              ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(rowIndices.at(i), j);
+          }
         }
       }
 
+      //DEBUG
+      //auto vis_this = copytemp.to_std_vector();
+      //std::cout << std::endl << vis_this[0][0] << " " << vis_this[0][1] << " " << vis_this[0][2] << std::endl;
+      //std::cout << " " << vis_this[1][0] << " " << vis_this[2][0] << std::endl;
+
 #ifdef _OPENMP
 #pragma omp parallel firstprivate(copytemp, ardakaniCorrection_minimumValueInDataset, ardakaniCorrection_maximumValueInDataset ) \
-      shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
+    shared(eucl_kNN_distances,maxnorm_kNN_distances, eucl_kNN_distances_ardakani_corrected, maxnorm_kNN_distances_ardakani_corrected)
       {
 #endif
-        float_type* buffer = new float_type[k];
+        float_type* buffer = new float_type[kNN];
 #ifdef _OPENMP
         auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
 
@@ -1505,191 +1934,245 @@ public:
 #endif
         {
           std::vector<size_t> rowQueryPts;
-          for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+          for (unsigned int currentDim = 0u; currentDim < rowIndices.size(); currentDim++)
           {
-            rowQueryPts.push_back(currentDim);
+            rowQueryPts.push_back(rowIndices.at(currentDim));
           }
 
-          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, this->dimension, k, rowQueryPts, i, buffer));
-          eucl_kNN_distances(0, i) = holdNNdistanceEucl;
-
-          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, k, rowQueryPts, i, buffer);
-          maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
-          //EvaluateMatrix(2, i) = PDFtemporary(copytemp(0, i));
-          //EvaluateMatrix(3, i) = holdNNdistance;
-          // Ardakani Correction
-
           std::vector<double> current;
-          for (unsigned int j = 0u; j < this->dimension; j++)
-            current.push_back(copytemp(j, i));
+          if (ardakaniCorrection)
+          {
+            for (unsigned int currentDim = 0u; currentDim < rowIndices.size(); currentDim++)
+              current.push_back(copytemp(rowIndices.at(currentDim), i));
+          }
 
-          eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
-            ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
-          maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
-            ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
-          // Lombardi kPN hier, fehlt bisher noch
+          if (norm == kNN_NORM::EUCLEDEAN)
+          {
+            const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, rowIndices.size(), kNN, rowQueryPts, i, buffer));
+            eucl_kNN_distances(0, i) = holdNNdistanceEucl;
+
+            if (ardakaniCorrection)
+            {
+              eucl_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedEucledeanNorm(ardakaniCorrection_minimumValueInDataset,
+                ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceEucl);
+            }
+          }
+          else if (norm == kNN_NORM::MAXIMUM)
+          {
+            const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, rowIndices.size(), kNN, rowQueryPts, i, buffer);
+            maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
+
+            if (ardakaniCorrection)
+            {
+              maxnorm_kNN_distances_ardakani_corrected(0, i) = ardakaniCorrectionGeneralizedMaximumNorm(ardakaniCorrection_minimumValueInDataset,
+                ardakaniCorrection_maximumValueInDataset, current, holdNNdistanceMax);
+            }
+          }
+          else
+          {
+            throw std::runtime_error("Unknown norm in kNN calculation. Exiting.\n");
+          }
+
+
         }
 #ifdef _OPENMP
       }
 #endif
 
+      //transpose(drawMatrix);
 
       // Eucledean ArdakaniSum
-      KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum,log(eucl_kNN_distances_ardakani_corrected(0, i)));
-
-      double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
-      ardakaniSum *= double(dimension);
-      ardakaniSum += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
-      ardakaniSum += digammal(double(numberOfDraws));
-      ardakaniSum -= digammal(double(k));
-
-      // Maximum Norm ArdakaniSum
-      KahanAccumulation<double> kahan_acc_max_ardakani_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum,log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
-
-      double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
-      maxArdakaniEntropy *= double(dimension);
-      maxArdakaniEntropy += log(pow(2., this->dimension));
-      maxArdakaniEntropy += digammal(double(numberOfDraws));
-      maxArdakaniEntropy -= digammal(double(k));
-
-
-      KahanAccumulation<double> kahan_acc_max_sum;
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum,log(maxnorm_kNN_distances(0, i)));
-      double maxNormSum = kahan_acc_max_sum.sum;
-
-      // ENTROPY according to Hnzido
-      KahanAccumulation<double> kahan_acc_eucl_sum;
-
-      for (size_t i = 0u; i < numberOfDraws; i++)
-        kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
-
-      double hnizdoSum = kahan_acc_eucl_sum.sum;
-      hnizdoSum /= double(numberOfDraws);
-      hnizdoSum *= double(dimension);
-
-      // Einschub
-      // Entropy according to Lombardi (traditional)
-      double lombardi_without_correction = hnizdoSum + log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
-      lombardi_without_correction += digammal(double(numberOfDraws));
-      lombardi_without_correction -= digammal(double(k));
-      //
-      double lobardi_maximum_norm = maxNormSum / double(numberOfDraws);
-      lobardi_maximum_norm *= double(dimension);
-      lobardi_maximum_norm += log(pow(2., this->dimension));
-      lobardi_maximum_norm += digammal(double(numberOfDraws));
-      lobardi_maximum_norm -= digammal(double(k));
-
-      //Einschub calcualtedEntropyGoria
-      double tempsum_knn_goria = hnizdoSum;
-      tempsum_knn_goria += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
-      tempsum_knn_goria += log(double(numberOfDraws - 1.));
-      tempsum_knn_goria -= digammal(double(k));
-
-      //MaxNormGoria:
-      double maxnorm_knn_goria = maxNormSum;
-      maxnorm_knn_goria /= double(numberOfDraws);
-      maxnorm_knn_goria *= double(dimension);
-      maxnorm_knn_goria += log(pow(2., this->dimension));
-      maxnorm_knn_goria += log(double(numberOfDraws - 1.));
-      maxnorm_knn_goria -= digammal(double(k));
-
-      hnizdoSum += (log(numberOfDraws * pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1))));
-
-      // The following is identical to -digamma(double(k))
-      double tempsum2 = 0;
-      if (k != 1)
+      if (norm == kNN_NORM::EUCLEDEAN && ardakaniCorrection)
       {
-        for (size_t i = 1; i < k; i++)
+        KahanAccumulation<double> kahan_acc_eucl_ardakani_sum;
+        for (size_t i = 0u; i < numberOfDraws; i++)
+          kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
+
+        double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
+        ardakaniSum *= double(rowIndices.size());
+        ardakaniSum += log(pow(pi, double(rowIndices.size()) / 2.) / (tgamma(0.5 * rowIndices.size() + 1)));
+
+        if (func == kNN_FUNCTION::LOMBARDI)
+          ardakaniSum += digammal(double(numberOfDraws));
+        else if (func == kNN_FUNCTION::GORIA)
+          ardakaniSum += log(double(numberOfDraws - 1.));
+        else if (func == kNN_FUNCTION::HNIZDO)
+          ardakaniSum += log(double(numberOfDraws));
+        else
+          throw std::runtime_error("Critical Error in NN Entropy.");
+
+        ardakaniSum -= digammal(double(kNN));
+
+        return ardakaniSum;
+      }
+      else if (norm == kNN_NORM::MAXIMUM && ardakaniCorrection)
+      {
+        // Maximum Norm ArdakaniSum
+        KahanAccumulation<double> kahan_acc_max_ardakani_sum;
+        for (size_t i = 0u; i < numberOfDraws; i++)
+          kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
+
+        double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
+        maxArdakaniEntropy *= double(rowIndices.size());
+        maxArdakaniEntropy += log(pow(2., rowIndices.size()));
+
+        if (func == kNN_FUNCTION::LOMBARDI)
+          maxArdakaniEntropy += digammal(double(numberOfDraws));
+        else if (func == kNN_FUNCTION::GORIA)
+          maxArdakaniEntropy += log(double(numberOfDraws - 1.));
+        else if (func == kNN_FUNCTION::HNIZDO)
+          maxArdakaniEntropy += log(double(numberOfDraws));
+        else
+          throw std::runtime_error("Critical Error in NN Entropy.");
+
+        maxArdakaniEntropy -= digammal(double(kNN));
+
+        return maxArdakaniEntropy;
+      }
+      else if (norm == kNN_NORM::EUCLEDEAN && !ardakaniCorrection)
+      {
+        // ENTROPY according to Hnzido
+        KahanAccumulation<double> kahan_acc_eucl_sum;
+
+        for (size_t i = 0u; i < numberOfDraws; i++)
+          kahan_acc_eucl_sum = KahanSum(kahan_acc_eucl_sum, log(eucl_kNN_distances(0, i)));
+
+        double hnizdoSum = kahan_acc_eucl_sum.sum;
+        hnizdoSum /= double(numberOfDraws);
+        hnizdoSum *= double(rowIndices.size());
+
+        // Einschub
+        // Entropy according to Lombardi (traditional)
+        double lombardi_without_correction = hnizdoSum + log(pow(pi, double(rowIndices.size()) / 2.) / (tgamma(0.5 * double(rowIndices.size()) + 1.)));
+
+        if (func == kNN_FUNCTION::LOMBARDI)
+          lombardi_without_correction += digammal(double(numberOfDraws));
+        else if (func == kNN_FUNCTION::GORIA)
+          lombardi_without_correction += log(double(numberOfDraws - 1.));
+        else if (func == kNN_FUNCTION::HNIZDO)
+          lombardi_without_correction += log(double(numberOfDraws));
+        else
+          throw std::runtime_error("Critical Error in NN Entropy.");
+
+        lombardi_without_correction -= digammal(double(kNN));
+
+        return lombardi_without_correction; // Lombardi Entropy
+      }
+      else if (norm == kNN_NORM::MAXIMUM && !ardakaniCorrection)
+      {
+        KahanAccumulation<double> kahan_acc_max_sum;
+        for (size_t i = 0u; i < numberOfDraws; i++)
+          kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+        double maxNormSum = kahan_acc_max_sum.sum;
+
+        //
+        double lobardi_maximum_norm = maxNormSum / double(numberOfDraws);
+        lobardi_maximum_norm *= double(rowIndices.size());
+        lobardi_maximum_norm += log(pow(2., rowIndices.size()));
+
+        if (func == kNN_FUNCTION::LOMBARDI)
+          lobardi_maximum_norm += digammal(double(numberOfDraws));
+        else if (func == kNN_FUNCTION::GORIA)
+          lobardi_maximum_norm += log(double(numberOfDraws - 1.));
+        else if (func == kNN_FUNCTION::HNIZDO)
+          lobardi_maximum_norm += log(double(numberOfDraws));
+        else
+          throw std::runtime_error("Critical Error in NN Entropy.");
+
+        lobardi_maximum_norm -= digammal(double(kNN));
+
+        return lobardi_maximum_norm;
+      }
+      else
+      {
+        throw std::runtime_error("Something went terribly wrong in kNN calculation. Sorry.");
+        return 0.;
+      }
+    }
+
+  // Called recursivly, calculates joint entropies for all possible permutations of the rowIndices up to the full dimensional one
+  // and stores those results in the "result" vecor
+  void jointEntropiesOfCertainRows(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, std::vector<calcBuffer>& result, std::vector<size_t> rowIndices,
+    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u)
+    {
+      const size_t maxDim = rowIndices.size();
+      if (curDim < maxDim)
+      {
+        for (size_t i = startIter; i < maxDim; i++)
         {
-          tempsum2 += 1.0 / double(i);
+          if (curDim == 0u)
+            curRowIndices = std::vector<size_t>{};
+
+          if (curRowIndices.size() == curDim + 1u)
+            curRowIndices.at(curDim) = rowIndices.at(i);
+          else
+            curRowIndices.push_back(rowIndices.at(i));
+
+          size_t nextIter = i + 1u;
+
+          calcBuffer cBuffer;
+          cBuffer.dim = curRowIndices.size();
+          cBuffer.rowIdent = curRowIndices;
+
+          cBuffer.entropyValue = calculateNNsubentropy(norm, func, ardakaniCorrection, curRowIndices);
+
+          result.push_back(cBuffer);
+
+          jointEntropiesOfCertainRows(norm, func, ardakaniCorrection, result, rowIndices, curRowIndices, curRowIndices.size(), nextIter);
         }
       }
-      hnizdoSum -= tempsum2;
-      hnizdoSum += 0.5772156649015328606065;
-
-      //////////////
-      calculatedEntropyHnizdo = hnizdoSum; // Hnizdo Entropy
-      calculatedEntropyLombardi = lombardi_without_correction; // Lombardi Entropy
-      calculatedEntropyGoria = tempsum_knn_goria; // Goria Entropy
-      ardakaniEntropyEucledean = ardakaniSum;
-      ardakaniEntropyMaximum = maxArdakaniEntropy;
-      calculatedEntropyGoriaMaximum = maxnorm_knn_goria;
-      calculatedEntropyLombardiMaximum = lobardi_maximum_norm;
-      //Neccessarry
-      transpose(drawMatrix);
     }
-  }
 
-  void writeToFile()
-  {
-    //std::ofstream myfile;
-    //myfile.open(std::string("out_k" + std::to_string(k) + "_i" + std::to_string(numberOfDraws) + "_d" + std::to_string(dimension) + "_ident" + std::to_string(identifierOfPDF) + ".txt"));
-    //for (size_t i = 0u; i < drawAndEvaluateMatrix.rows(); i++)
-    //{
-    //    for (size_t j = 0u; j < drawAndEvaluateMatrix.cols(); j++)
-    //      myfile << std::setw(15) << std::scientific << std::setprecision(5) << drawAndEvaluateMatrix(i, j);
-    //
-    //    myfile << "\n";
-    //  }
-    //myfile.close();
-
-
-    std::ifstream myfile3;
-    myfile3.open(std::string("out_entropy.txt"));
-    bool writeHeader = false;
-    if (!myfile3.good()) 
-      writeHeader = true;
-    myfile3.close();
-    std::ofstream myfile2;
-    myfile2.open(std::string("out_entropy.txt"), std::ios::app);
-    if (writeHeader)
+  // Called recursivly, calculates Higher-Order Mutual Information for all possible permutations of the rowIndices up to the full dimensional one
+  // and stores those results in the "result" vecor
+  void helperFKT(const kNN_NORM norm, const kNN_FUNCTION func, bool const& ardakaniCorrection, const size_t maxDim, std::vector<calcBuffer>& result, std::vector<size_t> rowIndices,
+    std::vector<size_t> curRowIndices = std::vector<size_t>{}, const size_t curDim = 0u, size_t startIter = 0u)
     {
-      // HEADER
-      myfile2 << "ENTROPY ESTIMATION\n";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Distribution|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "NumberOfDraws|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "k for NN|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Analytical|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Cubature|";
-      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Integral|";
-      //myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "MC-Draw|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Hnizdo|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(eucl)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Lombardi(max)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Ardakani(eucl)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Ardakani(max)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(eucl)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Goria(max)|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "Empirical Gauss|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNEucl|";
-      myfile2 << std::setw(16) << std::scientific << std::setprecision(5) << "meanNNMax|";
+      if (curDim < maxDim)
+      {
+        for (size_t i = startIter; i < rowIndices.size(); i++)
+        {
+          if (curDim == 0u)
+            curRowIndices = std::vector<size_t>{};
 
-      myfile2 << "\n=========================================================================";
-      myfile2 << "==================================================================================";
-      myfile2 << "=====================================================================================================\n";
+          if (curRowIndices.size() == curDim + 1u)
+            curRowIndices.at(curDim) = rowIndices.at(i);
+          else
+            curRowIndices.push_back(rowIndices.at(i));
+
+          size_t nextIter = i + 1u;
+
+          std::vector<calcBuffer> results;
+          jointEntropiesOfCertainRows(norm, func, ardakaniCorrection, results, curRowIndices);
+
+
+
+          // Debug
+          //std::cout << "\n";
+          //for (auto&& item : results)
+          //{
+          //  for (auto&& subitem : item.rowIdent)
+          //    std::cout << " " << subitem;
+          //  std::cout << "\n";
+          //}
+          //std::cout << std::endl;
+
+          calcBuffer cBuffer;
+          cBuffer.dim = curRowIndices.size();
+          cBuffer.rowIdent = curRowIndices;
+          cBuffer.entropyValue = 0.;
+          // SUMM
+          for (size_t j = 0u; j < results.size(); j++)
+          {
+            cBuffer.entropyValue += std::pow(-1., results.at(j).dim + 1.) * results.at(j).entropyValue;
+          }
+          result.push_back(cBuffer);
+
+
+
+          helperFKT(norm, func, ardakaniCorrection, maxDim, result, rowIndices, curRowIndices, curRowIndices.size(), nextIter);
+        }
+      }
     }
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.identString() << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->numberOfDraws << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->k << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->probdens.analyticEntropy() << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->cubatureIntegral << "|";
-    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcintegrationEntropy << "|";
-    //myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->mcdrawEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyHnizdo << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardi << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyLombardiMaximum << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->ardakaniEntropyEucledean << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->ardakaniEntropyMaximum << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoria << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyGoriaMaximum << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->empiricalNormalDistributionEntropy << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyEucledean << "|";
-    myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << this->calculatedEntropyMeanFaivishevskyMaximum << "|\n";
-    myfile2.close();
-  }
+
 };

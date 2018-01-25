@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 configuration.h
 Purpose: class for extraction of information from inputfile
@@ -1209,9 +1209,10 @@ namespace config
     bool cubatureIntegration;
     bool meanNNcalculation;
     std::pair<double, double> rangeForGMM;
-    std::vector<unsigned int> subDimsForGMM;
+    std::vector<size_t> subDimsForGMM;
+    std::vector<size_t> MI_Expansions;
     double errorThresholdForCubatureIntegration;
-    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), subDimsForGMM(), 
+    entropytrails(void) : k(1), dimension(1), numberOfDraws(1000), ident(0), NNcalculation(true), cubatureIntegration(true), meanNNcalculation(true), subDimsForGMM(), MI_Expansions(),
       rangeForGMM(0.,0.), errorThresholdForCubatureIntegration(1e-4) {}
   };
 

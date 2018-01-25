@@ -5,7 +5,7 @@
 namespace entropy
 {
 
-  float_type knn_distance_eucl_squared(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t>& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
+  float_type knn_distance_eucl_squared(Matrix_Class const& input, size_t const& dimension_in, size_t const& k_in, std::vector<size_t> const& row_queryPts, size_t const& col_queryPt, coords::float_type* buffer)
     //Returns squared distances in the higher-dimensional NN-query case. Needs vector-form input of query Pts
     //Will throw if input is wrong
   {
@@ -296,7 +296,7 @@ namespace entropy
 #pragma omp parallel firstprivate(input, kNN) reduction(+:distance)
       {
 #endif
-        KahanAccumulation<double> kahan_acc;
+        KahanAccumulation<float_type> kahan_acc;
         float_type* buffer = new float_type[kNN];
 #ifdef _OPENMP
 #pragma omp for
@@ -308,7 +308,7 @@ namespace entropy
           // Should be equivalent to the original version but with less costly sqrt:
           // This is the squared distance btw
           // distance *= knn_distance(input_workobj,  input.rows(), k, (size_t) 0u, (size_t) k);
-          float_type distance = std::log(std::sqrt(knn_distance_eucl_squared(input, input.rows(), kNN, std::vector<size_t>{0u}, (size_t)i, buffer)));
+          float_type distance = std::log(std::sqrt(knn_distance_eucl_squared(input, input.rows(), kNN, row_queryPoints, (size_t)i, buffer)));
         
           kahan_acc = KahanSum(kahan_acc, distance);
         }
@@ -318,12 +318,15 @@ namespace entropy
       }
 #endif
 
-      // Adding constants according to original publication
-      float_type temporary = float_type(input.cols()) * pow(3.14159265358979323846, 0.5);
-      temporary /= tgamma((1 / 2) + 1);
-      
-      distance += log(temporary);
-      temporary = 0;
+
+      float_type hnizdoSum = distance;
+      hnizdoSum /= float_type(input.cols()); //Number of Draws
+      hnizdoSum *= float_type(input.rows()); //DIMENSIONS
+      hnizdoSum += (log(float_type(input.cols())
+        * pow(3.1415926535897932384626433832795029, float_type(float_type(input.rows())) / 2.) / (tgamma(0.5 * input.rows() + 1))));
+
+
+      float_type temporary = 0;
       if (kNN != 1)
       {
         for (size_t i = 1; i < kNN; i++)
@@ -331,10 +334,11 @@ namespace entropy
           temporary += 1.0 / float_type(i);
         }
       }
-      distance -= temporary;
-      distance += 0.5772156649015328606065;
 
-      float_type entropy = distance;
+      hnizdoSum -= temporary;
+      hnizdoSum += 0.5772156649015328606065;
+
+      float_type entropy = hnizdoSum;
       std::cout << "entropy (dimensionless): " << entropy << '\n';
       std::cout << "entropy: " << entropy * 1.380648813 * 6.02214129 * 0.239005736 << " cal / (mol * K)" << "\n";
       return entropy;
@@ -372,7 +376,7 @@ namespace entropy
 
       // Adding mathematical constants according to original publication
       float_type temp = float_type(input.cols()) * pow(3.14159265358979323846, 0.5);
-      temp /= tgamma((1 / 2) + 1);
+      temp /= tgamma((1. / 2.) + 1.);
       distance += log(temp);
       temp = 0;
       if (kNN != 1)
@@ -583,7 +587,7 @@ namespace entropy
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
           float_type distance = log(sqrt(knn_distance_eucl_squared(pca_modes, 1, k_kNN, std::vector<size_t>{static_cast<size_t>(i)}, k, buffer)));
-          KahanSum(summedDistances, distance);
+          summedDistances = KahanSum(summedDistances, distance);
         }
       }
 
@@ -592,7 +596,7 @@ namespace entropy
 
       distance /= float_type(pca_modes.cols()); // Number of draws
       float_type temp = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 0.5);
-      temp /= tgamma((1 / 2) + 1);
+      temp /= tgamma((1. / 2.) + 1.);
       distance += log(temp);
       temp = 0;
       if (k_kNN != 1u)
@@ -616,7 +620,7 @@ namespace entropy
         for (size_t k = 0; k < pca_modes.cols(); k++)
         {
           float_type dist_temp = log(sqrt(knn_distance_eucl_squared(pca_modes, 2, k_kNN, query_rows, k, buffer)));
-          KahanSum(kahan_acc, dist_temp);
+          kahan_acc = KahanSum(kahan_acc, dist_temp);
         }
         distance = kahan_acc.sum;
         distance *= 2.;

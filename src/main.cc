@@ -756,6 +756,8 @@ int main(int argc, char **argv)
        // Check the proceedings for more details
       entropy::TrajectoryMatrixRepresentation repr(ci, coords);
 
+      entropyobj obj(repr);
+
       for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
       {
         int m = (int)Config::get().entropy.entropy_method[u];
@@ -771,9 +773,19 @@ int main(int argc, char **argv)
             Config::get().entropy.entropy_temp,
             Config::get().entropy.entropy_remove_dof);
         }
-        // Knapp's mathod
+        // Knapp's method
         if (m == 3 || m == 0)
         {
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          std::cout << calcObj.numataEntropy(Config::get().entropy.entropy_temp,true) << std::endl;
+
+
+          Matrix_Class eigenvec, eigenval;
+          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
+
+          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, true);
+
+
           /*double entropy_value = */repr.knapp(
             Config::get().entropy.entropy_temp,
             Config::get().entropy.entropy_method_knn_k,
@@ -782,13 +794,27 @@ int main(int argc, char **argv)
         // Hnizdo's method
         if (m == 4 || m == 0)
         {
-          /*double entropy_value = */repr.hnizdo(
-            Config::get().entropy.entropy_method_knn_k
-          );
+          ProbabilityDensity probdens(Config::get().entropytrails.ident);
+          entropyobj entropyObject(
+            Config::get().entropytrails.numberOfDraws,
+            probdens, Config::get().entropytrails.subDimsForGMM);
+
+          repr.setCoordsMatrix(transposed(entropyObject.drawMatrix));
+
+
+          entropyobj obj2(repr);
+
+
+          /*double entropy_value = */repr.hnizdo(Config::get().entropy.entropy_method_knn_k);
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj2);
+          std::cout << calcObj.calculateNN(kNN_NORM::EUCLEDEAN, false) << std::endl << std::endl << std::endl;
         }
         // Hnizdo's method, marginal
         if (m == 5 || m == 0)
         {
+          //auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          //std::cout << calcObj.calculateNN_MIExpansion(1u, kNN_NORM::EUCLEDEAN, false) << std::endl;
+
           /*double entropy_value = */repr.hnizdo_marginal(
             Config::get().entropy.entropy_method_knn_k);
         }
@@ -972,7 +998,7 @@ int main(int argc, char **argv)
       }
       else if (Config::get().entropytrails.subDimsForGMM.size() <= 2)
       {
-        std::vector<unsigned int> const& subdims = Config::get().entropytrails.subDimsForGMM;
+        std::vector<size_t> const& subdims = Config::get().entropytrails.subDimsForGMM;
         std::vector<size_t> subdims_temp;
         for (auto&& item : subdims)
           subdims_temp.push_back(item);
@@ -985,9 +1011,39 @@ int main(int argc, char **argv)
         calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(1), Config::get().entropytrails.subDimsForGMM.at(2)});
         calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(0), Config::get().entropytrails.subDimsForGMM.at(2)});
       }
+      calculatedDistribution.empiricalGaussianEntropy();
+      std::cout << "Entropy of multivariate Gaussian with sigma of the draws: " << calculatedDistribution.empiricalNormalDistributionEntropy << std::endl;
 
-      calculatedDistribution.calculate();
-      calculatedDistribution.writeToFile();
+      calculatedDistribution.setAnalyticalEntropy(probdens);
+
+      if (Config::get().entropytrails.cubatureIntegration)
+        calculatedDistribution.cubatureIntegrationEntropy(probdens);
+
+      if (Config::get().entropytrails.meanNNcalculation)
+        calculatedDistribution.meanNNEntropyFaivishevsky();
+
+      if (Config::get().entropytrails.NNcalculation)
+      {
+        calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, true);
+        calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, false);
+        calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, true);
+        calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, false);
+      }
+
+      if (Config::get().entropytrails.MI_Expansions != std::vector<size_t>{})
+      {
+        for (auto&& item : Config::get().entropytrails.MI_Expansions)
+        {
+          std::cout << "Commencing MI Expansion of Entropy up to order " << item << "." << std::endl;
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, false);
+        }
+        
+      }
       break;
     }
     case config::tasks::LAYER_DEPOSITION:

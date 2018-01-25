@@ -7,7 +7,6 @@
 #include <limits>
 #include <string>
 #include <cmath>
-#include "entropy.h"
 #include <tuple>
 #include "kaham_summation.h"
 

@@ -35,7 +35,7 @@ namespace entropy
     Matrix_Class const& input, 
     size_t const& dimension_in, 
     size_t const& k_in,
-    std::vector<size_t>& row_querypts,
+    std::vector<size_t> const& row_querypts,
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
@@ -129,6 +129,16 @@ namespace entropy
     *
     */
     float_type schlitter(float_type const temperatureInKelvin = 300.0);
+
+    Matrix_Class const& getCoordsMatrix(void) const
+    {
+      return this->coordsMatrix;
+    }
+
+    void setCoordsMatrix(Matrix_Class const& in)
+    {
+      this->coordsMatrix = in;
+    }
 
   private:
     // This matrix is massweightend when cartesians are used
