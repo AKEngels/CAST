@@ -18,7 +18,7 @@
 #include "optimization_global.h"
 #include "matop.h"
 #include "scon_mathmatrix.h"
-
+#include "2DScan.h"
 
 /**
 * NEB constructor
@@ -3052,16 +3052,29 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           auto const & B = Z_matrices[i][ABC[1] - 1];
           auto const & C = Z_matrices[i][ABC[2] - 1];
 
-          auto r1 = B[0].second;
-          auto r2 = C[0].second;
-          auto theta = scon::ang<coords::float_type>::from_deg(C[1].second).radians();
 
-          auto x = r2 * cos(pi - theta);
-          auto y = r2 * sin(pi - theta);
+          coords::Cartesian_Point cartB = CartesianStructure[ABC[1]];
+          coords::Cartesian_Point cartC = CartesianStructure[ABC[2]];
 
-          CartesianStructure[j] = coords::Cartesian_Point(
-            (r1 + x), y, 0.
+          auto cartA = cartC + normalized(cartC-cartB) * A[0].second;
+
+          auto inc = pi - scon::ang<coords::float_type>::from_deg(A[1].second).radians();
+
+          scon::RotationMatrix::Vector axis(0., 1., 0.);
+
+          auto Minc = scon::RotationMatrix::rotate_around_axis_with_center(
+            inc,
+            axis,
+            scon::RotationMatrix::Vector(cartC.x(), cartC.y(), cartC.z())
           );
+
+          scon::RotationMatrix::Vector Avec(cartA.x(), cartA.y(), cartA.z());
+
+          Avec = Minc * Avec;
+
+          CartesianStructure[j] = coords::Cartesian_Point(Avec(0), Avec(1), Avec(2));
+
+          std::cout << Scan2D::get_angle(Scan2D::cangle(CartesianStructure[j], cartC, cartB)) << " | " << A[1].second << "\n";
 
          }
         else {
@@ -3083,29 +3096,60 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           auto const & DD = Z_matrices[i][D];
 
           auto r = DD[0].second;
-          auto theta = scon::ang<coords::float_type>::from_deg(DD[1].second).radians();
-          auto phi = scon::ang<coords::float_type>::from_deg(DD[2].second).radians();
+          auto inc = pi - scon::ang<coords::float_type>::from_deg(DD[1].second).radians();
+          auto az = scon::ang<coords::float_type>::from_deg(DD[2].second).radians();
 
-          auto x = r * cos(phi) * sin(theta);
+          /*auto x = r * cos(phi) * sin(theta);
           auto y = r * sin(phi) * sin(theta);
-          auto z = r * cos(theta);
-
+          auto z = r * cos(theta);*/
+/*
           Eigen::Vector3d D2(z, x, y);
           Eigen::Vector3d Dvec;
+*/
 
-          coords::Cartesian_Point BA = normalized(CartesianStructure[B] - CartesianStructure[A]);
-          coords::Cartesian_Point BC = normalized(CartesianStructure[B] - CartesianStructure[C]);
+          auto const & cartA = CartesianStructure[A];
+          auto const & cartB = CartesianStructure[B];
+          auto const & cartC = CartesianStructure[C];
+
+          coords::Cartesian_Point BA = normalized(cartB - cartA);
+          coords::Cartesian_Point BC = normalized(cartC - cartB);
           coords::Cartesian_Point N = normalized(cross(BA, BC));
           coords::Cartesian_Point NcrBC = normalized(cross(N, BC));
 
-          Eigen::Matrix3d M;
+          auto cartD = cartC + BC * DD[0].second;
+
+          scon::RotationMatrix::Vector Dvec(cartD.x(), cartD.y(), cartD.z());
+          scon::RotationMatrix::Vector Cvec(cartC.x(), cartC.y(), cartC.z());
+
+          auto Minc = scon::RotationMatrix::rotate_around_axis_with_center(
+            inc,
+            scon::RotationMatrix::Vector(N.x(), N.y(), N.z()),
+            Cvec
+          );
+
+
+          auto Mazi = scon::RotationMatrix::rotate_around_axis_with_center(
+            az,
+            scon::RotationMatrix::Vector(BC.x(), BC.y(), BC.z()),
+            Cvec
+          );
+
+          Dvec = Minc * Dvec;
+          cartD = coords::Cartesian_Point(Dvec[0], Dvec[1], Dvec[2]);
+          std::cout << Scan2D::get_length(Scan2D::cbond(cartC, cartD)) << " | " << DD[0].second << std::endl;
+          std::cout << Scan2D::get_angle(Scan2D::cangle(cartB, cartC, cartD)) << " | " << DD[1].second << std::endl;
+          Dvec = Mazi * Dvec;
+          cartD = coords::Cartesian_Point(Dvec[0], Dvec[1], Dvec[2]);
+          std::cout << Scan2D::get_dihedral(Scan2D::cdihedral(cartA, cartB, cartC, cartD)) << " | " << DD[2].second << std::endl;
+
+         /* Eigen::Matrix3d M;
           M << BC.x(), NcrBC.x(), N.x(),
                BC.y(), NcrBC.y(), N.y(),
                BC.z(), NcrBC.z(), N.z();
 
-          Dvec = (M*D2);
+          Dvec = (M*D2);*/
 
-          CartesianStructure[j] = coords::Cartesian_Point(Dvec(0), Dvec(1), Dvec(2)) + CartesianStructure[C];
+          CartesianStructure[j] = coords::Cartesian_Point(Dvec(0), Dvec(1), Dvec(2));
 
         }
 
