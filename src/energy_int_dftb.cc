@@ -40,6 +40,26 @@ energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 
 }
 
+bool energy::interfaces::dftb::sysCallInterface::check_structure()
+{
+  bool structure = true;
+  double x, y, z;
+  for (auto i : (*this->coords).xyz())
+  {
+    double x = i.x();
+    double y = i.y();
+    double z = i.z();
+
+    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+    {
+      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+      structure = false;
+      break;
+    }
+  }
+  return structure;
+}
+
 void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
   // create a vector with all element symbols that are found in the structure
@@ -300,7 +320,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  integrity = true;
+  integrity = check_structure();
   write_inputfile(0);
   scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
   energy = read_output(0);
@@ -310,7 +330,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  integrity = true;
+  integrity = check_structure();
   write_inputfile(1);
   scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
   energy = read_output(1);
@@ -320,7 +340,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  integrity = true;
+  integrity = check_structure();
   write_inputfile(2);
   scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
   energy = read_output(2);
@@ -330,7 +350,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-  integrity = true;
+  integrity = check_structure();
   write_inputfile(3);
   scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
   energy = read_output(3);

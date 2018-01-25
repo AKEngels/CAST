@@ -107,6 +107,7 @@ bool optimization::global::optimizers::tabuSearch::run (std::size_t const iterat
     {
       if (fallbacks < Config::get().optimization.global.tabusearch.divers_limit)
       {
+        std::cout << "do diversification\n";
         diversification();
         fails = 0;
       }
