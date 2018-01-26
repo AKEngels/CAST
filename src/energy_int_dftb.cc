@@ -40,6 +40,7 @@ energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 
 }
 
+/**checks if all atom coordinates are numbers*/
 bool energy::interfaces::dftb::sysCallInterface::check_structure()
 {
   bool structure = true;
