@@ -683,13 +683,16 @@ int main(int argc, char **argv)
       // If modes or vectors have changed, write them to new file
       if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
-      // Create Histograms
-      // ATTENTION: This function read from Config::PCA
-      pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
+      if (Config::get().PCA.pca_print_probability_density)
+      {
+        // Create Histograms
+        // ATTENTION: This function read from Config::PCA
+        pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
 
-      // Write Stock's Delta, see DOI 10.1063/1.2746330
-      // ATTENTION: This function read from Config::PCA
-      pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+        // Write Stock's Delta, see DOI 10.1063/1.2746330
+        // ATTENTION: This function reads from Config::PCA
+        pcaptr->writeStocksDelta("pca_stocksdelta.dat");
+      }
 
 #ifdef CAST_USE_ARMADILLO
       // Create gaussian mixture from PCA_modes
