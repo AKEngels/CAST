@@ -29,7 +29,7 @@
  */
 namespace ic_util {
 
-using coords::float_type;
+using float_type = coords::float_type;
 
 /*!
 \brief Creates all possible 2-permutations from a maximum number and sorts them
@@ -38,7 +38,8 @@ according to size.
 \param num Maximum number used for permutations.
 \return Sorted std::vector of std::pair.
 */
-inline auto permutation(const std::size_t& num) {
+inline std::vector<std::pair<int, int>> 
+permutation(const std::size_t& num) {
   std::vector<int> s(num);
   // std::iota fills the range from std::begin(s) to std::end(s) with
   // incremented integer values starting from 1.
@@ -61,7 +62,8 @@ inline auto permutation(const std::size_t& num) {
 \return Vector of all created permutations, where each permutation is itself a
 3-dimensional vector.
 */
-inline auto permutation_from_vec(std::vector<unsigned int>& vec) {
+inline std::vector<std::vector<unsigned int>>
+permutation_from_vec(std::vector<unsigned int>& vec) {
   std::vector<std::vector<unsigned int>> result;
   if (vec.size() != 3) {
     throw("Function permutation_from_vec needs vector with size 3.");
@@ -80,9 +82,9 @@ inline auto permutation_from_vec(std::vector<unsigned int>& vec) {
 \param arr Input array.
 \return std::vector.
 */
-template <typename U, std::size_t N,
-          typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
-inline std::vector<U> arr_to_vec(const std::array<U, N>& arr) {
+template <typename U, std::size_t N>
+inline typename std::enable_if<std::is_arithmetic<U>::value, std::vector<U>>::type
+arr_to_vec(const std::array<U, N>& arr) {
   std::vector<U> res(arr.begin(), arr.end());
   return res;
 }
@@ -109,9 +111,9 @@ void concatenate(ContainerIt st, ContainerIt fi, Result res) {
 \param vec std::vector that is to be flattened.
 \return std::vector.
 */
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline std::vector<T> flatten_c3_vec(const std::vector<scon::c3<T>>& vec) {
+template <typename T>
+inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
+flatten_c3_vec(const std::vector<scon::c3<T>>& vec) {
   std::vector<T> result;
   for (auto& i : vec) {
     result.emplace_back(i.x());
@@ -128,10 +130,9 @@ inline std::vector<T> flatten_c3_vec(const std::vector<scon::c3<T>>& vec) {
 \param b Second Cartesian_Point.
 \return Euclidean distance.
 */
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline T euclid_dist(const coords::Cartesian_Point& a,
-                     const coords::Cartesian_Point& b) {
+template <typename T>
+inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type 
+euclid_dist(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b) {
   auto f{ (a - b) * (a - b) };
   auto dist = std::sqrt(f.x() + f.y() + f.z());
   return dist;
@@ -144,9 +145,9 @@ of atoms.
 \param cp_vec Structure of the system.
 \return std::vector of Euclidean distances.
 */
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline std::vector<T> dist_vec(const coords::Representation_3D& cp_vec) {
+template <typename T>
+inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type 
+dist_vec(const coords::Representation_3D& cp_vec) {
   std::vector<T> result;
   auto perm_vec = permutation(cp_vec.size());
   for (auto& i : perm_vec) {
@@ -205,9 +206,9 @@ inline coords::Cartesian_Point cp_mean(const coords::Representation_3D& rep) {
 
 // radius of gyration from Rep3D
 // coords have to be in Bohr
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-inline T rad_gyr(const coords::Representation_3D& rep) {
+template <typename T>
+inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
+rad_gyr(const coords::Representation_3D& rep) {
   auto mean = cp_mean(rep);
   auto diff = rep - mean;
   auto sum{ 0.0 };
@@ -233,7 +234,7 @@ normal_unit_vector(const coords::Cartesian_Point& a,
   return result;
 }
 
-template <typename T, template<typename> class CoordType, template <typename,typename...> class Container, typename ... ArgsContainer>
+template <typename T, template<typename> class CoordType, template <typename> class ContainerType>
 inline typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
 Rep3D_to_arma(const Container<CoordType<T>>& rep) {
   using Mat = scon::mathmatrix<T>;
