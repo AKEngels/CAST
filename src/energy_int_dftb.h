@@ -89,7 +89,8 @@ namespace energy
 				// constructor for clone and move functions
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
-        /**checks if structure is complete, i.e. no coordinates are NaN*/
+        /**checks if structure is complete, i.e. no coordinates are NaN
+        coordinates become NaN sometimes in TS (dimer method)*/
         bool check_structure();
 
         /**writes dftb+ inputfile
