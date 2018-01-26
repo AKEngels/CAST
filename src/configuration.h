@@ -32,6 +32,8 @@ Purpose: class for extraction of information from inputfile
 #include "scon_vect.h"
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
+//#include "entropytrails.h"
+
  
 
 /*! Namespace containing relevant configuration options
@@ -1189,9 +1191,11 @@ namespace config
     size_t entropy_offset;
     std::vector<size_t> entropy_internal_dih;
     std::vector<size_t> entropy_trunc_atoms_num;
+    int knnfunc;
+    int knnnorm;
     entropy(void) : entropy_alignment(true), entropy_temp(300), entropy_ref_frame_num(0), entropy_start_frame_num(0), entropy_method(1, 6u),
       entropy_method_knn_k(4), entropy_remove_dof(true), entropy_use_internal(false), entropy_trunc_atoms_bool(false), entropy_offset(1),
-      entropy_internal_dih(), entropy_trunc_atoms_num()
+      entropy_internal_dih(), entropy_trunc_atoms_num(), knnfunc(2), knnnorm(0)
     {}
   };
 

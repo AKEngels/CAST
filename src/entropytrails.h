@@ -13,6 +13,7 @@
 #include "constants.h"
 #include "cubature.h"
 #include "histogram.h"
+#include "scon_chrono.h"
 
 /////////////////
 // Some constants
@@ -772,18 +773,6 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
   return 0;
 }
 
-enum kNN_NORM
-{
-  EUCLEDEAN = 0,
-  MAXIMUM
-};
-
-enum kNN_FUNCTION
-{
-  GORIA = 0,
-  LOMBARDI,
-  HNIZDO
-};
 
 // Calculated entropy object calculates estiamted entropy
 class calculatedentropyobj : public entropyobj
@@ -1077,7 +1066,7 @@ public:
     Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
     Matrix_Class maxnorm_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
 
-
+    scon::chrono::high_resolution_timer timer;
     //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
     std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
     std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
@@ -1299,6 +1288,8 @@ public:
         throw std::runtime_error("Critical Error in NN Entropy.");
     }
 
+    std::cout << "NN Calculation took " << timer << " ." << std::endl;
+
     //Neccessarry
     transpose(drawMatrix);
     return returnValue;
@@ -1369,6 +1360,8 @@ public:
   double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, 
     const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI)
   {
+    scon::chrono::high_resolution_timer timer;
+
     //Corrections for anharmonicity and M.I.
     // I. Create PCA-Modes matrix
     Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
@@ -1489,30 +1482,38 @@ public:
     }
 
     float_type higher_order_entropy = 0.;
+    size_t countNegativeSecondOrderMIs = 0u;
+    float_type sumOfNegativeSecondOrderMIs = 0.;
     for (size_t i = 2u; i <= orderOfCorrection; i++)
     {
       for (auto&& element : tempMIs)
       {
         if (element.dim == i && i != 1u)
         {
-          if (removeNegativeMI)
+          if (element.dim == 2 && element.entropyValue < 0.)
           {
-            if (element.dim != 2 || element.entropyValue > 0.)
+            if (!removeNegativeMI)
             {
-              higher_order_entropy += element.entropyValue *= 1.380648813 * 6.02214129 * 0.239005736;
+              higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
             }
+            countNegativeSecondOrderMIs++;
+            sumOfNegativeSecondOrderMIs += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
           }
           else
           {
-            higher_order_entropy += element.entropyValue *= 1.380648813 * 6.02214129 * 0.239005736;
+            higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
           }
         }
       }
-      std::cout << "Correction for entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)\n";
+      std::cout << "Correction for entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)" << std::endl;
+      if (i == 2u)
+      {
+        std::cout << "Counted " << countNegativeSecondOrderMIs << " negative second order MI terms with a summed value of " << sumOfNegativeSecondOrderMIs << " cal / (mol * K)" << std::endl;
+      }
     }
 
     std::cout << "Correction for entropy: " << delta_entropy + higher_order_entropy << " cal / (mol * K)\n";
-    std::cout << "Entropy after correction: " << entropy_sho - delta_entropy - higher_order_entropy << " cal / (mol * K)\n";
+    std::cout << "Entropy after correction: " << entropy_sho - delta_entropy - higher_order_entropy << " cal / (mol * K)" << std::endl;
 
     this->drawMatrix = storeDrawMatrix;
     this->dimension = storeDim;
@@ -1525,6 +1526,8 @@ public:
       ident += "secondOrderMIHardZero";
     writeToCSV("entropy.csv", ident, entropy_sho - delta_entropy - higher_order_entropy, norm, func);
 
+    std::cout << "NN Calculation took " << timer << " ." << std::endl;
+
     return entropy_sho - delta_entropy;
   }
 
@@ -1532,6 +1535,8 @@ public:
   double calculateNN_MIExpansion(const size_t order_N, const kNN_NORM norm, 
     const kNN_FUNCTION func, bool const& ardakaniCorrection)
   {
+    scon::chrono::high_resolution_timer timer;
+
     double miEntropy = 0.;
     std::vector<calcBuffer> buffer;
 
@@ -1570,266 +1575,13 @@ public:
     mi.value = miEntropy;
     this->calculatedMIEs.push_back(mi);
 
+    std::cout << "NN Calculation took " << timer << " ." << std::endl;
+
     writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func);
 
     return miEntropy;
 
   }
-
-  // this is quivalent to performing pcaTransformDraws and then NumataCorectionsFromMI(2,,,,EUCLEDEAN,HNIZDO,true)
-  double numataEntropy(double temperatureInKelvin, bool removeDOF = false)
-  {
-    Matrix_Class input(this->drawMatrix);
-    transpose(input);
-
-    std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
-    Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-    cov_matr = cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols());
-    cov_matr = transposed(cov_matr) * cov_matr;
-    cov_matr *= (1.f / static_cast<float_type>(input.cols()));
-    Matrix_Class eigenvalues;
-    Matrix_Class eigenvectors;
-    float_type cov_determ = 0.;
-    int *cov_rank = new int;
-    cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
-
-    //Remove Eigenvalues that should be zero if cov_matr is singular
-    if ((*cov_rank < (int)eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90))
-    {
-      std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
-      std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
-      if (removeDOF)
-      {
-        size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
-        eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
-        eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
-      }
-      else
-      {
-        eigenvalues.shed_rows((*cov_rank), eigenvalues.rows() - 1u);
-        eigenvectors.shed_cols((*cov_rank), eigenvectors.cols() - 1u);
-      }
-    }
-    else if (removeDOF)
-    {
-      eigenvectors.shed_cols(0, 5);
-      eigenvalues.shed_rows(0, 5);
-    }
-    delete cov_rank;
-
-    //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
-    Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
-    Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
-    Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
-    float_type entropy_sho = 0;
-    for (std::size_t i = 0; i < eigenvalues.rows(); i++)
-    {
-      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
-      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
-      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-      entropy_sho += quantum_entropy(i, 0u);
-    }
-    std::cout << "Entropy in QH-approximation: " << entropy_sho << " cal / (mol * K)" << std::endl;
-    std::cout << "Starting corrections for anharmonicity and Mutual Information to second order." << std::endl;
-
-    //Corrections for anharmonicity and M.I.
-    // I. Create PCA-Modes matrix
-    Matrix_Class eigenvectors_t(transposed(eigenvectors));
-    Matrix_Class pca_modes = eigenvectors_t * input;
-    Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
-    Matrix_Class entropy_kNN(pca_modes.rows(), 1u, 0.);
-    Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
-    Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
-    Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
-
-
-    // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
-    // but sensible and reasonable to obtain valid values.
-    pow(pca_modes, -1.);
-    pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp));
-    //
-
-    //auto vis_this = pca_modes.to_std_vector();
-    //std::cout << std::endl << vis_this[0][0] << " " << vis_this[0][1] << " " << vis_this[0][2] << std::endl;
-    //std::cout << " " << vis_this[1][0] << " " << vis_this[2][0] << std::endl;
-
-    // II. Calculate Non-Paramteric Entropies
-    // Marginal
-    const size_t kNN_k = this->kNN;
-#ifdef _OPENMP
-#pragma omp parallel for firstprivate(pca_modes, kNN_k) shared(entropy_anharmonic, entropy_mi)
-#endif
-    for (int i = 0; i < (int)pca_modes.rows(); i++)
-    {
-      float_type* buffer = new float_type[kNN_k];
-
-      KahanAccumulation<float_type> summedDistances;
-      {
-        for (size_t k = 0; k < pca_modes.cols(); k++)
-        {
-          float_type distance = log(sqrt(entropy::knn_distance_eucl_squared(pca_modes, 1, kNN_k, std::vector<size_t>{static_cast<size_t>(i)}, k, buffer)));
-          summedDistances = KahanSum(summedDistances, distance);
-        }
-      }
-
-
-      float_type distance = summedDistances.sum;
-
-      distance /= float_type(pca_modes.cols()); // Number of draws
-      float_type temp = pow(3.14159265358979323846, 0.5);
-      temp /= tgamma((1. / 2.) + 1.);
-      distance += log(temp);
-
-      distance += log(float_type(pca_modes.cols()));
-
-      temp = 0;
-      if (kNN_k != 1u)
-      {
-        for (size_t l = 1; l < kNN_k; l++)
-        {
-          temp += 1.0 / float_type(l);
-        }
-      }
-      distance -= temp;
-      distance += 0.5772156649015328606065;
-      entropy_kNN(i, 0u) = distance;
-      distance = 0;
-
-      //MI
-      // Mutual Information Correction
-      for (size_t j = i + 1; j < pca_modes.rows(); j++)
-      {
-        std::vector<size_t> query_rows{ (size_t)i,j };
-        KahanAccumulation<float_type> kahan_acc;
-        for (size_t k = 0; k < pca_modes.cols(); k++)
-        {
-          float_type dist_temp = log(sqrt(entropy::knn_distance_eucl_squared(pca_modes, 2, kNN_k, query_rows, k, buffer)));
-          kahan_acc = KahanSum(kahan_acc, dist_temp);
-        }
-        distance = kahan_acc.sum;
-        distance *= 2.;
-        distance /= float_type(pca_modes.cols());
-        float_type temp2 = float_type(pca_modes.cols()) * pow(3.14159265358979323846, 1);
-        // Gamma(2) = 1. We omit temp2 /= 1.
-
-        distance += log(temp2);
-        temp2 = 0;
-        if (kNN_k != 1)
-        {
-          for (size_t u = 1; u < kNN_k; u++)
-          {
-            temp2 += 1.0 / float_type(u);
-          }
-        }
-        distance -= temp2;
-        distance += 0.5772156649015328606065;
-        entropy_mi(i, j) = distance;
-        
-
-      }
-      delete[] buffer;
-    }
-
-    size_t counterForLargeNegativeM_I_Terms = 0u;
-    for (size_t i = 0; i < entropy_kNN.rows(); i++)
-    {
-      for (size_t j = (i + 1); j < entropy_kNN.rows(); j++)
-      {
-        
-        if (
-          pca_frequencies(i, 0u) <  (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
-          && pca_frequencies(j, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34))
-          )
-        {
-          //std::cout << "i: " << entropy_kNN(i, 0u) << " j: " << entropy_kNN(j, 0u) << " mu: " << entropy_mi(i, j);
-          entropy_mi(i, j) = entropy_kNN(i, 0u) + entropy_kNN(j, 0u) - entropy_mi(i, j);
-          //std::cout << " mi: " << entropy_mi(i, j) << "\n";
-          if (entropy_mi(i, j) < 0)
-          {
-            if (entropy_mi(i, j) < -1)
-            {
-              counterForLargeNegativeM_I_Terms++;
-            }
-            entropy_mi(i, j) = 0.0;
-          }
-          entropy_mi(i, j) *= 1.380648813 * 6.02214129 * 0.239005736;
-          //std::cout << "MI " << i << " " << j << " " << entropy_mi(i, j) << "\n";
-        }
-        else
-        {
-          std::cout << "Notice: PCA-Modes " << i << " & " << j << " not corrected for M.I. since they are not in the classical limit.\n";
-          entropy_mi(i, j) = 0.0;
-        }
-      }
-    }
-    if (counterForLargeNegativeM_I_Terms > 0u)
-    {
-      std::cout << "Notice: Large negative M.I. term(s) detected. Check frequency of data sampling. (Do not worry, terms <0.0 are ignored anyway)\n";
-    }
-    for (size_t i = 0; i < entropy_kNN.rows(); i++)
-    {
-      statistical_entropy(i, 0u) = /*-1.0*  */ (log(alpha_i(i, 0u)) + log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
-      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.);
-      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
-
-      // Debug output for developers
-      if (Config::get().general.verbosity >= 4)
-      {
-        std::cout << "mode " << i << ". entropy kNN: " << entropy_kNN(i, 0u) << "\n";
-        std::cout << "mode " << i << ". entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
-        std::cout << "mode " << i << ". classical entropy: " << classical_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". statistical entropy: " << statistical_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". quantum entropy: " << quantum_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". pca freq: " << pca_frequencies(i, 0u) << "\n";
-        std::cout << "mode " << i << ". alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
-        std::cout << "mode " << i << ". standard deviation in mw-pca-units: " << sqrt(eigenvalues(i, 0u)) << "\n";
-      }
-
-      if (pca_frequencies(i, 0u) < (temperatureInKelvin * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
-      {
-        if (abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
-        {
-          entropy_anharmonic(i, 0u) = 0.0;
-          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small).\n";
-        }
-      }
-      else
-      {
-        std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit.\n";
-        entropy_anharmonic(i, 0u) = 0.0;
-      }
-
-      // Change dimensionless entropy to cal / K * mol
-      entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
-      
-    }
-
-    // III. Calculate Difference of Entropies
-    double delta_entropy = 0;
-    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
-    {
-      delta_entropy += entropy_anharmonic(i, 0u);
-
-      if (i == entropy_anharmonic.rows() - 1u)
-        std::cout << "Correction for entropy (order 1): " << delta_entropy << " cal / (mol * K)\n";
-    }
-
-    for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
-    {
-      for (size_t j = (i + 1); j < entropy_anharmonic.rows(); j++)
-      {
-        delta_entropy += entropy_mi(i, j);
-      }
-    }
-    std::cout << "Correction for entropy: " << delta_entropy << " cal / (mol * K)\n";
-    std::cout << "Entropy after correction: " << entropy_sho - delta_entropy << " cal / (mol * K)\n";
-
-    writeToCSV("entropy.csv", "numata_without_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
-    writeToCSV("entropy.csv", "numata_with_correction", entropy_sho - delta_entropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
-
-    return entropy_sho - delta_entropy;
-  }
-
 
 private:
 

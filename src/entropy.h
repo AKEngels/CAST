@@ -17,6 +17,20 @@ Hnizdo, Hnizdo marginal, Knapp
 #include "alignment.h"
 #include "kaham_summation.h"
 
+
+enum kNN_NORM
+{
+  EUCLEDEAN = 0,
+  MAXIMUM
+};
+
+enum kNN_FUNCTION
+{
+  GORIA = 0,
+  LOMBARDI,
+  HNIZDO
+};
+
 namespace entropy
 {
   /**

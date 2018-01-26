@@ -1736,6 +1736,28 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().entropy.entropy_temp;
   }
+  else if (option == "entropy_knn_func")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "goria" || holder == "Goria" || holder == "GORIA")
+    {
+      Config::set().entropy.knnfunc = 0;
+    }
+    else if (holder == "lombardi" || holder == "Lombardi" || holder == "LOMBARDI")
+    {
+      Config::set().entropy.knnfunc = 1;
+    }
+  }
+  else if (option == "entropy_knn_norm")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "maximum" || holder == "Maximum" || holder == "MAXIMUM")
+    {
+      Config::set().entropy.knnnorm = 1;
+    }
+  }
   else if (option == "entropy_remove_dof")
   {
     std::string holder;

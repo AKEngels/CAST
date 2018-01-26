@@ -757,6 +757,8 @@ int main(int argc, char **argv)
       entropy::TrajectoryMatrixRepresentation repr(ci, coords);
 
       entropyobj obj(repr);
+      kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
+      kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
 
       for (size_t u = 0u; u < Config::get().entropy.entropy_method.size(); u++)
       {
@@ -777,46 +779,25 @@ int main(int argc, char **argv)
         if (m == 3 || m == 0)
         {
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          std::cout << calcObj.numataEntropy(Config::get().entropy.entropy_temp,true) << std::endl;
-
 
           Matrix_Class eigenvec, eigenval;
           calcObj.pcaTransformDraws(eigenval, eigenvec, true);
 
-          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, true);
+          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, norm, func, true);
 
-
-          /*double entropy_value = */repr.knapp(
-            Config::get().entropy.entropy_temp,
-            Config::get().entropy.entropy_method_knn_k,
-            Config::get().entropy.entropy_remove_dof);
         }
         // Hnizdo's method
         if (m == 4 || m == 0)
         {
-          ProbabilityDensity probdens(Config::get().entropytrails.ident);
-          entropyobj entropyObject(
-            Config::get().entropytrails.numberOfDraws,
-            probdens, Config::get().entropytrails.subDimsForGMM);
-
-          repr.setCoordsMatrix(transposed(entropyObject.drawMatrix));
-
-
-          entropyobj obj2(repr);
-
-
-          /*double entropy_value = */repr.hnizdo(Config::get().entropy.entropy_method_knn_k);
-          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj2);
-          std::cout << calcObj.calculateNN(kNN_NORM::EUCLEDEAN, false) << std::endl << std::endl << std::endl;
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          std::cout << calcObj.calculateNN(norm, false) << std::endl << std::endl << std::endl;
         }
         // Hnizdo's method, marginal
         if (m == 5 || m == 0)
         {
-          //auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
-          //std::cout << calcObj.calculateNN_MIExpansion(1u, kNN_NORM::EUCLEDEAN, false) << std::endl;
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          std::cout << calcObj.calculateNN_MIExpansion(1u, norm, func, false) << std::endl;
 
-          /*double entropy_value = */repr.hnizdo_marginal(
-            Config::get().entropy.entropy_method_knn_k);
         }
         // Schlitter's method
         if (m == 6 || m == 0)
@@ -956,12 +937,6 @@ int main(int argc, char **argv)
     }
     case config::tasks::ENTROP_DEVTASK:
     {
-      // mat LAYOUT
-      // row 1: drawn sorted data points
-      // row 2: KNN density estimate
-      // row 3: analytical density
-      // row 4: (aux) NN distance at point
-
       std::cout << "Entropy Evaluations from analytic distributions and Gaussian Mixtures.\n\n";
       std::cout << "Number of draws for NN entropies: " << Config::get().entropytrails.numberOfDraws << ".\n";
 
