@@ -179,7 +179,7 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\pagenumbering{arabic}
 	\section{Preface}
-	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. Semi-Empirical computations are possible through DFTB+\supercite{dftb} (\acl{DFTB}) and \ac{MOPAC}\supercite{mopac, mopac_parallel} interfaces. For calculations based on \ac{DFT}, a \ac{MPI} to the \acs{GPU} accelerated TeraChem\supercite{terachem} program is available. For more information on \ac{CAST} see \cite{cast}.
+	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. There are also interfaces to different external programs for Semi-Empirical computations (e.\,g. DFTB+\supercite{dftb} or MOPAC\supercite{mopac, mopac_parallel}) and for quantum chemistry methods (e.\,g. TeraChem\supercite{terachem} or Gaussian). For more information on \ac{CAST} see \cite{cast}.
 	\newpage
 	
 	
@@ -190,55 +190,15 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\ifdevelopment
 	\section{Compiling CAST} \label{sec:compile}
-	The \ac{CAST} source code is not openly distributed. Currently, \ac{CAST} in principle has no external dependencies. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
-	
-	The source code is currently kept on a private GitHub repository. If you feel that you are entitled to access to the repository, please contact the \ac{CAST} developers (see section \ref{sec:contact}) and get an invitation.
+	The \ac{CAST} source code is published at \url{https://github.com/AKEngels/CAST}. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
 	
 	Compiling \ac{CAST} with the standarf openMP flags enables multithreading.
 	
-	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. Precompiled binaries for windows and linux are included in \ac{CAST}.
+	For matrix-operations \ac{CAST} is able to use \ac{LAPACK} via armadillo (\url{http://arma.sourceforge.net/}). The premake5-lua-script includes predefined configurations that enable LAPACK. 
 	
 	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
 	
-	\textbf{For users on ECPC:} The python 2.7 version that is installed on ECPC is 64bit so you can only compile \ac{CAST} in 64bit mode. Also you have to add the following lines to your .cshrc:
-\begin{lstlisting}
-setenv PYTHONHOME /apps/python27
-setenv LD_LIBRARY_PATH /apps/lib64:\${LD_LIBRARY_PATH}
-\end{lstlisting}	
-The first line tells CAST where python is installed, the second line adds the folder ``/apps/lib64'' to the paths where libraries are expected. This is necessary because not all libraries that python needs are originally installed on the nodes of ECPC so they have been copied here manually. 
-
-Then you can submit your job by the following submit file:
-\begin{lstlisting}
-#!/bin/tcsh                                                                                    
-#PBS -l nodes=1:ppn=4                                                                          
-#PBS -l mem=4020MB
-#PBS -l walltime=999:00:00
-#PBS -N TITEL
-
-#setenv GAUSS_SCRDIR $TMPDIR
-cd $PBS_O_WORKDIR
-cp -pr * $TMPDIR
-cd $TMPDIR
-
-
-### enter commands here
-#ulimit -s unlimited
-setenv OMP_NUM_THREADS 4
-setenv MKL_NUM_THREADS 4
-setenv KMP_STACKSIZE 4000m
-
-
-cp -f <path to cast>/optional_files/build/CAST_linux_x64_python_release ./CAST
-cp -R <path to cast>/optional_files/build/python_modules/ ./python_modules/
-
-
-chmod +x CAST
-./CAST | tee CAST_OUTPUT
-rm CAST
-rm -r python_modules
-cp -pr * $PBS_O_WORKDIR   
-\end{lstlisting}	
-\ifx{\verb+$+}!\fi  % fixing bug in TeXnicCenter (https://tex.stackexchange.com/questions/145787/avoiding-math-mode-inside-a-lstlisting)
+	\textbf{For users on ECPC:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (with or without python) are also provided in that folder. 
 
 	
 	\newpage
@@ -249,7 +209,7 @@ cp -pr * $PBS_O_WORKDIR
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	\section{Installation}
-	\ac{CAST} is usually distributed as a precompiled executable for Linux and Windows. Currently \ac{CAST} has no external dependencies.
+	\ac{CAST} is usually distributed as a precompiled executable for Linux and Windows. If you want to compile and install it by yourself look at the github repository \url{https://github.com/AKEngels/CAST} and read the wiki entry ``How to build CAST''.
 
 	\newpage
 
@@ -1024,6 +984,9 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
+	
+\textbf{FEP only works with force field energy interfaces!!!}
+	
 	\acf{FEP} allows the alchemical transformation of one moiety into another and the derivation of the free energy change corresponding to the transformation. For \ac{FEP} calculations the coordinate file has to be slightly modified. \ac{CAST} uses the dual topology paradigm to define the topology for the chimeric system. In the dual topology paradigm both states of the transformation are present during the simulation. Therefore, the input structure of the starting system has to be extended by the moiety of the final structure. As an example, the transformation of ethane to propane is shown. \\
 
 	\begin{figure}[h]
