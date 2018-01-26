@@ -321,40 +321,52 @@ Energy class functions that need to be overloaded
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
   integrity = check_structure();
-  write_inputfile(0);
-  scon::system_call(Config::get().energy.dftb.path +" > output_dftb.txt");
-  energy = read_output(0);
-  return energy;
+  if (integrity == true)
+  {
+    write_inputfile(0);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(0);
+    return energy;
+  }
 }
 
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
   integrity = check_structure();
-  write_inputfile(1);
-  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-  energy = read_output(1);
-  return energy;
+  if (integrity == true)
+  {
+    write_inputfile(1);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(1);
+    return energy;
+  }
 }
 
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
   integrity = check_structure();
-  write_inputfile(2);
-  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-  energy = read_output(2);
-  return energy;
+  if (integrity == true)
+  {
+    write_inputfile(2);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(2);
+    return energy;
+  } 
 }
 
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
   integrity = check_structure();
-  write_inputfile(3);
-  scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-  energy = read_output(3);
-  return energy;
+  if (integrity == true)
+  {
+    write_inputfile(3);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(3);
+    return energy;
+  }
 }
 
 // Output functions
