@@ -37,8 +37,68 @@ namespace energy
 {
   namespace interfaces
   {
+    /**namespaces for QM/MM interface*/
     namespace qmmm
     {
+      /**namespace for bonded QM/MM*/
+      namespace bonded
+      {
+        /**struct with all relevant information about a bond*/
+        struct Bond
+        {
+          /**index of one bindung partner (starting with 0)*/
+          int a;
+          /**index of the other bindung partner (starting with 0)*/
+          int b;
+          /**constructur
+          @param p1: index of one binding partner
+          @param p2: index of the other binding partner*/
+          Bond(int p1, int p2) { a = p1; b = p2; }
+        };
+
+        /**struct with all relevant information about an angle*/
+        struct Angle
+        {
+          /**index of one of the outer atoms (starting with 0)*/
+          int a;
+          /**index of the other outer atom (starting with 0)*/
+          int b;
+          /**index of the central atom (starting with 0)*/
+          int c;
+          /**constructor
+          @param p1: index of one of the outer atoms
+          @param p2: index of the other outer atom
+          @param center: index of the central atom*/
+          Angle(int p1, int p2, int center) { a = p1; b = p2; c = center; }
+          /**returns all relevant information as a string*/
+          std::string info()
+          {
+            return std::to_string(a) +" , "+ std::to_string(c) + " , " + std::to_string(b);
+          }
+          /**looks if angle a2 is identical to Angle itself*/
+          bool is_equal(Angle a2)
+          {
+            if (c == a2.c)  // central atom has to be the same
+            { // outer atoms can be switched
+              if (a == a2.a && b == a2.b) return true;
+              else if (a = a2.b && b == a2.a) return true;
+            }
+            return false;
+          }
+        };
+
+        /**looks if vector v contains Angle x
+        returns true if yes and false if no*/
+        inline bool is_in(Angle x, std::vector<Angle> v)
+        {
+          for (auto ang : v)
+          {
+            if (x.is_equal(ang)) return true;
+          }
+          return false;
+        }
+      }
+
       class QMMM
         : public interface_base
       {
@@ -126,6 +186,9 @@ namespace energy
         void write_gaussian_in(char);
         /**writes charges inputfile for DFTB+ calculation*/
         void write_dftb_in();
+        
+        /**function to find bonds, angles and so on between QM and MM system*/
+        void find_bonds_etc(coords::Coordinates *);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
@@ -147,6 +210,11 @@ namespace energy
         coords::Coordinates qmc;
         /**coordinates object for MM part*/
         coords::Coordinates mmc;
+
+        /**bonds between QM and MM part*/
+        std::vector<bonded::Bond> qmmm_bonds;
+        /**angles between QM and MM part*/
+        std::vector<bonded::Angle> qmmm_angles;
         
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
@@ -180,7 +248,7 @@ namespace energy
         /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
         bool check_atom_dist(void) const;
 
-      };
+      }; 
     }
   }
 }
