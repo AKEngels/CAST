@@ -2955,6 +2955,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   for (auto i = 0; i < N; ++i) {
 
+    auto const determine_sign = [](auto const & change) {
+      if (change < -180.) return 360. + change;
+      else if (change > 180.) return -(360. - change);
+      else return change;
+    };
+
     auto const start_radius = Z_matrices[0][i][0].second;
     auto const start_inclination = Z_matrices[0][i][1].second;
     auto const start_azimuth = Z_matrices[0][i][2].second;
@@ -2965,13 +2971,20 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
     auto const total_change_radius = Z_matrices[imgs - 1][i][0].second - start_radius;
     auto const total_change_inclination = Z_matrices[imgs - 1][i][1].second - start_inclination;
-    auto const total_change_azimuth = Z_matrices[imgs - 1][i][2].second - start_azimuth;
+    auto const total_change_azimuth = determine_sign(Z_matrices[imgs - 1][i][2].second - start_azimuth);
 
-    auto const change_radius = total_change_radius / static_cast<double>(imgs);
-    auto const change_inclination = total_change_inclination / static_cast<double>(imgs);
-    auto const change_azimuth = total_change_azimuth / static_cast<double>(imgs);
+    auto const change_radius = total_change_radius / static_cast<double>(imgs-1);
+    auto const change_inclination = total_change_inclination / static_cast<double>(imgs-1);
+    auto const change_azimuth = total_change_azimuth / static_cast<double>(imgs-1);
 
     for (auto j = 1; j < (imgs - 1); ++j) {
+
+      auto const keep_between_360 = [](auto const & change) {
+        if (change > 360.) return change - 360.;
+        else if (change < 0.0) return change + 360.;
+        else return change;
+      };
+
       Z_matrices[j][i].resize(3);
 
       Z_matrices[j][i][0].first = start_rad_partners;
@@ -2980,7 +2993,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
       Z_matrices[j][i][0].second = start_radius + change_radius * static_cast<double>(j);
       Z_matrices[j][i][1].second = start_inclination + change_inclination * static_cast<double>(j);
-      Z_matrices[j][i][2].second = start_azimuth + change_azimuth * static_cast<double>(j);
+      Z_matrices[j][i][2].second = keep_between_360(start_azimuth + change_azimuth * static_cast<double>(j));
 
       Z_matrices_s3[j][i].radius() = Z_matrices[j][i][0].second;
       Z_matrices_s3[j][i].inclination() = (coords::angle_type)Z_matrices[j][i][1].second;
@@ -3232,14 +3245,14 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     off_cart_old_order << N << "\n\n";
 
     for (auto j = 0; j < N; ++j) {
-      off_cart_new_order << std::setw(4) << coords.atoms(new_order_ini[j]).symbol() << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].x()
+      off_cart_new_order << std::setw(4) << coords.atoms(new_order_ini[j]).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].x()
         << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].y()
         << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].z() << "\n";
-      off_cart_old_order << std::setw(4) << coords.atoms(j).symbol() << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].x()
+      off_cart_old_order << std::setw(4) << coords.atoms(j).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].x()
         << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].y()
         << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].z() << "\n";
 
-      off_intern << std::setw(4) << coords.atoms(new_order_ini[j]).symbol();
+      off_intern << std::setw(4) << coords.atoms(new_order_ini[j]).symbol().at(0);
       if (j > 0)
         off_intern << std::setw(4) << Z_matrices[i][j][0].first[1] << std::setw(15) << std::fixed << Z_matrices[i][j][0].second;
       if (j > 1)
