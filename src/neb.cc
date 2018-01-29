@@ -2956,7 +2956,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   for (auto i = 0; i < N; ++i) {
 
     auto const determine_sign = [](auto const & change) {
-      if (change < -180.) return 360. + change;
+      if (change < -180.) return -(360. + change);
       else if (change > 180.) return -(360. - change);
       else return change;
     };
@@ -3087,11 +3087,11 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   //converting Z-matrix to cartesian structure, NeRF
 
-  coords::Representation_3D current_images(N);
   for (size_t i = 1; i < (imgs - 1); ++i)
   {
     
     coords::Representation_3D CartesianStructure(N);
+    coords::Representation_3D current_images(N);
 
     for (size_t j = 0; j < N; ++j){
         if (j == 0) {
@@ -3133,8 +3133,6 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
           Avec = Minc * Avec;
 
           CartesianStructure[j] = coords::Cartesian_Point(Avec(0), Avec(1), Avec(2));
-
-          std::cout << Scan2D::get_angle(Scan2D::cangle(CartesianStructure[j], cartC, cartB)) << " | " << A[1].second << "\n";
 
          }
         else {
@@ -3196,11 +3194,9 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
           Dvec = Minc * Dvec;
           cartD = coords::Cartesian_Point(Dvec[0], Dvec[1], Dvec[2]);
-          std::cout << Scan2D::get_length(Scan2D::cbond(cartC, cartD)) << " | " << DD[0].second << std::endl;
-          std::cout << Scan2D::get_angle(Scan2D::cangle(cartB, cartC, cartD)) << " | " << DD[1].second << std::endl;
           Dvec = Mazi * Dvec;
           cartD = coords::Cartesian_Point(Dvec[0], Dvec[1], Dvec[2]);
-          std::cout << Scan2D::get_dihedral(Scan2D::cdihedral(cartA, cartB, cartC, cartD)) << " | " << DD[2].second << std::endl;
+          std::cout << Scan2D::get_dihedral(Scan2D::cdihedral(cartA, cartB, cartC, cartD)) << " | " << (DD[2].second < 180.? DD[2].second : DD[2].second -360.) << std::endl;
 
          /* Eigen::Matrix3d M;
           M << BC.x(), NcrBC.x(), N.x(),
@@ -3245,12 +3241,12 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     off_cart_old_order << N << "\n\n";
 
     for (auto j = 0; j < N; ++j) {
-      off_cart_new_order << std::setw(4) << coords.atoms(new_order_ini[j]).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].x()
-        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].y()
-        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[j].z() << "\n";
-      off_cart_old_order << std::setw(4) << coords.atoms(j).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].x()
-        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].y()
-        << std::setw(10) << std::fixed << std::setprecision(5) << current_images[rereorder[j]].z() << "\n";
+      off_cart_new_order << std::setw(4) << coords.atoms(new_order_ini[j]).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][j].x()
+        << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][j].y()
+        << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][j].z() << "\n";
+      off_cart_old_order << std::setw(4) << coords.atoms(j).symbol().at(0) << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][rereorder[j]].x()
+        << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][rereorder[j]].y()
+        << std::setw(10) << std::fixed << std::setprecision(5) << imagi[i][rereorder[j]].z() << "\n";
 
       off_intern << std::setw(4) << coords.atoms(new_order_ini[j]).symbol().at(0);
       if (j > 0)
@@ -3266,10 +3262,10 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     off_intern << "\n\n\n";
   }
 
-  coords::Coordinates new_coords = coords;
+  /*coords::Coordinates new_coords = coords;
   new_coords.set_xyz(current_images, false);
   coords::output::formats::tinker tinker_writer(new_coords);
-  tinker_writer.to_stream(std::cout);
+  tinker_writer.to_stream(std::cout);*/
 
 
   /*printmono("Cyclohexan_Image2.xyz", imagi[1], 1);*/
