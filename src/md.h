@@ -297,8 +297,11 @@ namespace md
     @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
     */
     bool heat(std::size_t const step, bool fep);
-    /** nose hoover thermostat */
+    /** nose hoover thermostat (velocity scaling is done automatically in this function)*/
     void nose_hoover_thermostat(void);
+    /** nose hoover thermostat only for inner atoms when used together with biased potential
+    returns the temperature scaling factor for velocities (scaling has to be performed after this function)*/
+    double nose_hoover_thermostat_biased(void);
 
     /**sets coordinates to original values and assigns random velocities*/
     void restart_broken();

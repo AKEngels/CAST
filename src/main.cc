@@ -48,11 +48,13 @@
 #include "Path_perp.h"
 #include "matop.h" //For ALIGN, PCAgen, ENTROPY, PCAproc
 #include "PCA.h"
+#include "2DScan.h"
 #include "exciton_breakup.h"
 #include "Center.h"
 #include "Couplings.h"
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
+#include "modify_sk.h"
 
 
 //////////////////////////
@@ -82,6 +84,8 @@
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
+#include "energy_int_qmmm.h"
+//#include "scon_utility.h"
 
 
 int main(int argc, char **argv)
@@ -166,6 +170,17 @@ int main(int argc, char **argv)
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
+    // Define Function to output molar mass of a coords object
+    auto sys_mass = [](coords::Coordinates &sys) -> double
+    {
+      double m = 0;
+      for (auto && a : sys.atoms())
+      {
+        m += a.mass();
+      }
+      return m;
+    };
+
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
     {
@@ -238,16 +253,18 @@ int main(int argc, char **argv)
         std::cout << "-------------------------------------------------\n";
       }
       std::size_t i(0);
-      for (auto const & pes : *ci)
+      for (auto & pes : *ci)
       {
         coords.set_xyz(pes.structure.cartesian);
         coords.pe();
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization initial: " << ++i << '\n';
+          coords.e_head_tostream_short(std::cout, coords.preinterface());
           coords.e_tostream_short(std::cout, coords.preinterface());
         }
         coords.po();
+        pes.structure.cartesian = coords.xyz();
         if (Config::get().general.verbosity > 1U)
         {
           std::cout << "Preoptimization post-opt: " << i << '\n';
@@ -275,7 +292,6 @@ int main(int argc, char **argv)
     // select task
     switch (Config::get().general.task)
     {
-
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
@@ -292,34 +308,33 @@ int main(int argc, char **argv)
       break;
     }
     case config::tasks::SP:
-    {
-      // singlepoint calculation
-      coords.e_head_tostream_short(std::cout);
-      std::size_t i(0u);
-      auto sp_energies_fn = coords::output::filename("_SP", ".txt");
-      std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-      if (!sp_estr) throw std::runtime_error("Cannot open '" +
-        sp_energies_fn + "' to write SP energies.");
-      sp_estr << std::setw(16) << "#";
-      short_ene_stream_h(coords, sp_estr, 16);
-      sp_estr << std::setw(16) << 't';
-      sp_estr << '\n';
-      i = 0;
-      for (auto const & pes : *ci)
-      {
-        using namespace std::chrono;
-        coords.set_xyz(pes.structure.cartesian);
-        auto start = high_resolution_clock::now();
-        coords.e();
-        auto tim = duration_cast<duration<double>>
-          (high_resolution_clock::now() - start);
-        std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
-        short_ene_stream(coords, sp_estr, 16);
-        sp_estr << std::setw(16) << tim.count() << '\n';
-        coords.e_tostream_short(std::cout);
+      { // singlepoint
+        coords.e_head_tostream_short(std::cout);
+        std::size_t i(0u);
+        auto sp_energies_fn = coords::output::filename("_SP", ".txt");
+        std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
+        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+          sp_energies_fn + "' to write SP energies.");
+        sp_estr << std::setw(16) << "#";
+        short_ene_stream_h(coords, sp_estr, 16);
+        sp_estr << std::setw(16) << 't';
+        sp_estr << '\n';
+        i = 0;
+        for (auto const& pes : *ci)
+        {
+          using namespace std::chrono;
+          coords.set_xyz(pes.structure.cartesian, true);
+          auto start = high_resolution_clock::now();
+          coords.e();
+          auto tim = duration_cast<duration<double>>
+            (high_resolution_clock::now() - start);
+          std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
+          short_ene_stream(coords, sp_estr, 16);
+          sp_estr << std::setw(16) << tim.count() << '\n';
+          coords.e_tostream_short(std::cout);
+        }
+        break;
       }
-      break;
-    }
     case config::tasks::GRAD:
     {
       // calculate gradient
@@ -617,6 +632,15 @@ int main(int argc, char **argv)
       gstream << coords::output::formats::tinker(coords);
       break;
     }
+    case config::tasks::MODIFY_SK_FILES:
+    {
+      std::vector<std::vector<std::string>> pairs = find_pairs(coords);
+      for (auto p : pairs)
+      {
+        modify_file(p);
+      }
+      break;
+    }
     case config::tasks::PCAgen:
     {
       /**
@@ -780,6 +804,12 @@ int main(int argc, char **argv)
       }
 		    break;
       }
+	  case config::tasks::SCAN2D:
+	  {
+		  auto scan = std::make_shared<Scan2D>(coords);
+		scan->execute_scan();
+		  break;
+	  }
 	    case config::tasks::XB_EXCITON_BREAKUP:
 	    {
 		  /**
@@ -934,18 +964,15 @@ int main(int argc, char **argv)
         break;
       }
 
-    default:
-    {
-
-    }
-
+      default:
+      {
+      
+      }
     }
 #ifdef USE_PYTHON
-    if (Config::get().general.energy_interface == config::interface_types::T::DFTB)
-    {    // if DFTB interface: close python
-      Py_Finalize();
-    }
-#endif // 
+      Py_Finalize(); //  close python
+#endif 
+
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
     std::cout << " took " << task_timer << " to complete.\n";

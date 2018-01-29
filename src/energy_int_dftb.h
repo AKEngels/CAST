@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 
 #pragma once 
 
@@ -92,6 +92,15 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
+        /**returns partial atomic charges*/
+        std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_el_field() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
 
 			private:
 
@@ -115,7 +124,7 @@ namespace energy
 				std::string add_path;
 
 				/*
-				Helper functions
+				checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)
 				*/
 				bool check_bond_preservation(void) const;
 

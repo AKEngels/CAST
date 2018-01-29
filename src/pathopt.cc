@@ -16,6 +16,13 @@
 #include <sys/stat.h>
 
 #endif
+#if defined(_MSC_VER)
+#include <process.h>
+#define pid_func _getpid
+#else 
+#include <unistd.h>
+#define pid_func getpid
+#endif
 
 /** 
 * CONSTRUCTOR OF PATHX-CLASS AND INITIALIZATION OF GLOBAL VARIABLES
@@ -68,7 +75,11 @@ void pathx::pathx_ini()
   * Connection procedure on the total number of obtained minima
   * after optimizaiton on n-1 subspace
   */
-  proof_connect();
+  if (Config::get().neb.CONN)
+  {
+	  proof_connect();
+  }
+ 
 }
 
 /**
@@ -309,7 +320,7 @@ void pathx::MC_PO(ptrdiff_t opt)
 {
 
 	double MCmin{ 0.0 }, MCgmin{ 0.0 }, factor{ 0.0 };
-	std::vector <double> MCpmin_vec;
+	
 	/**
 	* initialize Boltzman and trial number generation
 	*/
@@ -327,15 +338,23 @@ void pathx::MC_PO(ptrdiff_t opt)
 	global_path_minima_temp.resize(N->num_images);
 	global_path_minima_energy.resize(N->num_images);
 
+	/**
+	* global iterations for multiple runs
+	*/
+	for (size_t t = 0; t < Config::get().neb.GLOBALITERATION; t++)
+	{
+		std::cout << "global iterator: " << t << "\n";
+		srand((unsigned int)time(NULL) + pid_func());
 		for (size_t i = 0; i < global_path_minima.size(); i++)
 		{
-			global_path_minima[i].resize(mciteration);
-			global_path_minima_temp[i].resize(mciteration);
-			global_path_minima_energy[i].resize(mciteration);
+			global_path_minima[i].resize(mciteration*(t + 1));
+			global_path_minima_temp[i].resize(mciteration*(t + 1));
+			global_path_minima_energy[i].resize(mciteration*(t + 1));
 		}
 		/**
 		* initialize coords
 		*/
+		cPtr->set_xyz(N->imagi[opt]);
 		coord_in = cPtr->xyz();
 		coord_glob = cPtr->xyz();
 		/**
@@ -344,6 +363,8 @@ void pathx::MC_PO(ptrdiff_t opt)
 		MCmin = cPtr->g();
 		MCgmin = MCmin;
 		start_image_energy = MCmin;
+		std::vector <double> MCpmin_vec;
+		MCpmin_vec.clear();
 		/**
 		* MCM iterations
 		*/
@@ -354,6 +375,7 @@ void pathx::MC_PO(ptrdiff_t opt)
 			positions.clear();
 			positions.resize(cPtr->size());
 			nanstatus = false;
+			status = 0;
 			if (same_counter > 10) same_counter = 0;
 			/**
 			* Decision which jump strategy is used
@@ -431,9 +453,9 @@ void pathx::MC_PO(ptrdiff_t opt)
 				status = 0;
 				nbad++;
 				cPtr->set_xyz(coord_in);
-				if (nancounter>(mcstep / 2)) break;
+				if (nancounter > (mcstep / 2)) break;
 			}
-			
+
 			/**
 			* Metropolis Monte Carlo criterium and test for identical minima
 			*/
@@ -518,7 +540,7 @@ void pathx::MC_PO(ptrdiff_t opt)
 				}
 			}
 			///restore global minimum after five bad iterations
-			if (nbad>3 || same_counter >= 10)
+			if (nbad > 3 || same_counter >= 10)
 			{
 				nbad = 0;
 				cPtr->set_xyz(coord_glob);
@@ -539,6 +561,7 @@ void pathx::MC_PO(ptrdiff_t opt)
 			///saving the accepted minima
 			else if (status == 1 && nanstatus == false)
 			{
+				
 				if (Config::get().general.verbosity > 4)
 				{
 					std::cout << "structure is saved \n";
@@ -550,15 +573,18 @@ void pathx::MC_PO(ptrdiff_t opt)
 				output << mcstep << "    " << opt << "    " << std::right << std::fixed << std::setprecision(6) << MCEN << "\n";
 				counter++;
 				global_path_minima_energy[opt][counter] = MCEN;
-				for (size_t i = 0; i<cPtr->size(); i++)
+				for (size_t i = 0; i < cPtr->size(); i++)
 				{
 					global_path_minima[opt][counter].push_back(cPtr->xyz(i));
 				}
-				printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
+				if (counter % Config::get().neb.MCM_SAVEITER == 0 && mcstep > 1)
+				{
+					printmono(struc_opt.str(), global_path_minima[opt][counter], counter);
+				}
 			}
 			else if (status == 2) status = 0;
 		}
-
+	}
 }
 
 /*
@@ -619,7 +645,7 @@ void pathx::proof_connect()
 	 /// loop over the first next up to the third nearest neighbors
 	 size_t arrhenius_counter(0U);
 	 double arrhenius(0.0);
-	 ofstream arrhenius_file("arrhenius_global.dat", ios::app);
+	 std::ofstream arrhenius_file("arrhenius_global.dat", std::ios::app);
 	 for (size_t mm = 1; mm < 4; mm++) 
 	 {
 		std::ostringstream NEB1;
