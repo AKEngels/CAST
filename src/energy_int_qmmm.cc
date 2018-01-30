@@ -150,7 +150,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   }
   cparams = tp.contract(types);
   torsionunit = cparams.torsionunit();
-  find_bonds_etc();
+  prepare_bonded_qmmm();
 }
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs, 
@@ -368,11 +368,15 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
       }
     }
   }
+}
 
+void energy::interfaces::qmmm::QMMM::prepare_bonded_qmmm()
+{
+  find_bonds_etc();    // find bonds, angles and dihedrals between QM and MM region
   find_parameters();   // find force field parameters for energy calculation
-  create_link_atoms();
+  create_link_atoms(); // create link atoms
 
-  if (Config::get().general.verbosity > 4)
+  if (Config::get().general.verbosity > 4)  // Output
   {
     std::cout << "QM/MM-Bonds\n";
     for (auto b : qmmm_bonds)

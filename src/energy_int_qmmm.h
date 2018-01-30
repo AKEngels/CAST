@@ -374,25 +374,22 @@ namespace energy
 
         /**sets distance
         @param d: new distance*/
-        void set_distance(double d)
-        {
-          distance = d;
-        }
+        void set_distance(double d) { distance = d; }
 
         /**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
         void update_representation();
 
       private:
 
-        /**
-        writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html)
-        */
+        /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html) */
         void write_mol_in();
         /**writes inputfile for gaussian calculation*/
         void write_gaussian_in(char);
         /**writes charges inputfiles for DFTB+ calculation*/
         void write_dftb_in(char);
         
+        /**function where QM/MM calculation is prepared*/
+        void prepare_bonded_qmmm();
         /**function to find bonds, angles and so on between QM and MM system*/
         void find_bonds_etc();
         /**function to find force field parameters for bonds, angles and so on between QM and MM system*/
