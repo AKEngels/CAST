@@ -161,7 +161,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
   mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),  
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
-  c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy)
+  c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy), bonded_gradient(rhs.bonded_gradient)
 {
   interface_base::operator=(rhs);
 }
@@ -177,8 +177,8 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   mm_charge_vector(std::move(rhs.mm_charge_vector)),
   vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
-  c_gradient(std::move(rhs.c_gradient)), 
-  vdw_gradient(std::move(rhs.vdw_gradient)), bonded_energy(std::move(rhs.bonded_energy))
+  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), 
+  bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))
 {
   interface_base::operator=(rhs);
 }
@@ -541,8 +541,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     {
       mm_energy = mmc.g(); // get energy for MM part
 
-      // get gradients: QM + MM + vdW + Coulomb
-	    auto new_grad = vdw_gradient + c_gradient;  // vdW + Coulomb
+      // get gradients: QM + MM + vdW + Coulomb + bonded
+	    auto new_grad = vdw_gradient + c_gradient + bonded_gradient;  // vdW + Coulomb + bonded
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
@@ -570,12 +570,22 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   return energy;
 }
 
+/**calculate bonded energy and gradients*/
 double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
 {
   double E(0.0);
-  for (auto b : qmmm_bonds) E += b.calc_energy(coords);
-  for (auto a : qmmm_angles) E += a.calc_energy(coords);
-  for (auto d : qmmm_dihedrals) E += d.calc_energy(coords, torsionunit);
+  if (if_gradient == false)  // only energy calculation
+  {   // bonded gradient is given to functions because the function needs a parameter, is not used
+    for (auto b : qmmm_bonds) E += b.calc_energy(coords, bonded_gradient);
+    for (auto a : qmmm_angles) E += a.calc_energy(coords, bonded_gradient);
+    for (auto d : qmmm_dihedrals) E += d.calc_energy(coords, torsionunit, bonded_gradient);
+  }
+  else   // gradient calculation
+  {
+    for (auto b : qmmm_bonds) E += b.calc_energy(coords, bonded_gradient, true);
+    for (auto a : qmmm_angles) E += a.calc_energy(coords, bonded_gradient, true);
+    for (auto d : qmmm_dihedrals) E += d.calc_energy(coords, torsionunit, bonded_gradient, true);
+  }
   return E;
 }
 
@@ -587,6 +597,7 @@ for GAUSSIAN gradients are vdW and coulomb on MM atoms
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
   // bonded interactions
+  bonded_gradient.assign(coords->size(), coords::r3{});
   bonded_energy = calc_bonded(if_gradient);
 
   // preparation for calculation

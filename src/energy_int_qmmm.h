@@ -62,8 +62,11 @@ namespace energy
           {
             return std::to_string(a) + " , "+ std::to_string(b) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
           }
-          /**function to calculate force field energy (copied from energy_int_aco.cc)*/
-          double calc_energy(coords::Coordinates *cp)
+          /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
+          @param cp: pointer to coordinates object
+          @param gradients: gradients that are filled during gradient calculation (necessary but not used also in only-energy calculation)
+          @param grad: true if gradients shold be calculated*/
+          double calc_energy(coords::Coordinates *cp, coords::Gradients_3D &gradients, bool grad = false)
           {
             double E(0.0);
             auto const bv(cp->xyz(a) - cp->xyz(b)); // r_ij (i=1, j=2)
@@ -71,6 +74,14 @@ namespace energy
             auto const r = d - ideal;
             auto dE = force * r;
             E += dE * r;  // kcal/mol
+            if (grad == true)
+            {
+              dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
+              dE /= d;  // kcal/(mol*A^2)   gradient divided by distance because later it is multiplied with it again
+              auto const gv = bv * dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
+              gradients[a] += gv;   //(kcal/(mol*A))
+              gradients[b] -= gv;
+            }
             return E;
           }
         };
@@ -108,8 +119,11 @@ namespace energy
             }
             return false;
           }
-          /**calculate energy (copied from energy_int_aco.cc)*/
-          double calc_energy(coords::Coordinates *cp)
+          /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
+          @param cp: pointer to coordinates object
+          @param gradients: gradients that are filled during gradient calculation (necessary but not used also in only-energy calculation)
+          @param grad: true if gradients shold be calculated*/
+          double calc_energy(coords::Coordinates *cp, coords::Gradients_3D &gradients, bool grad = false)
           {
             double E(0.0);
             auto av1(cp->xyz(a) - cp->xyz(c));
@@ -117,6 +131,18 @@ namespace energy
             auto const d(scon::angle(av1, av2).degrees() - ideal);
             auto const r(d*SCON_PI180);
             E += force*r*r;
+            if (grad == true)
+            {
+              auto dE = force*r;
+              coords::Cartesian_Point const cv(cross(av1, av2));
+              coords::float_type const cvl(len(cv));
+              dE *= 2.0 / cvl;
+              coords::Cartesian_Point const gv1(cross(av1, cv) * (dE / dot(av1, av1)));
+              coords::Cartesian_Point const gv2(cross(cv, av2) * (dE / dot(av2, av2)));
+              gradients[a] += gv1;
+              gradients[b] += gv2;
+              gradients[c] += -(gv1 + gv2);
+            }
             return E;
           }
         };
@@ -171,8 +197,11 @@ namespace energy
             else if (c1 == d2.c2 && c2 == d2.c1 && a == d2.b && b == d2.a) return true;
             return false;
           }
-          /**calculate energy (copied from energy_int_aco.cc)*/
-          double calc_energy(coords::Coordinates *cp, double torsionunit)
+          /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
+          @param cp: pointer to coordinates object
+          @param gradients: gradients that are filled during gradient calculation (necessary but not used also in only-energy calculation)
+          @param grad: true if gradients shold be calculated*/
+          double calc_energy(coords::Coordinates *cp, double torsionunit, coords::Gradients_3D &gradients, bool grad = false)
           {
             double E(0.0);
             // Get bonding vectors
@@ -206,15 +235,34 @@ namespace energy
               cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
             }
 
-            coords::float_type tE(0.0);
+            coords::float_type tE(0.0), dE(0.0);
             for (std::size_t j(0U); j < number; ++j)
             {
               coords::float_type const F = forces[j] * torsionunit;
               std::size_t const k = orders[j];
               coords::float_type const l = std::abs(ideals[j]) > 0.0 ? -1.0 : 1.0;
               tE += F * (1.0 + cos[k] * l);
+              dE += -static_cast<coords::float_type>(k) * F * sin[k] * l;
             }
             E += tE;
+            if (grad == true)
+            {
+              coords::Cartesian_Point const b02 = cp->xyz(c2) - cp->xyz(a);
+              coords::Cartesian_Point const b13 = cp->xyz(b) - cp->xyz(c1);
+
+              coords::Cartesian_Point const dt(cross(t, b12) * (dE / (tl2*r12)));
+              coords::Cartesian_Point const du(cross(u, b12) * (-dE / (ul2*r12)));
+
+              coords::Cartesian_Point const vir1 = cross(dt, b12);
+              coords::Cartesian_Point const vir2 = cross(b02, dt) + cross(du, b23);
+              coords::Cartesian_Point const vir3 = cross(dt, b01) + cross(b13, du);
+              coords::Cartesian_Point const vir4 = cross(du, b12);
+
+              gradients[a] += vir1;
+              gradients[c1] += vir2;
+              gradients[c2] += vir3;
+              gradients[b] += vir4;
+            }
             return E;
           }
         };
@@ -386,6 +434,8 @@ namespace energy
         coords::Gradients_3D c_gradient;
         /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;
+        /**gradients of bonded interactions energy between QM and MM atoms*/
+        coords::Gradients_3D bonded_gradient;
 
         /**information needed to calculate coulomb gradients on MM atoms
         for GAUSSIAN: electric field from gaussian calculation for QM and MM atoms (first QM, then MM)
