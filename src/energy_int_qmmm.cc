@@ -147,8 +147,8 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   {
     scon::sorted::insert_unique(types, atom.energy_type());
   }
-  find_bonds_etc(cp);
   cparams = tp.contract(types);
+  find_bonds_etc();
 }
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs, 
@@ -181,12 +181,34 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   interface_base::operator=(rhs);
 }
 
-void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
+void energy::interfaces::qmmm::QMMM::find_parameters()
+{
+  for (auto &b : qmmm_bonds)
+  {
+    auto b_type_a = cparams.type(coords->atoms().atom(b.a).energy_type(), tinker::potential_keys::BOND);
+    auto b_type_b = cparams.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
+    for (auto b_param : cparams.bonds())
+    {
+      if (b_param.index[0] == b_type_a && b_param.index[1] == b_type_b)
+      {
+        b.ideal = b_param.ideal;
+        b.force = b_param.f;
+      }
+      else if (b_param.index[0] == b_type_b && b_param.index[1] == b_type_a)
+      {
+        b.ideal = b_param.ideal;
+        b.force = b_param.f;
+      }
+    }
+  }
+}
+
+void energy::interfaces::qmmm::QMMM::find_bonds_etc()
 {
   // find bonds between QM and MM region
   for (auto mma : mm_indices)
   {
-    for (auto b : cp->atoms().atom(mma).bonds())
+    for (auto b : coords->atoms().atom(mma).bonds())
     {
       if (scon::sorted::exists(qm_indices, b))
       {
@@ -199,7 +221,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
   // find angles between QM and MM region
   for (auto b : qmmm_bonds) // for every bond
   {
-    for (auto p : cp->atoms().atom(b.a).bonds()) // atom a as angle center
+    for (auto p : coords->atoms().atom(b.a).bonds()) // atom a as angle center
     {
       if (b.b != p)
       {
@@ -210,7 +232,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
         }
       }
     }
-    for (auto p : cp->atoms().atom(b.b).bonds()) // atom b as angle center
+    for (auto p : coords->atoms().atom(b.b).bonds()) // atom b as angle center
     {
       if (b.a != p)
       {
@@ -226,7 +248,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
   // find dihedrals between QM and MM region
   for (auto a : qmmm_angles)
   {
-    for (auto p : cp->atoms().atom(a.a).bonds())   // expand angle at atom a
+    for (auto p : coords->atoms().atom(a.a).bonds())   // expand angle at atom a
     {
       if (a.c != p) 
       {
@@ -237,7 +259,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
         }
       }
     }
-    for (auto p : cp->atoms().atom(a.b).bonds())   // expand angle at atom b
+    for (auto p : coords->atoms().atom(a.b).bonds())   // expand angle at atom b
     {
       if (a.c != p)
       {
@@ -250,12 +272,14 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
     }
   }
 
+  find_parameters();
+
   if (Config::get().general.verbosity > 3)
   {
     std::cout << "QM/MM-Bonds\n";
     for (auto b : qmmm_bonds)
     {
-      std::cout << b.a << " , " << b.b << "\n";
+      std::cout << b.info() << "\n";
     }
     std::cout << "QM/MM-Angles\n";
     for (auto a : qmmm_angles)

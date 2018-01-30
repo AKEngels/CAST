@@ -46,14 +46,33 @@ namespace energy
         /**struct with all relevant information about a bond*/
         struct Bond
         {
-          /**index of one bindung partner (starting with 0)*/
+          /**index of MM atom (starting with 0)*/
           int a;
-          /**index of the other bindung partner (starting with 0)*/
+          /**index of QM atom (starting with 0)*/
           int b;
+          /**ideal bond length (from force field)*/
+          double ideal;
+          /**force constant*/
+          double force;
           /**constructur
           @param p1: index of one binding partner
           @param p2: index of the other binding partner*/
           Bond(int p1, int p2) { a = p1; b = p2; }
+          std::string info()
+          {
+            return std::to_string(a) + " , "+ std::to_string(b) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
+          }
+          /**function to calculate force field energy*/
+          double calc_energy(coords::Coordinates *cp)
+          {
+            double E;
+            auto const bv(cp->xyz(a) - cp->xyz(b)); // r_ij (i=1, j=2)
+            auto const d = len(bv);
+            auto const r = d - ideal;
+            auto dE = force * r;
+            E += dE * r;  // kcal/mol
+            return E;
+          }
         };
 
         /**struct with all relevant information about an angle*/
@@ -233,7 +252,9 @@ namespace energy
         void write_dftb_in();
         
         /**function to find bonds, angles and so on between QM and MM system*/
-        void find_bonds_etc(coords::Coordinates *);
+        void find_bonds_etc();
+        /**function to find force field parameters for bonds, angles and so on between QM and MM system*/
+        void find_parameters();
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
