@@ -267,6 +267,21 @@ namespace energy
           }
         };
 
+        /**struct with all relevant information about a link atom*/
+        struct LinkAtom
+        {
+          /**position*/
+          coords::Cartesian_Point position;
+          /**equilibrium distance to QM atom*/
+          double d_L_QM;
+          /**index of QM atom*/
+          int qm;
+          /**index of MM atom*/
+          int mm;
+          /**constructor*/
+          LinkAtom() { d_L_QM = 0.0; }
+        };
+
         /**looks if vector v contains Angle x
         returns true if yes and false if no*/
         inline bool is_in(Angle x, std::vector<Angle> v)
@@ -375,13 +390,17 @@ namespace energy
         void write_mol_in();
         /**writes inputfile for gaussian calculation*/
         void write_gaussian_in(char);
-        /**writes charges inputfile for DFTB+ calculation*/
-        void write_dftb_in();
+        /**writes charges inputfiles for DFTB+ calculation*/
+        void write_dftb_in(char);
         
         /**function to find bonds, angles and so on between QM and MM system*/
         void find_bonds_etc();
         /**function to find force field parameters for bonds, angles and so on between QM and MM system*/
         void find_parameters();
+        /**creates link atoms*/
+        void create_link_atoms();
+        /**calculates the position of a given link atom*/
+        coords::cartesian_type calc_position(bonded::LinkAtom);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
@@ -412,7 +431,10 @@ namespace energy
         std::vector<bonded::Angle> qmmm_angles;
         /**dihedrals between QM and MM part*/
         std::vector<bonded::Dihedral> qmmm_dihedrals;
+        /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
+        /**link atoms*/
+        std::vector<bonded::LinkAtom> link_atoms;
         
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;

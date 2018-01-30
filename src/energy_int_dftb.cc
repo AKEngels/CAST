@@ -109,17 +109,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
-  if (Config::get().energy.qmmm.use == true)  // if QM/MM calculation: tell DFTB+ to read external charges
-  {                          
-    file << "  ElectricField = {\n";
-    file << "    PointCharges = {\n";
-    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-    file << "        Records = " << Config::get().energy.qmmm.mm_atoms_number << "\n";
-    file << "        File = 'charges.dat'\n";
-    file << "      }\n";
-    file << "    }\n";
-    file << "  }\n";
-  }
+ 
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
@@ -337,7 +327,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = check_structure();
   if (integrity == true)
   {
-    write_inputfile(1);
+    if (Config::get().energy.qmmm.use == false) write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
     return energy;
@@ -471,7 +461,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  // read energy
+      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  
       {
         for (int i = 0; i < coords->size(); i++)
         {
