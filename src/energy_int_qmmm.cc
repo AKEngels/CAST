@@ -223,15 +223,50 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc(coords::Coordinates *cp)
     }
   }
 
-  std::cout << "Bonds\n";
-  for (auto b : qmmm_bonds)
-  {
-    std::cout << b.a << " , " << b.b << "\n";
-  }
-  std::cout << "Angles\n";
+  // find dihedrals between QM and MM region
   for (auto a : qmmm_angles)
   {
-    std::cout << a.a << " , " << a.c << " , " << a.b << "\n";
+    for (auto p : cp->atoms().atom(a.a).bonds())   // expand angle at atom a
+    {
+      if (a.c != p) 
+      {
+        bonded::Dihedral dihed(p, a.b, a.a, a.c);
+        if (!bonded::is_in(dihed, qmmm_dihedrals))
+        {
+          qmmm_dihedrals.push_back(dihed);
+        }
+      }
+    }
+    for (auto p : cp->atoms().atom(a.b).bonds())   // expand angle at atom b
+    {
+      if (a.c != p)
+      {
+        bonded::Dihedral dihed(p, a.a, a.b, a.c);
+        if (!bonded::is_in(dihed, qmmm_dihedrals))
+        {
+          qmmm_dihedrals.push_back(dihed);
+        }
+      }
+    }
+  }
+
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "QM/MM-Bonds\n";
+    for (auto b : qmmm_bonds)
+    {
+      std::cout << b.a << " , " << b.b << "\n";
+    }
+    std::cout << "QM/MM-Angles\n";
+    for (auto a : qmmm_angles)
+    {
+      std::cout << a.info() << "\n";
+    }
+    std::cout << "QM/MM-Dihedrals\n";
+    for (auto a : qmmm_dihedrals)
+    {
+      std::cout << a.info() << "\n";
+    }
   }
 }
 

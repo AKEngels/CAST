@@ -87,6 +87,40 @@ namespace energy
           }
         };
 
+        /**struct with all relevant information about a dihedral*/
+        struct Dihedral
+        {
+          /**index of one of the outer atoms (starting with 0)*/
+          int a;
+          /**index of the other outer atom (starting with 0)*/
+          int b;
+          /**index of the central atom bound to a (starting with 0)*/
+          int c1;
+          /**index of the central atom bound to b (starting with 0)*/
+          int c2;
+          /**constructor
+          @param p1: index of one of the outer atoms
+          @param p2: index of the other outer atom
+          @param center1: index of the central atom bound to a
+          @param center2: index of the central atom bound to b*/
+          Dihedral(int p1, int p2, int center1, int center2)
+          {
+            a = p1; b = p2; c1 = center1, c2 = center2;
+          }
+          /**returns all relevant information as a string*/
+          std::string info()
+          {
+            return std::to_string(a) + " , " + std::to_string(c1) + " , "+ std::to_string(c2) + " , " + std::to_string(b);
+          }
+          /**looks if dihedral d2 is identical to Dihedral itself*/
+          bool is_equal(Dihedral d2)
+          {
+            if (c1 == d2.c1 && c2 == d2.c2 && a == d2.a && b == d2.b) return true;
+            else if (c1 == d2.c2 && c2 == d2.c1 && a == d2.b && b == d2.a) return true;
+            return false;
+          }
+        };
+
         /**looks if vector v contains Angle x
         returns true if yes and false if no*/
         inline bool is_in(Angle x, std::vector<Angle> v)
@@ -94,6 +128,17 @@ namespace energy
           for (auto ang : v)
           {
             if (x.is_equal(ang)) return true;
+          }
+          return false;
+        }
+
+        /**looks if vector v contains Dihedral x
+        returns true if yes and false if no*/
+        inline bool is_in(Dihedral x, std::vector<Dihedral> v)
+        {
+          for (auto dih : v)
+          {
+            if (x.is_equal(dih)) return true;
           }
           return false;
         }
@@ -215,6 +260,8 @@ namespace energy
         std::vector<bonded::Bond> qmmm_bonds;
         /**angles between QM and MM part*/
         std::vector<bonded::Angle> qmmm_angles;
+        /**dihedrals between QM and MM part*/
+        std::vector<bonded::Dihedral> qmmm_dihedrals;
         
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
