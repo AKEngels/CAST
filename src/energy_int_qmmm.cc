@@ -148,6 +148,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
     scon::sorted::insert_unique(types, atom.energy_type());
   }
   cparams = tp.contract(types);
+  torsionunit = cparams.torsionunit();
   find_bonds_etc();
 }
 
@@ -183,7 +184,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
 
 void energy::interfaces::qmmm::QMMM::find_parameters()
 {
-  for (auto &b : qmmm_bonds)
+  for (auto &b : qmmm_bonds)  // find bond parameters
   {
     auto b_type_a = cparams.type(coords->atoms().atom(b.a).energy_type(), tinker::potential_keys::BOND);
     auto b_type_b = cparams.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
@@ -198,6 +199,56 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
       {
         b.ideal = b_param.ideal;
         b.force = b_param.f;
+      }
+    }
+  }
+
+  for (auto &a : qmmm_angles)  // find angle parameters
+  {
+    auto a_type_a = cparams.type(coords->atoms().atom(a.a).energy_type(), tinker::potential_keys::ANGLE);
+    auto a_type_b = cparams.type(coords->atoms().atom(a.b).energy_type(), tinker::potential_keys::ANGLE);
+    auto a_type_c = cparams.type(coords->atoms().atom(a.c).energy_type(), tinker::potential_keys::ANGLE);
+    for (auto a_param : cparams.angles())
+    {
+      if (a_param.index[1] == a_type_c)
+      {
+        if (a_param.index[0] == a_type_a && a_param.index[2] == a_type_b)
+        {
+          a.ideal = a_param.ideal;
+          a.force = a_param.f;
+        }
+        else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_b)
+        {
+          a.ideal = a_param.ideal;
+          a.force = a_param.f;
+        }
+      }
+    }
+  }
+
+  for (auto &d : qmmm_dihedrals)  // find parameters for dihedrals
+  {
+    auto d_type_a = cparams.type(coords->atoms().atom(d.a).energy_type(), tinker::potential_keys::TORSION);
+    auto d_type_b = cparams.type(coords->atoms().atom(d.b).energy_type(), tinker::potential_keys::TORSION);
+    auto d_type_c1 = cparams.type(coords->atoms().atom(d.c1).energy_type(), tinker::potential_keys::TORSION);
+    auto d_type_c2 = cparams.type(coords->atoms().atom(d.c2).energy_type(), tinker::potential_keys::TORSION);
+    for (auto d_param : cparams.torsions())
+    {
+      if (d_param.index[0] == d_type_a && d_param.index[1] == d_type_c1 && d_param.index[2] == d_type_c2 && d_param.index[3] == d_type_b)
+      {
+        d.max_order = d_param.max_order;
+        d.number = d_param.number;
+        d.orders = d_param.order;
+        d.forces = d_param.force;
+        d.ideals = d_param.ideal;
+      }
+      else if (d_param.index[0] == d_type_b && d_param.index[1] == d_type_c2 && d_param.index[2] == d_type_c1 && d_param.index[3] == d_type_a)
+      {
+        d.max_order = d_param.max_order;
+        d.number = d_param.number;
+        d.orders = d_param.order;
+        d.forces = d_param.force;
+        d.ideals = d_param.ideal;
       }
     }
   }

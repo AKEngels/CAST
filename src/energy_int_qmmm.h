@@ -62,10 +62,10 @@ namespace energy
           {
             return std::to_string(a) + " , "+ std::to_string(b) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
           }
-          /**function to calculate force field energy*/
+          /**function to calculate force field energy (copied from energy_int_aco.cc)*/
           double calc_energy(coords::Coordinates *cp)
           {
-            double E;
+            double E(0.0);
             auto const bv(cp->xyz(a) - cp->xyz(b)); // r_ij (i=1, j=2)
             auto const d = len(bv);
             auto const r = d - ideal;
@@ -84,6 +84,10 @@ namespace energy
           int b;
           /**index of the central atom (starting with 0)*/
           int c;
+          /**ideal angle (from force field)*/
+          double ideal;
+          /**force constant*/
+          double force;
           /**constructor
           @param p1: index of one of the outer atoms
           @param p2: index of the other outer atom
@@ -92,7 +96,7 @@ namespace energy
           /**returns all relevant information as a string*/
           std::string info()
           {
-            return std::to_string(a) +" , "+ std::to_string(c) + " , " + std::to_string(b);
+            return std::to_string(a) +" , "+ std::to_string(c) + " , " + std::to_string(b) + " angle: " + std::to_string(ideal) + ", force constant: "+std::to_string(force);
           }
           /**looks if angle a2 is identical to Angle itself*/
           bool is_equal(Angle a2)
@@ -103,6 +107,16 @@ namespace energy
               else if (a = a2.b && b == a2.a) return true;
             }
             return false;
+          }
+          /**calculate energy (copied from energy_int_aco.cc)*/
+          double calc_energy(coords::Coordinates *cp)
+          {
+            double E(0.0);
+            auto av1(cp->xyz(a) - cp->xyz(c));
+            auto av2(cp->xyz(b) - cp->xyz(c));
+            auto const d(scon::angle(av1, av2).degrees() - ideal);
+            auto const r(d*SCON_PI180);
+            E += force*r*r;
           }
         };
 
@@ -117,6 +131,16 @@ namespace energy
           int c1;
           /**index of the central atom bound to b (starting with 0)*/
           int c2;
+          /**parameter for force field*/
+          int max_order;
+          /**parameter for force field*/
+          int number;
+          /**parameter for force field*/
+          std::array<double,4> forces;
+          /**parameter for force field*/
+          std::array<double,4> ideals;
+          /**parameter for force field*/
+          std::array<size_t,4> orders;
           /**constructor
           @param p1: index of one of the outer atoms
           @param p2: index of the other outer atom
@@ -129,7 +153,15 @@ namespace energy
           /**returns all relevant information as a string*/
           std::string info()
           {
-            return std::to_string(a) + " , " + std::to_string(c1) + " , "+ std::to_string(c2) + " , " + std::to_string(b);
+            std::string result = "Atoms: "+ std::to_string(a) + " , " + std::to_string(c1) + " , "+ std::to_string(c2) + " , " + std::to_string(b) +"\n";
+            result += "  max order: " + std::to_string(max_order) + ", number: " + std::to_string(number) + "\n";
+            result += "  orders: ";
+            for (auto o : orders) result += std::to_string(o) + "  ";
+            result += "\n  force constants: ";
+            for (auto f : forces) result += std::to_string(f) + "  ";
+            result += "\n  ideals: ";
+            for (auto i : ideals) result += std::to_string(i) + "  ";
+            return result;
           }
           /**looks if dihedral d2 is identical to Dihedral itself*/
           bool is_equal(Dihedral d2)
@@ -137,6 +169,53 @@ namespace energy
             if (c1 == d2.c1 && c2 == d2.c2 && a == d2.a && b == d2.b) return true;
             else if (c1 == d2.c2 && c2 == d2.c1 && a == d2.b && b == d2.a) return true;
             return false;
+          }
+          /**calculate energy (copied from energy_int_aco.cc)*/
+          double calc_energy(coords::Coordinates *cp, double torsionunit)
+          {
+            double E(0.0);
+            // Get bonding vectors
+            coords::Cartesian_Point const b01 = cp->xyz(c1) - cp->xyz(a);
+            coords::Cartesian_Point const b12 = cp->xyz(c2) - cp->xyz(c1);
+            coords::Cartesian_Point const b23 = cp->xyz(b) - cp->xyz(c2);
+            // Cross terms
+            coords::Cartesian_Point const t = cross(b01, b12);
+            coords::Cartesian_Point const u = cross(b12, b23);
+            // Get length and variations
+            coords::float_type const tl2 = dot(t, t);
+            coords::float_type const ul2 = dot(u, u);
+            // ...
+            coords::float_type const tlul = sqrt(tl2*ul2);
+            coords::float_type const r12 = len(b12);
+            // cross of cross
+            coords::Cartesian_Point const tu = cross(t, u);
+            // scalar and length variations
+            coords::float_type const cos_scalar0 = dot(t, u);
+            coords::float_type const cos_scalar1 = tlul;
+            coords::float_type const sin_scalar0 = dot(b12, tu);
+            coords::float_type const sin_scalar1 = r12 * tlul;
+            // Get multiple sine and cosine values
+            coords::float_type cos[7], sin[7];
+            cos[1] = cos_scalar0 / cos_scalar1;
+            sin[1] = sin_scalar0 / sin_scalar1;
+            for (std::size_t j(2U); j <= max_order; ++j)
+            {
+              std::size_t const k = j - 1;
+              sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
+              cos[j] = cos[k] * cos[1] - sin[k] * sin[1];
+            }
+
+            coords::float_type tE(0.0);
+            //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
+            for (std::size_t j(0U); j < number; ++j)
+            {
+              coords::float_type const F = forces[j] * torsionunit;
+              std::size_t const k = orders[j];
+              coords::float_type const l = std::abs(ideals[j]) > 0.0 ? -1.0 : 1.0;
+              tE += F * (1.0 + cos[k] * l);
+            }
+            E += tE;
+            return E;
           }
         };
 
@@ -283,6 +362,7 @@ namespace energy
         std::vector<bonded::Angle> qmmm_angles;
         /**dihedrals between QM and MM part*/
         std::vector<bonded::Dihedral> qmmm_dihedrals;
+        double torsionunit;
         
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
