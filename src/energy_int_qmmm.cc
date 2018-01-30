@@ -135,7 +135,8 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   new_indices_qm(make_new_indices_qm(cp->size())),
   new_indices_mm(make_new_indices_mm(cp->size(), mm_indices)),
   qmc(make_qm_coords(cp, qm_indices, new_indices_qm)),
-  mmc(make_aco_coords(cp, mm_indices, new_indices_mm))
+  mmc(make_aco_coords(cp, mm_indices, new_indices_mm)),
+  qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
 {
   Config::set().energy.qmmm.mm_atoms_number = cp->size() - qm_indices.size();
   if (!tp.valid())
@@ -160,7 +161,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
   mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),  
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
-  c_gradient(rhs.c_gradient)
+  c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy)
 {
   interface_base::operator=(rhs);
 }
@@ -177,7 +178,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
   c_gradient(std::move(rhs.c_gradient)), 
-  vdw_gradient(std::move(rhs.vdw_gradient))
+  vdw_gradient(std::move(rhs.vdw_gradient)), bonded_energy(std::move(rhs.bonded_energy))
 {
   interface_base::operator=(rhs);
 }
@@ -323,9 +324,9 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     }
   }
 
-  find_parameters();
+  find_parameters();  // find force field parameters for energy calculation
 
-  if (Config::get().general.verbosity > 3)
+  if (Config::get().general.verbosity > 4)
   {
     std::cout << "QM/MM-Bonds\n";
     for (auto b : qmmm_bonds)
@@ -561,12 +562,21 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       mm_energy = mmc.e();  // get energy for MM part
     }
 
-    // energy = QM + MM + vdW (Coulomb is in QM energy)
-	  this->energy = qm_energy + mm_energy + vdw_energy;
+    // energy = QM + MM + vdW + bonded (Coulomb is in QM energy)
+    this->energy = qm_energy + mm_energy + vdw_energy + bonded_energy;
     if (check_bond_preservation() == false) integrity = false;
     else if (check_atom_dist() == false) integrity = false;
   }
   return energy;
+}
+
+double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
+{
+  double E(0.0);
+  for (auto b : qmmm_bonds) E += b.calc_energy(coords);
+  for (auto a : qmmm_angles) E += a.calc_energy(coords);
+  for (auto d : qmmm_dihedrals) E += d.calc_energy(coords, torsionunit);
+  return E;
 }
 
 /**calculates interaction between QM and MM part
@@ -576,6 +586,9 @@ for GAUSSIAN gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
+  // bonded interactions
+  bonded_energy = calc_bonded(if_gradient);
+
   // preparation for calculation
   auto elec_factor = 332.0;
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
@@ -815,6 +828,7 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
   S << std::right << std::setw(24) << "QM";
   S << std::right << std::setw(24) << "MM";
   S << std::right << std::setw(24) << "VDW";
+  S << std::right << std::setw(24) << "BONDED";
   S << std::right << std::setw(24) << "TOTAL";
   if (endline) S << '\n';
 }
@@ -825,6 +839,7 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << std::right << std::setw(24) << qm_energy;
   S << std::right << std::setw(24) << mm_energy;
   S << std::right << std::setw(24) << vdw_energy;
+  S << std::right << std::setw(24) << bonded_energy;
   S << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }

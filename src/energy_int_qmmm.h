@@ -117,6 +117,7 @@ namespace energy
             auto const d(scon::angle(av1, av2).degrees() - ideal);
             auto const r(d*SCON_PI180);
             E += force*r*r;
+            return E;
           }
         };
 
@@ -206,7 +207,6 @@ namespace energy
             }
 
             coords::float_type tE(0.0);
-            //cout << "Number?:  " << torsions[i].paramPtr->n << std::endl;
             for (std::size_t j(0U); j < number; ++j)
             {
               coords::float_type const F = forces[j] * torsionunit;
@@ -342,6 +342,8 @@ namespace energy
         /**calculates energies and gradients
         @paran if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool);
+        /**calculates bonded energy and gradients*/
+        double calc_bonded(bool if_gradient);
 
         /**indizes of QM atoms*/
         std::vector<std::size_t> qm_indices;
@@ -375,6 +377,8 @@ namespace energy
         coords::float_type qm_energy;
         /**energy of only MM system*/
         coords::float_type mm_energy;
+        /**energy of bonded interactions between QM and MM atoms (bonds, angles and dihedrals)*/
+        coords::float_type bonded_energy;
 
         /**gradients of electrostatic interaction between QM and MM atoms
         for MOPAC gradients on QM as well as on MM atoms
