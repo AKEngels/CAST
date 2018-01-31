@@ -193,7 +193,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
 
-        for (int i; i < link_atom_number; i++)  // read gradients of link atoms
+        for (int i=0; i < link_atom_number; i++)  // read gradients of link atoms
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
