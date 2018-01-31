@@ -116,6 +116,18 @@ inline bool is_in(int x, std::vector<int> v)
   }
 }
 
+/**looks if vector v contains element x
+returns true if yes and false if no */
+inline bool is_in(size_t x, std::vector<size_t> v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
 /**looks if string v contains char x
 returns true if yes and false if no */
 inline bool is_in(char x, std::string v)

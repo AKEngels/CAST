@@ -35,6 +35,7 @@ coords::float_type energy::interfaces::aco::aco_ff::g(void)
   // calc with derivatives 1
   calc<1>();
   post();
+  std::cout << "energy: " << energy << "\n";
   return energy;
 }
 

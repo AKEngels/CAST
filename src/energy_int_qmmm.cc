@@ -116,7 +116,7 @@ namespace
         }
         for (auto && b : bonds)
         {
-          at.bind_to(new_indices[b]);
+          if (is_in(b,indices)) at.bind_to(new_indices[b]);  // only bind if bonding partner is also in ACO coords
         }
         new_aco_atoms.add(at);
         pes.structure.cartesian.push_back(cp->xyz(a));
@@ -691,6 +691,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     if (if_gradient)  // if gradients should be calculated
     {
       mm_energy = mmc.g(); // get energy for MM part
+      std::cout << "MM energy: " << mm_energy << "\n";
 
       // get gradients: QM + MM + vdW + Coulomb + bonded
 	    auto new_grad = vdw_gradient + c_gradient + bonded_gradient;  // vdW + Coulomb + bonded
@@ -705,6 +706,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         std::cout << "gradients of " << counter << " QM atoms read\n";
       }
 
+      // calculate gradients from link atoms
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
       for (int j=0; j<link_atoms.size(); j++)
       {
