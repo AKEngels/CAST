@@ -707,7 +707,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       }
 
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
-      for (int j=0; link_atoms.size(); j++)
+      for (int j=0; j<link_atoms.size(); j++)
       {
         bonded::LinkAtom l = link_atoms[j];
         coords::r3 G_L = link_grads[j]*(-1);
