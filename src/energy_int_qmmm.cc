@@ -93,6 +93,10 @@ namespace
     return new_qm_coords;
   }
 
+  /**creates coordobject for MM interface
+  @param cp: coordobj for whole system (QM + MM)
+  @param indices: indizes of MM atoms
+  @param new_indices: new indizes???*/
   coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
@@ -706,7 +710,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         std::cout << "gradients of " << counter << " QM atoms read\n";
       }
 
-      // calculate gradients from link atoms
+      // calculate gradients from link atoms (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
       for (int j=0; j<link_atoms.size(); j++)
       {

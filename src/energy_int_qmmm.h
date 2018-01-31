@@ -81,6 +81,8 @@ namespace energy
               auto const gv = bv * dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
               gradients[a] += gv;   //(kcal/(mol*A))
               gradients[b] -= gv;
+              std::cout << "Grad: " << gv << "\n";
+              std::cout << "E: " << E << "\n";
             }
             return E;
           }
