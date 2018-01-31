@@ -710,7 +710,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       for (int j=0; j<link_atoms.size(); j++)
       {
         bonded::LinkAtom l = link_atoms[j];
-        coords::r3 G_L = link_grads[j]*(-1);
+        coords::r3 G_L = link_grads[j];
         std::cout << "Link atom: "<< G_L << "\n";
 
         double g = l.d_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
