@@ -62,6 +62,11 @@ namespace energy
         std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
         /**return id for gaussian call*/
         std::string get_id() const override { return id;};
+        /**overwritten function, should not be called*/
+        coords::Gradients_3D get_link_atom_grad() const override
+        {
+          throw std::runtime_error("function not implemented\n");
+        }
 
       private:
 

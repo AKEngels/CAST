@@ -172,12 +172,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
-        int atom_number = std::stoi(line.substr(31));  // number of atoms in structure
-                                                       // differs from N if link atom present
+        int link_atom_number = std::stoi(line.substr(31)) - N;
+        std::cout << link_atom_number << "\n";
         double x, y, z;
         coords::Representation_3D g_tmp;
 
-        for (int i = 0; i < atom_number; i++)
+        for (int i = 0; i < N; i++)  // read "normal" gradients
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -188,6 +188,17 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
+
+        for (int i; i < link_atom_number; i++)  // read gradients of link atoms
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
+          y = (-y) * (627.503 / 0.5291172107);
+          z = (-z) * (627.503 / 0.5291172107);
+          coords::Cartesian_Point g(x, y, z);
+          link_atom_grad.push_back(g);
+        }
       }
 
       else if (Config::get().energy.qmmm.use == true)
@@ -480,4 +491,9 @@ std::vector<coords::Cartesian_Point>
 energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
 {
   return grad_ext_charges;
+}
+
+coords::Gradients_3D energy::interfaces::dftb::sysCallInterface::get_link_atom_grad() const
+{
+  return link_atom_grad;
 }

@@ -83,6 +83,7 @@ namespace energy
         {
           throw std::runtime_error("Function not implemented.\n");
         }
+        coords::Gradients_3D get_link_atom_grad() const override;
 
 			private:
 
@@ -104,7 +105,11 @@ namespace energy
         /**total energy*/
 				double energy;
 
+        /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
+
+        /**gradients of link atoms*/
+        coords::Gradients_3D link_atom_grad;
 
         /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
         bool check_bond_preservation(void) const;

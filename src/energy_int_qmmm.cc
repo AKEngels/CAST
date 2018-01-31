@@ -705,10 +705,11 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         std::cout << "gradients of " << counter << " QM atoms read\n";
       }
 
+      coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
       for (int j; link_atoms.size(); j++)
       {
         bonded::LinkAtom l = link_atoms[j];
-        coords::r3 grad = g_mm[qmc.size()+j];
+        coords::r3 grad= link_grads[j];
         std::cout << "Link atom: "<< grad << "\n";
 
         double d_L_QM = l.d_L_QM;
