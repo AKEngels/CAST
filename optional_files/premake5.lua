@@ -1,20 +1,4 @@
 
--- premake5.lua
--- Get Premake5 via https://premake.github.io/
---
--- CAST automatic build configuration
--- Targeted at VS2015 and our own Linux-Cluster "ECPC"
---
--- Build for windows: "premake5 vs2015"
--- Open CAST.sln in project/
---
--- Build for Linux on ECPC "premake5 gmake"
--- Run "make config=armadillo_release_x64 CXX=g++-5" in project/
---
--- Build for Linux on Smurf: "premake5 gmake --mpi"
--- Run "make config=armadillo_release_x64 CXX='/apps/mpich/2.1.4.1p1/bin/mpicxx -cxx=/apps/gcc-6.1/bin/g++-6.1 -static-libstdc++ -static-libgcc'" in project/
---
-
 
 -- If using Windows and using Python these values depend on the directory your Python27 is installed
 local python27_dir = "C:/Python27"
@@ -48,10 +32,18 @@ workspace "CAST"
 		language "C++"
 		targetdir "build"
 		files { "../src/*.h", "../src/*.cc" }
+		vpaths {
+			["Headers"] = "../src/**.h",
+			["Sources"] = "../src/*.cc"
+		}
+		--flags "C++14"
+		cppdialect "C++14"
 		warnings "Extra"
+		includedirs "../submodules/boost"
+		libdirs "../submodules/boost/stage/lib"
 
 		filter "not Armadillo_*"
-			includedirs "../submodules/eigen"
+				includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -78,11 +70,11 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" ,"-std=c++0x", "-fopenmp", "-std=c++14" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
+
+		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
-			if(_OPTIONS["mpi"]) then
-				defines "USE_MPI"
-			end
+			defines "USE_MPI"
 
 		filter {"Release", "platforms:x86", "action:gmake"}
 			targetname "CAST_linux_x86_release"
@@ -120,9 +112,9 @@ workspace "CAST"
 			targetname "CAST_linux_x64_armadillo_testing"
 
 		filter {"Python_*", "action:gmake"}
-			links { "util", "lapack", "python2.7" }
-			linkoptions { "-Xlinker", "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]]}
-                        includedirs "/apps/python27/include/python2.7"
+			links { "python2.7", "util", "lapack" }
+			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
+			libdirs { "linux_precompiled_libs" }
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
@@ -135,10 +127,13 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-			systemversion(os.winSdkVersion() .. ".0")
+			--systemversion(os.winSdkVersion() .. ".0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
+
+		filter { "not Armadillo_*", "action:vs*" }
+				buildoptions "/bigobj"
 
 		filter { "Release", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_release"
