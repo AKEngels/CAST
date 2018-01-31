@@ -256,7 +256,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 }
 
 // calculate position of a link atom (see: doi 10.1002/jcc.20857)
-coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom link)
+coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom &link)
 {
   coords::cartesian_type r_MM = coords->xyz(link.mm);
   coords::cartesian_type r_QM = coords->xyz(link.qm);
@@ -684,9 +684,30 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
+      int counter = 0;
       for (auto&& qmi : qm_indices)
       {
         new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+        counter += 1;
+        std::cout << "gradients of " << counter << " QM atoms read\n";
+      }
+
+      for (int j; link_atoms.size(); j++)
+      {
+        bonded::LinkAtom l = link_atoms[j];
+        coords::r3 grad = g_mm[qmc.size()+j];
+        std::cout << "Link atom: "<< grad << "\n";
+
+        double d_L_QM = l.d_L_QM;
+        double d_MM_QM = dist(coords->xyz(l.mm), coords->xyz(l.qm));
+        coords::r3 r_MM = coords->xyz(l.mm);
+        coords::r3 r_QM = coords->xyz(l.qm);
+        double x_MM = coords->xyz(l.mm).x();
+        double x_QM = coords->xyz(l.qm).x();
+        coords::r3 i(1, 0, 0);
+
+        coords::r3 F_xQM = grad * (i*(1 - d_L_QM / d_MM_QM) + (r_MM - r_QM) * d_L_QM*(x_MM-x_QM)/(d_MM_QM*d_MM_QM*d_MM_QM));
+        std::cout << F_xQM << "\n";
       }
 
       for (auto && mmi : mm_indices)

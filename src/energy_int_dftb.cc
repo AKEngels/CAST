@@ -172,10 +172,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
+        int atom_number = std::stoi(line.substr(31));  // number of atoms in structure
+                                                       // differs from N if link atom present
         double x, y, z;
         coords::Representation_3D g_tmp;
 
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < atom_number; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);

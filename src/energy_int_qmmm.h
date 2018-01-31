@@ -397,7 +397,7 @@ namespace energy
         /**creates link atoms*/
         void create_link_atoms();
         /**calculates the position of a given link atom*/
-        coords::cartesian_type calc_position(bonded::LinkAtom);
+        coords::cartesian_type calc_position(bonded::LinkAtom &);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
