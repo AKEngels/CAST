@@ -551,7 +551,20 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
 
   // write geometry
   file << "Geometry = GenFormat {\n";
-  file << coords::output::formats::xyz_gen(qmc);
+  file << qmc.size()+link_atoms.size() << "  C\n";  // no supercells possible
+  for (auto s : elements)
+  {
+    file << s << " ";
+  }
+  file << "\n";
+  for (std::size_t i(0U); i < qmc.size(); ++i)  // atoms of QM coordobject
+  {
+    file << std::left << std::setw(5) << i + 1 << std::left << std::setw(5) << find_index(qmc.atoms(i).symbol(), elements) + 1;
+    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).x();
+    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).y();
+    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).z();
+    file << '\n';
+  }
   if (link_atoms.size() > 0)  // if link atoms: add them to inputfile
   {
     for (std::size_t i(0U); i < link_atoms.size(); ++i)
