@@ -143,11 +143,13 @@ namespace energy
         for (auto const & bond : refined.bonds())
         {
           std::cout << "bond " << bond << "\n";
+          std::cout << bond.atoms[0] << " , " << bond.atoms[1] << "\n";
           auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1])); // r_ij (i=1, j=2)
           auto const d = len(bv);
           auto const r = d - bond.ideal;
           auto dE = bond.force*r;
           E += dE*r;  // kcal/mol
+          std::cout << E << "\n";
           dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
           if (abs(d) > 0.0)
           {
@@ -221,6 +223,7 @@ namespace energy
         for (auto const & angle : refined.angles())
         {
           std::cout << "angle " << angle << "\n";
+          std::cout << angle.atoms[0] << " , " << angle.atoms[1] << " , " << angle.atoms[2] << "\n";
           auto const
             av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
             av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
@@ -231,6 +234,7 @@ namespace energy
           std::cout << scon::angle(av1, av2).degrees() << "; " << angle.force*r*r << "\n";*/
           auto dE = angle.force*r;
           E += dE*r;
+          std::cout << E << "\n";
           //std::cout << "A " << angle.atoms[0] << "-" << angle.atoms[1] << "-" << angle.atoms[2] << ": ";
 
           coords::Cartesian_Point const cv(cross(av1, av2));
