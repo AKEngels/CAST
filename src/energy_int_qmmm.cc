@@ -707,22 +707,29 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       }
 
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
-      for (int j; link_atoms.size(); j++)
+      for (int j=0; link_atoms.size(); j++)
       {
         bonded::LinkAtom l = link_atoms[j];
-        coords::r3 grad= link_grads[j];
-        std::cout << "Link atom: "<< grad << "\n";
+        coords::r3 G_L = link_grads[j]*(-1);
+        std::cout << "Link atom: "<< G_L << "\n";
 
-        double d_L_QM = l.d_L_QM;
-        double d_MM_QM = dist(coords->xyz(l.mm), coords->xyz(l.qm));
-        coords::r3 r_MM = coords->xyz(l.mm);
-        coords::r3 r_QM = coords->xyz(l.qm);
-        double x_MM = coords->xyz(l.mm).x();
-        double x_QM = coords->xyz(l.qm).x();
-        coords::r3 i(1, 0, 0);
+        double g = l.d_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
 
-        coords::r3 F_xQM = grad * (i*(1 - d_L_QM / d_MM_QM) + (r_MM - r_QM) * d_L_QM*(x_MM-x_QM)/(d_MM_QM*d_MM_QM*d_MM_QM));
-        std::cout << F_xQM << "\n";
+        coords::r3 n = (coords->xyz(l.mm) - coords->xyz(l.qm)) / dist(coords->xyz(l.mm), coords->xyz(l.qm));
+        std::cout << "Unit vector: " << n << "\n";
+
+        double Fx_QM = g * scalar_product(G_L, n) *n.x() + (1 - g)*G_L.x();
+        double Fy_QM = g * scalar_product(G_L, n) *n.y() + (1 - g)*G_L.y();
+        double Fz_QM = g * scalar_product(G_L, n) *n.z() + (1 - g)*G_L.z();
+        coords::r3 F_QM(Fx_QM, Fy_QM, Fz_QM);new_grad[l.qm] += F_QM;
+        std::cout << "Gradient on QM atom: " << F_QM << "\n";
+
+        double Fx_MM = g * G_L.x() - g * scalar_product(G_L, n) * n.x();
+        double Fy_MM = g * G_L.y() - g * scalar_product(G_L, n) * n.y();
+        double Fz_MM = g * G_L.z() - g * scalar_product(G_L, n) * n.z();
+        coords::r3 F_MM(Fx_MM, Fy_MM, Fz_MM);
+        new_grad[l.mm] += F_MM;
+        std::cout << "Gradient on MM atom: " << F_MM << "\n";
       }
 
       for (auto && mmi : mm_indices)
