@@ -826,23 +826,26 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         coords::float_type d = len(r_ij);
         set_distance(d);
         coords::float_type b = (charge_i*charge_j) / d * elec_factor;
+        double vdw;
 
         // calculate vdW interaction
         auto R_r = std::pow(p_ij.R / d, 6);
         if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::SIGMA)
         {
-          vdw_energy += R_r * p_ij.E*(R_r - 1.0);
+          vdw += R_r * p_ij.E*(R_r - 1.0);
         }
         else if (cparams.general().radiustype.value ==
           ::tinker::parameter::radius_types::T::R_MIN)
         {
-          vdw_energy += R_r * p_ij.E*(R_r - 2.0);
+          vdw += R_r * p_ij.E*(R_r - 2.0);
         }
         else
         {
           throw std::runtime_error("no valid radius_type");
         }
+        std::cout << "vdw energy between atoms " << i << " and " << j << " is: " << vdw << "\n";
+        vdw_energy += vdw;
 
         if (if_gradient)  // gradients
         {
