@@ -704,7 +704,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
       std::cout << "QM-Grad: " << qmc.g_xyz(0) << "\n";
       std::cout << "bonded Grad: " << bonded_gradient[0] << "\n";
-      std::cout << "vdW Grad: " << vdw_gradient[0] << "\n";
+      std::cout << "vdW Grad: " << vdw_gradient << "\n";
 
       int counter = 0;
       for (auto&& qmi : qm_indices)
@@ -869,6 +869,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
             vdw_gradient[i] -= vdw_gradient_ij_sigma;
             vdw_gradient[j] += vdw_gradient_ij_sigma;
+            std::cout << "Gradient: " << vdw_gradient_ij_sigma << "\n";
           }
           else
           {
@@ -876,6 +877,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
             vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
             vdw_gradient[j] += vdw_gradient_ij_R_MIN;
+            std::cout << "Gradient: " << vdw_gradient_ij_R_MIN << "\n";
           }
         }
         ++j2;
