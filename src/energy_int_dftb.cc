@@ -156,6 +156,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   // successfull SCC -> read output
   else
   {
+    std::cout << "read output\n";
     int N = (*this->coords).size();
 
     std::ifstream in_file("results.tag", std::ios_base::in);
@@ -168,6 +169,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       {
         std::getline(in_file, line);
         energy = std::stod(line)*627.503; // convert hartree to kcal/mol
+        std::cout << "total energy is " << energy << "\n";
       }
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
@@ -185,6 +187,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           y = (-y) * (627.503 / 0.5291172107);
           z = (-z) * (627.503 / 0.5291172107);
           coords::Cartesian_Point g(x, y, z);
+          std::cout << "grad for atom " << i << " is " << g << "\n";
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
@@ -197,6 +200,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           y = (-y) * (627.503 / 0.5291172107);
           z = (-z) * (627.503 / 0.5291172107);
           coords::Cartesian_Point g(x, y, z);
+          std::cout << "grad for link atom " << i << " is " << g << "\n";
           link_atom_grad.push_back(g);
         }
       }
@@ -337,6 +341,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
+  std::cout << "in QM programme\n";
   integrity = check_structure();
   if (integrity == true)
   {

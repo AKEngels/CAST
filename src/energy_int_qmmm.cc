@@ -669,19 +669,20 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
-  try {
+  //try {
+    std::cout << "Start QM programme\n";
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
 		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
     {   // electric field for QM and MM atoms (for GAUSSIAN) or coulomb gradients on MM atoms (for DFTB+)
       g_coul_mm = qmc.energyinterface()->get_g_coul_mm();  
     } 
-  }
-  catch(...)
-  {
-	std::cout << "QM programme failed. Treating structure as broken.\n";
-    integrity = false;  // if QM programme fails: integrity is destroyed
-  }
+  //}
+ // catch(...)
+ // {
+	//std::cout << "QM programme failed. Treating structure as broken.\n";
+ //   integrity = false;  // if QM programme fails: integrity is destroyed
+ // }
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
