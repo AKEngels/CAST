@@ -702,6 +702,10 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
+      std::cout << "QM-Grad: " << qmc.g_xyz(0) << "\n";
+      std::cout << "bonded Grad: " << bonded_gradient[0] << "\n";
+      std::cout << "vdW Grad: " << vdw_gradient[0] << "\n";
+
       int counter = 0;
       for (auto&& qmi : qm_indices)
       {
