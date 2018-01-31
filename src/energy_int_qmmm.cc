@@ -670,7 +670,6 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
-    std::cout << "Start QM programme\n";
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
 		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)

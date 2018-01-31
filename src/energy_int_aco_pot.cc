@@ -1,4 +1,4 @@
-﻿/**
+/**
 This file contains the calculation of energy and gradients for amber, oplsaa and charmm forcefield.
 */
 
@@ -142,6 +142,7 @@ namespace energy
         coords::float_type E(0.0);
         for (auto const & bond : refined.bonds())
         {
+          std::cout << "bond " << bond << "\n";
           auto const bv(coords->xyz(bond.atoms[0]) - coords->xyz(bond.atoms[1])); // r_ij (i=1, j=2)
           auto const d = len(bv);
           auto const r = d - bond.ideal;
@@ -219,6 +220,7 @@ namespace energy
         coords::float_type E(0.0);
         for (auto const & angle : refined.angles())
         {
+          std::cout << "angle " << angle << "\n";
           auto const
             av1(coords->xyz(angle.atoms[0]) - coords->xyz(angle.atoms[1])),
             av2(coords->xyz(angle.atoms[2]) - coords->xyz(angle.atoms[1]));
