@@ -779,6 +779,24 @@ double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
   return E;
 }
 
+/**determines if a van der waals interaction between a QM and a MM atom should be calculated
+(at least 3 bonds between those atoms)
+@param qm: index of QM atom
+@param mm: index of MM atom*/
+bool energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
+{
+  for (auto b : qmmm_bonds)
+  {
+    if (qm == b.b && mm == b.a) return false;
+  }
+  for (auto a : qmmm_angles)
+  {
+    if (qm == a.a && mm == a.b) return false;
+    else if (qm == a.b && mm == a.a) return false;
+  }
+  return true;
+}
+
 /**calculates interaction between QM and MM part
 energy is only vdW interactions
 for MOPAC gradients are coulomb and vdW
@@ -826,26 +844,29 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         coords::float_type d = len(r_ij);
         set_distance(d);
         coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-        double vdw;
-
-        // calculate vdW interaction
         auto R_r = std::pow(p_ij.R / d, 6);
-        if (cparams.general().radiustype.value ==
-          ::tinker::parameter::radius_types::T::SIGMA)
+
+        if (calc_vdw(i, j) == true)
         {
-          vdw += R_r * p_ij.E*(R_r - 1.0);
+          std::cout << "calculate vdw energy between atoms " << i << " and " << j << "\n";
+          // calculate vdW interaction
+          if (cparams.general().radiustype.value ==
+            ::tinker::parameter::radius_types::T::SIGMA)
+          {
+            vdw_energy += R_r * p_ij.E*(R_r - 1.0);
+          }
+          else if (cparams.general().radiustype.value ==
+            ::tinker::parameter::radius_types::T::R_MIN)
+          {
+            vdw_energy += R_r * p_ij.E*(R_r - 2.0);
+          }
+          else
+          {
+            throw std::runtime_error("no valid radius_type");
+          }
         }
-        else if (cparams.general().radiustype.value ==
-          ::tinker::parameter::radius_types::T::R_MIN)
-        {
-          vdw += R_r * p_ij.E*(R_r - 2.0);
-        }
-        else
-        {
-          throw std::runtime_error("no valid radius_type");
-        }
-        std::cout << "vdw energy between atoms " << i << " and " << j << " is: " << vdw << "\n";
-        vdw_energy += vdw;
+
+        
 
         if (if_gradient)  // gradients
         {
@@ -858,26 +879,29 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             c_gradient[j] -= c_gradient_ij;
           }
 
-
-          // gradients of vdW interaction
-          coords::float_type const V = p_ij.E*R_r;
-
-          if (cparams.general().radiustype.value
-            == ::tinker::parameter::radius_types::T::SIGMA)
+          if (calc_vdw(i, j) == true)
           {
-            auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
-            auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
-            vdw_gradient[i] -= vdw_gradient_ij_sigma;
-            vdw_gradient[j] += vdw_gradient_ij_sigma;
-            std::cout << "Gradient: " << vdw_gradient_ij_sigma << "\n";
-          }
-          else
-          {
-            auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
-            auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
-            vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
-            vdw_gradient[j] += vdw_gradient_ij_R_MIN;
-            std::cout << "Gradient: " << vdw_gradient_ij_R_MIN << "\n";
+            std::cout << "calculate vdw gradients between atoms " << i << " and " << j << "\n";
+            // gradients of vdW interaction
+            coords::float_type const V = p_ij.E*R_r;
+
+            if (cparams.general().radiustype.value
+              == ::tinker::parameter::radius_types::T::SIGMA)
+            {
+              auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
+              auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
+              vdw_gradient[i] -= vdw_gradient_ij_sigma;
+              vdw_gradient[j] += vdw_gradient_ij_sigma;
+              std::cout << "Gradient: " << vdw_gradient_ij_sigma << "\n";
+            }
+            else
+            {
+              auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
+              auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
+              vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
+              vdw_gradient[j] += vdw_gradient_ij_R_MIN;
+              std::cout << "Gradient: " << vdw_gradient_ij_R_MIN << "\n";
+            }
           }
         }
         ++j2;
