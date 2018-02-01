@@ -169,7 +169,14 @@ struct GMM_data
         {
           std::string s;
           std::getline(iss, s, ' ');
-          mean.at(0)(i, 0) = std::stod(s);
+          try
+          {
+            mean.at(0)(i, 0) = std::stod(s);
+          }
+          catch (std::out_of_range e)
+          {
+            mean.at(0)(i, 0) = 0;
+          }
         }
         for (unsigned int j = 1u; j < this->numberOfGaussians; j++)
         {
@@ -184,7 +191,15 @@ struct GMM_data
             {
               std::getline(iss, s, ' ');
             }
-            mean.at(j)(i, 0) = std::stod(s);
+            
+            try
+            {
+              mean.at(j)(i, 0) = std::stod(s);
+            }
+            catch (std::out_of_range e)
+            {
+              mean.at(j)(i, 0) = 0;
+            }
           }
         }
         continue;
@@ -198,6 +213,14 @@ struct GMM_data
             std::getline(gmm_stream, line);
             line = line.substr(6);
             covariance.at(0)(j, k) = std::stod(line);
+            try
+            {
+              covariance.at(0)(j, k) = std::stod(line);
+            }
+            catch (std::out_of_range e)
+            {
+              covariance.at(0)(j, k) = 0;
+            }
             covariance.at(0)(k, j) = covariance.at(0)(j, k);
           }
         }
@@ -213,7 +236,15 @@ struct GMM_data
             {
               std::getline(gmm_stream, line);
               line = line.substr(6);
-              covariance.at(i)(j, k) = std::stod(line);
+              try
+              {
+                covariance.at(i)(j, k) = std::stod(line);
+              }
+              catch (std::out_of_range e)
+              {
+                covariance.at(i)(j, k) = 0;
+              }
+
               covariance.at(i)(k, j) = covariance.at(i)(j, k);
             }
           }
@@ -228,6 +259,14 @@ struct GMM_data
             break;
 
           weights.at(i) = std::stod(line.substr(line.find(":") + 1u));
+          try
+          {
+            weights.at(i) = std::stod(line.substr(line.find(":") + 1u));
+          }
+          catch (std::out_of_range e)
+          {
+            weights.at(i) = 0;
+          }
           if (!std::getline(gmm_stream, line))
           {
             break;
