@@ -81,8 +81,6 @@ namespace energy
               auto const gv = bv * dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
               gradients[a] += gv;   //(kcal/(mol*A))
               gradients[b] -= gv;
-              std::cout << "Grad: " << gv << "\n";
-              std::cout << "E: " << E << "\n";
             }
             return E;
           }
@@ -392,7 +390,7 @@ namespace energy
         void write_mol_in();
         /**writes inputfile for gaussian calculation*/
         void write_gaussian_in(char);
-        /**writes charges inputfiles for DFTB+ calculation*/
+        /**writes inputfiles for DFTB+ calculation (dftb_in.hsd and charges.dat)*/
         void write_dftb_in(char);
         
         /**function where QM/MM calculation is prepared*/
