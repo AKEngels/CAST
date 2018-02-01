@@ -656,7 +656,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto l : link_atoms)
+  for (auto &l : link_atoms)
   {
     l.position = calc_position(l); // update positions of link atoms
     std::cout << "Link atom pos: " << l.position << "\n";
