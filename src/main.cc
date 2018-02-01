@@ -683,6 +683,12 @@ int main(int argc, char **argv)
       // If modes or vectors have changed, write them to new file
       if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
 
+      if (Config::get().entropytrails.inPCATaskWriteQHTransformedModes)
+      {
+        pcaptr->quasiHarmonicTransformation(Config::get().entropy.entropy_temp);
+      }
+
+
       if (Config::get().PCA.pca_print_probability_density)
       {
         // Create Histograms
@@ -697,10 +703,7 @@ int main(int argc, char **argv)
 #ifdef CAST_USE_ARMADILLO
       // Create gaussian mixture from PCA_modes
 
-      if (Config::get().entropytrails.inPCATaskWriteQHTransformedModes)
-      {
-        pcaptr->quasiHarmonicTransformation(Config::get().entropy.entropy_temp);
-      }
+
 
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 150, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size()) 
         + "_gaussians_" + std::to_string(150) + ".dat");
