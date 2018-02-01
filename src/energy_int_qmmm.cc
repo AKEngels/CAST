@@ -538,7 +538,15 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   std::ofstream chargefile("charges.dat");
   for (int j = 0; j < mm_charge_vector.size(); j++)
   {
-    chargefile << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "  " << mm_charge_vector[j] << "\n";
+    bool use_charge = true;
+    for (auto b : qmmm_bonds)
+    {
+      if (mm_indices[j] == b.a) use_charge = false;
+    }
+    if (use_charge == true)
+    {
+      chargefile << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "  " << mm_charge_vector[j] << "\n";
+    }
   }
   chargefile.close();
 
@@ -940,8 +948,16 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       int j2 = 0;
       for (auto j : mm_indices)
       {
-        c_gradient[j] += g_coul_mm[j2];
-        j2++;
+        bool use_charge = true;
+        for (auto b : qmmm_bonds)
+        {
+          if (mm_indices[j] == b.a) use_charge = false;
+        }
+        if (use_charge == true)
+        {
+          c_gradient[j] += g_coul_mm[j2];
+          j2++;
+        }
       }
     }
   }
