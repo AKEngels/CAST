@@ -955,6 +955,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         }
         if (use_charge == true)
         {
+          std::cout << "coulomb gradient on atom " << j << " is " << g_coul_mm[j2] << "\n";
           c_gradient[j] += g_coul_mm[j2];
           j2++;
         }
