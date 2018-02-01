@@ -266,10 +266,8 @@ coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::Lin
   coords::cartesian_type r_MM = coords->xyz(link.mm);
   coords::cartesian_type r_QM = coords->xyz(link.qm);
   double d_MM_QM = dist(r_MM, r_QM);
-  std::cout << "MM atom: " << r_MM << " ; QM atom: " << r_QM << "\n";
 
   coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.d_L_QM;
-  std::cout << "Pos: " << pos << "\n";
   return pos;
 }
 
