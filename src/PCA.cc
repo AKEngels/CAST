@@ -176,7 +176,7 @@ namespace pca
 	
 	void PrincipalComponentRepresentation::readEigenvectors(std::string const& filename)
 	{
-		if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file" << filename << "." << std::endl;
+		if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA eigenvectors from file " << filename << "." << std::endl;
 		std::string iAmNotImportant_YouMayDiscardMe;
 		std::ifstream pca_modes_stream(filename, std::ios::in);
 		std::string line;
@@ -204,7 +204,7 @@ namespace pca
 
 	void PrincipalComponentRepresentation::readModes(std::string const& filename)
 	{
-    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file" << filename << "." << std::endl;
+    if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;
 		std::ifstream pca_modes_stream(filename, std::ios::in);
 		std::string line;
 		std::getline(pca_modes_stream, line);

@@ -798,7 +798,7 @@ public:
   void setAnalyticalEntropy(ProbabilityDensity probdens)
   {
     analyticalEntropy = probdens.analyticEntropy();
-    writeToCSV("entropy.csv", "analytic", analyticalEntropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "analytic", analyticalEntropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
   }
 
@@ -878,7 +878,7 @@ public:
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy =  gaussentropy;
-      writeToCSV("entropy.csv", "empricial_gaussian", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+      writeToCSV("entropy.csv", "empricial_gaussian", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
       //Covariance Matrix
     }
   }
@@ -933,7 +933,7 @@ public:
 
     std::cout << "Computed Entropy via cubature integration: " << value << " with error: " << err[0] << std::endl;
 
-    writeToCSV("entropy.csv", "cubature_with_error_" + std::to_string(err[0]), value, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "cubature_with_error_" + std::to_string(err[0]), value, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
     delete[] xmin, xmax, err, val;
     return value * -1.;
@@ -1015,8 +1015,8 @@ public:
 
     transpose(drawMatrix);
 
-    writeToCSV("entropy.csv", "faivishevsky", mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm), kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
-    writeToCSV("entropy.csv", "faivishevsky", mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm), kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "faivishevsky", mod_summation_eucl + sum_gamma_k + log(volume_of_unit_ball_for_eucledean_norm), kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+    writeToCSV("entropy.csv", "faivishevsky", mod_summation_max + sum_gamma_k + log(volume_of_unit_ball_for_max_norm), kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
   }
 
@@ -1166,9 +1166,9 @@ public:
 
 
 
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA);
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, this->numberOfDraws);
 
 
       if (func == kNN_FUNCTION::LOMBARDI)
@@ -1202,9 +1202,9 @@ public:
 
 
 
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA);
-      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy_ardakaniCorrected", ardakaniSum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, this->numberOfDraws);
 
 
       if (func == kNN_FUNCTION::LOMBARDI)
@@ -1238,9 +1238,9 @@ public:
 
 
 
-      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
-      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA);
-      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, this->numberOfDraws);
 
 
       if (func == kNN_FUNCTION::LOMBARDI)
@@ -1273,9 +1273,9 @@ public:
 
 
 
-      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO);
-      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA);
-      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, this->numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, this->numberOfDraws);
 
 
       if (func == kNN_FUNCTION::LOMBARDI)
@@ -1352,7 +1352,7 @@ public:
     }
     std::cout << "Entropy in QH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
 
-    writeToCSV("entropy.csv", "numata_no_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO);
+    writeToCSV("entropy.csv", "numata_no_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
     return entropy_sho;
   }
@@ -1378,9 +1378,7 @@ public:
 
     // Modify PCA modes as the PCA eigenvalues have been modified. This is not detailed in the original paper
     // but sensible and reasonable to obtain valid values.
-    pow(pca_modes, -1.);
-    pca_modes = pca_modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK));
-    //
+    scalePCACoordinatesForQuasiHarmonicTreatment(pca_modes, temperatureInK);
 
     const Matrix_Class storeDrawMatrix = this->drawMatrix;
     this->drawMatrix = transposed(pca_modes);
@@ -1518,13 +1516,13 @@ public:
     this->drawMatrix = storeDrawMatrix;
     this->dimension = storeDim;
 
-    writeToCSV("entropy.csv", "numata_without_corrections", entropy_sho, norm, func);
-    writeToCSV("entropy.csv", "numata_with_anharmonicity_corrections", entropy_sho - delta_entropy, norm, func);
+    writeToCSV("entropy.csv", "numata_without_corrections", entropy_sho, norm, func, this->numberOfDraws);
+    writeToCSV("entropy.csv", "numata_with_anharmonicity_corrections", entropy_sho - delta_entropy, norm, func, this->numberOfDraws);
 
     std::string ident = "numata_with_generalized_corrections_order_" + std::to_string(orderOfCorrection);
     if (removeNegativeMI)
       ident += "secondOrderMIHardZero";
-    writeToCSV("entropy.csv", ident, entropy_sho - delta_entropy - higher_order_entropy, norm, func);
+    writeToCSV("entropy.csv", ident, entropy_sho - delta_entropy - higher_order_entropy, norm, func,this->numberOfDraws);
 
     std::cout << "NN Calculation took " << timer << " ." << std::endl;
 
@@ -1577,7 +1575,7 @@ public:
 
     std::cout << "NN Calculation took " << timer << " ." << std::endl;
 
-    writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func);
+    writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func, this->numberOfDraws);
 
     return miEntropy;
 
@@ -1585,7 +1583,7 @@ public:
 
 private:
 
-  void writeToCSV(std::string nameToFile, std::string ident, const float_type & value, kNN_NORM norm, kNN_FUNCTION func)
+  void writeToCSV(std::string nameToFile, std::string ident, const float_type & value, kNN_NORM norm, kNN_FUNCTION func, size_t numberOfDraws)
   {
     std::ofstream myfile2;
     myfile2.open(std::string(nameToFile), std::ios::app);
@@ -1604,7 +1602,8 @@ private:
       myfile2 << std::setw(15) << std::scientific << std::setprecision(5) << "hnizdo,";
 
     myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << ident << ",";
-    myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << value << "\n";
+    myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << value << ",";
+    myfile2 << std::setw(25) << std::scientific << std::setprecision(15) << numberOfDraws << "\n";
 
     myfile2.close();
   }
@@ -1928,3 +1927,10 @@ private:
     }
 
 };
+
+void scalePCACoordinatesForQuasiHarmonicTreatment(Matrix_Class& modes, float_type const& temperatureInK)
+{
+  pow(modes, -1.);
+  modes = modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK));
+  //
+}
