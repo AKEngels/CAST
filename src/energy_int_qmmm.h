@@ -404,7 +404,7 @@ namespace energy
         /**creates link atoms*/
         void create_link_atoms();
         /**calculates the position of a given link atom*/
-        coords::cartesian_type calc_position(bonded::LinkAtom &);
+        coords::cartesian_type calc_position(bonded::LinkAtom);
         /**determines if a van der waals interaction between a QM and a MM atom should be calculated
         (at least 3 bonds between those atoms)
         @param qm: index of QM atom

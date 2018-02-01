@@ -260,13 +260,16 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 }
 
 // calculate position of a link atom (see: doi 10.1002/jcc.20857)
-coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom &link)
+coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom link)
 {
   coords::cartesian_type r_MM = coords->xyz(link.mm);
   coords::cartesian_type r_QM = coords->xyz(link.qm);
   double d_MM_QM = dist(r_MM, r_QM);
+  std::cout << "MM atom: " << r_MM << " ; QM atom: " << r_QM << "\n";
 
-  return r_QM + ((r_MM - r_QM) / d_MM_QM) * link.d_L_QM;
+  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.d_L_QM;
+  std::cout << "Pos: " << pos << "\n";
+  return pos;
 }
 
 // creates link atom for every QM/MM bond
@@ -653,7 +656,11 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto l : link_atoms) l.position = calc_position(l); // update positions of link atoms
+  for (auto l : link_atoms)
+  {
+    l.position = calc_position(l); // update positions of link atoms
+    std::cout << "Link atom pos: " << l.position << "\n";
+  }
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
@@ -730,7 +737,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         double Fx_QM = g * scalar_product(G_L, n) *n.x() + (1 - g)*G_L.x();
         double Fy_QM = g * scalar_product(G_L, n) *n.y() + (1 - g)*G_L.y();
         double Fz_QM = g * scalar_product(G_L, n) *n.z() + (1 - g)*G_L.z();
-        coords::r3 F_QM(Fx_QM, Fy_QM, Fz_QM);new_grad[l.qm] += F_QM;
+        coords::r3 F_QM(Fx_QM, Fy_QM, Fz_QM);
+        new_grad[l.qm] += F_QM;
         std::cout << "Gradient on QM atom: " << F_QM << "\n";
 
         double Fx_MM = g * G_L.x() - g * scalar_product(G_L, n) * n.x();
