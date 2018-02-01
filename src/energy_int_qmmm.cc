@@ -142,7 +142,6 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mmc(make_aco_coords(cp, mm_indices, new_indices_mm)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
 {
-  Config::set().energy.qmmm.mm_atoms_number = cp->size() - qm_indices.size();
   if (!tp.valid())
   {
     tp.from_file(Config::get().get().general.paramFilename);
@@ -608,7 +607,7 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   file << "  ElectricField = {\n";
   file << "    PointCharges = {\n";
   file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-  file << "        Records = " << Config::get().energy.qmmm.mm_atoms_number << "\n";
+  file << "        Records = " << mmc.size()-qmmm_bonds.size() << "\n";
   file << "        File = 'charges.dat'\n";
   file << "      }\n";
   file << "    }\n";
