@@ -696,6 +696,12 @@ int main(int argc, char **argv)
 
 #ifdef CAST_USE_ARMADILLO
       // Create gaussian mixture from PCA_modes
+
+      if (Config::get().entropytrails.inPCATaskWriteQHTransformedModes)
+      {
+        pcaptr->quasiHarmonicTransformation(Config::get().entropy.entropy_temp);
+      }
+
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 150, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size()) 
         + "_gaussians_" + std::to_string(150) + ".dat");
       pcaptr->createGaussianMixtureModel(Config::get().PCA.pca_dimensions_for_histogramming, 125, "gmm_dim_" + std::to_string(Config::get().PCA.pca_dimensions_for_histogramming.size())

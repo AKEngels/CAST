@@ -35,6 +35,8 @@ namespace pca
 		void generatePCAEigenvectorsFromCoordinates();
 		void generatePCAModesFromPCAEigenvectorsAndCoordinates();
 
+    void quasiHarmonicTransformation(double temperatureInKelvin);
+
 #ifdef CAST_USE_ARMADILLO
     void createGaussianMixtureModel(std::vector<size_t> const& dimensions, size_t numberOfGaussians, std::string nameOfOutfile = "gmm_model.dat");
 #endif

@@ -202,6 +202,13 @@ namespace pca
 
 	}
 
+  void PrincipalComponentRepresentation::quasiHarmonicTransformation(double temperatureInKelvin)
+  {
+    pow(this->modes, -1.);
+    this->modes = this->modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInKelvin));
+    //
+  }
+
 	void PrincipalComponentRepresentation::readModes(std::string const& filename)
 	{
     if (Config::get().general.verbosity > 2U) std::cout << "Reading PCA modes from file " << filename << "." << std::endl;

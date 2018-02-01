@@ -1845,6 +1845,19 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().entropytrails.meanNNcalculation = false;
     }
   }
+  else if (option == "et_PCA_QH_transform")
+  {
+    std::string holder;
+    cv >> holder;
+    if (holder == "true" || holder == "True" || holder == "TRUE")
+    {
+      Config::set().entropytrails.inPCATaskWriteQHTransformedModes = true;
+    }
+    else if (holder == "false" || holder == "False" || holder == "FALSE")
+    {
+      Config::set().entropytrails.inPCATaskWriteQHTransformedModes = false;
+    }
+  }
   else if (option == "et_cubatureIntegration")
   {
     std::string holder;
@@ -1876,10 +1889,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     cv >> Config::set().io.amber_mdvel;
   }
-  else if (option == "amber_inpcrd")
-  {
-    cv >> Config::set().io.amber_inpcrd;
-  }
+  //else if (option == "amber_inpcrd")
+  //{
+  //  cv >> Config::set().io.amber_inpcrd;
+  //}
   else if (option == "amber_restrt")
   {
     cv >> Config::set().io.amber_restrt;

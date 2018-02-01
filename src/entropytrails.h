@@ -121,6 +121,13 @@ float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMi
 
 }
 
+void scalePCACoordinatesForQuasiHarmonicTreatment(Matrix_Class& modes, float_type const& temperatureInK)
+{
+  pow(modes, -1.);
+  modes = modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK));
+  //
+}
+
 //For reading in data of a gaussian mixture model from file
 //GMM Files can be written using armadillo in the PCA task
 struct GMM_data
@@ -1928,9 +1935,3 @@ private:
 
 };
 
-void scalePCACoordinatesForQuasiHarmonicTreatment(Matrix_Class& modes, float_type const& temperatureInK)
-{
-  pow(modes, -1.);
-  modes = modes * 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK));
-  //
-}
