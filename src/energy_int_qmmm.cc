@@ -950,7 +950,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         bool use_charge = true;
         for (auto b : qmmm_bonds)
         {
-          if (mm_indices[j] == b.a) use_charge = false;
+          if (j == b.a) use_charge = false;
         }
         if (use_charge == true)
         {
