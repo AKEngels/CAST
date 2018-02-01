@@ -945,13 +945,17 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
     {     // Coulomb gradients on MM atoms for DFTB+
       int j2 = 0;
+      std::cout << "g_coul_mm: \n";
+      for (auto g:g_coul_mm) std::cout << g << "\n";
       for (auto j : mm_indices)
       {
+        std::cout << "calc atom " << j << ", counter: "<<j2<<"\n";
         bool use_charge = true;
         for (auto b : qmmm_bonds)
         {
           if (j == b.a) use_charge = false;
         }
+        std::cout << "use charge: " << use_charge << "\n";
         if (use_charge == true)
         {
           std::cout << "coulomb gradient on atom " << j << " is " << g_coul_mm[j2] << "\n";
