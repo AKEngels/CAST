@@ -404,10 +404,11 @@ namespace energy
         /**calculates the position of a given link atom*/
         coords::cartesian_type calc_position(bonded::LinkAtom);
         /**determines if a van der waals interaction between a QM and a MM atom should be calculated
-        (at least 3 bonds between those atoms)
         @param qm: index of QM atom
-        @param mm: index of MM atom*/
-        bool calc_vdw(int qm, int mm);
+        @param mm: index of MM atom
+        returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
+        and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
+        int calc_vdw(int qm, int mm);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW

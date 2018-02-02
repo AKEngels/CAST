@@ -787,21 +787,27 @@ double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
 }
 
 /**determines if a van der waals interaction between a QM and a MM atom should be calculated
-(at least 3 bonds between those atoms)
 @param qm: index of QM atom
-@param mm: index of MM atom*/
-bool energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
+@param mm: index of MM atom
+returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
+and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
+int energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
 {
   for (auto b : qmmm_bonds)
   {
-    if (qm == b.b && mm == b.a) return false;
+    if (qm == b.b && mm == b.a) return 0;
   }
   for (auto a : qmmm_angles)
   {
-    if (qm == a.a && mm == a.b) return false;
-    else if (qm == a.b && mm == a.a) return false;
+    if (qm == a.a && mm == a.b) return 0;
+    else if (qm == a.b && mm == a.a) return 0;
   }
-  return true;
+  for (auto d : qmmm_dihedrals)
+  {
+    if (qm == d.a && mm == d.b) return 2;
+    else if (qm == d.b && mm == d.a) return 2;
+  }
+  return 1;
 }
 
 /**calculates interaction between QM and MM part
@@ -852,27 +858,32 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         set_distance(d);
         coords::float_type b = (charge_i*charge_j) / d * elec_factor;
         auto R_r = std::pow(p_ij.R / d, 6);
-
-        if (calc_vdw(i, j) == true)  // calculate vdW interaction
+        double vdw;
+        int calc_modus = calc_vdw(i, j);
+        if (Config::get().general.verbosity > 4)
         {
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "calculate vdw energy between atoms " << i << " and " << j << "\n";
-          }
+          std::cout << "calculate vdw energy between atoms " << i << " and " << j << " is " <<calc_modus<<".\n";
+        }
+
+        if (calc_modus != 0)  // calculate vdW interaction
+        {
           if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::SIGMA)
           {
-            vdw_energy += R_r * p_ij.E*(R_r - 1.0);
+            vdw = R_r * p_ij.E*(R_r - 1.0);
+            if (calc_modus == 2) vdw = vdw / 2;
           }
           else if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::R_MIN)
           {
-            vdw_energy += R_r * p_ij.E*(R_r - 2.0);
+            vdw = R_r * p_ij.E*(R_r - 2.0);
+            if (calc_modus == 2) vdw = vdw / 2;
           }
           else
           {
             throw std::runtime_error("no valid radius_type");
           }
+          vdw_energy += vdw;
         }
 
         
@@ -888,7 +899,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             c_gradient[j] -= c_gradient_ij;
           }
 
-          if (calc_vdw(i, j) == true)  // gradients of vdW interaction
+          if (calc_modus != 0)  // gradients of vdW interaction
           {
             coords::float_type const V = p_ij.E*R_r;
 
@@ -897,6 +908,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
               auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
+              if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
               vdw_gradient[i] -= vdw_gradient_ij_sigma;
               vdw_gradient[j] += vdw_gradient_ij_sigma;
             }
@@ -904,6 +916,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             {
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
               auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
+              if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
               vdw_gradient[i] -= vdw_gradient_ij_R_MIN;
               vdw_gradient[j] += vdw_gradient_ij_R_MIN;
             }
