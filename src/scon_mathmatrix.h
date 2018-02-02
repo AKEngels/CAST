@@ -61,14 +61,19 @@ arma::Mat kind
 // flag is set by Visual Studio or make according to your desired configuration
 // It's all already automatized and integrated
 
+//Remove if arma Translation is implemented... and enable the includes beneath else
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+#include <Eigen/Geometry>
+
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 template <typename T>
 using matrix_type = arma::Mat<T>;
 #else
-#include <Eigen/Dense>
+/*#include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
-#include <Eigen/Geometry>
+#include <Eigen/Geometry>*/
 template <typename T>
 using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
@@ -614,9 +619,9 @@ mathmatrix<T> transpose(mathmatrix<T> const& in) {
 
 class RotationMatrix {
 public:
-#ifdef CAST_USE_ARMADILLO
+/*#ifdef CAST_USE_ARMADILLO
   // Too much work for now.
-#else
+#else*/
   using Translation = Eigen::Translation3d;
   using Rotation = Eigen::AngleAxisd;
   using Transformation = Eigen::Affine3d;
@@ -638,7 +643,7 @@ public:
                           to_center);
   }
 
-#endif
+//#endif
 };
 
 #ifndef CAST_USE_ARMADILLO

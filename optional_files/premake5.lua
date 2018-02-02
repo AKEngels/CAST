@@ -41,8 +41,9 @@ workspace "CAST"
 		warnings "Extra"
 		includedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
-
-		filter "not Armadillo_*"
+		
+		--enable if Armadillo Transformations are implemented
+		--filter "not Armadillo_*"
 				includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
@@ -134,7 +135,8 @@ workspace "CAST"
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
-		filter { "not Armadillo_*", "action:vs*" }
+		--enable if Armadillo Transformations are implemented
+		--filter { "not Armadillo_*", "action:vs*" }
 				buildoptions "/bigobj"
 
 		filter { "Release", "platforms:x86", "action:vs*" }
