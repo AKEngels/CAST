@@ -862,7 +862,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         int calc_modus = calc_vdw(i, j);
         if (Config::get().general.verbosity > 4)
         {
-          std::cout << "calculate vdw energy between atoms " << i << " and " << j << " is " <<calc_modus<<".\n";
+          std::cout << "VdW calc_modus between atoms " << i << " and " << j << " is " <<calc_modus<<".\n";
         }
 
         if (calc_modus != 0)  // calculate vdW interaction
