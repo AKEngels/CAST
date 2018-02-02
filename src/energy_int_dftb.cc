@@ -204,10 +204,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
+          int ext_charge_number = std::stoi(line.substr(30));
+
           std::vector<coords::Cartesian_Point> grad_tmp;
           double x, y, z;
 
-          for (int i = 0; i < Config::get().energy.qmmm.mm_atoms_number; i++)
+          for (int i = 0; i < ext_charge_number; i++)
           {
             std::getline(in_file, line);
             std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
