@@ -70,7 +70,8 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
+			linkoptions "-fopenmp"
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
