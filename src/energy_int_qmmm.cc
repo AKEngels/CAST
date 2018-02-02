@@ -729,15 +729,15 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
         coords::r3 n = (coords->xyz(l.mm) - coords->xyz(l.qm)) / dist(coords->xyz(l.mm), coords->xyz(l.qm));
 
-        double Gx_QM = g * scalar_product(G_L, n) *n.x() + (1 - g)*G_L.x();
-        double Gy_QM = g * scalar_product(G_L, n) *n.y() + (1 - g)*G_L.y();
-        double Gz_QM = g * scalar_product(G_L, n) *n.z() + (1 - g)*G_L.z();
+        double Gx_QM = g * scon::dot(G_L, n) *n.x() + (1 - g)*G_L.x();
+        double Gy_QM = g * scon::dot(G_L, n) *n.y() + (1 - g)*G_L.y();
+        double Gz_QM = g * scon::dot(G_L, n) *n.z() + (1 - g)*G_L.z();
         coords::r3 G_QM(Gx_QM, Gy_QM, Gz_QM);
         new_grad[l.qm] += G_QM;
 
-        double Gx_MM = g * G_L.x() - g * scalar_product(G_L, n) * n.x();
-        double Gy_MM = g * G_L.y() - g * scalar_product(G_L, n) * n.y();
-        double Gz_MM = g * G_L.z() - g * scalar_product(G_L, n) * n.z();
+        double Gx_MM = g * G_L.x() - g * scon::dot(G_L, n) * n.x();
+        double Gy_MM = g * G_L.y() - g * scon::dot(G_L, n) * n.y();
+        double Gz_MM = g * G_L.z() - g * scon::dot(G_L, n) * n.z();
         coords::r3 G_MM(Gx_MM, Gy_MM, Gz_MM);
         new_grad[l.mm] += G_MM;
 

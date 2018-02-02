@@ -185,9 +185,3 @@ inline std::string last_line(std::ifstream& in)
   while (in >> std::ws && std::getline(in, line)); // skip empty lines
   return line;
 }
-
-/**returns scalar product of vectors a and b in 3D space*/
-inline double scalar_product(coords::r3 a, coords::r3 b)
-{
-  return a.x()*b.x() + a.y()*b.y() + a.z()*b.z();
-}
