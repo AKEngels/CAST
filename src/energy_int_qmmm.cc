@@ -308,14 +308,15 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
+        if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA && 
+          Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
         {
           bonded::Bond bond(mma, b);
           qmmm_bonds.push_back(bond);
         }
         else
         {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA as MM interface.\n");
+          throw std::runtime_error("Breaking bonds is only possible with OPLSAA as MM interface and DFTB+ as QM interface.\n");
         }
       }
     }
