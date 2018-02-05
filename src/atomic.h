@@ -63,8 +63,8 @@ namespace atomic
 
   /**highest angular momentum ('e' is not defined yet)*/
   static const char angular_momentum[ATOMIC_H] =
-  { 's',
-    'e',                                                                                                                                                       'e',
+  { 'e',       // this is just something for non-existent element 0, PSE starting in next line
+    's',                                                                                                                                                       'e',
     'e', 'e',                                                                                                                         'e', 'p', 'p', 'p', 'e', 'e',
     'e', 'e',                                                                                                                         'e', 'e', 'e', 'd', 'e', 'e',
     'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
