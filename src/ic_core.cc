@@ -310,13 +310,13 @@ ic_core::trans_z::trans_z_der_vec(const std::size_t& sys_size) {
 
 std::array<float_type, 3u>
 ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
-  auto result = ic_rotation::exponential_map<float_type>(trial, reference_);
+  auto result = ic_rotation::exponential_map(trial, reference_);
   return result;
 }
 
 std::vector<scon::mathmatrix<float_type>>
 ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
-  return ic_rotation::exponential_derivs<float_type>(trial, reference_);
+  return ic_rotation::exponential_derivs(trial, reference_);
 }
 
 scon::mathmatrix<float_type>
@@ -346,7 +346,7 @@ ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
 
 coords::float_type
 ic_core::rotation::radius_gyration(const coords::Representation_3D& struc) {
-  coords::float_type result = ic_util::rad_gyr<coords::float_type>(struc);
+  coords::float_type result = ic_util::rad_gyr(struc);
   return result;
 }
 

@@ -55,9 +55,9 @@ namespace ic_util{
 
   // radius of gyration from Rep3D
   // coords have to be in Bohr
-  template <typename T>
+  template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
-  rad_gyr(const coords::Representation_3D& rep) {
+  rad_gyr(ContainerType<CoordType<T>, ContainerArgs...> const& rep) {
     auto mean = cp_mean(rep);
     auto diff = rep - mean;
     auto sum{ 0.0 };
@@ -130,9 +130,9 @@ namespace ic_util{
   \param cp_vec Structure of the system.
   \return std::vector of Euclidean distances.
   */
-  template <typename T>
+  template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
-  dist_vec(const coords::Representation_3D& cp_vec) {
+  dist_vec(ContainerType<CoordType<T>, ContainerArgs...> const& cp_vec) {
     std::vector<T> result;
     auto perm_vec = permutation(cp_vec.size());
     for (auto& i : perm_vec) {
@@ -165,7 +165,7 @@ namespace ic_util{
       auto t = 1.2 * (radii.at(i.first - 1) + radii.at(i.second - 1));
       thres.emplace_back(t);
     }
-    auto dist = dist_vec<T>(cp_vec);
+    auto dist = dist_vec(cp_vec);
     auto thres_it{ thres.cbegin() };
     auto dist_it{ dist.cbegin() };
     std::vector<std::pair<int, int>> result;

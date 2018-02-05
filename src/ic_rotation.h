@@ -36,22 +36,22 @@ auto get_mean(Vec const & vec, Add add) {
 //  return mean;
 //};
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-scon::mathmatrix<T> correlation_matrix(const coords::Representation_3D& trial,
-                                const coords::Representation_3D& target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type 
+correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                   ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   auto trial_mat = ic_util::Rep3D_to_arma(trial);
   auto target_mat = ic_util::Rep3D_to_arma(target);
   return trial_mat.t() * target_mat;
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-  scon::mathmatrix<T> F_matrix(coords::Representation_3D const & trial,
-                       coords::Representation_3D const & target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type 
+F_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+         ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
 
-  auto correl_mat = correlation_matrix<T>(trial, target);
+  auto correl_mat = correlation_matrix(trial, target);
   auto R11 = correl_mat(0, 0);
   auto R12 = correl_mat(0, 1);
   auto R13 = correl_mat(0, 2);
@@ -81,11 +81,10 @@ template <typename T,
   return F;
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::pair<T, ic_util::Quaternion<T>>
-quaternion(coords::Representation_3D const & trial,
-           coords::Representation_3D const & target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::pair<T, ic_util::Quaternion<T>>>::type
+quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+           ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
   auto const & add_cp = std::plus<Cartesian_Point>();
@@ -97,7 +96,7 @@ quaternion(coords::Representation_3D const & trial,
   auto trial_shift = trial - mean_trial;
   auto target_shift = target - mean_target;
 
-  auto F_mat = F_matrix<T>(trial_shift, target_shift);
+  auto F_mat = F_matrix(trial_shift, target_shift);
 
   Mat eigvec, eigval;
 
@@ -114,11 +113,11 @@ quaternion(coords::Representation_3D const & trial,
   return std::make_pair(eigval_high.at(0), res_q);
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::array<T, 3u> exponential_map(const coords::Representation_3D& trial,
-                                  const coords::Representation_3D& target) {
-  auto q = quaternion<T>(trial, target);
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type 
+exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                ContainerType<CoordType<T>, ContainerArgs...> const& target) {
+  auto q = quaternion(trial, target);
   auto quat = q.second;
   auto q0 = quat.q_.at(0);
   auto t1 = std::acos(q0);
@@ -127,11 +126,10 @@ std::array<T, 3u> exponential_map(const coords::Representation_3D& trial,
   return { p * quat.q_.at(1), p * quat.q_.at(2), p * quat.q_.at(3) };
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<std::array<scon::mathmatrix<T>, 3> >
-correlation_matrix_derivs(const scon::mathmatrix<T>& R,
-                          const coords::Representation_3D& target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+  typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::array<scon::mathmatrix<T>, 3> >>::type
+correlation_matrix_derivs(scon::mathmatrix<T> const& R,
+                          ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
 
@@ -151,11 +149,10 @@ correlation_matrix_derivs(const scon::mathmatrix<T>& R,
   return result;
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<std::array<scon::mathmatrix<T>, 3> >
-F_matrix_derivs(const coords::Representation_3D& trial,
-                const coords::Representation_3D& target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::array<scon::mathmatrix<T>, 3> >>::type
+F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
   auto const & add = std::plus<Cartesian_Point>();
@@ -165,7 +162,7 @@ F_matrix_derivs(const coords::Representation_3D& trial,
 
   auto tashift = target - mean_target;
   auto trshift = trial - mean_trial;
-  auto R = correlation_matrix<T>(tashift, trshift);
+  auto R = correlation_matrix(tashift, trshift);
   auto dR = correlation_matrix_derivs(R, tashift);
   std::vector<std::array<Mat, 3> > result;
   for (auto& S : dR) {
@@ -208,19 +205,18 @@ F_matrix_derivs(const coords::Representation_3D& trial,
 
 
 
-template <typename T>
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
-quaternion_derivs(const coords::Representation_3D& trial,
-                  const coords::Representation_3D& target);
+quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                  ContainerType<CoordType<T>, ContainerArgs...> const& target);
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<scon::mathmatrix<T>>
-exponential_derivs(const coords::Representation_3D& trial,
-                   const coords::Representation_3D& target) {
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
+exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                   ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
 
-  auto q_val = quaternion<T>(trial, target);
+  auto q_val = quaternion(trial, target);
   auto q = q_val.second;
   auto q0 = std::get<0>(q.q_);
   T d{ 0.0 };
@@ -242,7 +238,7 @@ exponential_derivs(const coords::Representation_3D& trial,
                  { 0, p, 0 },
                  { 0, 0, p } };
   auto dv_trans = dv_mat.t();
-  auto dq_mat = quaternion_derivs<T>(trial, target);
+  auto dq_mat = quaternion_derivs(trial, target);
   std::vector<Mat> result;
   for (std::size_t i = 0; i < target.size(); ++i) {
     Mat M = dq_mat.at(i);
@@ -252,15 +248,15 @@ exponential_derivs(const coords::Representation_3D& trial,
   return result;
 }
 }
-template <typename T>
+template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
-ic_rotation::quaternion_derivs(const coords::Representation_3D& trial,
-                  const coords::Representation_3D& target) {
+ic_rotation::quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
+                               ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
 
-  auto q_eigval = quaternion<T>(trial, target);
-  auto F = F_matrix<T>(trial, target);
-  auto F_der = F_matrix_derivs<T>(trial, target);
+  auto q_eigval = quaternion(trial, target);
+  auto F = F_matrix(trial, target);
+  auto F_der = F_matrix_derivs(trial, target);
 
   auto t1 = Mat::fill_diag(4, 4, q_eigval.first) -F;
   auto t2 = t1.pinv();
