@@ -200,7 +200,7 @@ inline coords::Cartesian_Point cp_mean(const coords::Representation_3D& rep) {
   for (auto&& i : rep) {
     cp += i;
   }
-  cp /= (float_type)rep.size();
+  cp /= static_cast<float_type>(rep.size());
   return cp;
 }
 
@@ -234,9 +234,9 @@ normal_unit_vector(const coords::Cartesian_Point& a,
   return result;
 }
 
-template <typename T, template<typename> class CoordType, template <typename> class ContainerType>
+template <typename T, template<typename> class CoordType, template <typename, typename ...> class ContainerType, typename ... ContainerArgs>
 inline typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
-Rep3D_to_arma(const Container<CoordType<T>>& rep) {
+Rep3D_to_arma(const ContainerType<CoordType<T>, ContainerArgs ...>& rep) {
   using Mat = scon::mathmatrix<T>;
 
   Mat A(rep.size(), 3);
