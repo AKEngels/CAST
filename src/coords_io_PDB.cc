@@ -11,7 +11,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #include "coords_io.h"
 #include "helperfunctions.h"
 
-std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "HID", "HIE", "HIP" };
+std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "CYP", "HID", "HIE", "HIP" };
 
 /**struct that contains information about a residue*/
 struct residue
@@ -184,7 +184,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
       return 0;
     }
   }
-  else if (res_name == "CYX")
+  else if (res_name == "CYX")  // disulfide
   {
     if (atom_name.substr(0, 1) == "S") return 145;
     else if (atom_name.substr(0, 1) == "C") return 156;
@@ -195,7 +195,18 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
       return 0;
     }
   }
-  else if (res_name == "CYM")
+  else if (res_name == "CYP")  // bound to ligand
+  {
+    if (atom_name.substr(0, 1) == "S") return 144;
+    else if (atom_name.substr(0, 1) == "C") return 156;
+    else if (atom_name.substr(0, 1) == "H") return 85;
+    else
+    {
+      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      return 0;
+    }
+  }
+  else if (res_name == "CYM")  // diprotonated
   {
     if (Config::get().general.verbosity > 1)
     {
