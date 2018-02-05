@@ -15,6 +15,8 @@
 #include <functional>
 #include <numeric>
 
+
+
 namespace ic_rotation {
 
 using coords::float_type;
@@ -204,36 +206,12 @@ F_matrix_derivs(const coords::Representation_3D& trial,
   return result;
 }
 
-template <typename T,
-          typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
-std::vector<scon::mathmatrix<T>>
+
+
+template <typename T>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
 quaternion_derivs(const coords::Representation_3D& trial,
-                  const coords::Representation_3D& target) {
-  using Mat = scon::mathmatrix<T>;
-
-  auto q_eigval = quaternion<T>(trial, target);
-  auto F = F_matrix<T>(trial, target);
-  auto F_der = F_matrix_derivs<T>(trial, target);
-
-  auto t1 = Mat::fill_diag(4, 4, q_eigval.first) -F;
-  auto t2 = t1.pinv();
-
-  std::vector<Mat> result;
-  auto q = q_eigval.second;
-  auto q_in_vec = ic_util::arr_to_vec(q.q_);
-  auto qrow = Mat::col_from_vec(q_in_vec);
-  for (std::size_t i = 0; i < target.size(); ++i) {
-    auto F_dtemp = F_der.at(i);
-    Mat qtemp(3, 4);
-    for (std::size_t c = 0; c < 3; ++c) {
-      auto F_sl = F_dtemp.at(c);
-      auto temp_res = t2 * F_sl * qrow.t();
-      qtemp.row(c) = temp_res.t();
-    }
-    result.emplace_back(qtemp);
-  }
-  return result;
-}
+                  const coords::Representation_3D& target);
 
 template <typename T,
           typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
@@ -274,5 +252,33 @@ exponential_derivs(const coords::Representation_3D& trial,
   return result;
 }
 }
+template <typename T>
+typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
+ic_rotation::quaternion_derivs(const coords::Representation_3D& trial,
+                  const coords::Representation_3D& target) {
+  using Mat = scon::mathmatrix<T>;
 
+  auto q_eigval = quaternion<T>(trial, target);
+  auto F = F_matrix<T>(trial, target);
+  auto F_der = F_matrix_derivs<T>(trial, target);
+
+  auto t1 = Mat::fill_diag(4, 4, q_eigval.first) -F;
+  auto t2 = t1.pinv();
+
+  std::vector<Mat> result;
+  auto q = q_eigval.second;
+  auto q_in_vec = ic_util::arr_to_vec(q.q_);
+  auto qrow = Mat::col_from_vec(q_in_vec);
+  for (std::size_t i = 0; i < target.size(); ++i) {
+    auto F_dtemp = F_der.at(i);
+    Mat qtemp(3, 4);
+    for (std::size_t c = 0; c < 3; ++c) {
+      auto F_sl = F_dtemp.at(c);
+      auto temp_res = t2 * F_sl * qrow.t();
+      qtemp.row(c) = temp_res.t();
+    }
+    result.emplace_back(qtemp);
+  }
+  return result;
+}
 #endif // cast_ic_rotation_h_guard

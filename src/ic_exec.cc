@@ -66,9 +66,11 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   std::cout << "DLC matrix: \n";
   std::cout << DLC_matrix << "\n\n";
   auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
-  
+
   std::cout << "DelHessian:\n" << del_hessian << "\n\n";
   auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
+
+  auto test = ic_util::Rep3D_to_arma(cPtr->xyz());
   //std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   //std::cout << "Gmatrix:\n" << G_matrix << "\n\n";
   //

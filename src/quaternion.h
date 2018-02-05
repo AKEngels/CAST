@@ -1,8 +1,6 @@
 #ifndef cast_quaternion_h_guard
 #define cast_quaternion_h_guard
 
-#pragma once
-
 #include "coords.h"
 #include "coords_rep.h"
 

@@ -1,4 +1,5 @@
 #include "ic_core.h"
+#include "ic_util.h"
 
 using coords::float_type;
 
@@ -530,7 +531,7 @@ scon::mathmatrix<float_type> ic_core::system::initial_hessian() {
   }
   values.insert(values.end(), trans_x_vec_.size() * 3, 0.05);
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
-  
+
   auto val_col = Mat::col_from_vec(values);
   //val_col.print(); //test output
   Mat hessian = val_col.diagmat();
@@ -549,7 +550,7 @@ ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& del_mat,
 
 scon::mathmatrix<float_type>
 ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
-  
+
   using Mat = scon::mathmatrix<float_type>;
 
   Mat U, s, V;
