@@ -12,6 +12,7 @@ Provides fundamental atomic properties
 #define ATOMIC_H 87U
 
 #pragma once
+#include <iostream>
 #include <string>
 #include <cmath>
 #include <cstddef>
@@ -63,8 +64,8 @@ namespace atomic
 
   /**highest angular momentum ('e' is not defined yet)*/
   static const char angular_momentum[ATOMIC_H] =
-  { 's',
-    'e',                                                                                                                                                       'e',
+  { 'e',   // this is just something for non-existent element 0, PSE starting in next line
+    's',                                                                                                                                                       'e',
     'e', 'e',                                                                                                                         'e', 'p', 'p', 'p', 'e', 'e',
     'e', 'e',                                                                                                                         'e', 'e', 'e', 'd', 'e', 'e',
     'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
@@ -176,7 +177,7 @@ static const double cov_radiusMap[ATOMIC_H] = {
         break;
       }
     }
-    return angular_momentum[counter];
+    return angular_momentum[counter]; 
   }
 
   /*! Returns atomic number of an element specified by its mass.
