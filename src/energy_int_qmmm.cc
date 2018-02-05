@@ -191,6 +191,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 {
   for (auto &b : qmmm_bonds)  // find bond parameters
   {
+	  bool found = false;
     auto b_type_a = cparams.type(coords->atoms().atom(b.a).energy_type(), tinker::potential_keys::BOND);
     auto b_type_b = cparams.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
     for (auto b_param : cparams.bonds())
@@ -199,17 +200,21 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
       {
         b.ideal = b_param.ideal;
         b.force = b_param.f;
+		    found = true;
       }
       else if (b_param.index[0] == b_type_b && b_param.index[1] == b_type_a)
       {
         b.ideal = b_param.ideal;
         b.force = b_param.f;
+		    found = true;
       }
     }
+	  if (found == false) std::cout << "Parameters for bond between " << b.a << " and " << b.b << " not found.\n";
   }
 
   for (auto &a : qmmm_angles)  // find angle parameters
   {
+	  bool found = false;
     auto a_type_a = cparams.type(coords->atoms().atom(a.a).energy_type(), tinker::potential_keys::ANGLE);
     auto a_type_b = cparams.type(coords->atoms().atom(a.b).energy_type(), tinker::potential_keys::ANGLE);
     auto a_type_c = cparams.type(coords->atoms().atom(a.c).energy_type(), tinker::potential_keys::ANGLE);
@@ -221,23 +226,27 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
         {
           a.ideal = a_param.ideal;
           a.force = a_param.f;
+		      found = true;
         }
         else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_b)
         {
           a.ideal = a_param.ideal;
           a.force = a_param.f;
+		      found = true;
         }
       }
     }
+	  if (found == false) std::cout << "Parameters for angle made of " << a.a <<", "<<a.c << " and " << a.b << " not found.\n";
   }
 
   for (auto &d : qmmm_dihedrals)  // find parameters for dihedrals
   {
+	  bool found = false;
     auto d_type_a = cparams.type(coords->atoms().atom(d.a).energy_type(), tinker::potential_keys::TORSION);
     auto d_type_b = cparams.type(coords->atoms().atom(d.b).energy_type(), tinker::potential_keys::TORSION);
     auto d_type_c1 = cparams.type(coords->atoms().atom(d.c1).energy_type(), tinker::potential_keys::TORSION);
     auto d_type_c2 = cparams.type(coords->atoms().atom(d.c2).energy_type(), tinker::potential_keys::TORSION);
-    for (auto d_param : cparams.torsions())
+    for (auto d_param : cparams.torsions())  // find parameters only with real atom types (no 0)
     {
       if (d_param.index[0] == d_type_a && d_param.index[1] == d_type_c1 && d_param.index[2] == d_type_c2 && d_param.index[3] == d_type_b)
       {
@@ -246,6 +255,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
         d.orders = d_param.order;
         d.forces = d_param.force;
         d.ideals = d_param.ideal;
+		    found = true;
       }
       else if (d_param.index[0] == d_type_b && d_param.index[1] == d_type_c2 && d_param.index[2] == d_type_c1 && d_param.index[3] == d_type_a)
       {
@@ -254,8 +264,79 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
         d.orders = d_param.order;
         d.forces = d_param.force;
         d.ideals = d_param.ideal;
+		    found = true;
       }
     }
+	  if (found == false)   // find parameters where one of the outer atoms is a 0 instead of the "real" atom type
+	  {
+		  for (auto d_param : cparams.torsions())
+		  {
+			  if (d_param.index[0] == 0 && d_param.index[1] == d_type_c1 && d_param.index[2] == d_type_c2 && d_param.index[3] == d_type_b)
+			  {
+				  d.max_order = d_param.max_order;
+				  d.number = d_param.number;
+				  d.orders = d_param.order;
+				  d.forces = d_param.force;
+				  d.ideals = d_param.ideal;
+				  found = true;
+			  }
+			  else if (d_param.index[0] == d_type_a && d_param.index[1] == d_type_c1 && d_param.index[2] == d_type_c2 && d_param.index[3] == 0)
+			  {
+				  d.max_order = d_param.max_order;
+				  d.number = d_param.number;
+				  d.orders = d_param.order;
+				  d.forces = d_param.force;
+				  d.ideals = d_param.ideal;
+				  found = true;
+			  }
+			  else if (d_param.index[0] == 0 && d_param.index[1] == d_type_c2 && d_param.index[2] == d_type_c1 && d_param.index[3] == d_type_a)
+			  {
+				  d.max_order = d_param.max_order;
+				  d.number = d_param.number;
+				  d.orders = d_param.order;
+				  d.forces = d_param.force;
+				  d.ideals = d_param.ideal;
+				  found = true;
+			  }
+			  else if (d_param.index[0] == d_type_b && d_param.index[1] == d_type_c2 && d_param.index[2] == d_type_c1 && d_param.index[3] == 0)
+			  {
+				  d.max_order = d_param.max_order;
+				  d.number = d_param.number;
+				  d.orders = d_param.order;
+				  d.forces = d_param.force;
+				  d.ideals = d_param.ideal;
+				  found = true;
+			  }
+		  }
+	  }
+    if (found == false)
+    {
+      for (auto d_param : cparams.torsions())  // find parameters where both outer atoms are 0
+      {
+        if (d_param.index[0] == 0 && d_param.index[1] == d_type_c1 && d_param.index[2] == d_type_c2 && d_param.index[3] == 0)
+        {
+          d.max_order = d_param.max_order;
+          d.number = d_param.number;
+          d.orders = d_param.order;
+          d.forces = d_param.force;
+          d.ideals = d_param.ideal;
+          found = true;
+        }
+        else if (d_param.index[0] == 0 && d_param.index[1] == d_type_c2 && d_param.index[2] == d_type_c1 && d_param.index[3] == 0)
+        {
+          d.max_order = d_param.max_order;
+          d.number = d_param.number;
+          d.orders = d_param.order;
+          d.forces = d_param.force;
+          d.ideals = d_param.ideal;
+          found = true;
+        }
+      }
+    }
+	  if (found == false)
+	  {
+		  std::cout << "Parameters for dihedral made of " << d.a << ", " << d.c1 << ", " << d.c2 << " and " << d.b << " not found.\n";
+	  }
   }
 }
 
