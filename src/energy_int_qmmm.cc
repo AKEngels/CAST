@@ -464,7 +464,7 @@ void energy::interfaces::qmmm::QMMM::prepare_bonded_qmmm()
   find_parameters();   // find force field parameters for energy calculation
   create_link_atoms(); // create link atoms
 
-  if (Config::get().general.verbosity > 4)  // Output
+  if (Config::get().general.verbosity > 3)  // Output
   {
     std::cout << "QM/MM-Bonds\n";
     for (auto b : qmmm_bonds)
