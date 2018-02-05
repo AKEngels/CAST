@@ -64,9 +64,9 @@ namespace atomic
   /**highest angular momentum ('e' is not defined yet)*/
   static const char angular_momentum[ATOMIC_H] =
   { 's',
-    's',                                                                                                                                                       's',
+    'e',                                                                                                                                                       'e',
     'e', 'e',                                                                                                                         'e', 'p', 'p', 'p', 'e', 'e',
-    'e', 'e',                                                                                                                         'e', 'e', 'p', 'd', 'e', 'e',
+    'e', 'e',                                                                                                                         'e', 'e', 'e', 'd', 'e', 'e',
     'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
     'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
     'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'
