@@ -600,7 +600,8 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
       for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
       { // cycle over all atoms bound to i
         double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        if (L > 2.2) return false;
+        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
+        if (L > max) return false;
       }
     }
   }
