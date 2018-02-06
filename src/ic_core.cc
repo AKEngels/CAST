@@ -213,17 +213,11 @@ ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
 }
 
 coords::Representation_3D ic_core::trans_x::trans_x_der() {
-  using coords::Cartesian_Point;
-  using coords::Representation_3D;
+  using cp = coords::Cartesian_Point;
+  using rep3D = coords::Representation_3D;
 
-  auto s{ rep_.size() };
-  Cartesian_Point cp(1.0 / s, 0.0, 0.0);
-  Representation_3D result;
-  std::size_t i{ 0 };
-  do {
-    result.emplace_back(cp);
-    ++i;
-  } while (i < s);
+  auto const & s{ rep_.size() };
+  rep3D result(s, cp(1.0 / s, 0.0, 0.0));
   return result;
 }
 
@@ -232,14 +226,8 @@ ic_core::trans_x::trans_x_der_vec(const std::size_t& sys_size) {
   using scon::c3;
 
   auto firstder = ic_core::trans_x::trans_x_der();
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
-  auto it1 = begin(firstder);
-  auto end_it1 = end(firstder);
-  auto it2 = begin(indices_);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    der_vec.at(*it2 - 1) = *it1;
-  }
+  auto it1 = std::cbegin(firstder);
+  std::vector<c3<float_type>> der_vec(it1, it1 + sys_size);
   auto result = ic_util::flatten_c3_vec(der_vec);
   return result;
 }
@@ -407,10 +395,11 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
 }
 
 std::pair<scon::mathmatrix<float_type>, scon::mathmatrix<float_type>>
-ic_core::system::delocalize_ic_system(const std::size_t& sys_size,
-                                      const coords::Representation_3D& trial) {
+ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
 
   using Mat = scon::mathmatrix<float_type>;
+
+  auto const & sys_size = trial.size();
 
   std::vector<std::vector<float_type>> result;
   for (auto& i : trans_x_vec_) {

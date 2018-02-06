@@ -224,6 +224,7 @@ namespace ic_util{
   inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
   flatten_c3_vec(const std::vector<scon::c3<T>>& vec) {
     std::vector<T> result;
+    result.reserve(3 * vec.size());
     for (auto& i : vec) {
       result.emplace_back(i.x());
       result.emplace_back(i.y());

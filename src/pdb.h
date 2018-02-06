@@ -393,19 +393,13 @@ public:
     auto last = res_vec.back().atom_serial;
     std::vector<std::vector<Atom_type>> result;
     std::vector<Atom_type> temp;
-    for (auto& i : res_vec) {
-      auto index = std::distance(result.begin(), result.end()) + 1;
-      if (last == i.atom_serial) {
-        temp.emplace_back(i);
-        result.emplace_back(temp);
-      } else if (index == i.res_seq) {
-        temp.emplace_back(i);
-      } else {
-        result.emplace_back(temp);
-        temp.erase(temp.begin(), temp.end());
-        temp.emplace_back(i);
+    for (auto const & atom_i : res_vec) {
+      if (result.size() + 1 != atom_i.res_seq) {
+        result.emplace_back(std::move(temp));
       }
+      temp.emplace_back(atom_i);
     }
+    result.emplace_back(std::move(temp));
     return result;
   }
 

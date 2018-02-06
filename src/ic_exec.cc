@@ -25,28 +25,29 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
 
   // test of my code
   // create a Parser object from the input file
-  Pdb::Parser<coords::float_type> p0("test.pdb");
+  Pdb::Parser<coords::float_type> pAlaGly("AlaGly.pdb");
+  /*Pdb::Parser<coords::float_type> p0("test.pdb");
   Pdb::Parser<coords::float_type> p("ethanol.pdb");
-  Pdb::Parser<coords::float_type> p_new("ethanol_shifted.pdb");
+  Pdb::Parser<coords::float_type> p_new("ethanol_shifted.pdb");*/
 
-  auto trial = p_new.create_rep_3D(p_new.atom_vec);
+  auto trial = pAlaGly.create_rep_3D(pAlaGly.atom_vec);
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
   // auto c0_vec = p0.create_rep_3D(p0.atom_vec);
 
   // create Representation_3D object from the Parser
-  auto cp_vec = p.create_rep_3D(p.atom_vec);
+  auto cp_vec = pAlaGly.create_rep_3D(pAlaGly.atom_vec);
 
   // create residue vector from Parser atom vector
-  auto residue_vec = p.create_resids_rep_3D(p.atom_vec);
+  auto residue_vec = pAlaGly.create_resids_rep_3D(pAlaGly.atom_vec);
 
   // create residue index vector from Parser atom vector
-  auto index_vec = p.create_resids_indices(p.atom_vec);
+  auto index_vec = pAlaGly.create_resids_indices(pAlaGly.atom_vec);
 
   // create vector of bonds
-  auto bonds = ic_util::bonds(p.atom_vec, cp_vec);
+  auto bonds = ic_util::bonds(pAlaGly.atom_vec, cp_vec);
 
   // create graph from bonds vector and atom vector
-  ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);
+  ic_util::Graph<decltype(pAlaGly.atom_vec)::value_type> graph(bonds, pAlaGly.atom_vec);
 
   // output graphviz file from graph
   graph.visualize_graph("Graphviz");
@@ -58,9 +59,9 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   std::cout << "IC creation test: \n";
   std::cout << "Initial hessian: \n";
   auto hessian = icSystem.initial_hessian();
-  std::cout << "Hessian:\n" << hessian << "\n\n";
-  std::cout << hessian << "\n";
-  auto DLC = icSystem.delocalize_ic_system(9, trial);
+  {std::ofstream hessout("hess.mat");
+  hessout << hessian << "\n"; }
+  auto DLC = icSystem.delocalize_ic_system(trial);
   auto DLC_matrix = DLC.first;
   auto G_matrix = DLC.second;
   std::cout << "DLC matrix: \n";
