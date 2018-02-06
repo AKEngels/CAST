@@ -213,7 +213,7 @@ ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
 }
 
 std::vector<float_type>
-ic_core::trans_x::trans_x_der_vec(const std::size_t& sys_size) {
+ic_core::trans_x::trans_x_der_vec() {
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
@@ -222,7 +222,7 @@ ic_core::trans_x::trans_x_der_vec(const std::size_t& sys_size) {
 }
 
 std::vector<float_type>
-ic_core::trans_y::trans_y_der_vec(const std::size_t& sys_size) {
+ic_core::trans_y::trans_y_der_vec() {
   
   using cp = coords::Cartesian_Point;
 
@@ -232,7 +232,7 @@ ic_core::trans_y::trans_y_der_vec(const std::size_t& sys_size) {
 }
 
 std::vector<float_type>
-ic_core::trans_z::trans_z_der_vec(const std::size_t& sys_size) {
+ic_core::trans_z::trans_z_der_vec() {
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
@@ -347,13 +347,13 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
 
   std::vector<std::vector<float_type>> result;
   for (auto& i : trans_x_vec_) {
-    result.emplace_back(i.trans_x_der_vec(sys_size));
+    result.emplace_back(i.trans_x_der_vec());
   }
   for (auto& i : trans_y_vec_) {
-    result.emplace_back(i.trans_y_der_vec(sys_size));
+    result.emplace_back(i.trans_y_der_vec());
   }
   for (auto& i : trans_z_vec_) {
-    result.emplace_back(i.trans_z_der_vec(sys_size));
+    result.emplace_back(i.trans_z_der_vec());
   }
   for (auto& i : distance_vec_) {
     result.emplace_back(i.bond_der_vec(sys_size));

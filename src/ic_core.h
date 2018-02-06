@@ -196,7 +196,7 @@ struct trans_x : trans{
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_x_der_vec(const std::size_t&);
+  std::vector<float_type> trans_x_der_vec();
 };
 
 struct trans_y : trans {
@@ -212,7 +212,7 @@ struct trans_y : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_y_der_vec(const std::size_t&);
+  std::vector<float_type> trans_y_der_vec();
 };
 
 struct trans_z : trans {
@@ -228,7 +228,7 @@ struct trans_z : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_z_der_vec(const std::size_t&);
+  std::vector<float_type> trans_z_der_vec();
 };
 
 struct rotation {
