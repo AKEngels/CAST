@@ -212,88 +212,32 @@ ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
   return result;
 }
 
-coords::Representation_3D ic_core::trans_x::trans_x_der() {
-  using cp = coords::Cartesian_Point;
-  using rep3D = coords::Representation_3D;
-
-  auto const & s{ rep_.size() };
-  rep3D result(s, cp(1.0 / s, 0.0, 0.0));
-  return result;
-}
-
 std::vector<float_type>
 ic_core::trans_x::trans_x_der_vec(const std::size_t& sys_size) {
-  using scon::c3;
+  using cp = coords::Cartesian_Point;
 
-  auto firstder = ic_core::trans_x::trans_x_der();
-  auto it1 = std::cbegin(firstder);
-  std::vector<c3<float_type>> der_vec(it1, it1 + sys_size);
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
-}
-
-coords::Representation_3D ic_core::trans_y::trans_y_der() {
-  using coords::Cartesian_Point;
-  using coords::Representation_3D;
-
-  auto s{ rep_.size() };
-  Cartesian_Point cp(0.0, 1.0 / s, 0.0);
-  Representation_3D result;
-  std::size_t i{ 0 };
-  do {
-    result.emplace_back(cp);
-    ++i;
-  } while (i < s);
-  return result;
+  return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
+    return cp(1. / static_cast<float_type>(s), 0., 0.);
+  }));
 }
 
 std::vector<float_type>
 ic_core::trans_y::trans_y_der_vec(const std::size_t& sys_size) {
-  using scon::c3;
+  
+  using cp = coords::Cartesian_Point;
 
-  auto firstder = ic_core::trans_y::trans_y_der();
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
-  auto it1 = begin(firstder);
-  auto end_it1 = end(firstder);
-  auto it2 = begin(indices_);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    der_vec.at(*it2 - 1) = *it1;
-  }
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
-}
-
-coords::Representation_3D ic_core::trans_z::trans_z_der() {
-  using coords::Cartesian_Point;
-  using coords::Representation_3D;
-
-  auto s{ rep_.size() };
-  Cartesian_Point cp(0.0, 0.0, 1.0 / s);
-  Representation_3D result;
-  std::size_t i{ 0 };
-  do {
-    result.emplace_back(cp);
-    ++i;
-  } while (i < s);
-  return result;
+  return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
+    return cp(0., 1. / static_cast<float_type>(s), 0.);
+  }));
 }
 
 std::vector<float_type>
 ic_core::trans_z::trans_z_der_vec(const std::size_t& sys_size) {
-  using scon::c3;
+  using cp = coords::Cartesian_Point;
 
-  auto firstder = ic_core::trans_z::trans_z_der();
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
-  auto it1 = begin(firstder);
-  auto end_it1 = end(firstder);
-  auto it2 = begin(indices_);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    der_vec.at(*it2 - 1) = *it1;
-  }
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
+  return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
+    return cp(0., 0., 1. / static_cast<float_type>(s));
+  }));
 }
 
 std::array<float_type, 3u>

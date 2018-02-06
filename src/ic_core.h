@@ -172,6 +172,15 @@ struct trans {
   std::vector<std::size_t> indices_;
 
   coords::Representation_3D rep_;
+
+  template<typename Func>
+  coords::Representation_3D trans_der(Func const & coord) {
+    using rep3D = coords::Representation_3D;
+
+    auto const & s{ rep_.size() };
+    rep3D result(s, coord(s));
+    return result;
+  }
 };
 
 struct trans_x : trans{
@@ -187,7 +196,6 @@ struct trans_x : trans{
     return coord_sum / res.size();
   }
 
-  coords::Representation_3D trans_x_der();
   std::vector<float_type> trans_x_der_vec(const std::size_t&);
 };
 
@@ -204,7 +212,6 @@ struct trans_y : trans {
     return coord_sum / res.size();
   }
 
-  coords::Representation_3D trans_y_der();
   std::vector<float_type> trans_y_der_vec(const std::size_t&);
 };
 
@@ -221,7 +228,6 @@ struct trans_z : trans {
     return coord_sum / res.size();
   }
 
-  coords::Representation_3D trans_z_der();
   std::vector<float_type> trans_z_der_vec(const std::size_t&);
 };
 
