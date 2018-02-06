@@ -1,5 +1,6 @@
 #include "ic_core.h"
 #include "ic_util.h"
+#include<iterator>
 
 using coords::float_type;
 
@@ -7,31 +8,20 @@ float_type ic_core::distance::dist() {
   return ic_util::euclid_dist<double>(a_, b_);
 }
 
-std::vector<scon::c3<float_type>> ic_core::distance::bond_der() {
-  using std::sqrt;
-  using scon::dot;
-
-  std::vector<scon::c3<float_type>> bond_der;
-  auto bond = a_ - b_;
-  auto bond_dot = dot(bond, bond);
-  auto length = sqrt(bond_dot);
-  auto der = bond / length;
-  bond_der.emplace_back(der);
-  bond_der.emplace_back(-der);
-  return bond_der;
+std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::distance::bond_der() {
+  auto bond = ic_util::normalize(a_ - b_);
+  return std::make_pair(bond,-bond);
 }
 
 std::vector<float_type>
 ic_core::distance::bond_der_vec(const std::size_t& sys_size) {
   using scon::c3;
 
-  auto firstder = ic_core::distance::bond_der();
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
-  der_vec.at(index_a_ - 1) = firstder.front();
-  der_vec.at(index_b_ - 1) = firstder.back();
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
+  auto firstder = bond_der();
+  std::vector<c3<float_type>> der_vec(sys_size, c3<float_type>(0.0, 0.0, 0.0));
+  der_vec.at(index_a_ - 1) = firstder.first;
+  der_vec.at(index_b_ - 1) = firstder.second;
+  return ic_util::flatten_c3_vec(der_vec);
 }
 
 coords::float_type ic_core::angle::ang() {
@@ -47,24 +37,27 @@ coords::float_type ic_core::angle::ang() {
   return std::atan2(l, uDv) * SCON_180PI;
 }
 
-std::vector<scon::c3<float_type>> ic_core::angle::angle_der() {
+std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+ic_core::angle::angle_der() const {
   using coords::Cartesian_Point;
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto u_p = a_ - b_;
-  auto v_p = c_ - b_;
-  auto u = ic_util::normalize(u_p);
-  auto v = ic_util::normalize(v_p);
-  Cartesian_Point cp1(1.0, -1.0, 1.0);
-  Cartesian_Point cp2(-1.0, 1.0, 1.0);
+  auto u = a_ - b_;
+  auto v = c_ - b_;
+  auto lu = len(u);
+  auto lv = len(v);
+  u = ic_util::normalize(u);
+  v = ic_util::normalize(v);
+  auto cp1 = ic_util::normalize(Cartesian_Point(1.0, -1.0, 1.0));
+  auto cp2 = ic_util::normalize(Cartesian_Point(-1.0, 1.0, 1.0));
   Cartesian_Point w_p(0.0, 0.0, 0.0);
   auto epsilon{ 0.1 };
-  if (dot(u, v) / (len(u) * len(v)) > (1 - epsilon) ||
-      dot(u, v) / (len(u) * len(v)) < (-1 + epsilon)) {
-    if (dot(u, cp1) / (len(u) * len(cp1)) > (1 - epsilon) ||
-        dot(u, cp1) / (len(u) * len(cp1)) < (-1 + epsilon)) {
+  if (dot(u, v) > (1. - epsilon) ||
+      dot(u, v) < (-1. + epsilon)) {
+    if (dot(u, cp1) > (1. - epsilon) ||
+        dot(u, cp1) < (-1. + epsilon)) {
       w_p = cross(u, cp2);
     } else {
       w_p = cross(u, cp1);
@@ -72,14 +65,10 @@ std::vector<scon::c3<float_type>> ic_core::angle::angle_der() {
   } else {
     w_p = cross(u, v);
   }
-  auto w = ic_util::normalize(w_p);
-  auto ad0 = cross(u, w) / len(u_p);
-  auto ad1 = cross(w, v) / len(v_p);
-  std::vector<scon::c3<float_type>> angle_der;
-  angle_der.emplace_back(ad0);
-  angle_der.emplace_back(ad1);
-  angle_der.emplace_back(-ad0 - ad1);
-  return angle_der;
+  w_p = ic_util::normalize(w_p);
+  auto ad0 = cross(u, w_p) / lu;
+  auto ad1 = cross(w_p, v) / lv;
+  return std::make_tuple(ad0, ad1, -ad0 - ad1);
 }
 
 std::vector<float_type>
@@ -87,13 +76,11 @@ ic_core::angle::angle_der_vec(const std::size_t& sys_size) {
   using scon::c3;
 
   auto firstder = ic_core::angle::angle_der();
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
-  der_vec.at(index_a_ - 1) = firstder.at(0);
-  der_vec.at(index_b_ - 1) = firstder.at(2);
-  der_vec.at(index_c_ - 1) = firstder.at(1);
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
+  std::vector<c3<float_type>> der_vec(sys_size, c3<float_type>(0.0, 0.0, 0.0));
+  der_vec.at(index_a_ - 1) = std::get<0>(firstder);
+  der_vec.at(index_b_ - 1) = std::get<2>(firstder);
+  der_vec.at(index_c_ - 1) = std::get<1>(firstder);
+  return ic_util::flatten_c3_vec(der_vec);
 }
 
 coords::float_type ic_core::dihedral::dihed() {
@@ -114,7 +101,8 @@ coords::float_type ic_core::dihedral::dihed() {
   return std::atan2(y, x) * SCON_180PI;
 }
 
-std::vector<scon::c3<float_type>> ic_core::dihedral::dihed_der() {
+std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+ic_core::dihedral::dihed_der() const{
   using scon::cross;
   using scon::dot;
   using scon::len;
@@ -131,12 +119,7 @@ std::vector<scon::c3<float_type>> ic_core::dihedral::dihed_der() {
   auto t3 = cuwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
   auto cvwd = cross(v, w) * dot(v, w);
   auto t4 = cvwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
-  std::vector<scon::c3<float_type>> dih_der;
-  dih_der.emplace_back(t1);
-  dih_der.emplace_back(-t2);
-  dih_der.emplace_back(-t1 + t2 - t4);
-  dih_der.emplace_back(t2 - t3 + t4);
-  return dih_der;
+  return std::make_tuple(t1, -t2, -t1 + t2 - t4, t2 - t3 + t4);
 }
 
 std::vector<float_type>
@@ -146,12 +129,11 @@ ic_core::dihedral::dihed_der_vec(const std::size_t& sys_size) {
   auto firstder = ic_core::dihedral::dihed_der();
   c3<float_type> temp(0.0, 0.0, 0.0);
   std::vector<c3<float_type>> der_vec(sys_size, temp);
-  der_vec.at(index_a_ - 1) = firstder.at(0);
-  der_vec.at(index_b_ - 1) = firstder.at(2);
-  der_vec.at(index_c_ - 1) = firstder.at(3);
-  der_vec.at(index_d_ - 1) = firstder.at(1);
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
+  der_vec.at(index_a_ - 1) = std::get<0>(firstder);
+  der_vec.at(index_b_ - 1) = std::get<2>(firstder);
+  der_vec.at(index_c_ - 1) = std::get<3>(firstder);
+  der_vec.at(index_d_ - 1) = std::get<1>(firstder);
+  return ic_util::flatten_c3_vec(der_vec);
 }
 
 coords::float_type ic_core::out_of_plane::oop() {
@@ -213,7 +195,7 @@ ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
 }
 
 std::vector<float_type>
-ic_core::trans_x::trans_x_der_vec() {
+ic_core::trans_x::trans_der_vec() const{
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
@@ -222,7 +204,7 @@ ic_core::trans_x::trans_x_der_vec() {
 }
 
 std::vector<float_type>
-ic_core::trans_y::trans_y_der_vec() {
+ic_core::trans_y::trans_der_vec() const{
   
   using cp = coords::Cartesian_Point;
 
@@ -232,7 +214,7 @@ ic_core::trans_y::trans_y_der_vec() {
 }
 
 std::vector<float_type>
-ic_core::trans_z::trans_z_der_vec() {
+ic_core::trans_z::trans_der_vec() const{
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(trans_der([](auto const & s) {
@@ -260,7 +242,7 @@ ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
   Mat X = zero(sys_size, 3);
   Mat Y = zero(sys_size, 3);
   Mat Z = zero(sys_size, 3);
-  auto first_ders = ic_core::rotation::rot_der(trial);
+  auto first_ders = rot_der(trial);
   std::size_t index{ 1 };
   for (auto const & i : first_ders) {
     auto val_index = indices_.at(index - 1) - 1;
@@ -343,17 +325,29 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
 
   using Mat = scon::mathmatrix<float_type>;
 
+  /*auto const & trans_derivs = [](auto const & trans_vec) {
+    std::vector<float_type> temp;
+    for (auto const & trans : trans_vec) {
+      auto trans_temp = trans.trans_der_vec();
+      temp.insert(std::begin(temp), std::make_move_iterator(std::begin(trans_temp)), std::make_move_iterator(std::end(trans_temp)));
+    }
+    return temp;
+  };*/
+
   auto const & sys_size = trial.size();
 
   std::vector<std::vector<float_type>> result;
+  /*result.emplace_back(trans_derivs(trans_x_vec_));
+  result.emplace_back(trans_derivs(trans_y_vec_));
+  result.emplace_back(trans_derivs(trans_z_vec_));*/
   for (auto& i : trans_x_vec_) {
-    result.emplace_back(i.trans_x_der_vec());
+    result.emplace_back(i.trans_der_vec());
   }
   for (auto& i : trans_y_vec_) {
-    result.emplace_back(i.trans_y_der_vec());
+    result.emplace_back(i.trans_der_vec());
   }
   for (auto& i : trans_z_vec_) {
-    result.emplace_back(i.trans_z_der_vec());
+    result.emplace_back(i.trans_der_vec());
   }
   for (auto& i : distance_vec_) {
     result.emplace_back(i.bond_der_vec(sys_size));

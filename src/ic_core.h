@@ -43,7 +43,7 @@ struct distance {
   coords::Cartesian_Point b_;
 
   coords::float_type dist();
-  std::vector<scon::c3<float_type>> bond_der();
+  std::pair<scon::c3<float_type>, scon::c3<float_type>> bond_der();
   std::vector<float_type> bond_der_vec(const std::size_t&);
 };
 
@@ -69,7 +69,7 @@ struct angle {
   coords::Cartesian_Point c_;
 
   coords::float_type ang();
-  std::vector<scon::c3<float_type>> angle_der();
+  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> angle_der() const;
   std::vector<float_type> angle_der_vec(const std::size_t&);
 };
 //
@@ -119,7 +119,8 @@ struct dihedral /*: public dihedral_points<CP_isLVal>, public dihedral_indices<I
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
   coords::float_type dihed();
-  std::vector<scon::c3<float_type>> dihed_der();
+  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+    dihed_der() const;
   std::vector<float_type> dihed_der_vec(const std::size_t&);
 
   std::size_t get_ind_a() { return index_a_; }
@@ -174,13 +175,15 @@ struct trans {
   coords::Representation_3D rep_;
 
   template<typename Func>
-  coords::Representation_3D trans_der(Func const & coord) {
+  coords::Representation_3D trans_der(Func const & coord) const {
     using rep3D = coords::Representation_3D;
 
     auto const & s{ rep_.size() };
     rep3D result(s, coord(s));
     return result;
   }
+
+  virtual std::vector<float_type> trans_der_vec() const = 0;
 };
 
 struct trans_x : trans{
@@ -196,7 +199,7 @@ struct trans_x : trans{
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_x_der_vec();
+  std::vector<float_type> trans_der_vec()const override;
 };
 
 struct trans_y : trans {
@@ -212,7 +215,7 @@ struct trans_y : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_y_der_vec();
+  std::vector<float_type> trans_der_vec()const override;
 };
 
 struct trans_z : trans {
@@ -228,7 +231,7 @@ struct trans_z : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_z_der_vec();
+  std::vector<float_type> trans_der_vec()const override;
 };
 
 struct rotation {

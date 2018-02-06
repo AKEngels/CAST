@@ -220,9 +220,9 @@ namespace ic_util{
   \param vec std::vector that is to be flattened.
   \return std::vector.
   */
-  template <typename T>
+  template <typename T, template<typename> class CoordType, template<typename, typename...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
-  flatten_c3_vec(const std::vector<scon::c3<T>>& vec) {
+  flatten_c3_vec(const ContainerType<CoordType<T>, ContainerArgs ...>& vec) {
     std::vector<T> result;
     result.reserve(3 * vec.size());
     for (auto& i : vec) {
