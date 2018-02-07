@@ -535,7 +535,7 @@ public:
    * @see diag()
    */
   std::pair<mathmatrix, mathmatrix>
-      eigensym(/*bool const & sort = false*/) const;
+      eigensym(bool const & sort = false) const;
 
   /**
    * @brief uses eigensym to diagonalize the matrix
@@ -1360,7 +1360,7 @@ mathmatrix<T> mathmatrix<T>::diagmat() const {
 
 template <typename T>
 std::pair<mathmatrix<T>, mathmatrix<T>>
-mathmatrix<T>::eigensym(/*bool const & sort = false*/) const {
+mathmatrix<T>::eigensym(bool const & sort = false) const {
 #ifndef CAST_USE_ARMADILLO
 
   /*auto sort_eigenpairs = [](auto & EVals, auto & EVecs) {
@@ -1384,6 +1384,20 @@ mathmatrix<T>::eigensym(/*bool const & sort = false*/) const {
   Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));
   mathmatrix eigenval = es.eigenvalues().real();
   mathmatrix eigenvec = es.eigenvectors().real();
+
+  if (sort) {
+    auto indices = eigenval.sort_idx();
+    mathmatrix new_eigenvec(eigenvec.rows(), eigenvec.cols());
+    mathmatrix new_eigenval(eigenval.rows(), eigenval.cols());
+    for (auto i = 0; i < indices.size(); ++i) {
+      auto index = indices[i];
+      for (auto j = 0; j < eigenvec.rows(); ++j) {
+        new_eigenvec(j,i) = eigenvec(j,index);
+      }
+      new_eigenval(i,0) = eigenval(index,0);
+    }
+    return std::make_pair(new_eigenval, new_eigenvec);
+  }
 
   // std::cout << eigenval << "\n\n";
 

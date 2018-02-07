@@ -248,8 +248,7 @@ struct rotation {
 
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&);
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
-  scon::mathmatrix<float_type> rot_der_mat(const std::size_t&,
-                                    const coords::Representation_3D&);
+  scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&);
   float_type radius_gyration(const coords::Representation_3D&);
 };
 

@@ -100,9 +100,10 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 
   Mat eigvec, eigval;
 
-  std::tie(eigvec, eigval) = F_mat.eigensym();
+  std::tie(eigval, eigvec) = F_mat.eigensym();
 
-  auto q_std = eigvec.col_to_std_vector(eigval.rows() - 1);
+  //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) 
+  auto q_std = eigvec.col_to_std_vector(0);
   ic_util::Quaternion<T> res_q(q_std);
   if (res_q.q_.at(0) < 0) {
     res_q = res_q * -1;
@@ -216,23 +217,22 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
                    ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
 
+  auto const fac_and_dfac = [](auto const & q0) {
+    if (std::abs(q0 - 1.) < q_thres) {
+      return std::make_pair(2 - 2 * (q0 - 1.) / 3., -2. / 3.);
+    }
+    auto acosq0 = std::acos(q0);
+    auto q0_sq = 1. - q0 * q0;
+    return std::make_pair(2.*acosq0 / std::sqrt(q0_sq), 2.*q0*acosq0 / std::pow(q0_sq, 1.5));
+  };
+
   auto q_val = quaternion(trial, target);
   auto q = q_val.second;
   auto q0 = std::get<0>(q.q_);
-  T d{ 0.0 };
-  if (std::abs(q0 - 1) < q_thres) {
-    d = -(T)2 / 3;
-  } else {
-    auto t1 = std::acos(q0);
-    auto t2 = 1 - std::pow(q0, 2);
-    auto t3 = std::pow(t2, 3);
-    auto term1 = (2 * q0 * t1) / std::sqrt(t3);
-    auto term2 = 2 / t2;
-    d = term1 - term2;
-  }
-  auto temp1 = std::acos(q0);
-  auto temp2 = std::sqrt(1 - std::pow(q0, 2));
-  auto p = 2 * (temp1 / temp2);
+  
+  T p{ 0.0 }, d{ 0.0 };
+  std::tie(p, d) = fac_and_dfac(q0);
+
   Mat dv_mat = { { d * q.q_.at(1), d * q.q_.at(2), d * q.q_.at(3) },
                  { p, 0, 0 },
                  { 0, p, 0 },
@@ -270,7 +270,7 @@ ic_rotation::quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> con
     Mat qtemp(3, 4);
     for (std::size_t c = 0; c < 3; ++c) {
       auto F_sl = F_dtemp.at(c);
-      auto temp_res = t2 * F_sl * qrow.t();
+      auto temp_res = t2 * F_sl * qrow;
       qtemp.row(c) = temp_res.t();
     }
     result.emplace_back(qtemp);

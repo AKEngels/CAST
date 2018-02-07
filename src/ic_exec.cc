@@ -71,8 +71,8 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   std::cout << "DelHessian:\n" << del_hessian << "\n\n";
   auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
 
-  std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
-  std::cout << "Gmatrix:\n" << G_matrix << "\n\n";
+  /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
+  std::cout << "Gmatrix:\n" << G_matrix << "\n\n";*/
   
   std::cout << icSystem.angle_vec_.size() << "||" << icSystem.distance_vec_.size() << "||" << icSystem.dihed_vec_.size() << "||" << icSystem.oop_vec_.size() << "||" << icSystem.rotation_vec_.size() << "||" << icSystem.trans_x_vec_.size() << std::endl;
   /*for (auto& i : icSystem.distance_vec_)

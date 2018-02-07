@@ -224,7 +224,12 @@ ic_core::trans_z::trans_der_vec() const{
 
 std::array<float_type, 3u>
 ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
-  auto result = ic_rotation::exponential_map(trial, reference_);
+  coords::Representation_3D curr_xyz;
+  curr_xyz.reserve(indices_.size());
+  for (auto const & i : indices_) {
+    curr_xyz.emplace_back(trial.at(i - 1));
+  }
+  auto result = ic_rotation::exponential_map(curr_xyz, reference_);
   return result;
 }
 
@@ -234,15 +239,19 @@ ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
 }
 
 scon::mathmatrix<float_type>
-ic_core::rotation::rot_der_mat(const std::size_t& sys_size,
-                               const coords::Representation_3D& trial) {
+ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& trial) {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
   Mat X = zero(sys_size, 3);
   Mat Y = zero(sys_size, 3);
   Mat Z = zero(sys_size, 3);
-  auto first_ders = rot_der(trial);
+  coords::Representation_3D curr_xyz;
+  curr_xyz.reserve(indices_.size());
+  for (auto const & i : indices_) {
+    curr_xyz.emplace_back(trial.at(i-1));
+  }
+  auto first_ders = rot_der(curr_xyz);
   std::size_t index{ 1 };
   for (auto const & i : first_ders) {
     auto val_index = indices_.at(index - 1) - 1;
@@ -363,12 +372,9 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
   }
   for (auto& i : rotation_vec_) {
     auto temp = i.rot_der_mat(sys_size, trial);
-    auto vec_X = temp.col_to_std_vector(0);
-    auto vec_Y = temp.col_to_std_vector(1);
-    auto vec_Z = temp.col_to_std_vector(2);
-    result.emplace_back(vec_X);
-    result.emplace_back(vec_Y);
-    result.emplace_back(vec_Z);
+    result.emplace_back(temp.col_to_std_vector(0));
+    result.emplace_back(temp.col_to_std_vector(1));
+    result.emplace_back(temp.col_to_std_vector(2));
   }
   std::size_t n_cols = result.size();
   std::size_t n_rows = result.at(0).size();
