@@ -273,13 +273,13 @@ namespace energy
           /**position*/
           coords::Cartesian_Point position;
           /**equilibrium distance to QM atom*/
-          double d_L_QM;
+          double deq_L_QM;
           /**index of QM atom*/
           int qm;
           /**index of MM atom*/
           int mm;
           /**constructor*/
-          LinkAtom() { d_L_QM = 0.0; }
+          LinkAtom() { deq_L_QM = 0.0; }
         };
 
         /**looks if vector v contains Angle x

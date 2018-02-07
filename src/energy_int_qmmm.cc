@@ -347,7 +347,7 @@ coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::Lin
   coords::cartesian_type r_QM = coords->xyz(link.qm);
   double d_MM_QM = dist(r_MM, r_QM);
 
-  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.d_L_QM;
+  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.deq_L_QM;
   return pos;
 }
 
@@ -366,10 +366,10 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
     auto b_type_L = cparams.type(85, tinker::potential_keys::BOND);
     for (auto b_param : cparams.bonds())
     {
-      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.d_L_QM = b_param.ideal;
-      else if (b_param.index[0] == b_type_L && b_param.index[1] == b_type_qm) link.d_L_QM = b_param.ideal;
+      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.deq_L_QM = b_param.ideal;
+      else if (b_param.index[0] == b_type_L && b_param.index[1] == b_type_qm) link.deq_L_QM = b_param.ideal;
     }
-    if (link.d_L_QM == 0.0)  throw std::runtime_error("Determining position of link atom is not possible.\n");
+    if (link.deq_L_QM == 0.0)  throw std::runtime_error("Determining position of link atom is not possible.\n");
 
     // calculate position of link atom
     link.position = calc_position(link);
@@ -807,7 +807,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         bonded::LinkAtom l = link_atoms[j];
         coords::r3 G_L = link_grads[j];
 
-        double g = l.d_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
+        double g = l.deq_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
 
         coords::r3 n = (coords->xyz(l.mm) - coords->xyz(l.qm)) / dist(coords->xyz(l.mm), coords->xyz(l.qm));
 
