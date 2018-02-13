@@ -7,6 +7,7 @@
 
 optional_files/build/*
 optional_files/project/*
+optional_files/premake5.exe
 
 /src/documentation/html
 /src/documentation/latex
