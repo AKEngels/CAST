@@ -1,4 +1,4 @@
-﻿#include "modify_sk.h"
+#include "modify_sk.h"
 
 std::vector<std::vector<std::string>> find_pairs(coords::Coordinates coordobj)
 {
@@ -84,4 +84,37 @@ bool modify_file(std::vector<std::string> pair)
 
   if (Config::get().general.verbosity > 2) std::cout << "Successfully converted " << filename << "!\n";
   return true;
+}
+
+/**returns highest angular momentum for an element (from slater-koster file for homonuclear atom pair)
+@param s: element symbol*/
+char angular_momentum_by_symbol(std::string s)
+{
+  std::string filename = Config::get().energy.dftb.sk_files + "/" + s + "-" + s+".skf";
+
+  std::string line, angulars;
+  int begin, end;
+
+  if (file_exists(filename) == true)
+  {
+    std::ifstream file_stream(filename.c_str(), std::ios_base::in);  
+    while (!file_stream.eof())
+    {
+      std::getline(file_stream, line);
+      if (line.find("<Shells>") != std::string::npos)
+      {
+        begin = int(line.find("<Shells>")) + 8;
+        end = int(line.find("</Shells>"));
+        angulars = line.substr(begin, end-begin);
+        
+        if (is_in('f', angulars) == true) return 'f';
+        else if (is_in('d', angulars) == true) return 'd';
+        else if (is_in('p', angulars) == true) return 'p';
+        else if (is_in('s', angulars) == true) return 's';
+        else throw std::runtime_error("Something went wrong. No angular momentum for element " + s + " found.\n");
+      }
+    }
+    throw std::runtime_error("Something went wrong. No angular momentum for element " + s + " found.\n");
+  }
+  else throw std::runtime_error("No Slater Koster file for element "+s+" found.\n");
 }

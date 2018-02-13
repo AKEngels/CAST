@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 coords_io_AMEBR.cpp
 Purpose: Reading from AMBER .prmtop and .rst (.crd) files
@@ -675,9 +675,9 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 
         if (line.size() > 36)   // normally two coordinates in one line
         {
-          std::string x = line.substr(36, 12);
-          std::string y = line.substr(48, 12);
-          std::string z = line.substr(60, 12);
+          x = line.substr(36, 12);
+          y = line.substr(48, 12);
+          z = line.substr(60, 12);
           position.x() = std::stod(x);
           position.y() = std::stod(y);
           position.z() = std::stod(z);
@@ -716,21 +716,21 @@ DONE:
 	if (Config::get().general.chargefile)   // read charges from chargefile
 	{
 		charges.clear();  // delete former charges
-		std::ifstream coord_file_stream("charges.txt", std::ios_base::in);
-		std::string x;
-		while (coord_file_stream)
+		std::ifstream charge_stream("charges.txt", std::ios_base::in);
+		std::string read;
+		while (charge_stream)
 		{
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom number
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom type
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
-				charges.push_back(std::stod(x));
+				charges.push_back(std::stod(read));
 			}
 		}
 		if (charges.size() == coord_object.size())

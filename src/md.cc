@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 #include <Python.h>
 #endif
 #include <vector>
@@ -677,7 +677,7 @@ void md::simulation::freecalc()
   this->FEPsum_SOS += dG_SOS;
 }
 
-void md::simulation::bar(int window)
+void md::simulation::bar(int current_window)
 {
    double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
    double w, w_back;  // weighting function
@@ -708,7 +708,7 @@ void md::simulation::bar(int window)
      ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
      temp_avg = temp_avg / coordobj.fep.fepdata.size();
 
-     if (window == 0)  dG_BAR = 0;                            // calculate dG for current window
+     if (current_window == 0)  dG_BAR = 0;                            // calculate dG for current window
      else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back)*temp_avg*boltz*avogad / conv;
      if (Config::get().general.verbosity > 3)
      {
@@ -1208,7 +1208,7 @@ void md::simulation::nose_hoover_thermostat(void)
 double md::simulation::nose_hoover_thermostat_biased(void)
 {
   double tempscale(0.0);
-  double freedom_inner = 3U * inner_atoms.size();
+  int freedom_inner = 3U * inner_atoms.size();
   if (Config::get().periodics.periodic == true)
     freedom -= 3;
   else
@@ -1243,7 +1243,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 {
   std::size_t const N = this->coordobj.size();  // total number of atoms
   double tempfactor(2.0 / (freedom*md::R));     // factor for calculation of temperature from kinetic energy  
-  double temp, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
+  double temp1, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
 
   if (thermostat)   // apply nose-hoover thermostat
   {
@@ -1282,8 +1282,8 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
-      temp = E_kin*T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp);    // temperature scaling factor
+      temp1 = E_kin*T_factor;           // temperature of inner atoms
+      factor = std::sqrt(T / temp1);    // temperature scaling factor
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       if (half == false)
       {
@@ -1295,8 +1295,8 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     else
     {
       updateEkin();
-      temp = E_kin * tempfactor;      // temperature before
-      factor = std::sqrt(T / temp);
+      temp1 = E_kin * tempfactor;      // temperature before
+      factor = std::sqrt(T / temp1);
       for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
       if (half == false)
       {
@@ -1308,11 +1308,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 
     if (Config::get().general.verbosity > 3 && half)
     {
-      std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+      std::cout << "half step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
     }
     else if (Config::get().general.verbosity > 3)
     {
-      std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+      std::cout << "full step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
     }
   }
   return temp2;
@@ -1325,7 +1325,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 
   auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
 
-  std::vector<double> distances;
+  std::vector<double> dists;
   std::vector<coords::Cartesian_Point> coords_act_center;
   for (auto & atom_number : Config::get().md.active_center)
   {
@@ -1359,13 +1359,13 @@ std::vector<double> md::simulation::init_active_center(int counter)
     double dist_y = C_geo_act_center.y() - coords_atom.y();
     double dist_z = C_geo_act_center.z() - coords_atom.z();
     double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
-    distances.push_back(distance);
+    dists.push_back(distance);
     if (Config::get().general.verbosity > 3)
     {
       std::cout << "Atom " << i + 1 << ": Distance to active center: " << distance << "\n";
     }
   }
-  return distances;
+  return dists;
 }
 
 coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff)
@@ -1428,8 +1428,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   scon::chrono::high_resolution_timer integration_timer;
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
-
-  std::vector<coords::Cartesian_Point> F_old; //only needed for beeman integrator
 
   std::size_t const N = this->coordobj.size();
   // set average pressure to zero

@@ -1,4 +1,4 @@
-﻿
+
 //////////   //////////   //////////   ////////// 
 //           //      //   //               //
 //           //      //   //               //
@@ -90,8 +90,8 @@
 
 int main(int argc, char **argv)
 {
-#ifdef USE_PYTHON
-  Py_Initialize();
+#ifdef USE_PYTHON   
+  Py_Initialize();  // if python enabled: initialise here
 #endif
 
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
@@ -153,15 +153,13 @@ int main(int argc, char **argv)
     //////////////////////////
 
     if (Config::get().general.energy_interface == config::interface_types::T::DFTBABY)
-    {   // if DFTB energy interface: initialize python 
-        // necessary to do it here because it can't be done more than once
-
+    {  
 #ifdef USE_PYTHON
 #else
       printf("It is not possible to use DFTBaby without python!\n");
       std::exit(0);
 #endif
-      std::remove("output_dftb.txt"); // delete dftbaby output file from former run
+      std::remove("output_dftb.txt"); // delete dftbaby output files from former run
       std::remove("tmp_struc_trace.xyz");
     }
 
@@ -941,12 +939,11 @@ int main(int argc, char **argv)
         if (Config::get().layd.replace == true)
         {
           std::unique_ptr<coords::input::format> add_strukt_uptr(coords::input::additional_format());
-          coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().layd.reference1));
+          coords::Coordinates add_coords1(add_strukt_uptr->read(Config::get().layd.reference1));
           std::unique_ptr<coords::input::format> add_strukt_uptr2(coords::input::additional_format());
           coords::Coordinates add_coords2(add_strukt_uptr2->read(Config::get().layd.reference2));
-          coords::Coordinates newCoords(coords);
 
-          coords = monomerManipulation::replaceMonomers(coords, add_coords, add_coords2, mon_amount_type1);
+          coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
         }
 
         std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       

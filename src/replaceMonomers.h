@@ -93,7 +93,6 @@ namespace monomerManipulation
       for (std::vector<coords::Atom>::size_type j = truncatedAtoms.size() - newCoords.size(); j < truncatedAtoms.size(); ++j, helperIterator++)
       {
         std::vector<std::size_t> new_bond_indices;
-        std::size_t bindingpartners = truncatedAtoms.atom(j).bonds().size();
         for (std::size_t k = 0u;  0 < truncatedAtoms.atom(j).bonds().size();)
         {
           auto& detach = truncatedAtoms.atom(j).bonds(k);

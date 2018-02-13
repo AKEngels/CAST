@@ -217,7 +217,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
 
     auto xyz = _coords.xyz(); 
     auto tmp_axis = xyz[atoms[1] - 1] - xyz[atoms[2] - 1];
-    scon::RotationMatrix::Vector axis{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
+    scon::RotationMatrix::Vector ax{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
     scon::RotationMatrix::Vector center{ xyz[atoms[1] - 1].x(), xyz[atoms[1] - 1].y(), xyz[atoms[1] - 1].z() };
     //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abcd[0],abcd[1]) };
     auto source = go_along_backbone(atoms);
@@ -241,7 +241,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
 
 //	std::cout << atom_number << " " << bond_count << " " << deg << " " << change << " " << " " << max_change_rotation_rad << " " << parent->change_from_atom_to_atom << std::endl;
 
-        auto rot = scon::RotationMatrix::rotate_around_axis_with_center(change, axis, center);
+        auto rot = scon::RotationMatrix::rotate_around_axis_with_center(change, ax, center);
 
         auto && coord = xyz[atom_number];
         scon::RotationMatrix::Vector tmp_coord{ coord.x(),coord.y(),coord.z() };
@@ -263,7 +263,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Sca
 
   scon::RotationMatrix::Vector center{ b.x(),b.y(),b.z() };
 
-  auto axis = scon::RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(scon::RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
+  auto ax = scon::RotationMatrix::Vector{ ba.x(), ba.y(), ba.z() }.cross(scon::RotationMatrix::Vector{bc.x(),bc.y(),bc.z()}).normalized();
 
   //coroutine_type::pull_type source{ std::bind(&Scan2D::go_along_backbone, this, _1, abc[0], abc[1]) };
   auto source = go_along_backbone(atoms);
@@ -280,7 +280,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Sca
       continue;
     }
 
-    auto rot = scon:: RotationMatrix::rotate_around_axis_with_center(change, -axis, center);
+    auto rot = scon:: RotationMatrix::rotate_around_axis_with_center(change, -ax, center);
 
     auto && coord = xyz[atom_number];
     scon::RotationMatrix::Vector tmp_coord{ coord.x(), coord.y(), coord.z() };
@@ -297,8 +297,7 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
 
   auto ba = xyz[atoms[0u] - 1u] - xyz[atoms[1u] - 1u];
 
-  auto axis = scon::RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
-  auto distance = axis.norm();
+  auto ax = scon::RotationMatrix::Vector{ ba.x(),ba.y(),ba.z() };
 
   //coroutine_type::pull_type source{std::bind(&Scan2D::go_along_backbone, this, _1, ab[0], ab[1])};
   auto source = go_along_backbone(atoms);
@@ -313,7 +312,7 @@ coords::Representation_3D Scan2D::Move_Handler::transform_molecule_behind_a_bond
         continue;
       }
 
-      auto vec = axis.normalized() * change;
+      auto vec = ax.normalized() * change;
 
       scon::RotationMatrix::Translation trans(vec);
 
@@ -353,9 +352,6 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
   auto const & atoms = _coords.atoms();
   bond_set ret;
   std::size_t recursion_count = 0;
-
-  auto lock_depth = false;
-  auto fixed_depth = 0;
 
   std::size_t atom = 0u;
   std::size_t border = 0u;
@@ -451,8 +447,6 @@ void Scan2D::prepare_scan() {
    
     auto const x_move = parser->x_parser->what->from_position;
     auto const y_move = parser->y_parser->what->from_position;
-    auto say_x = parser->x_parser->say_val();
-    auto say_y = parser->y_parser->say_val();
     auto const & x_atoms = parser->x_parser->what->atoms;
     auto const & y_atoms = parser->y_parser->what->atoms;
 
@@ -605,7 +599,6 @@ coords::Representation_3D Scan2D::Normal_Bond_Input::make_move(Scan2D::Move_Hand
 
 coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Handler const & mh) {
   auto p = parent.lock();
-  auto blub = say_val();
   auto const change = mh.new_pos - say_val();
 
   if (fabs(change) > p->max_change_rotation) {

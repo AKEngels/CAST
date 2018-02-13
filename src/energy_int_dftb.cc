@@ -47,9 +47,9 @@ bool energy::interfaces::dftb::sysCallInterface::check_structure()
   double x, y, z;
   for (auto i : (*this->coords).xyz())
   {
-    double x = i.x();
-    double y = i.y();
-    double z = i.z();
+    x = i.x();
+    y = i.y();
+    z = i.z();
 
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
     {
@@ -113,7 +113,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
-    char angular_momentum = atomic::angular_momentum_by_symbol(s);
+    char angular_momentum = angular_momentum_by_symbol(s);
     if (angular_momentum == 'e')
     {
       std::cout << "Angular momentum for element " << s << " not defined. \n";
@@ -333,6 +333,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     energy = read_output(0);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient function
@@ -346,6 +347,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
     energy = read_output(1);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Hessian function
@@ -359,6 +361,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     energy = read_output(2);
     return energy;
   } 
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Optimization
@@ -372,6 +375,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     energy = read_output(3);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Output functions
@@ -387,7 +391,8 @@ void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, b
   S << std::right << std::setw(24) << "E_bs";
   S << std::right << std::setw(24) << "E_coul";
   S << std::right << std::setw(24) << "E_rep";
-  S << std::right << std::setw(24) << "SUM\n\n";
+  S << std::right << std::setw(24) << "SUM\n";
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
@@ -396,7 +401,7 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
-  S << "\n";
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 

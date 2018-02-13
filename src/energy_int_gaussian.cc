@@ -34,7 +34,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coord
   e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
 {
   std::stringstream ss;
-  std::srand(std::time(0));
+  std::srand(static_cast<unsigned>(std::time(0)));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = Config::get().energy.gaussian.opt;
@@ -164,7 +164,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
   double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
-  double mm_el_energy;
+  double mm_el_energy(0.0);
 
   auto in_string = id + ".log";
 
@@ -302,13 +302,15 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
+        int link_atom_number = std::stoi(buffer.substr(30)) - (*this->coords).size();
+
         coords::Cartesian_Point g;
         double temp;
 
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
+        for (std::size_t i(0); i < (*this->coords).size() && !in_file.eof(); ++i)
         {
           std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
           g.x() = -temp;
@@ -322,7 +324,21 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           std::getline(in_file, buffer);
 
           g_tmp[i] = g * HartreePerBohr2KcalperMolperAngstr;
+        }
 
+        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
+        {
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.x() = -temp;
+          std::getline(in_file, buffer);
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.y() = -temp;
+          std::getline(in_file, buffer);
+          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
+          g.z() = -temp;
+
+          std::getline(in_file, buffer);
+          link_atom_grad.push_back(g);
         }
       }//end gradient reading
 
@@ -440,7 +456,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
     {                                   // save logfile for failed gaussian calls
       std::string oldname = id + ".log";
       std::string newname = "fail_" + std::to_string(failcounter) + ".log";
-      int result = rename(oldname.c_str(), newname.c_str());
+      rename(oldname.c_str(), newname.c_str());
     }
     
     if (failcounter > 1000u)
@@ -499,7 +515,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
 
   throw std::runtime_error("Hessian not implemented in CAST as yet.");
 
-  integrity = true;
+  /*integrity = true;
   print_gaussianInput('h');
   if (callGaussian() == 0) read_gaussianOutput();
   else
@@ -510,7 +526,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::h(void)
     }
     integrity = false;
   }
-  return energy;
+  return energy;*/
 }
 
 double energy::interfaces::gaussian::sysCallInterfaceGauss::o(void)
@@ -654,4 +670,10 @@ std::vector<coords::Cartesian_Point>
 energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_coul_mm() const
 {
   return electric_field;
+}
+
+coords::Gradients_3D 
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_link_atom_grad() const
+{
+  return link_atom_grad;
 }

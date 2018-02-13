@@ -458,7 +458,8 @@ void energy::interfaces::dftbaby::sysCallInterface::print_E_head(std::ostream &S
   S << std::right << std::setw(24) << "E_coul";
   S << std::right << std::setw(24) << "E_lr";
   S << std::right << std::setw(24) << "E_rep";
-  S << std::right << std::setw(24) << "SUM\n\n";
+  S << std::right << std::setw(24) << "SUM\n";
+  if (endline) S << "\n";
 }
 
 void energy::interfaces::dftbaby::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
@@ -468,7 +469,7 @@ void energy::interfaces::dftbaby::sysCallInterface::print_E_short(std::ostream &
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_lr;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
-  S << "\n";
+  if (endline) S << "\n";
 }
 
 void energy::interfaces::dftbaby::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const

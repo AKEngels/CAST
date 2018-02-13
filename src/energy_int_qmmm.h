@@ -5,7 +5,8 @@ Purpose: QM/MM interface
 
 This is a QM/MM interface between one of the forcefields OPLSAA, AMBER and CHARM with MOPAC, GAUSSIAN or DFTB+.
 Interactions between QM and MM part are done by electrostatic embedding (see Gerrit Groenhof "Introduction to QM/MM Simulations", figure 4).
-Only non-bonded interactions are implemented so there must not be bonds between the QM and the MM part.
+Non-bonded interactions are implemented for all combinations between the above mentioned interfaces,
+bonded interactions between QM and MM system can only be calculated for OPLSAA as MM interface and DFTB+ as QM program.
 
 MOPAC: Gradients of coulomb interactions between QM and MM part are calculated by CAST using the derived charge distribution for QM atoms from MOPAC.
 (see http://openmopac.net/manual/QMMM.html)
@@ -60,7 +61,7 @@ namespace energy
           Bond(int p1, int p2) { a = p1; b = p2; }
           std::string info()
           {
-            return std::to_string(a) + " , "+ std::to_string(b) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
+            return std::to_string(a+1) + " , "+ std::to_string(b+1) + " dist: " + std::to_string(ideal) + ", force constant: " + std::to_string(force);
           }
           /**function to calculate force field energy and gradients (copied from energy_int_aco.cc)
           @param cp: pointer to coordinates object
@@ -107,7 +108,7 @@ namespace energy
           /**returns all relevant information as a string*/
           std::string info()
           {
-            return std::to_string(a) +" , "+ std::to_string(c) + " , " + std::to_string(b) + " angle: " + std::to_string(ideal) + ", force constant: "+std::to_string(force);
+            return std::to_string(a+1) +" , "+ std::to_string(c+1) + " , " + std::to_string(b+1) + " angle: " + std::to_string(ideal) + ", force constant: "+std::to_string(force);
           }
           /**looks if angle a2 is identical to Angle itself*/
           bool is_equal(Angle a2)
@@ -180,7 +181,7 @@ namespace energy
           /**returns all relevant information as a string*/
           std::string info()
           {
-            std::string result = "Atoms: "+ std::to_string(a) + " , " + std::to_string(c1) + " , "+ std::to_string(c2) + " , " + std::to_string(b) +"\n";
+            std::string result = "Atoms: "+ std::to_string(a+1) + " , " + std::to_string(c1+1) + " , "+ std::to_string(c2+1) + " , " + std::to_string(b+1) +"\n";
             result += "  max order: " + std::to_string(max_order) + ", number: " + std::to_string(number) + "\n";
             result += "  orders: ";
             for (auto o : orders) result += std::to_string(o) + "  ";
@@ -305,11 +306,14 @@ namespace energy
         }
       }
 
+      /**QMMM interface class*/
       class QMMM
         : public interface_base
       {
 
+        /**uncontracted forcefield parameters*/
         static ::tinker::parameter::parameters tp;
+        /**contracted forcefield parameters*/
         ::tinker::parameter::parameters cparams;
 
       public:
@@ -373,7 +377,7 @@ namespace energy
           bool const endline = true) const override;
         /**prints gradients*/
         void print_G_tinkerlike(std::ostream&, 
-          bool const aggregate = false) const override;
+          bool const endline = true) const override;
         /**function not implemented*/
         void to_stream(std::ostream&) const;
 
@@ -421,12 +425,20 @@ namespace energy
         double calc_bonded(bool if_gradient);
 
         /**indizes of QM atoms*/
-        std::vector<std::size_t> qm_indices;
+        std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
-        std::vector<std::size_t> mm_indices;
-  
-        std::vector<std::size_t> new_indices_qm;
-        std::vector<std::size_t> new_indices_mm;
+        std::vector<size_t> mm_indices;
+        
+        /**vector of length total number of atoms
+        only those elements are filled whose position corresponds to QM atoms
+        they are filled with successive numbers starting from 0
+        purpose: faciliate mapping between total coordinates object and subsystems*/
+        std::vector<size_t> new_indices_qm;
+        /**vector of length total number of atoms
+        only those elements are filled whose position corresponds to MM atoms
+        they are filled with successive numbers starting from 0
+        purpose: faciliate mapping between total coordinates object and subsystems*/
+        std::vector<size_t> new_indices_mm;
        
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
@@ -460,7 +472,7 @@ namespace energy
 
         /**gradients of electrostatic interaction between QM and MM atoms
         for MOPAC gradients on QM as well as on MM atoms
-        for GAUSSIAN only gradients on MM atoms (those on QM atoms are calculated by GAUSSIAN)*/
+        for GAUSSIAN and DFTB+ only gradients on MM atoms (those on QM atoms are calculated by QM program)*/
         coords::Gradients_3D c_gradient;
         /**gradients of van der waals interaction energy between QM and MM atoms*/
         coords::Gradients_3D vdw_gradient;

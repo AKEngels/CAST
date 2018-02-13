@@ -42,7 +42,7 @@ namespace
     return new_indices_qm;
   }
 
-  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, 
+  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms,
     std::vector<std::size_t> const& mmi)
   {
     std::vector<std::size_t> new_indices_mm;
@@ -59,6 +59,10 @@ namespace
     return new_indices_mm;
   }
 
+  /**creates coordobject for QM interface
+  @param cp: coordobj for whole system (QM + MM)
+  @param indices: indizes of QM atoms
+  @param new_indices: new indizes (see new_indices_qm)*/
   coords::Coordinates make_qm_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
@@ -96,7 +100,7 @@ namespace
   /**creates coordobject for MM interface
   @param cp: coordobj for whole system (QM + MM)
   @param indices: indizes of MM atoms
-  @param new_indices: new indizes???*/
+  @param new_indices: new indizes (see new_indices_mm)*/
   coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
   {
@@ -390,7 +394,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
       if (scon::sorted::exists(qm_indices, b))
       {
         if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA && 
-          Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
+          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
         {
           bonded::Bond bond(mma, b);
           qmmm_bonds.push_back(bond);
@@ -576,10 +580,29 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(qmc);
+    if (link_atoms.size() > 0)  // if link atoms: add them to inputfile
+    {
+      for (auto l : link_atoms)
+      {
+        out_file << std::left << std::setw(3) << "H";
+        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.x();
+        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.y();
+        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.z();
+        out_file << '\n';
+      }
+    }
     out_file << '\n';
     for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
     {
-      out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
+      bool use_charge = true;
+      for (auto b : qmmm_bonds)   // do not add M1 atom to charges
+      {
+        if (mm_indices[j] == b.a) use_charge = false;
+      }
+      if (use_charge == true)
+      {
+        out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
+      }
     }
     out_file << '\n';
     if (Config::get().energy.gaussian.method == "DFTB=read")
@@ -595,17 +618,25 @@ void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
         }
         out_file << "@./" << filename << " /N\n";
       }
+      out_file << "\n";
     }
     else if (Config::get().energy.gaussian.method == "DFTBA")
     {
-      out_file << "@GAUSS_EXEDIR:dftba.prm\n";
+      out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
     if (calc_type == 'g')
     {
-      out_file << '\n';
       for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
       {
-        out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "\n";
+        bool use_charge = true;
+        for (auto b : qmmm_bonds)   // do not add M1 atom to points to electric field
+        {
+          if (mm_indices[j] == b.a) use_charge = false;
+        }
+        if (use_charge == true)
+        {
+          out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "\n";
+        }
       }
     }
     out_file.close();
@@ -698,7 +729,7 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
-    char angular_momentum = atomic::angular_momentum_by_symbol(s);
+    char angular_momentum = angular_momentum_by_symbol(s);
     if (angular_momentum == 'e')
     {
       std::cout << "Angular momentum for element " << s << " not defined. \n";
@@ -825,8 +856,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
         if (Config::get().general.verbosity > 4)
         {
-          std::cout << "Link atom between " << l.qm << " and " << l.mm << " causes a gradient on QM atom " << G_QM;
-          std::cout << " and on MM atom " << G_MM << "\n";
+		      std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << G_L << ".\n";
+		      std::cout<< "It causes a gradient on QM atom " << G_QM << " and on MM atom " << G_MM << ".\n";
         }
       }
 
@@ -944,7 +975,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         int calc_modus = calc_vdw(i, j);
         if (Config::get().general.verbosity > 4)
         {
-          std::cout << "VdW calc_modus between atoms " << i << " and " << j << " is " <<calc_modus<<".\n";
+          std::cout << "VdW calc_modus between atoms " << i+1 << " and " << j+1 << " is " <<calc_modus<<".\n";
         }
 
         if (calc_modus != 0)  // calculate vdW interaction
@@ -1014,17 +1045,29 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       int j2 = 0;
       for (auto j : mm_indices)
       {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
-        double charge = mm_charge_vector[j2];
-        coords::Cartesian_Point el_field = g_coul_mm[j2 + qm_indices.size()];
-        double x = charge * el_field.x();
-        double y = charge * el_field.y();
-        double z = charge * el_field.z();
-        coords::Cartesian_Point new_grad;
-        new_grad.x() = -x;
-        new_grad.y() = -y;
-        new_grad.z() = -z;
-        c_gradient[j] += new_grad;
-        j2++;
+        bool use_charge = true;
+        for (auto b : qmmm_bonds)
+        {
+          if (j == b.a) use_charge = false;
+        }
+        if (use_charge == true)
+        {
+          if (Config::get().general.verbosity > 4)
+          {
+            std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
+          }
+          double charge = mm_charge_vector[j2];
+          coords::Cartesian_Point el_field = g_coul_mm[j2 + qm_indices.size()];
+          double x = charge * el_field.x();
+          double y = charge * el_field.y();
+          double z = charge * el_field.z();
+          coords::Cartesian_Point new_grad;
+          new_grad.x() = -x;
+          new_grad.y() = -y;
+          new_grad.z() = -z;
+          c_gradient[j] += new_grad;
+          j2++;
+        }
       }
     }
     else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
@@ -1041,7 +1084,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         {
           if (Config::get().general.verbosity > 4)
           {
-            std::cout << "calculate coulomb-gradient on atom " << j << "\n";
+            std::cout << "calculate coulomb-gradient on atom " << j+1 << "\n";
           }
           c_gradient[j] += g_coul_mm[j2];
           j2++;
@@ -1210,9 +1253,9 @@ void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool co
     S << std::sqrt(
       coords->g_xyz(k).x() * coords->g_xyz(k).x()
       + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z());
   }
-  
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const

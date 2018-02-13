@@ -15,8 +15,6 @@ until the next "print ausgabe". Copy the bonds from gaff.dat into a new file bin
 section of amber99.prm.
 
 Repeat the same for the angles (winkel.txt), torsions (torsions.txt) and improper torsions (impropers.txt).
-ATTENTION: For the torsions you have to copy the parameters where there is no "X" among the atoms in front of the other parameters!
-(assuming that CAST reads the parameters from up to down)
 """
 
 with open("atoms.txt") as atom_file:

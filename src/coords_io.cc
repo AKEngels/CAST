@@ -246,21 +246,21 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
 	if (Config::get().general.chargefile)   // read charges from chargefile
 	{
 		std::vector<double> charges;
-		std::ifstream coord_file_stream("charges.txt", std::ios_base::in);
-		std::string x;
-		while (coord_file_stream)
+		std::ifstream charge_stream("charges.txt", std::ios_base::in);
+		std::string read;
+		while (charge_stream)
 		{
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom number
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom type
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
-				charges.push_back(std::stod(x));
+				charges.push_back(std::stod(read));
 			}
 		}
 		if (charges.size() == coord_object.size())

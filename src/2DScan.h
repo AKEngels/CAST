@@ -386,8 +386,6 @@ private:
     */
 	inline void write_energy_entry(double const & e) {
 
-      auto bla = parser->x_parser->say_val();
-
 		energies << std::fixed << std::setprecision(5) <<
 			std::setw(12) << parser->x_parser->say_val() << " " <<
 			std::setw(12) << parser->y_parser->say_val() << " " <<

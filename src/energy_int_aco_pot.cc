@@ -41,10 +41,9 @@ coords::float_type energy::interfaces::aco::aco_ff::g(void)
 coords::float_type energy::interfaces::aco::aco_ff::h(void)
 {
   pre();
-  printf("ERROR: this energy interface doesn't provide a hessian matrix\n"); 
-  std::exit(0);
-  post();
-  return energy;
+  throw std::runtime_error("aco_ff doesn't provide a hessian matrix.");
+  //post();
+  //return energy;
 }
 
 coords::float_type energy::interfaces::aco::aco_ff::o(void)
@@ -583,9 +582,6 @@ namespace energy
           auto sine2 = 2.0 * cosine * sine;
 
           auto phi2 = 1.0 + (cosine2*c2 + sine2*s2);
-          auto dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
-
-          auto dedphi = 0.5 * (v2*dphi2);
 
           double E_add = 0.5 * (v2*phi2);
           E += E_add;
