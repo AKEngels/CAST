@@ -139,19 +139,21 @@ public:
   \return Specific value of the Record type.
   */
   Record line_type(const std::string& line) const {
-    if (line.compare(0, 4, "ATOM") == 0) {
+    if (line.substr(0, 4) == "ATOM") {
       return Record::ATOM;
-    } else if (line.compare(0, 7, "HETATOM") == 0) {
+    } else if (line.substr(0, 7) == "HETATOM") {
       return Record::HETATOM;
-    } else if (line.compare(0, 6, "NUMMDL") == 0) {
+    } else if (line.substr(0, 6) == "HETATM") {
+      return Record::HETATOM;
+    } else if (line.substr(0, 6) == "NUMMDL") {
       return Record::NUMMDL;
-    } else if (line.compare(0, 5, "MODEL") == 0) {
+    } else if (line.substr(0, 5) == "MODEL") {
       return Record::MODEL;
-    } else if (line.compare(0, 6, "ENDMDL") == 0) {
+    } else if (line.substr(0, 6) == "ENDMDL") {
       return Record::ENDMDL;
-    } else if (line.compare(0, 3, "TER") == 0) {
+    } else if (line.substr(0, 3) == "TER") {
       return Record::TER;
-    } else if (line.compare(0, 3, "END") == 0) {
+    } else if (line.substr(0, 3) == "END") {
       return Record::END;
     } else {
       return Record::UNKNOWN;
@@ -256,7 +258,12 @@ public:
   char chain_id(const std::string& line) const {
     std::string d{ "chain ID" };
     std::string f = line.substr(21, 1);
-    field_check(f, d);
+    try {
+      field_check(f, d);
+    }
+    catch (std::runtime_error e) {
+      return 'E';
+    }
     return f.at(0);
   }
 
@@ -367,7 +374,7 @@ public:
   void read_file(const std::string& pdb_file) {
     std::string file_line;
     std::cout << "Reading PDB file: " << pdb_file << "\n";
-    std::ifstream input_pdb(pdb_file.c_str());
+    std::ifstream input_pdb(pdb_file);
     if (!input_pdb.is_open())
       throw std::ios::failure(pdb_file + " cannot be opened.");
     while (std::getline(input_pdb, file_line)) {

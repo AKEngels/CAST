@@ -175,15 +175,20 @@ struct trans {
   coords::Representation_3D rep_;
 
   template<typename Func>
-  coords::Representation_3D trans_der(Func const & coord) const {
+  coords::Representation_3D trans_der(std::size_t const & sys_size, Func const & coord) const {
     using rep3D = coords::Representation_3D;
+    using cp = coords::Cartesian_Point;
+
+    rep3D result(sys_size, cp(0.,0.,0.));
 
     auto const & s{ rep_.size() };
-    rep3D result(s, coord(s));
+    for (auto const & i : indices_) {
+      result.at(i-1) = coord(s);
+    }
     return result;
   }
 
-  virtual std::vector<float_type> trans_der_vec() const = 0;
+  virtual std::vector<float_type> trans_der_vec(std::size_t const & system_size) const = 0;
 };
 
 struct trans_x : trans{
@@ -199,7 +204,7 @@ struct trans_x : trans{
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_der_vec()const override;
+  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
 };
 
 struct trans_y : trans {
@@ -215,7 +220,7 @@ struct trans_y : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_der_vec()const override;
+  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
 };
 
 struct trans_z : trans {
@@ -231,7 +236,7 @@ struct trans_z : trans {
     return coord_sum / res.size();
   }
 
-  std::vector<float_type> trans_der_vec()const override;
+  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
 };
 
 struct rotation {

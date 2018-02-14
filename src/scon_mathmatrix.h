@@ -318,6 +318,9 @@ public:
   mathmatrix row(std::size_t const& idx) const;
   mathmatrix col(std::size_t const& idx) const;
 
+  void set_row(std::size_t const &, mathmatrix const&);
+  void set_col(std::size_t const &, mathmatrix const&);
+
   /*! Performs Cholesky Decompostion on Matrix.
    *
    * @NOTE: Code via
@@ -1032,6 +1035,28 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const& idx) const {
 #endif
 }
 
+template<typename T>
+inline void mathmatrix<T>::set_row(std::size_t const & nrow, mathmatrix const & other)
+{
+  if (other.cols() != cols() || other.rows() != 1) {
+    throw std::runtime_error("By setting the row the sizes for both rows are different!");
+  }
+  for (auto i = 0; i < cols(); ++i) {
+    this->operator()(nrow, i) = other(0, i);
+  }
+}
+
+template<typename T>
+inline void mathmatrix<T>::set_col(std::size_t const & ncol, mathmatrix const & other)
+{
+  if (other.rows() != rows() || other.cols() != 1) {
+    throw std::runtime_error("By setting the col the sizes for both cols are different!");
+  }
+  for (auto i = 0; i < rows(); ++i) {
+    this->operator()(i, ncol) = other(i, 0);
+  }
+}
+
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::row(std::size_t const& idx) const {
 #ifndef CAST_USE_ARMADILLO
@@ -1363,24 +1388,6 @@ std::pair<mathmatrix<T>, mathmatrix<T>>
 mathmatrix<T>::eigensym(bool const & sort = false) const {
 #ifndef CAST_USE_ARMADILLO
 
-  /*auto sort_eigenpairs = [](auto & EVals, auto & EVecs) {
-  std::cout << "Hallo" << std::endl;
-  std::vector<std::size_t> perms(EVals.cols());
-  std::iota(perms.begin(), perms.end(), 0);
-
-  std::sort(perms.begin(), perms.end(), [&](std::size_t const & i, std::size_t
-  const & j) { std::cout << std::boolalpha << (EVals(i, 0) < EVals(j, 0)) <<
-  std::endl; return EVals(i, 0) < EVals(j, 0);
-  });
-
-  auto EVals_temp = EVals, EVecs_temp = EVecs;
-  for (auto i = 0; i < perms.size(); ++i) {
-
-  EVals(i, 0) = EVals_temp(perms.at(i),0);
-  EVecs.col(i) = EVecs_temp.col(i);
-  }
-  };*/
-
   Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));
   mathmatrix eigenval = es.eigenvalues().real();
   mathmatrix eigenvec = es.eigenvectors().real();
@@ -1391,9 +1398,7 @@ mathmatrix<T>::eigensym(bool const & sort = false) const {
     mathmatrix new_eigenval(eigenval.rows(), eigenval.cols());
     for (auto i = 0; i < indices.size(); ++i) {
       auto index = indices[i];
-      for (auto j = 0; j < eigenvec.rows(); ++j) {
-        new_eigenvec(j,i) = eigenvec(j,index);
-      }
+      new_eigenvec.set_col(i, eigenvec.col(index));
       new_eigenval(i,0) = eigenval(index,0);
     }
     return std::make_pair(new_eigenval, new_eigenvec);

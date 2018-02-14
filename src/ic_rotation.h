@@ -100,30 +100,38 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 
   Mat eigvec, eigval;
 
-  std::tie(eigval, eigvec) = F_mat.eigensym();
-
+  std::tie(eigval, eigvec) = F_mat.eigensym(true);
+  std::cout << eigval << "\n\n";
   //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) 
-  auto q_std = eigvec.col_to_std_vector(0);
+  auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);
   if (res_q.q_.at(0) < 0) {
-    res_q = res_q * -1;
+    res_q = res_q * -1.;
   }
 
-  auto eigval_high = eigval.sort_col_to_vec([](auto const & a, auto const & b) { return a < b; });
-
-  return std::make_pair(eigval_high.at(0), res_q);
+  return std::make_pair(eigval(eigval.rows()-1), res_q);
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type 
 exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
                 ContainerType<CoordType<T>, ContainerArgs...> const& target) {
+
+  auto get_fac = [](auto const & q0) {
+    auto qm1 = q0 - 1.;
+    if (std::fabs(qm1) < 1.e-8) {
+      return 2. - 2.*qm1/3.;
+    }
+    else {
+      auto t1 = std::acos(q0);
+      auto t2 = std::sqrt(1 - std::pow(q0, 2));
+      return 2. * (t1 / t2);
+    }
+  };
+
   auto q = quaternion(trial, target);
   auto quat = q.second;
-  auto q0 = quat.q_.at(0);
-  auto t1 = std::acos(q0);
-  auto t2 = std::sqrt(1 - std::pow(q0, 2));
-  auto p = 2 * (t1 / t2);
+  auto p = get_fac(quat.q_.at(0));
   return { p * quat.q_.at(1), p * quat.q_.at(2), p * quat.q_.at(3) };
 }
 
@@ -219,7 +227,7 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 
   auto const fac_and_dfac = [](auto const & q0) {
     if (std::abs(q0 - 1.) < q_thres) {
-      return std::make_pair(2 - 2 * (q0 - 1.) / 3., -2. / 3.);
+      return std::make_pair(2. - 2. * (q0 - 1.) / 3., -2. / 3.);
     }
     auto acosq0 = std::acos(q0);
     auto q0_sq = 1. - q0 * q0;
@@ -271,7 +279,7 @@ ic_rotation::quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> con
     for (std::size_t c = 0; c < 3; ++c) {
       auto F_sl = F_dtemp.at(c);
       auto temp_res = t2 * F_sl * qrow;
-      qtemp.row(c) = temp_res.t();
+      qtemp.set_row(c, temp_res.t());
     }
     result.emplace_back(qtemp);
   }
