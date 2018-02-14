@@ -1253,7 +1253,7 @@ void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool co
     S << std::sqrt(
       coords->g_xyz(k).x() * coords->g_xyz(k).x()
       + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z());
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << "\n";
   }
   if (endline) S << '\n';
 }
