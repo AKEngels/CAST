@@ -663,7 +663,6 @@ void coords::Atoms::c_to_i(PES_Point &p) const
     auto j(i);
     while (j < N)
     {
-
       auto const ind_j = atom(j).i_to_a();
 
       auto const rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
@@ -777,7 +776,6 @@ void coords::Atoms::i_to_c(PES_Point &p) const
     std::size_t j(i);
     while (j < N)
     {
-
       Representation_3D::size_type const ind_j = atom(j).i_to_a();
 
       coords::Cartesian_Point const & rel_bond_j = rel_xyz(atom(j).ibond(), xyz);
@@ -803,7 +801,6 @@ void coords::Atoms::i_to_c(PES_Point &p) const
       gintern[j].z() -= dot(gxyz[ind_i], PT)*dT;
 
       j = atom(j).ibond();
-
     }
 
   }

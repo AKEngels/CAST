@@ -11,7 +11,7 @@ namespace matop
 
   Matrix_Class transfer_to_matr(coords::Coordinates const& in)
   {
-    Matrix_Class out_mat(in.size(), 3u);
+    Matrix_Class out_mat(static_cast<unsigned>(in.size()), 3u);
     for (size_t l = 0; l < in.size(); l++)
     {
       coords::cartesian_type tempcoord2;
@@ -20,7 +20,7 @@ namespace matop
       out_mat(l, 1) = tempcoord2.y();
       out_mat(l, 2) = tempcoord2.z();
     }
-    return transposed(out_mat);
+    return transpose(out_mat);
   }
 
   Matrix_Class transfer_to_matr_internal(coords::Coordinates const& in)
@@ -33,7 +33,7 @@ namespace matop
       out_mat(l, 1) = in.intern(l).inclination().radians();
       out_mat(l, 2) = in.intern(l).azimuth().radians();
     }
-    return transposed(out_mat);
+    return transpose(out_mat);
   }
 
   Matrix_Class transform_coordinates(coords::Coordinates& input)
@@ -399,31 +399,31 @@ namespace matop
 #endif // _OPENMP
 
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. with corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
-      Matrix_Class cov_matr = Matrix_Class{ transposed(input) };
-      cov_matr = Matrix_Class(cov_matr - Matrix_Class( input.cols(), input.cols(), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
-      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      Matrix_Class cov_matr = Matrix_Class{ transpose(input) };
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1. ) * cov_matr / static_cast<float_type>(input.cols()));
+      cov_matr = Matrix_Class(transpose(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>( input.cols() ));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	  float_type cov_determ = 0.;
-	  int *cov_rank = new int;
-      cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
+	  int cov_rank = cov_matr.rank();
+      std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym();
 
       //Remove Eigenvalues that should be zero if cov_matr is singular
-      if ((*cov_rank < (int) eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
+      if ((cov_rank < (int) eigenvalues.rows()) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
       {
         std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
-        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+        std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().entropy.entropy_remove_dof)
         {
-          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          size_t temp = std::max(6, int((cov_matr.rows() - cov_rank)));
 		      eigenvalues.shed_rows(eigenvalues.rows() - temp, eigenvalues.rows() - 1u);
 		      eigenvectors.shed_cols(eigenvectors.cols() - temp, eigenvectors.cols() - 1u);
         }
         else
         {
-          eigenvalues.shed_rows((*cov_rank), eigenvalues.rows() - 1u);
-          eigenvectors.shed_cols((*cov_rank), eigenvectors.cols() - 1u);
+          eigenvalues.shed_rows((cov_rank), eigenvalues.rows() - 1u);
+          eigenvectors.shed_cols((cov_rank), eigenvectors.cols() - 1u);
         }
       }
       else if (Config::get().entropy.entropy_remove_dof)
@@ -431,7 +431,6 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
@@ -450,11 +449,11 @@ namespace matop
 
       //Corrections for anharmonicity and M.I.
       // I. Create PCA-Modes matrix
-      Matrix_Class eigenvectors_t(transposed(eigenvectors));
+      Matrix_Class eigenvectors_t(transpose(eigenvectors));
       Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
-      Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
-      Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
-      Matrix_Class classical_entropy(pca_modes.rows(), 1u, 0.);
+      Matrix_Class entropy_anharmonic(static_cast<std::size_t>(pca_modes.rows()), std::size_t(1u), 0.);
+      Matrix_Class entropy_mi(static_cast<std::size_t>(pca_modes.rows()), static_cast<std::size_t>(pca_modes.rows()), 0.);
+      Matrix_Class classical_entropy(static_cast<std::size_t>(pca_modes.rows()), 1u, 0.);
       //std::size_t const size = entropy_anharmonic.rows();
 
 
@@ -593,7 +592,7 @@ namespace matop
       Matrix_Class const& input(input_);
 #endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method, according to Hnizdo et al. (DOI: 10.1002/jcc.20589)" << std::endl;
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0.);
+      Matrix_Class marginal_entropy_storage(static_cast<std::size_t>(input.rows()), static_cast<std::size_t>(1u), 0.);
 
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
       float_type distance = std::log(std::sqrt(knn_distance(input, input.rows(), kForKNN, (size_t)0u, (size_t)0u)));
@@ -654,7 +653,7 @@ namespace matop
       Matrix_Class const& input(input_);
 #endif // _OPENMP
       std::cout << "\nCommencing entropy calculation:\nNearest-Neighbor Nonparametric Method - only calculate sum of Marginal Entropies, according to Hnizdo et. al. (DOI: 10.1002/jcc.20589)" << std::endl;
-      Matrix_Class marginal_entropy_storage(input.rows(), 1u, 0u);
+      Matrix_Class marginal_entropy_storage(static_cast<std::size_t>(input.rows()), static_cast<std::size_t>(1u), 0u);
 
       //Calculate Non-Paramteric Entropies
       const size_t kForKNN = Config::get().entropy.entropy_method_knn_k;
@@ -702,31 +701,31 @@ namespace matop
     float_type knapp_m_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Knapp et. al. without corrections (Genome Inform. 2007;18:192-205.)" << std::endl;
-      Matrix_Class cov_matr = (transposed(input));
-      cov_matr = Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / (float_type)input.cols());
-      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      Matrix_Class cov_matr = (transpose(input));
+      cov_matr = Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.) * cov_matr / (float_type)input.cols());
+      cov_matr = Matrix_Class(transpose(cov_matr) * cov_matr);
       cov_matr *= (1.f / static_cast<float_type>(input.cols()));
       Matrix_Class eigenvalues;
       Matrix_Class eigenvectors;
 	    float_type cov_determ = 0.;
-	    int *cov_rank = new int;
-      cov_matr.eigensym(eigenvalues, eigenvectors, cov_rank);
+	    int cov_rank = cov_matr.rank();
+      std::tie(eigenvalues, eigenvectors) = cov_matr.eigensym();
 
       //Remove Eigenvalues that should be zero if cov_matr is singular
-      if (( *cov_rank < (int) eigenvalues.rows() ) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
+      if (( cov_rank < (int) eigenvalues.rows() ) || (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90) )
       {
         std::cout << "Notice: covariance matrix is singular, attempting to fix by truncation of Eigenvalues.\n";
-        std::cout << "Details: rank of covariance matrix is " << *cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
+        std::cout << "Details: rank of covariance matrix is " << cov_rank << ", determinant is " << cov_determ << ", size is " << cov_matr.rows() << ".\n";
         if (Config::get().entropy.entropy_remove_dof)
         {
-          size_t temp = std::max(6, int((cov_matr.rows() - *cov_rank)));
+          size_t temp = std::max(6, int((cov_matr.rows() - cov_rank)));
           eigenvalues.shed_rows((eigenvalues.rows()) - temp, eigenvalues.rows() - 1u);
           eigenvectors.shed_cols((eigenvectors.cols()) - temp, eigenvectors.cols() - 1u);
         }
         else
         {
-		      eigenvalues.shed_rows( (*cov_rank), (eigenvalues.rows()) - 1u);
-	    	  eigenvectors.shed_cols( (*cov_rank), (eigenvectors.cols()) - 1u);
+		      eigenvalues.shed_rows( (cov_rank), (eigenvalues.rows()) - 1u);
+	    	  eigenvectors.shed_cols( (cov_rank), (eigenvectors.cols()) - 1u);
         }
       }
       else if (Config::get().entropy.entropy_remove_dof)
@@ -734,7 +733,6 @@ namespace matop
         eigenvectors.shed_cols(0, 5);
         eigenvalues.shed_rows(0, 5);
       }
-      delete cov_rank;
 
       //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
       Matrix_Class pca_frequencies(eigenvalues.rows(), 0u);
@@ -755,10 +753,10 @@ namespace matop
     float_type karplus_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Karplus et. al. (DOI 10.1021/ma50003a019)" << std::endl;
-      Matrix_Class cov_matr = (transposed(input));
-      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(input.cols(), input.cols(), 1.) * cov_matr / static_cast<float_type>(input.cols()));
+      Matrix_Class cov_matr = (transpose(input));
+      Matrix_Class temp_obj = Matrix_Class(Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.) * cov_matr / static_cast<float_type>(input.cols()));
       cov_matr = Matrix_Class(cov_matr - temp_obj);
-      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      cov_matr = Matrix_Class(transpose(cov_matr) * cov_matr);
       cov_matr = cov_matr / static_cast<float_type>(input.cols());
       float_type entropy = 0.0, cov_determ;
       if (cov_determ = cov_matr.determ(), abs(cov_determ) < 10e-90)
@@ -778,13 +776,13 @@ namespace matop
     float_type schlitter_wrapper(Matrix_Class const& input)
     {
       std::cout << "\nCommencing entropy calculation:\nQuasi-Harmonic-Approx. according to Schlitter (see: doi:10.1016/0009-2614(93)89366-P)" << std::endl;
-      Matrix_Class cov_matr = transposed(input);
-      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(input.cols(), input.cols(), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
-      cov_matr = Matrix_Class(transposed(cov_matr) * cov_matr);
+      Matrix_Class cov_matr = transpose(input);
+      cov_matr = Matrix_Class(Matrix_Class(cov_matr - Matrix_Class(static_cast<std::size_t>(input.cols()), static_cast<std::size_t>(input.cols()), 1.0) * cov_matr / static_cast<float_type>(input.cols())));
+      cov_matr = Matrix_Class(transpose(cov_matr) * cov_matr);
       cov_matr = Matrix_Class(cov_matr / static_cast<float_type>(input.cols()));
 
       cov_matr *= (1.38064813 * /* 10e-23 J/K */ Config::get().entropy.entropy_temp * 2.718281828459 * 2.718281828459 / (1.054571726 /* * 10^-34 Js */ * 1.054571726 * 10e-45));
-      cov_matr = Matrix_Class(cov_matr + Matrix_Class(Matrix_Class::Identity(cov_matr.rows(), cov_matr.cols())));
+      cov_matr = Matrix_Class(cov_matr + Matrix_Class(Matrix_Class::identity(cov_matr.rows(), cov_matr.cols())));
       float_type entropy_sho = cov_matr.determ();
 
       entropy_sho = log(entropy_sho) * 0.5 * 1.38064813 * 6.02214129 * 0.239;
@@ -855,13 +853,13 @@ namespace matop
       Matrix_Class input = transfer_to_matr(inputCoords);
       Matrix_Class ref = transfer_to_matr(reference);
 
-      Matrix_Class c(input * transposed(ref));
+      Matrix_Class c(input * transpose(ref));
       //Creates Covariance Matrix
 
       Matrix_Class s, V, U;
       c.singular_value_decomposition(U, s, V);
 
-      Matrix_Class unit = Matrix_Class(Matrix_Class::Identity(c.rows(), c.rows()));
+      Matrix_Class unit = Matrix_Class(Matrix_Class::identity(c.rows(), c.rows()));
       if ((c.det_sign() < 0)) //Making sure that U will do a proper rotation (rows/columns have to be right handed system)
       {
         unit(2, 2) = -1;

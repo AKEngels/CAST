@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #if defined _OPENMP
   #include <omp.h>
@@ -75,8 +75,10 @@ namespace energy
       /**difference in free energy calculated for all conformations
       in this window until current conformation in backwards transformation*/
       coords::float_type dG_back;
-	  /**exp((-1 / (k_B*T))*dE ) or exp((1 / (k_B*T))*dE_back ) for this conformation*/
+	  /**exp((-1 / (k_B*T))*dE ) for this conformation*/
 	  coords::float_type de_ens;
+      /**exp((1 / (k_B*T))*dE_back ) for this conformation*/
+      coords::float_type de_ens_back;
 	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
@@ -107,7 +109,7 @@ namespace energy
 
   public:
 
-    /**total energy, in dftb interface this is called e_tot*/
+    /**total energy, in dftbaby interface this is called e_tot*/
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
@@ -115,7 +117,11 @@ namespace energy
       coords(coord_pointer), periodic(false), integrity(true), 
       optimizer(false), interactions(false), energy(0.0)
     { 
-      if(!coord_pointer) throw std::runtime_error("Interface without valid coordinates prohibited."); 
+      if (!coord_pointer)
+      {
+        throw std::runtime_error(
+          "Interface without valid coordinates prohibited.");
+      }
     }
 
     interface_base(); 
@@ -161,6 +167,16 @@ namespace energy
     /** Optimization in the intface or interfaced program*/
     virtual coords::float_type o (void) = 0;
 
+    /** Return charges */
+    virtual std::vector<coords::float_type> charges() const = 0;
+    /**this is something that is needed for QM/MM calculations
+    for GAUSSIAN it returns the electric field for QM and MM atoms
+    for DFTB+ it returns the coulomb gradients on the MM atoms due to the QM atoms*/
+    virtual std::vector<coords::Cartesian_Point> get_g_coul_mm() const = 0;
+
+    /**get id for gaussian call*/
+    virtual std::string get_id() const = 0;
+
     // Feature getter
     bool has_periodics() const { return periodic; }
     /**does energy interface has its own optimizer*/
@@ -181,6 +197,10 @@ namespace energy
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
 
+    coords::Coordinates* cop() const 
+    {
+      return coords;
+    }
 
     //Functions to fetch special outputdata from gaussian interface
     std::vector <double> get_occMO()   {return occMO;}

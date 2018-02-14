@@ -221,6 +221,7 @@ namespace tinker
         return ia;
       }
 
+      tinker::parameter::parameters const & get_param() const { return *params; }
 
 
     private:

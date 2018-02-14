@@ -54,15 +54,28 @@ namespace energy
         /**update structure (account for topology or rep change, or just non-bonded list)*/
         void update(bool const skip_topology = false);
 
-        /**Energy function*/
-        coords::float_type e(void);
-        /**Energy+Gradient function*/
-        coords::float_type g(void);
-        /** Energy+Gradient+Hessian function
-        at the moment does nothing because Hessians are not implemented yet*/
-        coords::float_type h(void);
-        /** Optimization in the intface or interfaced program*/
-        coords::float_type o(void);
+		/**Energy function*/
+		coords::float_type e(void);
+		/**Energy+Gradient function*/
+		coords::float_type g(void);
+		/** Energy+Gradient+Hessian function
+		at the moment does nothing because Hessians are not implemented yet*/
+		coords::float_type h(void);
+		/** Optimization in the intface or interfaced program*/
+		coords::float_type o(void);
+
+        /**get charges*/
+        std::vector<coords::float_type> charges() const override;
+        /**overwritten function, should not be called*/
+        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        {
+          throw std::runtime_error("TODO: Implement electric field.\n");
+        }
+        /**overwritten function*/
+        std::string get_id() const override { return "bullshit"; }
+
+        // Virial Tensor
+        std::array<std::array<coords::float_type, 3>, 3> virial();
 
         // Output functions
         void print_E(std::ostream&) const;
@@ -72,6 +85,12 @@ namespace energy
         void to_stream(std::ostream&) const;
         void swap(interface_base&);
         void swap(aco_ff&);
+
+
+        ::tinker::parameter::parameters const & params() const
+        {
+          return cparams;
+        }
 
       private:
 

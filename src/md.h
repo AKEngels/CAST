@@ -297,8 +297,11 @@ namespace md
     @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
     */
     bool heat(std::size_t const step, bool fep);
-    /** nose hoover thermostat */
+    /** nose hoover thermostat (velocity scaling is done automatically in this function)*/
     void nose_hoover_thermostat(void);
+    /** nose hoover thermostat only for inner atoms when used together with biased potential
+    returns the temperature scaling factor for velocities (scaling has to be performed after this function)*/
+    double nose_hoover_thermostat_biased(void);
 
     /**sets coordinates to original values and assigns random velocities*/
     void restart_broken();
@@ -331,17 +334,12 @@ namespace md
   */
     void integrate(bool fep = false, std::size_t const k_init = 0U);
 
-    /**beeman integrator
+    /**velocity-verlet or beeman integrator
     @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
     @param k_init: step where the MD starts (zero should be okay)
+    @param beeman: true if beeman integrator is used, false if velocity verlet integrator is used
     */
-    void beemanintegrator(bool fep, std::size_t const k_init = 0U);
-
-    /**velocity-verlet integrator
-    @param fep: true if in equilibration of production of FEP run, then temperature is kept constant
-    @param k_init: step where the MD starts (zero should be okay)
-    */
-    void velocity_verlet(bool fep, std::size_t const k_init = 0U);
+    void integrator(bool fep, std::size_t const k_init = 0U, bool beeman = false);
 
     /** tell user that he applies spherical boundary conditions
   */
@@ -397,16 +395,36 @@ namespace md
      calculation can be improved if at every step the current averages are stored
      currently calculation is performed at the end of each window */
     void freecalc();
-    /**Calculation of ensemble average and free energy change for backwards transformation*/
-    void freecalc_back();
+    /**calculation of free energy from Bennets acceptance ratio
+    @param window: current window*/
+    void bar(int window);
     /** write the output FEP calculations into "alchemical.txt" and "FEP_Results.txt"*/
     void freewrite(int);
+    /**function that returns a string 
+    this string can be run as a pythonprogramme that adds all paths necessary for FEP analysis to pythonpath*/
+    std::string get_pythonpath();
+    /**function that performs an FEP analysis (histogram and overlap of probability distributions)
+    @param dE_pots: vector of dE_pot values for a conformation. 
+    this is used to transfer these values to the next window as the dE value of window i corresponds to the dE_back value of window i+1
+    @param window: number of current window
+    returns vector with dE_pot values (explanation see above)*/
+    std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
-    /**current free energy difference*/
+    /**current free energy difference for forward transformation*/
     double FEPsum;
     /**current free energy difference for backwards transformation*/
     double FEPsum_back;
+    /**current free energy difference for simple overlap sampling (SOS)*/
+    double FEPsum_SOS;
+    /**free energy change of current window from SOS (start value for BAR)*/
+    double dG_SOS;
+    /**free energy difference for bennets acceptance ratio (BAR)*/
+    double FEPsum_BAR;
+    /**<exp^(-1/kT)*dE/2> save for use after next window (for SOS)*/
+    double de_ensemble_v_SOS;
+    /**<w*exp^(-1/kT)*dE/2> save for use after next window (for BAR)*/
+    double de_ensemble_v_BAR;
 
     //**overload for << operator*/
     template<class Strm>

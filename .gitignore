@@ -11,7 +11,10 @@ optional_files/build/*
 optional_files/project/*
 optional_files/project/Makefile
 optional_files/project/CAST.make
+!optional_files/build/python_modules
+optional_files/build/python_modules/*.pyc
 optional_files/premake5.exe
+
 
 
 /src/documentation/html

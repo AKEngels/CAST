@@ -1,4 +1,4 @@
-/**
+﻿/**
 CAST 3
 matop.h
 Purpose: 
@@ -10,6 +10,7 @@ Calculations are done using mathmatrix
 */
 
 #pragma once
+#include "coords.h"
 #include "scon_mathmatrix.h"
 #include "histogram.h"
 #include "coords_io.h"
@@ -17,10 +18,11 @@ Calculations are done using mathmatrix
 #include "scon_angle.h"
 #include <stdexcept>
 
-typedef mathmatrix<float_type> Matrix_Class;
+using Matrix_Class = scon::mathmatrix<coords::float_type>;
 
 namespace matop
 {
+  using float_type = coords::float_type;
   /////////////////////////////////////
   //                              /////
   // S P E C I F I C   T A S K S  /////

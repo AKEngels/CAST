@@ -7,7 +7,7 @@
 *  @ Daniel Bellinger
 *
 */
-
+#pragma once 
 
 #include <vector>
 #include "coords.h"

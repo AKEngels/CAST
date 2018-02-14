@@ -1,85 +1,14 @@
-﻿#ifdef USE_PYTHON
 #include "energy_int_dftb.h"
 
-
-/*
-dftb sysCall functions
-*/
-
-std::string energy::interfaces::dftb::get_python_modulepath(std::string modulename)
-{
-    std::string find = "import "+modulename+"\nwith open('tmpfile.txt','w') as fn:\n    fn.write("+modulename+".__file__)";
-    const char *c_find = find.c_str();
-    PyRun_SimpleString(c_find);  //call a python programme to find the modulepath and write it to tmpfile
-    std::ifstream file("tmpfile.txt");  //open tmpfile and read content
-    std::string content;
-    file >> content;
-    remove("tmpfile.txt");  //delete tmpfile
-    return content.substr(0,content.size()-14-modulename.size());  //give back path without filename __init__.pyc and modulename
-}
-
-void energy::interfaces::dftb::create_dftbaby_configfile()
-{
-    std::ofstream file("dftbaby.cfg");
-    file << "[DFTBaby]\n\n";
-    file << "gradient_file = "+Config::get().energy.dftb.gradfile+"\n\n"; // has to be set in any case cause otherwise gradients are not calculated
-    file << "gradient_state = "+std::to_string(Config::get().energy.dftb.gradstate)+"\n\n";  // set because standard not ground state
-    file << "verbose = "+std::to_string(Config::get().energy.dftb.verbose)+"\n\n";
-    if (Config::get().energy.dftb.longrange == false)
-    {    //in dftbaby long range correction is standard
-      file << "long_range_correction = 0\n\n";
-    }
-    if (Config::get().energy.dftb.cutoff != 0)
-        file << "distance_cutoff = "+std::to_string(Config::get().energy.dftb.cutoff)+"\n\n";
-    if (Config::get().energy.dftb.lr_dist != 0)
-        file << "long_range_radius = "+std::to_string(Config::get().energy.dftb.lr_dist)+"\n\n";
-    if (Config::get().energy.dftb.maxiter != 0)
-        file << "maxiter = "+std::to_string(Config::get().energy.dftb.maxiter)+"\n\n";
-    if (Config::get().energy.dftb.conv_threshold != "0")
-        file << "scf_conv = "+Config::get().energy.dftb.conv_threshold+"\n\n";
-    if (Config::get().energy.dftb.states != 0)
-        file << "nstates = "+std::to_string(Config::get().energy.dftb.states)+"\n\n";
-    if (Config::get().energy.dftb.orb_occ != 0)
-        file << "nr_active_occ = "+std::to_string(Config::get().energy.dftb.orb_occ)+"\n\n";
-    if (Config::get().energy.dftb.orb_virt != 0)
-        file << "nr_active_virt = "+std::to_string(Config::get().energy.dftb.orb_virt)+"\n\n";
-    if (Config::get().energy.dftb.diag_conv != "0")
-        file << "diag_conv = "+Config::get().energy.dftb.diag_conv+"\n\n";
-    if (Config::get().energy.dftb.diag_maxiter != 0)
-        file << "diag_maxiter = "+std::to_string(Config::get().energy.dftb.diag_maxiter)+"\n\n";
-    file.close();
-}
-
-std::string energy::interfaces::dftb::create_pythonpath(std::string numpath, std::string scipath)
-{
-    std::string pythonpaths_str = Py_GetPath();
-    std::string path;
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
-    path = "import sys\n";
-    for (auto p : pythonpaths)  //keep pythonpath of system
-    {
-      path += "sys.path.append('"+p+"')\n";
-    }
-    path += "sys.path.append('"+Config::get().energy.dftb.path+"')\n"; //path to DFTBaby
-    path += "sys.path.append('"+numpath+"')\n";                        //path to numpy
-    path += "sys.path.append('"+scipath+"')\n";                        //path to scipy
-    return path;
-}
-
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp),
-  e_bs(0.0), e_coul(0.0), e_rep(0.0), e_tot(0.0)
+  energy::interface_base(cp),energy(0.0)
 {
-    std::string numpath = get_python_modulepath("numpy");
-    std::string scipath = get_python_modulepath("scipy");
-    add_path = create_pythonpath(numpath, scipath);
-    create_dftbaby_configfile();
-    optimizer = Config::get().energy.dftb.opt;
+  if (Config::get().energy.dftb.opt > 0) optimizer = true;
+  else optimizer = false;
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
-  interface_base(cobj),
-  e_bs(rhs.e_bs), e_coul(rhs.e_coul), e_rep(rhs.e_rep), e_tot(rhs.e_tot)
+  interface_base(cobj), energy(rhs.energy)
 {
   interface_base::operator=(rhs);
 }
@@ -111,6 +40,280 @@ energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
 
 }
 
+/**checks if all atom coordinates are numbers*/
+bool energy::interfaces::dftb::sysCallInterface::check_structure()
+{
+  bool structure = true;
+  double x, y, z;
+  for (auto i : (*this->coords).xyz())
+  {
+    double x = i.x();
+    double y = i.y();
+    double z = i.z();
+
+    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+    {
+      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+      structure = false;
+      break;
+    }
+  }
+  return structure;
+}
+
+void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
+{
+  // create a vector with all element symbols that are found in the structure
+  // are needed for writing angular momenta into inputfile
+  std::vector<std::string> elements;  
+  for (auto a : (*this->coords).atoms())
+  {
+    if (is_in(a.symbol(), elements) == false)
+    {
+      elements.push_back(a.symbol());
+    }
+  }
+
+  // create inputfile
+  std::ofstream file("dftb_in.hsd");
+
+  // write geometry
+  file << "Geometry = GenFormat {\n";
+  file << coords::output::formats::xyz_gen(*this->coords);
+  file << "}\n\n";
+
+  if (t == 2)  // hessian matrix is to be calculated
+  {
+    file << "Driver = SecondDerivatives {}\n\n";
+  }
+  else if (t == 3) // optimization is to be performed
+  {
+    std::string driver;
+    if (Config::get().energy.dftb.opt == 1) driver = "SteepestDescent";
+    else if (Config::get().energy.dftb.opt == 2) driver = "ConjugateGradient";
+    else throw std::runtime_error("Cannot write correct inputfile for DFTB+. Unknown driver\n");
+
+    file << "Driver = " << driver << " {\n";
+    file << "  MaxSteps = " << Config::get().energy.dftb.max_steps_opt << "\n";
+    file << "}\n\n";
+  }
+
+  // write information that is needed for SCC calculation
+  file << "Hamiltonian = DFTB {\n";
+  file << "  SCC = Yes\n";
+  file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
+  file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
+  file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
+  file << "  SlaterKosterFiles = Type2FileNames {\n";
+  file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
+  file << "    Separator = '-'\n";
+  file << "    Suffix = '.skf'\n";
+  file << "  }\n";
+  if (Config::get().energy.qmmm.use == true)  // if QM/MM calculation: tell DFTB+ to read external charges
+  {                          
+    file << "  ElectricField = {\n";
+    file << "    PointCharges = {\n";
+    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+    file << "        Records = " << Config::get().energy.qmmm.mm_atoms_number << "\n";
+    file << "        File = 'charges.dat'\n";
+    file << "      }\n";
+    file << "    }\n";
+    file << "  }\n";
+  }
+  file << "  MaxAngularMomentum {\n";
+  for (auto s : elements)
+  {
+    char angular_momentum = atomic::angular_momentum_by_symbol(s);
+    if (angular_momentum == 'e')
+    {
+      std::cout << "Angular momentum for element " << s << " not defined. \n";
+      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
+      std::cout << "Talk to a CAST developer if this is not possible for you.";
+      std::exit(0);
+    }
+    file << "    " << s << " = " << angular_momentum << "\n";
+  }
+  file << "  }\n";
+  file << "}\n\n";
+
+  // which information will be saved after calculation?
+  file << "Options {\n";
+  file << "  WriteResultsTag = Yes\n";
+  if (t < 2) file << "  RestartFrequency = 0\n";   // does not work together with driver
+  if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
+  file << "}\n\n";
+
+  // additional analysis that should be performed
+  file << "Analysis = {\n";
+  file << "  WriteBandOut = No\n";
+  if (t == 1) file << "  CalculateForces = Yes\n";
+  file << "}\n\n";
+
+  // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
+  file << "ParserOptions {\n";
+  file << "  ParserVersion = 5\n";
+  file << "}";
+}
+
+double energy::interfaces::dftb::sysCallInterface::read_output(int t)
+{
+  if (file_exists("results.tag") == false) // if SCC does not converge DFTB+ doesn't produce this file
+  {
+    std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
+    integrity = false;
+  }
+
+  // successfull SCC -> read output
+  else
+  {
+    int N = (*this->coords).size();
+
+    std::ifstream in_file("results.tag", std::ios_base::in);
+    std::string line;
+
+    while (!in_file.eof())
+    {
+      std::getline(in_file, line);
+      if (line == "total_energy        :real:0:")  // read energy
+      {
+        std::getline(in_file, line);
+        energy = std::stod(line)*627.503; // convert hartree to kcal/mol
+      }
+
+      else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
+      {
+        double x, y, z;
+        coords::Representation_3D g_tmp;
+
+        for (int i = 0; i < N; i++)
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
+          y = (-y) * (627.503 / 0.5291172107);
+          z = (-z) * (627.503 / 0.5291172107);
+          coords::Cartesian_Point g(x, y, z);
+          g_tmp.push_back(g);
+        }
+        coords->swap_g_xyz(g_tmp);  // set gradients
+      }
+
+      else if (Config::get().energy.qmmm.use == true)
+      {    // in case of QM/MM calculation: read forces on external charges
+        if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
+        {
+          std::vector<coords::Cartesian_Point> grad_tmp;
+          double x, y, z;
+
+          for (int i = 0; i < Config::get().energy.qmmm.mm_atoms_number; i++)
+          {
+            std::getline(in_file, line);
+            std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+            x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
+            y = (-y) * (627.503 / 0.5291172107);
+            z = (-z) * (627.503 / 0.5291172107);
+            coords::Cartesian_Point g(x, y, z);
+            grad_tmp.push_back(g);
+          }
+          grad_ext_charges = grad_tmp;
+        }
+      }
+
+      else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
+      {
+        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
+
+        // read all values into one vector (tmp)
+        std::vector<double> tmp;
+        double x, y, z;
+        for (int i=0; i < (3*N*3*N)/3; i++)  
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          tmp.push_back(x*CONVERSION_FACTOR);
+          tmp.push_back(y*CONVERSION_FACTOR);
+          tmp.push_back(z*CONVERSION_FACTOR);
+        }
+
+        // format values in vector tmp into matrix hess
+        std::vector<std::vector<double>> hess;
+        std::vector<double> linevec;
+        for (int i = 0; i < 3*N; i++)
+        {
+          linevec.resize(0);
+          for (int j = 0; j < 3*N; j++)
+          {
+            linevec.push_back(tmp[(i*3*N)+j]);
+          }
+          hess.push_back(linevec);
+        }
+
+        coords->set_hessian(hess);  //set hessian
+        std::remove("hessian.out"); // delete file
+      }
+    }
+
+    if (t == 3)  // optimization
+    {
+      if (file_exists("geo_end.gen") == false)  // sometimes happens when moving randomly (tasks MC and TS)
+      {
+        std::cout << "DFTB+ did not produce a geometry file. Treating structure as broken.\n";
+        integrity = false;
+      }
+      else  // if optimized geometry present -> read geometry from gen-file
+      {
+        std::ifstream geom_file("geo_end.gen", std::ios_base::in);
+
+        std::getline(geom_file, line);  
+        std::getline(geom_file, line);
+
+        coords::Representation_3D xyz_tmp;
+        std::string number, type;
+        double x, y, z;
+
+        while (geom_file >> number >> type >> x >> y >> z) 
+        {
+          coords::Cartesian_Point xyz(x, y, z);
+          xyz_tmp.push_back(xyz);
+        }
+        geom_file.close();
+        coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
+
+        std::remove("geo_end.gen"); // delete file
+        std::remove("geo_end.xyz"); // delete file
+
+        std::ifstream file("output_dftb.txt");  // check for geometry convergence
+        line = last_line(file);
+        if (line == "Geometry converged") {}
+        else
+        {
+          std::cout << "Geometry did not converge. Treating structure as broken.\n";
+          std::cout << "If this is a problem for you use a bigger value for 'DFTB+max_steps_opt'!\n";
+          integrity = false;
+        }
+      }
+    }
+  }
+
+  // check if geometry is still intact
+  if (check_bond_preservation() == false) integrity = false;
+  else if (check_atom_dist() == false) integrity = false;
+  
+  // remove files
+  if (t > 1) std::remove("charges.bin");
+  if (Config::get().energy.dftb.verbosity < 2)
+  {
+    std::remove("dftb_pin.hsd");
+    if (Config::get().energy.dftb.verbosity == 0)
+    {
+      std::remove("dftb_in.hsd");
+      std::remove("output_dftb.txt");
+    }
+  }
+   
+  return energy;
+}
+
 /*
 Energy class functions that need to be overloaded
 */
@@ -118,325 +321,60 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  integrity = true;
-
-    //write inputstructure
-    std::ofstream file("tmp_struc.xyz");
-    file << coords::output::formats::xyz_dftb(*this->coords);
-    file.close();
-    
-    //call programme
-    std::string result_str; 
-    PyObject *modul, *funk, *prm, *ret;
-    
-    PySys_SetPath("."); //set path
-    const char *c = add_path.c_str();  //add paths from variable add_path
-    PyRun_SimpleString(c);
-
-    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
-
-    if(modul) 
-        { 
-        funk = PyObject_GetAttrString(modul, "calc_energies"); //create function
-        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
-        ret = PyObject_CallObject(funk, prm);  //call function with parameters
-        result_str = PyString_AsString(ret); //convert result to a C++ string
-        if (result_str != "error")  //if DFTBaby was successfull
-        {
-          result_str = result_str.substr(1,result_str.size()-2);  //process return
-          std::vector<std::string> result_vec = split(result_str, ',');
-  
-          //read energies and convert them to kcal/mol
-          e_bs = std::stod(result_vec[0])*627.503; 
-          e_coul = std::stod(result_vec[1])*627.503;
-          e_rep = std::stod(result_vec[3])*627.503;
-          e_tot = std::stod(result_vec[4])*627.503;
-          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-        }
-        else
-        {
-          if (Config::get().general.verbosity >= 2)
-          {
-            std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
-          }
-          integrity = false;
-        }
-
-        //delete PyObjects
-        Py_DECREF(prm); 
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-        } 
-    else 
-    {
-        printf("ERROR: module dftbaby_interface not found\n"); 
-        std::exit(0);
-    }
-    std::remove("tmp_struc.xyz"); // delete file
-  return e_tot;
+  integrity = check_structure();
+  if (integrity == true)
+  {
+    write_inputfile(0);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(0);
+    return energy;
+  }
 }
 
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  integrity = true;
-
-  // write inputstructure
-  std::ofstream file("tmp_struc.xyz");
-  file << coords::output::formats::xyz_dftb(*this->coords);
-  file.close();
-    
-  //call programme
-  std::string result_str; 
-  PyObject *modul, *funk, *prm, *ret;
-    
-  PySys_SetPath("."); //set path
-  const char *c = add_path.c_str();  //add paths from variable add_path
-  PyRun_SimpleString(c);
-
-  modul = PyImport_ImportModule("dftbaby_interface"); //import module 
-
-  if(modul) 
-    { 
-      funk = PyObject_GetAttrString(modul, "calc_gradients"); //create function
-      prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
-      ret = PyObject_CallObject(funk, prm);  //call function with parameters
-
-      result_str = PyString_AsString(ret); //read function return (has to be a string)
-      if (result_str != "error")
-      {
-        result_str = result_str.substr(1,result_str.size()-2);  //process return
-        std::vector<std::string> result_vec = split(result_str, ',');
-        
-        //read energies and convert them to kcal/mol
-        e_bs = std::stod(result_vec[0])*627.503; 
-        e_coul = std::stod(result_vec[1])*627.503;
-        e_rep = std::stod(result_vec[3])*627.503;
-        e_tot = std::stod(result_vec[4])*627.503;
-        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-      }
-      else
-      {
-        if (Config::get().general.verbosity >= 2)
-        {
-          std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
-        }
-        integrity = false;
-      }
-        
-      //delete PyObjects
-      Py_DECREF(prm); 
-      Py_DECREF(ret); 
-      Py_DECREF(funk); 
-      Py_DECREF(modul); 
-    } 
-    else 
-    {
-      printf("ERROR: module dftbaby_interface not found\n"); 
-      std::exit(0);
-    }
-    
-    double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
-
-    if (integrity == true) //read gradients
-    {
-      std::string line;
-      coords::Representation_3D g_tmp;
-      std::ifstream infile(Config::get().energy.dftb.gradfile);
-      std::getline(infile, line);  //discard fist two lines
-      std::getline(infile, line);
-      std::string element;
-      double x,y,z;
-      while (infile >> element >> x >> y >> z)  //read gradients and convert them to kcal/mol
-      {
-          coords::Cartesian_Point g(x*CONVERSION_FACTOR,y*CONVERSION_FACTOR,z*CONVERSION_FACTOR);
-          g_tmp.push_back(g);
-      }
-      infile.close();
-      const char *gradfile = Config::get().energy.dftb.gradfile.c_str();
-      std::remove(gradfile); // delete file
-      coords->swap_g_xyz(g_tmp); //give gradients to coordobject
-    }
-    
-    std::remove("tmp_struc.xyz"); // delete file
-  return e_tot;
+  integrity = check_structure();
+  if (integrity == true)
+  {
+    write_inputfile(1);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(1);
+    return energy;
+  }
 }
 
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  integrity = true;
-
-      //write inputstructure
-      std::ofstream file("tmp_struc.xyz");
-      file << coords::output::formats::xyz_dftb(*this->coords);
-      file.close();
-      
-      //call programme
-      std::string result_str; 
-      PyObject *modul, *funk, *prm, *ret;
-      
-      PySys_SetPath("."); //set path
-      const char *c = add_path.c_str();  //add paths from variable add_path
-      PyRun_SimpleString(c);
-  
-      modul = PyImport_ImportModule("dftbaby_interface"); //import module 
-  
-      if(modul) 
-          { 
-          funk = PyObject_GetAttrString(modul, "hessian"); //create function
-          prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
-          ret = PyObject_CallObject(funk, prm);  //call function with parameters
-  
-          result_str = PyString_AsString(ret); //read function return (has to be a string)
-          if (result_str != "error")
-          {
-            result_str = result_str.substr(1,result_str.size()-2);  //process return
-            std::vector<std::string> result_vec = split(result_str, ',');
-    
-            //read energies and convert them to kcal/mol
-            e_bs = std::stod(result_vec[0])*627.503; 
-            e_coul = std::stod(result_vec[1])*627.503;
-            e_rep = std::stod(result_vec[3])*627.503;
-            e_tot = std::stod(result_vec[4])*627.503;
-            if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-          }
-          else
-          {
-            if (Config::get().general.verbosity >= 2)
-            {
-              std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
-            }
-            integrity = false;
-          }
-  
-          //delete PyObjects
-          Py_DECREF(prm); 
-          Py_DECREF(ret); 
-          Py_DECREF(funk); 
-          Py_DECREF(modul); 
-          } 
-      else 
-      {
-          printf("ERROR: module dftbaby_interface not found\n"); 
-          std::exit(0);
-      }
-      
-      double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
-      
-      if (integrity == true) //read hessian
-      {
-        std::string line;
-        std::ifstream infile("hessian.txt");
-        std::vector<std::vector<double>> hess;
-        while(std::getline(infile, line))  //for every line
-        {
-          std::vector<std::string> linevec = split(line,' ');
-          std::vector<double> doublevec;
-          for (auto v : linevec)
-          {
-             doublevec.push_back(std::stod(v)*CONVERSION_FACTOR);
-          }
-          hess.push_back(doublevec);
-        }
-        infile.close();
-  
-        coords->set_hessian(hess);  //set hessian
-        std::remove("hessian.txt"); // delete file
-      }
-      std::remove("tmp_struc.xyz"); // delete file
-
-  return e_tot;
+  integrity = check_structure();
+  if (integrity == true)
+  {
+    write_inputfile(2);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(2);
+    return energy;
+  } 
 }
 
 // Optimization
 double energy::interfaces::dftb::sysCallInterface::o(void)
 {
-    //write inputstructure
-    std::ofstream file("tmp_struc.xyz");
-    file << coords::output::formats::xyz_dftb(*this->coords);
-    file.close();
-    
-    //call programme
-    std::string result_str; 
-    PyObject *modul, *funk, *prm, *ret;
-    
-    PySys_SetPath("."); //set path
-    const char *c = add_path.c_str();  //add paths from variable add_path
-    PyRun_SimpleString(c);
-
-    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
-
-    if(modul) 
-        { 
-        funk = PyObject_GetAttrString(modul, "opt"); //create function
-        prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
-        ret = PyObject_CallObject(funk, prm);  //call function with parameters
-
-        result_str = PyString_AsString(ret); //read function return (has to be a string)
-        if (result_str != "error")
-        {
-          result_str = result_str.substr(1,result_str.size()-2);  //process return
-          std::vector<std::string> result_vec = split(result_str, ',');
-          
-          //read energies and convert them to kcal/mol
-          e_bs = std::stod(result_vec[0])*627.503; 
-          e_coul = std::stod(result_vec[1])*627.503;
-          e_rep = std::stod(result_vec[3])*627.503;
-          e_tot = std::stod(result_vec[4])*627.503;
-          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*627.503;
-        }
-        else
-        {
-          if (Config::get().general.verbosity >= 2)
-          {
-            std::cout << "DFTBaby gave an error. Treating structure as broken.\n";
-          }
-          integrity = false;
-        }
-        
-        //delete PyObjects
-        Py_DECREF(prm); 
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-        } 
-    else 
-    {
-        printf("ERROR: module dftbaby_interface not found\n"); 
-        std::exit(0);
-    }
-    
-    if (integrity == true)   //read new geometry
-    {
-      std::string line;
-      coords::Representation_3D xyz_tmp;
-      std::ifstream infile("tmp_struc_opt.xyz");
-      std::getline(infile, line);  //discard fist two lines
-      std::getline(infile, line);
-      std::string element;
-      double x,y,z;
-      while (infile >> element >> x >> y >> z)  //new coordinates
-      {
-          coords::Cartesian_Point xyz(x,y,z);
-          xyz_tmp.push_back(xyz);
-      }
-      infile.close();
-      coords->set_xyz(std::move(xyz_tmp));
-  
-      std::remove("tmp_struc_opt.xyz"); // delete file
-    }
-   
-    std::remove("tmp_struc.xyz"); // delete file
-  return e_tot;
+  integrity = check_structure();
+  if (integrity == true)
+  {
+    write_inputfile(3);
+    scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
+    energy = read_output(3);
+    return energy;
+  }
 }
 
 // Output functions
 void energy::interfaces::dftb::sysCallInterface::print_E(std::ostream &S) const
 {
   S << "Total Energy:      ";
-  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << e_tot;
+  S << std::right << std::setw(16) << std::fixed << std::setprecision(8) << energy;
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const
@@ -444,18 +382,16 @@ void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, b
   S << "Energies\n";
   S << std::right << std::setw(24) << "E_bs";
   S << std::right << std::setw(24) << "E_coul";
-  S << std::right << std::setw(24) << "E_lr";
   S << std::right << std::setw(24) << "E_rep";
   S << std::right << std::setw(24) << "SUM\n\n";
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_bs;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_coul;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_lr;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
   S << "\n";
 }
 
@@ -498,4 +434,58 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
   }
   return true;
 }
-#endif
+
+bool energy::interfaces::dftb::sysCallInterface::check_atom_dist(void) const
+{
+  std::size_t const N(coords->size());
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    for (std::size_t j(0U); j < i; j++)
+    {
+      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+std::vector<coords::float_type>
+energy::interfaces::dftb::sysCallInterface::charges() const
+{
+  std::vector<coords::float_type> charges;
+
+  auto in_string = "results.tag";
+  if (file_exists(in_string) == false)
+  {
+    throw std::runtime_error("DFTB+ logfile results.tag not found.");
+  }
+
+  else
+  {
+    std::ifstream in_file("results.tag", std::ios_base::in);
+    std::string line;
+    double q;
+
+    while (!in_file.eof())
+    {
+      std::getline(in_file, line);
+      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  // read energy
+      {
+        for (int i = 0; i < coords->size(); i++)
+        {
+          in_file >> q;
+          charges.push_back(q);
+        }
+      }
+    }
+  }
+  return charges;
+}
+
+std::vector<coords::Cartesian_Point>
+energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
+{
+  return grad_ext_charges;
+}

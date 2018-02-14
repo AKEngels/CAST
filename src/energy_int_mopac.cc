@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstdlib>
 #include <utility>
+#include <cstdio>
+
 #include "atomic.h"
 #include "energy_int_mopac.h"
 #include "configuration.h"
@@ -71,19 +73,51 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   std::string rem_file(id);
   if (Config::get().energy.mopac.delete_input)
   {
-    remove(std::string(id).append(".xyz").c_str());
-    remove(std::string(id).append(".out").c_str());
-    remove(std::string(id).append(".arc").c_str());
-    remove(std::string(id).append("_sys.out").c_str());
-    remove(std::string(id).append(".xyz.out").c_str());
+    std::remove(std::string(id).append(".xyz").c_str());
+    std::remove(std::string(id).append(".out").c_str());
+    std::remove(std::string(id).append(".arc").c_str());
+    std::remove(std::string(id).append("_sys.out").c_str());
+    std::remove(std::string(id).append(".xyz.out").c_str());
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
-      remove("FOR005");
-      remove("FOR006");
-      remove("FOR012");
+      std::remove("FOR005");
+      std::remove("FOR006");
+      std::remove("FOR012");
     }
 
   }
+}
+
+std::vector<coords::float_type> 
+energy::interfaces::mopac::sysCallInterface::charges() const
+{
+  auto file = id + ".xyz.aux";
+  std::ifstream auxstream{ file };
+  if (!auxstream)
+  {
+    throw std::runtime_error("AUX file not found.");
+  }
+  std::vector<coords::float_type> v;
+  v.reserve(coords->size());
+  std::string auxline;
+  while (std::getline(auxstream, auxline))
+  {
+    if (auxline.find("ATOM_CHARGES") != std::string::npos)
+    {
+      break;
+    }
+  }
+  double charge{};
+  while (auxstream >> charge)
+  {
+    v.push_back(charge);
+  }
+  if (v.size() != coords->size())
+  {
+    throw std::logic_error("Found " + std::to_string(v.size()) + 
+      " charges instead of " + std::to_string(coords->size()) + " charges.");
+  }
+  return v;
 }
 
 
@@ -641,7 +675,25 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
   if (endline) S << '\n';
 }
 
-void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &, bool const) const { }
+void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
+{
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for (std::size_t k = 0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k + 1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
+  }
+}
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }
 

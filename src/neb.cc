@@ -1,4 +1,4 @@
-﻿#include "neb.h"
+#include "neb.h"
 #include <vector>
 #include <string>
 #include <cmath>
@@ -20,6 +20,8 @@
 /**
 * NEB constructor
 */
+
+using float_type = coords::float_type;
 
 neb::neb(coords::Coordinates *cptr):_KT_(1 / (0.0019872966*Config::get().neb.TEMPERATURE))
 {
