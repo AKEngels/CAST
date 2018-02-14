@@ -1,4 +1,4 @@
-﻿#ifndef coords_h_guard_
+#ifndef coords_h_guard_
 #define coords_h_guard_
 
 #include <vector>
@@ -921,7 +921,7 @@ namespace coords
           if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
         }
       }
-      //if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
 
       return maxV;
     }
@@ -943,7 +943,7 @@ namespace coords
           if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
         }
       }
-      //if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
 
       return minV;
     }
