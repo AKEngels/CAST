@@ -650,8 +650,10 @@ namespace config
     {
       std::string path, link, charge, multipl, method, basisset, spec;
       bool delete_input, opt, steep;
+      /**after this number of failed gaussian calls CAST breaks*/
+      int maxfail;
       gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
-        delete_input(true)
+        delete_input(true), maxfail(1000u)
       {}
     } gaussian;
 

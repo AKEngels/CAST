@@ -185,6 +185,10 @@ GAUSSIANpath g16
 
 GAUSSIANdelete 0
 
+#Number of failed gaussian calls when CAST breaks
+
+GAUSSIANmaxfail      1000
+
 
 ################# DFTB+ Options #################################################
 

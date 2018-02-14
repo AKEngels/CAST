@@ -206,7 +206,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
       return 0;
     }
   }
-  else if (res_name == "CYM")  // diprotonated
+  else if (res_name == "CYM")  // deprotonated
   {
     if (Config::get().general.verbosity > 1)
     {

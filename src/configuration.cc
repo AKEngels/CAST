@@ -743,6 +743,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.steep = bool_from_iss(cv);
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
+    else if (option.substr(8, 7) == "maxfail")
+      Config::set().energy.gaussian.maxfail = std::stoi(value_string);
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
 	  auto sub_option = option.substr(10);
