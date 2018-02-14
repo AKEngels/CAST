@@ -165,15 +165,13 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
   double mm_el_energy(0.0);
+  int atoms(coords->size());
 
   auto in_string = id + ".log";
-
   std::ifstream in_file(in_string.c_str(), std::ios_base::in);
   
-
   bool test_lastMOs(false);//to controll if reading was successfull
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
-  std::size_t const atoms = coords->size();
 
   if (in_file)
   {
@@ -182,6 +180,12 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
     {
 
       std::getline(in_file, buffer);
+
+	  if (buffer.find("NAtoms=") != std::string::npos)   // get total number of atoms (in case of bonded QM/MM including link atoms)
+	  {                                                  // without QM/MM it's the same as coords->size()
+		std::vector<std::string> stringvec = split(buffer, ' ', true);
+		atoms = std::stoi(stringvec[1]);
+	  }
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
       {
@@ -269,40 +273,43 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       }
 
 	    if (qmmm)
-	    {
-        // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
-		    if (buffer.find("Self energy of the charges") != std::string::npos)
-		    {
-			    mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
-		    }
+	    { // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
+		  if (buffer.find("Self energy of the charges") != std::string::npos)
+		  {
+			mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
+		  }
 
         // get the electric field 
         // the electric field at MM atoms due to QM atoms is used to calculate gradients of electrostatic interaction on MM atoms
-		    if (buffer.find("-------- Electric Field --------") != std::string::npos)
-		    {
-			    coords::Cartesian_Point p;
-			    std::vector<coords::Cartesian_Point> el_field_tmp;
-			    std::getline(in_file, buffer);
-			    std::getline(in_file, buffer);
+		if (buffer.find("-------- Electric Field --------") != std::string::npos)
+		{
+		  coords::Cartesian_Point p;
+		  std::vector<coords::Cartesian_Point> el_field_tmp;
+		  std::getline(in_file, buffer);
+		  std::getline(in_file, buffer);
 
-			    std::getline(in_file, buffer);
-			    while (buffer.substr(0, 15) != " --------------")
-			    {
-				    p.x() = std::stod(buffer.substr(24, 14));
-				    p.y() = std::stod(buffer.substr(38, 14));
-				    p.z() = std::stod(buffer.substr(52, 14));
+		  std::getline(in_file, buffer);
+		  while (buffer.substr(0, 15) != " --------------")
+		  {
+			 p.x() = std::stod(buffer.substr(24, 14));
+			 p.y() = std::stod(buffer.substr(38, 14));
+			 p.z() = std::stod(buffer.substr(52, 14));
 
-				    el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
-				    std::getline(in_file, buffer);
-			    }
-
-			    electric_field = el_field_tmp;
-		    }
-	    }
+			el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+			std::getline(in_file, buffer);
+		  }
+		  electric_field = el_field_tmp;
+		}
+	  }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
-        int link_atom_number = std::stoi(buffer.substr(30)) - (*this->coords).size();
+        int link_atom_number = atoms - (*this->coords).size();  // number of link atoms (0 for no QM/MM)
+		if (link_atom_number < 0)
+		{
+		  std::cout << "Something has gone wrong as you have a negative number of " << link_atom_number << " link atoms.\n";
+		  std::exit(0);
+		}
 
         coords::Cartesian_Point g;
         double temp;
@@ -322,7 +329,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           g.z() = -temp;
 
           std::getline(in_file, buffer);
-
           g_tmp[i] = g * HartreePerBohr2KcalperMolperAngstr;
         }
 
@@ -338,7 +344,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           g.z() = -temp;
 
           std::getline(in_file, buffer);
-          link_atom_grad.push_back(g);
+          link_atom_grad.push_back(g * HartreePerBohr2KcalperMolperAngstr);
         }
       }//end gradient reading
 
