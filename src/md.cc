@@ -759,7 +759,11 @@ std::string md::simulation::get_pythonpath()
 {
   std::string pythonpaths_str = Py_GetPath();
   std::string path;
+#ifdef __unix__
+  std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+#elif defined(_WIN32) || defined(WIN32)
   std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
+#endif
   path = "import sys\n";
   for (auto p : pythonpaths)  //keep pythonpath of system
   {
