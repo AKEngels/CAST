@@ -1,9 +1,9 @@
-﻿/**
+/**
  Reaction pathway optimization via various NEB methods
 
 @ Daniel Bellinger, Julian Erdmannsdoerfer, Michael Prem
 */
-
+#pragma once
 
 #include <vector>
 #include <string>
@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iomanip>
 #include "interpolation.h"
-#include "nr3.h"
+
 
 
 

@@ -645,7 +645,7 @@ void pathx::proof_connect()
 	 /// loop over the first next up to the third nearest neighbors
 	 size_t arrhenius_counter(0U);
 	 double arrhenius(0.0);
-	 ofstream arrhenius_file("arrhenius_global.dat", ios::app);
+	 std::ofstream arrhenius_file("arrhenius_global.dat", std::ios::app);
 	 for (size_t mm = 1; mm < 4; mm++) 
 	 {
 		std::ostringstream NEB1;
