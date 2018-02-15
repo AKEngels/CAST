@@ -2,6 +2,7 @@
 
 #pragma once 
 
+#include <Python.h>
 #include <vector>
 #include <string>
 #include <vector>
@@ -18,7 +19,6 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include <Python.h>
 
 #if defined (_MSC_VER)
 #include "win_inc.h"
