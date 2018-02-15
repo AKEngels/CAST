@@ -1,26 +1,4 @@
-﻿#ifdef USE_PYTHON
-#include <Python.h>
-#endif
-#include <vector>
-#include <cmath>
-#include <algorithm>
-#include <limits>
-#include <iostream>
-#include <sstream>
-#include <cstdio>
-#include <cstring>
-#include <stdexcept>
-#include <atomic>
-
 #include "md.h"
-
-#include "coords.h"
-#include "coords_io.h"
-#include "scon_chrono.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
-#include "helperfunctions.h"
-
 
 // Logging Functions
 
@@ -781,7 +759,7 @@ std::string md::simulation::get_pythonpath()
 {
   std::string pythonpaths_str = Py_GetPath();
   std::string path;
-  std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+  std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
   path = "import sys\n";
   for (auto p : pythonpaths)  //keep pythonpath of system
   {

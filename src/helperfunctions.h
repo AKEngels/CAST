@@ -1,8 +1,8 @@
 #pragma once
-#include "coords.h"
 #ifdef USE_PYTHON
 #include <Python.h>
 #endif
+#include "coords.h"
 
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
