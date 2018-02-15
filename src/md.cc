@@ -121,7 +121,7 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   {  
 #ifdef USE_PYTHON
     for (auto p : Config::get().md.ana_pairs)
-    {
+    {                           // create atom pairs to analyze, fetch information and save
       ana_pair ap(p[0], p[1]);
       ap.symbol_a = coordobj.atoms(ap.a).symbol();
       ap.symbol_b = coordobj.atoms(ap.b).symbol();
@@ -1707,6 +1707,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     }
   }
   
+  // plot distances from MD analyzing
   plot_distances(ana_pairs);
 
   // calculate average pressure over whle simulation time
