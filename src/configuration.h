@@ -697,7 +697,7 @@ namespace config
     { }
   };
 
-  /*! Stream operator for config::energy
+   /*! Stream operator for config::energy
    *
    * Prints configuration details for the current CAST run
    * Contains: Information about main dihedrals,

@@ -1,15 +1,32 @@
 #pragma once 
 
+#ifdef USE_PYTHON
+#include <Python.h>
+#endif
 #include <vector>
-#include <string>
+#include <cmath>
+#include <algorithm>
+#include <limits>
 #include <iostream>
+#include <sstream>
+#include <cstdio>
+#include <cstring>
+#include <stdexcept>
+#include <atomic>
+#include <string>
 #include <memory>
+
+
 
 #include "configuration.h"
 #include "coords.h"
+#include "coords_io.h"
+#include "scon_chrono.h"
 #include "scon_vect.h"
 #include "scon_serialization.h"
 #include "scon_log.h"
+#include "scon_utility.h"
+#include "helperfunctions.h"
 
 /**
 *namespace for everything that has to do with molecular dynamics simulatinons

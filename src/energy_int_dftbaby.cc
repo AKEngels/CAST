@@ -42,7 +42,11 @@ std::string energy::interfaces::dftbaby::create_pythonpath(std::string numpath, 
 {
     std::string pythonpaths_str = Py_GetPath();
     std::string path;
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+#ifdef __unix__
+    std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+#elif defined(_WIN32) || defined(WIN32)
+    std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
+#endif
     path = "import sys\n";
     for (auto p : pythonpaths)  //keep pythonpath of system
     {
