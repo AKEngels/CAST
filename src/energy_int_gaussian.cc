@@ -467,7 +467,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
     
     if (failcounter > Config::get().energy.gaussian.maxfail)
     {
-      throw std::runtime_error("More than "+Config::get().energy.gaussian.maxfail+" Gaussian calls have failed.");
+      throw std::runtime_error("More than " + std::to_string(Config::get().energy.gaussian.maxfail) + " Gaussian calls have failed.");
     }
   }
   return ret;
