@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #include <vector>
 #include <string>
@@ -215,6 +215,25 @@ namespace md
     double dvout;
   };
 
+  struct ana_pair
+  {
+    int a, b;
+    std::string symbol_a, symbol_b, name_a, name_b, legend;
+    std::vector<double> dists;
+
+    ana_pair(int p1, int p2) { a = p1 - 1; b = p2 - 1; }
+
+    std::string info()
+    {
+      std::string result = "Atoms: " + name_a + " , " + name_b + "\n";
+      for (auto d : dists)
+      {
+        result += std::to_string(d) + " , ";
+      }
+      return result + "\n";
+    }
+  };
+
 
   /** class for MD simulation
   */
@@ -363,6 +382,8 @@ namespace md
     */
     void write_restartfile(std::size_t const k);
 
+    std::vector<ana_pair> ana_pairs;
+
   public:
 
     /** constructor
@@ -409,6 +430,7 @@ namespace md
     @param window: number of current window
     returns vector with dE_pot values (explanation see above)*/
     std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
+    void plot_distances(std::vector<ana_pair>);
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference for forward transformation*/

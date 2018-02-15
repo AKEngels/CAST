@@ -869,6 +869,9 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
+    /**atom pairs to analyze*/
+    std::vector<std::vector<size_t>> ana_pairs;
+
     /**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),

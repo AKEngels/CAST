@@ -847,7 +847,16 @@ MDrefine_offset        100
 
 MDresume               0
 
+# Optimize structure before starting of MD simulation? <0/1>
+
 #MDpre_optimize
+
+
+########################### ANALYZING MD SIMULATIONS #################
+
+MDana_pair         347,3149
+MDana_pair         2277,3151
+MDana_pair         2277,2276
 
 
 ####################################

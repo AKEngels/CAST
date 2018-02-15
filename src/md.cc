@@ -138,6 +138,25 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
+
+  if (Config::get().md.ana_pairs.size() > 0)
+  {  
+#ifdef USE_PYTHON
+    for (auto p : Config::get().md.ana_pairs)
+    {
+      ana_pair ap(p[0], p[1]);
+      ap.symbol_a = coordobj.atoms(ap.a).symbol();
+      ap.symbol_b = coordobj.atoms(ap.b).symbol();
+      ap.name_a = ap.symbol_a + std::to_string(ap.a + 1);
+      ap.name_b = ap.symbol_b + std::to_string(ap.b + 1);
+      ap.legend = ap.name_a + "-" + ap.name_b;
+      ana_pairs.push_back(ap);
+    }
+#else
+    std::cout << "Analyzing atom pair distances is not possible without python!\n";
+    std::exit(0);
+#endif
+  }
 }
 
 
@@ -863,6 +882,50 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   }
   return dE_pots;
 }
+
+void md::simulation::plot_distances(std::vector<ana_pair> pairs)
+{
+  //std::string add_path = get_pythonpath();
+
+  //PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  //int window = 5;
+
+  //PySys_SetPath("./python_modules"); //set path
+  //const char *c = add_path.c_str();  //add paths pythonpath
+  //PyRun_SimpleString(c);
+
+  //modul = PyImport_ImportModule("FEP_analysis"); //import module 
+  //if (modul)
+  //{
+  //  funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap2"); //create function
+  //  prm = Py_BuildValue("i", window); //give parameters
+  //  ret = PyObject_CallObject(funk, prm);  //call function with parameters
+  //  std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+  //  if (result_str == "error")
+  //  {
+  //    std::cout << "An error occured during running python module 'FEP_analysis'\n";
+  //  }
+  //  else  // python function was successfull
+  //  {
+  //    float result = std::stof(result_str);  // convert result to float
+  //    std::ofstream overlap("overlap.txt", std::ios_base::app);
+  //    overlap << "Window " << window << ": " << result * 100 << " %\n";
+  //  }
+  //}
+  //else
+  //{
+  //  std::cout << "Error: module 'FEP_analysis' not found!\n";
+  //  std::exit(0);
+  //}
+  ////delete PyObjects
+  //Py_DECREF(prm);
+  //Py_DECREF(ret);
+  //Py_DECREF(funk);
+  //Py_DECREF(modul);
+  //Py_DECREF(pValue);
+}
+
 #endif
 
 // perform FEP calculation if requested
@@ -1651,7 +1714,19 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     }
     // add up pressure value
     p_average += press;
+
+    // calculate distances that should be analyzed
+    if (Config::get().md.ana_pairs.size() > 0)
+    {
+      for (auto &p : ana_pairs)
+      {
+        p.dists.push_back(dist(coordobj.xyz(p.a), coordobj.xyz(p.b)));
+      }
+    }
   }
+  
+  plot_distances(ana_pairs);
+
   // calculate average pressure over whle simulation time
   p_average /= CONFIG.num_steps;
   if (Config::get().general.verbosity > 2U)

@@ -1072,6 +1072,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.adjustment_by_step;
 	  }
+    else if (option.substr(2, 8) == "ana_pair")
+    {
+      std::vector<size_t> vec = sorted_indices_from_cs_string(value_string);
+      Config::set().md.ana_pairs.push_back(vec);
+    }
   }
 
   //! dimer
