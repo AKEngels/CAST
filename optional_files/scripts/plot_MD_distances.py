@@ -1,7 +1,17 @@
+"""
+You can use this script to plot how the distance of chosen atom pairs changes during an MD simulation.
+Copy this script into the folder where your CAST output file '*_MD_SNAP.arc' is, then change the FILENAME and the atom_number_pairs
+(atom numbers starting with 1 as in tinkerstructure) and run it. If you want to can also change the number of FRAMES you want to plot.
+
+Script could be sped up if it would search the lines from the output file only once and not once for every atom pair.
+(relevant mainly if more than a few atom pairs are analyzed but then the picture would also be confusing)
+"""
+
 import math
 import matplotlib.pyplot as plt
 
-atom_number_pairs = [[347,3149], [2277,3151], [2277,2276]]  # pairs of atoms you want to analyze
+FILENAME = "output_MD_SNAP.arc"
+ATOM_NUMEBR_PAIRS = [[347,3149], [2277,3151], [2277,2276]]  # pairs of atoms you want to analyze
 
 """class for every atom pair"""
 class AtomPair(object):
@@ -11,18 +21,18 @@ class AtomPair(object):
         self.symbols = ["dummy","dummy"]  # element symbols of the two atoms
         
 
-with open("output_MD_SNAP.arc") as mdfile: # read the output file
+with open(FILENAME) as mdfile: # read the output file
     lines = mdfile.readlines()
 
 N = int(lines[0])         # get atom number
-frames = len(lines)/(N+1) # get number of frames (can be changed if you only want to plot the first ... frames)
+FRAMES = len(lines)/(N+1) # get number of frames (can be changed if you only want to plot the first ... frames)
 
 atom_pairs = []
 
-for a in atom_number_pairs: # for every atom pair
+for a in ATOM_NUMEBR_PAIRS: # for every atom pair
     pair = AtomPair(a)
 
-    for j in range(frames): # for every frame in MD
+    for j in range(FRAMES): # for every frame in MD
         
         for i in range(N):  # search and save to corresponding lines
             line = lines[i+1+(j*(N+1))]
