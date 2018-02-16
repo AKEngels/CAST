@@ -3,9 +3,15 @@
 #matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
 
-def plot_dists():
-    print "hello"
-    return "yes"
+def plot_dists(legends, distances):
+    try:
+        print legends
+        for d in distances:
+            print d
+        return "Python here: All is wonderful!"
+    except:
+        print sys.exc_info()
+        return "error"
 
 #a = plot_dists()
 #print a

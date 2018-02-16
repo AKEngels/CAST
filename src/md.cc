@@ -867,45 +867,60 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 
 void md::simulation::plot_distances(std::vector<ana_pair> pairs)
 {
-  //std::string add_path = get_pythonpath();
+  std::string add_path = get_pythonpath();
 
-  //PyObject *modul, *funk, *prm, *ret, *pValue;
+  PyObject *modul, *funk, *prm, *ret, *pValue;
 
-  //int window = 5;
+  // create python list with legends
+  PyObject *legends = PyList_New(ana_pairs.size());
+  for (std::size_t k = 0; k < ana_pairs.size(); k++) {
+    pValue = PyString_FromString(ana_pairs[k].legend.c_str());
+    PyList_SetItem(legends, k, pValue);
+  }
 
-  //PySys_SetPath("./python_modules"); //set path
-  //const char *c = add_path.c_str();  //add paths pythonpath
-  //PyRun_SimpleString(c);
+  // create a python list that contains a list with distances for every atom pair that is to be analyzed
+  PyObject *distance_lists = PyList_New(ana_pairs.size());
+  int counter = 0;
+  for (auto a : ana_pairs)
+  {
+    PyObject *dists = PyList_New(a.dists.size());
+    for (std::size_t k = 0; k < a.dists.size(); k++) {
+      pValue = PyFloat_FromDouble(a.dists[k]);
+      PyList_SetItem(dists, k, pValue);
+    }
+    PyList_SetItem(distance_lists, counter, dists);
+    counter += 1;
+  }
 
-  //modul = PyImport_ImportModule("FEP_analysis"); //import module 
-  //if (modul)
-  //{
-  //  funk = PyObject_GetAttrString(modul, "plot_histograms_and_calculate_overlap2"); //create function
-  //  prm = Py_BuildValue("i", window); //give parameters
-  //  ret = PyObject_CallObject(funk, prm);  //call function with parameters
-  //  std::string result_str = PyString_AsString(ret); //convert result to a C++ string
-  //  if (result_str == "error")
-  //  {
-  //    std::cout << "An error occured during running python module 'FEP_analysis'\n";
-  //  }
-  //  else  // python function was successfull
-  //  {
-  //    float result = std::stof(result_str);  // convert result to float
-  //    std::ofstream overlap("overlap.txt", std::ios_base::app);
-  //    overlap << "Window " << window << ": " << result * 100 << " %\n";
-  //  }
-  //}
-  //else
-  //{
-  //  std::cout << "Error: module 'FEP_analysis' not found!\n";
-  //  std::exit(0);
-  //}
-  ////delete PyObjects
-  //Py_DECREF(prm);
-  //Py_DECREF(ret);
-  //Py_DECREF(funk);
-  //Py_DECREF(modul);
-  //Py_DECREF(pValue);
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_dists"); //create function
+    prm = Py_BuildValue("(OO)", legends, distance_lists); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(legends);
+  Py_DECREF(distance_lists);
 }
 
 #endif
@@ -1708,7 +1723,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   }
   
   // plot distances from MD analyzing
-  plot_distances(ana_pairs);
+  if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
 
   // calculate average pressure over whle simulation time
   p_average /= CONFIG.num_steps;
