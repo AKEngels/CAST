@@ -728,14 +728,17 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 
 \subsubsection{Tools to analyze MD simulations}
 
-By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
+You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module to plot the distances so you have to compile CAST with python enabled and matplotlib must be installed.
+
+By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation into an image called ``distances.png''. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
 			\begin{lstlisting}
 MDana_pair         347,3149
 MDana_pair         2277,3151
 MDana_pair         2277,2276
 	\end{lstlisting}
+	You get the same picture if you run the script ``plot\_MD\_distances.py'' over the CAST outputfile ``*\_MD\_SNAP.arc''.
 	
-	CAST uses the python matplotlib module to plot the distances so you have to compile CAST with python enabled and matplotlib must be installed. 
+The option ``MDplot\_temp'' plots the temperature for every frame into an image called ``temperature.png'' if it is enabled. 
 
 	
 %%%% GOSOL %%%%

@@ -119,7 +119,6 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
 
   if (Config::get().md.ana_pairs.size() > 0)
   {  
-#ifdef USE_PYTHON
     for (auto p : Config::get().md.ana_pairs)
     {                           // create atom pairs to analyze, fetch information and save
       ana_pair ap(p[0], p[1]);
@@ -130,10 +129,6 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
       ap.legend = ap.name_a + "-" + ap.name_b;
       ana_pairs.push_back(ap);
     }
-#else
-    std::cout << "Analyzing atom pair distances is not possible without python!\n";
-    std::exit(0);
-#endif
   }
 }
 
@@ -923,6 +918,49 @@ void md::simulation::plot_distances(std::vector<ana_pair> pairs)
   Py_DECREF(distance_lists);
 }
 
+void md::simulation::plot_temp(std::vector<double> temperatures)
+{
+  std::string add_path = get_pythonpath();
+
+  PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  // create python list with temperatures for every frame
+  PyObject *temps = PyList_New(temperatures.size());
+  for (std::size_t k = 0; k < temperatures.size(); k++) {
+    pValue = PyFloat_FromDouble(temperatures[k]);
+    PyList_SetItem(temps, k, pValue);
+  }
+
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_temp"); //create function
+    prm = Py_BuildValue("(O)", temps); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(temps);
+}
+
 #endif
 
 // perform FEP calculation if requested
@@ -1688,6 +1726,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       coordobj.fep.fepdata.back().T = temp;
     }
+    // save temperature for plotting
+    else if (Config::get().md.plot_temp == true)
+    {
+      temperatures.push_back(temp);
+    }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
 
@@ -1721,11 +1764,16 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       }
     }
   }
+#ifdef USE_PYTHON
+  // plot temperature
+  if (Config::get().md.plot_temp == true) plot_temp(temperatures);
   
   // plot distances from MD analyzing
   if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
-
-  // calculate average pressure over whle simulation time
+#else
+  std::cout << "The MD analyzis you requested is not possible without python!\n";
+#endif
+  // calculate average pressure over whole simulation time
   p_average /= CONFIG.num_steps;
   if (Config::get().general.verbosity > 2U)
   {

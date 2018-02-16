@@ -1072,6 +1072,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.adjustment_by_step;
 	  }
+    else if (option.substr(2, 9) == "plot_temp")
+    {
+      if (value_string == "1") Config::set().md.plot_temp = true;
+    }
     else if (option.substr(2, 8) == "ana_pair")
     {
       std::vector<size_t> vec = sorted_indices_from_cs_string(value_string);

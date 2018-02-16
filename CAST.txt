@@ -856,9 +856,13 @@ MDresume               0
 
 # the distances between these atoms are to be plotted during MD simulation
 
-MDana_pair         347,3149
-MDana_pair         2277,3151
-MDana_pair         2277,2276
+#MDana_pair         347,3149
+#MDana_pair         2277,3151
+#MDana_pair         2277,2276
+
+# plot temperature <0/1>
+
+MDplot_temp        1
 
 
 ####################################
