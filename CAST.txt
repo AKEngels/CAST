@@ -854,6 +854,8 @@ MDresume               0
 
 ########################### ANALYZING MD SIMULATIONS #################
 
+# the distances between these atoms are to be plotted during MD simulation
+
 MDana_pair         347,3149
 MDana_pair         2277,3151
 MDana_pair         2277,2276

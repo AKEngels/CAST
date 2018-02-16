@@ -726,6 +726,16 @@ If you use the ``MDheat'' option the temperature (and thus the scaling factor) i
 
 Don't use ``MDveloscale'' with biased potential because it doesn't make sense to rotate the whole molecule if only a part of it moves during the simulation.
 
+\subsubsection{Tools to analyze MD simulations}
+
+By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
+			\begin{lstlisting}
+MDana_pair         347,3149
+MDana_pair         2277,3151
+MDana_pair         2277,2276
+	\end{lstlisting}
+	
+	CAST uses the python matplotlib module to plot the distances so you have to compile CAST with python enabled and matplotlib must be installed. 
 
 	
 %%%% GOSOL %%%%
