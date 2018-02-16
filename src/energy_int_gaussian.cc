@@ -465,7 +465,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       rename(oldname.c_str(), newname.c_str());
     }
     
-    if (failcounter > Config::get().energy.gaussian.maxfail && Config::get().energy.qmmm.use == true)
+    if (failcounter > Config::get().energy.gaussian.maxfail && Config::get().energy.qmmm.use == false)
     {
       throw std::runtime_error("More than " + std::to_string(Config::get().energy.gaussian.maxfail) + " Gaussian calls have failed.");
     }
