@@ -77,6 +77,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
 # XB_EXCITON_BREAKUP   Simulation of excitons at an semiconductor interface
