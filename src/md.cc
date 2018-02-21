@@ -557,7 +557,7 @@ std::vector<md::zone> md::simulation::find_zones()
   }
 
   // output
-  if (Config::get().general.verbosity > 3)
+  if (Config::get().general.verbosity > 2)
   {
     std::cout << "Zones:\n";
     for (int i = 0; i < zones.size(); i++)
