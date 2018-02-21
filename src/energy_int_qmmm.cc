@@ -402,7 +402,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
+        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
         {
           bonded::Bond bond(mma, b);
