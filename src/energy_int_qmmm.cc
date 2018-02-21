@@ -367,7 +367,16 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
 
     // determine equilibrium distance between link atom and QM atom from force field
     auto b_type_qm = cparams.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
-    auto b_type_L = cparams.type(85, tinker::potential_keys::BOND);
+    size_t b_type_L;
+    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
+    {
+      b_type_L = cparams.type(85, tinker::potential_keys::BOND);
+    }
+    else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
+    {
+      b_type_L = cparams.type(3024, tinker::potential_keys::BOND);
+    }
+    else throw("Something went wrong. Invalid MM interface for QM/MM.");
     for (auto b_param : cparams.bonds())
     {
       if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.deq_L_QM = b_param.ideal;
@@ -393,7 +402,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA && 
+        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
         {
           bonded::Bond bond(mma, b);
@@ -401,7 +410,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
         }
         else
         {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA as MM interface and DFTB+ as QM interface.\n");
+          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
         }
       }
     }
@@ -768,7 +777,16 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   integrity = true;
   auto elec_factor = 332.0;
   
-  mm_charge_vector = mmc.energyinterface()->charges();
+  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+  {
+    mm_charge_vector = Config::get().coords.amber_charges;  // get amber charges
+    for (double &q : mm_charge_vector) q = q / 18.2223;     // convert all charges to elementary units
+  }
+  else
+  {
+    mm_charge_vector = mmc.energyinterface()->charges();
+  }
+
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
   {
