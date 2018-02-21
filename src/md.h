@@ -232,6 +232,54 @@ namespace md
     double dvout;
   };
 
+  /**struct that contains information about an atom pair that is to be analyzed*/
+  struct ana_pair
+  {
+    /**index of first atom (starting with 0)*/
+    int a;
+    /**index of second atom (starting with 0)*/
+    int b;
+    /**element symbol of first atom*/
+    std::string symbol_a;
+    /**element symbol of second atom*/
+    std::string symbol_b;
+    /**name of first atom (element and tinker atom index)*/
+    std::string name_a;
+    /**name of second atom (element and tinker atom index)*/
+    std::string name_b;
+    /**legend of this atom pair in the graph*/
+    std::string legend;
+    /**distances for every MD frame*/
+    std::vector<double> dists;
+
+    /**constructor
+    @param p1: tinker atom index of first atom (i.e. starting with 1)
+    @param p2: tinker atom index of second atom (i.e. starting with 1)*/
+    ana_pair(int p1, int p2) { a = p1 - 1; b = p2 - 1; }
+
+    /**returns a string with information about the atom pair*/
+    std::string info()
+    {
+      std::string result = "Atoms: " + name_a + " , " + name_b + "\n";
+      for (auto d : dists)
+      {
+        result += std::to_string(d) + " , ";
+      }
+      return result + "\n";
+    }
+  };
+
+  /**information about a zone for which temperature is to by analyzed*/
+  struct zone
+  {
+    /**legend for plotting*/
+    std::string legend;
+    /**atom indizes (starting with 0)*/
+    std::vector<int> atoms;
+    /**temperatures for every MD step*/
+    std::vector<double> temperatures;
+  };
+
 
   /** class for MD simulation
   */
@@ -380,6 +428,15 @@ namespace md
     */
     void write_restartfile(std::size_t const k);
 
+    /**vector with average temperature for every frame*/
+    std::vector<double> temperatures;
+
+    /**vector of atom pairs that are to be analyzed*/
+    std::vector<ana_pair> ana_pairs;
+
+    /**vector of zones to be plotted*/
+    std::vector < zone> zones;
+
   public:
 
     /** constructor
@@ -426,6 +483,16 @@ namespace md
     @param window: number of current window
     returns vector with dE_pot values (explanation see above)*/
     std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
+    /**function to plot temperature
+    @param temps: temperatures to be plotted*/
+    void plot_temp(std::vector<double> temps);
+    /**function to plot distances for atom pairs
+    @param pairs: atom pairs to be plotted*/
+    void plot_distances(std::vector<ana_pair> pairs);
+    /**function to plot temperatures for all zones*/
+    void plot_zones();
+    /**function that fills zones with atoms*/
+    std::vector<zone> find_zones();
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference for forward transformation*/

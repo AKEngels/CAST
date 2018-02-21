@@ -698,7 +698,7 @@ namespace config
     { }
   };
 
-  /*! Stream operator for config::energy
+   /*! Stream operator for config::energy
    *
    * Prints configuration details for the current CAST run
    * Contains: Information about main dihedrals,
@@ -870,6 +870,15 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
+    /**plot temperature during MD?*/
+    bool plot_temp;
+    /**atom pairs to analyze*/
+    std::vector<std::vector<size_t>> ana_pairs;
+    /**analyze zones?*/
+    bool analyze_zones;
+    /**zone width (distance to active site where a new zone starts)*/
+    double zone_width;
+
     /**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
@@ -880,7 +889,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
-      resume(false), umbrella(false), pre_optimize(false)
+      resume(false), umbrella(false), pre_optimize(false), plot_temp(false), analyze_zones(false)
     { }
 
   };
