@@ -5,7 +5,7 @@ std::vector<std::vector<std::string>> find_pairs(coords::Coordinates coordobj)
   std::vector<std::vector<std::string>> pairs;
   for (int i = 0; i < coordobj.atoms().size(); i++)
   {
-    for (int j = 0; j < i; j++)
+    for (int j = 0; j <= i; j++)
     {
       std::string s1 = coordobj.atoms(i).symbol();
       std::string s2 = coordobj.atoms(j).symbol();
