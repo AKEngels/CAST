@@ -864,6 +864,15 @@ MDresume               0
 
 MDplot_temp        1
 
+# analyze temperature in different zones around active site <0/1>
+# (active site defined by MDactive site)
+
+MDanalyze_zones    1
+
+# zone width (Angstrom)
+
+MDzonewidth        5
+
 
 ####################################
 #                                  #

@@ -269,6 +269,17 @@ namespace md
     }
   };
 
+  /**information about a zone for which temperature is to by analyzed*/
+  struct zone
+  {
+    /**legend for plotting*/
+    std::string legend;
+    /**atom indizes (starting with 0)*/
+    std::vector<int> atoms;
+    /**temperatures for every MD step*/
+    std::vector<double> temperatures;
+  };
+
 
   /** class for MD simulation
   */
@@ -423,6 +434,9 @@ namespace md
     /**vector of atom pairs that are to be analyzed*/
     std::vector<ana_pair> ana_pairs;
 
+    /**vector of zones to be plotted*/
+    std::vector < zone> zones;
+
   public:
 
     /** constructor
@@ -475,6 +489,10 @@ namespace md
     /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
     void plot_distances(std::vector<ana_pair> pairs);
+    /**function to plot temperatures for all zones*/
+    void plot_zones();
+    /**function that fills zones with atoms*/
+    std::vector<zone> find_zones();
     /**bool that determines if the current run is a production run or an equilibration run*/
     bool prod;
     /**current free energy difference for forward transformation*/

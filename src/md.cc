@@ -524,7 +524,49 @@ void md::simulation::init(void)
   // call center of Mass method from coordinates object
   C_mass = coordobj.center_of_mass();
 
+  if (Config::get().md.analyze_zones == true)
+  {
+    zones = find_zones();  // find atoms for every zone
+  }
+}
 
+/**function that fills zones with atoms*/
+std::vector<md::zone> md::simulation::find_zones()
+{
+  std::vector<zone> zones;
+  double zone_width = Config::get().md.zone_width;
+
+  // calculate initial active site and distances to active center
+  distances = init_active_center(0);   
+
+  // find out number of zones (maximum distance to active site)
+  std::vector<double>::iterator it = std::max_element(distances.begin(), distances.end());
+  double max_dist = *it;
+  int number_of_zones = std::ceil(max_dist / zone_width);
+  zones.resize(number_of_zones);
+
+  // create zones, fill them with atoms and create legend
+  for (int i = 0; i < distances.size(); i++)
+  {
+    int zone = std::floor(distances[i] / zone_width);
+    zones[zone].atoms.push_back(i);
+  }
+  for (int i = 0; i < zones.size(); i++)
+  {
+    zones[i].legend = std::to_string(int(i * zone_width)) + " to " + std::to_string(int((i + 1)*zone_width)); 
+  }
+
+  // output
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "Zones:\n";
+    for (int i = 0; i < zones.size(); i++)
+    {
+      std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1)*zone_width << "\n";
+    }
+  }
+
+  return zones;
 }
 
 // If FEP calculation is requested: calculate lambda values for each window
@@ -959,6 +1001,65 @@ void md::simulation::plot_temp(std::vector<double> temperatures)
   Py_DECREF(modul);
   Py_DECREF(pValue);
   Py_DECREF(temps);
+}
+
+/**function to plot temperatures for all zones*/
+void md::simulation::plot_zones()
+{
+  std::string add_path = get_pythonpath();
+
+  PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  // create python list with legends
+  PyObject *legends = PyList_New(zones.size());
+  for (std::size_t k = 0; k < zones.size(); k++) {
+    pValue = PyString_FromString(zones[k].legend.c_str());
+    PyList_SetItem(legends, k, pValue);
+  }
+
+  // create a python list that contains a list with temperatures for every zone
+  PyObject *temp_lists = PyList_New(zones.size());
+  int counter = 0;
+  for (auto z : zones)
+  {
+    PyObject *temps = PyList_New(z.temperatures.size());
+    for (std::size_t k = 0; k < z.temperatures.size(); k++) {
+      pValue = PyFloat_FromDouble(z.temperatures[k]);
+      PyList_SetItem(temps, k, pValue);
+    }
+    PyList_SetItem(temp_lists, counter, temps);
+    counter += 1;
+  }
+
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
+    prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(legends);
+  Py_DECREF(temp_lists);
 }
 
 #endif
@@ -1763,13 +1864,29 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         p.dists.push_back(dist(coordobj.xyz(p.a), coordobj.xyz(p.b)));
       }
     }
-  }
+
+    // calculate average temperature for every zone
+    if (Config::get().md.analyze_zones == true)
+    {
+      for (auto &z : zones)
+      {
+        updateEkin_some_atoms(z.atoms);           
+        int dof = 3u * z.atoms.size();
+        z.temperatures.push_back(E_kin * (2.0 / (dof*md::R)));
+      }
+    }
+  }  // end loop for every MD step
+
+
 #ifdef USE_PYTHON
   // plot temperature
   if (Config::get().md.plot_temp == true) plot_temp(temperatures);
   
   // plot distances from MD analyzing
   if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
+
+  // plot average temperatures of every zone
+  if (Config::get().md.analyze_zones == true) plot_zones();
 #else
   std::cout << "The MD analyzis you requested is not possible without python!\n";
 #endif

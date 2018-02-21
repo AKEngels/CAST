@@ -31,3 +31,19 @@ def plot_temp(temperatures):
         print sys.exc_info()
         return "error"
 
+def plot_zones(legends, temp_lists):
+    try:
+        for t in temp_lists:  # for every zone
+            plt.plot(t) 
+
+        plt.xlabel("frame")
+        plt.ylabel("temperature [K]")
+        plt.legend(legends)
+        plt.savefig("zones.png")
+        plt.close()
+        
+        return "Python here: All is wonderful!"
+    except:
+        print sys.exc_info()
+        return "error"
+

@@ -873,6 +873,10 @@ namespace config
     bool plot_temp;
     /**atom pairs to analyze*/
     std::vector<std::vector<size_t>> ana_pairs;
+    /**analyze zones?*/
+    bool analyze_zones;
+    /**zone width (distance to active site where a new zone starts)*/
+    double zone_width;
 
     /**constructor*/
     molecular_dynamics(void) :
@@ -884,7 +888,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
-      resume(false), umbrella(false), pre_optimize(false), plot_temp(false)
+      resume(false), umbrella(false), pre_optimize(false), plot_temp(false), analyze_zones(false)
     { }
 
   };
