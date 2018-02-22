@@ -1,4 +1,4 @@
-﻿#ifdef USE_PYTHON
+#ifdef USE_PYTHON
 #include <Python.h>
 #endif
 #include <vector>
@@ -1074,9 +1074,16 @@ void md::simulation::berendsen(double const & time)
     // Berendsen scaling for isotpropic boxes
     scale = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press - Config::get().md.ptarget)), 0.3333333333333);
     // Adjust box dimensions
+    // periodic boundaries
     Config::set().periodics.pb_box.x() = Config::get().periodics.pb_box.x() * scale;
     Config::set().periodics.pb_box.y() = Config::get().periodics.pb_box.y() * scale;
     Config::set().periodics.pb_box.z() = Config::get().periodics.pb_box.z() * scale;
+    // cubic potential
+    for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++) {
+      Config::set().coords.bias.cubic[i].dim.x() = Config::get().coords.bias.cubic[i].dim.x() * scale;
+      Config::set().coords.bias.cubic[i].dim.y() = Config::get().coords.bias.cubic[i].dim.y() * scale;
+      Config::set().coords.bias.cubic[i].dim.z() = Config::get().coords.bias.cubic[i].dim.z() * scale;
+    }
     // scale atomic coordinates
     for (size_t i = 0; i < N; ++i)
     {
