@@ -53,11 +53,9 @@ ic_core::angle::angle_der() const {
   auto cp1 = ic_util::normalize(Cartesian_Point(1.0, -1.0, 1.0));
   auto cp2 = ic_util::normalize(Cartesian_Point(-1.0, 1.0, 1.0));
   Cartesian_Point w_p(0.0, 0.0, 0.0);
-  auto epsilon{ 0.1 };
-  if (dot(u, v) > (1. - epsilon) ||
-      dot(u, v) < (-1. + epsilon)) {
-    if (dot(u, cp1) > (1. - epsilon) ||
-        dot(u, cp1) < (-1. + epsilon)) {
+  auto constexpr epsilon{ 0.01 };
+  if (std::fabs(dot(u, v)) > (1. - epsilon)) {
+    if (std::fabs(dot(u, cp1)) > (1. - epsilon)) {
       w_p = cross(u, cp2);
     } else {
       w_p = cross(u, cp1);
@@ -65,10 +63,12 @@ ic_core::angle::angle_der() const {
   } else {
     w_p = cross(u, v);
   }
-  w_p = ic_util::normalize(w_p);
-  auto ad0 = cross(u, w_p) / lu;
-  auto ad1 = cross(w_p, v) / lv;
-  return std::make_tuple(ad0, ad1, -ad0 - ad1);
+  auto w = ic_util::normalize(w_p);
+  auto ad0 = cross(u, w) / lu;
+  auto ad1 = cross(w, v) / lv;
+  //                      a     b           c
+  //                      m     o           n
+  return std::make_tuple(ad0, -ad0 - ad1, ad1);
 }
 
 std::vector<float_type>
@@ -78,8 +78,8 @@ ic_core::angle::angle_der_vec(const std::size_t& sys_size) {
   auto firstder = ic_core::angle::angle_der();
   std::vector<c3<float_type>> der_vec(sys_size, c3<float_type>(0.0, 0.0, 0.0));
   der_vec.at(index_a_ - 1) = std::get<0>(firstder);
-  der_vec.at(index_b_ - 1) = std::get<2>(firstder);
-  der_vec.at(index_c_ - 1) = std::get<1>(firstder);
+  der_vec.at(index_b_ - 1) = std::get<1>(firstder);
+  der_vec.at(index_c_ - 1) = std::get<2>(firstder);
   return ic_util::flatten_c3_vec(der_vec);
 }
 
@@ -113,26 +113,33 @@ ic_core::dihedral::dihed_der() const{
   auto u = ic_util::normalize(u_p);
   auto w = ic_util::normalize(w_p);
   auto v = ic_util::normalize(v_p);
-  auto t1 = cross(u, w) / (len(u_p) * (1 - std::pow(dot(u, w), 2)));
-  auto t2 = cross(v, w) / (len(v_p) * (1 - std::pow(dot(v, w), 2)));
+  auto sin2_u = 1. - std::pow(dot(u, w), 2.);
+  auto sin2_v = 1. - std::pow(dot(v, w), 2.);
+
+  auto t1 = cross(u, w) / (len(u_p) * sin2_u);
+  auto t2 = cross(v, w) / (len(v_p) * sin2_v);
   auto cuwd = cross(u, w) * dot(u, w);
-  auto t3 = cuwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
-  auto cvwd = cross(v, w) * dot(v, w);
-  auto t4 = cvwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
-  return std::make_tuple(t1, -t2, -t1 + t2 - t4, t2 - t3 + t4);
+  auto t3 = cuwd / (len(w_p) * sin2_u);
+  //changed v's sign according to J. Chem. Ohys Vol 117 No. 20, 22 2002 p. 9160-9174
+  auto cvwd = cross(v, w) * dot(-v, w);
+  auto t4 = cvwd / (len(w_p) * sin2_v);
+  //exchanged +t2 with +t3 in o's derivative
+  //                      a   b               c             d
+  //                      m   o               p             n
+  return std::make_tuple(t1, -t1 + t3 - t4, t2 - t3 + t4, -t2);
 }
 
 std::vector<float_type>
 ic_core::dihedral::dihed_der_vec(const std::size_t& sys_size) {
   using scon::c3;
 
-  auto firstder = ic_core::dihedral::dihed_der();
+  auto firstder = dihed_der();
   c3<float_type> temp(0.0, 0.0, 0.0);
   std::vector<c3<float_type>> der_vec(sys_size, temp);
   der_vec.at(index_a_ - 1) = std::get<0>(firstder);
-  der_vec.at(index_b_ - 1) = std::get<2>(firstder);
-  der_vec.at(index_c_ - 1) = std::get<3>(firstder);
-  der_vec.at(index_d_ - 1) = std::get<1>(firstder);
+  der_vec.at(index_b_ - 1) = std::get<1>(firstder);
+  der_vec.at(index_c_ - 1) = std::get<2>(firstder);
+  der_vec.at(index_d_ - 1) = std::get<3>(firstder);
   return ic_util::flatten_c3_vec(der_vec);
 }
 
@@ -222,6 +229,26 @@ ic_core::trans_z::trans_der_vec(std::size_t const & system_size) const{
   }));
 }
 
+coords::Representation_3D ic_core::rotation::xyz0;
+
+ic_core::rotation::rotation(const coords::Representation_3D& target,
+  const std::vector<std::size_t>& index_vec)  : indices_{ index_vec }{
+  if (xyz0.empty()) {
+    xyz0 = target;
+  }
+  else {
+    if (xyz0.size() != target.size()) {
+      std::ostringstream oss;
+      oss << "You can't just pass molecules with different sizes. xyz0=" << xyz0.size() << " != target=" << target.size() << "!";
+      throw std::runtime_error(oss.str());
+    }
+  }
+  for (auto const & ind : indices_) {
+    reference_.emplace_back(target.at(ind - 1));
+  }
+  rad_gyr_ = radius_gyration(reference_);
+}
+
 std::array<float_type, 3u>
 ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
   coords::Representation_3D curr_xyz;
@@ -235,7 +262,13 @@ ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
 
 std::vector<scon::mathmatrix<float_type>>
 ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
-  return ic_rotation::exponential_derivs(trial, reference_);
+  coords::Representation_3D trial_, xyz0_;
+  for (auto const & indi : indices_) {
+    trial_.emplace_back(trial.at(indi - 1));
+    xyz0_.emplace_back(xyz0.at(indi - 1));
+  }
+
+  return ic_rotation::exponential_derivs(trial_, xyz0_);
 }
 
 scon::mathmatrix<float_type>
@@ -246,23 +279,19 @@ ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
   Mat X = zero(sys_size, 3);
   Mat Y = zero(sys_size, 3);
   Mat Z = zero(sys_size, 3);
-  coords::Representation_3D curr_xyz;
-  curr_xyz.reserve(indices_.size());
-  for (auto const & i : indices_) {
-    curr_xyz.emplace_back(trial.at(i-1));
-  }
-  auto first_ders = rot_der(curr_xyz);
-  std::size_t index{ 1 };
-  for (auto const & i : first_ders) {
-    auto val_index = indices_.at(index - 1) - 1;
-    X.set_row(val_index, i.row(0));
-    Y.set_row(val_index, i.row(1));
-    Z.set_row(val_index, i.row(2));
-    ++index;
+
+  auto first_ders = rot_der(trial);
+  {
+    auto der_iter = first_ders.begin();
+    auto ind_iter = indices_.begin();
+    auto _end = first_ders.end();
+    for (; der_iter != _end; ++der_iter, ++ind_iter) {
+      X.set_row(*ind_iter - 1, der_iter->row(0));
+      Y.set_row(*ind_iter - 1, der_iter->row(1));
+      Z.set_row(*ind_iter - 1, der_iter->row(2));
+    }
   }
   Mat result(sys_size * 3, 3);
-  auto xv = X.vectorise_row();
-  std::cout << xv << std::endl;
   result.set_col(0, X.vectorise_row());
   result.set_col(1, Y.vectorise_row());
   result.set_col(2, Z.vectorise_row());
@@ -271,8 +300,7 @@ ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
 
 coords::float_type
 ic_core::rotation::radius_gyration(const coords::Representation_3D& struc) {
-  coords::float_type result = ic_util::rad_gyr(struc);
-  return result;
+  return ic_util::rad_gyr(struc);
 }
 
 std::vector<ic_core::trans_x> ic_core::system::create_trans_x(
@@ -318,15 +346,11 @@ std::vector<ic_core::trans_z> ic_core::system::create_trans_z(
 }
 
 std::vector<ic_core::rotation> ic_core::system::create_rotations(
-    const std::vector<coords::Representation_3D>& rep_vec,
+    const coords::Representation_3D& rep,
     const std::vector<std::vector<std::size_t>>& index_vec) {
   std::vector<ic_core::rotation> result;
-  auto it1 = begin(rep_vec);
-  auto end_it1 = end(rep_vec);
-  auto it2 = begin(index_vec);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    ic_core::rotation temp(*it1, *it2);
-    result.emplace_back(temp);
+  for(auto const& iv : index_vec){
+    result.emplace_back(ic_core::rotation(rep, iv));
   }
   return result;
 }
@@ -374,38 +398,28 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
     result.emplace_back(i.trans_der_vec(sys_size));
   }
   for (auto& i : rotation_vec_) {
-    auto temp = i.rot_der_mat(sys_size, trial);
+    auto temp = i.rot_der_mat(trial.size(), trial);
     //look for th cols and rows!
     result.emplace_back(temp.col_to_std_vector(0));
     result.emplace_back(temp.col_to_std_vector(1));
     result.emplace_back(temp.col_to_std_vector(2));
   }
-  std::size_t n_cols = result.size();
-  std::size_t n_rows = result.at(0).size();
-  Mat B_matrix_t(n_rows, n_cols);
-  for (std::size_t h = 0; h < n_cols; ++h) {
-    std::cout << h << std::endl;
-    B_matrix_t.set_col(h, Mat::col_from_vec(result.at(h)));
+  std::size_t n_rows = result.size();
+  std::size_t n_cols = result.at(0).size();
+  Mat B_matrix(n_rows, n_cols);
+  for (auto i = 0; i < n_rows; ++i) {
+    B_matrix.set_row(i, Mat::row_from_vec(result.at(i)));
   }
-  auto B_mat = B_matrix_t.t();
-  std::ofstream o_file("B_mat_t.dat");
-  for (auto i = 0; i < B_mat.rows(); ++i) {
-    for (auto j = 0; j < B_mat.cols(); ++j) {
-      o_file << std::setw(10) << std::setprecision(5) << std::fixed << B_mat(i, j);
-    }
-    o_file << "\n";
-  }
-  std::cout << B_matrix_t << "\n";
-  auto G_matrix = B_matrix_t.t() * B_matrix_t;
+  std::ofstream of("Bmat.dat");
+  of << B_matrix << "\n";
+  auto G_matrix = B_matrix * B_matrix.t();
   Mat eigval, eigvec;
   std::tie(eigval, eigvec) = G_matrix.eigensym(true);
-  auto eigval_vec = eigval.col_to_std_vector();
   auto row_index_vec = eigval.sort_idx();
   auto col_index_vec = eigval.find_idx([](float_type const & a) {
     return std::abs(a) > 1e-6;
   });
   Mat del_mat = eigvec.submat(row_index_vec, col_index_vec);
-  std::cout << del_mat << "\n";
   return std::make_pair(del_mat, G_matrix);
 }
 

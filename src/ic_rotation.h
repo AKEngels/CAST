@@ -21,11 +21,11 @@ namespace ic_rotation {
 
 using coords::float_type;
 
-static constexpr auto q_thres{ 1e-6 };
+auto constexpr q_thres{ 1e-6 };
 
 template<typename Vec, typename Add>
 auto get_mean(Vec const & vec, Add add) {
-  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
+  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(0.,0.,0.), add);
   mean /= static_cast<float_type> (vec.size());
   return mean;
 }
@@ -101,15 +101,14 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
   Mat eigvec, eigval;
 
   std::tie(eigval, eigvec) = F_mat.eigensym(true);
-  std::cout << eigval << "\n\n";
-  //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) 
+  //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) //Seems to be right like described here. They are sorting it the other way round
   auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);
   if (res_q.q_.at(0) < 0) {
     res_q = res_q * -1.;
   }
 
-  return std::make_pair(eigval(eigval.rows()-1), res_q);
+  return std::make_pair(eigval(eigval.rows()-1,0), res_q);
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
@@ -151,7 +150,7 @@ correlation_matrix_derivs(scon::mathmatrix<T> const& R,
     std::array<Mat, 3> A;
     A.fill(scon::mathmatrix<T>::zero(3, 3));
     for (std::size_t l = 0; l < A.size(); ++l) {
-      A[l].row(l) = S.row(c);
+      A[l].set_row(l, S.row(c));
     }
     result.emplace_back(A);
   }
@@ -176,7 +175,7 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
   std::vector<std::array<Mat, 3> > result;
   for (auto& S : dR) {
     std::array<Mat, 3> Q;
-    Q.fill(scon::mathmatrix<float_type>::zero(4, 4));
+    //Q.fill(scon::mathmatrix<float_type>::zero(4, 4));
     for (std::size_t c = 0; c < S.size(); ++c) {
       Mat F = scon::mathmatrix<float_type>::zero(4, 4);
       Mat M = S.at(c);

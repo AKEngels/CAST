@@ -158,17 +158,18 @@ public:
    **/
 #ifndef CAST_USE_ARMADILLO
   using base_type::Matrix;
-  mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
 #else
   using base_type::Mat;
 #endif
 
+  mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
   mathmatrix() = default;
   mathmatrix(mathmatrix const& other)
       : base_type(static_cast<base_type>(other)) {}
   mathmatrix(base_type const& other) : base_type(other) {}
 
   static mathmatrix col_from_vec(std::vector<T> const& col);
+  static mathmatrix row_from_vec(std::vector<T> const& row);
 
   /*! Construct filled mathmatrix of certain size
    *
@@ -644,7 +645,6 @@ public:
 #endif
 };
 
-#ifndef CAST_USE_ARMADILLO
 template <typename T>
 mathmatrix<T>::mathmatrix(
     std::initializer_list<std::initializer_list<T>> const& ini) {
@@ -664,6 +664,7 @@ mathmatrix<T>::mathmatrix(
     }
   }
 }
+#ifndef CAST_USE_ARMADILLO
 template <typename T>
 void mathmatrix<T>::resize(uint_type const rows, uint_type const cols) {
   this->conservativeResize(rows, cols);
@@ -686,6 +687,18 @@ mathmatrix<T> mathmatrix<T>::col_from_vec(std::vector<T> const& col) {
 
   for (auto i = 0; i < size; ++i) {
     ret(i, 0) = col.at(i);
+  }
+  return ret;
+}
+
+template <typename T>
+mathmatrix<T> mathmatrix<T>::row_from_vec(std::vector<T> const& row) {
+  auto const& size = row.size();
+
+  mathmatrix ret(1, size);
+
+  for (auto i = 0; i < size; ++i) {
+    ret(0, i) = row.at(i);
   }
   return ret;
 }
@@ -1404,9 +1417,6 @@ mathmatrix<T>::eigensym(bool const & sort = false) const {
     return std::make_pair(new_eigenval, new_eigenvec);
   }
 
-  // std::cout << eigenval << "\n\n";
-
-  // sort_eigenpairs(eigenval, eigenvec);
 #else
   arma::Col<T> eigVal;
   arma::Mat<T> eigVec;

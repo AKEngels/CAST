@@ -241,10 +241,7 @@ struct trans_z : trans {
 
 struct rotation {
   rotation(const coords::Representation_3D& target,
-           const std::vector<std::size_t>& index_vec)
-      : reference_{ target }, rad_gyr_{ radius_gyration(target) }, indices_{
-          index_vec
-        } {}
+    const std::vector<std::size_t>& index_vec);
 
   std::vector<std::size_t> indices_;
 
@@ -255,6 +252,8 @@ struct rotation {
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
   scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&);
   float_type radius_gyration(const coords::Representation_3D&);
+
+  static coords::Representation_3D xyz0;
 };
 
 class system {
@@ -330,7 +329,7 @@ public:
       const std::vector<std::vector<std::size_t>>&);
 
   std::vector<rotation>
-  create_rotations(const std::vector<coords::Representation_3D>&,
+  create_rotations(const coords::Representation_3D&,
                    const std::vector<std::vector<std::size_t>>&);
 
   template<typename Graph>
@@ -548,7 +547,7 @@ template <typename Graph>
 inline void system::create_ic_system(const Graph& g) {
   std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) =
       create_translations(res_vec_, res_index_vec_);
-  rotation_vec_ = create_rotations(res_vec_, res_index_vec_);
+  rotation_vec_ = create_rotations(rep_, res_index_vec_);
   distance_vec_ = create_distances(rep_, g);
   angle_vec_ = create_angles(rep_, g);
   oop_vec_ = create_oops(rep_, g);

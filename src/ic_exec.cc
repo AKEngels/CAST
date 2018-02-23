@@ -14,6 +14,7 @@
 #include "scon_mathmatrix.h"
 #include <array>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 
 void ic_testing::ic_execution(coords::Coordinates* struc) {
@@ -63,11 +64,24 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   auto DLC = icSystem.delocalize_ic_system(trial);
   auto DLC_matrix = DLC.first;
   auto G_matrix = DLC.second;
+
+  auto write_with_zero = [](scon::mathmatrix<coords::float_type> const& mat) {
+    for (auto c = 0; c < mat.cols(); ++c) {
+      for (auto r = 0; r < mat.rows(); ++r) {
+        std::cout << std::setw(6) << std::setprecision(3) << std::fixed << (mat(r, c) > 1.e-6 ? mat(r, c) : 0.0);
+      }
+      std::cout << "\n";
+    }
+  };
+
   std::cout << "DLC matrix: \n";
-  std::cout << DLC_matrix << "\n\n";
+  write_with_zero(DLC_matrix);
+  std::cout << "\n\n";
   auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
 
-  std::cout << "DelHessian:\n" << del_hessian << "\n\n";
+  std::cout << "DelHessian:\n";
+  write_with_zero(del_hessian);
+  std::cout << "\n\n";
   auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
 
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
