@@ -214,7 +214,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
     }
     if (atom_name.substr(0, 1) == "S") return 142;
     else if (atom_name.substr(0, 1) == "C") return 148;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
+    else if (atom_name.substr(0, 1) == "H") return 85;
     else
     {
       std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
