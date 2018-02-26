@@ -776,8 +776,24 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
   integrity = true;
   auto elec_factor = 332.0;
+
+  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+  {
+    std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get amber charges
+    for (int i = 0; i<c.size(); i++)
+    {
+      if (is_in(i, mm_indices))  // find atom charges for MM atoms
+      {
+        mm_charge_vector.push_back(c[i] / 18.2223);   // convert charge to elementary units and add it to MM charges
+      }   
+    }
+      
+  }
+  else  // "normal" way to get MM charges
+  {
+    mm_charge_vector = mmc.energyinterface()->charges(); // get MM charges
+  }
   
-  mm_charge_vector = mmc.energyinterface()->charges(); // get MM charges
 
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
