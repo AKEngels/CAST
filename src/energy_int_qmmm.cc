@@ -780,6 +780,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
   {
     std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get amber charges
+    mm_charge_vector.clear();
     for (int i = 0; i<c.size(); i++)
     {
       if (is_in(i, mm_indices))  // find atom charges for MM atoms
