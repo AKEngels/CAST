@@ -366,15 +366,15 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
     link.mm = b.a;
 
     // determine equilibrium distance between link atom and QM atom from force field
-    auto b_type_qm = cparams.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
+    auto b_type_qm = tp.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
     size_t b_type_L;
     if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
     {
-      b_type_L = cparams.type(85, tinker::potential_keys::BOND);
+      b_type_L = tp.type(85, tinker::potential_keys::BOND);
     }
     else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
     {
-      b_type_L = cparams.type(3024, tinker::potential_keys::BOND);
+      b_type_L = tp.type(3024, tinker::potential_keys::BOND);
     }
     else throw("Something went wrong. Invalid MM interface for QM/MM.");
     for (auto b_param : tp.bonds())
@@ -786,12 +786,12 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       {
         mm_charge_vector.push_back(c[i] / 18.2223);   // convert charge to elementary units and add it to MM charges
       }   
-    }
-      
+    }   
   }
+
   else  // "normal" way to get MM charges
   {
-    mm_charge_vector = mmc.energyinterface()->charges(); // get MM charges
+    mm_charge_vector = mmc.energyinterface()->charges(); 
   }
   
 
