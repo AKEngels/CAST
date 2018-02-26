@@ -377,7 +377,7 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
       b_type_L = cparams.type(3024, tinker::potential_keys::BOND);
     }
     else throw("Something went wrong. Invalid MM interface for QM/MM.");
-    for (auto b_param : cparams.bonds())
+    for (auto b_param : tp.bonds())
     {
       if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.deq_L_QM = b_param.ideal;
       else if (b_param.index[0] == b_type_L && b_param.index[1] == b_type_qm) link.deq_L_QM = b_param.ideal;
@@ -777,15 +777,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   integrity = true;
   auto elec_factor = 332.0;
   
-  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
-  {
-    mm_charge_vector = Config::get().coords.amber_charges;  // get amber charges
-    for (double &q : mm_charge_vector) q = q / 18.2223;     // convert all charges to elementary units
-  }
-  else
-  {
-    mm_charge_vector = mmc.energyinterface()->charges();
-  }
+  mm_charge_vector = mmc.energyinterface()->charges(); // get MM charges
 
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
