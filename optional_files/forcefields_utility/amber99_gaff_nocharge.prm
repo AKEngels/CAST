@@ -78,12 +78,12 @@ at http://ambermd.org/
    #####################################################
 
 
-atom          1   14    N     "Glycine N"                    7    14.010    3
-atom          2    1    CT    "Glycine CA"                   6    12.010    4
-atom          3    2    C     "Glycine C"                    6    12.010    3
-atom          4   29    H     "Glycine HN"                   1     1.008    1
-atom          5   24    O     "Glycine O"                    8    16.000    1
-atom          6   35    H1    "Glycine HA"                   1     1.008    1
+atom          1   95    N     "Glycine N"                    7    14.010    3
+atom          2   63    CT    "Glycine CA"                   6    12.010    4
+atom          3   60    C     "Glycine C"                    6    12.010    3
+atom          4   85    H     "Glycine HN"                   1     1.008    1
+atom          5  108    O     "Glycine O"                    8    16.000    1
+atom          6   78    H1    "Glycine HA"                   1     1.008    1
 atom          7   14    N     "Alanine N"                    7    14.010    3
 atom          8    1    CT    "Alanine CA"                   6    12.010    4
 atom          9    2    C     "Alanine C"                    6    12.010    3
@@ -91,7 +91,7 @@ atom         10   29    H     "Alanine HN"                   1     1.008    1
 atom         11   24    O     "Alanine O"                    8    16.000    1
 atom         12   35    H1    "Alanine HA"                   1     1.008    1
 atom         13    1    CT    "Alanine CB"                   6    12.010    4
-atom         14   34    HC    "Alanine HB"                   1     1.008    1
+atom         14   84    HC    "Alanine HB"                   1     1.008    1
 atom         15   14    N     "Valine N"                     7    14.010    3
 atom         16    1    CT    "Valine CA"                    6    12.010    4
 atom         17    2    C     "Valine C"                     6    12.010    3
@@ -140,8 +140,8 @@ atom         59   24    O     "Serine O"                     8    16.000    1
 atom         60   35    H1    "Serine HA"                    1     1.008    1
 atom         61    1    CT    "Serine CB"                    6    12.010    4
 atom         62   35    H1    "Serine HB"                    1     1.008    1
-atom         63   22    OH    "Serine OG"                    8    16.000    2
-atom         64   31    HO    "Serine HG"                    1     1.008    1
+atom         63  109    OH    "Serine OG"                    8    16.000    2
+atom         64   86    HO    "Serine HG"                    1     1.008    1
 atom         65   14    N     "Threonine N"                  7    14.010    3
 atom         66    1    CT    "Threonine CA"                 6    12.010    4
 atom         67    2    C     "Threonine C"                  6    12.010    3
@@ -162,8 +162,8 @@ atom         81   24    O     "Cysteine (-SH) O"             8    16.000    1
 atom         82   35    H1    "Cysteine (-SH) HA"            1     1.008    1
 atom         83    1    CT    "Cysteine (-SH) CB"            6    12.010    4
 atom         84   35    H1    "Cysteine (-SH) HB"            1     1.008    1
-atom         85   27    SH    "Cysteine (-SH) SG"           16    32.060    2
-atom         86   32    HS    "Cysteine (-SH) HG"            1     1.008    1
+atom         85  127    SH    "Cysteine (-SH) SG"           16    32.060    2
+atom         86   88    HS    "Cysteine (-SH) HG"            1     1.008    1
 atom         87   14    N     "Cystine (-SS-) N"             7    14.010    3
 atom         88    1    CT    "Cystine (-SS-) CA"            6    12.010    4
 atom         89    2    C     "Cystine (-SS-) C"             6    12.010    3
@@ -172,7 +172,7 @@ atom         91   24    O     "Cystine (-SS-) O"             8    16.000    1
 atom         92   35    H1    "Cystine (-SS-) HA"            1     1.008    1
 atom         93    1    CT    "Cystine (-SS-) CB"            6    12.010    4
 atom         94   35    H1    "Cystine (-SS-) HB"            1     1.008    1
-atom         95   26    S     "Cystine (-SS-) SG"           16    32.060    2
+atom         95  128    S     "Cystine (-SS-) SG"           16    32.060    2
 atom         96   14    N     "Proline N"                    7    14.010    3
 atom         97    1    CT    "Proline CA"                   6    12.010    4
 atom         98    2    C     "Proline C"                    6    12.010    3
@@ -192,9 +192,9 @@ atom        111   24    O     "Phenylalanine O"              8    16.000    1
 atom        112   35    H1    "Phenylalanine HA"             1     1.008    1
 atom        113    1    CT    "Phenylalanine CB"             6    12.010    4
 atom        114   34    HC    "Phenylalanine HB"             1     1.008    1
-atom        115    3    CA    "Phenylalanine CG"             6    12.010    3
+atom        115   64    CA    "Phenylalanine CG"             6    12.010    3
 atom        116    3    CA    "Phenylalanine CD"             6    12.010    3
-atom        117   33    HA    "Phenylalanine HD"             1     1.008    1
+atom        117   83    HA    "Phenylalanine HD"             1     1.008    1
 atom        118    3    CA    "Phenylalanine CE"             6    12.010    3
 atom        119   33    HA    "Phenylalanine HE"             1     1.008    1
 atom        120    3    CA    "Phenylalanine CZ"             6    12.010    3
@@ -223,13 +223,13 @@ atom        142   24    O     "Tryptophan O"                 8    16.000    1
 atom        143   35    H1    "Tryptophan HA"                1     1.008    1
 atom        144    1    CT    "Tryptophan CB"                6    12.010    4
 atom        145   34    HC    "Tryptophan HB"                1     1.008    1
-atom        146   10    C*    "Tryptophan CG"                6    12.010    3
-atom        147    7    CW    "Tryptophan CD1"               6    12.010    3
-atom        148   39    H4    "Tryptophan HD1"               1     1.008    1
-atom        149    9    CB    "Tryptophan CD2"               6    12.010    3
-atom        150   15    NA    "Tryptophan NE1"               7    14.010    3
+atom        146   64    C*    "Tryptophan CG"                6    12.010    3
+atom        147   64    CW    "Tryptophan CD1"               6    12.010    3
+atom        148   81    H4    "Tryptophan HD1"               1     1.008    1
+atom        149   64    CB    "Tryptophan CD2"               6    12.010    3
+atom        150  100    NA    "Tryptophan NE1"               7    14.010    3
 atom        151   29    H     "Tryptophan HE1"               1     1.008    1
-atom        152   11    CN    "Tryptophan CE2"               6    12.010    3
+atom        152   64    CN    "Tryptophan CE2"               6    12.010    3
 atom        153    3    CA    "Tryptophan CE3"               6    12.010    3
 atom        154   33    HA    "Tryptophan HE3"               1     1.008    1
 atom        155    3    CA    "Tryptophan CZ2"               6    12.010    3
@@ -246,13 +246,13 @@ atom        165   24    O     "Histidine (+) O"              8    16.000    1
 atom        166   35    H1    "Histidine (+) HA"             1     1.008    1
 atom        167    1    CT    "Histidine (+) CB"             6    12.010    4
 atom        168   34    HC    "Histidine (+) HB"             1     1.008    1
-atom        169    5    CC    "Histidine (+) CG"             6    12.010    3
+atom        169   64    CC    "Histidine (+) CG"             6    12.010    3
 atom        170   15    NA    "Histidine (+) ND1"            7    14.010    3
 atom        171   29    H     "Histidine (+) HD1"            1     1.008    1
 atom        172    7    CW    "Histidine (+) CD2"            6    12.010    3
 atom        173   39    H4    "Histidine (+) HD2"            1     1.008    1
-atom        174    8    CR    "Histidine (+) CE1"            6    12.010    3
-atom        175   40    H5    "Histidine (+) HE1"            1     1.008    1
+atom        174   64    CR    "Histidine (+) CE1"            6    12.010    3
+atom        175   82    H5    "Histidine (+) HE1"            1     1.008    1
 atom        176   15    NA    "Histidine (+) NE2"            7    14.010    3
 atom        177   29    H     "Histidine (+) HE2"            1     1.008    1
 atom        178   14    N     "Histidine (HD) N"             7    14.010    3
@@ -266,11 +266,11 @@ atom        185   34    HC    "Histidine (HD) HB"            1     1.008    1
 atom        186    5    CC    "Histidine (HD) CG"            6    12.010    3
 atom        187   15    NA    "Histidine (HD) ND1"           7    14.010    3
 atom        188   29    H     "Histidine (HD) HD1"           1     1.008    1
-atom        189    6    CV    "Histidine (HD) CD2"           6    12.010    3
+atom        189   64    CV    "Histidine (HD) CD2"           6    12.010    3
 atom        190   39    H4    "Histidine (HD) HD2"           1     1.008    1
 atom        191    8    CR    "Histidine (HD) CE1"           6    12.010    3
 atom        192   40    H5    "Histidine (HD) HE1"           1     1.008    1
-atom        193   16    NB    "Histidine (HD) NE2"           7    14.010    2
+atom        193  101    NB    "Histidine (HD) NE2"           7    14.010    2
 atom        194   14    N     "Histidine (HE) N"             7    14.010    3
 atom        195    1    CT    "Histidine (HE) CA"            6    12.010    4
 atom        196    2    C     "Histidine (HE) C"             6    12.010    3
@@ -296,7 +296,7 @@ atom        215   35    H1    "Aspartic Acid HA"             1     1.008    1
 atom        216    1    CT    "Aspartic Acid CB"             6    12.010    4
 atom        217   34    HC    "Aspartic Acid HB"             1     1.008    1
 atom        218    2    C     "Aspartic Acid CG"             6    12.010    3
-atom        219   25    O2    "Aspartic Acid OD"             8    16.000    1
+atom        219  108    O2    "Aspartic Acid OD"             8    16.000    1
 atom        220   14    N     "Asparagine N"                 7    14.010    3
 atom        221    1    CT    "Asparagine CA"                6    12.010    4
 atom        222    2    C     "Asparagine C"                 6    12.010    3
@@ -361,8 +361,8 @@ atom        280   34    HC    "Lysine HG"                    1     1.008    1
 atom        281    1    CT    "Lysine CD"                    6    12.010    4
 atom        282   34    HC    "Lysine HD"                    1     1.008    1
 atom        283    1    CT    "Lysine CE"                    6    12.010    4
-atom        284   38    HP    "Lysine HE"                    1     1.008    1
-atom        285   20    N3    "Lysine NZ"                    7    14.010    4
+atom        284   84    HP    "Lysine HE"                    1     1.008    1
+atom        285   98    N3    "Lysine NZ"                    7    14.010    4
 atom        286   29    H     "Lysine HZ"                    1     1.008    1
 atom        287   14    N     "Arginine N"                   7    14.010    3
 atom        288    1    CT    "Arginine CA"                  6    12.010    4
@@ -376,7 +376,7 @@ atom        295    1    CT    "Arginine CG"                  6    12.010    4
 atom        296   34    HC    "Arginine HG"                  1     1.008    1
 atom        297    1    CT    "Arginine CD"                  6    12.010    4
 atom        298   35    H1    "Arginine HD"                  1     1.008    1
-atom        299   19    N2    "Arginine NE"                  7    14.010    3
+atom        299   97    N2    "Arginine NE"                  7    14.010    3
 atom        300   29    H     "Arginine HE"                  1     1.008    1
 atom        301    3    CA    "Arginine CZ"                  6    12.010    3
 atom        302   19    N2    "Arginine NH"                  7    14.010    3
@@ -726,7 +726,7 @@ atom        645    1    CT    "C-Term AIB CA"                6    12.010    4
 atom        646    2    C     "C-Term AIB C"                 6    12.010    3
 atom        647   29    H     "C-Term AIB HN"                1     1.008    1
 atom        648   25    O2    "C-Term AIB OXT"               8    16.000    1
-atom       1001   23    OS    "R-Adenosine O5'"              8    16.000    2
+atom       1001  110    OS    "R-Adenosine O5'"              8    16.000    2
 atom       1002    1    CT    "R-Adenosine C5'"              6    12.010    4
 atom       1003   35    H1    "R-Adenosine H5'1"             1     1.008    1
 atom       1004   35    H1    "R-Adenosine H5'2"             1     1.008    1
@@ -734,7 +734,7 @@ atom       1005    1    CT    "R-Adenosine C4'"              6    12.010    4
 atom       1006   35    H1    "R-Adenosine H4'"              1     1.008    1
 atom       1007   23    OS    "R-Adenosine O4'"              8    16.000    2
 atom       1008    1    CT    "R-Adenosine C1'"              6    12.010    4
-atom       1009   36    H2    "R-Adenosine H1'"              1     1.008    1
+atom       1009   79    H2    "R-Adenosine H1'"              1     1.008    1
 atom       1010    1    CT    "R-Adenosine C3'"              6    12.010    4
 atom       1011   35    H1    "R-Adenosine H3'"              1     1.008    1
 atom       1012    1    CT    "R-Adenosine C2'"              6    12.010    4
@@ -742,13 +742,13 @@ atom       1013   35    H1    "R-Adenosine H2'1"             1     1.008    1
 atom       1014   22    OH    "R-Adenosine O2'"              8    16.000    2
 atom       1015   31    HO    "R-Adenosine HO'2"             1     1.008    1
 atom       1016   23    OS    "R-Adenosine O3'"              8    16.000    2
-atom       1017   18    N*    "R-Adenosine N9"               7    14.010    3
+atom       1017  100    N*    "R-Adenosine N9"               7    14.010    3
 atom       1018    9    CB    "R-Adenosine C4"               6    12.010    3
 atom       1019    9    CB    "R-Adenosine C5"               6    12.010    3
 atom       1020   16    NB    "R-Adenosine N7"               7    14.010    2
-atom       1021   12    CK    "R-Adenosine C8"               6    12.010    3
-atom       1022   17    NC    "R-Adenosine N3"               7    14.010    2
-atom       1023   13    CQ    "R-Adenosine C2"               6    12.010    3
+atom       1021   64    CK    "R-Adenosine C8"               6    12.010    3
+atom       1022  102    NC    "R-Adenosine N3"               7    14.010    2
+atom       1023   64    CQ    "R-Adenosine C2"               6    12.010    3
 atom       1024   17    NC    "R-Adenosine N1"               7    14.010    2
 atom       1025    3    CA    "R-Adenosine C6"               6    12.010    3
 atom       1026   40    H5    "R-Adenosine H2"               1     1.008    1
@@ -807,7 +807,7 @@ atom       1078   18    N*    "R-Cytosine N1"                7    14.010    3
 atom       1079    2    C     "R-Cytosine C2"                6    12.010    3
 atom       1080   17    NC    "R-Cytosine N3"                7    14.010    2
 atom       1081    3    CA    "R-Cytosine C4"                6    12.010    3
-atom       1082    4    CM    "R-Cytosine C5"                6    12.010    3
+atom       1082   64    CM    "R-Cytosine C5"                6    12.010    3
 atom       1083    4    CM    "R-Cytosine C6"                6    12.010    3
 atom       1084   24    O     "R-Cytosine O2"                8    16.000    1
 atom       1085   19    N2    "R-Cytosine N4"                7    14.010    3
@@ -955,7 +955,7 @@ atom       1226   24    O     "D-Thymine O4"                 8    16.000    1
 atom       1227    1    CT    "D-Thymine C7"                 6    12.010    4
 atom       1228   34    HC    "D-Thymine H7"                 1     1.008    1
 atom       1229   39    H4    "D-Thymine H6"                 1     1.008    1
-atom       1230   28    P     "R-Phosphodiester P"          15    30.970    4
+atom       1230  115    P     "R-Phosphodiester P"          15    30.970    4
 atom       1231   25    O2    "R-Phosphodiester OP"          8    16.000    1
 atom       1232   22    OH    "R-5'-Hydroxyl O5'"            8    16.000    2
 atom       1233   31    HO    "R-5'-Hydroxyl H5T"            1     1.008    1
@@ -979,8 +979,8 @@ atom       1250   31    HO    "D-3'-Hydroxyl H3T"            1     1.008    1
 atom       1251   23    OS    "D-3'-Phosphate O3'"           8    16.000    2
 atom       1252   28    P     "D-3'-Phosphate P"            15    30.970    4
 atom       1253   25    O2    "D-3'-Phosphate OP"            8    16.000    1
-atom       2001   21    OW    "TIP3P Oxygen"                 8    16.000    2
-atom       2002   30    HW    "TIP3P Hydrogen"               1     1.008    1
+atom       2001  111    OW    "TIP3P Oxygen"                 8    16.000    2
+atom       2002   89    HW    "TIP3P Hydrogen"               1     1.008    1
 atom       2003   41    Li+   "Li+ Lithium Ion"              3     6.940    0
 atom       2004   42    Na+   "Na+ Sodium Ion"              11    22.990    0
 atom       2005   43    K+    "K+ Potassium Ion"            19    39.100    0
@@ -994,7 +994,7 @@ atom       2012   50    Cl-   "Cl- Chloride Ion"            17    35.450    0
 atom       3000   60    c    "???????????????????????????"   0    12.010    ?  !! GAFF
 atom       3001   61    c1   "???????????????????????????"   0    12.010    ?  !! GAFF
 atom       3002   62    c2   "???????????????????????????"   0    12.010    ?  !! GAFF
-atom       3003    1    c3   "???????????????????????????"   0    12.010    ?  !! GAFF
+atom       3003   63    c3   "???????????????????????????"   0    12.010    ?  !! GAFF
 atom       3004   64    ca   "???????????????????????????"   0    12.010    ?  !! GAFF
 atom       3005   65    cp   "???????????????????????????"   0    12.010    ?  !! GAFF
 atom       3006   66    cq   "???????????????????????????"   0    12.010    ?  !! GAFF
@@ -2115,6 +2115,7 @@ bond         93   70          264.50     1.9050  !! GAFF
 bond        105  125          327.80     1.6600  !! GAFF
 bond         70   76          522.60     1.3600  !! GAFF
 bond         68  126          229.80     1.8140  !! GAFF
+bond          1   74          305.90     1.5319  !! manually added for link atom
 
 
 
