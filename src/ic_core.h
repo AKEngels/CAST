@@ -23,37 +23,43 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include<memory>
 
 namespace ic_core {
 
 using coords::float_type;
 
-struct distance {
-  distance(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
-           const unsigned int& index_a, const unsigned int& index_b,
+struct internal_coord {
+  virtual float_type val(coords::Representation_3D const& xyz) const = 0;
+  virtual std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const = 0;
+  virtual float_type hessian_guess(coords::Representation_3D const& xyz) const = 0;
+  virtual std::string info(coords::Representation_3D const & xyz) const = 0;
+};
+
+struct distance : public internal_coord {
+  distance(const unsigned int& index_a, const unsigned int& index_b,
            const std::string& elem_a, const std::string& elem_b)
-      : a_{ a }, b_{ b }, index_a_{ index_a }, index_b_{ index_b },
+      : index_a_{ index_a }, index_b_{ index_b },
         elem_a_{ elem_a }, elem_b_{ elem_b } {}
 
   std::size_t index_a_;
   std::size_t index_b_;
   std::string elem_a_;
   std::string elem_b_;
-  coords::Cartesian_Point a_;
-  coords::Cartesian_Point b_;
 
-  coords::float_type dist();
-  std::pair<scon::c3<float_type>, scon::c3<float_type>> bond_der();
-  std::vector<float_type> bond_der_vec(const std::size_t&);
+  float_type val(coords::Representation_3D const& xyz) const override;
+  std::pair<scon::c3<float_type>, scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
+  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
+  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct angle {
-  angle(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
-        const coords::Cartesian_Point& c, const unsigned int& index_a,
+struct angle : internal_coord {
+  angle(const unsigned int& index_a,
         const unsigned int& index_b, const unsigned int& index_c,
         const std::string& elem_a, const std::string& elem_b,
         const std::string& elem_c)
-      : a_{ a }, b_{ b }, c_{ c }, index_a_{ index_a }, index_b_{ index_b },
+      : index_a_{ index_a }, index_b_{ index_b },
         index_c_{ index_c }, elem_a_{ elem_a }, elem_b_{ elem_b }, elem_c_{
           elem_c
         } {}
@@ -64,13 +70,12 @@ struct angle {
   std::string elem_a_;
   std::string elem_b_;
   std::string elem_c_;
-  coords::Cartesian_Point a_;
-  coords::Cartesian_Point b_;
-  coords::Cartesian_Point c_;
 
-  coords::float_type ang();
-  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> angle_der() const;
-  std::vector<float_type> angle_der_vec(const std::size_t&);
+  coords::float_type val(coords::Representation_3D const& xyz) const override;
+  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
+  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
+  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
 //
 //template<bool isLValue>
@@ -110,18 +115,18 @@ struct angle {
 //};
 
 //template<bool CP_isLVal, bool Ind_isLVal>
-struct dihedral /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
-  dihedral(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b,
-           const coords::Cartesian_Point& c, const coords::Cartesian_Point& d,
-           const unsigned int& index_a, const unsigned int& index_b,
+struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
+  dihedral(const unsigned int& index_a, const unsigned int& index_b,
            const unsigned int& index_c, const unsigned int& index_d)
-      : a_{ a }, b_{ b }, c_{ c }, d_{ d }, index_a_{ index_a },
+      : index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
-  coords::float_type dihed();
+  coords::float_type val(coords::Representation_3D const& xyz) const override;
   std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
-    dihed_der() const;
-  std::vector<float_type> dihed_der_vec(const std::size_t&);
+    der(coords::Representation_3D const& xyz) const;
+  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
+  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 
   std::size_t get_ind_a() { return index_a_; }
   std::size_t get_ind_b() { return index_b_; }
@@ -132,21 +137,13 @@ struct dihedral /*: public dihedral_points<CP_isLVal>, public dihedral_indices<I
   std::size_t index_b_;
   std::size_t index_c_;
   std::size_t index_d_;
-
-  coords::Cartesian_Point a_;
-  coords::Cartesian_Point b_;
-  coords::Cartesian_Point c_;
-  coords::Cartesian_Point d_;
 };
 
-struct out_of_plane {
-  out_of_plane(const coords::Cartesian_Point& a,
-               const coords::Cartesian_Point& b,
-               const coords::Cartesian_Point& c,
-               const coords::Cartesian_Point& d, const unsigned int& index_a,
+struct out_of_plane : public internal_coord {
+  out_of_plane(const unsigned int& index_a,
                const unsigned int& index_b, unsigned int& index_c,
                const unsigned int& index_d)
-      : a_{ a }, b_{ b }, c_{ c }, d_{ d }, index_a_{ index_a },
+      : index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
   std::size_t index_a_;
@@ -154,89 +151,84 @@ struct out_of_plane {
   std::size_t index_c_;
   std::size_t index_d_;
 
-  coords::Cartesian_Point a_;
-  coords::Cartesian_Point b_;
-  coords::Cartesian_Point c_;
-  coords::Cartesian_Point d_;
-
-  coords::float_type oop();
-  std::vector<scon::c3<float_type>> oop_der();
-  std::vector<float_type> oop_der_vec(const std::size_t&);
+  coords::float_type val(coords::Representation_3D const& xyz) const override;
+  std::vector<scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
+  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
+  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
-//TODO make them all inherit some super trans class
 
-struct trans {
-  trans(float_type && val, coords::Representation_3D const& rep, std::vector<std::size_t> const& index_vec)
-    : val_{std::move(val)}, rep_(rep), indices_(index_vec) {}
+struct trans : public internal_coord {
+  trans(std::vector<std::size_t> const& index_vec)
+    : indices_(index_vec) {}
 
-  float_type val_;
+  virtual float_type val(coords::Representation_3D const&) const = 0;
   std::vector<std::size_t> indices_;
 
-  coords::Representation_3D rep_;
-
   template<typename Func>
-  coords::Representation_3D trans_der(std::size_t const & sys_size, Func const & coord) const {
+  coords::Representation_3D der(std::size_t const & sys_size, Func const & coord) const {
     using rep3D = coords::Representation_3D;
     using cp = coords::Cartesian_Point;
 
     rep3D result(sys_size, cp(0.,0.,0.));
 
-    auto const & s{ rep_.size() };
+    auto const & s{ indices_.size() };
     for (auto const & i : indices_) {
       result.at(i-1) = coord(s);
     }
     return result;
   }
-
-  virtual std::vector<float_type> trans_der_vec(std::size_t const & system_size) const = 0;
+  float_type hessian_guess(coords::Representation_3D const& xyz) const override {
+    return 0.05;
+  }
 };
 
 struct trans_x : trans{
-  trans_x(const coords::Representation_3D& rep,
-          const std::vector<std::size_t>& index_vec)
-      : trans(create_trans(rep) , rep , index_vec) {}
+  trans_x(const std::vector<std::size_t>& index_vec)
+      : trans(index_vec) {}
 
-  static float_type create_trans(const coords::Representation_3D& res) {
+  float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
-    for (auto& i : res) {
-      coord_sum += i.x();
+    for (auto& i : indices_) {
+      coord_sum += xyz.at(i-1u).x();
     }
-    return coord_sum / res.size();
+    return coord_sum / indices_.size();
   }
 
-  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
+  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
 
 struct trans_y : trans {
-  trans_y(const coords::Representation_3D& rep,
-          const std::vector<std::size_t>& index_vec)
-      : trans(create_trans(rep), rep, index_vec) {}
+  trans_y(const std::vector<std::size_t>& index_vec)
+      : trans(index_vec) {}
 
-  static float_type create_trans(const coords::Representation_3D& res) {
+  float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
-    for (auto& i : res) {
-      coord_sum += i.y();
+    for (auto& i : indices_) {
+      coord_sum += xyz.at(i - 1u).y();
     }
-    return coord_sum / res.size();
+    return coord_sum / indices_.size();
   }
 
-  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
+  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
 
 struct trans_z : trans {
-  trans_z(const coords::Representation_3D& rep,
-          const std::vector<std::size_t>& index_vec)
-      : trans(create_trans(rep), rep, index_vec) {}
+  trans_z(const std::vector<std::size_t>& index_vec)
+      : trans(index_vec) {}
 
-  static float_type create_trans(const coords::Representation_3D& res) {
+  float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
-    for (auto& i : res) {
-      coord_sum += i.z();
+    for (auto& i : indices_) {
+      coord_sum += xyz.at(i - 1u).z();
     }
-    return coord_sum / res.size();
+    return coord_sum / indices_.size();
   }
 
-  std::vector<float_type> trans_der_vec(std::size_t const & system_size)const override;
+  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
+  std::string info(coords::Representation_3D const& xyz) const override;
 };
 
 struct rotation {
@@ -248,7 +240,7 @@ struct rotation {
   coords::Representation_3D reference_;
   float_type rad_gyr_;
 
-  std::array<float_type, 3u> rot_val(const coords::Representation_3D&);
+  std::array<float_type, 3u> rot_val(const coords::Representation_3D&) const;
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
   scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&);
   float_type radius_gyration(const coords::Representation_3D&);
@@ -263,119 +255,79 @@ public:
          const std::vector<std::vector<std::size_t>>& res_index)
       : res_vec_{ res_init }, rep_{ rep_init }, res_index_vec_{ res_index } {}
 
+  std::vector<std::unique_ptr<internal_coord>> primitive_internals;
+  std::vector<rotation> rotation_vec_;
+
 private:
   const std::vector<coords::Representation_3D> res_vec_;
   const std::vector<std::vector<std::size_t>> res_index_vec_;
   const coords::Representation_3D rep_;
 
 public:
-  struct IC_System {
-  public:
-    template<typename Graph>
-    IC_System(){};
-    void configure_translations(std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>> && t) {
-      std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) = t;
-    }
-    void configure_rotations(std::vector<rotation> && rot) {
-      rotation_vec_ = rot;
-    }
-    void configure_distances(std::vector<distance> && dist) {
-      distance_vec_ = dist;
-    }
-    void configure_angles(std::vector<angle> && ang) {
-      angle_vec_ = ang;
-    }
-    void configure_oops(std::vector<out_of_plane> && oop) {
-      oop_vec_ = oop;
-    }
-    void configure_dihedrals(std::vector<dihedral> && dih) {
-      dihed_vec_ = dih;
-    }
-    std::vector<trans_x> trans_x_vec_;
-    std::vector<trans_y> trans_y_vec_;
-    std::vector<trans_z> trans_z_vec_;
-    std::vector<rotation> rotation_vec_;
-    std::vector<distance> distance_vec_;
-    std::vector<angle> angle_vec_;
-    std::vector<out_of_plane> oop_vec_;
-    std::vector<dihedral> dihed_vec_;
-  };
+  void append_primitives(std::vector<std::unique_ptr<internal_coord>> && pic) {
+    primitive_internals.insert(primitive_internals.end(), 
+      std::make_move_iterator(pic.begin()), 
+      std::make_move_iterator(pic.end()));
+  }
 
-public:
-  std::vector<trans_x> trans_x_vec_;
-  std::vector<trans_y> trans_y_vec_;
-  std::vector<trans_z> trans_z_vec_;
-  std::vector<rotation> rotation_vec_;
-  std::vector<distance> distance_vec_;
-  std::vector<angle> angle_vec_;
-  std::vector<out_of_plane> oop_vec_;
-  std::vector<dihedral> dihed_vec_;
+  std::vector<std::unique_ptr<internal_coord>>
+  create_trans_x(const std::vector<std::vector<std::size_t>>&) const;
 
-public:
-  std::vector<trans_x>
-  create_trans_x(const std::vector<coords::Representation_3D>&,
-                 const std::vector<std::vector<std::size_t>>&);
+  std::vector<std::unique_ptr<internal_coord>>
+  create_trans_y(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<trans_y>
-  create_trans_y(const std::vector<coords::Representation_3D>&,
-                 const std::vector<std::vector<std::size_t>>&);
+  std::vector<std::unique_ptr<internal_coord>>
+  create_trans_z(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<trans_z>
-  create_trans_z(const std::vector<coords::Representation_3D>&,
-                 const std::vector<std::vector<std::size_t>>&);
-
-  std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>>
-    create_translations(const std::vector<coords::Representation_3D>&,
-      const std::vector<std::vector<std::size_t>>&);
+  std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
+    create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
   std::vector<rotation>
   create_rotations(const coords::Representation_3D&,
                    const std::vector<std::vector<std::size_t>>&);
 
-  template<typename Graph>
-  IC_System create_system(Graph const &);
+  /*template<typename Graph>
+  IC_System create_system(Graph const &);*/
 
   template <typename Graph>
-  std::vector<distance> create_distances(const coords::Representation_3D&,
-                                         const Graph&);
+  std::vector<std::unique_ptr<internal_coord>> create_distances(const Graph&) const;
 
   template <typename Graph>
-  std::vector<angle> create_angles(const coords::Representation_3D&,
-                                   const Graph&);
+  std::vector<std::unique_ptr<internal_coord>> create_angles(const Graph&) const;
 
   template <typename Graph>
-  std::vector<out_of_plane> create_oops(const coords::Representation_3D&,
-                                        const Graph&);
+  std::vector<std::unique_ptr<internal_coord>> create_oops(const coords::Representation_3D&,
+                                        const Graph&) const;
 
   template <typename Graph>
-  std::vector<dihedral> create_dihedrals(const coords::Representation_3D&,
-                                         const Graph&);
+  std::vector<std::unique_ptr<internal_coord>> create_dihedrals(const Graph&) const;
 
-  template <typename Graph>
+  /*template <typename Graph>
   void create_ic_system(const std::vector<coords::Representation_3D>&,
-                        const coords::Representation_3D&, const Graph&);
+                        const coords::Representation_3D&, const Graph&);*/
 
   template <typename Graph>
   void create_ic_system(const Graph&);
 
-  std::pair<scon::mathmatrix<float_type>, scon::mathmatrix<float_type>>
-  delocalize_ic_system(coords::Representation_3D const &);
-  scon::mathmatrix<float_type> initial_hessian();
-  scon::mathmatrix<float_type> delocalize_hessian(scon::mathmatrix<float_type> const &,
-                                                  scon::mathmatrix<float_type> const &);
+  scon::mathmatrix<float_type> del_mat;
+
+  scon::mathmatrix<float_type> delocalize_ic_system(coords::Representation_3D const &);
+  scon::mathmatrix<float_type> initial_hessian(coords::Representation_3D const &);
+  scon::mathmatrix<float_type> delocalize_hessian(scon::mathmatrix<float_type> const &);
   scon::mathmatrix<float_type> G_mat_inversion(scon::mathmatrix<float_type> const &);
+
+  scon::mathmatrix<float_type> calc(coords::Representation_3D const&) const;
 
 };
 
 template <typename Graph>
-inline std::vector<distance>
-system::create_distances(const coords::Representation_3D& coords,
-                         const Graph& g) {
+inline std::vector<std::unique_ptr<internal_coord>>
+system::create_distances(const Graph& g) const {
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<ic_core::distance> result;
+  std::vector<std::unique_ptr<internal_coord>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -384,21 +336,18 @@ system::create_distances(const coords::Representation_3D& coords,
     auto v_index = g[v].atom_serial;
     auto u_elem = g[u].element;
     auto v_elem = g[v].element;
-    auto u_atom = coords.at(u_index - 1);
-    auto v_atom = coords.at(v_index - 1);
-    ic_core::distance d(u_atom, v_atom, u_index, v_index, u_elem, v_elem);
-    result.emplace_back(d);
+    result.emplace_back(std::make_unique<distance>(u_index, v_index, u_elem, v_elem));
   }
   return result;
 }
 
 template <typename Graph>
-inline std::vector<angle>
-system::create_angles(const coords::Representation_3D& coords, const Graph& g) {
+inline std::vector<std::unique_ptr<internal_coord>>
+system::create_angles(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
 
-  std::vector<angle> result;
+  std::vector<std::unique_ptr<internal_coord>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto a_vert = adjacent_vertices(*it, g);
@@ -411,11 +360,7 @@ system::create_angles(const coords::Representation_3D& coords, const Graph& g) {
           auto a_elem = g[*it2].element;
           auto b_elem = g[*it].element;
           auto c_elem = g[*it3].element;
-          auto a = coords.at(a_index - 1);
-          auto b = coords.at(b_index - 1);
-          auto c = coords.at(c_index - 1);
-          angle ang(a, b, c, a_index, b_index, c_index, a_elem, b_elem, c_elem);
-          result.emplace_back(ang);
+          result.emplace_back(std::make_unique<angle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
         }
       }
     }
@@ -424,13 +369,13 @@ system::create_angles(const coords::Representation_3D& coords, const Graph& g) {
 }
 
 template <typename Graph>
-inline std::vector<out_of_plane>
-system::create_oops(const coords::Representation_3D& coords, const Graph& g) {
+inline std::vector<std::unique_ptr<internal_coord>>
+system::create_oops(const coords::Representation_3D& coords, const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
   using scon::dot;
 
-  std::vector<out_of_plane> result;
+  std::vector<std::unique_ptr<internal_coord>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto a_vert = adjacent_vertices(*it, g);
@@ -454,8 +399,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) {
               auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
               auto dot_n_vecs = dot(n_vec1, n_vec2);
               if (0.95 < dot_n_vecs && dot_n_vecs < 1.05) {
-                out_of_plane o(core_cp, u_cp, v_cp, w_cp, core, a, b, c);
-                result.emplace_back(o);
+                result.emplace_back(std::make_unique<out_of_plane>(core, a, b, c));
               }
             }
           }
@@ -467,15 +411,14 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) {
 }
 
 template <typename Graph>
-inline std::vector<dihedral>
-system::create_dihedrals(const coords::Representation_3D& coords,
-                         const Graph& g) {
+inline std::vector<std::unique_ptr<internal_coord>>
+system::create_dihedrals(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<dihedral> result;
+  std::vector<std::unique_ptr<internal_coord>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -493,12 +436,8 @@ system::create_dihedrals(const coords::Representation_3D& coords,
           auto b_index = g[u].atom_serial;
           auto c_index = g[v].atom_serial;
           auto d_index = g[*v_vert_it].atom_serial;
-          auto a = coords.at(a_index - 1);
-          auto b = coords.at(b_index - 1);
-          auto c = coords.at(c_index - 1);
-          auto d = coords.at(d_index - 1);
-          dihedral dihed(a, b, c, d, a_index, b_index, c_index, d_index);
-          result.emplace_back(dihed);
+          ;
+          result.emplace_back(std::make_unique<dihedral>(a_index, b_index, c_index, d_index));
         }
       }
     }
@@ -533,40 +472,51 @@ system::create_dihedrals(const coords::Representation_3D& coords,
 //  dihed_vec_ = create_dihedrals(rep_, g);
 //}
 
-inline std::tuple<std::vector<trans_x>, std::vector<trans_y>, std::vector<trans_z>>
-system::create_translations(const std::vector<coords::Representation_3D>& res_vec,
-  const std::vector<std::vector<std::size_t>>& res_index_vec) {
+inline std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
+system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
   return std::make_tuple(
-    create_trans_x(res_vec, res_index_vec),
-    create_trans_y(res_vec, res_index_vec),
-    create_trans_z(res_vec, res_index_vec)
+    create_trans_x(res_index_vec),
+    create_trans_y(res_index_vec),
+    create_trans_z(res_index_vec)
   );
 }
 
 template <typename Graph>
 inline void system::create_ic_system(const Graph& g) {
-  std::tie(trans_x_vec_, trans_y_vec_, trans_z_vec_) =
-      create_translations(res_vec_, res_index_vec_);
+  append_primitives(create_distances(g));
+  append_primitives(create_angles(g));
+  append_primitives(create_oops(rep_, g));
+  append_primitives(create_dihedrals(g));
+
+  std::vector<std::unique_ptr<internal_coord>> trans_x, trans_y, trans_z;
+  std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
+
+  append_primitives(std::move(trans_x));
+  append_primitives(std::move(trans_y));
+  append_primitives(std::move(trans_z));
+
   rotation_vec_ = create_rotations(rep_, res_index_vec_);
-  distance_vec_ = create_distances(rep_, g);
-  angle_vec_ = create_angles(rep_, g);
-  oop_vec_ = create_oops(rep_, g);
-  dihed_vec_ = create_dihedrals(rep_, g);
 }
 
-template <typename Graph>
-inline system::IC_System system::create_system(Graph const& g) {
-  IC_System new_ic_system;
-
-  new_ic_system.configure_translations(
-      create_translations(res_vec_, res_index_vec_));
-  new_ic_system.configure_rotations(create_rotations(res_vec_, res_index_vec_));
-  new_ic_system.configure_distances(create_distances(rep_, g));
-  new_ic_system.configure_angles(create_angles(rep_, g));
-  new_ic_system.configure_oops(create_oops(rep_, g));
-  new_ic_system.configure_dihedrals(create_dihedrals(rep_, g));
-
-  return new_ic_system;
-}
+//template <typename Graph>
+//inline system::IC_System system::create_system(Graph const& g) {
+//  IC_System new_ic_system;
+//
+//  new_ic_system.append_primitives(create_distances(g));
+//  new_ic_system.append_primitives(create_angles(g));
+//  new_ic_system.append_primitives(create_oops(rep_, g));
+//  new_ic_system.append_primitives(create_dihedrals(g));
+//
+//  std::vector<intrtnal_coord> trans_x, trans_y, trans_z;
+//  std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
+//
+//  new_ic_system.append_primitives(trans_x);
+//  new_ic_system.append_primitives(trans_y);
+//  new_ic_system.append_primitives(trans_z);
+//
+//  new_ic_system.configure_rotations(create_rotations(res_vec_, res_index_vec_));
+//
+//  return new_ic_system;
+//}
 }
 #endif // cast_ic_core_h_guard

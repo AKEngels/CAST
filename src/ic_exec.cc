@@ -58,12 +58,10 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   icSystem.create_ic_system(graph.g);
   std::cout << "IC creation test: \n";
   std::cout << "Initial hessian: \n";
-  auto hessian = icSystem.initial_hessian();
+  auto hessian = icSystem.initial_hessian(trial);
   {std::ofstream hessout("hess.mat");
   hessout << hessian << "\n"; }
-  auto DLC = icSystem.delocalize_ic_system(trial);
-  auto DLC_matrix = DLC.first;
-  auto G_matrix = DLC.second;
+  auto G_matrix = icSystem.delocalize_ic_system(trial);
 
   auto write_with_zero = [](scon::mathmatrix<coords::float_type> const& mat) {
     for (auto c = 0; c < mat.cols(); ++c) {
@@ -75,9 +73,9 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   };
 
   std::cout << "DLC matrix: \n";
-  write_with_zero(DLC_matrix);
+  write_with_zero(icSystem.del_mat);
   std::cout << "\n\n";
-  auto del_hessian = icSystem.delocalize_hessian(DLC_matrix, hessian);
+  auto del_hessian = icSystem.delocalize_hessian(hessian);
 
   std::cout << "DelHessian:\n";
   write_with_zero(del_hessian);
@@ -87,7 +85,7 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   std::cout << "Gmatrix:\n" << G_matrix << "\n\n";*/
   
-  std::cout << icSystem.angle_vec_.size() << "||" << icSystem.distance_vec_.size() << "||" << icSystem.dihed_vec_.size() << "||" << icSystem.oop_vec_.size() << "||" << icSystem.rotation_vec_.size() << "||" << icSystem.trans_x_vec_.size() << std::endl;
+  //std::cout << icSystem.angle_vec_.size() << "||" << icSystem.distance_vec_.size() << "||" << icSystem.dihed_vec_.size() << "||" << icSystem.oop_vec_.size() << "||" << icSystem.rotation_vec_.size() << "||" << icSystem.trans_x_vec_.size() << std::endl;
   /*for (auto& i : icSystem.distance_vec_)
   {
 	  std::cout << i.dist() << std::endl;
@@ -99,52 +97,11 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
 	  std::cout << j.at(0) << "||" << j.at(1) << "||" << j.at(2) << "||" << std::endl;
   }
 
-  std::cout << "Trans X:\n";
-  for (auto& i : icSystem.trans_x_vec_) {
-	  std::cout << i.val_ << std::endl;
+  for (auto const & pic : icSystem.primitive_internals) {
+    std::cout << pic->info(trial);
   }
-  std::cout << "Trans Y:\n";
-  for (auto& i : icSystem.trans_y_vec_) {
-	  std::cout << i.val_ << std::endl;
-  }
-  std::cout << "Trans Z:\n";
-  for (auto& i : icSystem.trans_z_vec_) {
-	  std::cout << i.val_ << std::endl;
-  }
-  /*for (auto& i : icSystem.trans_y_vec_) {
-          auto vv = i.trans_y_der_vec(8);
-          for (auto& h : vv)
-                  std::cout << h << std::endl;
-  }*/
-
-  /*for (auto& i : icSystem.trans_z_vec_) {
-          auto vv = i.trans_z_der_vec(8);
-          for (auto& j : vv)
-                  std::cout << j << std::endl;
-  }*/
-  
-  std::cout << "Distances: \n";
-  for (auto& i : icSystem.distance_vec_) {
-    std::cout << i.dist() << "||" << i.index_a_ << "||" << i.index_b_ << std::endl;
-  }
-
-  std::cout << "Angles: \n";
-  for (auto& i : icSystem.angle_vec_) {
-    std::cout << i.ang() << "||" << i.index_a_ << "||" << i.index_b_ << "||" << i.index_c_
-              << std::endl;
-  }
-  
-  std::cout << "OOP: \n";
-  for (auto& i : icSystem.oop_vec_) {
-    std::cout << i.oop() << "||" << i.index_a_ << "||" << i.index_b_ << "||" << i.index_c_ << "||"
-              << i.index_d_ << std::endl;
-  }
-  
-  std::cout << "Diheds: \n";
-  for (auto& i : icSystem.dihed_vec_) {
-    std::cout << i.dihed() << "||" << i.index_a_ << "||" << i.index_b_ << "||" << i.index_c_ << "||"
-              << i.index_d_ << std::endl;
-  }
+  auto const & bla = icSystem.calc(trial);
+  std::cout << bla << std::endl;
 
   // test matrix stuff
   /*auto matrix_trial = ic_util::Rep3D_to_arma<coords::float_type>(cp_vec);

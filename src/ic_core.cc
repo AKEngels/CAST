@@ -4,48 +4,115 @@
 
 using coords::float_type;
 
-float_type ic_core::distance::dist() {
-  return ic_util::euclid_dist<double>(a_, b_);
+float_type ic_core::distance::val(coords::Representation_3D const& xyz) const {
+
+  auto const& a = xyz.at(index_a_ - 1u);
+  auto const& b = xyz.at(index_b_ - 1u);
+
+  return ic_util::euclid_dist<double>(a, b);
 }
 
-std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::distance::bond_der() {
-  auto bond = ic_util::normalize(a_ - b_);
+std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::distance::der(coords::Representation_3D const& xyz) const {
+
+  auto const& a = xyz.at(index_a_ - 1u);
+  auto const& b = xyz.at(index_b_ - 1u);
+
+  auto bond = ic_util::normalize(a - b);
   return std::make_pair(bond,-bond);
 }
 
 std::vector<float_type>
-ic_core::distance::bond_der_vec(const std::size_t& sys_size) {
+ic_core::distance::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
-  auto firstder = bond_der();
-  std::vector<c3<float_type>> der_vec(sys_size, c3<float_type>(0.0, 0.0, 0.0));
+  auto firstder = der(xyz);
+  std::vector<c3<float_type>> der_vec(xyz.size(), c3<float_type>(0.0, 0.0, 0.0));
   der_vec.at(index_a_ - 1) = firstder.first;
   der_vec.at(index_b_ - 1) = firstder.second;
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-coords::float_type ic_core::angle::ang() {
+float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz) const{
+  using ic_atom::period_one;
+  using ic_atom::period_two;
+  using ic_atom::period_three;
+
+  bool a_period_one = std::find(period_one.begin(), period_one.end(),
+    elem_a_) != period_one.end();
+  bool a_period_two = std::find(period_two.begin(), period_two.end(),
+    elem_a_) != period_two.end();
+  bool a_period_three = std::find(period_three.begin(), period_three.end(),
+    elem_a_) != period_three.end();
+  bool b_period_one = std::find(period_one.begin(), period_one.end(),
+    elem_b_) != period_one.end();
+  bool b_period_two = std::find(period_two.begin(), period_two.end(),
+    elem_b_) != period_two.end();
+  bool b_period_three = std::find(period_three.begin(), period_three.end(),
+    elem_b_) != period_three.end();
+  auto B_val{ 0.0 };
+  if (a_period_one && b_period_one) {
+    B_val = -0.244;
+  }
+  else if (a_period_one && b_period_two || b_period_one && a_period_two) {
+    B_val = 0.352;
+  }
+  else if (a_period_two && b_period_two) {
+    B_val = 1.085;
+  }
+  else if (a_period_one && b_period_three ||
+    b_period_one && a_period_three) {
+    B_val = 0.660;
+  }
+  else if (a_period_two && b_period_three ||
+    b_period_two && a_period_three) {
+    B_val = 1.522;
+  }
+  else if (a_period_three && b_period_three) {
+    B_val = 2.068;
+  }
+  auto A_val{ 1.734 };
+  auto dist_bohr = val(xyz) / ic_atom::bohr;
+  auto temp = std::pow(dist_bohr - B_val, 3);
+  return A_val / temp;
+}
+
+std::string ic_core::distance::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << val(xyz) << "||" << index_a_ << "||" << index_b_ << "\n";
+  return oss.str();
+}
+
+coords::float_type ic_core::angle::val(coords::Representation_3D const& xyz) const{
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto u = a_ - b_;
-  auto v = c_ - b_;
+  auto const& a = xyz.at(index_a_ - 1u);
+  auto const& b = xyz.at(index_b_ - 1u);
+  auto const& c = xyz.at(index_c_ - 1u);
+
+  auto u = a - b;
+  auto v = c - b;
   auto uXv = cross(u, v);
   auto uDv = dot(u, v);
   auto l = len(uXv);
-  return std::atan2(l, uDv) * SCON_180PI;
+  return std::atan2(l, uDv);
 }
 
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
-ic_core::angle::angle_der() const {
+ic_core::angle::der(coords::Representation_3D const& xyz) const {
   using coords::Cartesian_Point;
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto u = a_ - b_;
-  auto v = c_ - b_;
+  auto const& a = xyz.at(index_a_ - 1u);
+  auto const& b = xyz.at(index_b_ - 1u);
+  auto const& c = xyz.at(index_c_ - 1u);
+
+  auto u = a - b;
+  auto v = c - b;
   auto lu = len(u);
   auto lv = len(v);
   u = ic_util::normalize(u);
@@ -72,25 +139,47 @@ ic_core::angle::angle_der() const {
 }
 
 std::vector<float_type>
-ic_core::angle::angle_der_vec(const std::size_t& sys_size) {
+ic_core::angle::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
-  auto firstder = ic_core::angle::angle_der();
-  std::vector<c3<float_type>> der_vec(sys_size, c3<float_type>(0.0, 0.0, 0.0));
+  auto firstder = ic_core::angle::der(xyz);
+  std::vector<c3<float_type>> der_vec(xyz.size(), c3<float_type>(0.0, 0.0, 0.0));
   der_vec.at(index_a_ - 1) = std::get<0>(firstder);
   der_vec.at(index_b_ - 1) = std::get<1>(firstder);
   der_vec.at(index_c_ - 1) = std::get<2>(firstder);
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-coords::float_type ic_core::dihedral::dihed() {
+float_type ic_core::angle::hessian_guess(coords::Representation_3D const & xyz) const
+{
+  if (elem_a_ == "H" || elem_c_ == "H") {
+    return 0.160;
+  }
+  else {
+    return 0.250;
+  }
+}
+
+std::string ic_core::angle::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "\n";
+  return oss.str();
+}
+
+coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto b1 = b_ - a_;
-  auto b2 = c_ - b_;
-  auto b3 = d_ - c_;
+  auto const & a = xyz.at(index_a_ - 1u);
+  auto const & b = xyz.at(index_b_ - 1u);
+  auto const & c = xyz.at(index_c_ - 1u);
+  auto const & d = xyz.at(index_d_ - 1u);
+
+  auto b1 = b - a;
+  auto b2 = c - b;
+  auto b3 = d - c;
   auto b1Xb2 = cross(b1, b2);
   auto lb1Xb2 = len(b1Xb2);
   auto n1 = b1Xb2 / lb1Xb2;
@@ -98,18 +187,23 @@ coords::float_type ic_core::dihedral::dihed() {
   auto m1 = cross(n1, ic_util::normalize(b2));
   auto x = dot(n1, n2);
   auto y = dot(m1, n2);
-  return std::atan2(y, x) * SCON_180PI;
+  return std::atan2(y, x);
 }
 
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
-ic_core::dihedral::dihed_der() const{
+ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto u_p = a_ - b_;
-  auto w_p = c_ - b_;
-  auto v_p = d_ - c_;
+  auto const & a = xyz.at(index_a_ - 1u);
+  auto const & b = xyz.at(index_b_ - 1u);
+  auto const & c = xyz.at(index_c_ - 1u);
+  auto const & d = xyz.at(index_d_ - 1u);
+
+  auto u_p = a - b;
+  auto w_p = c - b;
+  auto v_p = d - c;
   auto u = ic_util::normalize(u_p);
   auto w = ic_util::normalize(w_p);
   auto v = ic_util::normalize(v_p);
@@ -130,12 +224,12 @@ ic_core::dihedral::dihed_der() const{
 }
 
 std::vector<float_type>
-ic_core::dihedral::dihed_der_vec(const std::size_t& sys_size) {
+ic_core::dihedral::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
-  auto firstder = dihed_der();
+  auto firstder = der(xyz);
   c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
+  std::vector<c3<float_type>> der_vec(xyz.size(), temp);
   der_vec.at(index_a_ - 1) = std::get<0>(firstder);
   der_vec.at(index_b_ - 1) = std::get<1>(firstder);
   der_vec.at(index_c_ - 1) = std::get<2>(firstder);
@@ -143,14 +237,31 @@ ic_core::dihedral::dihed_der_vec(const std::size_t& sys_size) {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-coords::float_type ic_core::out_of_plane::oop() {
+float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & xyz) const
+{
+  return 0.023;
+}
+
+std::string ic_core::dihedral::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+  return oss.str();
+}
+
+coords::float_type ic_core::out_of_plane::val(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto b1 = b_ - a_;
-  auto b2 = c_ - b_;
-  auto b3 = d_ - c_;
+  auto const & a = xyz.at(index_a_ - 1u);
+  auto const & b = xyz.at(index_b_ - 1u);
+  auto const & c = xyz.at(index_c_ - 1u);
+  auto const & d = xyz.at(index_d_ - 1u);
+
+  auto b1 = b - a;
+  auto b2 = c - b;
+  auto b3 = d - c;
   auto b1Xb2 = cross(b1, b2);
   auto lb1Xb2 = len(b1Xb2);
   auto n1 = b1Xb2 / lb1Xb2;
@@ -158,17 +269,22 @@ coords::float_type ic_core::out_of_plane::oop() {
   auto m1 = cross(n1, ic_util::normalize(b2));
   auto x = dot(n1, n2);
   auto y = dot(m1, n2);
-  return std::atan2(y, x) * SCON_180PI;
+  return std::atan2(y, x);
 }
 
-std::vector<scon::c3<float_type>> ic_core::out_of_plane::oop_der() {
+std::vector<scon::c3<float_type>> ic_core::out_of_plane::der(coords::Representation_3D const& xyz) const{
   using scon::cross;
   using scon::dot;
   using scon::len;
 
-  auto u_p = a_ - b_;
-  auto w_p = c_ - b_;
-  auto v_p = d_ - c_;
+  auto const & a = xyz.at(index_a_ - 1u);
+  auto const & b = xyz.at(index_b_ - 1u);
+  auto const & c = xyz.at(index_c_ - 1u);
+  auto const & d = xyz.at(index_d_ - 1u);
+
+  auto u_p = a - b;
+  auto w_p = c - b;
+  auto v_p = d - c;
   auto u = ic_util::normalize(u_p);
   auto w = ic_util::normalize(w_p);
   auto v = ic_util::normalize(v_p);
@@ -187,12 +303,12 @@ std::vector<scon::c3<float_type>> ic_core::out_of_plane::oop_der() {
 }
 
 std::vector<float_type>
-ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
+ic_core::out_of_plane::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
-  auto firstder = ic_core::out_of_plane::oop_der();
+  auto firstder = ic_core::out_of_plane::der(xyz);
   c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(sys_size, temp);
+  std::vector<c3<float_type>> der_vec(xyz.size(), temp);
   der_vec.at(index_a_ - 1) = firstder.at(0);
   der_vec.at(index_b_ - 1) = firstder.at(2);
   der_vec.at(index_c_ - 1) = firstder.at(3);
@@ -201,32 +317,77 @@ ic_core::out_of_plane::oop_der_vec(const std::size_t& sys_size) {
   return result;
 }
 
+float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const & xyz) const
+{
+  auto a_bohr = xyz.at(index_a_ - 1u) / ic_atom::bohr;
+  auto b_bohr = xyz.at(index_b_ - 1u) / ic_atom::bohr;
+  auto c_bohr = xyz.at(index_c_ - 1u) / ic_atom::bohr;
+  auto d_bohr = xyz.at(index_d_ - 1u) / ic_atom::bohr;
+  auto r1 = b_bohr - a_bohr;
+  auto r2 = b_bohr - c_bohr;
+  auto r3 = b_bohr - d_bohr;
+  auto r2Xr3 = cross(r2, r3);
+  auto rd = dot(r1, r2Xr3);
+  auto t2 = rd / (len(r1) * len(r2) * len(r3));
+  auto d = 1 - t2;
+  auto d_pow = std::pow(d, 4);
+  return 0.045 * d_pow;
+}
+
+std::string ic_core::out_of_plane::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << val(xyz) << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+  return oss.str();
+}
+
 std::vector<float_type>
-ic_core::trans_x::trans_der_vec(std::size_t const & system_size) const{
+ic_core::trans_x::der_vec(coords::Representation_3D const& xyz) const{
   using cp = coords::Cartesian_Point;
 
-  return ic_util::flatten_c3_vec(trans_der(system_size, [](auto const & s) {
+  return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
     return cp(1. / static_cast<float_type>(s), 0., 0.);
   }));
 }
 
+std::string ic_core::trans_x::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << "Trans X: " << val(xyz) << "\n";
+  return oss.str();
+}
+
 std::vector<float_type>
-ic_core::trans_y::trans_der_vec(std::size_t const & system_size) const{
+ic_core::trans_y::der_vec(coords::Representation_3D const& xyz) const{
   
   using cp = coords::Cartesian_Point;
 
-  return ic_util::flatten_c3_vec(trans_der(system_size, [](auto const & s) {
+  return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
     return cp(0., 1. / static_cast<float_type>(s), 0.);
   }));
 }
 
+std::string ic_core::trans_y::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << "Trans Y: " << val(xyz) << "\n";
+  return oss.str();
+}
+
 std::vector<float_type>
-ic_core::trans_z::trans_der_vec(std::size_t const & system_size) const{
+ic_core::trans_z::der_vec(coords::Representation_3D const& xyz) const{
   using cp = coords::Cartesian_Point;
 
-  return ic_util::flatten_c3_vec(trans_der(system_size, [](auto const & s) {
+  return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
     return cp(0., 0., 1. / static_cast<float_type>(s));
   }));
+}
+
+std::string ic_core::trans_z::info(coords::Representation_3D const & xyz) const
+{
+  std::ostringstream oss;
+  oss << "Trans Z: " << val(xyz) << "\n";
+  return oss.str();
 }
 
 coords::Representation_3D ic_core::rotation::xyz0;
@@ -250,7 +411,7 @@ ic_core::rotation::rotation(const coords::Representation_3D& target,
 }
 
 std::array<float_type, 3u>
-ic_core::rotation::rot_val(const coords::Representation_3D& trial) {
+ic_core::rotation::rot_val(const coords::Representation_3D& trial) const {
   coords::Representation_3D curr_xyz;
   curr_xyz.reserve(indices_.size());
   for (auto const & i : indices_) {
@@ -303,44 +464,32 @@ ic_core::rotation::radius_gyration(const coords::Representation_3D& struc) {
   return ic_util::rad_gyr(struc);
 }
 
-std::vector<ic_core::trans_x> ic_core::system::create_trans_x(
-    const std::vector<coords::Representation_3D>& rep_vec,
-    const std::vector<std::vector<std::size_t>>& index_vec) {
-  std::vector<ic_core::trans_x> result;
-  auto it1 = begin(rep_vec);
-  auto end_it1 = end(rep_vec);
-  auto it2 = begin(index_vec);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    ic_core::trans_x temp(*it1, *it2);
-    result.emplace_back(temp);
+std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_x(
+    const std::vector<std::vector<std::size_t>>& index_vec) const {
+
+  std::vector<std::unique_ptr<internal_coord>> result;
+  for (auto const & indices : index_vec) {
+    result.emplace_back(std::make_unique<trans_x>(indices));
   }
   return result;
 }
 
-std::vector<ic_core::trans_y> ic_core::system::create_trans_y(
-    const std::vector<coords::Representation_3D>& rep_vec,
-    const std::vector<std::vector<std::size_t>>& index_vec) {
-  std::vector<ic_core::trans_y> result;
-  auto it1 = begin(rep_vec);
-  auto end_it1 = end(rep_vec);
-  auto it2 = begin(index_vec);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    ic_core::trans_y temp(*it1, *it2);
-    result.emplace_back(temp);
+std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_y(
+    const std::vector<std::vector<std::size_t>>& index_vec) const {
+
+  std::vector<std::unique_ptr<internal_coord>> result;
+  for (auto const & indices : index_vec) {
+    result.emplace_back(std::make_unique<trans_y>(indices));
   }
   return result;
 }
 
-std::vector<ic_core::trans_z> ic_core::system::create_trans_z(
-    const std::vector<coords::Representation_3D>& rep_vec,
-    const std::vector<std::vector<std::size_t>>& index_vec) {
-  std::vector<ic_core::trans_z> result;
-  auto it1 = begin(rep_vec);
-  auto end_it1 = end(rep_vec);
-  auto it2 = begin(index_vec);
-  for (; it1 != end_it1; ++it1, ++it2) {
-    ic_core::trans_z temp(*it1, *it2);
-    result.emplace_back(temp);
+std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_z(
+    const std::vector<std::vector<std::size_t>>& index_vec) const {
+
+  std::vector<std::unique_ptr<internal_coord>> result;
+  for (auto const & indices : index_vec) {
+    result.emplace_back(std::make_unique<trans_z>(indices));
   }
   return result;
 }
@@ -355,8 +504,7 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
   return result;
 }
 
-std::pair<scon::mathmatrix<float_type>, scon::mathmatrix<float_type>>
-ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
+scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
 
   using Mat = scon::mathmatrix<float_type>;
 
@@ -373,29 +521,8 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
 
   std::vector<std::vector<float_type>> result;
   
-  for (auto& i : distance_vec_) {
-    result.emplace_back(i.bond_der_vec(sys_size));
-  }
-  for (auto& i : angle_vec_) {
-    result.emplace_back(i.angle_der_vec(sys_size));
-  }
-  for (auto& i : dihed_vec_) {
-    result.emplace_back(i.dihed_der_vec(sys_size));
-  }
-  for (auto& i : oop_vec_) {
-    result.emplace_back(i.oop_der_vec(sys_size));
-  }
-  /*result.emplace_back(trans_derivs(trans_x_vec_));
-  result.emplace_back(trans_derivs(trans_y_vec_));
-  result.emplace_back(trans_derivs(trans_z_vec_));*/
-  for (auto& i : trans_x_vec_) {
-    result.emplace_back(i.trans_der_vec(sys_size));
-  }
-  for (auto& i : trans_y_vec_) {
-    result.emplace_back(i.trans_der_vec(sys_size));
-  }
-  for (auto& i : trans_z_vec_) {
-    result.emplace_back(i.trans_der_vec(sys_size));
+  for (auto const& pic : primitive_internals) {
+    result.emplace_back(pic->der_vec(trial));
   }
   for (auto& i : rotation_vec_) {
     auto temp = i.rot_der_mat(trial.size(), trial);
@@ -410,8 +537,8 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
   for (auto i = 0; i < n_rows; ++i) {
     B_matrix.set_row(i, Mat::row_from_vec(result.at(i)));
   }
-  std::ofstream of("Bmat.dat");
-  of << B_matrix << "\n";
+  /*std::ofstream of("Bmat.dat");
+  of << B_matrix << "\n";*/
   auto G_matrix = B_matrix * B_matrix.t();
   Mat eigval, eigvec;
   std::tie(eigval, eigvec) = G_matrix.eigensym(true);
@@ -419,11 +546,11 @@ ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
   auto col_index_vec = eigval.find_idx([](float_type const & a) {
     return std::abs(a) > 1e-6;
   });
-  Mat del_mat = eigvec.submat(row_index_vec, col_index_vec);
-  return std::make_pair(del_mat, G_matrix);
+  del_mat = eigvec.submat(row_index_vec, col_index_vec);
+  return G_matrix;
 }
 
-scon::mathmatrix<float_type> ic_core::system::initial_hessian() {
+scon::mathmatrix<float_type> ic_core::system::initial_hessian(coords::Representation_3D const & xyz) {
   using ic_atom::period_one;
   using ic_atom::period_two;
   using ic_atom::period_three;
@@ -433,75 +560,15 @@ scon::mathmatrix<float_type> ic_core::system::initial_hessian() {
   using scon::len;
 
   std::vector<float_type> values;
-  for (auto& i : distance_vec_) {
-    bool a_period_one = std::find(period_one.begin(), period_one.end(),
-                                  i.elem_a_) != period_one.end();
-    bool a_period_two = std::find(period_two.begin(), period_two.end(),
-                                  i.elem_a_) != period_two.end();
-    bool a_period_three = std::find(period_three.begin(), period_three.end(),
-                                    i.elem_a_) != period_three.end();
-    bool b_period_one = std::find(period_one.begin(), period_one.end(),
-                                  i.elem_b_) != period_one.end();
-    bool b_period_two = std::find(period_two.begin(), period_two.end(),
-                                  i.elem_b_) != period_two.end();
-    bool b_period_three = std::find(period_three.begin(), period_three.end(),
-                                    i.elem_b_) != period_three.end();
-    auto B_val{ 0.0 };
-    if (a_period_one && b_period_one) {
-      B_val = -0.244;
-    } else if (a_period_one && b_period_two || b_period_one && a_period_two) {
-      B_val = 0.352;
-    } else if (a_period_two && b_period_two) {
-      B_val = 1.085;
-    } else if (a_period_one && b_period_three ||
-               b_period_one && a_period_three) {
-      B_val = 0.660;
-    } else if (a_period_two && b_period_three ||
-               b_period_two && a_period_three) {
-      B_val = 1.522;
-    } else if (a_period_three && b_period_three) {
-      B_val = 2.068;
-    }
-    auto A_val{ 1.734 };
-    auto dist_bohr = i.dist() / ic_atom::bohr;
-    auto temp = std::pow(dist_bohr - B_val, 3);
-    values.emplace_back(A_val / temp);
+  for (auto const & pic : primitive_internals) {
+    values.emplace_back(pic->hessian_guess(xyz));
   }
-  for (auto& i : angle_vec_) {
-    if (i.elem_a_ == "H" || i.elem_c_ == "H") {
-      values.emplace_back(0.160);
-    } else {
-      values.emplace_back(0.250);
-    }
-  }
-  values.insert(values.end(), dihed_vec_.size(), 0.023);
-  for (auto& i : oop_vec_) {
-    auto a_bohr = i.a_ / ic_atom::bohr;
-    auto b_bohr = i.b_ / ic_atom::bohr;
-    auto c_bohr = i.c_ / ic_atom::bohr;
-    auto d_bohr = i.d_ / ic_atom::bohr;
-    auto r1 = b_bohr - a_bohr;
-    auto r2 = b_bohr - c_bohr;
-    auto r3 = b_bohr - d_bohr;
-    auto r2Xr3 = cross(r2, r3);
-    auto rd = dot(r1, r2Xr3);
-    auto t2 = rd / (len(r1) * len(r2) * len(r3));
-    auto d = 1 - t2;
-    auto d_pow = std::pow(d, 4);
-    values.emplace_back(0.045 * d_pow);
-  }
-  values.insert(values.end(), trans_x_vec_.size() * 3, 0.05);
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
-
-  auto val_col = Mat::col_from_vec(values);
-  //val_col.print(); //test output
-  Mat hessian = val_col.diagmat();
-  return hessian;
+  return Mat::col_from_vec(values).diagmat();
 }
 
 scon::mathmatrix<float_type>
-ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& del_mat,
-                                    const scon::mathmatrix<float_type>& hessian) {
+ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& hessian) {
   using Mat = scon::mathmatrix<float_type>;
 
   Mat del_hessian = del_mat.t() * hessian * del_mat;
@@ -528,4 +595,21 @@ ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
   }
   auto G_mat_inv = U * s.diagmat() * V.t();
   return G_mat_inv;
+}
+
+scon::mathmatrix<float_type> ic_core::system::calc(coords::Representation_3D const& trial) const
+{
+  std::vector<float_type> primitives;
+  primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
+
+  for(auto const & pic : primitive_internals){
+    primitives.emplace_back(pic->val(trial));
+  }
+  for (auto const & rot : rotation_vec_) {
+    auto rv = rot.rot_val(trial);
+    primitives.emplace_back(rv.at(0));
+    primitives.emplace_back(rv.at(1));
+    primitives.emplace_back(rv.at(2));
+  }
+  return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
 }
