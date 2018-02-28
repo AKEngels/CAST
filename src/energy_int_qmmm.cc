@@ -976,46 +976,56 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     vdw_gradient.assign(coords->size(), coords::r3{});
 
     std::size_t i2 = 0u;
-    auto const & p = cparams.vdwc_matrices();
     vdw_energy = 0;
-    auto vdw_params = cparams.vdws();
-    for (auto v : cparams.vdws()) std::cout << v << "\n";
+    auto vdw_params = cparams.vdws();  // get vdw parameters
 
     for (auto i : qm_indices)  // for every QM atom
     {
-      auto z = qmc.atoms(i2).energy_type();
-      std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);
-      auto vparams_i = vdw_params[i_vdw-1];
-      coords::float_type charge_i = qm_charge_vector[i2];
+      auto z = qmc.atoms(i2).energy_type();  // get atom type 
+      std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);  // get index to find this atom type in vdw parameters
+      auto vparams_i = vdw_params[i_vdw-1];  // get vdw parameters for QM atom
+      coords::float_type charge_i = qm_charge_vector[i2];  // get charge for QM atom
       std::size_t j2 = 0u;
       for (auto j : mm_indices)  // for every MM atom
       {
-        // preparation (parameters and so on)
-        auto e_type = mmc.atoms(j2).energy_type();
-        std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW);
-        auto vparams_j = vdw_params[j_vdw-1];
-        //auto const & p_ij = p_vdw(i_vdw, j_vdw);
-        coords::float_type charge_j = mm_charge_vector[j2];
-        auto r_ij = coords->xyz(j) - coords->xyz(i);
+        auto e_type = mmc.atoms(j2).energy_type();  // get atom type 
+        std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW); // get index to find this atom type in vdw parameters
+        auto vparams_j = vdw_params[j_vdw-1];  // get vdw parameters for MM atom
+        coords::float_type charge_j = mm_charge_vector[j2];  // get charge for MM atom
+
+        auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
         set_distance(d);
-        double R_0 = vparams_i.r + vparams_j.r;
-        double epsilon = sqrt(vparams_i.e * vparams_j.e);
-        coords::float_type b = (charge_i*charge_j) / d * elec_factor;
+
+		double R_0;  // r_min or sigma
+		if (cparams.general().radiustype.value ==
+			::tinker::parameter::radius_types::T::SIGMA)
+		{
+		  R_0 = sqrt(vparams_i.r*vparams_j.r);  // sigma
+		}
+		else if (cparams.general().radiustype.value ==
+			::tinker::parameter::radius_types::T::R_MIN)
+		{
+		  R_0 = vparams_i.r + vparams_j.r;  // r_min
+		}
+		else throw std::runtime_error("no valid radius_type");
+
+        double epsilon = sqrt(vparams_i.e * vparams_j.e);  // epsilon
         auto R_r = std::pow(R_0 / d, 6);
-        double vdw;
-        int calc_modus = calc_vdw(i, j);
+
+        int calc_modus = calc_vdw(i, j);  // will the vdw interaction be calculated? if yes, will it be scaled down?
         if (Config::get().general.verbosity > 4)
         {
           std::cout << "VdW calc_modus between atoms " << i+1 << " and " << j+1 << " is " <<calc_modus<<".\n";
         }
 
+		double vdw;  // vdw energy for current atom pair
         if (calc_modus != 0)  // calculate vdW interaction
         {
           if (cparams.general().radiustype.value ==
             ::tinker::parameter::radius_types::T::SIGMA)
           {
-            vdw = R_r * epsilon*(R_r - 1.0);
+            vdw = 4 * R_r * epsilon*(R_r - 1.0);
             if (calc_modus == 2) vdw = vdw / 2;
           }
           else if (cparams.general().radiustype.value ==
@@ -1031,20 +1041,12 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           vdw_energy += vdw;
         }
 
-        if (i == 10 && j == 3)
-        {
-          std::cout << z << " , " << e_type << "\n";
-		  std::cout << i_vdw << " , " << j_vdw << "\n";
-		  std::cout << vparams_i << "\n" << vparams_j << "\n";
-		  std::cout << "R_eq: " << vparams_i.r << " , " << vparams_i.r << " , " << R_0 << "\n";
-		  std::cout << "epsilon: " << vparams_i.e << " , " << vparams_i.e << " , " << epsilon << "\n";
-        }
-
         if (if_gradient)  // gradients
         {
 
           if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
           {    // gradients of coulomb interaction (only for MOPAC here)
+			coords::float_type b = (charge_i*charge_j) / d * elec_factor;
             coords::float_type db = b / d;
             auto c_gradient_ij = r_ij * db / d;
             c_gradient[i] += c_gradient_ij;
@@ -1053,11 +1055,10 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
           if (calc_modus != 0)  // gradients of vdW interaction
           {
-            coords::float_type const V = epsilon*R_r;
-
             if (cparams.general().radiustype.value
               == ::tinker::parameter::radius_types::T::SIGMA)
             {
+			  coords::float_type const V = 4 * epsilon * R_r;
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
               auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
@@ -1066,6 +1067,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             }
             else
             {
+			  coords::float_type const V = epsilon * R_r;
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
               auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
