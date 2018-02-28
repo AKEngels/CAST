@@ -140,8 +140,6 @@ namespace energy {
 
 				static std::string trim_space_and_tabs(std::string const & str);
 
-				bool check_if_number(std::string const & number)const;
-
 				coords::float_type read_energy()const;
 				void read_coords();
 

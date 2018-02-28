@@ -1,5 +1,11 @@
-#pragma once
+#ifndef HELPERFUNCTIONS_H
+#define HELPERFUNCTIONS_H
+
+#include<limits>
+#include<algorithm>
 #include "coords.h"
+#include "scon_traits.h"
+
 #ifdef USE_PYTHON
 #include <Python.h>
 #endif
@@ -82,81 +88,33 @@ inline std::string get_python_modulepath(std::string modulename)
 
 /**looks if vector v contains element x
 returns true if yes and false if no */
-inline bool is_in(std::string x, std::vector<std::string> v)
-{
-  if (std::find(v.begin(), v.end(), x) != v.end()) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-/**looks if vector v contains element x
-returns true if yes and false if no */
-inline bool is_in(std::vector<std::string> x, std::vector<std::vector<std::string>> v)
-{
-  if (std::find(v.begin(), v.end(), x) != v.end()) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-/**looks if vector v contains element x
-returns true if yes and false if no */
-inline bool is_in(int x, std::vector<int> v)
-{
-  if (std::find(v.begin(), v.end(), x) != v.end()) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
-/**looks if string v contains char x
-returns true if yes and false if no */
-inline bool is_in(char x, std::string v)
-{
-  if (std::find(v.begin(), v.end(), x) != v.end()) {
-    return true;
-  }
-  else {
-    return false;
-  }
+template<typename T, template<typename, typename ...> class Cont, typename ... ContArgs>
+inline typename std::enable_if<scon::is_container<Cont<T, ContArgs...>>::value || std::is_same<Cont<T, ContArgs...>, std::string>::value, bool>::type
+is_in(T const& x, Cont<T, ContArgs...> const& v) {
+  return std::find(v.begin(), v.end(), x) != v.end();
 }
 
 /**finds index of element x in vector v
-if not inside it returns 99998 (this is a number that still looks nice when printed)*/
-inline int find_index(int x, std::vector<int> v)
-{
-  int result = 99998;
-  for (int i = 0; i < v.size(); i++)
-  {
-    if (x == v[i]) result = i;
-  }
-  return result;
+if not inside it returns the maximum limit of an integer*/
+template<typename T, template<typename, typename ...> class Cont, typename ... ContArgs>
+inline typename std::enable_if<scon::is_container<Cont<T, ContArgs...>>::value || std::is_same<Cont<T, ContArgs...>, std::string>::value, int>::type
+find_index(T const & x, Cont<T, ContArgs...> v) {
+  auto found = std::find(v.begin(), v.end(), x);
+  if (found != v.end()) return found - v.begin();
+  else return std::numeric_limits<int>::max();
 }
 
-/**finds index of element x in vector v
-if not inside it returns 99998 (this is a number that still looks nice when printed)*/
-inline int find_index(std::string x, std::vector<std::string> v)
-{
-  int result = 99998;
-  for (int i = 0; i < v.size(); i++)
-  {
-    if (x == v[i]) result = i;
-  }
-  return result;
+/**tests if a string is a number*/
+inline bool check_if_number(std::string const & number) {
+  return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
+    return n != 'E' && n != 'e' && n != '-' && n != '+' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
+  }) == number.end();
 }
 
 /**tests if a (one-letter) string is a digit*/
 inline bool isdigit(std::string s)
 {
-  std::vector<std::string> DIGITS = { "0","1","2","3","4","5","6","7","8","9" };
-  return is_in(s, DIGITS);
+  return check_if_number(s);
 }
 
 /**tests if a file exists
@@ -173,3 +131,5 @@ inline std::string last_line(std::ifstream& in)
   while (in >> std::ws && std::getline(in, line)); // skip empty lines
   return line;
 }
+
+#endif

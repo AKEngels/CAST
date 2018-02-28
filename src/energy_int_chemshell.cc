@@ -1,4 +1,5 @@
-﻿#include "energy_int_chemshell.h"
+#include "energy_int_chemshell.h"
+#include "helperfunctions.h"
 
 template<typename T, typename U>
 auto zip(T && a, U && b) {
@@ -462,7 +463,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
                 break;
             }
         
-            if(str_num[i+1u] != "-" && this->check_if_number(str_i)){
+            if(str_num[i+1u] != "-" && check_if_number(str_i)){
                 ret.emplace_back(std::stoi(str_i));
             }
             else if(str_num[i+1u] == "-"){
@@ -564,14 +565,6 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	if (failcount == 10) {
 		throw std::runtime_error("10 Chemshell calls failed!");
 	}
-}
-
-bool energy::interfaces::chemshell::sysCallInterface::check_if_number(std::string const & number) const {
-
-	return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
-		return n != 'E' && n != 'e' && n != '-' && n != '+' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
-	}) == number.end();
-
 }
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy()const {

@@ -10,6 +10,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 #pragma once
 #include "coords_io.h"
 #include "helperfunctions.h"
+#include "pdb.h"
 
 std::vector<std::string> RESIDUE_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "CYX", "CYM", "CYP", "HID", "HIE", "HIP" };
 
