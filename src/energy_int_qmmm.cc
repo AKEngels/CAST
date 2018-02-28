@@ -997,18 +997,18 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         coords::float_type d = len(r_ij);
         set_distance(d);
 
-		double R_0;  // r_min or sigma
-		if (cparams.general().radiustype.value ==
-			::tinker::parameter::radius_types::T::SIGMA)
-		{
-		  R_0 = sqrt(vparams_i.r*vparams_j.r);  // sigma
-		}
-		else if (cparams.general().radiustype.value ==
-			::tinker::parameter::radius_types::T::R_MIN)
-		{
-		  R_0 = vparams_i.r + vparams_j.r;  // r_min
-		}
-		else throw std::runtime_error("no valid radius_type");
+		    double R_0;  // r_min or sigma
+		    if (cparams.general().radiustype.value ==
+			    ::tinker::parameter::radius_types::T::SIGMA)
+	    	{
+		      R_0 = sqrt(vparams_i.r*vparams_j.r);  // sigma
+	    	}
+		    else if (cparams.general().radiustype.value ==
+		    	::tinker::parameter::radius_types::T::R_MIN)
+	    	{
+		      R_0 = vparams_i.r + vparams_j.r;  // r_min
+		    }
+		    else throw std::runtime_error("no valid radius_type");
 
         double epsilon = sqrt(vparams_i.e * vparams_j.e);  // epsilon
         auto R_r = std::pow(R_0 / d, 6);
@@ -1019,7 +1019,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           std::cout << "VdW calc_modus between atoms " << i+1 << " and " << j+1 << " is " <<calc_modus<<".\n";
         }
 
-		double vdw;  // vdw energy for current atom pair
+		    double vdw;  // vdw energy for current atom pair
         if (calc_modus != 0)  // calculate vdW interaction
         {
           if (cparams.general().radiustype.value ==
@@ -1046,7 +1046,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
           if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
           {    // gradients of coulomb interaction (only for MOPAC here)
-			coords::float_type b = (charge_i*charge_j) / d * elec_factor;
+			      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
             coords::float_type db = b / d;
             auto c_gradient_ij = r_ij * db / d;
             c_gradient[i] += c_gradient_ij;
@@ -1058,7 +1058,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (cparams.general().radiustype.value
               == ::tinker::parameter::radius_types::T::SIGMA)
             {
-			  coords::float_type const V = 4 * epsilon * R_r;
+			        coords::float_type const V = 4 * epsilon * R_r;
               auto vdw_r_grad_sigma = (V / d)*(6.0 - 12.0 * R_r);
               auto vdw_gradient_ij_sigma = (r_ij*vdw_r_grad_sigma) / d;
               if (calc_modus == 2) vdw_gradient_ij_sigma = vdw_gradient_ij_sigma / 2;
@@ -1067,7 +1067,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             }
             else
             {
-			  coords::float_type const V = epsilon * R_r;
+			        coords::float_type const V = epsilon * R_r;
               auto vdw_r_grad_R_MIN = (V / d) * 12 * (1.0 - R_r);
               auto vdw_gradient_ij_R_MIN = (r_ij*vdw_r_grad_R_MIN) / d;
               if (calc_modus == 2) vdw_gradient_ij_R_MIN = vdw_gradient_ij_R_MIN / 2;
