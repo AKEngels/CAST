@@ -168,11 +168,7 @@ public:
   */
   bool line_check(const std::string& line) const {
     auto type = line_type(line);
-    if (type == Record::ATOM || type == Record::HETATOM) {
-      return true;
-    } else {
-      return false;
-    }
+    return type == Record::ATOM || type == Record::HETATOM;
   }
 
   /*!
@@ -314,14 +310,13 @@ public:
   \param line The Pdb line.
   \return 3-dimensional coordinate array.
   */
-  template <typename T>
-  std::array<T, 3> coord(const std::string& line) const {
+  std::array<coords::float_type, 3> coord(const std::string& line) const {
     std::string d{ "coord" };
     std::string f1 = line.substr(30, 8);
     std::string f2 = line.substr(38, 8);
     std::string f3 = line.substr(46, 8);
     std::array<std::string, 3> a{ { f1, f2, f3 } };
-    std::array<T, 3> c = {};
+    std::array<coords::float_type, 3> c = {};
     for (const auto& i : a) {
       field_check(i, d);
     }
@@ -336,19 +331,8 @@ public:
   \return coords::Cartesian_Point object.
   */
   coords::Cartesian_Point cart_point(const std::string& line) const {
-    std::string d{ "coord" };
-    std::string f1 = line.substr(30, 8);
-    std::string f2 = line.substr(38, 8);
-    std::string f3 = line.substr(46, 8);
-    std::array<std::string, 3> a{ { f1, f2, f3 } };
-    for (const auto& i : a) {
-      field_check(i, d);
-    }
-    auto fx{ std::stod(f1) };
-    auto fy{ std::stod(f2) };
-    auto fz{ std::stod(f3) };
-    coords::Cartesian_Point cp(fx, fy, fz);
-    return cp;
+    auto c = coord(line);
+    return coords::Cartesian_Point(c.at(0), c.at(1), c.at(2));
   }
 };
 
@@ -395,7 +379,7 @@ public:
   \param res_vec std::vector of atoms.
   \return std::vector of residue vectors.
   */
-  std::vector<std::vector<Atom_type>>
+  static std::vector<std::vector<Atom_type>>
   create_resids(const std::vector<Atom_type>& res_vec) {
     auto last = res_vec.back().atom_serial;
     std::vector<std::vector<Atom_type>> result;
@@ -410,6 +394,11 @@ public:
     return result;
   }
 
+  std::vector<std::vector<Atom_type>>
+  create_resids()const {
+    return create_resids(atom_vec);
+  }
+
   /*!
   \brief Uses the std::vector of atoms to create a std::vector of index
   std::vectors. Each index std::vector represents all the atom serial numbers
@@ -417,7 +406,7 @@ public:
   \param vec std::vector of atoms.
   \return std::vector of index std::vectors.
   */
-  std::vector<std::vector<std::size_t>>
+  static std::vector<std::vector<std::size_t>>
   create_resids_indices(const std::vector<Atom_type>& vec) {
     std::vector<std::vector<std::size_t>> result;
     auto resids = create_resids(vec);
@@ -431,18 +420,28 @@ public:
     return result;
   }
 
+  std::vector<std::vector<std::size_t>>
+  create_resids_indices()const {
+    return create_resids_indices(atom_vec);
+  }
+
   /*!
   \brief Creates a coords::Representation_3D object from a std::vector of atoms.
   \param vec std::vector of atoms.
   \return coords::Representation_3D object.
   */
-  coords::Representation_3D
-  create_rep_3D(const std::vector<Atom_type>& vec) const {
+  static coords::Representation_3D
+  create_rep_3D(const std::vector<Atom_type>& vec) {
     coords::Representation_3D cp_vec;
     for (auto& i : vec) {
       cp_vec.emplace_back(i.cp);
     }
     return cp_vec;
+  }
+
+  coords::Representation_3D
+  create_rep_3D()const {
+    return create_rep_3D(atom_vec);
   }
 
   /*!
@@ -451,7 +450,7 @@ public:
   \param vec std::vector of atoms.
   \return std::vector of coords::Representation_3D objects.
   */
-  std::vector<coords::Representation_3D>
+  static std::vector<coords::Representation_3D>
   create_resids_rep_3D(const std::vector<Atom_type>& vec) {
     auto resid_vec = create_resids(vec);
     std::vector<coords::Representation_3D> result;
@@ -460,6 +459,11 @@ public:
       result.emplace_back(temp);
     }
     return result;
+  }
+
+  std::vector<coords::Representation_3D>
+  create_resids_rep_3D() const {
+    return create_resids_rep_3D(atom_vec);
   }
 
 private:

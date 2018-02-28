@@ -30,18 +30,18 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
   Pdb::Parser<coords::float_type> p("6ethanol_agg.pdb");
 
-  auto trial = p.create_rep_3D(p.atom_vec);
+  auto trial = p.create_rep_3D();
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
   // auto c0_vec = p0.create_rep_3D(p0.atom_vec);
 
   // create Representation_3D object from the Parser
-  auto cp_vec = p.create_rep_3D(p.atom_vec);
+  auto cp_vec = p.create_rep_3D();
 
   // create residue vector from Parser atom vector
-  auto residue_vec = p.create_resids_rep_3D(p.atom_vec);
+  auto residue_vec = p.create_resids_rep_3D();
 
   // create residue index vector from Parser atom vector
-  auto index_vec = p.create_resids_indices(p.atom_vec);
+  auto index_vec = p.create_resids_indices();
 
   // create vector of bonds
   auto bonds = ic_util::bonds(p.atom_vec, cp_vec);
