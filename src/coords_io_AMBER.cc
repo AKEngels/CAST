@@ -571,8 +571,15 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // Good thing we kept track of this with our two std::vector members
     for (unsigned int i = 0u; i < bondsWithHydrogen.size(); i = i + 2u)
     {
-      atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
-      atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
+      if (atoms.atom(bondsWithHydrogen[i] - 1u).energy_type() == 2002 && atoms.atom(bondsWithHydrogen[i + 1u] - 1u).energy_type() == 2002)
+      {
+        // do not connect the two hydrogens of a water molecule, even it there is a bond in the prmtop file
+      }
+      else
+      {
+        atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
+        atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
+      } 
     }
     for (unsigned int i = 0u; i < bondsWithoutHydrogen.size(); i = i + 2u)
     {
