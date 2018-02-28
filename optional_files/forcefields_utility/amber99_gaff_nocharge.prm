@@ -979,8 +979,8 @@ atom       1250   31    HO    "D-3'-Hydroxyl H3T"            1     1.008    1
 atom       1251   23    OS    "D-3'-Phosphate O3'"           8    16.000    2
 atom       1252   28    P     "D-3'-Phosphate P"            15    30.970    4
 atom       1253   25    O2    "D-3'-Phosphate OP"            8    16.000    1
-atom       2001  111    OW    "TIP3P Oxygen"                 8    16.000    2
-atom       2002   89    HW    "TIP3P Hydrogen"               1     1.008    1
+atom       2001   21    OW    "TIP3P Oxygen"                 8    16.000    2
+atom       2002   30    HW    "TIP3P Hydrogen"               1     1.008    1
 atom       2003   41    Li+   "Li+ Lithium Ion"              3     6.940    0
 atom       2004   42    Na+   "Na+ Sodium Ion"              11    22.990    0
 atom       2005   43    K+    "K+ Potassium Ion"            19    39.100    0
