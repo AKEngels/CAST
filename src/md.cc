@@ -1657,12 +1657,16 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       }
     }
 
-    bool const HEATED(heat(k, fep));
-    if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
+    if (Config::get().general.verbosity > 3u)
+    {
+      std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
+    }
+    else if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
+    bool const HEATED(heat(k, fep));
     if (Config::get().md.temp_control == true)
     {
       // apply half step temperature corrections
