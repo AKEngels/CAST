@@ -1,6 +1,7 @@
 ﻿#include "PCA.h"
 namespace pca
 {
+  using float_type = coords::float_type;
 	void PrincipalComponentRepresentation::generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords)
 	{
     // Tell 'em what we are gonna do:

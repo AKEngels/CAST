@@ -1,10 +1,108 @@
-﻿#include "configuration.h"
+#include "configuration.h"
 
 /**
  * Global static instance of the config-object. 
  * There can only ever be one config-object.
  */
 Config * Config::m_instance = nullptr;
+
+/**
+* Helper function that sorts numerical
+* integer type numbers into a vector. Every number
+* is only inserted once ("uniquely").
+*
+* @param str: String containing number range (ex. "0-2, 7, 2, 3, 3, 13-15")
+* @return: vector containing sorted unique numbers (ex. "0, 1, 2, 3, 7, 13, 14, 15")
+*/
+std::vector<std::size_t> config::sorted_indices_from_cs_string(std::string str, bool minus_1)
+{
+  // remove all spaces
+  str.erase(std::remove_if(str.begin(), str.end(),
+    [](char c) -> bool {return std::isspace(c) > 0; }),
+    str.end());
+  // replace all commas with spaces
+  std::replace(str.begin(), str.end(), ',', ' ');
+  std::string d;
+  std::stringstream iss(str);
+  std::vector<std::size_t> re;
+  // get each seperated value as single string d
+  while (iss >> d)
+  {
+    auto dash_pos = d.find('-');
+    // if element is a range (contains '-')
+    if (dash_pos != std::string::npos)
+    {
+      d[dash_pos] = ' ';
+      std::stringstream pss{ d };
+      std::size_t first(0), last(0);
+      if (pss >> first && pss >> last)
+      {
+        if (first <= last && (!minus_1 || first > 0))
+        {
+          for (auto i = first; i <= last; ++i)
+          {
+            re.push_back(minus_1 ? i - 1u : i);
+          }
+        }
+        else
+        {
+          throw std::runtime_error("Invalid range for indices: '" +
+            std::to_string(first) + " - " + std::to_string(last) + "'.");
+        }
+      }
+
+      else
+      {
+        throw std::runtime_error("Cannot read index range from '" + d + "'.");
+      }
+    }
+    // throw if non-numeric character is found
+    else if (d.find_first_not_of("0123456789") != std::string::npos)
+    {
+      throw std::runtime_error("Non numeric character found in '" + d + "'.");
+    }
+    // read number from stringstream of d
+    else
+    {
+      std::stringstream pss{ d };
+      std::size_t value;
+      if (pss >> value && (!minus_1 || value > 0))
+      {
+        re.push_back(minus_1 ? value- 1u : value);
+      }
+      else
+      {
+        throw std::runtime_error("Cannot read index from '" + d + "'.");
+      }
+    }
+  }
+  // sort resulting numbers
+  std::sort(re.begin(), re.end());
+  // remove duplicates and return rest
+  return std::vector<std::size_t>{re.begin(), std::unique(re.begin(), re.end())};
+}
+
+
+
+template<typename T>
+static T clip(T value, T const LOW, T const HIGH)
+{
+  using std::min;
+  using std::max;
+  return min(HIGH, max(LOW, value));
+}
+
+
+template<typename ENUM_T, std::size_t ARR_SIZE>
+static ENUM_T enum_type_from_string_arr(std::string const & S, std::string const (&arr)[ARR_SIZE])
+{
+  for (std::size_t i = 0; i < ARR_SIZE; ++i)
+  {
+    if (S.find(arr[i]) != S.npos) return static_cast<ENUM_T>(i);
+  }
+  return static_cast<ENUM_T>(-1);
+}
+
 
 config::tasks::T Config::getTask(std::string const & S)
 {
@@ -403,6 +501,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
+    if (inter == interface_types::QMMM) Config::set().energy.qmmm.use = true;
+    else Config::set().energy.qmmm.use = false;
   }
 
   // Preoptimizazion energy calculation interface
@@ -422,6 +522,41 @@ void config::parse_option(std::string const option, std::string const value_stri
     std::cout << "CAST was compiled without multithreading. Ignoring the config-option \"cores\"." << std::endl;
 #endif
   }
+
+  //! Qmmm-Option
+  else if (option.substr(0, 4u) == "QMMM")
+  {
+    if (option.substr(4u) == "qmatoms")
+    {
+      Config::set().energy.qmmm.qmatoms = 
+        sorted_indices_from_cs_string(value_string, true);
+    }
+    else if (option.substr(4u) == "mminterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.mminterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+    else if (option.substr(4u) == "qminterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.qminterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
+      }
+    }
+  }
+
 
   //!SPACKMAN
   else if (option == "Spackman")
@@ -522,46 +657,67 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
   }
 
-  //DFTB options
-  else if (option.substr(0,4) == "DFTB")
+  //DFTBaby options
+  else if (option.substr(0,7) == "DFTBABY")
   {
-    if (option.substr(4,3) == "ath")
-        Config::set().energy.dftb.path = value_string;
-    else if (option.substr(4,8) == "gradfile")
-        Config::set().energy.dftb.gradfile = value_string;
-    else if (option.substr(4,9) == "gradstate")
-        Config::set().energy.dftb.gradstate = std::stoi(value_string);
-    else if (option.substr(4,7) == "verbose")
-        Config::set().energy.dftb.verbose = std::stoi(value_string);
-    else if (option.substr(4,6) == "cutoff")
-        Config::set().energy.dftb.cutoff = std::stof(value_string);
-    else if (option.substr(4,7) == "lr_dist")
-        Config::set().energy.dftb.lr_dist = std::stof(value_string);
-    else if (option.substr(4,7) == "maxiter")
-        Config::set().energy.dftb.maxiter = std::stoi(value_string);
-    else if (option.substr(4,4) == "conv")
-        Config::set().energy.dftb.conv_threshold = value_string;
-    else if (option.substr(4,6) == "states")
-        Config::set().energy.dftb.states = std::stoi(value_string);
-    else if (option.substr(4,7) == "occ_orb")
-        Config::set().energy.dftb.orb_occ = std::stoi(value_string);
-    else if (option.substr(4,8) == "virt_orb")
-        Config::set().energy.dftb.orb_virt = std::stoi(value_string);
-    else if (option.substr(4,9) == "diag_conv")
-         Config::set().energy.dftb.diag_conv = value_string; 
-    else if (option.substr(4,12) == "diag_maxiter")
-        Config::set().energy.dftb.diag_maxiter = std::stoi(value_string);
-    else if (option.substr(4,12) == "charge")
-        Config::set().energy.dftb.charge = std::stoi(value_string);
-    else if (option.substr(4,7) == "lr_corr")
+    if (option.substr(7,3) == "ath")
+        Config::set().energy.dftbaby.path = value_string;
+    else if (option.substr(7,8) == "gradfile")
+        Config::set().energy.dftbaby.gradfile = value_string;
+    else if (option.substr(7,9) == "gradstate")
+        Config::set().energy.dftbaby.gradstate = std::stoi(value_string);
+    else if (option.substr(7,7) == "verbose")
+        Config::set().energy.dftbaby.verbose = std::stoi(value_string);
+    else if (option.substr(7,6) == "cutoff")
+        Config::set().energy.dftbaby.cutoff = std::stof(value_string);
+    else if (option.substr(7,7) == "lr_dist")
+        Config::set().energy.dftbaby.lr_dist = std::stof(value_string);
+    else if (option.substr(7,7) == "maxiter")
+        Config::set().energy.dftbaby.maxiter = std::stoi(value_string);
+    else if (option.substr(7,4) == "conv")
+        Config::set().energy.dftbaby.conv_threshold = value_string;
+    else if (option.substr(7,6) == "states")
+        Config::set().energy.dftbaby.states = std::stoi(value_string);
+    else if (option.substr(7,7) == "occ_orb")
+        Config::set().energy.dftbaby.orb_occ = std::stoi(value_string);
+    else if (option.substr(7,8) == "virt_orb")
+        Config::set().energy.dftbaby.orb_virt = std::stoi(value_string);
+    else if (option.substr(7,9) == "diag_conv")
+         Config::set().energy.dftbaby.diag_conv = value_string;
+    else if (option.substr(7,12) == "diag_maxiter")
+        Config::set().energy.dftbaby.diag_maxiter = std::stoi(value_string);
+    else if (option.substr(7,12) == "charge")
+        Config::set().energy.dftbaby.charge = std::stoi(value_string);
+    else if (option.substr(7,7) == "lr_corr")
     {
        if (value_string == "1")
-          Config::set().energy.dftb.longrange = true;
+          Config::set().energy.dftbaby.longrange = true;
     }   
     else if (option.substr(4,3) == "opt")
     {
-      if (value_string == "1") Config::set().energy.dftb.opt = true;
+      if (value_string == "1") Config::set().energy.dftbaby.opt = true;
     }
+  }
+
+  //DFTB+ Options
+  else if (option.substr(0, 5) == "DFTB+")
+  {
+    if (option.substr(5, 4) == "path")
+      Config::set().energy.dftb.path = value_string;
+    else if (option.substr(5, 7) == "skfiles")
+      Config::set().energy.dftb.sk_files = value_string;
+    else if (option.substr(5, 7) == "verbose")
+      Config::set().energy.dftb.verbosity = std::stoi(value_string);
+    else if (option.substr(5, 6) == "scctol")
+      Config::set().energy.dftb.scctol = std::stod(value_string);
+    else if (option.substr(5, 13) == "max_steps_scc")
+      Config::set().energy.dftb.max_steps = std::stoi(value_string);     
+    else if (option.substr(5, 6) == "charge")
+      Config::set().energy.dftb.charge = std::stod(value_string);
+    else if (option.substr(5, 9) == "optimizer")
+      Config::set().energy.dftb.opt = std::stoi(value_string);
+    else if (option.substr(5, 13) == "max_steps_opt")
+      Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
   }
 
   //Gaussian options
@@ -581,10 +737,81 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.multipl = value_string;
     else if (option.substr(8, 4) == "path")
       Config::set().energy.gaussian.path = value_string;
+    else if (option.substr(8, 3) == "opt")
+      Config::set().energy.gaussian.opt = bool_from_iss(cv);
     else if (option.substr(8, 5) == "steep")
       Config::set().energy.gaussian.steep = bool_from_iss(cv);
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
+  }
+  else if (option.substr(0, 9) == "CHEMSHELL") {
+	  auto sub_option = option.substr(10);
+	  if (sub_option == "path") {
+		  Config::set().energy.chemshell.path = value_string;
+	  }
+      else if (sub_option == "coords") {
+          Config::set().energy.chemshell.coords = value_string;
+      }
+	  else if (sub_option == "pdb") {
+		  Config::set().energy.chemshell.extra_pdb = value_string;
+	  }
+	  else if (sub_option == "inpcrd") {
+		  Config::set().energy.chemshell.optional_inpcrd = value_string;
+	  }
+	  else if (sub_option == "prmtop") {
+		  Config::set().energy.chemshell.optional_prmtop = value_string;
+	  }
+	  else if (sub_option == "babel_path") {
+		  Config::set().energy.chemshell.babel_path = value_string;
+	  }
+	  else if (sub_option == "scheme") {
+		  Config::set().energy.chemshell.scheme = value_string;
+	  }
+	  else if (sub_option == "qm_theory") {
+		  Config::set().energy.chemshell.qm_theory = value_string;
+	  }
+	  else if (sub_option == "qm_hamiltonian") {
+		  Config::set().energy.chemshell.qm_ham = value_string;
+	  }
+	  else if (sub_option == "qm_basisset") {
+		  Config::set().energy.chemshell.qm_basis = value_string;
+	  }
+	  else if (sub_option == "qm_charge") {
+		  Config::set().energy.chemshell.qm_charge = value_string;
+	  }
+	  else if (sub_option == "combine_residues") {
+		  Config::set().energy.chemshell.com_residues = value_string;
+	  }
+	  else if (sub_option == "qm_atoms") {
+		  Config::set().energy.chemshell.qm_atoms = value_string;
+	  }
+	  else if (sub_option == "delete") {
+		  Config::set().energy.chemshell.delete_input = bool_from_iss(cv);
+	  }
+	  else if (sub_option == "maxcyc") {
+		  Config::set().energy.chemshell.maxcyc = value_string;
+	  }
+	  else if (sub_option == "maxcycle") {
+		  Config::set().energy.chemshell.maxcycle = value_string;
+	  }
+	  else if (sub_option == "tolerance") {
+		  Config::set().energy.chemshell.tolerance = value_string;
+	  }
+	  else if (sub_option == "mxlist") {
+		  Config::set().energy.chemshell.mxlist = value_string;
+	  }
+	  else if (sub_option == "cutoff") {
+		  Config::set().energy.chemshell.cutoff = value_string;
+	  }
+	  else if (sub_option == "dispersion_correction") {
+		  Config::set().energy.chemshell.dispersion = bool_from_iss(cv);
+	  }
+      else if (sub_option == "scale14") {
+        Config::set().energy.chemshell.scale14 = value_string;
+      }
+      else if (sub_option == "active_radius") {
+        Config::set().energy.chemshell.active_radius = value_string;
+      }
   }
 
   // convergence threshold for bfgs
@@ -717,6 +944,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.veloScale;
 	  }
+      else if (option.substr(2, 12) == "temp_control")
+      {
+        if (cv.str() == "0") Config::set().md.temp_control = false;
+      }
 	  else if (option.substr(2, 10) == "thermostat")
 	  {
 		  Config::set().md.hooverHeatBath = bool_from_iss(cv);
@@ -1279,6 +1510,22 @@ void config::parse_option(std::string const option, std::string const value_stri
     Config::set().coords.subsystems.push_back(std::move(ssi));
   }
 
+  else if (option.substr(0, 7) == "2DSCAN-")
+  {
+    auto const command = option.substr(7);
+    if (command == "bond" || command == "angle" || command == "dihedral") {
+      Config::set().scan2d.AXES.emplace_back(option.substr(7) + " " + value_string);
+    }
+    else if (command.substr(0,7) == "PREDEF-") {
+      auto const predef_command = command.substr(7);
+      if (predef_command == "change_from_atom_to_atom") {
+        Config::set().scan2d.change_from_atom_to_atom = std::stod(value_string);
+      }
+      else if (predef_command == "max_change_to_rotate_whole_molecule") {
+        Config::set().scan2d.max_change_to_rotate_whole_molecule = std::stod(value_string);
+      }
+    }
+  }
 
   //Trajectory Alignment and Analasys options
   else if (option == "dist_unit")
@@ -2115,10 +2362,13 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   {
     strm << "Mopac path is '" << p.mopac.path << "' and command is '" << p.mopac.command << "'.\n";
   }
-  if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
+  else if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
   {
     strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
          << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
+  }
+  else if (Config::get().general.energy_interface == interface_types::CHEMSHELL) {
+	  strm << "Chemshell path is '" << p.chemshell.path << " magic!" << "'.\n"; //<- Not done here!!!!!!
   }
   return strm;
 }

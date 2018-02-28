@@ -1,5 +1,3 @@
-﻿#ifdef USE_PYTHON
-
 #pragma once 
 
 #include <vector>
@@ -18,7 +16,6 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
-#include <Python.h>
 
 #if defined (_MSC_VER)
 #include "win_inc.h"
@@ -34,31 +31,16 @@ namespace energy
 	{
 		namespace dftb
 		{           
-			/*
-			function that creates a string that can be run as a python programme
-			this programme sets the correct pythonpath
-			@param numpath: path to module numpy
-			@param scipath: path to param scipy
-			*/
-			std::string create_pythonpath(std::string numpath, std::string scipath);
-            
-			/*
-			function that creates a configfile for dftbaby (dftbaby.cfg)
-			out of configuration options in CAST inputfile
-			*/
-			void create_dftbaby_configfile();
+			
 
 			class sysCallInterface
 				: public energy::interface_base
 			{
 
 			public:
-                /**constructor
-				when called first, sets all partial energies to 0,
-				fills the string add_path for adding stuff to pythonpath
-				and creates configuration file for dftbaby*/
+        /**constructor: sets optimizer*/
 				sysCallInterface(coords::Coordinates*);
-                /**delete interface?*/
+         /**delete interface?*/
 				~sysCallInterface(void);
 
 				/*
@@ -84,7 +66,7 @@ namespace energy
 				void print_E(std::ostream&) const;
 				/**prints 'headline' for energies*/
 				void print_E_head(std::ostream&, bool const endline = true) const;
-				/**prints partial energies*/
+				/**prints partial energies (not much sense in it because not partial energies are read)*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
 				/**prints gradients*/
 				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
@@ -92,36 +74,46 @@ namespace energy
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
+        /**returns partial atomic charges*/
+        std::vector<coords::float_type> charges() const override;
+        /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
+        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
+        /**overwritten function, should not be called*/
+        std::string get_id() const override
+        {
+          throw std::runtime_error("Function not implemented.\n");
+        }
 
 			private:
 
 				// constructor for clone and move functions
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
-				// energies
-				/**band structure energy*/
-				double e_bs;
-				/**coulomb energy*/
-				double e_coul;
-				/**long range correction*/
-				double e_lr;
-				/**repulsion energy (nuclear)*/
-				double e_rep;
-				/**total energy*/
-				double e_tot;
+        /**checks if structure is complete, i.e. no coordinates are NaN
+        coordinates become NaN sometimes in TS (dimer method)*/
+        bool check_structure();
 
-				/**string that contains pythonprogramme to 
-				add all necessary paths to pythonpath*/
-				std::string add_path;
+        /**writes dftb+ inputfile
+        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+        void write_inputfile(int t);
 
-				/*
-				Helper functions
-				*/
-				bool check_bond_preservation(void) const;
+        /**reads dftb+ outputfile (results.tag)
+        @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
+        double read_output(int t);
+
+        /**total energy*/
+				double energy;
+
+        std::vector<coords::Cartesian_Point> grad_ext_charges;
+
+        /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
+        bool check_bond_preservation(void) const;
+
+        /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
+        bool check_atom_dist(void) const;
 
 			};
 
 		}
 	}
 }
-#endif

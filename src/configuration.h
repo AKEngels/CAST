@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 configuration.h
 Purpose: class for extraction of information from inputfile
@@ -7,7 +7,7 @@ Purpose: class for extraction of information from inputfile
 @version 1.1
 */
 
-#pragma once 
+#pragma once
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -33,11 +33,12 @@ Purpose: class for extraction of information from inputfile
 #include "coords_rep.h"
 #include "configurationHelperfunctions.h"
 
+
 /*! Namespace containing relevant configuration options
  */
 namespace config
 {
-
+  std::vector<std::size_t> sorted_indices_from_cs_string(std::string str, bool minus_1 = false);
   // Here we find some static members that only
   // exist once in CAST, like the version number or
   // some helper arrays containing the tasks etc.
@@ -49,7 +50,7 @@ namespace config
 
 
   /**Number of tasks*/
-  static std::size_t const NUM_TASKS = 29;
+  static std::size_t const NUM_TASKS = 31;
 
   /** Names of all CAST tasks as strings*/
   static std::string const task_strings[NUM_TASKS] =
@@ -58,9 +59,9 @@ namespace config
     "MC", "DIMER", "MD", "NEB", "GOSOL",
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
-    "GRID", "ALIGN", "PATHSAMPLING", "XB_EXCITON_BREAKUP", 
-    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS", 
-    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER",
+    "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
+    "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
+    "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -78,18 +79,18 @@ namespace config
       MC, DIMER, MD, NEB, GOSOL,
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
-      GRID, ALIGN, PATHSAMPLING, XB_EXCITON_BREAKUP,
+      GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
-      LAYER_DEPOSITION, HESS, WRITE_TINKER
+      LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES
     };
   };
 
   /** number of Input Types */
-  static std::size_t const NUM_INPUT = 3;
+  static std::size_t const NUM_INPUT = 4;
   /** Input Types */
   static std::string const input_strings[NUM_INPUT] =
   {
-    "TINKER", "AMBER", "XYZ"
+    "TINKER", "AMBER", "XYZ", "PDB"
   };
 
   /*! contains enum with all input_types currently supported in CAST
@@ -103,7 +104,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      TINKER, AMBER, XYZ
+      TINKER, AMBER, XYZ, PDB
     };
   };
 
@@ -131,13 +132,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 8;
+  static std::size_t const NUM_INTERFACES = 11;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTB", "GAUSSIAN"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -151,7 +152,7 @@ namespace config
     enum T 
     { 
       ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTB, GAUSSIAN
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL
     }; 
   };
 
@@ -212,7 +213,7 @@ namespace config
 
   // ... now lets see about the members of the config namespace
   // They all have one instance as members in the global
-  // config::Config object. This object contains all the 
+  // config::Config object. This object contains all the
   // configoptions read from file for the current CAST run.
 
   /*! Struct containing all general information about the current CAST run
@@ -231,6 +232,9 @@ namespace config
     output_types::T output;
     /** Current task*/
     config::tasks::T task;
+    std::ofstream * trackstream;
+    bool forcefield;
+
     /**Energy interface used for current run*/
     interface_types::T energy_interface;
     /**Energy interface used pre-optimization performed before the current run*/
@@ -266,7 +270,7 @@ namespace config
     //
     unsigned int criterion;
     periodics(void) :
-      pb_box(10.0, 10.0, 10.0), periodic(false), periodic_print(false), 
+      pb_box(10.0, 10.0, 10.0), periodic(false), periodic_print(false),
       periodicCutout(false), cutout_distance_to_box(0.), criterion(0u)
     {
       if ((pb_box.x() <= cutout_distance_to_box
@@ -276,6 +280,12 @@ namespace config
         throw std::runtime_error("Cutout distance cannot be bigger than box size for periodic boundries. Aborting.");
       }
     }
+  };
+
+  struct cut
+  {
+    double distance;
+    std::vector<int> react_atoms;
   };
 
   /*! Stream operator for config::periodics
@@ -530,10 +540,25 @@ namespace config
 
     struct spack
     {
-      bool on, interp;
       double cut;
-      spack(void) : on(false), interp(false), cut(10.0) { }
+      bool on, interp;
+      spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
+
+    /**struct that contains information necessary for QM/MM calculation*/
+    struct qmmm_conf
+    {
+      /**indices of QM atoms*/
+      std::vector <size_t> qmatoms;
+      /**MM interface*/
+      interface_types::T mminterface{ interface_types::T::OPLSAA };
+      /**QM interface*/
+      interface_types::T qminterface{ interface_types::T::MOPAC };
+      /**number of MM atoms*/
+      int mm_atoms_number;
+      /**is QM/MM interface active?*/
+      bool use{ false };
+    } qmmm{};
 
     struct mopac_conf
     {
@@ -553,8 +578,8 @@ namespace config
       {}
     } mopac;
 
-    /**struct that contains all information necessary for DFTB calculation*/
-    struct dftb_conf
+    /**struct that contains all information necessary for DFTBaby calculation*/
+    struct dftbaby_conf
     {
       /**path to dftbaby*/
       std::string path;
@@ -589,24 +614,80 @@ namespace config
       std::string diag_conv;
       /**use own optimizer for optimization (otherwise steepest gradient)*/
       bool opt;
-      
+
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
-      dftb_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      dftbaby_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
       states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
+    } dftbaby;
+
+    /**struct that contains all information necessary for DFTB+ calculation*/
+    struct dftb_conf
+    {
+      /**path to dftb+*/
+      std::string path;
+      /**path to slater-koster files*/
+      std::string sk_files;
+      /**verbosity for dftb+*/
+      int verbosity;
+      /**convergence threshold for SCC-DFTB calculation*/
+      double scctol;
+      /**maximum number of steps for SCC procedure*/
+      int max_steps;
+      /**total charge of the system*/
+      double charge;
+      /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
+      int opt;
+      /**maximal number of steps for optimization with DFTB+ optimizer*/
+      int max_steps_opt;
+
+      /**constructor*/
+      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
+        opt(2), max_steps_opt(5000) {}
     } dftb;
 
     struct gaussian_conf
     {
       std::string path, link, charge, multipl, method, basisset, spec;
-      bool delete_input, steep;
-      gaussian_conf(void) : method("Hf/ "), basisset ("6-31G"),
+      bool delete_input, opt, steep;
+      gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
         delete_input(true)
       {}
     } gaussian;
 
+	struct chemshell_conf {
+		std::string extra_pdb = "";
+		std::string optional_inpcrd = "";
+		std::string optional_prmtop = "";
+		std::string path = "";
+		std::string babel_path = "";
+
+        std::string coords = "";
+		std::string scheme = "";
+		std::string qm_theory = "";
+		std::string qm_ham = "";
+		std::string qm_basis = "";
+		std::string qm_charge = "";
+		std::string qm_atoms = "";
+		std::string com_residues = "";
+
+		std::string maxcycle = "";
+		std::string maxcyc = "";
+		std::string tolerance = "";
+		std::string mxlist = "";
+		std::string cutoff = "";
+        std::string scale14 = "";
+        std::string active_radius = "";
+        /*
+        std::vector<std::string> tleap_sources;
+        std::vector<std::string> tleap_loadamberparams;
+        std::vector<std::string> tleap_loadoffs;
+        */
+		bool dispersion = false;
+		bool delete_input = true;
+	} chemshell;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
@@ -716,6 +797,8 @@ namespace config
 
   struct molecular_dynamics
   {
+    /**temperature control active?*/
+    bool temp_control;
     /**timestep in picoseconds*/
     double timeStep;
     /**initial temperature*/
@@ -794,7 +877,7 @@ namespace config
       refine_offset(0), restart_offset(0), usequil(), usoffset(),
       trackoffset(1), heat_steps(), spherical(), rattle(),
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath(false), veloScale(false), fep(false), track(true),
+      hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
       resume(false), umbrella(false), pre_optimize(false)
     { }
@@ -864,7 +947,7 @@ namespace config
       double cartesian_stepsize, dihedral_max_rot, move_frequency_probability;
       // move method (cartesian, dihedral or dihedral opt)
       move_types::T move;
-      // use minimization after move (basin hopping / mcm) 
+      // use minimization after move (basin hopping / mcm)
       // tracking
       bool minimization;
       mc(void) :
@@ -1188,6 +1271,43 @@ namespace config
     io(void) : amber_mdcrd(), amber_mdvel(), amber_inpcrd(), amber_restrt(), amber_trajectory_at_constant_pressure(false) {}
   };
 
+  /*
+  2DScan Struct
+  */
+
+  struct scan2d {
+	  std::vector<std::string> AXES;
+
+      double change_from_atom_to_atom=0., max_change_to_rotate_whole_molecule=180.;
+      bool constraints = false;
+  };
+
+  /*
+
+      GBSA
+
+  */
+/*
+  namespace gbsa_conf
+  {
+    struct method_types { enum T { VAC = -1, STILL = 0, HCT, OBC, GRYCUK, ACE, ONION, METHODNUM }; };
+    struct surface_types { enum T { TINKER, SASASTILL, GAUSS, SURFACESNUM }; };
+    struct radius_types { enum T { STD, VDW }; };
+
+  }
+
+  struct generalized_born
+  {
+    gbsa_conf::method_types::T method_type;
+    gbsa_conf::surface_types::T surface_type;
+    gbsa_conf::radius_types::T radius_type;
+    generalized_born() :
+      method_type(gbsa_conf::method_types::STILL),
+      surface_type(gbsa_conf::surface_types::TINKER),
+      radius_type(gbsa_conf::radius_types::STD)
+    {}
+  };
+  */
   struct exbreak
   {
 	  std::string masscenters; //Filename
@@ -1197,7 +1317,7 @@ namespace config
 	  std::string pnscpairrates; //Filename
 	  int nscnumber, pscnumber;
 	  char interfaceorientation;
-    double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek, 
+    double ReorgE_exc, ReorgE_ch, ReorgE_nSC, ReorgE_ct, ReorgE_rek,
        ct_triebkraft, rek_triebkraft,oscillatorstrength, wellenzahl;
   };
 
@@ -1218,7 +1338,7 @@ namespace config
   struct couplings
   {
     double nbr_nSC, nbr_pSC, nbr_dimPairs;
-    std::string ct_chara_all, 
+    std::string ct_chara_all,
                 pSCmultipl, pSCcharge, pSCmethod_el, pSCmethod_ex,
                 nSCmultipl, nSCcharge, nSCmethod,
                 hetmultipl, hetcharge, hetmethod;
@@ -1382,12 +1502,13 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
+  config::scan2d					scan2d;
   config::exbreak				        exbreak;
   config::interfcrea            interfcrea;
   config::center                center;
   config::couplings             couplings;
   config::periodics             periodics;
-  config::layd                 layd;
+  config::layd                  layd;
 
   /*! Constructor of Config object
    *
@@ -1491,5 +1612,4 @@ private:
    * If no object exists (yet), this will be a nullpointer.
    */
   static Config * m_instance;
-
 };

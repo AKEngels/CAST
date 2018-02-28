@@ -42,7 +42,8 @@ workspace "CAST"
 		includedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
 
-		filter "not Armadillo_*"
+		--enable if Armadillo Transformations are implemented
+		--filter "not Armadillo_*"
 				includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
@@ -70,7 +71,8 @@ workspace "CAST"
 				links "gmock"
 
 		filter "action:gmake"
-			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static" }
+			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
+			linkoptions "-fopenmp"
 
 		filter { "options:mpi", "action:gmake" }
 			linkoptions "-fopenmp"
@@ -113,8 +115,9 @@ workspace "CAST"
 
 		filter {"Python_*", "action:gmake"}
 			links { "python2.7", "util", "lapack" }
-			linkoptions {  "-export-dynamic", --[["-Wl"--]] }
+			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
 			libdirs { "linux_precompiled_libs" }
+                        includedirs "/apps/python27/include/python2.7"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
@@ -127,12 +130,13 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-			systemversion(os.winSdkVersion() .. ".0")
+			--systemversion(os.winSdkVersion() .. ".0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
-		filter { "not Armadillo_*", "action:vs*" }
+		--enable if Armadillo Transformations are implemented
+		--filter { "not Armadillo_*", "action:vs*" }
 				buildoptions "/bigobj"
 
 		filter { "Release", "platforms:x86", "action:vs*" }

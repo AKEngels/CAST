@@ -52,6 +52,10 @@ coords::input::format* coords::input::new_format(void)
       //XYZ
       return new formats::xyz;
       break;
+    case config::input_types::PDB:
+      //PDB
+      return new formats::pdb;
+      break;
     default:
     {
       return new formats::tinker;
@@ -80,6 +84,10 @@ coords::input::format* coords::input::additional_format(void)
   case config::input_types::XYZ:
     //XYZ
     return new formats::xyz;
+    break;
+  case config::input_types::PDB:
+    //PDB
+    return new formats::pdb;
     break;
   default:
   {
@@ -178,7 +186,8 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           if ((i - input_ensemble.size()*(N + 1u)) == N)
           { // if we are at the end of a structure 
             if (positions.size() != atoms.size())
-              throw std::logic_error("The size of an additionally provided structure does not match the number of atoms.");
+              throw std::logic_error("The size of an additionally provided"
+                " structure does not match the number of atoms.");
             input_ensemble.push_back(positions);
             positions.clear();
           }
@@ -200,8 +209,6 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
           }
         }
       }
-
-
     }
 
     if (indexation_not_contiguous)
@@ -231,7 +238,7 @@ coords::Coordinates coords::input::formats::tinker::read(std::string file)
     for (auto & p : input_ensemble)
     {
       p.gradient.cartesian.resize(p.structure.cartesian.size());
-      coord_object.set_xyz(p.structure.cartesian);
+      coord_object.set_xyz(p.structure.cartesian, true);
       coord_object.to_internal_light();
       p = coord_object.pes();
     }
@@ -401,17 +408,48 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
   }
 }
 
+/**writes the geometry of the coord object in the gen format (description of format see manual of dftb+, appendix C)*/
+void coords::output::formats::xyz_gen::to_stream(std::ostream & stream) const
+{
+  // create a vector with all element symbols of the input structure 
+  std::vector<std::string> existing_symbols;
+  for (auto a : ref.atoms())
+  {
+    if (is_in(a.symbol(), existing_symbols) == false)
+    {
+      existing_symbols.push_back(a.symbol());
+    }
+  }
+
+  // write structure
+  std::size_t const N(ref.size());
+  stream << N << "  C\n";  // no supercells possible
+  for (auto s : existing_symbols)
+  {
+    stream << s << " ";
+  }
+  stream << "\n";
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    stream << std::left << std::setw(5) << i + 1 << std::left << std::setw(5) << find_index(ref.atoms(i).symbol(), existing_symbols)+1;
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
+    stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+    stream << '\n';
+  }
+}
+
 void coords::output::formats::xyz_dftb::to_stream(std::ostream & stream) const
 {
   std::size_t const N(ref.size());
   stream << N << '\n';
-  if (Config::get().energy.dftb.charge == 0)
+  if (Config::get().energy.dftbaby.charge == 0)
   {
     stream << Config::get().general.inputFilename<<"\n";
   }
   else
   {
-    stream << "charge=" + std::to_string(Config::get().energy.dftb.charge)<<"\n";
+    stream << "charge=" + std::to_string(Config::get().energy.dftbaby.charge)<<"\n";
   }
   
   for (std::size_t i(0U); i < N; ++i)

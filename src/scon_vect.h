@@ -1,4 +1,4 @@
-﻿#ifndef SCON_VEC_HEADER
+#ifndef SCON_VEC_HEADER
 
 #define SCON_VEC_HEADER
 
@@ -604,6 +604,7 @@ namespace scon
 #if defined(SCON_DEBUG)
     if (std::distance(ix, ex) != std::distance(iy, ey))
     {
+      std::cout << "broken vectors: " << x << " , " << y << "\n";
       throw std::logic_error("Unqually sized vectors given for dot product.");
     }
 #endif
