@@ -33,41 +33,33 @@ ic_core::distance::der_vec(coords::Representation_3D const& xyz) const {
 }
 
 float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz) const{
-  using ic_atom::period_one;
-  using ic_atom::period_two;
-  using ic_atom::period_three;
+  using ic_atom::element_period;
+  using ic_atom::period;
 
-  bool a_period_one = std::find(period_one.begin(), period_one.end(),
-    elem_a_) != period_one.end();
-  bool a_period_two = std::find(period_two.begin(), period_two.end(),
-    elem_a_) != period_two.end();
-  bool a_period_three = std::find(period_three.begin(), period_three.end(),
-    elem_a_) != period_three.end();
-  bool b_period_one = std::find(period_one.begin(), period_one.end(),
-    elem_b_) != period_one.end();
-  bool b_period_two = std::find(period_two.begin(), period_two.end(),
-    elem_b_) != period_two.end();
-  bool b_period_three = std::find(period_three.begin(), period_three.end(),
-    elem_b_) != period_three.end();
+  auto el_a = element_period(elem_a_);
+  auto el_b = element_period(elem_b_);
+
   auto B_val{ 0.0 };
-  if (a_period_one && b_period_one) {
+  if (el_a == period::one &&
+      el_b == period::two) {
     B_val = -0.244;
   }
-  else if (a_period_one && b_period_two || b_period_one && a_period_two) {
+  else if (el_a == period::one && el_b == period::two ||
+           el_a == period::two && el_b == period::one) {
     B_val = 0.352;
   }
-  else if (a_period_two && b_period_two) {
+  else if (el_a == period::two && el_b == period::two) {
     B_val = 1.085;
   }
-  else if (a_period_one && b_period_three ||
-    b_period_one && a_period_three) {
+  else if (el_a == period::one && el_b == period::three ||
+           el_a == period::three && el_b == period::one) {
     B_val = 0.660;
   }
-  else if (a_period_two && b_period_three ||
-    b_period_two && a_period_three) {
+  else if (el_a == period::two && el_b == period::three ||
+           el_a == period::three && el_b == period::two) {
     B_val = 1.522;
   }
-  else if (a_period_three && b_period_three) {
+  else if (el_a == period::three && el_b == period::three) {
     B_val = 2.068;
   }
   auto A_val{ 1.734 };
@@ -551,9 +543,6 @@ scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords:
 }
 
 scon::mathmatrix<float_type> ic_core::system::initial_hessian(coords::Representation_3D const & xyz) {
-  using ic_atom::period_one;
-  using ic_atom::period_two;
-  using ic_atom::period_three;
   using Mat = scon::mathmatrix<float_type>;
   using scon::cross;
   using scon::dot;

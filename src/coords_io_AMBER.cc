@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 coords_io_AMEBR.cpp
 Purpose: Reading from AMBER .prmtop and .rst (.crd) files
@@ -166,7 +166,7 @@ namespace amberUtil
 ///// In case anyone has to dig through this, I am terribly sorry.
 /////
 //////////////////////////////
-coords::Coordinates coords::input::formats::amber::read(std::string file)
+coords::Coordinates coords::input::formats::amber::read(std::string const& file)
 {
   Coordinates coord_object;
   std::vector<double> charges;

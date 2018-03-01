@@ -13,7 +13,7 @@
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
 {
-double m = 0;
+  double m{ 0. };
 for (auto && a : sys.atoms())
 {
   m += a.mass();
@@ -88,9 +88,14 @@ inline std::string get_python_modulepath(std::string modulename)
 
 /**looks if vector v contains element x
 returns true if yes and false if no */
-template<typename T, template<typename, typename ...> class Cont, typename ... ContArgs>
-inline typename std::enable_if<scon::is_container<Cont<T, ContArgs...>>::value || std::is_same<Cont<T, ContArgs...>, std::string>::value, bool>::type
-is_in(T const& x, Cont<T, ContArgs...> const& v) {
+template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
+inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
+is_in(T const& x, Cont<U, ContArgs...> const& v) {
+  return std::find(v.begin(), v.end(), x) != v.end();
+}
+
+template<typename T, typename U, std::size_t N>
+inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 

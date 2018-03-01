@@ -5,13 +5,13 @@
 #include "ic_core.h"
 #include "ic_rotation.h"
 #include "ic_util.h"
-#include "pdb.h"
 #include "quaternion.h"
 #include "scon_angle.h"
 #include "scon_spherical.h"
 #include "scon_vect.h"
 
 #include "scon_mathmatrix.h"
+#include "coords_io_pdb.h"
 #include <array>
 #include <iostream>
 #include <iomanip>
@@ -28,7 +28,9 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   // create a Parser object from the input file
   /*Pdb::Parser<coords::float_type> pAlaGly("ethanol.pdb");
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
-  Pdb::Parser<coords::float_type> p("6ethanol_agg.pdb");
+  coords::input::formats::pdb pdb_;
+  pdb_.read("6ethanol_agg.pdb");
+  auto const& p = *pdb_.parser;
 
   auto trial = p.create_rep_3D();
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
@@ -43,8 +45,10 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   // create residue index vector from Parser atom vector
   auto index_vec = p.create_resids_indices();
 
+  auto el_vec = p.create_element_vec();
+
   // create vector of bonds
-  auto bonds = ic_util::bonds(p.atom_vec, cp_vec);
+  auto bonds = ic_util::bonds(p.create_element_vec(), cp_vec);
 
   // create graph from bonds vector and atom vector
   ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);

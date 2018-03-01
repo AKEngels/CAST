@@ -7,6 +7,7 @@
 #include<array>
 
 #include"scon_mathmatrix.h"
+#include "ic_atom.h"
 
 /*!
  *  \addtogroup ic_util
@@ -154,19 +155,16 @@ namespace ic_util{
     return a / scon::geometric_length(a);
   }
 
-  template <typename Line, typename T>
   inline std::vector<std::pair<int, int>>
-  bonds(const std::vector<Pdb::Atom<Line, T>>& vec,
-        const coords::Representation_3D& cp_vec) {
+  bonds(std::vector<std::string> const& elem_vec,
+        coords::Representation_3D const& cp_vec) {
     using ic_atom::radius_vec;
 
-    auto radii = radius_vec(vec);
-    auto vec_size = vec.size();
-    auto perm = permutation(vec_size);
+    auto radii = radius_vec(elem_vec);
+    auto perm = permutation(elem_vec.size());
     std::vector<double> thres;
     for (const auto& i : perm) {
-      auto t = 1.2 * (radii.at(i.first - 1) + radii.at(i.second - 1));
-      thres.emplace_back(t);
+      thres.emplace_back(1.2 * (radii.at(i.first - 1) + radii.at(i.second - 1)));
     }
     auto dist = dist_vec(cp_vec);
     auto thres_it{ thres.cbegin() };

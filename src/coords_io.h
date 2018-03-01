@@ -1,4 +1,5 @@
-#pragma once 
+#ifndef COORDS_IO_H
+#define COORDS_IO_H
 
 #if defined _OPENMP
 #include <omp.h>
@@ -11,7 +12,6 @@
 #include "coords.h"
 #include "configuration.h"
 #include "helperfunctions.h"
-#pragma once
 
 namespace coords
 {
@@ -38,7 +38,7 @@ namespace coords
       std::size_t atoms(void) const { return input_ensemble.size() > 0 ? input_ensemble.back().size() : 0U; }
       std::size_t size(void) const { return input_ensemble.size(); }
       // Read Structure and return coordinates
-      virtual Coordinates read(std::string) = 0;
+      virtual Coordinates read(std::string const&) = 0;
       // Get structure i
       PES_Point structure(std::size_t const i = 0u) const { return input_ensemble[i]; }
       Ensemble_PES const & PES(void) const { return input_ensemble; }
@@ -59,8 +59,8 @@ namespace coords
     namespace formats
     {
 
-      static const unsigned int sections_size = 91u;
-      static std::string const amber_sections[91] =
+      static constexpr unsigned int sections_size = 91u;
+      static std::string const amber_sections[sections_size] =
       { "TITLE", "POINTERS", "ATOM_NAME", "CHARGE", "ATOMIC_NUMBER",
         "MASS", "ATOM_TYPE_INDEX", "NUMBER_EXCLUDED_ATOMS", "NONBONDED_PARM_INDEX", "POLARIZABILITY",
         "RESIDUE_LABEL", "RESIDUE_POINTER", "BOND_FORCE_CONSTANT", "BOND_EQUIL_VALUE", "ANGLE_FORCE_CONSTANT",
@@ -70,12 +70,13 @@ namespace coords
         "EXCLUDED_ATOMS_LIST", "HBOND_ACOEF", "HBOND_BCOEF", "HBCUT", "AMBER_ATOM_TYPE",
         "TREE_CHAIN_CLASSIFICATION", "JOIN_ARRAY", "IROTAT", /*"SOLVENT_POINTERS",*/ "ATOMS_PER_MOLECULE", // SOLVENT_POINTERS for now disable because it causes trouble with std::find and POINTERS
         "BOX_DIMENSIONS", "CAP_INFO", "CAP_INFO2", "RADIUS_SET", "RADII",
-        "IPOL" };
+        "IPOL" 
+      };
 
       class amber : public coords::input::format
       {
       public:
-        Coordinates read(std::string);
+        Coordinates read(std::string const&) override;
       private:
         //struct sections;
         static const unsigned int sections_size = 91u;
@@ -109,16 +110,7 @@ namespace coords
       class xyz : public coords::input::format
       {
       public:
-        Coordinates read(std::string);
-      private:
-        Atoms atoms;
-        Cartesian_Point position;
-      };
-
-      class pdb : public coords::input::format
-      {
-      public:
-        Coordinates read(std::string);
+        Coordinates read(std::string const&) override;
       private:
         Atoms atoms;
         Cartesian_Point position;
@@ -134,7 +126,7 @@ namespace coords
       class tinker : public coords::input::format
       {
       public:
-        Coordinates read(std::string);
+        Coordinates read(std::string const&) override;
       private:
         struct line
         {
@@ -160,10 +152,6 @@ namespace coords
 
   namespace output
   {
-
-
-
-
     class format
     {
     protected:
@@ -285,7 +273,6 @@ namespace coords
           return scon::StringFilePath(std::string(Config::get().general.outputFilename).append(postfix).append(".zm")).get_unique_path();
         }
       };
-
     }
 
     inline std::string filename(std::string postfix = "", std::string extension = "")
@@ -300,8 +287,6 @@ namespace coords
       else if (Config::get().general.output == config::output_types::ZMATRIX) return formats::zmatrix::filename(postfix);
       return scon::StringFilePath(Config::get().general.outputFilename).get_unique_path();
     }
-
   }
-
-
 }
+#endif
