@@ -1247,8 +1247,6 @@ namespace energy
       {
         std::ptrdiff_t const M(pairlist.size());
         coords::float_type e_c(0.0), e_v(0.0);
-		    //std::vector <coords::float_type> charge_vector(coords->size());
-        for (auto const & pair : pairlist)
         {
           coords::Representation_3D tmp_grad(grad_vector.size());
           for (std::ptrdiff_t i = 0; i < M; ++i)       // for every pair in pairlist
