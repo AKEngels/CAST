@@ -770,6 +770,21 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   file << "}";
 }
 
+// remove QM charges from AMBER charges (only to be performed once in a CAST run)
+void energy::interfaces::qmmm::QMMM::remove_qm_charges()
+{
+  std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
+  std::vector<coords::float_type> charges_temp;
+  for (int i = 0; i<c.size(); i++)
+  {
+    if (is_in(i, mm_indices))  // find atom charges for MM atoms
+    {
+      charges_temp.push_back(c[i]);   // add charges of MM atoms to new vector
+    }
+  }
+  Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
+}
+
 /**calculates energies and gradients
 @paran if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
@@ -777,25 +792,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   integrity = true;
   auto elec_factor = 332.0;
 
-  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
-  {
-    std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get amber charges
-    mm_charge_vector.clear();
-    for (int i = 0; i<c.size(); i++)
-    {
-      if (is_in(i, mm_indices))  // find atom charges for MM atoms
-      {
-        mm_charge_vector.push_back(c[i] / 18.2223);   // convert charge to elementary units and add it to MM charges
-      }   
-    }   
-  }
-
-  else  // "normal" way to get MM charges
-  {
-    mm_charge_vector = mmc.energyinterface()->charges(); 
-  }
+  if (Config::get().coords.amber_charges.size() > mm_indices.size()) remove_qm_charges();
+  mm_charge_vector = mmc.energyinterface()->charges(); 
   
-
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
   {
