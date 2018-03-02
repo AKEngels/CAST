@@ -241,8 +241,8 @@ struct rotation {
   float_type rad_gyr_;
 
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&) const;
-  std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&);
-  scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&);
+  std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&) const;
+  scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&) const;
   float_type radius_gyration(const coords::Representation_3D&);
 
   static coords::Representation_3D xyz0;
@@ -315,8 +315,10 @@ public:
   scon::mathmatrix<float_type> initial_hessian(coords::Representation_3D const &);
   scon::mathmatrix<float_type> delocalize_hessian(scon::mathmatrix<float_type> const &);
   scon::mathmatrix<float_type> G_mat_inversion(scon::mathmatrix<float_type> const &);
+  scon::mathmatrix<float_type> Bmat(const coords::Representation_3D& trial) const;
 
   scon::mathmatrix<float_type> calc(coords::Representation_3D const&) const;
+  scon::mathmatrix<float_type> calcGrad(coords::Representation_3D const&, coords::Representation_3D const&) const;
 
 };
 

@@ -12,5 +12,5 @@ public:
 	coords::Representation_Internal inp_struc_internal;
 	coords::Representation_Main inp_struc_main;
 
-	void ic_execution(coords::Coordinates*);
+	void ic_execution(std::shared_ptr<coords::input::format>, coords::Coordinates &);
 };

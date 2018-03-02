@@ -414,7 +414,7 @@ ic_core::rotation::rot_val(const coords::Representation_3D& trial) const {
 }
 
 std::vector<scon::mathmatrix<float_type>>
-ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
+ic_core::rotation::rot_der(const coords::Representation_3D& trial) const{
   coords::Representation_3D trial_, xyz0_;
   for (auto const & indi : indices_) {
     trial_.emplace_back(trial.at(indi - 1));
@@ -425,7 +425,7 @@ ic_core::rotation::rot_der(const coords::Representation_3D& trial) {
 }
 
 scon::mathmatrix<float_type>
-ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& trial) {
+ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& trial)const {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
@@ -496,39 +496,36 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
   return result;
 }
 
-scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
-
+scon::mathmatrix<float_type> ic_core::system::Bmat(const coords::Representation_3D& trial) const {
   using Mat = scon::mathmatrix<float_type>;
+  std::vector<std::vector<float_type>> ders;
 
-  /*auto const & trans_derivs = [](auto const & trans_vec) {
-    std::vector<float_type> temp;
-    for (auto const & trans : trans_vec) {
-      auto trans_temp = trans.trans_der_vec();
-      temp.insert(std::begin(temp), std::make_move_iterator(std::begin(trans_temp)), std::make_move_iterator(std::end(trans_temp)));
-    }
-    return temp;
-  };*/
+  for (auto const& pic : primitive_internals) {
+    ders.emplace_back(pic->der_vec(trial));
+  }
+  for (auto const& i : rotation_vec_) {
+    auto temp = i.rot_der_mat(trial.size(), trial);
+    //look for th cols and rows!
+    ders.emplace_back(temp.col_to_std_vector(0));
+    ders.emplace_back(temp.col_to_std_vector(1));
+    ders.emplace_back(temp.col_to_std_vector(2));
+  }
+  std::size_t n_rows = ders.size(), n_cols = ders.at(0).size();
+  Mat result(n_rows, n_cols);
+  for (auto i = 0; i < n_rows; ++i) {
+    result.set_row(i, Mat::row_from_vec(ders.at(i)));
+  }
+
+  return result;
+}
+
+scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
+  using Mat = scon::mathmatrix<float_type>;
 
   auto const & sys_size = trial.size();
 
-  std::vector<std::vector<float_type>> result;
+  auto B_matrix = Bmat(trial);
   
-  for (auto const& pic : primitive_internals) {
-    result.emplace_back(pic->der_vec(trial));
-  }
-  for (auto& i : rotation_vec_) {
-    auto temp = i.rot_der_mat(trial.size(), trial);
-    //look for th cols and rows!
-    result.emplace_back(temp.col_to_std_vector(0));
-    result.emplace_back(temp.col_to_std_vector(1));
-    result.emplace_back(temp.col_to_std_vector(2));
-  }
-  std::size_t n_rows = result.size();
-  std::size_t n_cols = result.at(0).size();
-  Mat B_matrix(n_rows, n_cols);
-  for (auto i = 0; i < n_rows; ++i) {
-    B_matrix.set_row(i, Mat::row_from_vec(result.at(i)));
-  }
   /*std::ofstream of("Bmat.dat");
   of << B_matrix << "\n";*/
   auto G_matrix = B_matrix * B_matrix.t();
@@ -601,4 +598,13 @@ scon::mathmatrix<float_type> ic_core::system::calc(coords::Representation_3D con
     primitives.emplace_back(rv.at(2));
   }
   return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
+}
+
+scon::mathmatrix<float_type> ic_core::system::calcGrad(coords::Representation_3D const & xyz, coords::Representation_3D const & g) const
+{
+
+  auto B_matrix = Bmat(xyz);
+  auto G_mat = B_matrix * B_matrix.t();
+  auto Gmat_inv = G_mat.pinv();
+  return Gmat_inv * G_mat * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(g));
 }

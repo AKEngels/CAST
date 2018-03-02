@@ -297,7 +297,7 @@ int main(int argc, char **argv)
     {
       // DEVTEST: Room for Development testing
       ic_testing exec_obj;
-      exec_obj.ic_execution(&coords);
+      exec_obj.ic_execution(std::move(ci), coords);
       break;
     }
     case config::tasks::SP:

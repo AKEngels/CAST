@@ -595,7 +595,7 @@ void coords::input::formats::pdb_helper::make_bonds(coords::Atoms & atoms, std::
     auto i = bond.first - 1u, j = bond.second - 1u;
     auto & atom1 = atoms.atom(i);
     auto & atom2 = atoms.atom(j);
-    if (is_ion(atom1.get_residue()) || is_ion(atom2.get_residue())) continue;
+    if (is_ion(atom1.get_pdb_atom_name()) || is_ion(atom2.get_pdb_atom_name())) continue;
     atom1.bind_to(j);
     atom2.bind_to(i);
   }

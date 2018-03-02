@@ -17,20 +17,17 @@
 #include <iomanip>
 #include <vector>
 
-void ic_testing::ic_execution(coords::Coordinates* struc) {
-  cPtr = struc;
-  auto n{ cPtr->size() };
-  inp_struc_cartesian = cPtr->xyz();
-  inp_struc_internal = cPtr->intern();
-  inp_struc_main = cPtr->main();
+void ic_testing::ic_execution(std::shared_ptr<coords::input::format> struc, coords::Coordinates & coords) {
+
+  auto fPtr = std::dynamic_pointer_cast<coords::input::formats::pdb>(struc);
+
+  if (!fPtr) throw std::runtime_error("Sorry currently are only pdb formats allowed");
 
   // test of my code
   // create a Parser object from the input file
   /*Pdb::Parser<coords::float_type> pAlaGly("ethanol.pdb");
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
-  coords::input::formats::pdb pdb_;
-  pdb_.read("6ethanol_agg.pdb");
-  auto const& p = *pdb_.parser;
+  auto const& p = *fPtr->parser;
 
   auto trial = p.create_rep_3D();
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
@@ -106,6 +103,8 @@ void ic_testing::ic_execution(coords::Coordinates* struc) {
   }
   auto const & bla = icSystem.calc(trial);
   std::cout << bla << std::endl;
+  coords.g();
+  auto const & blub = icSystem.calcGrad(trial, coords.g_xyz());
 
   // test matrix stuff
   /*auto matrix_trial = ic_util::Rep3D_to_arma<coords::float_type>(cp_vec);
