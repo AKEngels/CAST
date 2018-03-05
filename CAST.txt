@@ -77,6 +77,7 @@ inputtype              TINKER
 # PATHSAMPLING
 # REMOVE_EXPLICIT_WATER
 # WRITE_TINKER         Writes tinkerstructure into outname.arc
+# MODIFY_SK_FILES      Modifies slater koster files form dftb.org into the format needed by gaussian
 # INTERNAL             Create Z-Matrix
 # XB_CENTER            Center of mass/geometry
 # XB_EXCITON_BREAKUP   Simulation of excitons at an semiconductor interface
@@ -184,6 +185,10 @@ GAUSSIANpath g16
 #Delete temporary Gaussian f i l e s ?
 
 GAUSSIANdelete 0
+
+#Number of failed gaussian calls when CAST breaks
+
+GAUSSIANmaxfail      1000
 
 
 ################# DFTB+ Options #################################################
@@ -308,7 +313,7 @@ FIXexclude             false
 # Remove rotations of hydrogens from main torsional angles
 REMOVEHROT             false
 
-# Fix a range of atoms
+# Fix a range of atoms (indizes in tinker numbering, i.e. starting with 1)
 #FIXrange               1-6,9,24,55-71,72
 
 
@@ -845,7 +850,31 @@ MDrefine_offset        100
 
 MDresume               0
 
+# Optimize structure before starting of MD simulation? <0/1>
+
 #MDpre_optimize
+
+
+########################### ANALYZING MD SIMULATIONS #################
+
+# the distances between these atoms are to be plotted during MD simulation
+
+#MDana_pair         347,3149
+#MDana_pair         2277,3151
+#MDana_pair         2277,2276
+
+# plot temperature <0/1>
+
+MDplot_temp        1
+
+# analyze temperature in different zones around active site <0/1>
+# (active site defined by MDactive site)
+
+MDanalyze_zones    1
+
+# zone width (Angstrom)
+
+MDzonewidth        5
 
 
 ####################################

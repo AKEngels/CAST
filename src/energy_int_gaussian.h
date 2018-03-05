@@ -62,6 +62,8 @@ namespace energy
         std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
         /**return id for gaussian call*/
         std::string get_id() const override { return id;};
+        /**get gradients on link atoms (for QM/MM)*/
+        coords::Gradients_3D get_link_atom_grad() const override;
 
       private:
 
@@ -88,6 +90,9 @@ namespace energy
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 
+        /**gradients of link atoms*/
+        coords::Gradients_3D link_atom_grad;
+
         /*
         Gaussian sysCall funcntions
         */
@@ -97,10 +102,7 @@ namespace energy
         void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm=false);
         void removeTempFiles(void);
 
-        /*
-        Helper functions
-        */
-
+        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 
         /*! Pointer to the single instance of the gaussian interface class

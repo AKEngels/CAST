@@ -16,6 +16,7 @@
 #include "configuration.h"
 #include "coords.h"
 #include "coords_io.h"
+#include "modify_sk.h"
 
 #if defined (_MSC_VER)
 #include "win_inc.h"
@@ -61,7 +62,6 @@ namespace energy
 				double h(void);
 				/** Optimization in the interface(d program)*/
 				double o(void);
-				// Output functions
 				/**prints total energy*/
 				void print_E(std::ostream&) const;
 				/**prints 'headline' for energies*/
@@ -83,10 +83,12 @@ namespace energy
         {
           throw std::runtime_error("Function not implemented.\n");
         }
+        /**get gradients on link atoms (for QM/MM)*/
+        coords::Gradients_3D get_link_atom_grad() const override;
 
 			private:
 
-				// constructor for clone and move functions
+				/**constructor for clone and move functions*/
 				sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj);
 
         /**checks if structure is complete, i.e. no coordinates are NaN
@@ -104,9 +106,13 @@ namespace energy
         /**total energy*/
 				double energy;
 
+        /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
 
-        /**checks if all bonds are still intact (bond length smaller than 2.2 Angstrom)*/
+        /**gradients of link atoms*/
+        coords::Gradients_3D link_atom_grad;
+
+        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 
         /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/

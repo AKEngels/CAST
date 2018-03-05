@@ -1,4 +1,4 @@
-﻿#include <stdexcept>
+#include <stdexcept>
 #include <fstream>
 #include <sstream>
 #include <cmath>
@@ -289,7 +289,10 @@ std::size_t tinker::parameter::torsion::check2 (std::size_t a, std::size_t b, st
   return 0u;
 }
 
-
+/**looks for torsion
+returns 4 if parameters in parameter file only with real atoms
+returns smaller numbers if some of the atom types in paramater file are 0
+returns 0 if not fitting in*/
 std::size_t tinker::parameter::torsion::check (std::size_t a, std::size_t b, std::size_t c, std::size_t d) const
 {
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
 CAST 3
 coords_io_AMEBR.cpp
 Purpose: Reading from AMBER .prmtop and .rst (.crd) files
@@ -571,8 +571,15 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
     // Good thing we kept track of this with our two std::vector members
     for (unsigned int i = 0u; i < bondsWithHydrogen.size(); i = i + 2u)
     {
-      atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
-      atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
+      if (atoms.atom(bondsWithHydrogen[i] - 1u).energy_type() == 2002 && atoms.atom(bondsWithHydrogen[i + 1u] - 1u).energy_type() == 2002)
+      {
+        // do not connect the two hydrogens of a water molecule, even it there is a bond in the prmtop file
+      }
+      else
+      {
+        atoms.atom(bondsWithHydrogen[i] - 1u).bind_to(bondsWithHydrogen[i + 1u] - 1u);
+        atoms.atom(bondsWithHydrogen[i + 1u] - 1u).bind_to(bondsWithHydrogen[i] - 1u);
+      } 
     }
     for (unsigned int i = 0u; i < bondsWithoutHydrogen.size(); i = i + 2u)
     {
@@ -675,9 +682,9 @@ coords::Coordinates coords::input::formats::amber::read(std::string file)
 
         if (line.size() > 36)   // normally two coordinates in one line
         {
-          std::string x = line.substr(36, 12);
-          std::string y = line.substr(48, 12);
-          std::string z = line.substr(60, 12);
+          x = line.substr(36, 12);
+          y = line.substr(48, 12);
+          z = line.substr(60, 12);
           position.x() = std::stod(x);
           position.y() = std::stod(y);
           position.z() = std::stod(z);
@@ -716,21 +723,21 @@ DONE:
 	if (Config::get().general.chargefile)   // read charges from chargefile
 	{
 		charges.clear();  // delete former charges
-		std::ifstream coord_file_stream("charges.txt", std::ios_base::in);
-		std::string x;
-		while (coord_file_stream)
+		std::ifstream charge_stream("charges.txt", std::ios_base::in);
+		std::string read;
+		while (charge_stream)
 		{
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom number
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
 				// ignore atom type
 			}
-			if (coord_file_stream >> x)
+			if (charge_stream >> read)
 			{
-				charges.push_back(std::stod(x));
+				charges.push_back(std::stod(read));
 			}
 		}
 		if (charges.size() == coord_object.size())

@@ -1,7 +1,9 @@
 /**
 CAST 3
 modify_sk.h
-Purpose: modify Slater-Koster files from dftb.org format to gaussian format
+Purpose: do things with Slater-Koster files
+    - modify Slater-Koster files from dftb.org format to gaussian format
+    - read angular momenta from Slater-Koster files
 
 @author Susanne Sauer
 @version 1.0
@@ -22,3 +24,7 @@ std::vector<std::vector<std::string>> find_pairs(coords::Coordinates);
 returns true if modifying was successfull,
 returns false if not (e.g. if slater koster file for given element pair is not found by CAST)*/
 bool modify_file(std::vector<std::string> pair);
+
+/**returns highest angular momentum for an element (from slater-koster files)
+@param s: element symbol*/
+char angular_momentum_by_symbol(std::string s);

@@ -121,6 +121,11 @@ namespace energy {
         {
           throw std::runtime_error("function not implemented for chemshell interface\n");
         }
+        /**overwritten function, should not be called*/
+        coords::Gradients_3D get_link_atom_grad() const override
+        {
+          throw std::runtime_error("function not implemented\n");
+        }
 
 			private:
 				int x;

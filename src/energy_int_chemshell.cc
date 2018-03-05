@@ -1,4 +1,4 @@
-﻿#include "energy_int_chemshell.h"
+#include "energy_int_chemshell.h"
 
 template<typename T, typename U>
 auto zip(T && a, U && b) {
@@ -506,8 +506,6 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
         }
     }
 
-    auto const & atoms = coords->atoms();
-
     for(auto const & aa : active_atoms_set){
         active_atoms += std::to_string(aa) + " ";
     }
@@ -635,12 +633,12 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
 
 }
 
-bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coords)const {
+bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coordobj)const {
 	return 
-		coords.size() == 4 &&
-		check_if_number(coords.at(1)) && 
-		check_if_number(coords.at(2)) && 
-		check_if_number(coords.at(3));
+    coordobj.size() == 4 &&
+		check_if_number(coordobj.at(1)) &&
+		check_if_number(coordobj.at(2)) &&
+		check_if_number(coordobj.at(3));
 }
 
 coords::Cartesian_Point energy::interfaces::chemshell::sysCallInterface::make_coords(std::vector<std::string> const & line) const {

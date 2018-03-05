@@ -127,10 +127,10 @@ void couplings::coupling::kopplung()
             }//end loop over relevant ct-states
           }//end loop over ex_ex_dipoles
 
-          for (int i = 0; i < ct_relev_states.size(); i++) //sum up squares of couplings between single states
+          for (int j = 0; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
           {
-            ct_square_coup_sum  += ct_coupling[i]  * ct_coupling[i];
-            rek_square_coup_sum += rek_coupling[i] * rek_coupling[i];
+            ct_square_coup_sum  += ct_coupling[j]  * ct_coupling[j];
+            rek_square_coup_sum += rek_coupling[j] * rek_coupling[j];
           }
 
           V_ct.push_back(sqrt(ct_square_coup_sum));//put the coupling for the dimer in the vector

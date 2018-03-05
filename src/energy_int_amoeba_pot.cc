@@ -90,10 +90,9 @@ double energy::interfaces::amoeba::amoeba_ff::g(void)
 double energy::interfaces::amoeba::amoeba_ff::h(void)
 {
   pre();
-  printf("ERROR: this interface doesn't provide a hessian matrix\n"); 
-  std::exit(0);
-  post();
-  return energy;
+  throw std::runtime_error("amoeba_ff doesn't provide hessian matrix.");
+  //post();
+  //return energy;
 }
 
 double energy::interfaces::amoeba::amoeba_ff::o(void)
@@ -2301,7 +2300,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
   double temp3(0.0), temp5(0.0), temp7(0.0);
   double psc3(0.0), psc5(0.0), psc7(0.0), dsc3(0.0), dsc5(0.0), dsc7(0.0);
   double xr(0.0), yr(0.0), zr(0.0);
-  double r1(0.0), r2(0.0), rr1(0.0), rr(0.0), rr3(0.0), rr5(0.0), rr7(0.0), rr9(0.0), rr11(0.0);
+  double r1(0.0), r2(0.0), rr1(0.0), rr3(0.0), rr5(0.0), rr7(0.0), rr9(0.0), rr11(0.0);
   double ci(0.0), ck(0.0);
   double cutoff(0.0), dd(0.0), cc(0.0), fQ(0.0);
 

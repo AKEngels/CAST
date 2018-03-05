@@ -52,6 +52,11 @@ namespace energy
         {
           throw std::runtime_error("TODO: Implement electric field.\n");
         }
+        /**overwritten function, should not be called*/
+        coords::Gradients_3D get_link_atom_grad() const override
+        {
+          throw std::runtime_error("function not implemented\n");
+        }
         /**overwritten function*/
         std::string get_id() const override { return "bullshit"; }
 
@@ -89,9 +94,7 @@ namespace energy
 				void read_mopacOutput(bool const grad = true, bool const hess = false, bool const opt = true);
 				void removeTempFiles(void);
 
-				/*
-				Helper functions
-				*/
+        /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
 				bool check_bond_preservation(void) const;
 
 			};

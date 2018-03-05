@@ -1,4 +1,4 @@
-﻿#include <sstream>
+#include <sstream>
 #include <cstddef>
 #include "energy_int_aco.h"
 #include "configuration.h"
@@ -120,23 +120,34 @@ void energy::interfaces::aco::aco_ff::update (bool const skip_topology)
 std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
 {
   std::vector<coords::float_type> c;
-  if (cparams.charges().empty())
+
+  if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
   {
-    throw std::runtime_error("No charges in parameters.");
+    c = Config::get().coords.amber_charges;  // get amber charges
+    for (double &q : c) q = q / 18.2223;     // convert all charges to elementary units
   }
-  for (auto && atom : coords->atoms())
+
+  else  // if no amber charges: get charges from charge parameters
   {
-    for (auto && chg : cparams.charges())
+    if (cparams.charges().empty())
     {
-      auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
-      if (chg.index == t_of_atom)
+      throw std::runtime_error("No charges in parameters.");
+    }
+    for (auto && atom : coords->atoms())
+    {
+      for (auto && chg : cparams.charges())
       {
-        c.push_back(chg.c);
-        break;
+        auto t_of_atom = cparams.type(atom.energy_type(), tinker::CHARGE);
+        if (chg.index == t_of_atom)
+        {
+          c.push_back(chg.c);
+          break;
+        }
       }
     }
   }
-  if (c.size() != coords->size())
+  
+  if (c.size() != coords->size())  // check if correct number of parameters is found
   {
     throw std::runtime_error("Didn't find all charges.");
   }

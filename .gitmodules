@@ -1,3 +1,3 @@
 [submodule "submodules/eigen"]
 	path = submodules/eigen
-	url = git@github.com:RLovelett/eigen.git
+	url = git@github.com:eigenteam/eigen-git-mirror.git

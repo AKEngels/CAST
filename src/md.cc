@@ -1,26 +1,4 @@
-#ifdef USE_PYTHON
-#include <Python.h>
-#endif
-#include <vector>
-#include <cmath>
-#include <algorithm>
-#include <limits>
-#include <iostream>
-#include <sstream>
-#include <cstdio>
-#include <cstring>
-#include <stdexcept>
-#include <atomic>
-
 #include "md.h"
-
-#include "coords.h"
-#include "coords_io.h"
-#include "scon_chrono.h"
-#include "scon_vect.h"
-#include "scon_utility.h"
-#include "helperfunctions.h"
-
 
 // Logging Functions
 
@@ -138,6 +116,20 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
+
+  if (Config::get().md.ana_pairs.size() > 0)
+  {  
+    for (auto p : Config::get().md.ana_pairs)
+    {                           // create atom pairs to analyze, fetch information and save
+      ana_pair ap(p[0], p[1]);
+      ap.symbol_a = coordobj.atoms(ap.a).symbol();
+      ap.symbol_b = coordobj.atoms(ap.b).symbol();
+      ap.name_a = ap.symbol_a + std::to_string(ap.a + 1);
+      ap.name_b = ap.symbol_b + std::to_string(ap.b + 1);
+      ap.legend = ap.name_a + "-" + ap.name_b;
+      ana_pairs.push_back(ap);
+    }
+  }
 }
 
 
@@ -532,7 +524,49 @@ void md::simulation::init(void)
   // call center of Mass method from coordinates object
   C_mass = coordobj.center_of_mass();
 
+  if (Config::get().md.analyze_zones == true)
+  {
+    zones = find_zones();  // find atoms for every zone
+  }
+}
 
+/**function that fills zones with atoms*/
+std::vector<md::zone> md::simulation::find_zones()
+{
+  std::vector<zone> zones;
+  double zone_width = Config::get().md.zone_width;
+
+  // calculate initial active site and distances to active center
+  distances = init_active_center(0);   
+
+  // find out number of zones (maximum distance to active site)
+  std::vector<double>::iterator it = std::max_element(distances.begin(), distances.end());
+  double max_dist = *it;
+  int number_of_zones = std::ceil(max_dist / zone_width);
+  zones.resize(number_of_zones);
+
+  // create zones, fill them with atoms and create legend
+  for (int i = 0; i < distances.size(); i++)
+  {
+    int zone = std::floor(distances[i] / zone_width);
+    zones[zone].atoms.push_back(i);
+  }
+  for (int i = 0; i < zones.size(); i++)
+  {
+    zones[i].legend = std::to_string(int(i * zone_width)) + " to " + std::to_string(int((i + 1)*zone_width)); 
+  }
+
+  // output
+  if (Config::get().general.verbosity > 2)
+  {
+    std::cout << "Zones:\n";
+    for (int i = 0; i < zones.size(); i++)
+    {
+      std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1)*zone_width << "\n";
+    }
+  }
+
+  return zones;
 }
 
 // If FEP calculation is requested: calculate lambda values for each window
@@ -677,7 +711,7 @@ void md::simulation::freecalc()
   this->FEPsum_SOS += dG_SOS;
 }
 
-void md::simulation::bar(int window)
+void md::simulation::bar(int current_window)
 {
    double boltz = 1.3806488E-23, avogad = 6.022E23, conv = 4184.0;
    double w, w_back;  // weighting function
@@ -708,7 +742,7 @@ void md::simulation::bar(int window)
      ensemble_back = ensemble_back / coordobj.fep.fepdata.size();
      temp_avg = temp_avg / coordobj.fep.fepdata.size();
 
-     if (window == 0)  dG_BAR = 0;                            // calculate dG for current window
+     if (current_window == 0)  dG_BAR = 0;                            // calculate dG for current window
      else dG_BAR = -1 * std::log(de_ensemble_v_BAR / ensemble_back)*temp_avg*boltz*avogad / conv;
      if (Config::get().general.verbosity > 3)
      {
@@ -781,7 +815,11 @@ std::string md::simulation::get_pythonpath()
 {
   std::string pythonpaths_str = Py_GetPath();
   std::string path;
+#ifdef __unix__
   std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+#elif defined(_WIN32) || defined(WIN32)
+  std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
+#endif
   path = "import sys\n";
   for (auto p : pythonpaths)  //keep pythonpath of system
   {
@@ -863,6 +901,167 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   }
   return dE_pots;
 }
+
+void md::simulation::plot_distances(std::vector<ana_pair> pairs)
+{
+  std::string add_path = get_pythonpath();
+
+  PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  // create python list with legends
+  PyObject *legends = PyList_New(ana_pairs.size());
+  for (std::size_t k = 0; k < ana_pairs.size(); k++) {
+    pValue = PyString_FromString(ana_pairs[k].legend.c_str());
+    PyList_SetItem(legends, k, pValue);
+  }
+
+  // create a python list that contains a list with distances for every atom pair that is to be analyzed
+  PyObject *distance_lists = PyList_New(ana_pairs.size());
+  int counter = 0;
+  for (auto a : ana_pairs)
+  {
+    PyObject *dists = PyList_New(a.dists.size());
+    for (std::size_t k = 0; k < a.dists.size(); k++) {
+      pValue = PyFloat_FromDouble(a.dists[k]);
+      PyList_SetItem(dists, k, pValue);
+    }
+    PyList_SetItem(distance_lists, counter, dists);
+    counter += 1;
+  }
+
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_dists"); //create function
+    prm = Py_BuildValue("(OO)", legends, distance_lists); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(legends);
+  Py_DECREF(distance_lists);
+}
+
+void md::simulation::plot_temp(std::vector<double> temperatures)
+{
+  std::string add_path = get_pythonpath();
+
+  PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  // create python list with temperatures for every frame
+  PyObject *temps = PyList_New(temperatures.size());
+  for (std::size_t k = 0; k < temperatures.size(); k++) {
+    pValue = PyFloat_FromDouble(temperatures[k]);
+    PyList_SetItem(temps, k, pValue);
+  }
+
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_temp"); //create function
+    prm = Py_BuildValue("(O)", temps); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(temps);
+}
+
+/**function to plot temperatures for all zones*/
+void md::simulation::plot_zones()
+{
+  std::string add_path = get_pythonpath();
+
+  PyObject *modul, *funk, *prm, *ret, *pValue;
+
+  // create python list with legends
+  PyObject *legends = PyList_New(zones.size());
+  for (std::size_t k = 0; k < zones.size(); k++) {
+    pValue = PyString_FromString(zones[k].legend.c_str());
+    PyList_SetItem(legends, k, pValue);
+  }
+
+  // create a python list that contains a list with temperatures for every zone
+  PyObject *temp_lists = PyList_New(zones.size());
+  int counter = 0;
+  for (auto z : zones)
+  {
+    PyObject *temps = PyList_New(z.temperatures.size());
+    for (std::size_t k = 0; k < z.temperatures.size(); k++) {
+      pValue = PyFloat_FromDouble(z.temperatures[k]);
+      PyList_SetItem(temps, k, pValue);
+    }
+    PyList_SetItem(temp_lists, counter, temps);
+    counter += 1;
+  }
+
+  PySys_SetPath("./python_modules"); //set path
+  const char *c = add_path.c_str();  //add paths pythonpath
+  PyRun_SimpleString(c);
+
+  modul = PyImport_ImportModule("MD_analysis"); //import module 
+  if (modul)
+  {
+    funk = PyObject_GetAttrString(modul, "plot_zones"); //create function
+    prm = Py_BuildValue("(OO)", legends, temp_lists); //give parameters
+    ret = PyObject_CallObject(funk, prm);  //call function with parameters
+    std::string result_str = PyString_AsString(ret); //convert result to a C++ string
+    if (result_str == "error")
+    {
+      std::cout << "An error occured during running python module 'MD_analysis'\n";
+    }
+  }
+  else
+  {
+    std::cout << "Error: module 'MD_analysis' not found!\n";
+    std::exit(0);
+  }
+  //delete PyObjects
+  Py_DECREF(prm);
+  Py_DECREF(ret);
+  Py_DECREF(funk);
+  Py_DECREF(modul);
+  Py_DECREF(pValue);
+  Py_DECREF(legends);
+  Py_DECREF(temp_lists);
+}
+
 #endif
 
 // perform FEP calculation if requested
@@ -1056,7 +1255,7 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
 }
 
 // apply pressure corrections if constant pressure simulation is performed
-void md::simulation::berendsen(double const & time)
+void md::simulation::berendsen(double const time)
 {
   // temp variables
   const std::size_t N = coordobj.size();
@@ -1244,7 +1443,7 @@ void md::simulation::nose_hoover_thermostat(void)
 double md::simulation::nose_hoover_thermostat_biased(void)
 {
   double tempscale(0.0);
-  double freedom_inner = 3U * inner_atoms.size();
+  int freedom_inner = 3U * inner_atoms.size();
   if (Config::get().periodics.periodic == true)
     freedom -= 3;
   else
@@ -1279,7 +1478,7 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 {
   std::size_t const N = this->coordobj.size();  // total number of atoms
   double tempfactor(2.0 / (freedom*md::R));     // factor for calculation of temperature from kinetic energy  
-  double temp, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
+  double temp1, temp2 = 0, factor;     // current temperature before and after the temperature scaling, scaling factor
 
   if (thermostat)   // apply nose-hoover thermostat
   {
@@ -1318,8 +1517,8 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       updateEkin_some_atoms(inner_atoms); // kinetic energy of inner atoms
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
-      temp = E_kin*T_factor;           // temperature of inner atoms
-      factor = std::sqrt(T / temp);    // temperature scaling factor
+      temp1 = E_kin*T_factor;           // temperature of inner atoms
+      factor = std::sqrt(T / temp1);    // temperature scaling factor
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       if (half == false)
       {
@@ -1331,8 +1530,8 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
     else
     {
       updateEkin();
-      temp = E_kin * tempfactor;      // temperature before
-      factor = std::sqrt(T / temp);
+      temp1 = E_kin * tempfactor;      // temperature before
+      factor = std::sqrt(T / temp1);
       for (size_t i(0U); i < N; ++i) V[i] *= factor;  // new velocities
       if (half == false)
       {
@@ -1344,11 +1543,11 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
 
     if (Config::get().general.verbosity > 3 && half)
     {
-      std::cout << "half step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+      std::cout << "half step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
     }
     else if (Config::get().general.verbosity > 3)
     {
-      std::cout << "full step: desired temp: " << T << " current temp: " << temp << " factor: " << factor << "\n";
+      std::cout << "full step: desired temp: " << T << " current temp: " << temp1 << " factor: " << factor << "\n";
     }
   }
   return temp2;
@@ -1361,7 +1560,7 @@ std::vector<double> md::simulation::init_active_center(int counter)
 
   auto split = std::max(std::min(std::size_t(CONFIG.num_steps / 100u), size_t(10000u)), std::size_t{ 100u });
 
-  std::vector<double> distances;
+  std::vector<double> dists;
   std::vector<coords::Cartesian_Point> coords_act_center;
   for (auto & atom_number : Config::get().md.active_center)
   {
@@ -1395,13 +1594,13 @@ std::vector<double> md::simulation::init_active_center(int counter)
     double dist_y = C_geo_act_center.y() - coords_atom.y();
     double dist_z = C_geo_act_center.z() - coords_atom.z();
     double distance = sqrt(dist_x*dist_x + dist_y*dist_y + dist_z*dist_z);
-    distances.push_back(distance);
+    dists.push_back(distance);
     if (Config::get().general.verbosity > 3)
     {
       std::cout << "Atom " << i + 1 << ": Distance to active center: " << distance << "\n";
     }
   }
-  return distances;
+  return dists;
 }
 
 coords::Cartesian_Point md::simulation::adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff)
@@ -1465,8 +1664,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 
   config::molecular_dynamics const & CONFIG(Config::get().md);
 
-  std::vector<coords::Cartesian_Point> F_old; //only needed for beeman integrator
-
   std::size_t const N = this->coordobj.size();
   // set average pressure to zero
   double p_average(0.0);
@@ -1496,12 +1693,16 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       }
     }
 
-    bool const HEATED(heat(k, fep));
-    if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
+    if (Config::get().general.verbosity > 3u)
+    {
+      std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
+    }
+    else if (Config::get().general.verbosity > 1u && k % split == 0 && k > 1)
     {
       std::cout << k << " of " << CONFIG.num_steps << " steps completed\n";
     }
 
+    bool const HEATED(heat(k, fep));
     if (Config::get().md.temp_control == true)
     {
       // apply half step temperature corrections
@@ -1666,6 +1867,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       coordobj.fep.fepdata.back().T = temp;
     }
+    // save temperature for plotting
+    else if (Config::get().md.plot_temp == true)
+    {
+      temperatures.push_back(temp);
+    }
     // if requested remove translation and rotation of the system
     if (Config::get().md.veloScale) tune_momentum();
 
@@ -1689,8 +1895,42 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     }
     // add up pressure value
     p_average += press;
-  }
-  // calculate average pressure over whle simulation time
+
+    // calculate distances that should be analyzed
+    if (Config::get().md.ana_pairs.size() > 0)
+    {
+      for (auto &p : ana_pairs)
+      {
+        p.dists.push_back(dist(coordobj.xyz(p.a), coordobj.xyz(p.b)));
+      }
+    }
+
+    // calculate average temperature for every zone
+    if (Config::get().md.analyze_zones == true)
+    {
+      for (auto &z : zones)
+      {
+        updateEkin_some_atoms(z.atoms);           
+        int dof = 3u * z.atoms.size();
+        z.temperatures.push_back(E_kin * (2.0 / (dof*md::R)));
+      }
+    }
+  }  // end loop for every MD step
+
+
+#ifdef USE_PYTHON
+  // plot temperature
+  if (Config::get().md.plot_temp == true) plot_temp(temperatures);
+  
+  // plot distances from MD analyzing
+  if (Config::get().md.ana_pairs.size() > 0) plot_distances(ana_pairs);
+
+  // plot average temperatures of every zone
+  if (Config::get().md.analyze_zones == true) plot_zones();
+#else
+  std::cout << "The MD analysis you requested is not possible without python!\n";
+#endif
+  // calculate average pressure over whole simulation time
   p_average /= CONFIG.num_steps;
   if (Config::get().general.verbosity > 2U)
   {
