@@ -1395,7 +1395,9 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 8) == "FIXrange")
   {
     std::vector<size_t> indicesFromString = sorted_indices_from_cs_string(value_string);
-    Config::set().coords.fixed = indicesFromString;
+    std::vector<size_t> fixed = indicesFromString;
+    for (auto &i : fixed) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
+    Config::set().coords.fixed = fixed;
   }
 
   //! Connect two atoms internally

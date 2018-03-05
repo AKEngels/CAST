@@ -313,7 +313,7 @@ FIXexclude             false
 # Remove rotations of hydrogens from main torsional angles
 REMOVEHROT             false
 
-# Fix a range of atoms
+# Fix a range of atoms (indizes in tinker numbering, i.e. starting with 1)
 #FIXrange               1-6,9,24,55-71,72
 
 
