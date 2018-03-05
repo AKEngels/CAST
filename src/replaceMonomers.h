@@ -95,7 +95,7 @@ namespace monomerManipulation
         std::vector<std::size_t> new_bond_indices;
         for (std::size_t k = 0u;  0 < truncatedAtoms.atom(j).bonds().size();)
         {
-          auto& detach = truncatedAtoms.atom(j).bonds(k);
+          auto detach = truncatedAtoms.atom(j).bonds(k);
           new_bond_indices.push_back(detach);
           truncatedAtoms.atom(j).detach_from(detach);
         }//k

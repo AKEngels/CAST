@@ -1752,7 +1752,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 
 }
 
-void neb::no_torsion(const size_t& image_remember, const std::vector<int>& atoms_remember) {
+void neb::no_torsion(const size_t image_remember, const std::vector<int>& atoms_remember) {
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
     imagi[image_remember][atoms_remember[i] - 1].x() = imagi[image_remember - 1][atoms_remember[i] - 1].x();
     imagi[image_remember][atoms_remember[i] - 1].y() = imagi[image_remember - 1][atoms_remember[i] - 1].y();
@@ -1973,7 +1973,7 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
 //void double_or_not
 //Function to find out if a distance, angle or dihedral is double
 //
-void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involved_bonds, const std::vector<size_t>& pivot, const size_t& a, const size_t& b, std::vector<std::vector<double> >& vec) {
+void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involved_bonds, const std::vector<size_t>& pivot, const size_t a, const size_t b, std::vector<std::vector<double> >& vec) {
 
   bool all_the_same;
 
@@ -2010,7 +2010,7 @@ void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involve
   }
 }
 
-bool neb::dihedral_or_not(const int& first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int& last_atom) {
+bool neb::dihedral_or_not(const int first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int last_atom) {
 
   if ((first_atom == dist[1] || first_atom == dist[2] || first_atom == dist[3] || first_atom == dist[4]) && (last_atom == ang[1] || last_atom == ang[2] || last_atom == ang[3] || last_atom == ang[4])) return true;
   else if ((first_atom == ang[1] || first_atom == ang[2] || first_atom == ang[3] || first_atom == ang[4]) && (last_atom == dist[1] || last_atom == dist[2] || last_atom == dist[3] || last_atom == dist[4])) return true;
@@ -2018,7 +2018,7 @@ bool neb::dihedral_or_not(const int& first_atom, const std::vector<int>& dist, c
 
 }
 
-void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t& atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds) {
+void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds) {
 
   double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
   size_t i, j, k, l;
@@ -2276,7 +2276,7 @@ void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std
   }
 }
 
-void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
+void neb::Sort(const size_t imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
   size_t i = 0U, j = 0U, k = 0U, iter = 0U, lenght, start;
   std::string string_swap;
@@ -2335,7 +2335,7 @@ void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<s
   }
 }
 
-void neb::bond_Sort(std::vector<size_t>& bonds, const size_t& start, const size_t& length) {
+void neb::bond_Sort(std::vector<size_t>& bonds, const size_t start, const size_t length) {
 
   size_t i = start, j = length;
   size_t int_swap;
@@ -2418,7 +2418,7 @@ void neb::bond_Sort(size_t* a, size_t* b) {
   }
 }
 
-void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
+void neb::hetero_Sort(const size_t imgs, const size_t start, const size_t length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
   size_t a = 0U, b = 0U, c = 0U, i = start, j = length;
   double double_swap;
@@ -2481,7 +2481,7 @@ void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& len
 
 }
 
-size_t neb::factorial(const size_t& fac) {
+size_t neb::factorial(const size_t fac) {
 
   if (fac <= 1) {
     return 1;
@@ -2493,7 +2493,7 @@ size_t neb::factorial(const size_t& fac) {
 //double distance
 //calculating distance
 //
-double inline neb::distance(const double& x1, const double& x2, const double& y1, const double& y2, const double& z1, const double& z2) {
+double inline neb::distance(const double x1, const double x2, const double y1, const double y2, const double z1, const double z2) {
 
   double x, y, z;
 
@@ -2508,7 +2508,7 @@ double inline neb::distance(const double& x1, const double& x2, const double& y1
 //double angle
 //calculating the vectors from 1 to 2 and from 1 to three and calculating the angle
 //
-double inline neb::angle(const double& x1, const double& x2, const double& x3, const double& y1, const double& y2, const double& y3, const double& z1, const double& z2, const double& z3) {
+double inline neb::angle(const double x1, const double x2, const double x3, const double y1, const double y2, const double y3, const double z1, const double z2, const double z3) {
 
   double re, x, y, z, a, b, c;
 
@@ -2530,7 +2530,7 @@ double inline neb::angle(const double& x1, const double& x2, const double& x3, c
 //double dihedral
 //generating the normal vectors of both planes mounted by 1,2 and 3 and 1,2 and 4 to get their angle
 //which is equal to the dihedral angle and looking whether the point is +/- rotated
-double inline neb::dihedral(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4) {
+double inline neb::dihedral(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4) {
 
   double re, x, y, z, a, b, c, a_norm, b_norm, c_norm, length_normal, length_reflection, lambda, x_1, y_1, z_1, x_2, y_2, z_2, d;
 
@@ -2590,7 +2590,7 @@ double inline neb::dihedral(const double& x1, const double& x2, const double& x3
 //double dihedral_same_atom
 //same as above just for dihedrals where both points are at the start atom
 //
-double inline neb::dihedral_same_atom(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4) {
+double inline neb::dihedral_same_atom(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4) {
 
   double re, x, y, z, a, b, c, a_norm, b_norm, c_norm, length_normal, length_reflection, lambda, x_1, y_1, z_1, x_2, y_2, z_2, d;
 

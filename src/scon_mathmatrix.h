@@ -320,8 +320,8 @@ public:
   std::size_t cols() const;
 #endif
 
-  mathmatrix row(std::size_t const& idx) const;
-  mathmatrix col(std::size_t const& idx) const;
+  mathmatrix row(std::size_t const idx) const;
+  mathmatrix col(std::size_t const idx) const;
 
   /*! Performs Cholesky Decompostion on Matrix.
    *
@@ -383,7 +383,7 @@ public:
    * @see sort_col_disc(std::size_t const&)
    */
   template <typename Comp>
-  std::vector<T> sort_col_to_vec(Comp comp, std::size_t const& ind = 0) const;
+  std::vector<T> sort_col_to_vec(Comp comp, std::size_t const ind = 0) const;
 
   /**
    * @brief Sorts the column of a matrix and returns a column matrix with the sorted values.
@@ -396,7 +396,7 @@ public:
    * @see sort_col_disc(std::size_t const&)
    */
   template <typename Comp>
-  mathmatrix sort_col(Comp comp, std::size_t const& ind = 0) const;
+  mathmatrix sort_col(Comp comp, std::size_t const ind = 0) const;
 
   /**
    * @brief Sorts the column of a matrix and returns a column matrix in ascending order.
@@ -407,7 +407,7 @@ public:
    * @see sort_idx(std::size_t const&)
    * @see sort_col_disc(std::size_t const&)
    */
-  mathmatrix sort_col_asc(std::size_t const& ind = 0) const;
+  mathmatrix sort_col_asc(std::size_t const ind = 0) const;
 
   /**
    * @brief Sorts the column of a matrix and returns a column matrix in discending order.
@@ -418,7 +418,7 @@ public:
    * @see sort_idx(std::size_t const&)
    * @see sort_col_asc(std::size_t const&)
    */
-  mathmatrix sort_col_disc(std::size_t const& ind = 0) const;
+  mathmatrix sort_col_disc(std::size_t const ind = 0) const;
 
   /**
    * @brief Sorts the column of a matrix and returns the indexes in which the entries got to be sorted.
@@ -429,7 +429,7 @@ public:
    * @see sort_col_asc(std::size_t const&)
    * @see sort_col_disc(std::size_t const&)
    */
-  std::vector<std::size_t> sort_idx(std::size_t const& ind = 0) const;
+  std::vector<std::size_t> sort_idx(std::size_t const ind = 0) const;
 
   /**
    * @brief Finds all elements in a column compared with a passed function.
@@ -442,7 +442,7 @@ public:
    */
   template <typename Comp>
   std::vector<std::size_t> find_idx(Comp comp,
-                                    std::size_t const& ind = 0) const;
+                                    std::size_t const ind = 0) const;
 
 //#ifndef CAST_USE_ARMADILLO
 //private:
@@ -470,8 +470,8 @@ public:
     * the second and fourth argument for the columns.
     * @return new matrix with the desired columns and rows.
     */
-  mathmatrix submat(std::size_t const& rb, std::size_t const& cb,
-                    std::size_t const& re, std::size_t const& ce) const;
+  mathmatrix submat(std::size_t const rb, std::size_t const cb,
+                    std::size_t const re, std::size_t const ce) const;
 
 //#ifdef CAST_USE_ARMADILLO
 //  private:
@@ -563,7 +563,7 @@ public:
    * If no value is passed the first column is used.
    * @return standard vector with the specific column.
    */
-  std::vector<T> col_to_std_vector(std::size_t const& iter = 0) const;
+  std::vector<T> col_to_std_vector(std::size_t const iter = 0) const;
 
   /**
   * @brief tranforms the specific row into a vector.
@@ -572,7 +572,7 @@ public:
   * If no value is passed the first row is used.
   * @return standard vector with the specific row.
   */
-  std::vector<T> row_to_std_vector(std::size_t const& iter = 0) const;
+  std::vector<T> row_to_std_vector(std::size_t const iter = 0) const;
 
   /**
    * @brief Returns mathmatrix-obj as std vector of vector of T.
@@ -1023,7 +1023,7 @@ std::size_t mathmatrix<T>::cols() const {
 #endif
 
 template <typename T>
-inline mathmatrix<T> mathmatrix<T>::col(std::size_t const& idx) const {
+inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
 #ifndef CAST_USE_ARMADILLO
   return base_type::col(idx);
 #else
@@ -1038,7 +1038,7 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const& idx) const {
 }
 
 template <typename T>
-inline mathmatrix<T> mathmatrix<T>::row(std::size_t const& idx) const {
+inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
 #ifndef CAST_USE_ARMADILLO
   return base_type::row(idx);
 #else
@@ -1077,8 +1077,8 @@ bool mathmatrix<T>::return_quadratic() const {
 
 template <typename T>
 mathmatrix<T>
-mathmatrix<T>::submat(std::size_t const& rb, std::size_t const& cb,
-                      std::size_t const& re, std::size_t const& ce) const {
+mathmatrix<T>::submat(std::size_t const rb, std::size_t const cb,
+                      std::size_t const re, std::size_t const ce) const {
 #ifndef CAST_USE_ARMADILLO
   //Strange behaviour of Eigen if the submatrix spans from index 0. To circumvent:
   auto re_ = rb == 0 ? re + 1 : re;
@@ -1143,7 +1143,7 @@ mathmatrix<T>::svd() const {
 template <typename T>
 template <typename Comp>
 std::vector<T> mathmatrix<T>::sort_col_to_vec(Comp comp,
-                                              std::size_t const& ind) const {
+                                              std::size_t const ind) const {
   auto ret = col_to_std_vector(ind);
 
   std::sort(ret.begin(), ret.end(), comp);
@@ -1153,7 +1153,7 @@ std::vector<T> mathmatrix<T>::sort_col_to_vec(Comp comp,
 
 template <typename T>
 template <typename Comp>
-mathmatrix<T> mathmatrix<T>::sort_col(Comp comp, std::size_t const& ind) const {
+mathmatrix<T> mathmatrix<T>::sort_col(Comp comp, std::size_t const ind) const {
 
   auto sorted_vec = sort_col_to_vec(comp, ind);
 
@@ -1169,24 +1169,24 @@ mathmatrix<T> mathmatrix<T>::sort_col(Comp comp, std::size_t const& ind) const {
 }
 
 template <typename T>
-mathmatrix<T> mathmatrix<T>::sort_col_asc(std::size_t const& ind) const {
+mathmatrix<T> mathmatrix<T>::sort_col_asc(std::size_t const ind) const {
   return sort_col([](auto const& a, auto const& b) { return a < b; }, ind);
 }
 
 template <typename T>
 inline mathmatrix<T>
-mathmatrix<T>::sort_col_disc(std::size_t const& ind) const {
+mathmatrix<T>::sort_col_disc(std::size_t const ind) const {
   return sort_col([](auto const& a, auto const& b) { return a > b; }, ind);
 }
 
 template <typename T>
-std::vector<std::size_t> mathmatrix<T>::sort_idx(std::size_t const& ind) const {
+std::vector<std::size_t> mathmatrix<T>::sort_idx(std::size_t const ind) const {
   auto val_vec = col_to_std_vector(ind);
   std::vector<std::size_t> ret(val_vec.size());
   std::iota(ret.begin(), ret.end(), 0);
 
   std::sort(ret.begin(), ret.end(),
-            [&val_vec](std::size_t const& i, std::size_t const& j) {
+            [&val_vec](std::size_t const i, std::size_t const j) {
               return val_vec.at(i) < val_vec.at(j);
             });
 
@@ -1196,14 +1196,14 @@ std::vector<std::size_t> mathmatrix<T>::sort_idx(std::size_t const& ind) const {
 template <typename T>
 template <typename Comp>
 std::vector<std::size_t> mathmatrix<T>::find_idx(Comp comp,
-                                                 std::size_t const& ind) const {
+                                                 std::size_t const ind) const {
   auto val_vec = col_to_std_vector(ind);
   std::vector<std::size_t> ret(val_vec.size());
   std::iota(ret.begin(), ret.end(), 0);
 
   ret.erase(
       std::remove_if(ret.begin(), ret.end(),
-                     [&](std::size_t const& i) { return !comp(val_vec[i]); }),
+                     [&](std::size_t const i) { return !comp(val_vec[i]); }),
       ret.end());
 
   return ret;
@@ -1244,10 +1244,10 @@ mathmatrix<T>::submat(std::vector<std::size_t> const& rows,
 
 //#ifndef CAST_USE_ARMADILLO
 
-  auto reverse_vec = [&](std::vector<std::size_t> const& vec, std::size_t const & size) {
+  auto reverse_vec = [&](std::vector<std::size_t> const& vec, std::size_t const size) {
     std::vector<std::size_t> ret(size);
     std::iota(ret.rbegin(), ret.rend(), 0);
-    ret.erase(std::remove_if(ret.begin(), ret.end(), [&](std::size_t const & x) {
+    ret.erase(std::remove_if(ret.begin(), ret.end(), [&](std::size_t const x) {
       return std::find(vec.begin(), vec.end(),x) != vec.end();
     }), ret.end());
     return ret;
@@ -1425,7 +1425,7 @@ mathmatrix<T> mathmatrix<T>::t() const {
 }
 
 template <typename T>
-std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const& iter) const {
+std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const iter) const {
   if (cols() <= iter) {
     throw std::runtime_error("The required col is out of bounds!");
   }
@@ -1442,7 +1442,7 @@ std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const& iter) const {
 }
 
 template <typename T>
-std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const& iter) const {
+std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const iter) const {
   if (rows() <= iter) {
     throw std::runtime_error("The required row is out of bounds!");
   }

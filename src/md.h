@@ -421,7 +421,7 @@ namespace md
     void updateEkin_some_atoms(std::vector<int> atom_list);
 
     /** Berendsen pressure coupling (doesn't work */
-    void berendsen(double const &);
+    void berendsen(double const);
 
     /**write a restartfile
     @param k: current MD step

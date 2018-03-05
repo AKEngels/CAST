@@ -384,7 +384,7 @@ private:
     /**
     * @brief A function for writing the energy output in the outputfile.
     */
-	inline void write_energy_entry(double const & e) {
+	inline void write_energy_entry(double const e) {
 
 		energies << std::fixed << std::setprecision(5) <<
 			std::setw(12) << parser->x_parser->say_val() << " " <<

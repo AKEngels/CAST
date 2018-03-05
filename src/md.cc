@@ -1255,7 +1255,7 @@ void md::simulation::updateEkin_some_atoms(std::vector<int> atom_list)
 }
 
 // apply pressure corrections if constant pressure simulation is performed
-void md::simulation::berendsen(double const & time)
+void md::simulation::berendsen(double const time)
 {
   // temp variables
   const std::size_t N = coordobj.size();
