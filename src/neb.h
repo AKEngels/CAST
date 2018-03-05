@@ -119,10 +119,10 @@ public:
   void get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds);
   void get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >& involved_bonds, std::vector<std::vector<size_t> >& which_bonds);
   size_t factorial(const size_t fac);
-  double inline distance(const double& x1, const double& x2, const double& y1, const double& y2, const double& z1, const double& z2);
-  double inline angle(const double& x1, const double& x2, const double& x3, const double& y1, const double& y2, const double& y3, const double& z1, const double& z2, const double& z3);
-  double inline dihedral(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4);
-  double inline dihedral_same_atom(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4);
+  double inline distance(const double x1, const double x2, const double y1, const double y2, const double z1, const double z2);
+  double inline angle(const double x1, const double x2, const double x3, const double y1, const double y2, const double y3, const double z1, const double z2, const double z3);
+  double inline dihedral(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4);
+  double inline dihedral_same_atom(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4);
   void no_torsion(const size_t image_remember, const std::vector<int>& atoms_remember);
   void execute_fix(const std::vector<size_t>& atoms_remember);
   void execute_defix(const std::vector<size_t>& atoms_remember);

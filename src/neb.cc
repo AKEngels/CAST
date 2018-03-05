@@ -2493,7 +2493,7 @@ size_t neb::factorial(const size_t fac) {
 //double distance
 //calculating distance
 //
-double inline neb::distance(const double& x1, const double& x2, const double& y1, const double& y2, const double& z1, const double& z2) {
+double inline neb::distance(const double x1, const double x2, const double y1, const double y2, const double z1, const double z2) {
 
   double x, y, z;
 
@@ -2508,7 +2508,7 @@ double inline neb::distance(const double& x1, const double& x2, const double& y1
 //double angle
 //calculating the vectors from 1 to 2 and from 1 to three and calculating the angle
 //
-double inline neb::angle(const double& x1, const double& x2, const double& x3, const double& y1, const double& y2, const double& y3, const double& z1, const double& z2, const double& z3) {
+double inline neb::angle(const double x1, const double x2, const double x3, const double y1, const double y2, const double y3, const double z1, const double z2, const double z3) {
 
   double re, x, y, z, a, b, c;
 
@@ -2530,7 +2530,7 @@ double inline neb::angle(const double& x1, const double& x2, const double& x3, c
 //double dihedral
 //generating the normal vectors of both planes mounted by 1,2 and 3 and 1,2 and 4 to get their angle
 //which is equal to the dihedral angle and looking whether the point is +/- rotated
-double inline neb::dihedral(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4) {
+double inline neb::dihedral(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4) {
 
   double re, x, y, z, a, b, c, a_norm, b_norm, c_norm, length_normal, length_reflection, lambda, x_1, y_1, z_1, x_2, y_2, z_2, d;
 
@@ -2590,7 +2590,7 @@ double inline neb::dihedral(const double& x1, const double& x2, const double& x3
 //double dihedral_same_atom
 //same as above just for dihedrals where both points are at the start atom
 //
-double inline neb::dihedral_same_atom(const double& x1, const double& x2, const double& x3, const double& x4, const double& y1, const double& y2, const double& y3, const double& y4, const double& z1, const double& z2, const double& z3, const double& z4) {
+double inline neb::dihedral_same_atom(const double x1, const double x2, const double x3, const double x4, const double y1, const double y2, const double y3, const double y4, const double z1, const double z2, const double z3, const double z4) {
 
   double re, x, y, z, a, b, c, a_norm, b_norm, c_norm, length_normal, length_reflection, lambda, x_1, y_1, z_1, x_2, y_2, z_2, d;
 
