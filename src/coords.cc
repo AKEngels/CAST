@@ -476,8 +476,7 @@ void coords::Coordinates::e_tostream_short(std::ostream &strm,
   strm << '\n';
 }
 
-void coords::Coordinates::h_tostream(std::ostream &S,
-  energy::interface_base const * const ep) const
+void coords::Coordinates::h_tostream(std::ostream &S) const
 {
   std::vector<std::vector<double>> hess = m_representation.hessian;
   if (hess.size() == 0)
@@ -661,8 +660,8 @@ bool coords::Coordinates::validate_bonds()
 {
   bool status = true;
   broken_bonds.clear();
-  std::size_t const N(m_atoms.size());
-  for (std::size_t i = 0; i < N; ++i)  // for every atom i
+  int const N = m_atoms.size();
+  for (int i = 0; i < N; ++i)  // for every atom i
   {
     for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
     {

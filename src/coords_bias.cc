@@ -1,4 +1,4 @@
-﻿#include "coords.h"
+#include "coords.h"
 #include "scon_angle.h"
 
 
@@ -281,7 +281,6 @@ double coords::bias::Potentials::dist(Representation_3D const &positions, Gradie
 double coords::bias::Potentials::ang(Representation_3D const &, Gradients_3D &)
 {
   throw std::runtime_error("Angular bias is currently not implemented. Restart the calculation without angular bias.");
-  return 0.0;
 }
 
 coords::float_type coords::bias::Potentials::spherical(Representation_3D const &positions,

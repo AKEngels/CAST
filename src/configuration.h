@@ -424,7 +424,8 @@ namespace config
   /**stuff for coords object that can be read in by inputfile CAST.txt*/
   struct coords
   {
-    /**vector with amber charges (only filled if AMBER input is used or option chargefile is selected)*/
+    /**vector with amber charges in amber units, i.e. they must be divided by 18.2223 to get elementary charge
+    (only filled if AMBER input is used or option chargefile is selected)*/
     std::vector<double> amber_charges;
 
     /**stuff for internal coordinates*/
@@ -497,7 +498,7 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-    /**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
     /**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
@@ -554,16 +555,20 @@ namespace config
       interface_types::T mminterface{ interface_types::T::OPLSAA };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
-      /**number of MM atoms*/
-      int mm_atoms_number;
       /**is QM/MM interface active?*/
       bool use{ false };
     } qmmm{};
 
+    /**struct that contains information necessary for MOPAC calculation*/
     struct mopac_conf
     {
-      std::string command, path;
+      /**command that is given to MOPAC*/
+      std::string command;
+      /**path to MOPAC*/
+      std::string path;
+      /**MOPAC version*/
       mopac_ver_type::T version;
+      /**should MOPAC input be deleted after run?*/
       bool delete_input;
       mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
@@ -648,12 +653,33 @@ namespace config
         opt(2), max_steps_opt(5000) {}
     } dftb;
 
+    /**struct that contains all information necessary for gaussian calculation*/
     struct gaussian_conf
     {
-      std::string path, link, charge, multipl, method, basisset, spec;
-      bool delete_input, opt, steep;
+      /**path to gaussian / command to open gaussian*/
+      std::string path;
+      /**link optinos for gaussian*/
+      std::string link;
+      /**charge of the molecule*/
+      std::string charge;
+      /**multiplicity of the molecule*/
+      std::string multipl;
+      /**method for energy calculation*/
+      std::string method;
+      /**basisset for energy calculation*/
+      std::string basisset;
+      /**further specifications for gaussian call*/
+      std::string spec;
+      /**should gaussian input be deleted after calculation?*/
+      bool delete_input;
+      /**should gaussian optimizer be used? (otherwise CAST optimizer)*/
+      bool opt;
+      /**if gaussian optimizer is used: optimize with steepest gradient? (better comparable with CAST optimization)*/
+      bool steep;
+      /**after this number of failed gaussian calls CAST breaks*/
+      int maxfail;
       gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
-        delete_input(true)
+        delete_input(true), maxfail(1000u)
       {}
     } gaussian;
 
@@ -697,7 +723,7 @@ namespace config
     { }
   };
 
-  /*! Stream operator for config::energy
+   /*! Stream operator for config::energy
    *
    * Prints configuration details for the current CAST run
    * Contains: Information about main dihedrals,
@@ -869,6 +895,15 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
+    /**plot temperature during MD?*/
+    bool plot_temp;
+    /**atom pairs to analyze*/
+    std::vector<std::vector<size_t>> ana_pairs;
+    /**analyze zones?*/
+    bool analyze_zones;
+    /**zone width (distance to active site where a new zone starts)*/
+    double zone_width;
+
     /**constructor*/
     molecular_dynamics(void) :
       timeStep(0.001), T_init(0.0), T_final(),
@@ -879,7 +914,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
       optimize_snapshots(false), pressure(false),
-      resume(false), umbrella(false), pre_optimize(false)
+      resume(false), umbrella(false), pre_optimize(false), plot_temp(false), analyze_zones(false)
     { }
 
   };

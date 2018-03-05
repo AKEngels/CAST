@@ -1,4 +1,4 @@
-﻿#ifndef coords_h_guard_
+#ifndef coords_h_guard_
 #define coords_h_guard_
 
 #include <vector>
@@ -488,7 +488,7 @@ namespace coords
     void e_tostream_short(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
     /**writes hessian matrix
     @param strm: can be std::cout or ofstream file*/
-    void h_tostream(std::ostream &strm, energy::interface_base const * const ep = nullptr) const;
+    void h_tostream(std::ostream &strm) const;
 
     /**returns the PES point*/
     PES_Point const & pes() const { return m_representation; }

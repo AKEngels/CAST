@@ -47,9 +47,9 @@ bool energy::interfaces::dftb::sysCallInterface::check_structure()
   double x, y, z;
   for (auto i : (*this->coords).xyz())
   {
-    double x = i.x();
-    double y = i.y();
-    double z = i.z();
+    x = i.x();
+    y = i.y();
+    z = i.z();
 
     if (std::isnan(x) || std::isnan(y) || std::isnan(z))
     {
@@ -109,21 +109,11 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
-  if (Config::get().energy.qmmm.use == true)  // if QM/MM calculation: tell DFTB+ to read external charges
-  {                          
-    file << "  ElectricField = {\n";
-    file << "    PointCharges = {\n";
-    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-    file << "        Records = " << Config::get().energy.qmmm.mm_atoms_number << "\n";
-    file << "        File = 'charges.dat'\n";
-    file << "      }\n";
-    file << "    }\n";
-    file << "  }\n";
-  }
+ 
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
-    char angular_momentum = atomic::angular_momentum_by_symbol(s);
+    char angular_momentum = angular_momentum_by_symbol(s);
     if (angular_momentum == 'e')
     {
       std::cout << "Angular momentum for element " << s << " not defined. \n";
@@ -182,10 +172,11 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
+        int link_atom_number = std::stoi(line.substr(30)) - N;
         double x, y, z;
         coords::Representation_3D g_tmp;
 
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < N; i++)  // read "normal" gradients
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -196,16 +187,29 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
+
+        for (int i=0; i < link_atom_number; i++)  // read gradients of link atoms
+        {
+          std::getline(in_file, line);
+          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
+          y = (-y) * (627.503 / 0.5291172107);
+          z = (-z) * (627.503 / 0.5291172107);
+          coords::Cartesian_Point g(x, y, z);
+          link_atom_grad.push_back(g);
+        }
       }
 
       else if (Config::get().energy.qmmm.use == true)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
+          int ext_charge_number = std::stoi(line.substr(30));
+
           std::vector<coords::Cartesian_Point> grad_tmp;
           double x, y, z;
 
-          for (int i = 0; i < Config::get().energy.qmmm.mm_atoms_number; i++)
+          for (int i = 0; i < ext_charge_number; i++)
           {
             std::getline(in_file, line);
             std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -329,6 +333,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
     energy = read_output(0);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient function
@@ -337,11 +342,12 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = check_structure();
   if (integrity == true)
   {
-    write_inputfile(1);
+    if (Config::get().energy.qmmm.use == false) write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Hessian function
@@ -355,6 +361,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     energy = read_output(2);
     return energy;
   } 
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Optimization
@@ -368,6 +375,7 @@ double energy::interfaces::dftb::sysCallInterface::o(void)
     energy = read_output(3);
     return energy;
   }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Output functions
@@ -383,7 +391,8 @@ void energy::interfaces::dftb::sysCallInterface::print_E_head(std::ostream &S, b
   S << std::right << std::setw(24) << "E_bs";
   S << std::right << std::setw(24) << "E_coul";
   S << std::right << std::setw(24) << "E_rep";
-  S << std::right << std::setw(24) << "SUM\n\n";
+  S << std::right << std::setw(24) << "SUM\n";
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
@@ -392,7 +401,7 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
-  S << "\n";
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
@@ -428,7 +437,8 @@ bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) c
       for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
       { // cycle over all atoms bound to i
         double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        if (L > 2.2) return false;
+        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
+        if (L > max) return false;
       }
     }
   }
@@ -471,7 +481,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  // read energy
+      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  
       {
         for (int i = 0; i < coords->size(); i++)
         {
@@ -488,4 +498,9 @@ std::vector<coords::Cartesian_Point>
 energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
 {
   return grad_ext_charges;
+}
+
+coords::Gradients_3D energy::interfaces::dftb::sysCallInterface::get_link_atom_grad() const
+{
+  return link_atom_grad;
 }

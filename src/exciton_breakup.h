@@ -70,11 +70,6 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   double rek_reorganisation = Config::get().exbreak.ReorgE_rek;//0.184;
   double oszillatorstrength = Config::get().exbreak.oscillatorstrength;//0.0852;
   double wellenzahl = Config::get().exbreak.wellenzahl;//28514.91;
-
-  ////////////////////////////////////
-  double pi = 3.141592654;
-  double h_quer = 1 / (2 * pi)*4.135667662e-15;
-  double boltzmann_konstante = 8.6173303e-5; //  in gauß einheiten
   double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
 
   /////////////////////////////////// INPUT-READING

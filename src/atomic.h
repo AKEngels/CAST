@@ -12,6 +12,7 @@ Provides fundamental atomic properties
 #define ATOMIC_H 87U
 
 #pragma once
+#include <iostream>
 #include <string>
 #include <cmath>
 #include <cstddef>
@@ -59,17 +60,6 @@ namespace atomic
     0, 0,                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0,
     0, 0,                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-  };
-
-  /**highest angular momentum ('e' is not defined yet)*/
-  static const char angular_momentum[ATOMIC_H] =
-  { 'e',       // this is just something for non-existent element 0, PSE starting in next line
-    's',                                                                                                                                                       'e',
-    'e', 'e',                                                                                                                         'e', 'p', 'p', 'p', 'e', 'e',
-    'e', 'e',                                                                                                                         'e', 'e', 'e', 'd', 'e', 'e',
-    'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
-    'e', 'e',                                                                       'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e',
-    'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e', 'e'
   };
 
   /// For each element the full name is provided.
@@ -156,27 +146,6 @@ static const double cov_radiusMap[ATOMIC_H] = {
       }
     }
     return ret;
-  }
-
-  /*! Returns maximal angular momentum of an element specified by its symbol.
-  * @param symbol: Atomic symbol as string (such as "He" for helium)
-  * @note This function is sensitive to lower and upper case letters.
-  If you want to mach the element symbol of Helium correctly to its atomic number,
-  the symbol string needs to be "He" and not "he".
-  * @return: Angular momentum of the element. (e = not defined)
-  */
-  inline char angular_momentum_by_symbol(std::string const & symbol)
-  {
-    int counter = 0;
-    for (std::size_t i(0U); i < ATOMIC_H; ++i)
-    {
-      if (atomic::symbolMap[i] == symbol)
-      {
-        counter = i;
-        break;
-      }
-    }
-    return angular_momentum[counter];
   }
 
   /*! Returns atomic number of an element specified by its mass.

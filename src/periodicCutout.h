@@ -215,7 +215,6 @@ namespace periodicsHelperfunctions
   coords::Coordinates interface_creation(char iaxis, double idist, coords::Coordinates const& inputStructure, coords::Coordinates const& add_inputStructure)
   {
     std::size_t origN = inputStructure.xyz().size();
-    std::size_t Nges = origN + add_inputStructure.xyz().size();//Number of atoms in new structure file
 
     coords::Atoms const& atoms = inputStructure.atoms();
     coords::Atoms const& add_atoms = add_inputStructure.atoms();

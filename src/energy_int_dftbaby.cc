@@ -42,7 +42,11 @@ std::string energy::interfaces::dftbaby::create_pythonpath(std::string numpath, 
 {
     std::string pythonpaths_str = Py_GetPath();
     std::string path;
-    std::vector<std::string> pythonpaths = split(pythonpaths_str,':');
+#ifdef __unix__
+    std::vector<std::string> pythonpaths = split(pythonpaths_str, ':');
+#elif defined(_WIN32) || defined(WIN32)
+    std::vector<std::string> pythonpaths = split(pythonpaths_str, ';');
+#endif
     path = "import sys\n";
     for (auto p : pythonpaths)  //keep pythonpath of system
     {
@@ -458,7 +462,8 @@ void energy::interfaces::dftbaby::sysCallInterface::print_E_head(std::ostream &S
   S << std::right << std::setw(24) << "E_coul";
   S << std::right << std::setw(24) << "E_lr";
   S << std::right << std::setw(24) << "E_rep";
-  S << std::right << std::setw(24) << "SUM\n\n";
+  S << std::right << std::setw(24) << "SUM\n";
+  if (endline) S << "\n";
 }
 
 void energy::interfaces::dftbaby::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
@@ -468,7 +473,7 @@ void energy::interfaces::dftbaby::sysCallInterface::print_E_short(std::ostream &
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_lr;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
-  S << "\n";
+  if (endline) S << "\n";
 }
 
 void energy::interfaces::dftbaby::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const
@@ -504,7 +509,8 @@ bool energy::interfaces::dftbaby::sysCallInterface::check_bond_preservation(void
       for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
       { // cycle over all atoms bound to i
         double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
-        if (L > 2.2) return false;
+        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
+        if (L > max) return false;
       }
     }
   }

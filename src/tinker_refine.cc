@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <iomanip>
 #include <stdexcept>
 #include <utility>
@@ -389,14 +389,14 @@ bool tinker::refine::refined::find_torsion(std::size_t a, std::size_t b, std::si
     {
       pot.p = i;
       maxcheck = check;
-      if (check == 4)
+      if (check == 4)  // only "real" atom type parameters
       {
         if (!i.empty()) m_torsions.push_back(pot);
         return true;
       }
     }
   }
-  if (maxcheck > 0U)
+  if (maxcheck > 0U) // not only "real" atom type parameter but least number of 0s in torsion definition
   {
     if (!pot.p.empty()) m_torsions.push_back(pot);
     return true;

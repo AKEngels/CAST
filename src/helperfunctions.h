@@ -1,8 +1,8 @@
 #pragma once
-#include "coords.h"
 #ifdef USE_PYTHON
 #include <Python.h>
 #endif
+#include "coords.h"
 
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
@@ -42,8 +42,9 @@ inline void short_ene_stream_h(
 
 /**splits a string into a vector of strings
 @ param text: string that is to be splitted
-@ param sep: char where the string should be splitted*/
-inline std::vector<std::string> split(const std::string &text, char sep) {
+@ param sep: char where the string should be splitted
+@ param remove: removes empty elements (i.e. if more than one seperator directly follow each other they are treated as one)*/
+inline std::vector<std::string> split(const std::string &text, char sep, bool remove=false) {
   std::vector<std::string> tokens;
   std::size_t start = 0, end = 0;
   while ((end = text.find(sep, start)) != std::string::npos) {
@@ -51,6 +52,15 @@ inline std::vector<std::string> split(const std::string &text, char sep) {
     start = end + 1;
   }
   tokens.push_back(text.substr(start));
+  if (remove == true)  // remove empty elements
+  {
+	  std::vector<std::string> tokens2;
+	  for (auto t : tokens)
+	  {
+		  if (t != "") tokens2.push_back(t);
+	  }
+	  tokens = tokens2;
+  }
   return tokens;
 }
 
@@ -107,6 +117,18 @@ inline bool is_in(std::vector<std::string> x, std::vector<std::vector<std::strin
 /**looks if vector v contains element x
 returns true if yes and false if no */
 inline bool is_in(int x, std::vector<int> v)
+{
+  if (std::find(v.begin(), v.end(), x) != v.end()) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+/**looks if vector v contains element x
+returns true if yes and false if no */
+inline bool is_in(size_t x, std::vector<size_t> v)
 {
   if (std::find(v.begin(), v.end(), x) != v.end()) {
     return true;

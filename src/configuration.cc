@@ -743,6 +743,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.steep = bool_from_iss(cv);
     else if (option.substr(8, 6) == "delete")
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
+    else if (option.substr(8, 7) == "maxfail")
+      Config::set().energy.gaussian.maxfail = std::stoi(value_string);
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
 	  auto sub_option = option.substr(10);
@@ -1070,6 +1072,23 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  {
 		  cv >> Config::set().md.adjustment_by_step;
 	  }
+    else if (option.substr(2, 9) == "plot_temp")
+    {
+      if (value_string == "1") Config::set().md.plot_temp = true;
+    }
+    else if (option.substr(2, 8) == "ana_pair")
+    {
+      std::vector<size_t> vec = sorted_indices_from_cs_string(value_string);
+      Config::set().md.ana_pairs.push_back(vec);
+    }
+    else if (option.substr(2, 13) == "analyze_zones")
+    {
+      if (value_string == "1") Config::set().md.analyze_zones = true;
+    }
+    else if (option.substr(2, 9) == "zonewidth")
+    {
+      Config::set().md.zone_width = std::stod(value_string);
+    }
   }
 
   //! dimer
@@ -1376,6 +1395,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   else if (option.substr(0, 8) == "FIXrange")
   {
     std::vector<size_t> indicesFromString = sorted_indices_from_cs_string(value_string);
+    for (auto &i : indicesFromString) i = i - 1;  // convert atom indizes from tinker numbering (starting with 1) to numbering starting with 0
     Config::set().coords.fixed = indicesFromString;
   }
 
