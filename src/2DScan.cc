@@ -366,7 +366,7 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
     if(neigh.size()<=1) return;
     std::vector<std::size_t> unchecked_bonds;
 
-    auto insert_element = [&](std::size_t const & n, std::size_t const & m) {
+    auto insert_element = [&](std::size_t const n, std::size_t const m) {
       if (ret.insert(std::make_pair(n, m)).second) {
         auto const & atoms_ref = atoms.atom(n).bonds();
         unchecked_bonds.insert(unchecked_bonds.cend(), atoms_ref.cbegin(), atoms_ref.cend());

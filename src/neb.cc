@@ -1752,7 +1752,7 @@ void neb::internal_execute(std::vector <coords::Representation_3D> &input, std::
 
 }
 
-void neb::no_torsion(const size_t& image_remember, const std::vector<int>& atoms_remember) {
+void neb::no_torsion(const size_t image_remember, const std::vector<int>& atoms_remember) {
   for (size_t i = 0U; i < atoms_remember.size(); i++) {
     imagi[image_remember][atoms_remember[i] - 1].x() = imagi[image_remember - 1][atoms_remember[i] - 1].x();
     imagi[image_remember][atoms_remember[i] - 1].y() = imagi[image_remember - 1][atoms_remember[i] - 1].y();
@@ -1973,7 +1973,7 @@ void neb::biggest(const std::vector<std::vector<std::vector<double> > >& dist, c
 //void double_or_not
 //Function to find out if a distance, angle or dihedral is double
 //
-void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involved_bonds, const std::vector<size_t>& pivot, const size_t& a, const size_t& b, std::vector<std::vector<double> >& vec) {
+void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involved_bonds, const std::vector<size_t>& pivot, const size_t a, const size_t b, std::vector<std::vector<double> >& vec) {
 
   bool all_the_same;
 
@@ -2018,7 +2018,7 @@ bool neb::dihedral_or_not(const int& first_atom, const std::vector<int>& dist, c
 
 }
 
-void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t& atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds) {
+void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds) {
 
   double x1, x2, x3, x4, y1, y2, y3, y4, z1, z2, z3, z4;
   size_t i, j, k, l;
@@ -2276,7 +2276,7 @@ void neb::get_values(std::vector<double>& x_val, std::vector<double>& y_val, std
   }
 }
 
-void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
+void neb::Sort(const size_t imgs, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
   size_t i = 0U, j = 0U, k = 0U, iter = 0U, lenght, start;
   std::string string_swap;
@@ -2335,7 +2335,7 @@ void neb::Sort(const size_t& imgs, std::vector<std::string>& name, std::vector<s
   }
 }
 
-void neb::bond_Sort(std::vector<size_t>& bonds, const size_t& start, const size_t& length) {
+void neb::bond_Sort(std::vector<size_t>& bonds, const size_t start, const size_t length) {
 
   size_t i = start, j = length;
   size_t int_swap;
@@ -2418,7 +2418,7 @@ void neb::bond_Sort(size_t* a, size_t* b) {
   }
 }
 
-void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
+void neb::hetero_Sort(const size_t imgs, const size_t start, const size_t length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds) {
 
   size_t a = 0U, b = 0U, c = 0U, i = start, j = length;
   double double_swap;
@@ -2481,7 +2481,7 @@ void neb::hetero_Sort(const size_t& imgs, const size_t& start, const size_t& len
 
 }
 
-size_t neb::factorial(const size_t& fac) {
+size_t neb::factorial(const size_t fac) {
 
   if (fac <= 1) {
     return 1;

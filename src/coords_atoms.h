@@ -93,7 +93,7 @@ namespace coords
     void append_dependant_idihedral(std::size_t index) { scon::sorted::insert_unique(dependant_torsions, index); }
     // get deptorsions
     size_1d const & dependant_idihedrals() const { return dependant_torsions; }
-    std::size_t const & dependant_idihedrals(std::size_t index) const { return dependant_torsions[index]; }
+    std::size_t dependant_idihedrals(std::size_t index) const { return dependant_torsions[index]; }
     // is this torsional relation a main torsion?
     bool is_main_idihedral() const { return is_main_torsion; }
     // make this torsional relation a main torsion
@@ -186,7 +186,7 @@ namespace coords
     double cov_radius() const {return m_cov_rad;}
     // return bonds
     size_1d const & bonds() const { return m_bonds; }
-    std::size_t const & bonds(std::size_t const i) const { return m_bonds[i]; }
+    std::size_t bonds(std::size_t const i) const { return m_bonds[i]; }
     // add bond to i
     void bind_to(std::size_t const i) { scon::sorted::insert_unique(m_bonds, i); }
     // remove bond to i
@@ -195,7 +195,7 @@ namespace coords
     bool is_bound_to(std::size_t const i) const { return scon::sorted::exists(m_bonds, i); }
     // get internal bonds
     size_1d const & bound_internals() const { return m_ibound; }
-    std::size_t const & bound_internals(std::size_t const i) const { return m_ibound[i]; }
+    std::size_t bound_internals(std::size_t const i) const { return m_ibound[i]; }
     // add internally bound atom
     void attach(std::size_t const i) { scon::sorted::insert_unique(m_ibound, i); }
     // remove internally bound atom
@@ -339,7 +339,7 @@ namespace coords
     Atom const & atom(std::size_t index) const { return m_atoms[index]; }
     size_2d const & molecules() const { return m_molecules; }
     size_1d const & molecule(std::size_t index) const { return m_molecules[index]; }
-    std::size_t const & atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
+    std::size_t atomOfMolecule(std::size_t molecule, std::size_t atom) const { return m_molecules[molecule][atom]; }
     void refine();
     // subsystem stuff
     size_2d const & subsystems() const { return m_sub_systems; }
