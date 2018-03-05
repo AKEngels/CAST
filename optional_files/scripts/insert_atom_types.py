@@ -1,22 +1,33 @@
 ### script that takes atom types from a file 'atom_types_bonded.txt' and asigns them to the tinkerstructure 'output.arc'
 ### afterwards it changes the atom types of certain atoms
-### improve: make a function where you give atom number and desired atom type that assigns that atom type to the atom
 
-"""function to insert the atomtypes"""
-def insert_atomtypes(lines, atomtypes):
-    for i in range(81):
-        lines[i+3087] = "{}{:3}{}".format(lines[i+3087][:50], atomtypes[i][:-1], lines[i+3087][53:])
+"""function to insert the atomtypes
+lines: inputfile read in with readlines()
+atomtypes: file with atomtypes read in with readlines()
+starting_index: number of line where first atomtype is to be inserted"""
+def insert_atomtypes(lines, atomtypes, starting_index):
+    for i in range(len(atomtypes)):
+        lines[i+starting_index] = "{}{:3}{}".format(lines[i+starting_index][:50], atomtypes[i][:-1], lines[i+starting_index][53:])
+
+"""function to change an atom type
+lines: inputfile read in with readlines()
+changeline: line of the atom whose type is to be changed
+new_atomtype: desired atom type"""
+def change_atomtype(lines, changeline, new_atomtype):
+    lines[changeline] = "{}{:3}{}".format(lines[changeline][:50], new_atomtype, lines[changeline][53:])
+
 
 """change some atom types (e.g. for a proton transfer from inhibitor to His)"""
 def proton_transfer(lines):
-    lines[3160] = "{}{:3}{}".format(lines[3160][:50], 454, lines[3160][53:])
-    lines[3118] = "{}{:3}{}".format(lines[3118][:50], 87, lines[3118][53:])
-    lines[3161] = "{}{:3}{}".format(lines[3161][:50], 89, lines[3161][53:])
+    change_atomtype(lines, 3160, 454)
+    change_atomtype(lines, 3118, 87)
+    change_atomtype(lines, 3161, 89)
 
 """change some atom types (e.g. for breaking the bond between inhibitor and protein)"""
 def break_bond(lines):
-    lines[3117] = "{}{:3}{}".format(lines[3117][:50], 87, lines[3117][53:])
-    lines[3159] = "{}{:3}{}".format(lines[3159][:50], 89, lines[3159][53:])
+    change_atomtype(lines, 3117, 87)
+    change_atomtype(lines, 3159, 89)
+    
 
 # open tinkerstructure
 with open("output.arc") as arcfile:
@@ -27,7 +38,7 @@ with open("atom_types_bonded.txt") as atfile:
     atomtypes_bonded = atfile.readlines()
 
 # do stuff
-insert_atomtypes(lines, atomtypes_bonded)
+insert_atomtypes(lines, atomtypes_bonded, 3087)
 proton_transfer(lines)
 break_bond(lines)
 
