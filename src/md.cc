@@ -1060,12 +1060,21 @@ void md::simulation::berendsen(double const & time)
 {
   // temp variables
   const std::size_t N = coordobj.size();
-  double fac, scale, volume;
+  double fac, scale, volume;//for pb
+  std::vector <double> fac_box;// for cubic potential
+  std::vector <double> scale_box;
+  std::vector <double> volume_box; 
   double ptensor[3][3], aniso[3][3], anisobox[3][3], dimtemp[3][3];
   // get volume and pressure scaling factor
-  volume = Config::get().periodics.pb_box.x() *  Config::get().periodics.pb_box.y() *  Config::get().periodics.pb_box.z();
-  fac = presc / volume;
-  // pressure for ISOTROPIC boxes
+  volume = Config::get().periodics.pb_box.x() *  Config::get().periodics.pb_box.y() *  Config::get().periodics.pb_box.z();//for pb
+  for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++) { //for cubic potential
+    volume_box.push_back(Config::get().coords.bias.cubic[i].dim.x() * Config::get().coords.bias.cubic[i].dim.y() * Config::get().coords.bias.cubic[i].dim.z());
+  }
+  fac = presc / volume;//for pb
+  for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++) {// for cubic potential
+    fac_box.push_back(presc / volume_box[i]);
+  }
+  // pressure for ISOTROPIC boxes in periodic boundaries
   if (Config::get().energy.isotropic == true) {
     ptensor[0][0] = fac * 2.0 * (E_kin_tensor[0][0] - coordobj.virial()[0][0]);
     ptensor[1][1] = fac * 2.0 * (E_kin_tensor[1][1] - coordobj.virial()[1][1]);
@@ -1074,20 +1083,40 @@ void md::simulation::berendsen(double const & time)
     // Berendsen scaling for isotpropic boxes
     scale = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press - Config::get().md.ptarget)), 0.3333333333333);
     // Adjust box dimensions
-    // periodic boundaries
-    Config::set().periodics.pb_box.x() = Config::get().periodics.pb_box.x() * scale;
-    Config::set().periodics.pb_box.y() = Config::get().periodics.pb_box.y() * scale;
-    Config::set().periodics.pb_box.z() = Config::get().periodics.pb_box.z() * scale;
-    // cubic potential
-    for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++) {
-      Config::set().coords.bias.cubic[i].dim.x() = Config::get().coords.bias.cubic[i].dim.x() * scale;
-      Config::set().coords.bias.cubic[i].dim.y() = Config::get().coords.bias.cubic[i].dim.y() * scale;
-      Config::set().coords.bias.cubic[i].dim.z() = Config::get().coords.bias.cubic[i].dim.z() * scale;
-    }
+    
+      // periodic boundaries
+      Config::set().periodics.pb_box.x() = Config::get().periodics.pb_box.x() * scale;
+      Config::set().periodics.pb_box.y() = Config::get().periodics.pb_box.y() * scale;
+      Config::set().periodics.pb_box.z() = Config::get().periodics.pb_box.z() * scale;
+  
     // scale atomic coordinates
     for (size_t i = 0; i < N; ++i)
     {
       coordobj.scale_atom_by(i, scale);
+    }
+  } 
+  else if (Config::get().coords.bias.cubic.size() != 0) 
+  {
+    //  pressure for cubic potential
+    for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++) 
+    {
+      ptensor[0][0] = fac_box[i] * 2.0 * (E_kin_tensor[0][0] - coordobj.virial()[0][0]);
+      ptensor[1][1] = fac_box[i] * 2.0 * (E_kin_tensor[1][1] - coordobj.virial()[1][1]);
+      ptensor[2][2] = fac_box[i] * 2.0 * (E_kin_tensor[2][2] - coordobj.virial()[2][2]);
+      press_box[i] = (ptensor[0][0] + ptensor[1][1] + ptensor[2][2]) / 3.0;
+
+      scale_box[i] = std::pow((1.0 + (time*Config::get().md.pcompress / Config::get().md.pdelay)*(press_box[i] - Config::get().md.ptarget)), 0.3333333333333);
+      // cubic potential
+      for (std::size_t i = 0; i < Config::get().coords.bias.cubic.size(); i++)
+      {
+        Config::set().coords.bias.cubic[i].dim.x() = Config::get().coords.bias.cubic[i].dim.x() *  scale_box[i];
+        Config::set().coords.bias.cubic[i].dim.y() = Config::get().coords.bias.cubic[i].dim.y() *  scale_box[i];
+        Config::set().coords.bias.cubic[i].dim.z() = Config::get().coords.bias.cubic[i].dim.z() *  scale_box[i];
+      }
+      for (size_t j = 0; j < N; ++j)
+      {
+        coordobj.scale_atom_by(j, scale_box[i]);
+      }
     }
   }
   //  pressure for ANISOTROPIC boxes

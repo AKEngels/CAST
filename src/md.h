@@ -1,4 +1,4 @@
-﻿#pragma once 
+#pragma once 
 
 #include <vector>
 #include <string>
@@ -256,6 +256,7 @@ namespace md
     double temp;
     /** Pressure stuff*/
     double press, presstemp;
+    std::vector <double> press_box;
     /** timestep */
     double dt;
     /** degrees of freedom */
