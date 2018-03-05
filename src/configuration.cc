@@ -1115,6 +1115,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
     }
   }
+  else if (option.substr(0, 18) == "IsotropicPeriodics")//decider if isotropic boxes shouls be used for berendsen barostat with periodic boundaries (default false)
+  {
+    Config::set().energy.isotropic = bool_from_iss(cv, option.substr(0, 18));
+  }
   else if (option.substr(0, 9) == "Periodicp")
   {
     Config::set().periodics.periodic_print = bool_from_iss(cv, option.substr(0, 9));

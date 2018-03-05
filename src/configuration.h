@@ -692,7 +692,7 @@ namespace config
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
-      isotropic(true),
+      isotropic(false),
       remove_fixed(false),
       spackman(), mopac()
     { }

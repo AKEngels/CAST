@@ -386,6 +386,8 @@ PeriodicCutout false
 PeriodicCutoutCriterion 1
 # Additional CutoutDistance from box edge in angstrom , where molecules are cut
 PeriodicCutoutDistance 0
+
+IsotropicPeriodics     0 #If barostat is used this option can turn on isotripic behaviour
 ####################################
 #                                  #
 #         libLBFGS OPTIONS         #
