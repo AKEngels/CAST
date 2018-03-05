@@ -498,7 +498,7 @@ namespace config
         xyz(0.1, 0.1, 0.1)
       {}
     } equals;
-    /**vector with numbers of fixed atoms (i.e. these atoms are not allowed to move)*/
+    /**vector with numbers of fixed atoms, indizes starting with 0 (i.e. these atoms are not allowed to move)*/
     std::vector<std::size_t> fixed;
     /**vector with subsystems*/
     std::vector<std::vector<std::size_t>> subsystems;
@@ -559,10 +559,16 @@ namespace config
       bool use{ false };
     } qmmm{};
 
+    /**struct that contains information necessary for MOPAC calculation*/
     struct mopac_conf
     {
-      std::string command, path;
+      /**command that is given to MOPAC*/
+      std::string command;
+      /**path to MOPAC*/
+      std::string path;
+      /**MOPAC version*/
       mopac_ver_type::T version;
+      /**should MOPAC input be deleted after run?*/
       bool delete_input;
       mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
@@ -647,10 +653,29 @@ namespace config
         opt(2), max_steps_opt(5000) {}
     } dftb;
 
+    /**struct that contains all information necessary for gaussian calculation*/
     struct gaussian_conf
     {
-      std::string path, link, charge, multipl, method, basisset, spec;
-      bool delete_input, opt, steep;
+      /**path to gaussian / command to open gaussian*/
+      std::string path;
+      /**link optinos for gaussian*/
+      std::string link;
+      /**charge of the molecule*/
+      std::string charge;
+      /**multiplicity of the molecule*/
+      std::string multipl;
+      /**method for energy calculation*/
+      std::string method;
+      /**basisset for energy calculation*/
+      std::string basisset;
+      /**further specifications for gaussian call*/
+      std::string spec;
+      /**should gaussian input be deleted after calculation?*/
+      bool delete_input;
+      /**should gaussian optimizer be used? (otherwise CAST optimizer)*/
+      bool opt;
+      /**if gaussian optimizer is used: optimize with steepest gradient? (better comparable with CAST optimization)*/
+      bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
       gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
