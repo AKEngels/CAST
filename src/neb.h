@@ -115,7 +115,7 @@ public:
   void bond_Sort(size_t* a, size_t* b, size_t* c);
   void bond_Sort(size_t* a, size_t* b);
   void hetero_Sort(const size_t imgs, const size_t start, const size_t length, std::vector<std::string>& name, std::vector<std::vector<double> >& x, std::vector<std::vector<double> >& y, std::vector<std::vector<double> >& z, std::vector<std::vector<size_t> >& bonds);
-  bool dihedral_or_not(const int& first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int& last_atom);
+  bool dihedral_or_not(const int first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int last_atom);
   void get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, const size_t atom_iter, std::vector<std::vector<size_t> >& which_bonds, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >* involved_bonds, std::vector<std::vector<size_t> >& bonds);
   void get_values(std::vector<double>& x_val, std::vector<double>& y_val, std::vector<double>& z_val, std::vector<std::vector<double> >* dist, std::vector<std::vector<double> >* anglevec, std::vector<std::vector<double> >* dihedralvec, std::vector<std::vector<std::vector<std::vector<size_t> > > >& involved_bonds, std::vector<std::vector<size_t> >& which_bonds);
   size_t factorial(const size_t fac);

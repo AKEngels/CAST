@@ -2010,7 +2010,7 @@ void neb::double_or_not(std::vector<std::vector<std::vector<size_t> > >& involve
   }
 }
 
-bool neb::dihedral_or_not(const int& first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int& last_atom) {
+bool neb::dihedral_or_not(const int first_atom, const std::vector<int>& dist, const std::vector<int>& ang, const int last_atom) {
 
   if ((first_atom == dist[1] || first_atom == dist[2] || first_atom == dist[3] || first_atom == dist[4]) && (last_atom == ang[1] || last_atom == ang[2] || last_atom == ang[3] || last_atom == ang[4])) return true;
   else if ((first_atom == ang[1] || first_atom == ang[2] || first_atom == ang[3] || first_atom == ang[4]) && (last_atom == dist[1] || last_atom == dist[2] || last_atom == dist[3] || last_atom == dist[4])) return true;
