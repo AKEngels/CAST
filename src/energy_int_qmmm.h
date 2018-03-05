@@ -460,6 +460,10 @@ namespace energy
         std::vector<double> qm_charge_vector;
         /**atom charges of MM atoms*/
         std::vector<double> mm_charge_vector;
+        /**function to remove QM charges from the vector amber_charges in config
+        necessary because MM interface uses this vector and doesn't know it is smaller than the whole system
+        so otherwise wrong charges would be assigned to wrong atoms*/
+        void remove_qm_charges();
 
         /**van der Waals interaction energy between QM and MM atoms*/
         coords::float_type vdw_energy;
