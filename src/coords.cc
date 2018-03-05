@@ -426,11 +426,11 @@ coords::Cartesian_Point coords::Coordinates::center_of_geometry() const
 
 double coords::Coordinates::weight() const
 {
-  std::vector<Atom>::size_type const N(m_atoms.size());
-  coords::float_type M(0.0);
-  for (std::vector<Atom>::size_type i(0U); i < N; ++i)
-  {
-    M += m_atoms.atom(i).mass();
+  //A little too overkill
+  //std::result_of<decltype(&coords::Atom::mass)(coords::Atom)>::type
+  auto M{ 0.0 };
+  for (auto const& atom : m_atoms){
+    M += atom.mass();
   }
   return M;
 }

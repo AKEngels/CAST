@@ -25,6 +25,8 @@
 #include <vector>
 #include<memory>
 
+#include "coords_io_pdb.h"
+
 namespace ic_core {
 
 using coords::float_type;
@@ -499,7 +501,6 @@ inline void system::create_ic_system(const Graph& g) {
 
   rotation_vec_ = create_rotations(rep_, res_index_vec_);
 }
-
 //template <typename Graph>
 //inline system::IC_System system::create_system(Graph const& g) {
 //  IC_System new_ic_system;
@@ -520,5 +521,17 @@ inline void system::create_ic_system(const Graph& g) {
 //
 //  return new_ic_system;
 //}
+}
+namespace coords {
+  class DL_Coordinates : public Coordinates {
+  public:
+    std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
+    DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::pdb> format) : Coordinates(coords) {
+      if (!format) {
+        throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
+      }
+      parser = format->parser;
+    }
+  };
 }
 #endif // cast_ic_core_h_guard

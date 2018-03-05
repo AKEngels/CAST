@@ -29,7 +29,7 @@ namespace coords {
           UNKNOWN
         };
         enum class terminals : int {
-          not = 0,
+          none = 0,
           C,
           N
         };
@@ -559,13 +559,10 @@ namespace coords {
         inline void set_energy_type(Atoms&, std::vector<std::vector<std::size_t>> const&);
       }
       class pdb : public format {
-        
 
       public:
-
         inline Coordinates read(std::string const&) override;
-
-        std::unique_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
+        std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
       };
     }
   }
@@ -575,7 +572,7 @@ std::vector<coords::input::formats::pdb_helper::terminals>
 coords::input::formats::pdb_helper::get_terminals(Atoms const& atoms, std::vector<std::vector<std::size_t>> const& indices) {
   std::vector<terminals> result;
   for (auto const& res_ind : indices) {
-    terminals tmp = terminals::not;
+    terminals tmp = terminals::none;
     for (auto const& ind : res_ind) {
       auto const & a = atoms.atom(ind - 1);
       if (a.get_pdb_atom_name() == "OXT") tmp=terminals::C;
@@ -642,7 +639,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string const& file_na
                              "because wrong atom types are assigned!\n");
   }
 
-  parser = std::make_unique<coords::input::formats::pdb_helper::Parser<float_type>>(file_name);
+  parser = std::make_shared<coords::input::formats::pdb_helper::Parser<float_type>>(file_name);
 
   auto atoms = parser->create_cooord_atoms();
   auto rep3D = parser->create_rep_3D();
@@ -988,7 +985,7 @@ int coords::input::formats::pdb_helper::find_energy_type(std::string atom_name, 
 {
   if (is_in(res_name, RESIDUE_NAMES))  // protein
   {
-    if (terminal == terminals::not)
+    if (terminal == terminals::none)
     {
       if (atom_name == "N" && res_name != "PRO") return 180;  // amid N 
       else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N 

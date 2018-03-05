@@ -31,6 +31,14 @@ namespace scon
     static constexpr bool value = is_container_impl::is_container<std::decay_t<T>>::value;
   };
 
+  template<typename PtrDeriv, typename PtrBase>
+  std::unique_ptr<PtrDeriv> dynamic_unique_cast(std::unique_ptr<PtrBase> to_cast) {
+    if (auto raw = to_cast.release()) {
+      return std::unique_ptr<PtrDeriv>(dynamic_cast<PtrDeriv*>(raw));
+    }
+    return std::unique_ptr<PtrDeriv>(nullptr);
+  }
+
   namespace trait_detail
   {
     //enum class enabled_ty {};

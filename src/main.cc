@@ -171,17 +171,6 @@ int main(int argc, char **argv)
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
-    // Define Function to output molar mass of a coords object
-    auto sys_mass = [](coords::Coordinates &sys) -> double
-    {
-      double m = 0;
-      for (auto && a : sys.atoms())
-      {
-        m += a.mass();
-      }
-      return m;
-    };
-
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
     {
@@ -190,7 +179,7 @@ int main(int argc, char **argv)
       std::cout << "-------------------------------------------------\n";
       std::cout << "Loaded " << ci->size() << " structure" << (ci->size() == 1 ? "" : "s");
       std::cout << ". (" << ci->atoms() << " atom" << (ci->atoms() == 1 ? "" : "s");
-      std::cout << " and " << sys_mass(coords) << " g/mol";
+      std::cout << " and " << coords.weight() << " g/mol";
       std::cout << (ci->size() > 1 ? " each" : "") << ")\n";
       std::size_t const susysize(coords.subsystems().size());
       if (susysize > 1U)
@@ -295,9 +284,12 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-      // DEVTEST: Room for Development testing
+      // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
+
+      coords::DL_Coordinates ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
+
       ic_testing exec_obj;
-      exec_obj.ic_execution(std::move(ci), coords);
+      exec_obj.ic_execution(ic_coords);
       break;
     }
     case config::tasks::SP:

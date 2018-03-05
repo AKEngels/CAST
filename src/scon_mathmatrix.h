@@ -1398,7 +1398,7 @@ mathmatrix<T> mathmatrix<T>::diagmat() const {
 
 template <typename T>
 std::pair<mathmatrix<T>, mathmatrix<T>>
-mathmatrix<T>::eigensym(bool const & sort = false) const {
+mathmatrix<T>::eigensym(bool const & sort) const {
 #ifndef CAST_USE_ARMADILLO
 
   Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));

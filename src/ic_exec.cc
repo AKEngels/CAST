@@ -17,17 +17,13 @@
 #include <iomanip>
 #include <vector>
 
-void ic_testing::ic_execution(std::shared_ptr<coords::input::format> struc, coords::Coordinates & coords) {
-
-  auto fPtr = std::dynamic_pointer_cast<coords::input::formats::pdb>(struc);
-
-  if (!fPtr) throw std::runtime_error("Sorry currently are only pdb formats allowed");
+void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
 
   // test of my code
   // create a Parser object from the input file
   /*Pdb::Parser<coords::float_type> pAlaGly("ethanol.pdb");
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
-  auto const& p = *fPtr->parser;
+  auto const& p = *coords.parser.get();
 
   auto trial = p.create_rep_3D();
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
@@ -103,7 +99,7 @@ void ic_testing::ic_execution(std::shared_ptr<coords::input::format> struc, coor
   }
   auto const & bla = icSystem.calc(trial);
   std::cout << bla << std::endl;
-  coords.g();
+  //coords.g();
   auto const & blub = icSystem.calcGrad(trial, coords.g_xyz());
 
   // test matrix stuff

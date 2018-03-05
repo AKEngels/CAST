@@ -10,18 +10,6 @@
 #include <Python.h>
 #endif
 
-// Define Function to output molar mass of a coords object
-inline double sys_mass(coords::Coordinates &sys)
-{
-  double m{ 0. };
-for (auto && a : sys.atoms())
-{
-  m += a.mass();
-}
-return m;
-}
-
-
 // Energy print functions
 inline void short_ene_stream(
   coords::Coordinates const &coords,
