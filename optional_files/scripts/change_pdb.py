@@ -2,28 +2,28 @@
 
 """changes a residue name
 filelines: inputfile read in with readlines()
-reslines: lines which contain the residues
+reslines: lines which contain the residues (in tinker/pdb numbering)
 oldname: old residue name
 newname: new residue name"""
 def change_resname(filelines, reslines, oldname, newname):
     for i in reslines:
-        filelines[i] = filelines[i].replace(oldname, newname)
+        filelines[i-1] = filelines[i-1].replace(oldname, newname)
 
 """changes the atom type of an atom
 filelines: inputfile read in with readlines()
-changeline: number of the line where the atom should be changed
+changeline: number of the line where the atom should be changed (in tinker/pdb numbering)
 new_atomtype: name of the desired atom type"""
 def change_atomtype(filelines, changeline, new_atomtype):
-    filelines[changeline] = filelines[changeline][:13] + "{:2}".format(new_atomtype) + filelines[changeline][15:]
+    filelines[changeline-1] = filelines[changeline-1][:13] + "{:2}".format(new_atomtype) + filelines[changeline-1][15:]
 
 
 """changes atom types of CYP"""
 def rename_cyp(lines):
-    change_atomtype(lines, 339, "N")
-    change_atomtype(lines, 340, "H")
-    change_atomtype(lines, 341, "CA")
-    change_atomtype(lines, 347, "C")
-    change_atomtype(lines, 348, "O")
+    change_atomtype(lines, 340, "N")
+    change_atomtype(lines, 341, "H")
+    change_atomtype(lines, 342, "CA")
+    change_atomtype(lines, 348, "C")
+    change_atomtype(lines, 349, "O")
 
 
 # open PDB file
@@ -31,9 +31,9 @@ with open("qmmm_opt.pdb") as pdbfile:
     lines = pdbfile.readlines()
 
 # do stuff
-rename_cyp(lines)
-change_resname(lines, range(2267,2285), "HIE","HIP")
-change_resname(lines, range(339,349), "CYP", "CYM")
+#rename_cyp(lines)
+change_resname(lines, range(2268,2286), "HIP","HIE")
+change_resname(lines, range(340,350), "CYM", "CYP")
 
 # write new PDB file
 with open("new.pdb","w") as new_pdb:
