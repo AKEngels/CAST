@@ -475,26 +475,27 @@ void energy::interfaces::qmmm::QMMM::prepare_bonded_qmmm()
 {
   find_bonds_etc();    // find bonds, angles and dihedrals between QM and MM region
   find_parameters();   // find force field parameters for energy calculation
-  create_link_atoms(); // create link atoms
 
   if (Config::get().general.verbosity > 3)  // Output
   {
-    std::cout << "QM/MM-Bonds\n";
-    for (auto b : qmmm_bonds)
-    {
-      std::cout << b.info() << "\n";
-    }
-    std::cout << "QM/MM-Angles\n";
-    for (auto a : qmmm_angles)
-    {
-      std::cout << a.info() << "\n";
-    }
-    std::cout << "QM/MM-Dihedrals\n";
-    for (auto a : qmmm_dihedrals)
-    {
-      std::cout << a.info() << "\n";
-    }
+	  std::cout << "QM/MM-Bonds\n";
+	  for (auto b : qmmm_bonds)
+	  {
+		  std::cout << b.info() << "\n";
+	  }
+	  std::cout << "QM/MM-Angles\n";
+	  for (auto a : qmmm_angles)
+	  {
+		  std::cout << a.info() << "\n";
+	  }
+	  std::cout << "QM/MM-Dihedrals\n";
+	  for (auto a : qmmm_dihedrals)
+	  {
+		  std::cout << a.info() << "\n";
+	  }
   }
+
+  create_link_atoms(); // create link atoms
 }
 
 void energy::interfaces::qmmm::QMMM::update_representation()
