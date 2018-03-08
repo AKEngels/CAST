@@ -12,6 +12,7 @@
 #include "energy_int_dftb.h"
 #include "energy_int_gaussian.h"
 #include "energy_int_chemshell.h"
+#include "energy_int_psi4.h"
 #include "coords.h"
 #include "scon_utility.h"
 
@@ -21,7 +22,7 @@
 * This function returns a pointer to
 * a new energy interface. It should not be called
 * manually but is used by the energy::new_interface
-* function. Which interface is created depends on the 
+* function. Which interface is created depends on the
 * specifications in the global Config instance
 *
 * @param coordinates: Pointer to coordinates object for which energy interface will perform
@@ -39,7 +40,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
         std::cout << "Illegal Energy interface.\n";
       }
       return nullptr;
-    }  
+    }
   case config::interface_types::T::AMOEBA:
     {
       if (Config::get().general.verbosity >= 3)
@@ -107,6 +108,13 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 	  }
 	  return new energy::interfaces::chemshell::sysCallInterface(coordinates);
   }
+  case config::interface_types::T::PSI4:
+  {
+    if (Config::get().general.verbosity >= 3){
+		  std::cout << "Psi4 chosen for energy calculations.\n";
+	  }
+	  return new energy::interfaces::psi4::sysCallInterface(coordinates);
+  }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
@@ -150,11 +158,11 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 /*! Override of virtual void swap
 *
 * Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is
-* useable with all general members of the class. For additional members 
+* useable with all general members of the class. For additional members
 * of derived classes it must be decleared there additionaly to
 * "void swap(sysCallInterface&)"
 */
-void energy::interface_base::swap (interface_base &other)    
+void energy::interface_base::swap (interface_base &other)
 {
   std::swap(energy,    other.energy);
   std::swap(pb_max,    other.pb_max);
@@ -169,7 +177,7 @@ void energy::interface_base::swap (interface_base &other)
 
 /*! Override of virtual void to_stream
 *
-* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream 
+* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream
 * is useable with all general members of the class fot output. For additional members
 * of derived classes it must be decleared there additionaly.
 */

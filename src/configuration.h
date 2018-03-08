@@ -132,13 +132,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 11;
+  static std::size_t const NUM_INTERFACES = 12;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-  { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL"
+  {
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -149,11 +149,11 @@ namespace config
   {
     /*! contains all interface_types currently supported in CAST
     */
-    enum T 
-    { 
-      ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL
-    }; 
+    enum T
+    {
+      ILLEGAL = -1,
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4
+    };
   };
 
   /**number of supported Mopac Versions*/
@@ -623,7 +623,7 @@ namespace config
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
-      dftbaby_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
+      dftbaby_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0),
       longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
       states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
     } dftbaby;
@@ -714,6 +714,9 @@ namespace config
 		bool dispersion = false;
 		bool delete_input = true;
 	} chemshell;
+  struct psi4_conf{
+    std::string path = "";
+  }psi4;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),

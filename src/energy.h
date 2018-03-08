@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #if defined _OPENMP
   #include <omp.h>
@@ -40,7 +40,7 @@ namespace energy
 	  coords::float_type dvout;
 	/**number of current window*/
     int step;
-    fepvar (void) 
+    fepvar (void)
       : ein(1.0), eout(1.0), vin(1.0), vout(1.0),
       dein(1.0), deout(1.0), dvin(1.0), dvout(1.0),
       step(0)
@@ -69,7 +69,7 @@ namespace energy
       /**difference in potential energy for backwards transformation
       = (e_c_l1 + e_vdw_l1) - (e_c_l0 + e_vdw_l0)*/
       coords::float_type dE_back;
-	  /**difference in free energy calculated for all conformations 
+	  /**difference in free energy calculated for all conformations
 	  in this window until current conformation*/
 	  coords::float_type dG;
       /**difference in free energy calculated for all conformations
@@ -86,12 +86,12 @@ namespace energy
       e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0), dE_back(0.0), dG_back(0.0)
     { }
   };
-  
 
-  /** Abstract  base class for interfaces, 
-  * parent class for all inrterface classes used 
+
+  /** Abstract  base class for interfaces,
+  * parent class for all inrterface classes used
   * by CAST for example FF, MOPAC, terachem , gaussian etc.
-  * Output should be in kcal/mol! 
+  * Output should be in kcal/mol!
   */
 
   class interface_base
@@ -109,14 +109,21 @@ namespace energy
 
   public:
 
+    static std::string create_random_file_name(std::string const& output){
+      std::stringstream ss;
+      std::srand(std::time(0));
+      ss << (std::size_t(std::rand()) | (std::size_t(std::rand())<<15));
+      return output + "_tmp_" + ss.str();
+    }
+
     /**total energy, in dftbaby interface this is called e_tot*/
     coords::float_type energy;
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
 
-    interface_base (coords::Coordinates *coord_pointer) : 
-      coords(coord_pointer), periodic(false), integrity(true), 
+    interface_base (coords::Coordinates *coord_pointer) :
+      coords(coord_pointer), periodic(false), integrity(true),
       optimizer(false), interactions(false), energy(0.0)
-    { 
+    {
       if (!coord_pointer)
       {
         throw std::runtime_error(
@@ -124,7 +131,7 @@ namespace energy
       }
     }
 
-    interface_base(); 
+    interface_base();
 
     interface_base& operator= (interface_base const &other)
     {
@@ -141,7 +148,7 @@ namespace energy
     }
 
     virtual void swap (interface_base &other) = 0;
-    
+
     /** create an copy-instance of derived via new and return pointer*/
     virtual interface_base * clone (coords::Coordinates * coord_object) const = 0;
     // create new instance of derived and move in data
@@ -198,7 +205,7 @@ namespace energy
     virtual void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const = 0;
     virtual void to_stream (std::ostream&) const = 0;
 
-    coords::Coordinates* cop() const 
+    coords::Coordinates* cop() const
     {
       return coords;
     }
@@ -212,7 +219,7 @@ namespace energy
     std::vector <int> get_gz_i_state() {return gz_i_state;}
     coords::Representation_3D  get_ex_ex_trans() {return ex_ex_trans;}
     coords::Representation_3D  get_gz_ex_trans() {return gz_ex_trans;}
-     
+
     //MO, excitation energies and dipolemoments
     std::vector <double> occMO, virtMO, excitE;
     coords::Representation_3D  ex_ex_trans, gz_ex_trans;
