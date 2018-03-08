@@ -606,5 +606,5 @@ scon::mathmatrix<float_type> ic_core::system::calcGrad(coords::Representation_3D
   auto B_matrix = Bmat(xyz);
   auto G_mat = B_matrix * B_matrix.t();
   auto Gmat_inv = G_mat.pinv();
-  return Gmat_inv * G_mat * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(g));
+  return Gmat_inv * B_matrix * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(g));
 }
