@@ -1,6 +1,9 @@
 #ifndef ENERGY_INT_PSI_H
 #define ENERGY_INT_PSI_H
 
+#include<vector>
+#include<utility>
+
 #include"coords_io.h"
 #include"energy.h"
 #include"coords.h"
@@ -57,6 +60,27 @@ namespace energy{
           throw std::runtime_error("function not implemented\n");
         }
       private:
+        enum class Calc {
+          energy,
+          gradient,
+          optimize
+        };
+        void write_head(std::ostream&) const;
+        void write_input(Calc kind = Calc::energy) const;
+        void write_molecule(std::ostream&) const;
+        void write_energy_input(std::ostream&) const;
+        void write_gradients_input(std::ostream&) const;
+        void write_optimize_input(std::ostream&) const;
+
+        void make_call()const;
+
+        std::vector<std::string> parse_specific_position(std::istream& is, std::string const& delim, int space) const;
+        std::vector<std::string> get_last_gradients(std::istream& is) const;
+        coords::Representation_3D get_final_geometry(std::istream& is) const;
+
+        coords::Representation_3D parse_gradients(std::istream& is) const;
+        std::pair<coords::Representation_3D,coords::Representation_3D> parse_geometry_and_gradients(std::istream& is) const;
+
         std::string tmp_file_name;
       };
     }

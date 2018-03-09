@@ -716,6 +716,11 @@ namespace config
 	} chemshell;
   struct psi4_conf{
     std::string path = "";
+    std::string memory = "";
+    std::string basis = "";
+    std::string method = "";
+    std::string spin = "";
+    std::string charge = "";
   }psi4;
 
     energy() :

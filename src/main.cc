@@ -1,5 +1,5 @@
 
-//////////   //////////   //////////   ////////// 
+//////////   //////////   //////////   //////////
 //           //      //   //               //
 //           //      //   //               //
 //           //      //   //////////       //
@@ -67,7 +67,7 @@
 #if defined(_MSC_VER)
 #include <process.h>
 #define pid_func _getpid
-#else 
+#else
 #include <unistd.h>
 #define pid_func getpid
 #endif
@@ -79,7 +79,7 @@
 // exceptions will be dropped (this is good for debugging
 // and default in Debug configuration.
 // Otherwise CAST will crash and print the string
-// attached to the exception. This is default behaviour 
+// attached to the exception. This is default behaviour
 // in release mode.
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
@@ -90,7 +90,7 @@
 
 int main(int argc, char **argv)
 {
-#ifdef USE_PYTHON   
+#ifdef USE_PYTHON
   Py_Initialize();  // if python enabled: initialise here
 #endif
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     // initialize (old) Random Number Generator
     srand((unsigned int)time(NULL) + pid_func());
 
-    // Parse config file and command line 
+    // Parse config file and command line
     auto config_filename = config::config_file_from_commandline(argc, argv);
     Config main_configuration(config_filename);
     config::parse_command_switches(argc, argv);
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
     //////////////////////////
 
     if (Config::get().general.energy_interface == config::interface_types::T::DFTBABY)
-    {  
+    {
 #ifdef USE_PYTHON
 #else
       printf("It is not possible to use DFTBaby without python!\n");
@@ -293,6 +293,7 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testing
+      coords.o();
       break;
     }
     case config::tasks::SP:
@@ -301,7 +302,7 @@ int main(int argc, char **argv)
         std::size_t i(0u);
         auto sp_energies_fn = coords::output::filename("_SP", ".txt");
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
-        if (!sp_estr) throw std::runtime_error("Cannot open '" + 
+        if (!sp_estr) throw std::runtime_error("Cannot open '" +
           sp_energies_fn + "' to write SP energies.");
         sp_estr << std::setw(16) << "#";
         short_ene_stream_h(coords, sp_estr, 16);
@@ -801,12 +802,12 @@ int main(int argc, char **argv)
 	    case config::tasks::XB_EXCITON_BREAKUP:
 	    {
 		  /**
-		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN 
-		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS: 
+		  * THIS TASK SIMULATES THE EXCITON_BREAKUP ON AN
+		  * INTERFACE OF TWO ORGANIC SEMICONDUCTORS:
 		  * (AT THE MOMENT ONLY ORGANIC SEMICONDUCTOR/FULLERENE INTERFACE)
 		  * NEEDS SPECIALLY PREPEARED INPUT
-		  */  
-		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters, 
+		  */
+		  exciton_breakup(Config::get().exbreak.pscnumber, Config::get().exbreak.nscnumber, Config::get().exbreak.interfaceorientation, Config::get().exbreak.masscenters,
 						 Config::get().exbreak.nscpairrates, Config::get().exbreak.pscpairexrates, Config::get().exbreak.pscpairchrates, Config::get().exbreak.pnscpairrates);
       break;
 	  }
@@ -820,7 +821,7 @@ int main(int argc, char **argv)
         coords::Coordinates add_coords(add_strukt_uptr->read(Config::get().interfcrea.icfilename));
         coords::Coordinates newCoords(coords);
 
- 
+
         newCoords = periodicsHelperfunctions::interface_creation(Config::get().interfcrea.icaxis, Config::get().interfcrea.icdist, coords, add_coords);
 
         coords = newCoords;
@@ -864,7 +865,7 @@ int main(int argc, char **argv)
         newCoords.set_xyz(ci->structure(0u).structure.cartesian);
         coords = newCoords;
 
-        
+
 
         for (std::size_t i = 0u; i < 1; i++) //this loops purpose is to ensure mdObject1 is destroyed before further changes to coords happen and the destructor goes bonkers. Not elegant but does the job.
         {
@@ -878,7 +879,7 @@ int main(int argc, char **argv)
         {
           add_coords = inp_add_coords;
           add_coords = periodicsHelperfunctions::delete_random_molecules(add_coords, Config::get().layd.del_amount);
-  
+
           for (auto & pes : *ci)
           {
             newCoords.set_xyz(pes.structure.cartesian);
@@ -887,7 +888,7 @@ int main(int argc, char **argv)
           }
           newCoords.set_xyz(ci->structure(0u).structure.cartesian);
           coords = newCoords;
-                                                                                                                            
+
 
           for (std::size_t j = 0; j < (coords.size() - add_coords.size()); j++)//fix all atoms already moved by md
           {
@@ -946,19 +947,19 @@ int main(int argc, char **argv)
           coords = monomerManipulation::replaceMonomers(coords, add_coords1, add_coords2, mon_amount_type1);
         }
 
-        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
+        std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);
         output << coords;
         break;
       }
 
       default:
       {
-      
+
       }
     }
 #ifdef USE_PYTHON
       Py_Finalize(); //  close python
-#endif 
+#endif
 
     // stop and print task and execution time
     std::cout << '\n' << "Task " << config::task_strings[Config::get().general.task];
@@ -974,7 +975,7 @@ int main(int argc, char **argv)
     //////////////////////////
 #ifndef CAST_DEBUG_DROP_EXCEPTIONS
   }
-#if defined COMPILEX64 || defined __LP64__ || defined _WIN64 
+#if defined COMPILEX64 || defined __LP64__ || defined _WIN64
   catch (std::bad_alloc &)
   {
     std::cout << "Memory allocation failure. Input structure probably too large.\n";
@@ -991,7 +992,7 @@ int main(int argc, char **argv)
     std::cout << "Error: " << e.what() << '\n';
   }
 #endif
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
   // make window stay open in debug session on windows
   if (IsDebuggerPresent()) std::system("pause");
 #endif

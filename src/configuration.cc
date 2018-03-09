@@ -820,6 +820,21 @@ void config::parse_option(std::string const option, std::string const value_stri
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
+    else if(sub_option == "memory"){
+      Config::set().energy.psi4.memory = value_string;
+    }
+    else if(sub_option == "basis"){
+      Config::set().energy.psi4.basis = value_string;
+    }
+    else if(sub_option == "method"){
+      Config::set().energy.psi4.method = value_string;
+    }
+    else if(sub_option == "spin"){
+      Config::set().energy.psi4.spin = value_string;
+    }
+    else if(sub_option == "charge"){
+      Config::set().energy.psi4.charge = value_string;
+    }
   }
 
   // convergence threshold for bfgs
