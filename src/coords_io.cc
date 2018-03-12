@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cstddef>
 #include <cstdio>
+#include "coords_io_pdb.h"
 #include "atomic.h"
 #include "configuration.h"
 #include "coords_io.h"
@@ -109,7 +110,7 @@ coords::input::format* coords::input::new_interf_format(void)
  * @return: Coordinates object containing the coordinates
  * @param file: Filename of the .arc tinker file
  */
-coords::Coordinates coords::input::formats::tinker::read(std::string file)
+coords::Coordinates coords::input::formats::tinker::read(std::string const& file)
 {
   // Create empty coordinates object!
   Coordinates coord_object;

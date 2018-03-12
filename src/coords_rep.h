@@ -26,17 +26,16 @@ namespace coords
   template<class T> using Container = scon::vector < T >;
 
   // which floating point type do we use?
-  typedef double float_type;
+  using float_type = double;
   // size type vectors: 1d and 2d
-  typedef Container<std::size_t> size_1d;
-  typedef Container< Container<std::size_t> > size_2d;
+  using size_1d = Container<std::size_t>;
+  using size_2d = Container< Container<std::size_t> >;
 
   // Angles
-  typedef scon::ang<float_type> angle_type;
+  using angle_type = scon::ang<float_type>;
 
-  typedef scon::c3<float_type> r3;
-  typedef scon::sphericals<float_type> s3;
-
+  using r3 = scon::c3<float_type>;
+  using s3 = scon::sphericals<float_type>;
 
 
   /* #############################################
@@ -79,7 +78,7 @@ namespace coords
 
   ############################################# */
 
-  typedef scon::c3<bool> fix3;
+  using fix3 = scon::c3<bool>;
 
 
 
@@ -96,26 +95,26 @@ namespace coords
   ############################################# */
 
   // Cartesian
-  typedef r3                                      Cartesian_Point;
-  typedef r3                                      cartesian_type;
-  typedef r3                                      cartesian_gradient_type;
-  typedef Container<Cartesian_Point>              Representation_3D;
-  typedef Container<cartesian_gradient_type>      Gradients_3D;
-  typedef std::vector<fix3>                       Fixations_3D;
+  using Cartesian_Point = r3;
+  using cartesian_type = r3;
+  using cartesian_gradient_type = r3;
+  using Representation_3D = Container<Cartesian_Point>;
+  using Gradients_3D = Container<cartesian_gradient_type>;
+  using Fixations_3D = std::vector<fix3>;
   // Internal
-  typedef scon::sphericals<float_type>            internal_type;
-  typedef scon::c3<float_type>                    internal_gradient_type;
-  typedef Container<internal_type>                Representation_Internal;
-  typedef Container<internal_gradient_type>       Gradients_Internal;
-  typedef std::vector<fix3>                       Fixations_Internal;
+  using internal_type = scon::sphericals<float_type>;
+  using internal_gradient_type = scon::c3<float_type>;
+  using Representation_Internal = Container<internal_type>;
+  using Gradients_Internal = Container<internal_gradient_type>;
+  using Fixations_Internal = std::vector<fix3>;
   // Mains
-  typedef internal_type::angle_type               main_type;
-  typedef float_type                              main_gradient_type;
-  typedef Container< main_type >                  Representation_Main;
-  typedef Container< main_gradient_type >         Gradients_Main;
-  typedef std::vector< bool >                     Fixations_Main;
+  using main_type = internal_type::angle_type;
+  using main_gradient_type = float_type;
+  using Representation_Main = Container< main_type >;
+  using Gradients_Main = Container< main_gradient_type >;
+  using Fixations_Main = std::vector< bool >;
 
-  typedef Container<float_type>                   Representation_1D;
+  using Representation_1D = Container<float_type>;
 
   // subsystem interaction energy and gradients
   struct sub_ia
@@ -124,7 +123,7 @@ namespace coords
     double energy;
   };
   // interaction matrix
-  typedef scon::matrix<sub_ia, true> sub_ia_matrix_t;
+  using sub_ia_matrix_t = scon::matrix<sub_ia, true>;
 
   // template<class 
 
@@ -132,7 +131,7 @@ namespace coords
   struct RepType
   {
 
-    typedef std::size_t size_type;
+    using size_type = std::size_t;
 
     Rep3D cartesian;
     RepInt intern;
@@ -213,14 +212,14 @@ namespace coords
 
   //using 
 
-  typedef RepType<Representation_3D, Representation_Internal, Representation_Main> Representation_Dual;
-  typedef RepType<Gradients_3D, Gradients_Internal, Gradients_Main> Gradients_Dual;
+  using Representation_Dual = RepType<Representation_3D, Representation_Internal, Representation_Main>;
+  using Gradients_Dual = RepType<Gradients_3D, Gradients_Internal, Gradients_Main>;
 
   template<class Rep3D, class RepInt, class RepMain>
   inline void swap(RepType<Rep3D, RepInt, RepMain> &a, RepType<Rep3D, RepInt, RepMain> &b) { a.swap(b); }
 
-  typedef Container<Representation_3D> Ensemble_3d;
-  typedef Container<Representation_Dual> Ensemble_Dual;
+  using Ensemble_3d = Container<Representation_3D>;
+  using Ensemble_Dual = Container<Representation_Dual>;
 
 
   /* #############################################################################
@@ -239,7 +238,7 @@ namespace coords
 
   struct PES_Point
   {
-    typedef Representation_Dual::size_type size_type;
+    using size_type = Representation_Dual::size_type;
     Representation_Dual structure;
     Gradients_Dual gradient;
     /**hessian matrix: outer vector is line, inner vector is column
@@ -326,7 +325,7 @@ namespace coords
   inline bool operator>= (const PES_Point& lhs, const PES_Point& rhs) { return !operator< (lhs, rhs); }
 
   // ...
-  typedef Container<PES_Point> Ensemble_PES;
+  using Ensemble_PES = Container<PES_Point>;
 
 }
 

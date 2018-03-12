@@ -41,7 +41,7 @@ workspace "CAST"
 		warnings "Extra"
 		includedirs "../submodules/boost"
 		libdirs "../submodules/boost/stage/lib"
-		
+
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
 				includedirs "../submodules/eigen"

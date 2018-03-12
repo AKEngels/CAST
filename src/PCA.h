@@ -1,10 +1,13 @@
-#pragma once
+﻿#pragma once
 #include "matop.h"
 namespace pca
 {
 	class PrincipalComponentRepresentation
 	{
 	public:
+
+      using float_type = coords::float_type;
+
 		PrincipalComponentRepresentation(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
 
 		PrincipalComponentRepresentation(std::string const& filenameOfPCAModesFile);

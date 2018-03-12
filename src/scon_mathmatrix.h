@@ -61,19 +61,14 @@ arma::Mat kind
 // flag is set by Visual Studio or make according to your desired configuration
 // It's all already automatized and integrated
 
-//Remove if arma Translation is implemented... and enable the includes beneath else
-#include <Eigen/Dense>
-#include <Eigen/Eigenvalues>
-#include <Eigen/Geometry>
-
 #ifdef CAST_USE_ARMADILLO
 #include <armadillo>
 template <typename T>
 using matrix_type = arma::Mat<T>;
 #else
-/*#include <Eigen/Dense>
+#include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
-#include <Eigen/Geometry>*/
+#include <Eigen/Geometry>
 template <typename T>
 using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
@@ -163,17 +158,18 @@ public:
    **/
 #ifndef CAST_USE_ARMADILLO
   using base_type::Matrix;
-  mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
 #else
   using base_type::Mat;
 #endif
 
+  mathmatrix(std::initializer_list<std::initializer_list<T>> const& ini);
   mathmatrix() = default;
   mathmatrix(mathmatrix const& other)
       : base_type(static_cast<base_type>(other)) {}
   mathmatrix(base_type const& other) : base_type(other) {}
 
   static mathmatrix col_from_vec(std::vector<T> const& col);
+  static mathmatrix row_from_vec(std::vector<T> const& row);
 
   /*! Construct filled mathmatrix of certain size
    *
@@ -322,6 +318,9 @@ public:
 
   mathmatrix row(std::size_t const idx) const;
   mathmatrix col(std::size_t const idx) const;
+
+  void set_row(std::size_t const &, mathmatrix const&);
+  void set_col(std::size_t const &, mathmatrix const&);
 
   /*! Performs Cholesky Decompostion on Matrix.
    *
@@ -540,7 +539,7 @@ public:
    * @see diag()
    */
   std::pair<mathmatrix, mathmatrix>
-      eigensym(/*bool const & sort = false*/) const;
+      eigensym(bool const & sort = false) const;
 
   /**
    * @brief uses eigensym to diagonalize the matrix
@@ -619,9 +618,9 @@ mathmatrix<T> transpose(mathmatrix<T> const& in) {
 
 class RotationMatrix {
 public:
-/*#ifdef CAST_USE_ARMADILLO
+#ifdef CAST_USE_ARMADILLO
   // Too much work for now.
-#else*/
+#else
   using Translation = Eigen::Translation3d;
   using Rotation = Eigen::AngleAxisd;
   using Transformation = Eigen::Affine3d;
@@ -643,10 +642,9 @@ public:
                           to_center);
   }
 
-//#endif
+#endif
 };
 
-#ifndef CAST_USE_ARMADILLO
 template <typename T>
 mathmatrix<T>::mathmatrix(
     std::initializer_list<std::initializer_list<T>> const& ini) {
@@ -666,6 +664,7 @@ mathmatrix<T>::mathmatrix(
     }
   }
 }
+#ifndef CAST_USE_ARMADILLO
 template <typename T>
 void mathmatrix<T>::resize(uint_type const rows, uint_type const cols) {
   this->conservativeResize(rows, cols);
@@ -688,6 +687,18 @@ mathmatrix<T> mathmatrix<T>::col_from_vec(std::vector<T> const& col) {
 
   for (auto i = 0; i < size; ++i) {
     ret(i, 0) = col.at(i);
+  }
+  return ret;
+}
+
+template <typename T>
+mathmatrix<T> mathmatrix<T>::row_from_vec(std::vector<T> const& row) {
+  auto const& size = row.size();
+
+  mathmatrix ret(1, size);
+
+  for (auto i = 0; i < size; ++i) {
+    ret(0, i) = row.at(i);
   }
   return ret;
 }
@@ -1037,6 +1048,28 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
 #endif
 }
 
+template<typename T>
+inline void mathmatrix<T>::set_row(std::size_t const & nrow, mathmatrix const & other)
+{
+  if (other.cols() != cols() || other.rows() != 1) {
+    throw std::runtime_error("By setting the row the sizes for both rows are different!");
+  }
+  for (auto i = 0; i < cols(); ++i) {
+    this->operator()(nrow, i) = other(0, i);
+  }
+}
+
+template<typename T>
+inline void mathmatrix<T>::set_col(std::size_t const & ncol, mathmatrix const & other)
+{
+  if (other.rows() != rows() || other.cols() != 1) {
+    throw std::runtime_error("By setting the col the sizes for both cols are different!");
+  }
+  for (auto i = 0; i < rows(); ++i) {
+    this->operator()(i, ncol) = other(i, 0);
+  }
+}
+
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
 #ifndef CAST_USE_ARMADILLO
@@ -1365,34 +1398,25 @@ mathmatrix<T> mathmatrix<T>::diagmat() const {
 
 template <typename T>
 std::pair<mathmatrix<T>, mathmatrix<T>>
-mathmatrix<T>::eigensym(/*bool const & sort = false*/) const {
+mathmatrix<T>::eigensym(bool const & sort) const {
 #ifndef CAST_USE_ARMADILLO
-
-  /*auto sort_eigenpairs = [](auto & EVals, auto & EVecs) {
-  std::cout << "Hallo" << std::endl;
-  std::vector<std::size_t> perms(EVals.cols());
-  std::iota(perms.begin(), perms.end(), 0);
-
-  std::sort(perms.begin(), perms.end(), [&](std::size_t const & i, std::size_t
-  const & j) { std::cout << std::boolalpha << (EVals(i, 0) < EVals(j, 0)) <<
-  std::endl; return EVals(i, 0) < EVals(j, 0);
-  });
-
-  auto EVals_temp = EVals, EVecs_temp = EVecs;
-  for (auto i = 0; i < perms.size(); ++i) {
-
-  EVals(i, 0) = EVals_temp(perms.at(i),0);
-  EVecs.col(i) = EVecs_temp.col(i);
-  }
-  };*/
 
   Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));
   mathmatrix eigenval = es.eigenvalues().real();
   mathmatrix eigenvec = es.eigenvectors().real();
 
-  // std::cout << eigenval << "\n\n";
+  if (sort) {
+    auto indices = eigenval.sort_idx();
+    mathmatrix new_eigenvec(eigenvec.rows(), eigenvec.cols());
+    mathmatrix new_eigenval(eigenval.rows(), eigenval.cols());
+    for (auto i = 0; i < indices.size(); ++i) {
+      auto index = indices[i];
+      new_eigenvec.set_col(i, eigenvec.col(index));
+      new_eigenval(i,0) = eigenval(index,0);
+    }
+    return std::make_pair(new_eigenval, new_eigenvec);
+  }
 
-  // sort_eigenpairs(eigenval, eigenvec);
 #else
   arma::Col<T> eigVal;
   arma::Mat<T> eigVec;

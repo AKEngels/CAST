@@ -14,7 +14,7 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 /**function that reads the structure
 @ param file: name of the xyz-file
 @ return: Coordinates object that is created out of file*/
-coords::Coordinates coords::input::formats::xyz::read(std::string file)
+coords::Coordinates coords::input::formats::xyz::read(std::string const& file)
 {
   if ((Config::get().general.energy_interface == config::interface_types::T::AMBER) ||
     (Config::get().general.energy_interface == config::interface_types::T::AMOEBA) ||
