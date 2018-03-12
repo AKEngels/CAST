@@ -75,11 +75,15 @@ namespace energy{
         void make_call()const;
 
         std::vector<std::string> parse_specific_position(std::istream& is, std::string const& delim, int space) const;
-        std::vector<std::string> get_last_gradients(std::istream& is) const;
-        coords::Representation_3D get_final_geometry(std::istream& is) const;
+        std::vector<std::string> get_last_gradients() const;
+        coords::Representation_3D get_final_geometry() const;
 
-        coords::Representation_3D parse_gradients(std::istream& is) const;
-        std::pair<coords::Representation_3D,coords::Representation_3D> parse_geometry_and_gradients(std::istream& is) const;
+        coords::float_type parse_energy()const;
+        std::pair<coords::float_type, coords::Representation_3D> parse_gradients() const;
+        std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
+        parse_geometry_and_gradients() const;
+
+        coords::Representation_3D extract_Rep3D(std::vector<std::string> const& lines)const;
 
         std::string tmp_file_name;
       };

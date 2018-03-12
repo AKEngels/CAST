@@ -10,14 +10,14 @@ void energy::interfaces::psi4::sysCallInterface::update(bool const skip_topology
 coords::float_type energy::interfaces::psi4::sysCallInterface::e(void){
   write_input();
   make_call();
-  return 0.0;
+  return parse_energy();
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::g(void){
   write_input(Calc::gradient);
   make_call();
-  std::ifstream ifs(tmp_file_name + "_out.dat");
-  parse_gradients(ifs);
-  return 0.0;
+  auto e_grads = parse_gradients();
+  coords->swap_g_xyz(e_grads.second);
+  return e_grads.first;
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::h(void){
   return 0.0;
@@ -25,9 +25,10 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::h(void){
 coords::float_type energy::interfaces::psi4::sysCallInterface::o(void){
   write_input(Calc::optimize);
   make_call();
-  std::ifstream ifs(tmp_file_name + "_out.dat");
-  parse_geometry_and_gradients(ifs);
-  return 0.0;
+  auto e_geo_grads = parse_geometry_and_gradients();
+  coords->set_xyz(std::get<1>(e_geo_grads));
+  coords->swap_g_xyz(std::get<2>(e_geo_grads));
+  return std::get<0>(e_geo_grads);
 }
 
 void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream&) const{}
@@ -112,43 +113,69 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::parse_speci
   for(std::string line; getline(is,line);){
     if(line.find(delim, 0) != std::string::npos){
       for(auto i = 0; i < space; ++i) getline(is,line);
-      while(getline(is,line)){
+      do{
         if(line.empty()){
           break;
         }
         mol.emplace_back(line);
-      }
+      }while(getline(is,line));
       break;
     }
   }
   return mol;
 }
 
-coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_geometry(std::istream& is) const{
-  auto geometry = parse_specific_position(is, "Final optimized geometry", 6);
-  for(auto const& el: geometry) std::cout << el << "\n";
-  return coords::Representation_3D();
+coords::Representation_3D energy::interfaces::psi4::sysCallInterface::extract_Rep3D(std::vector<std::string> const& lines)const{
+  coords::Representation_3D ret;
+  for(auto const& line: lines){
+    std::istringstream iss{line};
+    std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
+    ret.emplace_back(coords::Cartesian_Point(
+      std::stod(words.at(1)), std::stod(words.at(2)), std::stod(words.at(3))
+    ));
+  }
+  return ret;
 }
 
-std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients(std::istream& is)const{
+coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_geometry() const{
+  std::ifstream ifs(tmp_file_name + "_out.dat");
+  auto geometry = parse_specific_position(ifs, "Final optimized geometry", 6);
+  return extract_Rep3D(geometry);
+}
+
+std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients()const{
+  std::ifstream ifs(tmp_file_name + "_out.dat");
   std::vector<std::string> grads;
-  int count=0;
-  for(std::vector<std::string> tmp_grads = parse_specific_position(is, "Total Grad", 2);
-    !tmp_grads.empty(); tmp_grads = parse_specific_position(is, "Total Grad", 2)){
-    ++count;
+  for(std::vector<std::string> tmp_grads = parse_specific_position(ifs, "Total Grad", 3);
+    !tmp_grads.empty(); tmp_grads = parse_specific_position(ifs, "Total Grad", 3)){
     grads = tmp_grads;
   }
   return grads;
 }
 
-coords::Representation_3D energy::interfaces::psi4::sysCallInterface::parse_gradients(std::istream& is)const{
-  auto grads = get_last_gradients(is);
-  return coords::Representation_3D();
+coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()const{
+  std::ifstream ifs(tmp_file_name + "_out.dat");
+
+  std::string energy;
+
+  for(auto tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0);
+    !tmp_energy.empty(); tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0)){
+    energy = tmp_energy.back();
+  }
+  std::istringstream iss{energy};
+  std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
+  return std::stod(words.back());
 }
 
-std::pair<coords::Representation_3D,coords::Representation_3D>
-energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(std::istream& is)const{
-  auto grads = parse_gradients(is);
-  auto geo = get_final_geometry(is);
-  return std::make_pair(geo, grads);
+std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients()const{
+  auto energy = parse_energy();
+  auto grads = get_last_gradients();
+  return std::make_pair(energy, extract_Rep3D(grads));
+}
+
+std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
+energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients()const{
+  auto geo = get_final_geometry();
+  auto energy_and_geo = parse_gradients();
+  return std::make_tuple(energy_and_geo.first, geo, energy_and_geo.second);
 }
