@@ -7,12 +7,12 @@
 // Define Function to output molar mass of a coords object
 inline double sys_mass(coords::Coordinates &sys)
 {
-double m = 0;
-for (auto && a : sys.atoms())
-{
-  m += a.mass();
-}
-return m;
+  double m = 0;
+  for (auto && a : sys.atoms())
+  {
+    m += a.mass();
+  }
+  return m;
 }
 
 
@@ -192,6 +192,6 @@ inline bool file_exists(const std::string& name) {
 inline std::string last_line(std::ifstream& in)
 {
   std::string line;
-  while (in >> std::ws && std::getline(in, line)); // skip empty lines
+  while (in >> std::ws && std::getline(in, line)); 
   return line;
 }
