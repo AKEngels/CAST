@@ -21,7 +21,7 @@ inline void short_ene_stream(
   coords::Coordinates const &coords,
   std::ostream &strm, std::streamsize const w)
 {
-  strm << std::setw(w) << coords.pes().energy;
+  strm << std::fixed<< std::setw(w) << coords.pes().energy;
   for (auto && ia : coords.pes().ia_matrix)
   {
     strm << std::setw(w) << ia.energy;
