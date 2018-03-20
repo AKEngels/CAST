@@ -787,18 +787,4 @@ void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&
 
 void energy::interfaces::chemshell::sysCallInterface::print_E_short(std::ostream&, bool const endline) const {}
 
-void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::ostream & S, bool const aggregate) const {
-
-	coords::Representation_3D gradients;
-
-	coords->get_g_xyz(gradients);
-
-	for (auto const & grad : gradients) {
-
-		S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << grad << "\n";
-
-	}
-
-}
-
 void energy::interfaces::chemshell::sysCallInterface::to_stream(std::ostream&) const {}

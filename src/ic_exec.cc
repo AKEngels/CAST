@@ -81,7 +81,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
 
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   std::cout << "Gmatrix:\n" << G_matrix << "\n\n";*/
-  
+
   //std::cout << icSystem.angle_vec_.size() << "||" << icSystem.distance_vec_.size() << "||" << icSystem.dihed_vec_.size() << "||" << icSystem.oop_vec_.size() << "||" << icSystem.rotation_vec_.size() << "||" << icSystem.trans_x_vec_.size() << std::endl;
   /*for (auto& i : icSystem.distance_vec_)
   {
@@ -99,7 +99,8 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   }
   auto const & bla = icSystem.calc(trial);
   std::cout << bla << std::endl;
-  //coords.g();
+  coords.g();
+  coords.energyinterface()->print_G_tinkerlike(std::cout);
   auto const & blub = icSystem.calcGrad(trial, coords.g_xyz());
 
   // test matrix stuff

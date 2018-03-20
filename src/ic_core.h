@@ -124,7 +124,7 @@ struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, p
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
   coords::float_type val(coords::Representation_3D const& xyz) const override;
-  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
     der(coords::Representation_3D const& xyz) const;
   std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
   float_type hessian_guess(coords::Representation_3D const& xyz) const override;
@@ -267,8 +267,8 @@ private:
 
 public:
   void append_primitives(std::vector<std::unique_ptr<internal_coord>> && pic) {
-    primitive_internals.insert(primitive_internals.end(), 
-      std::make_move_iterator(pic.begin()), 
+    primitive_internals.insert(primitive_internals.end(),
+      std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
   }
 
@@ -501,6 +501,16 @@ inline void system::create_ic_system(const Graph& g) {
 
   rotation_vec_ = create_rotations(rep_, res_index_vec_);
 }
+
+
+//template<typename Rep3D>
+inline scon::mathmatrix<float_type> ic_core::system::calcGrad(coords::Representation_3D const & xyz, coords::Representation_3D const & g) const {
+  auto B_matrix = Bmat(xyz);
+  auto G_mat = B_matrix * B_matrix.t();
+  auto Gmat_inv = G_mat.pinv();
+  return Gmat_inv * B_matrix * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(g));
+}
+
 //template <typename Graph>
 //inline system::IC_System system::create_system(Graph const& g) {
 //  IC_System new_ic_system;

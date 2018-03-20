@@ -1278,27 +1278,6 @@ void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const e
   if (endline) S << '\n';
 }
 
-void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool const endline) const
-{
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for (std::size_t k = 0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k + 1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << "\n";
-  }
-  if (endline) S << '\n';
-}
-
 void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
 {
   S << '\n';

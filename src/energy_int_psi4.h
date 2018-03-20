@@ -39,11 +39,10 @@ namespace energy{
         float_type h(void) final;
         float_type o(void) final;
 
-        void print_E(std::ostream&) const final;
-        void print_E_head(std::ostream&, bool const endline=true) const final;
-        void print_E_short(std::ostream&, bool const endline=true) const final;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final;
-        void to_stream(std::ostream&) const final;
+        void print_E(std::ostream&) const final override;
+        void print_E_head(std::ostream&, bool const endline=true) const final override;
+        void print_E_short(std::ostream&, bool const endline=true) const final override;
+        void to_stream(std::ostream&) const final override;
 
         std::vector<float_type> charges() const override{
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");

@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 #include <vector>
 #include <string>
@@ -31,8 +31,8 @@ namespace energy
 	namespace interfaces
 	{
 		namespace dftb
-		{           
-			
+		{
+
 
 			class sysCallInterface
 				: public energy::interface_base
@@ -68,8 +68,6 @@ namespace energy
 				void print_E_head(std::ostream&, bool const endline = true) const;
 				/**prints partial energies (not much sense in it because not partial energies are read)*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
-				/**prints gradients*/
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
 				/**does nothing*/
 				void to_stream(std::ostream&) const;
 				// "update" function

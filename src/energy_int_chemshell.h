@@ -38,7 +38,7 @@ namespace energy {
 				using angle_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::angle_type;
 				*/
 				sysCallInterface(coords::Coordinates * coord_ptr)
-					: interface_base(coord_ptr), 
+					: interface_base(coord_ptr),
 					tmp_file_name(Config::get().general.outputFilename)
 				{
 					optimizer = true;
@@ -98,9 +98,8 @@ namespace energy {
 				coords::float_type o(void) final;
 
 				void print_E(std::ostream&) const final;
-				void print_E_head(std::ostream&, bool const endline = true) const final;
-				void print_E_short(std::ostream&, bool const endline = true) const final;
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final;
+				void print_E_head(std::ostream&, bool const endline = true) const final override;
+				void print_E_short(std::ostream&, bool const endline = true) const final override;
 				void to_stream(std::ostream&) const final;
 
 				//TODO: Get better value from better source
@@ -117,7 +116,7 @@ namespace energy {
           throw std::runtime_error("function not implemented for chemshell interface\n");
         }
         /**overwritten function*/
-        std::string get_id() const override 
+        std::string get_id() const override
         {
           throw std::runtime_error("function not implemented for chemshell interface\n");
         }

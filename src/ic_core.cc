@@ -92,7 +92,7 @@ coords::float_type ic_core::angle::val(coords::Representation_3D const& xyz) con
   return std::atan2(l, uDv);
 }
 
-std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
 ic_core::angle::der(coords::Representation_3D const& xyz) const {
   using coords::Cartesian_Point;
   using scon::cross;
@@ -182,7 +182,7 @@ coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) 
   return std::atan2(y, x);
 }
 
-std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> 
+std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
 ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
@@ -351,7 +351,7 @@ std::string ic_core::trans_x::info(coords::Representation_3D const & xyz) const
 
 std::vector<float_type>
 ic_core::trans_y::der_vec(coords::Representation_3D const& xyz) const{
-  
+
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
@@ -525,7 +525,7 @@ scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords:
   auto const & sys_size = trial.size();
 
   auto B_matrix = Bmat(trial);
-  
+
   /*std::ofstream of("Bmat.dat");
   of << B_matrix << "\n";*/
   auto G_matrix = B_matrix * B_matrix.t();
@@ -598,13 +598,4 @@ scon::mathmatrix<float_type> ic_core::system::calc(coords::Representation_3D con
     primitives.emplace_back(rv.at(2));
   }
   return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
-}
-
-scon::mathmatrix<float_type> ic_core::system::calcGrad(coords::Representation_3D const & xyz, coords::Representation_3D const & g) const
-{
-
-  auto B_matrix = Bmat(xyz);
-  auto G_mat = B_matrix * B_matrix.t();
-  auto Gmat_inv = G_mat.pinv();
-  return Gmat_inv * B_matrix * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(g));
 }

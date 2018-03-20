@@ -86,7 +86,7 @@ namespace energy
         void print_E(std::ostream&) const;
         void print_E_head(std::ostream&, bool const endline = true) const;
         void print_E_short(std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
+        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final override;
         void to_stream(std::ostream&) const;
         void swap(interface_base&);
         void swap(aco_ff&);

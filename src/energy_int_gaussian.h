@@ -2,7 +2,7 @@
 * GAUSSIAN Interface
 */
 
-#pragma once 
+#pragma once
 
 #include <vector>
 #include <string>
@@ -52,7 +52,6 @@ namespace energy
         void print_E(std::ostream&) const;
         void print_E_head(std::ostream&, bool const endline = true) const;
         void print_E_short(std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
 
         /**return charges*/
@@ -79,7 +78,7 @@ namespace energy
 				double hof_kcal_mol, hof_kj_mol;
 
 				// energies
-				double e_total, e_electron, e_core;    
+				double e_total, e_electron, e_core;
 
 				std::string id;
 

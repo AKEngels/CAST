@@ -34,7 +34,6 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::o(void){
 void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream&) const{}
 void energy::interfaces::psi4::sysCallInterface::print_E_head(std::ostream&, bool const endline) const{}
 void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream&, bool const endline) const{}
-void energy::interfaces::psi4::sysCallInterface::print_G_tinkerlike(std::ostream&, bool const aggregate) const{}
 void energy::interfaces::psi4::sysCallInterface::to_stream(std::ostream&) const{}
 
 void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces::psi4::sysCallInterface::Calc kind) const{

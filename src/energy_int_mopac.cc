@@ -88,7 +88,7 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
-std::vector<coords::float_type> 
+std::vector<coords::float_type>
 energy::interfaces::mopac::sysCallInterface::charges() const
 {
   auto file = id + ".xyz.aux";
@@ -114,7 +114,7 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   }
   if (v.size() != coords->size())
   {
-    throw std::logic_error("Found " + std::to_string(v.size()) + 
+    throw std::logic_error("Found " + std::to_string(v.size()) +
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
   return v;
@@ -128,7 +128,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 
   /*! Special Input for modified MOPAC7
   *
-  * MOPAC7_HB is a modified version of MOPAC7 which 
+  * MOPAC7_HB is a modified version of MOPAC7 which
   * neglects hydrogenbonding and needs a special input.
   */
   if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
@@ -177,14 +177,14 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       out_file << " THREADS=" << omp_get_num_threads();
 #else
       out_file << " THREADS=1";
-#endif 
+#endif
     }
 
     out_file << '\n';
     out_file << '\n' << '\n';
-    
+
     out_file << coords::output::formats::xyz_mopac7(*coords);
-    
+
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -406,7 +406,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
       // if grad && final point
 
-      //Cartesian Coordinates for MOPAC7 
+      //Cartesian Coordinates for MOPAC7
 
       if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
       {
@@ -446,7 +446,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
     if (!done)
     {
 #ifndef _CAST_ALL_WARNINGS_ARE_ERRORS
-      if (Config::get().general.verbosity >= 1) 
+      if (Config::get().general.verbosity >= 1)
 		  std::cout << "ATTENTION: MOPAC calculation was not finished correctly.\n";
 	  // Keep (=Copy) failed output file if verbosity is >=3
 	  if (Config::get().general.verbosity >= 3)
@@ -507,7 +507,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 //  int mopac_system_call(std::string const & command_line)
 //  {
 //#if defined (_MSC_VER)
-//    // get a modifiable character sequence of the command: 
+//    // get a modifiable character sequence of the command:
 //#if defined _UNICODE
 //    using cur_char = wchar_t;
 //    using cur_string = std::wstring;
@@ -673,26 +673,6 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_electron;
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_core;
   if (endline) S << '\n';
-}
-
-void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
-{
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for (std::size_t k = 0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k + 1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
 }
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }

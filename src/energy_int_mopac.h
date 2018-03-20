@@ -2,7 +2,7 @@
 MOPAC Interface
 *                            DW*/
 
-#pragma once 
+#pragma once
 
 #include <vector>
 #include <string>
@@ -66,7 +66,6 @@ namespace energy
 				void print_E(std::ostream&) const;
 				void print_E_head(std::ostream&, bool const endline = true) const;
 				void print_E_short(std::ostream&, bool const endline = true) const;
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }

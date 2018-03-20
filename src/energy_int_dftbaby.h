@@ -1,6 +1,6 @@
 #ifdef USE_PYTHON
 
-#pragma once 
+#pragma once
 
 #include <Python.h>
 #include <vector>
@@ -33,7 +33,7 @@ namespace energy
 	namespace interfaces
 	{
 		namespace dftbaby
-		{           
+		{
 			/*
 			function that creates a string that can be run as a python programme
 			this programme sets the correct pythonpath
@@ -41,7 +41,7 @@ namespace energy
 			@param scipath: path to param scipy
 			*/
 			std::string create_pythonpath(std::string numpath, std::string scipath);
-            
+
 			/*
 			function that creates a configfile for dftbaby (dftbaby.cfg)
 			out of configuration options in CAST inputfile
@@ -86,8 +86,6 @@ namespace energy
 				void print_E_head(std::ostream&, bool const endline = true) const;
 				/**prints partial energies*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
-				/**prints gradients*/
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
 				/**does nothing*/
 				void to_stream(std::ostream&) const;
 				// "update" function
@@ -124,7 +122,7 @@ namespace energy
 				/**total energy*/
 				double e_tot;
 
-				/**string that contains pythonprogramme to 
+				/**string that contains pythonprogramme to
 				add all necessary paths to pythonpath*/
 				std::string add_path;
 

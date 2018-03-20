@@ -116,19 +116,19 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
     std::ofstream file("tmp_struc.xyz");
     file << coords::output::formats::xyz_dftb(*this->coords);
     file.close();
-    
+
     //call programme
-    std::string result_str; 
+    std::string result_str;
     PyObject *modul, *funk, *prm, *ret;
-    
+
     PySys_SetPath("./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
+    modul = PyImport_ImportModule("dftbaby_interface"); //import module
 
-    if(modul) 
-        { 
+    if(modul)
+        {
         funk = PyObject_GetAttrString(modul, "calc_energies"); //create function
         prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
@@ -137,9 +137,9 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
         {
           result_str = result_str.substr(1,result_str.size()-2);  //process return
           std::vector<std::string> result_vec = split(result_str, ',');
-  
+
           //read energies and convert them to kcal/mol
-          e_bs = std::stod(result_vec[0])*627.503; 
+          e_bs = std::stod(result_vec[0])*627.503;
           e_coul = std::stod(result_vec[1])*627.503;
           e_rep = std::stod(result_vec[3])*627.503;
           e_tot = std::stod(result_vec[4])*627.503;
@@ -161,14 +161,14 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
         }
 
         //delete PyObjects
-        Py_DECREF(prm); 
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-        } 
-    else 
+        Py_DECREF(prm);
+        Py_DECREF(ret);
+        Py_DECREF(funk);
+        Py_DECREF(modul);
+        }
+    else
     {
-        printf("ERROR: module dftbaby_interface not found\n"); 
+        printf("ERROR: module dftbaby_interface not found\n");
         std::exit(0);
     }
     std::remove("tmp_struc.xyz"); // delete file
@@ -184,19 +184,19 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
   std::ofstream file("tmp_struc.xyz");
   file << coords::output::formats::xyz_dftb(*this->coords);
   file.close();
-    
+
   //call programme
-  std::string result_str; 
+  std::string result_str;
   PyObject *modul, *funk, *prm, *ret;
-    
+
   PySys_SetPath("./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths from variable add_path
   PyRun_SimpleString(c);
 
-  modul = PyImport_ImportModule("dftbaby_interface"); //import module 
+  modul = PyImport_ImportModule("dftbaby_interface"); //import module
 
-  if(modul) 
-    { 
+  if(modul)
+    {
       funk = PyObject_GetAttrString(modul, "calc_gradients"); //create function
       prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
       ret = PyObject_CallObject(funk, prm);  //call function with parameters
@@ -206,9 +206,9 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
       {
         result_str = result_str.substr(1,result_str.size()-2);  //process return
         std::vector<std::string> result_vec = split(result_str, ',');
-        
+
         //read energies and convert them to kcal/mol
-        e_bs = std::stod(result_vec[0])*627.503; 
+        e_bs = std::stod(result_vec[0])*627.503;
         e_coul = std::stod(result_vec[1])*627.503;
         e_rep = std::stod(result_vec[3])*627.503;
         e_tot = std::stod(result_vec[4])*627.503;
@@ -228,19 +228,19 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
         e_lr = 0;
         integrity = false;
       }
-        
+
       //delete PyObjects
-      Py_DECREF(prm); 
-      Py_DECREF(ret); 
-      Py_DECREF(funk); 
-      Py_DECREF(modul); 
-    } 
-    else 
+      Py_DECREF(prm);
+      Py_DECREF(ret);
+      Py_DECREF(funk);
+      Py_DECREF(modul);
+    }
+    else
     {
-      printf("ERROR: module dftbaby_interface not found\n"); 
+      printf("ERROR: module dftbaby_interface not found\n");
       std::exit(0);
     }
-    
+
     double CONVERSION_FACTOR = 627.503 / 0.5291172107;  // hartree/bohr -> kcal/(mol*A)
 
     if (integrity == true) //read gradients
@@ -262,7 +262,7 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
       std::remove(gradfile); // delete file
       coords->swap_g_xyz(g_tmp); //give gradients to coordobject
     }
-    
+
     std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
 }
@@ -276,31 +276,31 @@ double energy::interfaces::dftbaby::sysCallInterface::h(void)
       std::ofstream file("tmp_struc.xyz");
       file << coords::output::formats::xyz_dftb(*this->coords);
       file.close();
-      
+
       //call programme
-      std::string result_str; 
+      std::string result_str;
       PyObject *modul, *funk, *prm, *ret;
-      
+
       PySys_SetPath("./python_modules"); //set path
       const char *c = add_path.c_str();  //add paths from variable add_path
       PyRun_SimpleString(c);
-  
-      modul = PyImport_ImportModule("dftbaby_interface"); //import module 
-  
-      if(modul) 
-          { 
+
+      modul = PyImport_ImportModule("dftbaby_interface"); //import module
+
+      if(modul)
+          {
           funk = PyObject_GetAttrString(modul, "hessian"); //create function
           prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
           ret = PyObject_CallObject(funk, prm);  //call function with parameters
-  
+
           result_str = PyString_AsString(ret); //read function return (has to be a string)
           if (result_str != "error")
           {
             result_str = result_str.substr(1,result_str.size()-2);  //process return
             std::vector<std::string> result_vec = split(result_str, ',');
-    
+
             //read energies and convert them to kcal/mol
-            e_bs = std::stod(result_vec[0])*627.503; 
+            e_bs = std::stod(result_vec[0])*627.503;
             e_coul = std::stod(result_vec[1])*627.503;
             e_rep = std::stod(result_vec[3])*627.503;
             e_tot = std::stod(result_vec[4])*627.503;
@@ -320,21 +320,21 @@ double energy::interfaces::dftbaby::sysCallInterface::h(void)
             e_lr = 0;
             integrity = false;
           }
-  
+
           //delete PyObjects
-          Py_DECREF(prm); 
-          Py_DECREF(ret); 
-          Py_DECREF(funk); 
-          Py_DECREF(modul); 
-          } 
-      else 
+          Py_DECREF(prm);
+          Py_DECREF(ret);
+          Py_DECREF(funk);
+          Py_DECREF(modul);
+          }
+      else
       {
-          printf("ERROR: module dftbaby_interface not found\n"); 
+          printf("ERROR: module dftbaby_interface not found\n");
           std::exit(0);
       }
-      
+
       double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107);
-      
+
       if (integrity == true) //read hessian
       {
         std::string line;
@@ -351,7 +351,7 @@ double energy::interfaces::dftbaby::sysCallInterface::h(void)
           hess.push_back(doublevec);
         }
         infile.close();
-  
+
         coords->set_hessian(hess);  //set hessian
         std::remove("hessian.txt"); // delete file
       }
@@ -367,19 +367,19 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
     std::ofstream file("tmp_struc.xyz");
     file << coords::output::formats::xyz_dftb(*this->coords);
     file.close();
-    
+
     //call programme
-    std::string result_str; 
+    std::string result_str;
     PyObject *modul, *funk, *prm, *ret;
-    
+
     PySys_SetPath("./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
-    modul = PyImport_ImportModule("dftbaby_interface"); //import module 
+    modul = PyImport_ImportModule("dftbaby_interface"); //import module
 
-    if(modul) 
-        { 
+    if(modul)
+        {
         funk = PyObject_GetAttrString(modul, "opt"); //create function
         prm = Py_BuildValue("(ss)", "tmp_struc.xyz", "dftbaby.cfg"); //give parameters
         ret = PyObject_CallObject(funk, prm);  //call function with parameters
@@ -389,9 +389,9 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
         {
           result_str = result_str.substr(1,result_str.size()-2);  //process return
           std::vector<std::string> result_vec = split(result_str, ',');
-          
+
           //read energies and convert them to kcal/mol
-          e_bs = std::stod(result_vec[0])*627.503; 
+          e_bs = std::stod(result_vec[0])*627.503;
           e_coul = std::stod(result_vec[1])*627.503;
           e_rep = std::stod(result_vec[3])*627.503;
           e_tot = std::stod(result_vec[4])*627.503;
@@ -411,19 +411,19 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
           e_lr = 0;
           integrity = false;
         }
-        
+
         //delete PyObjects
-        Py_DECREF(prm); 
-        Py_DECREF(ret); 
-        Py_DECREF(funk); 
-        Py_DECREF(modul); 
-        } 
-    else 
+        Py_DECREF(prm);
+        Py_DECREF(ret);
+        Py_DECREF(funk);
+        Py_DECREF(modul);
+        }
+    else
     {
-        printf("ERROR: module dftbaby_interface not found\n"); 
+        printf("ERROR: module dftbaby_interface not found\n");
         std::exit(0);
     }
-    
+
     if (integrity == true)   //read new geometry
     {
       std::string line;
@@ -440,10 +440,10 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
       }
       infile.close();
       coords->set_xyz(std::move(xyz_tmp));
-  
+
       std::remove("tmp_struc_opt.xyz"); // delete file
     }
-   
+
     std::remove("tmp_struc.xyz"); // delete file
   return e_tot;
 }
@@ -474,26 +474,6 @@ void energy::interfaces::dftbaby::sysCallInterface::print_E_short(std::ostream &
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_rep;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << e_tot << '\n';
   if (endline) S << "\n";
-}
-
-void energy::interfaces::dftbaby::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const
-{ 
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for(std::size_t k=0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k+1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
 }
 
 void energy::interfaces::dftbaby::sysCallInterface::to_stream(std::ostream&) const { }
