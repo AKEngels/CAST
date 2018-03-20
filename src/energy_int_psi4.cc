@@ -99,12 +99,12 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
 			break;
 		}
 		else {
-			std::cout << "I am failing to call Psi4! Are you sure you passed the right chemshell path?\n";
+			std::cout << "I am failing to call Psi4! Are you sure you passed the right Psi4 path?\n";
 			std::cout << "The path passed is: \"" << path << "\"\n";
 		}
 	}
 	if (failcount == 3) {
-		throw std::runtime_error("10 Chemshell calls failed!");
+		throw std::runtime_error("10 Psi4 calls failed!");
 	}
 }
 
