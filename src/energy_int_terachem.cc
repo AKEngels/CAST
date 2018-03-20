@@ -20,7 +20,6 @@
 /*
   Mopac sysCall functions
 */
-double const hartree_to_kcal(627.5095),bohr_to_angstroem(1 / 0.52918);
 cmpi::CMPI energy::interfaces::terachem::mpiInterface::mpo;
 
 bool energy::interfaces::terachem::mpiInterface::option_init_done(false);
@@ -204,7 +203,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_gradients (void)
   for (std::size_t i=0; i<N; ++i)
   {
     std::size_t const P(i*3U);
-    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+1U]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+2U]*(hartree_to_kcal*bohr_to_angstroem)));
+    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(energy::Hartree_Bohr2Kcal_MolAng), grad_buffer[P+1U]*(energy::Hartree_Bohr2Kcal_MolAng), grad_buffer[P+2U]*(energy::Hartree_Bohr2Kcal_MolAng)));
   }
 }
 
@@ -237,7 +236,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::e (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for engery call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Energy+Gradient function
@@ -250,7 +249,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::g (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for gradient call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Energy+Gradient+Hessian function
@@ -272,7 +271,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::o (void)
   //mpi_recv_gradients();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 3 (recv positions) for opt call from <- TeraChem.\n";
   mpi_recv_positions();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Output functions

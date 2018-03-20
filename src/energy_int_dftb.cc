@@ -167,7 +167,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       if (line == "total_energy        :real:0:")  // read energy
       {
         std::getline(in_file, line);
-        energy = std::stod(line)*627.503; // convert hartree to kcal/mol
+        energy = std::stod(line)*energy::au2kcal_mol; // convert hartree to kcal/mol
       }
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
@@ -180,9 +180,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           g_tmp.push_back(g);
         }
@@ -192,9 +192,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           link_atom_grad.push_back(g);
         }
@@ -213,9 +213,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           {
             std::getline(in_file, line);
             std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-            x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-            y = (-y) * (627.503 / 0.5291172107);
-            z = (-z) * (627.503 / 0.5291172107);
+            x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+            y *= -energy::Hartree_Bohr2Kcal_MolAng;
+            z *= -energy::Hartree_Bohr2Kcal_MolAng;
             coords::Cartesian_Point g(x, y, z);
             grad_tmp.push_back(g);
           }
@@ -225,7 +225,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
-        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
+        double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
 
         // read all values into one vector (tmp)
         std::vector<double> tmp;

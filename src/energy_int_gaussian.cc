@@ -161,8 +161,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 {
   //std::ofstream mos("MOs.txt", std::ios_base::out); //ofstream for mo testoutput keep commented if not needed
 
-  double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);  //1 au = 627.5095 kcal/mol
-  double const HartreePerBohr2KcalperMolperAngstr = 627.5095 * (1 / 0.52918);
   hof_kcal_mol = hof_kj_mol = energy = e_total = e_electron = e_core = 0.0;
   double mm_el_energy(0.0);
   int atoms(coords->size());
@@ -295,7 +293,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 			 p.y() = std::stod(buffer.substr(38, 14));
 			 p.z() = std::stod(buffer.substr(52, 14));
 
-			el_field_tmp.push_back(p * HartreePerBohr2KcalperMolperAngstr);
+			el_field_tmp.push_back(p * energy::Hartree_Bohr2Kcal_MolAng);
 			std::getline(in_file, buffer);
 		  }
 		  electric_field = el_field_tmp;
@@ -329,7 +327,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           g.z() = -temp;
 
           std::getline(in_file, buffer);
-          g_tmp[i] = g * HartreePerBohr2KcalperMolperAngstr;
+          g_tmp[i] = g * energy::Hartree_Bohr2Kcal_MolAng;
         }
 
         for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
@@ -344,7 +342,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           g.z() = -temp;
 
           std::getline(in_file, buffer);
-          link_atom_grad.push_back(g * HartreePerBohr2KcalperMolperAngstr);
+          link_atom_grad.push_back(g * energy::Hartree_Bohr2Kcal_MolAng);
         }
       }//end gradient reading
 
@@ -398,20 +396,20 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
      for (int i = 0; i < occMO.size(); i++)
      {
-       occMO[i] *= au2kcal_mol;
+       occMO[i] *= energy::au2kcal_mol;
      }
 
-     for (int i = 0; i < virtMO.size(); i++)
+     for (std::size_t i = 0; i < virtMO.size(); i++)
      {
-       virtMO[i] *= au2kcal_mol;
+       virtMO[i] *= energy::au2kcal_mol;
      }
 
-     for (int i = 0; i < excitE.size(); i++)
+     for (std::size_t i = 0; i < excitE.size(); i++)
      {
-       excitE[i] *= eV2kcal_mol;
+       excitE[i] *= energy::eV2kcal_mol;
      }
 
-    e_total *= au2kcal_mol;
+    e_total *= energy::au2kcal_mol;
     energy = e_total;
 
     //test output for interface, should be commented, only for debug

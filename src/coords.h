@@ -799,6 +799,23 @@ namespace coords
       }
       m_atoms.c_to_i(m_representation); // update internals
     }
+
+    template<typename Grad3D>
+    void set_g_xyz(Grad3D && new_grads, bool const overwrite_fixed = false){
+      size_type const N(m_representation.gradient.cartesian.size());
+      if (new_grads.size() != N) throw std::logic_error("Wrong sized gradients in set_g_xyz.");
+      auto old_grads = std::move(m_representation.gradient.cartesian);
+      m_representation.gradient.cartesian = std::forward<Grad3D>(new_grads);
+      if (!overwrite_fixed)
+      {
+        for (size_type i(0U); i < N; ++i)
+        {
+          if (atoms(i).fixed()) m_representation.gradient.cartesian[i] = old_grads[i];
+        }
+      }
+      m_atoms.c_to_i(m_representation); // update internals
+    }
+
     /**sets another Gradients_3D object to the cartesian gradients of coordinates object
     @param out_g_xyz: name of object that should be set to the gradients*/
     void get_g_xyz(Gradients_3D & out_g_xyz) const

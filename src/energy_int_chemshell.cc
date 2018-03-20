@@ -599,7 +599,7 @@ coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extra
 	return new_grads;
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
+coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::read_gradients() const{
 	std::ifstream ifile(tmp_file_name + ".gradient");
 
 	std::string line;
@@ -620,10 +620,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
 		}
 	}
 
-	auto new_gradients = extract_gradients(gradients);
-
-	coords->swap_g_xyz(new_gradients);
-
+	return extract_gradients(gradients);
 }
 
 bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coordobj)const {
@@ -756,14 +753,14 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) {
 	check_for_first_call();
 	//write_chemshell_coords();
 	make_sp();
-	return read_energy()*au_to_kcalmol;
+	return read_energy()*au2kcal_mol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	check_for_first_call();
 	//write_chemshell_coords();
 	make_sp();
-	read_gradients();
-	return read_energy()*au_to_kcalmol;
+	set_gradients(read_gradients());
+	return read_energy()*au2kcal_mol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	check_for_first_call();
@@ -776,9 +773,9 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	make_opti();
 	++x;
 	change_name_of_energy_and_grad();
-	read_gradients();
+	set_gradients(read_gradients());
 	read_coords();
-	return read_energy()*au_to_kcalmol;
+	return read_energy()*au2kcal_mol;
 }
 
 void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
