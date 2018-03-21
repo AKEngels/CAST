@@ -23,13 +23,15 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include<memory>
+#include <memory>
 
 #include "coords_io_pdb.h"
 
 namespace ic_core {
 
 using coords::float_type;
+
+coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 
 struct internal_coord {
   virtual float_type val(coords::Representation_3D const& xyz) const = 0;

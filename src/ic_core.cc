@@ -1,8 +1,18 @@
 #include "ic_core.h"
 #include "ic_util.h"
+#include "energy.h"
 #include<iterator>
 
 using coords::float_type;
+
+coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const& grads){
+  coords::Representation_3D bohr_grads;
+  bohr_grads.reserve(grads.size());
+  for(auto const& g: grads){
+    bohr_grads.emplace_back(g / energy::Hartree_Bohr2Kcal_MolAng);
+  }
+  return bohr_grads;
+}
 
 float_type ic_core::distance::val(coords::Representation_3D const& xyz) const {
 

@@ -100,9 +100,25 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   auto const & bla = icSystem.calc(trial);
   std::cout << bla << std::endl;
   coords.g();
-  coords.energyinterface()->print_G_tinkerlike(std::cout);
-  auto const & blub = icSystem.calcGrad(trial, coords.g_xyz());
+  auto blub = icSystem.calcGrad(trial, ic_core::grads_to_bohr(coords.g_xyz()));
+  coords.set_xyz(trial);
+  std::cout << blub;
+  //std::cout << coords::output::formats::xyz(coords);
+  //trial -= blub;
+  //coords.set_xyz(trial);
+  //std::cout << coords::output::formats::xyz(coords);
 
+
+
+
+
+
+
+
+
+
+
+  
   // test matrix stuff
   /*auto matrix_trial = ic_util::Rep3D_to_arma<coords::float_type>(cp_vec);
   matrix_trial.print();
