@@ -6,6 +6,7 @@
 #include "coords_io.h"
 #include "graph.h"
 #include "ic_util.h"
+#include "energy.h"
 
 namespace coords {
   namespace input {
@@ -478,6 +479,19 @@ namespace coords {
             return create_rep_3D(atom_vec);
           }
 
+          static coords::Representation_3D
+            create_rep_3D_bohr(const std::vector<Atom_type>& vec){
+              auto rep3D = create_rep_3D(vec);
+              for(auto&& coord: rep3D){
+                coord /= energy::bohr2ang;
+              }
+              return rep3D;
+            }
+
+          coords::Representation_3D
+            create_rep_3D_bohr()const{
+              return create_rep_3D_bohr(atom_vec);
+            }
           /*!
           \brief Uses a std::vector of atoms to create a std::vector of residues, where
           each residue is represented as coords::Representation_3D object.
@@ -568,7 +582,7 @@ namespace coords {
   }
 }
 
-std::vector<coords::input::formats::pdb_helper::terminals> 
+std::vector<coords::input::formats::pdb_helper::terminals>
 coords::input::formats::pdb_helper::get_terminals(Atoms const& atoms, std::vector<std::vector<std::size_t>> const& indices) {
   std::vector<terminals> result;
   for (auto const& res_ind : indices) {
@@ -987,31 +1001,31 @@ int coords::input::formats::pdb_helper::find_energy_type(std::string atom_name, 
   {
     if (terminal == terminals::none)
     {
-      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N 
-      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N 
+      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N
+      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N
       else if (atom_name == "H") return 183;  // amid H
       else if (atom_name == "C") return 177;  // amid C
-      else if (atom_name == "O") return 178;  // amid O 
-      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
+      else if (atom_name == "O") return 178;  // amid O
+      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom
       else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom
       else return find_at_sidechain(atom_name, res_name);
     }
     else if (terminal == terminals::C)
     {
-      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N 
-      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N 
+      if (atom_name == "N" && res_name != "PRO") return 180;  // amid N
+      else if (atom_name == "N" && res_name == "PRO") return 181;  // amid N
       else if (atom_name == "H") return 183; // amid H
       else if (atom_name == "C") return 213;  // carbonyl C
       else if (atom_name == "O" || atom_name == "OXT") return 214;  // C-terminal O
-      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
-      else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom 
+      else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom
+      else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom
       else return find_at_sidechain(atom_name, res_name);
     }
     else if (terminal == terminals::N)
     {
       if (atom_name == "C") return 177;  // amid C
-      else if (atom_name == "O") return 178;  // amid O 
-      else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO") return 236; // alpha C atom 
+      else if (atom_name == "O") return 178;  // amid O
+      else if (atom_name == "CA" && res_name != "GLY" && res_name != "PRO") return 236; // alpha C atom
       else if (atom_name == "CA" && res_name == "GLY") return 235; // alpha C atom
       else if (atom_name == "CA" && res_name == "PRO") return 237; // alpha C atom
       else if (atom_name == "N" && res_name != "PRO") return 230; // terminal N
@@ -1022,7 +1036,7 @@ int coords::input::formats::pdb_helper::find_energy_type(std::string atom_name, 
         std::cout << "no atom type is assigned for H atom\n";
         return 0;
       }
-      else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal H(N)      
+      else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal H(N)
       else return find_at_sidechain(atom_name, res_name);
     }
     else
