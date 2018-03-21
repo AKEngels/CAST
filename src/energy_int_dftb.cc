@@ -461,7 +461,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")
+      if (line.substr(0, 27) == "gross_atomic_charges:real:1")
       {
         for (int i = 0; i < coords->size(); i++)
         {
