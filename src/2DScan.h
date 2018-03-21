@@ -220,11 +220,11 @@ private:
       * @brief The ctor initializing all variables needed for a proper move except the new destination which is to defined withe the set_new_pos function
       * @see set_new_pos(length_type const & c)
       */
-      Move_Handler(coords::Coordinates & coords, std::vector<std::size_t> const & atoms, std::shared_ptr<Scan2D> p) : _coords(coords), atoms(atoms), parent(std::move(p)) {}
+      Move_Handler(coords::Coordinates & coords, std::vector<std::size_t> const & atoms, std::shared_ptr<Scan2D> p) : _coords(coords), atoms(atoms), parent(std::move(p)), new_pos{ 0.0 } {}
       coords::Coordinates & _coords; /**<A reference to the used coords object*/
-      std::shared_ptr<Scan2D> parent; /**<A shared pointer to the parent Scan2D class*/
       std::vector<std::size_t> const & atoms; /**<A constant reference to the std::vector holding the participating atom's indices*/
-      length_type new_pos = 0.0; /**<Variable to hold the new position to which is to move*/
+      std::shared_ptr<Scan2D> parent; /**<A shared pointer to the parent Scan2D class*/
+      length_type new_pos; /**<Variable to hold the new position to which is to move*/
 
       /**
       * @brief Simple setter for the new_pos variable
@@ -255,7 +255,7 @@ private:
     };
 
     /**
-    * @brief struct as a base class for all the possible constraints as a pure virtual class 
+    * @brief struct as a base class for all the possible constraints as a pure virtual class
     */
 	struct Input_types {
 		virtual void fill_what(std::vector<std::string> & splitted_vals, coords::Representation_3D const & xyz) = 0;/**<Function to parse the needed information for an axis */
@@ -328,7 +328,7 @@ private:
 	public:
 		std::unique_ptr<Scan2D::Input_types> x_parser;
 		std::unique_ptr<Scan2D::Input_types> y_parser;
-		XY_Parser(std::unique_ptr<Scan2D::Input_types> x, std::unique_ptr<Scan2D::Input_types> y) 
+		XY_Parser(std::unique_ptr<Scan2D::Input_types> x, std::unique_ptr<Scan2D::Input_types> y)
 			: x_parser(std::move(x)), y_parser(std::move(y)){}
 		void fix_atoms(coords::Coordinates & coords)const;
 	};
