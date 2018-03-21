@@ -627,7 +627,7 @@ namespace config
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
       dftbaby_conf(void): path{""}, gradfile{"grad.xyz"}, charge{0}, gradstate{0}, verbose{0}, maxiter{0},
-      conv_threshold{"0"}, cutoff{ 0.0f }, longrange{false}, lr_dist{0.0f}, 
+      conv_threshold{"0"}, cutoff{ 0.0f }, longrange{false}, lr_dist{0.0f},
       states{0}, orb_occ{0}, orb_virt{0}, diag_maxiter{0}, diag_conv{"0"}, opt{false} {}
     } dftbaby;
 
@@ -681,8 +681,8 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
-        delete_input(true), maxfail(1000u)
+      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
+         steep{ true }, maxfail{1000u}
       {}
     } gaussian;
 
@@ -917,15 +917,17 @@ namespace config
 
     /**constructor*/
     molecular_dynamics(void) :
-      timeStep(0.001), T_init(0.0), T_final(),
-      pcompress(0.000046), pdelay(2.0), ptarget(1.0),
-      num_steps(10000), num_snapShots(100), max_snap_buffer(50),
-      refine_offset(0), restart_offset(0), usequil(), usoffset(),
-      trackoffset(1), heat_steps(), spherical(), rattle(),
+      temp_control{true}, timeStep{0.001}, T_init{0.0}, T_final{0.0},
+      broken_restart{ 0 }, pcompress{0.000046}, pdelay{2.0}, ptarget{1.0},
+      set_active_center{ 0 }, adjustment_by_step { 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
+      active_center(), num_steps{10000}, num_snapShots{100}, max_snap_buffer{50},
+      refine_offset{0}, restart_offset{0}, trackoffset{1}, usoffset{0}, usequil{0},
+       heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
-      optimize_snapshots(false), pressure(false),
-      resume(false), umbrella(false), pre_optimize(false), plot_temp(false), analyze_zones(false)
+      hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
+      optimize_snapshots{false}, pressure{false},
+      resume{false}, umbrella{false}, pre_optimize{false}, plot_temp{false}, ana_pairs(), analyze_zones{false},
+      zone_width{ 0.0 }
     { }
 
   };
@@ -1214,12 +1216,12 @@ namespace config
     bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, CONN,
       MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS, INTERNAL_INTERPOLATION, MCM_OPT;
 	neb() :
-		OPTMODE("PROJECTED"),
+		FINAL_STRUCTURE{ "" }, OPTMODE("PROJECTED"),
 		SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
 		BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
-		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),MCM_SAVEITER(1),
-		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
-		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), CONN(true),
+		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
+		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),MCM_SAVEITER(1),
+		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), CONN(true),MIXED_MOVE(false),
 		INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false), INTERNAL_INTERPOLATION(false), MCM_OPT(true)
     {}
   };

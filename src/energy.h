@@ -85,8 +85,8 @@ namespace energy
 	  /**temperature*/
     coords::float_type T;
     fepvect (void) :
-      e_c_l1(0.0), e_c_l2(0.0), e_vdw_l1(0.0), e_c_l0(0.0), e_vdw_l0(0.0),
-      e_vdw_l2(0.0), dE(0.0), dG(0.0), de_ens(0.0), T(0.0), dE_back(0.0), dG_back(0.0)
+      e_c_l0{ 0.0 },  e_vdw_l0{ 0.0 }, e_c_l1{ 0.0 }, e_c_l2{ 0.0 }, e_vdw_l1{ 0.0 },
+      e_vdw_l2{ 0.0 }, dE{ 0.0 }, dE_back{ 0.0 }, dG{ 0.0 }, dG_back{ 0.0 }, de_ens{ 0.0 },de_ens_back{ 0.0 }, T{ 0.0 }
     { }
   };
 

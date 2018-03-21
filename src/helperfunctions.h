@@ -11,13 +11,24 @@
 #endif
 #include "coords.h"
 
+// Define Function to output molar mass of a coords object
+inline double sys_mass(coords::Coordinates &sys)
+{
+  double m = 0;
+  for (auto const& a : sys.atoms())
+  {
+    m += a.mass();
+  }
+  return m;
+}
+
 // Energy print functions
 inline void short_ene_stream(
   coords::Coordinates const &coords,
   std::ostream &strm, std::streamsize const w)
 {
   strm << std::setw(w) << coords.pes().energy;
-  for (auto && ia : coords.pes().ia_matrix)
+  for (auto const& ia : coords.pes().ia_matrix)
   {
     strm << std::setw(w) << ia.energy;
   }

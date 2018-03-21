@@ -116,7 +116,7 @@ namespace energy
             if (c == a2.c)  // central atom has to be the same
             { // outer atoms can be switched
               if (a == a2.a && b == a2.b) return true;
-              else if (a = a2.b && b == a2.a) return true;
+              else if (a == a2.b && b == a2.a) return true;
             }
             return false;
           }
@@ -229,7 +229,7 @@ namespace energy
             coords::float_type cos[7], sin[7];
             cos[1] = cos_scalar0 / cos_scalar1;
             sin[1] = sin_scalar0 / sin_scalar1;
-            for (std::size_t j(2U); j <= max_order; ++j)
+            for (auto j{ 2 }; j <= max_order; ++j)
             {
               std::size_t const k = j - 1;
               sin[j] = sin[k] * cos[1] + cos[k] * sin[1];
@@ -237,7 +237,7 @@ namespace energy
             }
 
             coords::float_type tE(0.0), dE(0.0);
-            for (std::size_t j(0U); j < number; ++j)
+            for (auto j{ 0 }; j < number; ++j)
             {
               coords::float_type const F = forces[j] * torsionunit;
               std::size_t const k = orders[j];
