@@ -1,11 +1,18 @@
 #include "energy_int_psi4.h"
 
+void energy::interfaces::psi4::sysCallInterface::swap(interface_base & other){
+  auto casted = dynamic_cast<sysCallInterface*>(&other);
+  if(!casted) {
+    throw std::runtime_error("Failed to dynamically cast the energy interface in 'energy::interfaces::psi4::sysCallInterface::swap'!\n"
+    "to be a sysCallInterface.\n");
+  }
+  interface_base::swap(*casted);
+}
 
-void energy::interfaces::psi4::sysCallInterface::swap(interface_base & other){}
 energy::interface_base * energy::interfaces::psi4::sysCallInterface::clone(coords::Coordinates* coord_object) const{ return new sysCallInterface(*this, coord_object); }
 energy::interface_base * energy::interfaces::psi4::sysCallInterface::move(coords::Coordinates* coord_object) { return new sysCallInterface(*this, coord_object); }
 
-void energy::interfaces::psi4::sysCallInterface::update(bool const skip_topology){}
+//void energy::interfaces::psi4::sysCallInterface::update(bool const skip_topology){}
 
 coords::float_type energy::interfaces::psi4::sysCallInterface::e(void){
   write_input();
@@ -31,9 +38,28 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::o(void){
   return std::get<0>(e_geo_grads);
 }
 
-void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream&) const{}
-void energy::interfaces::psi4::sysCallInterface::print_E_head(std::ostream&, bool const endline) const{}
-void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream&, bool const endline) const{}
+void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream& os) const{
+  for(auto&& pair:energies){
+    os << std::right << pair.first << ": ";
+    os << std::left << std::setw(16) << std::fixed << std::setprecision(8) << pair.second*energy::au2kcal_mol;
+    os << "\n";
+  }
+}
+
+void energy::interfaces::psi4::sysCallInterface::print_E_head(std::ostream& os, bool const endline) const{
+  for(auto&& pair: energies){
+    os << std::right << std::setw(26) << pair.first;
+  }
+  if(endline) os << "\n";
+}
+
+void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream& os, bool const endline) const{
+  for(auto&& pair: energies){
+    os << std::right << std::setw(26) << std::scientific << std::setprecision(5) << pair.second*energy::au2kcal_mol;
+  }
+  if(endline) os << "\n";
+}
+
 void energy::interfaces::psi4::sysCallInterface::to_stream(std::ostream&) const{}
 
 void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces::psi4::sysCallInterface::Calc kind) const{
@@ -103,7 +129,7 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
 		}
 	}
 	if (failcount == 3) {
-		throw std::runtime_error("10 Psi4 calls failed!");
+		throw std::runtime_error("3 Psi4 calls failed!");
 	}
 }
 
@@ -132,28 +158,36 @@ coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_
 std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients()const{
   std::ifstream ifs(tmp_file_name + "_out.dat");
   std::vector<std::string> grads;
-  for(std::vector<std::string> tmp_grads = parse_specific_position(ifs, "Total Grad", 3);
+  for(auto tmp_grads = parse_specific_position(ifs, "Total Grad", 3);
     !tmp_grads.empty(); tmp_grads = parse_specific_position(ifs, "Total Grad", 3)){
     grads = tmp_grads;
   }
   return grads;
 }
 
-coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()const{
+coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy(){
   std::ifstream ifs(tmp_file_name + "_out.dat");
-
-  std::string energy;
+  energies.clear();
+  std::vector<std::string> energy;
 
   for(auto tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0);
     !tmp_energy.empty(); tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0)){
-    energy = tmp_energy.back();
+    energy = tmp_energy;
   }
-  std::istringstream iss{energy};
-  std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
-  return std::stod(words.back())*energy::au2kcal_mol;
+  for(auto & line : energy){
+    std::istringstream iss{line};
+    std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
+    auto val = std::stod(words.back());
+    std::string key = words.front();
+    std::for_each(words.cbegin()+1, words.cend()-2, [&key](auto&& word){
+      key += " " + word;
+    });
+    energies.emplace_back(std::make_pair(key, val));
+  }
+  return energies.back().second*energy::au2kcal_mol;
 }
 
-std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients()const{
+std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients(){
   auto energy = parse_energy();
   auto grads = extract_Rep3D(get_last_gradients());
   for (auto && g: grads){
@@ -163,7 +197,7 @@ std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi
 }
 
 std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
-energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients()const{
+energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(){
   auto geo = get_final_geometry();
   auto energy_and_geo = parse_gradients();
   return std::make_tuple(energy_and_geo.first, geo, energy_and_geo.second);
