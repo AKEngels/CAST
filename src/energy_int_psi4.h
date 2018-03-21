@@ -3,6 +3,8 @@
 
 #include<vector>
 #include<utility>
+#include<algorithm>
+#include<sstream>
 
 #include"coords_io.h"
 #include"energy.h"
@@ -28,16 +30,22 @@ namespace energy{
           optimizer = true;
         }
 
-        void swap(interface_base & other) final;
-        interface_base * clone(coords::Coordinates* coord_object) const final;
-        interface_base * move(coords::Coordinates* coord_object) final;
+        void swap(interface_base & other) final override;
+        interface_base * clone(coords::Coordinates* coord_object) const final override;
+        interface_base * move(coords::Coordinates* coord_object) final override;
 
-        void update(bool const skip_topology = false) final;
+        void update(bool const skip_topology = false) final override{
+          /*std::stringstream ss;
+          ss << "No need for an update function. \n";
+          ss << std::boolalpha <<  "Skip Topology set to " << skip_topology << "\n";
+          throw std::runtime_error(ss.str());*/
 
-        float_type e(void) final;
-        float_type g(void) final;
-        float_type h(void) final;
-        float_type o(void) final;
+        }
+
+        float_type e(void) final override;
+        float_type g(void) final override;
+        float_type h(void) final override;
+        float_type o(void) final override;
 
         void print_E(std::ostream&) const final override;
         void print_E_head(std::ostream&, bool const endline=true) const final override;
@@ -77,15 +85,17 @@ namespace energy{
         std::vector<std::string> get_last_gradients() const;
         coords::Representation_3D get_final_geometry() const;
 
-        coords::float_type parse_energy()const;
-        std::pair<coords::float_type, coords::Representation_3D> parse_gradients() const;
+        coords::float_type parse_energy();
+        std::pair<coords::float_type, coords::Representation_3D> parse_gradients();
         std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
-        parse_geometry_and_gradients() const;
+        parse_geometry_and_gradients();
 
         template<typename StrCont>
         coords::Representation_3D extract_Rep3D(StrCont && lines)const;
 
         std::string tmp_file_name;
+
+        std::vector<std::pair<std::string, float_type>> energies;//<- energy in Hartree!
       };
     }
   }
