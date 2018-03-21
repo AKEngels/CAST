@@ -25,12 +25,12 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
   auto const& p = *coords.parser.get();
 
-  auto trial = p.create_rep_3D();
+  auto trial = p.create_rep_3D_bohr();
   // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
   // auto c0_vec = p0.create_rep_3D(p0.atom_vec);
 
   // create Representation_3D object from the Parser
-  auto cp_vec = p.create_rep_3D();
+  auto cp_vec = p.create_rep_3D_bohr();
 
   // create residue vector from Parser atom vector
   auto residue_vec = p.create_resids_rep_3D();

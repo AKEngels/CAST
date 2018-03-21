@@ -15,9 +15,6 @@
  */
 namespace ic_util{
 
-  auto constexpr bohr2ang = 0.52917721;
-  auto constexpr ang2bohr = 1. / bohr2ang;
-
   using float_type = coords::float_type;
   /*!
   \brief Converts a std::array to a std::vector.

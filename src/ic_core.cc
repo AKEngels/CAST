@@ -63,8 +63,7 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
     B_val = 2.068;
   }
   auto A_val{ 1.734 };
-  auto dist_bohr = val(xyz) / ic_atom::bohr;
-  auto temp = std::pow(dist_bohr - B_val, 3);
+  auto temp = std::pow(val(xyz) - B_val, 3);
   return A_val / temp;
 }
 
@@ -311,18 +310,18 @@ ic_core::out_of_plane::der_vec(coords::Representation_3D const& xyz) const {
 
 float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const & xyz) const
 {
-  auto a_bohr = xyz.at(index_a_ - 1u) / ic_atom::bohr;
-  auto b_bohr = xyz.at(index_b_ - 1u) / ic_atom::bohr;
-  auto c_bohr = xyz.at(index_c_ - 1u) / ic_atom::bohr;
-  auto d_bohr = xyz.at(index_d_ - 1u) / ic_atom::bohr;
-  auto r1 = b_bohr - a_bohr;
-  auto r2 = b_bohr - c_bohr;
-  auto r3 = b_bohr - d_bohr;
+  auto const& a = xyz.at(index_a_ - 1u);
+  auto const& b = xyz.at(index_b_ - 1u);
+  auto const& c = xyz.at(index_c_ - 1u);
+  auto const& d = xyz.at(index_d_ - 1u);
+  auto r1 = b - a;
+  auto r2 = b - c;
+  auto r3 = b - d;
   auto r2Xr3 = cross(r2, r3);
   auto rd = dot(r1, r2Xr3);
   auto t2 = rd / (len(r1) * len(r2) * len(r3));
-  auto d = 1 - t2;
-  auto d_pow = std::pow(d, 4);
+  auto dd = 1. - t2;
+  auto d_pow = std::pow(dd, 4);
   return 0.045 * d_pow;
 }
 

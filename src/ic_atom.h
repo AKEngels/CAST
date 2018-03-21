@@ -26,12 +26,6 @@ namespace ic_atom {
 static constexpr auto N_elem{ 97u };
 
 /*!
-\brief Factor for conversion from angstrom to bohr.
-\details Simply divide angstrom by this factor.
-*/
-static constexpr auto bohr{ 0.52917721067 };
-
-/*!
 \brief Covalent radii of the first N_elem elements of the PSE.
 \details Corresponds to the symbol array.
 \see "Covalent radii revisited", Cordero et al., Dalton Trans., 21, 2008,
@@ -189,7 +183,7 @@ static const std::unordered_map<std::string, std::tuple<std::size_t, float_type,
   { "Uup", std::make_tuple(115,1.62,period::none) },
   { "Uuh", std::make_tuple(116,1.75,period::none) },
   { "Uus", std::make_tuple(117,1.65,period::none) },
-  { "Uuo", std::make_tuple(118,1.57,period::none) } 
+  { "Uuo", std::make_tuple(118,1.57,period::none) }
 };
 
 inline std::size_t element_number(std::string const& key) {
