@@ -4,12 +4,40 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
+#include <unordered_map>
+#include <unordered_set>
+#include <map>
+#include <set>
+#include <array>
 
 #include "scon.h"
 #include "function_trait.h"
 
 namespace scon
 {
+  namespace is_container_impl {
+    template <typename T>                struct is_container :std::false_type {};
+    template <typename T>                struct is_container<T[]>                          :std::true_type{};
+    template <typename T, std::size_t N> struct is_container<T[N]>                         :std::true_type{};
+    template <typename T, std::size_t N> struct is_container<std::array         <T, N>>    :std::true_type{};
+    template <typename... Args>          struct is_container<std::vector        <Args...>> :std::true_type{};
+    template <typename... Args>          struct is_container<std::set           <Args...>> :std::true_type{};
+    template <typename... Args>          struct is_container<std::map           <Args...>> :std::true_type{};
+    template <typename... Args>          struct is_container<std::unordered_set <Args...>> :std::true_type{};
+    template <typename... Args>          struct is_container<std::unordered_map <Args...>> :std::true_type{};
+  }
+
+  template<typename T> struct is_container {
+    static constexpr bool value = is_container_impl::is_container<std::decay_t<T>>::value;
+  };
+
+  template<typename PtrDeriv, typename PtrBase>
+  std::unique_ptr<PtrDeriv> dynamic_unique_cast(std::unique_ptr<PtrBase> to_cast) {
+    if (auto raw = to_cast.release()) {
+      return std::unique_ptr<PtrDeriv>(dynamic_cast<PtrDeriv*>(raw));
+    }
+    return std::unique_ptr<PtrDeriv>(nullptr);
+  }
 
   namespace trait_detail
   {

@@ -12,7 +12,7 @@ MOPAC: Gradients of coulomb interactions between QM and MM part are calculated b
 (see http://openmopac.net/manual/QMMM.html)
 
 GAUSSIAN: Gradients of coulomb interactions between QM and MM part on QM atoms are calculated by GAUSSIAN,
-on MM atoms they are calculated by CAST using the electric field from GAUSSIAN. 
+on MM atoms they are calculated by CAST using the electric field from GAUSSIAN.
 (see T. Okamoto et. al., A minimal implementation of the AMBER-GAUSSIAN interface for Ab Initio QM/MM-MD Simulation, DOI 10.1002/jcc.21678)
 
 DFTB+: Gradients of coulomb interactions between QM and MM part are read from DFTB+ outputfile "results.tag".
@@ -340,7 +340,7 @@ namespace energy
 
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);
-        
+
         /** Energy function*/
         coords::float_type e() override;
         /** Energy+Gradient function */
@@ -365,19 +365,16 @@ namespace energy
         /**overwritten function*/
         std::string get_id() const override { return "bullshit"; }
         /**prints total energy (not implemented)*/
-        void print_E(std::ostream&) const override;
+        void print_E(std::ostream&) const  final override;
         /**prints 'headline' for energies*/
-        void print_E_head(std::ostream&, 
-          bool const endline = true) const override;
+        void print_E_head(std::ostream&,
+          bool const endline = true) const  final override;
         /**???*/
-        void print_gnuplot(std::ostream&, 
+        void print_gnuplot(std::ostream&,
           bool const endline = true) const;
         /**prints partial energies*/
-        void print_E_short(std::ostream&, 
-          bool const endline = true) const override;
-        /**prints gradients*/
-        void print_G_tinkerlike(std::ostream&, 
-          bool const endline = true) const override;
+        void print_E_short(std::ostream&,
+          bool const endline = true) const  final override;
         /**function not implemented*/
         void to_stream(std::ostream&) const;
 
@@ -396,7 +393,7 @@ namespace energy
         void write_gaussian_in(char);
         /**writes inputfiles for DFTB+ calculation (dftb_in.hsd and charges.dat)*/
         void write_dftb_in(char);
-        
+
         /**function where QM/MM calculation is prepared*/
         void prepare_bonded_qmmm();
         /**function to find bonds, angles and so on between QM and MM system*/
@@ -428,7 +425,7 @@ namespace energy
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
-        
+
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
@@ -439,7 +436,7 @@ namespace energy
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_mm;
-       
+
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
         /**coordinates object for MM part*/
@@ -455,7 +452,7 @@ namespace energy
         double torsionunit;
         /**link atoms*/
         std::vector<bonded::LinkAtom> link_atoms;
-        
+
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
         /**atom charges of MM atoms*/
@@ -489,14 +486,14 @@ namespace energy
         between QM and MM atoms on the MM atoms
         for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
         std::vector<coords::Cartesian_Point> g_coul_mm;
-               
+
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 
         /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
         bool check_atom_dist(void) const;
 
-      }; 
+      };
     }
   }
 }

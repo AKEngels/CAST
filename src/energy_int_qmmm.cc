@@ -18,9 +18,9 @@ namespace
       mm_atoms.reserve(mm_size);
       for (unsigned i = 0; i < num_atoms; i++)
       {
-        if (!scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i)) 
-        { 
-          mm_atoms.emplace_back(i); 
+        if (!scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i))
+        {
+          mm_atoms.emplace_back(i);
         }
       }
     }
@@ -160,31 +160,31 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   prepare_bonded_qmmm();
 }
 
-energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs, 
-  coords::Coordinates *cobj) : interface_base(cobj), 
-  cparams(rhs.cparams), distance(rhs.distance), 
+energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
+  coords::Coordinates *cobj) : interface_base(cobj),
+  cparams(rhs.cparams), distance(rhs.distance),
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
-  qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector), 
-  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),  
+  qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector),
+  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
   c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy), bonded_gradient(rhs.bonded_gradient)
 {
   interface_base::operator=(rhs);
 }
 
-energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj) 
+energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
   cparams(std::move(rhs.cparams)), distance(std::move(rhs.distance)),
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
-  new_indices_qm(std::move(rhs.new_indices_qm)), 
+  new_indices_qm(std::move(rhs.new_indices_qm)),
   new_indices_mm(std::move(rhs.new_indices_mm)),
-  qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)), 
+  qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
   qm_charge_vector(std::move(rhs.qm_charge_vector)),
   mm_charge_vector(std::move(rhs.mm_charge_vector)),
   vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
-  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)), 
+  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
   bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))
 {
   interface_base::operator=(rhs);
@@ -386,7 +386,7 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
 
     // calculate position of link atom
     link.position = calc_position(link);
-    
+
     // add link atom to vector
     link_atoms.push_back(link);
   }
@@ -448,7 +448,7 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
   {
     for (auto p : coords->atoms().atom(a.a).bonds())   // expand angle at atom a
     {
-      if (a.c != p) 
+      if (a.c != p)
       {
         bonded::Dihedral dihed(p, a.b, a.a, a.c);
         if (!bonded::is_in(dihed, qmmm_dihedrals))
@@ -706,7 +706,7 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   {
     for (std::size_t i(0U); i < link_atoms.size(); ++i)
     {
-      file << std::left << std::setw(5) << qmc.size() + i + 1 << std::left << std::setw(5) << find_index("H", elements) + 1;
+      file << std::left << std::setw(5) << qmc.size() + i + 1 << std::left << std::setw(5) << find_index(std::string("H"), elements) + 1;
       file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.x();
       file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.y();
       file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.z();
@@ -794,8 +794,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   auto elec_factor = 332.0;
 
   if (Config::get().coords.amber_charges.size() > mm_indices.size()) remove_qm_charges();
-  mm_charge_vector = mmc.energyinterface()->charges(); 
-  
+  mm_charge_vector = mmc.energyinterface()->charges();
+
   auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
   if (aco_p)
   {
@@ -828,8 +828,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
 		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
     {   // electric field for QM and MM atoms (for GAUSSIAN) or coulomb gradients on MM atoms (for DFTB+)
-      g_coul_mm = qmc.energyinterface()->get_g_coul_mm();  
-    } 
+      g_coul_mm = qmc.energyinterface()->get_g_coul_mm();
+    }
   }
   catch(...)
   {
@@ -837,7 +837,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
-  
+
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
   if (integrity == true)
@@ -894,7 +894,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       }
       coords->swap_g_xyz(new_grad);
     }
-    else  // only energy 
+    else  // only energy
     {
       mm_energy = mmc.e();  // get energy for MM part
     }
@@ -981,14 +981,14 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
     for (auto i : qm_indices)  // for every QM atom
     {
-      auto z = qmc.atoms(i2).energy_type();  // get atom type 
+      auto z = qmc.atoms(i2).energy_type();  // get atom type
       std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);  // get index to find this atom type in vdw parameters
       auto vparams_i = vdw_params[i_vdw-1];  // get vdw parameters for QM atom
       coords::float_type charge_i = qm_charge_vector[i2];  // get charge for QM atom
       std::size_t j2 = 0u;
       for (auto j : mm_indices)  // for every MM atom
       {
-        auto e_type = mmc.atoms(j2).energy_type();  // get atom type 
+        auto e_type = mmc.atoms(j2).energy_type();  // get atom type
         std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW); // get index to find this atom type in vdw parameters
         auto vparams_j = vdw_params[j_vdw-1];  // get vdw parameters for MM atom
         coords::float_type charge_j = mm_charge_vector[j2];  // get charge for MM atom
@@ -1272,30 +1272,9 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
 
 void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const endline) const
 {
-  
+
   S << std::right << std::setw(24) << distance;
   S << std::right << std::setw(24) << vdw_gradient + c_gradient;
-  if (endline) S << '\n';
-}
-
-void energy::interfaces::qmmm::QMMM::print_G_tinkerlike(std::ostream &S, bool const endline) const
-{
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for (std::size_t k = 0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k + 1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << "\n";
-  }
   if (endline) S << '\n';
 }
 

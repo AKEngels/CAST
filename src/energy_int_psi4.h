@@ -39,11 +39,10 @@ namespace energy{
         float_type h(void) final;
         float_type o(void) final;
 
-        void print_E(std::ostream&) const final;
-        void print_E_head(std::ostream&, bool const endline=true) const final;
-        void print_E_short(std::ostream&, bool const endline=true) const final;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final;
-        void to_stream(std::ostream&) const final;
+        void print_E(std::ostream&) const final override;
+        void print_E_head(std::ostream&, bool const endline=true) const final override;
+        void print_E_short(std::ostream&, bool const endline=true) const final override;
+        void to_stream(std::ostream&) const final override;
 
         std::vector<float_type> charges() const override{
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
@@ -83,12 +82,26 @@ namespace energy{
         std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
         parse_geometry_and_gradients() const;
 
-        coords::Representation_3D extract_Rep3D(std::vector<std::string> const& lines)const;
+        template<typename StrCont>
+        coords::Representation_3D extract_Rep3D(StrCont && lines)const;
 
         std::string tmp_file_name;
       };
     }
   }
+}
+
+template<typename StrCont>
+inline coords::Representation_3D energy::interfaces::psi4::sysCallInterface::extract_Rep3D(StrCont && lines)const{
+  coords::Representation_3D ret;
+  for(auto && line: lines){
+    std::istringstream iss{line};
+    std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
+    ret.emplace_back(coords::Cartesian_Point(
+      std::stod(words.at(1)), std::stod(words.at(2)), std::stod(words.at(3))
+    ));
+  }
+  return ret;
 }
 
 #endif

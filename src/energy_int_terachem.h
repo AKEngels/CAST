@@ -3,11 +3,11 @@
 *                            DW*/
 
 
-#pragma once 
+#pragma once
 
 #if defined(USE_MPI)
 
-#include <array> 
+#include <array>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -16,7 +16,7 @@
 #include "scon_vect.h"
 
 
-namespace energy 
+namespace energy
 {
 
   namespace interfaces
@@ -25,7 +25,7 @@ namespace energy
     namespace terachem
     {
 
-      class mpiInterface 
+      class mpiInterface
         : public energy::interface_base
       {
         // MPI Connector object
@@ -79,11 +79,10 @@ namespace energy
         std::string get_id() const override { return "bullshit"; }
 
         // Output functions
-        void print_E (std::ostream&) const;
-        void print_E_head (std::ostream&, bool const endline = true) const;
-        void print_E_short (std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const;
-        void to_stream (std::ostream&) const;
+        void print_E (std::ostream&) const final override;
+        void print_E_head (std::ostream&, bool const endline = true) const final override;
+        void print_E_short (std::ostream&, bool const endline = true) const final override;
+        void to_stream (std::ostream&) const final override;
 
       private:
 

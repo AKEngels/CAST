@@ -65,7 +65,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
   // create a vector with all element symbols that are found in the structure
   // are needed for writing angular momenta into inputfile
-  std::vector<std::string> elements;  
+  std::vector<std::string> elements;
   for (auto a : (*this->coords).atoms())
   {
     if (is_in(a.symbol(), elements) == false)
@@ -109,7 +109,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
- 
+
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
@@ -167,7 +167,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       if (line == "total_energy        :real:0:")  // read energy
       {
         std::getline(in_file, line);
-        energy = std::stod(line)*627.503; // convert hartree to kcal/mol
+        energy = std::stod(line)*energy::au2kcal_mol; // convert hartree to kcal/mol
       }
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
@@ -180,9 +180,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           g_tmp.push_back(g);
         }
@@ -192,9 +192,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           link_atom_grad.push_back(g);
         }
@@ -213,9 +213,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           {
             std::getline(in_file, line);
             std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-            x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-            y = (-y) * (627.503 / 0.5291172107);
-            z = (-z) * (627.503 / 0.5291172107);
+            x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+            y *= -energy::Hartree_Bohr2Kcal_MolAng;
+            z *= -energy::Hartree_Bohr2Kcal_MolAng;
             coords::Cartesian_Point g(x, y, z);
             grad_tmp.push_back(g);
           }
@@ -225,12 +225,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
-        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
+        double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
 
         // read all values into one vector (tmp)
         std::vector<double> tmp;
         double x, y, z;
-        for (int i=0; i < (3*N*3*N)/3; i++)  
+        for (int i=0; i < (3*N*3*N)/3; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -268,14 +268,14 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       {
         std::ifstream geom_file("geo_end.gen", std::ios_base::in);
 
-        std::getline(geom_file, line);  
+        std::getline(geom_file, line);
         std::getline(geom_file, line);
 
         coords::Representation_3D xyz_tmp;
         std::string number, type;
         double x, y, z;
 
-        while (geom_file >> number >> type >> x >> y >> z) 
+        while (geom_file >> number >> type >> x >> y >> z)
         {
           coords::Cartesian_Point xyz(x, y, z);
           xyz_tmp.push_back(xyz);
@@ -302,7 +302,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   // check if geometry is still intact
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
-  
+
   // remove files
   if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
@@ -314,7 +314,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       std::remove("output_dftb.txt");
     }
   }
-   
+
   return energy;
 }
 
@@ -360,7 +360,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(2);
     return energy;
-  } 
+  }
   else return 0;  // energy = 0 if structure contains NaN
 }
 
@@ -402,26 +402,6 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
   if (endline) S << '\n';
-}
-
-void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
-{ 
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for(std::size_t k=0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k+1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
 }
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
@@ -481,7 +461,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  
+      if (line.substr(0, 27) == "net_atomic_charges  :real:1")
       {
         for (int i = 0; i < coords->size(); i++)
         {

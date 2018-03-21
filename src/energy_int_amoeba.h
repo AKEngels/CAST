@@ -11,8 +11,8 @@ namespace energy
   {
     namespace amoeba
     {
-      
-	 
+
+
       class nb_cutoff
       {
       public:
@@ -20,7 +20,7 @@ namespace energy
         inline bool factors (double const rr, double & r, double & fQ, double & fV);
       private:
         double const c, s, cc, ss, cs;
-       
+
       };
 
       class amoeba_ff
@@ -32,7 +32,7 @@ namespace energy
 		size_t alloc_glob;
 		interface_base * clone(coords::Coordinates * coord_object) const;
         interface_base * move (coords::Coordinates * coord_object);
-		
+
         // initialize using coordinates pointer
 
         // update structure (account for topology or rep change)
@@ -69,7 +69,7 @@ namespace energy
         void print_E (std::ostream&) const;
         void print_E_head (std::ostream&, bool const endline = true) const;
         void print_E_short (std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const;
+        void print_G_tinkerlike (std::ostream&, bool const aggregate = false) const final override; 
         void to_stream (std::ostream&) const;
         void swap (interface_base&);
         void swap (amoeba_ff&);
@@ -203,7 +203,7 @@ namespace energy
 		double Spackman_energy_analytical(void);
 
       private:
-        
+
 
 
         amoeba_ff (amoeba_ff const & rhs, coords::Coordinates *cobj);
@@ -216,7 +216,7 @@ namespace energy
         std::array<double, TYPENUM>  part_energy;
         std::array<std::array<std::array<double, 3>, 3>, TYPENUM> part_virial;
 
-		
+
 
         static ::tinker::parameter::parameters tp;
         ::tinker::parameter::parameters cparams;
@@ -224,13 +224,13 @@ namespace energy
 		::tinker::parameter::multipole multi;
 		::tinker::refine::types::multipole types;
 		::tinker::refine::types::binary_quadratic binary;
-		
-		
+
+
         // Functions for periodic boundary conditions
         void	boundary (double&, double&, double&) const;
         inline ptrdiff_t sign (double const) const;
 
-        // Gradient functions (energy functions left since single point is 
+        // Gradient functions (energy functions left since single point is
         double g_it       (void);
         double g_imp      (void);
         // selection of the correct nonbonded function
@@ -238,7 +238,7 @@ namespace energy
 
         void pre    (void);
         void post   (void);
-		
+
 
 		template<size_t DERIV> void calc(void);
 
@@ -248,7 +248,7 @@ namespace energy
 			return pm(cparams.contract_type(ta), cparams.contract_type(tb));
 		}
 
-        // 12-interactions 
+        // 12-interactions
         template<size_t T_DERV> double f_12 (void);
         // 13-angles
         template<size_t T_DERV> double f_13_a (void);
@@ -274,7 +274,7 @@ namespace energy
 		std::vector <double> m_charges;
 		std::vector <std::vector <double> > dem, dep;
 		double em, ep;
-	
+
 		//multipole scalingfactors
 		double pscale2, pscale3, pscale4, pscale5;
 		double mscale2, mscale3, mscale4, mscale5;
@@ -287,7 +287,7 @@ namespace energy
 		std::vector <size_t> mask, list, keep;
 
 
-        
+
 
        //multipole rotation into coordinate framework
 
@@ -295,14 +295,14 @@ namespace energy
 		std::vector < size_t > ipole,xaxis,zaxis,yaxis,axistype;
 		std::vector < std::vector < size_t >  > plrgrp;
 		std::vector <double> pdamp, thole, pscale, dscale, polarity, mscale, uscale;
-		
+
 		//pair lists for multipoles
 
 
 		void refine_pair_lists(void);
 		void refine_vdw_h_bonds(std::vector< ::tinker::refine::types::nbpair> const & pairs,
 			scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
-	
+
 		coords::Representation_3D vdwnew;
 		std::vector< std::vector<size_t> > i12, i13, i14, i15, ip11, ip13, ip12, ip14;
 		std::vector <size_t> n13, n14, n15, np11, np12, np13, np14;
@@ -372,9 +372,9 @@ namespace energy
 			std::vector< ::tinker::refine::types::nbpair> const & pairs,
 			scon::matrix< ::tinker::parameter::combi::vdwc, true> const & parameters);
 
-		//template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC> 
-		//void g_nb_QV_pairs_fep (coords::float_type &e_nb, coords::Representation_3D &grad_vector, 
-		//  std::vector< ::tinker::refine::types::nbpair> const & pairs, 
+		//template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC>
+		//void g_nb_QV_pairs_fep (coords::float_type &e_nb, coords::Representation_3D &grad_vector,
+		//  std::vector< ::tinker::refine::types::nbpair> const & pairs,
 		//  scon::tsmatrix< ::tinker::parameter::combi::vdwc> const & parameters);
 
 		template< ::tinker::parameter::radius_types::T T_RADIUS_TYPE, bool PERIODIC, bool IS_OUT>

@@ -16,7 +16,7 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::g(void){
   write_input(Calc::gradient);
   make_call();
   auto e_grads = parse_gradients();
-  coords->swap_g_xyz(e_grads.second);
+  coords->set_g_xyz(std::move(e_grads.second));
   return e_grads.first;
 }
 coords::float_type energy::interfaces::psi4::sysCallInterface::h(void){
@@ -26,15 +26,14 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::o(void){
   write_input(Calc::optimize);
   make_call();
   auto e_geo_grads = parse_geometry_and_gradients();
-  coords->set_xyz(std::get<1>(e_geo_grads));
-  coords->swap_g_xyz(std::get<2>(e_geo_grads));
+  coords->set_xyz(std::move(std::get<1>(e_geo_grads)));
+  coords->set_g_xyz(std::move(std::get<2>(e_geo_grads)));
   return std::get<0>(e_geo_grads);
 }
 
 void energy::interfaces::psi4::sysCallInterface::print_E(std::ostream&) const{}
 void energy::interfaces::psi4::sysCallInterface::print_E_head(std::ostream&, bool const endline) const{}
 void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream&, bool const endline) const{}
-void energy::interfaces::psi4::sysCallInterface::print_G_tinkerlike(std::ostream&, bool const aggregate) const{}
 void energy::interfaces::psi4::sysCallInterface::to_stream(std::ostream&) const{}
 
 void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces::psi4::sysCallInterface::Calc kind) const{
@@ -99,12 +98,12 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
 			break;
 		}
 		else {
-			std::cout << "I am failing to call Psi4! Are you sure you passed the right chemshell path?\n";
+			std::cout << "I am failing to call Psi4! Are you sure you passed the right Psi4 path?\n";
 			std::cout << "The path passed is: \"" << path << "\"\n";
 		}
 	}
 	if (failcount == 3) {
-		throw std::runtime_error("10 Chemshell calls failed!");
+		throw std::runtime_error("10 Psi4 calls failed!");
 	}
 }
 
@@ -125,22 +124,9 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::parse_speci
   return mol;
 }
 
-coords::Representation_3D energy::interfaces::psi4::sysCallInterface::extract_Rep3D(std::vector<std::string> const& lines)const{
-  coords::Representation_3D ret;
-  for(auto const& line: lines){
-    std::istringstream iss{line};
-    std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
-    ret.emplace_back(coords::Cartesian_Point(
-      std::stod(words.at(1)), std::stod(words.at(2)), std::stod(words.at(3))
-    ));
-  }
-  return ret;
-}
-
 coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_geometry() const{
   std::ifstream ifs(tmp_file_name + "_out.dat");
-  auto geometry = parse_specific_position(ifs, "Final optimized geometry", 6);
-  return extract_Rep3D(geometry);
+  return extract_Rep3D(parse_specific_position(ifs, "Final optimized geometry", 6));
 }
 
 std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients()const{
@@ -164,13 +150,16 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()con
   }
   std::istringstream iss{energy};
   std::vector<std::string> words{std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{}};
-  return std::stod(words.back());
+  return std::stod(words.back())*energy::au2kcal_mol;
 }
 
 std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients()const{
   auto energy = parse_energy();
-  auto grads = get_last_gradients();
-  return std::make_pair(energy, extract_Rep3D(grads));
+  auto grads = extract_Rep3D(get_last_gradients());
+  for (auto && g: grads){
+    g *= energy::Hartree_Bohr2Kcal_MolAng;
+  }
+  return std::make_pair(energy, grads);
 }
 
 std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
