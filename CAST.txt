@@ -194,10 +194,10 @@ GAUSSIANmaxfail      1000
 ################# DFTB+ Options #################################################
 
 # path to DFTB+
-DFTB+path         /home/susanne/dftbplus/bin/dftb+
+DFTB+path         /apps/dftbplus/bin/dftb+
 
 # path to slater koster files (download at https://www.dftb.org/parameters/download/)
-DFTB+skfiles      /home/susanne/mio-1-1/
+DFTB+skfiles      /apps/dftbplus/mio-1-1/
 
 # verbosity of DFTB+
 DFTB+verbose      1
