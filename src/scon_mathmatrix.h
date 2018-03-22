@@ -685,7 +685,7 @@ mathmatrix<T> mathmatrix<T>::col_from_vec(std::vector<T> const& col) {
 
   mathmatrix ret(size, 1);
 
-  for (auto i = 0; i < size; ++i) {
+  for (auto i = 0u; i < size; ++i) {
     ret(i, 0) = col.at(i);
   }
   return ret;
@@ -697,7 +697,7 @@ mathmatrix<T> mathmatrix<T>::row_from_vec(std::vector<T> const& row) {
 
   mathmatrix ret(1, size);
 
-  for (auto i = 0; i < size; ++i) {
+  for (auto i = 0u; i < size; ++i) {
     ret(0, i) = row.at(i);
   }
   return ret;
@@ -1311,7 +1311,7 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
   singular_value_decomposition(U, s, V);
   mathmatrix s_inv = zero(rows(), cols());
 
-  for (std::size_t i = 0; i < s.rows(); ++i) {
+  for (auto i = 0u; i < s.rows(); ++i) {
     s_inv(i, i) = s(i) > close_to_zero_tol ? 1. / s(i) : 0.0;
   }
 
@@ -1409,7 +1409,7 @@ mathmatrix<T>::eigensym(bool const & sort) const {
     auto indices = eigenval.sort_idx();
     mathmatrix new_eigenvec(eigenvec.rows(), eigenvec.cols());
     mathmatrix new_eigenval(eigenval.rows(), eigenval.cols());
-    for (auto i = 0; i < indices.size(); ++i) {
+    for (auto i = 0u; i < indices.size(); ++i) {
       auto index = indices[i];
       new_eigenvec.set_col(i, eigenvec.col(index));
       new_eigenval(i,0) = eigenval(index,0);
@@ -1450,7 +1450,7 @@ mathmatrix<T> mathmatrix<T>::t() const {
 
 template <typename T>
 std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const iter) const {
-  if (cols() <= iter) {
+  if (cols() <= static_cast<int>(iter)) {
     throw std::runtime_error("The required col is out of bounds!");
   }
 #ifndef CAST_USE_ARMADILLO
@@ -1467,7 +1467,7 @@ std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const iter) const {
 
 template <typename T>
 std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const iter) const {
-  if (rows() <= iter) {
+  if (rows() <= static_cast<int>(iter)) {
     throw std::runtime_error("The required row is out of bounds!");
   }
   std::vector<T> ret;

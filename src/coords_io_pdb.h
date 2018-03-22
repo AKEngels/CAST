@@ -416,7 +416,6 @@ namespace coords {
           */
           static std::vector<std::vector<Atom_type>>
             create_resids(const std::vector<Atom_type>& res_vec) {
-            auto last = res_vec.back().atom_serial;
             std::vector<std::vector<Atom_type>> result;
             std::vector<Atom_type> temp;
             for (auto const & atom_i : res_vec) {
@@ -614,7 +613,7 @@ void coords::input::formats::pdb_helper::make_bonds(coords::Atoms & atoms, std::
 
 void coords::input::formats::pdb_helper::set_energy_type(coords::Atoms& atoms, std::vector<std::vector<std::size_t>> const& indices) {
   auto terminals = get_terminals(atoms, indices);
-  for (auto i = 0; i < indices.size(); ++i) {
+  for (auto i = 0u; i < indices.size(); ++i) {
     auto const& res_ind = indices[i];
     for (auto const& ind : res_ind) {
       auto & atom = atoms.atom(ind - 1u);
