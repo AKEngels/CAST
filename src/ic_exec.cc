@@ -25,11 +25,6 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   Pdb::Parser<coords::float_type> p0("test.pdb");*/
   auto const& p = *coords.parser.get();
 
-  auto trial = p.create_rep_3D_bohr();
-  // auto rescavec = p_new.create_resids_rep_3D(p_new.atom_vec);
-  // auto c0_vec = p0.create_rep_3D(p0.atom_vec);
-
-  // create Representation_3D object from the Parser
   auto cp_vec = p.create_rep_3D_bohr();
 
   // create residue vector from Parser atom vector
@@ -53,14 +48,9 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   ic_core::system icSystem(residue_vec, cp_vec, index_vec);
 
   icSystem.create_ic_system(graph.g);
-  std::cout << "IC creation test: \n";
-  std::cout << "Initial hessian: \n";
-  auto hessian = icSystem.initial_hessian(trial);
-  {std::ofstream hessout("hess.mat");
-  hessout << hessian << "\n"; }
-  auto G_matrix = icSystem.delocalize_ic_system(trial);
+  auto G_matrix = icSystem.delocalize_ic_system();
 
-  auto write_with_zero = [](scon::mathmatrix<coords::float_type> const& mat) {
+  auto write_with_zero = [](auto&& mat) {
     for (auto c = 0; c < mat.cols(); ++c) {
       for (auto r = 0; r < mat.rows(); ++r) {
         std::cout << std::setw(6) << std::setprecision(3) << std::fixed << (mat(r, c) > 1.e-6 ? mat(r, c) : 0.0);
@@ -70,14 +60,13 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   };
 
   std::cout << "DLC matrix: \n";
-  write_with_zero(icSystem.del_mat);
+  write_with_zero(G_matrix);
   std::cout << "\n\n";
-  auto del_hessian = icSystem.delocalize_hessian(hessian);
+  auto&& del_hessian = icSystem.initial_delocalized_hessian();
 
   std::cout << "DelHessian:\n";
   write_with_zero(del_hessian);
   std::cout << "\n\n";
-  auto G_matrix_inv = icSystem.G_mat_inversion(G_matrix);
 
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   std::cout << "Gmatrix:\n" << G_matrix << "\n\n";*/
@@ -90,19 +79,20 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   std::cout << "Rotation:\n";
   for (auto& i : icSystem.rotation_vec_)
   {
-	  auto j = i.rot_val(trial);
+	  auto j = i.rot_val(cp_vec);
 	  std::cout << j.at(0) << "||" << j.at(1) << "||" << j.at(2) << "||" << std::endl;
   }
 
   for (auto const & pic : icSystem.primitive_internals) {
-    std::cout << pic->info(trial);
+    std::cout << pic->info(cp_vec);
   }
-  auto const & bla = icSystem.calc(trial);
-  std::cout << bla << std::endl;
   coords.g();
-  auto blub = icSystem.calcGrad(trial, ic_core::grads_to_bohr(coords.g_xyz()));
-  coords.set_xyz(trial);
-  std::cout << blub;
+  auto g_int = icSystem.calculate_internal_grads(ic_core::grads_to_bohr(coords.g_xyz()));
+  std::cout << g_int << "\n\n";
+  auto dy = icSystem.get_internal_step(g_int);
+  std::cout << dy << "\n\n";
+  auto dx = icSystem.internal_d_to_cartesian(dy);
+  std::cout << dx << "\n\n";
   //std::cout << coords::output::formats::xyz(coords);
   //trial -= blub;
   //coords.set_xyz(trial);
@@ -118,7 +108,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
 
 
 
-  
+
   // test matrix stuff
   /*auto matrix_trial = ic_util::Rep3D_to_arma<coords::float_type>(cp_vec);
   matrix_trial.print();

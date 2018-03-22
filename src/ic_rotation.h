@@ -37,7 +37,7 @@ auto get_mean(Vec const & vec, Add add) {
 //};
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type 
+typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
 correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
                    ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   auto trial_mat = ic_util::Rep3D_to_arma(trial);
@@ -46,7 +46,7 @@ correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type 
+typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
 F_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
          ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
@@ -112,7 +112,7 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type 
+typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type
 exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
                 ContainerType<CoordType<T>, ContainerArgs...> const& target) {
 
@@ -136,7 +136,7 @@ exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::array<scon::mathmatrix<T>, 3> >>::type
-correlation_matrix_derivs(scon::mathmatrix<T> const& R,
+correlation_matrix_derivs(scon::mathmatrix<T> const& /*R*/,
                           ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
@@ -146,7 +146,7 @@ correlation_matrix_derivs(scon::mathmatrix<T> const& R,
   auto tshift = target - mean_target;
   auto S = ic_util::Rep3D_to_arma(tshift);
   std::vector<std::array<Mat, 3> > result;
-  for (std::size_t c = 0; c < S.rows(); ++c) {
+  for (auto c = 0u; c < S.rows(); ++c) {
     std::array<Mat, 3> A;
     A.fill(scon::mathmatrix<T>::zero(3, 3));
     for (std::size_t l = 0; l < A.size(); ++l) {
@@ -236,7 +236,7 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
   auto q_val = quaternion(trial, target);
   auto q = q_val.second;
   auto q0 = std::get<0>(q.q_);
-  
+
   T p{ 0.0 }, d{ 0.0 };
   std::tie(p, d) = fac_and_dfac(q0);
 

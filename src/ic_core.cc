@@ -54,19 +54,19 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
       el_b == period::two) {
     B_val = -0.244;
   }
-  else if (el_a == period::one && el_b == period::two ||
-           el_a == period::two && el_b == period::one) {
+  else if ((el_a == period::one && el_b == period::two) ||
+           (el_a == period::two && el_b == period::one)) {
     B_val = 0.352;
   }
   else if (el_a == period::two && el_b == period::two) {
     B_val = 1.085;
   }
-  else if (el_a == period::one && el_b == period::three ||
-           el_a == period::three && el_b == period::one) {
+  else if ((el_a == period::one && el_b == period::three) ||
+           (el_a == period::three && el_b == period::one)) {
     B_val = 0.660;
   }
-  else if (el_a == period::two && el_b == period::three ||
-           el_a == period::three && el_b == period::two) {
+  else if ((el_a == period::two && el_b == period::three) ||
+           (el_a == period::three && el_b == period::two)) {
     B_val = 1.522;
   }
   else if (el_a == period::three && el_b == period::three) {
@@ -151,7 +151,7 @@ ic_core::angle::der_vec(coords::Representation_3D const& xyz) const {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-float_type ic_core::angle::hessian_guess(coords::Representation_3D const & xyz) const
+float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*/) const
 {
   if (elem_a_ == "H" || elem_c_ == "H") {
     return 0.160;
@@ -238,7 +238,7 @@ ic_core::dihedral::der_vec(coords::Representation_3D const& xyz) const {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & xyz) const
+float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & /*xyz*/) const
 {
   return 0.023;
 }
@@ -505,50 +505,35 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
   return result;
 }
 
-scon::mathmatrix<float_type> ic_core::system::Bmat(const coords::Representation_3D& trial) const {
+scon::mathmatrix<float_type>& ic_core::system::Bmat() {
   using Mat = scon::mathmatrix<float_type>;
   std::vector<std::vector<float_type>> ders;
 
   for (auto const& pic : primitive_internals) {
-    ders.emplace_back(pic->der_vec(trial));
+    ders.emplace_back(pic->der_vec(xyz_));
   }
   for (auto const& i : rotation_vec_) {
-    auto temp = i.rot_der_mat(trial.size(), trial);
+    auto temp = i.rot_der_mat(xyz_.size(), xyz_);
     //look for th cols and rows!
     ders.emplace_back(temp.col_to_std_vector(0));
     ders.emplace_back(temp.col_to_std_vector(1));
     ders.emplace_back(temp.col_to_std_vector(2));
   }
   std::size_t n_rows = ders.size(), n_cols = ders.at(0).size();
-  Mat result(n_rows, n_cols);
-  for (auto i = 0; i < n_rows; ++i) {
-    result.set_row(i, Mat::row_from_vec(ders.at(i)));
+  B_matrix = Mat(n_rows, n_cols);
+  for (std::size_t i{ 0 }; i < n_rows; ++i) {
+    B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
-
-  return result;
+  return B_matrix;
 }
 
-scon::mathmatrix<float_type> ic_core::system::delocalize_ic_system(const coords::Representation_3D& trial) {
-  using Mat = scon::mathmatrix<float_type>;
-
-  auto const & sys_size = trial.size();
-
-  auto B_matrix = Bmat(trial);
-
-  /*std::ofstream of("Bmat.dat");
-  of << B_matrix << "\n";*/
-  auto G_matrix = B_matrix * B_matrix.t();
-  Mat eigval, eigvec;
-  std::tie(eigval, eigvec) = G_matrix.eigensym(true);
-  auto row_index_vec = eigval.sort_idx();
-  auto col_index_vec = eigval.find_idx([](float_type const & a) {
-    return std::abs(a) > 1e-6;
-  });
-  del_mat = eigvec.submat(row_index_vec, col_index_vec);
+scon::mathmatrix<float_type>& ic_core::system::Gmat(){
+  Bmat();
+  G_matrix = B_matrix * B_matrix.t();
   return G_matrix;
 }
 
-scon::mathmatrix<float_type> ic_core::system::initial_hessian(coords::Representation_3D const & xyz) {
+scon::mathmatrix<float_type> ic_core::system::guess_hessian() {
   using Mat = scon::mathmatrix<float_type>;
   using scon::cross;
   using scon::dot;
@@ -556,22 +541,13 @@ scon::mathmatrix<float_type> ic_core::system::initial_hessian(coords::Representa
 
   std::vector<float_type> values;
   for (auto const & pic : primitive_internals) {
-    values.emplace_back(pic->hessian_guess(xyz));
+    values.emplace_back(pic->hessian_guess(xyz_));
   }
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
   return Mat::col_from_vec(values).diagmat();
 }
 
-scon::mathmatrix<float_type>
-ic_core::system::delocalize_hessian(const scon::mathmatrix<float_type>& hessian) {
-  using Mat = scon::mathmatrix<float_type>;
-
-  Mat del_hessian = del_mat.t() * hessian * del_mat;
-
-  return del_hessian;
-}
-
-scon::mathmatrix<float_type>
+/*scon::mathmatrix<float_type>
 ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
 
   using Mat = scon::mathmatrix<float_type>;
@@ -590,21 +566,39 @@ ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
   }
   auto G_mat_inv = U * s.diagmat() * V.t();
   return G_mat_inv;
+}*/
+
+scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
+  using Mat = scon::mathmatrix<float_type>;
+  Gmat();
+  Mat eigval, eigvec;
+  std::tie(eigval, eigvec) = G_matrix.eigensym(true);
+  auto row_index_vec = eigval.sort_idx();
+  auto col_index_vec = eigval.find_idx([](float_type const & a) {
+    return std::abs(a) > 1e-6;
+  });
+  del_mat = eigvec.submat(row_index_vec, col_index_vec);
+  return del_mat;
 }
 
-scon::mathmatrix<float_type> ic_core::system::calc(coords::Representation_3D const& trial) const
+scon::mathmatrix<float_type> ic_core::system::calc() const
 {
   std::vector<float_type> primitives;
   primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
 
   for(auto const & pic : primitive_internals){
-    primitives.emplace_back(pic->val(trial));
+    primitives.emplace_back(pic->val(xyz_));
   }
   for (auto const & rot : rotation_vec_) {
-    auto rv = rot.rot_val(trial);
+    auto rv = rot.rot_val(xyz_);
     primitives.emplace_back(rv.at(0));
     primitives.emplace_back(rv.at(1));
     primitives.emplace_back(rv.at(2));
   }
   return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
+}
+
+scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
+  hessian = del_mat.t() * guess_hessian() * del_mat;
+  return hessian;
 }
