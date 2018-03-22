@@ -138,15 +138,12 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
           result_str = result_str.substr(1,result_str.size()-2);  //process return
           std::vector<std::string> result_vec = split(result_str, ',');
 
-          auto to_double_and_kcal = [](auto const& num){
-            return num*energy::au2kcal_mol;
-          };
           //read energies and convert them to kcal/mol
-          e_bs = to_double_and_kcal(result_vec[0]);
-          e_coul = to_double_and_kcal(result_vec[1]);
-          e_rep = to_double_and_kcal(result_vec[3]);
-          e_tot = to_double_and_kcal(result_vec[4]);
-          if (result_vec.size() == 6) e_lr = to_double_and_kcal(result_vec[5]);
+          e_bs = std::stod(result_vec[0])*energy::au2kcal_mol;
+          e_coul = std::stod(result_vec[1])*energy::au2kcal_mol;
+          e_rep = std::stod(result_vec[3])*energy::au2kcal_mol;
+          e_tot = std::stod(result_vec[4])*energy::au2kcal_mol;
+          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*energy::au2kcal_mol;
           else e_lr = 0;
         }
         else
@@ -210,15 +207,12 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
         result_str = result_str.substr(1,result_str.size()-2);  //process return
         std::vector<std::string> result_vec = split(result_str, ',');
         
-        auto to_double_and_kcal = [](auto const& num){
-          return num*energy::au2kcal_mol;
-        };
         //read energies and convert them to kcal/mol
-        e_bs = to_double_and_kcal(result_vec[0]);
-        e_coul = to_double_and_kcal(result_vec[1]);
-        e_rep = to_double_and_kcal(result_vec[3]);
-        e_tot = to_double_and_kcal(result_vec[4]);
-        if (result_vec.size() == 6) e_lr = to_double_and_kcal(result_vec[5]);
+        e_bs = std::stod(result_vec[0])*energy::au2kcal_mol;
+        e_coul = std::stod(result_vec[1])*energy::au2kcal_mol;
+        e_rep = std::stod(result_vec[3])*energy::au2kcal_mol;
+        e_tot = std::stod(result_vec[4])*energy::au2kcal_mol;
+        if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*energy::au2kcal_mol;
         else e_lr = 0;
       }
       else
@@ -396,15 +390,12 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
           result_str = result_str.substr(1,result_str.size()-2);  //process return
           std::vector<std::string> result_vec = split(result_str, ',');
 
-          auto to_double_and_kcal = [](auto const& num){
-            return num*energy::au2kcal_mol;
-          };
           //read energies and convert them to kcal/mol
-          e_bs = to_double_and_kcal(result_vec[0]);
-          e_coul = to_double_and_kcal(result_vec[1]);
-          e_rep = to_double_and_kcal(result_vec[3]);
-          e_tot = to_double_and_kcal(result_vec[4]);
-          if (result_vec.size() == 6) e_lr = to_double_and_kcal(result_vec[5]);
+          e_bs = std::stod(result_vec[0])*energy::au2kcal_mol;
+          e_coul = std::stod(result_vec[1])*energy::au2kcal_mol;
+          e_rep = std::stod(result_vec[3])*energy::au2kcal_mol;
+          e_tot = std::stod(result_vec[4])*energy::au2kcal_mol;
+          if (result_vec.size() == 6) e_lr = std::stod(result_vec[5])*energy::au2kcal_mol;
           else e_lr = 0;
         }
         else
