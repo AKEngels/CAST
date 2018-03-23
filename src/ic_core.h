@@ -276,6 +276,9 @@ private:
   scon::mathmatrix<float_type> del_mat;
   scon::mathmatrix<float_type> hessian;
 
+  bool new_B_matrix = true;
+  bool new_G_matrix = true;
+
 
 public:
   void append_primitives(std::vector<std::unique_ptr<internal_coord>> && pic) {
@@ -323,11 +326,14 @@ public:
   template <typename Graph>
   void create_ic_system(const Graph&);
 
-  scon::mathmatrix<float_type>& Gmat();
   scon::mathmatrix<float_type>& delocalize_ic_system();
   scon::mathmatrix<float_type> guess_hessian();
   scon::mathmatrix<float_type>& initial_delocalized_hessian();
+  std::vector<std::vector<float_type>> deriv_vec();
   scon::mathmatrix<float_type>& Bmat();
+  scon::mathmatrix<float_type>& Gmat();
+  scon::mathmatrix<float_type>& ic_Bmat();
+  scon::mathmatrix<float_type>& ic_Gmat();
 
 
   scon::mathmatrix<float_type> calc() const;
@@ -504,6 +510,8 @@ inline scon::mathmatrix<float_type> ic_core::system::internal_d_to_cartesian(Din
 
 template<typename Dcart>
 coords::Representation_3D& ic_core::system::take_Cartesian_step(Dcart&& d_cart){
+  new_B_matrix = true;
+  new_G_matrix = true;
   auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
   return xyz_ += d_cart_rep3D;
 }

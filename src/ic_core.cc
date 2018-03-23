@@ -495,31 +495,65 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
   return result;
 }
 
-scon::mathmatrix<float_type>& ic_core::system::Bmat() {
-  using Mat = scon::mathmatrix<float_type>;
-  std::vector<std::vector<float_type>> ders;
+std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
+  std::vector<std::vector<float_type>> result;
 
   for (auto const& pic : primitive_internals) {
-    ders.emplace_back(pic->der_vec(xyz_));
+    result.emplace_back(pic->der_vec(xyz_));
   }
   for (auto const& i : rotation_vec_) {
     auto temp = i.rot_der_mat(xyz_.size(), xyz_);
     //look for th cols and rows!
-    ders.emplace_back(temp.col_to_std_vector(0));
-    ders.emplace_back(temp.col_to_std_vector(1));
-    ders.emplace_back(temp.col_to_std_vector(2));
+    result.emplace_back(temp.col_to_std_vector(0));
+    result.emplace_back(temp.col_to_std_vector(1));
+    result.emplace_back(temp.col_to_std_vector(2));
   }
+  return result;
+}
+
+scon::mathmatrix<float_type>& ic_core::system::ic_Bmat(){
+  if(!new_B_matrix){
+    return B_matrix;
+  }
+  B_matrix = del_mat.t()*Bmat();
+  new_B_matrix = false;
+  return B_matrix;
+}
+
+scon::mathmatrix<float_type>& ic_core::system::Bmat() {
+  if(!new_B_matrix){
+    return B_matrix;
+  }
+  using Mat = scon::mathmatrix<float_type>;
+
+  auto ders = deriv_vec();
+
   std::size_t n_rows = ders.size(), n_cols = ders.at(0).size();
   B_matrix = Mat(n_rows, n_cols);
   for (std::size_t i{ 0 }; i < n_rows; ++i) {
     B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
+  new_B_matrix = false;
   return B_matrix;
 }
 
 scon::mathmatrix<float_type>& ic_core::system::Gmat(){
+  if(!new_G_matrix){
+    return G_matrix;
+  }
   Bmat();
   G_matrix = B_matrix * B_matrix.t();
+  new_G_matrix=false;
+  return G_matrix;
+}
+
+scon::mathmatrix<float_type>& ic_core::system::ic_Gmat(){
+  if(!new_G_matrix){
+    return G_matrix;
+  }
+  ic_Bmat();
+  G_matrix = B_matrix * B_matrix.t();
+  new_G_matrix=false;
   return G_matrix;
 }
 
@@ -568,6 +602,7 @@ scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
     return std::abs(a) > 1e-6;
   });
   del_mat = eigvec.submat(row_index_vec, col_index_vec);
+  new_B_matrix = new_G_matrix = true; //B and G got to be calculated fot the new ic_system
   return del_mat;
 }
 
@@ -589,7 +624,7 @@ scon::mathmatrix<float_type> ic_core::system::calc() const
 }
 
 scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mathmatrix<float_type> const& g) {
-  auto&& gmat = Gmat();
+  auto&& gmat = ic_Gmat();
   return gmat.pinv() * B_matrix * g;
 }
 

@@ -36,7 +36,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   auto el_vec = p.create_element_vec();
 
   // create vector of bonds
-  auto bonds = ic_util::bonds(p.create_element_vec(), cp_vec);
+  auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb_helper::ang_from_bohr(cp_vec));
 
   // create graph from bonds vector and atom vector
   ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);
@@ -90,20 +90,23 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   auto g_xyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_core::grads_to_bohr(coords.g_xyz())
   ));
-  std::cout << g_xyz << "\n\n";
+  std::cout << "g_xyz:\n" << g_xyz << "\n\n";
   auto g_int = icSystem.calculate_internal_grads(g_xyz);
-  std::cout << g_int << "\n\n";
+  std::cout << "g_int:\n" << g_int << "\n\n";
   auto dy = icSystem.get_internal_step(g_int);
-  std::cout << dy << "\n\n";
+  std::cout << "dy:\n" << dy << "\n\n";
   auto dx = icSystem.internal_d_to_cartesian(dy);
-  std::cout << dx << "\n\n";
+  std::cout << "dx:\n" << dx << "\n\n";
   auto in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
   coords.set_xyz(in_ang);
-  std::cout << coords::output::formats::xyz(coords) << "\n\n";
+  std::cout << "Former:\n" << coords::output::formats::xyz(coords) << "\n\n";
+  in_ang = coords::input::formats::pdb_helper::ang_from_bohr(ic_util::mat_to_rep3D(dx));
+  coords.set_xyz(in_ang);
+  std::cout << "Change:\n" << coords::output::formats::xyz(coords) << "\n\n";
   cp_vec = icSystem.take_Cartesian_step(dx);
   in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
   coords.set_xyz(in_ang);
-  std::cout << coords::output::formats::xyz(coords) << "\n\n";
+  std::cout << "After:\n" << coords::output::formats::xyz(coords) << "\n\n";
 
 
 
