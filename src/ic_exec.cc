@@ -28,7 +28,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   auto cp_vec = p.create_rep_3D_bohr();
 
   // create residue vector from Parser atom vector
-  auto residue_vec = p.create_resids_rep_3D();
+  auto residue_vec = p.create_resids_rep_3D_bohr();
 
   // create residue index vector from Parser atom vector
   auto index_vec = p.create_resids_indices();
@@ -45,7 +45,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   graph.visualize_graph("Graphviz");
 
   // create initial internal coordinates system
-  ic_core::system icSystem(residue_vec, cp_vec, index_vec);
+  ic_core::system icSystem(residue_vec, index_vec, cp_vec);
 
   icSystem.create_ic_system(graph.g);
   auto G_matrix = icSystem.delocalize_ic_system();
@@ -87,16 +87,23 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
     std::cout << pic->info(cp_vec);
   }
   coords.g();
-  auto g_int = icSystem.calculate_internal_grads(ic_core::grads_to_bohr(coords.g_xyz()));
+  auto g_xyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+    ic_core::grads_to_bohr(coords.g_xyz())
+  ));
+  std::cout << g_xyz << "\n\n";
+  auto g_int = icSystem.calculate_internal_grads(g_xyz);
   std::cout << g_int << "\n\n";
   auto dy = icSystem.get_internal_step(g_int);
   std::cout << dy << "\n\n";
   auto dx = icSystem.internal_d_to_cartesian(dy);
   std::cout << dx << "\n\n";
-  //std::cout << coords::output::formats::xyz(coords);
-  //trial -= blub;
-  //coords.set_xyz(trial);
-  //std::cout << coords::output::formats::xyz(coords);
+  auto in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
+  coords.set_xyz(in_ang);
+  std::cout << coords::output::formats::xyz(coords) << "\n\n";
+  cp_vec = icSystem.take_Cartesian_step(dx);
+  in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
+  coords.set_xyz(in_ang);
+  std::cout << coords::output::formats::xyz(coords) << "\n\n";
 
 
 

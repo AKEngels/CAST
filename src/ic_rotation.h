@@ -136,8 +136,7 @@ exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::array<scon::mathmatrix<T>, 3> >>::type
-correlation_matrix_derivs(scon::mathmatrix<T> const& /*R*/,
-                          ContainerType<CoordType<T>, ContainerArgs...> const& target) {
+correlation_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& target) {
   using Mat = scon::mathmatrix<T>;
   using coords::Cartesian_Point;
 
@@ -171,7 +170,7 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& trial,
   auto tashift = target - mean_target;
   auto trshift = trial - mean_trial;
   auto R = correlation_matrix(tashift, trshift);
-  auto dR = correlation_matrix_derivs(R, tashift);
+  auto dR = correlation_matrix_derivs(tashift);
   std::vector<std::array<Mat, 3> > result;
   for (auto& S : dR) {
     std::array<Mat, 3> Q;

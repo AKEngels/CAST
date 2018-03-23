@@ -230,6 +230,17 @@ namespace ic_util{
     }
     return result;
   }
+
+  template<typename Mat>
+  coords::Representation_3D mat_to_rep3D(Mat&& mat){
+    coords::Representation_3D result;
+    for(auto i = 0u; i<mat.rows(); i+=3){
+      result.emplace_back(coords::Cartesian_Point(
+        mat(i, 0),mat(i + 1, 0),mat(i + 2, 0)
+      ));
+    }
+    return result;
+  }
 }
 
 /*! @} End of ic_util group*/

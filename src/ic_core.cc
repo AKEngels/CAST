@@ -391,24 +391,15 @@ std::string ic_core::trans_z::info(coords::Representation_3D const & xyz) const
   return oss.str();
 }
 
-coords::Representation_3D ic_core::rotation::xyz0;
+//coords::Representation_3D ic_core::rotation::xyz0;
 
-ic_core::rotation::rotation(const coords::Representation_3D& target,
-  const std::vector<std::size_t>& index_vec)  : indices_{ index_vec }{
-  if (xyz0.empty()) {
-    xyz0 = target;
+ic_core::rotation ic_core::build_rotation(coords::Representation_3D const& target,
+  std::vector<std::size_t> const& index_vec){
+    coords::Representation_3D reference;
+  for (auto const & ind : index_vec) {
+    reference.emplace_back(target.at(ind - 1));
   }
-  else {
-    if (xyz0.size() != target.size()) {
-      std::ostringstream oss;
-      oss << "You can't just pass molecules with different sizes. xyz0=" << xyz0.size() << " != target=" << target.size() << "!";
-      throw std::runtime_error(oss.str());
-    }
-  }
-  for (auto const & ind : indices_) {
-    reference_.emplace_back(target.at(ind - 1));
-  }
-  rad_gyr_ = radius_gyration(reference_);
+  return rotation(std::move(reference), index_vec);
 }
 
 std::array<float_type, 3u>
@@ -424,13 +415,12 @@ ic_core::rotation::rot_val(const coords::Representation_3D& trial) const {
 
 std::vector<scon::mathmatrix<float_type>>
 ic_core::rotation::rot_der(const coords::Representation_3D& trial) const{
-  coords::Representation_3D trial_, xyz0_;
+  coords::Representation_3D trial_;
   for (auto const & indi : indices_) {
     trial_.emplace_back(trial.at(indi - 1));
-    xyz0_.emplace_back(xyz0.at(indi - 1));
   }
 
-  return ic_rotation::exponential_derivs(trial_, xyz0_);
+  return ic_rotation::exponential_derivs(trial_, reference_);
 }
 
 scon::mathmatrix<float_type>
@@ -500,7 +490,7 @@ std::vector<ic_core::rotation> ic_core::system::create_rotations(
     const std::vector<std::vector<std::size_t>>& index_vec) {
   std::vector<ic_core::rotation> result;
   for(auto const& iv : index_vec){
-    result.emplace_back(ic_core::rotation(rep, iv));
+    result.emplace_back(ic_core::build_rotation(rep, iv));
   }
   return result;
 }
@@ -596,6 +586,11 @@ scon::mathmatrix<float_type> ic_core::system::calc() const
     primitives.emplace_back(rv.at(2));
   }
   return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
+}
+
+scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mathmatrix<float_type> const& g) {
+  auto&& gmat = Gmat();
+  return gmat.pinv() * B_matrix * g;
 }
 
 scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){

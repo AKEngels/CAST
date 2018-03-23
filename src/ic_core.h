@@ -236,12 +236,14 @@ struct trans_z : trans {
 };
 
 struct rotation {
-  rotation(const coords::Representation_3D& target,
-    const std::vector<std::size_t>& index_vec);
+  template<typename Rep3D, typename IndexVec>
+  rotation(Rep3D&& reference, IndexVec&& index_vec):
+    reference_{ std::forward<Rep3D>(reference) }, indices_{ std::forward<IndexVec>(index_vec) },
+    rad_gyr_{ radius_gyration(reference_) }{}
 
+  coords::Representation_3D const reference_;
   std::vector<std::size_t> indices_;
 
-  coords::Representation_3D reference_;
   float_type rad_gyr_;
 
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&) const;
@@ -249,14 +251,17 @@ struct rotation {
   scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&) const;
   float_type radius_gyration(const coords::Representation_3D&);
 
-  static coords::Representation_3D xyz0;
+  //static coords::Representation_3D xyz0;
 };
+
+rotation build_rotation(const coords::Representation_3D& target,
+  const std::vector<std::size_t>& index_vec);
 
 class system {
 public:
   system(const std::vector<coords::Representation_3D>& res_init,
-         const coords::Representation_3D& xyz_init,
-         const std::vector<std::vector<std::size_t>>& res_index)
+         const std::vector<std::vector<std::size_t>>& res_index,
+         const coords::Representation_3D& xyz_init)
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<internal_coord>> primitive_internals;
@@ -324,14 +329,15 @@ public:
   scon::mathmatrix<float_type>& initial_delocalized_hessian();
   scon::mathmatrix<float_type>& Bmat();
 
+
   scon::mathmatrix<float_type> calc() const;
-  template<typename Rep3D>
-  scon::mathmatrix<float_type> calculate_internal_grads(Rep3D&&);
+  scon::mathmatrix<float_type> calculate_internal_grads(scon::mathmatrix<float_type> const&);
   template<typename Gint>
   scon::mathmatrix<float_type> get_internal_step(Gint&&);
   template<typename Dint>
   scon::mathmatrix<float_type> internal_d_to_cartesian(Dint&&);
-
+  template<typename Dcart>
+  coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
 };
 
 template <typename Graph>
@@ -459,33 +465,6 @@ system::create_dihedrals(const Graph& g) const {
   return result;
 }
 
-// template <typename Graph>
-// inline void
-// system::create_ic_system(const std::vector<coords::Representation_3D>& res_vec,
-//                          const coords::Representation_3D& coords,
-//                          const Graph& g) {
-//   trans_x_vec_.emplace_back(trans_x::create_trans(res_vec));
-//   trans_y_vec_.emplace_back(trans_y::create_trans(res_vec));
-//   trans_z_vec_.emplace_back(trans_z::create_trans(res_vec));
-//   rotation_vec_ = create_rotations(res_vec);
-//   distance_vec_ = create_distances(coords, g);
-//   angle_vec_ = create_angles(coords, g);
-//   oop_vec_ = create_oops(coords, g);
-//   dihed_vec_ = create_dihedrals(coords, g);
-// }
-
-//template <typename Graph>
-//inline void system::create_ic_system(const Graph& g) {
-//  trans_x_vec_ = create_trans_x(res_vec_, res_index_vec_);
-//  trans_y_vec_ = create_trans_y(res_vec_, res_index_vec_);
-//  trans_z_vec_ = create_trans_z(res_vec_, res_index_vec_);
-//  rotation_vec_ = create_rotations(res_vec_, res_index_vec_);
-//  distance_vec_ = create_distances(xyz_, g);
-//  angle_vec_ = create_angles(xyz_, g);
-//  oop_vec_ = create_oops(xyz_, g);
-//  dihed_vec_ = create_dihedrals(xyz_, g);
-//}
-
 inline std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
 system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
   return std::make_tuple(
@@ -512,11 +491,6 @@ inline void system::create_ic_system(const Graph& g) {
   rotation_vec_ = create_rotations(xyz_, res_index_vec_);
 }
 
-template<typename Rep3D>
-inline scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(Rep3D&& g) {
-  return Gmat().pinv() * B_matrix * scon::mathmatrix<float_type>::col_from_vec(ic_util::flatten_c3_vec(std::forward<Rep3D>(g)));
-}
-
 template<typename Gint>
 inline scon::mathmatrix<float_type> ic_core::system::get_internal_step(Gint&& g_int){
   return -1.*hessian.pinv()*g_int;
@@ -528,26 +502,12 @@ inline scon::mathmatrix<float_type> ic_core::system::internal_d_to_cartesian(Din
   return B_matrix.t()*G_mati*std::forward<Dint>(d_int);
 }
 
-//template <typename Graph>
-//inline system::IC_System system::create_system(Graph const& g) {
-//  IC_System new_ic_system;
-//
-//  new_ic_system.append_primitives(create_distances(g));
-//  new_ic_system.append_primitives(create_angles(g));
-//  new_ic_system.append_primitives(create_oops(xyz_, g));
-//  new_ic_system.append_primitives(create_dihedrals(g));
-//
-//  std::vector<intrtnal_coord> trans_x, trans_y, trans_z;
-//  std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
-//
-//  new_ic_system.append_primitives(trans_x);
-//  new_ic_system.append_primitives(trans_y);
-//  new_ic_system.append_primitives(trans_z);
-//
-//  new_ic_system.configure_rotations(create_rotations(res_vec_, res_index_vec_));
-//
-//  return new_ic_system;
-//}
+template<typename Dcart>
+coords::Representation_3D& ic_core::system::take_Cartesian_step(Dcart&& d_cart){
+  auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
+  return xyz_ += d_cart_rep3D;
+}
+
 }
 namespace coords {
   class DL_Coordinates : public Coordinates {
