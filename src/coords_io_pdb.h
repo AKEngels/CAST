@@ -16,6 +16,15 @@ namespace coords {
 
 
       namespace pdb_helper {
+
+        inline coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
+          coords::Representation_3D result;
+          for(auto const& a: rep3D){
+            result.emplace_back(a*energy::bohr2ang);
+          }
+          return result;
+        }
+
         /*!
         \brief Scoped enumeration type with the relevant Pdb entries as possible values.
         */
@@ -464,32 +473,42 @@ namespace coords {
           \param vec std::vector of atoms.
           \return coords::Representation_3D object.
           */
+        private:
           static coords::Representation_3D
-            create_rep_3D(const std::vector<Atom_type>& vec) {
+            create_rep_3D_impl(const std::vector<Atom_type>& vec) {
             coords::Representation_3D cp_vec;
             for (auto& i : vec) {
               cp_vec.emplace_back(i.cp);
             }
             return cp_vec;
           }
+        public:
+          static coords::Representation_3D
+            create_rep_3D(const std::vector<Atom_type>& vec) {
+            return create_rep_3D_impl(vec);
+          }
 
           coords::Representation_3D
             create_rep_3D()const {
-            return create_rep_3D(atom_vec);
+            return create_rep_3D_impl(atom_vec);
           }
-
+        private:
           static coords::Representation_3D
-            create_rep_3D_bohr(const std::vector<Atom_type>& vec){
+            create_rep_3D_bohr_impl(const std::vector<Atom_type>& vec){
               auto rep3D = create_rep_3D(vec);
               for(auto&& coord: rep3D){
                 coord /= energy::bohr2ang;
               }
               return rep3D;
             }
-
+          public:
+            static coords::Representation_3D
+              create_rep_3D_bohr(const std::vector<Atom_type>& vec){
+                return create_rep_3D_bohr_impl(vec);
+              }
           coords::Representation_3D
             create_rep_3D_bohr()const{
-              return create_rep_3D_bohr(atom_vec);
+              return create_rep_3D_bohr_impl(atom_vec);
             }
           /*!
           \brief Uses a std::vector of atoms to create a std::vector of residues, where
@@ -497,21 +516,41 @@ namespace coords {
           \param vec std::vector of atoms.
           \return std::vector of coords::Representation_3D objects.
           */
+        private:
+          template<typename Vec, typename Func>
           static std::vector<coords::Representation_3D>
-            create_resids_rep_3D(const std::vector<Atom_type>& vec) {
-            auto resid_vec = create_resids(vec);
+            create_resids_rep_3D_impl(Vec&& vec, Func creator) {
+            auto resid_vec = create_resids(std::forward<Vec>(vec));
             std::vector<coords::Representation_3D> result;
             for (auto& i : resid_vec) {
-              auto temp = create_rep_3D(i);
+              auto temp = creator(i);
               result.emplace_back(temp);
             }
             return result;
+          }
+        public:
+          template<typename Vec>
+          static std::vector<coords::Representation_3D>
+            create_resids_rep_3D(Vec&& vec) {
+            return create_resids_rep_3D_impl(std::forward<Vec>(vec), create_rep_3D_impl);
           }
 
           std::vector<coords::Representation_3D>
             create_resids_rep_3D() const {
             return create_resids_rep_3D(atom_vec);
           }
+
+          template<typename Vec>
+          static std::vector<coords::Representation_3D>
+            create_resids_rep_3D_bohr(Vec&& vec) {
+            return create_resids_rep_3D_impl(std::forward<Vec>(vec), create_rep_3D_bohr_impl);
+          }
+
+          std::vector<coords::Representation_3D>
+            create_resids_rep_3D_bohr() const {
+            return create_resids_rep_3D_bohr(atom_vec);
+          }
+
 
           /*!
           \brief Uses a std::vector of pdb::Atom to form a std::vector of strings containing the element symbols
