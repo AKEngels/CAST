@@ -393,7 +393,7 @@ int main(int argc, char **argv)
         locoptstream << coords;
 
         // calculate RMSD
-        double sum_d_square, sum_d_square_not_fixed = 0;
+        double sum_d_square=0, sum_d_square_not_fixed = 0;
         for (int i = 0; i < coords.size(); i++)
         {
           sum_d_square += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
