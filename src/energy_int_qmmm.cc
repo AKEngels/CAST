@@ -86,7 +86,7 @@ namespace
         }
         for (auto && b : bonds)
         {
-          at.bind_to(new_indices.at(b));
+			if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in QM coords
         }
         new_qm_atoms.add(at);
         pes.structure.cartesian.push_back(cp->xyz(a));
