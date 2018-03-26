@@ -406,6 +406,7 @@ int main(int argc, char **argv)
         double rmsd_not_fixed = std::sqrt(sum_d_square_not_fixed / (coords.size()- Config::get().coords.fixed.size()));
         std::cout << "RMSD between starting and optimized structure is " << rmsd << " angstrom.\n";
         if (Config::get().coords.fixed.size() != 0) std::cout << "If taking into account only non-fixed atoms it is " << rmsd_not_fixed << " angstrom.\n";
+        loclogstream << "\nRMSD: " << rmsd << "\nRMSD(only_non_fixed): " << rmsd_not_fixed << "\n";
       }
       break;
     }
