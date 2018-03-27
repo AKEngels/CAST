@@ -309,7 +309,7 @@ coords::float_type coords::Coordinates::lbfgs()
   m_representation.gradient.cartesian = g_xyz();
   // Output
   if (Config::get().general.verbosity >= 4 ||
-    (optimizer.state() < 0 && Config::get().general.verbosity >= 4))
+    (optimizer.state() < 0 && Config::get().general.verbosity >= 1))
   {
     std::cout << "Energy calculated from energy interface = " << m_representation.energy << "\n";
     std::cout << "Optimization done (status " << optimizer.state() <<
