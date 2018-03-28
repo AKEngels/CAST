@@ -213,7 +213,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 		    found = true;
       }
     }
-	  if (found == false) std::cout << "Parameters for bond between " << b.a << " and " << b.b << " not found.\n";
+	  if (found == false) std::cout << "Parameters for bond between " << b.a+1 << " and " << b.b+1 << " not found.\n";
   }
 
   for (auto &a : qmmm_angles)  // find angle parameters
@@ -240,7 +240,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
         }
       }
     }
-	  if (found == false) std::cout << "Parameters for angle made of " << a.a <<", "<<a.c << " and " << a.b << " not found.\n";
+	  if (found == false) std::cout << "Parameters for angle made of " << a.a+1 <<", "<<a.c+1 << " and " << a.b+1 << " not found.\n";
   }
 
   for (auto &d : qmmm_dihedrals)  // find parameters for dihedrals
@@ -339,7 +339,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
     }
 	  if (found == false)
 	  {
-		  std::cout << "Parameters for dihedral made of " << d.a << ", " << d.c1 << ", " << d.c2 << " and " << d.b << " not found.\n";
+		  std::cout << "Parameters for dihedral made of " << d.a+1 << ", " << d.c1+1 << ", " << d.c2+1 << " and " << d.b+1 << " not found.\n";
 	  }
   }
 }
