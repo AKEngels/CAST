@@ -232,7 +232,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
           a.force = a_param.f;
 		      found = true;
         }
-        else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_b)
+        else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_a)
         {
           a.ideal = a_param.ideal;
           a.force = a_param.f;
