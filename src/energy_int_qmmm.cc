@@ -750,6 +750,19 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+  if (Config::get().energy.dftb.dftb3 == true)
+  {
+    file << "  ThirdOrderFull = Yes\n";
+    file << "  DampXH = Yes\n";
+    file << "  DampXHExponent = " << get_zeta() << "\n";
+    file << "  HubbardDerivs {\n";
+    for (auto s : elements)
+    {
+      double hubbard_deriv = hubbard_deriv_by_symbol(s);
+      file << "    " << s << " = " << hubbard_deriv << "\n";
+    }
+    file << "  }\n";
+  }
   file << "}\n\n";
 
   // which information will be saved after calculation?

@@ -1892,8 +1892,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   // plot average temperatures of every zone
   if (Config::get().md.analyze_zones == true) plot_zones();
 #else
-  std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.plot_temp == true) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.ana_pairs.size() > 0) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.analyze_zones == true) std::cout << "The MD analysis you requested is not possible without python!\n";
 #endif
+
   // calculate average pressure over whole simulation time
   p_average /= CONFIG.num_steps;
   if (Config::get().general.verbosity > 2U)
