@@ -28,3 +28,10 @@ bool modify_file(std::vector<std::string> pair);
 /**returns highest angular momentum for an element (from slater-koster files)
 @param s: element symbol*/
 char angular_momentum_by_symbol(std::string s);
+
+/**finds exponent zeta for a dftb3 calculation (from dftb3.info)*/
+double get_zeta();
+
+/**returns hubbard derivative for an element (from dftb3.info)
+@param s: element symbol*/
+double hubbard_deriv_by_symbol(std::string s);

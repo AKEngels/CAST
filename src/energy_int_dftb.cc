@@ -114,16 +114,22 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   for (auto s : elements)
   {
     char angular_momentum = angular_momentum_by_symbol(s);
-    if (angular_momentum == 'e')
-    {
-      std::cout << "Angular momentum for element " << s << " not defined. \n";
-      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
-      std::cout << "Talk to a CAST developer if this is not possible for you.";
-      std::exit(0);
-    }
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+  if (Config::get().energy.dftb.dftb3 == true)
+  {
+    file << "  ThirdOrderFull = Yes\n";
+    file << "  DampXH = Yes\n";
+    file << "  DampXHExponent = " << get_zeta() << "\n";
+    file << "  HubbardDerivs {\n";
+    for (auto s : elements)
+    {
+      double hubbard_deriv = hubbard_deriv_by_symbol(s);
+      file << "    " << s << " = " << hubbard_deriv << "\n";
+    }
+    file << "  }\n";
+  }
   file << "}\n\n";
 
   // which information will be saved after calculation?

@@ -646,6 +646,8 @@ namespace config
       int max_steps;
       /**total charge of the system*/
       double charge;
+      /**use DFTB3 ?*/
+      bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
@@ -653,7 +655,7 @@ namespace config
 
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        opt(2), max_steps_opt(5000) {}
+        dftb3(false), opt(2), max_steps_opt(5000) {}
     } dftb;
 
     /**struct that contains all information necessary for gaussian calculation*/
