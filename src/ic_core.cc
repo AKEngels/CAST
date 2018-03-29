@@ -50,31 +50,28 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
   auto el_b = element_period(elem_b_);
 
   auto B_val{ 0.0 };
-  if (el_a == period::one &&
-      el_b == period::two) {
+  if(el_a == period::one && el_b == period::one){
     B_val = -0.244;
   }
   else if ((el_a == period::one && el_b == period::two) ||
            (el_a == period::two && el_b == period::one)) {
     B_val = 0.352;
   }
-  else if (el_a == period::two && el_b == period::two) {
-    B_val = 1.085;
-  }
   else if ((el_a == period::one && el_b == period::three) ||
            (el_a == period::three && el_b == period::one)) {
     B_val = 0.660;
+  }
+  else if (el_a == period::two && el_b == period::two) {
+    B_val = 1.085;
   }
   else if ((el_a == period::two && el_b == period::three) ||
            (el_a == period::three && el_b == period::two)) {
     B_val = 1.522;
   }
-  else if (el_a == period::three && el_b == period::three) {
+  else {
     B_val = 2.068;
   }
-  auto A_val{ 1.734 };
-  auto temp = std::pow(val(xyz) - B_val, 3);
-  return A_val / temp;
+  return 1.734 / std::pow(val(xyz) - B_val, 3);
 }
 
 std::string ic_core::distance::info(coords::Representation_3D const & xyz) const
@@ -153,7 +150,15 @@ ic_core::angle::der_vec(coords::Representation_3D const& xyz) const {
 
 float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*/) const
 {
-  if (elem_a_ == "H" || elem_c_ == "H") {
+  using ic_atom::element_period;
+  using ic_atom::period;
+  
+  auto el_a = element_period(elem_a_);
+  auto el_b = element_period(elem_b_);
+  auto el_c = element_period(elem_c_);
+  if (el_a == period::one ||
+      el_b == period::one ||
+      el_c == period::one) {
     return 0.160;
   }
   else {
