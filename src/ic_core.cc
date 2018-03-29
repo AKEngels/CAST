@@ -403,28 +403,28 @@ ic_core::rotation ic_core::build_rotation(coords::Representation_3D const& targe
 }
 
 std::array<float_type, 3u>
-ic_core::rotation::rot_val(const coords::Representation_3D& trial) const {
-  coords::Representation_3D curr_xyz;
-  curr_xyz.reserve(indices_.size());
+ic_core::rotation::rot_val(const coords::Representation_3D& new_xyz) const {
+  coords::Representation_3D curr_xyz_;
+  curr_xyz_.reserve(indices_.size());
   for (auto const & i : indices_) {
-    curr_xyz.emplace_back(trial.at(i - 1));
+    curr_xyz_.emplace_back(new_xyz.at(i - 1));
   }
-  auto result = ic_rotation::exponential_map(curr_xyz, reference_);
+  auto result = ic_rotation::exponential_map(curr_xyz_, reference_);
   return result;
 }
 
 std::vector<scon::mathmatrix<float_type>>
-ic_core::rotation::rot_der(const coords::Representation_3D& trial) const{
-  coords::Representation_3D trial_;
+ic_core::rotation::rot_der(const coords::Representation_3D& new_xyz) const{
+  coords::Representation_3D new_xyz_;
   for (auto const & indi : indices_) {
-    trial_.emplace_back(trial.at(indi - 1));
+    new_xyz_.emplace_back(new_xyz.at(indi - 1));
   }
 
-  return ic_rotation::exponential_derivs(trial_, reference_);
+  return ic_rotation::exponential_derivs(new_xyz_, reference_);
 }
 
 scon::mathmatrix<float_type>
-ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& trial)const {
+ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& new_xyz)const {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
@@ -432,17 +432,17 @@ ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
   Mat Y = zero(sys_size, 3);
   Mat Z = zero(sys_size, 3);
 
-  auto first_ders = rot_der(trial);
-  {
-    auto der_iter = first_ders.begin();
-    auto ind_iter = indices_.begin();
-    auto _end = first_ders.end();
-    for (; der_iter != _end; ++der_iter, ++ind_iter) {
-      X.set_row(*ind_iter - 1, der_iter->row(0));
-      Y.set_row(*ind_iter - 1, der_iter->row(1));
-      Z.set_row(*ind_iter - 1, der_iter->row(2));
-    }
+  auto first_ders = rot_der(new_xyz);
+  for(auto i{0u}; i<first_ders.size();++i){
+    auto const& ind = indices_.at(i);
+    auto const& der = first_ders.at(i);
+    X.set_row(ind - 1, der.col(0).t());
+    Y.set_row(ind - 1, der.col(1).t());
+    Z.set_row(ind - 1, der.col(2).t());
   }
+  X *= rad_gyr_;
+  Y *= rad_gyr_;
+  Z *= rad_gyr_;
   Mat result(sys_size * 3, 3);
   result.set_col(0, X.vectorise_row());
   result.set_col(1, Y.vectorise_row());
@@ -501,13 +501,26 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   for (auto const& pic : primitive_internals) {
     result.emplace_back(pic->der_vec(xyz_));
   }
+  //Refactor the next few lines!
+  std::vector<std::vector<float_type>> X_rot;
+  std::vector<std::vector<float_type>> Y_rot;
+  std::vector<std::vector<float_type>> Z_rot;
   for (auto const& i : rotation_vec_) {
     auto temp = i.rot_der_mat(xyz_.size(), xyz_);
     //look for th cols and rows!
-    result.emplace_back(temp.col_to_std_vector(0));
-    result.emplace_back(temp.col_to_std_vector(1));
-    result.emplace_back(temp.col_to_std_vector(2));
+    X_rot.emplace_back(temp.col_to_std_vector(0));
+    Y_rot.emplace_back(temp.col_to_std_vector(1));
+    Z_rot.emplace_back(temp.col_to_std_vector(2));
   }
+  auto move_vecs = [&result](auto&& vec){
+    for(auto&&v : vec){
+      result.emplace_back(std::move(v));
+    }
+  };
+  move_vecs(X_rot);
+  move_vecs(Y_rot);
+  move_vecs(Z_rot);
+
   return result;
 }
 

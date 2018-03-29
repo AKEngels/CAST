@@ -48,24 +48,37 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   ic_core::system icSystem(residue_vec, index_vec, cp_vec);
 
   icSystem.create_ic_system(graph.g);
-  auto G_matrix = icSystem.delocalize_ic_system();
 
-  auto write_with_zero = [](auto&& mat) {
-    for (auto c = 0; c < mat.cols(); ++c) {
-      for (auto r = 0; r < mat.rows(); ++r) {
-        std::cout << std::setw(6) << std::setprecision(3) << std::fixed << (mat(r, c) > 1.e-6 ? mat(r, c) : 0.0);
+  auto write_with_zero = [](auto&& ofs, auto&& mat) {
+    for (auto r = 0; r < mat.rows(); ++r) {
+      for (auto c = 0; c < mat.cols(); ++c) {
+        ofs << std::setw(10) << std::setprecision(5) << std::fixed << (std::fabs(mat(r, c)) > 1.e-6 ? mat(r, c) : 0.0);
       }
-      std::cout << "\n";
+      ofs << "\n";
     }
   };
 
+  std::ofstream offpb("prim_Bmat.dat");
+  write_with_zero(offpb, icSystem.Bmat());
+  std::ofstream offpg("prim_Gmat.dat");
+  write_with_zero(offpg, icSystem.Gmat());
+
+  auto G_matrix = icSystem.delocalize_ic_system();
+
+  std::ofstream offib("ic_Bmat.dat");
+  write_with_zero(offib,icSystem.ic_Bmat());
+  std::ofstream offig("ic_Gmat.dat");
+  write_with_zero(offig,icSystem.ic_Gmat());
+
+
+
   std::cout << "DLC matrix: \n";
-  write_with_zero(G_matrix);
+  write_with_zero(std::cout, G_matrix);
   std::cout << "\n\n";
   auto&& del_hessian = icSystem.initial_delocalized_hessian();
 
   std::cout << "DelHessian:\n";
-  write_with_zero(del_hessian);
+  write_with_zero(std::cout, del_hessian);
   std::cout << "\n\n";
 
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";

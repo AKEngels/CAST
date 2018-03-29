@@ -504,8 +504,8 @@ inline scon::mathmatrix<float_type> ic_core::system::get_internal_step(Gint&& g_
 
 template<typename Dint>
 inline scon::mathmatrix<float_type> ic_core::system::internal_d_to_cartesian(Dint&& d_int){
-  auto G_mati = Gmat().pinv();
-  return B_matrix.t()*G_mati*std::forward<Dint>(d_int);
+  auto G_mati = ic_Gmat().pinv();
+  return (G_mati*B_matrix)*std::forward<Dint>(d_int);//<- Not like Lee Pings Code.
 }
 
 template<typename Dcart>
