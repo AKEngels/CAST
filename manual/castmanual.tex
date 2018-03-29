@@ -381,6 +381,32 @@ If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DF
 
 If you want to run DFTB calculations it is recommended not to use the GAUSSIAN interface but the one to DFTB+ (\url{https://www.dftbplus.org/}). Choose this interface by setting the keyword ``interface'' to ``DFTB''. Besides DFTB+ (you can download it on the homepage) you need slater-koster files for every atom pair in your structure. You can download several sets of slater-koster files from \url{https://www.dftb.org/parameters/download/}. They need to be called: \textit{element1}-\textit{element2}.skf (e.\,g. C-H.skf). \textbf{Important!} In order to assign the correct slater-koster files the symbol column of the tinkerfile has to contain the element symbol and nothing else. Furthermore even if an element appears only once in the structure the slater-koster file for the homonuclear atom pair in this structure has to be present because CAST reads the angular momentum from it.
 
+If you want to use DFTB3 you have to download a parameter set designed for DFTB3 and you have to switch on the option DFTB+3 that adds the necessary lines to the inputfile \textit{dftb\_in.hsd}. Furthermore you have to provide a parameter for the exponent $\zeta$ and a hubbard derivative for every element. This is done by adding a file \textit{dftb3.info} in the folder of the slater koster files (i.\,e. DFTB+skfiles). The necessary information you should find somewhere in your parameter set. The file \textit{dftb3.info} has to look like this:
+
+\begin{lstlisting}
+zeta	  4.00	
+
+Hubbard derivatives (atomic units):
+Br  -0.0573	
+Mg  -0.02
+C  -0.1492	
+N  -0.1535
+Ca  -0.0340	
+Na  -0.0454
+Cl  -0.0697	
+O  -0.1575
+F  -0.1623	
+P  -0.14
+H  -0.1857	
+S  -0.11
+I  -0.0433	
+Zn  -0.03
+K  -0.0339		
+\end{lstlisting}
+
+\textbf{For users on ECPC}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
+
+
 The following list contains the options for DFTB+. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
 
 		\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
@@ -392,6 +418,7 @@ The following list contains the options for DFTB+. DFTB+path and DFTB+skfiles ar
 			DFTB+scctol & Convergence tolerence for SCC procedure. It is recommended to raise it when calculating a hessian matrix (see DFTB+ manual). & double [0.00001]\\
       DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
 			DFTB+charge & Total charge of the sytem & double [0.0] \\
+			DFTB+3 & use DFTB3? (0=no, 1=yes) & bool [0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
 		\end{longtable}~\\
