@@ -1008,7 +1008,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
-        //set_distance(d);
 
 		    double R_0;  // r_min or sigma
 		    if (cparams.general().radiustype.value ==
