@@ -162,7 +162,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  cparams(rhs.cparams), distance(rhs.distance),
+  cparams(rhs.cparams),
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
   qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector),
@@ -175,7 +175,7 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  cparams(std::move(rhs.cparams)), distance(std::move(rhs.distance)),
+  cparams(std::move(rhs.cparams)), 
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)),
   new_indices_mm(std::move(rhs.new_indices_mm)),
@@ -1008,7 +1008,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
-        set_distance(d);
+        //set_distance(d);
 
 		    double R_0;  // r_min or sigma
 		    if (cparams.general().radiustype.value ==
@@ -1280,14 +1280,6 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << std::right << std::setw(24) << vdw_energy;
   S << std::right << std::setw(24) << bonded_energy;
   S << std::right << std::setw(24) << energy;
-  if (endline) S << '\n';
-}
-
-void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const endline) const
-{
-
-  S << std::right << std::setw(24) << distance;
-  S << std::right << std::setw(24) << vdw_gradient + c_gradient;
   if (endline) S << '\n';
 }
 

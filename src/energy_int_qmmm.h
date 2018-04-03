@@ -6,7 +6,7 @@ Purpose: QM/MM interface
 This is a QM/MM interface between one of the forcefields OPLSAA, AMBER and CHARM with MOPAC, GAUSSIAN or DFTB+.
 Interactions between QM and MM part are done by electrostatic embedding (see Gerrit Groenhof "Introduction to QM/MM Simulations", figure 4).
 Non-bonded interactions are implemented for all combinations between the above mentioned interfaces,
-bonded interactions between QM and MM system can only be calculated for OPLSAA as MM interface and DFTB+ as QM program.
+bonded interactions between QM and MM system can only be calculated for OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM program.
 
 MOPAC: Gradients of coulomb interactions between QM and MM part are calculated by CAST using the derived charge distribution for QM atoms from MOPAC.
 (see http://openmopac.net/manual/QMMM.html)
@@ -38,7 +38,7 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespaces for QM/MM interface*/
+    /**namespace for QM/MM interface*/
     namespace qmmm
     {
       /**namespace for bonded QM/MM*/
@@ -283,24 +283,15 @@ namespace energy
           LinkAtom() { deq_L_QM = 0.0; }
         };
 
-        /**looks if vector v contains Angle x
+        /**looks if vector v contains x
+        x must be an instance of a class that has the member function is_equal (e.g. Angle or Dihedral)
         returns true if yes and false if no*/
-        inline bool is_in(Angle x, std::vector<Angle> v)
+        template<typename T>
+        inline bool is_in(T x, std::vector<T> v)
         {
-          for (auto ang : v)
+          for (auto y : v)
           {
-            if (x.is_equal(ang)) return true;
-          }
-          return false;
-        }
-
-        /**looks if vector v contains Dihedral x
-        returns true if yes and false if no*/
-        inline bool is_in(Dihedral x, std::vector<Dihedral> v)
-        {
-          for (auto dih : v)
-          {
-            if (x.is_equal(dih)) return true;
+            if (x.is_equal(y)) return true;
           }
           return false;
         }
@@ -325,9 +316,6 @@ namespace energy
         /**another overload of Constructor*/
         QMMM(QMMM&&, coords::Coordinates*);
 
-        /**variable to save a distance*/
-        double distance;
-
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
         */
@@ -347,7 +335,7 @@ namespace energy
         coords::float_type g() override;
         /** Energy+Hessian function*/
         coords::float_type h() override;
-        /** Optimization in the intface or interfaced program (not existent for this interface)*/
+        /** Optimization in the interface or interfaced program (not existent for this interface)*/
         coords::float_type o() override;
 
         /** Return charges (for QM und MM atoms) */
@@ -355,33 +343,28 @@ namespace energy
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
         {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+          throw std::runtime_error("function not implemented\n");
         }
         /**overwritten function, should not be called*/
         coords::Gradients_3D get_link_atom_grad() const override
         {
           throw std::runtime_error("function not implemented\n");
         }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
+        /**overwritten function, should not be called*/
+        std::string get_id() const override
+        {
+          throw std::runtime_error("function not implemented\n");
+        }
         /**prints total energy (not implemented)*/
         void print_E(std::ostream&) const  final override;
         /**prints 'headline' for energies*/
         void print_E_head(std::ostream&,
           bool const endline = true) const  final override;
-        /**???*/
-        void print_gnuplot(std::ostream&,
-          bool const endline = true) const;
         /**prints partial energies*/
         void print_E_short(std::ostream&,
           bool const endline = true) const  final override;
         /**function not implemented*/
         void to_stream(std::ostream&) const;
-
-        /**sets distance
-        @param d: new distance*/
-        void set_distance(double d) { distance = d; }
-
         /**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
         void update_representation();
 
@@ -416,9 +399,10 @@ namespace energy
         @param if_gradient: true if gradients should be calculated, false if not*/
         void ww_calc(bool);
         /**calculates energies and gradients
-        @paran if_gradient: true if gradients should be calculated, false if not*/
+        @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool);
-        /**calculates bonded energy and gradients*/
+        /**calculates bonded energy and gradients
+        @param if_gradient: true if gradients should be calculated, false if not*/
         double calc_bonded(bool if_gradient);
 
         /**indizes of QM atoms*/
