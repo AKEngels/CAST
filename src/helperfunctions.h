@@ -143,7 +143,7 @@ inline bool file_exists(const std::string& name) {
 inline std::string last_line(std::ifstream& in)
 {
   std::string line;
-  while (in >> std::ws && std::getline(in, line)); // skip empty lines
+  while (in >> std::ws && std::getline(in, line));
   return line;
 }
 
