@@ -168,17 +168,6 @@ int main(int argc, char **argv)
     std::unique_ptr<coords::input::format> ci(coords::input::new_format());
     coords::Coordinates coords(ci->read(Config::get().general.inputFilename));
 
-    // Define Function to output molar mass of a coords object
-    auto sys_mass = [](coords::Coordinates &sys) -> double
-    {
-      double m = 0;
-      for (auto && a : sys.atoms())
-      {
-        m += a.mass();
-      }
-      return m;
-    };
-
     // Print "Header"
     if (Config::get().general.verbosity > 1U)
     {
