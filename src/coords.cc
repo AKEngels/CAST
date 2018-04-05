@@ -968,7 +968,7 @@ coords::float_type coords::Internal_Callback::operator()
   }
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: LBFGS-Energy of step " << S;
+    std::cout << "Optimization: L-BFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
@@ -1020,7 +1020,7 @@ coords::float_type coords::Main_Callback::operator() (coords::Gradients_Main con
   g = cp->g_main();
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: LBFGS-Energy of step " << S;
+    std::cout << "Optimization: L-BFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
   }
   return E;
@@ -1053,11 +1053,16 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
   scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
 {
   cp->set_xyz(coords::Representation_3D(v.begin(), v.end()));
+  if (Config::set().optimization.local.bfgs.trace)
+  {
+    std::ofstream trace("trace.arc", std::ios_base::app);
+    trace << coords::output::formats::tinker(*this->cp);
+  }
   float E = float(cp->pg());
   go_on = cp->integrity();
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
   if (Config::get().general.verbosity >= 4)
-    std::cout << "Optimization: LBFGS-Energy of step " <<
+    std::cout << "Optimization: L-BFGS-Energy of step " <<
     S << " is " << E << " integrity " << go_on << '\n';
   return E;
 }
@@ -1084,12 +1089,17 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   scon::vector<scon::c3<float>> & g, std::size_t const S, bool & go_on)
 {
   cp->set_xyz(to(v), false);
+  if (Config::set().optimization.local.bfgs.trace)
+  {
+    std::ofstream trace("trace.arc", std::ios_base::app);
+    trace << coords::output::formats::tinker(*this->cp);
+  }
   float E = float(cp->g());
   go_on = cp->integrity();
   g = from(cp->g_xyz());
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: LBFGS-Energy of step " << S;
+    std::cout << "Optimization: L-BFGS-Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
     //std::cout << "totg " << scon::vector_delimeter('\n') << g << "\n";
   }

@@ -983,11 +983,16 @@ namespace config
     struct lo_types { enum T { LBFGS = 0 }; };
     struct go_types { enum T { MCM, TABU }; };
 
+    /**struct that contains configuration options for local optimisation via L-BFGS*/
     struct lo
     {
+      /**convergence threshold for bfgs*/
       double grad;
+      /**max number of steps for bfgs*/
       std::size_t maxstep;
-      lo(void) : grad(0.001), maxstep(10000) { }
+      /**should trace written into file?*/
+      bool trace;
+      lo(void) : grad(0.001), maxstep(10000), trace(false) { }
     };
 
     struct mc

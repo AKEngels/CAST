@@ -400,8 +400,14 @@ PeriodicCutoutDistance 0
 #                                  #
 ####################################
 
+# convergence threshold for bfgs
 BFGSgrad               0.0001
+
+#max number of steps for bfgs
 BFGSmaxstep            5000
+
+should trace written into file? <0/1>
+BFGStrace              0
 
 
 ###################################

@@ -848,7 +848,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Default: 10000
   else if (option == "BFGSmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
-
+  
+  //should trace written into file?
+  else if (option == "BFGStrace")
+    Config::set().optimization.local.bfgs.trace = bool_from_iss(cv);
 
   //! STARTOPT
   else if (option == "SOtype")

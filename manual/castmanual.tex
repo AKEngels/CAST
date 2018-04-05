@@ -656,12 +656,13 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	The integrated L-BFGS can be adjusted regarding the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$.
 	The convergence criterion can be altered using "BFGSgrad" $($default "0.001"$)$.
 
-	\begin{tabularx}{\textwidth}{l|l|l}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & default \\
 		\hline
 		\textbf{BGFSgrad (float)} & Threshold for gradients & 0.0001 \\
 		\textbf{BFGSmaxstep (integer)} & Number of max BFGS steps & 10000 \\
-	\end{tabularx}
+		\textbf{BFGStrace (bool)} & if on, intermediate structures are written into a file ``trace.arc'' \begin{itemize} \item 0 = off \item 1 = on\end{itemize} & false \\
+	\end{longtable}
 
 	%%%% MD %%%%
 	\subsection{MD - Molecular Dynamics}

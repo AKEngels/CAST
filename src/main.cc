@@ -347,6 +347,7 @@ int main(int argc, char **argv)
     case config::tasks::LOCOPT:
     {
       // local optimization
+      std::remove("trace.arc"); // delete trace.arc file from former run
       coords.e_head_tostream_short(std::cout);
       auto lo_structure_fn = coords::output::filename("_LOCOPT");
       std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
