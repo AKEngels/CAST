@@ -1122,6 +1122,7 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   // and m_uncontracted_atoms. Seems reasonable.
   // Adjusting the size of m_atoms, probably actually standing for
   // "Contracted atom types"
+  // I think m_atoms are still uncontracted atom types?
   parametersToBeContracted.m_atoms.resize(actual_types.size());
   parametersToBeContracted.m_uncontracted_atoms = m_atoms;
   // Huh, didnt expect this. Interesting
@@ -1141,10 +1142,10 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   // contract types & groups
   for (auto i : actual_types)
   {
-    if (i > m_atoms.size())
+    if (i > m_atoms.size() || i <= 0)
     {
       std::stringstream tmpss;
-      tmpss << i << " not a valid type in paramter file.";
+      tmpss << i << " is not a valid type in parameter file.";
       throw std::runtime_error(tmpss.str().c_str());
     }
     scon::sorted::insert_unique(parametersToBeContracted.m_reduced_groups, m_atoms[i-1].group);
