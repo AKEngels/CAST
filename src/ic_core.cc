@@ -77,7 +77,7 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
 std::string ic_core::distance::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << val(xyz) << "||" << index_a_ << "||" << index_b_ << "\n";
+  oss << "Bond: " << val(xyz) << "||" << index_a_ << "||" << index_b_ << "\n";
   return oss.str();
 }
 
@@ -152,7 +152,7 @@ float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*
 {
   using ic_atom::element_period;
   using ic_atom::period;
-  
+
   auto el_a = element_period(elem_a_);
   auto el_b = element_period(elem_b_);
   auto el_c = element_period(elem_c_);
@@ -169,7 +169,7 @@ float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*
 std::string ic_core::angle::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "\n";
+  oss << "Angle: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "\n";
   return oss.str();
 }
 
@@ -251,7 +251,7 @@ float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & /*
 std::string ic_core::dihedral::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+  oss << "Dihedral: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
   return oss.str();
 }
 
@@ -343,7 +343,7 @@ float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const 
 std::string ic_core::out_of_plane::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << val(xyz) << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+  oss << "Out of plane: " << val(xyz) << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
   return oss.str();
 }
 
