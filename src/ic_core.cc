@@ -343,7 +343,7 @@ float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const 
 std::string ic_core::out_of_plane::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << "Out of plane: " << val(xyz) << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+  oss << "Out of plane: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
   return oss.str();
 }
 
