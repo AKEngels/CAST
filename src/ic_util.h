@@ -183,15 +183,12 @@ namespace ic_util{
   \return Vector of all created permutations, where each permutation is itself a
   3-dimensional vector.
   */
-  inline std::vector<std::vector<unsigned int>>
-  permutation_from_vec(std::vector<unsigned int>& vec) {
-    std::vector<std::vector<unsigned int>> result;
-    if (vec.size() != 3) {
-      throw("Function permutation_from_vec needs vector with size 3.");
-    }
+  inline std::vector<std::vector<std::size_t>>
+  permutation_from_vec(std::vector<std::size_t>& vec) {
+    std::vector<std::vector<std::size_t>> result;
     do {
-      std::vector<unsigned int> temp = { vec.at(0), vec.at(1), vec.at(2) };
-      result.emplace_back(temp);
+      std::cout << vec.at(0) << " " << vec.at(1) << " " << vec.at(2) << "\n";
+      result.emplace_back(std::vector<std::size_t>{ vec.at(0), vec.at(1), vec.at(2) });
     } while (std::next_permutation(vec.begin(), vec.end()));
     return result;
   }

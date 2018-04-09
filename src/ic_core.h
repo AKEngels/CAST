@@ -144,9 +144,10 @@ struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, p
 };
 
 struct out_of_plane : public internal_coord {
-  out_of_plane(const unsigned int& index_a,
-               const unsigned int& index_b, unsigned int& index_c,
-               const unsigned int& index_d)
+  out_of_plane(unsigned int const& index_a,
+              unsigned int const& index_b,
+              unsigned int const& index_c,
+              unsigned int const& index_d)
       : index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
 
@@ -276,6 +277,9 @@ private:
   scon::mathmatrix<float_type> del_mat;
   scon::mathmatrix<float_type> hessian;
 
+  template<typename VertIter>
+  static std::vector<std::vector<std::size_t>> possible_sets_of_3(VertIter const& vbegin, VertIter const& vend);
+
   bool new_B_matrix = true;
   bool new_G_matrix = true;
 
@@ -394,6 +398,19 @@ system::create_angles(const Graph& g) const {
   return result;
 }
 
+template<typename VertIter>
+inline std::vector<std::vector<std::size_t>> system::possible_sets_of_3(VertIter const& vbegin, VertIter const& vend){
+  std::vector<std::vector<std::size_t>> result;
+  for(auto first = vbegin; first < vend-2; ++first){
+    for(auto second = first+1; second< vend-1; ++second){
+      for(auto third = first+2; third < vend; ++third){
+        result.emplace_back(std::vector<std::size_t>{*first, *second, *third});
+      }
+    }
+  }
+  return result;
+}
+
 template <typename Graph>
 inline std::vector<std::unique_ptr<internal_coord>>
 system::create_oops(const coords::Representation_3D& coords, const Graph& g) const {
@@ -404,33 +421,28 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
   std::vector<std::unique_ptr<internal_coord>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
-    auto a_vert = adjacent_vertices(*it, g);
-    for (auto it2 = a_vert.first; it2 != a_vert.second; ++it2) {
-      for (auto it3 = a_vert.first; it3 != a_vert.second; ++it3) {
-        for (auto it4 = a_vert.first; it4 != a_vert.second; ++it4) {
-          if (g[*it2].atom_serial < g[*it3].atom_serial &&
-              g[*it3].atom_serial < g[*it4].atom_serial) {
-            auto core = g[*it].atom_serial;
-            auto core_cp = coords.at(core - 1);
-            auto a = g[*it2].atom_serial;
-            auto b = g[*it3].atom_serial;
-            auto c = g[*it4].atom_serial;
-            std::vector<unsigned int> vec = { a, b, c };
-            auto permutation_vec = ic_util::permutation_from_vec(vec);
-            for (auto& i : permutation_vec) {
-              auto u_cp = coords.at(i.at(0) - 1);
-              auto v_cp = coords.at(i.at(1) - 1);
-              auto w_cp = coords.at(i.at(2) - 1);
-              auto n_vec1 = ic_util::normal_unit_vector(u_cp, v_cp, w_cp);
-              auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
-              auto dot_n_vecs = dot(n_vec1, n_vec2);
-              if (0.95 < dot_n_vecs && dot_n_vecs < 1.05) {
-                result.emplace_back(std::make_unique<out_of_plane>(core, a, b, c));
-              }
-            }
-          }
+    auto core = g[*it].atom_serial;
+    auto core_cp = coords.at(core - 1);
+    auto vert_i = adjacent_vertices(*it, g);
+    if((vert_i.second - vert_i.first) >= 3){
+      auto permutations = possible_sets(vert_i.first, vert_i.second);
+      for(auto & combination : permutations){
+        std::sort(combination.begin(), combination.end());
+
+
+      //auto permutation_vec = ic_util::permutation_from_vec(neighbours);
+      //for (auto& permutation : permutation_vec) {
+        auto u_cp = coords.at(combination.at(0));
+        auto v_cp = coords.at(combination.at(1));
+        auto w_cp = coords.at(combination.at(2));
+        auto n_vec1 = ic_util::normal_unit_vector(u_cp, v_cp, w_cp);
+        auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
+        auto dot_n_vecs = dot(n_vec1, n_vec2);
+        if (0.95 < std::fabs(dot_n_vecs)) {
+          result.emplace_back(std::make_unique<out_of_plane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
         }
       }
+      //}
     }
   }
   return result;
