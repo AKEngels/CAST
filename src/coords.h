@@ -903,7 +903,7 @@ namespace coords
       std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
       coords::Coordinates const *cPtr);
 
-    //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms
+    //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh potential
     Cartesian_Point max_valuePosfix()
     {
       Cartesian_Point maxV;
@@ -922,10 +922,13 @@ namespace coords
         }
       }
       if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
-
+      std::ofstream testmaxV("maxV.txt", std::ios_base::out);
+      testmaxV << maxV << '\n';
+      testmaxV.close();
       return maxV;
     }
 
+    //returns minimal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms used for thresh_bottom potential
     Cartesian_Point min_valuePosfix()
     {
       Cartesian_Point minV;
@@ -945,6 +948,9 @@ namespace coords
       }
       if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
 
+      std::ofstream testminV("minV.txt", std::ios_base::out);
+      testminV << minV << '\n';
+      testminV.close();
       return minV;
     }
   };
