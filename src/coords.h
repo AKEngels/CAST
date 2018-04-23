@@ -930,13 +930,13 @@ namespace coords
       std::string buffer;
       while(!testmaxVold.eof())
       {
-        testmaxV.open();
+        testmaxV.open("maxV.txt", std::ios_base::out);
         std::getline(testmaxVold, buffer);
         testmaxV << buffer << '\n';
         testmaxV.close();
       }
       }
-      testmaxV.open();
+      testmaxV.open("maxV.txt", std::ios_base::out);
       testmaxV << maxV << '\n';
       testmaxV.close();
       return maxV;
@@ -968,13 +968,13 @@ namespace coords
       std::string buffer;
       while (!testminVold.eof())
       {
-        testminV.open();
+        testminV.open("minV.txt", std::ios_base::out);
         std::getline(testminVold, buffer);
         testminV << buffer << '\n';
         testminV.close();
       }
       }
-      testminV.open();
+      testminV.open("minV.txt", std::ios_base::out);
       testminV << minV << '\n';
       testminV.close();
       return minV;
