@@ -925,13 +925,18 @@ namespace coords
       if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
       std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
       std::ofstream testmaxV("maxV.txt", std::ios_base::out);
+      if(testmaxVold)
+      {
       std::string buffer;
       while(!testmaxVold.eof())
       {
+        testmaxV.open();
         std::getline(testmaxVold, buffer);
         testmaxV << buffer << '\n';
+        testmaxV.close();
       }
-      
+      }
+      testmaxV.open();
       testmaxV << maxV << '\n';
       testmaxV.close();
       return maxV;
@@ -958,12 +963,18 @@ namespace coords
       if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
       std::ifstream testminVold("minV.txt", std::ios_base::in);
       std::ofstream testminV("minV.txt", std::ios_base::out);
+      if(testminVold)
+      {
       std::string buffer;
       while (!testminVold.eof())
       {
+        testminV.open();
         std::getline(testminVold, buffer);
         testminV << buffer << '\n';
+        testminV.close();
       }
+      }
+      testminV.open();
       testminV << minV << '\n';
       testminV.close();
       return minV;
