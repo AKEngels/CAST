@@ -924,19 +924,21 @@ namespace coords
       }
       if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
       std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
-      std::ofstream testmaxV("maxV.txt", std::ios_base::out);
+      std::vector<std::string> buffer;
       if(testmaxVold)
       {
-      std::string buffer;
       while(!testmaxVold.eof())
       {
-        testmaxV.open("maxV.txt", std::ios_base::out);
-        std::getline(testmaxVold, buffer);
-        testmaxV << buffer << '\n';
-        testmaxV.close();
+        std::string tmp;
+        std::getline(testmaxVold, tmp);
+        buffer.push_back(tmp);
       }
       }
-      testmaxV.open("maxV.txt", std::ios_base::out);
+      std::ofstream testmaxV("maxV.txt", std::ios_base::out); 
+      for (std::size_t i = 0u; i < buffer.size(); i++)
+      {
+        testmaxV << buffer[i] << '\n';
+      }
       testmaxV << maxV << '\n';
       testmaxV.close();
       return maxV;
@@ -962,19 +964,21 @@ namespace coords
       }
       if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
       std::ifstream testminVold("minV.txt", std::ios_base::in);
-      std::ofstream testminV("minV.txt", std::ios_base::out);
+      std::vector<std::string> buffer;
       if(testminVold)
       {
-      std::string buffer;
+      std::string tmp;
       while (!testminVold.eof())
       {
-        testminV.open("minV.txt", std::ios_base::out);
-        std::getline(testminVold, buffer);
-        testminV << buffer << '\n';
-        testminV.close();
+        std::getline(testminVold, tmp);
+        buffer.push_back(tmp);
       }
       }
-      testminV.open("minV.txt", std::ios_base::out);
+      std::ofstream testminV("minV.txt", std::ios_base::out);
+      for (std::size_t i = 0u; i < buffer.size(); i++)
+      {
+        testminV << buffer[i] << '\n';
+      }
       testminV << minV << '\n';
       testminV.close();
       return minV;
