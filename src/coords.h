@@ -908,21 +908,28 @@ namespace coords
     Cartesian_Point max_valuePosfix()
     {
       Cartesian_Point maxV;
-      bool check_fix = false;
+      //bool check_fix;
 
       maxV = m_representation.structure.cartesian[0];
 
       for (std::size_t i=1u;i < m_atoms.size();i++)
       {
+        //check_fix = false;
         if (m_atoms.check_fix(i) == true)
         {
-          check_fix=true;
+         // check_fix=true;
           if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
         }
+        else
+        {
+          maxV.x() = 0.0; 
+          maxV.y() = 0.0;
+          maxV.z() = 0.0;
+        }
       }
-      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      //if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
       std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
       std::vector<std::string> buffer;
       if(testmaxVold)
@@ -937,7 +944,7 @@ namespace coords
       std::ofstream testmaxV("maxV.txt", std::ios_base::out); 
       for (std::size_t i = 0u; i < buffer.size(); i++)
       {
-        testmaxV << buffer[i] << '\n';
+        testmaxV << i << " " << buffer[i] << '\n';
       }
       testmaxV << maxV << '\n';
       testmaxV.close();
@@ -948,21 +955,28 @@ namespace coords
     Cartesian_Point min_valuePosfix()
     {
       Cartesian_Point minV;
-      bool check_fix = false;
+      //bool check_fix;
 
       minV = m_representation.structure.cartesian[0];
 
       for (std::size_t i = 1u; i < m_atoms.size(); i++)
       {
+        //check_fix = false;
         if (m_atoms.check_fix(i) == true)
         {
-          check_fix = true;
+          //check_fix = true;
           if (m_representation.structure.cartesian[i].x() < minV.x()) { minV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() < minV.y()) { minV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
         }
+        else
+        {
+          minV.x() = 0.0; 
+          minV.y() = 0.0; 
+          minV.z() = 0.0;
+        }
       }
-      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+      //if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
       std::ifstream testminVold("minV.txt", std::ios_base::in);
       std::vector<std::string> buffer;
       if(testminVold)
@@ -977,7 +991,7 @@ namespace coords
       std::ofstream testminV("minV.txt", std::ios_base::out);
       for (std::size_t i = 0u; i < buffer.size(); i++)
       {
-        testminV << buffer[i] << '\n';
+        testminV << i << " " << buffer[i] << '\n';
       }
       testminV << minV << '\n';
       testminV.close();
