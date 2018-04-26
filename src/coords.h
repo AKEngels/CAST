@@ -908,44 +908,39 @@ namespace coords
     Cartesian_Point max_valuePosfix()
     {
       Cartesian_Point maxV;
-      //bool check_fix;
 
-      maxV = m_representation.structure.cartesian[0];
-
+      maxV = m_representation.structure.cartesian[0];//maxV must contain values so the compare in the loop works
+      bool check_fix = false; //the test for fixed atoms is done with check_fix this way so the information from an fixed atom is not overwritten by a non fixed atom with a higher index in the m_atoms object.
       for (std::size_t i=1u;i < m_atoms.size();i++)
       {
-        //check_fix = false;
+        
         if (m_atoms.check_fix(i) == true)
         {
-         // check_fix=true;
+          check_fix=true;
           if (m_representation.structure.cartesian[i].x() > maxV.x()) { maxV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() > maxV.y()) { maxV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() > maxV.z()) { maxV.z() = m_representation.structure.cartesian[i].z(); }
         }
-        else
-        {
-          maxV.x() = 0.0; 
-          maxV.y() = 0.0;
-          maxV.z() = 0.0;
-        }
       }
-      //if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
-      std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
+      if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
+      /*std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
       std::vector<std::string> buffer;
       if(testmaxVold)
       {
       while(!testmaxVold.eof())
-      {
-        std::string tmp;
-        std::getline(testmaxVold, tmp);
-        buffer.push_back(tmp);
-      }
-      }
-      std::ofstream testmaxV("maxV.txt", std::ios_base::out); 
-      for (std::size_t i = 0u; i < buffer.size(); i++)
+       {
+          std::string tmp;
+          std::getline(testmaxVold, tmp);
+          buffer.push_back(tmp);
+       }
+      }*/
+      std::ofstream testmaxV; 
+
+     /* for (std::size_t i = 0u; i < buffer.size(); i++)
       {
         testmaxV << i << " " << buffer[i] << '\n';
-      }
+      }*/
+      testmaxV.open("maxV.txt", std::ios_base::out);
       testmaxV << maxV << '\n';
       testmaxV.close();
       return maxV;
@@ -955,29 +950,22 @@ namespace coords
     Cartesian_Point min_valuePosfix()
     {
       Cartesian_Point minV;
-      //bool check_fix;
 
       minV = m_representation.structure.cartesian[0];
-
+      bool check_fix = false;
       for (std::size_t i = 1u; i < m_atoms.size(); i++)
       {
-        //check_fix = false;
+        
         if (m_atoms.check_fix(i) == true)
         {
-          //check_fix = true;
+          check_fix = true;
           if (m_representation.structure.cartesian[i].x() < minV.x()) { minV.x() = m_representation.structure.cartesian[i].x(); }
           if (m_representation.structure.cartesian[i].y() < minV.y()) { minV.y() = m_representation.structure.cartesian[i].y(); }
           if (m_representation.structure.cartesian[i].z() < minV.z()) { minV.z() = m_representation.structure.cartesian[i].z(); }
         }
-        else
-        {
-          minV.x() = 0.0; 
-          minV.y() = 0.0; 
-          minV.z() = 0.0;
-        }
       }
-      //if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
-      std::ifstream testminVold("minV.txt", std::ios_base::in);
+      if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
+     /* std::ifstream testminVold("minV.txt", std::ios_base::in);
       std::vector<std::string> buffer;
       if(testminVold)
       {
@@ -987,12 +975,13 @@ namespace coords
         std::getline(testminVold, tmp);
         buffer.push_back(tmp);
       }
-      }
-      std::ofstream testminV("minV.txt", std::ios_base::out);
-      for (std::size_t i = 0u; i < buffer.size(); i++)
+      }*/
+      std::ofstream testminV;
+     /* for (std::size_t i = 0u; i < buffer.size(); i++)
       {
         testminV << i << " " << buffer[i] << '\n';
-      }
+      }*/
+      testminV.open("minV.txt", std::ios_base::out);
       testminV << minV << '\n';
       testminV.close();
       return minV;
