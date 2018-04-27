@@ -923,27 +923,8 @@ namespace coords
         }
       }
       if(check_fix == false){maxV.x()=0.0; maxV.y() = 0.0; maxV.z() = 0.0;}
-      /*std::ifstream testmaxVold("maxV.txt", std::ios_base::in);
-      std::vector<std::string> buffer;
-      if(testmaxVold)
-      {
-      while(!testmaxVold.eof())
-       {
-          std::string tmp;
-          std::getline(testmaxVold, tmp);
-          buffer.push_back(tmp);
-       }
-      }*/
-      //std::ofstream testmaxV; 
-
-     /* for (std::size_t i = 0u; i < buffer.size(); i++)
-      {
-        testmaxV << i << " " << buffer[i] << '\n';
-      }*/
-      //testmaxV.open("maxV.txt", std::ios_base::out);
-      //testmaxV << maxV << '\n';
-      //testmaxV.close();
-      std::cout << "reference position for threshold position is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
+      
+      std::cout << "Reference position for threshold potential is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
       return maxV;
     }
 
@@ -966,26 +947,10 @@ namespace coords
         }
       }
       if (check_fix == false) { minV.x() = 0.0; minV.y() = 0.0; minV.z() = 0.0;}
-     /* std::ifstream testminVold("minV.txt", std::ios_base::in);
-      std::vector<std::string> buffer;
-      if(testminVold)
-      {
-      std::string tmp;
-      while (!testminVold.eof())
-      {
-        std::getline(testminVold, tmp);
-        buffer.push_back(tmp);
-      }
-      }*/
-     // std::ofstream testminV;
-     ///* for (std::size_t i = 0u; i < buffer.size(); i++)
-     // {
-     //   testminV << i << " " << buffer[i] << '\n';
-     // }*/
-     // testminV.open("minV.txt", std::ios_base::out);
-     // testminV << minV << '\n';
-     // testminV.close();
-     // return minV;
+    
+      std::cout << "Reference position for threshold potential bottom is: " << minV.x() << "  " << minV.y() << "  " << minV.z() << '\n';
+
+     return minV;
     }
   };
 
