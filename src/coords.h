@@ -934,15 +934,16 @@ namespace coords
           buffer.push_back(tmp);
        }
       }*/
-      std::ofstream testmaxV; 
+      //std::ofstream testmaxV; 
 
      /* for (std::size_t i = 0u; i < buffer.size(); i++)
       {
         testmaxV << i << " " << buffer[i] << '\n';
       }*/
-      testmaxV.open("maxV.txt", std::ios_base::out);
-      testmaxV << maxV << '\n';
-      testmaxV.close();
+      //testmaxV.open("maxV.txt", std::ios_base::out);
+      //testmaxV << maxV << '\n';
+      //testmaxV.close();
+      std::cout << "reference position for threshold position is: " << maxV.x() << "  " << maxV.y() << "  " << maxV.z() << '\n';
       return maxV;
     }
 
@@ -976,15 +977,15 @@ namespace coords
         buffer.push_back(tmp);
       }
       }*/
-      std::ofstream testminV;
-     /* for (std::size_t i = 0u; i < buffer.size(); i++)
-      {
-        testminV << i << " " << buffer[i] << '\n';
-      }*/
-      testminV.open("minV.txt", std::ios_base::out);
-      testminV << minV << '\n';
-      testminV.close();
-      return minV;
+     // std::ofstream testminV;
+     ///* for (std::size_t i = 0u; i < buffer.size(); i++)
+     // {
+     //   testminV << i << " " << buffer[i] << '\n';
+     // }*/
+     // testminV.open("minV.txt", std::ios_base::out);
+     // testminV << minV << '\n';
+     // testminV.close();
+     // return minV;
     }
   };
 
