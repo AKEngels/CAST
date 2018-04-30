@@ -456,6 +456,16 @@ void md::simulation::init(void)
       }
     }
   }
+  else if (Config::get().coords.fixed.size() != 0)  // if atoms are fixed 
+  {
+    for (int i(0U); i < N; ++i)  // determine which atoms are moved
+    {
+      if (is_in(i, Config::get().coords.fixed) == false)
+      {
+        movable_atoms.push_back(i);
+      }
+    }
+  }
   else   // if no active site is specified: all atoms are moved
   {
     for (int i(0U); i < N; ++i)
@@ -1404,17 +1414,17 @@ void md::simulation::nose_hoover_thermostat(void)
 
 // Nose-Hover thermostat for inner atoms. Variable names and implementation are identical to the book of
 // Frenkel and Smit, Understanding Molecular Simulation, Appendix E
-double md::simulation::nose_hoover_thermostat_biased(void)
+double md::simulation::nose_hoover_thermostat_some_atoms(std::vector<int> active_atoms)
 {
   double tempscale(0.0);
-  int freedom_inner = 3U * inner_atoms.size();
+  int freedom_some = 3U * active_atoms.size();
   if (Config::get().periodics.periodic == true)
-    freedom -= 3;
+    freedom_some -= 3;
   else
-    freedom -= 6;
+    freedom_some -= 6;
   double const delt(Config::get().md.timeStep),
     d2(delt / 2.0), d4(d2 / 2.0), d8(d4 / 2.0),
-    TR(T*md::R), fTR(freedom_inner*TR);
+    TR(T*md::R), fTR(freedom_some*TR);
   nht.G2 = (nht.Q1*nht.v1*nht.v1 - TR) / nht.Q2;
   nht.v2 += nht.G2*d4;
   nht.v1 *= exp(-nht.v2*d8);
@@ -1459,7 +1469,20 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       size_t dof = 3u * inner_atoms.size();
       double T_factor = (2.0 / (dof*md::R));
       updateEkin_some_atoms(inner_atoms);           // calculate kinetic energy of inner atoms
-      factor = nose_hoover_thermostat_biased();     // calculate temperature scaling factor
+      factor = nose_hoover_thermostat_some_atoms(inner_atoms);     // calculate temperature scaling factor
+      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
+      if (half == false)
+      {
+        updateEkin();  // new kinetic energy (whole molecule)
+      }
+    }
+    else if (Config::get().coords.fixed.size() != 0)  // if fixed atoms
+    {
+      size_t dof = 3u * movable_atoms.size();
+      double T_factor = (2.0 / (dof*md::R));
+      updateEkin_some_atoms(movable_atoms);           // calculate kinetic energy of movable atoms
+      factor = nose_hoover_thermostat_some_atoms(movable_atoms);     // calculate temperature scaling factor
       for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
       temp2 = E_kin * T_factor;     // new temperature (only inner atoms)
       if (half == false)
@@ -1487,6 +1510,21 @@ double md::simulation::tempcontrol(bool thermostat, bool half)
       if (half == false)
       {
         updateEkin_some_atoms(inner_atoms);
+        temp2 = E_kin * T_factor;                   // new temperature of inner atoms
+        updateEkin();            // kinetic energy
+      }
+    }
+    else if (Config::get().coords.fixed.size() != 0)
+    {     // calculate temperature only for atoms inside inner cutoff
+      updateEkin_some_atoms(movable_atoms); // kinetic energy of inner atoms
+      size_t dof = 3u * movable_atoms.size();
+      double T_factor = (2.0 / (dof*md::R));
+      temp1 = E_kin * T_factor;           // temperature of inner atoms
+      factor = std::sqrt(T / temp1);    // temperature scaling factor
+      for (auto i : movable_atoms) V[i] *= factor;   // new velocities (for all atoms that have a velocity)
+      if (half == false)
+      {
+        updateEkin_some_atoms(movable_atoms);
         temp2 = E_kin * T_factor;                   // new temperature of inner atoms
         updateEkin();            // kinetic energy
       }

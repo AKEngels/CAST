@@ -147,7 +147,7 @@ double hubbard_deriv_by_symbol(std::string s)
       std::vector<std::string> linevec = split(line, ' ', true);
       if (linevec[0] == s) return std::stod(linevec[1]);
     }
-	throw std::runtime_error("Something went wrong. No hubbard derivative for element " + s + " found.\n");
+	  throw std::runtime_error("Something went wrong. No hubbard derivative for element " + s + " found.\n");
   }
   else throw std::runtime_error("No dftb3.info file found.\n");
 }
