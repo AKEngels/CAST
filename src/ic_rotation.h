@@ -23,13 +23,6 @@ using coords::float_type;
 
 auto constexpr q_thres{ 1e-6 };
 
-template<typename Vec, typename Add>
-auto get_mean(Vec const & vec, Add add) {
-  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(0.,0.,0.), add);
-  mean /= static_cast<float_type> (vec.size());
-  return mean;
-}
-
 //auto const get_mean = [](auto const & vec, auto add) {
 //  auto mean = std::accumulate(vec.begin(), vec.end(), coords::Cartesian_Point(), add);
 //  mean /= static_cast<coords::Cartesian_Point::type> (vec.size());
@@ -42,8 +35,8 @@ correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz,
                    ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz) {
 
   auto const & add_cp = std::plus<coords::Cartesian_Point>();
-  auto new_xyz_mat = ic_util::Rep3D_to_arma(new_xyz - get_mean(new_xyz, add_cp));
-  auto old_xyz_mat = ic_util::Rep3D_to_arma(old_xyz - get_mean(old_xyz, add_cp));
+  auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz, add_cp));
+  auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz, add_cp));
   return new_xyz_mat.t() * old_xyz_mat;
 }
 
@@ -134,7 +127,7 @@ correlation_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& n
   using Mat = scon::mathmatrix<T>;
 
   auto const & add_cp = std::plus<coords::Cartesian_Point>();
-  auto S = ic_util::Rep3D_to_arma(new_xyz - get_mean(new_xyz, add_cp));
+  auto S = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz, add_cp));
   std::vector<std::vector<Mat> > result;
   for (auto c = 0u; c < S.rows(); ++c) {
     std::vector<Mat> A(3,scon::mathmatrix<T>::zero(3, 3));
@@ -152,7 +145,7 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
   using Mat = scon::mathmatrix<T>;
   auto const & add = std::plus<coords::Cartesian_Point>();
 
-  auto new_shift = new_xyz - get_mean(new_xyz, add);
+  auto new_shift = new_xyz - ic_util::get_mean(new_xyz, add);
   auto dR = correlation_matrix_derivs(new_shift);
   std::vector<std::vector<Mat> > result;
   for (auto&& S : dR) {

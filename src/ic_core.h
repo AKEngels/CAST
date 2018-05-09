@@ -27,6 +27,18 @@
 
 #include "coords_io_pdb.h"
 
+namespace coords {
+  class DL_Coordinates : public Coordinates {
+  public:
+    std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
+    DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::pdb> format) : Coordinates(coords) {
+      if (!format) {
+        throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
+      }
+      parser = format->parser;
+    }
+  };
+}
 namespace ic_core {
 
 using coords::float_type;
@@ -143,22 +155,9 @@ struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, p
   std::size_t index_d_;
 };
 
-struct out_of_plane : public internal_coord {
-  out_of_plane(unsigned int const& index_a,
-              unsigned int const& index_b,
-              unsigned int const& index_c,
-              unsigned int const& index_d)
-      : index_a_{ index_a },
-        index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
+struct out_of_plane : public dihedral {
+  using dihedral::dihedral;
 
-  std::size_t index_a_;
-  std::size_t index_b_;
-  std::size_t index_c_;
-  std::size_t index_d_;
-
-  coords::float_type val(coords::Representation_3D const& xyz) const override;
-  std::vector<scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
-  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
   float_type hessian_guess(coords::Representation_3D const& xyz) const override;
   std::string info(coords::Representation_3D const& xyz) const override;
 };
@@ -345,9 +344,25 @@ public:
   template<typename Gint>
   scon::mathmatrix<float_type> get_internal_step(Gint&&);
   template<typename Dint>
-  scon::mathmatrix<float_type> internal_d_to_cartesian(Dint&&);
+  void apply_internal_change(Dint&&);
   template<typename Dcart>
   coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
+  template<typename XYZ>
+  coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+  template<typename XYZ>
+  scon::mathmatrix<float_type> calc_prims(XYZ&& xyz) const;
+
+  template<typename XYZ>
+  scon::mathmatrix<float_type> calc(XYZ&& xyz) const;
+  template<typename XYZ>
+  scon::mathmatrix<float_type> calc_diff(XYZ&& lhs, XYZ&& rhs) const;
+
+  void optimize(coords::DL_Coordinates & coords);
+
+  void print_xyz(){
+    std::cout << xyz_ << "\n";
+  }
+
 };
 
 template <typename Graph>
@@ -425,7 +440,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
     auto core_cp = coords.at(core - 1);
     auto vert_i = adjacent_vertices(*it, g);
     if((vert_i.second - vert_i.first) >= 3){
-      auto permutations = possible_sets(vert_i.first, vert_i.second);
+      auto permutations = possible_sets_of_3(vert_i.first, vert_i.second);
       for(auto & combination : permutations){
         std::sort(combination.begin(), combination.end());
 
@@ -515,30 +530,108 @@ inline scon::mathmatrix<float_type> ic_core::system::get_internal_step(Gint&& g_
 }
 
 template<typename Dint>
-inline scon::mathmatrix<float_type> ic_core::system::internal_d_to_cartesian(Dint&& d_int){
-  auto G_mati = ic_Gmat().pinv();
-  return (G_mati*B_matrix)*std::forward<Dint>(d_int);//<- Not like Lee Pings Code.
+inline void ic_core::system::apply_internal_change(Dint&& d_int){
+  using ic_util::flatten_c3_vec;
+  using ic_util::get_mean;
+
+  auto old_xyz = xyz_;
+  coords::Representation_3D first_change, last_good_xyz;
+  auto d_int_left = std::forward<Dint>(d_int);
+  auto micro_iter{ 0 }, fail_count{ 0 };
+  auto damp{1.};
+  auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
+  for(; micro_iter < 50 && fail_count < 6; ++micro_iter){
+    take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
+
+    auto d_now = calc_diff(xyz_, old_xyz);
+    d_int_left -= d_now;
+    auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
+    auto internal_norm = d_int_left.norm();
+    if (micro_iter == 0){
+      first_change = xyz_;
+      last_good_xyz = xyz_;
+      old_rmsd = cartesian_rmsd;
+      old_inorm = internal_norm;
+    }
+    else {
+      if(internal_norm>old_inorm){
+        damp /=2.;
+        ++fail_count;
+      }
+      else{
+        fail_count = 0;
+        damp = std::min(1.2*damp,1.);
+        old_rmsd = cartesian_rmsd;
+        old_inorm = internal_norm;
+        last_good_xyz = xyz_;
+      }
+    }
+    if(cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6){
+      std::cout << "Took " << micro_iter << " steps to converge.\n";
+      return;
+    }
+    else if(fail_count>=5){
+        std::cout << "Failed five times to converge.\n";
+        xyz_ = first_change;
+        return;
+    }
+
+    old_xyz = xyz_;
+  }
+  std::cout << "Took all " << micro_iter+1 << " still not converged.\n";
 }
 
 template<typename Dcart>
 coords::Representation_3D& ic_core::system::take_Cartesian_step(Dcart&& d_cart){
-  new_B_matrix = true;
-  new_G_matrix = true;
   auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
-  return xyz_ += d_cart_rep3D;
+  return set_xyz(xyz_ + d_cart_rep3D);
 }
 
+template<typename XYZ>
+coords::Representation_3D& ic_core::system::set_xyz(XYZ&& new_xyz){
+  new_B_matrix = true;
+  new_G_matrix = true;
+  return xyz_ = std::forward<XYZ>(new_xyz);
 }
-namespace coords {
-  class DL_Coordinates : public Coordinates {
-  public:
-    std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
-    DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::pdb> format) : Coordinates(coords) {
-      if (!format) {
-        throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
+
+template<typename XYZ>
+scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
+  std::vector<float_type> primitives;
+  primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
+
+  for(auto const & pic : primitive_internals){
+    primitives.emplace_back(pic->val(xyz));
+  }
+  for (auto const & rot : rotation_vec_) {
+    auto rv = rot.rot_val(xyz);
+    primitives.emplace_back(rv.at(0));
+    primitives.emplace_back(rv.at(1));
+    primitives.emplace_back(rv.at(2));
+  }
+  return scon::mathmatrix<float_type>::row_from_vec(primitives);
+}
+
+template<typename XYZ>
+scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
+  return calc_prims(std::forward<XYZ>(xyz)) * del_mat;
+}
+
+template<typename XYZ>
+scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
+  auto diff = calc_prims(std::forward<XYZ>(lhs)) - calc_prims(std::forward<XYZ>(rhs));
+  for(auto i = 0;i<primitive_internals.size(); ++i){
+    if(dynamic_cast<dihedral*>(primitive_internals.at(i).get())){
+      if(std::fabs(diff(0, i)) > SCON_PI){
+        if(diff(0, i)<0.0){
+          diff(0, i) += 2.*SCON_PI;
+        }
+        else{
+          diff(0, i) -= 2.*SCON_PI;
+        }
       }
-      parser = format->parser;
     }
-  };
+  }
+  return (diff * del_mat).t();
+}
 }
 #endif // cast_ic_core_h_guard

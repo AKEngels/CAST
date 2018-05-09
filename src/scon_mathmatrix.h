@@ -371,6 +371,20 @@ public:
    */
   std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
 
+  T norm(){
+    auto sum{T()};
+    for(auto i = 0u; i<rows(); ++i){
+      for(auto j = 0u; j<cols();++j){
+        sum += ((*this)(i,j))*((*this)(i,j));
+      }
+    }
+    return std::sqrt(sum);
+  }
+
+  T rmsd(){
+    return norm()/std::sqrt(static_cast<T>(rows()*cols()));
+  }
+
   /**
    * @brief Sorts the column of a matrix and returns a standard vector with the sorted values.
    *

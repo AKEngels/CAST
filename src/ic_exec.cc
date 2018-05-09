@@ -70,8 +70,6 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   std::ofstream offig("ic_Gmat.dat");
   write_with_zero(offig,icSystem.ic_Gmat());
 
-
-
   std::cout << "DLC matrix: \n";
   write_with_zero(std::cout, G_matrix);
   std::cout << "\n\n";
@@ -99,27 +97,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   for (auto const & pic : icSystem.primitive_internals) {
     std::cout << pic->info(cp_vec);
   }
-  coords.g();
-  auto g_xyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
-    ic_core::grads_to_bohr(coords.g_xyz())
-  ));
-  std::cout << "g_xyz:\n" << g_xyz << "\n\n";
-  auto g_int = icSystem.calculate_internal_grads(g_xyz);
-  std::cout << "g_int:\n" << g_int << "\n\n";
-  auto dy = icSystem.get_internal_step(g_int);
-  std::cout << "dy:\n" << dy << "\n\n";
-  auto dx = icSystem.internal_d_to_cartesian(dy);
-  std::cout << "dx:\n" << dx << "\n\n";
-  auto in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
-  coords.set_xyz(in_ang);
-  std::cout << "Former:\n" << coords::output::formats::xyz(coords) << "\n\n";
-  in_ang = coords::input::formats::pdb_helper::ang_from_bohr(ic_util::mat_to_rep3D(dx));
-  coords.set_xyz(in_ang);
-  std::cout << "Change:\n" << coords::output::formats::xyz(coords) << "\n\n";
-  cp_vec = icSystem.take_Cartesian_step(dx);
-  in_ang=coords::input::formats::pdb_helper::ang_from_bohr(cp_vec);
-  coords.set_xyz(in_ang);
-  std::cout << "After:\n" << coords::output::formats::xyz(coords) << "\n\n";
+  icSystem.optimize(coords);
 
 
 

@@ -195,7 +195,48 @@ coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) 
   auto y = dot(m1, n2);
   return std::atan2(y, x);
 }
+/*Implementation using armas routines instread of CASTs
+std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
+ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
+  using scon::cross;
+  using scon::dot;
+  using scon::len;
 
+  auto const & a_ = xyz.at(index_a_ - 1u);
+  auto const & b_ = xyz.at(index_b_ - 1u);
+  auto const & c_ = xyz.at(index_c_ - 1u);
+  auto const & d_ = xyz.at(index_d_ - 1u);
+
+  Eigen::Vector3d a(a_.x(),a_.y(),a_.z());
+  Eigen::Vector3d b(b_.x(),b_.y(),b_.z());
+  Eigen::Vector3d c(c_.x(),c_.y(),c_.z());
+  Eigen::Vector3d d(d_.x(),d_.y(),d_.z());
+
+  auto u_p = a - b;
+  auto w_p = c - b;
+  auto v_p = d - c;
+  auto u = u_p/u_p.norm();
+  auto w = w_p/w_p.norm();
+  auto v = v_p/v_p.norm();
+  //auto u = ic_util::normalize(u_p);
+  //auto w = ic_util::normalize(w_p);
+  //auto v = ic_util::normalize(v_p);
+  auto dot_uw = u.dot(w);
+  auto dot_vw = v.dot(w);
+  auto sin2_u = 1. - dot_uw*dot_uw;
+  auto sin2_v = 1. - dot_vw*dot_vw;
+
+  auto t1 = u.cross(w) / (u_p.norm() * sin2_u);
+  auto t2 = v.cross(w) / (v_p.norm() * sin2_v);
+  auto cuwd = u.cross(w) * u.dot(w);
+  auto t3 = cuwd / (w_p.norm() * sin2_u);
+  //rechanged it: Lee-Ping pointed out that his numeric evaluated derivatives match with analytics without this sign ---> changed v's sign according to J. Chem. Ohys Vol 117 No. 20, 22 2002 p. 9160-9174
+  auto cvwd = v.cross(w) * v.dot(w);//auto cvwd = cross(v, w) * dot(-v, w);
+  auto t4 = cvwd / (w_p.norm() * sin2_v);
+  auto make_vec = [](auto vec){
+    return scon::c3<float_type>(vec(0), vec(1), vec(2));
+  };
+*/
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
 ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
   using scon::cross;
@@ -220,8 +261,8 @@ ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
   auto t2 = cross(v, w) / (len(v_p) * sin2_v);
   auto cuwd = cross(u, w) * dot(u, w);
   auto t3 = cuwd / (len(w_p) * sin2_u);
-  //changed v's sign according to J. Chem. Ohys Vol 117 No. 20, 22 2002 p. 9160-9174
-  auto cvwd = cross(v, w) * dot(-v, w);
+  //rechanged it: Lee-Ping pointed out that his numeric evaluated derivatives match with analytics without this sign ---> changed v's sign according to J. Chem. Ohys Vol 117 No. 20, 22 2002 p. 9160-9174
+  auto cvwd = cross(v, w) * dot(v, w);//auto cvwd = cross(v, w) * dot(-v, w);
   auto t4 = cvwd / (len(w_p) * sin2_v);
   //exchanged +t2 with +t3 in o's derivative
   //                      a   b               c             d
@@ -253,74 +294,6 @@ std::string ic_core::dihedral::info(coords::Representation_3D const & xyz) const
   std::ostringstream oss;
   oss << "Dihedral: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
   return oss.str();
-}
-
-coords::float_type ic_core::out_of_plane::val(coords::Representation_3D const& xyz) const {
-  using scon::cross;
-  using scon::dot;
-  using scon::len;
-
-  auto const & a = xyz.at(index_a_ - 1u);
-  auto const & b = xyz.at(index_b_ - 1u);
-  auto const & c = xyz.at(index_c_ - 1u);
-  auto const & d = xyz.at(index_d_ - 1u);
-
-  auto b1 = b - a;
-  auto b2 = c - b;
-  auto b3 = d - c;
-  auto b1Xb2 = cross(b1, b2);
-  auto lb1Xb2 = len(b1Xb2);
-  auto n1 = b1Xb2 / lb1Xb2;
-  auto n2 = cross(b2, b3) / len(cross(b2, b3));
-  auto m1 = cross(n1, ic_util::normalize(b2));
-  auto x = dot(n1, n2);
-  auto y = dot(m1, n2);
-  return std::atan2(y, x);
-}
-
-std::vector<scon::c3<float_type>> ic_core::out_of_plane::der(coords::Representation_3D const& xyz) const{
-  using scon::cross;
-  using scon::dot;
-  using scon::len;
-
-  auto const & a = xyz.at(index_a_ - 1u);
-  auto const & b = xyz.at(index_b_ - 1u);
-  auto const & c = xyz.at(index_c_ - 1u);
-  auto const & d = xyz.at(index_d_ - 1u);
-
-  auto u_p = a - b;
-  auto w_p = c - b;
-  auto v_p = d - c;
-  auto u = ic_util::normalize(u_p);
-  auto w = ic_util::normalize(w_p);
-  auto v = ic_util::normalize(v_p);
-  auto t1 = cross(u, w) / (len(u_p) * (1 - std::pow(dot(u, w), 2)));
-  auto t2 = cross(v, w) / (len(v_p) * (1 - std::pow(dot(v, w), 2)));
-  auto cuwd = cross(u, w) * dot(u, w);
-  auto t3 = cuwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
-  auto cvwd = cross(v, w) * dot(v, w);
-  auto t4 = cvwd / (len(w_p) * (1 - std::pow(dot(u, w), 2)));
-  std::vector<scon::c3<float_type>> oop_der;
-  oop_der.emplace_back(t1);
-  oop_der.emplace_back(-t2);
-  oop_der.emplace_back(-t1 + t2 - t4);
-  oop_der.emplace_back(t2 - t3 + t4);
-  return oop_der;
-}
-
-std::vector<float_type>
-ic_core::out_of_plane::der_vec(coords::Representation_3D const& xyz) const {
-  using scon::c3;
-
-  auto firstder = ic_core::out_of_plane::der(xyz);
-  c3<float_type> temp(0.0, 0.0, 0.0);
-  std::vector<c3<float_type>> der_vec(xyz.size(), temp);
-  der_vec.at(index_a_ - 1) = firstder.at(0);
-  der_vec.at(index_b_ - 1) = firstder.at(2);
-  der_vec.at(index_c_ - 1) = firstder.at(3);
-  der_vec.at(index_d_ - 1) = firstder.at(1);
-  auto result = ic_util::flatten_c3_vec(der_vec);
-  return result;
 }
 
 float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const & xyz) const
@@ -612,33 +585,17 @@ ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
 
 scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
   using Mat = scon::mathmatrix<float_type>;
-  Gmat();
+
   Mat eigval, eigvec;
-  std::tie(eigval, eigvec) = G_matrix.eigensym(true);
+  std::tie(eigval, eigvec) = Gmat().eigensym(true);
+
   auto row_index_vec = eigval.sort_idx();
   auto col_index_vec = eigval.find_idx([](float_type const & a) {
     return std::abs(a) > 1e-6;
   });
   del_mat = eigvec.submat(row_index_vec, col_index_vec);
-  new_B_matrix = new_G_matrix = true; //B and G got to be calculated fot the new ic_system
+  new_B_matrix = new_G_matrix = true; //B and G got to be calculated for the new ic_system
   return del_mat;
-}
-
-scon::mathmatrix<float_type> ic_core::system::calc() const
-{
-  std::vector<float_type> primitives;
-  primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
-
-  for(auto const & pic : primitive_internals){
-    primitives.emplace_back(pic->val(xyz_));
-  }
-  for (auto const & rot : rotation_vec_) {
-    auto rv = rot.rot_val(xyz_);
-    primitives.emplace_back(rv.at(0));
-    primitives.emplace_back(rv.at(1));
-    primitives.emplace_back(rv.at(2));
-  }
-  return scon::mathmatrix<float_type>::row_from_vec(primitives) * del_mat;
 }
 
 scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mathmatrix<float_type> const& g) {
@@ -649,4 +606,17 @@ scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mat
 scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
   hessian = del_mat.t() * guess_hessian() * del_mat;
   return hessian;
+}
+
+void ic_core::system::optimize(coords::DL_Coordinates & coords){
+  coords.set_xyz(xyz_);
+  coords::output::formats::tinker output(coords);
+  output.to_stream(std::cout);
+  coords.g();
+  auto g_xyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+    ic_core::grads_to_bohr(coords.g_xyz())
+  ));
+  auto g_int = calculate_internal_grads(g_xyz);
+  auto dy = get_internal_step(g_int);
+  apply_internal_change(std::move(dy));
 }

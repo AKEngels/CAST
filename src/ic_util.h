@@ -15,7 +15,19 @@
  */
 namespace ic_util{
 
-  using float_type = coords::float_type;
+  using coords::float_type;
+
+  /*template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
+  typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
+  F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz);*/
+
+  template<template <typename, typename...> class Vec, typename Add, typename VecType, typename ... VecArgs>
+  inline auto get_mean(Vec<VecType, VecArgs...> const & vec, Add add) {
+    auto mean = std::accumulate(vec.begin(), vec.end(), VecType(), add);
+    mean /= static_cast<float_type> (vec.size());
+    return mean;
+  }
+
   /*!
   \brief Converts a std::array to a std::vector.
   \tparam U Arithmetic type. Enforced by type traits.
@@ -32,7 +44,7 @@ namespace ic_util{
 
   template <typename T, template<typename> class CoordType, template <typename, typename ...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
-  Rep3D_to_arma(const ContainerType<CoordType<T>, ContainerArgs ...>& rep) {
+  Rep3D_to_Mat(const ContainerType<CoordType<T>, ContainerArgs ...>& rep) {
     using Mat = scon::mathmatrix<T>;
 
     Mat A(rep.size(), 3);
