@@ -105,6 +105,8 @@ task                  SP
 # DFTBABY              DFTBaby interface
 # GAUSSIAN             GAUSSIAN interface 
 # CHEMSHELL            under developement
+# QMMM                 (additive) QM/MM interface
+# ONIOM                (subtractive) QM/MM interface
 
 interface              OPLSAA
 

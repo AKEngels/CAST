@@ -84,10 +84,6 @@
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
-#include "energy_int_qmmm.h"
-//#include "scon_utility.h"
-
-
 int main(int argc, char **argv)
 {
 #ifdef USE_PYTHON   
