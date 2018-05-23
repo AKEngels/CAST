@@ -3,24 +3,47 @@
 #include "energy_int_oniom.h"
 #include "scon_utility.h"
 
-energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates * cp) :
+::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
+
+energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 	energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
-  qmc(qmmm_helpers::make_qm_coords(cp, qm_indices, new_indices_qm)),
+  //qmc(qmmm_helpers::make_qm_coords(cp, qm_indices, new_indices_qm)),
   mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
+  if (!tp.valid())
+  {
+    tp.from_file(Config::get().get().general.paramFilename);
+  }
 }
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
-  coords::Coordinates *cobj) : interface_base(cobj)
+  coords::Coordinates *cobj) : interface_base(cobj),
+  //cparams(rhs.cparams),
+  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  new_indices_qm(rhs.new_indices_qm), //new_indices_mm(rhs.new_indices_mm),
+  //qmc(rhs.qmc), mmc_big(rhs.mmc_big), mmc_small(rhs.mmc_small), //qm_charge_vector(rhs.qm_charge_vector),
+  //mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
+  qm_energy(rhs.qm_energy), mm_energy_big(rhs.mm_energy_big), mm_energy_small(rhs.mm_energy_small)
 {
   interface_base::operator=(rhs);
 }
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates *cobj)
-  : interface_base(cobj)
+  : interface_base(cobj),
+  //cparams(std::move(rhs.cparams)),
+  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
+  new_indices_qm(std::move(rhs.new_indices_qm)),
+  //new_indices_mm(std::move(rhs.new_indices_mm)),
+  //qmc(std::move(rhs.qmc)), mmc_big(std::move(rhs.mmc_big)), mmc_small(std::move(rhs.mmc_small)),
+  /*qm_charge_vector(std::move(rhs.qm_charge_vector)),
+  mm_charge_vector(std::move(rhs.mm_charge_vector)),
+  vdw_energy(std::move(rhs.vdw_energy)),*/
+  qm_energy(std::move(rhs.qm_energy)), mm_energy_big(std::move(rhs.mm_energy_big)), mm_energy_small(std::move(rhs.mm_energy_small))
+  /*c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
+  bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))*/
 {
   interface_base::operator=(rhs);
 }
@@ -46,19 +69,19 @@ void energy::interfaces::oniom::ONIOM::swap(interface_base& rhs)
 
 void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
-  //interface_base::swap(rhs);
+  interface_base::swap(rhs);
   //std::swap(cparams, rhs.cparams);
-  //qm_indices.swap(rhs.qm_indices);
-  //mm_indices.swap(rhs.mm_indices);
+  qm_indices.swap(rhs.qm_indices);
+  mm_indices.swap(rhs.mm_indices);
   //new_indices_mm.swap(rhs.new_indices_mm);
-  //new_indices_qm.swap(rhs.new_indices_qm);
-  //qmc.swap(rhs.qmc);
-  //mmc.swap(rhs.mmc);
-  //qm_charge_vector.swap(rhs.qm_charge_vector);
-  //mm_charge_vector.swap(rhs.mm_charge_vector);
-  //std::swap(vdw_energy, rhs.vdw_energy);
-  //std::swap(qm_energy, rhs.qm_energy);
-  //std::swap(mm_energy, rhs.mm_energy);
+  new_indices_qm.swap(rhs.new_indices_qm);
+  /*qmc.swap(rhs.qmc);
+  mmc_big.swap(rhs.mmc_big);
+  mmc_small.swap(rhs.mmc_small);*/
+  /*qm_charge_vector.swap(rhs.qm_charge_vector);
+  mm_charge_vector.swap(rhs.mm_charge_vector);*/
+  std::swap(qm_energy, rhs.qm_energy);
+  std::swap(mm_energy_big, rhs.mm_energy_big);
   //c_gradient.swap(rhs.c_gradient);
   //vdw_gradient.swap(rhs.vdw_gradient);
 }
@@ -78,11 +101,42 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
   }
 }
 
+void energy::interfaces::oniom::ONIOM::create_link_atoms()
+{
+  // find bonds between QM and MM region
+  for (auto mma : mm_indices)
+  {
+    for (auto b : coords->atoms().atom(mma).bonds())
+    {
+      if (scon::sorted::exists(qm_indices, b))
+      {
+        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
+          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
+        {
+          qmmm_helpers::LinkAtom link(b,mma,coords,tp);
+          std::cout << "position of link atom: " << link.position << "\n";
+          link_atoms.push_back(link);
+        }
+        else
+        {
+          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
+        }
+      }
+    }
+  }
+}
+
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
   integrity = true;
-  mm_energy_big = mmc_big.e();
+  mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
   std::cout << "MM big: " << mm_energy_big << "\n";
+
+  create_link_atoms();
+  mmc_small = &qmmm_helpers::make_mmsmall_coords(coords, qm_indices, new_indices_qm, link_atoms);
+  std::cout << "created small MM object\n";
+  mm_energy_small = mmc_small->e();
+  std::cout << "MM small: " << mm_energy_small << "\n";
   return 0.0;
 }
 

@@ -5,6 +5,8 @@
 
 ::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 
+
+
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qmatoms),
@@ -213,16 +215,16 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
   }
 }
 
-// calculate position of a link atom (see: doi 10.1002/jcc.20857)
-coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom link)
-{
-  coords::cartesian_type r_MM = coords->xyz(link.mm);
-  coords::cartesian_type r_QM = coords->xyz(link.qm);
-  double d_MM_QM = dist(r_MM, r_QM);
-
-  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.deq_L_QM;
-  return pos;
-}
+//// calculate position of a link atom (see: doi 10.1002/jcc.20857)
+//coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(qmmm_helpers::LinkAtom link)
+//{
+//  coords::cartesian_type r_MM = coords->xyz(link.mm);
+//  coords::cartesian_type r_QM = coords->xyz(link.qm);
+//  double d_MM_QM = dist(r_MM, r_QM);
+//
+//  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.deq_L_QM;
+//  return pos;
+//}
 
 // creates link atom for every QM/MM bond
 void energy::interfaces::qmmm::QMMM::create_link_atoms()
@@ -230,31 +232,7 @@ void energy::interfaces::qmmm::QMMM::create_link_atoms()
   for (auto b : qmmm_bonds)
   {
     //create link atom
-    bonded::LinkAtom link;
-    link.qm = b.b;
-    link.mm = b.a;
-
-    // determine equilibrium distance between link atom and QM atom from force field
-    auto b_type_qm = tp.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
-    size_t b_type_L;
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
-    {
-      b_type_L = tp.type(85, tinker::potential_keys::BOND);
-    }
-    else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-    {
-      b_type_L = tp.type(3024, tinker::potential_keys::BOND);
-    }
-    else throw("Something went wrong. Invalid MM interface for QM/MM.");
-    for (auto b_param : tp.bonds())
-    {
-      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.deq_L_QM = b_param.ideal;
-      else if (b_param.index[0] == b_type_L && b_param.index[1] == b_type_qm) link.deq_L_QM = b_param.ideal;
-    }
-    if (link.deq_L_QM == 0.0)  throw std::runtime_error("Determining position of link atom is not possible.\n");
-
-    // calculate position of link atom
-    link.position = calc_position(link);
+    qmmm_helpers::LinkAtom link(b.b, b.a, coords,tp);
 
     // add link atom to vector
     link_atoms.push_back(link);
@@ -685,7 +663,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto &l : link_atoms) l.position = calc_position(l); // update positions of link atoms
+  for (auto &l : link_atoms) l.calc_position(coords) ; // update positions of link atoms
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
@@ -744,7 +722,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
       for (int j=0; j<link_atoms.size(); j++)
       {
-        bonded::LinkAtom l = link_atoms[j];
+        qmmm_helpers::LinkAtom l = link_atoms[j];
         coords::r3 G_L = link_grads[j];
 
         double g = l.deq_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));

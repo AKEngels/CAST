@@ -27,6 +27,9 @@ namespace energy
         : public interface_base
       {
 
+        /**uncontracted forcefield parameters*/
+        static ::tinker::parameter::parameters tp;
+
       public:
 
         /**Constructor*/
@@ -91,6 +94,9 @@ namespace energy
 
       private:
 
+        void energy::interfaces::oniom::ONIOM::create_link_atoms();
+        std::vector<qmmm_helpers::LinkAtom> link_atoms;
+
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool);
@@ -111,10 +117,11 @@ namespace energy
   //      purpose: faciliate mapping between total coordinates object and subsystems*/
   //      std::vector<size_t> new_indices_mm;
 
-        /**coordinates object for QM part*/
-        coords::Coordinates qmc;
-        /**coordinates object for MM part*/
+        ///**coordinates object for QM part*/
+        //coords::Coordinates qmc;
+        ///**coordinates object for MM part*/
         coords::Coordinates mmc_big;
+        coords::Coordinates* mmc_small;
 
   //      /**atom charges of QM atoms*/
   //      std::vector<double> qm_charge_vector;

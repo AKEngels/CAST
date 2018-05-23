@@ -269,20 +269,7 @@ namespace energy
           }
         };
 
-        /**struct with all relevant information about a link atom*/
-        struct LinkAtom
-        {
-          /**position*/
-          coords::Cartesian_Point position;
-          /**equilibrium distance to QM atom*/
-          double deq_L_QM;
-          /**index of QM atom*/
-          int qm;
-          /**index of MM atom*/
-          int mm;
-          /**constructor*/
-          LinkAtom() { deq_L_QM = 0.0; }
-        };
+
 
         /**looks if vector v contains x
         x must be an instance of a class that has the member function is_equal (e.g. Angle or Dihedral)
@@ -386,8 +373,6 @@ namespace energy
         void find_parameters();
         /**creates link atoms*/
         void create_link_atoms();
-        /**calculates the position of a given link atom*/
-        coords::cartesian_type calc_position(bonded::LinkAtom);
         /**determines if a van der waals interaction between a QM and a MM atom should be calculated
         @param qm: index of QM atom
         @param mm: index of MM atom
@@ -436,7 +421,7 @@ namespace energy
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
         /**link atoms*/
-        std::vector<bonded::LinkAtom> link_atoms;
+        std::vector<qmmm_helpers::LinkAtom> link_atoms;
 
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
