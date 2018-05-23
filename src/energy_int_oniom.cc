@@ -4,7 +4,12 @@
 #include "scon_utility.h"
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates * cp) :
-	energy::interface_base(cp)
+	energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
+  mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
+  new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
+  qmc(qmmm_helpers::make_qm_coords(cp, qm_indices, new_indices_qm)),
+  mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
+  qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 }
 
@@ -73,16 +78,24 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
   }
 }
 
+coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
+{
+  integrity = true;
+  mm_energy_big = mmc_big.e();
+  std::cout << "MM big: " << mm_energy_big << "\n";
+  return 0.0;
+}
+
 coords::float_type energy::interfaces::oniom::ONIOM::g()
 {
-  std::cout << "Oniom gradient calcultation\n";
-  return 0.0;
+  energy = qmmm_calc(true);
+  return energy;
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::e()
 {
-	std::cout << "Oniom energy calcultation\n";
-	return 0.0;
+  energy = qmmm_calc(false);
+  return energy;
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::h()

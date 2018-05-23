@@ -33,6 +33,7 @@ Attention: Problems occur if charged atoms are in MM part near QM part! This sit
 #include "tinker_parameters.h"
 #include "helperfunctions.h"
 #include "modify_sk.h"
+#include "qmmm_helperfunctions.h"
 
 namespace energy
 {

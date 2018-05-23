@@ -68,10 +68,10 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
   }
   case config::interface_types::T::ONIOM:
   {
-	  /*if (Config::get().general.verbosity > 3)
+	  if (Config::get().general.verbosity > 3)
 	  {
 		  std::cout << "ONIOM-Interface choosen for energy calculations.\n";
-	  }*/
+	  }
 	  return new energy::interfaces::oniom::ONIOM(coordinates);
   }
 

@@ -13,6 +13,7 @@ bla
 #include "tinker_parameters.h"
 #include "helperfunctions.h"
 #include "modify_sk.h"
+#include "qmmm_helperfunctions.h"
 
 namespace energy
 {
@@ -90,26 +91,30 @@ namespace energy
 
       private:
 
-		///**indizes of QM atoms*/
-  //      std::vector<size_t> qm_indices;
-  //      /**indizes of MM atoms*/
-  //      std::vector<size_t> mm_indices;
+        /**calculates energies and gradients
+        @param if_gradient: true if gradients should be calculated, false if not*/
+        coords::float_type qmmm_calc(bool);
 
-  //      /**vector of length total number of atoms
-  //      only those elements are filled whose position corresponds to QM atoms
-  //      they are filled with successive numbers starting from 0
-  //      purpose: faciliate mapping between total coordinates object and subsystems*/
-  //      std::vector<size_t> new_indices_qm;
+		/**indizes of QM atoms*/
+        std::vector<size_t> qm_indices;
+        /**indizes of MM atoms*/
+        std::vector<size_t> mm_indices;
+
+        /**vector of length total number of atoms
+        only those elements are filled whose position corresponds to QM atoms
+        they are filled with successive numbers starting from 0
+        purpose: faciliate mapping between total coordinates object and subsystems*/
+        std::vector<size_t> new_indices_qm;
   //      /**vector of length total number of atoms
   //      only those elements are filled whose position corresponds to MM atoms
   //      they are filled with successive numbers starting from 0
   //      purpose: faciliate mapping between total coordinates object and subsystems*/
   //      std::vector<size_t> new_indices_mm;
 
-  //      /**coordinates object for QM part*/
-  //      coords::Coordinates qmc;
-  //      /**coordinates object for MM part*/
-  //      coords::Coordinates mmc;
+        /**coordinates object for QM part*/
+        coords::Coordinates qmc;
+        /**coordinates object for MM part*/
+        coords::Coordinates mmc_big;
 
   //      /**atom charges of QM atoms*/
   //      std::vector<double> qm_charge_vector;
@@ -118,8 +123,8 @@ namespace energy
 
   //      /**van der Waals interaction energy between QM and MM atoms*/
   //      coords::float_type vdw_energy;
-  //      /**energy of only QM system*/
-  //      coords::float_type qm_energy;
+        /**energy of only QM system*/
+        coords::float_type qm_energy, mm_energy_big, mm_energy_small;
   //      /**energy of only MM system*/
   //      coords::float_type mm_energy;
 
