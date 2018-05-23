@@ -133,9 +133,13 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   std::cout << "MM big: " << mm_energy_big << "\n";
 
   create_link_atoms();
-  mmc_small = &qmmm_helpers::make_mmsmall_coords(coords, qm_indices, new_indices_qm, link_atoms);
+  coords::Coordinates mmc_small = qmmm_helpers::make_mmsmall_coords(coords, qm_indices, new_indices_qm, link_atoms);
   std::cout << "created small MM object\n";
-  mm_energy_small = mmc_small->e();
+  mm_energy_small = mmc_small.e();
+
+  mmc_small.e_head_tostream_short(std::cout);
+  mmc_small.e_tostream_short(std::cout);
+
   std::cout << "MM small: " << mm_energy_small << "\n";
   return 0.0;
 }

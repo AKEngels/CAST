@@ -13,7 +13,7 @@ namespace qmmm_helpers
   {
     /**position*/
     coords::Cartesian_Point position;
-    size_t b_type;
+    size_t energy_type;
     /**equilibrium distance to QM atom*/
     double deq_L_QM;
     /**index of QM atom*/
@@ -30,14 +30,15 @@ namespace qmmm_helpers
       auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND);
       if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
       {
-        b_type = tp.type(85, tinker::potential_keys::BOND);
+        energy_type = 85;
       }
       else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
       {
-        b_type = tp.type(3024, tinker::potential_keys::BOND);
+        energy_type = 3024;
       }
       else throw("Something went wrong. Invalid MM interface for QM/MM.");
 
+      auto b_type = tp.type(energy_type, tinker::potential_keys::BOND);
       for (auto b_param : tp.bonds())
       {
         if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type)  deq_L_QM = b_param.ideal;
@@ -228,8 +229,10 @@ namespace qmmm_helpers
     if (cp->size() >= indices.size())
     {
       coords::Atoms new_qm_atoms;
+      coords::Atoms tmp_link_atoms;
       coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size());
+      pes.structure.cartesian.reserve(indices.size()+link_atoms.size());
+
       for (auto && a : indices)      // add and bind "normal" atoms
       {
         auto && ref_at = (*cp).atoms().atom(a);
@@ -244,20 +247,35 @@ namespace qmmm_helpers
         {
           if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in QM coords
         }
+        
         new_qm_atoms.add(at);
         pes.structure.cartesian.push_back(cp->xyz(a));
       }
+      
+      int counter = 0;
       for (auto a : link_atoms)  // add link atoms
       {
         coords::Atom current("H");
-        current.set_energy_type(a.b_type);  
+        current.set_energy_type(a.energy_type);
         current.bind_to(new_indices.at(a.mm));
-        new_qm_atoms.add(current);
+        tmp_link_atoms.add(current);
         pes.structure.cartesian.push_back(a.position);
-      }
 
+        for (int i{ 0u }; i < new_qm_atoms.size(); ++i)
+        {
+          if (current.is_bound_to(i))
+          {
+            coords::Atom& current2 = new_qm_atoms.atom(i);
+            current2.bind_to(new_qm_atoms.size() + counter);
+          }
+        }
+        counter++;
+      }
+      for (auto a : tmp_link_atoms) new_qm_atoms.add(a);
+      
       new_qm_coords.init_swap_in(new_qm_atoms, pes);
     }
+    std::cout << coords::output::formats::tinker(new_qm_coords);
     Config::set().general.energy_interface = tmp_i;
     return new_qm_coords;
   }

@@ -121,7 +121,6 @@ namespace energy
         //coords::Coordinates qmc;
         ///**coordinates object for MM part*/
         coords::Coordinates mmc_big;
-        coords::Coordinates* mmc_small;
 
   //      /**atom charges of QM atoms*/
   //      std::vector<double> qm_charge_vector;
