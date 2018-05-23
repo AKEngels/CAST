@@ -37,7 +37,7 @@ namespace energy
         /**overloaded Constructor*/
         ONIOM(ONIOM const&, coords::Coordinates*);
         /**another overload of Constructor*/
-		ONIOM(ONIOM&&, coords::Coordinates*);
+		    ONIOM(ONIOM&&, coords::Coordinates*);
 
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
@@ -56,16 +56,16 @@ namespace energy
         coords::float_type e() override;
         /** Energy+Gradient function */
         coords::float_type g() override;
-        /** Energy+Hessian function*/
+        /** Energy+Hessian function (not existent for this interface)*/
         coords::float_type h() override;
         /** Optimization in the interface or interfaced program (not existent for this interface)*/
         coords::float_type o() override;
 
         /** Return charges (for QM und MM atoms) */
         std::vector<coords::float_type> charges() const override
-		{
-			throw std::runtime_error("function not implemented\n");
-		}
+		    {
+			    throw std::runtime_error("function not implemented\n");
+		    }
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
         {
@@ -94,14 +94,17 @@ namespace energy
 
       private:
 
+        /**function to create link atoms*/
         void energy::interfaces::oniom::ONIOM::create_link_atoms();
-        std::vector<qmmm_helpers::LinkAtom> link_atoms;
+
+        /**vector with link atoms*/
+        std::vector<LinkAtom> link_atoms;
 
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         coords::float_type qmmm_calc(bool);
 
-		/**indizes of QM atoms*/
+		    /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
@@ -129,8 +132,8 @@ namespace energy
 
   //      /**van der Waals interaction energy between QM and MM atoms*/
   //      coords::float_type vdw_energy;
-        /**energy of only QM system*/
-        coords::float_type qm_energy, mm_energy_big, mm_energy_small;
+          /**energy of only QM system*/
+          coords::float_type qm_energy, mm_energy_big, mm_energy_small;
   //      /**energy of only MM system*/
   //      coords::float_type mm_energy;
 

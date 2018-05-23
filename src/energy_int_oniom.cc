@@ -113,9 +113,10 @@ void energy::interfaces::oniom::ONIOM::create_link_atoms()
         if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
         {
-          qmmm_helpers::LinkAtom link(b,mma,coords,tp);
-          std::cout << "position of link atom: " << link.position << "\n";
+          LinkAtom link(b,mma,coords,tp);
           link_atoms.push_back(link);
+
+          if (Config::get().general.verbosity > 3) std::cout << "position of link atom: " << link.position << "\n";
         }
         else
         {
@@ -128,30 +129,41 @@ void energy::interfaces::oniom::ONIOM::create_link_atoms()
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
-  integrity = true;
+  
   mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
-  std::cout << "MM big: " << mm_energy_big << "\n";
 
-  create_link_atoms();
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "energy of big MM system: \n";
+    mmc_big.e_head_tostream_short(std::cout);
+    mmc_big.e_tostream_short(std::cout);
+  }
+
+  create_link_atoms();  // create link atoms
+
   coords::Coordinates mmc_small = qmmm_helpers::make_mmsmall_coords(coords, qm_indices, new_indices_qm, link_atoms);
-  std::cout << "created small MM object\n";
-  mm_energy_small = mmc_small.e();
+  mm_energy_small = mmc_small.e();  // calculate energy of small MM system
 
-  mmc_small.e_head_tostream_short(std::cout);
-  mmc_small.e_tostream_short(std::cout);
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "energy of small MM system: \n";
+    mmc_small.e_head_tostream_short(std::cout);
+    mmc_small.e_tostream_short(std::cout);
+  }
 
-  std::cout << "MM small: " << mm_energy_small << "\n";
-  return 0.0;
+  return mm_energy_big - mm_energy_small + qm_energy; // return total energy
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::g()
 {
+  integrity = true;
   energy = qmmm_calc(true);
   return energy;
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::e()
 {
+  integrity = true;
   energy = qmmm_calc(false);
   return energy;
 }
@@ -175,32 +187,28 @@ void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
 
 void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream &S, bool const endline) const
 {
-  //S << "QM-atoms: " << qm_indices.size() << '\n';
-  //S << "MM-atoms: " << mm_indices.size() << '\n';
-  //S << "Potentials\n";
-  //S << std::right << std::setw(24) << "QM";
-  //S << std::right << std::setw(24) << "MM";
-  //S << std::right << std::setw(24) << "VDW";
-  //S << std::right << std::setw(24) << "BONDED";
-  //S << std::right << std::setw(24) << "TOTAL";
-  //if (endline) S << '\n';
+  S << "QM-atoms: " << qm_indices.size() << '\n';
+  S << "MM-atoms: " << mm_indices.size() << '\n';
+  S << "Potentials\n";
+  S << std::right << std::setw(24) << "MM_big";
+  S << std::right << std::setw(24) << "MM_small";
+  S << std::right << std::setw(24) << "QM";
+  S << std::right << std::setw(24) << "TOTAL";
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::oniom::ONIOM::print_E_short(std::ostream &S, bool const endline) const
 {
-  //S << '\n';
-  //S << std::right << std::setw(24) << qm_energy;
-  //S << std::right << std::setw(24) << mm_energy;
-  //S << std::right << std::setw(24) << vdw_energy;
-  ////S << std::right << std::setw(24) << bonded_energy;
-  //S << std::right << std::setw(24) << energy;
-  //if (endline) S << '\n';
+  S << '\n';
+  S << std::right << std::setw(24) << mm_energy_big;
+  S << std::right << std::setw(24) << mm_energy_small;
+  S << std::right << std::setw(24) << qm_energy;
+  S << std::right << std::setw(24) << energy;
+  if (endline) S << '\n';
 }
 
 void energy::interfaces::oniom::ONIOM::to_stream(std::ostream &S) const
 {
-  //S << '\n';
-  //interface_base::to_stream(S);
-  //throw std::runtime_error("no QMMM-function yet");
+  throw std::runtime_error("no QMMM-function yet");
 }
 

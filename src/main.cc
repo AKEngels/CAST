@@ -282,7 +282,6 @@ int main(int argc, char **argv)
     }
     case config::tasks::SP:
       { // singlepoint
-        coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         auto sp_energies_fn = coords::output::filename("_SP", ".txt");
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
@@ -304,6 +303,7 @@ int main(int argc, char **argv)
           std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
           short_ene_stream(coords, sp_estr, 16);
           sp_estr << std::setw(16) << tim.count() << '\n';
+          coords.e_head_tostream_short(std::cout);
           coords.e_tostream_short(std::cout);
         }
         break;

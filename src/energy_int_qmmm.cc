@@ -215,24 +215,13 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
   }
 }
 
-//// calculate position of a link atom (see: doi 10.1002/jcc.20857)
-//coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(qmmm_helpers::LinkAtom link)
-//{
-//  coords::cartesian_type r_MM = coords->xyz(link.mm);
-//  coords::cartesian_type r_QM = coords->xyz(link.qm);
-//  double d_MM_QM = dist(r_MM, r_QM);
-//
-//  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.deq_L_QM;
-//  return pos;
-//}
-
 // creates link atom for every QM/MM bond
 void energy::interfaces::qmmm::QMMM::create_link_atoms()
 {
   for (auto b : qmmm_bonds)
   {
     //create link atom
-    qmmm_helpers::LinkAtom link(b.b, b.a, coords,tp);
+    LinkAtom link(b.b, b.a, coords, tp);
 
     // add link atom to vector
     link_atoms.push_back(link);
@@ -722,7 +711,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
       for (int j=0; j<link_atoms.size(); j++)
       {
-        qmmm_helpers::LinkAtom l = link_atoms[j];
+        LinkAtom l = link_atoms[j];
         coords::r3 G_L = link_grads[j];
 
         double g = l.deq_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));

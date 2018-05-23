@@ -421,7 +421,7 @@ namespace energy
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
         /**link atoms*/
-        std::vector<qmmm_helpers::LinkAtom> link_atoms;
+        std::vector<LinkAtom> link_atoms;
 
         /**atom charges of QM atoms*/
         std::vector<double> qm_charge_vector;
