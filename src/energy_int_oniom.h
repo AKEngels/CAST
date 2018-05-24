@@ -92,13 +92,7 @@ namespace energy
         /**function not implemented*/
         void to_stream(std::ostream&) const;
 
-      private:
-
-        /**function to create link atoms*/
-        void energy::interfaces::oniom::ONIOM::create_link_atoms();
-
-        /**vector with link atoms*/
-        std::vector<LinkAtom> link_atoms;
+      private:        
 
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
@@ -108,6 +102,9 @@ namespace energy
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
+
+        /**vector with link atoms*/
+        std::vector<LinkAtom> link_atoms;
 
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
@@ -120,10 +117,12 @@ namespace energy
   //      purpose: faciliate mapping between total coordinates object and subsystems*/
   //      std::vector<size_t> new_indices_mm;
 
-        ///**coordinates object for QM part*/
-        //coords::Coordinates qmc;
-        ///**coordinates object for MM part*/
+        /**coordinates object for QM part*/
+        coords::Coordinates qmc;
+        /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
+        /**MM coordinates object for QM part*/
+        coords::Coordinates mmc_small;
 
   //      /**atom charges of QM atoms*/
   //      std::vector<double> qm_charge_vector;

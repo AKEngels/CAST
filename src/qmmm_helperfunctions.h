@@ -74,6 +74,13 @@ struct LinkAtom
 /**namespace for diverse functions needed in QM/MM calculations*/
 namespace qmmm_helpers
 {
+  /**function that returns a vector of link atoms
+  @param coords: pointer to coordinates object
+  @param qm_indices: indizes of QM atoms
+  @param mm_indices: indizes of MM atoms
+  @param tp: tinker parameter object*/
+  std::vector<LinkAtom> create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, std::vector<size_t> &mm_indices, tinker::parameter::parameters const &tp);
+
   /**creates a vector with the indizes of all MM atoms
   @param num_atoms: number of atoms in whole system*/
   std::vector<std::size_t> get_mm_atoms(std::size_t const num_atoms);
@@ -107,13 +114,15 @@ namespace qmmm_helpers
   @param cp: pointer to original coordobject*/
   coords::Coordinates make_mmbig_coords(coords::Coordinates const * cp);
 
-  /**creates a coordobject from the QM atoms and link atoms but with MM interface
+  /**creates a coordobject from the QM atoms and link atoms with either QM or MM interface
   @param cp: pointer to original coordobject
   @param indices: indizes of QM atoms
   @param new_indices: vector new_indices_qm
-  @param link_atoms: vector with link atoms*/
-  coords::Coordinates make_mmsmall_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> link_atoms);
+  @param link_atoms: vector with link atom
+  @param energy_interface: energy interface*/
+  coords::Coordinates make_small_coords(coords::Coordinates const * cp,
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
+    std::vector<LinkAtom> link_atoms, config::interface_types::T energy_interface);
 
 }
 

@@ -1,6 +1,34 @@
 #include"qmmm_helperfunctions.h"
 
 
+std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, std::vector<size_t> &mm_indices, tinker::parameter::parameters const &tp)
+{
+  std::vector<LinkAtom> links;
+  for (auto mma : mm_indices)
+  {
+    for (auto b : coords->atoms().atom(mma).bonds())
+    {
+      if (scon::sorted::exists(qm_indices, b))
+      {
+        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
+          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
+        {
+          LinkAtom link(b, mma, coords, tp);
+          links.push_back(link);
+
+          if (Config::get().general.verbosity > 3) std::cout << "position of link atom: " << link.position << "\n";
+        }
+        else
+        {
+          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
+        }
+      }
+    }
+  }
+  return links;
+}
+
+
 std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 {
     std::vector<std::size_t> mm_atoms;
@@ -159,11 +187,11 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return new_aco_coords;
   }
 
-  coords::Coordinates qmmm_helpers::make_mmsmall_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> link_atoms)
+  coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> link_atoms, config::interface_types::T energy_interface)
   {
     auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.mminterface;
+    Config::set().general.energy_interface = energy_interface;
     coords::Coordinates new_qm_coords;
     if (cp->size() >= indices.size())
     {

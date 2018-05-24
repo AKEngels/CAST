@@ -6,11 +6,13 @@
 ::tinker::parameter::parameters energy::interfaces::oniom::ONIOM::tp;
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
-	energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
+  energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
-  //qmc(qmmm_helpers::make_qm_coords(cp, qm_indices, new_indices_qm)),
+  link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
   mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
+  mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
   if (!tp.valid())
@@ -101,37 +103,10 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
   }
 }
 
-void energy::interfaces::oniom::ONIOM::create_link_atoms()
-{
-  // find bonds between QM and MM region
-  for (auto mma : mm_indices)
-  {
-    for (auto b : coords->atoms().atom(mma).bonds())
-    {
-      if (scon::sorted::exists(qm_indices, b))
-      {
-        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
-          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
-        {
-          LinkAtom link(b,mma,coords,tp);
-          link_atoms.push_back(link);
-
-          if (Config::get().general.verbosity > 3) std::cout << "position of link atom: " << link.position << "\n";
-        }
-        else
-        {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
-        }
-      }
-    }
-  }
-}
-
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
   
   mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
-
   if (Config::get().general.verbosity > 3)
   {
     std::cout << "energy of big MM system: \n";
@@ -139,14 +114,18 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mmc_big.e_tostream_short(std::cout);
   }
 
-  create_link_atoms();  // create link atoms
-
-  coords::Coordinates mmc_small = qmmm_helpers::make_mmsmall_coords(coords, qm_indices, new_indices_qm, link_atoms);
   mm_energy_small = mmc_small.e();  // calculate energy of small MM system
-
   if (Config::get().general.verbosity > 3)
   {
     std::cout << "energy of small MM system: \n";
+    mmc_small.e_head_tostream_short(std::cout);
+    mmc_small.e_tostream_short(std::cout);
+  }
+
+  qm_energy = qmc.e();  // calculate energy of QM system
+  if (Config::get().general.verbosity > 3)
+  {
+    std::cout << "energy of QM system: \n";
     mmc_small.e_head_tostream_short(std::cout);
     mmc_small.e_tostream_short(std::cout);
   }
