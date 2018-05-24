@@ -87,7 +87,7 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz,
 
   Mat eigvec, eigval;
 
-  std::tie(eigval, eigvec) = F_mat.eigensym(true);
+  std::tie(eigval, eigvec) = F_mat.eigensym();
   //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) //Seems to be right like described here. They are sorting it the other way round
   auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);

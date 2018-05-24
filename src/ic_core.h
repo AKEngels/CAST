@@ -44,6 +44,7 @@ namespace ic_core {
 using coords::float_type;
 
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
+coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
 
 struct internal_coord {
   virtual float_type val(coords::Representation_3D const& xyz) const = 0;
@@ -544,7 +545,7 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
 
     auto d_now = calc_diff(xyz_, old_xyz);
-    d_int_left -= d_now;
+    d_int_left += d_now;
     auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
     auto internal_norm = d_int_left.norm();
     if (micro_iter == 0){
@@ -618,7 +619,14 @@ scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
 
 template<typename XYZ>
 scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
-  auto diff = calc_prims(std::forward<XYZ>(lhs)) - calc_prims(std::forward<XYZ>(rhs));
+  for(auto i{0}; i<lhs.size(); ++i){
+    std::cout << lhs.at(i) << "  " << rhs.at(i) << "  " << lhs.at(i) - rhs.at(i) << std::endl;
+  }
+
+  auto lprims = calc_prims(std::forward<XYZ>(lhs));
+  auto rprims = calc_prims(std::forward<XYZ>(rhs));
+  auto diff = lprims - rprims;
+
   for(auto i = 0;i<primitive_internals.size(); ++i){
     if(dynamic_cast<dihedral*>(primitive_internals.at(i).get())){
       if(std::fabs(diff(0, i)) > SCON_PI){
@@ -631,6 +639,11 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
       }
     }
   }
+
+  for(auto i{0}; i<lprims.cols(); ++i){
+    std::cout << std::setw(15) << std::setprecision(10) << lprims(0,i) << std::setw(15) << rprims(0,i) << std::setw(15) << diff(0,i) << std::endl;
+  }
+
   return (diff * del_mat).t();
 }
 }

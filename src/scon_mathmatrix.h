@@ -319,8 +319,8 @@ public:
   mathmatrix row(std::size_t const idx) const;
   mathmatrix col(std::size_t const idx) const;
 
-  void set_row(std::size_t const &, mathmatrix const&);
-  void set_col(std::size_t const &, mathmatrix const&);
+  void set_row(std::size_t const, mathmatrix const&);
+  void set_col(std::size_t const, mathmatrix const&);
 
   /*! Performs Cholesky Decompostion on Matrix.
    *
@@ -503,6 +503,7 @@ public:
    * @return The pseudoinverse of the matrix.
    */
   mathmatrix pinv() const;
+  mathmatrix lppinv() const;
 
   /**
    * @brief transforms the matrix into a column matrix.
@@ -553,7 +554,7 @@ public:
    * @see diag()
    */
   std::pair<mathmatrix, mathmatrix>
-      eigensym(bool const & sort = false) const;
+      eigensym(bool const & sort = false);
 
   /**
    * @brief uses eigensym to diagonalize the matrix
@@ -1063,7 +1064,7 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
 }
 
 template<typename T>
-inline void mathmatrix<T>::set_row(std::size_t const & nrow, mathmatrix const & other)
+inline void mathmatrix<T>::set_row(std::size_t const nrow, mathmatrix const & other)
 {
   if (other.cols() != cols() || other.rows() != 1) {
     throw std::runtime_error("By setting the row the sizes for both rows are different!");
@@ -1074,7 +1075,7 @@ inline void mathmatrix<T>::set_row(std::size_t const & nrow, mathmatrix const & 
 }
 
 template<typename T>
-inline void mathmatrix<T>::set_col(std::size_t const & ncol, mathmatrix const & other)
+inline void mathmatrix<T>::set_col(std::size_t const ncol, mathmatrix const & other)
 {
   if (other.rows() != rows() || other.cols() != 1) {
     throw std::runtime_error("By setting the col the sizes for both cols are different!");
@@ -1326,10 +1327,27 @@ mathmatrix<T> mathmatrix<T>::pinv() const {
   mathmatrix s_inv = zero(rows(), cols());
 
   for (auto i = 0u; i < s.rows(); ++i) {
-    s_inv(i, i) = s(i) > close_to_zero_tol ? 1. / s(i) : 0.0;
+    s_inv(i, i) = std::fabs(s(i)) > close_to_zero_tol ? 1. / s(i) : 0.0;
   }
 
   return V * s_inv * U.t();
+#else
+  return arma::pinv(static_cast<base_type>(*this));
+#endif
+}
+
+template <typename T>
+mathmatrix<T> mathmatrix<T>::lppinv() const {
+#ifndef CAST_USE_ARMADILLO
+  mathmatrix U, V, s;
+  singular_value_decomposition(U, s, V);
+  mathmatrix s_inv = zero(rows(), cols());
+
+  for (auto i = 0u; i < s.rows(); ++i) {
+    s_inv(i, i) = std::fabs(s(i)) > close_to_zero_tol ? 1. / s(i) : 0.0;
+  }
+
+  return V.t() * s_inv * U.t();
 #else
   return arma::pinv(static_cast<base_type>(*this));
 #endif
@@ -1410,12 +1428,26 @@ mathmatrix<T> mathmatrix<T>::diagmat() const {
 #endif
 }
 
+  template <typename T>
+  void close_to_zero_to_zero(mathmatrix<T> & mat){
+    for(auto r{0u}; r<mat.rows(); ++r){
+      for(auto c{0u};c<mat.cols(); ++c){
+        if(mat(r,c)<mathmatrix<T>::close_to_zero_tol){
+          mat(r,c) = T();
+        }
+      }
+    }
+  }
+
+
 template <typename T>
 std::pair<mathmatrix<T>, mathmatrix<T>>
-mathmatrix<T>::eigensym(bool const & sort) const {
+mathmatrix<T>::eigensym(bool const & sort) {
 #ifndef CAST_USE_ARMADILLO
 
-  Eigen::EigenSolver<base_type> es(static_cast<base_type>(*this));
+  //close_to_zero_to_zero(*this);
+
+  Eigen::SelfAdjointEigenSolver<base_type> es(static_cast<base_type>(*this));
   mathmatrix eigenval = es.eigenvalues().real();
   mathmatrix eigenvec = es.eigenvectors().real();
 

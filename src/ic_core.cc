@@ -5,6 +5,15 @@
 
 using coords::float_type;
 
+coords::Representation_3D ic_core::rep3d_bohr_to_ang(coords::Representation_3D const& bohr){
+  coords::Representation_3D ang;
+  ang.reserve(bohr.size());
+  for(auto const& b: bohr){
+    ang.emplace_back(b * energy::bohr2ang);
+  }
+  return ang;
+}
+
 coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const& grads){
   coords::Representation_3D bohr_grads;
   bohr_grads.reserve(grads.size());
@@ -388,6 +397,9 @@ ic_core::rotation::rot_val(const coords::Representation_3D& new_xyz) const {
     curr_xyz_.emplace_back(new_xyz.at(i - 1));
   }
   auto result = ic_rotation::exponential_map(curr_xyz_, reference_);
+  for(auto & r : result){
+    r*=rad_gyr_;
+  }
   return result;
 }
 
@@ -502,6 +514,7 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   return result;
 }
 
+//TODO enable new_matrices again
 scon::mathmatrix<float_type>& ic_core::system::ic_Bmat(){
   if(!new_B_matrix){
     return B_matrix;
@@ -587,12 +600,13 @@ scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
   using Mat = scon::mathmatrix<float_type>;
 
   Mat eigval, eigvec;
-  std::tie(eigval, eigvec) = Gmat().eigensym(true);
+  std::tie(eigval, eigvec) = Gmat().eigensym(false);
 
   auto row_index_vec = eigval.sort_idx();
   auto col_index_vec = eigval.find_idx([](float_type const & a) {
     return std::abs(a) > 1e-6;
   });
+
   del_mat = eigvec.submat(row_index_vec, col_index_vec);
   new_B_matrix = new_G_matrix = true; //B and G got to be calculated for the new ic_system
   return del_mat;
@@ -600,7 +614,8 @@ scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
 
 scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mathmatrix<float_type> const& g) {
   auto&& gmat = ic_Gmat();
-  return gmat.pinv() * B_matrix * g;
+  auto int_grads = gmat.pinv() * B_matrix * g;
+  return int_grads;
 }
 
 scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
@@ -609,7 +624,8 @@ scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
 }
 
 void ic_core::system::optimize(coords::DL_Coordinates & coords){
-  coords.set_xyz(xyz_);
+  coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
+  initial_delocalized_hessian();
   coords::output::formats::tinker output(coords);
   output.to_stream(std::cout);
   coords.g();
@@ -618,5 +634,7 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
   ));
   auto g_int = calculate_internal_grads(g_xyz);
   auto dy = get_internal_step(g_int);
+  std::cout << "Internal displacement:\n";
+  std::cout << dy << "\n";
   apply_internal_change(std::move(dy));
 }
