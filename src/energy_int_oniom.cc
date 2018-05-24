@@ -128,6 +128,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
+  // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
   if (!if_gradient)
   {
     mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
@@ -144,36 +145,36 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mmc_big.e_tostream_short(std::cout);
   }
 
+  // ############### MM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
   if (!if_gradient)
   {
     mm_energy_small = mmc_small.e();  // calculate energy of small MM system
   }
   else  // gradient calculation
   {
-    mm_energy_small = mmc_small.g();
-    auto g_mm_small = mmc_small.g_xyz();
-    for (int i = 0; i < link_atoms.size(); ++i)
+    mm_energy_small = mmc_small.g();     // get energy and calculate gradients
+    auto g_mm_small = mmc_small.g_xyz(); // get gradients
+    for (auto&& qmi : qm_indices)
     {
-      auto link_atom_grad = g_mm_small[qm_indices.size() + link_atoms.size() -1 -i];
+      new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
+    }
+
+    for (int i = 0; i < link_atoms.size(); ++i)  // take into account link atoms
+    {
       LinkAtom l = link_atoms[i];
 
-      coords::r3 g_qm, g_mm;
+      coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
+      auto link_atom_grad = g_mm_small[qm_indices.size() + link_atoms.size() - 1 - i];
       qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-
+      new_grads[l.qm] -= g_qm;
+      new_grads[l.mm] -= g_mm;
       if (Config::get().general.verbosity > 4)
       {
         std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
         std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
       }
 
-      new_grads[l.qm] -= g_qm;
-      new_grads[l.mm] -= g_mm;
-
       g_mm_small.pop_back();  // delete LinkAtom from gradients
-    }
-    for (auto&& qmi : qm_indices)
-    {
-      new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
     }
   }
   if (Config::get().general.verbosity > 4)
@@ -183,6 +184,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mmc_small.e_tostream_short(std::cout);
   }
 
+  // ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
   try {
     if (!if_gradient)
     {
@@ -190,15 +192,22 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     }
     else  // gradient calculation
     {
-      qm_energy = qmc.g();
-      auto g_qm_small = qmc.g_xyz();
-      for (int i = 0; i < link_atoms.size(); ++i)
+      qm_energy = qmc.g();            // get energy and calculate gradients
+      auto g_qm_small = qmc.g_xyz();  // get gradients
+      for (auto&& qmi : qm_indices)
       {
-        auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
+        new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
+      }
+
+      for (int i = 0; i < link_atoms.size(); ++i)   // take into account link atoms
+      {
         LinkAtom l = link_atoms[i];
 
-        coords::r3 g_qm, g_mm;
+        coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
+        auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
         qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+        new_grads[l.qm] += g_qm;
+        new_grads[l.mm] += g_mm;
 
         if (Config::get().general.verbosity > 4)
         {
@@ -206,14 +215,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
           std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
         }
 
-        new_grads[l.qm] += g_qm;
-        new_grads[l.mm] += g_mm;
-
-        g_qm_small.pop_back();
-      }
-      for (auto&& qmi : qm_indices)
-      {
-        new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
+        g_qm_small.pop_back();  // delete LinkAtom from gradients
       }
     }
     if (Config::get().general.verbosity > 4)
