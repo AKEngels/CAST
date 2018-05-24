@@ -12,7 +12,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
   mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
-  mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
+  mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
   if (!tp.valid())
@@ -105,7 +105,6 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
-  
   mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
   if (Config::get().general.verbosity > 3)
   {
@@ -122,14 +121,21 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mmc_small.e_tostream_short(std::cout);
   }
 
-  qm_energy = qmc.e();  // calculate energy of QM system
-  if (Config::get().general.verbosity > 3)
-  {
-    std::cout << "energy of QM system: \n";
-    mmc_small.e_head_tostream_short(std::cout);
-    mmc_small.e_tostream_short(std::cout);
+  try {
+    qm_energy = qmc.e();  // get energy for QM part 
+    if (Config::get().general.verbosity > 3)
+    {
+      std::cout << "energy of QM system: \n";
+      mmc_small.e_head_tostream_short(std::cout);
+      mmc_small.e_tostream_short(std::cout);
+    }
   }
-
+  catch (...)
+  {
+    std::cout << "QM programme failed. Treating structure as broken.\n";
+    integrity = false;  // if QM programme fails: integrity is destroyed
+  }
+  
   return mm_energy_big - mm_energy_small + qm_energy; // return total energy
 }
 

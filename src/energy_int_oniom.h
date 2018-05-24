@@ -19,10 +19,10 @@ namespace energy
 {
   namespace interfaces
   {
-    /**namespace for QM/MM interface*/
+    /**namespace for ONIOM interface*/
     namespace oniom
     {
-      /**QMMM interface class*/
+      /**ONIOM interface class*/
       class ONIOM
         : public interface_base
       {
@@ -111,11 +111,6 @@ namespace energy
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_qm;
-  //      /**vector of length total number of atoms
-  //      only those elements are filled whose position corresponds to MM atoms
-  //      they are filled with successive numbers starting from 0
-  //      purpose: faciliate mapping between total coordinates object and subsystems*/
-  //      std::vector<size_t> new_indices_mm;
 
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
@@ -129,12 +124,8 @@ namespace energy
   //      /**atom charges of MM atoms*/
   //      std::vector<double> mm_charge_vector;
 
-  //      /**van der Waals interaction energy between QM and MM atoms*/
-  //      coords::float_type vdw_energy;
-          /**energy of only QM system*/
+
           coords::float_type qm_energy, mm_energy_big, mm_energy_small;
-  //      /**energy of only MM system*/
-  //      coords::float_type mm_energy;
 
   //      /**gradients of electrostatic interaction between QM and MM atoms
   //      for MOPAC gradients on QM as well as on MM atoms
