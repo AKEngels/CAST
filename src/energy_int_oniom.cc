@@ -161,7 +161,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
     for (int i = 0; i < link_atoms.size(); ++i)  // take into account link atoms
     {
-      LinkAtom l = link_atoms[i];
+      LinkAtom l = link_atoms[link_atoms.size()-1-i];
 
       coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
       auto link_atom_grad = g_mm_small[qm_indices.size() + link_atoms.size() - 1 - i];
@@ -201,7 +201,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
       for (int i = 0; i < link_atoms.size(); ++i)   // take into account link atoms
       {
-        LinkAtom l = link_atoms[i];
+        LinkAtom l = link_atoms[link_atoms.size() - 1 - i];
 
         coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
         auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
