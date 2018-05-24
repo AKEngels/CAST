@@ -311,7 +311,6 @@ int main(int argc, char **argv)
     case config::tasks::GRAD:
     {
       // calculate gradient
-      coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
       std::ofstream gstream(coords::output::filename("_GRAD", ".txt").c_str());
       for (auto const & pes : *ci)
@@ -319,6 +318,7 @@ int main(int argc, char **argv)
         coords.set_xyz(pes.structure.cartesian);
         coords.g();
         std::cout << "Structure " << ++i << '\n';
+        coords.e_head_tostream_short(std::cout);
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
       }

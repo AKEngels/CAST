@@ -105,29 +105,71 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
-  mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
+  coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
+
+  if (!if_gradient)
+  {
+    mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
+  }
+  else   // gradient calculation
+  {
+    mm_energy_big = mmc_big.g();
+    new_grads = mmc_big.g_xyz();
+  }
   if (Config::get().general.verbosity > 3)
   {
-    std::cout << "energy of big MM system: \n";
+    std::cout << "Energy of big MM system: \n";
     mmc_big.e_head_tostream_short(std::cout);
     mmc_big.e_tostream_short(std::cout);
   }
 
-  mm_energy_small = mmc_small.e();  // calculate energy of small MM system
+  if (!if_gradient)
+  {
+    mm_energy_small = mmc_small.e();  // calculate energy of small MM system
+  }
+  else  // gradient calculation
+  {
+    mm_energy_small = mmc_small.g();
+    auto g_mm_small = mmc_small.g_xyz();
+    for (int i = 0; i < link_atoms.size(); ++i)
+    {
+      g_mm_small.pop_back();
+    }
+    for (auto&& qmi : qm_indices)
+    {
+      new_grads[qmi] += g_mm_small[new_indices_qm[qmi]];
+    }
+  }
   if (Config::get().general.verbosity > 3)
   {
-    std::cout << "energy of small MM system: \n";
+    std::cout << "Energy of small MM system: \n";
     mmc_small.e_head_tostream_short(std::cout);
     mmc_small.e_tostream_short(std::cout);
   }
 
   try {
-    qm_energy = qmc.e();  // get energy for QM part 
+    if (!if_gradient)
+    {
+      qm_energy = qmc.e();  // get energy for QM part 
+    }
+    else  // gradient calculation
+    {
+      qm_energy = qmc.g();
+      auto g_qm_small = qmc.g_xyz();
+      for (int i = 0; i < link_atoms.size(); ++i)
+      {
+        g_qm_small.pop_back();
+      }
+      for (auto&& qmi : qm_indices)
+      {
+        new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
+      }
+    }
     if (Config::get().general.verbosity > 3)
     {
-      std::cout << "energy of QM system: \n";
-      mmc_small.e_head_tostream_short(std::cout);
-      mmc_small.e_tostream_short(std::cout);
+      std::cout << "Energy of QM system: \n";
+      qmc.e_head_tostream_short(std::cout);
+      qmc.e_tostream_short(std::cout);
     }
   }
   catch (...)
@@ -135,7 +177,11 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
+
+  if (check_bond_preservation() == false) integrity = false;
+  else if (check_atom_dist() == false) integrity = false;
   
+  if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
   return mm_energy_big - mm_energy_small + qm_energy; // return total energy
 }
 
@@ -196,4 +242,40 @@ void energy::interfaces::oniom::ONIOM::to_stream(std::ostream &S) const
 {
   throw std::runtime_error("no QMMM-function yet");
 }
+
+bool energy::interfaces::oniom::ONIOM::check_bond_preservation(void) const
+{
+  std::size_t const N(coords->size());
+  for (std::size_t i(0U); i < N; ++i)
+  { // cycle over all atoms i
+    if (!coords->atoms(i).bonds().empty())
+    {
+      std::size_t const M(coords->atoms(i).bonds().size());
+      for (std::size_t j(0U); j < M && coords->atoms(i).bonds(j) < i; ++j)
+      { // cycle over all atoms bound to i
+        double const L(geometric_length(coords->xyz(i) - coords->xyz(coords->atoms(i).bonds(j))));
+        double const max = 1.2 * (coords->atoms(i).cov_radius() + coords->atoms(coords->atoms(i).bonds(j)).cov_radius());
+        if (L > max) return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool energy::interfaces::oniom::ONIOM::check_atom_dist(void) const
+{
+  std::size_t const N(coords->size());
+  for (std::size_t i(0U); i < N; ++i)
+  {
+    for (std::size_t j(0U); j < i; j++)
+    {
+      if (dist(coords->xyz(i), coords->xyz(j)) < 0.3)
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 
