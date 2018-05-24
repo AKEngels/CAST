@@ -97,14 +97,35 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
   }
   else
   {
-    //update_representation();
-    /*qmc.energy_update(true);
-    mmc.energy_update(true);*/
+    update_representation();
+    qmc.energy_update(true);
+    mmc_small.energy_update(true);
+    mmc_big.energy_update(true);
   }
+}
+
+void energy::interfaces::oniom::ONIOM::update_representation()
+{
+  std::size_t qi = 0u;
+  for (auto i : qm_indices)
+  {
+    qmc.move_atom_to(qi, coords->xyz(i), true);
+    mmc_small.move_atom_to(qi, coords->xyz(i), true);
+    ++qi;
+  }
+  std::size_t mi = 0u;
+  for (std::size_t mi = 0u; mi<coords->size(); mi++)
+  {
+    mmc_big.move_atom_to(mi, coords->xyz()[mi], true);
+  }
+
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
+  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
+  for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms
+
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
   if (!if_gradient)
@@ -116,7 +137,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mm_energy_big = mmc_big.g();
     new_grads = mmc_big.g_xyz();
   }
-  if (Config::get().general.verbosity > 3)
+  if (Config::get().general.verbosity > 4)
   {
     std::cout << "Energy of big MM system: \n";
     mmc_big.e_head_tostream_short(std::cout);
@@ -133,14 +154,29 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     auto g_mm_small = mmc_small.g_xyz();
     for (int i = 0; i < link_atoms.size(); ++i)
     {
-      g_mm_small.pop_back();
+      auto link_atom_grad = g_mm_small[qm_indices.size() + link_atoms.size() -1 -i];
+      LinkAtom l = link_atoms[i];
+
+      coords::r3 g_qm, g_mm;
+      qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+
+      if (Config::get().general.verbosity > 4)
+      {
+        std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+        std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+      }
+
+      new_grads[l.qm] -= g_qm;
+      new_grads[l.mm] -= g_mm;
+
+      g_mm_small.pop_back();  // delete LinkAtom from gradients
     }
     for (auto&& qmi : qm_indices)
     {
-      new_grads[qmi] += g_mm_small[new_indices_qm[qmi]];
+      new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
     }
   }
-  if (Config::get().general.verbosity > 3)
+  if (Config::get().general.verbosity > 4)
   {
     std::cout << "Energy of small MM system: \n";
     mmc_small.e_head_tostream_short(std::cout);
@@ -158,6 +194,21 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
       auto g_qm_small = qmc.g_xyz();
       for (int i = 0; i < link_atoms.size(); ++i)
       {
+        auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
+        LinkAtom l = link_atoms[i];
+
+        coords::r3 g_qm, g_mm;
+        qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+
+        if (Config::get().general.verbosity > 4)
+        {
+          std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+          std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+        }
+
+        new_grads[l.qm] += g_qm;
+        new_grads[l.mm] += g_mm;
+
         g_qm_small.pop_back();
       }
       for (auto&& qmi : qm_indices)
@@ -165,7 +216,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
         new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
       }
     }
-    if (Config::get().general.verbosity > 3)
+    if (Config::get().general.verbosity > 4)
     {
       std::cout << "Energy of QM system: \n";
       qmc.e_head_tostream_short(std::cout);

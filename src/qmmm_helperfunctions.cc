@@ -28,6 +28,26 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
   return links;
 }
 
+void qmmm_helpers::calc_link_atom_grad(LinkAtom l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
+{
+  double x, y, z;
+
+  double g = l.deq_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
+  coords::r3 n = (coords->xyz(l.mm) - coords->xyz(l.qm)) / dist(coords->xyz(l.mm), coords->xyz(l.qm));
+
+  x = g * scon::dot(G_L, n) *n.x() + (1 - g)*G_L.x();
+  y = g * scon::dot(G_L, n) *n.y() + (1 - g)*G_L.y();
+  z = g * scon::dot(G_L, n) *n.z() + (1 - g)*G_L.z();
+  coords::r3 new_grad(x, y, z);
+  G_QM = new_grad;
+
+  x = g * G_L.x() - g * scon::dot(G_L, n) * n.x();
+  y = g * G_L.y() - g * scon::dot(G_L, n) * n.y();
+  z = g * G_L.z() - g * scon::dot(G_L, n) * n.z();
+  coords::r3 new_grad2(x, y, z);
+  G_MM = new_grad2;
+}
+
 
 std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 {

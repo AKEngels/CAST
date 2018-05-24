@@ -52,6 +52,9 @@ namespace energy
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);
 
+        /**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
+        void update_representation();
+
         /** Energy function*/
         coords::float_type e() override;
         /** Energy+Gradient function */

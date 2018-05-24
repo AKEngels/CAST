@@ -81,6 +81,14 @@ namespace qmmm_helpers
   @param tp: tinker parameter object*/
   std::vector<LinkAtom> create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, std::vector<size_t> &mm_indices, tinker::parameter::parameters const &tp);
 
+  /**calculate gradients on QM and MM atom from link atom (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
+  @param l: link atom
+  @param G_L: gradient on link atom
+  @param coords: coordinates object of whole system
+  @param G_QM: reference to QM gradient (is calculated)
+  @param G_MM: reference to MM gradient (is calculated)*/
+  void calc_link_atom_grad(LinkAtom l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM);
+
   /**creates a vector with the indizes of all MM atoms
   @param num_atoms: number of atoms in whole system*/
   std::vector<std::size_t> get_mm_atoms(std::size_t const num_atoms);
