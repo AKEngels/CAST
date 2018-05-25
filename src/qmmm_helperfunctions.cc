@@ -244,7 +244,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
       {
         coords::Atom current("H");
         current.set_energy_type(a.energy_type);
-        current.bind_to(new_indices.at(a.mm));
+        current.bind_to(new_indices.at(a.qm));
         tmp_link_atoms.add(current);
         pes.structure.cartesian.push_back(a.position);
 
@@ -254,7 +254,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
           {
             coords::Atom& current2 = new_qm_atoms.atom(i);
             current2.bind_to(new_qm_atoms.size() + counter);
-			break; // link atom is hydrogen so only one bonding partner
+			      break; // link atom is hydrogen so only one bonding partner
           }
         }
         counter++;
