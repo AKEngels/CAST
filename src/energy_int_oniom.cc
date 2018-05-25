@@ -97,14 +97,24 @@ void energy::interfaces::oniom::ONIOM::update(bool const skip_topology)
 
 void energy::interfaces::oniom::ONIOM::update_representation()
 {
-  std::size_t qi = 0u;
+  std::size_t qi = 0u;    // update position of QM atoms in small systems
   for (auto i : qm_indices)
   {
     qmc.move_atom_to(qi, coords->xyz(i), true);
     mmc_small.move_atom_to(qi, coords->xyz(i), true);
     ++qi;
   }
-  std::size_t mi = 0u;
+
+  for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms in small systems
+  for (int i = 0; i < link_atoms.size(); ++i)
+  {
+	  int index = qm_indices.size() + i;
+	  coords::cartesian_type &new_pos = link_atoms[i].position;
+	  qmc.move_atom_to(index, new_pos, true);
+	  mmc_small.move_atom_to(index, new_pos, true);
+  }
+
+  std::size_t mi = 0u;       // update positions of all atoms in big system
   for (std::size_t mi = 0u; mi<coords->size(); mi++)
   {
     mmc_big.move_atom_to(mi, coords->xyz()[mi], true);
@@ -114,9 +124,9 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
+	
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms
-
+  
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
