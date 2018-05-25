@@ -396,7 +396,7 @@ ic_core::rotation::rot_val(const coords::Representation_3D& new_xyz) const {
   for (auto const & i : indices_) {
     curr_xyz_.emplace_back(new_xyz.at(i - 1));
   }
-  auto result = ic_rotation::exponential_map(curr_xyz_, reference_);
+  auto result = ic_rotation::exponential_map(reference_, curr_xyz_);
   for(auto & r : result){
     r*=rad_gyr_;
   }
@@ -410,7 +410,7 @@ ic_core::rotation::rot_der(const coords::Representation_3D& new_xyz) const{
     new_xyz_.emplace_back(new_xyz.at(indi - 1));
   }
 
-  return ic_rotation::exponential_derivs(new_xyz_, reference_);
+  return ic_rotation::exponential_derivs(reference_, new_xyz_);
 }
 
 scon::mathmatrix<float_type>
@@ -514,13 +514,13 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   return result;
 }
 
-//TODO enable new_matrices again
 scon::mathmatrix<float_type>& ic_core::system::ic_Bmat(){
   if(!new_B_matrix){
     return B_matrix;
   }
   B_matrix = del_mat.t()*Bmat();
   new_B_matrix = false;
+  std::cout << std::setprecision(5) << std::fixed << "\nBmatrix:\n" << B_matrix << "\n\n";
   return B_matrix;
 }
 
@@ -538,6 +538,7 @@ scon::mathmatrix<float_type>& ic_core::system::Bmat() {
     B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
   new_B_matrix = false;
+  std::cout << std::setprecision(5) << std::fixed << "\nBmatrix:\n" << B_matrix << "\n\n";
   return B_matrix;
 }
 
@@ -548,6 +549,7 @@ scon::mathmatrix<float_type>& ic_core::system::Gmat(){
   Bmat();
   G_matrix = B_matrix * B_matrix.t();
   new_G_matrix=false;
+  std::cout << std::setprecision(5) << std::fixed << "\nGram:\n" << G_matrix << "\n\n";
   return G_matrix;
 }
 
@@ -558,6 +560,7 @@ scon::mathmatrix<float_type>& ic_core::system::ic_Gmat(){
   ic_Bmat();
   G_matrix = B_matrix * B_matrix.t();
   new_G_matrix=false;
+  std::cout << std::setprecision(5) << std::fixed << "\nGram^-1:\n" << G_matrix.pinv() << "\n\n";
   return G_matrix;
 }
 

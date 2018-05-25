@@ -533,7 +533,6 @@ inline scon::mathmatrix<float_type> ic_core::system::get_internal_step(Gint&& g_
 template<typename Dint>
 inline void ic_core::system::apply_internal_change(Dint&& d_int){
   using ic_util::flatten_c3_vec;
-  using ic_util::get_mean;
 
   auto old_xyz = xyz_;
   coords::Representation_3D first_change, last_good_xyz;
@@ -541,11 +540,19 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
   auto micro_iter{ 0 }, fail_count{ 0 };
   auto damp{1.};
   auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
-  for(; micro_iter < 50 && fail_count < 6; ++micro_iter){
+  for(; micro_iter < 50; ++micro_iter){
+
+    ic_Bmat();
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
 
     auto d_now = calc_diff(xyz_, old_xyz);
-    d_int_left += d_now;
+    std::cout << "dqDone:\n";
+    std::cout << d_now << std::endl;
+    std::cout << "\nBefor:\n";
+    std::cout << d_int_left << std::endl;
+    d_int_left -= d_now;
+    std::cout << "\nAfter:\n";
+    std::cout << d_int_left << std::endl;
     auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
     auto internal_norm = d_int_left.norm();
     if (micro_iter == 0){
@@ -571,7 +578,7 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
       std::cout << "Took " << micro_iter << " steps to converge.\n";
       return;
     }
-    else if(fail_count>=5){
+    else if(fail_count>=10){
         std::cout << "Failed five times to converge.\n";
         xyz_ = first_change;
         return;
@@ -639,7 +646,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
       }
     }
   }
-
+  std::cout << "Redundant Change:\n";
   for(auto i{0}; i<lprims.cols(); ++i){
     std::cout << std::setw(15) << std::setprecision(10) << lprims(0,i) << std::setw(15) << rprims(0,i) << std::setw(15) << diff(0,i) << std::endl;
   }

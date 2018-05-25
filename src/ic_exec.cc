@@ -58,14 +58,14 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
     }
   };
 
-  std::ofstream offpb("prim_Bmat.dat");
+  /*std::ofstream offpb("prim_Bmat.dat");
   write_with_zero(offpb, icSystem.Bmat());
   std::ofstream offpg("prim_Gmat.dat");
-  write_with_zero(offpg, icSystem.Gmat());
+  write_with_zero(offpg, icSystem.Gmat());*/
 
-  auto G_matrix = icSystem.delocalize_ic_system();
+  icSystem.delocalize_ic_system();
 
-  std::ofstream offib("ic_Bmat.dat");
+  /*std::ofstream offib("ic_Bmat.dat");
   write_with_zero(offib,icSystem.ic_Bmat());
   std::ofstream offig("ic_Gmat.dat");
   write_with_zero(offig,icSystem.ic_Gmat());
@@ -77,7 +77,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
 
   std::cout << "DelHessian:\n";
   write_with_zero(std::cout, del_hessian);
-  std::cout << "\n\n";
+  std::cout << "\n\n";*/
 
   /*std::cout << "Ginversed:\n" << G_matrix_inv << "\n\n";
   std::cout << "Gmatrix:\n" << G_matrix << "\n\n";*/
