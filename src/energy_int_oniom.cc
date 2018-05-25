@@ -253,6 +253,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
 
+  // ############### STUFF TO DO AT THE END OF CALCULATION ######################
+
   Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
 
   if (check_bond_preservation() == false) integrity = false;
