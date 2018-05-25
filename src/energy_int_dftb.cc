@@ -74,6 +74,18 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
   }
 
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+	  std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
+	  std::ofstream chargefile("charges.dat");
+	  for (int j = 0; j < charge_vector.size(); j++)
+	  {
+		  chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+	  }
+	  chargefile.close();
+  }
+  
+
   // create inputfile
   std::ofstream file("dftb_in.hsd");
 
@@ -109,6 +121,18 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
+
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+	  file << "  ElectricField = {\n";
+	  file << "    PointCharges = {\n";
+	  file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+	  file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";  // number of charges
+	  file << "        File = 'charges.dat'\n";
+	  file << "      }\n";
+	  file << "    }\n";
+	  file << "  }\n";
+  }
 
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)

@@ -18,6 +18,23 @@
 
 #include "representation.h"
 
+/**struct for a point charge*/
+struct PointCharge
+{
+  /**position*/
+	double x, y, z;
+  /**charge*/
+	double charge;
+
+  /**function to set position*/
+	void set_xyz(double m_x, double m_y, double m_z)
+	{
+		x = m_x;
+		y = m_y;
+		z = m_z;
+	}
+};
+
 namespace coords
 {
 

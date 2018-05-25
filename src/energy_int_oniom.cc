@@ -63,20 +63,16 @@ void energy::interfaces::oniom::ONIOM::swap(interface_base& rhs)
 void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
   interface_base::swap(rhs);
-  //std::swap(cparams, rhs.cparams);
   qm_indices.swap(rhs.qm_indices);
   mm_indices.swap(rhs.mm_indices);
-  //new_indices_mm.swap(rhs.new_indices_mm);
+  link_atoms.swap(rhs.link_atoms);
   new_indices_qm.swap(rhs.new_indices_qm);
-  /*qmc.swap(rhs.qmc);
+  qmc.swap(rhs.qmc);
   mmc_big.swap(rhs.mmc_big);
-  mmc_small.swap(rhs.mmc_small);*/
-  /*qm_charge_vector.swap(rhs.qm_charge_vector);
-  mm_charge_vector.swap(rhs.mm_charge_vector);*/
+  mmc_small.swap(rhs.mmc_small);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(mm_energy_big, rhs.mm_energy_big);
-  //c_gradient.swap(rhs.c_gradient);
-  //vdw_gradient.swap(rhs.vdw_gradient);
+  std::swap(mm_energy_small, rhs.mm_energy_small);
 }
 
 // update structure (account for topology or rep change)
@@ -144,6 +140,31 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     std::cout << "Energy of big MM system: \n";
     mmc_big.e_head_tostream_short(std::cout);
     mmc_big.e_tostream_short(std::cout);
+  }
+
+  // ############### CREATE MM CHARGES ######################
+
+  std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+
+  bool use_charge;
+  for (int i{ 0u }; i < coords->size(); ++i) // go through all atoms
+  {
+	  use_charge = true;
+	  for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
+	  {
+		  if (l.mm == i) use_charge = false;
+	  }
+	  for (auto &qm : qm_indices) // ... and the QM atoms themselves
+	  {
+		  if (qm == i) use_charge = false;
+	  }
+	  if (use_charge)  // for the other create a PointCharge and add it to vector
+	  {
+		  PointCharge new_charge;
+		  new_charge.charge = charge_vector[i];
+		  new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+		  Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+	  }
   }
 
   // ############### MM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
@@ -231,6 +252,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
+
+  Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;

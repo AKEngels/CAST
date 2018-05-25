@@ -554,15 +554,16 @@ namespace config
     {
       /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
-	  std::vector<size_t> bla;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
-	  /**should QM region be written into file? (only for ONIOM)*/
-	  bool qm_to_file{ false };
+	    /**should QM region be written into file? (only for ONIOM)*/
+	    bool qm_to_file{ false };
+      /**vector of MM charges (external charges for inner calculation)*/
+		  std::vector<PointCharge> mm_charges;
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
