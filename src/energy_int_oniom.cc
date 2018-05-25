@@ -23,11 +23,9 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  //cparams(rhs.cparams),
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
-  new_indices_qm(rhs.new_indices_qm), //new_indices_mm(rhs.new_indices_mm),
-  //qmc(rhs.qmc), mmc_big(rhs.mmc_big), mmc_small(rhs.mmc_small), //qm_charge_vector(rhs.qm_charge_vector),
-  //mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
+  new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
+  qmc(rhs.qmc), mmc_big(rhs.mmc_big), mmc_small(rhs.mmc_small), 
   qm_energy(rhs.qm_energy), mm_energy_big(rhs.mm_energy_big), mm_energy_small(rhs.mm_energy_small)
 {
   interface_base::operator=(rhs);
@@ -35,17 +33,10 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  //cparams(std::move(rhs.cparams)),
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
-  new_indices_qm(std::move(rhs.new_indices_qm)),
-  //new_indices_mm(std::move(rhs.new_indices_mm)),
-  //qmc(std::move(rhs.qmc)), mmc_big(std::move(rhs.mmc_big)), mmc_small(std::move(rhs.mmc_small)),
-  /*qm_charge_vector(std::move(rhs.qm_charge_vector)),
-  mm_charge_vector(std::move(rhs.mm_charge_vector)),
-  vdw_energy(std::move(rhs.vdw_energy)),*/
+  new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
+  qmc(std::move(rhs.qmc)), mmc_big(std::move(rhs.mmc_big)), mmc_small(std::move(rhs.mmc_small)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy_big(std::move(rhs.mm_energy_big)), mm_energy_small(std::move(rhs.mm_energy_small))
-  /*c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
-  bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))*/
 {
   interface_base::operator=(rhs);
 }

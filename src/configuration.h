@@ -554,6 +554,7 @@ namespace config
     {
       /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
+	  std::vector<size_t> bla;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
       /**QM interface*/

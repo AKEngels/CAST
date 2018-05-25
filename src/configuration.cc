@@ -365,7 +365,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
   }
   // Name of the outputfile
-  // Default: oplsaa.prm
   else if (option == "outname")
   {
 	  // outname_check is a small function used to test if
@@ -641,8 +640,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
-    if (option.substr(5, 3) == "key")
-      Config::set().energy.mopac.command = value_string;
+	  if (option.substr(5, 3) == "key")
+		  Config::set().energy.mopac.command = value_string;
     else if (option.substr(5, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
