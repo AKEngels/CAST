@@ -74,6 +74,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
   }
 
+  // create a chargefile for external charges if desired (needed for QM/MM methods)
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
 	  std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
@@ -122,12 +123,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
 
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)  // include chargefile
   {
 	  file << "  ElectricField = {\n";
 	  file << "    PointCharges = {\n";
 	  file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-	  file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";  // number of charges
+	  file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";  
 	  file << "        File = 'charges.dat'\n";
 	  file << "      }\n";
 	  file << "    }\n";
@@ -230,7 +231,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
-      else if (Config::get().energy.qmmm.use == true)
+      else if (Config::get().energy.qmmm.use == true || Config::get().energy.qmmm.mm_charges.size() != 0)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {

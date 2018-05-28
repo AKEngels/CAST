@@ -253,6 +253,18 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
 
+  // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
+
+  //if (if_gradient)
+  //{
+  //  for (int i=0; i<mm_indices.size(); ++i)
+  //  {
+  //    int mma = mm_indices[i];
+  //    new_grads[mma] += qmc.energyinterface()->get_g_coul_mm()[i];
+  //    new_grads[mma] -= mmc_small.energyinterface()->get_g_coul_mm()[i];
+  //  }
+  //}
+
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
   Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
