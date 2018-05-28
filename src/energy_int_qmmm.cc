@@ -218,10 +218,13 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 // creates link atom for every QM/MM bond
 void energy::interfaces::qmmm::QMMM::create_link_atoms()
 {
+  int type, counter = 0;
   for (auto b : qmmm_bonds)
   {
     //create link atom
-    LinkAtom link(b.b, b.a, coords, tp);
+    type = Config::get().energy.qmmm.linkatom_types[counter];
+    LinkAtom link(b.b, b.a, type, coords, tp);
+    counter += 1;
 
     // add link atom to vector
     link_atoms.push_back(link);

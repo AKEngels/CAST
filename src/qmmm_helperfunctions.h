@@ -28,21 +28,11 @@ struct LinkAtom
   /**another constructor
   @param b: index of QM atom
   @param a: index of MM atom
+  @param atomtype: energytype of link atom in forcefield
   @param coords: pointer to coordinates object
   @param tp: tinker parameter object*/
-  LinkAtom(int b, int a, coords::Coordinates *coords, tinker::parameter::parameters const &tp) : qm(b), mm(a)
+  LinkAtom(int b, int a, int atomtype, coords::Coordinates *coords, tinker::parameter::parameters const &tp) : qm(b), mm(a), energy_type(atomtype)
   {
-    // determine energy type for link atom
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
-    {
-      energy_type = 85;
-    }
-    else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-    {
-      energy_type = 3024;
-    }
-    else throw("Something went wrong. Invalid MM interface for QM/MM.");
-
     // determine equilibrium distance between link atom and QM atom from force field
     deq_L_QM = 0.0;
     auto b_type_qm = tp.type(coords->atoms().atom(b).energy_type(), tinker::potential_keys::BOND); // bonding energy type for QM atom

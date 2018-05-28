@@ -564,6 +564,8 @@ namespace config
 	    bool qm_to_file{ false };
       /**vector of MM charges (external charges for inner calculation)*/
 		  std::vector<PointCharge> mm_charges;
+      /**energy types of link atoms (in the order of MM atom)*/
+      std::vector<int> linkatom_types;
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/

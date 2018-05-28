@@ -133,6 +133,16 @@ QMMMqmatoms           4-6
 QMMMmminterface       OPLSAA
 QMMMqminterface       MOPAC
 
+# write tinkerstructure of QM region into file? <0/1>
+QMMMwriteqmintofile   1
+
+# energy types of link atoms in forcefield (in the order of MM atom)
+QMMMlinkatomtype      85
+QMMMlinkatomtype      85
+QMMMlinkatomtype      221
+QMMMlinkatomtype      85
+
+
 
 ######################### MOPAC OPTIONS ###############
 

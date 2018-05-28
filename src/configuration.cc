@@ -556,7 +556,11 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
 	else if (option.substr(4u) == "writeqmintofile")
 	{
-		if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	  if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	}
+	else if (option.substr(4u) == "linkatomtype")
+	{
+	  Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
 	}
   }
 
