@@ -153,28 +153,28 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   // ############### CREATE MM CHARGES ######################
 
-  //std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+  std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
 
-  //bool use_charge;
-  //for (int i{ 0u }; i < coords->size(); ++i) // go through all atoms
-  //{
-	 // use_charge = true;
-	 // for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
-	 // {
-		//  if (l.mm == i) use_charge = false;
-	 // }
-	 // for (auto &qm : qm_indices) // ... and the QM atoms themselves
-	 // {
-		//  if (qm == i) use_charge = false;
-	 // }
-	 // if (use_charge)  // for the other create a PointCharge and add it to vector
-	 // {
-		//  PointCharge new_charge;
-		//  new_charge.charge = charge_vector[i];
-		//  new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-		//  Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-	 // }
-  //}
+  bool use_charge;
+  for (int i{ 0u }; i < coords->size(); ++i) // go through all atoms
+  {
+	  use_charge = true;
+	  for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
+	  {
+		  if (l.mm == i) use_charge = false;
+	  }
+	  for (auto &qm : qm_indices) // ... and the QM atoms themselves
+	  {
+		  if (qm == i) use_charge = false;
+	  }
+	  if (use_charge)  // for the other create a PointCharge and add it to vector
+	  {
+		  PointCharge new_charge;
+		  new_charge.charge = charge_vector[i];
+		  new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+		  Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+	  }
+  }
 
   // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
   if (!if_gradient)
@@ -264,15 +264,15 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
 
-  //if (if_gradient)
-  //{
-  //  for (int i=0; i<mm_indices.size(); ++i)
-  //  {
-  //    int mma = mm_indices[i];
-  //    new_grads[mma] += qmc.energyinterface()->get_g_coul_mm()[i];
-  //    new_grads[mma] -= mmc_small.energyinterface()->get_g_coul_mm()[i];
-  //  }
-  //}
+  if (if_gradient && integrity == true)
+  {
+    for (int i=0; i<mm_indices.size(); ++i)
+    {
+      int mma = mm_indices[i];
+      new_grads[mma] += qmc.energyinterface()->get_g_coul_mm()[i];
+      new_grads[mma] -= mmc_small.energyinterface()->get_g_coul_mm()[i];
+    }
+  }
 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 

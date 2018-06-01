@@ -165,6 +165,11 @@ namespace energy
         template<std::size_t T_DERV> coords::float_type f_it(void);
         /**impropers interactions*/
         template<std::size_t T_DERV> coords::float_type f_imp(void);
+        /**calculates interaction to external charges*/
+        void calc_ext_charges_interaction(size_t);
+
+        /**gradients on external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
 
         /**charge energy */
         coords::float_type eQ(coords::float_type const C, coords::float_type const r) const;

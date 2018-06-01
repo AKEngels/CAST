@@ -83,9 +83,12 @@ void energy::interfaces::aco::aco_ff::calc(void)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
   }
-  else
-    g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  else g_nb< ::tinker::parameter::radius_types::SIGMA>();
 
+	if (Config::get().energy.qmmm.mm_charges.size() != 0)
+	{
+		calc_ext_charges_interaction(DERIV);
+	}
 }
 
 
@@ -864,6 +867,41 @@ namespace energy
         }
       }
 
+			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
+			{
+				grad_ext_charges.clear();  // reset vector for gradients of external charges
+
+				for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
+				{
+					coords::Cartesian_Point ext_grad; // gradient on this charge
+					for (int i=0; i<coords->size(); ++i)               // loop over all atoms
+					{
+						auto &a = coords->atoms(i);
+						double atom_charge;
+						auto ctype = tp.type(a.energy_type(), tinker::potential_keys::CHARGE); // charge energy type for atom
+						for (auto param : tp.charges())
+						{
+							if (ctype == param.index) atom_charge = param.c;  // find charge that belongs to parameter
+						}
+						double charge_product = c.charge * atom_charge;
+
+						double dist = std::sqrt( (coords->xyz(i).x()-c.x)*(coords->xyz(i).x()-c.x) + (coords->xyz(i).y() - c.y)*(coords->xyz(i).y() - c.y) + (coords->xyz(i).z() - c.z)*(coords->xyz(i).z() - c.z));
+						double inverse_dist = 1.0 / dist;  // get inverse distance
+
+						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
+
+						else  // gradient calculation
+						{
+							coords::float_type dQ;
+							energy += gQ(charge_product, inverse_dist, dQ);
+
+							part_grad[CHARGE][i] += dQ;  // gradient on atom
+							ext_grad -= dQ;              // gradient on external charge
+						}
+					}
+					grad_ext_charges.push_back(ext_grad);
+				}
+			}
 
       /**calculate coulomb potential;
       returns the energy
