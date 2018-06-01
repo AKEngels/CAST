@@ -45,19 +45,18 @@ struct LinkAtom
     if (deq_L_QM == 0.0)  throw std::runtime_error("Determining position of link atom is not possible.\n");
 
     // calculate position of link atom
-    position = calc_position(coords);
+    calc_position(coords);
   }
 
   /**function to calculate position of link atom (see: doi 10.1002/jcc.20857)
   @param cp: pointer to coordinates object*/
-  coords::cartesian_type calc_position(coords::Coordinates *cp)
+  void calc_position(coords::Coordinates *cp)
   {
     coords::cartesian_type r_MM = cp->xyz(mm);
     coords::cartesian_type r_QM = cp->xyz(qm);
     double d_MM_QM = dist(r_MM, r_QM);
 
-    coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * deq_L_QM;
-    return pos;
+    position = r_QM + ((r_MM - r_QM) / d_MM_QM) * deq_L_QM;
   }
 };
 

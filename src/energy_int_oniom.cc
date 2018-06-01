@@ -121,7 +121,7 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
 	
-  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
+  update_representation(); // update positions of QM and MM subsystems to those of coordinates object
   
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
@@ -167,7 +167,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	 // }
   //}
 
-  // ############### MM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
+  // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
   if (!if_gradient)
   {
     mm_energy_small = mmc_small.e();  // calculate energy of small MM system
@@ -299,8 +299,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
   throw std::runtime_error("QMMM-cannot optimize");
 }
-
-
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
 {
