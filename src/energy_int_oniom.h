@@ -70,7 +70,7 @@ namespace energy
 			    throw std::runtime_error("function not implemented\n");
 		    }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
           throw std::runtime_error("function not implemented\n");
         }

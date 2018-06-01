@@ -55,7 +55,7 @@ namespace energy{
         std::vector<float_type> charges() const override{
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
         }
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override{
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override{
           throw std::runtime_error("Function not implemented for psi4 interface.\n");
         }
         std::string get_id() const override{

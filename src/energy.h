@@ -182,7 +182,7 @@ namespace energy
     /**this is something that is needed for QM/MM calculations
     for GAUSSIAN it returns the electric field for QM and MM atoms
     for DFTB+ it returns the coulomb gradients on the MM atoms due to the QM atoms*/
-    virtual std::vector<coords::Cartesian_Point> get_g_coul_mm() const = 0;
+    virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
     virtual coords::Gradients_3D get_link_atom_grad() const=0;
 
     /**get id for gaussian call*/

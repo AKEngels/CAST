@@ -67,7 +67,7 @@ namespace energy
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
           return grad_ext_charges;
         }

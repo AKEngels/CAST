@@ -506,7 +506,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
 }
 
 std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
+energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
 {
   return grad_ext_charges;
 }

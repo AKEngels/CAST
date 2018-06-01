@@ -269,8 +269,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     for (int i=0; i<mm_indices.size(); ++i)
     {
       int mma = mm_indices[i];
-      new_grads[mma] += qmc.energyinterface()->get_g_coul_mm()[i];
-      new_grads[mma] -= mmc_small.energyinterface()->get_g_coul_mm()[i];
+      new_grads[mma] += qmc.energyinterface()->get_g_ext_chg()[i];
+      new_grads[mma] -= mmc_small.energyinterface()->get_g_ext_chg()[i];
     }
   }
 

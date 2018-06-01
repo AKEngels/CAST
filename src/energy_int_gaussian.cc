@@ -651,7 +651,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 }
 
 std::vector<coords::Cartesian_Point>
-energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_coul_mm() const
+energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 {
   return electric_field;
 }

@@ -690,7 +690,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
 		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
     {   // electric field for QM and MM atoms (for GAUSSIAN) or coulomb gradients on MM atoms (for DFTB+)
-      g_coul_mm = qmc.energyinterface()->get_g_coul_mm();
+      g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
     }
   }
   catch(...)
