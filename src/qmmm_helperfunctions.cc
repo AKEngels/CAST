@@ -14,7 +14,8 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
         if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
         {
-          type = Config::get().energy.qmmm.linkatom_types[counter];
+			    try {type = Config::get().energy.qmmm.linkatom_types[counter];}
+				  catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
           LinkAtom link(b, mma, type, coords, tp);
           links.push_back(link);
           counter += 1;

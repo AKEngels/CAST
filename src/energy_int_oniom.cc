@@ -120,7 +120,16 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 
 coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 {
-	
+	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
+		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
+		for (auto &l : link_atoms)
+		{
+			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+	  }
+		throw std::runtime_error("wrong number of link atom types");
+	}
+
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object
   
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation

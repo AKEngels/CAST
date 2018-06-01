@@ -639,9 +639,19 @@ void energy::interfaces::qmmm::QMMM::remove_qm_charges()
 }
 
 /**calculates energies and gradients
-@paran if_gradient: true if gradients should be calculated, false if not*/
+@param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
+		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
+		for (auto &l : link_atoms)
+		{
+			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+		}
+		throw std::runtime_error("wrong number of link atom types");
+	}
+
   integrity = true;
   auto elec_factor = 332.0;
 
