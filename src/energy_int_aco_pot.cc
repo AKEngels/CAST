@@ -885,6 +885,11 @@ namespace energy
 						}
 						double charge_product = c.charge * atom_charge *18.2223*18.2223; // convert charges to amber-units
 
+            double dist_x = coords->xyz(i).x() - c.x;
+            double dist_y = coords->xyz(i).y() - c.y;
+            double dist_z = coords->xyz(i).z() - c.z;
+            coords::Cartesian_Point vector{ dist_x,dist_y,dist_z }; // connection vector between charge and atom
+
 						double dist = std::sqrt( (coords->xyz(i).x()-c.x)*(coords->xyz(i).x()-c.x) + (coords->xyz(i).y() - c.y)*(coords->xyz(i).y() - c.y) + (coords->xyz(i).z() - c.z)*(coords->xyz(i).z() - c.z));
 						double inverse_dist = 1.0 / dist;  // get inverse distance
 
@@ -895,8 +900,10 @@ namespace energy
 							coords::float_type dQ;
 							energy += gQ(charge_product, inverse_dist, dQ);
 
-							part_grad[CHARGE][i] += dQ;  // gradient on atom
-							ext_grad -= dQ;              // gradient on external charge
+              coords::Cartesian_Point grad = vector * dQ;     // dQ is a float, now the gradient gets a direction
+
+							part_grad[CHARGE][i] += grad;  // gradient on atom
+							ext_grad -= grad;              // gradient on external charge
 						}
 					}
 					grad_ext_charges.push_back(ext_grad);
@@ -1029,13 +1036,12 @@ namespace energy
         (coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const vout, coords::float_type &dV) const
       {
-        coords::float_type D6, D12, D13, T2;
+        coords::float_type D6, D12, T2;
         coords::float_type T = R, D = r*r;
         T = T*T*T; // T^3
         T = T*T; // T^6
         T2 = T*T; // T^12
         D6 = D*D*D; //r^6 / D^3
-        D13 = D6*D6*r; //r^13
         D6 = Config::get().fep.ljshift * (1 - vout) * (1 - vout) * T + D6; //r^6 shifted
         D12 = D6 * D6; //r^12 shifted
         coords::float_type V = vout * E * (T2 / D12 - 2 * T / D6);   //potential
