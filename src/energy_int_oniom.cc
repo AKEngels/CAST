@@ -109,9 +109,8 @@ void energy::interfaces::oniom::ONIOM::update_representation()
 	  qmc.move_atom_to(index, new_pos, true);
 	  mmc_small.move_atom_to(index, new_pos, true);
   }
-
-  std::size_t mi = 0u;       // update positions of all atoms in big system
-  for (std::size_t mi = 0u; mi<coords->size(); mi++)
+     
+  for (std::size_t mi = 0u; mi<coords->size(); mi++)   // update positions of all atoms in big system
   {
     mmc_big.move_atom_to(mi, coords->xyz()[mi], true);
   }
@@ -155,7 +154,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
 
+  std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
+
   bool use_charge;
+  charge_indices.clear();
   for (int i{ 0u }; i < coords->size(); ++i) // go through all atoms
   {
 	  use_charge = true;
@@ -173,6 +175,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 		  new_charge.charge = charge_vector[i];
 		  new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
 		  Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+      charge_indices.push_back(i);  // add index to charge_indices
 	  }
   }
 
@@ -266,9 +270,9 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   if (if_gradient && integrity == true)
   {
-    for (int i=0; i<mm_indices.size(); ++i)
+    for (int i=0; i<charge_indices.size(); ++i)
     {
-      int mma = mm_indices[i];
+      int mma = charge_indices[i];
       new_grads[mma] += qmc.energyinterface()->get_g_ext_chg()[i];
       new_grads[mma] -= mmc_small.energyinterface()->get_g_ext_chg()[i];
     }
@@ -306,7 +310,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::h()
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
-  throw std::runtime_error("QMMM-cannot optimize");
+  throw std::runtime_error("QMMM cannot optimize");
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const

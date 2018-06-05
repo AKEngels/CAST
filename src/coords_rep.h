@@ -35,6 +35,13 @@ struct PointCharge
 	}
 };
 
+/**overloaded output operator for PointCharge*/
+inline std::ostream& operator<< (std::ostream& stream, const PointCharge& c)
+{
+	stream << c.x << ", " << c.y << ", " << c.z << ", charge: " << c.charge;
+	return stream;
+}
+
 namespace coords
 {
 
