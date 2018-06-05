@@ -883,7 +883,7 @@ namespace energy
 						{
 							if (ctype == param.index) atom_charge = param.c;  // find charge that belongs to parameter
 						}
-						double charge_product = c.charge * atom_charge;
+						double charge_product = c.charge * atom_charge *18.2223*18.2223; // convert charges to amber-units
 
 						double dist = std::sqrt( (coords->xyz(i).x()-c.x)*(coords->xyz(i).x()-c.x) + (coords->xyz(i).y() - c.y)*(coords->xyz(i).y() - c.y) + (coords->xyz(i).z() - c.z)*(coords->xyz(i).z() - c.z));
 						double inverse_dist = 1.0 / dist;  // get inverse distance
@@ -905,7 +905,7 @@ namespace energy
 
       /**calculate coulomb potential;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: inverse distance between the two atoms */
       coords::float_type energy::interfaces::aco::aco_ff::eQ
       (coords::float_type const C, coords::float_type const ri) const
@@ -915,7 +915,7 @@ namespace energy
 
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: inverse distance between the two atoms
       @param dQ: reference to variable that saves absolute value of gradient */
       coords::float_type energy::interfaces::aco::aco_ff::gQ
@@ -928,7 +928,7 @@ namespace energy
 
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: distance between the two atoms
       @param cout: lambda_el
       @param dQ: reference to variable that saves absolute value of gradient */
