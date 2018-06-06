@@ -316,7 +316,7 @@ void coords::output::formats::tinker::to_stream(std::ostream & stream) const
 {
   bool const pp = Config::get().periodics.periodic && Config::get().periodics.periodic_print;
   std::size_t const N(ref.size());
-  stream << (pp ? N + 8 : N) << '\n';
+  stream << (pp ? N+8 : N) << '\n';
   //std::size_t index_width(1), tens(N);
   //while(tens >= 10U)
   //{

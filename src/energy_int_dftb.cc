@@ -178,9 +178,10 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 {
-  if (file_exists("results.tag") == false) // if SCC does not converge DFTB+ doesn't produce this file
+  std::string res_filename{ "results.tag" };
+  if (file_is_empty(res_filename)) // if SCC does not converge this file is empty
   {
-    std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
+    std::cout << "DFTB+ produced an empty output file. Treating structure as broken.\n";
     integrity = false;
   }
 
@@ -356,7 +357,6 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
-  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {
@@ -371,7 +371,6 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
-  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {
@@ -386,7 +385,6 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
-  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {

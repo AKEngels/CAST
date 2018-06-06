@@ -147,4 +147,16 @@ inline std::string last_line(std::ifstream& in)
   return line;
 }
 
+/**tests if a file is empty
+returns true if it is empty, false if not
+@param filename: name of the file*/
+inline bool file_is_empty(std::string &filename)
+{
+	std::ifstream file (filename);
+	std::string some_string;
+	file >> some_string;
+	if (some_string.empty()) return true;
+	else return false;
+}
+
 #endif

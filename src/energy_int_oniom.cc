@@ -253,6 +253,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
         g_qm_small.pop_back();  // delete LinkAtom from gradients
       }
     }
+    if (qmc.integrity() == false) integrity = false;
+
     if (Config::get().general.verbosity > 4)
     {
       std::cout << "Energy of QM system: \n";
