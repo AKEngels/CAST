@@ -7,7 +7,6 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 @author Susanne Sauer
 @version 1.0
 */
-#pragma once
 #include "coords_io.h"
 #include "helperfunctions.h"
 

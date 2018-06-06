@@ -653,16 +653,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 	}
 
   integrity = true;
-  auto elec_factor = 332.0;
 
   if (Config::get().coords.amber_charges.size() > mm_indices.size()) remove_qm_charges();
   mm_charge_vector = mmc.energyinterface()->charges();
-
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
-  }
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
   for (auto &l : link_atoms) l.calc_position(coords) ; // update positions of link atoms
