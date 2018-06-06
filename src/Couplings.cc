@@ -2,6 +2,7 @@
 
 void couplings::coupling::kopplung()
 {
+  if (Config::get().general.energy_interface != config::interface_types::T::GAUSSIAN) { throw std::runtime_error("Wrong energy interface detected, the COUPLINGS task can only be used with the GAUSSIAN interface."); }
   int gesanzahl_monomere = Config::get().couplings.nbr_nSC + Config::get().couplings.nbr_pSC;
   
   double const au2kcal_mol(627.5095), eV2kcal_mol(23.061078);//conversion factors
