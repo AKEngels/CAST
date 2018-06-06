@@ -356,6 +356,7 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::dftb::sysCallInterface::e(void)
 {
+  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {
@@ -370,6 +371,7 @@ double energy::interfaces::dftb::sysCallInterface::e(void)
 // Energy+Gradient function
 double energy::interfaces::dftb::sysCallInterface::g(void)
 {
+  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {
@@ -384,6 +386,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::dftb::sysCallInterface::h(void)
 {
+  std::remove("results.tag");  // remove results.tag file because otherwise CAST does not recognize if DFTB+ doesn't converge
   integrity = check_structure();
   if (integrity == true)
   {
