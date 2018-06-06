@@ -869,28 +869,27 @@ namespace energy
 
 			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
 			{
+        auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
 				grad_ext_charges.clear();  // reset vector for gradients of external charges
+        coords::Cartesian_Point ext_grad;
 
 				for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
 				{
-					coords::Cartesian_Point ext_grad; // gradient on this charge
+          ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
+          ext_grad.y() = 0.0;
+          ext_grad.z() = 0.0;
+
 					for (int i=0; i<coords->size(); ++i)               // loop over all atoms
 					{
-						auto &a = coords->atoms(i);
-						double atom_charge;
-						auto ctype = tp.type(a.energy_type(), tinker::potential_keys::CHARGE); // charge energy type for atom
-						for (auto param : tp.charges())
-						{
-							if (ctype == param.index) atom_charge = param.c;  // find charge that belongs to parameter
-						}
-						double charge_product = c.charge * atom_charge *18.2223*18.2223; // convert charges to amber-units
+            double atom_charge = charges()[i];
+						double charge_product = c.charge * atom_charge *elec_factor; 
 
             double dist_x = coords->xyz(i).x() - c.x;
             double dist_y = coords->xyz(i).y() - c.y;
             double dist_z = coords->xyz(i).z() - c.z;
             coords::Cartesian_Point vector{ dist_x,dist_y,dist_z }; // connection vector between charge and atom
 
-						double dist = std::sqrt( (coords->xyz(i).x()-c.x)*(coords->xyz(i).x()-c.x) + (coords->xyz(i).y() - c.y)*(coords->xyz(i).y() - c.y) + (coords->xyz(i).z() - c.z)*(coords->xyz(i).z() - c.z));
+						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);
 						double inverse_dist = 1.0 / dist;  // get inverse distance
 
 						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
@@ -906,7 +905,7 @@ namespace energy
 							ext_grad -= grad;              // gradient on external charge
 						}
 					}
-					grad_ext_charges.push_back(ext_grad);
+					grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
 				}
 			}
 
