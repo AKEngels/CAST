@@ -910,11 +910,11 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
-    {    // Coulomb gradients for GAUSSIAN (only on MM atoms)
+    if (if_gradient == true  && (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) )
+    {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
       int j2 = 0;
       for (auto j : mm_indices)
-      {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
+      {   
         bool use_charge = true;
         for (auto b : qmmm_bonds)
         {
@@ -925,36 +925,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           if (Config::get().general.verbosity > 4)
           {
             std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
-          }
-          double charge = mm_charge_vector[j2];
-          coords::Cartesian_Point el_field = g_coul_mm[j2 + qm_indices.size()];
-          double x = charge * el_field.x();
-          double y = charge * el_field.y();
-          double z = charge * el_field.z();
-          coords::Cartesian_Point new_grad;
-          new_grad.x() = -x;
-          new_grad.y() = -y;
-          new_grad.z() = -z;
-          c_gradient[j] += new_grad;
-          j2++;
-        }
-      }
-    }
-    else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
-    {     // Coulomb gradients on MM atoms for DFTB+
-      int j2 = 0;
-      for (auto j : mm_indices)
-      {
-        bool use_charge = true;
-        for (auto b : qmmm_bonds)
-        {
-          if (j == b.a) use_charge = false;
-        }
-        if (use_charge == true)
-        {
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "calculate coulomb-gradient on atom " << j+1 << "\n";
           }
           c_gradient[j] += g_coul_mm[j2];
           j2++;

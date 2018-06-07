@@ -132,7 +132,15 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);
-    out_file << '\n';
+		out_file << '\n';
+		if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if desired: writing additional point charges (from MM atoms)
+		{
+			for (auto &c : Config::get().energy.qmmm.mm_charges)  
+			{
+				out_file << c.x << " " << c.y << " " << c.z << " " << c.charge << "\n";
+			}
+			out_file << '\n';
+		}
     if (Config::get().energy.gaussian.method == "DFTB=read")
     {
       std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
@@ -149,9 +157,15 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     }
     else if (Config::get().energy.gaussian.method == "DFTBA")
     {
-      out_file << "@GAUSS_EXEDIR:dftba.prm\n";
+      out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
-    out_file << '\n';
+		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)
+		{
+			for (auto &c : Config::get().energy.qmmm.mm_charges)  // writing points for electric field (positions of MM atoms)
+			{
+				out_file << c.x << " " << c.y << " " << c.z << "\n";
+			}
+		}
     out_file.close();
   }
   else std::runtime_error("Writing Gaussian Inputfile failed.");
@@ -653,7 +667,28 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 std::vector<coords::Cartesian_Point>
 energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 {
-  return electric_field;
+	if (electric_field.size() != Config::get().energy.qmmm.mm_charges.size())
+	{
+		throw std::logic_error("Electric field has not the same size as the external charges. Can't calculate gradients.");
+	}
+
+	std::vector<coords::Cartesian_Point> external_gradients;
+	for (int i = 0; i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
+	{
+		coords::Cartesian_Point E = electric_field[i];
+		double q = Config::get().energy.qmmm.mm_charges[i].charge;
+
+		double x = q * E.x();
+		double y = q * E.y();
+		double z = q * E.z();
+		coords::Cartesian_Point new_grad;
+		new_grad.x() = -x;
+		new_grad.y() = -y;
+		new_grad.z() = -z;
+
+		external_gradients.push_back(new_grad);
+	}
+  return external_gradients;
 }
 
 coords::Gradients_3D
