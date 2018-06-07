@@ -11,7 +11,7 @@
 
 namespace energy
 {
-  static coords::float_type constexpr au2kcal_mol{ 627.5095 }; //1 au = 627.5095 kcal/mol
+  static coords::float_type constexpr au2kcal_mol{ 627.5096080306 }; //1 au = 627.5095 kcal/mol
   static coords::float_type constexpr eV2kcal_mol{23.061078};
   static coords::float_type constexpr bohr2ang{ 0.52917721067 };
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAng{ au2kcal_mol / bohr2ang };

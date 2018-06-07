@@ -360,10 +360,6 @@ public:
 
   void optimize(coords::DL_Coordinates & coords);
 
-  void print_xyz(){
-    std::cout << xyz_ << "\n";
-  }
-
 };
 
 template <typename Graph>
@@ -535,34 +531,37 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
   using ic_util::flatten_c3_vec;
 
   auto old_xyz = xyz_;
-  coords::Representation_3D first_change, last_good_xyz;
+  coords::Representation_3D first_struct, last_good_xyz;
   auto d_int_left = std::forward<Dint>(d_int);
+  std::cout << "Look at this shit:\n" << std::scientific << d_int_left << std::endl;
   auto micro_iter{ 0 }, fail_count{ 0 };
   auto damp{1.};
   auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
   for(; micro_iter < 50; ++micro_iter){
 
-    ic_Bmat();
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
 
     auto d_now = calc_diff(xyz_, old_xyz);
-    std::cout << "dqDone:\n";
-    std::cout << d_now << std::endl;
+    /*std::cout << "\n\nStep:" << micro_iter << " Damp: " << damp << "\n";
+    std::cout << "\ndq in this step:\n";
+    std::cout << d_now.t() << std::endl;
     std::cout << "\nBefor:\n";
-    std::cout << d_int_left << std::endl;
-    d_int_left -= d_now;
-    std::cout << "\nAfter:\n";
-    std::cout << d_int_left << std::endl;
+    std::cout << d_int_left.t() << std::endl;*/
+    auto d_int_remain = d_int_left - d_now;
+    /*std::cout << "\nAfter:\n";
+    std::cout << d_int_remain.t() << std::endl;*/
     auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
-    auto internal_norm = d_int_left.norm();
+    auto internal_norm = d_int_remain.norm();
+    std::cout << "rmsd: " << cartesian_rmsd << "\ninternal_norm: " << internal_norm << "\n";
     if (micro_iter == 0){
-      first_change = xyz_;
+      first_struct = xyz_;
       last_good_xyz = xyz_;
       old_rmsd = cartesian_rmsd;
       old_inorm = internal_norm;
     }
     else {
       if(internal_norm>old_inorm){
+        std::cout << internal_norm << " vs " << old_inorm << "\n";
         damp /=2.;
         ++fail_count;
       }
@@ -579,14 +578,15 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
       return;
     }
     else if(fail_count>=10){
-        std::cout << "Failed five times to converge.\n";
-        xyz_ = first_change;
+        std::cout << "Failed ten times to converge.\n";
+        xyz_ = first_struct;
         return;
     }
 
     old_xyz = xyz_;
+    d_int_left = std::move(d_int_remain);
   }
-  std::cout << "Took all " << micro_iter+1 << " still not converged.\n";
+  std::cout << "Took all " << micro_iter+1 << " steps, still not converged.\n";
 }
 
 template<typename Dcart>
@@ -626,9 +626,9 @@ scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
 
 template<typename XYZ>
 scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
-  for(auto i{0}; i<lhs.size(); ++i){
+  /*for(auto i{0}; i<lhs.size(); ++i){
     std::cout << lhs.at(i) << "  " << rhs.at(i) << "  " << lhs.at(i) - rhs.at(i) << std::endl;
-  }
+  }*/
 
   auto lprims = calc_prims(std::forward<XYZ>(lhs));
   auto rprims = calc_prims(std::forward<XYZ>(rhs));
@@ -644,12 +644,24 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
           diff(0, i) -= 2.*SCON_PI;
         }
       }
+      /*auto ppi = diff(0, i) + 2.*SCON_PI;
+      auto mpi = diff(0, i) - 2.*SCON_PI;
+      if(std::fabs(diff(0, i)) > std::fabs(ppi)){
+        diff(0, i) = ppi;
+      }
+      if(std::fabs(diff(0, i)) > std::fabs(mpi)){
+        diff(0, i) = mpi;
+      }*/
     }
   }
   std::cout << "Redundant Change:\n";
   for(auto i{0}; i<lprims.cols(); ++i){
-    std::cout << std::setw(15) << std::setprecision(10) << lprims(0,i) << std::setw(15) << rprims(0,i) << std::setw(15) << diff(0,i) << std::endl;
+    std::cout << std::setw(15) << std::setprecision(10) << std::fixed << lprims(0,i) << std::setw(15) << rprims(0,i) << std::setw(15) << diff(0,i) << std::endl;
   }
+
+  std::cout << "\n\nDiff: " << std::setprecision(10) << std::setw(14) << std::fixed << diff << "\n";
+  std::cout << "Del:\n" << del_mat << "\n";
+  std::cout << "Diff*Del: " << diff * del_mat << "\n\n";
 
   return (diff * del_mat).t();
 }

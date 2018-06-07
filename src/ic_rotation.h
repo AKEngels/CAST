@@ -37,7 +37,7 @@ correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   auto const & add_cp = std::plus<coords::Cartesian_Point>();
   auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz, add_cp));
   auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz, add_cp));
-  return old_xyz_mat.t() * new_xyz_mat;
+  return new_xyz_mat.t() * old_xyz_mat;
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
@@ -88,7 +88,6 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   Mat eigvec, eigval;
 
   std::tie(eigval, eigvec) = F_mat.eigensym();
-  std::cout << "Quat:\n" << eigval << "\n\n" << eigvec << "\n\n";
   //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) //Seems to be right like described here. They are sorting it the other way round
   auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);
