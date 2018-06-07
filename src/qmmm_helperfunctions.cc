@@ -281,3 +281,16 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return new_qm_coords;
   }
 
+	void qmmm_helpers::select_from_ambercharges(std::vector<std::size_t> const & indices)
+	{
+		std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
+		std::vector<coords::float_type> charges_temp;
+		for (int i = 0; i<c.size(); i++)
+		{
+			if (is_in(i, indices))  // find atom charges for indizes
+			{
+				charges_temp.push_back(c[i]);   // add those charges to new vector
+			}
+		}
+		Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
+	}

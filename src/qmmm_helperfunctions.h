@@ -121,6 +121,9 @@ namespace qmmm_helpers
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
     std::vector<LinkAtom> link_atoms, config::interface_types::T energy_interface);
 
+  /**selects only those charges from amber_charges vector which correspond to the indices
+  all other charges are removed*/
+  void select_from_ambercharges(std::vector<std::size_t> const & indices);
 }
 
 #endif

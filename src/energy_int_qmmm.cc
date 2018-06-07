@@ -623,21 +623,6 @@ void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
   file << "}";
 }
 
-// remove QM charges from AMBER charges (only to be performed once in a CAST run)
-void energy::interfaces::qmmm::QMMM::remove_qm_charges()
-{
-  std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
-  std::vector<coords::float_type> charges_temp;
-  for (int i = 0; i<c.size(); i++)
-  {
-    if (is_in(i, mm_indices))  // find atom charges for MM atoms
-    {
-      charges_temp.push_back(c[i]);   // add charges of MM atoms to new vector
-    }
-  }
-  Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
-}
-
 /**calculates energies and gradients
 @param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
@@ -654,7 +639,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
   integrity = true;
 
-  if (Config::get().coords.amber_charges.size() > mm_indices.size()) remove_qm_charges();
+  if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
   mm_charge_vector = mmc.energyinterface()->charges();
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object

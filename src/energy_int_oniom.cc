@@ -180,6 +180,70 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	  }
   }
 
+	// ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
+	try {
+		if (!if_gradient)
+		{
+			qm_energy = qmc.e();  // get energy for QM part 
+		}
+		else  // gradient calculation
+		{
+			qm_energy = qmc.g();            // get energy and calculate gradients
+			auto g_qm_small = qmc.g_xyz();  // get gradients
+			for (auto&& qmi : qm_indices)
+			{
+				new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
+			}
+
+			for (int i = 0; i < link_atoms.size(); ++i)   // take into account link atoms
+			{
+				LinkAtom l = link_atoms[link_atoms.size() - 1 - i];
+
+				coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] += g_qm;
+				new_grads[l.mm] += g_mm;
+
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+
+				g_qm_small.pop_back();  // delete LinkAtom from gradients
+			}
+		}
+		if (qmc.integrity() == false) integrity = false;
+
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "Energy of QM system: \n";
+			qmc.e_head_tostream_short(std::cout);
+			qmc.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "QM programme failed. Treating structure as broken.\n";
+		integrity = false;  // if QM programme fails: integrity is destroyed
+	}
+
+  // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
+
+	// temporarily: only QM charges and those of link atoms in amber_charges
+	std::vector<double> old_amber_charges;
+	if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+	{
+		old_amber_charges = Config::get().coords.amber_charges;   // save old amber_charges
+		qmmm_helpers::select_from_ambercharges(qm_indices);                           // only QM charges in amber_charges
+		for (int i = 0; i < link_atoms.size(); ++i)                                   // add charges of link atoms
+		{
+			double la_charge = qmc.energyinterface()->charges()[qm_indices.size() + i]; // get charge
+			Config::set().coords.amber_charges.push_back(la_charge*18.2223);            // convert it to AMBER units and add it to vector
+		}
+	}
+
   // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
   if (!if_gradient)
   {
@@ -219,55 +283,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
     mmc_small.e_tostream_short(std::cout);
   }
 
-  // ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
-  try {
-    if (!if_gradient)
-    {
-      qm_energy = qmc.e();  // get energy for QM part 
-    }
-    else  // gradient calculation
-    {
-      qm_energy = qmc.g();            // get energy and calculate gradients
-      auto g_qm_small = qmc.g_xyz();  // get gradients
-      for (auto&& qmi : qm_indices)
-      {
-        new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
-      }
-
-      for (int i = 0; i < link_atoms.size(); ++i)   // take into account link atoms
-      {
-        LinkAtom l = link_atoms[link_atoms.size() - 1 - i];
-
-        coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
-        auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
-        qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-        new_grads[l.qm] += g_qm;
-        new_grads[l.mm] += g_mm;
-
-        if (Config::get().general.verbosity > 4)
-        {
-          std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
-          std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
-        }
-
-        g_qm_small.pop_back();  // delete LinkAtom from gradients
-      }
-    }
-    if (qmc.integrity() == false) integrity = false;
-
-    if (Config::get().general.verbosity > 4)
-    {
-      std::cout << "Energy of QM system: \n";
-      qmc.e_head_tostream_short(std::cout);
-      qmc.e_tostream_short(std::cout);
-    }
-  }
-  catch (...)
-  {
-    std::cout << "QM programme failed. Treating structure as broken.\n";
-    integrity = false;  // if QM programme fails: integrity is destroyed
-  }
-
   // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
 
   if (if_gradient && integrity == true)
@@ -283,6 +298,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
   Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
+	Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
@@ -307,17 +323,17 @@ coords::float_type energy::interfaces::oniom::ONIOM::e()
 
 coords::float_type energy::interfaces::oniom::ONIOM::h()
 {
-  throw std::runtime_error("no QMMM-function yet");
+  throw std::runtime_error("no hessian function implemented for this interface");
 }
 
 coords::float_type energy::interfaces::oniom::ONIOM::o()
 {
-  throw std::runtime_error("QMMM cannot optimize");
+  throw std::runtime_error("this interface doesn't have an own optimizer");
 }
 
 void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
 {
-  throw std::runtime_error("no QMMM-function yet");
+  throw std::runtime_error("function not implemented");
 }
 
 void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream &S, bool const endline) const
@@ -344,7 +360,7 @@ void energy::interfaces::oniom::ONIOM::print_E_short(std::ostream &S, bool const
 
 void energy::interfaces::oniom::ONIOM::to_stream(std::ostream &S) const
 {
-  throw std::runtime_error("no QMMM-function yet");
+  throw std::runtime_error("function not implemented");
 }
 
 bool energy::interfaces::oniom::ONIOM::check_bond_preservation(void) const
