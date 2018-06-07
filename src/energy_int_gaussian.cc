@@ -106,6 +106,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
     }
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
+		if (Config::get().energy.qmmm.oniom_use) out_file << "Charge NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
@@ -120,6 +121,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
+				if (Config::get().energy.qmmm.oniom_use) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
@@ -288,7 +290,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 	    { // for QM/MM calculation: get energy of the interaction between the external charges (i.e. the MM atoms)
 		  if (buffer.find("Self energy of the charges") != std::string::npos)
 		  {
-			mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
+			   mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
 		  }
 
         // get the electric field
@@ -317,11 +319,10 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
         int link_atom_number = atoms - (*this->coords).size();  // number of link atoms (0 for no QM/MM)
-		if (link_atom_number < 0)
-		{
-		  std::cout << "Something has gone wrong as you have a negative number of " << link_atom_number << " link atoms.\n";
-		  std::exit(0);
-		}
+		    if (link_atom_number < 0)
+		    {
+		      throw std::logic_error("Something has gone wrong as you have a negative number of link atoms.\n");
+		    }
 
         coords::Cartesian_Point g;
         double temp;
@@ -477,7 +478,8 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       rename(oldname.c_str(), newname.c_str());
     }
 
-    if (failcounter > Config::get().energy.gaussian.maxfail && Config::get().energy.qmmm.use == false)
+		bool qmmm = Config::get().energy.qmmm.use || Config::get().energy.qmmm.oniom_use;
+    if (failcounter > Config::get().energy.gaussian.maxfail && qmmm == false)
     {
       throw std::runtime_error("More than " + std::to_string(Config::get().energy.gaussian.maxfail) + " Gaussian calls have failed.");
     }
@@ -513,7 +515,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
 
   integrity = true;
   if (Config::get().energy.qmmm.use == false) print_gaussianInput('g');
-  if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
+	bool qmmm = Config::get().energy.qmmm.use || Config::get().energy.qmmm.oniom_use;
+  if (callGaussian() == 0) read_gaussianOutput(true, false, qmmm);
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -667,13 +670,14 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 std::vector<coords::Cartesian_Point>
 energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 {
-	if (electric_field.size() != Config::get().energy.qmmm.mm_charges.size())
+	if (electric_field.size()-coords->size() != Config::get().energy.qmmm.mm_charges.size())
 	{
+		std::cout << electric_field.size() - coords->size() << " , " << Config::get().energy.qmmm.mm_charges.size() << "\n";
 		throw std::logic_error("Electric field has not the same size as the external charges. Can't calculate gradients.");
 	}
 
 	std::vector<coords::Cartesian_Point> external_gradients;
-	for (int i = 0; i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
+	for (int i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
 	{
 		coords::Cartesian_Point E = electric_field[i];
 		double q = Config::get().energy.qmmm.mm_charges[i].charge;

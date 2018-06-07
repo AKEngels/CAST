@@ -179,10 +179,9 @@ namespace energy
 
     /** Return charges */
     virtual std::vector<coords::float_type> charges() const = 0;
-    /**this is something that is needed for QM/MM calculations
-    for GAUSSIAN it returns the electric field for QM and MM atoms
-    for DFTB+ it returns the coulomb gradients on the MM atoms due to the QM atoms*/
+    /**returns the coulomb gradients on external charges (used for QM/MM methods)*/
     virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
+		/**returns gradients on link atoms in QM/MM interface (not in ONIOM, should sometime be removed)*/
     virtual coords::Gradients_3D get_link_atom_grad() const=0;
 
     /**get id for gaussian call*/

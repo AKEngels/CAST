@@ -560,6 +560,8 @@ namespace config
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
+			/**is ONIOM used? (should be the same as use someday)*/
+			bool oniom_use{ false };
 	    /**should QM region be written into file? (only for ONIOM)*/
 	    bool qm_to_file{ false };
       /**vector of MM charges (external charges for inner calculation)*/

@@ -86,6 +86,7 @@ namespace energy
 				size_t failcounter;
 
         /**electric field that is given by GAUSSIAN
+				contains the atoms and the external charges
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 
