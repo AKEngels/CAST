@@ -672,7 +672,6 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 {
 	if (electric_field.size()-coords->size() != Config::get().energy.qmmm.mm_charges.size())
 	{
-		std::cout << electric_field.size() - coords->size() << " , " << Config::get().energy.qmmm.mm_charges.size() << "\n";
 		throw std::logic_error("Electric field has not the same size as the external charges. Can't calculate gradients.");
 	}
 
