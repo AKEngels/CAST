@@ -61,11 +61,7 @@ namespace energy{
         std::string get_id() const override{
           throw std::runtime_error("Function not implemented for psi4 interface.\n");
         }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
+
       private:
         enum class Calc {
           energy,

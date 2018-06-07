@@ -549,7 +549,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
@@ -560,8 +560,6 @@ namespace config
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
-			/**is ONIOM used? (should be the same as use someday)*/
-			bool oniom_use{ false };
 	    /**should QM region be written into file? (only for ONIOM)*/
 	    bool qm_to_file{ false };
       /**vector of MM charges (external charges for inner calculation)*/

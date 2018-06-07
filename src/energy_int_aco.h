@@ -66,15 +66,10 @@ namespace energy
 
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
+        /**function to get coulomb gradients on external charges*/
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
           return grad_ext_charges;
-        }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
         }
         /**overwritten function*/
         std::string get_id() const override { return "bullshit"; }

@@ -61,8 +61,6 @@ namespace energy
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
         /**return id for gaussian call*/
         std::string get_id() const override { return id;};
-        /**get gradients on link atoms (for QM/MM)*/
-        coords::Gradients_3D get_link_atom_grad() const override;
 
       private:
 

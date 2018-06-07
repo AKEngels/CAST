@@ -100,48 +100,10 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 
       for (auto && a : mmi)
       {
-        new_indices_mm.at(a) = current_index++;
+				new_indices_mm.at(a) = current_index++;
       }
     }
     return new_indices_mm;
-  }
-
-  /**creates coordobject for QM interface
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of QM atoms
-  @param new_indices: new indizes (see new_indices_qm)*/
-  coords::Coordinates qmmm_helpers::make_qm_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
-  {
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.qminterface;
-    coords::Coordinates new_qm_coords;
-    if (cp->size() >= indices.size())
-    {
-      coords::Atoms new_qm_atoms;
-      coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size());
-      for (auto && a : indices)
-      {
-        auto && ref_at = (*cp).atoms().atom(a);
-        coords::Atom at{ (*cp).atoms().atom(a).number() };
-        at.set_energy_type(ref_at.energy_type());
-        auto bonds = ref_at.bonds();
-        for (auto && b : bonds)
-        {
-          at.detach_from(b);
-        }
-        for (auto && b : bonds)
-        {
-          if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in QM coords
-        }
-        new_qm_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a));
-      }
-      new_qm_coords.init_swap_in(new_qm_atoms, pes);
-    }
-    Config::set().general.energy_interface = tmp_i;
-    return new_qm_coords;
   }
 
   /**creates coordobject for MM interface
@@ -182,7 +144,6 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return new_aco_coords;
   }
 
-  /***/
   coords::Coordinates qmmm_helpers::make_mmbig_coords(coords::Coordinates const * cp)
   {
     auto tmp_i = Config::get().general.energy_interface;

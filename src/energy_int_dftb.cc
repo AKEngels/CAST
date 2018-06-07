@@ -232,7 +232,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
-      else if (Config::get().energy.qmmm.use == true || Config::get().energy.qmmm.mm_charges.size() != 0)
+      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
@@ -374,7 +374,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = check_structure();
   if (integrity == true)
   {
-    if (Config::get().energy.qmmm.use == false) write_inputfile(1);
+    write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
     return energy;
@@ -512,7 +512,3 @@ energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
   return grad_ext_charges;
 }
 
-coords::Gradients_3D energy::interfaces::dftb::sysCallInterface::get_link_atom_grad() const
-{
-  return link_atom_grad;
-}

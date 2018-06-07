@@ -75,11 +75,6 @@ namespace energy
           throw std::runtime_error("function not implemented\n");
         }
         /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
-        /**overwritten function, should not be called*/
         std::string get_id() const override
         {
           throw std::runtime_error("function not implemented\n");
@@ -122,27 +117,7 @@ namespace energy
         /**MM coordinates object for QM part*/
         coords::Coordinates mmc_small;
 
-  //      /**atom charges of QM atoms*/
-  //      std::vector<double> qm_charge_vector;
-  //      /**atom charges of MM atoms*/
-  //      std::vector<double> mm_charge_vector;
-
-
-          coords::float_type qm_energy, mm_energy_big, mm_energy_small;
-
-  //      /**gradients of electrostatic interaction between QM and MM atoms
-  //      for MOPAC gradients on QM as well as on MM atoms
-  //      for GAUSSIAN and DFTB+ only gradients on MM atoms (those on QM atoms are calculated by QM program)*/
-  //      coords::Gradients_3D c_gradient;
-  //      /**gradients of van der waals interaction energy between QM and MM atoms*/
-  //      coords::Gradients_3D vdw_gradient;
-
-  //      /**information needed to calculate coulomb gradients on MM atoms
-  //      for GAUSSIAN: electric field from gaussian calculation for QM and MM atoms (first QM, then MM)
-  //      only those of the MM atoms are used to calculate the gradients of the electrostatic interaction
-  //      between QM and MM atoms on the MM atoms
-  //      for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
-  //      std::vector<coords::Cartesian_Point> g_coul_mm;
+        coords::float_type qm_energy, mm_energy_big, mm_energy_small;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

@@ -81,8 +81,6 @@ namespace energy
         {
           throw std::runtime_error("Function not implemented.\n");
         }
-        /**get gradients on link atoms (for QM/MM)*/
-        coords::Gradients_3D get_link_atom_grad() const override;
 
 			private:
 

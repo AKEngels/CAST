@@ -500,8 +500,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
-    if (inter == interface_types::QMMM) Config::set().energy.qmmm.use = true;
-		if (inter == interface_types::ONIOM) Config::set().energy.qmmm.oniom_use = true;
+    if (inter == interface_types::QMMM || inter == interface_types::ONIOM) Config::set().energy.qmmm.use = true;
   }
 
   // Preoptimizazion energy calculation interface

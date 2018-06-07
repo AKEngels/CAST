@@ -93,13 +93,6 @@ namespace qmmm_helpers
   @param mmi: vector with indizes of MM atoms*/
   std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, std::vector<std::size_t> const& mmi);
 
-  /**creates coordobject for QM interface (should be replaced by make_small_coords sometime)
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of QM atoms
-  @param new_indices: new indizes (see new_indices_qm)*/
-  coords::Coordinates make_qm_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices);
-
   /**creates coordobject for MM interface (maybe also be replaced by make_small_coords?)
   @param cp: coordobj for whole system (QM + MM)
   @param indices: indizes of MM atoms

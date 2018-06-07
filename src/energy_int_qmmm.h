@@ -317,6 +317,9 @@ namespace energy
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);
 
+				/**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
+				void update_representation();
+
         /** Energy function*/
         coords::float_type e() override;
         /** Energy+Gradient function */
@@ -330,11 +333,6 @@ namespace energy
         std::vector<coords::float_type> charges() const override;
         /**overwritten function, should not be called*/
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
         {
           throw std::runtime_error("function not implemented\n");
         }
@@ -353,17 +351,12 @@ namespace energy
           bool const endline = true) const  final override;
         /**function not implemented*/
         void to_stream(std::ostream&) const;
-        /**sets the atom coordinates of the subsystems (QM and MM) to those of the whole coordobject*/
-        void update_representation();
+        
 
       private:
 
         /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html) */
         void write_mol_in();
-        /**writes inputfile for gaussian calculation*/
-        void write_gaussian_in(char);
-        /**writes inputfiles for DFTB+ calculation (dftb_in.hsd and charges.dat)*/
-        void write_dftb_in(char);
 
         /**function where QM/MM calculation is prepared*/
         void prepare_bonded_qmmm();
@@ -371,8 +364,6 @@ namespace energy
         void find_bonds_etc();
         /**function to find force field parameters for bonds, angles and so on between QM and MM system*/
         void find_parameters();
-        /**creates link atoms*/
-        void create_link_atoms();
         /**determines if a van der waals interaction between a QM and a MM atom should be calculated
         @param qm: index of QM atom
         @param mm: index of MM atom
@@ -395,6 +386,9 @@ namespace energy
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
+
+				/**link atoms*/
+				std::vector<LinkAtom> link_atoms;
 
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
@@ -420,13 +414,6 @@ namespace energy
         std::vector<bonded::Dihedral> qmmm_dihedrals;
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
-        /**link atoms*/
-        std::vector<LinkAtom> link_atoms;
-
-        /**atom charges of QM atoms*/
-        std::vector<double> qm_charge_vector;
-        /**atom charges of MM atoms*/
-        std::vector<double> mm_charge_vector;
  
         /**van der Waals interaction energy between QM and MM atoms*/
         coords::float_type vdw_energy;

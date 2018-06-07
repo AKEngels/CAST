@@ -106,7 +106,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 
     }
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
-		if (Config::get().energy.qmmm.oniom_use) out_file << "Charge NoSymm ";
+		if (Config::get().energy.qmmm.use) out_file << "Charge NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
@@ -121,7 +121,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
-				if (Config::get().energy.qmmm.oniom_use) out_file << " Prop=(Field,Read) Density";
+				if (Config::get().energy.qmmm.use) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
@@ -478,8 +478,7 @@ int energy::interfaces::gaussian::sysCallInterfaceGauss::callGaussian()
       rename(oldname.c_str(), newname.c_str());
     }
 
-		bool qmmm = Config::get().energy.qmmm.use || Config::get().energy.qmmm.oniom_use;
-    if (failcounter > Config::get().energy.gaussian.maxfail && qmmm == false)
+    if (failcounter > Config::get().energy.gaussian.maxfail && Config::get().energy.qmmm.use == false)
     {
       throw std::runtime_error("More than " + std::to_string(Config::get().energy.gaussian.maxfail) + " Gaussian calls have failed.");
     }
@@ -514,9 +513,8 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
   id = id + "_G_";
 
   integrity = true;
-  if (Config::get().energy.qmmm.use == false) print_gaussianInput('g');
-	bool qmmm = Config::get().energy.qmmm.use || Config::get().energy.qmmm.oniom_use;
-  if (callGaussian() == 0) read_gaussianOutput(true, false, qmmm);
+  print_gaussianInput('g');
+  if (callGaussian() == 0) read_gaussianOutput(true, false, Config::get().energy.qmmm.use);
   else
   {
     if (Config::get().general.verbosity >= 2)
@@ -694,8 +692,3 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
   return external_gradients;
 }
 
-coords::Gradients_3D
-energy::interfaces::gaussian::sysCallInterfaceGauss::get_link_atom_grad() const
-{
-  return link_atom_grad;
-}
