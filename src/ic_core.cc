@@ -695,9 +695,12 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
     //std::cout << "New Hessian:\n" << hessian << "\n\n";
     old_gq = std::move(new_gq);
     old_Q = std::move(new_Q);
-    std::cout << "Energy now: " << new_E << " Energy diff: " << new_E-old_E <<"\n";
+    std::cout << "----------------------------------------------------------\n";
+    std::cout << "Step " << i << "\n";
+    std::cout << "Energy now: " << std::scientific << new_E << " Energy diff: " << new_E-old_E <<"\n";
     old_E = new_E;
     std::cout << "RMSD Cartesian: " << ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd() << "\n";
+    std::cout << "----------------------------------------------------------\n";
     old_xyz = xyz_;
 
     output.to_stream(std::cout);
