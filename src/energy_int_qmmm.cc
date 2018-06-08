@@ -439,6 +439,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
+  Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
@@ -453,11 +454,9 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
-      int counter = 0;
       for (auto&& qmi : qm_indices)
       {
         new_grad[qmi] += g_qm[new_indices_qm[qmi]];
-        counter += 1;
       }
 
       // calculate gradients from link atoms

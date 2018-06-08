@@ -677,7 +677,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 	for (int i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
 	{
 		coords::Cartesian_Point E = electric_field[i];
-		double q = Config::get().energy.qmmm.mm_charges[i].charge;
+		double q = Config::get().energy.qmmm.mm_charges[i-coords->size()].charge;
 
 		double x = q * E.x();
 		double y = q * E.y();
