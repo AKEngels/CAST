@@ -11,23 +11,15 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
-          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
-        {
-			    try {type = Config::get().energy.qmmm.linkatom_types[counter];}
-				  catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
-          LinkAtom link(b, mma, type, coords, tp);
-          links.push_back(link);
-          counter += 1;
+        try {type = Config::get().energy.qmmm.linkatom_types[counter];}
+				catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+        LinkAtom link(b, mma, type, coords, tp);
+        links.push_back(link);
+        counter += 1;
 
-          if (Config::get().general.verbosity > 3)
-          {
-            std::cout << "created link atom between MM atom " << mma+1 << " and QM atom " << b+1 << " with atom type "<<link.energy_type<<", position: " << link.position << "\n";
-          }
-        }
-        else
+        if (Config::get().general.verbosity > 3)
         {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
+          std::cout << "created link atom between MM atom " << mma+1 << " and QM atom " << b+1 << " with atom type "<<link.energy_type<<", position: " << link.position << "\n";
         }
       }
     }
