@@ -182,9 +182,6 @@ namespace energy
     /**returns the coulomb gradients on external charges (used for QM/MM methods)*/
     virtual std::vector<coords::Cartesian_Point> get_g_ext_chg() const = 0;
 
-    /**get id for gaussian call*/
-    virtual std::string get_id() const = 0;
-
     // Feature getter
     bool has_periodics() const { return periodic; }
     /**does energy interface has its own optimizer*/

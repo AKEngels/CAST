@@ -59,8 +59,6 @@ namespace energy
         /**returns gradients on external charges (calculated by electric field from GAUSSIAN)
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
-        /**return id for gaussian call*/
-        std::string get_id() const override { return id;};
 
       private:
 

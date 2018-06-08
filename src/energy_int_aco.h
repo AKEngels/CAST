@@ -71,8 +71,6 @@ namespace energy
         {
           return grad_ext_charges;
         }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
 
         // Virial Tensor
         std::array<std::array<coords::float_type, 3>, 3> virial();

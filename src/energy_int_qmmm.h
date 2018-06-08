@@ -336,11 +336,7 @@ namespace energy
         {
           throw std::runtime_error("function not implemented\n");
         }
-        /**overwritten function, should not be called*/
-        std::string get_id() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
+
         /**prints total energy (not implemented)*/
         void print_E(std::ostream&) const  final override;
         /**prints 'headline' for energies*/

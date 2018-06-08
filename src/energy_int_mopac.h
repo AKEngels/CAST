@@ -52,11 +52,6 @@ namespace energy
         {
           throw std::runtime_error("function not implemented yet\n");
         }
-        /**overwritten function*/
-        std::string get_id() const override 
-				{ 
-					throw std::runtime_error("function not implemented yet\n"); 
-				}
 
 				//MOPAC7_HB VAR
 				bool grad_var;

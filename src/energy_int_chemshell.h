@@ -112,11 +112,6 @@ namespace energy {
         {
           throw std::runtime_error("function not implemented for chemshell interface\n");
         }
-        /**overwritten function*/
-        std::string get_id() const override
-        {
-          throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
 
 			private:
 				int x;

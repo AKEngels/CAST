@@ -386,10 +386,10 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
     }//end while(!in_file.eof())
 
-	if (qmmm)
-	{
-		e_total = e_total - mm_el_energy;
-	}
+	  if (qmmm)
+	  {
+		  e_total = e_total - mm_el_energy;
+	  }
 
     if (grad && opt)
     {
@@ -494,7 +494,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
 
   if (callGaussian() == 0)
   {
-    read_gaussianOutput(false, false);
+    read_gaussianOutput(false, false, Config::get().energy.qmmm.use);
   }
   else
   {
@@ -503,6 +503,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::e(void)
       std::cout << "Gaussian call (e) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
+		return 0.0;
   }
   return energy;
 }
@@ -522,6 +523,7 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
       std::cout << "Gaussian call (g) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
+		return 0.0;
   }
 
   id = tmp_id;
@@ -586,20 +588,21 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E(std::ostream &
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_head(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(16) << "HOF";
-  S << std::right << std::setw(16) << "TOT";
-  S << std::right << std::setw(16) << "EL";
-  S << std::right << std::setw(16) << "CORE";
+  S << std::right << std::setw(24) << "HOF";
+  S << std::right << std::setw(24) << "EL";
+  S << std::right << std::setw(24) << "CORE";
+	S << std::right << std::setw(24) << "TOT";
   if (endline) S << '\n';
 }
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::print_E_short(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << hof_kcal_mol;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_total;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_electron;
-  S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_core;
-  if (endline) S << '\n';
+	S << '\n';
+	S << std::right << std::setw(24) << hof_kcal_mol;
+	S << std::right << std::setw(24) << e_electron;
+	S << std::right << std::setw(24) << e_core;
+	S << std::right << std::setw(24) << e_total;
+	if (endline) S << '\n';
 }
 
 void energy::interfaces::gaussian::sysCallInterfaceGauss::to_stream(std::ostream&) const { }

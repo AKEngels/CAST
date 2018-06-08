@@ -58,9 +58,6 @@ namespace energy{
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override{
           throw std::runtime_error("Function not implemented for psi4 interface.\n");
         }
-        std::string get_id() const override{
-          throw std::runtime_error("Function not implemented for psi4 interface.\n");
-        }
 
       private:
         enum class Calc {

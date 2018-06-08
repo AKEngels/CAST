@@ -75,8 +75,6 @@ namespace energy
         {
           throw std::runtime_error("function not implemented\n");
         }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
 
         // Output functions
         void print_E (std::ostream&) const final override;

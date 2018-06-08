@@ -139,24 +139,39 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object
   
+	mm_energy_big = 0.0;     // set energies to zero
+	mm_energy_small = 0.0;
+	qm_energy = 0.0;
   coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
   // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
-  if (!if_gradient)
-  {
-    mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
-  }
-  else   // gradient calculation
-  {
-    mm_energy_big = mmc_big.g();
-    new_grads = mmc_big.g_xyz();
-  }
-  if (Config::get().general.verbosity > 4)
-  {
-    std::cout << "Energy of big MM system: \n";
-    mmc_big.e_head_tostream_short(std::cout);
-    mmc_big.e_tostream_short(std::cout);
-  }
+
+	try {
+		if (!if_gradient)
+		{
+			mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
+		}
+		else   // gradient calculation
+		{
+			mm_energy_big = mmc_big.g();
+			new_grads = mmc_big.g_xyz();
+		}
+		if (qmc.integrity() == false) integrity = false;
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "Energy of big MM system: \n";
+			mmc_big.e_head_tostream_short(std::cout);
+			mmc_big.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "MM programme (for big system) failed. Treating structure as broken.\n";
+		integrity = false;  // if MM programme fails: integrity is destroyed
+	}
+
+	// if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
+	if (mm_energy_big == 0) return 0.0;   
 
   // ############### CREATE MM CHARGES ######################
 
@@ -243,7 +258,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	std::vector<double> old_amber_charges;
 	if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
 	{
-		old_amber_charges = Config::get().coords.amber_charges;   // save old amber_charges
+		old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
 		qmmm_helpers::select_from_ambercharges(qm_indices);                           // only QM charges in amber_charges
 		for (int i = 0; i < link_atoms.size(); ++i)                                   // add charges of link atoms
 		{
@@ -253,43 +268,49 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	}
 
   // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
-  if (!if_gradient)
-  {
-    mm_energy_small = mmc_small.e();  // calculate energy of small MM system
-  }
-  else  // gradient calculation
-  {
-    mm_energy_small = mmc_small.g();     // get energy and calculate gradients
-    auto g_mm_small = mmc_small.g_xyz(); // get gradients
-    for (auto&& qmi : qm_indices)
-    {
-      new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
-    }
 
-    for (int i = 0; i < link_atoms.size(); ++i)  // take into account link atoms
-    {
-      LinkAtom l = link_atoms[link_atoms.size()-1-i];
+	try {
+		if (!if_gradient)
+		{
+			mm_energy_small = mmc_small.e();  // calculate energy of small MM system
+		}
+		else  // gradient calculation
+		{
+			mm_energy_small = mmc_small.g();     // get energy and calculate gradients
+			auto g_mm_small = mmc_small.g_xyz(); // get gradients
+			for (auto&& qmi : qm_indices)
+			{
+				new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
+			}
 
-      coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
-      auto link_atom_grad = g_mm_small[qm_indices.size() + link_atoms.size() - 1 - i];
-      qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-      new_grads[l.qm] -= g_qm;
-      new_grads[l.mm] -= g_mm;
-      if (Config::get().general.verbosity > 4)
-      {
-        std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
-        std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
-      }
+			for (int i = 0; i < link_atoms.size(); ++i)  // take into account link atoms
+			{
+				LinkAtom l = link_atoms[i];
 
-      g_mm_small.pop_back();  // delete LinkAtom from gradients
-    }
-  }
-  if (Config::get().general.verbosity > 4)
-  {
-    std::cout << "Energy of small MM system: \n";
-    mmc_small.e_head_tostream_short(std::cout);
-    mmc_small.e_tostream_short(std::cout);
-  }
+				coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_mm_small[qm_indices.size() + i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] -= g_qm;
+				new_grads[l.mm] -= g_mm;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+			}
+		}
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "Energy of small MM system: \n";
+			mmc_small.e_head_tostream_short(std::cout);
+			mmc_small.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "MM programme (for small system) failed. Treating structure as broken.\n";
+		integrity = false;  // if MM programme fails: integrity is destroyed
+	}
 
   // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
 

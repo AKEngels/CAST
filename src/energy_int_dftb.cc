@@ -183,6 +183,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   {
     std::cout << "DFTB+ produced an empty output file. Treating structure as broken.\n";
     integrity = false;
+		return 0.0;      // return zero-energy because no energy was calculated
   }
 
   // successfull SCC -> read output

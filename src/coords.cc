@@ -1058,11 +1058,11 @@ float coords::Coords_3d_float_pre_callback::operator() (scon::vector<scon::c3<fl
     std::ofstream trace("trace.arc", std::ios_base::app);
     trace << coords::output::formats::tinker(*this->cp);
   }
-  float E = float(cp->pg());
+  double E = cp->pg();
   go_on = cp->integrity();
   g = scon::vector<scon::c3<float>>(cp->g_xyz().begin(), cp->g_xyz().end());
   if (Config::get().general.verbosity >= 4)
-    std::cout << "Optimization: L-BFGS-Energy of step " <<
+    std::cout << "Optimization: Energy of step " <<
     S << " is " << E << " integrity " << go_on << '\n';
   return E;
 }
@@ -1092,16 +1092,15 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   if (Config::set().optimization.local.bfgs.trace)
   {
     std::ofstream trace("trace.arc", std::ios_base::app);
-    trace << coords::output::formats::tinker(*this->cp);
+    trace << coords::output::formats::tinker(*cp);
   }
-  float E = float(cp->g());
+  double E = cp->g();
   go_on = cp->integrity();
   g = from(cp->g_xyz());
   if (Config::get().general.verbosity >= 4)
   {
-    std::cout << "Optimization: L-BFGS-Energy of step " << S;
+    std::cout << "Optimization: Energy of step " << S;
     std::cout << " is " << E << " integrity " << go_on << '\n';
-    //std::cout << "totg " << scon::vector_delimeter('\n') << g << "\n";
   }
   return E;
 }
