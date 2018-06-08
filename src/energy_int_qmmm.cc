@@ -392,7 +392,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
 	// ############### CREATE MM CHARGES ######################
 
-	if (Config::get().energy.qmmm.mm_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
+	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
 	bool use_charge;
