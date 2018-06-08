@@ -650,9 +650,7 @@ scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
 }
 
 scon::mathmatrix<float_type> ic_core::system::calculate_internal_grads(scon::mathmatrix<float_type> const& g) {
-  auto&& gmat = ic_Gmat();
-  auto int_grads = gmat.pinv() * B_matrix * g;
-  return int_grads;
+  return ic_Gmat().pinv() * ic_Bmat() * g;
 }
 
 scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
@@ -665,13 +663,43 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
   initial_delocalized_hessian();
   coords::output::formats::tinker output(coords);
   output.to_stream(std::cout);
-  coords.g();
-  auto g_xyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+
+  auto old_E = coords.g();
+  auto old_Q = calc(xyz_);
+  auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_core::grads_to_bohr(coords.g_xyz())
   ));
-  auto g_int = calculate_internal_grads(g_xyz);
-  auto dy = get_internal_step(g_int);
-  apply_internal_change(std::move(dy));
-  coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
-  output.to_stream(std::cout);
+  auto old_xyz = xyz_;
+  auto old_gq = calculate_internal_grads(gxyz);
+  for(auto i = 0; i< 10; ++i){
+
+    auto dq_step = get_internal_step(old_gq);
+    apply_internal_change(dq_step);
+
+    coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
+    auto new_E = coords.g();
+    auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+      ic_core::grads_to_bohr(coords.g_xyz())
+    ));
+
+    auto new_gq = calculate_internal_grads(gxyz);
+    auto new_Q = calc(xyz_);
+
+    auto d_gq = old_gq - new_gq;
+    auto dq = old_Q - new_Q;
+    //std::cout << "Delta Grads: \n" << d_gq << "\n\n";
+    //std::cout << "Delta Internals: \n" << dq << "\n\n";
+    auto term1 = (d_gq*d_gq.t())/(d_gq.t()*dq)(0,0);
+    auto term2 = ((hessian*dq)*(dq.t()*hessian))/(dq.t()*hessian*dq)(0,0);
+    hessian += term1 - term2;
+    //std::cout << "New Hessian:\n" << hessian << "\n\n";
+    old_gq = std::move(new_gq);
+    old_Q = std::move(new_Q);
+    std::cout << "Energy now: " << new_E << " Energy diff: " << new_E-old_E <<"\n";
+    old_E = new_E;
+    std::cout << "RMSD Cartesian: " << ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd() << "\n";
+    old_xyz = xyz_;
+
+    output.to_stream(std::cout);
+  }
 }
