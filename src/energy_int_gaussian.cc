@@ -523,7 +523,6 @@ double energy::interfaces::gaussian::sysCallInterfaceGauss::g(void)
       std::cout << "Gaussian call (g) return value was not 0. Treating structure as broken.\n";
     }
     integrity = false;
-		return 0.0;
   }
 
   id = tmp_id;
