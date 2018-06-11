@@ -156,7 +156,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 			mm_energy_big = mmc_big.g();
 			new_grads = mmc_big.g_xyz();
 		}
-		if (qmc.integrity() == false) integrity = false;
+		if (mmc_big.integrity() == false) integrity = false;
 		if (Config::get().general.verbosity > 4)
 		{
 			std::cout << "Energy of big MM system: \n";
@@ -171,7 +171,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	}
 
 	// if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
-	if (mm_energy_big == 0) return 0.0;   
+	if (integrity == false) return 0.0;   
 
   // ############### CREATE MM CHARGES ######################
 
@@ -299,6 +299,8 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 			}
 		}
+    if (mmc_small.integrity() == false) integrity = false;
+
 		if (Config::get().general.verbosity > 4)
 		{
 			std::cout << "Energy of small MM system: \n";
