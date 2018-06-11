@@ -69,6 +69,8 @@ using matrix_type = arma::Mat<T>;
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <Eigen/Geometry>
+//WARNING!
+//Changed the Storage-Type to RowMajpr. If something strange happens, this may be the cause!
 template <typename T>
 using matrix_type = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 #endif
@@ -371,7 +373,7 @@ public:
    */
   std::tuple<mathmatrix, mathmatrix, mathmatrix> svd() const;
 
-  T norm(){
+  T norm()const{
     auto sum{T()};
     for(auto i = 0u; i<rows(); ++i){
       for(auto j = 0u; j<cols();++j){
@@ -381,9 +383,13 @@ public:
     return std::sqrt(sum);
   }
 
-  T rmsd(){
+  T rmsd()const{
     return norm()/std::sqrt(static_cast<T>(rows()*cols()));
   }
+
+  T max()const;
+
+  void reshape(long new_rows, long new_columns);
 
   /**
    * @brief Sorts the column of a matrix and returns a standard vector with the sorted values.
@@ -1188,6 +1194,15 @@ mathmatrix<T>::svd() const {
   return std::make_tuple(U, s, V);
 }
 
+template<typename T>
+T mathmatrix<T>::max()const{
+  #ifndef CAST_USE_ARMADILLO
+  return this->maxCoeff();
+  #else
+  return base_type::max();
+  #endif
+}
+
 template <typename T>
 template <typename Comp>
 std::vector<T> mathmatrix<T>::sort_col_to_vec(Comp comp,
@@ -1566,6 +1581,26 @@ void mathmatrix<T>::update_debugview(void) const {
 template <typename T>
 inline bool mathmatrix<T>::is_vec() const {
   return cols() == 1;
+}
+
+template<typename T>
+void mathmatrix<T>::reshape(long new_rows, long new_cols){
+  if(new_rows == -1 && new_cols == -1){
+    throw std::runtime_error("Error in rehsape: You can't pass -1 for both columns and rows!");
+  }
+  else if(new_rows == -1){
+    new_rows = rows()*cols()/new_cols;
+  }
+  else if(new_cols == -1){
+    new_cols = rows()*cols()/new_rows;
+  }
+#ifndef CAST_USE_ARMADILLO
+using RM = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+RM rm = *this;
+  *this = Eigen::Map<RM>(rm.data(), new_rows, new_cols);
+#else
+  this->reshape(new_rows, new_cols);
+#endif
 }
 
 } // namespace scon

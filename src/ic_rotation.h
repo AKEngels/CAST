@@ -34,9 +34,8 @@ typename std::enable_if<std::is_arithmetic<T>::value, scon::mathmatrix<T>>::type
 correlation_matrix(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
                    ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
 
-  auto const & add_cp = std::plus<coords::Cartesian_Point>();
-  auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz, add_cp));
-  auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz, add_cp));
+  auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz));
+  auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz));
   return new_xyz_mat.t() * old_xyz_mat;
 }
 
@@ -98,6 +97,16 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   return std::make_pair(eigval(eigval.rows()-1,0), res_q);
 }
 
+template<typename T>
+scon::mathmatrix<T> form_rot(ic_util::Quaternion<T> const& q){
+  auto al = ic_util::al(q);
+  auto ar = ic_util::ar(ic_util::conj(q));
+  auto ret = al*ar;
+  ret.shed_cols(0);
+  ret.shed_rows(0);
+  return ret;
+}
+
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::array<T, 3u>>::type
 exponential_map(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
@@ -143,9 +152,8 @@ template <typename T, template<typename> class CoordType, template<typename, typ
 typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
 F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
   using Mat = scon::mathmatrix<T>;
-  auto const & add = std::plus<coords::Cartesian_Point>();
 
-  auto new_shift = new_xyz - ic_util::get_mean(new_xyz, add);
+  auto new_shift = new_xyz - ic_util::get_mean(new_xyz);
   auto dR = correlation_matrix_derivs(new_shift);
   std::vector<std::vector<Mat> > result;
   for (auto&& S : dR) {

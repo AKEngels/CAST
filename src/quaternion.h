@@ -29,7 +29,7 @@ public:
   Quaternion(const std::vector<T>& vec) : q_{ create_quaternion(vec) } {}
   // Copy constructor.
   Quaternion(const Quaternion& quat) : q_{ quat.q_ } {}
-
+  Quaternion() = default;
   std::array<T, 4u> q_;
 
   /*!
@@ -49,6 +49,9 @@ public:
       throw("Vector has not 4 elements.");
     }
   }
+
+  T & at(std::size_t const i) {return q_.at(i);}
+  T const& at(std::size_t const i) const {return q_.at(i);}
 
   /*!
   \brief Overloaded multiplication operator.
@@ -82,6 +85,36 @@ public:
   template <typename _T>
   friend std::ostream& operator<<(std::ostream& os, const Quaternion<_T>& quat);
 };
+
+template<typename T>
+Quaternion<T> conj(Quaternion<T> const& q){
+  Quaternion<T> p;
+  p.at(0) = q.at(0);
+  p.at(1) = -q.at(1);
+  p.at(2) = -q.at(2);
+  p.at(3) = -q.at(3);
+  return p;
+}
+
+template<typename T>
+scon::mathmatrix<T> al(Quaternion<T> const& q){
+  return scon::mathmatrix<T>{
+    { q.at(0), -q.at(1), -q.at(2), -q.at(3)},
+    { q.at(1),  q.at(0), -q.at(3),  q.at(2)},
+    { q.at(2),  q.at(3),  q.at(0), -q.at(1)},
+    { q.at(3), -q.at(2),  q.at(1),  q.at(0)}
+  };
+}
+
+template<typename T>
+scon::mathmatrix<T> ar(Quaternion<T> const& q){
+  return scon::mathmatrix<T>{
+    { q.at(0), -q.at(1), -q.at(2), -q.at(3)},
+    { q.at(1),  q.at(0),  q.at(3), -q.at(2)},
+    { q.at(2), -q.at(3),  q.at(0),  q.at(1)},
+    { q.at(3),  q.at(2), -q.at(1),  q.at(0)}
+  };
+}
 
 /*!
 \brief Templated and overloaded output operator.

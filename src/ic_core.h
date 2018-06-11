@@ -635,5 +635,18 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
 
   return (diff * del_mat).t();
 }
+
+std::pair<float_type,float_type> grms_val_and_max(scon::mathmatrix<float_type> const& grads);
+std::pair<float_type,float_type> drms_val_and_max(coords::Representation_3D const& old_xyz, coords::Representation_3D const& new_xyz);
+
+struct convergence_check{
+  int step;
+  float_type E_new;
+  float_type E_old;
+  scon::mathmatrix<float_type> & gxyz;
+  coords::Representation_3D const& old_xyz;
+  coords::Representation_3D const& new_xyz;
+};
+bool check_convergence(convergence_check cc);
 }
 #endif // cast_ic_core_h_guard

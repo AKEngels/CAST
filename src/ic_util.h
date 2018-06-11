@@ -21,9 +21,9 @@ namespace ic_util{
   typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
   F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz);*/
 
-  template<template <typename, typename...> class Vec, typename Add, typename VecType, typename ... VecArgs>
-  inline auto get_mean(Vec<VecType, VecArgs...> const & vec, Add add) {
-    auto mean = std::accumulate(vec.begin(), vec.end(), VecType(), add);
+  template<template <typename, typename...> class Vec, typename VecType, typename ... VecArgs>
+  inline auto get_mean(Vec<VecType, VecArgs...> const & vec) {
+    auto mean = std::accumulate(vec.begin(), vec.end(), VecType(), std::plus<VecType>());
     mean /= static_cast<float_type> (vec.size());
     return mean;
   }

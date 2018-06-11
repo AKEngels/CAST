@@ -658,11 +658,59 @@ scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
   return hessian;
 }
 
+scon::mathmatrix<float_type> atoms_norm(scon::mathmatrix<float_type> const& norm){
+  scon::mathmatrix<float_type> mat(norm.rows(),1);
+  for(auto i = 0u; i<norm.rows(); ++i){
+    mat(i,0) = norm.row(i).norm();
+  }
+  return mat;
+}
+
+
+std::pair<float_type,float_type> ic_core::grms_val_and_max(scon::mathmatrix<float_type> const& grads){
+  auto norms = atoms_norm(grads);
+  return {norms.rmsd(), norms.max()};
+}
+
+std::pair<float_type,float_type> ic_core::drms_val_and_max(coords::Representation_3D const& old_xyz, coords::Representation_3D const& new_xyz){
+  auto q = ic_rotation::quaternion(old_xyz, new_xyz);
+  auto U = ic_rotation::form_rot(q.second);
+
+  auto new_xyz_mat = ic_util::Rep3D_to_Mat(new_xyz - ic_util::get_mean(new_xyz));
+  auto old_xyz_mat = ic_util::Rep3D_to_Mat(old_xyz - ic_util::get_mean(old_xyz));
+  auto rot = (U*new_xyz_mat.t()).t();
+
+  old_xyz_mat -= rot;
+  old_xyz_mat *= -energy::bohr2ang;
+  auto norms = atoms_norm(old_xyz_mat);
+  return {norms.rmsd(), norms.max()};
+}
+
+bool ic_core::check_convergence(convergence_check cc){
+  std::cout << "----------------------------------------------------------\n";
+  std::cout << "Step " << cc.step << "\n";
+  auto E_diff = cc.E_new-cc.E_old;
+  std::cout << "Energy now: " << std::fixed << cc.E_new << " Energy diff: " << E_diff <<"\n";
+  cc.gxyz.reshape(-1,3);
+  float_type grms, gmax;
+  std::tie(grms, gmax) = grms_val_and_max(cc.gxyz);
+  std::cout << "GRMS Cartesian: " << grms << "\n";
+  std::cout << "GRMS Max Val: " << gmax << "\n";
+  float_type drms, dmax;
+  std::tie(drms, dmax) = drms_val_and_max(cc.old_xyz, cc.new_xyz);
+  std::cout << "DRMS Cartesian: " << drms << "\n";
+  std::cout << "DRMS Max Val: " << dmax << "\n";
+  std::cout << "----------------------------------------------------------\n";
+  auto constexpr thresh_E = 1.e-6, thresh_grms = 0.0003, thresh_drms = 0.00045, thresh_gmax = 0.0012, thresh_dmax = 0.0018;
+  return drms < thresh_drms && dmax < thresh_dmax && E_diff<thresh_E && grms < thresh_grms && gmax < thresh_gmax;
+}
+
 void ic_core::system::optimize(coords::DL_Coordinates & coords){
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
   initial_delocalized_hessian();
   coords::output::formats::tinker output(coords);
   output.to_stream(std::cout);
+
 
   auto old_E = coords.g();
   auto old_Q = calc(xyz_);
@@ -687,22 +735,22 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
 
     auto d_gq = old_gq - new_gq;
     auto dq = old_Q - new_Q;
-    //std::cout << "Delta Grads: \n" << d_gq << "\n\n";
-    //std::cout << "Delta Internals: \n" << dq << "\n\n";
     auto term1 = (d_gq*d_gq.t())/(d_gq.t()*dq)(0,0);
     auto term2 = ((hessian*dq)*(dq.t()*hessian))/(dq.t()*hessian*dq)(0,0);
     hessian += term1 - term2;
-    //std::cout << "New Hessian:\n" << hessian << "\n\n";
+
+    if(check_convergence({i+1, new_E, old_E, gxyz, old_xyz, xyz_})){
+      std::cout << "Converged after " << i+1 << " steps!\n";
+      break;
+    }
+    output.to_stream(std::cout);
+    old_E = new_E;
+    old_xyz = xyz_;
     old_gq = std::move(new_gq);
     old_Q = std::move(new_Q);
-    std::cout << "----------------------------------------------------------\n";
-    std::cout << "Step " << i << "\n";
-    std::cout << "Energy now: " << std::scientific << new_E << " Energy diff: " << new_E-old_E <<"\n";
-    old_E = new_E;
-    std::cout << "RMSD Cartesian: " << ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd() << "\n";
-    std::cout << "----------------------------------------------------------\n";
-    old_xyz = xyz_;
-
-    output.to_stream(std::cout);
   }
+  std::cout << "Final Structure: \n\n";
+  output.to_stream(std::cout);
+  std::ofstream ofs("Conf_struc.txyz");
+  output.to_stream(ofs);
 }
