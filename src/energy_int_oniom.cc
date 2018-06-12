@@ -220,10 +220,10 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
 			for (int i = 0; i < link_atoms.size(); ++i)   // take into account link atoms
 			{
-				LinkAtom l = link_atoms[link_atoms.size() - 1 - i];
+				LinkAtom l = link_atoms[i];
 
 				coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
-				auto link_atom_grad = g_qm_small[qm_indices.size() + link_atoms.size() - 1 - i];
+				auto link_atom_grad = g_qm_small[qm_indices.size() + i];
 				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
 				new_grads[l.qm] += g_qm;
 				new_grads[l.mm] += g_mm;
@@ -233,8 +233,6 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
 					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
 				}
-
-				g_qm_small.pop_back();  // delete LinkAtom from gradients
 			}
 		}
 		if (qmc.integrity() == false) integrity = false;
