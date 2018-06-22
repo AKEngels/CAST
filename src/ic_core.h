@@ -611,7 +611,10 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
 
 template<typename XYZ>
 scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
-  return (calc_prims(std::forward<XYZ>(xyz)) * del_mat).t();
+  auto prims = calc_prims(std::forward<XYZ>(xyz));
+  std::cout << prims << std::endl;
+  std::cout << del_mat << std::endl;
+  return (prims * del_mat).t();
 }
 
 template<typename XYZ>

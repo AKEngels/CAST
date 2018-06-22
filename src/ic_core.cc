@@ -187,7 +187,25 @@ coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) 
   using scon::dot;
   using scon::len;
 
+
+  //Eigentlich sollte das hier richtig sein:
   auto const & a = xyz.at(index_a_ - 1u);
+  auto const & b = xyz.at(index_b_ - 1u);
+  auto const & c = xyz.at(index_c_ - 1u);
+  auto const & d = xyz.at(index_d_ - 1u);
+
+  auto b1 = b - a;
+  b1/=len(b1);
+  auto b2 = c - b;
+  b2/=len(b2);
+  auto b3 = d - c;
+  b3/=len(b3);
+  auto n1 = cross(b1,b2);
+  auto n2 = cross(b2, b3);
+  return std::atan2(dot(b1,n2),dot(n1,n2));
+
+
+  /*auto const & a = xyz.at(index_a_ - 1u);
   auto const & b = xyz.at(index_b_ - 1u);
   auto const & c = xyz.at(index_c_ - 1u);
   auto const & d = xyz.at(index_d_ - 1u);
@@ -202,7 +220,7 @@ coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) 
   auto m1 = cross(n1, ic_util::normalize(b2));
   auto x = dot(n1, n2);
   auto y = dot(m1, n2);
-  return std::atan2(x,y);
+  return std::atan2(x,y);*/
 }
 /*Implementation using armas routines instread of CASTs
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
@@ -719,9 +737,12 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
   ));
   auto old_xyz = xyz_;
   auto old_gq = calculate_internal_grads(gxyz);
-  for(auto i = 0; i< 10; ++i){
+  for(auto i = 0; i< 100; ++i){
+
+    std::cout << hessian << std::endl;
 
     auto dq_step = get_internal_step(old_gq);
+
     apply_internal_change(dq_step);
 
     coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
@@ -731,10 +752,14 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
     ));
 
     auto new_gq = calculate_internal_grads(gxyz);
-    auto new_Q = calc(xyz_);
 
-    auto d_gq = old_gq - new_gq;
-    auto dq = old_Q - new_Q;
+    auto new_Q = calc(xyz_);
+    std::cout << "old:" << old_Q.t() << "\n\n";
+    std::cout << "new:" << new_Q.t() << "\n\n";
+
+    auto d_gq = new_gq - old_gq;
+    auto dq = new_Q - old_Q;
+    std::cout << "diff:" << dq.t() << "\n\n";
     auto term1 = (d_gq*d_gq.t())/(d_gq.t()*dq)(0,0);
     auto term2 = ((hessian*dq)*(dq.t()*hessian))/(dq.t()*hessian*dq)(0,0);
     hessian += term1 - term2;
