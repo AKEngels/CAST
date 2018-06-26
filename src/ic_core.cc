@@ -727,11 +727,9 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
   initial_delocalized_hessian();
   coords::output::formats::tinker output(coords);
-  output.to_stream(std::cout);
+  //output.to_stream(std::cout);
 
-
-  auto old_E = coords.g();
-  auto old_Q = calc(xyz_);
+  auto old_E = coords.g()/energy::au2kcal_mol;
   auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_core::grads_to_bohr(coords.g_xyz())
   ));
@@ -739,27 +737,20 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
   auto old_gq = calculate_internal_grads(gxyz);
   for(auto i = 0; i< 100; ++i){
 
-    std::cout << hessian << std::endl;
-
     auto dq_step = get_internal_step(old_gq);
 
     apply_internal_change(dq_step);
 
     coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
-    auto new_E = coords.g();
+    auto new_E = coords.g()/energy::au2kcal_mol;
     auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
       ic_core::grads_to_bohr(coords.g_xyz())
     ));
 
     auto new_gq = calculate_internal_grads(gxyz);
 
-    auto new_Q = calc(xyz_);
-    std::cout << "old:" << old_Q.t() << "\n\n";
-    std::cout << "new:" << new_Q.t() << "\n\n";
-
     auto d_gq = new_gq - old_gq;
-    auto dq = new_Q - old_Q;
-    std::cout << "diff:" << dq.t() << "\n\n";
+    auto dq = calc_diff(xyz_, old_xyz);
     auto term1 = (d_gq*d_gq.t())/(d_gq.t()*dq)(0,0);
     auto term2 = ((hessian*dq)*(dq.t()*hessian))/(dq.t()*hessian*dq)(0,0);
     hessian += term1 - term2;
@@ -768,11 +759,10 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
       std::cout << "Converged after " << i+1 << " steps!\n";
       break;
     }
-    output.to_stream(std::cout);
+    //output.to_stream(std::cout);
     old_E = new_E;
     old_xyz = xyz_;
     old_gq = std::move(new_gq);
-    old_Q = std::move(new_Q);
   }
   std::cout << "Final Structure: \n\n";
   output.to_stream(std::cout);

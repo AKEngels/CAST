@@ -539,11 +539,15 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
   for(; micro_iter < 50; ++micro_iter){
 
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
+    std::cout << xyz_ << std::endl;
 
     auto d_now = calc_diff(xyz_, old_xyz);
+    std::cout << "Diff internal coordinates:\n" << d_now << std::endl;
+
     auto d_int_remain = d_int_left - d_now;
     auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
     auto internal_norm = d_int_remain.norm();
+    std::cout << "internal norm: " << internal_norm << "\n\n";
     if (micro_iter == 0){
       first_struct = xyz_;
       last_good_xyz = xyz_;
@@ -600,11 +604,14 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
   for(auto const & pic : primitive_internals){
     primitives.emplace_back(pic->val(xyz));
   }
+  std::vector<std::array<float_type,3u>> rotations;
   for (auto const & rot : rotation_vec_) {
-    auto rv = rot.rot_val(xyz);
-    primitives.emplace_back(rv.at(0));
-    primitives.emplace_back(rv.at(1));
-    primitives.emplace_back(rv.at(2));
+    rotations.emplace_back(rot.rot_val(xyz));
+  }
+  for(auto i = 0u; i<3; ++i){
+    for(auto j = 0u; j<rotations.size(); ++j){
+      primitives.emplace_back(rotations.at(j).at(i));
+    }
   }
   return scon::mathmatrix<float_type>::row_from_vec(primitives);
 }
@@ -612,8 +619,6 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
 template<typename XYZ>
 scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
   auto prims = calc_prims(std::forward<XYZ>(xyz));
-  std::cout << prims << std::endl;
-  std::cout << del_mat << std::endl;
   return (prims * del_mat).t();
 }
 
@@ -635,7 +640,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
       }
     }
   }
-
+  std::cout << "Diff:\n" << diff.t() << "\n";
   return (diff * del_mat).t();
 }
 
