@@ -77,12 +77,14 @@ void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces:
     throw std::runtime_error("Selfdestruction initiated. Something went terribly wrong, call a developer!");
   }
 }
+
 void energy::interfaces::psi4::sysCallInterface::write_head(std::ostream& os) const{
   auto const& memory = Config::get().energy.psi4.memory;
   auto const& basis = Config::get().energy.psi4.basis;
   os << "memory " << memory << "\n"
     "set basis " << basis << "\n\n";
   write_molecule(os);
+	if (Config::get().energy.qmmm.mm_charges.size() != 0) write_ext_charges(os); // if external charges defined: add them
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os) const{
@@ -92,6 +94,16 @@ void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os
     "  " << charge << " " << spin << "\n"
     << coords::output::formats::xyz(*coords)
     << "}\n\n";
+}
+
+void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream& os) const 
+{
+	os << "Chrgfield = QMMM()\n";
+	for (auto c : Config::get().energy.qmmm.mm_charges)
+	{
+		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";
+	}
+	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream& os) const{
@@ -175,11 +187,29 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gr
   return grads;
 }
 
-coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy(){
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
+{ 
+	std::ifstream ifs(tmp_file_name + "_out.dat");
   energies.clear();
   std::vector<std::string> energy;
 
+	double rep_ext_charges = 0; // repulsion energy between external charges, has to be subtracted from total energy and from nuclear repulsion
+	if (Config::get().energy.qmmm.mm_charges.size() != 0)
+	{
+		std::string line;
+		while (!ifs.eof())
+		{
+			std::getline(ifs, line);
+			if (line.size() > 29 && line.substr(2, 28) == "Additional nuclear repulsion")
+			{
+				std::vector<std::string> linevec = split(line, ' ', true);
+				rep_ext_charges = std::stod(linevec[4]);
+				break;
+			}
+		}
+	}
+
+	// parse partial energies
   for(auto tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0);
     !tmp_energy.empty(); tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0)){
     energy = tmp_energy;
@@ -194,7 +224,11 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy(){
     });
     energies.emplace_back(std::make_pair(key, val));
   }
-  return energies.back().second*energy::au2kcal_mol;
+
+	energies[0].second -= rep_ext_charges;      // subtract from nuclear repulsion energy
+	energies.back().second -= rep_ext_charges;  // subtract from total energy
+
+  return energies.back().second*energy::au2kcal_mol;  // return total energy in kcal/mol
 }
 
 std::pair<coords::float_type, coords::Representation_3D> energy::interfaces::psi4::sysCallInterface::parse_gradients(){

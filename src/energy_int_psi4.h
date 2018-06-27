@@ -66,6 +66,7 @@ namespace energy{
         void write_head(std::ostream&) const;
         void write_input(Calc kind = Calc::energy) const;
         void write_molecule(std::ostream&) const;
+				void write_ext_charges(std::ostream & os) const;
         void write_energy_input(std::ostream&) const;
         void write_gradients_input(std::ostream&) const;
         void write_optimize_input(std::ostream&) const;
