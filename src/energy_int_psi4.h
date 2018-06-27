@@ -52,9 +52,7 @@ namespace energy{
         void print_E_short(std::ostream&, bool const endline=true) const final override;
         void to_stream(std::ostream&) const final override;
 
-        std::vector<float_type> charges() const override{
-          throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
-        }
+				std::vector<float_type> charges() const override;
         std::vector<coords::Cartesian_Point> get_g_ext_chg() const override{
           throw std::runtime_error("Function not implemented for psi4 interface.\n");
         }

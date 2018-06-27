@@ -97,12 +97,22 @@ void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os
 void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-  os << "energy ('" << method << "')";
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
+	{
+		os << "E, wfn = energy ('" << method << "', return_wfn=True)\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+	}
+	else os << "energy ('" << method << "')";
 }
 void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-  os << "gradient ('" << method << "')";
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
+	{
+		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+	}
+	else os << "gradient ('" << method << "')";
 }
 void energy::interfaces::psi4::sysCallInterface::write_optimize_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
@@ -201,4 +211,35 @@ energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(){
   auto geo = get_final_geometry();
   auto energy_and_geo = parse_gradients();
   return std::make_tuple(energy_and_geo.first, geo, energy_and_geo.second);
+}
+
+std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
+{
+	std::ifstream in_file;
+	in_file.open(tmp_file_name + "_out.dat");
+
+	std::string line;
+	std::vector<std::string> linevec;
+	double q;
+
+	std::vector<double> charges;
+
+	while (!in_file.eof())
+	{
+		std::getline(in_file, line);
+		if (line.size() > 25 && line.substr(2, 24) == "Mulliken Charges: (a.u.)")
+		{
+			std::getline(in_file, line);  // discard line with column names
+			for (int i = 0; i < coords->size(); i++)
+			{
+				std::getline(in_file, line);
+				linevec = split(line, ' ', true);
+				q = std::stod(linevec[5]);
+				charges.emplace_back(q);
+			}
+			break;
+		}
+	}
+
+	return charges;
 }

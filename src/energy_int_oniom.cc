@@ -16,9 +16,11 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.qminterface != config::interface_types::T::AMBER &&
-		Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN) ||
+		Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
+    && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4) ||
 		(Config::get().energy.qmmm.mminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.mminterface != config::interface_types::T::AMBER &&
-			Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN))
+			Config::get().energy.qmmm.mminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.mminterface != config::interface_types::T::GAUSSIAN
+      && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4))
 	{
 		throw std::runtime_error("One of your chosen interfaces is not suitable for ONIOM.");
 	}
