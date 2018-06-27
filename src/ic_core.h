@@ -486,7 +486,6 @@ system::create_dihedrals(const Graph& g) const {
           auto b_index = g[u].atom_serial;
           auto c_index = g[v].atom_serial;
           auto d_index = g[*v_vert_it].atom_serial;
-          ;
           result.emplace_back(std::make_unique<dihedral>(a_index, b_index, c_index, d_index));
         }
       }
@@ -538,16 +537,20 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
   auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
   for(; micro_iter < 50; ++micro_iter){
 
+    //std::cout << "Bmat:\n" << ic_Bmat().t() << "\n\n";
+    //std::cout << "Ginv:\n" << ic_Gmat().pinv() << "\n\n";
+
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
-    std::cout << xyz_ << std::endl;
+    //std::cout << "Cartesian:\n" << xyz_ << std::endl;
 
     auto d_now = calc_diff(xyz_, old_xyz);
-    std::cout << "Diff internal coordinates:\n" << d_now << std::endl;
+    //std::cout << "Diff internal coordinates:\n" << d_now << std::endl;
 
     auto d_int_remain = d_int_left - d_now;
     auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
     auto internal_norm = d_int_remain.norm();
-    std::cout << "internal norm: " << internal_norm << "\n\n";
+    //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
+    //std::cout << "internal norm: " << internal_norm << "\n\n";
     if (micro_iter == 0){
       first_struct = xyz_;
       last_good_xyz = xyz_;
@@ -586,6 +589,7 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
 template<typename Dcart>
 coords::Representation_3D& ic_core::system::take_Cartesian_step(Dcart&& d_cart){
   auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
+  //std::cout << "Cartesian Change:\n" << d_cart_rep3D << "\n\n";
   return set_xyz(xyz_ + d_cart_rep3D);
 }
 
@@ -640,7 +644,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
       }
     }
   }
-  std::cout << "Diff:\n" << diff.t() << "\n";
+  //std::cout << "Diff:\n" << diff.t() << "\n";
   return (diff * del_mat).t();
 }
 

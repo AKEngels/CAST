@@ -444,6 +444,9 @@ ic_core::rotation::rot_der(const coords::Representation_3D& new_xyz) const{
     new_xyz_.emplace_back(new_xyz.at(indi - 1));
   }
 
+  //std::cout << "New xyz:\n" << new_xyz_ << "\n\n";
+  //std::cout << "Old xyz:\n" << reference_ << "\n\n";
+
   return ic_rotation::exponential_derivs(reference_, new_xyz_);
 }
 
@@ -457,6 +460,13 @@ ic_core::rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
   Mat Z = zero(sys_size, 3);
 
   auto first_ders = rot_der(new_xyz);
+
+  /*auto i=0;
+  for(auto const& mat: first_ders){
+    ++i;
+    std::cout << i << ". Mat:\n" << mat << "\n\n";
+  }*/
+
   for(auto i{0u}; i<first_ders.size();++i){
     auto const& ind = indices_.at(i);
     auto const& der = first_ders.at(i);
@@ -571,6 +581,7 @@ scon::mathmatrix<float_type>& ic_core::system::Bmat() {
     B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
   new_B_matrix = false;
+  //std::cout << "Bmat:\n" << B_matrix << "\n\n";
   return B_matrix;
 }
 
@@ -739,6 +750,7 @@ void ic_core::system::optimize(coords::DL_Coordinates & coords){
 
     auto dq_step = get_internal_step(old_gq);
 
+    //std::cout << "U:\n" << del_mat << "\n\n";
     apply_internal_change(dq_step);
 
     coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
