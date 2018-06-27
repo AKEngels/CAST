@@ -42,17 +42,28 @@ namespace energy{
 
         }
 
+				/**calculates energy*/
         float_type e(void) final override;
+				/**calculates gradients*/
         float_type g(void) final override;
+				/**should calculate hessian, in the moment does nothing*/
         float_type h(void) final override;
+				/**performs an optimization*/
         float_type o(void) final override;
 
+				/**should print total energy, but I think it prints partial energies as well as print_E_short()*/
         void print_E(std::ostream&) const final override;
+				/**prints headline for partial energies*/
         void print_E_head(std::ostream&, bool const endline=true) const final override;
+				/**prints partial energies*/
         void print_E_short(std::ostream&, bool const endline=true) const final override;
+				/**does nothing*/
         void to_stream(std::ostream&) const final override;
 
+				/**reads mulliken charges from output file*/
 				std::vector<float_type> charges() const override;
+				/**calculates gradients on external charges
+				uses coulomb potential between external charge and mulliken charges of atoms*/
 				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
       private:
@@ -61,20 +72,32 @@ namespace energy{
           gradient,
           optimize
         };
+
+				/**writes input file
+				@param kind: calculation type (e.g. energy or gradient)*/
+				void write_input(Calc kind = Calc::energy) const;
+				/**writes everything in input file that doesn't depend on calculation type*/
         void write_head(std::ostream&) const;
-        void write_input(Calc kind = Calc::energy) const;
+				/**writes molecule to input file*/
         void write_molecule(std::ostream&) const;
+				/**writes external charges into input file (needed for QM/MM)*/
 				void write_ext_charges(std::ostream & os) const;
+				/**writes everything except for head in inputfile for energy calculation*/
         void write_energy_input(std::ostream&) const;
+				/**writes everything except for head in inputfile for gradients calculation*/
         void write_gradients_input(std::ostream&) const;
+				/**writes everything except for head in inputfile for optimization*/
         void write_optimize_input(std::ostream&) const;
 
+				/**makes system call to psi4, throws error if this fails 3 times*/
         void make_call()const;
 
         std::vector<std::string> parse_specific_position(std::istream& is, std::string const& delim, int space) const;
         std::vector<std::string> get_last_gradients() const;
+				/**reads final geometry from output file of optimization*/
         coords::Representation_3D get_final_geometry() const;
 
+				/**reads and calculates the energy from outputfile*/
         coords::float_type parse_energy();
         std::pair<coords::float_type, coords::Representation_3D> parse_gradients();
         std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
@@ -83,8 +106,10 @@ namespace energy{
         template<typename StrCont>
         coords::Representation_3D extract_Rep3D(StrCont && lines)const;
 
+				/**randomly created name of input and output file*/
         std::string tmp_file_name;
 
+				/**partial energies (in hartree!!!)*/
         std::vector<std::pair<std::string, float_type>> energies;//<- energy in Hartree!
       };
     }
