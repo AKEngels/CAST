@@ -318,11 +318,14 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
   if (if_gradient && integrity == true)
   {
+		auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
+    auto mmc_small_g_ext_charges = mmc_small.energyinterface()->get_g_ext_chg();
+
     for (int i=0; i<charge_indices.size(); ++i)
     {
       int mma = charge_indices[i];
-      new_grads[mma] += qmc.energyinterface()->get_g_ext_chg()[i];
-      new_grads[mma] -= mmc_small.energyinterface()->get_g_ext_chg()[i];
+      new_grads[mma] += qmc_g_ext_charges[i];
+      new_grads[mma] -= mmc_small_g_ext_charges[i];
     }
   }
 
