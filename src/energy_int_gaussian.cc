@@ -156,6 +156,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         }
         out_file << "@./" << filename <<" /N\n";
       }
+      out_file << '\n';
     }
     else if (Config::get().energy.gaussian.method == "DFTBA")
     {
@@ -167,6 +168,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
 			{
 				out_file << c.x << " " << c.y << " " << c.z << "\n";
 			}
+      out_file << '\n';
 		}
     out_file.close();
   }
