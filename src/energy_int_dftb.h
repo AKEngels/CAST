@@ -103,6 +103,9 @@ namespace energy
         /**gradients of link atoms*/
         coords::Gradients_3D link_atom_grad;
 
+        /**calculates coulomb energy the self interaction between the external charges*/
+        double calc_self_interaction_of_external_charges();
+
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 
