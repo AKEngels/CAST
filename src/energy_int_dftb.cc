@@ -332,6 +332,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
 
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+    double ext_chg_energy = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges
+    energy -= ext_chg_energy;  // subtract self-interaction because it's already in MM calculation
+  }
+
   // check if geometry is still intact
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
@@ -438,6 +444,27 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 }
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
+
+double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
+{
+  double energy{ 0.0 };
+  for (int i=0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  {
+    auto c1 = Config::get().energy.qmmm.mm_charges[i];
+    for (int j = 0; j < i; ++j)
+    {
+      auto c2 = Config::get().energy.qmmm.mm_charges[j];
+
+      double dist_x = c1.x - c2.x;
+      double dist_y = c1.y - c2.y;
+      double dist_z = c1.z - c2.z;
+      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
+
+      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
+    }
+  }
+  return energy;
+}
 
 bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) const
 {
