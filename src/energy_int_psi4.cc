@@ -193,23 +193,6 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
   energies.clear();
   std::vector<std::string> energy;
 
-	// repulsion energy between external charges, has to be subtracted from total energy and from nuclear repulsion
-	double rep_ext_charges = 0;
-	if (Config::get().energy.qmmm.mm_charges.size() != 0)
-	{
-		std::string line;
-		while (!ifs.eof())
-		{
-			std::getline(ifs, line);
-			if (line.size() > 29 && line.substr(2, 28) == "Additional nuclear repulsion")
-			{
-				std::vector<std::string> linevec = split(line, ' ', true);
-				rep_ext_charges = std::stod(linevec[4]);
-				break;
-			}
-		}
-	}
-
 	// parse partial energies
   for(auto tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0);
     !tmp_energy.empty(); tmp_energy = parse_specific_position(ifs, "Nuclear Repulsion Energy", 0)){
@@ -226,8 +209,14 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
     energies.emplace_back(std::make_pair(key, val));
   }
 
-	energies[0].second -= rep_ext_charges;      // subtract from nuclear repulsion energy
-	energies.back().second -= rep_ext_charges;  // subtract from total energy
+  
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+    double rep_ext_charges = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges
+    rep_ext_charges = rep_ext_charges/energy::au2kcal_mol;  // convert to hartree
+    energies[0].second -= rep_ext_charges;      // subtract from nuclear repulsion energy
+	  energies.back().second -= rep_ext_charges;  // subtract from total energy
+  }
 
   return energies.back().second*energy::au2kcal_mol;  // return total energy in kcal/mol
 }
@@ -312,4 +301,25 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 		grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
 	}
 	return grad_ext_charges;
+}
+
+double energy::interfaces::psi4::sysCallInterface::calc_self_interaction_of_external_charges()
+{
+  double energy{ 0.0 };
+  for (int i=0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  {
+    auto c1 = Config::get().energy.qmmm.mm_charges[i];
+    for (int j = 0; j < i; ++j)
+    {
+      auto c2 = Config::get().energy.qmmm.mm_charges[j];
+
+      double dist_x = c1.x - c2.x;
+      double dist_y = c1.y - c2.y;
+      double dist_z = c1.z - c2.z;
+      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
+
+      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
+    }
+  }
+  return energy;
 }

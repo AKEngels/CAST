@@ -103,6 +103,9 @@ namespace energy{
         std::tuple<coords::float_type, coords::Representation_3D, coords::Representation_3D>
         parse_geometry_and_gradients();
 
+        /**calculates coulomb energy the self interaction between the external charges*/
+        double calc_self_interaction_of_external_charges();
+
         template<typename StrCont>
         coords::Representation_3D extract_Rep3D(StrCont && lines)const;
 
