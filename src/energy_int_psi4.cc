@@ -270,37 +270,33 @@ std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 
 std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
 {
-	auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-	std::vector<coords::Cartesian_Point> grad_ext_charges;
-	coords::Cartesian_Point ext_grad;
+  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+  auto atom_charges = charges();
 
-	for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
-	{
-		ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
-		ext_grad.y() = 0.0;
-		ext_grad.z() = 0.0;
+  std::vector<coords::Cartesian_Point> grad_ext_charges;
+  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
-		for (int i = 0; i<coords->size(); ++i)               // loop over all atoms
-		{
-			double atom_charge = charges()[i];
-			double charge_product = c.charge * atom_charge *elec_factor;
+  for (int i = 0; i < coords->size(); ++i)  // for every atom
+  {
+    double charge_i = atom_charges[i];
 
-			double dist_x = c.x - coords->xyz(i).x();
-			double dist_y = c.y - coords->xyz(i).y();
-			double dist_z = c.z - coords->xyz(i).z();
-			coords::Cartesian_Point vector{ dist_x,dist_y,dist_z }; // connection vector between charge and atom
+    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+    {
+      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+      double charge_j = current_charge.charge;
 
-			double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance or length of vector
-			double inverse_dist = 1.0 / dist;  // get inverse distance
+      auto dx = current_charge.x - coords->xyz(i).x();
+      auto dy = current_charge.y - coords->xyz(i).y();
+      auto dz = current_charge.z - coords->xyz(i).z();
+      auto r_ij = coords::r3{dx, dy, dz};   // vector between atom and charge
+      coords::float_type d = len(r_ij);     // distance between atom and charge
 
-			coords::float_type dQ = - charge_product / (inverse_dist*inverse_dist);  // derivative of coulomb potential
-      coords::Cartesian_Point grad = (vector / dist) * dQ;     // dQ is a float, now the gradient gets a direction
-
-      ext_grad += grad;              // gradient on external charge
-		}
-		grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
-	}
-	return grad_ext_charges;
+      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
+      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
+      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
+    }
+  }
+  return grad_ext_charges;
 }
 
 double energy::interfaces::psi4::sysCallInterface::calc_self_interaction_of_external_charges()
