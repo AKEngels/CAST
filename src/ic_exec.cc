@@ -36,7 +36,7 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
   auto el_vec = p.create_element_vec();
 
   // create vector of bonds
-  auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb_helper::ang_from_bohr(cp_vec));
+  auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb::helper::ang_from_bohr(cp_vec));
 
   // create graph from bonds vector and atom vector
   ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);

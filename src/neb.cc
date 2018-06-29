@@ -1068,7 +1068,7 @@ double neb::g_new_maxflux()
 void neb::calc_shift(void)
 {
   std::ptrdiff_t laf{ 0 };
-  double diff{ 0.0 }, gridp{ 0.0 },
+  double gridp{ 0.0 },
 	  x{ 0.0 }, y{ 0.0 }, z{ 0.0 },
 	  distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
   std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images),
@@ -1082,7 +1082,7 @@ void neb::calc_shift(void)
 
     for (std::size_t j = 0; j < (num_images); j++) {
 
-      diff = (double)j / num_images;
+      auto diff = static_cast<double>(j) / static_cast<double>(num_images);
 
       image_ini[j][i];
       posx[j] = imagi[j][i].x();
@@ -3073,7 +3073,6 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
   {
     throw std::logic_error("Wrong definition of parameter and index vectors.");
   }
-  size_t N_main = redundant_dists.size();
   size_t term_deepness;
   Z_matrix.resize(N + 1);
   unique_dists.resize(N);

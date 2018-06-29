@@ -30,7 +30,7 @@
 namespace coords {
   class DL_Coordinates : public Coordinates {
   public:
-    std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
+    std::shared_ptr<coords::input::formats::pdb::helper::Parser<float_type>> parser;
     DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::pdb> format) : Coordinates(coords) {
       if (!format) {
         throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
@@ -632,7 +632,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
   auto rprims = calc_prims(std::forward<XYZ>(rhs));
   auto diff = lprims - rprims;
 
-  for(auto i = 0;i<primitive_internals.size(); ++i){
+  for(auto i = 0u;i<primitive_internals.size(); ++i){
     if(dynamic_cast<dihedral*>(primitive_internals.at(i).get())){
       if(std::fabs(diff(0, i)) > SCON_PI){
         if(diff(0, i)<0.0){
