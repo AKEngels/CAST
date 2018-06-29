@@ -1068,7 +1068,7 @@ double neb::g_new_maxflux()
 void neb::calc_shift(void)
 {
   std::ptrdiff_t laf{ 0 };
-  double diff{ 0.0 }, gridp{ 0.0 },
+  double gridp{ 0.0 },
 	  x{ 0.0 }, y{ 0.0 }, z{ 0.0 },
 	  distx{ 0.0 }, disty{ 0.0 }, distz{ 0.0 };
   std::vector<double> posx(num_images), posy(num_images), posz(num_images), gridx(num_images), gridy(num_images),
@@ -1081,9 +1081,7 @@ void neb::calc_shift(void)
   for (std::size_t i = 0; i < this->cPtr->size(); i++) {
 
     for (std::size_t j = 0; j < (num_images); j++) {
-
-      diff = (double)j / num_images;
-
+       
       image_ini[j][i];
       posx[j] = imagi[j][i].x();
       posy[j] = imagi[j][i].y();
@@ -2998,12 +2996,8 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
 
   coords::Coordinates coords;
   coords = *cPtr;
-  size_t no_dist = Z_matrices[0][N][0].first[0],
-    no_angle = Z_matrices[0][N][0].first[1],
-    no_dihedral = Z_matrices[0][N][0].first[2];
 
-  coords.adapt_indexation(no_dist, no_angle, no_dihedral,
-    Z_matrices[0], cPtr);
+  coords.adapt_indexation(Z_matrices[0], cPtr);
   //system("pause");
 
   //new coords object for saving newly generated structures
@@ -3024,8 +3018,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
     //saves new structure
     structure = format_ptr->read("NEB_coordinates_cartesian_"
       + std::to_string(i));
-    structure.adapt_indexation(no_dist, no_angle, no_dihedral,
-      Z_matrices[0], cPtr);
+    structure.adapt_indexation(Z_matrices[0], cPtr);
 
     //prepares parameters for NEB MEP finding
     for (size_t j = 0; j < N; ++j)
@@ -3073,7 +3066,6 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
   {
     throw std::logic_error("Wrong definition of parameter and index vectors.");
   }
-  size_t N_main = redundant_dists.size();
   size_t term_deepness;
   Z_matrix.resize(N + 1);
   unique_dists.resize(N);

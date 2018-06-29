@@ -466,7 +466,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   std::vector <int> ex_diss(index + 1), ch_diss(index + 1), rek(index + 1), trapping(index + 1), radiativ(index + 1);
   std::vector <std::vector<char>> zustand(index + 1, std::vector <char>(101));
   std::vector <int> punkt(schritt + 1), punkt_ladung(schritt + 1);
-  double r_summe, r_i, zufall1, coulombenergy, dwelltime, r_summe_fulleren;
+  double r_summe, r_i, zufall1, coulombenergy, r_summe_fulleren;
 
   for (i = 1; i < (index + 1); i++) //initializing the vectors with 0
   { 
@@ -772,7 +772,6 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
           // fluoreszenz dazuaddieren
           r_summe = r_summe + k_rad;
-          dwelltime = 1 / r_summe;
 
           // schritt bestimmen
           std::uniform_real_distribution<double> distribution1(0, 1);

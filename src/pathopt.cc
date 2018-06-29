@@ -95,7 +95,7 @@ void pathx::MCM_PO(ptrdiff_t opt)
   */
   double boltzman { 0.0 }, trial = (double)rand() / (double)RAND_MAX;
   ptrdiff_t nancounter (0), nbad (0), status (0);
-  bool  l_disp (false),nanstatus(false);
+  bool  nanstatus(false);
   global_image = 0;
   counter = 0;
   coords::Representation_3D positions;
@@ -263,13 +263,8 @@ void pathx::MCM_PO(ptrdiff_t opt)
 		}
 	 }
 	 /// test if the displacement is in an acceptable range 
-	 if (testcoord(coord_in)) 
+	 if (!testcoord(coord_in)) 
 	 {
-		l_disp = false;
-	 }
-	 else
-	 {
-		l_disp = true;
 		status = 0;
 	 }
 	 ///apply energy range criterium
@@ -326,7 +321,7 @@ void pathx::MC_PO(ptrdiff_t opt)
 	*/
 	double boltzman{ 0.0 }, trial = (double)rand() / (double)RAND_MAX, start_image_energy{ 0.0 };
 	ptrdiff_t nancounter(0), nbad(0), status(0),same_counter(0);
-	bool  l_disp(false), nanstatus(false);
+	bool  nanstatus(false);
 	global_image = 0;
 	counter = 0;
 	coords::Representation_3D positions;
@@ -510,13 +505,8 @@ void pathx::MC_PO(ptrdiff_t opt)
 				}
 			}
 			/// test if the displacement is in an acceptable range 
-			if (testcoord(coord_in))
+			if (!testcoord(coord_in))
 			{
-				l_disp = false;
-			}
-			else
-			{
-				l_disp = true;
 				status = 0;
 			}
 			///apply energy range criterium
@@ -684,7 +674,6 @@ void pathx::proof_connect()
 		}
 		ptrdiff_t i(0U), jj(0U);
 		ptrdiff_t tempcount (0U);
-		bool tempproof = false;
 		///Connecting I/O 1: VIA NEB 2: DIRECT 
 		if (Config::get().neb.NEB_CONN == true)
 		{
@@ -695,7 +684,6 @@ void pathx::proof_connect()
 				N->preprocess(j, image, j, global_path_minima[1][j], tempstart, reverse);
 				reverse = true;
 				tempcount = 0;
-				tempproof = false;
 				jj = j;
 				for (i = 1; i < temp_image - 2; i++)
 				{
@@ -703,7 +691,6 @@ void pathx::proof_connect()
 					if (global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]].empty()) continue;
 					N->preprocess(j, image, j, global_path_minima[i - tempcount][jj], global_path_minima[(i - tempcount) + 1][PARTNER[i - tempcount][jj]], reverse);
 					jj = PARTNER[i - tempcount][jj];
-					tempproof = false;
 				}       
 				reverse = true;
 				if (global_path_minima[i - tempcount][jj].size() == 0)continue;
@@ -730,7 +717,6 @@ void pathx::proof_connect()
 					energy_connect.push_back(cPtr->g());
 					energy << std::right << std::fixed << std::setprecision(6) << energy_connect[1] << '\n';
 					tempcount = 0;
-					tempproof = false;
 					jj = j;
 
 					//During the path sempling each path is written in an array and printed out later
@@ -756,7 +742,6 @@ void pathx::proof_connect()
 						energy_connect.push_back(cPtr->g());
 						energy << std::right << std::fixed << std::setprecision(6) << energy_connect[i+1] << '\n';
 						jj = PARTNER[i - tempcount][jj];
-						tempproof = false;
 					}
 					printmono(img.str().c_str(), tempstart2, j);
 

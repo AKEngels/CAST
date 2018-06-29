@@ -295,18 +295,18 @@ public:
   /**
    * @brief Sheds the specified rows from the matrix
    */
-  void shed_rows(long const& first_in, long const& last_in = 0);
+  void shed_rows(long const first_in, long const last_in = 0);
 
   /**
    * @brief Sheds the specified columns from the matrix
    */
-  void shed_cols(long const& first_in, long const& last_in = 0);
+  void shed_cols(long const first_in, long const last_in = 0);
 
   /**
    * @brief Returns number of rows
    */
 #ifndef CAST_USE_ARMADILLO
-  using base_type::rows;
+  std::size_t rows() const { return base_type::rows();}
 #else
   std::size_t rows() const;
 #endif
@@ -315,7 +315,7 @@ public:
    * @brief Returns number of columns
    */
 #ifndef CAST_USE_ARMADILLO
-  using base_type::cols;
+  std::size_t cols() const { return base_type::cols();}
 #else
   std::size_t cols() const;
 #endif
@@ -962,47 +962,47 @@ void mathmatrix<T>::append_right(const mathmatrix& I_will_be_the_right_part) {
 }
 
 template <typename T>
-void mathmatrix<T>::shed_rows(long const& first_in, long const& last_in) {
+void mathmatrix<T>::shed_rows(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0 || first_in > last_in_ || last_in >= this->rows()) {
+  if (first_in < 0 || first_in > last_in_ || last_in >= static_cast<long>(this->rows())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
   }
 
 
   mathmatrix newOne(this->rows() - (last_in_ - first_in + 1u), this->cols());
-  for (auto i = 0; i < first_in; ++i) {
-    for (auto j = 0; j < this->cols(); ++j) {
+  for (auto i = 0u; i < first_in; ++i) {
+    for (auto j = 0u; j < this->cols(); ++j) {
       newOne(i, j) = (*this)(i, j);
     }
   }
-  for (auto i = first_in; i < this->rows() - last_in_ - 1 + first_in; ++i) {
+  for (auto i = first_in; i < static_cast<long>(this->rows()) - last_in_ - 1u + first_in; ++i) {
     for (auto j = 0u; j < this->cols(); ++j) {
-      newOne(i, j) = (*this)(i + (last_in_ - first_in) + 1, j);
+      newOne(i, j) = (*this)(i + (last_in_ - first_in) + 1u, j);
     }
   }
   this->swap(newOne);
 }
 
 template <typename T>
-void mathmatrix<T>::shed_cols(long const& first_in, long const& last_in) {
+void mathmatrix<T>::shed_cols(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0 || first_in > last_in_ || last_in >= this->cols()) {
+  if (first_in < 0u || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_cols()");
   }
 
   mathmatrix newOne(this->rows(), this->cols() - (last_in_ - first_in + 1u));
-  for (auto j = 0; j < this->rows(); ++j) {
-    for (auto i = 0; i < first_in; ++i) {
+  for (auto j = 0u; j < this->rows(); ++j) {
+    for (auto i = 0u; i < first_in; ++i) {
       newOne(j, i) = (*this)(j, i);
     }
   }
-  for (auto j = 0; j < this->rows(); ++j) {
-    for (auto i = first_in; i < this->cols() - last_in_ - 1 + first_in; ++i) {
-      newOne(j, i) = (*this)(j, i + (last_in_ - first_in) + 1);
+  for (auto j = 0u; j < this->rows(); ++j) {
+    for (auto i = first_in; i < static_cast<long>(this->cols()) - last_in_ - 1u + first_in; ++i) {
+      newOne(j, i) = (*this)(j, i + (last_in_ - first_in) + 1u);
     }
   }
   this->swap(newOne);

@@ -8,7 +8,6 @@
 #include "filemanipulation.h"
 #include "scon_utility.h"
 #include <iterator>
-#pragma once
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4996)
@@ -1681,27 +1680,31 @@ std::ostream& tinker::parameter::combi::operator<< (std::ostream &stream, vdw co
   return stream;
 }
 
-std::ostream& tinker::parameter::operator<< (std::ostream & stream, parameters const & p)
-{
-  stream << p.m_general;
-  for ( auto const & v : p.m_atoms ) stream << v << std::endl;
-  for ( auto const & v : p.m_vdws ) stream << v << std::endl;
-  for ( auto const & v : p.m_charges ) stream << v << std::endl;
-  for ( auto const & v : p.m_bonds ) stream << v << std::endl;
-  for ( auto const & v : p.m_angles ) stream << v << std::endl;
-  for ( auto const & v : p.m_impropers ) v.to_stream(stream, "improper");
-  for ( auto const & v : p.m_imptors ) v.to_stream(stream, "imptors");
-  for ( auto const & v : p.m_torsions ) v.to_stream(stream, "torsion");
-  for ( auto const & v : p.m_multipoles ) stream << v << std::endl;
-  for ( auto const & v : p.m_opbends ) stream << v << std::endl;
-  for ( auto const & v : p.m_polarizes ) stream << v << std::endl;
-  for ( auto const & v : p.m_strbends ) stream << v << std::endl;
-  for ( auto const & v : p.m_ureybrads ) stream << v << std::endl;
-  for ( auto const & v : p.m_vdw14s ) stream << v << std::endl;
-  return stream;
+namespace tinker{
+    namespace parameter{
+
+        std::ostream& operator<< (std::ostream & stream, parameters const & p)
+        {
+          stream << p.m_general;
+          for ( auto const & v : p.m_atoms ) stream << v << std::endl;
+          for ( auto const & v : p.m_vdws ) stream << v << std::endl;
+          for ( auto const & v : p.m_charges ) stream << v << std::endl;
+          for ( auto const & v : p.m_bonds ) stream << v << std::endl;
+          for ( auto const & v : p.m_angles ) stream << v << std::endl;
+          for ( auto const & v : p.m_impropers ) v.to_stream(stream, "improper");
+          for ( auto const & v : p.m_imptors ) v.to_stream(stream, "imptors");
+          for ( auto const & v : p.m_torsions ) v.to_stream(stream, "torsion");
+          for ( auto const & v : p.m_multipoles ) stream << v << std::endl;
+          for ( auto const & v : p.m_opbends ) stream << v << std::endl;
+          for ( auto const & v : p.m_polarizes ) stream << v << std::endl;
+          for ( auto const & v : p.m_strbends ) stream << v << std::endl;
+          for ( auto const & v : p.m_ureybrads ) stream << v << std::endl;
+          for ( auto const & v : p.m_vdw14s ) stream << v << std::endl;
+          return stream;
+        }
+    }
+
 }
-
-
 std::size_t tinker::parameter::parameters::req_mem (void) const
 {
   //sizeof(parameters);
