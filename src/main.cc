@@ -284,7 +284,7 @@ int main(int argc, char **argv)
     {
       // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
 
-      coords::DL_Coordinates ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci)));
+      coords::DL_Coordinates ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::xyz>(std::move(ci)));
 
       ic_testing exec_obj;
       exec_obj.ic_execution(ic_coords);
@@ -432,6 +432,7 @@ int main(int argc, char **argv)
       mc.write_range("_GRID");
       break;
     }
+
     case config::tasks::INTERNAL:
     {
       // Explicitly shows CAST conversion to internal coordiantes

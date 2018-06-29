@@ -31,7 +31,7 @@ namespace coords {
   class DL_Coordinates : public Coordinates {
   public:
     std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
-    DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::pdb> format) : Coordinates(coords) {
+    DL_Coordinates(Coordinates const& coords, std::unique_ptr<coords::input::formats::xyz> format) : Coordinates(coords) {
       if (!format) {
         throw std::runtime_error("You need to pass a format with fragments i. e. a pdb format.\n");
       }
