@@ -90,11 +90,11 @@ void couplings::coupling::kopplung()
           while (string_ct_relev_states >> ct_state){ct_relev_states.push_back(ct_state); }//all ct_states relevant to the calculation are bundeled in a vector of ints
 
           //CALCULATION FOR CT-COUPLINGS########################################################################################################################
-          for (int c = 0; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
+          for (auto c = 0u; c < c_ex_ex_trans.size(); c++)//loop over all ex_ex_dipoles
           {
             if (c_state_j[c] == 1)//ensuring unly dipolemoments concering the first excited state are used
             {
-              for (int d = 0; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
+              for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
               {
                 if (c_state_i[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
                 {
@@ -111,9 +111,9 @@ void couplings::coupling::kopplung()
 
 
           //CALCULATION FOR REK-COUPLINGS##########################################################################################################################
-          for (int c = 0; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
+          for (auto c = 0u; c < c_gz_ex_trans.size(); c++)//loop over all gz_ex_dipoles
           {
-            for (int d = 0; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
+            for (auto d = 0u; d < ct_relev_states.size(); d++)//loop over user defined relevant ct-states
             {
               if (c_gz_i_state[c] == ct_relev_states[d])//only if the dipolemoment is concering a relevant state
               {
@@ -127,7 +127,7 @@ void couplings::coupling::kopplung()
             }//end loop over relevant ct-states
           }//end loop over ex_ex_dipoles
 
-          for (int j = 0; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
+          for (auto j = 0u; j < ct_relev_states.size(); j++) //sum up squares of couplings between single states
           {
             ct_square_coup_sum  += ct_coupling[j]  * ct_coupling[j];
             rek_square_coup_sum += rek_coupling[j] * rek_coupling[j];
@@ -187,7 +187,7 @@ void couplings::coupling::write()
 {
   std::ofstream all_couplings("Couplings.txt", std::ios::out);
 
-  for (int i = 0; i < pSC_homo_1.size(); i++)
+  for (auto i = 0u; i < pSC_homo_1.size(); i++)
   {
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
@@ -195,7 +195,7 @@ void couplings::coupling::write()
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_ex[i] << '\n';
   }
 
-  for (int i = 0; i < hetero_pSC.size(); i++)
+  for (auto i = 0u; i < hetero_pSC.size(); i++)
   {
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " " ;  
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_nSC[i] << " ";
@@ -203,7 +203,7 @@ void couplings::coupling::write()
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_rek[i] << '\n';
   }
 
-  for (int i = 0; i < nSC_homo_1.size(); i++)
+  for (auto i = 0u; i < nSC_homo_1.size(); i++)
   {
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_2[i] << " ";
@@ -213,7 +213,7 @@ void couplings::coupling::write()
   all_couplings.close();
 
   std::ofstream homo_ex("homodimer_exciton.txt", std::ios::out);
-  for (int i = 0; i < pSC_homo_1.size(); i++)
+  for (auto i = 0u; i < pSC_homo_1.size(); i++)
   {
     homo_ex << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
     homo_ex << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
@@ -222,7 +222,7 @@ void couplings::coupling::write()
   homo_ex.close();
 
   std::ofstream homo_ch("homodimer_ladung.txt", std::ios::out);
-  for (int i = 0; i < pSC_homo_1.size(); i++)
+  for (auto i = 0u; i < pSC_homo_1.size(); i++)
   {
     homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
     homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
@@ -231,7 +231,7 @@ void couplings::coupling::write()
   homo_ch.close();
 
   std::ofstream hetero("heterodimer.txt", std::ios::out);
-  for (int i = 0; i < hetero_pSC.size(); i++)
+  for (auto i = 0u; i < hetero_pSC.size(); i++)
   {
     hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_pSC[i] << " ";
     hetero << std::setw(12) << std::setprecision(6) << std::fixed << std::left << hetero_nSC[i] << " ";
@@ -241,7 +241,7 @@ void couplings::coupling::write()
   hetero.close();
 
   std::ofstream nSC("nSC_homodimer.txt", std::ios::out);
-  for (int i = 0; i < nSC_homo_1.size(); i++)
+  for (auto i = 0u; i < nSC_homo_1.size(); i++)
   {
     nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " ";
     nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_2[i] << " ";

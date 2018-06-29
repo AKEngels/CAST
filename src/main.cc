@@ -380,7 +380,7 @@ int main(int argc, char **argv)
 
         // calculate RMSD
         double sum_d_square=0, sum_d_square_not_fixed = 0;
-        for (int i = 0; i < coords.size(); i++)
+        for (auto i = 0u; i < coords.size(); i++)
         {
           sum_d_square += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
           if (is_in(i, Config::get().coords.fixed) == false)

@@ -116,11 +116,10 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 {
   Maxvar=Config::get().neb.VARIATION;
   std::vector <double> MCpmin_vec;
-  double MCmin,MCpmin,MCgmin,factor;
+  double MCmin,MCgmin,factor;
   double boltzman=0.0, kt=1/(0.0019872966*Config::get().neb.TEMPERATURE), trial=(double)rand()/(double)RAND_MAX;
   ptrdiff_t mciteration=Config::get().neb.MCITERATION;
   ptrdiff_t nancounter{ 0 }, nbad{ 0 }, status{ 0 };
-  bool  l_disp=false;
   MCSTEPSIZE=Config::get().neb.MCSTEPSIZE;
   counter =0;
   std::string out_opt("PATHOPT_PERP_SAMPLE_STRUCTURES");
@@ -159,7 +158,6 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 
 
   MCgmin=MCmin;
-  MCpmin=MCmin;
 
 
   //ITERATIONS
@@ -258,14 +256,8 @@ void path_perp::MCM_NEB(ptrdiff_t opt)
 			MCpmin_vec[mcstep] = MCmin;
 		}
 	}
-	if (testcoord(coord_in))
+	if (!testcoord(coord_in))
 	{
-		l_disp = false;
-	}
-	else
-	{
-		//std::cout << "DISPLACEMENT TOO BIG" << lineend;
-		l_disp = true;
 		status = 0;
 	}
 

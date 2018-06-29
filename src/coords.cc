@@ -9,7 +9,9 @@
 #define SUPERPI 3.141592653589793238
 
 #include "optimization_dimer.h"
-std::ostream& coords::operator<< (std::ostream &stream, internal_relations const & inter)
+
+namespace coords{
+std::ostream& operator<< (std::ostream &stream, internal_relations const & inter)
 {
   stream << "[Rel: B,A,D: " << inter.rel_b << ", " << inter.rel_a << ", " << inter.rel_d;
   stream << "]:[Atom: " << inter.atom_of_inter_index << ", Inter: " << inter.inter_of_atom_index << "]:[Follow: ";
@@ -26,7 +28,7 @@ std::ostream& coords::operator<< (std::ostream &stream, internal_relations const
   return stream;
 }
 
-std::ostream& coords::operator<< (std::ostream &stream, Atom const & atom)
+std::ostream& operator<< (std::ostream &stream, Atom const & atom)
 {
   stream << atom.m_symbol << " (" << atom.m_number << ", " << atom.m_mass << "):[";
   for (std::size_t i = 0; i < atom.m_bonds.size(); ++i)
@@ -49,7 +51,7 @@ std::ostream& coords::operator<< (std::ostream &stream, Atom const & atom)
   return stream;
 }
 
-std::ostream& coords::operator<< (std::ostream &stream, Atoms const & atoms)
+std::ostream& operator<< (std::ostream &stream, Atoms const & atoms)
 {
   for (std::size_t i = 0; i < atoms.size(); ++i)
   {
@@ -58,7 +60,7 @@ std::ostream& coords::operator<< (std::ostream &stream, Atoms const & atoms)
   return stream;
 }
 
-std::ostream& coords::operator<< (std::ostream &stream, Stereo const & stereo)
+std::ostream& operator<< (std::ostream &stream, Stereo const & stereo)
 {
   for (auto const & center : stereo.centers())
   {
@@ -66,7 +68,7 @@ std::ostream& coords::operator<< (std::ostream &stream, Stereo const & stereo)
   }
   return stream;
 }
-
+}
 
 /* ######################################################
 
@@ -660,8 +662,8 @@ bool coords::Coordinates::validate_bonds()
 {
   bool status = true;
   broken_bonds.clear();
-  int const N = m_atoms.size();
-  for (int i = 0; i < N; ++i)  // for every atom i
+  auto const N = m_atoms.size();
+  for (auto i = 0u; i < N; ++i)  // for every atom i
   {
     for (auto const & bound : m_atoms.atom(i).bonds())  // for every atom b that is bound to i
     {
@@ -1104,8 +1106,7 @@ float coords::Coords_3d_float_callback::operator() (scon::vector<scon::c3<float>
   }
   return E;
 }
-void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
-  std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
+void coords::Coordinates::adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
   coords::Coordinates const *cPtr)
 {
   size_t ibond = 0, iangle = 0, idihedral = 0;
@@ -1139,94 +1140,6 @@ void coords::Coordinates::adapt_indexation(size_t no_dist, size_t no_angle, size
       iangle = 0;
       idihedral = N;
     }
-    //shouldn't be needed anymore
-    /*else if (i == no_dist)
-    {
-    if (reference[no_dist][0].first[0] == 1)
-    {
-    ibond = atoms(reference[no_dist][0].first[1] - 1).a_to_i();
-    }
-    else
-    {
-    ibond = atoms(reference[no_dist][0].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_dist][1].first[0] == 1)
-    {
-    iangle = atoms(reference[no_dist][1].first[2] - 1).a_to_i();
-    }
-    else
-    {
-    iangle = atoms(reference[no_dist][1].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_dist][2].first[0] == 1)
-    {
-    idihedral = atoms(reference[no_dist][2].first[3] - 1).a_to_i();
-    }
-    else
-    {
-    idihedral = atoms(reference[no_dist][2].first[0] - 1).a_to_i();
-    }
-    }
-    else if (i == no_angle && i > 2)
-    {
-    if (reference[no_angle][0].first[0] == 2)
-    {
-    ibond = atoms(reference[no_angle][0].first[1] - 1).a_to_i();
-    }
-    else
-    {
-    ibond = atoms(reference[no_angle][0].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_angle][1].first[0] == 2)
-    {
-    iangle = atoms(reference[no_angle][1].first[2] - 1).a_to_i();
-    }
-    else
-    {
-    iangle = atoms(reference[no_angle][1].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_angle][2].first[0] == 2)
-    {
-    idihedral = atoms(reference[no_angle][2].first[3] - 1).a_to_i();
-    }
-    else
-    {
-    idihedral = atoms(reference[no_angle][2].first[0] - 1).a_to_i();
-    }
-    }
-    else if (i == no_dihedral && i > 2)
-    {
-    if (reference[no_dihedral][0].first[0] == 3)
-    {
-    ibond = atoms(reference[no_dihedral][0].first[1] - 1).a_to_i();
-    }
-    else
-    {
-    ibond = atoms(reference[no_dihedral][0].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_dihedral][1].first[0] == 3)
-    {
-    iangle = atoms(reference[no_dihedral][1].first[2] - 1).a_to_i();
-    }
-    else
-    {
-    iangle = atoms(reference[no_dihedral][1].first[0] - 1).a_to_i();
-    }
-
-    if (reference[no_dihedral][2].first[0] == 3)
-    {
-    idihedral = atoms(reference[no_dihedral][2].first[3] - 1).a_to_i();
-    }
-    else
-    {
-    idihedral = atoms(reference[no_dihedral][2].first[0] - 1).a_to_i();
-    }
-    }*/
     else
     {
       if (reference[i][0].first[0] == i + 1)

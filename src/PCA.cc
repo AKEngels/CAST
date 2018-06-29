@@ -100,10 +100,10 @@ namespace pca
 
 		/* j counts the (truncated) matrix access, i the frames in ci */
 		{
-			size_t j = 0;
+			std::size_t j = 0;
 			if (Config::get().PCA.pca_use_internal)
 			{
-				for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
+				for (auto i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
 				{
 					auto holder2 = ci->PES()[i].structure.intern;
 					coords.set_internal(holder2);
@@ -112,7 +112,7 @@ namespace pca
 			}
 			else
 			{
-				for (size_t i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
+				for (auto i = Config::get().PCA.pca_start_frame_num; j < matrix_aligned.rows(); ++j, i += Config::get().PCA.pca_offset)
 				{
 					auto holder2 = ci->PES()[i].structure.cartesian;
 					coords.set_xyz(holder2);
@@ -190,10 +190,10 @@ namespace pca
 
     eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
-    for (size_t i = 0u; i < eigenvectors.rows(); i++)
+    for (auto i = 0u; i < eigenvectors.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
-      for (size_t j = 0u; j < eigenvectors.cols(); j++)
+      for (auto j = 0u; j < eigenvectors.cols(); j++)
       {
         std::string number = line.substr(j * 19u, 19u);
         eigenvectors(i, j) = stod(number);
@@ -215,7 +215,7 @@ namespace pca
 
 		std::getline(pca_modes_stream, line);
 
-		for (size_t i = 0u; i < eigenvectors.rows(); i++)
+		for (auto i = 0u; i < eigenvectors.rows(); i++)
 		{
 			std::getline(pca_modes_stream, line);
 		}
@@ -226,10 +226,10 @@ namespace pca
 		std::getline(pca_modes_stream, line);
     modes.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
-    for (size_t i = 0u; i < modes.rows(); i++)
+    for (auto i = 0u; i < modes.rows(); i++)
     {
       std::getline(pca_modes_stream, line);
-      for (size_t j = 0u; j < modes.cols(); j++)
+      for (auto j = 0u; j < modes.cols(); j++)
       {
         std::string number = line.substr(j * 19u, 19u);
         modes(i, j) = stod(number);
@@ -445,7 +445,6 @@ namespace pca
 
     std::getline(pca_modes_stream, line);
     size_t vec_rows = static_cast<size_t>(stoi(line.substr(7, 16)));
-    size_t vec_cols = static_cast<size_t>(stoi(line.substr(20, 10)));
 
     //eigenvectors.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
 
@@ -459,9 +458,7 @@ namespace pca
     std::getline(pca_modes_stream, line);
     std::getline(pca_modes_stream, line);
 
-    //trajectory.resize(stoi(line.substr(7, 16)), stoi(line.substr(20, 10)));
     size_t traj_rows = static_cast<size_t>(stoi(line.substr(7, 16)));
-    size_t traj_cols = static_cast<size_t>(stoi(line.substr(20, 10)));
 
 
     for (size_t i = 0u; i < traj_rows; i++)

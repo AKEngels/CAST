@@ -440,7 +440,7 @@ void md::simulation::init(void)
   {
     distances = init_active_center(0);   //calculate initial active center and distances to active center
 
-    for (int i(0U); i < N; ++i)  // determine which atoms are moved
+    for (auto i(0U); i < N; ++i)  // determine which atoms are moved
     {
       if (distances[i] <= Config::get().md.outer_cutoff)
       {
@@ -458,7 +458,7 @@ void md::simulation::init(void)
   }
   else if (Config::get().coords.fixed.size() != 0)  // if atoms are fixed 
   {
-    for (int i(0U); i < N; ++i)  // determine which atoms are moved
+    for (auto i(0U); i < N; ++i)  // determine which atoms are moved
     {
       if (is_in(i, Config::get().coords.fixed) == false)
       {
@@ -468,7 +468,7 @@ void md::simulation::init(void)
   }
   else   // if no active site is specified: all atoms are moved
   {
-    for (int i(0U); i < N; ++i)
+    for (auto i(0U); i < N; ++i)
     {
       movable_atoms.push_back(i);
     }
@@ -556,12 +556,12 @@ std::vector<md::zone> md::simulation::find_zones()
   zones.resize(number_of_zones);
 
   // create zones, fill them with atoms and create legend
-  for (int i = 0; i < distances.size(); i++)
+  for (auto i = 0u; i < distances.size(); i++)
   {
     int zone = std::floor(distances[i] / zone_width);
     zones[zone].atoms.push_back(i);
   }
-  for (int i = 0; i < zones.size(); i++)
+  for (auto i = 0u; i < zones.size(); i++)
   {
     zones[i].legend = std::to_string(int(i * zone_width)) + " to " + std::to_string(int((i + 1)*zone_width)); 
   }
@@ -570,7 +570,7 @@ std::vector<md::zone> md::simulation::find_zones()
   if (Config::get().general.verbosity > 2)
   {
     std::cout << "Zones:\n";
-    for (int i = 0; i < zones.size(); i++)
+    for (auto i = 0u; i < zones.size(); i++)
     {
       std::cout << zones[i].atoms.size() << " atoms in zone from " << i * zone_width << " to " << (i + 1)*zone_width << "\n";
     }
@@ -617,7 +617,7 @@ void md::simulation::fepinit(void)
   coordobj.fep.window[0].step = 0;
 
   // calculate all lambda values for every window
-  for (int i = 0; i < coordobj.fep.window.size(); i++) {
+  for (int i = 0u; i < coordobj.fep.window.size(); i++) {
 
     double lambda = i * Config::get().fep.dlambda;  // lambda
     if (lambda < Config::get().fep.eleccouple) coordobj.fep.window[i].ein = 0;
@@ -1083,7 +1083,7 @@ void md::simulation::feprun()
   }
   std::vector<double> dE_pots;
 
-  for (int i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
+  for (auto i(0U); i < coordobj.fep.window.size(); ++i)  //for every window
   {
     std::cout << "Lambda:  " << i * Config::get().fep.dlambda << "\n";
     coordobj.fep.window[0U].step = static_cast<int>(i);
@@ -1646,7 +1646,7 @@ void md::simulation::restart_broken()
   std::default_random_engine generator(static_cast<unsigned> (time(0)));  // generates random numbers
   auto dist01 = std::normal_distribution<double>{ 0,1 }; // normal distribution with mean=0 and standard deviation=1
   std::size_t const N = coordobj.size();
-  for (int i(0U); i < N; ++i)     // set random velocities around temperature T
+  for (auto i(0U); i < N; ++i)     // set random velocities around temperature T
   {
     V[i].x() = dist01(generator) * std::sqrt(kB*T / M[i]);
     V[i].y() = dist01(generator) * std::sqrt(kB*T / M[i]);
@@ -1767,7 +1767,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       distances = init_active_center(static_cast<int>(k));  //calculate active center and new distances to active center for every step
       movable_atoms.clear();            // determine again which atoms are moved
       inner_atoms.clear();
-      for (int i(0U); i < N; ++i)
+      for (auto i(0U); i < N; ++i)
       {
         if (distances[i] < inner_cutoff)
         {

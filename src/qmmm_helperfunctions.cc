@@ -145,7 +145,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     coords::PES_Point pes;
 
     pes.structure.cartesian.reserve(cp->atoms().size());
-    for (int a{ 0u }; a < cp->atoms().size(); ++a)
+    for (auto a{ 0u }; a < cp->atoms().size(); ++a)
     {
       auto && ref_at = (*cp).atoms().atom(a);
       coords::Atom at{ (*cp).atoms().atom(a).number() };
@@ -208,7 +208,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
         tmp_link_atoms.add(current);
         pes.structure.cartesian.push_back(a.position);
 
-        for (int i{ 0u }; i < new_qm_atoms.size(); ++i)  // bind bonding partner in "normal" atoms to link atom
+        for (auto i{ 0u }; i < new_qm_atoms.size(); ++i)  // bind bonding partner in "normal" atoms to link atom
         {
           if (current.is_bound_to(i))
           {
@@ -238,7 +238,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 	{
 		std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
 		std::vector<coords::float_type> charges_temp;
-		for (int i = 0; i<c.size(); i++)
+		for (auto i = 0u; i<c.size(); i++)
 		{
 			if (is_in(i, indices))  // find atom charges for indizes
 			{

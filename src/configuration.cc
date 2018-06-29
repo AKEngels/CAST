@@ -708,24 +708,33 @@ void config::parse_option(std::string const option, std::string const value_stri
   //DFTB+ Options
   else if (option.substr(0, 5) == "DFTB+")
   {
-    if (option.substr(5, 4) == "path")
+    if (option.substr(5, 4) == "path"){
       Config::set().energy.dftb.path = value_string;
-    else if (option.substr(5, 7) == "skfiles")
+    }
+    else if (option.substr(5, 7) == "skfiles"){
       Config::set().energy.dftb.sk_files = value_string;
-    else if (option.substr(5, 7) == "verbose")
+    }
+    else if (option.substr(5, 7) == "verbose"){
       Config::set().energy.dftb.verbosity = std::stoi(value_string);
-    else if (option.substr(5, 6) == "scctol")
+    }
+    else if (option.substr(5, 6) == "scctol"){
       Config::set().energy.dftb.scctol = std::stod(value_string);
-    else if (option.substr(5, 13) == "max_steps_scc")
+    }
+    else if (option.substr(5, 13) == "max_steps_scc"){
       Config::set().energy.dftb.max_steps = std::stoi(value_string);
-    else if (option.substr(5, 6) == "charge")
+    }
+    else if (option.substr(5, 6) == "charge"){
       Config::set().energy.dftb.charge = std::stod(value_string);
-    else if (option.substr(5, 1) == "3")
+    }
+    else if (option.substr(5, 1) == "3"){
       if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
-    else if (option.substr(5, 9) == "optimizer")
+    }
+    else if (option.substr(5, 9) == "optimizer"){
       Config::set().energy.dftb.opt = std::stoi(value_string);
-    else if (option.substr(5, 13) == "max_steps_opt")
+    }
+    else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
+    }
   }
 
   //Gaussian options
