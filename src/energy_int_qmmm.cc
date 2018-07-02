@@ -224,7 +224,8 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
       if (scon::sorted::exists(qm_indices, b))
       {
         if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
-          (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN))
+           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN || 
+            Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4))
         {
           bonded::Bond bond(mma, b);
           qmmm_bonds.push_back(bond);
@@ -423,12 +424,12 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   }
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {}  // these QM interfaces are allowed
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
-		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
+    if (Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
     {   // coulomb gradients on MM atoms 
       g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
     }
@@ -679,7 +680,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    if (if_gradient == true  && (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) )
+    if (if_gradient == true  && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
     {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
       int j2 = 0;
       for (auto j : mm_indices)
