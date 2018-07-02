@@ -51,6 +51,10 @@ retrieved by the PDB parser.
 */
 template <typename Atom_type>
 class Graph {
+private:
+    Graph(const std::vector<std::pair<int, int>>& b_atoms,
+        const std::vector<Atom_type>& vec)
+      : g{ create_graph(b_atoms, vec) } {}
 public:
   /*!
   \brief User-defined graph type.
@@ -67,9 +71,7 @@ public:
 
   Graph_type g;
 
-  Graph(const std::vector<std::pair<int, int>>& b_atoms,
-        const std::vector<Atom_type>& vec)
-      : g{ create_graph(b_atoms, vec) } {}
+  
 
   /*!
   \brief Creates the graph data structure. Called during instantiation of the
@@ -159,7 +161,15 @@ public:
     std::ofstream output(out_file);
     write_graphviz(output, g, make_label_writer(get(&Node::atom_serial, g)));
   }
+  template<typename AtomType>
+  friend Graph<AtomType> make_graph(std::vector<std::pair<int, int>> const& b_atoms, std::vector<AtomType> const& vec);
 };
+
+template<typename AtomType>
+Graph<AtomType> make_graph(std::vector<std::pair<int, int>> const& b_atoms, std::vector<AtomType> const& vec){
+  return Graph<AtomType>(b_atoms, vec);
+}
+
 }
 
 /*! @} End of ic_util group*/

@@ -144,6 +144,22 @@ namespace coords
             return is;
           }
         };
+        
+        struct helper{
+            static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
+                coords::Representation_3D result;
+                for(auto const& a: rep3D){
+                  result.emplace_back(a*energy::bohr2ang);
+                }
+                return result;
+            }
+            
+            static void removeBlanksFromString(std::string &s) {
+                s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char c){
+                    return std::isspace(c);
+                }), s.end());
+            }
+        };
 
       };
     }

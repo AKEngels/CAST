@@ -18,33 +18,17 @@ namespace coords {
 
 
         public:
-      struct helper {
-
-        static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
-          coords::Representation_3D result;
-          for(auto const& a: rep3D){
-            result.emplace_back(a*energy::bohr2ang);
-          }
-          return result;
-        }
+      struct helper : public helper {
 
         /*!
         \brief Scoped enumeration type with the relevant Pdb entries as possible values.
         */
-        enum class Record : int {
-          ATOM,
-          HETATOM,
-          NUMMDL,
-          MODEL,
-          ENDMDL,
-          TER,
-          END,
+        enum class kindOfEntryInLine : int {
+          ATOM, HETATOM, NUMMDL, MODEL, ENDMDL, TER, END,
           UNKNOWN
         };
         enum class terminals : int {
-          none = 0,
-          C,
-          N
+          none = 0, C, N
         };
         inline static std::set<std::string> const& residueNames(){
             static const std::set<std::string> ret { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN",
@@ -58,27 +42,34 @@ namespace coords {
         \param v Record object.
         \return String representation of the value of the Record object.
         */
-        static std::string Record_string(Record v) {
-          switch (v) {
-          case Record::ATOM:
-            return "ATOM";
-          case Record::HETATOM:
-            return "HETAOM";
-          case Record::NUMMDL:
-            return "NUMMDL";
-          case Record::MODEL:
-            return "MODEL";
-          case Record::ENDMDL:
-            return "ENDMDL";
-          case Record::TER:
-            return "TER";
-          case Record::END:
-            return "TER";
-          case Record::UNKNOWN:
-            return "Unknown Record_type.";
-          default:
-            return "Unknown Record_type.";
-          }
+        inline static std::map<kindOfEntryInLine, std::string> const& kindOfEntryInLineStringMap(){
+            static const std::map<kindOfEntryInLine, std::string> ret{
+                {kindOfEntryInLine::ATOM, "ATOM"},
+                {kindOfEntryInLine::HETATOM, "HETATOM"},
+                {kindOfEntryInLine::NUMMDL, "NUMMDL"},
+                {kindOfEntryInLine::MODEL, "MODEL"},
+                {kindOfEntryInLine::ENDMDL, "ENDMDL"},
+                {kindOfEntryInLine::TER, "TER"},
+                {kindOfEntryInLine::END, "TER"}
+            };
+            return ret;
+        }
+        inline static std::map<std::string, kindOfEntryInLine> const& stringKindOfEntryInLineMap(){
+            static const std::map<std::string, kindOfEntryInLine> ret{
+                {"ATOM", kindOfEntryInLine::ATOM},
+                {"HETATOM", kindOfEntryInLine::HETATOM},
+                {"HETATM", kindOfEntryInLine::HETATOM},
+                {"NUMMDL", kindOfEntryInLine::NUMMDL},
+                {"MODEL", kindOfEntryInLine::MODEL},
+                {"ENDMDL", kindOfEntryInLine::ENDMDL},
+                {"TER", kindOfEntryInLine::TER},
+                {"TER", kindOfEntryInLine::END}
+            };
+            return ret;
+        }
+        
+        static std::string recordString(kindOfEntryInLine v) {
+            return ic_util::getValueByKeyOrDefault(kindOfEntryInLineStringMap(), v, "Unknown Record type.");
         }
         /**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
         @param atom_name: atom name from pdb file
@@ -101,8 +92,8 @@ namespace coords {
         \param c Record object.
         \return String representation for the Record object piped to standard output.
         */
-        friend std::ostream& operator<<(std::ostream& os, Record c) {
-          return os << Record_string(c);
+        friend std::ostream& operator<<(std::ostream& os, kindOfEntryInLine c) {
+          return os << recordString(c);
         }
 
         /*!
@@ -111,13 +102,13 @@ namespace coords {
         \tparam Line Helper type representing an arbitrary line of the Pdb file.
         \tparam T Type intended to hold the coordinate data.
         */
-        template <typename Line, typename T>
+        template <typename T>
         struct Atom {
         public:
           Atom() = default;
-
+          template<typename Line>
           Atom(const Line& func, const std::string& file)
-            : rec_name{ func.line_type(file) }, atom_serial{ func.atom_serial(file) },
+            : rec_name{ func.lineType(file) }, atom_serial{ func.atom_serial(file) },
             atom_name{ func.atom_name(file) }, alt_loc{ func.alt_loc(file) },
             res_name{ func.res_name(file) }, chain_id{ func.chain_id(file) },
             res_seq{ func.res_seq(file) }, insertion_code{ func.insertion_code(
@@ -125,7 +116,7 @@ namespace coords {
             cp{ std::move(func.cart_point(file)) }, element{ func.element(
               file) } {};
 
-          Record rec_name;
+          kindOfEntryInLine rec_name;
           unsigned int atom_serial;
           std::string atom_name;
           std::string alt_loc;
@@ -138,8 +129,8 @@ namespace coords {
           std::string element;
 
         private:
-          template <typename _Line, typename _T>
-          friend std::ostream& operator<<(std::ostream& os, Atom<_Line, _T> const& atom){
+          template <typename _T>
+          friend std::ostream& operator<<(std::ostream& os, Atom<_T> const& atom){
             return os << std::setw(7) << atom.rec_name << ", " << std::setw(5)
               << atom.atom_serial << ", " << std::setw(4) << atom.atom_name
               << ", " << std::setw(9) << atom.alt_loc << ", " << std::setw(3)
@@ -167,35 +158,14 @@ namespace coords {
             \param line String representation of the Pdb line.
             \return Specific value of the Record type.
             */
-          Record line_type(const std::string& line) const {
-            if (line.substr(0, 4) == "ATOM") {
-              return Record::ATOM;
+            
+            kindOfEntryLine lineType(std::string const& line) const{
+                return ic_util::getValueByKeyOrDefault(
+                        stringKindOfEntryInLineMap(), removeBlanksFromString(line), kindOfEntryInLine::UNKNOWN
+                        );
+                        
             }
-            else if (line.substr(0, 7) == "HETATOM") {
-              return Record::HETATOM;
-            }
-            else if (line.substr(0, 6) == "HETATM") {
-              return Record::HETATOM;
-            }
-            else if (line.substr(0, 6) == "NUMMDL") {
-              return Record::NUMMDL;
-            }
-            else if (line.substr(0, 5) == "MODEL") {
-              return Record::MODEL;
-            }
-            else if (line.substr(0, 6) == "ENDMDL") {
-              return Record::ENDMDL;
-            }
-            else if (line.substr(0, 3) == "TER") {
-              return Record::TER;
-            }
-            else if (line.substr(0, 3) == "END") {
-              return Record::END;
-            }
-            else {
-              return Record::UNKNOWN;
-            }
-          }
+          
 
           /*!
           \brief Function for checking whether the Pdb line is an ATOM or HETATOM entry.
@@ -204,8 +174,8 @@ namespace coords {
           \return True, if the line is an ATOM or HETATOM entry; otherwise false.
           */
           bool line_check(const std::string& line) const {
-            auto type = line_type(line);
-            return type == Record::ATOM || type == Record::HETATOM;
+            auto type = lineType(line);
+            return type == kindOfEntryInLine::ATOM || type == kindOfEntryInLine::HETATOM;
           }
 
           /*!
@@ -384,7 +354,7 @@ namespace coords {
         template <typename T>
         class Parser {
         public:
-          using Atom_type = Atom<Line, T>;
+          using Atom_type = Atom<T>;
 
           Parser<T>(const std::string& str) { this->operator()(str); }
 
@@ -407,7 +377,7 @@ namespace coords {
               if (!line_func.line_check(file_line)) {
                 continue;
               }
-              auto atom = Atom<Line, T>(line_func, file_line);
+              auto atom = Atom<T>(line_func, file_line);
               atom_vec.emplace_back(atom);
               if (input_pdb.bad())
                 throw std::ios::failure("Error reading file " + pdb_file);
@@ -701,11 +671,9 @@ coords::Coordinates coords::input::formats::pdb::read(std::string const& file_na
   {
     if (Config::get().general.task == config::tasks::WRITE_TINKER)
     {
-      throw std::runtime_error("Yes, I know you just want to write a tinkerstructure and "
-                               "you don't need any energies. But it doesn't work like this. "
-                               "So just use GAUSSIAN or MOPAC as energy interface and all "
-                               "will be fine (even if you don't have access to any of these "
-                               "programmes).\n");
+      throw std::runtime_error("There is no way to use a PDB file in order to write a Tinker File"
+                               " because no force field parameters are known. Please use another "
+                               "input file.\n");
     }
     throw std::runtime_error("ERROR: It is not possible to use PDB files with that interface "
                              "because wrong atom types are assigned!\n");

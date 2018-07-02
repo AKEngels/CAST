@@ -734,7 +734,7 @@ bool ic_core::check_convergence(convergence_check cc){
   return drms < thresh_drms && dmax < thresh_dmax && E_diff<thresh_E && grms < thresh_grms && gmax < thresh_gmax;
 }
 
-void ic_core::system::optimize(coords::DL_Coordinates & coords){
+void ic_core::system::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
   initial_delocalized_hessian();
   coords::output::formats::tinker output(coords);

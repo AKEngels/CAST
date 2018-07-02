@@ -20,6 +20,15 @@ namespace ic_util{
   /*template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   typename std::enable_if<std::is_arithmetic<T>::value, std::vector<std::vector<scon::mathmatrix<T>> >>::type
   F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz);*/
+  
+  template<template <typename, typename, typename ...> class Map, typename Key, typename Value, typename DefValue, typename ... Args>
+  inline Value getValueByKeyOrDefault(Map<Key, Value, Args...> const& map, Key const& key, DefValue const& defaultValue){
+      typename Map<Key, Value, Args ...>::const_iterator it = map.find(key);
+      if(it == map.end()){
+          return defaultValue;
+      }
+      return it->second;
+  }
 
   template<template <typename, typename...> class Vec, typename VecType, typename ... VecArgs>
   inline auto get_mean(Vec<VecType, VecArgs...> const & vec) {
