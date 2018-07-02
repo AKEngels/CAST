@@ -121,7 +121,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
-				if (Config::get().energy.qmmm.use) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
@@ -162,14 +161,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     {
       out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
     }
-		if (calc_type == 'g' && Config::get().energy.qmmm.mm_charges.size() != 0)
-		{
-			for (auto &c : Config::get().energy.qmmm.mm_charges)  // writing points for electric field (positions of MM atoms)
-			{
-				out_file << c.x << " " << c.y << " " << c.z << "\n";
-			}
-      out_file << '\n';
-		}
     out_file.close();
   }
   else std::runtime_error("Writing Gaussian Inputfile failed.");
@@ -295,27 +286,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 			   mm_el_energy = std::stod(buffer.substr(buffer.find_first_of("=") + 1, 21));
 		  }
 
-        // get the electric field
-        // the electric field at MM atoms due to QM atoms is used to calculate gradients of electrostatic interaction on MM atoms
-		if (buffer.find("-------- Electric Field --------") != std::string::npos)
-		{
-		  coords::Cartesian_Point p;
-		  std::vector<coords::Cartesian_Point> el_field_tmp;
-		  std::getline(in_file, buffer);
-		  std::getline(in_file, buffer);
-
-		  std::getline(in_file, buffer);
-		  while (buffer.substr(0, 15) != " --------------")
-		  {
-			 p.x() = std::stod(buffer.substr(24, 14));
-			 p.y() = std::stod(buffer.substr(38, 14));
-			 p.z() = std::stod(buffer.substr(52, 14));
-
-			el_field_tmp.push_back(p * energy::Hartree_Bohr2Kcal_MolAng);
-			std::getline(in_file, buffer);
-		  }
-		  electric_field = el_field_tmp;
-		}
 	  }
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
@@ -672,27 +642,32 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 std::vector<coords::Cartesian_Point>
 energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 {
-	if (electric_field.size()-coords->size() != Config::get().energy.qmmm.mm_charges.size())
-	{
-		throw std::logic_error("Electric field has not the same size as the external charges. Can't calculate gradients.");
-	}
+  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+  auto atom_charges = charges();
 
-	std::vector<coords::Cartesian_Point> external_gradients;
-	for (int i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
-	{
-		coords::Cartesian_Point E = electric_field[i];
-		double q = Config::get().energy.qmmm.mm_charges[i-coords->size()].charge;
+  std::vector<coords::Cartesian_Point> grad_ext_charges;
+  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
-		double x = q * E.x();
-		double y = q * E.y();
-		double z = q * E.z();
-		coords::Cartesian_Point new_grad;
-		new_grad.x() = -x;
-		new_grad.y() = -y;
-		new_grad.z() = -z;
+  for (int i = 0; i < coords->size(); ++i)  // for every atom
+  {
+    double charge_i = atom_charges[i];
 
-		external_gradients.push_back(new_grad);
-	}
-  return external_gradients;
+    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+    {
+      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+      double charge_j = current_charge.charge;
+
+      auto dx = current_charge.x - coords->xyz(i).x();
+      auto dy = current_charge.y - coords->xyz(i).y();
+      auto dz = current_charge.z - coords->xyz(i).z();
+      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
+      coords::float_type d = len(r_ij);     // distance between atom and charge
+
+      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
+      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
+      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
+    }
+  }
+  return grad_ext_charges;
 }
 

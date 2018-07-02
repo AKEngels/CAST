@@ -233,29 +233,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
-      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
-      {    // in case of QM/MM calculation: read forces on external charges
-        if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
-        {
-          int ext_charge_number = std::stoi(line.substr(30));
-
-          std::vector<coords::Cartesian_Point> grad_tmp;
-          double x, y, z;
-
-          for (int i = 0; i < ext_charge_number; i++)
-          {
-            std::getline(in_file, line);
-            std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-            x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
-            y *= -energy::Hartree_Bohr2Kcal_MolAng;
-            z *= -energy::Hartree_Bohr2Kcal_MolAng;
-            coords::Cartesian_Point g(x, y, z);
-            grad_tmp.push_back(g);
-          }
-          grad_ext_charges = grad_tmp;
-        }
-      }
-
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
         double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
@@ -537,6 +514,32 @@ energy::interfaces::dftb::sysCallInterface::charges() const
 std::vector<coords::Cartesian_Point>
 energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
 {
+  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+  auto atom_charges = charges();
+
+  std::vector<coords::Cartesian_Point> grad_ext_charges;
+  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
+
+  for (int i = 0; i < coords->size(); ++i)  // for every atom
+  {
+    double charge_i = atom_charges[i];
+
+    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+    {
+      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+      double charge_j = current_charge.charge;
+
+      auto dx = current_charge.x - coords->xyz(i).x();
+      auto dy = current_charge.y - coords->xyz(i).y();
+      auto dz = current_charge.z - coords->xyz(i).z();
+      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
+      coords::float_type d = len(r_ij);     // distance between atom and charge
+
+      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
+      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
+      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
+    }
+  }
   return grad_ext_charges;
 }
 
