@@ -99,10 +99,14 @@ void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os
 void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream& os) const 
 {
 	os << "Chrgfield = QMMM()\n";
+  std::ofstream gridfile;
+  gridfile.open("grid.dat");
 	for (auto c : Config::get().energy.qmmm.mm_charges)
 	{
 		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";
+    gridfile << c.x<<" "<<c.y<<" "<<c.z<<"\n";
 	}
+  gridfile.close();
 	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
 }
 
@@ -112,7 +116,7 @@ void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
 	{
 		os << "E, wfn = energy ('" << method << "', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
 	}
 	else os << "energy ('" << method << "')";
 }
@@ -122,7 +126,7 @@ void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostr
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
 	{
 		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
 	}
 	else os << "gradient ('" << method << "')";
 }
@@ -270,33 +274,46 @@ std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 
 std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
 {
-  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-  auto atom_charges = charges();
+  // read electric field from PSI4 outputfile
+  std::vector<coords::Cartesian_Point> electric_field;
 
-  std::vector<coords::Cartesian_Point> grad_ext_charges;
-  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
+  std::ifstream inputfile;
+  inputfile.open("grid_field.dat");
+  
+  std::string line;
+  double temp;
+  coords::Cartesian_Point p;
 
-  for (int i = 0; i < coords->size(); ++i)  // for every atom
-  {
-    double charge_i = atom_charges[i];
+	for (auto counter = 0; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
+	{
+		inputfile >> temp;
+    p.x() = temp*energy::Hartree_Bohr2Kcal_MolAng;
+    inputfile >> temp;
+    p.y() = temp*energy::Hartree_Bohr2Kcal_MolAng;
+    inputfile >> temp;
+    p.z() = temp*energy::Hartree_Bohr2Kcal_MolAng;
 
-    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
-    {
-      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
-      double charge_j = current_charge.charge;
+		electric_field.push_back(p);
+	}
 
-      auto dx = current_charge.x - coords->xyz(i).x();
-      auto dy = current_charge.y - coords->xyz(i).y();
-      auto dz = current_charge.z - coords->xyz(i).z();
-      auto r_ij = coords::r3{dx, dy, dz};   // vector between atom and charge
-      coords::float_type d = len(r_ij);     // distance between atom and charge
+  // calculate gradients on external charges from electric field
+  std::vector<coords::Cartesian_Point> external_gradients;
+	for (int i = 0; i < electric_field.size(); ++i)  
+	{
+		coords::Cartesian_Point E = electric_field[i];
+		double q = Config::get().energy.qmmm.mm_charges[i].charge;
 
-      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
-      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
-      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
-    }
-  }
-  return grad_ext_charges;
+		double x = q * E.x();
+		double y = q * E.y();
+		double z = q * E.z();
+		coords::Cartesian_Point new_grad;
+		new_grad.x() = -x;
+		new_grad.y() = -y;
+		new_grad.z() = -z;
+
+		external_gradients.push_back(new_grad);
+	}
+  return external_gradients;
 }
 
 double energy::interfaces::psi4::sysCallInterface::calc_self_interaction_of_external_charges()
