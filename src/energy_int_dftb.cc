@@ -1,7 +1,7 @@
 #include "energy_int_dftb.h"
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp),energy(0.0)
+  energy::interface_base(cp), energy(0.0)
 {
   if (Config::get().energy.dftb.opt > 0) optimizer = true;
   else optimizer = false;
@@ -77,15 +77,15 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   // create a chargefile for external charges if desired (needed for QM/MM methods)
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
-	  std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
-	  std::ofstream chargefile("charges.dat");
-	  for (int j = 0; j < charge_vector.size(); j++)
-	  {
-		  chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
-	  }
-	  chargefile.close();
+    std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
+    std::ofstream chargefile("charges.dat");
+    for (int j = 0; j < charge_vector.size(); j++)
+    {
+      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+    }
+    chargefile.close();
   }
-  
+
 
   // create inputfile
   std::ofstream file("dftb_in.hsd");
@@ -114,25 +114,25 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   // write information that is needed for SCC calculation
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
-  file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
+  file << "  SCCTolerance = " << std::scientific << Config::get().energy.dftb.scctol << "\n";
   file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
   file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
-  file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
+  file << "    Prefix = '" << Config::get().energy.dftb.sk_files << "'\n";
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0)  // include chargefile
   {
-	  file << "  ElectricField = {\n";
-	  file << "    PointCharges = {\n";
-	  file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-	  file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";  
-	  file << "        File = 'charges.dat'\n";
-	  file << "      }\n";
-	  file << "    }\n";
-	  file << "  }\n";
+    file << "  ElectricField = {\n";
+    file << "    PointCharges = {\n";
+    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+    file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";
+    file << "        File = 'charges.dat'\n";
+    file << "      }\n";
+    file << "    }\n";
+    file << "  }\n";
   }
 
   file << "  MaxAngularMomentum {\n";
@@ -183,7 +183,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
   {
     std::cout << "DFTB+ produced an empty output file. Treating structure as broken.\n";
     integrity = false;
-		return 0.0;      // return zero-energy because no energy was calculated
+    return 0.0;      // return zero-energy because no energy was calculated
   }
 
   // successfull SCC -> read output
@@ -221,7 +221,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
 
-        for (int i=0; i < link_atom_number; i++)  // read gradients of link atoms
+        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -233,14 +233,37 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
+      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
+      {    // in case of QM/MM calculation: read forces on external charges
+        if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
+        {
+          int ext_charge_number = std::stoi(line.substr(30));
+
+          std::vector<coords::Cartesian_Point> grad_tmp;
+          double x, y, z;
+
+          for (int i = 0; i < ext_charge_number; i++)
+          {
+            std::getline(in_file, line);
+            std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
+            x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+            y *= -energy::Hartree_Bohr2Kcal_MolAng;
+            z *= -energy::Hartree_Bohr2Kcal_MolAng;
+            coords::Cartesian_Point g(x, y, z);
+            grad_tmp.push_back(g);
+          }
+          grad_ext_charges = grad_tmp;
+        }
+      }
+
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
         double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
 
-        // read all values into one vector (tmp)
+                                                                           // read all values into one vector (tmp)
         std::vector<double> tmp;
         double x, y, z;
-        for (int i=0; i < (3*N*3*N)/3; i++)
+        for (int i = 0; i < (3 * N * 3 * N) / 3; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -252,12 +275,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         // format values in vector tmp into matrix hess
         std::vector<std::vector<double>> hess;
         std::vector<double> linevec;
-        for (int i = 0; i < 3*N; i++)
+        for (int i = 0; i < 3 * N; i++)
         {
           linevec.resize(0);
-          for (int j = 0; j < 3*N; j++)
+          for (int j = 0; j < 3 * N; j++)
           {
-            linevec.push_back(tmp[(i*3*N)+j]);
+            linevec.push_back(tmp[(i * 3 * N) + j]);
           }
           hess.push_back(linevec);
         }
@@ -425,7 +448,7 @@ void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const 
 double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
 {
   double energy{ 0.0 };
-  for (int i=0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  for (int i = 0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
   {
     auto c1 = Config::get().energy.qmmm.mm_charges[i];
     for (int j = 0; j < i; ++j)
@@ -514,32 +537,6 @@ energy::interfaces::dftb::sysCallInterface::charges() const
 std::vector<coords::Cartesian_Point>
 energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
 {
-  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-  auto atom_charges = charges();
-
-  std::vector<coords::Cartesian_Point> grad_ext_charges;
-  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
-
-  for (int i = 0; i < coords->size(); ++i)  // for every atom
-  {
-    double charge_i = atom_charges[i];
-
-    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
-    {
-      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
-      double charge_j = current_charge.charge;
-
-      auto dx = current_charge.x - coords->xyz(i).x();
-      auto dy = current_charge.y - coords->xyz(i).y();
-      auto dz = current_charge.z - coords->xyz(i).z();
-      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
-      coords::float_type d = len(r_ij);     // distance between atom and charge
-
-      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
-      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
-      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
-    }
-  }
   return grad_ext_charges;
 }
 
