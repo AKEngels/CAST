@@ -116,14 +116,14 @@ void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
 	{
 		os << "E, wfn = energy ('" << method << "', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'title='" << method << "')\n";
 	}
 	else os << "energy ('" << method << "')";
 }
 void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and field
 	{
 		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
 		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
@@ -212,16 +212,6 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
     });
     energies.emplace_back(std::make_pair(key, val));
   }
-
-  
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
-  {
-    double rep_ext_charges = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges
-    rep_ext_charges = rep_ext_charges/energy::au2kcal_mol;  // convert to hartree
-    energies[0].second -= rep_ext_charges;      // subtract from nuclear repulsion energy
-	  energies.back().second -= rep_ext_charges;  // subtract from total energy
-  }
-
   return energies.back().second*energy::au2kcal_mol;  // return total energy in kcal/mol
 }
 
@@ -314,25 +304,4 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 		external_gradients.push_back(new_grad);
 	}
   return external_gradients;
-}
-
-double energy::interfaces::psi4::sysCallInterface::calc_self_interaction_of_external_charges()
-{
-  double energy{ 0.0 };
-  for (int i=0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
-  {
-    auto c1 = Config::get().energy.qmmm.mm_charges[i];
-    for (int j = 0; j < i; ++j)
-    {
-      auto c2 = Config::get().energy.qmmm.mm_charges[j];
-
-      double dist_x = c1.x - c2.x;
-      double dist_y = c1.y - c2.y;
-      double dist_z = c1.z - c2.z;
-      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
-
-      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
-    }
-  }
-  return energy;
 }

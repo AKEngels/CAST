@@ -431,11 +431,15 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
-    qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
-    if (Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
-    {   // coulomb gradients on MM atoms 
-      g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
+    if (if_gradient)
+    {
+      qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
+      if (Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+      {   // coulomb gradients on MM atoms 
+        g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
+      }
     }
+    else qm_energy = qmc.e();  // get only energy for QM part
   }
   catch(...)
   {
