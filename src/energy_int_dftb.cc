@@ -334,7 +334,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
-    double ext_chg_energy = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges
+    double ext_chg_energy = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges (in kcal/mol)
     energy -= ext_chg_energy;  // subtract self-interaction because it's already in MM calculation
   }
 

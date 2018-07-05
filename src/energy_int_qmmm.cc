@@ -379,6 +379,7 @@ void energy::interfaces::qmmm::QMMM::write_mol_in()
 @param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+  integrity = true;
 	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
 	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
@@ -388,8 +389,11 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 		}
 		throw std::runtime_error("wrong number of link atom types");
 	}
+  
+  // ############ UPDATE STUFF ##############################
 
-  integrity = true;
+  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
+  for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms
 
 	// ############### CREATE MM CHARGES ######################
 
@@ -415,8 +419,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 		counter += 1;
 	}
 
-  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto &l : link_atoms) l.calc_position(coords) ; // update positions of link atoms
+  // ################### DO CALCULATION ###########################################
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
