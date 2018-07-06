@@ -616,6 +616,7 @@ scon::mathmatrix<float_type> ic_core::system::guess_hessian() {
     values.emplace_back(pic->hessian_guess(xyz_));
   }
   values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
+  
   return Mat::col_from_vec(values).diagmat();
 }
 
@@ -696,12 +697,14 @@ scon::mathmatrix<float_type> atoms_norm(scon::mathmatrix<float_type> const& norm
 }
 
 
-std::pair<float_type,float_type> ic_core::grms_val_and_max(scon::mathmatrix<float_type> const& grads){
+std::pair<float_type,float_type> ic_core::system::gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads)const{
   auto norms = atoms_norm(grads);
   return {norms.rmsd(), norms.max()};
 }
 
-std::pair<float_type,float_type> ic_core::drms_val_and_max(coords::Representation_3D const& old_xyz, coords::Representation_3D const& new_xyz){
+std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMax()const{
+  auto const & old_xyz = oldVariables->systemCartesianRepresentation;
+  auto const & new_xyz = xyz_;
   auto q = ic_rotation::quaternion(old_xyz, new_xyz);
   auto U = ic_rotation::form_rot(q.second);
 
@@ -715,69 +718,121 @@ std::pair<float_type,float_type> ic_core::drms_val_and_max(coords::Representatio
   return {norms.rmsd(), norms.max()};
 }
 
-bool ic_core::check_convergence(convergence_check cc){
+bool ic_core::system::check_convergence(convergence_check cc)const{
   std::cout << "----------------------------------------------------------\n";
   std::cout << "Step " << cc.step << "\n";
-  auto E_diff = cc.E_new-cc.E_old;
-  std::cout << "Energy now: " << std::fixed << cc.E_new << " Energy diff: " << E_diff <<"\n";
+  
+  auto E_diff = currentVariables.systemEnergy-oldVariables->systemEnergy;
+  std::cout << "Energy now: " << std::fixed << currentVariables.systemEnergy
+            << " Energy diff: " << E_diff <<"\n";
+  
   cc.gxyz.reshape(-1,3);
   float_type grms, gmax;
-  std::tie(grms, gmax) = grms_val_and_max(cc.gxyz);
+  std::tie(grms, gmax) = gradientRmsValAndMax(cc.gxyz);
   std::cout << "GRMS Cartesian: " << grms << "\n";
   std::cout << "GRMS Max Val: " << gmax << "\n";
+  
   float_type drms, dmax;
-  std::tie(drms, dmax) = drms_val_and_max(cc.old_xyz, cc.new_xyz);
+  std::tie(drms, dmax) = displacementRmsValAndMax();
   std::cout << "DRMS Cartesian: " << drms << "\n";
   std::cout << "DRMS Max Val: " << dmax << "\n";
   std::cout << "----------------------------------------------------------\n";
+  
   auto constexpr thresh_E = 1.e-6, thresh_grms = 0.0003, thresh_drms = 0.00045, thresh_gmax = 0.0012, thresh_dmax = 0.0018;
+  
   return drms < thresh_drms && dmax < thresh_dmax && E_diff<thresh_E && grms < thresh_grms && gmax < thresh_gmax;
 }
 
-void ic_core::system::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
-  coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
-  initial_delocalized_hessian();
-  coords::output::formats::tinker output(coords);
-  //output.to_stream(std::cout);
+class cartesianToInternalNormHelper{
+public:
+    cartesianToInternalNormHelper();
+    coords::float_type getDiffOfCartesianAndInternalNorm(coords::float_type const internalNorm){
+        
+    }
+};
 
-  auto old_E = coords.g()/energy::au2kcal_mol;
-  auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
-    ic_core::grads_to_bohr(coords.g_xyz())
-  ));
-  auto old_xyz = xyz_;
-  auto old_gq = calculate_internal_grads(gxyz);
+
+void ic_core::system::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+  
+  initializeOptimization(coords);
+    
   for(auto i = 0; i< 100; ++i){
 
-    auto dq_step = get_internal_step(old_gq);
+    evaluateNewCartesianStructure(coords);
+    
+    auto cartesianGradients = getInternalGradientsButReturnCartesianOnes(coords);
+
+    applyHessianChange();
+    
+    if(check_convergence({i+1,cartesianGradients})){
+      std::cout << "Converged after " << i+1 << " steps!\n";
+      break;
+    }
+    //output.to_stream(std::cout);
+    
+    setNewToOldVariables();
+    
+    
+  }
+  /*std::cout << "Final Structure: \n\n";
+  output.to_stream(std::cout);
+  std::ofstream ofs("Conf_struc.txyz");
+  output.to_stream(ofs);*/
+}
+
+void ic_core::system::initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+  setCartesianCoordinatesForGradientCalculation(coords);
+  initial_delocalized_hessian();
+  
+  prepareOldVariablesPtr(coords);
+}
+
+void ic_core::system::setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+  coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
+}
+
+void ic_core::system::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+  oldVariables = std::make_unique<SystemVariables>();
+
+  oldVariables->systemEnergy = coords.g()/energy::au2kcal_mol;
+  auto cartesianGradients = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+    ic_core::grads_to_bohr(coords.g_xyz())
+  ));
+  oldVariables->systemCartesianRepresentation = xyz_;
+  oldVariables->systemGradients = calculate_internal_grads(cartesianGradients);
+}
+
+void ic_core::system::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+    auto dq_step = get_internal_step(oldVariables->systemGradients);
 
     //std::cout << "U:\n" << del_mat << "\n\n";
     apply_internal_change(dq_step);
 
     coords.set_xyz(ic_core::rep3d_bohr_to_ang(xyz_));
-    auto new_E = coords.g()/energy::au2kcal_mol;
-    auto gxyz = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
+}
+
+scon::mathmatrix<float_type> ic_core::system::getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+    currentVariables.systemEnergy = coords.g()/energy::au2kcal_mol;
+    auto cartesianGradients = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
       ic_core::grads_to_bohr(coords.g_xyz())
     ));
 
-    auto new_gq = calculate_internal_grads(gxyz);
+    currentVariables.systemGradients = calculate_internal_grads(cartesianGradients);
+    
+    return cartesianGradients;
+}
 
-    auto d_gq = new_gq - old_gq;
-    auto dq = calc_diff(xyz_, old_xyz);
+
+void ic_core::system::applyHessianChange(){
+    auto d_gq = currentVariables.systemGradients - oldVariables->systemGradients;
+    auto dq = calc_diff(xyz_, oldVariables->systemCartesianRepresentation);
     auto term1 = (d_gq*d_gq.t())/(d_gq.t()*dq)(0,0);
     auto term2 = ((hessian*dq)*(dq.t()*hessian))/(dq.t()*hessian*dq)(0,0);
     hessian += term1 - term2;
+}
 
-    if(check_convergence({i+1, new_E, old_E, gxyz, old_xyz, xyz_})){
-      std::cout << "Converged after " << i+1 << " steps!\n";
-      break;
-    }
-    //output.to_stream(std::cout);
-    old_E = new_E;
-    old_xyz = xyz_;
-    old_gq = std::move(new_gq);
-  }
-  std::cout << "Final Structure: \n\n";
-  output.to_stream(std::cout);
-  std::ofstream ofs("Conf_struc.txyz");
-  output.to_stream(ofs);
+void ic_core::system::setNewToOldVariables(){
+    oldVariables->systemEnergy = currentVariables.systemEnergy;
+    oldVariables->systemCartesianRepresentation = xyz_;
+    oldVariables->systemGradients = std::move(currentVariables.systemGradients);
 }

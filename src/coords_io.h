@@ -145,7 +145,10 @@ namespace coords
           }
         };
         
-        struct helper{
+        
+
+      };
+      struct helper_base{
             static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
                 coords::Representation_3D result;
                 for(auto const& a: rep3D){
@@ -154,14 +157,14 @@ namespace coords
                 return result;
             }
             
-            static void removeBlanksFromString(std::string &s) {
-                s.erase(std::remove_if(s.begin(), s.end(), [](unsigned char c){
+            static std::string removeBlanksFromString(std::string const& s) {
+                std::string ret{s};
+                ret.erase(std::remove_if(ret.begin(), ret.end(), [](unsigned char c){
                     return std::isspace(c);
-                }), s.end());
+                }), ret.end());
+                return ret;
             }
         };
-
-      };
     }
 
   }

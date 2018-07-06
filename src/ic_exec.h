@@ -58,6 +58,9 @@ public:
             ic_core::system icSystem(residue_vec, index_vec, cp_vec);
 
             icSystem.create_ic_system(graph.g);
+            
+            std::cout << "Normal Bmat:\n";
+            std::cout << std::fixed << std::setprecision(5) << icSystem.Bmat() << "\n\n";
 
             //auto write_with_zero = [](auto&& ofs, auto&& mat) {
             //  for (auto r = 0; r < mat.rows(); ++r) {
@@ -69,6 +72,9 @@ public:
             //};
 
             icSystem.delocalize_ic_system();
+            
+            std::cout << "IC Bmat:\n";
+            std::cout << std::fixed << std::setprecision(5) << icSystem.ic_Bmat() << "\n\n";
 
             std::cout << "Rotation:\n";
             for (auto& i : icSystem.rotation_vec_)

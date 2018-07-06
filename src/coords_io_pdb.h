@@ -18,7 +18,7 @@ namespace coords {
 
 
         public:
-      struct helper : public helper {
+      struct helper : public helper_base {
 
         /*!
         \brief Scoped enumeration type with the relevant Pdb entries as possible values.
@@ -158,10 +158,17 @@ namespace coords {
             \param line String representation of the Pdb line.
             \return Specific value of the Record type.
             */
-            
-            kindOfEntryLine lineType(std::string const& line) const{
+        private:
+            std::string getFirstWordOfLine(std::string const& line) const{
+                std::stringstream lineStream{line};
+                std::string firstWordOfLine;
+                lineStream >> firstWordOfLine;
+                return firstWordOfLine;
+            }
+        public:
+            kindOfEntryInLine lineType(std::string const& line) const{
                 return ic_util::getValueByKeyOrDefault(
-                        stringKindOfEntryInLineMap(), removeBlanksFromString(line), kindOfEntryInLine::UNKNOWN
+                        stringKindOfEntryInLineMap(), removeBlanksFromString(getFirstWordOfLine(line)), kindOfEntryInLine::UNKNOWN
                         );
                         
             }

@@ -1,6 +1,3 @@
-////////////////////////////////
-// new functions to be tested //
-////////////////////////////////
 #ifndef cast_ic_core_h_guard
 #define cast_ic_core_h_guard
 
@@ -270,6 +267,7 @@ public:
   std::vector<rotation> rotation_vec_;
 
 private:
+  
   const std::vector<coords::Representation_3D> res_vec_;
   const std::vector<std::vector<std::size_t>> res_index_vec_;
   coords::Representation_3D xyz_;
@@ -360,6 +358,34 @@ public:
   scon::mathmatrix<float_type> calc_diff(XYZ&& lhs, XYZ&& rhs) const;
 
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  
+private:
+    void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    void evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    void applyHessianChange();
+    void setNewToOldVariables();
+    scon::mathmatrix<float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    
+    
+    struct convergence_check{
+        int step;
+        scon::mathmatrix<float_type> & gxyz;
+    };
+    bool check_convergence(convergence_check cc)const;
+    
+    std::pair<float_type,float_type> gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads)const;
+    std::pair<float_type,float_type> displacementRmsValAndMax()const;
+    
+    struct SystemVariables{
+        float_type systemEnergy;
+        scon::mathmatrix<coords::float_type> systemGradients;
+        coords::Representation_3D systemCartesianRepresentation;
+    };
+    
+    SystemVariables currentVariables;
+    std::unique_ptr<SystemVariables> oldVariables;
 
 };
 
@@ -522,12 +548,12 @@ inline void system::create_ic_system(const Graph& g) {
 }
 
 template<typename Gint>
-inline scon::mathmatrix<float_type> ic_core::system::get_internal_step(Gint&& g_int){
+inline scon::mathmatrix<float_type> system::get_internal_step(Gint&& g_int){
   return -1.*hessian.pinv()*g_int;
 }
 
 template<typename Dint>
-inline void ic_core::system::apply_internal_change(Dint&& d_int){
+inline void system::apply_internal_change(Dint&& d_int){
   using ic_util::flatten_c3_vec;
 
   auto old_xyz = xyz_;
@@ -588,21 +614,21 @@ inline void ic_core::system::apply_internal_change(Dint&& d_int){
 }
 
 template<typename Dcart>
-coords::Representation_3D& ic_core::system::take_Cartesian_step(Dcart&& d_cart){
+coords::Representation_3D& system::take_Cartesian_step(Dcart&& d_cart){
   auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
   //std::cout << "Cartesian Change:\n" << d_cart_rep3D << "\n\n";
   return set_xyz(xyz_ + d_cart_rep3D);
 }
 
 template<typename XYZ>
-coords::Representation_3D& ic_core::system::set_xyz(XYZ&& new_xyz){
+coords::Representation_3D& system::set_xyz(XYZ&& new_xyz){
   new_B_matrix = true;
   new_G_matrix = true;
   return xyz_ = std::forward<XYZ>(new_xyz);
 }
 
 template<typename XYZ>
-scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
+scon::mathmatrix<float_type> system::calc_prims(XYZ&& xyz) const{
   std::vector<float_type> primitives;
   primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
 
@@ -622,13 +648,13 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(XYZ&& xyz) const{
 }
 
 template<typename XYZ>
-scon::mathmatrix<float_type> ic_core::system::calc(XYZ&& xyz) const{
+scon::mathmatrix<float_type> system::calc(XYZ&& xyz) const{
   auto prims = calc_prims(std::forward<XYZ>(xyz));
   return (prims * del_mat).t();
 }
 
 template<typename XYZ>
-scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
+scon::mathmatrix<float_type> system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
   auto lprims = calc_prims(std::forward<XYZ>(lhs));
   auto rprims = calc_prims(std::forward<XYZ>(rhs));
   auto diff = lprims - rprims;
@@ -648,18 +674,5 @@ scon::mathmatrix<float_type> ic_core::system::calc_diff(XYZ&& lhs, XYZ&& rhs) co
   //std::cout << "Diff:\n" << diff.t() << "\n";
   return (diff * del_mat).t();
 }
-
-std::pair<float_type,float_type> grms_val_and_max(scon::mathmatrix<float_type> const& grads);
-std::pair<float_type,float_type> drms_val_and_max(coords::Representation_3D const& old_xyz, coords::Representation_3D const& new_xyz);
-
-struct convergence_check{
-  int step;
-  float_type E_new;
-  float_type E_old;
-  scon::mathmatrix<float_type> & gxyz;
-  coords::Representation_3D const& old_xyz;
-  coords::Representation_3D const& new_xyz;
-};
-bool check_convergence(convergence_check cc);
 }
 #endif // cast_ic_core_h_guard
