@@ -101,10 +101,11 @@ void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream&
 	os << "Chrgfield = QMMM()\n";
   std::ofstream gridfile;
   gridfile.open("grid.dat");
+  auto com = coords->center_of_mass();
 	for (auto c : Config::get().energy.qmmm.mm_charges)
 	{
 		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";
-    gridfile << c.x<<" "<<c.y<<" "<<c.z<<"\n";
+    gridfile << c.x-com.x()<<" "<<c.y-com.y()<<" "<<c.z-com.z()<<"\n";  // move external charges so that origin of coordinate system is at center of mass
 	}
   gridfile.close();
 	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
