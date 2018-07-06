@@ -111,8 +111,8 @@ md::simulation::simulation(coords::Coordinates& coord_object) :
   P(coord_object.xyz()), P_old(coord_object.xyz()),
   F(coord_object.g_xyz()), F_old(coord_object.g_xyz()),
   V(coord_object.xyz().size()), M(coord_object.xyz().size()),
-  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), dt(Config::get().md.timeStep),
-  freedom(0), snapGap(0), C_geo(), C_mass(), press(0.0),
+  M_total(0.0), E_kin(0.0), T(Config::get().md.T_init), temp(0.0), press(0.0), dt(Config::get().md.timeStep),
+  freedom(0), snapGap(0), C_geo(), C_mass(), 
   nht(), rattle_bonds(), window(), restarted(true)
 {
   std::sort(Config::set().md.heat_steps.begin(), Config::set().md.heat_steps.end());
@@ -617,7 +617,7 @@ void md::simulation::fepinit(void)
   coordobj.fep.window[0].step = 0;
 
   // calculate all lambda values for every window
-  for (int i = 0u; i < coordobj.fep.window.size(); i++) {
+  for (auto i = 0u; i < coordobj.fep.window.size(); i++) {
 
     double lambda = i * Config::get().fep.dlambda;  // lambda
     if (lambda < Config::get().fep.eleccouple) coordobj.fep.window[i].ein = 0;

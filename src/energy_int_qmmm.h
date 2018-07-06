@@ -49,9 +49,9 @@ namespace energy
         struct Bond
         {
           /**index of MM atom (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of QM atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**ideal bond length (from force field)*/
           double ideal;
           /**force constant*/
@@ -92,11 +92,11 @@ namespace energy
         struct Angle
         {
           /**index of one of the outer atoms (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of the other outer atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**index of the central atom (starting with 0)*/
-          int c;
+          unsigned int c;
           /**ideal angle (from force field)*/
           double ideal;
           /**force constant*/
@@ -153,13 +153,13 @@ namespace energy
         struct Dihedral
         {
           /**index of one of the outer atoms (starting with 0)*/
-          int a;
+          unsigned int a;
           /**index of the other outer atom (starting with 0)*/
-          int b;
+          unsigned int b;
           /**index of the central atom bound to a (starting with 0)*/
-          int c1;
+          unsigned int c1;
           /**index of the central atom bound to b (starting with 0)*/
-          int c2;
+          unsigned int c2;
           /**parameter for force field*/
           int max_order;
           /**parameter for force field*/
@@ -351,7 +351,7 @@ namespace energy
 
       private:
 
-        /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html) */
+        /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html)*/
         void write_mol_in();
 
         /**function where QM/MM calculation is prepared*/
@@ -365,7 +365,7 @@ namespace energy
         @param mm: index of MM atom
         returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
         and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-        int calc_vdw(int qm, int mm);
+        int calc_vdw(unsigned qm, unsigned mm);
 
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
@@ -383,9 +383,6 @@ namespace energy
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
 
-				/**link atoms*/
-				std::vector<LinkAtom> link_atoms;
-
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
@@ -396,6 +393,9 @@ namespace energy
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_mm;
+
+        /**link atoms*/
+				std::vector<LinkAtom> link_atoms;
 
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
@@ -411,12 +411,12 @@ namespace energy
         /**some parameter needed to calculate dihedral energy*/
         double torsionunit;
  
-        /**van der Waals interaction energy between QM and MM atoms*/
-        coords::float_type vdw_energy;
         /**energy of only QM system*/
         coords::float_type qm_energy;
         /**energy of only MM system*/
         coords::float_type mm_energy;
+        /**van der Waals interaction energy between QM and MM atoms*/
+        coords::float_type vdw_energy;
         /**energy of bonded interactions between QM and MM atoms (bonds, angles and dihedrals)*/
         coords::float_type bonded_energy;
 

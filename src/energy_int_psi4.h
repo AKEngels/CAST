@@ -34,13 +34,12 @@ namespace energy{
         interface_base * clone(coords::Coordinates* coord_object) const final override;
         interface_base * move(coords::Coordinates* coord_object) final override;
 
-        void update(bool const skip_topology = false) final override{
+        void update(bool const) final override{
           /*std::stringstream ss;
           ss << "No need for an update function. \n";
           ss << std::boolalpha <<  "Skip Topology set to " << skip_topology << "\n";
           throw std::runtime_error(ss.str());*/
-
-        }
+        };
 
 				/**calculates energy*/
         float_type e(void) final override;
@@ -67,6 +66,8 @@ namespace energy{
 				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
       private:
+
+        /**possible calculation types*/
         enum class Calc {
           energy,
           gradient,
@@ -76,17 +77,24 @@ namespace energy{
 				/**writes input file
 				@param kind: calculation type (e.g. energy or gradient)*/
 				void write_input(Calc kind = Calc::energy) const;
-				/**writes everything in input file that doesn't depend on calculation type*/
+				/**writes everything in input file that doesn't depend on calculation type
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
         void write_head(std::ostream&) const;
-				/**writes molecule to input file*/
+				/**writes molecule to input file
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
         void write_molecule(std::ostream&) const;
-				/**writes external charges into input file (needed for QM/MM)*/
+				/**writes external charges into input file and positions of external charges into file 'grid.dat' for reading external field
+        (needed for QM/MM) 
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
 				void write_ext_charges(std::ostream & os) const;
-				/**writes everything except for head in inputfile for energy calculation*/
+				/**writes everything except for head in inputfile for energy calculation
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
         void write_energy_input(std::ostream&) const;
-				/**writes everything except for head in inputfile for gradients calculation*/
+				/**writes everything except for head in inputfile for gradients calculation
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
         void write_gradients_input(std::ostream&) const;
-				/**writes everything except for head in inputfile for optimization*/
+				/**writes everything except for head in inputfile for optimization
+        @param os: stream where external charges are written to (directed into PSI4 inputfile)*/
         void write_optimize_input(std::ostream&) const;
 
 				/**makes system call to psi4, throws error if this fails 3 times*/

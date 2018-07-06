@@ -215,7 +215,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //reading Mo energies
       {
-        for (int i = 0; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
+        for (auto i = 0u; buffer.length() > (29 + i * 10); i++) //in gaussian output orbital energies are presented in rows of 5
         {
           occMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
@@ -223,7 +223,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (buffer.find("Alpha virt. eigenvalues --") != std::string::npos)
       {
-        for (int i = 0; buffer.length() > (29 + i * 10); i++)
+        for (auto i = 0u; buffer.length() > (29 + i * 10); i++)
         {
           virtMO.push_back(std::stof(buffer.substr(29 + i * 10)));
         }
@@ -370,7 +370,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         std::getline(in_file, buffer);
         std::getline(in_file, buffer);
 
-        for (std::size_t i(0); i < atoms && !in_file.eof(); ++i)
+        for (auto i(0); i < atoms && !in_file.eof(); ++i)
         {
           std::getline(in_file, buffer);
 
@@ -411,7 +411,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
      //converting energie units to kcal/mol
 
-     for (int i = 0; i < occMO.size(); i++)
+     for (auto i = 0u; i < occMO.size(); i++)
      {
        occMO[i] *= energy::au2kcal_mol;
      }
@@ -678,7 +678,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::get_g_ext_chg() const
 	}
 
 	std::vector<coords::Cartesian_Point> external_gradients;
-	for (int i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
+	for (auto i = coords->size(); i < electric_field.size(); ++i)  // calculate gradients on external charges from electric field
 	{
 		coords::Cartesian_Point E = electric_field[i];
 		double q = Config::get().energy.qmmm.mm_charges[i-coords->size()].charge;

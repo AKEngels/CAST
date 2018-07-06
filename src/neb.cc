@@ -3013,7 +3013,7 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
       + std::to_string(i)
       + ".gzmat -o txyz -O NEB_coordinates_cartesian_"
       + std::to_string(i);
-    system(command.c_str());
+    scon::system_call(command.c_str());
 
     //saves new structure
     structure = format_ptr->read("NEB_coordinates_cartesian_"

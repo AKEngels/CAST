@@ -35,10 +35,7 @@ void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
   interface_base::swap(rhs);
 }
 
-energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
-{
-
-}
+energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void) {}
 
 /**checks if all atom coordinates are numbers*/
 bool energy::interfaces::dftb::sysCallInterface::check_structure()
@@ -79,7 +76,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   {
     std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
     std::ofstream chargefile("charges.dat");
-    for (int j = 0; j < charge_vector.size(); j++)
+    for (auto j = 0u; j < charge_vector.size(); j++)
     {
       chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
     }
@@ -448,10 +445,10 @@ void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const 
 double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
 {
   double energy{ 0.0 };
-  for (int i = 0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  for (auto i = 0u; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
   {
     auto c1 = Config::get().energy.qmmm.mm_charges[i];
-    for (int j = 0; j < i; ++j)
+    for (auto j = 0u; j < i; ++j)
     {
       auto c2 = Config::get().energy.qmmm.mm_charges[j];
 
@@ -523,7 +520,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
       std::getline(in_file, line);
       if (line.substr(0, 27) == "gross_atomic_charges:real:1")
       {
-        for (int i = 0; i < coords->size(); i++)
+        for (auto i = 0u; i < coords->size(); i++)
         {
           in_file >> q;
           charges.push_back(q);

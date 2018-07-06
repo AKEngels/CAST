@@ -79,7 +79,7 @@ namespace energy
         std::string id;
 
         // FAILCOUNTER
-        size_t failcounter;
+        int failcounter;
 
         /**electric field that is given by GAUSSIAN
         contains the atoms and the external charges

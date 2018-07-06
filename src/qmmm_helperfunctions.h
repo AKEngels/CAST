@@ -13,14 +13,14 @@ struct LinkAtom
 {
   /**position*/
   coords::Cartesian_Point position;
-  /**force field atom type of link atom*/
-  size_t energy_type;
   /**equilibrium distance to QM atom*/
   double deq_L_QM;
   /**index of QM atom*/
-  int qm;
+  unsigned int qm;
   /**index of MM atom*/
-  int mm;
+  unsigned int mm;
+  /**force field atom type of link atom*/
+  size_t energy_type;
 
   /**default constructor*/
   LinkAtom() { }
@@ -31,7 +31,7 @@ struct LinkAtom
   @param atomtype: energytype of link atom in forcefield
   @param coords: pointer to coordinates object
   @param tp: tinker parameter object*/
-  LinkAtom(int b, int a, int atomtype, coords::Coordinates *coords, tinker::parameter::parameters const &tp) : qm(b), mm(a), energy_type(atomtype)
+  LinkAtom(unsigned int b, unsigned int a, int atomtype, coords::Coordinates *coords, tinker::parameter::parameters const &tp) : qm(b), mm(a), energy_type(atomtype)
   {
     // determine equilibrium distance between link atom and QM atom from force field
     deq_L_QM = 0.0;

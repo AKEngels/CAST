@@ -98,17 +98,18 @@ void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os
 
 void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream& os) const 
 {
-	os << "Chrgfield = QMMM()\n";
-  std::ofstream gridfile;
+  std::ofstream gridfile;    // preparation for writing grid points
   gridfile.open("grid.dat");
   auto com = coords->center_of_mass();
+
+  os << "Chrgfield = QMMM()\n";
 	for (auto c : Config::get().energy.qmmm.mm_charges)
 	{
-		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";
-    gridfile << c.x-com.x()<<" "<<c.y-com.y()<<" "<<c.z-com.z()<<"\n";  // move external charges so that origin of coordinate system is at center of mass
+		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
+    gridfile << c.x-com.x()<<" "<<c.y-com.y()<<" "<<c.z-com.z()<<"\n";  // move gridpoints so that origin of coordinate system is at center of mass
 	}
-  gridfile.close();
 	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
+  gridfile.close();
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream& os) const{
@@ -249,7 +250,7 @@ std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 		if (line.size() > 25 && line.substr(2, 24) == "Mulliken Charges: (a.u.)")
 		{
 			std::getline(in_file, line);  // discard line with column names
-			for (int i = 0; i < coords->size(); i++)
+			for (auto i = 0u; i < coords->size(); i++)
 			{
 				std::getline(in_file, line);
 				linevec = split(line, ' ', true);
@@ -275,7 +276,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
   double temp;
   coords::Cartesian_Point p;
 
-	for (auto counter = 0; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
+	for (auto counter = 0u; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
 	{
 		inputfile >> temp;
     p.x() = temp*energy::Hartree_Bohr2Kcal_MolAng;
@@ -289,7 +290,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 
   // calculate gradients on external charges from electric field
   std::vector<coords::Cartesian_Point> external_gradients;
-	for (int i = 0; i < electric_field.size(); ++i)  
+	for (auto i = 0u; i < electric_field.size(); ++i)  
 	{
 		coords::Cartesian_Point E = electric_field[i];
 		double q = Config::get().energy.qmmm.mm_charges[i].charge;

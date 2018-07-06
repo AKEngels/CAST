@@ -879,7 +879,7 @@ namespace energy
           ext_grad.y() = 0.0;
           ext_grad.z() = 0.0;
 
-					for (int i=0; i<coords->size(); ++i)               // loop over all atoms
+					for (auto i=0u; i<coords->size(); ++i)               // loop over all atoms
 					{
             double atom_charge = charges()[i];
 						double charge_product = c.charge * atom_charge *elec_factor; 

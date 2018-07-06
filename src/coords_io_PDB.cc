@@ -509,14 +509,14 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
       atoms.add(current);
 
       // create residues
-      if (std::stoi(res_number) > residues.size())
+      if (std::stoul(res_number) > residues.size())
       {
         residue new_res;
         new_res.res_name = res_name;
         new_res.atoms.push_back(current);
         residues.push_back(new_res);
       }
-      else residues[std::stoi(res_number) - 1].atoms.push_back(current);
+      else residues[std::stoul(res_number) - 1].atoms.push_back(current);
 
       // read and create positions
       std::string x = line.substr(30, 8);

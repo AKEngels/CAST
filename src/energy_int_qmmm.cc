@@ -5,8 +5,6 @@
 
 ::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 
-
-
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qmatoms),
@@ -34,12 +32,11 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  cparams(rhs.cparams), link_atoms(rhs.link_atoms),
-  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
-  new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
-  qmc(rhs.qmc), mmc(rhs.mmc), vdw_energy(rhs.vdw_energy),
-  qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
-  c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy), bonded_gradient(rhs.bonded_gradient)
+  cparams(rhs.cparams), qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm), link_atoms(rhs.link_atoms),
+  qmc(rhs.qmc), mmc(rhs.mmc), qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), 
+  vdw_energy(rhs.vdw_energy), bonded_energy(rhs.bonded_energy), 
+  c_gradient(rhs.c_gradient), vdw_gradient(rhs.vdw_gradient), bonded_gradient(rhs.bonded_gradient)
 {
   interface_base::operator=(rhs);
 }
@@ -50,11 +47,11 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)),
   new_indices_mm(std::move(rhs.new_indices_mm)),
+  link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
-  vdw_energy(std::move(rhs.vdw_energy)),
-  qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
-  c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
-  bonded_energy(std::move(rhs.bonded_energy)), bonded_gradient(std::move(rhs.bonded_gradient))
+  qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
+  bonded_energy(std::move(rhs.bonded_energy)), c_gradient(std::move(rhs.c_gradient)), 
+  vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient))
 {
   interface_base::operator=(rhs);
 }
@@ -328,7 +325,7 @@ void energy::interfaces::qmmm::QMMM::update_representation()
   }
 
 	for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms in QM system
-	for (int i = 0; i < link_atoms.size(); ++i)
+	for (auto i = 0u; i < link_atoms.size(); ++i)
 	{
 		int index = qm_indices.size() + i;
 		coords::cartesian_type &new_pos = link_atoms[i].position;
@@ -468,7 +465,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       }
 
       // calculate gradients from link atoms
-      for (int j=0; j<link_atoms.size(); j++)
+      for (auto j=0u; j<link_atoms.size(); j++)
       {
         LinkAtom l = link_atoms[j];
 				auto link_atom_grad = g_qm[qm_indices.size() + j];
@@ -529,7 +526,7 @@ double energy::interfaces::qmmm::QMMM::calc_bonded(bool if_gradient)
 @param mm: index of MM atom
 returns 0 if no vdW is calculated (1 or 2 bonds between the atoms), 1 if vdW is calculated normally
 and 2 if vdW is scaled down by 1/2 (3 bonds between the atoms)*/
-int energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
+int energy::interfaces::qmmm::QMMM::calc_vdw(unsigned qm, unsigned mm)
 {
   for (auto b : qmmm_bonds)
   {
@@ -570,7 +567,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
   try { 
 		qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
-		for (int i = 0; i < link_atoms.size(); ++i)
+		for (auto i = 0u; i < link_atoms.size(); ++i)
 		{                                    // remove charges from link atoms
 			qm_charge_vector.pop_back();
 		}
@@ -788,7 +785,7 @@ std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
 	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
 	qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
-	for (int i = 0; i < link_atoms.size(); ++i)
+	for (auto i = 0u; i < link_atoms.size(); ++i)
 	{                                    // remove charges from link atoms
 		qm_charge_vector.pop_back();
 	}
