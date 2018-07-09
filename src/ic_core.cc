@@ -688,6 +688,26 @@ scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
   return hessian;
 }
 
+scon::mathmatrix<float_type> ic_core::system::calc_prims(coords::Representation_3D const& xyz) const{
+  std::vector<float_type> primitives;
+  primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
+
+  for(auto const & pic : primitive_internals){
+    primitives.emplace_back(pic->val(xyz));
+  }
+  std::vector<std::array<float_type,3u>> rotations;
+  for (auto const & rot : rotation_vec_) {
+    rotations.emplace_back(rot.rot_val(xyz));
+  }
+  for(auto i = 0u; i<3; ++i){
+    for(auto j = 0u; j<rotations.size(); ++j){
+      primitives.emplace_back(rotations.at(j).at(i));
+    }
+  }
+  return scon::mathmatrix<float_type>::row_from_vec(primitives);
+}
+
+
 scon::mathmatrix<float_type> atoms_norm(scon::mathmatrix<float_type> const& norm){
   scon::mathmatrix<float_type> mat(norm.rows(),1);
   for(auto i = 0u; i<norm.rows(); ++i){
@@ -697,7 +717,7 @@ scon::mathmatrix<float_type> atoms_norm(scon::mathmatrix<float_type> const& norm
 }
 
 
-std::pair<float_type,float_type> ic_core::system::gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads)const{
+std::pair<float_type,float_type> ic_core::system::gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads){
   auto norms = atoms_norm(grads);
   return {norms.rmsd(), norms.max()};
 }
@@ -715,32 +735,47 @@ std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMax()cons
   old_xyz_mat -= rot;
   old_xyz_mat *= -energy::bohr2ang;
   auto norms = atoms_norm(old_xyz_mat);
+  
   return {norms.rmsd(), norms.max()};
 }
 
-bool ic_core::system::check_convergence(convergence_check cc)const{
-  std::cout << "----------------------------------------------------------\n";
-  std::cout << "Step " << cc.step << "\n";
-  
-  auto E_diff = currentVariables.systemEnergy-oldVariables->systemEnergy;
-  std::cout << "Energy now: " << std::fixed << currentVariables.systemEnergy
-            << " Energy diff: " << E_diff <<"\n";
-  
-  cc.gxyz.reshape(-1,3);
+void ic_core::system::ConvergenceCheck::writeAndCalcEnergyDiffs(){
+  auto energyDiff = internalCoordinateSystem.currentVariables.systemEnergy - internalCoordinateSystem.oldVariables->systemEnergy;
+  threshECheck = energyDiff < threshE;
+  std::cout << "Energy now: " << std::fixed << internalCoordinateSystem.currentVariables.systemEnergy
+            << " Energy diff: " << energyDiff <<"\n";
+}
+
+void ic_core::system::ConvergenceCheck::writeAndCalcGradientRmsd(scon::mathmatrix<float_type> & cartesianGradients){
+  cartesianGradients.reshape(-1,3);
   float_type grms, gmax;
-  std::tie(grms, gmax) = gradientRmsValAndMax(cc.gxyz);
+  std::tie(grms, gmax) = gradientRmsValAndMax(cartesianGradients);
+  threshGrmsCheck = grms < threshGrms;
+  threshGmaxCheck = gmax < threshGmax;
   std::cout << "GRMS Cartesian: " << grms << "\n";
   std::cout << "GRMS Max Val: " << gmax << "\n";
-  
+}
+
+void ic_core::system::ConvergenceCheck::writeAndCalcDisplacementRmsd(){
   float_type drms, dmax;
-  std::tie(drms, dmax) = displacementRmsValAndMax();
+  std::tie(drms, dmax) = internalCoordinateSystem.displacementRmsValAndMax();
+  threshDrmsCheck = drms < threshDrms;
+  threshDmaxCheck = dmax < threshDmax;
   std::cout << "DRMS Cartesian: " << drms << "\n";
   std::cout << "DRMS Max Val: " << dmax << "\n";
+}
+
+bool ic_core::system::ConvergenceCheck::operator()(){
+  std::cout << "----------------------------------------------------------\n";
+  std::cout << "Step " << step << "\n";
+  
+  writeAndCalcEnergyDiffs();
+  writeAndCalcGradientRmsd(gxyz);
+  writeAndCalcDisplacementRmsd();
+  
   std::cout << "----------------------------------------------------------\n";
   
-  auto constexpr thresh_E = 1.e-6, thresh_grms = 0.0003, thresh_drms = 0.00045, thresh_gmax = 0.0012, thresh_dmax = 0.0018;
-  
-  return drms < thresh_drms && dmax < thresh_dmax && E_diff<thresh_E && grms < thresh_grms && gmax < thresh_gmax;
+  return threshDrmsCheck && threshDmaxCheck && threshECheck && threshGrmsCheck && threshGmaxCheck;
 }
 
 class cartesianToInternalNormHelper{
@@ -764,7 +799,9 @@ void ic_core::system::optimize(coords::DL_Coordinates<coords::input::formats::pd
 
     applyHessianChange();
     
-    if(check_convergence({i+1,cartesianGradients})){
+    
+    
+    if(ConvergenceCheck{i+1,cartesianGradients,*this}()){
       std::cout << "Converged after " << i+1 << " steps!\n";
       break;
     }

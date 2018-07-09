@@ -349,8 +349,8 @@ public:
   coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
   template<typename XYZ>
   coords::Representation_3D& set_xyz(XYZ&& new_xyz);
-  template<typename XYZ>
-  scon::mathmatrix<float_type> calc_prims(XYZ&& xyz) const;
+  
+  scon::mathmatrix<float_type> calc_prims(coords::Representation_3D const& xyz) const;
 
   template<typename XYZ>
   scon::mathmatrix<float_type> calc(XYZ&& xyz) const;
@@ -369,13 +369,41 @@ private:
     scon::mathmatrix<float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
     
     
-    struct convergence_check{
+    class ConvergenceCheck{
+    public:
+        ConvergenceCheck(int step, scon::mathmatrix<float_type> & gxyz, system const& sys)
+            :step{step}, gxyz{gxyz}, internalCoordinateSystem {sys},
+            threshECheck{false},
+            threshGrmsCheck{false},
+            threshDrmsCheck{false},
+            threshGmaxCheck{false},
+            threshDmaxCheck{false}
+            {}
+        
+        void writeAndCalcEnergyDiffs();
+        void writeAndCalcGradientRmsd(scon::mathmatrix<float_type> & cartesianGradients);
+        void writeAndCalcDisplacementRmsd();
+        bool operator()();
+    private:
         int step;
         scon::mathmatrix<float_type> & gxyz;
+        system const& internalCoordinateSystem;
+        
+        static auto constexpr threshE = 1.e-6;
+        static auto constexpr threshGrms = 0.0003;
+        static auto constexpr threshDrms = 0.00045;
+        static auto constexpr threshGmax = 0.0012;
+        static auto constexpr threshDmax = 0.0018;
+        
+        bool threshECheck;
+        bool threshGrmsCheck;
+        bool threshDrmsCheck;
+        bool threshGmaxCheck;
+        bool threshDmaxCheck;
     };
-    bool check_convergence(convergence_check cc)const;
+    bool checkConvergence(ConvergenceCheck cc)const;
     
-    std::pair<float_type,float_type> gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads)const;
+    static std::pair<float_type,float_type> gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads);
     std::pair<float_type,float_type> displacementRmsValAndMax()const;
     
     struct SystemVariables{
@@ -616,7 +644,6 @@ inline void system::apply_internal_change(Dint&& d_int){
 template<typename Dcart>
 coords::Representation_3D& system::take_Cartesian_step(Dcart&& d_cart){
   auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
-  //std::cout << "Cartesian Change:\n" << d_cart_rep3D << "\n\n";
   return set_xyz(xyz_ + d_cart_rep3D);
 }
 
@@ -625,26 +652,6 @@ coords::Representation_3D& system::set_xyz(XYZ&& new_xyz){
   new_B_matrix = true;
   new_G_matrix = true;
   return xyz_ = std::forward<XYZ>(new_xyz);
-}
-
-template<typename XYZ>
-scon::mathmatrix<float_type> system::calc_prims(XYZ&& xyz) const{
-  std::vector<float_type> primitives;
-  primitives.reserve(primitive_internals.size() + rotation_vec_.size()*3);
-
-  for(auto const & pic : primitive_internals){
-    primitives.emplace_back(pic->val(xyz));
-  }
-  std::vector<std::array<float_type,3u>> rotations;
-  for (auto const & rot : rotation_vec_) {
-    rotations.emplace_back(rot.rot_val(xyz));
-  }
-  for(auto i = 0u; i<3; ++i){
-    for(auto j = 0u; j<rotations.size(); ++j){
-      primitives.emplace_back(rotations.at(j).at(i));
-    }
-  }
-  return scon::mathmatrix<float_type>::row_from_vec(primitives);
 }
 
 template<typename XYZ>
