@@ -371,40 +371,43 @@ private:
     
     class ConvergenceCheck{
     public:
-        ConvergenceCheck(int step, scon::mathmatrix<float_type> & gxyz, system const& sys)
-            :step{step}, gxyz{gxyz}, internalCoordinateSystem {sys},
-            threshECheck{false},
-            threshGrmsCheck{false},
-            threshDrmsCheck{false},
-            threshGmaxCheck{false},
-            threshDmaxCheck{false}
-            {}
+        ConvergenceCheck(int step, scon::mathmatrix<float_type> & gxyz, system const& sys) :
+            step{step},
+            cartesianGradients{gxyz},
+            internalCoordinateSystem{sys},
+            energyDiff{0.0},
+            gradientRms{0.0},
+            displacementRms{0.0},
+            gradientMax{0.0},
+            displacementMax{0.0}{}
         
         void writeAndCalcEnergyDiffs();
-        void writeAndCalcGradientRmsd(scon::mathmatrix<float_type> & cartesianGradients);
+        void writeAndCalcGradientRmsd();
         void writeAndCalcDisplacementRmsd();
+        bool checkConvergence()const;
         bool operator()();
     private:
         int step;
-        scon::mathmatrix<float_type> & gxyz;
+        scon::mathmatrix<float_type> & cartesianGradients;
         system const& internalCoordinateSystem;
         
-        static auto constexpr threshE = 1.e-6;
-        static auto constexpr threshGrms = 0.0003;
-        static auto constexpr threshDrms = 0.00045;
-        static auto constexpr threshGmax = 0.0012;
-        static auto constexpr threshDmax = 0.0018;
+        static auto constexpr threshEnergy = 1.e-6;
+        static auto constexpr threshGradientRms = 0.0003;
+        static auto constexpr threshDisplacementRms = 0.00045;
+        static auto constexpr threshGradientMax = 0.0012;
+        static auto constexpr threshDisplacementMax = 0.0018;
         
-        bool threshECheck;
-        bool threshGrmsCheck;
-        bool threshDrmsCheck;
-        bool threshGmaxCheck;
-        bool threshDmaxCheck;
+        float_type energyDiff;
+        float_type gradientRms;
+        float_type displacementRms;
+        float_type gradientMax;
+        float_type displacementMax;
     };
-    bool checkConvergence(ConvergenceCheck cc)const;
     
     static std::pair<float_type,float_type> gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads);
     std::pair<float_type,float_type> displacementRmsValAndMax()const;
+    
+    static std::pair<float_type,float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
     
     struct SystemVariables{
         float_type systemEnergy;
