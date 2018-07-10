@@ -25,7 +25,7 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::g(void){
   auto e_grads = parse_gradients();
   if (Config::get().energy.qmmm.mm_charges.size() != 0)
   {
-    auto g_coul_qm = get_g_coul_qm();
+    auto g_coul_qm = get_g_coulomb();
     coords->set_g_xyz(std::move(e_grads.second + g_coul_qm));
   }
   else coords->set_g_xyz(std::move(e_grads.second));
@@ -271,42 +271,17 @@ std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 
 std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
 {
-  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-  auto atom_charges = charges();
-
-  std::vector<coords::Cartesian_Point> grad_ext_charges;
-  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
-
-  for (int i = 0; i < coords->size(); ++i)  // for every atom
-  {
-    double charge_i = atom_charges[i];
-
-    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
-    {
-      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
-      double charge_j = current_charge.charge;
-
-      auto dx = current_charge.x - coords->xyz(i).x();
-      auto dy = current_charge.y - coords->xyz(i).y();
-      auto dz = current_charge.z - coords->xyz(i).z();
-      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
-      coords::float_type d = len(r_ij);     // distance between atom and charge
-
-      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
-      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
-      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
-    }
-  }
   return grad_ext_charges;
 }
 
-std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_coul_qm() const
+std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_coulomb()
 {
 	auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
 	auto atom_charges = charges();
 
 	std::vector<coords::Cartesian_Point> grad_coul_qm;
 	grad_coul_qm.resize(coords->size());
+	grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
 	for (int i = 0; i < coords->size(); ++i)  // for every atom
 	{
@@ -321,11 +296,13 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 			auto dy = current_charge.y - coords->xyz(i).y();
 			auto dz = current_charge.z - coords->xyz(i).z();
 			auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
-			coords::float_type d = len(r_ij);     // distance between atom and charge
+			coords::float_type d = len(r_ij);       // distance between atom and charge
 
 			coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
 			auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
-			grad_coul_qm[i] -= c_gradient_ij;   // add gradient 
+
+			grad_ext_charges[j] += c_gradient_ij;  // add gradient to external charges
+			grad_coul_qm[i] -= c_gradient_ij;      // add gradient to QM atom
 		}
 	}
 	return grad_coul_qm;

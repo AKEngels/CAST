@@ -687,7 +687,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     }
 
      if (if_gradient == true  && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
-     {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
+     {    // Coulomb gradients on MM atoms for all interfaces except MOPAC
        int j2 = 0;
        for (auto j : mm_indices)
        {   

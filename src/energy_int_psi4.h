@@ -65,7 +65,7 @@ namespace energy{
 				uses coulomb potential between external charge and mulliken charges of atoms*/
 				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 				/**calculates gradients on QM atoms because of external charges (MM atoms)*/
-				std::vector<coords::Cartesian_Point> get_g_coul_qm() const;
+				std::vector<coords::Cartesian_Point> get_g_coulomb();
 
       private:
 
@@ -121,6 +121,9 @@ namespace energy{
 
 				/**partial energies (in hartree!!!)*/
         std::vector<std::pair<std::string, float_type>> energies;//<- energy in Hartree!
+
+				/**gradients of external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
       };
     }
   }
