@@ -266,44 +266,31 @@ std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 
 std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_ext_chg() const
 {
-  // read electric field from PSI4 outputfile
-  std::vector<coords::Cartesian_Point> electric_field;
-
-  std::ifstream inputfile;
-  inputfile.open("grid_field.dat");
+  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+  auto atom_charges = charges();
   
-  std::string line;
-  double temp;
-  coords::Cartesian_Point p;
+  std::vector<coords::Cartesian_Point> grad_ext_charges;
+  grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
-	for (auto counter = 0u; counter < Config::get().energy.qmmm.mm_charges.size(); counter++)
-	{
-		inputfile >> temp;
-    p.x() = temp*energy::Hartree_Bohr2Kcal_MolAng;
-    inputfile >> temp;
-    p.y() = temp*energy::Hartree_Bohr2Kcal_MolAng;
-    inputfile >> temp;
-    p.z() = temp*energy::Hartree_Bohr2Kcal_MolAng;
+  for (int i = 0; i < coords->size(); ++i)  // for every atom
+  {
+    double charge_i = atom_charges[i];
 
-		electric_field.push_back(p);
-	}
+    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+    {
+      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+      double charge_j = current_charge.charge;
 
-  // calculate gradients on external charges from electric field
-  std::vector<coords::Cartesian_Point> external_gradients;
-	for (auto i = 0u; i < electric_field.size(); ++i)  
-	{
-		coords::Cartesian_Point E = electric_field[i];
-		double q = Config::get().energy.qmmm.mm_charges[i].charge;
+      auto dx = current_charge.x - coords->xyz(i).x();
+      auto dy = current_charge.y - coords->xyz(i).y();
+      auto dz = current_charge.z - coords->xyz(i).z();
+      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
+      coords::float_type d = len(r_ij);     // distance between atom and charge
 
-		double x = q * E.x();
-		double y = q * E.y();
-		double z = q * E.z();
-		coords::Cartesian_Point new_grad;
-		new_grad.x() = -x;
-		new_grad.y() = -y;
-		new_grad.z() = -z;
-
-		external_gradients.push_back(new_grad);
-	}
-  return external_gradients;
+      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
+      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
+      grad_ext_charges[j] += c_gradient_ij;   // add gradient 
+    }
+  }
+   return grad_ext_charges;
 }
