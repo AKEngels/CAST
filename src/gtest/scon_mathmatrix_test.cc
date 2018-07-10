@@ -942,28 +942,28 @@ TEST(SconMathmatrix, PseudoInverse) {
 
 }
 
-TEST(SconMathmatrix, Vectorise) {
-
-	scon::mathmatrix<double> A{
-		{ 1.,  2.,  3., },
-	{ 4.,  5.,  6., },
-	{ 7.,  8.,  9., },
-	}, vec_test{
-		std::initializer_list<double>{1.,},
-		std::initializer_list<double>{2.,},
-		std::initializer_list<double>{3.,},
-		std::initializer_list<double>{4.,},
-		std::initializer_list<double>{5.,},
-		std::initializer_list<double>{6.,},
-		std::initializer_list<double>{7.,},
-		std::initializer_list<double>{8.,},
-		std::initializer_list<double>{9.,}
-	};
-
-	auto vec = A.vectorise();
-
-	EXPECT_EQ(vec, vec_test);
-}
+//TEST(SconMathmatrix, Vectorise) {
+//
+//	scon::mathmatrix<double> A{
+//		{ 1.,  2.,  3., },
+//	{ 4.,  5.,  6., },
+//	{ 7.,  8.,  9., },
+//	}, vec_test{
+//		std::initializer_list<double>{1.,},
+//		std::initializer_list<double>{2.,},
+//		std::initializer_list<double>{3.,},
+//		std::initializer_list<double>{4.,},
+//		std::initializer_list<double>{5.,},
+//		std::initializer_list<double>{6.,},
+//		std::initializer_list<double>{7.,},
+//		std::initializer_list<double>{8.,},
+//		std::initializer_list<double>{9.,}
+//	};
+//
+//	auto vec = A.vectorise();
+//
+//	EXPECT_EQ(vec, vec_test);
+//}
 
 TEST(SconMathmatrix, ReplaceItemsWithIndex) {
 	scon::mathmatrix<double> A{
