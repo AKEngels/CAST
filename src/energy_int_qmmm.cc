@@ -647,11 +647,13 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
         if (if_gradient)  // gradients
         {
 
-          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
+          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC || Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4)
           {    // gradients of coulomb interaction (only for MOPAC here)
 			      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
             coords::float_type db = b / d;
             auto c_gradient_ij = r_ij * db / d;
+            //auto grad_atm = c_gradient_ij / energy::Hartree_Bohr2Kcal_MolAng;
+            //std::cout<<"additional gradient on atom "<<i<<": "<<grad_atm<<"\n";
             c_gradient[i] += c_gradient_ij;
             c_gradient[j] -= c_gradient_ij;
           }
@@ -684,27 +686,27 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    if (if_gradient == true  && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
-    {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
-      int j2 = 0;
-      for (auto j : mm_indices)
-      {   
-        bool use_charge = true;
-        for (auto b : qmmm_bonds)
-        {
-          if (j == b.a) use_charge = false;
-        }
-        if (use_charge == true)
-        {
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
-          }
-          c_gradient[j] += g_coul_mm[j2];
-          j2++;
-        }
-      }
-    }
+    // if (if_gradient == true  && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+    // {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
+    //   int j2 = 0;
+    //   for (auto j : mm_indices)
+    //   {   
+    //     bool use_charge = true;
+    //     for (auto b : qmmm_bonds)
+    //     {
+    //       if (j == b.a) use_charge = false;
+    //     }
+    //     if (use_charge == true)
+    //     {
+    //       if (Config::get().general.verbosity > 4)
+    //       {
+    //         std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
+    //       }
+    //       c_gradient[j] += g_coul_mm[j2];
+    //       j2++;
+    //     }
+    //   }
+    // }
   }
 }
 

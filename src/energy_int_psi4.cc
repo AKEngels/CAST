@@ -302,31 +302,31 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 
 std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface::get_g_coul_qm() const
 {
-  auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
-  auto atom_charges = charges();
+	auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+	auto atom_charges = charges();
 
-  std::vector<coords::Cartesian_Point> grad_coul_qm;
-  grad_coul_qm.resize(coords->size());
+	std::vector<coords::Cartesian_Point> grad_coul_qm;
+	grad_coul_qm.resize(coords->size());
 
-  for (int i = 0; i < coords->size(); ++i)  // for every atom
-  {
-    double charge_i = atom_charges[i];
+	for (int i = 0; i < coords->size(); ++i)  // for every atom
+	{
+		double charge_i = atom_charges[i];
 
-    for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
-    {
-      auto current_charge = Config::get().energy.qmmm.mm_charges[j];
-      double charge_j = current_charge.charge;
+		for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+		{
+			auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+			double charge_j = current_charge.charge;
 
-      auto dx = current_charge.x - coords->xyz(i).x();
-      auto dy = current_charge.y - coords->xyz(i).y();
-      auto dz = current_charge.z - coords->xyz(i).z();
-      auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
-      coords::float_type d = len(r_ij);     // distance between atom and charge
+			auto dx = current_charge.x - coords->xyz(i).x();
+			auto dy = current_charge.y - coords->xyz(i).y();
+			auto dz = current_charge.z - coords->xyz(i).z();
+			auto r_ij = coords::r3{ dx, dy, dz };   // vector between atom and charge
+			coords::float_type d = len(r_ij);     // distance between atom and charge
 
-      coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
-      auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
-      grad_coul_qm[i] -= c_gradient_ij;   // add gradient 
-    }
-  }
-  return grad_coul_qm;
+			coords::float_type db = -elec_factor * (charge_i*charge_j) / (d*d);  // derivative of coulomb energy (only number)
+			auto c_gradient_ij = (r_ij / d) * db;                                // now gradient gets a direction
+			grad_coul_qm[i] -= c_gradient_ij;   // add gradient 
+		}
+	}
+	return grad_coul_qm;
 }
