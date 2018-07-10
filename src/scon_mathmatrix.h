@@ -204,8 +204,33 @@ public:
   using base_type::row;*/
 
   // element access from base class
-  using base_type::operator();
-  using base_type::operator[];
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+  >::type &
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("Error: out of bound exception in operator() of scon_mathmatrix");
+    }
+    return base_type::operator()(row,col);
+  }
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+    >::type const& 
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) const {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("error: out of bound exception in operator() const of scon_mathmatrix");
+    }
+    return base_type::operator()(row, col);
+  }
+  /*T operator[](std::size_t const row, std::size_t const col) {
+    if (checkIfIndexOutOfBounds()) {
+      std::runtime_error("Error: out of bound exception in operator[] of scon_mathmatrix");
+    }
+    return base_type::operator[];
+  }*/
+
 #ifndef CAST_USE_ARMADILLO
   void resize(uint_type const rows, uint_type const cols);
 #else
@@ -600,6 +625,10 @@ public:
 #else
   class Quaternion {};
 #endif
+  private:
+    bool checkIfIndexOutOfBounds(std::size_t const row, std::size_t const col) const {
+      return row > rows() || col > cols();
+    }
 };
 
 template <typename T>
@@ -990,7 +1019,7 @@ void mathmatrix<T>::shed_cols(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0u || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
+  if (first_in < 0 || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_cols()");
   }
 
