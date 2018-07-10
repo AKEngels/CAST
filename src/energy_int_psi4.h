@@ -64,6 +64,8 @@ namespace energy{
 				/**calculates gradients on external charges
 				uses coulomb potential between external charge and mulliken charges of atoms*/
 				std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
+				/**calculates gradients on QM atoms because of external charges (MM atoms)*/
+				std::vector<coords::Cartesian_Point> get_g_coul_qm() const;
 
       private:
 
