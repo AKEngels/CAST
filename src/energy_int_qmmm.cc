@@ -652,8 +652,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 			      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
             coords::float_type db = b / d;
             auto c_gradient_ij = r_ij * db / d;
-            //auto grad_atm = c_gradient_ij / energy::Hartree_Bohr2Kcal_MolAng;
-            //std::cout<<"additional gradient on atom "<<i<<": "<<grad_atm<<"\n";
             c_gradient[i] += c_gradient_ij;
             c_gradient[j] -= c_gradient_ij;
           }
