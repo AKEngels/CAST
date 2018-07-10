@@ -23,7 +23,7 @@ coords::float_type energy::interfaces::psi4::sysCallInterface::g(void){
   write_input(Calc::gradient);
   make_call();
   auto e_grads = parse_gradients();
-  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if external charges: calculate gradients between them and atoms
   {
     auto g_coul_qm = get_g_coulomb();
     coords->set_g_xyz(std::move(e_grads.second + g_coul_qm));
@@ -103,18 +103,12 @@ void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os
 
 void energy::interfaces::psi4::sysCallInterface::write_ext_charges(std::ostream& os) const 
 {
-  std::ofstream gridfile;    // preparation for writing grid points
-  gridfile.open("grid.dat");
-  auto com = coords->center_of_mass();
-
   os << "Chrgfield = QMMM()\n";
 	for (auto c : Config::get().energy.qmmm.mm_charges)
 	{
 		os << "Chrgfield.extern.addCharge(" << c.charge << ", " << c.x << ", " << c.y << ", " << c.z << ")\n";  // write charges
-    gridfile << c.x-com.x()<<" "<<c.y-com.y()<<" "<<c.z-com.z()<<"\n";  // move gridpoints so that origin of coordinate system is at center of mass
 	}
 	os << "psi4.set_global_option_python('EXTERN', Chrgfield.extern)\n\n";
-  gridfile.close();
 }
 
 void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream& os) const{
@@ -130,10 +124,10 @@ void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream
 void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostream& os) const{
   auto const& method = Config::get().energy.psi4.method;
   write_head(os);
-	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and field
+	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
 	{
 		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
 	}
 	else os << "gradient ('" << method << "')";
 }
