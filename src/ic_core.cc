@@ -80,7 +80,7 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
   else {
     B_val = 2.068;
   }
-  return 1.734 / std::pow(val(xyz) - B_val, 3);
+  return 1.734 / std::pow(val(xyz) - B_val, 3.);
 }
 
 std::string ic_core::distance::info(coords::Representation_3D const & xyz) const
@@ -313,7 +313,7 @@ ic_core::dihedral::der_vec(coords::Representation_3D const& xyz) const {
 
 float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & /*xyz*/) const
 {
-  return 0.023;
+  return 0.023;//not 0.0023??
 }
 
 std::string ic_core::dihedral::info(coords::Representation_3D const & xyz) const

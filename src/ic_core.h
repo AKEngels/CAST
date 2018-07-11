@@ -594,11 +594,12 @@ inline void system::apply_internal_change(Dint&& d_int){
   auto damp{1.};
   auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
   for(; micro_iter < 50; ++micro_iter){
+      
+      //new_B_matrix = false;
 
-    //std::cout << "Bmat:\n" << ic_Bmat().t() << "\n\n";
+    //std::cout << "Bmat:\n" << ic_Bmat() << "\n\n";
     //std::cout << "Ginv:\n" << ic_Gmat().pinv() << "\n\n";
-
-    take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
+    take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); // damping in PCCP, 2000, 2, 2177-2186
     //std::cout << "Cartesian:\n" << xyz_ << std::endl;
 
     auto d_now = calc_diff(xyz_, old_xyz);
