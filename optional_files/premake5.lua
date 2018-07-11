@@ -83,7 +83,7 @@ workspace "CAST"
 				symbols "On"
 				defines "GOOGLE_MOCK"
 				includedirs {"../submodules/googletest/googletest/include"}
-        links"GoogleTest"
+                links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }

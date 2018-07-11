@@ -48,6 +48,7 @@ arma::Mat kind
 #include <tuple>
 #include <utility>
 #include <vector>
+#include "configuration.h"
 
 ///////////////////////////////
 //                           //
@@ -148,7 +149,9 @@ public:
   using int_type = int;
   using uint_type = std::size_t;
   static auto constexpr printFunctionCallVerbosity = 5u;
-  static auto constexpr mat_comp_tol = 0.1;
+  static auto constexpr matCompTol(){
+	  return 0.1;
+  }
   static auto constexpr close_to_zero_tol = 1.e-7;
 
   /////////////////////////////////////
@@ -1134,11 +1137,11 @@ mathmatrix<T> mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
 template <typename T>
 bool mathmatrix<T>::operator==(mathmatrix<T> const& in) const {
 #ifndef CAST_USE_ARMADILLO
-  return this->isApprox(in, mat_comp_tol);
+  return this->isApprox(in, matCompTol());
 #else
   return (arma::approx_equal(static_cast<base_type>(*this),
                              static_cast<base_type>(in), "absdiff",
-                             mat_comp_tol));
+                             matCompTol()));
 #endif
 }
 

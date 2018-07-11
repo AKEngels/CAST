@@ -1,14 +1,14 @@
-#include<gtest\gtest.h>
+#include <gtest/gtest.h>
 
-#include<algorithm>
-#include<random>
+#include <algorithm>
+#include <random>
 //#define CAST_USE_ARMADILLO
 #undef eigen_assert
 #define eigen_assert(x) \
   if (!(x)) { throw (std::runtime_error("Something went wrong with Eigen!")); }
 
-#include"..\scon_mathmatrix.h"
-#include<iostream>
+#include "../scon_mathmatrix.h"
+#include <iostream>
 
 #include <stdexcept>
 
