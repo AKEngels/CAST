@@ -275,6 +275,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 
 	std::vector<coords::Cartesian_Point> grad_coul_qm;
 	grad_coul_qm.resize(coords->size());
+	grad_ext_charges.clear();
 	grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
 	for (auto i = 0u; i < coords->size(); ++i)  // for every atom
