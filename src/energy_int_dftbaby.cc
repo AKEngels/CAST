@@ -511,7 +511,7 @@ energy::interfaces::dftbaby::sysCallInterface::charges() const
 
   std::ifstream chargefile("dftb_charges.txt", std::ios_base::in);
   std::getline(chargefile, line);
-  chargestrings = split(line, ';"');
+  chargestrings = split(line, ';');
 
   for (auto charge : chargestrings)
   {
