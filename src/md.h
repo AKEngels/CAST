@@ -489,7 +489,7 @@ namespace md
     void plot_temp(std::vector<double> temps);
     /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
-    void plot_distances(std::vector<ana_pair> pairs);
+    void plot_distances(std::vector<ana_pair> &pairs);
     /**function to plot temperatures for all zones*/
     void plot_zones();
     /**function that fills zones with atoms*/

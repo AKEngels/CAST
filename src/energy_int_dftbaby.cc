@@ -121,7 +121,7 @@ double energy::interfaces::dftbaby::sysCallInterface::e(void)
     std::string result_str;
     PyObject *modul, *funk, *prm, *ret;
 
-    PySys_SetPath("./python_modules"); //set path
+    PySys_SetPath((char*)"./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 
@@ -189,7 +189,7 @@ double energy::interfaces::dftbaby::sysCallInterface::g(void)
   std::string result_str;
   PyObject *modul, *funk, *prm, *ret;
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths from variable add_path
   PyRun_SimpleString(c);
 
@@ -281,7 +281,7 @@ double energy::interfaces::dftbaby::sysCallInterface::h(void)
       std::string result_str;
       PyObject *modul, *funk, *prm, *ret;
 
-      PySys_SetPath("./python_modules"); //set path
+      PySys_SetPath((char*)"./python_modules"); //set path
       const char *c = add_path.c_str();  //add paths from variable add_path
       PyRun_SimpleString(c);
 
@@ -372,7 +372,7 @@ double energy::interfaces::dftbaby::sysCallInterface::o(void)
     std::string result_str;
     PyObject *modul, *funk, *prm, *ret;
 
-    PySys_SetPath("./python_modules"); //set path
+    PySys_SetPath((char*)"./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths from variable add_path
     PyRun_SimpleString(c);
 

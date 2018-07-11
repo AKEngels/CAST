@@ -868,7 +868,7 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
       PyList_SetItem(E_pots, k, pValue);
     }
 
-    PySys_SetPath("./python_modules"); //set path
+    PySys_SetPath((char*)"./python_modules"); //set path
     const char *c = add_path.c_str();  //add paths pythonpath
     PyRun_SimpleString(c);
 
@@ -912,23 +912,23 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
   return dE_pots;
 }
 
-void md::simulation::plot_distances(std::vector<ana_pair> pairs)
+void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
 {
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
 
   // create python list with legends
-  PyObject *legends = PyList_New(ana_pairs.size());
-  for (std::size_t k = 0; k < ana_pairs.size(); k++) {
-    pValue = PyString_FromString(ana_pairs[k].legend.c_str());
+  PyObject *legends = PyList_New(pairs.size());
+  for (std::size_t k = 0; k < pairs.size(); k++) {
+    pValue = PyString_FromString(pairs[k].legend.c_str());
     PyList_SetItem(legends, k, pValue);
   }
 
   // create a python list that contains a list with distances for every atom pair that is to be analyzed
-  PyObject *distance_lists = PyList_New(ana_pairs.size());
+  PyObject *distance_lists = PyList_New(pairs.size());
   int counter = 0;
-  for (auto a : ana_pairs)
+  for (auto a : pairs)
   {
     PyObject *dists = PyList_New(a.dists.size());
     for (std::size_t k = 0; k < a.dists.size(); k++) {
@@ -939,7 +939,7 @@ void md::simulation::plot_distances(std::vector<ana_pair> pairs)
     counter += 1;
   }
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths pythonpath
   PyRun_SimpleString(c);
 
@@ -983,7 +983,7 @@ void md::simulation::plot_temp(std::vector<double> temperatures)
     PyList_SetItem(temps, k, pValue);
   }
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths pythonpath
   PyRun_SimpleString(c);
 
@@ -1041,7 +1041,7 @@ void md::simulation::plot_zones()
     counter += 1;
   }
 
-  PySys_SetPath("./python_modules"); //set path
+  PySys_SetPath((char*)"./python_modules"); //set path
   const char *c = add_path.c_str();  //add paths pythonpath
   PyRun_SimpleString(c);
 
@@ -1899,7 +1899,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     p_average += press;
 
     // calculate distances that should be analyzed
-    if (Config::get().md.ana_pairs.size() > 0)
+    if (ana_pairs.size() > 0)
     {
       for (auto &p : ana_pairs)
       {
