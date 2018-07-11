@@ -317,13 +317,21 @@ TEST(SconTraits, ConvertibleFromtTrait)
   EXPECT_FALSE((scon::is_convertible_from<some_A, explicitly_convertible_to_some_A>::value));
 }
 
-TEST(SconTraits, ExplicitlyConstructibleTrait)
-{
-  // explicitly constructible!
+TEST(SconTraits, UnsignedShouldBeExplicitlyConstructible) {
   EXPECT_TRUE((scon::is_explicitly_constructible<some_A, unsigned>::value));
-  // convertible!
-  EXPECT_FALSE((scon::is_explicitly_constructible<some_A, explicitly_convertible_to_some_A>::value));
+}
+
+//Not sure if this test gets the intention right. 
+TEST(SconTraits, ExplicitlyConvertibleShouldBeExplicitlyConstructible) {
+  EXPECT_TRUE((scon::is_explicitly_constructible<some_A, explicitly_convertible_to_some_A>::value));
+}
+
+TEST(SconTraits, StdVectorValueShouldNotBeExplicitlyConstructible) {
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, std::vector<int>>::value));
+}
+
+TEST(SconTraits, ConvertibleShouldNotBeExplicitlyConstructible) {
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, convertible_to_some_A>::value));
 }
+
 #endif
