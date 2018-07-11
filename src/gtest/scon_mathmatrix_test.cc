@@ -674,23 +674,45 @@ TEST(SconMathmatrix, Eigensym) {
 
 }
 
-TEST(SconMathmatrix, RowCol) {
-	scon::mathmatrix<double> A{
-		{ 1.,2.,3. },
-	{ 4.,5.,6. },
-	{ 7.,8.,9. }
-	}, ac{
-		std::initializer_list<double>{1.,},
-		std::initializer_list<double>{4.,},
-		std::initializer_list<double>{7.,}
-	}, ar{
-		{ 1.,2.,3. }
-	};
+class TestRowsAndCols {
+private:
+  static const scon::mathmatrix<double> A;
+  FRIEND_TEST(SconMathmatrix, RowCol);
+  FRIEND_TEST(SconMathmatrix, DoesColWork);
+  FRIEND_TEST(SconMathmatrix, DoesRowWork);
+  FRIEND_TEST(SconMathmatrix, DoesColThrow);
+  FRIEND_TEST(SconMathmatrix, DoesRowThrow);
+};
 
-	ASSERT_EQ(A.row(0), ar);
-	ASSERT_EQ(A.col(0), ac);
-	ASSERT_ANY_THROW(A.row(5));
-	ASSERT_ANY_THROW(A.col(5));
+const scon::mathmatrix<double> TestRowsAndCols::A{
+  { 1.,2.,3. },
+{ 4.,5.,6. },
+{ 7.,8.,9. }
+};
+
+
+TEST(SconMathmatrix, DoesColWork) {
+  scon::mathmatrix<double> ac{
+    std::initializer_list<double>{1.,},
+    std::initializer_list<double>{4.,},
+    std::initializer_list<double>{7.,}
+  };
+  ASSERT_EQ(TestRowsAndCols::A.col(0), ac);
+}
+
+TEST(SconMathmatrix, DoesRowWork) {
+  scon::mathmatrix<double> ar{
+    { 1.,2.,3. }
+  };
+  ASSERT_EQ(TestRowsAndCols::A.row(0), ar);
+}
+
+TEST(SconMathmatrix, DoesColThrow) {
+  ASSERT_ANY_THROW(TestRowsAndCols::A.col(5));
+}
+
+TEST(SconMathmatrix, DoesRowThrow) {
+  ASSERT_ANY_THROW(TestRowsAndCols::A.row(5));
 }
 
 TEST(SconMathmatrix, ColFromVec) {

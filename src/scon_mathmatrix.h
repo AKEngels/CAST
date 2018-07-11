@@ -217,7 +217,7 @@ public:
   template<typename LeftIntegral, typename RightIntegral = std::size_t>
   typename std::enable_if<std::is_integral<LeftIntegral>::value,
     typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
-    >::type const& 
+    >::type const 
   operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) const {
     if (checkIfIndexOutOfBounds(row, col)) {
       throw std::runtime_error("error: out of bound exception in operator() const of scon_mathmatrix");
@@ -1053,6 +1053,9 @@ std::size_t mathmatrix<T>::cols() const {
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
+  if (idx > cols() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function col(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::col(idx);
 #else
@@ -1068,6 +1071,9 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
+  if (idx > rows() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function row(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::row(idx);
 #else
