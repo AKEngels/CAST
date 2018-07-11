@@ -277,11 +277,11 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 	grad_coul_qm.resize(coords->size());
 	grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
 
-	for (int i = 0; i < coords->size(); ++i)  // for every atom
+	for (auto i = 0u; i < coords->size(); ++i)  // for every atom
 	{
 		double charge_i = atom_charges[i];
 
-		for (int j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
+		for (auto j = 0u; j < Config::get().energy.qmmm.mm_charges.size(); ++j)  // for every external charge
 		{
 			auto current_charge = Config::get().energy.qmmm.mm_charges[j];
 			double charge_j = current_charge.charge;
