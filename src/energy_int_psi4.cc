@@ -296,7 +296,7 @@ std::vector<coords::Cartesian_Point> energy::interfaces::psi4::sysCallInterface:
 
   // calculate gradients on external charges from electric field
   std::vector<coords::Cartesian_Point> external_gradients;
-  for (int i = 0; i < electric_field.size(); ++i)
+  for (auto i = 0u; i < electric_field.size(); ++i)
   {
     coords::Cartesian_Point E = electric_field[i];
     double q = Config::get().energy.qmmm.mm_charges[i].charge;
