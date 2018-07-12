@@ -1,10 +1,10 @@
+#pragma once
 #ifdef GOOGLE_MOCK
 #include <gtest/gtest.h>
 #include "../configuration.h"
 #ifdef _MSC_VER
 #include "../win_inc.h"
 #endif
-#pragma once
 
 //TESTING MAIN
 //////////////////////////

@@ -48,6 +48,7 @@ arma::Mat kind
 #include <tuple>
 #include <utility>
 #include <vector>
+#include "configuration.h"
 
 ///////////////////////////////
 //                           //
@@ -148,7 +149,9 @@ public:
   using int_type = int;
   using uint_type = std::size_t;
   static auto constexpr printFunctionCallVerbosity = 5u;
-  static auto constexpr mat_comp_tol = 0.1;
+  static auto constexpr matCompTol(){
+	  return 0.1;
+  }
   static auto constexpr close_to_zero_tol = 1.e-7;
 
   /////////////////////////////////////
@@ -204,8 +207,33 @@ public:
   using base_type::row;*/
 
   // element access from base class
-  using base_type::operator();
-  using base_type::operator[];
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+  >::type &
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("Error: out of bound exception in operator() of scon_mathmatrix");
+    }
+    return base_type::operator()(row,col);
+  }
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+    >::type const 
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) const {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("error: out of bound exception in operator() const of scon_mathmatrix");
+    }
+    return base_type::operator()(row, col);
+  }
+  /*T operator[](std::size_t const row, std::size_t const col) {
+    if (checkIfIndexOutOfBounds()) {
+      std::runtime_error("Error: out of bound exception in operator[] of scon_mathmatrix");
+    }
+    return base_type::operator[];
+  }*/
+
 #ifndef CAST_USE_ARMADILLO
   void resize(uint_type const rows, uint_type const cols);
 #else
@@ -600,6 +628,10 @@ public:
 #else
   class Quaternion {};
 #endif
+  private:
+    bool checkIfIndexOutOfBounds(std::size_t const row, std::size_t const col) const {
+      return row > rows() || col > cols();
+    }
 };
 
 template <typename T>
@@ -990,7 +1022,7 @@ void mathmatrix<T>::shed_cols(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0u || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
+  if (first_in < 0 || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_cols()");
   }
 
@@ -1024,6 +1056,9 @@ std::size_t mathmatrix<T>::cols() const {
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
+  if (idx > cols() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function col(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::col(idx);
 #else
@@ -1039,6 +1074,9 @@ inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
+  if (idx > rows() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function row(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::row(idx);
 #else
@@ -1099,11 +1137,11 @@ mathmatrix<T> mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
 template <typename T>
 bool mathmatrix<T>::operator==(mathmatrix<T> const& in) const {
 #ifndef CAST_USE_ARMADILLO
-  return this->isApprox(in, mat_comp_tol);
+  return this->isApprox(in, matCompTol());
 #else
   return (arma::approx_equal(static_cast<base_type>(*this),
                              static_cast<base_type>(in), "absdiff",
-                             mat_comp_tol));
+                             matCompTol()));
 #endif
 }
 

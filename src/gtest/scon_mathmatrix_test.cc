@@ -1,589 +1,1076 @@
-/**
-CAST 3
-scon_mathmatrix_tests
-Purpose: Tests matrix procedures
+#include <gtest/gtest.h>
 
-@author Dustin Kaiser
-@version 1.0
-*/
-
-
-#ifdef GOOGLE_MOCK
-#include "gtest/gtest.h"
-#pragma once
-
-
-#ifndef eigen_assert
-#define eigen_assert(msg) if (!bool( msg )) { std::cout << "eigen assertion raised" << std::endl; throw std::runtime_error("eigen assertion raised"); }
-#endif
-
+#include <algorithm>
+#include <random>
+//#define CAST_USE_ARMADILLO
+#undef eigen_assert
+#define eigen_assert(x) \
+  if (!(x)) { throw (std::runtime_error("Something went wrong with Eigen!")); }
 
 #include "../scon_mathmatrix.h"
 #include <iostream>
-#include <string>
-#include <sstream>
 
-TEST(mathmatrix, constructedEmpty)
-{
-  mathmatrix<float> one;
-  ASSERT_EQ(one.rows(), 0);
-  ASSERT_EQ(one.cols(), 0);
+#include <stdexcept>
+
+auto is_eq = [](auto const & a, auto const & b) {
+	return a == b;
+};
+
+TEST(SconMathmatrix, IsEqual) {
+	scon::mathmatrix<double> A{
+		{ 1.,2.,3. },
+	{ 1.,2.,3. },
+	{ 1.,2.,3. }
+	};
+	scon::mathmatrix<double> B{
+		{ 1.,2.,3. },
+	{ 1.,2.,3. },
+	{ 1.,2.,3. }
+	};
+
+	ASSERT_EQ(A, B);
 }
 
-TEST(mathmatrix, constructedAndFilled)
-{
-  mathmatrix<float> one(3u, 3u, 2.f);
-  float count = 0.f;
-  for (size_t i = 0u; i < 3u; i++)
-    for (size_t j = 0u; j < 3u; j++)
-      count += one(i, j);
-  ASSERT_FLOAT_EQ(count, 18.f);
+TEST(SconMathmatrix, Resize) {
+	scon::mathmatrix<double> A(3, 3);
+
+	ASSERT_EQ(A.cols(), 3);
+	ASSERT_EQ(A.rows(), 3);
+
+	A.resize(5, 5);
+
+	ASSERT_EQ(A.cols(), 5);
+	ASSERT_EQ(A.rows(), 5);
 }
 
-TEST(mathmatrix, constructedIdentityMatrixQuadratic)
-{
-  mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = mathmatrix<float>::Identity(4u, 4u);
-  ASSERT_EQ(two.rows(), 4u);
-  ASSERT_EQ(two.cols(), 4u);
-  ASSERT_FLOAT_EQ(two(2, 2), 1.f);
-  ASSERT_FLOAT_EQ(two(1, 2), 0.f);
-  ASSERT_FLOAT_EQ(two(3, 3), 1.f);
-  ASSERT_FLOAT_EQ(two(3, 2), 0.f);
-  ASSERT_FLOAT_EQ(two(1, 1), 1.f);
-  ASSERT_FLOAT_EQ(two(0, 1), 0.f);
+TEST(SconMathmatrix, Constrctors) {
+
+	scon::mathmatrix<double> empty;
+	ASSERT_EQ(empty.cols(), 0);
+	ASSERT_EQ(empty.rows(), 0);
+
+	scon::mathmatrix<double> A(3, 3);
+	A(0, 0) = 2.0; A(0, 1) = 2.0; A(0, 2) = 2.0;
+	A(1, 0) = 2.0; A(1, 1) = 2.0; A(1, 2) = 2.0;
+	A(2, 0) = 2.0; A(2, 1) = 2.0; A(2, 2) = 2.0;
+
+	scon::mathmatrix<double> B{
+		{ 2.,2.,2. },
+	{ 2.,2.,2. },
+	{ 2.,2.,2. }
+	};
+
+	ASSERT_EQ(A.cols(), 3);
+	ASSERT_EQ(A.rows(), 3);
+	ASSERT_EQ(B.cols(), 3);
+	ASSERT_EQ(B.rows(), 3);
+
+	ASSERT_EQ(A, B);
+
+	scon::mathmatrix<double> C(std::size_t(3), std::size_t(3), 2.);
+
+	ASSERT_EQ(A, C);
+
+	ASSERT_EQ(C, B);
+
+	C = scon::mathmatrix<double>{
+		{ 1.,1.,1. },
+	{ 2.,2.,2. },
+	{ 3.,3.,3. }
+	};
+
+	auto D(C);
+	ASSERT_EQ(D, C);
+
+	D = A;
+	ASSERT_EQ(D, A);
 }
 
-TEST(mathmatrix, constructedIdentityMatrixRectangular)
-{
+TEST(SconMathmatrix, Identity) {
 
-  mathmatrix<float> one(3u, 3u);
-  mathmatrix<float> two = mathmatrix<float>::Identity(2u, 4u);
+	scon::mathmatrix<double> A{
+		{ 1.,0.,0. },
+	{ 0.,1.,0. },
+	{ 0.,0.,1. }
+	};
 
-  ASSERT_EQ(two.rows(), 2u);
-  ASSERT_EQ(two.cols(), 4u);
-  ASSERT_FLOAT_EQ(two(0, 0), 1.f);
-  ASSERT_FLOAT_EQ(two(1, 1), 1.f);
-  ASSERT_FLOAT_EQ(two(0, 2), 0.f);
-  ASSERT_FLOAT_EQ(two(0, 3), 0.f);
-  ASSERT_FLOAT_EQ(two(1, 2), 0.f);
-  ASSERT_FLOAT_EQ(two(1, 3), 0.f);
+	auto B = scon::mathmatrix<double>::identity(3, 3);
 
-  //
-
-  mathmatrix<float> three = mathmatrix<float>::Identity(4u, 2u);
-  ASSERT_EQ(three.rows(), 4u);
-  ASSERT_EQ(three.cols(), 2u);
-  ASSERT_FLOAT_EQ(three(0, 0), 1.f);
-  ASSERT_FLOAT_EQ(three(1, 1), 1.f);
-  ASSERT_FLOAT_EQ(three(2, 0), 0.f);
-  ASSERT_FLOAT_EQ(three(3, 0), 0.f);
-  ASSERT_FLOAT_EQ(three(3, 1), 0.f);
-  ASSERT_FLOAT_EQ(three(2, 1), 0.f);
+	ASSERT_EQ(A, B);
 }
 
-TEST(mathmatrix, outputStreamIsAsItShouldBe)
-{
-  mathmatrix<float> one(3u, 3u, 3.f);
-  one(2, 2) = 5.f;
-  one(1, 0) = -4.;
-  one(0, 0) = -3.125;
+TEST(SconMathmatrix, Zeroes) {
 
-  std::stringstream stream;
-  stream << one;
-  std::string temp = stream.str();
-  std::string thisIsCorrect = "-3.12500000e+00    3.00000000e+00     3.00000000e+00     \n-4.00000000e+00    3.00000000e+00     3.00000000e+00     \n3.00000000e+00     3.00000000e+00     5.00000000e+00     \n";
-  ASSERT_EQ(temp, thisIsCorrect);
+	scon::mathmatrix<double> A{
+		{ 0.,0.,0. },
+	{ 0.,0.,0. },
+	{ 0.,0.,0. }
+	};
+
+	auto B = scon::mathmatrix<double>::zero(3, 3);
+
+	ASSERT_EQ(A, B);
 }
 
-TEST(mathmatrix, positiveDefiniteCheck)
-{
-  // via https://en.wikipedia.org/wiki/Positive-definite_matrix
-  mathmatrix<float> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = -1.;
-  one(1, 1) = 2;
-  one(2, 2) = 2;
-  one(0, 1) = -1;
-  one(2, 1) = -1.;
-  one(1, 2) = -1;
+TEST(SconMathmatrix, FillDiag) {
 
-  ASSERT_EQ(one.positive_definite_check(), true);
-  mathmatrix<float> two(3u, 3u, 1.f);
-  ASSERT_EQ(two.positive_definite_check(), false);
+	scon::mathmatrix<double> A{
+		{ 3.,0.,0. },
+	{ 0.,3.,0. },
+	{ 0.,0.,3. }
+	};
 
+	auto B = scon::mathmatrix<double>::fill_diag(3, 3, 3.);
+
+	ASSERT_EQ(A, B);
 }
 
-TEST(mathmatrix, detSign)
-{
-  // via https://en.wikipedia.org/wiki/Positive-definite_matrix
-  mathmatrix<float> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = -1.;
-  one(1, 1) = 2;
-  one(2, 2) = 2;
-  one(0, 1) = -1;
-  one(2, 1) = -1.;
-  one(1, 2) = -1;
-  ASSERT_EQ(one.det_sign(), 1);
-  mathmatrix<float> two(3u, 3u, 1.f);
-  ASSERT_EQ(two.det_sign(), -1);
+TEST(SconMathmatrix, IsVec) {
+	scon::mathmatrix<double> A{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+	};
+
+	EXPECT_EQ(true, A.is_vec());
 }
 
-TEST(mathmatrix, rank)
-{
-  // via https://en.wikipedia.org/wiki/Positive-definite_matrix
-  mathmatrix<float> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = -1.;
-  one(1, 1) = 2;
-  one(2, 2) = 2;
-  one(0, 1) = -1;
-  one(2, 1) = -1.;
-  one(1, 2) = -1;
+TEST(SconMathmatrix, PositiveDefinite) {
 
-  mathmatrix<float> three(2u, 4u, 1.f);
-  three(0, 2) = 0;
-  three(1, 2) = 0;
-  three(1, 0) = -1;
-  three(1, 1) = -1;
-  three(0, 3) = 2;
-  three(1, 3) = -2;
-  ASSERT_EQ(three.rank(), 1);
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  ASSERT_EQ(one.rank(), 3);
-  mathmatrix<float> two(3u, 3u, 1.f);
-  two(0, 1) = 2;
-  two(1, 0) = -2;
-  two(2, 0) = 3;
-  two(1, 1) = -3;
-  two(2, 1) = 5;
-  two(2, 2) = 0;
-  ASSERT_EQ(two.rank(), 2);
+	ASSERT_EQ(A.positive_definite_check(), true);
 
+	A = scon::mathmatrix<double>(std::size_t(3), std::size_t(3), 1.0);
 
+	ASSERT_EQ(A.positive_definite_check(), false);
 }
 
-TEST(mathmatrix, determ)
-{
-  mathmatrix<float> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = -1.;
-  one(1, 1) = 2;
-  one(2, 2) = 2;
-  one(0, 1) = -1;
-  one(2, 1) = -1.;
-  one(1, 2) = -1;
-  ASSERT_FLOAT_EQ(one.determ(), 4.f);
+TEST(SconMathmatrix, Rank) {
 
-  mathmatrix<float> two(3u, 3u, 1.f);
-  ASSERT_EQ(two.determ(), 0);
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  mathmatrix<float> three(4u, 4u, 5.f);
-  three(0, 0) = 3;
-  three(0, 2) = 8;
-  three(0, 3) = 15;
-  three(1, 0) = -4;
-  three(1, 1) = 6;
-  three(1, 2) = -3.5;
-  three(1, 3) = 9;
-  three(2, 1) = -5;
-  three(2, 3) = 4;
-  three(3, 0) = 1;
-  three(3, 1) = 2;
-  three(3, 2) = 3;
-  three(3, 3) = 4;
-  ASSERT_NEAR(three.determ(), 0.5, 0.001);
-}
+	ASSERT_EQ(A.rank(), 3);
 
-TEST(mathmatrix, minusOperatorWorksReasonably)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  one(0, 0) = 3;
-  one(0, 2) = 8;
-  one(0, 3) = 15;
-  one(1, 0) = -4;
-  one(1, 1) = 6;
-  one(1, 2) = -3.5;
-  one(1, 3) = 9;
-  one(2, 1) = -5;
-  one(2, 3) = 4;
-  one(3, 0) = 1;
-  one(3, 1) = 2;
-  one(3, 2) = 3;
-  one(3, 3) = 4;
+	scon::mathmatrix<double> B{
+		{ 1.,2.,1. },
+	{ -2.,-3.,1. },
+	{ 3.,5.,0. }
+	};
 
-  mathmatrix<float> two(4u, 4u, 3.f);
+	ASSERT_EQ(B.rank(), 2);
 
-  mathmatrix<float> three(4u, 4u, 0.f);
-  three(0, 1) = 2;
-  three(0, 2) = 5;
-  three(0, 3) = 12;
-  three(1, 0) = -7;
-  three(1, 1) = 3;
-  three(1, 2) = -6.5;
-  three(1, 3) = 6;
-  three(2, 0) = 2;
-  three(2, 1) = -8;
-  three(2, 2) = 2;
-  three(2, 3) = 1;
-  three(3, 0) = -2;
-  three(3, 1) = -1;
-  three(3, 2) = 0;
-  three(3, 3) = 1;
-  ASSERT_EQ(one - two, three);
+	scon::mathmatrix<double> C{
+		{ 1.,1.,0.,2. },
+	{ -1.,-1.,0.,-2. }
+	};
+
+	ASSERT_EQ(C.rank(), 1);
 
 }
 
-TEST(mathmatrix, minusOperatorThrowsAtSizeMismatch)
-{
- 
+TEST(SconMathmatrix, Det) {
 
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(3u, 2u, 5.f);
-  ASSERT_ANY_THROW(one - two);
-}
+	ASSERT_EQ(A.determ(), 4.);
 
-TEST(mathmatrix, choleskyDecomposition)
-{
-  mathmatrix<float> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = -1.;
-  one(1, 1) = 2;
-  one(2, 2) = 2;
-  one(0, 1) = -1;
-  one(2, 1) = -1.;
-  one(1, 2) = -1;
+	scon::mathmatrix<double> B{
+		{ 3., 1., 1. },
+	{ 1.,3.,1. },
+	{ 1.,1.,3. }
+	}, C{
+		{ 1.,1.,3. },
+	{ 1.,3.,1. },
+	{ 1.,1.,3. }
+	};
 
-  mathmatrix<float> reference(3u, 3u, 0.f);
-  reference(0, 0) = 1.41421354e+00;
-  reference(0, 1) = -7.07106769e-01;
-  reference(1, 1) = 1.22474492e+00;
-  reference(1, 2) = -8.16496551e-01;
-  reference(2, 2) = 1.15470052e+00;
-
-  mathmatrix<float> result;
-  one.choleskyDecomposition(result);
-
-  for (int i = 0; i < result.rows(); i++)
-    for (int j = i; j < result.rows(); j++)
-      ASSERT_FLOAT_EQ(result(i, j), reference(i, j));
+	ASSERT_EQ(B.det_sign(), 1);
+	ASSERT_EQ(C.det_sign(), -1);
 
 }
 
-TEST(mathmatrix, divisonByFloatOperatorWorksReasonably)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  one(0, 0) = 3;
-  one(0, 2) = 8;
-  one(0, 3) = 15;
-  one(1, 0) = -4;
-  one(1, 1) = 6;
-  one(1, 2) = -3.5;
-  one(1, 3) = 9;
-  one(2, 1) = -5;
-  one(2, 3) = 4;
-  one(3, 0) = 1;
-  one(3, 1) = 2;
-  one(3, 2) = 3;
-  one(3, 3) = 4;
+TEST(SconMathmatrix, Plus) {
 
-  mathmatrix<float> two(one);
-  for (size_t i = 0u; i < two.rows(); i++)
-    for (size_t j = 0u; j < two.cols(); j++)
-      two(i, j) = two(i, j) / 3.5;
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  ASSERT_EQ(one / 3.5 , two);
-}
+	scon::mathmatrix<double> Aplus1{
+		{ 3.,0.,1. },
+	{ 0.,3.,0. },
+	{ 1.,0.,3. }
+	};
 
-TEST(mathmatrix, appendFunctionsThrowUponSizeMissmatch)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(1u, 2u, 5.f);
+	ASSERT_EQ(Aplus1, A + 1.);
 
-  ASSERT_ANY_THROW(one.append_bottom(two));
-  ASSERT_ANY_THROW(one.append_left(two));
-  ASSERT_ANY_THROW(one.append_right(two));
-  ASSERT_ANY_THROW(one.append_top(two));
-}
+	scon::mathmatrix<double> AplusA{
+		{ 4.,-2.,0. },
+	{ -2.,4.,-2. },
+	{ 0.,-2.,4. }
+	};
 
-TEST(mathmatrix, appendTopWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(1u, 4u, 0.f);
+	ASSERT_EQ(AplusA, A + A);
 
-  one.append_top(two);
-  ASSERT_EQ(one.rows(), 5u);
-  ASSERT_EQ(one.cols(), 4u);
-  ASSERT_FLOAT_EQ(one(0, 0), 0.f);
-  ASSERT_FLOAT_EQ(one(1, 1), 5.f);
-}
-
-TEST(mathmatrix, appendBottomWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(1u, 4u, 0.f);
-
-  one.append_bottom(two);
-  ASSERT_EQ(one.rows(), 5u);
-  ASSERT_EQ(one.cols(), 4u);
-  ASSERT_FLOAT_EQ(one(0, 0), 5.f);
-  ASSERT_FLOAT_EQ(one(4, 3), 0.f);
-}
-
-TEST(mathmatrix, throwsWhenArgumentsToRoundBracketOperatorIsOutOfRange)
-{
-  mathmatrix<float> one(2u, 2u, 1.f);
-  ASSERT_ANY_THROW(one(2, 2));
-  ASSERT_ANY_THROW(one(-1, 1));
-}
-
-TEST(mathmatrix, appendLeftWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(4u, 1u, 0.f);
-
-  one.append_left(two);
-  ASSERT_EQ(one.rows(), 4u);
-  ASSERT_EQ(one.cols(), 5u);
-  ASSERT_FLOAT_EQ(one(0, 0), 0.f);
-  ASSERT_FLOAT_EQ(one(1, 1), 5.f);
-}
-
-TEST(mathmatrix, appendRightWorksCorrectly)
-{
-  mathmatrix<double> one(4u, 4u, 5.);
-  mathmatrix<double> two(4u, 1u, 0.);
-  std::cout << one << "\n";
-  std::cout << two << "\n";
-
-  one.append_right(two);
-  ASSERT_EQ(one.rows(), 4u);
-  ASSERT_EQ(one.cols(), 5u);
-  ASSERT_FLOAT_EQ(one(0, 0), 5.);
-  ASSERT_NEAR(one(3, 4), 0.f, 1e-30);
-}
-
-TEST(mathmatrix, shedFunctionsThrowWhenOutOfBounds)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  ASSERT_ANY_THROW(one.shed_rows(7, 7));
-  ASSERT_ANY_THROW(one.shed_rows(-1, -1));
-  ASSERT_ANY_THROW(one.shed_rows(3, 5));
-  ASSERT_ANY_THROW(one.shed_cols(7, 7));
-  ASSERT_ANY_THROW(one.shed_cols(-1, 1));
-  ASSERT_ANY_THROW(one.shed_cols(2, 5));
-}
-
-TEST(mathmatrix, shedRowsWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 0.f);
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-      one(i, j) = static_cast<float>(i);
-  }
-
-  one.shed_rows(2, 2);
-  ASSERT_EQ(one.rows(), 3u);
-  ASSERT_FLOAT_EQ(one(0, 0), 0.);
-  ASSERT_FLOAT_EQ(one(1, 0), 1.);
-  ASSERT_FLOAT_EQ(one(2, 0), 3.);
-
-  mathmatrix<float> two(7u, 7u, 0.f);
-  for (size_t i = 0u; i < two.rows(); i++)
-  {
-    for (size_t j = 0u; j < two.cols(); j++)
-      two(i, j) = static_cast<float>(i);
-  }
-
-  two.shed_rows(2, 4);
-  ASSERT_EQ(two.rows(), 4u);
-  ASSERT_FLOAT_EQ(two(0, 0), 0.);
-  ASSERT_FLOAT_EQ(two(1, 0), 1.);
-  ASSERT_FLOAT_EQ(two(2, 0), 5.);
-  ASSERT_FLOAT_EQ(two(3, 1), 6.);
-}
-
-TEST(mathmatrix, shedColsWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 0.f);
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-      one(i, j) = static_cast<float>(j);
-  }
-
-  one.shed_cols(2, 2);
-  ASSERT_EQ(one.cols(), 3u);
-  ASSERT_FLOAT_EQ(one(0, 0), 0.);
-  ASSERT_FLOAT_EQ(one(0, 1), 1.);
-  ASSERT_FLOAT_EQ(one(0, 2), 3.);
-
-  mathmatrix<float> two(7u, 7u, 0.f);
-  for (size_t i = 0u; i < two.rows(); i++)
-  {
-    for (size_t j = 0u; j < two.cols(); j++)
-      two(i, j) = static_cast<float>(j);
-  }
-
-  two.shed_cols(2, 4);
-  ASSERT_EQ(two.cols(), 4u);
-  ASSERT_FLOAT_EQ(two(0, 0), 0.);
-  ASSERT_FLOAT_EQ(two(0, 1), 1.);
-  ASSERT_FLOAT_EQ(two(0, 2), 5.);
-  ASSERT_FLOAT_EQ(two(1, 3), 6.);
-}
-
-TEST(mathmatrix, returnQuadraticWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  mathmatrix<float> two(4u, 1u, 0.f);
-
-  ASSERT_EQ(one.return_quadratic(), true);
-  ASSERT_EQ(two.return_quadratic(), false);
+	scon::mathmatrix<double> B{
+		{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	};
+	ASSERT_ANY_THROW(A + B);
 
 }
 
-TEST(mathmatrix, upperLeftSubmatrixWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 4u, 0.f);
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-      one(i, j) = static_cast<float>(i);
-  }
+TEST(SconMathmatrix, Minus) {
 
-  mathmatrix<float> sub = one.upper_left_submatrix(2);
-  ASSERT_EQ(sub.return_quadratic(), true);
-  ASSERT_FLOAT_EQ(sub(0, 0), 0.);
-  ASSERT_FLOAT_EQ(sub(1, 1), 1.);
-  ASSERT_EQ(sub.rows(), 2u);
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  mathmatrix<float> one1(6u, 6u, 0.f);
-  for (size_t i = 0u; i < one1.rows(); i++)
-  {
-    for (size_t j = 0u; j < one1.cols(); j++)
-      one1(i, j) = static_cast<float>(i);
-  }
+	scon::mathmatrix<double> Aminus1{
+		{ 1.,-2.,-1. },
+	{ -2.,1.,-2. },
+	{ -1.,-2.,1. }
+	};
 
-  mathmatrix<float> sub1 = one1.upper_left_submatrix(2, 3);
-  ASSERT_FLOAT_EQ(sub1(0, 0), 0.);
-  ASSERT_FLOAT_EQ(sub1(1, 1), 1.);
-  ASSERT_EQ(sub1.rows(), 2u);
-  ASSERT_EQ(sub1.cols(), 3u);
+	ASSERT_EQ(Aminus1, A - 1.);
+
+	scon::mathmatrix<double> minusA{
+		{ -2.,1.,0. },
+	{ 1.,-2.,1. },
+	{ 0.,1.,-2. }
+	};
+
+	scon::mathmatrix<double> AminusminusA{
+		{ 4.,-2.,0. },
+	{ -2.,4.,-2. },
+	{ 0.,-2.,4. }
+	};
+
+	ASSERT_EQ(AminusminusA, A - minusA);
+
+	scon::mathmatrix<double> B{
+		{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	};
+	ASSERT_ANY_THROW(A - B);
+
 }
 
-TEST(mathmatrix, matrixMultiplicationThrowsAtSizeMissmatch)
-{
-  mathmatrix<float> one(4u, 3u, 5.f);
+TEST(SconMathmatrix, Mul) {
 
-  mathmatrix<float> two(4u, 5u, 3.f);
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
+	scon::mathmatrix<double> AtimesA{
+		{ 5., -4., 1. },
+	{ -4.,6.,-4. },
+	{ 1.,-4.,5. }
+	};
 
-  ASSERT_ANY_THROW(one*two);
+	ASSERT_EQ(AtimesA, A*A);
+
+	scon::mathmatrix<double> aCol{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,}
+	};
+
+	scon::mathmatrix<double> Aa{
+		std::initializer_list<double>{0.,},
+		std::initializer_list<double>{0.,},
+		std::initializer_list<double>{4.,}
+	};
+
+	ASSERT_EQ(Aa, A*aCol);
+
+	scon::mathmatrix<double> aRow{ { 1.,2.,3. } };
+
+	scon::mathmatrix<double> aA{ { 0.,0.,4. } };
+
+	ASSERT_EQ(aA, aRow*A);
+
+	scon::mathmatrix<double> B{
+		{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	{ 1.,2.,3.,4. },
+	};
+	ASSERT_ANY_THROW(A*B);
 }
 
-TEST(mathmatrix, matrixMultiplicationAndEqualityOperatorWorkingReasonably)
-{
-  mathmatrix<float> one(4u, 4u, 5.f);
-  one(0, 0) = 3;
-  one(0, 2) = 8;
-  one(0, 3) = 15;
-  one(1, 0) = -4;
-  one(1, 1) = 6;
-  one(1, 2) = -3.5;
-  one(1, 3) = 9;
-  one(2, 1) = -5;
-  one(2, 3) = 4;
-  one(3, 0) = 1;
-  one(3, 1) = 2;
-  one(3, 2) = 3;
-  one(3, 3) = 4;
+TEST(SconMathmatrix, Div) {
 
-  mathmatrix<float> two(4u, 3u, 3.f);
-  two(1, 1) = -0.2;
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	};
 
-  mathmatrix<float> three(4u, 3u, 0.f);
-  three(0, 0) = 93;
-  three(0, 1) = 77;
-  three(0, 2) = 93;
-  three(1, 0) = 22.5;
-  three(1, 1) = 3.3;
-  three(1, 2) = 22.5;
-  three(2, 0) = 27;
-  three(2, 1) = 43;
-  three(2, 2) = 27;
-  three(3, 0) = 30;
-  three(3, 1) = 23.6;
-  three(3, 2) = 30;
+	scon::mathmatrix<double> Adiv2{
+		{ 1., -.5, 0. },
+	{ -.5,1.,-.5 },
+	{ 0.,-.5,1. }
+	};
 
-  mathmatrix<float> result = mathmatrix<float>(one * two);
-  for (size_t i = 0u; i < three.rows(); i++)
-  {
-    for (size_t j = 0u; j < three.cols(); j++)
-    {
-      ASSERT_FLOAT_EQ(result(i,j), three(i,j));
-    }
-  }
+	ASSERT_EQ(Adiv2, A / 2.);
 
-
-
-  // OPERATOR==
-  ASSERT_TRUE(result == three);
 }
 
-TEST(mathmatrix, transposeWorksCorrectly)
-{
-  mathmatrix<float> one(4u, 6u, 0.f);
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-      one(i, j) = static_cast<float>(i*j);
-  }
-  mathmatrix<float> two = transposed(one);
-  ASSERT_EQ(two.rows(), one.cols());
-  ASSERT_EQ(two.cols(), one.rows());
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-    {
-      ASSERT_FLOAT_EQ(one(i, j), two(j, i));
-    }
-  }
+TEST(SconMathmatrix, Append) {
+
+	auto resetA = []() {
+		return scon::mathmatrix<double>{
+			{ 7., 8., 9. },
+			{ 12.,13.,14. },
+			{ 17.,18.,19. }
+		};
+	};
+
+	scon::mathmatrix<double> A = resetA(),
+		appendRight{
+		std::initializer_list<double>{10.,},
+		std::initializer_list<double>{15.,},
+		std::initializer_list<double>{20.,}
+	},
+		appendLeft{
+		std::initializer_list<double>{6.,},
+		std::initializer_list<double>{11.,},
+		std::initializer_list<double>{16.,}
+	},
+		appendTop{
+			{ 1.,2.,3.,4.,5. }
+	}, appendBottom{
+		{ 21.,22.,23.,24.,25. }
+	},
+		rightAppended{
+			{ 7.,8.,9., 10. },
+	{ 12.,13.,14.,15. },
+	{ 17.,18.,19.,20. }
+	},
+		leftAppended{
+			{ 6.,7.,8.,9., 10. },
+	{ 11.,12.,13.,14.,15. },
+	{ 16.,17.,18.,19.,20. }
+	},
+		topAppended{
+			{ 1.,2.,3.,4.,5. },
+	{ 6.,7.,8.,9., 10. },
+	{ 11.,12.,13.,14.,15. },
+	{ 16.,17.,18.,19.,20. }
+	},
+		bottomAppended{
+			{ 1.,2.,3.,4.,5. },
+	{ 6.,7.,8.,9., 10. },
+	{ 11.,12.,13.,14.,15. },
+	{ 16.,17.,18.,19.,20. },
+	{ 21.,22.,23.,24.,25. }
+	};
+
+	A.append_right(appendRight);
+
+	ASSERT_EQ(A, rightAppended);
+
+	A.append_left(appendLeft);
+
+	ASSERT_EQ(A, leftAppended);
+
+	A.append_top(appendTop);
+
+	ASSERT_EQ(A, topAppended);
+
+	A.append_bottom(appendBottom);
+
+	ASSERT_EQ(A, bottomAppended);
+
+	A = resetA();
+
+	topAppended = scon::mathmatrix<double>{
+		{ 7.,8.,9. },
+	{ 12.,13.,14. },
+	{ 17.,18.,19. },
+	{ 7.,8.,9. },
+	{ 12.,13.,14. },
+	{ 17.,18.,19. }
+	};
+	bottomAppended = topAppended;
+
+	auto B = A;
+
+	A.append_top(B);
+
+	ASSERT_EQ(A, topAppended);
+
+	A = resetA();
+
+	A.append_bottom(B);
+
+	ASSERT_EQ(A, bottomAppended);
+
+	A = resetA();
+
+	rightAppended = scon::mathmatrix<double>{
+		{ 7.,8.,9.,7.,8.,9. },
+	{ 12.,13.,14.,12.,13.,14. },
+	{ 17.,18.,19.,17.,18.,19. }
+	};
+	leftAppended = rightAppended;
+
+	A.append_right(B);
+
+	ASSERT_EQ(A, rightAppended);
+
+	A = resetA();
+
+	A.append_left(B);
+
+	ASSERT_EQ(A, leftAppended);
 }
 
-TEST(mathmatrix, SVDWorksCorrectly)
-{
-  mathmatrix<double> one(3u, 3u, 0.f);
-  one(0, 0) = 2.;
-  one(1, 0) = 2.;
-  one(2, 0) = 2.;
-  one(1, 0) = -1;
-  one(1, 1) = -7.3;
-  one(1, 2) = -1;
-
-  mathmatrix<double> U, s, V;
-
-  one.singular_value_decomposition(U, s, V);
-
-  mathmatrix<double> sigma(s.rows(), s.rows(), 0.f);
-  for (size_t i = 0u; i < s.rows(); i++)
-    sigma(i, i) = s(i, 0);
-
-  mathmatrix<double> restored = mathmatrix<double>(sigma * transposed(V));
-  restored = mathmatrix<double>(U * restored);
-  //std::cout << one << std::endl << restored << std::endl;
-  //auto SHIT = restored.to_std_vector();
-
-  for (size_t i = 0u; i < one.rows(); i++)
-  {
-    for (size_t j = 0u; j < one.cols(); j++)
-    {
-      ASSERT_NEAR(one(i, j), restored(i, j), 0.00001);
-    }
-  }
+TEST(SconMathmatrix, ErrorIfOutOfBound) {
+	scon::mathmatrix<double> A(std::size_t(3), std::size_t(3), 1.);
+	ASSERT_ANY_THROW(A(5, 5));
 }
 
-#endif
+TEST(SconMathmatrix, ErrorIfAppendFails) {
+	scon::mathmatrix<double> A(std::size_t(3), std::size_t(3), 1.),
+		B(std::size_t(2), std::size_t(2), 1.);
+	ASSERT_ANY_THROW(A.append_bottom(B));
+	ASSERT_ANY_THROW(A.append_top(B));
+	ASSERT_ANY_THROW(A.append_left(B));
+	ASSERT_ANY_THROW(A.append_right(B));
+}
+
+TEST(SconMathmatrix, ShedErrorIfOutOfBound)
+{
+	scon::mathmatrix<double> A(std::size_t(4u), std::size_t(4u), 5.);
+	ASSERT_ANY_THROW(A.shed_rows(7, 7));
+	ASSERT_ANY_THROW(A.shed_rows(-1, -1));
+	ASSERT_ANY_THROW(A.shed_rows(3, 5));
+	ASSERT_ANY_THROW(A.shed_cols(7, 7));
+	ASSERT_ANY_THROW(A.shed_cols(-1, 1));
+	ASSERT_ANY_THROW(A.shed_cols(2, 5));
+}
+
+TEST(SconMathmatrix, Shed)
+{
+	auto resetA = []() {
+		return scon::mathmatrix<double>{
+			{1., 2., 3., 4.},
+			{ 5.,6.,7.,8. },
+			{ 9.,10.,11.,12 },
+			{ 13.,14.,15.,16. }
+		};
+	};
+
+	scon::mathmatrix<double> A = resetA(),
+		B{
+			{ 1.,2.,3.,4. },
+	{ 13.,14.,15.,16. }
+	};
+
+	A.shed_rows(1, 2);
+
+	ASSERT_EQ(A.rows(), 2u);
+	ASSERT_EQ(A, B);
+
+	A = resetA();
+
+	B = scon::mathmatrix<double>{
+		{ 1.,4. },
+	{ 5.,8. },
+	{ 9.,12. },
+	{ 13.,16. },
+	};
+
+	A.shed_cols(1, 2);
+
+	ASSERT_EQ(A.cols(), 2u);
+	ASSERT_EQ(A, B);
+
+	A = resetA();
+
+	A.shed_cols(2);
+
+	B = scon::mathmatrix<double>{
+		{ 1., 2., 4. },
+	{ 5.,6.,8. },
+	{ 9.,10.,12 },
+	{ 13.,14.,16. }
+	};
+
+	ASSERT_EQ(A.cols(), 3u);
+	ASSERT_EQ(A, B);
+
+	A = resetA();
+
+	A.shed_rows(2);
+
+	B = scon::mathmatrix<double>{
+		{ 1., 2., 3., 4. },
+	{ 5.,6.,7.,8. },
+	{ 13.,14.,15.,16. }
+	};
+
+	ASSERT_EQ(A.rows(), 3u);
+	ASSERT_EQ(A, B);
+
+}
+
+TEST(SconMathmatrix, ReturnQuadratic)
+{
+	scon::mathmatrix<double> A(std::size_t(4), std::size_t(4), 5.);
+	scon::mathmatrix<double> B(std::size_t(4), std::size_t(1), 0.);
+
+	ASSERT_EQ(A.return_quadratic(), true);
+	ASSERT_EQ(B.return_quadratic(), false);
+
+}
+
+TEST(SconMathmatrix, Transpose) {
+	scon::mathmatrix<double> A{
+		{ 1.,1.,1. },
+	{ 2.,2.,2. },
+	{ 3.,3.,3. }
+	},
+		B{
+			{ 1.,2.,3. },
+	{ 1.,2.,3. },
+	{ 1.,2.,3. }
+	}, a{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+	}, b{
+		{ 1.,2.,3. }
+	};
+
+	auto C = A.t();
+	ASSERT_EQ(C, B);
+
+	auto c = a.t();
+	ASSERT_EQ(c, b);
+}
+
+TEST(SconMathmatrix, UpperLeftSubmatrix)
+{
+	scon::mathmatrix<double> A{
+		{ 1.,1.,1.,1. },
+	{ 2.,2.,2.,2. },
+	{ 3.,3.,3.,3. },
+	{ 4.,4.,4.,4. }
+	}, testA{
+		{ 1.,1. },
+	{ 2.,2. }
+	};
+
+	scon::mathmatrix<double> subA = A.upper_left_submatrix(2);
+
+	ASSERT_EQ(subA.return_quadratic(), true);
+	ASSERT_EQ(subA, testA);
+	ASSERT_EQ(subA.rows(), 2u);
+
+	scon::mathmatrix<double> B{
+		{ 1.,1.,1.,1.,1.,1. },
+	{ 2.,2.,2.,2.,2.,2. },
+	{ 3.,3.,3.,3.,3.,3. },
+	{ 4.,4.,4.,4.,4.,4. },
+	{ 5.,5.,5.,5.,5.,5. },
+	{ 6.,6.,6.,6.,6.,6. },
+	}, testB{
+		{ 1.,1.,1.,1. },
+	{ 2.,2.,2.,2. },
+	{ 3.,3.,3.,3. }
+	};
+
+	scon::mathmatrix<double> subB = B.upper_left_submatrix(3, 4);
+
+	ASSERT_EQ(subB, testB);
+	ASSERT_EQ(subB.rows(), 3u);
+	ASSERT_EQ(subB.cols(), 4u);
+}
+
+TEST(SconMathmatrix, SVD) {
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	}, Stest{
+		std::initializer_list<double>{3.41421,},
+		std::initializer_list<double>{2.00000,},
+		std::initializer_list<double>{0.58579,}
+	},
+		I = scon::mathmatrix<double>::identity(3, 3),
+		U, s, V;
+
+
+
+	std::tie(U, s, V) = A.svd();
+
+	ASSERT_EQ(s, Stest);
+	ASSERT_EQ(A, U*s.diagmat()*V.t());
+	ASSERT_EQ(I, V.t()*V);
+	ASSERT_EQ(I, U.t()*U);
+
+	A.singular_value_decomposition(U, s, V);
+
+	ASSERT_EQ(s, Stest);
+	ASSERT_EQ(A, U*s.diagmat()*V.t());
+	ASSERT_EQ(I, V.t()*V);
+	ASSERT_EQ(I, U.t()*U);
+
+}
+
+TEST(SconMathmatrix, Eigensym) {
+	scon::mathmatrix<double> A{
+		{ 2.,-1.,0. },
+	{ -1.,2.,-1. },
+	{ 0.,-1.,2. }
+	}, lambdaTest{
+		std::initializer_list<double>{0.58579,},
+		std::initializer_list<double>{2.00000,},
+		std::initializer_list<double>{3.41421,}
+	},
+		I = scon::mathmatrix<double>::identity(3, 3),
+		EVal, EVec;
+
+
+
+	std::tie(EVal, EVec) = A.eigensym();
+
+	auto B = EVec.t()*A*EVec;
+
+	ASSERT_EQ(lambdaTest, EVal);
+	ASSERT_EQ(EVal.diagmat(), B);
+	ASSERT_EQ(I, EVec.t()*EVec);
+
+	B = lambdaTest.diagmat();
+
+	A.diag();
+
+	ASSERT_EQ(A, B);
+
+}
+
+class TestRowsAndCols {
+private:
+  static const scon::mathmatrix<double> A;
+  FRIEND_TEST(SconMathmatrix, RowCol);
+  FRIEND_TEST(SconMathmatrix, DoesColWork);
+  FRIEND_TEST(SconMathmatrix, DoesRowWork);
+  FRIEND_TEST(SconMathmatrix, DoesColThrow);
+  FRIEND_TEST(SconMathmatrix, DoesRowThrow);
+};
+
+const scon::mathmatrix<double> TestRowsAndCols::A{
+  { 1.,2.,3. },
+{ 4.,5.,6. },
+{ 7.,8.,9. }
+};
+
+
+TEST(SconMathmatrix, DoesColWork) {
+  scon::mathmatrix<double> ac{
+    std::initializer_list<double>{1.,},
+    std::initializer_list<double>{4.,},
+    std::initializer_list<double>{7.,}
+  };
+  ASSERT_EQ(TestRowsAndCols::A.col(0), ac);
+}
+
+TEST(SconMathmatrix, DoesRowWork) {
+  scon::mathmatrix<double> ar{
+    { 1.,2.,3. }
+  };
+  ASSERT_EQ(TestRowsAndCols::A.row(0), ar);
+}
+
+TEST(SconMathmatrix, DoesColThrow) {
+  ASSERT_ANY_THROW(TestRowsAndCols::A.col(5));
+}
+
+TEST(SconMathmatrix, DoesRowThrow) {
+  ASSERT_ANY_THROW(TestRowsAndCols::A.row(5));
+}
+
+TEST(SconMathmatrix, ColFromVec) {
+	std::vector<double> Avec{ 1.,2.,3.,4.,5.,6.,7.,8.,9. };
+
+	scon::mathmatrix<double> A = scon::mathmatrix<double>::col_from_vec(Avec);
+
+	scon::mathmatrix<double> sorted{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+		std::initializer_list<double>{4.,},
+		std::initializer_list<double>{5.,},
+		std::initializer_list<double>{6.,},
+		std::initializer_list<double>{7.,},
+		std::initializer_list<double>{8.,},
+		std::initializer_list<double>{9.,}
+	};
+
+
+	ASSERT_EQ(A, sorted);
+}
+
+TEST(SconMathmatrix, ToStdVec) {
+	std::vector<double> Avec{ 1.,2.,3.,4.,5.,6.,7.,8.,9. };
+	scon::mathmatrix<double> A{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+		std::initializer_list<double>{4.,},
+		std::initializer_list<double>{5.,},
+		std::initializer_list<double>{6.,},
+		std::initializer_list<double>{7.,},
+		std::initializer_list<double>{8.,},
+		std::initializer_list<double>{9.,}
+	};
+
+	auto vec = A.col_to_std_vector();
+
+	EXPECT_EQ(vec, Avec);
+
+	A = scon::mathmatrix<double>{
+		{ 1., 2., 3., 4., 5., 6., 7., 8., 9. }
+	};
+
+	auto row = A.row_to_std_vector();
+
+	EXPECT_EQ(row, Avec);
+
+	A = scon::mathmatrix<double>{
+		{ 1.,2.,3., },
+	{ 4.,5.,6., },
+	{ 7.,8.,9., },
+	};
+
+	vec = A.col_to_std_vector(2);
+	row = A.row_to_std_vector(2);
+
+	Avec = std::vector<double>{ 3., 6., 9. };
+	EXPECT_EQ(Avec, vec);
+
+	Avec = std::vector<double>{ 7., 8., 9. };
+	EXPECT_EQ(Avec, row);
+
+	std::vector<std::vector<double>> Avecvec{
+		{ 1.,2.,3., },
+	{ 4.,5.,6., },
+	{ 7.,8.,9., },
+	};
+
+	auto vecvec = A.to_std_vector();
+
+	EXPECT_EQ(vecvec, Avecvec);
+}
+
+TEST(SconMathmatrix, SortCol) {
+	std::vector<double> Avec{ 1.,2.,3.,4.,5.,6.,7.,8.,9. };
+
+	std::shuffle(Avec.begin(), Avec.end(), std::mt19937(std::random_device()()));
+
+	scon::mathmatrix<double> A = scon::mathmatrix<double>::col_from_vec(Avec), sorted{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+		std::initializer_list<double>{4.,},
+		std::initializer_list<double>{5.,},
+		std::initializer_list<double>{6.,},
+		std::initializer_list<double>{7.,},
+		std::initializer_list<double>{8.,},
+		std::initializer_list<double>{9.,}
+	};
+
+	std::vector<double> asc_vec{ 1.,2.,3.,4.,5.,6.,7.,8.,9. };
+	auto sorted_vec = A.sort_col_to_vec([](auto const & a, auto const & b) {
+		return a < b;
+	});
+	EXPECT_EQ(sorted_vec, asc_vec);
+	EXPECT_PRED2(is_eq, A.sort_col([](auto const & a, auto const & b) {
+		return a < b;
+	}), sorted);
+	EXPECT_PRED2(is_eq, A.sort_col_asc(), sorted);
+
+	sorted = scon::mathmatrix<double>{
+		std::initializer_list<double>{9.,},
+		std::initializer_list<double>{8.,},
+		std::initializer_list<double>{7.,},
+		std::initializer_list<double>{6.,},
+		std::initializer_list<double>{5.,},
+		std::initializer_list<double>{4.,},
+		std::initializer_list<double>{3.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{1.,}
+	};
+
+	EXPECT_PRED2(is_eq, A.sort_col_disc(), sorted);
+}
+
+TEST(SconMathmatrix, SortIndex) {
+	std::vector<std::size_t> Avec_sorted(9);
+	std::iota(Avec_sorted.begin(), Avec_sorted.end(), 0);
+
+	std::vector<std::size_t> Avec = Avec_sorted;
+
+	std::shuffle(Avec.begin(), Avec.end(), std::mt19937(std::random_device()()));
+
+	std::vector<std::size_t> Avec_indices = Avec_sorted;
+
+	std::sort(Avec_indices.begin(), Avec_indices.end(), [&](auto const & a, auto const & b) {
+		return Avec.at(a) < Avec.at(b);
+	});
+
+	scon::mathmatrix<double> A{
+		std::initializer_list<double>{static_cast<double>(Avec.at(0)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(1)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(2)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(3)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(4)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(5)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(6)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(7)),},
+		std::initializer_list<double>{static_cast<double>(Avec.at(8)),}
+	};
+
+	auto idx = A.sort_idx();
+	EXPECT_EQ(idx.size(), Avec_indices.size());
+	EXPECT_EQ(idx, Avec_indices);
+}
+
+TEST(SconMathmatrix, FindIdx) {
+	scon::mathmatrix<double> A{
+		std::initializer_list<double>{.5,},
+		std::initializer_list<double>{3.,},
+		std::initializer_list<double>{.2,},
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{11.,},
+		std::initializer_list<double>{.25,},
+		std::initializer_list<double>{27.,},
+		std::initializer_list<double>{-9.,},
+		std::initializer_list<double>{0.,}
+	};
+
+	std::vector<std::size_t> foundTest{ 0,2,5,7,8, };
+
+	auto found = A.find_idx([](auto const & a) {
+		return a < 1.;
+	});
+
+	EXPECT_EQ(found, foundTest);
+}
+
+TEST(SconMathmatrix, SubmatTest) {
+	scon::mathmatrix<double> A{
+		{ 1.,  2.,  3.,  4.,  5., },
+	{ 6.,  7.,  8.,  9., 10., },
+	{ 11., 12., 13., 14., 15., },
+	{ 16., 17., 18., 19., 20., },
+	{ 21., 22., 23., 24., 25., },
+	}, subVec{
+		{ 1.,  2.,  4., },
+	{ 11., 12., 14., },
+	{ 16., 17., 19., },
+	}, subInd{
+		{ 7.,  8.,  9., },
+	{ 12., 13., 14., },
+	{ 17., 18., 19., },
+	};
+
+	std::vector<std::size_t> cols{ 0,1,3 }, rows{ 0,2,3 };
+
+	auto TestVec = A.submat(rows, cols);
+
+	EXPECT_EQ(TestVec, subVec);
+
+	TestVec = A.submat(1, 1, 3, 3);
+
+	EXPECT_EQ(TestVec, subInd);
+
+	TestVec = A.submat(0, 0, 2, 2);
+
+	subInd = scon::mathmatrix<double>{
+		{ 1.,  2.,  3., },
+	{ 6.,  7.,  8., },
+	{ 11., 12., 13., },
+	};
+
+	EXPECT_EQ(TestVec, subInd);
+
+	TestVec = A.submat(0, 1, 2, 3);
+
+	subInd = scon::mathmatrix<double>{
+		{ 2.,  3.,  4., },
+	{ 7.,  8.,  9., },
+	{ 12., 13., 14., },
+	};
+
+	EXPECT_EQ(TestVec, subInd);
+
+	TestVec = A.submat(1, 0, 3, 2);
+
+	subInd = scon::mathmatrix<double>{
+		{ 6.,  7.,  8., },
+	{ 11., 12., 13., },
+	{ 16., 17., 18., },
+	};
+
+	EXPECT_EQ(TestVec, subInd);
+
+}
+
+TEST(SconMathmatrix, PseudoInverse) {
+
+	scon::mathmatrix<double> A{
+		{ 1.,  2.,  3., },
+	{ 4.,  5.,  6., },
+	{ 7.,  8.,  9., },
+	},
+	//result from octave
+	pinv{
+		{ -6.3889e-001, -1.6667e-001,  3.0556e-001 },
+	{ -5.5556e-002,  3.6675e-017,  5.5556e-002 },
+	{ 5.2778e-001,  1.6667e-001, -1.9444e-001 }
+	};
+
+	auto B = A.pinv();
+
+	EXPECT_EQ(A, A*B*A);
+	EXPECT_EQ(B, B*A*B);
+	EXPECT_EQ(B, pinv);
+
+}
+
+//TEST(SconMathmatrix, Vectorise) {
+//
+//	scon::mathmatrix<double> A{
+//		{ 1.,  2.,  3., },
+//	{ 4.,  5.,  6., },
+//	{ 7.,  8.,  9., },
+//	}, vec_test{
+//		std::initializer_list<double>{1.,},
+//		std::initializer_list<double>{2.,},
+//		std::initializer_list<double>{3.,},
+//		std::initializer_list<double>{4.,},
+//		std::initializer_list<double>{5.,},
+//		std::initializer_list<double>{6.,},
+//		std::initializer_list<double>{7.,},
+//		std::initializer_list<double>{8.,},
+//		std::initializer_list<double>{9.,}
+//	};
+//
+//	auto vec = A.vectorise();
+//
+//	EXPECT_EQ(vec, vec_test);
+//}
+
+TEST(SconMathmatrix, ReplaceItemsWithIndex) {
+	scon::mathmatrix<double> A{
+		{ 1.,  2.,  3., },
+	{ 4.,  5.,  6., },
+	{ 7.,  8.,  9., },
+	};
+	scon::mathmatrix<double> replaced{
+		{ 1.,  2.,  3., },
+	{ 4.,  0.,  0., },
+	{ 0.,  8.,  9., },
+	};
+
+	std::vector<std::size_t> indices{ 2, 4, 7 };
+
+	A.replace_idx_with(indices, 0.0);
+
+	EXPECT_EQ(A, replaced);
+
+	A = scon::mathmatrix<double>{
+		{ 1., 2., 3., 4., 5., 6., 7., 8., 9., },
+	};
+	replaced = scon::mathmatrix<double>{
+		{ 1., 2., 0., 4., 0., 6., 7., 0., 9., },
+	};
+
+	A.replace_idx_with(indices, 0.0);
+
+	EXPECT_EQ(A, replaced);
+
+}
+
+TEST(SconMathmatrix, Elem) {
+	scon::mathmatrix<double> A{
+		{ 1.,  2.,  3., },
+	{ 4.,  5.,  6., },
+	{ 7.,  8.,  9., },
+	};
+
+	std::vector<std::size_t> indices{ 2, 4, 7 };
+
+	std::vector<double> elements_ind{
+		A(indices.at(0) % A.rows(), indices.at(0) / A.rows()),
+		A(indices.at(1) % A.rows(), indices.at(1) / A.rows()),
+		A(indices.at(2) % A.rows(), indices.at(2) / A.rows()),
+	}, elements_container;
+
+	elements_container.reserve(indices.size());
+	auto elements = A.elem(indices);
+
+	for (auto const & el : elements) {
+		elements_container.emplace_back(el.get());
+	}
+
+	EXPECT_EQ(elements_container, elements_ind);
+
+	scon::mathmatrix<double> B{
+		{ 1.,  2.,  3., },
+	{ 4.,  6.,  7., },
+	{ 8.,  8.,  9., },
+	};
+
+	for (auto & el : elements) {
+		el.get() += 1.0;
+	}
+
+	EXPECT_EQ(A, B);
+}
+
+TEST(SconMathmatrix, DiagMat) {
+	scon::mathmatrix<double> diag_elms{
+		std::initializer_list<double>{1.,},
+		std::initializer_list<double>{2.,},
+		std::initializer_list<double>{3.,},
+	}, diagmat{
+		{ 1., 0., 0., },
+	{ 0., 2., 0., },
+	{ 0., 0., 3., },
+	}, A{
+		{ 1., 1., 1., },
+	{ 1., 2., 1., },
+	{ 1., 1., 3., },
+	};
+
+	EXPECT_EQ(diagmat, diag_elms.diagmat());
+	EXPECT_EQ(diagmat, A.diagmat());
+
+}
