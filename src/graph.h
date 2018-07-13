@@ -91,8 +91,9 @@ public:
       Graph_type::vertex_descriptor v = add_vertex(graph);
       // A bundled property is accessed via subscript and the relevant vertex
       // descriptor.
-      graph[v].atom_serial = (*it).atom_serial;
-      graph[v].atom_name = (*it).atom_name;
+      // !! !! !! !! following two lines are commented, because xyz Line has non of both elements !! !! !! 
+      /*graph[v].atom_serial = (*it).atom_serial;
+      graph[v].atom_name = (*it).atom_name;*/
       graph[v].element = (*it).element;
       graph[v].cp = (*it).cp;
       vertex_map.emplace(index, v);

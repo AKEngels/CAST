@@ -283,6 +283,7 @@ int main(int argc, char **argv)
     case config::tasks::DEVTEST:
     {
       // DEVTEST: Room for Development testingscon::dynamic_unique_cast<coords::input::formats::pdb>(std::move(ci))
+      //!! definition from DL_Coordinates changed from pdb to xyz !!
 
       coords::DL_Coordinates ic_coords(coords, scon::dynamic_unique_cast<coords::input::formats::xyz>(std::move(ci)));
 

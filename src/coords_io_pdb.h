@@ -2,6 +2,7 @@
 #define COORDS_IO_PDB_H
 
 #include<vector>
+#include<set>
 
 #include "coords_io.h"
 #include "graph.h"
@@ -11,13 +12,15 @@
 namespace coords {
   namespace input {
     namespace formats {
-      using coords::float_type;
+        using coords::float_type;
+        struct pdb : public format{
+      
 
 
+        public:
+      struct helper {
 
-      namespace pdb_helper {
-
-        inline coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
+        static coords::Representation_3D ang_from_bohr(coords::Representation_3D const& rep3D){
           coords::Representation_3D result;
           for(auto const& a: rep3D){
             result.emplace_back(a*energy::bohr2ang);
@@ -43,16 +46,19 @@ namespace coords {
           C,
           N
         };
-        constexpr std::array<char const*, 26> RESIDUE_NAMES{ "ALA", "ARG", "ASN", "ASP", "CYS", "GLN",
-          "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
-          "CYX", "CYM", "CYP", "HID", "HIE", "HIP" };
+        inline static std::set<std::string> const& residueNames(){
+            static const std::set<std::string> ret { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN",
+                "GLU", "GLY", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
+                "CYX", "CYM", "CYP", "HID", "HIE", "HIP" };
+          return ret;
+        }
         /*!
         \brief Helper function in order to retrieve information about the value of the
         Record type.
         \param v Record object.
         \return String representation of the value of the Record object.
         */
-        inline std::string Record_string(Record v) {
+        static std::string Record_string(Record v) {
           switch (v) {
           case Record::ATOM:
             return "ATOM";
@@ -77,25 +83,25 @@ namespace coords {
         /**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
         @param atom_name: atom name from pdb file
         @param res_name: residue name from pdb file*/
-        inline int find_at_sidechain(std::string const& atom_name, std::string const& res_name);
+        static inline int find_at_sidechain(std::string const& atom_name, std::string const& res_name);
         /**function that assigns atom types (oplsaa) to atoms of protein backbone
         (they are not suitable for force field calucations)
         @param atom_name: atom name from pdb file
         @param res_name: residue name from pdb file
         @param terminal: is residue N-terminal, C-terminal or not?*/
-        inline int find_energy_type(std::string atom_name, std::string res_name, terminals terminal);
+        static inline int find_energy_type(std::string atom_name, std::string res_name, terminals terminal);
         /**finds element symbol and energy type
         @param atom_name: atom name from pdb file
         @param res_name: residue name from pdb file
         returns element symbol*/
-        inline std::string find_element_symbol(std::string atom_name, std::string res_name);
+        static inline std::string find_element_symbol(std::string atom_name, std::string res_name);
         /*!
         \brief Overloaded output operator for the Record enumeration type.
         \param os Output stream.
         \param c Record object.
         \return String representation for the Record object piped to standard output.
         */
-        inline std::ostream& operator<<(std::ostream& os, Record c) {
+        friend std::ostream& operator<<(std::ostream& os, Record c) {
           return os << Record_string(c);
         }
 
@@ -133,27 +139,18 @@ namespace coords {
 
         private:
           template <typename _Line, typename _T>
-          friend std::ostream& operator<<(std::ostream& os, const Atom<_Line, _T>& atom);
+          friend std::ostream& operator<<(std::ostream& os, Atom<_Line, _T> const& atom){
+            return os << std::setw(7) << atom.rec_name << ", " << std::setw(5)
+              << atom.atom_serial << ", " << std::setw(4) << atom.atom_name
+              << ", " << std::setw(9) << atom.alt_loc << ", " << std::setw(3)
+              << atom.res_name << ", " << std::setw(1) << atom.chain_id << ", "
+              << std::setw(4) << atom.res_seq << ", " << std::setw(8)
+              << atom.insertion_code << ", " << std::setw(8) << atom.cp << ", "
+              << std::setw(2) << atom.element;
+}
         };
 
-        /*!
-        \brief Overloaded output operator for an individual Atom object.
-        \tparam Line Helper type representing an arbitrary line of the Pdb file.
-        \tparam T Type intended to hold the coordinate data.
-        \param os Output stream.
-        \param atom Atom object.
-        \return String representation of the Atom object piped to the standard output.
-        */
-        template <typename Line, typename T>
-        std::ostream& operator<<(std::ostream& os, const Atom<Line, T>& atom) {
-          return os << std::setw(7) << atom.rec_name << ", " << std::setw(5)
-            << atom.atom_serial << ", " << std::setw(4) << atom.atom_name
-            << ", " << std::setw(9) << atom.alt_loc << ", " << std::setw(3)
-            << atom.res_name << ", " << std::setw(1) << atom.chain_id << ", "
-            << std::setw(4) << atom.res_seq << ", " << std::setw(8)
-            << atom.insertion_code << ", " << std::setw(8) << atom.cp << ", "
-            << std::setw(2) << atom.element;
-        }
+        
 
         /*!
         \brief Collection of helper functions for parsing the Pdb lines. For ease of
@@ -606,22 +603,45 @@ namespace coords {
           possible values: no (not terminal), C (C terminal), N (N terminal)*/
           std::string terminal;
         };
-        inline void make_bonds(Atoms&, std::vector<std::pair<int, int>> const&);
-        inline std::vector<terminals> get_terminals(Atoms const&, std::vector<std::vector<std::size_t>> const &);
-        inline void set_energy_type(Atoms&, std::vector<std::vector<std::size_t>> const&);
-      }
-      class pdb : public format {
-
-      public:
-        inline Coordinates read(std::string const&) override;
-        std::shared_ptr<coords::input::formats::pdb_helper::Parser<float_type>> parser;
+        static inline void make_bonds(Atoms&, std::vector<std::pair<int, int>> const&);
+        static inline std::vector<terminals> get_terminals(Atoms const&, std::vector<std::vector<std::size_t>> const &);
+        static inline void set_energy_type(Atoms&, std::vector<std::vector<std::size_t>> const&);
       };
-    }
+      
+    
+    
+
+    public:
+      inline Coordinates read(std::string const&) override;
+      std::shared_ptr<coords::input::formats::pdb::helper::Parser<float_type>> parser;
+    };
+    
+    
+    
   }
 }
+}
 
-std::vector<coords::input::formats::pdb_helper::terminals>
-coords::input::formats::pdb_helper::get_terminals(Atoms const& atoms, std::vector<std::vector<std::size_t>> const& indices) {
+/*!
+\brief Overloaded output operator for an individual Atom object.
+\tparam Line Helper type representing an arbitrary line of the Pdb file.
+\tparam T Type intended to hold the coordinate data.
+\param os Output stream.
+\param atom Atom object.
+\return String representation of the Atom object piped to the standard output.
+
+template <typename Line, typename T>
+std::ostream& coords::input::formats::pdb::helper::Atom<Line, T>::operator<<(std::ostream& os, const Atom<Line, T>& atom) {
+  return os << std::setw(7) << atom.rec_name << ", " << std::setw(5)
+    << atom.atom_serial << ", " << std::setw(4) << atom.atom_name
+    << ", " << std::setw(9) << atom.alt_loc << ", " << std::setw(3)
+    << atom.res_name << ", " << std::setw(1) << atom.chain_id << ", "
+    << std::setw(4) << atom.res_seq << ", " << std::setw(8)
+    << atom.insertion_code << ", " << std::setw(8) << atom.cp << ", "
+    << std::setw(2) << atom.element;
+}*/
+std::vector<coords::input::formats::pdb::helper::terminals>
+coords::input::formats::pdb::helper::get_terminals(Atoms const& atoms, std::vector<std::vector<std::size_t>> const& indices) {
   std::vector<terminals> result;
   for (auto const& res_ind : indices) {
     terminals tmp = terminals::none;
@@ -635,7 +655,7 @@ coords::input::formats::pdb_helper::get_terminals(Atoms const& atoms, std::vecto
   return result;
 }
 
-void coords::input::formats::pdb_helper::make_bonds(coords::Atoms & atoms, std::vector<std::pair<int, int>> const& bonds) {
+void coords::input::formats::pdb::helper::make_bonds(coords::Atoms & atoms, std::vector<std::pair<int, int>> const& bonds) {
   for (auto const& bond : bonds) {
     auto is_ion = [](std::string const & s) {
       return s.substr(s.size() - 1, 1) == "+" || s.substr(s.size() - 1, 1) == "-";
@@ -650,7 +670,7 @@ void coords::input::formats::pdb_helper::make_bonds(coords::Atoms & atoms, std::
   }
 }
 
-void coords::input::formats::pdb_helper::set_energy_type(coords::Atoms& atoms, std::vector<std::vector<std::size_t>> const& indices) {
+void coords::input::formats::pdb::helper::set_energy_type(coords::Atoms& atoms, std::vector<std::vector<std::size_t>> const& indices) {
   auto terminals = get_terminals(atoms, indices);
   for (auto i = 0u; i < indices.size(); ++i) {
     auto const& res_ind = indices[i];
@@ -691,14 +711,14 @@ coords::Coordinates coords::input::formats::pdb::read(std::string const& file_na
                              "because wrong atom types are assigned!\n");
   }
 
-  parser = std::make_shared<coords::input::formats::pdb_helper::Parser<float_type>>(file_name);
+  parser = std::make_shared<coords::input::formats::pdb::helper::Parser<float_type>>(file_name);
 
   auto atoms = parser->create_cooord_atoms();
   auto rep3D = parser->create_rep_3D();
   input_ensemble.emplace_back(rep3D);
 
-  pdb_helper::make_bonds(atoms, ic_util::bonds(parser->create_element_vec(), rep3D));
-  pdb_helper::set_energy_type(atoms, parser->create_resids_indices());
+  coords::input::formats::pdb::helper::make_bonds(atoms, ic_util::bonds(parser->create_element_vec(), rep3D));
+  coords::input::formats::pdb::helper::set_energy_type(atoms, parser->create_resids_indices());
 
   Coordinates result;
   PES_Point pes(input_ensemble.at(0u));
@@ -713,7 +733,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string const& file_na
   return result;
 }
 
-int coords::input::formats::pdb_helper::find_at_sidechain(std::string const& atom_name, std::string const& res_name)
+int coords::input::formats::pdb::helper::find_at_sidechain(std::string const& atom_name, std::string const& res_name)
 {
   if (res_name == "ALA")
   {
@@ -1033,9 +1053,16 @@ int coords::input::formats::pdb_helper::find_at_sidechain(std::string const& ato
   }
 }
 
-int coords::input::formats::pdb_helper::find_energy_type(std::string atom_name, std::string res_name, terminals terminal)
+namespace{
+    bool elementExistsInResidueNames(std::string name){
+        auto const& residues = coords::input::formats::pdb::helper::residueNames();
+        return residues.find(name) != residues.end();
+    }
+}
+
+int coords::input::formats::pdb::helper::find_energy_type(std::string atom_name, std::string res_name, terminals terminal)
 {
-  if (is_in(res_name, RESIDUE_NAMES))  // protein
+  if (elementExistsInResidueNames(res_name))  // protein
   {
     if (terminal == terminals::none)
     {
@@ -1109,9 +1136,9 @@ int coords::input::formats::pdb_helper::find_energy_type(std::string atom_name, 
   }
 }
 
-std::string coords::input::formats::pdb_helper::find_element_symbol(std::string atom_name, std::string res_name){
+std::string coords::input::formats::pdb::helper::find_element_symbol(std::string atom_name, std::string res_name){
   std::string element;
-  if (is_in(res_name, RESIDUE_NAMES))  // protein
+  if (elementExistsInResidueNames(res_name))  // protein
   {
     element = atom_name.substr(0, 1);
   }

@@ -232,20 +232,21 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
     }
     auto acosq0 = std::acos(q0);
     auto q0_sq = 1. - q0 * q0;
-    return std::make_pair(2.*acosq0 / std::sqrt(q0_sq), 2.*q0*acosq0 / std::pow(q0_sq, 1.5)/*-2./acosq0 <-So at least in their paper (Lee Ping)*/);
+    return std::make_pair(2.*acosq0 / std::sqrt(q0_sq), 2.*q0*acosq0 / std::pow(q0_sq, 1.5) - 2./q0_sq /*<-So at least in their paper (Lee Ping)*/);
   };
 
   auto q_val = quaternion(old_xyz, new_xyz);
   auto q = q_val.second;
   auto q0 = std::get<0>(q.q_);
-
+  //std::cout << q << "    " << q0 << "\n\n";
   T p{ 0.0 }, d{ 0.0 };
   std::tie(p, d) = fac_and_dfac(q0);
-
+  //std::cout << p << " " << d << "\n\n";
   auto dv_mat = Mat({ { d * q.q_.at(1), d * q.q_.at(2), d * q.q_.at(3) },
                  { p, 0, 0 },
                  { 0, p, 0 },
                  { 0, 0, p } });
+  //std::cout << "dv_mat:\n" << dv_mat << "\n\n";
   auto dq_mat = quaternion_derivs(old_xyz, new_xyz);
   std::vector<Mat> result;
   for (auto i{ 0u }; i < old_xyz.size(); ++i) {

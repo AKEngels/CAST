@@ -11,6 +11,7 @@
 #include "scon_vect.h"
 
 #include "scon_mathmatrix.h"
+#include "coords_io_XYZ.h"
 #include "coords_io_pdb.h"
 #include <array>
 #include <iostream>
@@ -18,7 +19,6 @@
 #include <vector>
 
 void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
-
   // test of my code
   // create a Parser object from the input file
   /*Pdb::Parser<coords::float_type> pAlaGly("ethanol.pdb");
@@ -27,19 +27,29 @@ void ic_testing::ic_execution(coords::DL_Coordinates & coords) {
 
   auto cp_vec = p.create_rep_3D_bohr();
 
-  // create residue vector from Parser atom vector
-  auto residue_vec = p.create_resids_rep_3D_bohr();
-
-  // create residue index vector from Parser atom vector
-  auto index_vec = p.create_resids_indices();
-
-  auto el_vec = p.create_element_vec();
-
-  // create vector of bonds
-  auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb_helper::ang_from_bohr(cp_vec));
+    // create vector of bonds
+  //changed coords::input::formats::pdb::helper::ang_from_bohr to
+  // coords::input::formats::xyz::helper::ang_from_bohr
+  auto bonds = ic_util::bonds(p.create_element_vec(),
+      coords::input::formats::xyz::helper::ang_from_bohr(cp_vec));
 
   // create graph from bonds vector and atom vector
   ic_util::Graph<decltype(p.atom_vec)::value_type> graph(bonds, p.atom_vec);
+
+   // create residue index vector from Parser atom vector for pdb
+  //create residue index vector from graph for xyz
+  auto index_vec = p.create_resids_indices(graph.g);
+
+  
+  // create residue vector from Parser atom vector for pdb .._bohr()
+  //create residue vector from graph for xyz .._bohr(residues_indices_vector)
+  auto residue_vec = p.create_resids_rep_3D_bohr(index_vec);
+
+ 
+
+  auto el_vec = p.create_element_vec();
+
+
 
   // output graphviz file from graph
   graph.visualize_graph("Graphviz");
