@@ -123,7 +123,7 @@ void energy::interfaces::psi4::sysCallInterface::write_energy_input(std::ostream
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges
 	{
 		os << "E, wfn = energy ('" << method << "', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'title='" << method << "')\n";
+		os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
 	}
 	else os << "energy ('" << method << "')";
 }
