@@ -231,9 +231,9 @@ struct trans_z : trans {
   std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct rotation {
+struct Rotation {
   template<typename Rep3D, typename IndexVec>
-  rotation(Rep3D&& reference, IndexVec&& index_vec):
+  Rotation(Rep3D&& reference, IndexVec&& index_vec):
     reference_{ std::forward<Rep3D>(reference) }, indices_{ std::forward<IndexVec>(index_vec) },
     rad_gyr_{ radius_gyration(reference_) }{}
 
@@ -250,7 +250,7 @@ struct rotation {
   //static coords::Representation_3D xyz0;
 };
 
-rotation build_rotation(const coords::Representation_3D& target,
+Rotation build_rotation(const coords::Representation_3D& target,
   const std::vector<std::size_t>& index_vec);
 
 class system {
@@ -261,7 +261,7 @@ public:
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<internal_coord>> primitive_internals;
-  std::vector<rotation> rotation_vec_;
+  std::vector<Rotation> rotation_vec_;
 
 private:
   
@@ -299,7 +299,7 @@ public:
   std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
     create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<rotation>
+  std::vector<Rotation>
   create_rotations(const coords::Representation_3D&,
                    const std::vector<std::vector<std::size_t>>&);
 
