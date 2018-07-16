@@ -46,7 +46,7 @@ workspace "CAST"
 		targetdir "build"
 		files { "../src/*.h", "../src/*.cc" }
 		vpaths {
-			["Headers"] = "../src/**.h",
+			["Headers"] = "../src/*.h",
 			["Sources"] = "../src/*.cc"
 		}
 		--flags "C++14"
@@ -77,8 +77,8 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				files "../src/gtest/*.cc"
-        vpaths {["Tests"] = "../src/gtest/*.cc"}
+				files { "../src/gtest/*.cc", "../src/gtest/*.h" }
+        vpaths {["Tests"] = {"../src/gtest/*.cc", "../src/gtest/*.h" } }
 
 				symbols "On"
 				defines "GOOGLE_MOCK"
