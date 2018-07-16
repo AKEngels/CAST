@@ -40,7 +40,7 @@ public:
   coords::r3 const secondAtomDerivatives;
 
 private:
-  ic_core::distance bond;
+  ic_core::BondDistance bond;
   std::vector<double> derivativeVector;
 };
 
@@ -63,7 +63,7 @@ public:
   coords::r3 const rightAtomsDerivative;
 
 private:
-  ic_core::angle angle;
+  ic_core::BondAngle angle;
   std::vector<double> derivativeVector;
 };
 
@@ -88,7 +88,7 @@ public:
   coords::r3 rightRightDerivative;
 
 private:
-  ic_core::dihedral dihedralAngle;
+  ic_core::DihedralAngle dihedralAngle;
   std::vector<double> derivativeVector;
 };
 
@@ -101,7 +101,7 @@ public:
   double hessianGuessTest();
 
 private:
-  ic_core::trans_x translation;
+  ic_core::TranslationX translation;
 };
 
 class InternalCoordinatesTranslationXTest : public InternalCoordinatesTest {
@@ -115,7 +115,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::trans_x translation;
+  ic_core::TranslationX translation;
   std::vector<double> derivativeVector;
 };
 
@@ -130,7 +130,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::trans_y translation;
+  ic_core::TranslationY translation;
   std::vector<double> derivativeVector;
 };
 
@@ -145,7 +145,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::trans_z translation;
+  ic_core::TranslationZ translation;
   std::vector<double> derivativeVector;
 };
 

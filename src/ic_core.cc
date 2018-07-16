@@ -23,7 +23,7 @@ coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const
   return bohr_grads;
 }
 
-float_type ic_core::distance::val(coords::Representation_3D const& xyz) const {
+float_type ic_core::BondDistance::val(coords::Representation_3D const& xyz) const {
 
   auto const& a = xyz.at(index_a_ - 1u);
   auto const& b = xyz.at(index_b_ - 1u);
@@ -31,7 +31,7 @@ float_type ic_core::distance::val(coords::Representation_3D const& xyz) const {
   return ic_util::euclid_dist<double>(a, b);
 }
 
-std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::distance::der(coords::Representation_3D const& xyz) const {
+std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::BondDistance::der(coords::Representation_3D const& xyz) const {
 
   auto const& a = xyz.at(index_a_ - 1u);
   auto const& b = xyz.at(index_b_ - 1u);
@@ -41,7 +41,7 @@ std::pair<scon::c3<float_type>, scon::c3<float_type>> ic_core::distance::der(coo
 }
 
 std::vector<float_type>
-ic_core::distance::der_vec(coords::Representation_3D const& xyz) const {
+ic_core::BondDistance::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
   auto firstder = der(xyz);
@@ -51,7 +51,7 @@ ic_core::distance::der_vec(coords::Representation_3D const& xyz) const {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz) const{
+float_type ic_core::BondDistance::hessian_guess(coords::Representation_3D const& xyz) const{
   using ic_atom::element_period;
   using ic_atom::period;
 
@@ -83,14 +83,14 @@ float_type ic_core::distance::hessian_guess(coords::Representation_3D const& xyz
   return 1.734 / std::pow(val(xyz) - B_val, 3);
 }
 
-std::string ic_core::distance::info(coords::Representation_3D const & xyz) const
+std::string ic_core::BondDistance::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Bond: " << val(xyz) << " || " << index_a_ << " || " << index_b_ << " ||";
   return oss.str();
 }
 
-coords::float_type ic_core::angle::val(coords::Representation_3D const& xyz) const{
+coords::float_type ic_core::BondAngle::val(coords::Representation_3D const& xyz) const{
   using scon::cross;
   using scon::dot;
   using scon::len;
@@ -108,7 +108,7 @@ coords::float_type ic_core::angle::val(coords::Representation_3D const& xyz) con
 }
 
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
-ic_core::angle::der(coords::Representation_3D const& xyz) const {
+ic_core::BondAngle::der(coords::Representation_3D const& xyz) const {
   using coords::Cartesian_Point;
   using scon::cross;
   using scon::dot;
@@ -146,10 +146,10 @@ ic_core::angle::der(coords::Representation_3D const& xyz) const {
 }
 
 std::vector<float_type>
-ic_core::angle::der_vec(coords::Representation_3D const& xyz) const {
+ic_core::BondAngle::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
-  auto firstder = ic_core::angle::der(xyz);
+  auto firstder = ic_core::BondAngle::der(xyz);
   std::vector<c3<float_type>> der_vec(xyz.size(), c3<float_type>(0.0, 0.0, 0.0));
   der_vec.at(index_a_ - 1) = std::get<0>(firstder);
   der_vec.at(index_b_ - 1) = std::get<1>(firstder);
@@ -157,7 +157,7 @@ ic_core::angle::der_vec(coords::Representation_3D const& xyz) const {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*/) const
+float_type ic_core::BondAngle::hessian_guess(coords::Representation_3D const& /*xyz*/) const
 {
   using ic_atom::element_period;
   using ic_atom::period;
@@ -175,14 +175,14 @@ float_type ic_core::angle::hessian_guess(coords::Representation_3D const& /*xyz*
   }
 }
 
-std::string ic_core::angle::info(coords::Representation_3D const & xyz) const
+std::string ic_core::BondAngle::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Angle: " << val(xyz) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " ||";
   return oss.str();
 }
 
-coords::float_type ic_core::dihedral::val(coords::Representation_3D const& xyz) const {
+coords::float_type ic_core::DihedralAngle::val(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
   using scon::len;
@@ -265,7 +265,7 @@ ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
   };
 */
 std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
-ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
+ic_core::DihedralAngle::der(coords::Representation_3D const& xyz) const {
   using scon::cross;
   using scon::dot;
   using scon::len;
@@ -298,7 +298,7 @@ ic_core::dihedral::der(coords::Representation_3D const& xyz) const {
 }
 
 std::vector<float_type>
-ic_core::dihedral::der_vec(coords::Representation_3D const& xyz) const {
+ic_core::DihedralAngle::der_vec(coords::Representation_3D const& xyz) const {
   using scon::c3;
 
   auto firstder = der(xyz);
@@ -311,19 +311,19 @@ ic_core::dihedral::der_vec(coords::Representation_3D const& xyz) const {
   return ic_util::flatten_c3_vec(der_vec);
 }
 
-float_type ic_core::dihedral::hessian_guess(coords::Representation_3D const & /*xyz*/) const
+float_type ic_core::DihedralAngle::hessian_guess(coords::Representation_3D const & /*xyz*/) const
 {
   return 0.023;
 }
 
-std::string ic_core::dihedral::info(coords::Representation_3D const & xyz) const
+std::string ic_core::DihedralAngle::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Dihedral: " << val(xyz) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " || " << index_d_ << " ||";
   return oss.str();
 }
 
-float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const & xyz) const
+float_type ic_core::OutOfPlane::hessian_guess(coords::Representation_3D const & xyz) const
 {
   auto const& a = xyz.at(index_a_ - 1u);
   auto const& b = xyz.at(index_b_ - 1u);
@@ -340,7 +340,7 @@ float_type ic_core::out_of_plane::hessian_guess(coords::Representation_3D const 
   return 0.045 * d_pow;
 }
 
-std::string ic_core::out_of_plane::info(coords::Representation_3D const & xyz) const
+std::string ic_core::OutOfPlane::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Out of plane: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
@@ -348,7 +348,7 @@ std::string ic_core::out_of_plane::info(coords::Representation_3D const & xyz) c
 }
 
 std::vector<float_type>
-ic_core::trans_x::der_vec(coords::Representation_3D const& xyz) const{
+ic_core::TranslationX::der_vec(coords::Representation_3D const& xyz) const{
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
@@ -356,7 +356,7 @@ ic_core::trans_x::der_vec(coords::Representation_3D const& xyz) const{
   }));
 }
 
-std::string ic_core::trans_x::info(coords::Representation_3D const & xyz) const
+std::string ic_core::TranslationX::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Trans X: " << val(xyz);
@@ -364,7 +364,7 @@ std::string ic_core::trans_x::info(coords::Representation_3D const & xyz) const
 }
 
 std::vector<float_type>
-ic_core::trans_y::der_vec(coords::Representation_3D const& xyz) const{
+ic_core::TranslationY::der_vec(coords::Representation_3D const& xyz) const{
 
   using cp = coords::Cartesian_Point;
 
@@ -373,7 +373,7 @@ ic_core::trans_y::der_vec(coords::Representation_3D const& xyz) const{
   }));
 }
 
-std::string ic_core::trans_y::info(coords::Representation_3D const & xyz) const
+std::string ic_core::TranslationY::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Trans Y: " << val(xyz);
@@ -381,7 +381,7 @@ std::string ic_core::trans_y::info(coords::Representation_3D const & xyz) const
 }
 
 std::vector<float_type>
-ic_core::trans_z::der_vec(coords::Representation_3D const& xyz) const{
+ic_core::TranslationZ::der_vec(coords::Representation_3D const& xyz) const{
   using cp = coords::Cartesian_Point;
 
   return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
@@ -389,7 +389,7 @@ ic_core::trans_z::der_vec(coords::Representation_3D const& xyz) const{
   }));
 }
 
-std::string ic_core::trans_z::info(coords::Representation_3D const & xyz) const
+std::string ic_core::TranslationZ::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
   oss << "Trans Z: " << val(xyz);
@@ -489,32 +489,32 @@ ic_core::Rotation::radius_gyration(const coords::Representation_3D& struc) {
   return ic_util::rad_gyr(struc);
 }
 
-std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_x(
+std::vector<std::unique_ptr<ic_core::InternalCoordinate>> ic_core::system::create_trans_x(
     const std::vector<std::vector<std::size_t>>& index_vec) const {
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   for (auto const & indices : index_vec) {
-    result.emplace_back(std::make_unique<trans_x>(indices));
+    result.emplace_back(std::make_unique<TranslationX>(indices));
   }
   return result;
 }
 
-std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_y(
+std::vector<std::unique_ptr<ic_core::InternalCoordinate>> ic_core::system::create_trans_y(
     const std::vector<std::vector<std::size_t>>& index_vec) const {
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   for (auto const & indices : index_vec) {
-    result.emplace_back(std::make_unique<trans_y>(indices));
+    result.emplace_back(std::make_unique<TranslationY>(indices));
   }
   return result;
 }
 
-std::vector<std::unique_ptr<ic_core::internal_coord>> ic_core::system::create_trans_z(
+std::vector<std::unique_ptr<ic_core::InternalCoordinate>> ic_core::system::create_trans_z(
     const std::vector<std::vector<std::size_t>>& index_vec) const {
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   for (auto const & indices : index_vec) {
-    result.emplace_back(std::make_unique<trans_z>(indices));
+    result.emplace_back(std::make_unique<TranslationZ>(indices));
   }
   return result;
 }

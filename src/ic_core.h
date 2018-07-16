@@ -44,15 +44,15 @@ using coords::float_type;
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
 
-struct internal_coord {
+struct InternalCoordinate {
   virtual float_type val(coords::Representation_3D const& xyz) const = 0;
   virtual std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const = 0;
   virtual float_type hessian_guess(coords::Representation_3D const& xyz) const = 0;
   virtual std::string info(coords::Representation_3D const & xyz) const = 0;
 };
 
-struct distance : public internal_coord {
-  distance(const unsigned int& index_a, const unsigned int& index_b,
+struct BondDistance : public InternalCoordinate {
+  BondDistance(const unsigned int& index_a, const unsigned int& index_b,
            const std::string& elem_a, const std::string& elem_b)
       : index_a_{ index_a }, index_b_{ index_b },
         elem_a_{ elem_a }, elem_b_{ elem_b } {}
@@ -69,8 +69,8 @@ struct distance : public internal_coord {
   std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct angle : internal_coord {
-  angle(const unsigned int& index_a,
+struct BondAngle : InternalCoordinate {
+  BondAngle(const unsigned int& index_a,
         const unsigned int& index_b, const unsigned int& index_c,
         const std::string& elem_a, const std::string& elem_b,
         const std::string& elem_c)
@@ -130,8 +130,8 @@ struct angle : internal_coord {
 //};
 
 //template<bool CP_isLVal, bool Ind_isLVal>
-struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
-  dihedral(const unsigned int& index_a, const unsigned int& index_b,
+struct DihedralAngle : public InternalCoordinate /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
+  DihedralAngle(const unsigned int& index_a, const unsigned int& index_b,
            const unsigned int& index_c, const unsigned int& index_d)
       : index_a_{ index_a },
         index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
@@ -149,15 +149,15 @@ struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, p
   std::size_t index_d_;
 };
 
-struct out_of_plane : public dihedral {
-  using dihedral::dihedral;
+struct OutOfPlane : public DihedralAngle {
+  using DihedralAngle::DihedralAngle;
 
   float_type hessian_guess(coords::Representation_3D const& xyz) const override;
   std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct trans : public internal_coord {
-  trans(std::vector<std::size_t> const& index_vec)
+struct Translations : public InternalCoordinate {
+  Translations(std::vector<std::size_t> const& index_vec)
     : indices_(index_vec) {}
 
   virtual float_type val(coords::Representation_3D const&) const = 0;
@@ -183,9 +183,9 @@ struct trans : public internal_coord {
 
 };
 
-struct trans_x : trans{
-  trans_x(const std::vector<std::size_t>& index_vec)
-      : trans(index_vec) {}
+struct TranslationX : Translations{
+  TranslationX(const std::vector<std::size_t>& index_vec)
+      : Translations(index_vec) {}
 
   float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
@@ -199,9 +199,9 @@ struct trans_x : trans{
   std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct trans_y : trans {
-  trans_y(const std::vector<std::size_t>& index_vec)
-      : trans(index_vec) {}
+struct TranslationY : Translations {
+  TranslationY(const std::vector<std::size_t>& index_vec)
+      : Translations(index_vec) {}
 
   float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
@@ -215,9 +215,9 @@ struct trans_y : trans {
   std::string info(coords::Representation_3D const& xyz) const override;
 };
 
-struct trans_z : trans {
-  trans_z(const std::vector<std::size_t>& index_vec)
-      : trans(index_vec) {}
+struct TranslationZ : Translations {
+  TranslationZ(const std::vector<std::size_t>& index_vec)
+      : Translations(index_vec) {}
 
   float_type val(const coords::Representation_3D& xyz) const override {
     auto coord_sum{ 0.0 };
@@ -260,7 +260,7 @@ public:
          const coords::Representation_3D& xyz_init)
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
-  std::vector<std::unique_ptr<internal_coord>> primitive_internals;
+  std::vector<std::unique_ptr<InternalCoordinate>> primitive_internals;
   std::vector<Rotation> rotation_vec_;
 
 private:
@@ -281,22 +281,22 @@ private:
 
 
 public:
-  void append_primitives(std::vector<std::unique_ptr<internal_coord>> && pic) {
+  void append_primitives(std::vector<std::unique_ptr<InternalCoordinate>> && pic) {
     primitive_internals.insert(primitive_internals.end(),
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
   }
 
-  std::vector<std::unique_ptr<internal_coord>>
+  std::vector<std::unique_ptr<InternalCoordinate>>
   create_trans_x(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<std::unique_ptr<internal_coord>>
+  std::vector<std::unique_ptr<InternalCoordinate>>
   create_trans_y(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<std::unique_ptr<internal_coord>>
+  std::vector<std::unique_ptr<InternalCoordinate>>
   create_trans_z(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
+  std::tuple<std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>>
     create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
   std::vector<Rotation>
@@ -307,17 +307,17 @@ public:
   IC_System create_system(Graph const &);*/
 
   template <typename Graph>
-  std::vector<std::unique_ptr<internal_coord>> create_distances(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinate>> create_distances(const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<internal_coord>> create_angles(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinate>> create_angles(const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<internal_coord>> create_oops(const coords::Representation_3D&,
+  std::vector<std::unique_ptr<InternalCoordinate>> create_oops(const coords::Representation_3D&,
                                         const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<internal_coord>> create_dihedrals(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinate>> create_dihedrals(const Graph&) const;
 
   /*template <typename Graph>
   void create_ic_system(const std::vector<coords::Representation_3D>&,
@@ -418,13 +418,13 @@ private:
 };
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<internal_coord>>
+inline std::vector<std::unique_ptr<InternalCoordinate>>
 system::create_distances(const Graph& g) const {
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -433,18 +433,18 @@ system::create_distances(const Graph& g) const {
     auto v_index = g[v].atom_serial;
     auto u_elem = g[u].element;
     auto v_elem = g[v].element;
-    result.emplace_back(std::make_unique<distance>(u_index, v_index, u_elem, v_elem));
+    result.emplace_back(std::make_unique<BondDistance>(u_index, v_index, u_elem, v_elem));
   }
   return result;
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<internal_coord>>
+inline std::vector<std::unique_ptr<InternalCoordinate>>
 system::create_angles(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto a_vert = adjacent_vertices(*it, g);
@@ -457,7 +457,7 @@ system::create_angles(const Graph& g) const {
           auto a_elem = g[*it2].element;
           auto b_elem = g[*it].element;
           auto c_elem = g[*it3].element;
-          result.emplace_back(std::make_unique<angle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
+          result.emplace_back(std::make_unique<BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
         }
       }
     }
@@ -479,13 +479,13 @@ inline std::vector<std::vector<std::size_t>> system::possible_sets_of_3(VertIter
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<internal_coord>>
+inline std::vector<std::unique_ptr<InternalCoordinate>>
 system::create_oops(const coords::Representation_3D& coords, const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
   using scon::dot;
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto core = g[*it].atom_serial;
@@ -506,7 +506,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
         auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
         auto dot_n_vecs = dot(n_vec1, n_vec2);
         if (0.95 < std::fabs(dot_n_vecs)) {
-          result.emplace_back(std::make_unique<out_of_plane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
+          result.emplace_back(std::make_unique<OutOfPlane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
         }
       }
       //}
@@ -516,14 +516,14 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<internal_coord>>
+inline std::vector<std::unique_ptr<InternalCoordinate>>
 system::create_dihedrals(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<internal_coord>> result;
+  std::vector<std::unique_ptr<InternalCoordinate>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -541,7 +541,7 @@ system::create_dihedrals(const Graph& g) const {
           auto b_index = g[u].atom_serial;
           auto c_index = g[v].atom_serial;
           auto d_index = g[*v_vert_it].atom_serial;
-          result.emplace_back(std::make_unique<dihedral>(a_index, b_index, c_index, d_index));
+          result.emplace_back(std::make_unique<DihedralAngle>(a_index, b_index, c_index, d_index));
         }
       }
     }
@@ -549,7 +549,7 @@ system::create_dihedrals(const Graph& g) const {
   return result;
 }
 
-inline std::tuple<std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>, std::vector<std::unique_ptr<internal_coord>>>
+inline std::tuple<std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>>
 system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
   return std::make_tuple(
     create_trans_x(res_index_vec),
@@ -565,7 +565,7 @@ inline void system::create_ic_system(const Graph& g) {
   append_primitives(create_oops(xyz_, g));
   append_primitives(create_dihedrals(g));
 
-  std::vector<std::unique_ptr<internal_coord>> trans_x, trans_y, trans_z;
+  std::vector<std::unique_ptr<InternalCoordinate>> trans_x, trans_y, trans_z;
   std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
 
   append_primitives(std::move(trans_x));
@@ -667,7 +667,7 @@ scon::mathmatrix<float_type> system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
   auto diff = lprims - rprims;
 
   for(auto i = 0u;i<primitive_internals.size(); ++i){
-    if(dynamic_cast<dihedral*>(primitive_internals.at(i).get())){
+    if(dynamic_cast<DihedralAngle*>(primitive_internals.at(i).get())){
       if(std::fabs(diff(0, i)) > SCON_PI){
         if(diff(0, i)<0.0){
           diff(0, i) += 2.*SCON_PI;
