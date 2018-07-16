@@ -149,6 +149,12 @@ private:
   std::vector<double> derivativeVector;
 };
 
+class InternalCoordinatesRotationTest : public InternalCoordinatesTest {
+public:
+private:
+  ic_core::Rotation rotation;
+};
+
 #endif
 
 #endif
