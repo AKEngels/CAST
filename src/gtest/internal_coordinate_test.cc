@@ -7,8 +7,19 @@
 #include "../ic_core.h"
 //#include "../scon_mathmatrix.h"
 
+namespace {
+  double constexpr doubleNearThreshold = 1.e-10;
+  coords::r3 constexpr r3NearThreshold{ doubleNearThreshold, doubleNearThreshold, doubleNearThreshold };
+  inline void isCartesianPointNear(coords::r3 const& lhs, coords::r3 const& rhs) {
+    EXPECT_NEAR(lhs.x(), rhs.x(), doubleNearThreshold);
+    EXPECT_NEAR(lhs.y(), rhs.y(), doubleNearThreshold);
+    EXPECT_NEAR(lhs.z(), rhs.z(), doubleNearThreshold);
+  }
+}
+
 class InternalCoordinatesTest : public testing::Test {
 public:
+  
   InternalCoordinatesTest()
       : moleculeCartesianRepresentation{ coords::r3{ -6.053, -0.324, -0.108 },
                                          coords::r3{ -4.677, -0.093, -0.024 },
@@ -27,7 +38,9 @@ public:
         bond(1, 2, elementSymbols.at(0), elementSymbols.at(1)),
         angle(1, 2, 3, elementSymbols.at(0), elementSymbols.at(1),
               elementSymbols.at(2)),
-        dihedralAngle(1, 2, 3, 4) {}
+        dihedralAngle(1, 2, 3, 4) {
+    moleculeCartesianRepresentation /= energy::bohr2ang;
+  }
 
   double testBondLength() { return bond.val(moleculeCartesianRepresentation); }
   double testAngleValue() { return angle.val(moleculeCartesianRepresentation); }
@@ -37,6 +50,9 @@ public:
 
   std::pair<coords::r3, coords::r3> testBondDerivatives() {
     return bond.der(moleculeCartesianRepresentation);
+  }
+  std::tuple<coords::r3, coords::r3, coords::r3> testAngleDerivatives() {
+    return angle.der(moleculeCartesianRepresentation);
   }
 
 private:
@@ -48,21 +64,35 @@ private:
 };
 
 TEST_F(InternalCoordinatesTest, testBondLength) {
-  EXPECT_EQ(testBondLength(), 1.397781456451616);
+  auto bla = testBondLength();
+  EXPECT_NEAR(testBondLength(), 2.6414241359371124, doubleNearThreshold);
 }
 
 TEST_F(InternalCoordinatesTest, testAngleValue) {
-  EXPECT_EQ(testAngleValue(), 0.52901078997179596);
+  auto bla = testAngleValue();
+  EXPECT_NEAR(testAngleValue(), 0.52901078997179563, doubleNearThreshold);
 }
 
 TEST_F(InternalCoordinatesTest, testDihedralValue) {
-  EXPECT_EQ(testDihedralValue(), 0.56342327253755931);
+  auto bla = testDihedralValue();
+  EXPECT_NEAR(testDihedralValue(), 0.56342327253755953, doubleNearThreshold);
 }
 
 TEST_F(InternalCoordinatesTest, testBondDerivatives) {
   std::pair<coords::r3, coords::r3> testValuesForDerivatives;
-  testValuesForDerivatives.first = coords::r3{ -0.98441712304088669, -0.16526188620817209, -0.060095231348426204 };
-  testValuesForDerivatives.second = -testValuesForDerivatives.first;
 
-  EXPECT_EQ(testBondDerivatives(), testValuesForDerivatives);
+  auto bondDerivatives = testBondDerivatives();
+
+  isCartesianPointNear(bondDerivatives.first, coords::r3{ -0.98441712304088669, -0.16526188620817209, -0.060095231348426204 });
+  isCartesianPointNear(bondDerivatives.second, coords::r3{ 0.98441712304088669, 0.16526188620817209, 0.060095231348426204 });
+}
+
+TEST_F(InternalCoordinatesTest, testAngleDerivatives) {
+  std::tuple<coords::r3, coords::r3, coords::r3> testValuesForDerivatives;
+
+  auto angleDerivatives = testAngleDerivatives();
+
+  isCartesianPointNear(std::get<0>(angleDerivatives), coords::r3{ -0.062056791850036874, 0.27963965489457271, 0.24754030125005314 });
+  isCartesianPointNear(std::get<1>(angleDerivatives), coords::r3{ -0.10143003133725584, -0.13768014867512546, -0.11073454633478358 });
+  isCartesianPointNear(std::get<2>(angleDerivatives), coords::r3{ 0.16348682318729271, -0.14195950621944725, -0.13680575491526956 });
 }
