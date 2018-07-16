@@ -49,10 +49,10 @@ namespace scon
 
     c3() : m_x(), m_y(), m_z() { }
     
-    explicit c3(_c3::_fc<T> v) : 
+    explicit constexpr c3(_c3::_fc<T> const v) :
       m_x(v), m_y(v), m_z(v) { }
 
-    explicit c3(_c3::_fc<T> x, _c3::_fc<T> y, _c3::_fc<T> z) :
+    explicit constexpr c3(_c3::_fc<T> const x, _c3::_fc<T> const y, _c3::_fc<T> const z) :
       m_x(x), m_y(y), m_z(z)
     { }
 
