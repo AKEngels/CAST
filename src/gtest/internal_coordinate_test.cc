@@ -15,56 +15,66 @@ namespace {
     EXPECT_NEAR(lhs.y(), rhs.y(), doubleNearThreshold);
     EXPECT_NEAR(lhs.z(), rhs.z(), doubleNearThreshold);
   }
+  
 }
+
+struct TwoMethanolMolecules {
+  TwoMethanolMolecules() : moleculeCartesianRepresentation{ 
+    coords::r3{ -6.053, -0.324, -0.108 },
+    coords::r3{ -4.677, -0.093, -0.024 },
+    coords::r3{ -6.262, -1.158, -0.813 },
+    coords::r3{ -6.582, 0.600, -0.424 },
+    coords::r3{ -6.431, -0.613, 0.894 },
+    coords::r3{ -4.387, 0.166, -0.937 },
+    coords::r3{ -6.146, 3.587, -0.024 },
+    coords::r3{ -4.755, 3.671, -0.133 },
+    coords::r3{ -6.427, 2.922, 0.821 },
+    coords::r3{ -6.587, 3.223, -0.978 },
+    coords::r3{ -6.552, 4.599, 0.179 },
+    coords::r3{ -4.441, 2.753, -0.339 } }, 
+    elementSymbols{ "C", "O", "H", "H", "H", "H",
+    "C", "O", "H", "H", "H", "H" } {
+    moleculeCartesianRepresentation /= energy::bohr2ang;
+  }
+
+  std::vector<std::string> elementSymbols;
+  coords::Representation_3D moleculeCartesianRepresentation;
+};
 
 class InternalCoordinatesTest : public testing::Test {
 public:
   
   InternalCoordinatesTest()
-      : moleculeCartesianRepresentation{ coords::r3{ -6.053, -0.324, -0.108 },
-                                         coords::r3{ -4.677, -0.093, -0.024 },
-                                         coords::r3{ -6.262, -1.158, -0.813 },
-                                         coords::r3{ -6.582, 0.600, -0.424 },
-                                         coords::r3{ -6.431, -0.613, 0.894 },
-                                         coords::r3{ -4.387, 0.166, -0.937 },
-                                         coords::r3{ -6.146, 3.587, -0.024 },
-                                         coords::r3{ -4.755, 3.671, -0.133 },
-                                         coords::r3{ -6.427, 2.922, 0.821 },
-                                         coords::r3{ -6.587, 3.223, -0.978 },
-                                         coords::r3{ -6.552, 4.599, 0.179 },
-                                         coords::r3{ -4.441, 2.753, -0.339 } },
-        elementSymbols{ "C", "O", "H", "H", "H", "H",
-                        "C", "O", "H", "H", "H", "H" },
-        bond(1, 2, elementSymbols.at(0), elementSymbols.at(1)),
-        angle(1, 2, 3, elementSymbols.at(0), elementSymbols.at(1),
-              elementSymbols.at(2)),
-        dihedralAngle(1, 2, 3, 4) {
-    moleculeCartesianRepresentation /= energy::bohr2ang;
-  }
+      : twoMethanolMolecules{std::make_unique<TwoMethanolMolecules>()}, 
+        bond(1, 2, twoMethanolMolecules->elementSymbols.at(0), twoMethanolMolecules->elementSymbols.at(1)),
+        angle(1, 2, 3, twoMethanolMolecules->elementSymbols.at(0), twoMethanolMolecules->elementSymbols.at(1),
+          twoMethanolMolecules->elementSymbols.at(2)),
+        dihedralAngle(1, 2, 3, 4) {}
 
-  double testBondLength() { return bond.val(moleculeCartesianRepresentation); }
-  double testAngleValue() { return angle.val(moleculeCartesianRepresentation); }
+  double testBondLength() { return bond.val(twoMethanolMolecules->moleculeCartesianRepresentation); }
+  double testAngleValue() { return angle.val(twoMethanolMolecules->moleculeCartesianRepresentation); }
   double testDihedralValue() {
-    return dihedralAngle.val(moleculeCartesianRepresentation);
+    return dihedralAngle.val(twoMethanolMolecules->moleculeCartesianRepresentation);
   }
 
   std::pair<coords::r3, coords::r3> testBondDerivatives() {
-    return bond.der(moleculeCartesianRepresentation);
+    return bond.der(twoMethanolMolecules->moleculeCartesianRepresentation);
   }
   std::tuple<coords::r3, coords::r3, coords::r3> testAngleDerivatives() {
-    return angle.der(moleculeCartesianRepresentation);
+    return angle.der(twoMethanolMolecules->moleculeCartesianRepresentation);
   }
   std::tuple<coords::r3, coords::r3, coords::r3, coords::r3> testDihedralDerivatives() {
-    return dihedralAngle.der(moleculeCartesianRepresentation);
+    return dihedralAngle.der(twoMethanolMolecules->moleculeCartesianRepresentation);
   }
 
 private:
-  coords::Representation_3D moleculeCartesianRepresentation;
-  std::vector<std::string> elementSymbols;
+  std::unique_ptr<TwoMethanolMolecules> twoMethanolMolecules;
   ic_core::distance bond;
   ic_core::angle angle;
   ic_core::dihedral dihedralAngle;
 };
+
+//class InternalCoordinateDistanceTest : 
 
 TEST_F(InternalCoordinatesTest, testBondLength) {
   auto bla = testBondLength();
