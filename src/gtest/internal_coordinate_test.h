@@ -92,6 +92,63 @@ private:
   std::vector<double> derivativeVector;
 };
 
+class InternalCoordinatesTranslationTest : public InternalCoordinatesTest {
+public:
+  InternalCoordinatesTranslationTest();
+
+  void testTranslationDerivativeTest();
+
+  double hessianGuessTest();
+
+private:
+  ic_core::trans_x translation;
+};
+
+class InternalCoordinatesTranslationXTest : public InternalCoordinatesTest {
+public:
+  InternalCoordinatesTranslationXTest();
+
+  double testTranslationValue();
+
+  void derivativeVectorTest();
+
+  std::string returnInfoTest();
+
+private:
+  ic_core::trans_x translation;
+  std::vector<double> derivativeVector;
+};
+
+class InternalCoordinatesTranslationYTest : public InternalCoordinatesTest {
+public:
+  InternalCoordinatesTranslationYTest();
+
+  double testTranslationValue();
+
+  void derivativeVectorTest();
+
+  std::string returnInfoTest();
+
+private:
+  ic_core::trans_y translation;
+  std::vector<double> derivativeVector;
+};
+
+class InternalCoordinatesTranslationZTest : public InternalCoordinatesTest {
+public:
+  InternalCoordinatesTranslationZTest();
+
+  double testTranslationValue();
+
+  void derivativeVectorTest();
+
+  std::string returnInfoTest();
+
+private:
+  ic_core::trans_z translation;
+  std::vector<double> derivativeVector;
+};
+
 #endif
 
 #endif

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "internal_coordinate_test.h"
+#include "../ic_util.h"
 
 //#include "../scon_mathmatrix.h"
 
@@ -48,7 +49,7 @@ InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
                              0.060095231348426204 },
       bond(1, 2, twoMethanolMolecules->elementSymbols.at(0),
            twoMethanolMolecules->elementSymbols.at(1)),
-      derivativeVector(3 * 12, 0.) {
+      derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = firstAtomDerivatives.x();
   derivativeVector.at(1) = firstAtomDerivatives.y();
   derivativeVector.at(2) = firstAtomDerivatives.z();
@@ -93,7 +94,7 @@ InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
       angle(1, 2, 3, twoMethanolMolecules->elementSymbols.at(0),
             twoMethanolMolecules->elementSymbols.at(1),
             twoMethanolMolecules->elementSymbols.at(2)),
-      derivativeVector(3 * 12, 0.) {
+      derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftAtomsDerivative.x();
   derivativeVector.at(1) = leftAtomsDerivative.y();
   derivativeVector.at(2) = leftAtomsDerivative.z();
@@ -140,7 +141,7 @@ InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
                              -0.14926917153430774 },
       rightRightDerivative{ 0.092638702126701375, 0.082760181305375408,
                             -0.29780980476685243 },
-      dihedralAngle(1, 2, 3, 4), derivativeVector(3 * 12, 0.) {
+      dihedralAngle(1, 2, 3, 4), derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftLeftDerivative.x();
   derivativeVector.at(1) = leftLeftDerivative.y();
   derivativeVector.at(2) = leftLeftDerivative.z();
@@ -184,8 +185,110 @@ std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
     twoMethanolMolecules->moleculeCartesianRepresentation);
 }
 
+InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
+
+void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
+
+  auto flattenedVector = ic_util::flatten_c3_vec(translation.der(6, [](auto const & s) {
+    auto doubleS = static_cast<double>(s);
+    return coords::r3(1. / doubleS, 2. / doubleS, 3. / doubleS);
+  }));
+
+  std::vector<double> someTestValues;
+
+  for (auto i = 0; i < 6; ++i) {
+    someTestValues.emplace_back(1. / static_cast<double>(translation.indices_.size()));
+    someTestValues.emplace_back(2. / static_cast<double>(translation.indices_.size()));
+    someTestValues.emplace_back(3. / static_cast<double>(translation.indices_.size()));
+  }
+
+  for (auto i = 1u; i < flattenedVector.size(); ++i) {
+    EXPECT_NEAR(flattenedVector.at(i), someTestValues.at(i), doubleNearThreshold);
+  }
+
+}
+
+double InternalCoordinatesTranslationTest::hessianGuessTest() {
+  return translation.hessian_guess(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTest(), translation{ {1u,2u,3u,4u,5u,6u} },
+derivativeVector(3u*12u,0.) {
+  auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
+  for (auto i = 0u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
+    derivativeVector.at(i) = 0.16666666666666666;
+  }
+}
+
+double InternalCoordinatesTranslationXTest::testTranslationValue() {
+  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+void InternalCoordinatesTranslationXTest::derivativeVectorTest() {
+  auto derivatives = translation.der_vec(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+  for (auto i = 0u; i < derivatives.size(); ++i) {
+    EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
+  }
+}
+
+std::string InternalCoordinatesTranslationXTest::returnInfoTest() {
+  return translation.info(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
+derivativeVector(3u * 12u, 0.) {
+  auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
+  for (auto i = 1u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
+    derivativeVector.at(i) = 0.16666666666666666;
+  }
+}
+
+double InternalCoordinatesTranslationYTest::testTranslationValue() {
+  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+void InternalCoordinatesTranslationYTest::derivativeVectorTest() {
+  auto derivatives = translation.der_vec(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+  for (auto i = 0u; i < derivatives.size(); ++i) {
+    EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
+  }
+}
+
+std::string InternalCoordinatesTranslationYTest::returnInfoTest() {
+  return translation.info(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
+derivativeVector(3u * 12u, 0.) {
+  auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
+  for (auto i = 2u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
+    derivativeVector.at(i) = 0.16666666666666666;
+  }
+}
+
+double InternalCoordinatesTranslationZTest::testTranslationValue() {
+  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
+void InternalCoordinatesTranslationZTest::derivativeVectorTest() {
+  auto derivatives = translation.der_vec(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+  for (auto i = 0u; i < derivatives.size(); ++i) {
+    EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
+  }
+}
+
+std::string InternalCoordinatesTranslationZTest::returnInfoTest() {
+  return translation.info(
+    twoMethanolMolecules->moleculeCartesianRepresentation);
+}
+
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
-  auto bla = testBondLength();
   EXPECT_NEAR(testBondLength(), 2.6414241359371124, doubleNearThreshold);
 }
 
@@ -211,7 +314,6 @@ TEST_F(InternalCoordinatesDistancesTest, returnInfoTest) {
 }
 
 TEST_F(InternalCoordinatesAnglesTest, testAngleValue) {
-  auto bla = testAngleValue();
   EXPECT_NEAR(testAngleValue(), 0.52901078997179563, doubleNearThreshold);
 }
 
@@ -238,7 +340,6 @@ TEST_F(InternalCoordinatesAnglesTest, returnInfoTest) {
 }
 
 TEST_F(InternalCoordinatesDihedralsTest, testDihedralValue) {
-  auto bla = testDihedralValue();
   EXPECT_NEAR(testDihedralValue(), 0.56342327253755953, doubleNearThreshold);
 }
 
@@ -265,4 +366,49 @@ TEST_F(InternalCoordinatesDihedralsTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 ||");
 }
 
+TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
+  testTranslationDerivativeTest();
+}
+
+TEST_F(InternalCoordinatesTranslationTest, hessianGuessTest) {
+  EXPECT_NEAR(hessianGuessTest(), 0.05, doubleNearThreshold);
+}
+
+TEST_F(InternalCoordinatesTranslationXTest, testTranslationValue) {
+  EXPECT_NEAR(testTranslationValue(), -10.831910151124269, doubleNearThreshold);
+}
+
+TEST_F(InternalCoordinatesTranslationXTest, derivativeVectorTest) {
+  derivativeVectorTest();
+}
+
+TEST_F(InternalCoordinatesTranslationXTest, returnInfoTest) {
+  EXPECT_EQ(returnInfoTest(), "Trans X: -10.8319");
+}
+
+TEST_F(InternalCoordinatesTranslationYTest, testTranslationValue) {
+  EXPECT_NEAR(testTranslationValue(), -0.44786509173350525, doubleNearThreshold);
+}
+
+TEST_F(InternalCoordinatesTranslationYTest, derivativeVectorTest) {
+  derivativeVectorTest();
+}
+
+TEST_F(InternalCoordinatesTranslationYTest, returnInfoTest) {
+  EXPECT_EQ(returnInfoTest(), "Trans Y: -0.447865");
+}
+
+TEST_F(InternalCoordinatesTranslationZTest, testTranslationValue) {
+  auto bla = testTranslationValue();
+  EXPECT_NEAR(testTranslationValue(), -0.44471554819107562, doubleNearThreshold);
+}
+
+TEST_F(InternalCoordinatesTranslationZTest, derivativeVectorTest) {
+  derivativeVectorTest();
+}
+
+TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
+  auto bla = returnInfoTest();
+  EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
+}
 #endif

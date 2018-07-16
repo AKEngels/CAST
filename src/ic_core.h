@@ -176,9 +176,11 @@ struct trans : public internal_coord {
     }
     return result;
   }
+
   float_type hessian_guess(coords::Representation_3D const& /*xyz*/) const override {
     return 0.05;
   }
+
 };
 
 struct trans_x : trans{

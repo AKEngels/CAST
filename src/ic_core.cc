@@ -359,7 +359,7 @@ ic_core::trans_x::der_vec(coords::Representation_3D const& xyz) const{
 std::string ic_core::trans_x::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << "Trans X: " << val(xyz) << "\n";
+  oss << "Trans X: " << val(xyz);
   return oss.str();
 }
 
@@ -376,7 +376,7 @@ ic_core::trans_y::der_vec(coords::Representation_3D const& xyz) const{
 std::string ic_core::trans_y::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << "Trans Y: " << val(xyz) << "\n";
+  oss << "Trans Y: " << val(xyz);
   return oss.str();
 }
 
@@ -392,7 +392,7 @@ ic_core::trans_z::der_vec(coords::Representation_3D const& xyz) const{
 std::string ic_core::trans_z::info(coords::Representation_3D const & xyz) const
 {
   std::ostringstream oss;
-  oss << "Trans Z: " << val(xyz) << "\n";
+  oss << "Trans Z: " << val(xyz);
   return oss.str();
 }
 
