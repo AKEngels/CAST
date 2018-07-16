@@ -220,17 +220,8 @@ void energy::interfaces::qmmm::QMMM::find_bonds_etc()
     {
       if (scon::sorted::exists(qm_indices, b))
       {
-        if ((Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER) &&
-           (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN || 
-            Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4))
-        {
-          bonded::Bond bond(mma, b);
-          qmmm_bonds.push_back(bond);
-        }
-        else
-        {
-          throw std::runtime_error("Breaking bonds is only possible with OPLSAA or AMBER as MM interface and DFTB+ or GAUSSIAN as QM interface.\n");
-        }
+        bonded::Bond bond(mma, b);
+        qmmm_bonds.push_back(bond);
       }
     }
   }
@@ -341,37 +332,6 @@ void energy::interfaces::qmmm::QMMM::update_representation()
 
 }
 
-// mol.in schreiben (for MOPAC, see http://openmopac.net/manual/QMMM.html)
-void energy::interfaces::qmmm::QMMM::write_mol_in()
-{
-  auto elec_factor = 332.0;
-  std::cout << std::setprecision(6);
-
-  std::ofstream molstream{ "mol.in" };
-  if (molstream)
-  {
-    auto const n_qm = qm_indices.size();
-    molstream << '\n';
-    molstream << n_qm << " 0\n";
-    for (std::size_t i = 0; i < n_qm; ++i)
-    {
-      double qi{};
-      for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)
-      {
-        auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
-        qi += Config::get().energy.qmmm.mm_charges[j].charge / d;
-      }
-      qi *= elec_factor;
-      molstream << "0 0 0 0 " << qi << "\n";
-    }
-    molstream.close();
-  }
-  else
-  {
-    throw std::runtime_error("Cannot write mol.in file.");
-  }
-}
-
 /**calculates energies and gradients
 @param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
@@ -438,11 +398,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
   // ################### DO CALCULATION ###########################################
 
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
-  {
-    write_mol_in();
-  }
-  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {}  // these QM interfaces are allowed
+	if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC) {}   // these QM interfaces are allowed
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {} 
 	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
   else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::PSI4) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
@@ -451,10 +408,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
     if (if_gradient)
     {
       qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
-      if (Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
-      {   // coulomb gradients on MM atoms 
-        g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
-      }
+      g_coul_mm = qmc.energyinterface()->get_g_ext_chg();  // coulomb gradients on MM atoms
     }
     else qm_energy = qmc.e();  // get only energy for QM part
   }
@@ -463,7 +417,6 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 	  std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
-  if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
   Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
@@ -577,13 +530,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   bonded_energy = calc_bonded(if_gradient);
 
   // preparation for calculation of non-bonded interactions
-  auto elec_factor = 332.0;
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
-  }
-	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
+	std::vector<double> qm_charge_vector;                                     // vector with all charges of QM atoms
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
   try { 
 		qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
@@ -608,14 +555,12 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       auto z = qmc.atoms(i2).energy_type();  // get atom type
       std::size_t i_vdw = cparams.type(z, tinker::potential_keys::VDW);  // get index to find this atom type in vdw parameters
       auto vparams_i = vdw_params[i_vdw-1];  // get vdw parameters for QM atom
-      coords::float_type charge_i = qm_charge_vector[i2];  // get charge for QM atom
       std::size_t j2 = 0u;
       for (auto j : mm_indices)  // for every MM atom
       {
         auto e_type = mmc.atoms(j2).energy_type();  // get atom type
         std::size_t j_vdw = cparams.type(e_type, tinker::potential_keys::VDW); // get index to find this atom type in vdw parameters
         auto vparams_j = vdw_params[j_vdw-1];  // get vdw parameters for MM atom
-        coords::float_type charge_j = mm_charge_vector[j2];  // get charge for MM atom
 
         auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
@@ -666,16 +611,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         if (if_gradient)  // gradients
         {
-
-          if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
-          {    // gradients of coulomb interaction (only for MOPAC here)
-			      coords::float_type b = (charge_i*charge_j) / d * elec_factor;
-            coords::float_type db = b / d;
-            auto c_gradient_ij = r_ij * db / d;
-            c_gradient[i] += c_gradient_ij;
-            c_gradient[j] -= c_gradient_ij;
-          }
-
           if (calc_modus != 0)  // gradients of vdW interaction
           {
             if (cparams.general().radiustype.value
@@ -704,7 +639,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-		if (if_gradient == true && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+		if (if_gradient == true)
 		{    // Coulomb gradients on MM atoms for all interfaces except MOPAC
 			for (auto i = 0u; i < charge_indices.size(); ++i)
 			{

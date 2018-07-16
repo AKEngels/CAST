@@ -351,9 +351,6 @@ namespace energy
 
       private:
 
-        /**writes inputfile for MOPAC calculation (see http://openmopac.net/manual/QMMM.html)*/
-        void write_mol_in();
-
         /**function where QM/MM calculation is prepared*/
         void prepare_bonded_qmmm();
         /**function to find bonds, angles and so on between QM and MM system*/
