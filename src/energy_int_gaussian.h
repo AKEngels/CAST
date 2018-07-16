@@ -81,6 +81,8 @@ namespace energy
 				// FAILCOUNTER
 				size_t failcounter;
 
+        /**mulliken charges*/
+        std::vector<double> atom_charges;
         /**electric field that is given by GAUSSIAN
 				contains the atoms and the external charges
         (is used for QM/MM)*/

@@ -383,8 +383,20 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           }
         }
       }//end coordinater reading
+     
+      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges
+      {
+        double charge;
+        atom_charges.clear();
 
-
+        std::getline(in_file, buffer); // discard next line
+        for (std::size_t i(0); i < coords->size(); ++i)
+        {
+          std::getline(in_file, buffer);
+          std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
+          atom_charges.push_back(charge);
+        }
+      }
 
     }//end while(!in_file.eof())
 
@@ -627,46 +639,10 @@ bool energy::interfaces::gaussian::sysCallInterfaceGauss::check_bond_preservatio
   return true;
 }
 
-std::vector<coords::float_type>
+std::vector<double>
 energy::interfaces::gaussian::sysCallInterfaceGauss::charges() const
 {
-  std::vector<coords::float_type> charges;
-
-  auto in_string = id + "_G_.log";
-  if (file_exists(in_string) == false)
-  {
-    throw std::runtime_error("gaussian logfile not found.");
-  }
-
-  std::ifstream in_file(in_string.c_str(), std::ios_base::in);
-  if (in_file)
-  {
-	  std::string buffer;
-	  while (!in_file.eof())
-	  {
-		  double charge;
-		  std::getline(in_file, buffer);
-
-		  if (buffer.find("Mulliken charges:") != std::string::npos)
-		  {
-			  std::getline(in_file, buffer); // discard next line
-			  for (std::size_t i(0); i < coords->size(); ++i)
-			  {
-				  std::getline(in_file, buffer);
-				  std::sscanf(buffer.c_str(), "%*s %*s %lf", &charge);
-				  charges.push_back(charge);
-			  }
-		  }
-	  }
-  }
-
-
-  if (charges.size() != coords->size())
-  {
-    throw std::logic_error("Found " + std::to_string(charges.size()) +
-      " charges instead of " + std::to_string(coords->size()) + " charges.");
-  }
-  return charges;
+  return atom_charges;
 }
 
 std::vector<coords::Cartesian_Point>
