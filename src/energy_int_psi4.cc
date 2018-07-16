@@ -241,6 +241,8 @@ energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(){
 
 std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 {
+	if (!file_exists(tmp_file_name + "_out.dat")) throw std::runtime_error("Didn't find Psi4 output file for getting charges.");
+
 	std::ifstream in_file;
 	in_file.open(tmp_file_name + "_out.dat");
 

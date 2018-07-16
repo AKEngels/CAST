@@ -382,6 +382,8 @@ namespace energy
         std::vector<size_t> qm_indices;
         /**indizes of MM atoms*/
         std::vector<size_t> mm_indices;
+        /**indizes of MM atoms that are taken into acoount for electrostatic interaction with QM region*/
+				std::vector<size_t> charge_indices;
 
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms

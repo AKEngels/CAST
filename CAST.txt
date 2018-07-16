@@ -142,6 +142,8 @@ QMMMlinkatomtype      85
 QMMMlinkatomtype      221
 QMMMlinkatomtype      85
 
+# cutoff for electrostatic interaction
+QMMMcutoff            10
 
 
 ######################### MOPAC OPTIONS ###############

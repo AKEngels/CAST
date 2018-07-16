@@ -399,6 +399,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
 	bool use_charge;
 	int counter = 0;
+	charge_indices.clear();
 	for (auto mm : mm_indices) // go through all MM atoms
 	{
 		use_charge = true;
@@ -406,12 +407,31 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 		{
 			if (l.mm == mm) use_charge = false;
 		}
-		if (use_charge)  // for the other create a PointCharge and add it to vector
+		if (use_charge)  // for the other 
 		{
-			PointCharge new_charge;
-			new_charge.charge = mm_charge_vector[counter];
-			new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
-			Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qm : qm_indices)
+				{
+					auto dist = len(coords->xyz(mm) - coords->xyz(qm));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+			}
+
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = mm_charge_vector[counter];
+				new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+				charge_indices.push_back(mm);
+			}
+			
 		}
 		counter += 1;
 	}
@@ -684,27 +704,14 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-     if (if_gradient == true  && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
-     {    // Coulomb gradients on MM atoms for all interfaces except MOPAC
-       int j2 = 0;
-       for (auto j : mm_indices)
-       {   
-         bool use_charge = true;
-         for (auto b : qmmm_bonds)
-         {
-           if (j == b.a) use_charge = false;
-         }
-         if (use_charge == true)
-         {
-           if (Config::get().general.verbosity > 4)
-           {
-             std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
-           }
-           c_gradient[j] += g_coul_mm[j2];
-           j2++;
-         }
-       }
-     }
+		if (if_gradient == true && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)
+		{    // Coulomb gradients on MM atoms for all interfaces except MOPAC
+			for (auto i = 0u; i < charge_indices.size(); ++i)
+			{
+				int mma = charge_indices[i];
+				c_gradient[mma] += g_coul_mm[i];
+			}
+		}
   }
 }
 

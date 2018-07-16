@@ -553,14 +553,18 @@ void config::parse_option(std::string const option, std::string const value_stri
         std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
       }
     }
-	else if (option.substr(4u) == "writeqmintofile")
-	{
-	  if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
-	}
-	else if (option.substr(4u) == "linkatomtype")
-	{
-	  Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
-	}
+	  else if (option.substr(4u) == "writeqmintofile")
+	  {
+	    if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	  }
+	  else if (option.substr(4u) == "linkatomtype")
+	  {
+	    Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
+	  }
+		else if (option.substr(4u) == "cutoff")
+		{
+			Config::set().energy.qmmm.cutoff = std::stod(value_string);
+		}
   }
 
 

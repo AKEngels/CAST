@@ -566,6 +566,8 @@ namespace config
 		  std::vector<PointCharge> mm_charges;
       /**energy types of link atoms (in the order of MM atom)*/
       std::vector<int> linkatom_types;
+      /**cutoff for electrostatic interaction*/
+			double cutoff{0.0};
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
