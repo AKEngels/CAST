@@ -505,13 +505,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   bonded_energy = calc_bonded(if_gradient);
 
   // preparation for calculation of non-bonded interactions
-  auto elec_factor = 332.0;
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
-  }
-	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
+	std::vector<double> qm_charge_vector;                                     // vector with all charges of QM atoms
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
   try { 
 		qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
