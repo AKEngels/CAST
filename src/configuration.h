@@ -135,13 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 12;
+  static std::size_t const NUM_INTERFACES = 13;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -155,7 +155,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM
     };
   };
 
@@ -549,7 +549,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
@@ -560,6 +560,12 @@ namespace config
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
+	    /**should QM region be written into file? (only for ONIOM)*/
+	    bool qm_to_file{ false };
+      /**vector of MM charges (external charges for inner calculation)*/
+		  std::vector<PointCharge> mm_charges;
+      /**energy types of link atoms (in the order of MM atom)*/
+      std::vector<int> linkatom_types;
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
@@ -646,6 +652,8 @@ namespace config
       int max_steps;
       /**total charge of the system*/
       double charge;
+      /**use DFTB3 ?*/
+      bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
@@ -653,7 +661,7 @@ namespace config
 
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        opt(2), max_steps_opt(5000) {}
+        dftb3(false), opt(2), max_steps_opt(5000) {}
     } dftb;
 
     /**struct that contains all information necessary for gaussian calculation*/
@@ -981,11 +989,16 @@ namespace config
     struct lo_types { enum T { LBFGS = 0 }; };
     struct go_types { enum T { MCM, TABU }; };
 
+    /**struct that contains configuration options for local optimisation via L-BFGS*/
     struct lo
     {
+      /**convergence threshold for bfgs*/
       double grad;
+      /**max number of steps for bfgs*/
       std::size_t maxstep;
-      lo(void) : grad(0.001), maxstep(10000) { }
+      /**should trace written into file?*/
+      bool trace;
+      lo(void) : grad(0.001), maxstep(10000), trace(false) { }
     };
 
     struct mc

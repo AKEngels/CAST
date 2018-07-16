@@ -5,145 +5,17 @@
 
 ::tinker::parameter::parameters energy::interfaces::qmmm::QMMM::tp;
 
-namespace
-{
 
-  std::vector<std::size_t> get_mm_atoms(std::size_t const num_atoms)
-  {
-    std::vector<std::size_t> mm_atoms;
-    auto qm_size = Config::get().energy.qmmm.qmatoms.size();
-    if (num_atoms > qm_size)
-    {
-      auto mm_size = num_atoms - qm_size;
-      mm_atoms.reserve(mm_size);
-      for (unsigned i = 0; i < num_atoms; i++)
-      {
-        if (!scon::sorted::exists(Config::get().energy.qmmm.qmatoms, i))
-        {
-          mm_atoms.emplace_back(i);
-        }
-      }
-    }
-    return mm_atoms;
-  }
-
-  std::vector<std::size_t> make_new_indices_qm(std::size_t const num_atoms)
-  {
-    std::vector<std::size_t> new_indices_qm;
-    if (num_atoms > 0)
-    {
-      new_indices_qm.resize(num_atoms);
-      std::size_t current_index = 0u;
-      for (auto&& a : Config::get().energy.qmmm.qmatoms)
-      {
-        new_indices_qm.at(a) = current_index++;
-      }
-    }
-    return new_indices_qm;
-  }
-
-  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms,
-    std::vector<std::size_t> const& mmi)
-  {
-    std::vector<std::size_t> new_indices_mm;
-    new_indices_mm.resize(num_atoms);
-    if (num_atoms > 0u)
-    {
-      std::size_t current_index = 0u;
-
-      for (auto && a : mmi)
-      {
-        new_indices_mm.at(a) = current_index++;
-      }
-    }
-    return new_indices_mm;
-  }
-
-  /**creates coordobject for QM interface
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of QM atoms
-  @param new_indices: new indizes (see new_indices_qm)*/
-  coords::Coordinates make_qm_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
-  {
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.qminterface;
-    coords::Coordinates new_qm_coords;
-    if (cp->size() >= indices.size())
-    {
-      coords::Atoms new_qm_atoms;
-      coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size());
-      for (auto && a : indices)
-      {
-        auto && ref_at = (*cp).atoms().atom(a);
-        coords::Atom at{ (*cp).atoms().atom(a).number() };
-        at.set_energy_type(ref_at.energy_type());
-        auto bonds = ref_at.bonds();
-        for (auto && b : bonds)
-        {
-          at.detach_from(b);
-        }
-        for (auto && b : bonds)
-        {
-          at.bind_to(new_indices.at(b));
-        }
-        new_qm_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a));
-      }
-      new_qm_coords.init_swap_in(new_qm_atoms, pes);
-    }
-    Config::set().general.energy_interface = tmp_i;
-    return new_qm_coords;
-  }
-
-  /**creates coordobject for MM interface
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of MM atoms
-  @param new_indices: new indizes (see new_indices_mm)*/
-  coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
-  {
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.mminterface;
-    coords::Coordinates new_aco_coords;
-    if (cp->size() >= indices.size())
-    {
-      coords::Atoms new_aco_atoms;
-      coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size());
-      for (auto && a : indices)
-      {
-        auto && ref_at = (*cp).atoms().atom(a);
-        coords::Atom at{ (*cp).atoms().atom(a).number() };
-        at.set_energy_type(ref_at.energy_type());
-        auto bonds = ref_at.bonds();
-        for (auto && b : bonds)
-        {
-          at.detach_from(b);
-        }
-        for (auto && b : bonds)
-        {
-          if (is_in(b,indices)) at.bind_to(new_indices[b]);  // only bind if bonding partner is also in ACO coords
-        }
-        new_aco_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a));
-      }
-      new_aco_coords.init_swap_in(new_aco_atoms, pes);
-    }
-    Config::set().general.energy_interface = tmp_i;
-    return new_aco_coords;
-  }
-}
 
 energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qmatoms),
-  mm_indices(get_mm_atoms(cp->size())),
-  new_indices_qm(make_new_indices_qm(cp->size())),
-  new_indices_mm(make_new_indices_mm(cp->size(), mm_indices)),
-  qmc(make_qm_coords(cp, qm_indices, new_indices_qm)),
-  mmc(make_aco_coords(cp, mm_indices, new_indices_mm)),
+  mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
+  new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
+  new_indices_mm(qmmm_helpers::make_new_indices_mm(cp->size(), mm_indices)),
+	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
+	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
+  mmc(qmmm_helpers::make_aco_coords(cp, mm_indices, new_indices_mm)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
 {
   if (!tp.valid())
@@ -162,11 +34,10 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  cparams(rhs.cparams), distance(rhs.distance),
+  cparams(rhs.cparams), link_atoms(rhs.link_atoms),
   qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
   new_indices_qm(rhs.new_indices_qm), new_indices_mm(rhs.new_indices_mm),
-  qmc(rhs.qmc), mmc(rhs.mmc), qm_charge_vector(rhs.qm_charge_vector),
-  mm_charge_vector(rhs.mm_charge_vector), vdw_energy(rhs.vdw_energy),
+  qmc(rhs.qmc), mmc(rhs.mmc), vdw_energy(rhs.vdw_energy),
   qm_energy(rhs.qm_energy), mm_energy(rhs.mm_energy), vdw_gradient(rhs.vdw_gradient),
   c_gradient(rhs.c_gradient), bonded_energy(rhs.bonded_energy), bonded_gradient(rhs.bonded_gradient)
 {
@@ -175,13 +46,11 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM const & rhs,
 
 energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  cparams(std::move(rhs.cparams)), distance(std::move(rhs.distance)),
+  cparams(std::move(rhs.cparams)), 
   qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)),
   new_indices_mm(std::move(rhs.new_indices_mm)),
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
-  qm_charge_vector(std::move(rhs.qm_charge_vector)),
-  mm_charge_vector(std::move(rhs.mm_charge_vector)),
   vdw_energy(std::move(rhs.vdw_energy)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)),
   c_gradient(std::move(rhs.c_gradient)), vdw_gradient(std::move(rhs.vdw_gradient)),
@@ -213,7 +82,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
 		    found = true;
       }
     }
-	  if (found == false) std::cout << "Parameters for bond between " << b.a << " and " << b.b << " not found.\n";
+	  if (found == false) std::cout << "Parameters for bond between " << b.a+1 << " and " << b.b+1 << " not found.\n";
   }
 
   for (auto &a : qmmm_angles)  // find angle parameters
@@ -232,7 +101,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
           a.force = a_param.f;
 		      found = true;
         }
-        else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_b)
+        else if (a_param.index[0] == a_type_b && a_param.index[2] == a_type_a)
         {
           a.ideal = a_param.ideal;
           a.force = a_param.f;
@@ -240,7 +109,7 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
         }
       }
     }
-	  if (found == false) std::cout << "Parameters for angle made of " << a.a <<", "<<a.c << " and " << a.b << " not found.\n";
+	  if (found == false) std::cout << "Parameters for angle made of " << a.a+1 <<", "<<a.c+1 << " and " << a.b+1 << " not found.\n";
   }
 
   for (auto &d : qmmm_dihedrals)  // find parameters for dihedrals
@@ -339,56 +208,8 @@ void energy::interfaces::qmmm::QMMM::find_parameters()
     }
 	  if (found == false)
 	  {
-		  std::cout << "Parameters for dihedral made of " << d.a << ", " << d.c1 << ", " << d.c2 << " and " << d.b << " not found.\n";
+		  std::cout << "Parameters for dihedral made of " << d.a+1 << ", " << d.c1+1 << ", " << d.c2+1 << " and " << d.b+1 << " not found.\n";
 	  }
-  }
-}
-
-// calculate position of a link atom (see: doi 10.1002/jcc.20857)
-coords::cartesian_type energy::interfaces::qmmm::QMMM::calc_position(bonded::LinkAtom link)
-{
-  coords::cartesian_type r_MM = coords->xyz(link.mm);
-  coords::cartesian_type r_QM = coords->xyz(link.qm);
-  double d_MM_QM = dist(r_MM, r_QM);
-
-  coords::cartesian_type pos = r_QM + ((r_MM - r_QM) / d_MM_QM) * link.deq_L_QM;
-  return pos;
-}
-
-// creates link atom for every QM/MM bond
-void energy::interfaces::qmmm::QMMM::create_link_atoms()
-{
-  for (auto b : qmmm_bonds)
-  {
-    //create link atom
-    bonded::LinkAtom link;
-    link.qm = b.b;
-    link.mm = b.a;
-
-    // determine equilibrium distance between link atom and QM atom from force field
-    auto b_type_qm = tp.type(coords->atoms().atom(b.b).energy_type(), tinker::potential_keys::BOND);
-    size_t b_type_L;
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA)
-    {
-      b_type_L = tp.type(85, tinker::potential_keys::BOND);
-    }
-    else if (Config::get().energy.qmmm.mminterface == config::interface_types::T::AMBER)
-    {
-      b_type_L = tp.type(3024, tinker::potential_keys::BOND);
-    }
-    else throw("Something went wrong. Invalid MM interface for QM/MM.");
-    for (auto b_param : tp.bonds())
-    {
-      if (b_param.index[0] == b_type_qm && b_param.index[1] == b_type_L)  link.deq_L_QM = b_param.ideal;
-      else if (b_param.index[0] == b_type_L && b_param.index[1] == b_type_qm) link.deq_L_QM = b_param.ideal;
-    }
-    if (link.deq_L_QM == 0.0)  throw std::runtime_error("Determining position of link atom is not possible.\n");
-
-    // calculate position of link atom
-    link.position = calc_position(link);
-
-    // add link atom to vector
-    link_atoms.push_back(link);
   }
 }
 
@@ -494,19 +315,26 @@ void energy::interfaces::qmmm::QMMM::prepare_bonded_qmmm()
 		  std::cout << a.info() << "\n";
 	  }
   }
-
-  create_link_atoms(); // create link atoms
 }
 
 void energy::interfaces::qmmm::QMMM::update_representation()
 {
-  std::size_t qi = 0u;
+  std::size_t qi = 0u;   // update positions of QM system
   for (auto i : qm_indices)
   {
     qmc.move_atom_to(qi, coords->xyz()[i], true);
     ++qi;
   }
-  std::size_t mi = 0u;
+
+	for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms in QM system
+	for (int i = 0; i < link_atoms.size(); ++i)
+	{
+		int index = qm_indices.size() + i;
+		coords::cartesian_type &new_pos = link_atoms[i].position;
+		qmc.move_atom_to(index, new_pos, true);
+	}
+
+  std::size_t mi = 0u;       // update positions of MM system
   for (auto j : mm_indices)
   {
     mmc.move_atom_to(mi, coords->xyz()[j], true);
@@ -530,10 +358,10 @@ void energy::interfaces::qmmm::QMMM::write_mol_in()
     for (std::size_t i = 0; i < n_qm; ++i)
     {
       double qi{};
-      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)
+      for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j)
       {
         auto d = len(coords->xyz(qm_indices[i]) - coords->xyz(mm_indices[j]));
-        qi += mm_charge_vector[j] / d;
+        qi += Config::get().energy.qmmm.mm_charges[j].charge / d;
       }
       qi *= elec_factor;
       molstream << "0 0 0 0 " << qi << "\n";
@@ -546,297 +374,72 @@ void energy::interfaces::qmmm::QMMM::write_mol_in()
   }
 }
 
-// write gaussian inputfile
-void energy::interfaces::qmmm::QMMM::write_gaussian_in(char calc_type)
-{
-  std::string id = qmc.energyinterface()->get_id();
-  id += "_G_";
-  std::string outstring(id);
-  outstring.append(".gjf");
-
-  std::ofstream out_file(outstring.c_str(), std::ios_base::out);
-
-  if (out_file)
-  {
-    if (Config::get().energy.gaussian.link.length() != 0) { //if no link commands are issued the line wil be skipped
-
-      std::istringstream iss(Config::get().energy.gaussian.link);
-
-      std::vector<std::string> splitted_str(
-        std::istream_iterator<std::string>{iss},
-        std::istream_iterator<std::string>{}
-      );
-
-      for (std::size_t i = 0; i < splitted_str.size(); i++)
-      {
-        out_file << '%' << splitted_str[i] << '\n';
-      }
-
-    }
-    out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " " << "Charge NoSymm ";
-
-    switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
-    case 'g':
-      out_file << " Force Prop=(Field,Read) Density";
-      break;
-    }
-
-    out_file << '\n';
-    out_file << '\n';
-    out_file << Config::get().general.outputFilename;
-    out_file << '\n';
-    out_file << '\n';
-    out_file << Config::get().energy.gaussian.charge << " ";
-    out_file << Config::get().energy.gaussian.multipl;
-    out_file << '\n';
-    out_file << coords::output::formats::xyz(qmc);
-    if (link_atoms.size() > 0)  // if link atoms: add them to inputfile
-    {
-      for (auto l : link_atoms)
-      {
-        out_file << std::left << std::setw(3) << "H";
-        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.x();
-        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.y();
-        out_file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << l.position.z();
-        out_file << '\n';
-      }
-    }
-    out_file << '\n';
-    for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing additional point charges (from MM atoms)
-    {
-      bool use_charge = true;
-      for (auto b : qmmm_bonds)   // do not add M1 atom to charges
-      {
-        if (mm_indices[j] == b.a) use_charge = false;
-      }
-      if (use_charge == true)
-      {
-        out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << " " << mm_charge_vector[j] << "\n";
-      }
-    }
-    out_file << '\n';
-    if (Config::get().energy.gaussian.method == "DFTB=read")
-    {
-      std::vector<std::vector<std::string>> pairs = find_pairs(*coords);
-      for (auto p : pairs)
-      {
-        std::string filename = p[0] + "-" + p[1] + ".skf";
-        if (file_exists(filename) == false)
-        {
-          std::cout << "ERROR! Slater Koster file " << filename << " does not exist. Please download it from dftb.org and convert it with the task MODIFY_SK_FILES!\n";
-          std::exit(0);
-        }
-        out_file << "@./" << filename << " /N\n";
-      }
-      out_file << "\n";
-    }
-    else if (Config::get().energy.gaussian.method == "DFTBA")
-    {
-      out_file << "@GAUSS_EXEDIR:dftba.prm\n\n";
-    }
-    if (calc_type == 'g')
-    {
-      for (std::size_t j = 0; j < mm_charge_vector.size(); ++j)  // writing points for electric field (positions of MM atoms)
-      {
-        bool use_charge = true;
-        for (auto b : qmmm_bonds)   // do not add M1 atom to points to electric field
-        {
-          if (mm_indices[j] == b.a) use_charge = false;
-        }
-        if (use_charge == true)
-        {
-          out_file << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "\n";
-        }
-      }
-    }
-    out_file.close();
-  }
-  else std::runtime_error("Writing Gaussian Inputfile failed.");
-}
-
-// write inputfiles for DFTB+ (real inputfile and file with MM charges)
-void energy::interfaces::qmmm::QMMM::write_dftb_in(char calc_type)
-{
-  std::ofstream chargefile("charges.dat");
-  for (int j = 0; j < mm_charge_vector.size(); j++)
-  {
-    bool use_charge = true;
-    for (auto b : qmmm_bonds)   // do not add M1 atom to charges
-    {
-      if (mm_indices[j] == b.a) use_charge = false;
-    }
-    if (use_charge == true)
-    {
-      chargefile << coords->xyz(mm_indices[j]).x() << " " << coords->xyz(mm_indices[j]).y() << " " << coords->xyz(mm_indices[j]).z() << "  " << mm_charge_vector[j] << "\n";
-    }
-  }
-  chargefile.close();
-
-  // create a vector with all element symbols that are found in the structure
-  // are needed for writing angular momenta into inputfile
-  std::vector<std::string> elements;
-  for (auto a : qmc.atoms())
-  {
-    if (is_in(a.symbol(), elements) == false)
-    {
-      elements.push_back(a.symbol());
-    }
-  }
-
-  // create inputfile
-  std::ofstream file("dftb_in.hsd");
-
-  // write geometry
-  file << "Geometry = GenFormat {\n";
-  file << qmc.size()+link_atoms.size() << "  C\n";  // no supercells possible
-  for (auto s : elements)
-  {
-    file << s << " ";
-  }
-  file << "\n";
-  for (std::size_t i(0U); i < qmc.size(); ++i)  // atoms of QM coordobject
-  {
-    file << std::left << std::setw(5) << i + 1 << std::left << std::setw(5) << find_index(qmc.atoms(i).symbol(), elements) + 1;
-    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).x();
-    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).y();
-    file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << qmc.xyz(i).z();
-    file << '\n';
-  }
-  if (link_atoms.size() > 0)  // if link atoms: add them to inputfile
-  {
-    for (std::size_t i(0U); i < link_atoms.size(); ++i)
-    {
-      file << std::left << std::setw(5) << qmc.size() + i + 1 << std::left << std::setw(5) << find_index(std::string("H"), elements) + 1;
-      file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.x();
-      file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.y();
-      file << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << link_atoms[i].position.z();
-      file << '\n';
-    }
-  }
-  file << "}\n\n";
-
-  // write information that is needed for SCC calculation
-  file << "Hamiltonian = DFTB {\n";
-  file << "  SCC = Yes\n";
-  file << "  SCCTolerance = " << std::scientific << Config::get().energy.dftb.scctol << "\n";
-  file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
-  file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
-  file << "  SlaterKosterFiles = Type2FileNames {\n";
-  file << "    Prefix = '" << Config::get().energy.dftb.sk_files << "'\n";
-  file << "    Separator = '-'\n";
-  file << "    Suffix = '.skf'\n";
-  file << "  }\n";
-
-  file << "  ElectricField = {\n";
-  file << "    PointCharges = {\n";
-  file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
-  file << "        Records = " << mmc.size()-qmmm_bonds.size() << "\n";  // number of charges
-  file << "        File = 'charges.dat'\n";
-  file << "      }\n";
-  file << "    }\n";
-  file << "  }\n";
-
-  file << "  MaxAngularMomentum {\n";
-  for (auto s : elements)
-  {
-    char angular_momentum = angular_momentum_by_symbol(s);
-    if (angular_momentum == 'e')
-    {
-      std::cout << "Angular momentum for element " << s << " not defined. \n";
-      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
-      std::cout << "Talk to a CAST developer if this is not possible for you.";
-      std::exit(0);
-    }
-    file << "    " << s << " = " << angular_momentum << "\n";
-  }
-  file << "  }\n";
-  file << "}\n\n";
-
-  // which information will be saved after calculation?
-  file << "Options {\n";
-  file << "  WriteResultsTag = Yes\n";
-  file << "  RestartFrequency = 0\n";   // does not work together with driver
-  if (Config::get().energy.dftb.verbosity < 2) file << "  WriteDetailedOut = No\n";
-  file << "}\n\n";
-
-  // additional analysis that should be performed
-  file << "Analysis = {\n";
-  file << "  WriteBandOut = No\n";
-  if (calc_type == 'g') file << "  CalculateForces = Yes\n";
-  file << "}\n\n";
-
-  // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
-  file << "ParserOptions {\n";
-  file << "  ParserVersion = 5\n";
-  file << "}";
-}
-
-// remove QM charges from AMBER charges (only to be performed once in a CAST run)
-void energy::interfaces::qmmm::QMMM::remove_qm_charges()
-{
-  std::vector<coords::float_type> c = Config::get().coords.amber_charges;  // get AMBER charges
-  std::vector<coords::float_type> charges_temp;
-  for (int i = 0; i<c.size(); i++)
-  {
-    if (is_in(i, mm_indices))  // find atom charges for MM atoms
-    {
-      charges_temp.push_back(c[i]);   // add charges of MM atoms to new vector
-    }
-  }
-  Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
-}
-
 /**calculates energies and gradients
-@paran if_gradient: true if gradients should be calculated, false if not*/
+@param if_gradient: true if gradients should be calculated, false if not*/
 coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 {
+	if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
+		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
+		for (auto &l : link_atoms)
+		{
+			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+		}
+		throw std::runtime_error("wrong number of link atom types");
+	}
+
   integrity = true;
-  auto elec_factor = 332.0;
 
-  if (Config::get().coords.amber_charges.size() > mm_indices.size()) remove_qm_charges();
-  mm_charge_vector = mmc.energyinterface()->charges();
+	// ############### CREATE MM CHARGES ######################
 
-  auto aco_p = dynamic_cast<energy::interfaces::aco::aco_ff const*>(mmc.energyinterface());
-  if (aco_p)
-  {
-    elec_factor = aco_p->params().general().electric;
-  }
+	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
+	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
+
+	bool use_charge;
+	int counter = 0;
+	for (auto mm : mm_indices) // go through all MM atoms
+	{
+		use_charge = true;
+		for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom
+		{
+			if (l.mm == mm) use_charge = false;
+		}
+		if (use_charge)  // for the other create a PointCharge and add it to vector
+		{
+			PointCharge new_charge;
+			new_charge.charge = mm_charge_vector[counter];
+			new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
+			Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+		}
+		counter += 1;
+	}
 
   update_representation(); // update positions of QM and MM subsystem to those of coordinates object
-  for (auto &l : link_atoms) l.position = calc_position(l); // update positions of link atoms
+  for (auto &l : link_atoms) l.calc_position(coords) ; // update positions of link atoms
 
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC)
   {
     write_mol_in();
   }
-  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN)
-  {
-    char calc_type = 'e';
-    if (if_gradient == true) calc_type = 'g';
-    write_gaussian_in(calc_type);
-  }
-  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
-  {
-    char calc_type = 'e';
-    if (if_gradient == true) calc_type = 'g';
-    write_dftb_in(calc_type);
-  }
+  else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) {}  // these QM interfaces are allowed
+	else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB) {}
   else throw std::runtime_error("Chosen QM interface not implemented for QM/MM!");
 
   try {
     qm_energy = qmc.g();  // get energy for QM part and save gradients for QM part
     if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN ||
 		    Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB)
-    {   // electric field for QM and MM atoms (for GAUSSIAN) or coulomb gradients on MM atoms (for DFTB+)
-      g_coul_mm = qmc.energyinterface()->get_g_coul_mm();
+    {   // coulomb gradients on MM atoms 
+      g_coul_mm = qmc.energyinterface()->get_g_ext_chg();
     }
   }
   catch(...)
   {
-	std::cout << "QM programme failed. Treating structure as broken.\n";
+	  std::cout << "QM programme failed. Treating structure as broken.\n";
     integrity = false;  // if QM programme fails: integrity is destroyed
   }
   if (Config::get().energy.qmmm.qminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input) std::remove("mol.in");
+  Config::set().energy.qmmm.mm_charges.clear();  // no external charges for MM calculation
 
   ww_calc(if_gradient);  // calculate interactions between QM and MM part
 
@@ -851,39 +454,26 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
-      int counter = 0;
       for (auto&& qmi : qm_indices)
       {
         new_grad[qmi] += g_qm[new_indices_qm[qmi]];
-        counter += 1;
       }
 
-      // calculate gradients from link atoms (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
-      coords::Gradients_3D link_grads = qmc.energyinterface()->get_link_atom_grad();
+      // calculate gradients from link atoms
       for (int j=0; j<link_atoms.size(); j++)
       {
-        bonded::LinkAtom l = link_atoms[j];
-        coords::r3 G_L = link_grads[j];
+        LinkAtom l = link_atoms[j];
+				auto link_atom_grad = g_qm[qm_indices.size() + j];
+        coords::r3 G_QM, G_MM;
 
-        double g = l.deq_L_QM / dist(coords->xyz(l.mm), coords->xyz(l.qm));
+        qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, G_QM, G_MM);
 
-        coords::r3 n = (coords->xyz(l.mm) - coords->xyz(l.qm)) / dist(coords->xyz(l.mm), coords->xyz(l.qm));
-
-        double Gx_QM = g * scon::dot(G_L, n) *n.x() + (1 - g)*G_L.x();
-        double Gy_QM = g * scon::dot(G_L, n) *n.y() + (1 - g)*G_L.y();
-        double Gz_QM = g * scon::dot(G_L, n) *n.z() + (1 - g)*G_L.z();
-        coords::r3 G_QM(Gx_QM, Gy_QM, Gz_QM);
         new_grad[l.qm] += G_QM;
-
-        double Gx_MM = g * G_L.x() - g * scon::dot(G_L, n) * n.x();
-        double Gy_MM = g * G_L.y() - g * scon::dot(G_L, n) * n.y();
-        double Gz_MM = g * G_L.z() - g * scon::dot(G_L, n) * n.z();
-        coords::r3 G_MM(Gx_MM, Gy_MM, Gz_MM);
         new_grad[l.mm] += G_MM;
 
         if (Config::get().general.verbosity > 4)
         {
-		      std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << G_L << ".\n";
+		      std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
 		      std::cout<< "It causes a gradient on QM atom " << G_QM << " and on MM atom " << G_MM << ".\n";
         }
       }
@@ -953,7 +543,7 @@ int energy::interfaces::qmmm::QMMM::calc_vdw(int qm, int mm)
 /**calculates interaction between QM and MM part
 energy is only vdW interactions
 for MOPAC gradients are coulomb and vdW
-for GAUSSIAN gradients are vdW and coulomb on MM atoms
+for GAUSSIAN and DFTB gradients are vdW and coulomb on MM atoms
 @param if_gradient: true if gradients should be calculated, false if not*/
 void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 {
@@ -968,8 +558,17 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
   {
     elec_factor = aco_p->params().general().electric;
   }
-  try { qm_charge_vector = qmc.energyinterface()->charges(); }
+	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
+	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
+  try { 
+		qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
+		for (int i = 0; i < link_atoms.size(); ++i)
+		{                                    // remove charges from link atoms
+			qm_charge_vector.pop_back();
+		}
+	}
   catch (...) { integrity = false; }
+
   if (integrity == true)
   {
     c_gradient.assign(coords->size(), coords::r3{});
@@ -995,7 +594,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
         auto r_ij = coords->xyz(j) - coords->xyz(i); // distance between QM and MM atom
         coords::float_type d = len(r_ij);
-        set_distance(d);
 
 		    double R_0;  // r_min or sigma
 		    if (cparams.general().radiustype.value ==
@@ -1081,11 +679,11 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       ++i2;
     }
 
-    if (Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN && if_gradient == true)
-    {    // Coulomb gradients for GAUSSIAN (only on MM atoms)
+    if (if_gradient == true  && (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB || Config::get().energy.qmmm.qminterface == config::interface_types::T::GAUSSIAN) )
+    {    // Coulomb gradients on MM atoms for GAUSSIAN or DFTB+ interface
       int j2 = 0;
       for (auto j : mm_indices)
-      {   // additional force on MM atoms due to QM atoms (electrostatic interaction)
+      {   
         bool use_charge = true;
         for (auto b : qmmm_bonds)
         {
@@ -1096,36 +694,6 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
           if (Config::get().general.verbosity > 4)
           {
             std::cout << "calculate coulomb-gradient on atom " << j + 1 << "\n";
-          }
-          double charge = mm_charge_vector[j2];
-          coords::Cartesian_Point el_field = g_coul_mm[j2 + qm_indices.size()];
-          double x = charge * el_field.x();
-          double y = charge * el_field.y();
-          double z = charge * el_field.z();
-          coords::Cartesian_Point new_grad;
-          new_grad.x() = -x;
-          new_grad.y() = -y;
-          new_grad.z() = -z;
-          c_gradient[j] += new_grad;
-          j2++;
-        }
-      }
-    }
-    else if (Config::get().energy.qmmm.qminterface == config::interface_types::T::DFTB && if_gradient == true)
-    {     // Coulomb gradients on MM atoms for DFTB+
-      int j2 = 0;
-      for (auto j : mm_indices)
-      {
-        bool use_charge = true;
-        for (auto b : qmmm_bonds)
-        {
-          if (j == b.a) use_charge = false;
-        }
-        if (use_charge == true)
-        {
-          if (Config::get().general.verbosity > 4)
-          {
-            std::cout << "calculate coulomb-gradient on atom " << j+1 << "\n";
           }
           c_gradient[j] += g_coul_mm[j2];
           j2++;
@@ -1162,10 +730,9 @@ void energy::interfaces::qmmm::QMMM::swap(QMMM& rhs)
   mm_indices.swap(rhs.mm_indices);
   new_indices_mm.swap(rhs.new_indices_mm);
   new_indices_qm.swap(rhs.new_indices_qm);
+	link_atoms.swap(rhs.link_atoms);
   qmc.swap(rhs.qmc);
   mmc.swap(rhs.mmc);
-  qm_charge_vector.swap(rhs.qm_charge_vector);
-  mm_charge_vector.swap(rhs.mm_charge_vector);
   std::swap(vdw_energy, rhs.vdw_energy);
   std::swap(qm_energy, rhs.qm_energy);
   std::swap(mm_energy, rhs.mm_energy);
@@ -1210,6 +777,14 @@ coords::float_type energy::interfaces::qmmm::QMMM::o()
 
 std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
 {
+	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
+	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
+	qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
+	for (int i = 0; i < link_atoms.size(); ++i)
+	{                                    // remove charges from link atoms
+		qm_charge_vector.pop_back();
+	}
+
   std::vector<coords::float_type> v;
   v.assign(coords->size(), 0);
   std::size_t i = 0;
@@ -1267,14 +842,6 @@ void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const e
   S << std::right << std::setw(24) << vdw_energy;
   S << std::right << std::setw(24) << bonded_energy;
   S << std::right << std::setw(24) << energy;
-  if (endline) S << '\n';
-}
-
-void energy::interfaces::qmmm::QMMM::print_gnuplot(std::ostream &S, bool const endline) const
-{
-
-  S << std::right << std::setw(24) << distance;
-  S << std::right << std::setw(24) << vdw_gradient + c_gradient;
   if (endline) S << '\n';
 }
 

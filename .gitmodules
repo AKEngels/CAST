@@ -1,5 +1,9 @@
 [submodule "submodules/eigen"]
 	path = submodules/eigen
 	url = git@github.com:eigenteam/eigen-git-mirror.git
+[submodule "submodules/boost"]
 	path = submodules/boost
 	url = git@github.com:boostorg/boost.git
+[submodule "googletest"]
+	path = submodules/googletest
+	url = git@github.com/google/googletest.git

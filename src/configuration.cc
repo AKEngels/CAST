@@ -365,7 +365,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
   }
   // Name of the outputfile
-  // Default: oplsaa.prm
   else if (option == "outname")
   {
 	  // outname_check is a small function used to test if
@@ -501,8 +500,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
-    if (inter == interface_types::QMMM) Config::set().energy.qmmm.use = true;
-    else Config::set().energy.qmmm.use = false;
+    if (inter == interface_types::QMMM || inter == interface_types::ONIOM) Config::set().energy.qmmm.use = true;
   }
 
   // Preoptimizazion energy calculation interface
@@ -555,6 +553,14 @@ void config::parse_option(std::string const option, std::string const value_stri
         std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
       }
     }
+	else if (option.substr(4u) == "writeqmintofile")
+	{
+	  if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	}
+	else if (option.substr(4u) == "linkatomtype")
+	{
+	  Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
+	}
   }
 
 
@@ -637,8 +643,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
-    if (option.substr(5, 3) == "key")
-      Config::set().energy.mopac.command = value_string;
+	  if (option.substr(5, 3) == "key")
+		  Config::set().energy.mopac.command = value_string;
     else if (option.substr(5, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
@@ -702,22 +708,33 @@ void config::parse_option(std::string const option, std::string const value_stri
   //DFTB+ Options
   else if (option.substr(0, 5) == "DFTB+")
   {
-    if (option.substr(5, 4) == "path")
+    if (option.substr(5, 4) == "path"){
       Config::set().energy.dftb.path = value_string;
-    else if (option.substr(5, 7) == "skfiles")
+    }
+    else if (option.substr(5, 7) == "skfiles"){
       Config::set().energy.dftb.sk_files = value_string;
-    else if (option.substr(5, 7) == "verbose")
+    }
+    else if (option.substr(5, 7) == "verbose"){
       Config::set().energy.dftb.verbosity = std::stoi(value_string);
-    else if (option.substr(5, 6) == "scctol")
+    }
+    else if (option.substr(5, 6) == "scctol"){
       Config::set().energy.dftb.scctol = std::stod(value_string);
-    else if (option.substr(5, 13) == "max_steps_scc")
+    }
+    else if (option.substr(5, 13) == "max_steps_scc"){
       Config::set().energy.dftb.max_steps = std::stoi(value_string);
-    else if (option.substr(5, 6) == "charge")
+    }
+    else if (option.substr(5, 6) == "charge"){
       Config::set().energy.dftb.charge = std::stod(value_string);
-    else if (option.substr(5, 9) == "optimizer")
+    }
+    else if (option.substr(5, 1) == "3"){
+      if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
+    }
+    else if (option.substr(5, 9) == "optimizer"){
       Config::set().energy.dftb.opt = std::stoi(value_string);
-    else if (option.substr(5, 13) == "max_steps_opt")
+    }
+    else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
+    }
   }
 
   //Gaussian options
@@ -816,7 +833,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
   }
   else if (option.substr(0, 4) == "PSI4") {
-    auto sub_option = option.substr(5);
+    auto sub_option = option.substr(4);
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
@@ -846,7 +863,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Default: 10000
   else if (option == "BFGSmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
-
+  
+  //should trace written into file?
+  else if (option == "BFGStrace")
+    Config::set().optimization.local.bfgs.trace = bool_from_iss(cv);
 
   //! STARTOPT
   else if (option == "SOtype")

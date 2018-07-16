@@ -18,6 +18,30 @@
 
 #include "representation.h"
 
+/**struct for a point charge*/
+struct PointCharge
+{
+  /**position*/
+	double x, y, z;
+  /**charge*/
+	double charge;
+
+  /**function to set position*/
+	void set_xyz(double m_x, double m_y, double m_z)
+	{
+		x = m_x;
+		y = m_y;
+		z = m_z;
+	}
+};
+
+/**overloaded output operator for PointCharge*/
+inline std::ostream& operator<< (std::ostream& stream, const PointCharge& c)
+{
+	stream << c.x << ", " << c.y << ", " << c.z << ", charge: " << c.charge;
+	return stream;
+}
+
 namespace coords
 {
 

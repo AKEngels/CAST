@@ -60,7 +60,7 @@ void center(coords::Coordinates coords)
           if (j > 1)//calculate coretion for bondingpartnerindices
           {
             korr_bond_j = korr_bond_i;
-            for (int kj = j-1; kj > i; kj--)
+            for (auto kj = j-1; kj > i; kj--)
               korr_bond_j += coords.molecule(kj).size();
           }
 

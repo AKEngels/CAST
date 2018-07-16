@@ -75,14 +75,7 @@ namespace energy
         /**returns partial atomic charges*/
         std::vector<coords::float_type> charges() const override;
         /**returns gradients on external charges due to the molecular system (used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
-        /**overwritten function, should not be called*/
-        std::string get_id() const override
-        {
-          throw std::runtime_error("Function not implemented.\n");
-        }
-        /**get gradients on link atoms (for QM/MM)*/
-        coords::Gradients_3D get_link_atom_grad() const override;
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
 			private:
 
@@ -109,6 +102,9 @@ namespace energy
 
         /**gradients of link atoms*/
         coords::Gradients_3D link_atom_grad;
+
+        /**calculates coulomb energy the self interaction between the external charges*/
+        double calc_self_interaction_of_external_charges();
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

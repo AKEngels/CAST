@@ -105,6 +105,8 @@ task                  SP
 # DFTBABY              DFTBaby interface
 # GAUSSIAN             GAUSSIAN interface 
 # CHEMSHELL            under developement
+# QMMM                 (additive) QM/MM interface
+# ONIOM                (subtractive) QM/MM interface
 
 interface              OPLSAA
 
@@ -130,6 +132,16 @@ switchdist             10.0
 QMMMqmatoms           4-6
 QMMMmminterface       OPLSAA
 QMMMqminterface       MOPAC
+
+# write tinkerstructure of QM region into file? <0/1>
+QMMMwriteqmintofile   1
+
+# energy types of link atoms in forcefield (in the order of MM atom)
+QMMMlinkatomtype      85
+QMMMlinkatomtype      85
+QMMMlinkatomtype      221
+QMMMlinkatomtype      85
+
 
 
 ######################### MOPAC OPTIONS ###############
@@ -194,10 +206,10 @@ GAUSSIANmaxfail      1000
 ################# DFTB+ Options #################################################
 
 # path to DFTB+
-DFTB+path         /home/susanne/dftbplus/bin/dftb+
+DFTB+path         /apps/dftbplus/bin/dftb+
 
 # path to slater koster files (download at https://www.dftb.org/parameters/download/)
-DFTB+skfiles      /home/susanne/mio-1-1/
+DFTB+skfiles      /apps/dftbplus/mio-1-1/
 
 # verbosity of DFTB+
 DFTB+verbose      1
@@ -211,11 +223,36 @@ DFTB+max_steps_scc   1000
 # total charge of the system
 DFTB+charge      0.0
 
+# use DFTB3 <0/1>
+DFTB+3           0
+
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
 DFTB+optimizer    2
 
 # maximum number of steps for optimization with DFTB+ optimizer
 DFTB+max_steps_opt    5000
+
+
+################# PSI4 options ###################################################
+
+# command to execute psi4
+PSI4path             /apps/psi4/psi4_link
+
+# reserve memory
+PSI4memory           4GB
+
+# basisset for calculation
+PSI4basis            6-31G
+
+# method for calculation
+PSI4method           HF
+
+# spin multiplicity for molecule
+PSI4spin             1
+
+# charge of molecule
+PSI4charge           0
+
 
 
 ################# DFTBaby options ################################################
@@ -397,8 +434,14 @@ PeriodicCutoutDistance 0
 #                                  #
 ####################################
 
+# convergence threshold for bfgs
 BFGSgrad               0.0001
+
+#max number of steps for bfgs
 BFGSmaxstep            5000
+
+should trace written into file? <0/1>
+BFGStrace              0
 
 
 ###################################
@@ -824,12 +867,12 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-MDactive_site        11
+#MDactive_site        11
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
 
-MDcutoff                 15  20
+#MDcutoff                 15  20
 
 #adjust active center + distances with every step
 #MDadjust_by_step     <0/1>
@@ -863,16 +906,16 @@ MDresume               0
 
 # plot temperature <0/1>
 
-MDplot_temp        1
+#MDplot_temp        1
 
 # analyze temperature in different zones around active site <0/1>
 # (active site defined by MDactive site)
 
-MDanalyze_zones    1
+#MDanalyze_zones    1
 
 # zone width (Angstrom)
 
-MDzonewidth        5
+#MDzonewidth        5
 
 
 ####################################

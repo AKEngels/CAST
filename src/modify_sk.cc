@@ -118,3 +118,36 @@ char angular_momentum_by_symbol(std::string s)
   }
   else throw std::runtime_error("No Slater Koster file for element "+s+" found.\n");
 }
+
+double get_zeta()
+{
+  std::string filename = Config::get().energy.dftb.sk_files + "/dftb3.info";
+  if (file_exists(filename) == true)
+  {
+    std::ifstream file_stream(filename.c_str(), std::ios_base::in);
+    std::string line;
+    std::getline(file_stream, line);
+    std::vector<std::string> linevec = split(line, ' ', true);
+    return std::stod(linevec[1]);
+  }
+  else throw std::runtime_error("No dftb3.info file found.\n");
+}
+
+double hubbard_deriv_by_symbol(std::string s)
+{
+  std::string filename = Config::get().energy.dftb.sk_files + "/dftb3.info";
+  if (file_exists(filename) == true)
+  {
+    std::ifstream file_stream(filename.c_str(), std::ios_base::in);
+    std::string line;
+
+    while (!file_stream.eof())
+    {
+      std::getline(file_stream, line);
+      std::vector<std::string> linevec = split(line, ' ', true);
+      if (linevec[0] == s) return std::stod(linevec[1]);
+    }
+	  throw std::runtime_error("Something went wrong. No hubbard derivative for element " + s + " found.\n");
+  }
+  else throw std::runtime_error("No dftb3.info file found.\n");
+}

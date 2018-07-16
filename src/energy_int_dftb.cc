@@ -74,6 +74,19 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
   }
 
+  // create a chargefile for external charges if desired (needed for QM/MM methods)
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+	  std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
+	  std::ofstream chargefile("charges.dat");
+	  for (int j = 0; j < charge_vector.size(); j++)
+	  {
+		  chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+	  }
+	  chargefile.close();
+  }
+  
+
   // create inputfile
   std::ofstream file("dftb_in.hsd");
 
@@ -110,20 +123,38 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
 
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)  // include chargefile
+  {
+	  file << "  ElectricField = {\n";
+	  file << "    PointCharges = {\n";
+	  file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+	  file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";  
+	  file << "        File = 'charges.dat'\n";
+	  file << "      }\n";
+	  file << "    }\n";
+	  file << "  }\n";
+  }
+
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
     char angular_momentum = angular_momentum_by_symbol(s);
-    if (angular_momentum == 'e')
-    {
-      std::cout << "Angular momentum for element " << s << " not defined. \n";
-      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
-      std::cout << "Talk to a CAST developer if this is not possible for you.";
-      std::exit(0);
-    }
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+  if (Config::get().energy.dftb.dftb3 == true)
+  {
+    file << "  ThirdOrderFull = Yes\n";
+    file << "  DampXH = Yes\n";
+    file << "  DampXHExponent = " << get_zeta() << "\n";
+    file << "  HubbardDerivs {\n";
+    for (auto s : elements)
+    {
+      double hubbard_deriv = hubbard_deriv_by_symbol(s);
+      file << "    " << s << " = " << hubbard_deriv << "\n";
+    }
+    file << "  }\n";
+  }
   file << "}\n\n";
 
   // which information will be saved after calculation?
@@ -147,10 +178,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 {
-  if (file_exists("results.tag") == false) // if SCC does not converge DFTB+ doesn't produce this file
+  std::string res_filename{ "results.tag" };
+  if (file_is_empty(res_filename)) // if SCC does not converge this file is empty
   {
-    std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
+    std::cout << "DFTB+ produced an empty output file. Treating structure as broken.\n";
     integrity = false;
+		return 0.0;      // return zero-energy because no energy was calculated
   }
 
   // successfull SCC -> read output
@@ -200,7 +233,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         }
       }
 
-      else if (Config::get().energy.qmmm.use == true)
+      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
@@ -299,6 +332,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
 
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+    double ext_chg_energy = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges
+    energy -= ext_chg_energy;  // subtract self-interaction because it's already in MM calculation
+  }
+
   // check if geometry is still intact
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
@@ -342,7 +381,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = check_structure();
   if (integrity == true)
   {
-    if (Config::get().energy.qmmm.use == false) write_inputfile(1);
+    write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
     return energy;
@@ -406,6 +445,27 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
 
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
 
+double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
+{
+  double energy{ 0.0 };
+  for (int i=0; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  {
+    auto c1 = Config::get().energy.qmmm.mm_charges[i];
+    for (int j = 0; j < i; ++j)
+    {
+      auto c2 = Config::get().energy.qmmm.mm_charges[j];
+
+      double dist_x = c1.x - c2.x;
+      double dist_y = c1.y - c2.y;
+      double dist_z = c1.z - c2.z;
+      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
+
+      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
+    }
+  }
+  return energy;
+}
+
 bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) const
 {
   std::size_t const N(coords->size());
@@ -461,7 +521,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")
+      if (line.substr(0, 27) == "gross_atomic_charges:real:1")
       {
         for (int i = 0; i < coords->size(); i++)
         {
@@ -475,12 +535,8 @@ energy::interfaces::dftb::sysCallInterface::charges() const
 }
 
 std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
+energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
 {
   return grad_ext_charges;
 }
 
-coords::Gradients_3D energy::interfaces::dftb::sysCallInterface::get_link_atom_grad() const
-{
-  return link_atom_grad;
-}

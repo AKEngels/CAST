@@ -105,22 +105,12 @@ namespace energy {
         /**overwritten function, should not be called*/
         std::vector<coords::float_type> charges() const override
         {
-          throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
+          throw std::runtime_error("TODO: Implement charge getter for CHEMSHELL.\n");
         }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
           throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
-        /**overwritten function*/
-        std::string get_id() const override
-        {
-          throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
         }
 
 			private:

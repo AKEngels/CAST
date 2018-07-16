@@ -83,9 +83,12 @@ void energy::interfaces::aco::aco_ff::calc(void)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
   }
-  else
-    g_nb< ::tinker::parameter::radius_types::SIGMA>();
+  else g_nb< ::tinker::parameter::radius_types::SIGMA>();
 
+	if (Config::get().energy.qmmm.mm_charges.size() != 0)
+	{
+		calc_ext_charges_interaction(DERIV);
+	}
 }
 
 
@@ -864,10 +867,51 @@ namespace energy
         }
       }
 
+			void aco::aco_ff::calc_ext_charges_interaction(size_t deriv)
+			{
+        auto elec_factor = 332.0;  // factor for conversion of charge product into amber units
+				grad_ext_charges.clear();  // reset vector for gradients of external charges
+        coords::Cartesian_Point ext_grad;
+
+				for (auto &c : Config::get().energy.qmmm.mm_charges) // loop over all external charges
+				{
+          ext_grad.x() = 0.0;  // set ext_grad for current charge to zero
+          ext_grad.y() = 0.0;
+          ext_grad.z() = 0.0;
+
+					for (int i=0; i<coords->size(); ++i)               // loop over all atoms
+					{
+            double atom_charge = charges()[i];
+						double charge_product = c.charge * atom_charge *elec_factor; 
+
+            double dist_x = coords->xyz(i).x() - c.x;
+            double dist_y = coords->xyz(i).y() - c.y;
+            double dist_z = coords->xyz(i).z() - c.z;
+            coords::Cartesian_Point vector{ dist_x,dist_y,dist_z }; // connection vector between charge and atom
+
+						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);  // distance or length of vector
+						double inverse_dist = 1.0 / dist;  // get inverse distance
+
+						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
+
+						else  // gradient calculation
+						{
+							coords::float_type dQ;
+							energy += gQ(charge_product, inverse_dist, dQ);
+
+              coords::Cartesian_Point grad = (vector/dist) * dQ;     // dQ is a float, now the gradient gets a direction
+
+							part_grad[CHARGE][i] += grad;  // gradient on atom
+							ext_grad -= grad;              // gradient on external charge
+						}
+					}
+					grad_ext_charges.push_back(ext_grad);  // add gradient on external charge to vector
+				}
+			}
 
       /**calculate coulomb potential;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: inverse distance between the two atoms */
       coords::float_type energy::interfaces::aco::aco_ff::eQ
       (coords::float_type const C, coords::float_type const ri) const
@@ -877,7 +921,7 @@ namespace energy
 
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: inverse distance between the two atoms
       @param dQ: reference to variable that saves absolute value of gradient */
       coords::float_type energy::interfaces::aco::aco_ff::gQ
@@ -890,7 +934,7 @@ namespace energy
 
       /**calculate coulomb potential and gradient for FEP;
       returns the energy
-      @param C: product of the charges
+      @param C: product of the charges (in amber-units)
       @param ri: distance between the two atoms
       @param cout: lambda_el
       @param dQ: reference to variable that saves absolute value of gradient */
@@ -991,13 +1035,12 @@ namespace energy
         (coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const vout, coords::float_type &dV) const
       {
-        coords::float_type D6, D12, D13, T2;
+        coords::float_type D6, D12, T2;
         coords::float_type T = R, D = r*r;
         T = T*T*T; // T^3
         T = T*T; // T^6
         T2 = T*T; // T^12
         D6 = D*D*D; //r^6 / D^3
-        D13 = D6*D6*r; //r^13
         D6 = Config::get().fep.ljshift * (1 - vout) * (1 - vout) * T + D6; //r^6 shifted
         D12 = D6 * D6; //r^12 shifted
         coords::float_type V = vout * E * (T2 / D12 - 2 * T / D6);   //potential

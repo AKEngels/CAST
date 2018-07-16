@@ -149,6 +149,7 @@ std::vector<coords::float_type> energy::interfaces::aco::aco_ff::charges() const
   
   if (c.size() != coords->size())  // check if correct number of parameters is found
   {
+		std::cout << "found " << c.size() << " charges but system has " << coords->size() << " atoms\n";
     throw std::runtime_error("Didn't find all charges.");
   }
   return c;
