@@ -143,11 +143,6 @@ struct dihedral : public internal_coord /*: public dihedral_points<CP_isLVal>, p
   float_type hessian_guess(coords::Representation_3D const& xyz) const override;
   std::string info(coords::Representation_3D const& xyz) const override;
 
-  std::size_t get_ind_a() { return index_a_; }
-  std::size_t get_ind_b() { return index_b_; }
-  std::size_t get_ind_c() { return index_c_; }
-  std::size_t get_ind_d() { return index_d_; }
-
   std::size_t index_a_;
   std::size_t index_b_;
   std::size_t index_c_;
