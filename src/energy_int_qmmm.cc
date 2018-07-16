@@ -640,7 +640,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
     }
 
 		if (if_gradient == true)
-		{    // Coulomb gradients on MM atoms for all interfaces except MOPAC
+		{    // Coulomb gradients on MM atoms 
 			for (auto i = 0u; i < charge_indices.size(); ++i)
 			{
 				int mma = charge_indices[i];
