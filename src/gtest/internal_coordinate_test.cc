@@ -36,7 +36,7 @@ public:
   }
 
   std::pair<coords::r3, coords::r3> testBondDerivatives() {
-
+    return bond.der(moleculeCartesianRepresentation);
   }
 
 private:
@@ -48,16 +48,21 @@ private:
 };
 
 TEST_F(InternalCoordinatesTest, testBondLength) {
-  auto bondLength = testBondLength();
   EXPECT_EQ(testBondLength(), 1.397781456451616);
 }
 
 TEST_F(InternalCoordinatesTest, testAngleValue) {
-  auto angleVal = testAngleValue();
   EXPECT_EQ(testAngleValue(), 0.52901078997179596);
 }
 
 TEST_F(InternalCoordinatesTest, testDihedralValue) {
-  auto angleVal = testDihedralValue();
   EXPECT_EQ(testDihedralValue(), 0.56342327253755931);
+}
+
+TEST_F(InternalCoordinatesTest, testBondDerivatives) {
+  std::pair<coords::r3, coords::r3> testValuesForDerivatives;
+  testValuesForDerivatives.first = coords::r3{ -0.98441712304088669, -0.16526188620817209, -0.060095231348426204 };
+  testValuesForDerivatives.second = -testValuesForDerivatives.first;
+
+  EXPECT_EQ(testBondDerivatives(), testValuesForDerivatives);
 }
