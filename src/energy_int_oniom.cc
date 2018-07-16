@@ -194,14 +194,31 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 	  {
 		  if (qm == i) use_charge = false;
 	  }
-	  if (use_charge)  // for the other create a PointCharge and add it to vector
+	  if (use_charge)  // for the other 
 	  {
-		  PointCharge new_charge;
-		  new_charge.charge = charge_vector[i];
-		  new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-		  Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qm : qm_indices)
+				{
+					auto dist = len(coords->xyz(i) - coords->xyz(qm));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+			}
 
-      charge_indices.push_back(i);  // add index to charge_indices
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = charge_vector[i];
+				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+				charge_indices.push_back(i);  // add index to charge_indices
+			}
 	  }
   }
 
