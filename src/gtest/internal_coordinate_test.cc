@@ -54,6 +54,9 @@ public:
   std::tuple<coords::r3, coords::r3, coords::r3> testAngleDerivatives() {
     return angle.der(moleculeCartesianRepresentation);
   }
+  std::tuple<coords::r3, coords::r3, coords::r3, coords::r3> testDihedralDerivatives() {
+    return dihedralAngle.der(moleculeCartesianRepresentation);
+  }
 
 private:
   coords::Representation_3D moleculeCartesianRepresentation;
@@ -95,4 +98,15 @@ TEST_F(InternalCoordinatesTest, testAngleDerivatives) {
   isCartesianPointNear(std::get<0>(angleDerivatives), coords::r3{ -0.062056791850036874, 0.27963965489457271, 0.24754030125005314 });
   isCartesianPointNear(std::get<1>(angleDerivatives), coords::r3{ -0.10143003133725584, -0.13768014867512546, -0.11073454633478358 });
   isCartesianPointNear(std::get<2>(angleDerivatives), coords::r3{ 0.16348682318729271, -0.14195950621944725, -0.13680575491526956 });
+}
+
+TEST_F(InternalCoordinatesTest, testDihedralDerivatives) {
+  std::tuple<coords::r3, coords::r3, coords::r3> testValuesForDerivatives;
+
+  auto dihedralDerivatives = testDihedralDerivatives();
+
+  isCartesianPointNear(std::get<0>(dihedralDerivatives), coords::r3{ 0.047760930904702938, -0.49023624122103959, 0.56578012853796311 });
+  isCartesianPointNear(std::get<1>(dihedralDerivatives), coords::r3{ -0.056149623980491933, 0.17150456631353736, -0.11870115223680294 });
+  isCartesianPointNear(std::get<2>(dihedralDerivatives), coords::r3{ -0.084250009050912372, 0.23597149360212683, -0.14926917153430774 });
+  isCartesianPointNear(std::get<3>(dihedralDerivatives), coords::r3{ 0.092638702126701375, 0.082760181305375408, -0.29780980476685243 });
 }
