@@ -325,6 +325,19 @@
 		d2\end{lstlisting}
 
 		The name for the TeraChem input has to be \glqq \textit{CAST\_TERACHEM\_OPTIONS.txt}\grqq.
+		
+		\subsubsection{Psi4}
+		
+			\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+		variable & effect & type [default value] \\
+		\hline
+			PSI4path  & path to Psi4 including command & string [no default]\\
+			PSI4memory  & memory that is reserved for the Psi4 calculation & string [no default]\\
+			PSI4basis & basisset for Psi4 calculation & string [no default]\\
+			PSI4method & calculation method for Psi4 (e.\,g. HF) &  string [no default]\\
+      PSI4spin & spin multiplicity for molecule & string [no default]\\
+			PSI4charge   & Total charge of the sytem &string [no default] \\
+		\end{longtable}~\\
 			
 			%Gaussian
 			\subsubsection{Gaussian}
@@ -468,7 +481,7 @@ There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= sca
         self.smooth_tail = smooth_tail
 \end{lstlisting}
 
-\paragraph{Run CAST with DFTB}\mbox{}\\
+\paragraph{Run CAST with DFTBaby}\mbox{}\\
 
 If you want to run CAST with DFTBaby, set the interface parameter in the CAST inputfile to DFTBABY. To interact with DFTBaby CAST needs access to the file ``dftbaby\_interface.py'', currently located in the folder ``cast/optional\_files/build/python\_modules''. If you run CAST from the build folder all is well. Otherwise you have to create a subfolder in the folder where you run CAST called ``python\_modules'' and copy the file there. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
 
@@ -502,17 +515,28 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC (only additive QM/MM), GAUSSIAN and DFTB\textsuperscript{+}, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. All combinations of these QM and MM interfaces are possible with non-bonded QM/MM, i.\,e. there must not be bonds between the QM and MM system. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part, even for additive QM/MM. Coulomb interaction is done by electrostatic embedding so the charges of the MM atoms are taken into account when calculating the energy and the charge distribution of the QM part.
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC (only additive QM/MM), GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. All combinations of these QM and MM interfaces are possible with non-bonded QM/MM, i.\,e. there must not be bonds between the QM and MM system. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part, even for additive QM/MM. Coulomb interaction is done by electrostatic embedding so the charges of the MM atoms are taken into account when calculating the energy and the charge distribution of the QM part.
 
-A link atom approach is implemented to run a bonded QM/MM calculation with DFTB\textsuperscript{+} or GAUSSIAN as QM interface and OPLSAA or AMBER as MM interface. The atom type of the link atoms must be given by the option ``QMMMlinkatomtype''. This option must be given as often as the number of link atoms in your system and the types must be in the order of the MM atoms that correspond to the link atoms. Dealing with charges is done by switching off the M1 charge for the coulomb interactions between QM and MM system and keeping all the other MM charges. This is the same as the option \textit{scalecharge}=555 in gaussian oniom calculations.
+A link atom approach is implemented to run a bonded QM/MM calculation with DFTB\textsuperscript{+} or GAUSSIAN as QM interface and OPLSAA or AMBER as MM interface. The atom type of the link atoms must be given by the option ``QMMMlinkatomtype''. This option must be given as often as the number of link atoms in your system and the types must be in the order of the MM atoms that correspond to the link atoms. Dealing with charges is done by switching off the M1 charge for the coulomb interactions between QM and MM system and keeping all the other MM charges. This is the same as the option \textit{scalecharge}=555 in gaussian oniom calculations. Furthermore there is a cutoff (given by ``QMMMcutoff''). MM atoms whose distance to the nearest QM atom is more than this are not taken into account for the electrostatic interactions.
 
-To use this interface set the energy interface to ``QMMM'' for an additive scheme or ``ONIOM'' for a subtractive scheme (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see \url{http://openmopac.net/manual/QMMM.html}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}. For DFTB+ the commands that tell DFTB+ to deal with external charges are also set automatically.
+To use this interface set the energy interface to ``QMMM'' for an additive scheme or ``ONIOM'' for a subtractive scheme (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see \url{http://openmopac.net/manual/QMMM.html}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}. For DFTB+ and PSI4 the commands that tell DFTB+ to deal with external charges are also set automatically.
 
 By ``QMMMqmatoms'' you define which atoms belong to the QM system (of course all other atoms then belong to the MM system). Write the indizes in TINKER indexation (i.\,e. starting with 1) either separated by comma (``1,5,7'') or as a range (``1-4''). The keyword ``QMMMmminterface'' tells CAST which forcefield to use as MM interface (this has to be in accordance with the parameter file and the parametrization of your input structure). The keyword ``QMMMqminterface'' sets the QM program. If you activate ``QMMMwriteqmintofile'' a tinkerstructure of the QM region (with link atoms) is written to the file ``qm\_region.arc''.
 
 \textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group) are in the MM part near the QM part. So try to avoid this situation.
 
 As in the subtractive QM/MM approach the QM and MM system are treated in a similar way you can combine them as you want. So it is for example possible to use DFTB\textsuperscript{+} as ``MM'' method and GAUSSIAN as QM method. But you have to pay attention because your MM interface is used twice during the calculation, once for the total system and once for the QM system. But the options for the interface can only be given once. So for example the total charge of the system that is a necessary option in the DFTB\textsuperscript{+} must be the same for the total system and the QM system, otherwise it is not possible to use DFTB\textsuperscript{+} as MM interface. As the position of the link atoms is always defined by the forcefield parameters your system has to be parameterized and a suitable parameter file must be given. 
+
+			\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+		variable & effect & type [default value] \\
+		\hline
+			QMMMqmatoms  & atom numbers of QM system (starting with 1) & std::vector [none]\\
+			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
+			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
+			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
+      QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the MM atoms to which the link atom belongs & int \\
+		\end{longtable}~\\
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
