@@ -23,7 +23,7 @@ inline void isCartesianPointNear(coords::r3 const& lhs, coords::r3 const& rhs) {
 } // namespace
 
 SubsystemOfTwoMethanolMolecules::SubsystemOfTwoMethanolMolecules()
-  : subSystem{ coords::Representation_3D{coords::r3{ -6.053, -0.324, -0.108 },
+  : subSystem{ {coords::r3{ -6.053, -0.324, -0.108 },
                                      coords::r3{ -4.677, -0.093, -0.024 },
                                      coords::r3{ -6.262, -1.158, -0.813 },
                                      coords::r3{ -6.582, 0.600, -0.424 },
@@ -38,6 +38,27 @@ SubsystemOfTwoMethanolMolecules::SubsystemOfTwoMethanolMolecules()
       "C", "O", "H", "H", "H", "H", "C", "O", "H", "H", "H", "H"
     } } {
   subSystem.cartesianRepresentation /= energy::bohr2ang;
+}
+
+RotatetdMethanolMolecules::RotatetdMethanolMolecules()
+    : initialMethanolSystem{ { coords::r3{ -0.321, -0.087, 0.12733 },
+                               coords::r3{ 1.055, 0.144, 0.21133 },
+                               coords::r3{ -0.53, -0.921, -0.57767 },
+                               coords::r3{ -0.85, 0.837, -0.18867 },
+                               coords::r3{ -0.699, -0.376, 1.12933 },
+                               coords::r3{ 1.345, 0.403, -0.70167 } },
+                             { "C", "O", "H", "H", "H", "H" } },
+      rotatedMethanolSystem{ {
+                                 coords::r3{ 0.12733, -0.087, 0.321 },
+                                 coords::r3{ 0.21133, 0.144, -1.055 },
+                                 coords::r3{ -0.57767, -0.921, 0.53 },
+                                 coords::r3{ -0.18867, 0.837, 0.85 },
+                                 coords::r3{ 1.12933, -0.376, 0.699 },
+                                 coords::r3{ -0.70167, 0.403, -1.345 },
+                             },
+                             { "C", "O", "H", "H", "H", "H" } } {
+  initialMethanolSystem.cartesianRepresentation /= energy::bohr2ang;
+  rotatedMethanolSystem.cartesianRepresentation /= energy::bohr2ang;
 }
 
 InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()

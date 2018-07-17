@@ -28,12 +28,12 @@ struct RotatetdMethanolMolecules : MethanolMoleculesImpl {
   RotatetdMethanolMolecules();
   Molecule & getOneRepresentation() override { throw std::runtime_error("Wrong Implementation. Use one of the other Methanol implementations."); }
   std::pair<Molecule&, Molecule&> getTwoRepresentations() override {
-    return { initialMethanolSystem, roatetdMethanolSystem };
+    return { initialMethanolSystem, rotatedMethanolSystem };
   }
 
   std::vector<std::string> elementSymbols;
   Molecule initialMethanolSystem;
-  Molecule roatetdMethanolSystem;
+  Molecule rotatedMethanolSystem;
 };
 
 class InternalCoordinatesTest : public testing::Test {
