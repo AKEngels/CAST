@@ -485,7 +485,7 @@ ic_core::Rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
 }
 
 coords::float_type
-ic_core::Rotation::radius_gyration(const coords::Representation_3D& struc) {
+ic_core::Rotation::radiusOfGyration(const coords::Representation_3D& struc) {
   return ic_util::rad_gyr(struc);
 }
 

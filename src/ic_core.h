@@ -235,7 +235,7 @@ struct Rotation {
   template<typename Rep3D, typename IndexVec>
   Rotation(Rep3D&& reference, IndexVec&& index_vec):
     reference_{ std::forward<Rep3D>(reference) }, indices_{ std::forward<IndexVec>(index_vec) },
-    rad_gyr_{ radius_gyration(reference_) }{}
+    rad_gyr_{ radiusOfGyration(reference_) }{}
 
   coords::Representation_3D const reference_;
   std::vector<std::size_t> indices_;
@@ -245,7 +245,7 @@ struct Rotation {
   std::array<float_type, 3u> rot_val(const coords::Representation_3D&) const;
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&) const;
   scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&) const;
-  float_type radius_gyration(const coords::Representation_3D&);
+  float_type radiusOfGyration(const coords::Representation_3D&);
 
   //static coords::Representation_3D xyz0;
 };
