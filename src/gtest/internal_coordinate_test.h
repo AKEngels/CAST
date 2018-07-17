@@ -6,20 +6,43 @@
 #include "../coords.h"
 #include "../ic_core.h"
 
-struct TwoMethanolMolecules {
-  TwoMethanolMolecules();
+struct Molecule {
+  coords::Representation_3D cartesianRepresentation;
+  std::vector<std::string> elementSymbols;
+};
+
+struct MethanolMoleculesImpl {
+  virtual Molecule & getOneRepresentation() = 0;
+  virtual std::pair<Molecule&, Molecule&> getTwoRepresentations() = 0;
+};
+
+struct SubsystemOfTwoMethanolMolecules : MethanolMoleculesImpl {
+  SubsystemOfTwoMethanolMolecules();
+  Molecule & getOneRepresentation() override { return subSystem; }
+  std::pair<Molecule&, Molecule&> getTwoRepresentations() override { throw std::runtime_error("Wrong Implementation. Use one of the other Methanol implementations."); }
+
+  Molecule subSystem;
+};
+
+struct RotatetdMethanolMolecules : MethanolMoleculesImpl {
+  RotatetdMethanolMolecules();
+  Molecule & getOneRepresentation() override { throw std::runtime_error("Wrong Implementation. Use one of the other Methanol implementations."); }
+  std::pair<Molecule&, Molecule&> getTwoRepresentations() override {
+    return { initialMethanolSystem, roatetdMethanolSystem };
+  }
 
   std::vector<std::string> elementSymbols;
-  coords::Representation_3D moleculeCartesianRepresentation;
+  Molecule initialMethanolSystem;
+  Molecule roatetdMethanolSystem;
 };
 
 class InternalCoordinatesTest : public testing::Test {
 public:
   InternalCoordinatesTest()
-      : twoMethanolMolecules{ std::make_unique<TwoMethanolMolecules>() } {}
+      : twoMethanolMolecules{ std::make_unique<SubsystemOfTwoMethanolMolecules>() } {}
 
 protected:
-  std::unique_ptr<TwoMethanolMolecules> twoMethanolMolecules;
+  std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 
 class InternalCoordinatesDistancesTest : public InternalCoordinatesTest {

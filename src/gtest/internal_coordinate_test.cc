@@ -22,23 +22,22 @@ inline void isCartesianPointNear(coords::r3 const& lhs, coords::r3 const& rhs) {
 
 } // namespace
 
-TwoMethanolMolecules::TwoMethanolMolecules()
-    : moleculeCartesianRepresentation{ coords::r3{ -6.053, -0.324, -0.108 },
-                                       coords::r3{ -4.677, -0.093, -0.024 },
-                                       coords::r3{ -6.262, -1.158, -0.813 },
-                                       coords::r3{ -6.582, 0.600, -0.424 },
-                                       coords::r3{ -6.431, -0.613, 0.894 },
-                                       coords::r3{ -4.387, 0.166, -0.937 },
-                                       coords::r3{ -6.146, 3.587, -0.024 },
-                                       coords::r3{ -4.755, 3.671, -0.133 },
-                                       coords::r3{ -6.427, 2.922, 0.821 },
-                                       coords::r3{ -6.587, 3.223, -0.978 },
-                                       coords::r3{ -6.552, 4.599, 0.179 },
-                                       coords::r3{ -4.441, 2.753, -0.339 } },
-      elementSymbols{
-        "C", "O", "H", "H", "H", "H", "C", "O", "H", "H", "H", "H"
-      } {
-  moleculeCartesianRepresentation /= energy::bohr2ang;
+SubsystemOfTwoMethanolMolecules::SubsystemOfTwoMethanolMolecules()
+  : subSystem{ coords::Representation_3D{coords::r3{ -6.053, -0.324, -0.108 },
+                                     coords::r3{ -4.677, -0.093, -0.024 },
+                                     coords::r3{ -6.262, -1.158, -0.813 },
+                                     coords::r3{ -6.582, 0.600, -0.424 },
+                                     coords::r3{ -6.431, -0.613, 0.894 },
+                                     coords::r3{ -4.387, 0.166, -0.937 },
+                                     coords::r3{ -6.146, 3.587, -0.024 },
+                                     coords::r3{ -4.755, 3.671, -0.133 },
+                                     coords::r3{ -6.427, 2.922, 0.821 },
+                                     coords::r3{ -6.587, 3.223, -0.978 },
+                                     coords::r3{ -6.552, 4.599, 0.179 },
+                                     coords::r3{ -4.441, 2.753, -0.339 } }, {
+      "C", "O", "H", "H", "H", "H", "C", "O", "H", "H", "H", "H"
+    } } {
+  subSystem.cartesianRepresentation /= energy::bohr2ang;
 }
 
 InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
@@ -47,8 +46,8 @@ InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
                                                        -0.060095231348426204 },
       secondAtomDerivatives{ 0.98441712304088669, 0.16526188620817209,
                              0.060095231348426204 },
-      bond(1, 2, twoMethanolMolecules->elementSymbols.at(0),
-           twoMethanolMolecules->elementSymbols.at(1)),
+      bond(1, 2, twoMethanolMolecules->getOneRepresentation().elementSymbols.at(0),
+           twoMethanolMolecules->getOneRepresentation().elementSymbols.at(1)),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = firstAtomDerivatives.x();
   derivativeVector.at(1) = firstAtomDerivatives.y();
@@ -59,16 +58,16 @@ InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
 }
 
 double InternalCoordinatesDistancesTest::testBondLength() {
-  return bond.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return bond.val(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::pair<coords::r3, coords::r3> InternalCoordinatesDistancesTest::testBondDerivatives() {
-  return bond.der(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return bond.der(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesDistancesTest::derivativeVectorTest() {
   auto derivatives =
-      bond.der_vec(twoMethanolMolecules->moleculeCartesianRepresentation);
+      bond.der_vec(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 1u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -76,11 +75,11 @@ void InternalCoordinatesDistancesTest::derivativeVectorTest() {
 
 double InternalCoordinatesDistancesTest::hessianGuessTest() {
   return bond.hessian_guess(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::string InternalCoordinatesDistancesTest::returnInfoTest() {
-  return bond.info(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return bond.info(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
@@ -91,9 +90,9 @@ InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
                              -0.11073454633478358 },
       rightAtomsDerivative{ 0.16348682318729271, -0.14195950621944725,
                             -0.13680575491526956 },
-      angle(1, 2, 3, twoMethanolMolecules->elementSymbols.at(0),
-            twoMethanolMolecules->elementSymbols.at(1),
-            twoMethanolMolecules->elementSymbols.at(2)),
+      angle(1, 2, 3, twoMethanolMolecules->getOneRepresentation().elementSymbols.at(0),
+            twoMethanolMolecules->getOneRepresentation().elementSymbols.at(1),
+            twoMethanolMolecules->getOneRepresentation().elementSymbols.at(2)),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftAtomsDerivative.x();
   derivativeVector.at(1) = leftAtomsDerivative.y();
@@ -107,16 +106,16 @@ InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
 }
 
 double InternalCoordinatesAnglesTest::testAngleValue() {
-  return angle.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return angle.val(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::tuple<coords::r3, coords::r3, coords::r3> InternalCoordinatesAnglesTest::testAngleDerivatives() {
-  return angle.der(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return angle.der(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesAnglesTest::derivativeVectorTest() {
   auto derivatives =
-      angle.der_vec(twoMethanolMolecules->moleculeCartesianRepresentation);
+      angle.der_vec(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 1u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -124,11 +123,11 @@ void InternalCoordinatesAnglesTest::derivativeVectorTest() {
 
 double InternalCoordinatesAnglesTest::hessianGuessTest() {
   return angle.hessian_guess(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::string InternalCoordinatesAnglesTest::returnInfoTest() {
-  return angle.info(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return angle.info(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
@@ -158,18 +157,18 @@ InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
 
 double InternalCoordinatesDihedralsTest::testDihedralValue() {
   return dihedralAngle.val(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
 InternalCoordinatesDihedralsTest::testDihedralDerivatives() {
   return dihedralAngle.der(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesDihedralsTest::derivativeVectorTest() {
   auto derivatives = dihedralAngle.der_vec(
-      twoMethanolMolecules->moleculeCartesianRepresentation);
+      twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 1u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -177,12 +176,12 @@ void InternalCoordinatesDihedralsTest::derivativeVectorTest() {
 
 double InternalCoordinatesDihedralsTest::hessianGuessTest() {
   return dihedralAngle.hessian_guess(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
   return dihedralAngle.info(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
@@ -210,7 +209,7 @@ void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
 
 double InternalCoordinatesTranslationTest::hessianGuessTest() {
   return translation.hessian_guess(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTest(), translation{ {1u,2u,3u,4u,5u,6u} },
@@ -222,12 +221,12 @@ derivativeVector(3u*12u,0.) {
 }
 
 double InternalCoordinatesTranslationXTest::testTranslationValue() {
-  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return translation.val(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesTranslationXTest::derivativeVectorTest() {
   auto derivatives = translation.der_vec(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 0u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -235,7 +234,7 @@ void InternalCoordinatesTranslationXTest::derivativeVectorTest() {
 
 std::string InternalCoordinatesTranslationXTest::returnInfoTest() {
   return translation.info(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
@@ -247,12 +246,12 @@ derivativeVector(3u * 12u, 0.) {
 }
 
 double InternalCoordinatesTranslationYTest::testTranslationValue() {
-  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return translation.val(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesTranslationYTest::derivativeVectorTest() {
   auto derivatives = translation.der_vec(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 0u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -260,7 +259,7 @@ void InternalCoordinatesTranslationYTest::derivativeVectorTest() {
 
 std::string InternalCoordinatesTranslationYTest::returnInfoTest() {
   return translation.info(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
@@ -272,12 +271,12 @@ derivativeVector(3u * 12u, 0.) {
 }
 
 double InternalCoordinatesTranslationZTest::testTranslationValue() {
-  return translation.val(twoMethanolMolecules->moleculeCartesianRepresentation);
+  return translation.val(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 void InternalCoordinatesTranslationZTest::derivativeVectorTest() {
   auto derivatives = translation.der_vec(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
   for (auto i = 0u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
@@ -285,7 +284,7 @@ void InternalCoordinatesTranslationZTest::derivativeVectorTest() {
 
 std::string InternalCoordinatesTranslationZTest::returnInfoTest() {
   return translation.info(
-    twoMethanolMolecules->moleculeCartesianRepresentation);
+    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
