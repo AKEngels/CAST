@@ -36,16 +36,25 @@ struct RotatetdMethanolMolecules : MethanolMoleculesImpl {
   Molecule rotatedMethanolSystem;
 };
 
-class InternalCoordinatesTest : public testing::Test {
+class InternalCoordinatesTestSubsystem : public testing::Test {
 public:
-  InternalCoordinatesTest()
+  InternalCoordinatesTestSubsystem()
       : twoMethanolMolecules{ std::make_unique<SubsystemOfTwoMethanolMolecules>() } {}
 
 protected:
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 
-class InternalCoordinatesDistancesTest : public InternalCoordinatesTest {
+class InternalCoordinatesTestRotatedMolecules : public testing::Test {
+public:
+  InternalCoordinatesTestRotatedMolecules()
+    : twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() } {}
+
+protected:
+  std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
+};
+
+class InternalCoordinatesDistancesTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesDistancesTest();
 
@@ -67,7 +76,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesAnglesTest : public InternalCoordinatesTest {
+class InternalCoordinatesAnglesTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesAnglesTest();
 
@@ -90,7 +99,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesDihedralsTest : public InternalCoordinatesTest {
+class InternalCoordinatesDihedralsTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesDihedralsTest();
 
@@ -115,7 +124,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesTranslationTest : public InternalCoordinatesTest {
+class InternalCoordinatesTranslationTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesTranslationTest();
 
@@ -127,7 +136,7 @@ private:
   ic_core::TranslationX translation;
 };
 
-class InternalCoordinatesTranslationXTest : public InternalCoordinatesTest {
+class InternalCoordinatesTranslationXTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesTranslationXTest();
 
@@ -142,7 +151,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesTranslationYTest : public InternalCoordinatesTest {
+class InternalCoordinatesTranslationYTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesTranslationYTest();
 
@@ -157,7 +166,7 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesTranslationZTest : public InternalCoordinatesTest {
+class InternalCoordinatesTranslationZTest : public InternalCoordinatesTestSubsystem {
 public:
   InternalCoordinatesTranslationZTest();
 
@@ -172,8 +181,10 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesRotationTest : public InternalCoordinatesTest {
+class InternalCoordinatesRotationTest : public InternalCoordinatesTestRotatedMolecules {
 public:
+  InternalCoordinatesRotationTest();
+  double testRadiusOfGyration();
 private:
   ic_core::Rotation rotation;
 };

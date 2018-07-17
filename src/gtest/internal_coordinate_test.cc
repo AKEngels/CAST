@@ -62,7 +62,7 @@ RotatetdMethanolMolecules::RotatetdMethanolMolecules()
 }
 
 InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
-    : InternalCoordinatesTest(), firstAtomDerivatives{ -0.98441712304088669,
+    : InternalCoordinatesTestSubsystem(), firstAtomDerivatives{ -0.98441712304088669,
                                                        -0.16526188620817209,
                                                        -0.060095231348426204 },
       secondAtomDerivatives{ 0.98441712304088669, 0.16526188620817209,
@@ -104,7 +104,7 @@ std::string InternalCoordinatesDistancesTest::returnInfoTest() {
 }
 
 InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
-    : InternalCoordinatesTest(), leftAtomsDerivative{ -0.062056791850036874,
+    : InternalCoordinatesTestSubsystem(), leftAtomsDerivative{ -0.062056791850036874,
                                                       0.27963965489457271,
                                                       0.24754030125005314 },
       middleAtomsDerivative{ -0.10143003133725584, -0.13768014867512546,
@@ -152,7 +152,7 @@ std::string InternalCoordinatesAnglesTest::returnInfoTest() {
 }
 
 InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
-    : InternalCoordinatesTest(), leftLeftDerivative{ 0.047760930904702938,
+    : InternalCoordinatesTestSubsystem(), leftLeftDerivative{ 0.047760930904702938,
                                                      -0.49023624122103959,
                                                      0.56578012853796311 },
       leftMiddleDerivative{ -0.056149623980491933, 0.17150456631353736,
@@ -205,7 +205,7 @@ std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
+InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
 
 void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
 
@@ -233,7 +233,7 @@ double InternalCoordinatesTranslationTest::hessianGuessTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTest(), translation{ {1u,2u,3u,4u,5u,6u} },
+InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {1u,2u,3u,4u,5u,6u} },
 derivativeVector(3u*12u,0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 0u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -258,7 +258,7 @@ std::string InternalCoordinatesTranslationXTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
+InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } },
 derivativeVector(3u * 12u, 0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 1u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -283,7 +283,7 @@ std::string InternalCoordinatesTranslationYTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTest(), translation{ { 1u,2u,3u,4u,5u,6u } },
+InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } },
 derivativeVector(3u * 12u, 0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 2u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -306,6 +306,18 @@ void InternalCoordinatesTranslationZTest::derivativeVectorTest() {
 std::string InternalCoordinatesTranslationZTest::returnInfoTest() {
   return translation.info(
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
+}
+
+InternalCoordinatesRotationTest::InternalCoordinatesRotationTest()
+    : InternalCoordinatesTestRotatedMolecules(),
+      rotation(twoMethanolMolecules->getTwoRepresentations()
+                   .first.cartesianRepresentation,
+        std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 }) {}
+
+double InternalCoordinatesRotationTest::testRadiusOfGyration()
+{
+  return rotation.radiusOfGyration(twoMethanolMolecules->getTwoRepresentations()
+    .first.cartesianRepresentation);
 }
 
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
@@ -419,7 +431,6 @@ TEST_F(InternalCoordinatesTranslationYTest, returnInfoTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, testTranslationValue) {
-  auto bla = testTranslationValue();
   EXPECT_NEAR(testTranslationValue(), -0.44471554819107562, doubleNearThreshold);
 }
 
@@ -428,7 +439,12 @@ TEST_F(InternalCoordinatesTranslationZTest, derivativeVectorTest) {
 }
 
 TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
-  auto bla = returnInfoTest();
   EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
 }
+
+TEST_F(InternalCoordinatesRotationTest, testRadiusOfGyration) {
+  auto bla = testRadiusOfGyration();
+  EXPECT_NEAR(testRadiusOfGyration(), 2.2618755203155767, doubleNearThreshold);
+}
+
 #endif
