@@ -79,7 +79,7 @@ public:
             std::cout << "Rotation:\n";
             for (auto& i : icSystem.rotation_vec_)
             {
-                    auto j = i.rot_val(cp_vec);
+                    auto j = i.valueOfInternalCoordinate(cp_vec);
                     std::cout << j.at(0) << "||" << j.at(1) << "||" << j.at(2) << "||" << std::endl;
             }
 

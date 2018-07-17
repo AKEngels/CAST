@@ -7,8 +7,8 @@
 
 #include "internal_coordinate_test.h"
 #include "../ic_util.h"
-
-//#include "../scon_mathmatrix.h"
+#include "../ic_rotation.h"
+#include "../scon_mathmatrix.h"
 
 namespace {
 double constexpr doubleNearThreshold = 1.e-10;
@@ -320,6 +320,109 @@ double InternalCoordinatesRotationTest::testRadiusOfGyration()
     .first.cartesianRepresentation);
 }
 
+void InternalCoordinatesRotationTest::testRotationValue(){
+  auto rotationsForXyz = rotation.valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  std::array<double, 3u> expectedValues = { 0., -3.55294575899,0.};
+  for (auto i = 0u; i < rotationsForXyz.size(); ++i) {
+    EXPECT_NEAR(rotationsForXyz.at(i), expectedValues.at(i), doubleNearThreshold);
+  }
+}
+
+void CorrelationTests::testCorrelationMatrix() {
+  auto correlationMatrix = ic_rotation::correlation_matrix(
+      twoMethanolMolecules->getTwoRepresentations()
+          .first.cartesianRepresentation,
+      twoMethanolMolecules->getTwoRepresentations()
+          .second.cartesianRepresentation);
+  scon::mathmatrix<double> expectedValues{
+    { -3.87293765, -1.12106438, 7.84884101 },
+    { 2.71895877, 6.71681584, -1.12106438 },
+    { -16.13082837, -2.71895877, 3.87293765 }
+  };
+  EXPECT_EQ(correlationMatrix, expectedValues);
+}
+
+void CorrelationTests::testFMatrix() {
+
+  // Maybe Mock the F_matrix method to not calculate the correlation Matrix
+  // explicitly?
+  auto F = ic_rotation::F_matrix(twoMethanolMolecules->getTwoRepresentations()
+                                     .first.cartesianRepresentation,
+                                 twoMethanolMolecules->getTwoRepresentations()
+                                     .second.cartesianRepresentation);
+
+  scon::mathmatrix<double> expectedValues{
+    { 6.71681584, 1.59789438, -23.97966938, -3.84002315 },
+    { 1.59789438, -14.46269114, 1.59789438, -8.28198736 },
+    { -23.97966938, 1.59789438, 6.71681584, -3.84002315 },
+    { -3.84002315, -8.28198736, -3.84002315, 1.02905947 }
+  };
+  EXPECT_EQ(F, expectedValues);
+
+  auto eigenVectorsAndValuesOfF = F.eigensym();
+
+  scon::mathmatrix<double> expectedEigenValues{ {-18.753842124333,},
+                                                {-18.0459511633466,},
+                                                {6.10330807126241,},
+                                                {30.6964852164171,} };
+
+  scon::mathmatrix<double> expectedEigenVectors{
+    { -0.680567684290045, -0.0838861447616725, -0.172599947326494,
+      0.707106781186547 },
+    { -0.0160358964668877, 0.9226893326931, -0.3852106506301,
+      1.25767452008319e-17 },
+    { -0.680567684290045, -0.0838861447616725, -0.172599947326494,
+      -0.707106781186547 },
+    { -0.270920844943081, 0.366838690391852, 0.889961387368529,
+      -6.33174068731535e-17 }
+  };
+
+  EXPECT_EQ(eigenVectorsAndValuesOfF.first, expectedEigenValues);
+  EXPECT_EQ(eigenVectorsAndValuesOfF.second, expectedEigenVectors);
+
+}
+
+void CorrelationTests::testExopentialMap() {
+  auto exponentialMap = ic_rotation::exponential_map(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  std::array<double, 3u> expectedValues = { 0., -1.5707963267948,0. };
+  for (auto i = 0u; i < exponentialMap.size(); ++i) {
+    EXPECT_NEAR(exponentialMap.at(i), expectedValues.at(i), doubleNearThreshold);
+  }
+}
+
+void CorrelationTests::testQuaternionForTwoMolecules() {
+  auto quaternion = ic_rotation::quaternion(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+
+  std::array<double, 4u> expectedValuesForTheQuaternion{ 0.70710678118654746, 0., -0.70710678118654746, 0. };
+  for (auto i = 0u; i < expectedValuesForTheQuaternion.size(); ++i) {
+    EXPECT_NEAR(quaternion.second.at(i), expectedValuesForTheQuaternion.at(i), doubleNearThreshold);
+  }
+
+  double expectedValueForTheHighestEigenvalueOfF = 30.696485216417130;
+  EXPECT_NEAR(quaternion.first, expectedValueForTheHighestEigenvalueOfF, doubleNearThreshold);
+}
+
+void CorrelationTests::testCorrelationMatrixDerivatives() {
+  auto const& cartesians = twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation;
+  auto derives = ic_rotation::correlation_matrix_derivs(cartesians);
+
+  std::vector<scon::mathmatrix<double> > containerForRowsOfCartesianRepresentation;
+  
+  for (auto const& atom : cartesians) {
+    containerForRowsOfCartesianRepresentation.emplace_back(scon::mathmatrix<double>{ {atom.x(), atom.y(), atom.z()} });
+  }
+
+  auto constexpr numberOfCartesiansPerRow = 3u;
+
+  for (auto i = 0u; i < containerForRowsOfCartesianRepresentation.size(); ++i) {
+    auto & expectedRow = containerForRowsOfCartesianRepresentation.at(i);
+    for (auto j = 0u; j < numberOfCartesiansPerRow; ++j) {
+      EXPECT_EQ(derives.at(i).at(j).row(j), expectedRow);
+    }
+  }
+
+}
+
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
   EXPECT_NEAR(testBondLength(), 2.6414241359371124, doubleNearThreshold);
 }
@@ -443,8 +546,33 @@ TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
 }
 
 TEST_F(InternalCoordinatesRotationTest, testRadiusOfGyration) {
-  auto bla = testRadiusOfGyration();
   EXPECT_NEAR(testRadiusOfGyration(), 2.2618755203155767, doubleNearThreshold);
 }
 
+TEST_F(InternalCoordinatesRotationTest, testRotationValue) {
+  testRotationValue();
+}
+
+TEST_F(CorrelationTests, testCorrelationMatrix) {
+  testCorrelationMatrix();
+}
+
+TEST_F(CorrelationTests, testExopentialMap) {
+  testExopentialMap();
+}
+
+TEST_F(CorrelationTests, testFMatrix) {
+  testFMatrix();
+}
+
+TEST_F(CorrelationTests, testQuaternionForTwoMolecules) {
+  testQuaternionForTwoMolecules();
+}
+
+TEST_F(CorrelationTests, testCorrelationMatrixDerivatives) {
+  testCorrelationMatrixDerivatives();
+}
+
 #endif
+
+

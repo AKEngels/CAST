@@ -408,7 +408,7 @@ ic_core::Rotation ic_core::build_rotation(coords::Representation_3D const& targe
 }
 
 std::array<float_type, 3u>
-ic_core::Rotation::rot_val(const coords::Representation_3D& new_xyz) const {
+ic_core::Rotation::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
   coords::Representation_3D curr_xyz_;
   curr_xyz_.reserve(indices_.size());
   for (auto const & i : indices_) {
@@ -697,7 +697,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(coords::Representation_
   }
   std::vector<std::array<float_type,3u>> rotations;
   for (auto const & rot : rotation_vec_) {
-    rotations.emplace_back(rot.rot_val(xyz));
+    rotations.emplace_back(rot.valueOfInternalCoordinate(xyz));
   }
   for(auto i = 0u; i<3; ++i){
     for(auto j = 0u; j<rotations.size(); ++j){

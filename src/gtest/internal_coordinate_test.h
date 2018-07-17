@@ -185,8 +185,25 @@ class InternalCoordinatesRotationTest : public InternalCoordinatesTestRotatedMol
 public:
   InternalCoordinatesRotationTest();
   double testRadiusOfGyration();
+  void testRotationValue();
 private:
   ic_core::Rotation rotation;
+};
+
+class CorrelationTests : public testing::Test {
+public:
+  //Make the input molecules not being in the origin
+  CorrelationTests()
+    : twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() } {}
+
+  void testExopentialMap();
+  void testCorrelationMatrix();
+  void testFMatrix();
+  void testQuaternionForTwoMolecules();
+  void testCorrelationMatrixDerivatives();
+
+private:
+  std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 
 #endif
