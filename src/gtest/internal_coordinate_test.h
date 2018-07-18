@@ -202,6 +202,7 @@ public:
   void testQuaternionForTwoMolecules();
   void testCorrelationMatrixDerivatives();
   void testFMatrixDerivatives();
+  void testQuaternionDerivatives();
 
 private:
   scon::mathmatrix<double> readNextFderivative(std::istream & inputFileStream);
