@@ -22,6 +22,8 @@
 #include <vector>
 #include <memory>
 
+#include"InternalCoordinates.h"
+
 #include "coords_io_pdb.h"
 
 namespace coords {
@@ -43,193 +45,6 @@ using coords::float_type;
 
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
-
-struct InternalCoordinate {
-  virtual float_type val(coords::Representation_3D const& xyz) const = 0;
-  virtual std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const = 0;
-  virtual float_type hessian_guess(coords::Representation_3D const& xyz) const = 0;
-  virtual std::string info(coords::Representation_3D const & xyz) const = 0;
-};
-
-struct BondDistance : public InternalCoordinate {
-  BondDistance(const unsigned int& index_a, const unsigned int& index_b,
-           const std::string& elem_a, const std::string& elem_b)
-      : index_a_{ index_a }, index_b_{ index_b },
-        elem_a_{ elem_a }, elem_b_{ elem_b } {}
-
-  std::size_t index_a_;
-  std::size_t index_b_;
-  std::string elem_a_;
-  std::string elem_b_;
-
-  float_type val(coords::Representation_3D const& xyz) const override;
-  std::pair<scon::c3<float_type>, scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
-  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
-  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
-
-struct BondAngle : InternalCoordinate {
-  BondAngle(const unsigned int& index_a,
-        const unsigned int& index_b, const unsigned int& index_c,
-        const std::string& elem_a, const std::string& elem_b,
-        const std::string& elem_c)
-      : index_a_{ index_a }, index_b_{ index_b },
-        index_c_{ index_c }, elem_a_{ elem_a }, elem_b_{ elem_b }, elem_c_{
-          elem_c
-        } {}
-
-  std::size_t index_a_;
-  std::size_t index_b_;
-  std::size_t index_c_;
-  std::string elem_a_;
-  std::string elem_b_;
-  std::string elem_c_;
-
-  coords::float_type val(coords::Representation_3D const& xyz) const override;
-  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>> der(coords::Representation_3D const& xyz) const;
-  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
-  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
-//
-//template<bool isLValue>
-//class dihedral_points;
-//
-//class dihedral_points<true> {
-//  using rwcp = std::reference_wrapper<coords::Cartesian_Point const>;
-//  rwcp a_;
-//  rwcp b_;
-//  rwcp c_;
-//  rwcp d_;
-//};
-//
-//class dihedral_points<false> {
-//  coords::Cartesian_Point a_;
-//  coords::Cartesian_Point b_;
-//  coords::Cartesian_Point c_;
-//  coords::Cartesian_Point d_;
-//};
-//
-//template<bool isLValue>
-//class dihedral_indices;
-//
-//class dihedral_indices<true> {
-//  using rwst = std::reference_wrapper<std::size_t const>;
-//  rwst index_a_;
-//  rwst index_b_;
-//  rwst index_c_;
-//  rwst index_d_;
-//};
-//
-//class dihedral_indices<false> {
-//  std::size_t index_a_;
-//  std::size_t index_b_;
-//  std::size_t index_c_;
-//  std::size_t index_d_;
-//};
-
-//template<bool CP_isLVal, bool Ind_isLVal>
-struct DihedralAngle : public InternalCoordinate /*: public dihedral_points<CP_isLVal>, public dihedral_indices<Ind_isLVal> */{
-  DihedralAngle(const unsigned int& index_a, const unsigned int& index_b,
-           const unsigned int& index_c, const unsigned int& index_d)
-      : index_a_{ index_a },
-        index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
-
-  coords::float_type val(coords::Representation_3D const& xyz) const override;
-  std::tuple<scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>, scon::c3<float_type>>
-    der(coords::Representation_3D const& xyz) const;
-  std::vector<float_type> der_vec(coords::Representation_3D const& xyz) const override;
-  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-
-  std::size_t index_a_;
-  std::size_t index_b_;
-  std::size_t index_c_;
-  std::size_t index_d_;
-};
-
-struct OutOfPlane : public DihedralAngle {
-  using DihedralAngle::DihedralAngle;
-
-  float_type hessian_guess(coords::Representation_3D const& xyz) const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
-
-struct Translations : public InternalCoordinate {
-  Translations(std::vector<std::size_t> const& index_vec)
-    : indices_(index_vec) {}
-
-  virtual float_type val(coords::Representation_3D const&) const = 0;
-  std::vector<std::size_t> indices_;
-
-  template<typename Func>
-  coords::Representation_3D der(std::size_t const & sys_size, Func const & coord) const {
-    using rep3D = coords::Representation_3D;
-    using cp = coords::Cartesian_Point;
-
-    rep3D result(sys_size, cp(0.,0.,0.));
-
-    auto const & s{ indices_.size() };
-    for (auto const & i : indices_) {
-      result.at(i-1) = coord(s);
-    }
-    return result;
-  }
-
-  float_type hessian_guess(coords::Representation_3D const& /*xyz*/) const override {
-    return 0.05;
-  }
-
-};
-
-struct TranslationX : Translations{
-  TranslationX(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec) {}
-
-  float_type val(const coords::Representation_3D& xyz) const override {
-    auto coord_sum{ 0.0 };
-    for (auto& i : indices_) {
-      coord_sum += xyz.at(i-1u).x();
-    }
-    return coord_sum / indices_.size();
-  }
-
-  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
-
-struct TranslationY : Translations {
-  TranslationY(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec) {}
-
-  float_type val(const coords::Representation_3D& xyz) const override {
-    auto coord_sum{ 0.0 };
-    for (auto& i : indices_) {
-      coord_sum += xyz.at(i - 1u).y();
-    }
-    return coord_sum / indices_.size();
-  }
-
-  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
-
-struct TranslationZ : Translations {
-  TranslationZ(const std::vector<std::size_t>& index_vec)
-      : Translations(index_vec) {}
-
-  float_type val(const coords::Representation_3D& xyz) const override {
-    auto coord_sum{ 0.0 };
-    for (auto& i : indices_) {
-      coord_sum += xyz.at(i - 1u).z();
-    }
-    return coord_sum / indices_.size();
-  }
-
-  std::vector<float_type> der_vec(coords::Representation_3D const& rep)const override;
-  std::string info(coords::Representation_3D const& xyz) const override;
-};
 
 struct Rotation {
   template<typename Rep3D, typename IndexVec>
@@ -260,7 +75,7 @@ public:
          const coords::Representation_3D& xyz_init)
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
-  std::vector<std::unique_ptr<InternalCoordinate>> primitive_internals;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
   std::vector<Rotation> rotation_vec_;
 
 private:
@@ -281,22 +96,22 @@ private:
 
 
 public:
-  void append_primitives(std::vector<std::unique_ptr<InternalCoordinate>> && pic) {
+  void append_primitives(std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> && pic) {
     primitive_internals.insert(primitive_internals.end(),
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
   }
 
-  std::vector<std::unique_ptr<InternalCoordinate>>
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
   create_trans_x(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<std::unique_ptr<InternalCoordinate>>
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
   create_trans_y(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<std::unique_ptr<InternalCoordinate>>
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
   create_trans_z(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::tuple<std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>>
+  std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
     create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
   std::vector<Rotation>
@@ -307,17 +122,17 @@ public:
   IC_System create_system(Graph const &);*/
 
   template <typename Graph>
-  std::vector<std::unique_ptr<InternalCoordinate>> create_distances(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_distances(const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<InternalCoordinate>> create_angles(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_angles(const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<InternalCoordinate>> create_oops(const coords::Representation_3D&,
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_oops(const coords::Representation_3D&,
                                         const Graph&) const;
 
   template <typename Graph>
-  std::vector<std::unique_ptr<InternalCoordinate>> create_dihedrals(const Graph&) const;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_dihedrals(const Graph&) const;
 
   /*template <typename Graph>
   void create_ic_system(const std::vector<coords::Representation_3D>&,
@@ -418,13 +233,13 @@ private:
 };
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<InternalCoordinate>>
+inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_distances(const Graph& g) const {
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<InternalCoordinate>> result;
+  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -439,12 +254,12 @@ system::create_distances(const Graph& g) const {
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<InternalCoordinate>>
+inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_angles(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
 
-  std::vector<std::unique_ptr<InternalCoordinate>> result;
+  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto a_vert = adjacent_vertices(*it, g);
@@ -479,13 +294,13 @@ inline std::vector<std::vector<std::size_t>> system::possible_sets_of_3(VertIter
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<InternalCoordinate>>
+inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_oops(const coords::Representation_3D& coords, const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
   using scon::dot;
 
-  std::vector<std::unique_ptr<InternalCoordinate>> result;
+  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto core = g[*it].atom_serial;
@@ -516,14 +331,14 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
 }
 
 template <typename Graph>
-inline std::vector<std::unique_ptr<InternalCoordinate>>
+inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_dihedrals(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::edges;
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<InternalCoordinate>> result;
+  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -549,7 +364,7 @@ system::create_dihedrals(const Graph& g) const {
   return result;
 }
 
-inline std::tuple<std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinate>>>
+inline std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
 system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
   return std::make_tuple(
     create_trans_x(res_index_vec),
@@ -565,7 +380,7 @@ inline void system::create_ic_system(const Graph& g) {
   append_primitives(create_oops(xyz_, g));
   append_primitives(create_dihedrals(g));
 
-  std::vector<std::unique_ptr<InternalCoordinate>> trans_x, trans_y, trans_z;
+  std::vector<std::unique_ptr<InternalCoordinateImpl>> trans_x, trans_y, trans_z;
   std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
 
   append_primitives(std::move(trans_x));
@@ -667,7 +482,7 @@ scon::mathmatrix<float_type> system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
   auto diff = lprims - rprims;
 
   for(auto i = 0u;i<primitive_internals.size(); ++i){
-    if(dynamic_cast<DihedralAngle*>(primitive_internals.at(i).get())){
+    if(dynamic_cast<InternalCoordinates::DihedralAngle*>(primitive_internals.at(i).get())){
       if(std::fabs(diff(0, i)) > SCON_PI){
         if(diff(0, i)<0.0){
           diff(0, i) += 2.*SCON_PI;

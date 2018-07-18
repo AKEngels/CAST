@@ -3,6 +3,7 @@
 #ifndef H_INTERNAL_COORDINATE_TEST
 #define H_INTERNAL_COORDINATE_TEST
 
+#include "../InternalCoordinates.h"
 #include "../coords.h"
 #include "../ic_core.h"
 
@@ -64,16 +65,29 @@ public:
 
   void derivativeVectorTest();
 
-  double hessianGuessTest();
-
   std::string returnInfoTest();
 
   coords::r3 const firstAtomDerivatives;
   coords::r3 const secondAtomDerivatives;
 
 private:
-  ic_core::BondDistance bond;
+  InternalCoordinates::BondDistance bond;
   std::vector<double> derivativeVector;
+};
+
+struct DifferentInternalCoordinates {
+  std::shared_ptr<InternalCoordinates::InternalCoordinate> internalCoordinate;
+  double expectedValue;
+  friend std::ostream& operator<<(std::ostream & os, DifferentInternalCoordinates const& internalCoordinate) {
+    return os << "Hessian Guess schould be: " << internalCoordinate.expectedValue;
+  }
+};
+
+class InternalCoordinatesHessianTests : public testing::WithParamInterface<DifferentInternalCoordinates>, public testing::Test {
+public:
+  InternalCoordinatesHessianTests() : twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() }, internalCoordinate(GetParam().internalCoordinate) {}
+  std::shared_ptr<InternalCoordinates::InternalCoordinate> internalCoordinate;
+  std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 
 class InternalCoordinatesAnglesTest : public InternalCoordinatesTestSubsystem {
@@ -86,8 +100,6 @@ public:
 
   void derivativeVectorTest();
 
-  double hessianGuessTest();
-
   std::string returnInfoTest();
 
   coords::r3 const leftAtomsDerivative;
@@ -95,7 +107,7 @@ public:
   coords::r3 const rightAtomsDerivative;
 
 private:
-  ic_core::BondAngle angle;
+  InternalCoordinates::BondAngle angle;
   std::vector<double> derivativeVector;
 };
 
@@ -110,8 +122,6 @@ public:
 
   void derivativeVectorTest();
 
-  double hessianGuessTest();
-
   std::string returnInfoTest();
 
   coords::r3 leftLeftDerivative;
@@ -120,7 +130,7 @@ public:
   coords::r3 rightRightDerivative;
 
 private:
-  ic_core::DihedralAngle dihedralAngle;
+  InternalCoordinates::DihedralAngle dihedralAngle;
   std::vector<double> derivativeVector;
 };
 
@@ -128,12 +138,11 @@ class InternalCoordinatesTranslationTest : public InternalCoordinatesTestSubsyst
 public:
   InternalCoordinatesTranslationTest();
 
+  //TODO Test it with the TEST_P thingy
   void testTranslationDerivativeTest();
 
-  double hessianGuessTest();
-
 private:
-  ic_core::TranslationX translation;
+  InternalCoordinates::TranslationX translation;
 };
 
 class InternalCoordinatesTranslationXTest : public InternalCoordinatesTestSubsystem {
@@ -147,7 +156,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::TranslationX translation;
+  InternalCoordinates::TranslationX translation;
   std::vector<double> derivativeVector;
 };
 
@@ -162,7 +171,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::TranslationY translation;
+  InternalCoordinates::TranslationY translation;
   std::vector<double> derivativeVector;
 };
 
@@ -177,7 +186,7 @@ public:
   std::string returnInfoTest();
 
 private:
-  ic_core::TranslationZ translation;
+  InternalCoordinates::TranslationZ translation;
   std::vector<double> derivativeVector;
 };
 

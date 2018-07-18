@@ -70,11 +70,6 @@ void InternalCoordinatesDistancesTest::derivativeVectorTest() {
   }
 }
 
-double InternalCoordinatesDistancesTest::hessianGuessTest() {
-  return bond.hessian_guess(
-    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
-}
-
 std::string InternalCoordinatesDistancesTest::returnInfoTest() {
   return bond.info(twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
@@ -112,11 +107,6 @@ void InternalCoordinatesAnglesTest::derivativeVectorTest() {
   for (auto i = 1u; i < derivatives.size(); ++i) {
     EXPECT_NEAR(derivatives.at(i), derivativeVector.at(i), doubleNearThreshold);
   }
-}
-
-double InternalCoordinatesAnglesTest::hessianGuessTest() {
-  return angle.hessian_guess(
-    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 std::string InternalCoordinatesAnglesTest::returnInfoTest() {
@@ -162,11 +152,6 @@ void InternalCoordinatesDihedralsTest::derivativeVectorTest() {
   }
 }
 
-double InternalCoordinatesDihedralsTest::hessianGuessTest() {
-  return dihedralAngle.hessian_guess(
-    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
-}
-
 std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
   return dihedralAngle.info(
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
@@ -193,11 +178,6 @@ void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
     EXPECT_NEAR(flattenedVector.at(i), someTestValues.at(i), doubleNearThreshold);
   }
 
-}
-
-double InternalCoordinatesTranslationTest::hessianGuessTest() {
-  return translation.hessian_guess(
-    twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
 InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {1u,2u,3u,4u,5u,6u} },
@@ -464,10 +444,6 @@ TEST_F(InternalCoordinatesDistancesTest, derivativeVectorTest) {
   derivativeVectorTest();
 }
 
-TEST_F(InternalCoordinatesDistancesTest, hessianGuessTest) {
-  EXPECT_NEAR(hessianGuessTest(), 0.45990191969419725, doubleNearThreshold);
-}
-
 TEST_F(InternalCoordinatesDistancesTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Bond: 2.64142 || 1 || 2 ||");
 }
@@ -488,10 +464,6 @@ TEST_F(InternalCoordinatesAnglesTest, testAngleDerivatives) {
 
 TEST_F(InternalCoordinatesAnglesTest, derivativeVectorTest) {
   derivativeVectorTest();
-}
-
-TEST_F(InternalCoordinatesAnglesTest, hessianGuessTest) {
-  EXPECT_NEAR(hessianGuessTest(), 0.16, doubleNearThreshold);
 }
 
 TEST_F(InternalCoordinatesAnglesTest, returnInfoTest) {
@@ -517,20 +489,12 @@ TEST_F(InternalCoordinatesDihedralsTest, derivativeVectorTest) {
   derivativeVectorTest();
 }
 
-TEST_F(InternalCoordinatesDihedralsTest, hessianGuessTest) {
-  EXPECT_NEAR(hessianGuessTest(), 0.023, doubleNearThreshold);
-}
-
 TEST_F(InternalCoordinatesDihedralsTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Dihedral: 32.2818 || 1 || 2 || 3 || 4 ||");
 }
 
 TEST_F(InternalCoordinatesTranslationTest, testTranslationDerivativeTest) {
   testTranslationDerivativeTest();
-}
-
-TEST_F(InternalCoordinatesTranslationTest, hessianGuessTest) {
-  EXPECT_NEAR(hessianGuessTest(), 0.05, doubleNearThreshold);
 }
 
 TEST_F(InternalCoordinatesTranslationXTest, testTranslationValue) {
@@ -612,6 +576,33 @@ TEST_F(CorrelationTests, testQuaternionDerivatives) {
 TEST_F(CorrelationTests, testExponentialMapDerivatives) {
   testExponentialMapDerivatives();
 }
+
+TEST_P(InternalCoordinatesHessianTests, testHessianGuessesForAllInternalCoordinates) {
+  auto const& expectedValues = GetParam();
+  internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
+  auto bla = internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
+  EXPECT_NEAR(expectedValues.expectedValue, internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation), doubleNearThreshold);
+}
+
+INSTANTIATE_TEST_CASE_P(Default, InternalCoordinatesHessianTests, testing::Values(
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "H"), 0.072180537605377640 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "H"), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "C"), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "H"), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "Si"), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "C"), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "Si"), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "C"), 0.45990191969419802 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "Si"), 9.1964705962169191 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "H"), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "C"), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "H"), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "C"), 0.25 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(1, 2, 3, 4), 0.023 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationX>(std::vector<std::size_t>{1,2,3}), 0.05 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationY>(std::vector<std::size_t>{1,2,3}), 0.05 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationZ>(std::vector<std::size_t>{1,2,3}), 0.05 }
+));
 
 #endif
 
