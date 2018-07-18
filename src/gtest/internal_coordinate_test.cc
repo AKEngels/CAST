@@ -296,7 +296,7 @@ void InternalCoordinatesRotationTest::testRotationValue(){
 }
 
 void InternalCoordinatesRotationTest::testRotationDerivatives(){
-  auto rotationDerivatives = rotation.rot_der_mat(6u,twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  auto rotationDerivatives = rotation.rot_der_mat(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   EXPECT_EQ(rotationDerivatives, expectedRotationDerivatives());
 }
 

@@ -451,15 +451,16 @@ ic_core::Rotation::rot_der(const coords::Representation_3D& new_xyz) const{
 }
 
 scon::mathmatrix<float_type>
-ic_core::Rotation::rot_der_mat(std::size_t const & sys_size, const coords::Representation_3D& new_xyz)const {
+ic_core::Rotation::rot_der_mat(const coords::Representation_3D& new_xyz)const {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
-  Mat X = zero(sys_size, 3);
-  Mat Y = zero(sys_size, 3);
-  Mat Z = zero(sys_size, 3);
-
   auto first_ders = rot_der(new_xyz);
+
+  Mat X = zero(first_ders.size(), 3);
+  Mat Y = zero(first_ders.size(), 3);
+  Mat Z = zero(first_ders.size(), 3);
+
 
   /*auto i=0;
   for(auto const& mat: first_ders){
@@ -477,7 +478,7 @@ ic_core::Rotation::rot_der_mat(std::size_t const & sys_size, const coords::Repre
   X *= rad_gyr_;
   Y *= rad_gyr_;
   Z *= rad_gyr_;
-  Mat result(sys_size * 3, 3);
+  Mat result(first_ders.size() * 3, 3);
   result.set_col(0, X.vectorise_row());
   result.set_col(1, Y.vectorise_row());
   result.set_col(2, Z.vectorise_row());
@@ -540,7 +541,7 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   std::vector<std::vector<float_type>> Y_rot;
   std::vector<std::vector<float_type>> Z_rot;
   for (auto const& i : rotation_vec_) {
-    auto temp = i.rot_der_mat(xyz_.size(), xyz_);
+    auto temp = i.rot_der_mat(xyz_);
     //look for th cols and rows!
     X_rot.emplace_back(temp.col_to_std_vector(0));
     Y_rot.emplace_back(temp.col_to_std_vector(1));

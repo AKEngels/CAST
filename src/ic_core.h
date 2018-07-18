@@ -244,7 +244,7 @@ struct Rotation {
 
   std::array<float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
   std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&) const;
-  scon::mathmatrix<float_type> rot_der_mat(std::size_t const&, const coords::Representation_3D&) const;
+  scon::mathmatrix<float_type> rot_der_mat(const coords::Representation_3D&) const;
   float_type radiusOfGyration(const coords::Representation_3D&);
 
   //static coords::Representation_3D xyz0;
