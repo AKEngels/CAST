@@ -205,6 +205,14 @@ public:
   void testQuaternionDerivatives();
 
 private:
+  class ReadMatrixFiles {
+  public:
+    ReadMatrixFiles(std::istream & inputStream) : inputStream{ inputStream }{}
+    scon::mathmatrix<double> readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m);
+  private:
+    std::istream & inputStream;
+  };
+  scon::mathmatrix<double> readNextQuaternionDerivative(std::istream & inputFileStream);
   scon::mathmatrix<double> readNextFderivative(std::istream & inputFileStream);
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };

@@ -384,32 +384,47 @@ void CorrelationTests::testFMatrixDerivatives(){
   for (auto i = 0u; i < Fderivatives.size(); ++i) {
     for (auto j = 0u; j < Fderivatives.at(i).size(); ++j) {
       auto expectedDerivative = readNextFderivative(matrixStreamWithDerivatives);
-      std::cout << expectedDerivative << std::endl;
       EXPECT_EQ(Fderivatives.at(i).at(j), expectedDerivative);
     }
   }
 }
 
 void CorrelationTests::testQuaternionDerivatives(){
+  using namespace ExpectedValuesForInternalCoordinates;
+  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForQuaternionDerivatives());
   auto quaternionDerivatives = ic_rotation::quaternion_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  for (auto i = 0u; i < quaternionDerivatives.size(); ++i) {
+    auto expectedDerivative = readNextQuaternionDerivative(matrixStreamWithDerivatives);
+    EXPECT_EQ(quaternionDerivatives.at(i), expectedDerivative);
+  }
+}
 
+scon::mathmatrix<double> CorrelationTests::readNextQuaternionDerivative(std::istream & inputFileStream){
+  auto constexpr sizeOfDerivativeRows = 3u;
+  auto constexpr sizeOfDerivativeCols = 4u;
+  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivativeRows, sizeOfDerivativeCols);
 }
 
 scon::mathmatrix<double> CorrelationTests::readNextFderivative(std::istream & inputFileStream)
 {
   auto constexpr sizeOfDerivatives = 4u;
-  scon::mathmatrix<double> nextDerivative(sizeOfDerivatives, sizeOfDerivatives);
+  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
+}
 
-  for (auto i = 0u; i < sizeOfDerivatives; ++i) {
+scon::mathmatrix<double> CorrelationTests::ReadMatrixFiles::readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m)
+{
+
+  scon::mathmatrix<double> nextMatrix(n, m);
+
+  for (auto i = 0u; i < n; ++i) {
     std::string line;
-    std::getline(inputFileStream, line);
+    std::getline(inputStream, line);
     std::stringstream lineStream(line);
-    double row1, row2, row3, row4;
 
-    lineStream >> nextDerivative(i,0) >> nextDerivative(i, 1) >> nextDerivative(i, 2) >> nextDerivative(i, 3);
+    for (auto j = 0u; j < m; ++j) lineStream >> nextMatrix(i, j);
   }
 
-  return nextDerivative;
+  return nextMatrix;
 }
 
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
