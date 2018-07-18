@@ -201,8 +201,10 @@ public:
   void testFMatrix();
   void testQuaternionForTwoMolecules();
   void testCorrelationMatrixDerivatives();
+  void testFMatrixDerivatives();
 
 private:
+  scon::mathmatrix<double> readNextFderivative(std::istream & inputFileStream);
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 

@@ -77,8 +77,8 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				files { "../src/gtest/*.cc", "../src/gtest/*.h" }
-        vpaths {["Tests"] = {"../src/gtest/*.cc", "../src/gtest/*.h" } }
+				files { "../src/gtest/*.cc", "../src/gtest/**.h" }
+        vpaths {["Tests"] = {"../src/gtest/*.cc", "../src/gtest/**.h" } }
 
 				symbols "On"
 				defines "GOOGLE_MOCK"
