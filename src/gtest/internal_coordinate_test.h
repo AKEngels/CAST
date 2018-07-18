@@ -186,6 +186,8 @@ public:
   InternalCoordinatesRotationTest();
   double testRadiusOfGyration();
   void testRotationValue();
+  void testRotationDerivatives();
+
 private:
   ic_core::Rotation rotation;
 };
@@ -203,6 +205,7 @@ public:
   void testCorrelationMatrixDerivatives();
   void testFMatrixDerivatives();
   void testQuaternionDerivatives();
+  void testExponentialMapDerivatives();
 
 private:
   class ReadMatrixFiles {
@@ -212,8 +215,9 @@ private:
   private:
     std::istream & inputStream;
   };
-  scon::mathmatrix<double> readNextQuaternionDerivative(std::istream & inputFileStream);
   scon::mathmatrix<double> readNextFderivative(std::istream & inputFileStream);
+  scon::mathmatrix<double> readNextQuaternionDerivative(std::istream & inputFileStream);
+  scon::mathmatrix<double> readNextExponentialMapderivative(std::istream & inputFileStream);
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 

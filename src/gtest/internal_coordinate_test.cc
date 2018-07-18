@@ -295,6 +295,11 @@ void InternalCoordinatesRotationTest::testRotationValue(){
   }
 }
 
+void InternalCoordinatesRotationTest::testRotationDerivatives(){
+  auto rotationDerivatives = rotation.rot_der_mat(6u,twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  EXPECT_EQ(rotationDerivatives, expectedRotationDerivatives());
+}
+
 void CorrelationTests::testCorrelationMatrix() {
   auto correlationMatrix = ic_rotation::correlation_matrix(
       twoMethanolMolecules->getTwoRepresentations()
@@ -399,21 +404,36 @@ void CorrelationTests::testQuaternionDerivatives(){
   }
 }
 
-scon::mathmatrix<double> CorrelationTests::readNextQuaternionDerivative(std::istream & inputFileStream){
+void CorrelationTests::testExponentialMapDerivatives(){
+
+  using namespace ExpectedValuesForInternalCoordinates;
+  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForExponentialMapDerivatives());
+  auto exponentialMapDerivatives = ic_rotation::exponential_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  for (auto i = 0u; i < exponentialMapDerivatives.size(); ++i) {
+    auto expectedDerivative = readNextExponentialMapderivative(matrixStreamWithDerivatives);
+    EXPECT_EQ(exponentialMapDerivatives.at(i), expectedDerivative);
+  }
+
+}
+
+scon::mathmatrix<double> CorrelationTests::readNextFderivative(std::istream & inputFileStream){
+  auto constexpr sizeOfDerivatives = 4u;
+  return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
+}
+
+scon::mathmatrix<double> CorrelationTests::readNextQuaternionDerivative(std::istream & inputFileStream) {
   auto constexpr sizeOfDerivativeRows = 3u;
   auto constexpr sizeOfDerivativeCols = 4u;
   return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivativeRows, sizeOfDerivativeCols);
 }
 
-scon::mathmatrix<double> CorrelationTests::readNextFderivative(std::istream & inputFileStream)
-{
-  auto constexpr sizeOfDerivatives = 4u;
+scon::mathmatrix<double> CorrelationTests::readNextExponentialMapderivative(std::istream & inputFileStream) {
+  auto constexpr sizeOfDerivatives = 3u;
   return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
 }
 
 scon::mathmatrix<double> CorrelationTests::ReadMatrixFiles::readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m)
 {
-
   scon::mathmatrix<double> nextMatrix(n, m);
 
   for (auto i = 0u; i < n; ++i) {
@@ -557,6 +577,10 @@ TEST_F(InternalCoordinatesRotationTest, testRotationValue) {
   testRotationValue();
 }
 
+TEST_F(InternalCoordinatesRotationTest, testRotationDerivatives) {
+  testRotationDerivatives();
+}
+
 TEST_F(CorrelationTests, testCorrelationMatrix) {
   testCorrelationMatrix();
 }
@@ -583,6 +607,10 @@ TEST_F(CorrelationTests, testFMatrixDerivatives) {
 
 TEST_F(CorrelationTests, testQuaternionDerivatives) {
   testQuaternionDerivatives();
+}
+
+TEST_F(CorrelationTests, testExponentialMapDerivatives) {
+  testExponentialMapDerivatives();
 }
 
 #endif
