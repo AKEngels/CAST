@@ -427,13 +427,12 @@ void CorrelationTests::testCorrelationMatrixDerivatives() {
 }
 
 void CorrelationTests::testFMatrixDerivatives(){
-  provideExpectedValuesForFMatrixDerivativesInFile("DerivativesOfF.dat");
-  std::ifstream matrixFileWithDerivatives("DerivativesOfF.dat");
+  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForFMatrixDerivativesInFile());
   auto Fderivatives = ic_rotation::F_matrix_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
 
   for (auto i = 0u; i < Fderivatives.size(); ++i) {
     for (auto j = 0u; j < Fderivatives.at(i).size(); ++j) {
-      auto expectedDerivative = readNextFderivative(matrixFileWithDerivatives);
+      auto expectedDerivative = readNextFderivative(matrixStreamWithDerivatives);
       std::cout << expectedDerivative << std::endl;
       EXPECT_EQ(Fderivatives.at(i).at(j), expectedDerivative);
     }
