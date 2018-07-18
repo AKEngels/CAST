@@ -221,6 +221,11 @@ private:
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
 };
 
+class TranslationRotationCoordinatesTest : testing::Test {
+private:
+  std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
+};
+
 #endif
 
 #endif
