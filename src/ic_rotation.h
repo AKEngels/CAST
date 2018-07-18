@@ -196,13 +196,13 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
 typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
-quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz,
-                  ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz){
+quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
+                  ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz){
 using Mat = scon::mathmatrix<T>;
 
 auto q_eigval = quaternion(old_xyz, new_xyz);
 auto F = F_matrix(old_xyz, new_xyz);
-auto F_der = F_matrix_derivs(new_xyz);
+auto F_der = F_matrix_derivs(old_xyz); //is it really the old xyz???
 
 auto t = (Mat::fill_diag(4, 4, q_eigval.first) -F).pinv();
 
