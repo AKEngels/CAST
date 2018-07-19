@@ -230,22 +230,6 @@ namespace InternalCoordinates {
     std::unique_ptr<InternalCoordinate> rotationA;
   };
 
-  struct RotationA : public InternalCoordinate {
-    RotationA(std::shared_ptr<Rotator> const rotator) : rotator{ rotator } {}
-    virtual coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
-      return 0.0;
-    }
-    virtual std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const override {
-      return std::vector<coords::float_type>();
-    }
-    virtual coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override {
-      return 0.0;
-    }
-    virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
-      return "";
-    }
-    std::shared_ptr<Rotator> rotator;
-  };
 
   class Rotator : public AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
@@ -260,15 +244,10 @@ namespace InternalCoordinates {
     bool areValuesUpToDate() { return !updateStoredValues; }
     bool areDerivativesUpToDate() { return !updateStoredDerivatives; }
 
-    std::array<coords::float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
-    scon::mathmatrix<coords::float_type> rot_der_mat(const coords::Representation_3D&) const;
+    std::array<coords::float_type, 3u> const& valueOfInternalCoordinate(const coords::Representation_3D&);
+    scon::mathmatrix<coords::float_type> const& rot_der_mat(const coords::Representation_3D&);
 
-    Rotations makeRotations() {
-      return Rotations{
-        shared_from_this(),
-        std::make_unique<RotationA>(shared_from_this())
-      };
-    }
+    Rotations makeRotations();
 
     //TODO make it private again
     Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
@@ -292,7 +271,25 @@ namespace InternalCoordinates {
     coords::float_type rad_gyr_;
   };
 
-  
+
+  struct RotationA : public InternalCoordinate {
+    RotationA(std::shared_ptr<Rotator> const rotator) : rotator{ rotator } {}
+    virtual coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
+      auto const& returnValues = rotator->valueOfInternalCoordinate(cartesians.getCartesianCoordnates());
+      return returnValues.at(0);
+    }
+    virtual std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const override {
+      auto const& derivativeMatrix = rotator->rot_der_mat(cartesians.getCartesianCoordnates());
+      return derivativeMatrix.col_to_std_vector(0);
+    }
+    virtual coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override {
+      return 0.0;
+    }
+    virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
+      return "";
+    }
+    std::shared_ptr<Rotator> rotator;
+  };
 
 
   

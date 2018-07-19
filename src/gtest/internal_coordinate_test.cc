@@ -279,6 +279,15 @@ void InternalCoordinatesRotatorTest::testRadiusOfGyration() {
   EXPECT_NEAR(ic_util::rad_gyr(ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() /= energy::bohr2ang), 2.2618755203155767, doubleNearThreshold);
 }
 
+void InternalCoordinatesRotationsTest::checkIfVectorsAreSame(std::vector<double> const & lhs, std::vector<double> const & rhs){
+  ASSERT_EQ(lhs.size(), rhs.size());
+  for (auto i = 0u; i < lhs.size(); ++i) {
+    double bli = lhs.at(i), bla = rhs.at(i);
+    bool blub = bli == bla;
+    EXPECT_NEAR(lhs.at(i), rhs.at(i), doubleNearThreshold);
+  }
+}
+
 void CorrelationTests::testCorrelationMatrix() {
   auto correlationMatrix = ic_rotation::correlation_matrix(
       twoMethanolMolecules->getTwoRepresentations()
@@ -619,15 +628,20 @@ TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
     EXPECT_NEAR(rotations.rotationA->val(cartesianCoordinates.getCartesianCoordnates()), expectedValue, doubleNearThreshold);
   }
   if (GetParam().evaluateDerivatives) {
-
+    checkIfVectorsAreSame(rotations.rotationA->der_vec(cartesianCoordinates.getCartesianCoordnates()),
+      GetParam().expectedDerivatives);
   }
   EXPECT_EQ(GetParam().evaluateValues, rotations.rotator->areValuesUpToDate());
   EXPECT_EQ(GetParam().evaluateDerivatives, rotations.rotator->areDerivativesUpToDate());
 }
 
 INSTANTIATE_TEST_CASE_P(RotationA, InternalCoordinatesRotationsTest, testing::Values(
-  ExpectedValuesForRotations{0.0, false, false, false},
-  ExpectedValuesForRotations{ -3.1652558307984515, true, true, true }
+  ExpectedValuesForRotations{ 0.0, false, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ 0.0, true, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ 0.0, false, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ -3.1652558307984515, true, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ 0.0, false, true, true, noChangeDerivatives() },
+  ExpectedValuesForRotations{ -3.1652558307984515, true, true, true, expectedDerivativesRotatoionA() }
 ));
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}

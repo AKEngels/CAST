@@ -339,8 +339,12 @@ namespace InternalCoordinates {
     }
   }
 
-  std::array<coords::float_type, 3u>
-    Rotator::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
+  std::array<coords::float_type, 3u> const&
+    Rotator::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) {
+    if (!updateStoredValues) {
+      return storedValuesForRotations;
+    }
+    updateStoredValues = false;
     coords::Representation_3D curr_xyz_;
     curr_xyz_.reserve(indices_.size());
     for (auto const & i : indices_) {
@@ -362,15 +366,16 @@ namespace InternalCoordinates {
     Test Ergebnis: 2.7526415805955393, -1.0064325510255895e-05, -0.00046769875255223972
     */
 
-    auto result = ic_rotation::exponential_map(reference_, curr_xyz_);
-    for (auto & r : result) {
+    storedValuesForRotations = ic_rotation::exponential_map(reference_, curr_xyz_);
+    for (auto & r : storedValuesForRotations) {
       r *= rad_gyr_;
     }
-    return result;
+    return storedValuesForRotations;
   }
 
   std::vector<scon::mathmatrix<coords::float_type>>
     InternalCoordinates::Rotator::rot_der(const coords::Representation_3D& new_xyz) const {
+    
     coords::Representation_3D new_xyz_;
     for (auto const & indi : indices_) {
       new_xyz_.emplace_back(new_xyz.at(indi - 1));
@@ -382,9 +387,15 @@ namespace InternalCoordinates {
     return ic_rotation::exponential_derivs(reference_, new_xyz_);
   }
 
-  scon::mathmatrix<coords::float_type>
-    InternalCoordinates::Rotator::rot_der_mat(const coords::Representation_3D& new_xyz)const {
+  scon::mathmatrix<coords::float_type> const&
+    InternalCoordinates::Rotator::rot_der_mat(const coords::Representation_3D& new_xyz) {
     using Mat = scon::mathmatrix<coords::float_type>;
+
+    if (!updateStoredDerivatives) {
+      return storedDerivativesForRotations;
+    }
+    updateStoredDerivatives = false;
+
     auto const & zero = scon::mathmatrix<coords::float_type>::zero;
 
     auto first_ders = rot_der(new_xyz);
@@ -407,14 +418,24 @@ namespace InternalCoordinates {
       Y.set_row(ind - 1, der.col(1).t());
       Z.set_row(ind - 1, der.col(2).t());
     }
+
     X *= rad_gyr_;
     Y *= rad_gyr_;
     Z *= rad_gyr_;
-    Mat result(first_ders.size() * 3, 3);
-    result.set_col(0, X.vectorise_row());
-    result.set_col(1, Y.vectorise_row());
-    result.set_col(2, Z.vectorise_row());
-    return result;
+
+    //TODO initialize storedDerivativesForRotations in ctor
+    storedDerivativesForRotations = Mat(first_ders.size() * 3, 3);
+    storedDerivativesForRotations.set_col(0, X.vectorise_row());
+    storedDerivativesForRotations.set_col(1, Y.vectorise_row());
+    storedDerivativesForRotations.set_col(2, Z.vectorise_row());
+    return storedDerivativesForRotations;
+  }
+
+  Rotations Rotator::makeRotations() {
+    return Rotations{
+      shared_from_this(),
+      std::make_unique<RotationA>(shared_from_this())
+    };
   }
 
   coords::float_type

@@ -195,6 +195,7 @@ struct ExpectedValuesForRotations{
   bool rotateMolecule;
   bool evaluateValues;
   bool evaluateDerivatives;
+  std::vector<double> expectedDerivatives;
 };
 
 
@@ -206,6 +207,8 @@ public:
 
   InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
   InternalCoordinates::Rotations rotations;
+
+  void checkIfVectorsAreSame(std::vector<double> const& lhs, std::vector<double> const& rhs);
 };
 
 class InternalCoordinatesRotatorTest : public InternalCoordinatesTestRotatedMolecules {
