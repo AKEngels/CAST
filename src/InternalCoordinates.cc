@@ -4,35 +4,35 @@
 
 namespace InternalCoordinates {
 
-  coords::float_type BondDistance::val(coords::Representation_3D const& xyz) const {
+  coords::float_type BondDistance::val(CartesiansForInternalCoordinates const& cartesians) const {
 
-    auto const& a = xyz.at(index_a_ - 1u);
-    auto const& b = xyz.at(index_b_ - 1u);
+    auto const& a = cartesians.at(index_a_ - 1u);
+    auto const& b = cartesians.at(index_b_ - 1u);
 
     return ic_util::euclid_dist<double>(a, b);
   }
 
-  std::pair<coords::r3, coords::r3> BondDistance::der(coords::Representation_3D const& xyz) const {
+  std::pair<coords::r3, coords::r3> BondDistance::der(CartesiansForInternalCoordinates const& cartesians) const {
 
-    auto const& a = xyz.at(index_a_ - 1u);
-    auto const& b = xyz.at(index_b_ - 1u);
+    auto const& a = cartesians.at(index_a_ - 1u);
+    auto const& b = cartesians.at(index_b_ - 1u);
 
     auto bond = ic_util::normalize(a - b);
     return std::make_pair(bond, -bond);
   }
 
   std::vector<coords::float_type>
-    BondDistance::der_vec(coords::Representation_3D const& xyz) const {
+    BondDistance::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::c3;
 
-    auto firstder = der(xyz);
-    std::vector<coords::r3> der_vec(xyz.size(), coords::r3(0.0, 0.0, 0.0));
+    auto firstder = der(cartesians);
+    std::vector<coords::r3> der_vec(cartesians.size(), coords::r3(0.0, 0.0, 0.0));
     der_vec.at(index_a_ - 1) = firstder.first;
     der_vec.at(index_b_ - 1) = firstder.second;
     return ic_util::flatten_c3_vec(der_vec);
   }
 
-  coords::float_type BondDistance::hessian_guess(coords::Representation_3D const& xyz) const {
+  coords::float_type BondDistance::hessian_guess(CartesiansForInternalCoordinates const& cartesians) const {
     using ic_atom::element_period;
     using ic_atom::period;
 
@@ -61,24 +61,24 @@ namespace InternalCoordinates {
     else {
       B_val = 2.068;
     }
-    return 1.734 / std::pow(val(xyz) - B_val, 3);
+    return 1.734 / std::pow(val(cartesians) - B_val, 3);
   }
 
-  std::string BondDistance::info(coords::Representation_3D const & xyz) const
+  std::string BondDistance::info(CartesiansForInternalCoordinates const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Bond: " << val(xyz) << " || " << index_a_ << " || " << index_b_ << " ||";
+    oss << "Bond: " << val(cartesians) << " || " << index_a_ << " || " << index_b_ << " ||";
     return oss.str();
   }
 
-  coords::float_type BondAngle::val(coords::Representation_3D const& xyz) const {
+  coords::float_type BondAngle::val(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::cross;
     using scon::dot;
     using scon::len;
 
-    auto const& a = xyz.at(index_a_ - 1u);
-    auto const& b = xyz.at(index_b_ - 1u);
-    auto const& c = xyz.at(index_c_ - 1u);
+    auto const& a = cartesians.at(index_a_ - 1u);
+    auto const& b = cartesians.at(index_b_ - 1u);
+    auto const& c = cartesians.at(index_c_ - 1u);
 
     auto u = a - b;
     auto v = c - b;
@@ -89,15 +89,15 @@ namespace InternalCoordinates {
   }
 
   std::tuple<coords::r3, coords::r3, coords::r3>
-    BondAngle::der(coords::Representation_3D const& xyz) const {
+    BondAngle::der(CartesiansForInternalCoordinates const& cartesians) const {
     using coords::Cartesian_Point;
     using scon::cross;
     using scon::dot;
     using scon::len;
 
-    auto const& a = xyz.at(index_a_ - 1u);
-    auto const& b = xyz.at(index_b_ - 1u);
-    auto const& c = xyz.at(index_c_ - 1u);
+    auto const& a = cartesians.at(index_a_ - 1u);
+    auto const& b = cartesians.at(index_b_ - 1u);
+    auto const& c = cartesians.at(index_c_ - 1u);
 
     auto u = a - b;
     auto v = c - b;
@@ -129,18 +129,18 @@ namespace InternalCoordinates {
   }
 
   std::vector<coords::float_type>
-    BondAngle::der_vec(coords::Representation_3D const& xyz) const {
+    BondAngle::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::c3;
 
-    auto firstder = BondAngle::der(xyz);
-    std::vector<coords::r3> der_vec(xyz.size(), coords::r3(0.0, 0.0, 0.0));
+    auto firstder = BondAngle::der(cartesians);
+    std::vector<coords::r3> der_vec(cartesians.size(), coords::r3(0.0, 0.0, 0.0));
     der_vec.at(index_a_ - 1) = std::get<0>(firstder);
     der_vec.at(index_b_ - 1) = std::get<1>(firstder);
     der_vec.at(index_c_ - 1) = std::get<2>(firstder);
     return ic_util::flatten_c3_vec(der_vec);
   }
 
-  coords::float_type BondAngle::hessian_guess(coords::Representation_3D const& /*xyz*/) const {
+  coords::float_type BondAngle::hessian_guess(CartesiansForInternalCoordinates const& /*cartesians*/) const {
     using ic_atom::element_period;
     using ic_atom::period;
 
@@ -157,24 +157,24 @@ namespace InternalCoordinates {
     }
   }
 
-  std::string BondAngle::info(coords::Representation_3D const & xyz) const {
+  std::string BondAngle::info(CartesiansForInternalCoordinates const & cartesians) const {
     std::ostringstream oss;
-    oss << "Angle: " << val(xyz) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " ||";
+    oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " ||";
     return oss.str();
   }
 
 
-  coords::float_type DihedralAngle::val(coords::Representation_3D const& xyz) const {
+  coords::float_type DihedralAngle::val(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::cross;
     using scon::dot;
     using scon::len;
 
 
     //Eigentlich sollte das hier richtig sein:
-    auto const & a = xyz.at(index_a_ - 1u);
-    auto const & b = xyz.at(index_b_ - 1u);
-    auto const & c = xyz.at(index_c_ - 1u);
-    auto const & d = xyz.at(index_d_ - 1u);
+    auto const & a = cartesians.at(index_a_ - 1u);
+    auto const & b = cartesians.at(index_b_ - 1u);
+    auto const & c = cartesians.at(index_c_ - 1u);
+    auto const & d = cartesians.at(index_d_ - 1u);
 
     auto b1 = b - a;
     b1 /= len(b1);
@@ -189,15 +189,15 @@ namespace InternalCoordinates {
   }
  
   std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
-    DihedralAngle::der(coords::Representation_3D const& xyz) const {
+    DihedralAngle::der(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::cross;
     using scon::dot;
     using scon::len;
 
-    auto const & a = xyz.at(index_a_ - 1u);
-    auto const & b = xyz.at(index_b_ - 1u);
-    auto const & c = xyz.at(index_c_ - 1u);
-    auto const & d = xyz.at(index_d_ - 1u);
+    auto const & a = cartesians.at(index_a_ - 1u);
+    auto const & b = cartesians.at(index_b_ - 1u);
+    auto const & c = cartesians.at(index_c_ - 1u);
+    auto const & d = cartesians.at(index_d_ - 1u);
 
     auto u_p = a - b;
     auto w_p = c - b;
@@ -222,12 +222,12 @@ namespace InternalCoordinates {
   }
 
   std::vector<coords::float_type>
-    DihedralAngle::der_vec(coords::Representation_3D const& xyz) const {
+    DihedralAngle::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::c3;
 
-    auto firstder = der(xyz);
+    auto firstder = der(cartesians);
     coords::r3 temp(0.0, 0.0, 0.0);
-    std::vector<coords::r3> der_vec(xyz.size(), temp);
+    std::vector<coords::r3> der_vec(cartesians.size(), temp);
     der_vec.at(index_a_ - 1) = std::get<0>(firstder);
     der_vec.at(index_b_ - 1) = std::get<1>(firstder);
     der_vec.at(index_c_ - 1) = std::get<2>(firstder);
@@ -235,22 +235,22 @@ namespace InternalCoordinates {
     return ic_util::flatten_c3_vec(der_vec);
   }
 
-  coords::float_type DihedralAngle::hessian_guess(coords::Representation_3D const & /*xyz*/) const{
+  coords::float_type DihedralAngle::hessian_guess(CartesiansForInternalCoordinates const & /*cartesians*/) const{
     return 0.023;
   }
 
-  std::string DihedralAngle::info(coords::Representation_3D const & xyz) const{
+  std::string DihedralAngle::info(CartesiansForInternalCoordinates const & cartesians) const{
     std::ostringstream oss;
-    oss << "Dihedral: " << val(xyz) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " || " << index_d_ << " ||";
+    oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " || " << index_d_ << " ||";
     return oss.str();
   }
 
-  coords::float_type OutOfPlane::hessian_guess(coords::Representation_3D const & xyz) const
+  coords::float_type OutOfPlane::hessian_guess(CartesiansForInternalCoordinates const & cartesians) const
   {
-    auto const& a = xyz.at(index_a_ - 1u);
-    auto const& b = xyz.at(index_b_ - 1u);
-    auto const& c = xyz.at(index_c_ - 1u);
-    auto const& d = xyz.at(index_d_ - 1u);
+    auto const& a = cartesians.at(index_a_ - 1u);
+    auto const& b = cartesians.at(index_b_ - 1u);
+    auto const& c = cartesians.at(index_c_ - 1u);
+    auto const& d = cartesians.at(index_d_ - 1u);
     auto r1 = b - a;
     auto r2 = b - c;
     auto r3 = b - d;
@@ -262,59 +262,86 @@ namespace InternalCoordinates {
     return 0.045 * d_pow;
   }
 
-  std::string OutOfPlane::info(coords::Representation_3D const & xyz) const
+  std::string OutOfPlane::info(CartesiansForInternalCoordinates const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Out of plane: " << val(xyz) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+    oss << "Out of plane: " << val(cartesians) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
     return oss.str();
   }
 
   std::vector<coords::float_type>
-    TranslationX::der_vec(coords::Representation_3D const& xyz) const {
+    TranslationX::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
     using cp = coords::Cartesian_Point;
 
-    return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
+    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
       return cp(1. / static_cast<coords::float_type>(s), 0., 0.);
     }));
   }
 
-  std::string TranslationX::info(coords::Representation_3D const & xyz) const
+  std::string TranslationX::info(CartesiansForInternalCoordinates const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans X: " << val(xyz);
+    oss << "Trans X: " << val(cartesians);
     return oss.str();
   }
 
   std::vector<coords::float_type>
-    TranslationY::der_vec(coords::Representation_3D const& xyz) const {
+    TranslationY::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
 
     using cp = coords::Cartesian_Point;
 
-    return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
+    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
       return cp(0., 1. / static_cast<coords::float_type>(s), 0.);
     }));
   }
 
-  std::string TranslationY::info(coords::Representation_3D const & xyz) const
+  std::string TranslationY::info(CartesiansForInternalCoordinates const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans Y: " << val(xyz);
+    oss << "Trans Y: " << val(cartesians);
     return oss.str();
   }
 
   std::vector<coords::float_type>
-    TranslationZ::der_vec(coords::Representation_3D const& xyz) const {
+    TranslationZ::der_vec(CartesiansForInternalCoordinates const& cartesians) const {
     using cp = coords::Cartesian_Point;
 
-    return ic_util::flatten_c3_vec(der(xyz.size(), [](auto const & s) {
+    return ic_util::flatten_c3_vec(der(cartesians.size(), [](auto const & s) {
       return cp(0., 0., 1. / static_cast<coords::float_type>(s));
     }));
   }
 
-  std::string TranslationZ::info(coords::Representation_3D const & xyz) const
+  std::string TranslationZ::info(CartesiansForInternalCoordinates const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Trans Z: " << val(xyz);
+    oss << "Trans Z: " << val(cartesians);
     return oss.str();
+  }
+
+  void RotatorObserver::setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator) { this->rotator = rotator; }
+
+  void RotatorObserver::update(){
+    notify();
+  }
+
+  void RotatorObserver::notify(){
+    rotator->setUpdateFlag();
+  }
+
+  void CartesiansForInternalCoordinates::registerObserver(std::shared_ptr<RotatorObserver> const observer) {
+    observerList.emplace_back(observer);
+  }
+
+  void CartesiansForInternalCoordinates::notify(){
+    for (auto const& observer : observerList) {
+      observer->update();
+    }
+  }
+  std::shared_ptr<Rotator> Rotator::buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians)
+  {
+    return std::shared_ptr<Rotator>();
+  }
+  void Rotator::registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates)
+  {
   }
 }

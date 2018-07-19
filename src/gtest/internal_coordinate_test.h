@@ -198,7 +198,7 @@ public:
   void testRotationDerivatives();
 
 private:
-  ic_core::Rotation rotation;
+  InternalCoordinates::Rotation rotation;
 };
 
 class CorrelationTests : public testing::Test {
@@ -233,6 +233,27 @@ private:
 class TranslationRotationCoordinatesTest : testing::Test {
 private:
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
+};
+
+class InterestedRotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<InterestedRotator>{
+public:
+  static std::shared_ptr<InterestedRotator> buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians) ;
+  void setUpdateFlag()override { updateFlag = true; }
+  bool isFlagSet() { return updateFlag; }
+private:
+  InterestedRotator() : updateFlag{ false } {}
+  void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesians);
+  bool updateFlag;
+};
+
+class RotatorObserverTest : public testing::Test {
+public:
+  RotatorObserverTest();
+  void testInitiallyFlagIsSetToFalse();
+  void testWhenGeometryIsUpdatedThenFlagIsTrue();
+private:
+  InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
+  std::shared_ptr<InterestedRotator> rotator;
 };
 
 #endif

@@ -46,26 +46,9 @@ using coords::float_type;
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
 
-struct Rotation {
-  template<typename Rep3D, typename IndexVec>
-  Rotation(Rep3D&& reference, IndexVec&& index_vec):
-    reference_{ std::forward<Rep3D>(reference) }, indices_{ std::forward<IndexVec>(index_vec) },
-    rad_gyr_{ radiusOfGyration(reference_) }{}
 
-  coords::Representation_3D const reference_;
-  std::vector<std::size_t> indices_;
 
-  float_type rad_gyr_;
-
-  std::array<float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
-  std::vector<scon::mathmatrix<float_type>> rot_der(const coords::Representation_3D&) const;
-  scon::mathmatrix<float_type> rot_der_mat(const coords::Representation_3D&) const;
-  float_type radiusOfGyration(const coords::Representation_3D&);
-
-  //static coords::Representation_3D xyz0;
-};
-
-Rotation build_rotation(const coords::Representation_3D& target,
+InternalCoordinates::Rotation build_rotation(const coords::Representation_3D& target,
   const std::vector<std::size_t>& index_vec);
 
 class system {
@@ -76,7 +59,7 @@ public:
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-  std::vector<Rotation> rotation_vec_;
+  std::vector<InternalCoordinates::Rotation> rotation_vec_;
 
 private:
   
@@ -114,7 +97,7 @@ public:
   std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
     create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<Rotation>
+  std::vector<InternalCoordinates::Rotation>
   create_rotations(const coords::Representation_3D&,
                    const std::vector<std::vector<std::size_t>>&);
 

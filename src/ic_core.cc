@@ -25,17 +25,17 @@ coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const
 
 //coords::Representation_3D ic_core::rotation::xyz0;
 
-ic_core::Rotation ic_core::build_rotation(coords::Representation_3D const& target,
+InternalCoordinates::Rotation ic_core::build_rotation(coords::Representation_3D const& target,
   std::vector<std::size_t> const& index_vec){
     coords::Representation_3D reference;
   for (auto const & ind : index_vec) {
     reference.emplace_back(target.at(ind - 1));
   }
-  return Rotation(std::move(reference), index_vec);
+  return InternalCoordinates::Rotation(std::move(reference), index_vec);
 }
 
 std::array<float_type, 3u>
-ic_core::Rotation::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
+InternalCoordinates::Rotation::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
   coords::Representation_3D curr_xyz_;
   curr_xyz_.reserve(indices_.size());
   for (auto const & i : indices_) {
@@ -65,7 +65,7 @@ ic_core::Rotation::valueOfInternalCoordinate(const coords::Representation_3D& ne
 }
 
 std::vector<scon::mathmatrix<float_type>>
-ic_core::Rotation::rot_der(const coords::Representation_3D& new_xyz) const{
+InternalCoordinates::Rotation::rot_der(const coords::Representation_3D& new_xyz) const{
   coords::Representation_3D new_xyz_;
   for (auto const & indi : indices_) {
     new_xyz_.emplace_back(new_xyz.at(indi - 1));
@@ -78,7 +78,7 @@ ic_core::Rotation::rot_der(const coords::Representation_3D& new_xyz) const{
 }
 
 scon::mathmatrix<float_type>
-ic_core::Rotation::rot_der_mat(const coords::Representation_3D& new_xyz)const {
+InternalCoordinates::Rotation::rot_der_mat(const coords::Representation_3D& new_xyz)const {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
@@ -113,7 +113,7 @@ ic_core::Rotation::rot_der_mat(const coords::Representation_3D& new_xyz)const {
 }
 
 coords::float_type
-ic_core::Rotation::radiusOfGyration(const coords::Representation_3D& struc) {
+InternalCoordinates::Rotation::radiusOfGyration(const coords::Representation_3D& struc) {
   return ic_util::rad_gyr(struc);
 }
 
@@ -147,10 +147,10 @@ std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::s
   return result;
 }
 
-std::vector<ic_core::Rotation> ic_core::system::create_rotations(
+std::vector<InternalCoordinates::Rotation> ic_core::system::create_rotations(
     const coords::Representation_3D& rep,
     const std::vector<std::vector<std::size_t>>& index_vec) {
-  std::vector<ic_core::Rotation> result;
+  std::vector<InternalCoordinates::Rotation> result;
   for(auto const& iv : index_vec){
     result.emplace_back(ic_core::build_rotation(rep, iv));
   }

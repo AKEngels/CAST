@@ -604,6 +604,37 @@ INSTANTIATE_TEST_CASE_P(Default, InternalCoordinatesHessianTests, testing::Value
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationZ>(std::vector<std::size_t>{1,2,3}), 0.05 }
 ));
 
+RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}
+
+void RotatorObserverTest::testInitiallyFlagIsSetToFalse(){
+  EXPECT_EQ(rotator->isFlagSet(), false);
+}
+
+void RotatorObserverTest::testWhenGeometryIsUpdatedThenFlagIsTrue(){
+  auto changedStructure = ExpectedValuesForInternalCoordinates::createRotatedMethanolForRotationSystem();
+  cartesianCoordinates.setCartesianCoordnates(std::move(changedStructure));
+  EXPECT_EQ(rotator->isFlagSet(), true);
+}
+
+std::shared_ptr<InterestedRotator> InterestedRotator::buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians) {
+  auto newInstance = std::make_shared<InterestedRotator>(InterestedRotator());
+  newInstance->registerCartesians(cartesians);
+  return newInstance;
+}
+
+void InterestedRotator::registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesians) {
+  auto observer = std::make_shared<InternalCoordinates::RotatorObserver>();
+  observer->setNewRotator(shared_from_this());
+  cartesians.registerObserver(observer);
+}
+
+TEST_F(RotatorObserverTest, testInitiallyFlagIsSetToFalse) {
+  testInitiallyFlagIsSetToFalse();
+}
+
+TEST_F(RotatorObserverTest, testWhenGeometryIsUpdatedThenFlagIsTrue) {
+  testWhenGeometryIsUpdatedThenFlagIsTrue();
+}
 #endif
 
 
