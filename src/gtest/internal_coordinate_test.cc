@@ -255,19 +255,19 @@ std::string InternalCoordinatesTranslationZTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesRotationTest::InternalCoordinatesRotationTest()
+InternalCoordinatesRotatorTest::InternalCoordinatesRotatorTest()
     : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
       .first.cartesianRepresentation),
       rotation(InternalCoordinates::Rotator::buildRotator(cartesianCoordinates,
         std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 })) {}
 
-double InternalCoordinatesRotationTest::testRadiusOfGyration()
+double InternalCoordinatesRotatorTest::testRadiusOfGyration()
 {
   return rotation->radiusOfGyration(twoMethanolMolecules->getTwoRepresentations()
     .first.cartesianRepresentation);
 }
 
-void InternalCoordinatesRotationTest::testRotationValue(){
+void InternalCoordinatesRotatorTest::testRotationValue(){
   auto rotationsForXyz = rotation->valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   std::array<double, 3u> expectedValues = { -3.1652558307984515, -2.4287895503201611, 3.1652568986800538 };
   for (auto i = 0u; i < rotationsForXyz.size(); ++i) {
@@ -275,7 +275,7 @@ void InternalCoordinatesRotationTest::testRotationValue(){
   }
 }
 
-void InternalCoordinatesRotationTest::testRotationDerivatives(){
+void InternalCoordinatesRotatorTest::testRotationDerivatives(){
   auto rotationDerivatives = rotation->rot_der_mat(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   EXPECT_EQ(rotationDerivatives, expectedRotationDerivatives());
 }
@@ -533,15 +533,15 @@ TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
 }
 
-TEST_F(InternalCoordinatesRotationTest, testRadiusOfGyration) {
+TEST_F(InternalCoordinatesRotatorTest, testRadiusOfGyration) {
   EXPECT_NEAR(testRadiusOfGyration(), 2.2618755203155767, doubleNearThreshold);
 }
 
-TEST_F(InternalCoordinatesRotationTest, testRotationValue) {
+TEST_F(InternalCoordinatesRotatorTest, testRotationValue) {
   testRotationValue();
 }
 
-TEST_F(InternalCoordinatesRotationTest, testRotationDerivatives) {
+TEST_F(InternalCoordinatesRotatorTest, testRotationDerivatives) {
   testRotationDerivatives();
 }
 

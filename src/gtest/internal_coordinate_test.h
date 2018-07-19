@@ -190,9 +190,13 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesRotationTest : public InternalCoordinatesTestRotatedMolecules {
+class InternalCoordinatesRotationATest {
+
+};
+
+class InternalCoordinatesRotatorTest : public InternalCoordinatesTestRotatedMolecules {
 public:
-  InternalCoordinatesRotationTest();
+  InternalCoordinatesRotatorTest();
   double testRadiusOfGyration();
   void testRotationValue();
   void testRotationDerivatives();

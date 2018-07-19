@@ -218,6 +218,8 @@ namespace InternalCoordinates {
     notify();
   }
 
+  
+
   struct Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
 
@@ -265,6 +267,12 @@ namespace InternalCoordinates {
     virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
       return "";
     }
+  };
+
+
+  struct Rotations {
+    std::shared_ptr<Rotator> rotator;
+    std::unique_ptr<RotationA> rotationA;
   };
 
   /*class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
