@@ -50,6 +50,14 @@ namespace InternalCoordinates {
     void notify();
   };
 
+  inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
+    coords::Representation_3D slicedCoordinates;
+    for (auto const& index : indexVector) {
+      slicedCoordinates.emplace_back(cartesians.at(index-1u));
+    }
+    return slicedCoordinates;
+  }
+
   struct InternalCoordinate {
     virtual coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const = 0;
     virtual std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const = 0;
@@ -210,24 +218,56 @@ namespace InternalCoordinates {
     notify();
   }
 
-  struct Rotation {
-    template<typename Rep3D, typename IndexVec>
-    Rotation(Rep3D&& reference, IndexVec&& index_vec) :
-      reference_{ std::forward<Rep3D>(reference) }, indices_{ std::forward<IndexVec>(index_vec) },
-      rad_gyr_{ radiusOfGyration(reference_) } {}
+  struct Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
+  public:
 
-    coords::Representation_3D const reference_;
-    std::vector<std::size_t> indices_;
+    static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
+      auto newInstance = std::make_shared<Rotator>(sliceCartesianCoordinates(cartesians, indexVector), indexVector);
+      newInstance->registerCartesians(cartesians);
+      return newInstance;
+    }
 
-    coords::float_type rad_gyr_;
+    void setUpdateFlag()override { updateFlag = true; }
+    bool isFlagSet() { return updateFlag; }
 
     std::array<coords::float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(const coords::Representation_3D&) const;
     scon::mathmatrix<coords::float_type> rot_der_mat(const coords::Representation_3D&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);
+
+    //TODO make it private again
+    Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
+      reference_{ reference }, indices_{ index_vec },
+      rad_gyr_{ radiusOfGyration(reference_) }, updateFlag{ false } {}
+    Rotator() :
+      reference_{}, indices_{},
+      rad_gyr_{}, updateFlag{ false } {}
+  private:
+
+    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
+
+    coords::Representation_3D const reference_;
+    std::vector<std::size_t> indices_;
+    coords::float_type rad_gyr_;
+    bool updateFlag; 
   };
 
-  class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
+  struct RotationA : public InternalCoordinate {
+    virtual coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
+      return 0.0;
+    }
+    virtual std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const override {
+      return std::vector<coords::float_type>();
+    }
+    virtual coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override {
+      return 0.0;
+    }
+    virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
+      return "";
+    }
+  };
+
+  /*class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
     static std::shared_ptr<Rotator> buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians);
     void setUpdateFlag()override { updateFlag = true; }
@@ -236,7 +276,7 @@ namespace InternalCoordinates {
     Rotator() : updateFlag{ false } {}
     void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
     bool updateFlag;
-  };
+  };*/
 }
 
 #endif

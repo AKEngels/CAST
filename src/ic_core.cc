@@ -25,17 +25,26 @@ coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const
 
 //coords::Representation_3D ic_core::rotation::xyz0;
 
-InternalCoordinates::Rotation ic_core::build_rotation(coords::Representation_3D const& target,
-  std::vector<std::size_t> const& index_vec){
-    coords::Representation_3D reference;
+//TODO Replace target as a instance of CartesiansForInternalCoordinates
+std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Representation_3D const& target,
+  std::vector<std::size_t> const& index_vec) {
+  coords::Representation_3D reference;
   for (auto const & ind : index_vec) {
     reference.emplace_back(target.at(ind - 1));
   }
-  return InternalCoordinates::Rotation(std::move(reference), index_vec);
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians(target);
+  //auto bla = InternalCoordinates::Rotator::buildRotator(cartesians, std::vector<std::size_t>(index_vec));
+  /*return std::make_shared<InternalCoordinates::Rotator>(coords::Representation_3D{ coords::r3{ -0.321, -0.087, 0.12733 },
+    coords::r3{ 1.055, 0.144, 0.21133 },
+    coords::r3{ -0.53, -0.921, -0.57767 },
+    coords::r3{ -0.85, 0.837, -0.18867 },
+    coords::r3{ -0.699, -0.376, 1.12933 },
+    coords::r3{ 1.345, 0.403, -0.70167 } }, std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 });*/
+  return InternalCoordinates::Rotator::buildRotator(cartesians, index_vec);
 }
 
 std::array<float_type, 3u>
-InternalCoordinates::Rotation::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
+InternalCoordinates::Rotator::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) const {
   coords::Representation_3D curr_xyz_;
   curr_xyz_.reserve(indices_.size());
   for (auto const & i : indices_) {
@@ -65,7 +74,7 @@ InternalCoordinates::Rotation::valueOfInternalCoordinate(const coords::Represent
 }
 
 std::vector<scon::mathmatrix<float_type>>
-InternalCoordinates::Rotation::rot_der(const coords::Representation_3D& new_xyz) const{
+InternalCoordinates::Rotator::rot_der(const coords::Representation_3D& new_xyz) const{
   coords::Representation_3D new_xyz_;
   for (auto const & indi : indices_) {
     new_xyz_.emplace_back(new_xyz.at(indi - 1));
@@ -78,7 +87,7 @@ InternalCoordinates::Rotation::rot_der(const coords::Representation_3D& new_xyz)
 }
 
 scon::mathmatrix<float_type>
-InternalCoordinates::Rotation::rot_der_mat(const coords::Representation_3D& new_xyz)const {
+InternalCoordinates::Rotator::rot_der_mat(const coords::Representation_3D& new_xyz)const {
   using Mat = scon::mathmatrix<float_type>;
   auto const & zero = scon::mathmatrix<float_type>::zero;
 
@@ -113,7 +122,7 @@ InternalCoordinates::Rotation::rot_der_mat(const coords::Representation_3D& new_
 }
 
 coords::float_type
-InternalCoordinates::Rotation::radiusOfGyration(const coords::Representation_3D& struc) {
+InternalCoordinates::Rotator::radiusOfGyration(const coords::Representation_3D& struc) {
   return ic_util::rad_gyr(struc);
 }
 
@@ -147,10 +156,10 @@ std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::s
   return result;
 }
 
-std::vector<InternalCoordinates::Rotation> ic_core::system::create_rotations(
+std::vector<std::shared_ptr<InternalCoordinates::Rotator>> ic_core::system::create_rotations(
     const coords::Representation_3D& rep,
     const std::vector<std::vector<std::size_t>>& index_vec) {
-  std::vector<InternalCoordinates::Rotation> result;
+  std::vector<std::shared_ptr<InternalCoordinates::Rotator>> result;
   for(auto const& iv : index_vec){
     result.emplace_back(ic_core::build_rotation(rep, iv));
   }
@@ -168,7 +177,7 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   std::vector<std::vector<float_type>> Y_rot;
   std::vector<std::vector<float_type>> Z_rot;
   for (auto const& i : rotation_vec_) {
-    auto temp = i.rot_der_mat(xyz_);
+    auto temp = i->rot_der_mat(xyz_);
     //look for th cols and rows!
     X_rot.emplace_back(temp.col_to_std_vector(0));
     Y_rot.emplace_back(temp.col_to_std_vector(1));
@@ -325,7 +334,7 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(coords::Representation_
   }
   std::vector<std::array<float_type,3u>> rotations;
   for (auto const & rot : rotation_vec_) {
-    rotations.emplace_back(rot.valueOfInternalCoordinate(xyz));
+    rotations.emplace_back(rot->valueOfInternalCoordinate(xyz));
   }
   for(auto i = 0u; i<3; ++i){
     for(auto j = 0u; j<rotations.size(); ++j){

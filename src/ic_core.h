@@ -46,9 +46,8 @@ using coords::float_type;
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
 
-
-
-InternalCoordinates::Rotation build_rotation(const coords::Representation_3D& target,
+//TODO Replace target as a instance of CartesiansForInternalCoordinates
+std::shared_ptr<InternalCoordinates::Rotator> build_rotation(const coords::Representation_3D& target,
   const std::vector<std::size_t>& index_vec);
 
 class system {
@@ -59,7 +58,7 @@ public:
       : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-  std::vector<InternalCoordinates::Rotation> rotation_vec_;
+  std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
 private:
   
@@ -97,7 +96,7 @@ public:
   std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
     create_translations(const std::vector<std::vector<std::size_t>>&) const;
 
-  std::vector<InternalCoordinates::Rotation>
+  std::vector<std::shared_ptr<InternalCoordinates::Rotator>>
   create_rotations(const coords::Representation_3D&,
                    const std::vector<std::vector<std::size_t>>&);
 

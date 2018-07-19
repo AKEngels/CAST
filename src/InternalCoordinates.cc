@@ -337,11 +337,10 @@ namespace InternalCoordinates {
       observer->update();
     }
   }
-  std::shared_ptr<Rotator> Rotator::buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians)
-  {
-    return std::shared_ptr<Rotator>();
-  }
-  void Rotator::registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates)
-  {
+
+  void Rotator::registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates){
+    auto observer = std::make_shared<InternalCoordinates::RotatorObserver>();
+    observer->setNewRotator(shared_from_this());
+    cartesianCoordinates.registerObserver(observer);
   }
 }

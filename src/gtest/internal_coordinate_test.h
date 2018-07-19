@@ -198,7 +198,8 @@ public:
   void testRotationDerivatives();
 
 private:
-  InternalCoordinates::Rotation rotation;
+  InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
+  std::shared_ptr<InternalCoordinates::Rotator> rotation;
 };
 
 class CorrelationTests : public testing::Test {

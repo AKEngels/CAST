@@ -256,19 +256,19 @@ std::string InternalCoordinatesTranslationZTest::returnInfoTest() {
 }
 
 InternalCoordinatesRotationTest::InternalCoordinatesRotationTest()
-    : InternalCoordinatesTestRotatedMolecules(),
-      rotation(twoMethanolMolecules->getTwoRepresentations()
-                   .first.cartesianRepresentation,
-        std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 }) {}
+    : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
+      .first.cartesianRepresentation),
+      rotation(InternalCoordinates::Rotator::buildRotator(cartesianCoordinates,
+        std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 })) {}
 
 double InternalCoordinatesRotationTest::testRadiusOfGyration()
 {
-  return rotation.radiusOfGyration(twoMethanolMolecules->getTwoRepresentations()
+  return rotation->radiusOfGyration(twoMethanolMolecules->getTwoRepresentations()
     .first.cartesianRepresentation);
 }
 
 void InternalCoordinatesRotationTest::testRotationValue(){
-  auto rotationsForXyz = rotation.valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  auto rotationsForXyz = rotation->valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   std::array<double, 3u> expectedValues = { -3.1652558307984515, -2.4287895503201611, 3.1652568986800538 };
   for (auto i = 0u; i < rotationsForXyz.size(); ++i) {
     EXPECT_NEAR(rotationsForXyz.at(i), expectedValues.at(i), doubleNearThreshold);
@@ -276,7 +276,7 @@ void InternalCoordinatesRotationTest::testRotationValue(){
 }
 
 void InternalCoordinatesRotationTest::testRotationDerivatives(){
-  auto rotationDerivatives = rotation.rot_der_mat(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  auto rotationDerivatives = rotation->rot_der_mat(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   EXPECT_EQ(rotationDerivatives, expectedRotationDerivatives());
 }
 
