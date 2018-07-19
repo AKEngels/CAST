@@ -190,16 +190,30 @@ private:
   std::vector<double> derivativeVector;
 };
 
-class InternalCoordinatesRotationATest {
+struct ExpectedValuesForRotations{
+  double expectedValue;
+  bool rotateMolecule;
+  bool evaluateValues;
+  bool evaluateDerivatives;
+};
 
+
+
+class InternalCoordinatesRotationsTest : public InternalCoordinatesTestRotatedMolecules, public testing::WithParamInterface<ExpectedValuesForRotations> {
+public:
+  InternalCoordinatesRotationsTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1,2,3,4,5,6})->makeRotations() }{}
+
+  InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
+  InternalCoordinates::Rotations rotations;
 };
 
 class InternalCoordinatesRotatorTest : public InternalCoordinatesTestRotatedMolecules {
 public:
   InternalCoordinatesRotatorTest();
-  double testRadiusOfGyration();
   void testRotationValue();
   void testRotationDerivatives();
+  void testRadiusOfGyration();
 
 private:
   InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
@@ -243,7 +257,7 @@ private:
 class InterestedRotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<InterestedRotator>{
 public:
   static std::shared_ptr<InterestedRotator> buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians) ;
-  void setUpdateFlag()override { updateFlag = true; }
+  void setAllFlag()override { updateFlag = true; }
   bool isFlagSet() { return updateFlag; }
 private:
   InterestedRotator() : updateFlag{ false } {}

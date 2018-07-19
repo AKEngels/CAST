@@ -261,12 +261,6 @@ InternalCoordinatesRotatorTest::InternalCoordinatesRotatorTest()
       rotation(InternalCoordinates::Rotator::buildRotator(cartesianCoordinates,
         std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 })) {}
 
-double InternalCoordinatesRotatorTest::testRadiusOfGyration()
-{
-  return rotation->radiusOfGyration(twoMethanolMolecules->getTwoRepresentations()
-    .first.cartesianRepresentation);
-}
-
 void InternalCoordinatesRotatorTest::testRotationValue(){
   auto rotationsForXyz = rotation->valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   std::array<double, 3u> expectedValues = { -3.1652558307984515, -2.4287895503201611, 3.1652568986800538 };
@@ -278,6 +272,11 @@ void InternalCoordinatesRotatorTest::testRotationValue(){
 void InternalCoordinatesRotatorTest::testRotationDerivatives(){
   auto rotationDerivatives = rotation->rot_der_mat(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
   EXPECT_EQ(rotationDerivatives, expectedRotationDerivatives());
+}
+
+
+void InternalCoordinatesRotatorTest::testRadiusOfGyration() {
+  EXPECT_NEAR(ic_util::rad_gyr(ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() /= energy::bohr2ang), 2.2618755203155767, doubleNearThreshold);
 }
 
 void CorrelationTests::testCorrelationMatrix() {
@@ -533,8 +532,9 @@ TEST_F(InternalCoordinatesTranslationZTest, returnInfoTest) {
   EXPECT_EQ(returnInfoTest(), "Trans Z: -0.444716");
 }
 
+
 TEST_F(InternalCoordinatesRotatorTest, testRadiusOfGyration) {
-  EXPECT_NEAR(testRadiusOfGyration(), 2.2618755203155767, doubleNearThreshold);
+  testRadiusOfGyration();
 }
 
 TEST_F(InternalCoordinatesRotatorTest, testRotationValue) {
@@ -580,11 +580,10 @@ TEST_F(CorrelationTests, testExponentialMapDerivatives) {
 TEST_P(InternalCoordinatesHessianTests, testHessianGuessesForAllInternalCoordinates) {
   auto const& expectedValues = GetParam();
   internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
-  auto bla = internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
   EXPECT_NEAR(expectedValues.expectedValue, internalCoordinate->hessian_guess(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation), doubleNearThreshold);
 }
 
-INSTANTIATE_TEST_CASE_P(Default, InternalCoordinatesHessianTests, testing::Values(
+INSTANTIATE_TEST_CASE_P(BondDistances, InternalCoordinatesHessianTests, testing::Values(
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "H"), 0.072180537605377640 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "H"), 0.14450082351214560 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "C"), 0.14450082351214560 },
@@ -593,15 +592,42 @@ INSTANTIATE_TEST_CASE_P(Default, InternalCoordinatesHessianTests, testing::Value
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "C"), 1.2361326955675498 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "Si"), 1.2361326955675498 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "C"), 0.45990191969419802 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "Si"), 9.1964705962169191 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "Si"), 9.1964705962169191 }
+));
+
+INSTANTIATE_TEST_CASE_P(BondAndDihedralAngles, InternalCoordinatesHessianTests, testing::Values(
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "H"), 0.16 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "C"), 0.16 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "H"), 0.16 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "C"), 0.25 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(1, 2, 3, 4), 0.023 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(1, 2, 3, 4), 0.023 }
+));
+
+INSTANTIATE_TEST_CASE_P(Translations, InternalCoordinatesHessianTests, testing::Values(
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationX>(std::vector<std::size_t>{1,2,3}), 0.05 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationY>(std::vector<std::size_t>{1,2,3}), 0.05 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationZ>(std::vector<std::size_t>{1,2,3}), 0.05 }
+));
+
+TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
+  auto const& expectedValue = GetParam().expectedValue;
+  if (GetParam().rotateMolecule) {
+    cartesianCoordinates.setCartesianCoordnates(twoMethanolMolecules->getTwoRepresentations()
+      .second.cartesianRepresentation);
+  }
+  if (GetParam().evaluateValues) {
+    EXPECT_NEAR(rotations.rotationA->val(cartesianCoordinates.getCartesianCoordnates()), expectedValue, doubleNearThreshold);
+  }
+  if (GetParam().evaluateDerivatives) {
+
+  }
+  EXPECT_EQ(GetParam().evaluateValues, rotations.rotator->areValuesUpToDate());
+  EXPECT_EQ(GetParam().evaluateDerivatives, rotations.rotator->areDerivativesUpToDate());
+}
+
+INSTANTIATE_TEST_CASE_P(RotationA, InternalCoordinatesRotationsTest, testing::Values(
+  ExpectedValuesForRotations{0.0, false, false, false},
+  ExpectedValuesForRotations{ -3.1652558307984515, true, true, true }
 ));
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}

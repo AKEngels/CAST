@@ -1,6 +1,8 @@
 #ifndef H_INTERNAL_COORDINATES
 #define H_INTERNAL_COORDINATES
 
+#include<array>
+
 #include "coords.h"
 #include "scon_mathmatrix.h"
 
@@ -15,7 +17,7 @@ namespace InternalCoordinates {
 
   class AbstractRotatorListener {
   public:
-    virtual void setUpdateFlag() = 0;
+    virtual void setAllFlag() = 0;
   };
 
   class RotatorObserver : public AbstractGeometryObserver {
@@ -218,43 +220,18 @@ namespace InternalCoordinates {
     notify();
   }
 
-  
+  struct Rotator;
+  struct RotationA;
+  struct RotationB;
+  struct RotationC;
 
-  struct Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
-  public:
-
-    static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
-      auto newInstance = std::make_shared<Rotator>(sliceCartesianCoordinates(cartesians, indexVector), indexVector);
-      newInstance->registerCartesians(cartesians);
-      return newInstance;
-    }
-
-    void setUpdateFlag()override { updateFlag = true; }
-    bool isFlagSet() { return updateFlag; }
-
-    std::array<coords::float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
-    std::vector<scon::mathmatrix<coords::float_type>> rot_der(const coords::Representation_3D&) const;
-    scon::mathmatrix<coords::float_type> rot_der_mat(const coords::Representation_3D&) const;
-    coords::float_type radiusOfGyration(const coords::Representation_3D&);
-
-    //TODO make it private again
-    Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
-      reference_{ reference }, indices_{ index_vec },
-      rad_gyr_{ radiusOfGyration(reference_) }, updateFlag{ false } {}
-    Rotator() :
-      reference_{}, indices_{},
-      rad_gyr_{}, updateFlag{ false } {}
-  private:
-
-    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
-
-    coords::Representation_3D const reference_;
-    std::vector<std::size_t> indices_;
-    coords::float_type rad_gyr_;
-    bool updateFlag; 
+  struct Rotations {
+    std::shared_ptr<Rotator> rotator;
+    std::unique_ptr<InternalCoordinate> rotationA;
   };
 
   struct RotationA : public InternalCoordinate {
+    RotationA(std::shared_ptr<Rotator> const rotator) : rotator{ rotator } {}
     virtual coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
       return 0.0;
     }
@@ -267,13 +244,58 @@ namespace InternalCoordinates {
     virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
       return "";
     }
-  };
-
-
-  struct Rotations {
     std::shared_ptr<Rotator> rotator;
-    std::unique_ptr<RotationA> rotationA;
   };
+
+  class Rotator : public AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
+  public:
+
+    static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
+      auto newInstance = std::make_shared<Rotator>(sliceCartesianCoordinates(cartesians, indexVector), indexVector);
+      newInstance->registerCartesians(cartesians);
+      return newInstance;
+    }
+
+    void setAllFlag()override { updateStoredValues = updateStoredDerivatives = true; }
+    bool areValuesUpToDate() { return !updateStoredValues; }
+    bool areDerivativesUpToDate() { return !updateStoredDerivatives; }
+
+    std::array<coords::float_type, 3u> valueOfInternalCoordinate(const coords::Representation_3D&) const;
+    scon::mathmatrix<coords::float_type> rot_der_mat(const coords::Representation_3D&) const;
+
+    Rotations makeRotations() {
+      return Rotations{
+        shared_from_this(),
+        std::make_unique<RotationA>(shared_from_this())
+      };
+    }
+
+    //TODO make it private again
+    Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
+      reference_{ reference }, indices_{ index_vec },
+      rad_gyr_{ radiusOfGyration(reference_) }, updateStoredValues{ true }, updateStoredDerivatives{ true } {}
+  private:
+
+    std::vector<scon::mathmatrix<coords::float_type>> rot_der(const coords::Representation_3D&) const;
+    coords::float_type radiusOfGyration(const coords::Representation_3D&);
+
+
+    std::array<coords::float_type, 3u> storedValuesForRotations;
+    scon::mathmatrix<coords::float_type> storedDerivativesForRotations;
+    bool updateStoredValues;
+    bool updateStoredDerivatives;
+
+    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
+
+    coords::Representation_3D const reference_;
+    std::vector<std::size_t> indices_;
+    coords::float_type rad_gyr_;
+  };
+
+  
+
+
+  
 
   /*class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
