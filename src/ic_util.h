@@ -96,57 +96,69 @@ namespace ic_util{
     return a / scon::geometric_length(a);
   }
 
+  struct AtomConnector {
+    using returnType = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    AtomConnector(std::vector<std::string> const& elem_vec,
+      coords::Representation_3D const& cp_vec) : sequenceOfSymbols{ elem_vec }, cartesianRepresentation{ cp_vec }, firstAtomIndex{ 0u }, secondAtomIndex{ 0u } {}
+    returnType operator()();
+
+  private:
+    double getThresholdForBeingNotConnected(std::string const& oneAtom, std::string const& otherAtom);
+    void findTheFirstAtom(returnType & connectedAtoms);
+    void findAtomWithIndexHigherThanFirst(returnType & connectedAtoms);
+    void connectIfCloseEnough(returnType & connectedAtoms);
+    bool areTheyCloseEnough();
+
+    std::vector<std::string> const& sequenceOfSymbols;
+    coords::Representation_3D const& cartesianRepresentation;
+
+    std::size_t firstAtomIndex;
+    std::size_t secondAtomIndex;
+  };
+
+  inline std::vector<std::pair<std::size_t, std::size_t>> AtomConnector::operator()() {
+    std::vector<std::pair<std::size_t, std::size_t>> connectedAtoms;
+    findTheFirstAtom(connectedAtoms);
+    return connectedAtoms;
+  }
+
+  inline void AtomConnector::findTheFirstAtom(returnType & connectedAtoms){
+    for (firstAtomIndex = 0u; firstAtomIndex < sequenceOfSymbols.size(); ++firstAtomIndex) {
+      findAtomWithIndexHigherThanFirst(connectedAtoms);
+    }
+  }
+
+  inline void AtomConnector::findAtomWithIndexHigherThanFirst(returnType & connectedAtoms){
+    for (secondAtomIndex = firstAtomIndex+1u; secondAtomIndex < sequenceOfSymbols.size(); ++secondAtomIndex) {
+      connectIfCloseEnough(connectedAtoms);
+    }
+  }
+
+  inline void AtomConnector::connectIfCloseEnough(returnType & connectedAtoms) {
+    if (areTheyCloseEnough()) {
+      connectedAtoms.emplace_back(firstAtomIndex+1u, secondAtomIndex+1u);
+    }
+  }
+
+  inline bool AtomConnector::areTheyCloseEnough() {
+    double const threshold = getThresholdForBeingNotConnected(sequenceOfSymbols.at(firstAtomIndex), sequenceOfSymbols.at(secondAtomIndex));
+    double const actualDistance = scon::len(cartesianRepresentation.at(firstAtomIndex) - cartesianRepresentation.at(secondAtomIndex));
+    return actualDistance < threshold;
+  }
+
+  inline double AtomConnector::getThresholdForBeingNotConnected(std::string const& oneAtom, std::string const& otherAtom) {
+    using ic_atom::element_radius;
+    return 1.2 * (element_radius(oneAtom) + element_radius(otherAtom));
+  }
+
   inline std::vector<std::pair<std::size_t, std::size_t>>
   bonds(std::vector<std::string> const& elem_vec,
         coords::Representation_3D const& cp_vec) {
 
-    using scon::len;
+    AtomConnector atomCreator(elem_vec, cp_vec);
+    return atomCreator();
 
-    std::vector<std::pair<std::size_t, std::size_t>> connectedAtoms;
-
-    for (auto i = 0u; i < elem_vec.size(); ++i) {
-      for (auto j = i + 1u; j < elem_vec.size(); ++j) {
-        auto maximumDistanceToBeBonded = 1.2 * (ic_atom::element_radius(elem_vec.at(i)) + ic_atom::element_radius(elem_vec.at(j)));
-        if (scon::len(cp_vec.at(i) - cp_vec.at(j)) < maximumDistanceToBeBonded) {
-          connectedAtoms.emplace_back(i+1u,j+1u);
-        }
-      }
-    }
-
-    return connectedAtoms;
-
-  }
-
-  /*!
-  \brief Creates all possible 3-permutations from a vector containing 3 integers.
-  \param vec Vector containing 3 integers.
-  \return Vector of all created permutations, where each permutation is itself a
-  3-dimensional vector.
-  */
-  inline std::vector<std::vector<std::size_t>>
-  permutation_from_vec(std::vector<std::size_t>& vec) {
-    std::vector<std::vector<std::size_t>> result;
-    do {
-      std::cout << vec.at(0) << " " << vec.at(1) << " " << vec.at(2) << "\n";
-      result.emplace_back(std::vector<std::size_t>{ vec.at(0), vec.at(1), vec.at(2) });
-    } while (std::next_permutation(vec.begin(), vec.end()));
-    return result;
-  }
-
-  /*!
-  \brief Performs standard container flattening.
-  \tparam ContainerIt Type of container that is to be flattened.
-  \tparam Result Type of resulting container; might be an iterator.
-  \param st begin() iterator.
-  \param fi end() iterator.
-  \param res Usually an iterator to the flattened container.
-  */
-  template <typename ContainerIt, typename Result>
-  void concatenate(ContainerIt st, ContainerIt fi, Result res) {
-    while (st != fi) {
-      res = std::move(st->begin(), st->end(), res);
-      ++st;
-    }
   }
 
   /*!

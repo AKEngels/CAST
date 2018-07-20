@@ -180,6 +180,24 @@ TEST(IcUtilityFreeFunctions, Rep3D_to_Mat) {
   EXPECT_EQ(cartesianMatrix, expectedValues);
 }
 
+TEST(IcUtilityFreeFunctions, mat_to_rep3D) {
+  scon::mathmatrix<double> matrixToTransform{ {-0.321,}, {-0.087,}, {0.12733,} , {1.055,}, {0.144,}, {0.21133,}, {-0.53,}, {-0.921,}, {-0.57767,},
+  {-0.85, }, {0.837,}, {-0.18867,}, {-0.699,}, {-0.376,}, {1.12933,}, {1.345,}, {0.403,}, {-0.70167,}};
+  auto evaluatedValues = ic_util::mat_to_rep3D(matrixToTransform);
+
+  coords::Representation_3D expectedValues{
+    coords::r3{ -0.321, -0.087, 0.12733 },
+    coords::r3{ 1.055, 0.144, 0.21133 },
+    coords::r3{ -0.53, -0.921, -0.57767 },
+    coords::r3{ -0.85, 0.837, -0.18867 },
+    coords::r3{ -0.699, -0.376, 1.12933 },
+    coords::r3{ 1.345, 0.403, -0.70167 }
+  };
+  
+  
+  EXPECT_EQ(evaluatedValues, expectedValues);
+}
+
 TEST(IcUtilityFreeFunctions, bonds) {
   std::vector<std::string> symbols{ "C", "O", "H", "H", "H", "H" };
   coords::Representation_3D cartesianCoordinates{
@@ -219,5 +237,22 @@ TEST(IcUtilityFreeFunctions, bonds) {
   };
 
   EXPECT_EQ(bondsForTwo, expectedBondsForTwo);
+
+}
+
+TEST(IcUtilityFreeFunctions, flatten_c3_vec) {
+  coords::Representation_3D cartesianCoordinates{
+    coords::r3{ -0.321, -0.087, 0.12733 },
+    coords::r3{ 1.055, 0.144, 0.21133 },
+    coords::r3{ -0.53, -0.921, -0.57767 },
+    coords::r3{ -0.85, 0.837, -0.18867 },
+    coords::r3{ -0.699, -0.376, 1.12933 },
+    coords::r3{ 1.345, 0.403, -0.70167 }
+  };
+  std::vector<double> expectedValue{ -0.321, -0.087, 0.12733 , 1.055, 0.144, 0.21133, -0.53, -0.921, -0.57767,
+     -0.85, 0.837, -0.18867, -0.699, -0.376, 1.12933, 1.345, 0.403, -0.70167 };
+  auto evaluatedValues = ic_util::flatten_c3_vec(cartesianCoordinates);
+
+  EXPECT_EQ(evaluatedValues, expectedValue);
 
 }
