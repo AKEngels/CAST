@@ -40,7 +40,7 @@ struct Node {
   unsigned int atom_serial;
   std::string atom_name;
   std::string element;
-  coords::Cartesian_Point cp = {};
+  coords::Cartesian_Point cp;
 };
 
 /*!
@@ -52,9 +52,9 @@ retrieved by the PDB parser.
 template <typename Atom_type>
 class Graph {
 private:
-    Graph(const std::vector<std::pair<int, int>>& b_atoms,
-        const std::vector<Atom_type>& vec)
-      : g{ create_graph(b_atoms, vec) } {}
+    Graph(const std::vector<std::pair<int, int>>& connectedAtoms,
+        const std::vector<Atom_type>& atomVector)
+      : g{ create_graph(connectedAtoms, atomVector) } {}
 public:
   /*!
   \brief User-defined graph type.
@@ -80,16 +80,16 @@ public:
   \param vec Vector of atoms.
   \return Graph_type object.
   */
-  Graph_type create_graph(const std::vector<std::pair<int, int>>& b_at,
-                          const std::vector<Atom_type>& vec) {
+  Graph_type create_graph(const std::vector<std::pair<int, int>>& connectedAtoms,
+                          const std::vector<Atom_type>& atomVector) {
     using boost::add_edge;
     using boost::add_vertex;
 
     Graph_type graph;
     // A std::map is a sorted and associative container with unique keys.
     std::map<std::size_t, Graph_type::vertex_descriptor> vertex_map;
-    for (auto it = vec.begin(); it != vec.end(); ++it) {
-      auto index = std::distance(vec.begin(), it) + 1;
+    for (auto it = atomVector.begin(); it != atomVector.end(); ++it) {
+      auto index = std::distance(atomVector.begin(), it) + 1;
       Graph_type::vertex_descriptor v = add_vertex(graph);
       // A bundled property is accessed via subscript and the relevant vertex
       // descriptor.
@@ -99,7 +99,7 @@ public:
       graph[v].cp = (*it).cp;
       vertex_map.emplace(index, v);
     }
-    for (auto& s : b_at) {
+    for (auto& s : connectedAtoms) {
       auto first = s.first;
       auto second = s.second;
       add_edge(vertex_map[first], vertex_map[second], graph);
