@@ -1,5 +1,10 @@
 #ifdef GOOGLE_MOCK
 
+#include<array>
+#include<list>
+#include<set>
+#include<array>
+
 #include "ic_util_and_graph_test.h"
 #include "../ic_util.h"
 
@@ -90,9 +95,129 @@ TEST_F(GetMeanTest, testVectorOfDoubles) {
   testVectorOfDoubles();
 }
 
-TEST(ConvertContainerToVector, ArrayToVector) {
+void ConvertContainerToVectorTest::arrayToVector(){
   std::array<double, 3u> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
   EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
 }
 
+TEST_F(ConvertContainerToVectorTest, arrayToVector) {
+  arrayToVector();
+}
+
+void ConvertContainerToVectorTest::vectorToVector() {
+  std::vector<double> container{ 1.,2.,3. };
+  auto sameAsVector = ic_util::arr_to_vec(container);
+  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
+}
+
+TEST_F(ConvertContainerToVectorTest, vectorToVector) {
+  vectorToVector();
+}
+
+void ConvertContainerToVectorTest::listToVector() {
+  std::list<double> container{ 1.,2.,3. };
+  auto sameAsVector = ic_util::arr_to_vec(container);
+  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
+}
+
+TEST_F(ConvertContainerToVectorTest, listToVector) {
+  listToVector();
+}
+
+void ConvertContainerToVectorTest::dequeToVector() {
+  std::deque<double> container{ 1.,2.,3. };
+  auto sameAsVector = ic_util::arr_to_vec(container);
+  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
+}
+
+TEST_F(ConvertContainerToVectorTest, dequeToVector) {
+  dequeToVector();
+}
+
+void ConvertContainerToVectorTest::setToVector(){
+  std::set<double> container{ 1.,2.,3. };
+  auto sameAsVector = ic_util::arr_to_vec(container);
+  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
+}
+
+TEST_F(ConvertContainerToVectorTest, setToVector) {
+  setToVector();
+}
+
+void ConvertContainerToVectorTest::multisetToVector() {
+  std::multiset<double> container{ 1.,2.,3. };
+  auto sameAsVector = ic_util::arr_to_vec(container);
+  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(sameAsVector, referenceVector);
+}
+
+TEST_F(ConvertContainerToVectorTest, multisetToVector) {
+  multisetToVector();
+}
+
+TEST(IcUtilityFreeFunctions, Rep3D_to_Mat) {
+  coords::Representation_3D cartesianCoordinates{
+    coords::r3{ -0.321, -0.087, 0.12733 },
+    coords::r3{ 1.055, 0.144, 0.21133 },
+    coords::r3{ -0.53, -0.921, -0.57767 },
+    coords::r3{ -0.85, 0.837, -0.18867 },
+    coords::r3{ -0.699, -0.376, 1.12933 },
+    coords::r3{ 1.345, 0.403, -0.70167 }
+  };
+  auto cartesianMatrix = ic_util::Rep3D_to_Mat(cartesianCoordinates);
+  scon::mathmatrix<double> expectedValues { { -0.321, -0.087, 0.12733 },
+  { 1.055, 0.144, 0.21133 },
+  { -0.53, -0.921, -0.57767 },
+  { -0.85, 0.837, -0.18867 },
+  { -0.699, -0.376, 1.12933 },
+  { 1.345, 0.403, -0.70167 }};
+  EXPECT_EQ(cartesianMatrix, expectedValues);
+}
+
+TEST(IcUtilityFreeFunctions, bonds) {
+  std::vector<std::string> symbols{ "C", "O", "H", "H", "H", "H" };
+  coords::Representation_3D cartesianCoordinates{
+    coords::r3{ -0.321, -0.087, 0.12733 },
+    coords::r3{ 1.055, 0.144, 0.21133 },
+    coords::r3{ -0.53, -0.921, -0.57767 },
+    coords::r3{ -0.85, 0.837, -0.18867 },
+    coords::r3{ -0.699, -0.376, 1.12933 },
+    coords::r3{ 1.345, 0.403, -0.70167 }
+  };
+  std::vector<std::pair<std::size_t, std::size_t>> expectedBonds{
+    { 1u, 2u }, { 1u, 3u }, { 1u, 4u }, { 1u, 5u }, { 2u, 6u }
+  };
+
+  auto bonds = ic_util::bonds(symbols, cartesianCoordinates);
+  EXPECT_EQ(bonds, expectedBonds);
+
+  coords::Representation_3D twoMethanolMolecules{ coords::r3{ -6.053, -0.324, -0.108 },
+    coords::r3{ -4.677, -0.093, -0.024 },
+    coords::r3{ -6.262, -1.158, -0.813 },
+    coords::r3{ -6.582, 0.600, -0.424 },
+    coords::r3{ -6.431, -0.613, 0.894 },
+    coords::r3{ -4.387, 0.166, -0.937 },
+    coords::r3{ -6.146, 3.587, -0.024 },
+    coords::r3{ -4.755, 3.671, -0.133 },
+    coords::r3{ -6.427, 2.922, 0.821 },
+    coords::r3{ -6.587, 3.223, -0.978 },
+    coords::r3{ -6.552, 4.599, 0.179 },
+    coords::r3{ -4.441, 2.753, -0.339 } };
+
+  std::vector<std::string> symbolsForTwo{ "C", "O", "H", "H", "H", "H", "C", "O", "H", "H", "H", "H" };
+
+  auto bondsForTwo = ic_util::bonds(symbolsForTwo, twoMethanolMolecules);
+
+  std::vector<std::pair<std::size_t, std::size_t>> expectedBondsForTwo{
+    { 1u, 2u },{ 1u, 3u },{ 1u, 4u },{ 1u, 5u },{ 2u, 6u }, { 7u, 8u },{ 7u, 9u }, {7u, 10u}, { 7u, 11u}, { 8u, 12u}
+  };
+
+  EXPECT_EQ(bondsForTwo, expectedBondsForTwo);
+
+}

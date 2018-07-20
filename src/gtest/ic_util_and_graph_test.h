@@ -57,9 +57,19 @@ private:
   std::vector<double> vectorOfDoubles;
 };
 
-class ConvertArrayToVectorTest : public testing::Test {
+class ConvertContainerToVectorTest : public testing::Test {
 public:
+  ConvertContainerToVectorTest() : referenceVector{ 1.,2.,3. }{}
 
+  void arrayToVector();
+  void vectorToVector();
+  void listToVector();
+  void dequeToVector();
+  void setToVector();
+  void multisetToVector();
+
+private:
+  std::vector<double> referenceVector;
 };
 
 #endif

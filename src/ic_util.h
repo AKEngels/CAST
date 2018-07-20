@@ -44,6 +44,11 @@ namespace ic_util{
   \param arr Input array.
   \return std::vector.
   */
+  template <template<typename, typename ...> class Conatiner, typename VectorType, typename ... VectorArguments> 
+  inline typename std::enable_if<std::is_arithmetic<VectorType>::value, std::vector<VectorType>>::type
+    arr_to_vec(const Conatiner<VectorType, VectorArguments ...>& container) {
+    return std::vector<VectorType>(container.begin(), container.end());
+  }
   template <typename U, std::size_t N>
   inline typename std::enable_if<std::is_arithmetic<U>::value, std::vector<U>>::type
   arr_to_vec(const std::array<U, N>& arr) {
@@ -65,22 +70,13 @@ namespace ic_util{
     return A;
   }
 
-  // mean function for coordinates
-  inline coords::Cartesian_Point cp_mean(const coords::Representation_3D& rep) {
-    coords::Cartesian_Point cp{};
-    for (auto&& i : rep) {
-      cp += i;
-    }
-    cp /= static_cast<float_type>(rep.size());
-    return cp;
-  }
 
   // radius of gyration from Rep3D
   // coords have to be in Bohr
   template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
   rad_gyr(ContainerType<CoordType<T>, ContainerArgs...> const& rep) {
-    auto mean = cp_mean(rep);
+    auto mean = get_mean(rep);
     auto diff = rep - mean;
     auto sum{ 0.0 };
     for (auto& i : diff) {
@@ -89,79 +85,6 @@ namespace ic_util{
     }
     sum /= rep.size();
     return std::sqrt(sum);
-  }
-
-  inline coords::Cartesian_Point
-  normal_unit_vector(const coords::Cartesian_Point& a,
-                     const coords::Cartesian_Point& b,
-                     const coords::Cartesian_Point& c) {
-    using scon::cross;
-    using scon::len;
-
-    auto a_vec = b - a;
-    auto b_vec = b - c;
-    auto t1 = cross(a_vec, b_vec);
-    auto result = t1 / (len(t1));
-    return result;
-  }
-
-  /*!
-  \brief Creates all possible 2-permutations from a maximum number and sorts them
-  according to size.
-  \details Used as a helper function to create a vector of bonded atom pairs.
-  \param num Maximum number used for permutations.
-  \return Sorted std::vector of std::pair.
-  */
-  inline std::vector<std::pair<int, int>>
-  permutation(const std::size_t& num) {
-    std::vector<int> s(num);
-    // std::iota fills the range from std::begin(s) to std::end(s) with
-    // incremented integer values starting from 1.
-    std::iota(std::begin(s), std::end(s), 1);
-    std::vector<std::pair<int, int>> perm_vec;
-    for (auto& i : s) {
-      for (auto& f : s) {
-        if (i < f) {
-          auto par = std::make_pair(i, f);
-          perm_vec.emplace_back(par);
-        }
-      }
-    }
-    return perm_vec;
-  }
-
-  /*!
-  \brief Calculates the Euclidean distance between two Cartesian_Points.
-  \tparam T Arithmetic type. Enforced by type traits.
-  \param a First Cartesian_Point.
-  \param b Second Cartesian_Point.
-  \return Euclidean distance.
-  */
-  template <typename T>
-  inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
-  euclid_dist(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b) {
-    auto f{ (a - b) * (a - b) };
-    auto dist = std::sqrt(f.x() + f.y() + f.z());
-    return dist;
-  }
-
-  /*!
-  \brief Creates a std::vector of Euclidean distances for each possible pair
-  of atoms.
-  \tparam T Arithmetic type. Enforced by type traits.
-  \param cp_vec Structure of the system.
-  \return std::vector of Euclidean distances.
-  */
-  template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-  inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
-  dist_vec(ContainerType<CoordType<T>, ContainerArgs...> const& cp_vec) {
-    std::vector<T> result;
-    auto perm_vec = permutation(cp_vec.size());
-    for (auto& i : perm_vec) {
-      auto dist = euclid_dist<T>(cp_vec.at(i.first - 1), cp_vec.at(i.second - 1));
-      result.emplace_back(dist);
-    }
-    return result;
   }
 
   /*!
@@ -173,29 +96,25 @@ namespace ic_util{
     return a / scon::geometric_length(a);
   }
 
-  inline std::vector<std::pair<int, int>>
+  inline std::vector<std::pair<std::size_t, std::size_t>>
   bonds(std::vector<std::string> const& elem_vec,
         coords::Representation_3D const& cp_vec) {
-    using ic_atom::radius_vec;
 
-    auto radii = radius_vec(elem_vec);
-    auto perm = permutation(elem_vec.size());
-    std::vector<double> thres;
-    for (const auto& i : perm) {
-      thres.emplace_back(1.2 * (radii.at(i.first - 1) + radii.at(i.second - 1)));
-    }
-    auto dist = dist_vec(cp_vec);
-    auto thres_it{ thres.cbegin() };
-    auto dist_it{ dist.cbegin() };
-    std::vector<std::pair<int, int>> result;
-    for (; dist_it != dist.cend() && thres_it != thres.cend();
-         ++dist_it, ++thres_it) {
-      if (*dist_it < *thres_it) {
-        auto pos = std::distance(dist.cbegin(), dist_it);
-        result.emplace_back(perm.at(pos));
+    using scon::len;
+
+    std::vector<std::pair<std::size_t, std::size_t>> connectedAtoms;
+
+    for (auto i = 0u; i < elem_vec.size(); ++i) {
+      for (auto j = i + 1u; j < elem_vec.size(); ++j) {
+        auto maximumDistanceToBeBonded = 1.2 * (ic_atom::element_radius(elem_vec.at(i)) + ic_atom::element_radius(elem_vec.at(j)));
+        if (scon::len(cp_vec.at(i) - cp_vec.at(j)) < maximumDistanceToBeBonded) {
+          connectedAtoms.emplace_back(i+1u,j+1u);
+        }
       }
     }
-    return result;
+
+    return connectedAtoms;
+
   }
 
   /*!

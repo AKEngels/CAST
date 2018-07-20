@@ -6,11 +6,10 @@
 namespace InternalCoordinates {
 
   coords::float_type BondDistance::val(CartesiansForInternalCoordinates const& cartesians) const {
-
     auto const& a = cartesians.at(index_a_ - 1u);
     auto const& b = cartesians.at(index_b_ - 1u);
 
-    return ic_util::euclid_dist<double>(a, b);
+    return scon::len(a - b);
   }
 
   std::pair<coords::r3, coords::r3> BondDistance::der(CartesiansForInternalCoordinates const& cartesians) const {
