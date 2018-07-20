@@ -9,7 +9,7 @@
 
 namespace ExpectedValuesForInternalCoordinates {
 
-  coords::Representation_3D createSystemOfTwoMethanolMolecules(){
+  inline coords::Representation_3D createSystemOfTwoMethanolMolecules(){
     return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
       coords::r3{ -4.677, -0.093, -0.024 },
       coords::r3{ -6.262, -1.158, -0.813 },
@@ -24,11 +24,11 @@ namespace ExpectedValuesForInternalCoordinates {
       coords::r3{ -4.441, 2.753, -0.339 } };
   }
 
-  std::vector<std::string> createSequenceOfSymbolsForTwoMethanolMolecules() {
+  inline std::vector<std::string> createSequenceOfSymbolsForTwoMethanolMolecules() {
     return { "C", "O", "H", "H", "H", "H", "C", "O", "H", "H", "H", "H" };
   }
 
-  coords::Representation_3D createInitialMethanolForRotationSystem() {
+  inline coords::Representation_3D createInitialMethanolForRotationSystem() {
     return coords::Representation_3D{ coords::r3{ -0.321, -0.087, 0.12733 },
       coords::r3{ 1.055, 0.144, 0.21133 },
       coords::r3{ -0.53, -0.921, -0.57767 },
@@ -37,11 +37,11 @@ namespace ExpectedValuesForInternalCoordinates {
       coords::r3{ 1.345, 0.403, -0.70167 } };
   }
 
-  std::vector<std::string> createSequenceOfSymbolsForInitialMethanolForRotationSystem() {
+  inline std::vector<std::string> createSequenceOfSymbolsForInitialMethanolForRotationSystem() {
     return  { "C", "O", "H", "H", "H", "H" };
   }
 
-  coords::Representation_3D createRotatedMethanolForRotationSystem() {
+  inline coords::Representation_3D createRotatedMethanolForRotationSystem() {
     return coords::Representation_3D{ coords::r3{ -0.11699, -0.10048, 0.32100 },
       coords::r3{ 0.08440, -0.24140, -1.05500 },
       coords::r3{ -0.74011, 0.79636, 0.53000 },
@@ -50,48 +50,48 @@ namespace ExpectedValuesForInternalCoordinates {
       coords::r3{ 0.57087, 0.57345, -1.34500 } };
   }
 
-  std::vector<std::string> createSequenceOfSymbolsForRotatedMethanolForRotationSystem() {
+  inline std::vector<std::string> createSequenceOfSymbolsForRotatedMethanolForRotationSystem() {
     return { "C", "O", "H", "H", "H", "H" };
   }
 
-  coords::r3 constexpr firstBondAtomDerivative() {
+  inline coords::r3 constexpr firstBondAtomDerivative() {
     return coords::r3{ -0.98441712304088669, -0.16526188620817209,
              -0.060095231348426204 };
   }
 
-  coords::r3 constexpr secondBondAtomDerivative() {
+  inline coords::r3 constexpr secondBondAtomDerivative() {
     return coords::r3{ 0.98441712304088669, 0.16526188620817209, 0.060095231348426204 };
   }
 
-  coords::r3 constexpr leftAngleAtomDerivative() {
+  inline coords::r3 constexpr leftAngleAtomDerivative() {
     return coords::r3{ -0.062056791850036874, 0.27963965489457271, 0.24754030125005314 };
   }
 
-  coords::r3 constexpr middleAngleAtomDerivative() {
+  inline coords::r3 constexpr middleAngleAtomDerivative() {
     return coords::r3{ -0.10143003133725584, -0.13768014867512546, -0.11073454633478358 };
   }
 
-  coords::r3 constexpr rightAngleAtomDerivative() {
+  inline coords::r3 constexpr rightAngleAtomDerivative() {
     return coords::r3{ 0.16348682318729271, -0.14195950621944725, -0.13680575491526956 };
   }
 
-  coords::r3 constexpr leftLeftDihedralDerivative() {
+  inline coords::r3 constexpr leftLeftDihedralDerivative() {
     return coords::r3{ 0.047760930904702938, -0.49023624122103959, 0.56578012853796311 };
   }
 
-  coords::r3 constexpr leftMiddleDihedralDerivative() {
+  inline coords::r3 constexpr leftMiddleDihedralDerivative() {
     return coords::r3{ -0.056149623980491933, 0.17150456631353736, -0.11870115223680294 };
   }
 
-  coords::r3 constexpr rightMiddleDihedralDerivative() {
+  inline coords::r3 constexpr rightMiddleDihedralDerivative() {
     return coords::r3{ -0.084250009050912372, 0.23597149360212683, -0.14926917153430774 };
   }
 
-  coords::r3 constexpr rightRightDihedralDerivative() {
+  inline coords::r3 constexpr rightRightDihedralDerivative() {
     return coords::r3{ 0.092638702126701375, 0.082760181305375408, -0.29780980476685243 };
   }
 
-  scon::mathmatrix<double> expectedValuesForF() {
+  inline scon::mathmatrix<double> expectedValuesForF() {
     return scon::mathmatrix<double>{ { 6.84606631495125, -4.57230316634422,
                                        -13.0165563000258, 3.74086935468525 },
                                      { -4.57230316634422, 0.41134631529563,
@@ -102,7 +102,7 @@ namespace ExpectedValuesForInternalCoordinates {
                                        -10.0102206984924, 0.899808989944389 } };
   }
 
-  scon::mathmatrix<double> expectedEigenValuesForF() {
+  inline scon::mathmatrix<double> expectedEigenValuesForF() {
     return scon::mathmatrix<double>{ {
                                          -18.7538392250112,
                                      },
@@ -117,7 +117,7 @@ namespace ExpectedValuesForInternalCoordinates {
                                      } };
   }
 
-  scon::mathmatrix<double> expectedEigenVectorsForF() {
+  inline scon::mathmatrix<double> expectedEigenVectorsForF() {
     return scon::mathmatrix<double>{ { -0.199380447172903, 0.342091987934248,
                                        -0.811125403595648, 0.430460321885915 },
                                      { -0.549673535066269, -0.495167463863083,
@@ -128,7 +128,7 @@ namespace ExpectedValuesForInternalCoordinates {
                                        0.404841900136933, 0.56098517550819 } };
   }
 
-  scon::mathmatrix<double> expectedRotationDerivatives() {
+  inline scon::mathmatrix<double> expectedRotationDerivatives() {
     return scon::mathmatrix<double>{
       { 0.0440694562731686, -0.0462415234932995, 0.0342224408171854 },
       { 0.0250224091795194, 0.0582434877694512, 0.0342425808649325 },
@@ -151,30 +151,34 @@ namespace ExpectedValuesForInternalCoordinates {
     };
   }
 
-  std::vector<double> notCalculatingDerivatives() {
+  inline std::vector<double> notCalculatingDerivatives() {
     return std::vector<double>();
   }
 
-  std::vector<double> noChangeDerivatives() {
+  inline std::vector<double> noChangeDerivatives() {
     return std::vector<double>(18, 0.);
   }
 
-  std::vector<double> expectedDerivativesRotatoionA() {
+  inline std::vector<double> expectedDerivativesRotationANoRotation() {
+    return { -6.8070604004626673e-05, 0.022389429331504129, 0.015125887601743767, -0.016070275917649809, 0.12501307189429800, -0.0049577662128944622, 0.073108290770139403, -0.21147667162926978, 0.27009109139477827, -0.039079306105588407, -0.10652275242898791, -0.29651307558292966, -0.022493700981799217, 0.31742625610416425, 0.091761371288861956, 0.0046030628389026693, -0.14682933327170866, -0.075507508489559852 };
+  }
+
+  inline std::vector<double> expectedDerivativesRotatoionA() {
     return { 0.0440694562731686, 0.0250224091795194, 0.023893908788188, -0.00880081128293551, -0.153659042727933, 0.0344559570944513, -0.156235779332275,
       -0.0888487906434072 ,-0.0846724302441519, 0.0615615310599121, 0.344007690491845, -0.0481724531386894, 0.280338580706876, -0.0408762886483087, 0.204783837080904, -0.220932977424746, -0.0856459776517156, -0.130288819580702 };
   }
 
-  std::vector<double> expectedDerivativesRotatoionB() {
+  inline std::vector<double> expectedDerivativesRotatoionB() {
     return { -0.0462415234932995, 0.0582434877694512, 0.0013777688386713, 0.09114820691289, -0.15948765638584, 0.0437853128846211, 0.0260477069160252, 0.154367319708192, -0.195572120300373, -0.0977936053539417, 0.0300320610974034,
       0.0998496802546184, -0.183137063299809, 0.169471530184917, 0.0691467768954059, 0.209976278318135, -0.252626742374123, -0.018587418572944 };
   }
 
-  std::vector<double> expectedDerivativesRotatoionC() {
+  inline std::vector<double> expectedDerivativesRotatoionC() {
     return { 0.0342224408171854, 0.0342425808649325, 0.0231910960119916, -0.251807550239404, -0.0393920943151345, -0.0111303197288723, 0.291047355995862,
       0.189852131893457, 0.121164438538402, 0.14708852204346, -0.193800748922808, -0.15619456025363, -0.1143167151631, 0.172239202367153, 0.137616092244876, -0.106234053454003, -0.1631410718876, -0.114646746812767 };
   }
 
-  auto constexpr * provideExpectedValuesForFMatrixDerivativesInFile() {
+  inline auto constexpr * provideExpectedValuesForFMatrixDerivativesInFile() {
 
     return "  -0.606602086271963   0.000000000000000  -0.240625126641630  -0.164406172914831\n"
       "   0.000000000000000  -0.606602086271963  -0.164406172914831   0.240625126641630\n"
@@ -249,9 +253,8 @@ namespace ExpectedValuesForInternalCoordinates {
       "   2.541681638740779   0.000000000000000   1.325957831362909   0.761559628559505\n"
       "   0.000000000000000   2.541681638740779   0.761559628559505  -1.325957831362909\n";
   }
-}
 
-auto constexpr * provideExpectedValuesForQuaternionDerivatives() {
+inline auto constexpr * provideExpectedValuesForQuaternionDerivatives() {
   return "-0.00317901715652067   0.0086232820215688 -0.00757183019995756  0.00525255623360916\n"
     " 0.00439880060444517  0.00331016117542616  0.00945966919445312  0.00719349875069121\n"
     " 0.00021825620288395  0.00417896782325132 0.000201367848122566  0.00416600719354294\n"
@@ -273,7 +276,7 @@ auto constexpr * provideExpectedValuesForQuaternionDerivatives() {
 }
 
 
-auto constexpr * provideExpectedValuesForExponentialMapDerivatives() {
+inline auto constexpr * provideExpectedValuesForExponentialMapDerivatives() {
   return "0.0194835904440135  -0.0204438852085228   0.0151301168034264\n"
     "   0.011062681811963    0.025750085381058    0.015139020939647\n"
     "  0.0105637593994803 0.000609126729696898   0.0102530381551483\n"
@@ -293,5 +296,23 @@ auto constexpr * provideExpectedValuesForExponentialMapDerivatives() {
     " -0.0378650270019131   -0.111689056318571  -0.0721264589595268\n"
     " -0.0576021175393968 -0.00821770181691993  -0.0506865854389596\n";
 }
+enum class Rotation : int { A, B, C };
+
+inline std::shared_ptr<InternalCoordinates::InternalCoordinate> rotations(Rotation const whichRotation) {
+
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians(createInitialMethanolForRotationSystem());
+  auto rotationsAndRotator = InternalCoordinates::Rotator::buildRotator(cartesians, { 1,2,3 })->makeRotations();
+  if (whichRotation == Rotation::A) {
+    return std::move(rotationsAndRotator.rotationA);
+  }
+  else if (whichRotation == Rotation::B) {
+    return std::move(rotationsAndRotator.rotationA);
+  }
+  else if (whichRotation == Rotation::C) {
+    return std::move(rotationsAndRotator.rotationA);
+  }
+}
+
+} //end namespace ExpectedValuesForInternalCoordinates
 #endif
 #endif

@@ -618,6 +618,10 @@ INSTANTIATE_TEST_CASE_P(Translations, InternalCoordinatesHessianTests, testing::
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::TranslationZ>(std::vector<std::size_t>{1,2,3}), 0.05 }
 ));
 
+INSTANTIATE_TEST_CASE_P(Rotations, InternalCoordinatesHessianTests, testing::Values(
+  DifferentInternalCoordinates{ rotations(Rotation::A), 0.05 }
+));
+
 TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
   auto const& expectedValue = GetParam().expectedValue;
   if (GetParam().rotateMolecule) {
@@ -640,9 +644,19 @@ INSTANTIATE_TEST_CASE_P(RotationA, InternalCoordinatesRotationsTest, testing::Va
   ExpectedValuesForRotations{ 0.0, true, false, false, notCalculatingDerivatives() },
   ExpectedValuesForRotations{ 0.0, false, true, false, notCalculatingDerivatives() },
   ExpectedValuesForRotations{ -3.1652558307984515, true, true, false, notCalculatingDerivatives() },
-  ExpectedValuesForRotations{ 0.0, false, true, true, noChangeDerivatives() },
+  ExpectedValuesForRotations{ 0.0, false, true, true, expectedDerivativesRotationANoRotation() },
   ExpectedValuesForRotations{ -3.1652558307984515, true, true, true, expectedDerivativesRotatoionA() }
 ));
+
+
+std::string InternalCoordinatesRotationInfoTest::infoOfRotationA(){
+  return rotations.rotationA->info(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+}
+
+TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationA) {
+  EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526");
+}
+
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}
 
@@ -676,5 +690,4 @@ TEST_F(RotatorObserverTest, testWhenGeometryIsUpdatedThenFlagIsTrue) {
   testWhenGeometryIsUpdatedThenFlagIsTrue();
 }
 #endif
-
 

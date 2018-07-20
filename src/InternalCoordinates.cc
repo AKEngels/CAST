@@ -350,21 +350,6 @@ namespace InternalCoordinates {
     for (auto const & i : indices_) {
       curr_xyz_.emplace_back(new_xyz.at(i - 1));
     }
-    /*auto ref = reference_;
-    ref.at(0) = coords::Cartesian_Point(-5.380,   2.994,  -0.001);
-    ref.at(1) = coords::Cartesian_Point(-3.982,   2.994,   0.013);
-    ref.at(2) = coords::Cartesian_Point(-5.771,   3.923,   0.468);
-    ref.at(3) = coords::Cartesian_Point(-5.771,   2.093,   0.520);
-    ref.at(4) = coords::Cartesian_Point(-5.729,   2.964,  -1.054);
-    ref.at(5) = coords::Cartesian_Point(-3.718,   3.021,   0.969);
-    curr_xyz_.at(0) = coords::Cartesian_Point(-6.40029,       -0.54123,       -0.00037);
-    curr_xyz_.at(1) = coords::Cartesian_Point(-5.00210,       -0.52808,        0.00408);
-    curr_xyz_.at(2) = coords::Cartesian_Point(-6.79116,        0.22071,       -0.70912);
-    curr_xyz_.at(3) = coords::Cartesian_Point(-6.79116,       -0.36516,        1.02525);
-    curr_xyz_.at(4) = coords::Cartesian_Point(-6.74902,       -1.53902,       -0.33742);
-    curr_xyz_.at(5) = coords::Cartesian_Point(-4.73863,        0.37832,        0.31026);
-    Test Ergebnis: 2.7526415805955393, -1.0064325510255895e-05, -0.00046769875255223972
-    */
 
     storedValuesForRotations = ic_rotation::exponential_map(reference_, curr_xyz_);
     for (auto & r : storedValuesForRotations) {
@@ -380,9 +365,6 @@ namespace InternalCoordinates {
     for (auto const & indi : indices_) {
       new_xyz_.emplace_back(new_xyz.at(indi - 1));
     }
-
-    //std::cout << "New xyz:\n" << new_xyz_ << "\n\n";
-    //std::cout << "Old xyz:\n" << reference_ << "\n\n";
 
     return ic_rotation::exponential_derivs(reference_, new_xyz_);
   }
@@ -403,13 +385,6 @@ namespace InternalCoordinates {
     Mat X = zero(first_ders.size(), 3);
     Mat Y = zero(first_ders.size(), 3);
     Mat Z = zero(first_ders.size(), 3);
-
-
-    /*auto i=0;
-    for(auto const& mat: first_ders){
-    ++i;
-    std::cout << i << ". Mat:\n" << mat << "\n\n";
-    }*/
 
     for (auto i{ 0u }; i<first_ders.size(); ++i) {
       auto const& ind = indices_.at(i);

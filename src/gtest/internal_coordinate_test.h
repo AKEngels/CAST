@@ -85,9 +85,12 @@ struct DifferentInternalCoordinates {
 
 class InternalCoordinatesHessianTests : public testing::WithParamInterface<DifferentInternalCoordinates>, public testing::Test {
 public:
-  InternalCoordinatesHessianTests() : twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() }, internalCoordinate(GetParam().internalCoordinate) {}
-  std::shared_ptr<InternalCoordinates::InternalCoordinate> internalCoordinate;
+  InternalCoordinatesHessianTests() : twoMethanolMolecules{ std::make_unique<RotatetdMethanolMolecules>() }, 
+    internalCoordinate(GetParam().internalCoordinate) {}
   std::unique_ptr<MethanolMoleculesImpl> twoMethanolMolecules;
+
+  std::shared_ptr<InternalCoordinates::InternalCoordinate> internalCoordinate;
+
 };
 
 class InternalCoordinatesAnglesTest : public InternalCoordinatesTestSubsystem {
@@ -198,8 +201,6 @@ struct ExpectedValuesForRotations{
   std::vector<double> expectedDerivatives;
 };
 
-
-
 class InternalCoordinatesRotationsTest : public InternalCoordinatesTestRotatedMolecules, public testing::WithParamInterface<ExpectedValuesForRotations> {
 public:
   InternalCoordinatesRotationsTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
@@ -209,6 +210,19 @@ public:
   InternalCoordinates::Rotations rotations;
 
   void checkIfVectorsAreSame(std::vector<double> const& lhs, std::vector<double> const& rhs);
+};
+
+class InternalCoordinatesRotationInfoTest : public InternalCoordinatesTestRotatedMolecules {
+public:
+  InternalCoordinatesRotationInfoTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1,2,3,4,5,6})->makeRotations() } {}
+
+  std::string infoOfRotationA();
+  std::string infoOfRotationB();
+  std::string infoOfRotationC();
+
+  InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
+  InternalCoordinates::Rotations rotations;
 };
 
 class InternalCoordinatesRotatorTest : public InternalCoordinatesTestRotatedMolecules {

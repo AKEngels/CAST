@@ -282,11 +282,13 @@ namespace InternalCoordinates {
       auto const& derivativeMatrix = rotator->rot_der_mat(cartesians.getCartesianCoordnates());
       return derivativeMatrix.col_to_std_vector(0);
     }
-    virtual coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override {
-      return 0.0;
+    virtual coords::float_type hessian_guess(CartesiansForInternalCoordinates const& /*cartesians*/) const override {
+      return 0.05;
     }
     virtual std::string info(CartesiansForInternalCoordinates const & cartesians) const override {
-      return "";
+        std::ostringstream oss;
+        oss << "Rotation A: " << val(cartesians);
+        return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
   };
