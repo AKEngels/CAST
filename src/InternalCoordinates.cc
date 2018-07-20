@@ -409,7 +409,9 @@ namespace InternalCoordinates {
   Rotations Rotator::makeRotations() {
     return Rotations{
       shared_from_this(),
-      std::make_unique<RotationA>(shared_from_this())
+      std::make_unique<RotationA>(shared_from_this()),
+      std::make_unique<RotationB>(shared_from_this()),
+      std::make_unique<RotationC>(shared_from_this())
     };
   }
 

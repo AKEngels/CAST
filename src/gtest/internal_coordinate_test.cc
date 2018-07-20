@@ -619,20 +619,36 @@ INSTANTIATE_TEST_CASE_P(Translations, InternalCoordinatesHessianTests, testing::
 ));
 
 INSTANTIATE_TEST_CASE_P(Rotations, InternalCoordinatesHessianTests, testing::Values(
-  DifferentInternalCoordinates{ rotations(Rotation::A), 0.05 }
+  DifferentInternalCoordinates{ rotations(Rotation::A), 0.05 },
+  DifferentInternalCoordinates{ rotations(Rotation::B), 0.05 }
 ));
 
+std::unique_ptr<InternalCoordinates::InternalCoordinate> & InternalCoordinatesRotationsTest::getRotation(ExpectedValuesForInternalCoordinates::Rotation const kindOfRotation) {
+  if (kindOfRotation == Rotation::A) {
+    return rotations.rotationA;
+  }
+  else if (kindOfRotation == Rotation::B) {
+    return rotations.rotationB;
+  }
+  else if (kindOfRotation == Rotation::C) {
+    return rotations.rotationC;
+  }
+}
+
 TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
+
+  auto const& rotation = getRotation(GetParam().kindOfRotation);
+
   auto const& expectedValue = GetParam().expectedValue;
   if (GetParam().rotateMolecule) {
     cartesianCoordinates.setCartesianCoordnates(twoMethanolMolecules->getTwoRepresentations()
       .second.cartesianRepresentation);
   }
   if (GetParam().evaluateValues) {
-    EXPECT_NEAR(rotations.rotationA->val(cartesianCoordinates.getCartesianCoordnates()), expectedValue, doubleNearThreshold);
+    EXPECT_NEAR(rotation->val(cartesianCoordinates.getCartesianCoordnates()), expectedValue, doubleNearThreshold);
   }
   if (GetParam().evaluateDerivatives) {
-    checkIfVectorsAreSame(rotations.rotationA->der_vec(cartesianCoordinates.getCartesianCoordnates()),
+    checkIfVectorsAreSame(rotation->der_vec(cartesianCoordinates.getCartesianCoordnates()),
       GetParam().expectedDerivatives);
   }
   EXPECT_EQ(GetParam().evaluateValues, rotations.rotator->areValuesUpToDate());
@@ -640,23 +656,55 @@ TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
 }
 
 INSTANTIATE_TEST_CASE_P(RotationA, InternalCoordinatesRotationsTest, testing::Values(
-  ExpectedValuesForRotations{ 0.0, false, false, false, notCalculatingDerivatives() },
-  ExpectedValuesForRotations{ 0.0, true, false, false, notCalculatingDerivatives() },
-  ExpectedValuesForRotations{ 0.0, false, true, false, notCalculatingDerivatives() },
-  ExpectedValuesForRotations{ -3.1652558307984515, true, true, false, notCalculatingDerivatives() },
-  ExpectedValuesForRotations{ 0.0, false, true, true, expectedDerivativesRotationANoRotation() },
-  ExpectedValuesForRotations{ -3.1652558307984515, true, true, true, expectedDerivativesRotatoionA() }
+  ExpectedValuesForRotations{ Rotation::A, 0.0, false, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::A, 0.0, true, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::A, 0.0, false, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::A, -3.1652558307984515, true, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::A, 0.0, false, true, true, expectedDerivativesRotationANoRotation() },
+  ExpectedValuesForRotations{ Rotation::A, -3.1652558307984515, true, true, true, expectedDerivativesRotatoionA() }
 ));
 
+INSTANTIATE_TEST_CASE_P(RotationB, InternalCoordinatesRotationsTest, testing::Values(
+  ExpectedValuesForRotations{ Rotation::B, 0.0, false, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::B, 0.0, true, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::B, 0.0, false, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::B, -2.4287895503201611, true, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::B, 0.0, false, true, true, expectedDerivativesRotationBNoRotation() },
+  ExpectedValuesForRotations{ Rotation::B, -2.4287895503201611, true, true, true, expectedDerivativesRotatoionB() }
+));
+
+INSTANTIATE_TEST_CASE_P(RotationC, InternalCoordinatesRotationsTest, testing::Values(
+  ExpectedValuesForRotations{ Rotation::C, 0.0, false, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::C, 0.0, true, false, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::C, 0.0, false, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::C, 3.1652568986800538, true, true, false, notCalculatingDerivatives() },
+  ExpectedValuesForRotations{ Rotation::C, 0.0, false, true, true, expectedDerivativesRotationCNoRotation() },
+  ExpectedValuesForRotations{ Rotation::C, 3.1652568986800538, true, true, true, expectedDerivativesRotatoionC() }
+));
 
 std::string InternalCoordinatesRotationInfoTest::infoOfRotationA(){
   return rotations.rotationA->info(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+}
+
+std::string InternalCoordinatesRotationInfoTest::infoOfRotationB() {
+  return rotations.rotationB->info(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+}
+
+std::string InternalCoordinatesRotationInfoTest::infoOfRotationC() {
+  return rotations.rotationC->info(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
 }
 
 TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationA) {
   EXPECT_EQ(infoOfRotationA(), "Rotation A: -3.16526");
 }
 
+TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationB) {
+  EXPECT_EQ(infoOfRotationB(), "Rotation B: -2.42879");
+}
+
+TEST_F(InternalCoordinatesRotationInfoTest, infoOfRotationC) {
+  EXPECT_EQ(infoOfRotationC(), "Rotation C: 3.16526");
+}
 
 RotatorObserverTest::RotatorObserverTest() : cartesianCoordinates{ ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() }, rotator{ InterestedRotator::buildInterestedRotator(cartesianCoordinates) } {}
 

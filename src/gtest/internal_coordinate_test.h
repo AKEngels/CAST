@@ -6,6 +6,7 @@
 #include "../InternalCoordinates.h"
 #include "../coords.h"
 #include "../ic_core.h"
+#include "TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
 
 struct Molecule {
   coords::Representation_3D cartesianRepresentation;
@@ -194,6 +195,7 @@ private:
 };
 
 struct ExpectedValuesForRotations{
+  ExpectedValuesForInternalCoordinates::Rotation kindOfRotation;
   double expectedValue;
   bool rotateMolecule;
   bool evaluateValues;
@@ -210,6 +212,7 @@ public:
   InternalCoordinates::Rotations rotations;
 
   void checkIfVectorsAreSame(std::vector<double> const& lhs, std::vector<double> const& rhs);
+  std::unique_ptr<InternalCoordinates::InternalCoordinate> & getRotation(ExpectedValuesForInternalCoordinates::Rotation const kindOfRotation);
 };
 
 class InternalCoordinatesRotationInfoTest : public InternalCoordinatesTestRotatedMolecules {
