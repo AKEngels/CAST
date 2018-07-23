@@ -24,14 +24,12 @@ TestCreateGraph::TestCreateGraph() : atomVector{
 {5,"H","H", coords::r3{ -0.699, -0.376, 1.12933 } },
 {6, "H" , "H" , coords::r3{ 1.345, 0.403, -0.70167 } }
 }, connectivity{
-  {1,2},
-{ 1,3 },
-{ 1,4 },
-{ 1,5 },
-{ 2,6 }
+  {0,1},
+{ 0,2 },
+{ 0,3 },
+{ 0,4 },
+{ 1,5 }
 } {}
-
-#endif
 
 KeyOrDefaultTest::KeyOrDefaultTest() : testMap{ {"one", 1u }, {"three", 3u}, {"ten", 10u} }{}
 
@@ -209,7 +207,7 @@ TEST(IcUtilityFreeFunctions, bonds) {
     coords::r3{ 1.345, 0.403, -0.70167 }
   };
   std::vector<std::pair<std::size_t, std::size_t>> expectedBonds{
-    { 1u, 2u }, { 1u, 3u }, { 1u, 4u }, { 1u, 5u }, { 2u, 6u }
+    { 0u, 1u }, { 0u, 2u }, { 0u, 3u }, { 0u, 4u }, { 1u, 5u }
   };
 
   auto bonds = ic_util::bonds(symbols, cartesianCoordinates);
@@ -233,7 +231,7 @@ TEST(IcUtilityFreeFunctions, bonds) {
   auto bondsForTwo = ic_util::bonds(symbolsForTwo, twoMethanolMolecules);
 
   std::vector<std::pair<std::size_t, std::size_t>> expectedBondsForTwo{
-    { 1u, 2u },{ 1u, 3u },{ 1u, 4u },{ 1u, 5u },{ 2u, 6u }, { 7u, 8u },{ 7u, 9u }, {7u, 10u}, { 7u, 11u}, { 8u, 12u}
+    { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u }, { 6u, 7u },{ 6u, 8u }, {6u, 9u}, { 6u, 10u}, { 7u, 11u}
   };
 
   EXPECT_EQ(bondsForTwo, expectedBondsForTwo);
@@ -256,3 +254,86 @@ TEST(IcUtilityFreeFunctions, flatten_c3_vec) {
   EXPECT_EQ(evaluatedValues, expectedValue);
 
 }
+
+BuildUpGraphTest::BuildUpGraphTest() : expectedGraph{ makeExpectedGraph() }, actualGraph{ic_util::make_graph(createTestEdgesVector(), createTestAtomVector())}{}
+
+BuildUpGraphTest::Graph BuildUpGraphTest::makeExpectedGraph() {
+
+  BuildUpGraphTest::Graph graph;
+
+  auto firstAtom = boost::add_vertex(graph);
+  auto secondAtom = boost::add_vertex(graph);
+  auto thirdAtom = boost::add_vertex(graph);
+  auto fourthAtom = boost::add_vertex(graph);
+  auto fifthAtom = boost::add_vertex(graph);
+  auto sixthAtom = boost::add_vertex(graph);
+
+  graph[firstAtom] = ic_util::Node{ 1, "C", "C" };
+  graph[secondAtom] = ic_util::Node{ 2, "O", "O" };
+  graph[thirdAtom] = ic_util::Node{ 3, "H", "H" };
+  graph[fourthAtom] = ic_util::Node{ 4, "H", "H" };
+  graph[fifthAtom] = ic_util::Node{ 5, "H", "H" };
+  graph[sixthAtom] = ic_util::Node{ 6, "H", "H" };
+
+  boost::add_edge(firstAtom, secondAtom, graph);
+  boost::add_edge(firstAtom, thirdAtom, graph);
+  boost::add_edge(firstAtom, fourthAtom, graph);
+  boost::add_edge(firstAtom, fifthAtom, graph);
+  boost::add_edge(secondAtom, sixthAtom, graph);
+
+  return graph;
+}
+
+std::vector<ic_util::Node> BuildUpGraphTest::createTestAtomVector() {
+  return { ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 5, "H", "H" }, ic_util::Node{ 6, "H", "H" } };
+}
+
+std::vector<std::pair<std::size_t, std::size_t>> BuildUpGraphTest::createTestEdgesVector() {
+  return { { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u } };
+}
+
+void BuildUpGraphTest::testIfAtomsAreSetRight(){
+  auto expectedIterators = boost::vertices(expectedGraph);
+  auto actualIterators = boost::vertices(actualGraph);
+
+  for (; expectedIterators.first != expectedIterators.second || actualIterators.first != actualIterators.second; ++expectedIterators.first, ++actualIterators.first) {
+    EXPECT_EQ(expectedGraph[*expectedIterators.first].atom_serial, actualGraph[*actualIterators.first].atom_serial);
+    EXPECT_EQ(expectedGraph[*expectedIterators.first].atom_name, actualGraph[*actualIterators.first].atom_name);
+    EXPECT_EQ(expectedGraph[*expectedIterators.first].element, actualGraph[*actualIterators.first].element);
+  }
+
+}
+
+TEST_F(BuildUpGraphTest, testIfAtomsAreSetRight) {
+  testIfAtomsAreSetRight();
+}
+
+
+void BuildUpGraphTest::testIfEdgesAreSetRight() {
+  auto expectedIterators = boost::edges(expectedGraph);
+  auto actualIterators = boost::edges(actualGraph);
+
+  for (; expectedIterators.first != expectedIterators.second || actualIterators.first != actualIterators.second; ++expectedIterators.first, ++actualIterators.first) {
+    auto expectedSource = boost::source(*expectedIterators.first,expectedGraph);
+    auto expectedTarget = boost::target(*expectedIterators.first, expectedGraph);
+    auto actualSource = boost::source(*expectedIterators.first, actualGraph);
+    auto actualTarget = boost::target(*expectedIterators.first, actualGraph);
+
+    EXPECT_EQ(expectedSource, actualSource);
+    EXPECT_EQ(expectedTarget, actualTarget);
+  }
+}
+
+TEST_F(BuildUpGraphTest, testIfEdgesAreSetRight) {
+  testIfEdgesAreSetRight();
+}
+
+
+
+
+
+
+
+
+
+#endif

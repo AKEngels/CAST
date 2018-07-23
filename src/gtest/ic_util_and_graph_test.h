@@ -4,12 +4,13 @@
 #define IC_UTIL_AND_GRAPH_TEST_H
 
 #include<map>
-
-#include<gtest/gtest.h>
-#include"../graph.h"
-#include"../coords.h"
 #include<type_traits>
 #include<vector>
+
+#include<gtest/gtest.h>
+#include <boost/graph/adjacency_list.hpp>
+#include"../graph.h"
+#include"../coords.h"
 
 namespace is_vector_imp {
   template<typename T> struct is_vector : std::false_type {};
@@ -70,6 +71,23 @@ public:
 
 private:
   std::vector<double> referenceVector;
+};
+
+
+
+class BuildUpGraphTest : public testing::Test {
+public:
+  using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, ic_util::Node>;
+  BuildUpGraphTest();
+  Graph const expectedGraph;
+  ic_util::Graph<ic_util::Node> const actualGraph;
+  void testIfAtomsAreSetRight();
+  void testIfEdgesAreSetRight();
+private:
+    std::vector<ic_util::Node> createTestAtomVector();
+    std::vector<std::pair<std::size_t, std::size_t>> createTestEdgesVector();
+    Graph makeExpectedGraph();
+
 };
 
 #endif

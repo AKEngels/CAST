@@ -50,11 +50,8 @@ graph abstraction.
 retrieved by the PDB parser.
 */
 template <typename Atom_type>
-class Graph {
-private:
-    Graph(const std::vector<std::pair<int, int>>& connectedAtoms,
-        const std::vector<Atom_type>& atomVector)
-      : g{ create_graph(connectedAtoms, atomVector) } {}
+class Graph : public boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Atom_type> {
+
 public:
   /*!
   \brief User-defined graph type.
@@ -66,11 +63,12 @@ public:
   \tparam undirectedS Specifies that the graph is undirected.
   \tparam Node Specifies vertex properties.
   */
-  using Graph_type =
-      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Node>;
-
-  Graph_type g;
-
+  using Graph_type = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Atom_type>;
+private:
+    Graph(const std::vector<std::pair<std::size_t, std::size_t>>& connectedAtoms,
+        const std::vector<Atom_type>& atomVector)
+      : Graph_type{ create_graph(connectedAtoms, atomVector) } {}
+public:
   
 
   /*!
@@ -80,30 +78,14 @@ public:
   \param vec Vector of atoms.
   \return Graph_type object.
   */
-  Graph_type create_graph(const std::vector<std::pair<int, int>>& connectedAtoms,
+  Graph_type create_graph(const std::vector<std::pair<std::size_t, std::size_t>>& connectedAtoms,
                           const std::vector<Atom_type>& atomVector) {
-    using boost::add_edge;
-    using boost::add_vertex;
+    Graph_type graph(connectedAtoms.cbegin(), connectedAtoms.cend(), atomVector.size());
+    
+    for (auto i = 0u; i < atomVector.size(); ++i) {
+      graph[i] = atomVector.at(i);
+    }
 
-    Graph_type graph;
-    // A std::map is a sorted and associative container with unique keys.
-    std::map<std::size_t, Graph_type::vertex_descriptor> vertex_map;
-    for (auto it = atomVector.begin(); it != atomVector.end(); ++it) {
-      auto index = std::distance(atomVector.begin(), it) + 1;
-      Graph_type::vertex_descriptor v = add_vertex(graph);
-      // A bundled property is accessed via subscript and the relevant vertex
-      // descriptor.
-      graph[v].atom_serial = (*it).atom_serial;
-      graph[v].atom_name = (*it).atom_name;
-      graph[v].element = (*it).element;
-      graph[v].cp = (*it).cp;
-      vertex_map.emplace(index, v);
-    }
-    for (auto& s : connectedAtoms) {
-      auto first = s.first;
-      auto second = s.second;
-      add_edge(vertex_map[first], vertex_map[second], graph);
-    }
     return graph;
   }
 
@@ -162,11 +144,11 @@ public:
     write_graphviz(output, g, make_label_writer(get(&Node::atom_serial, g)));
   }
   template<typename AtomType>
-  friend Graph<AtomType> make_graph(std::vector<std::pair<int, int>> const& b_atoms, std::vector<AtomType> const& vec);
+  friend Graph<AtomType> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec);
 };
 
 template<typename AtomType>
-Graph<AtomType> make_graph(std::vector<std::pair<int, int>> const& b_atoms, std::vector<AtomType> const& vec){
+Graph<AtomType> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec){
   return Graph<AtomType>(b_atoms, vec);
 }
 

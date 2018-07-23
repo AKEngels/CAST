@@ -137,7 +137,7 @@ namespace ic_util{
 
   inline void AtomConnector::connectIfCloseEnough(returnType & connectedAtoms) {
     if (areTheyCloseEnough()) {
-      connectedAtoms.emplace_back(firstAtomIndex+1u, secondAtomIndex+1u);
+      connectedAtoms.emplace_back(firstAtomIndex, secondAtomIndex);
     }
   }
 
