@@ -83,8 +83,11 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const override;
     coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override;
     std::string info(CartesiansForInternalCoordinates const& cartesians) const override;
+
+    bool operator==(BondDistance const&) const;
   };
 
+  
 
   struct BondAngle : InternalCoordinate {
     BondAngle(const unsigned int& index_a,
@@ -108,6 +111,8 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(CartesiansForInternalCoordinates const& cartesians) const override;
     coords::float_type hessian_guess(CartesiansForInternalCoordinates const& cartesians) const override;
     std::string info(CartesiansForInternalCoordinates const& cartesians) const override;
+
+    bool operator==(BondAngle const&) const;
   };
 
   struct DihedralAngle : public InternalCoordinates::InternalCoordinate {
@@ -336,8 +341,6 @@ namespace InternalCoordinates {
     }
     std::shared_ptr<Rotator> rotator;
   };
-
-
   
 
   /*class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {

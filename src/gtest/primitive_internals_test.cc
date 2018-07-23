@@ -1,3 +1,130 @@
 #ifdef GOOGLE_MOCK
 
+#include "primitive_internals_test.h"
+#include"../InternalCoordinates.h"
+
+namespace {
+
+  ic_util::Graph<ic_util::Node> createTestGraph(){
+    std::vector<ic_util::Node> atomVector{ 
+      ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 5, "H", "H" }, ic_util::Node{ 6, "H", "H" },
+      ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 11, "H", "H" }, ic_util::Node{ 12, "H", "H" }
+    };
+    std::vector<std::pair<std::size_t, std::size_t>> connectivity{ 
+      { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u },
+      { 6u, 7u },{ 6u, 8u },{ 6u, 9u },{ 6u, 10u },{ 7u, 11u },
+    };
+    return ic_util::make_graph(connectivity, atomVector);
+  }
+
+  coords::Representation_3D createSystemOfTwoMethanolMolecules() {
+    return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
+      coords::r3{ -4.677, -0.093, -0.024 },
+      coords::r3{ -6.262, -1.158, -0.813 },
+      coords::r3{ -6.582, 0.600, -0.424 },
+      coords::r3{ -6.431, -0.613, 0.894 },
+      coords::r3{ -4.387, 0.166, -0.937 },
+      coords::r3{ -6.146, 3.587, -0.024 },
+      coords::r3{ -4.755, 3.671, -0.133 },
+      coords::r3{ -6.427, 2.922, 0.821 },
+      coords::r3{ -6.587, 3.223, -0.978 },
+      coords::r3{ -6.552, 4.599, 0.179 },
+      coords::r3{ -4.441, 2.753, -0.339 } } / energy::bohr2ang;
+  }
+
+  coords::Representation_3D createFirstResidue() {
+    return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
+      coords::r3{ -4.677, -0.093, -0.024 },
+      coords::r3{ -6.262, -1.158, -0.813 },
+      coords::r3{ -6.582, 0.600, -0.424 },
+      coords::r3{ -6.431, -0.613, 0.894 },
+      coords::r3{ -4.387, 0.166, -0.937 }
+      } / energy::bohr2ang;
+  }
+
+  coords::Representation_3D createSecondResidue() {
+    return coords::Representation_3D{ coords::r3{ -6.146, 3.587, -0.024 },
+      coords::r3{ -4.755, 3.671, -0.133 },
+      coords::r3{ -6.427, 2.922, 0.821 },
+      coords::r3{ -6.587, 3.223, -0.978 },
+      coords::r3{ -6.552, 4.599, 0.179 },
+      coords::r3{ -4.441, 2.753, -0.339 }
+    } / energy::bohr2ang;
+  }
+
+  std::vector<std::size_t> createFirstResidueIndices() {
+    return { 0u, 1u, 2u, 3u, 4u, 5u };
+  }
+
+  std::vector<std::size_t> createSecondResidueIndices() {
+    return { 6u, 7u, 8u, 9u, 10u, 11u };
+  }
+
+  std::vector<InternalCoordinates::BondDistance> expectedBondsForTwoMethanol() {
+    return { 
+      InternalCoordinates::BondDistance{ 1, 2, "C", "O" },
+      InternalCoordinates::BondDistance{ 1, 3, "C", "H" },
+      InternalCoordinates::BondDistance{ 1, 4, "C", "H" },
+      InternalCoordinates::BondDistance{ 1, 5, "C", "H" },
+      InternalCoordinates::BondDistance{ 2, 6, "O", "H" },
+      InternalCoordinates::BondDistance{ 7, 8, "C", "O" },
+      InternalCoordinates::BondDistance{ 7, 9, "C", "H" },
+      InternalCoordinates::BondDistance{ 7, 10, "C", "H" },
+      InternalCoordinates::BondDistance{ 7, 11, "C", "H" },
+      InternalCoordinates::BondDistance{ 8, 12, "O", "H" }
+    };
+  }
+
+  std::vector<InternalCoordinates::BondAngle> expectedAnglesForTwoMethanol() {
+    return {
+      InternalCoordinates::BondAngle{ 2, 1, 3, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 2, 1, 4, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 2, 1, 5, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 3, 1, 4, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 3, 1, 5, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 4, 1, 5, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 1, 2, 6, "C", "O", "H" },
+
+      InternalCoordinates::BondAngle{ 8, 7, 9, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 8, 7, 10, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 8, 7, 11, "O", "C", "H" },
+      InternalCoordinates::BondAngle{ 9, 7, 10, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 9, 7, 11, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 10, 7, 11, "H", "C", "H" },
+      InternalCoordinates::BondAngle{ 7, 8, 12, "C", "O", "H" }
+    };
+  }
+
+}
+
+PrimitiveInternalSetTest::PrimitiveInternalSetTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()),
+  systemGraph{ createTestGraph() }
+{}
+
+void PrimitiveInternalSetTest::distanceCreationTest() {
+  auto allBonds = testSystem.create_distances(systemGraph);
+  auto expectedBonds = expectedBondsForTwoMethanol();
+  for (auto i = 0u; i < allBonds.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondDistance*>(allBonds.at(i).get()), expectedBonds.at(i));
+  }
+}
+
+
+
+TEST_F(PrimitiveInternalSetTest, distanceCreationTest) {
+  distanceCreationTest();
+}
+
+void PrimitiveInternalSetTest::bondAngleCreationTest() {
+  auto allAngles = testSystem.create_angles(systemGraph);
+  auto expectedAngles = expectedAnglesForTwoMethanol();
+  for (auto i = 0u; i < allAngles.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()), expectedAngles.at(i));
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, bondAngleCreationTest) {
+  bondAngleCreationTest();
+}
+
 #endif

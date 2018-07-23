@@ -71,6 +71,14 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
+  bool BondDistance::operator==(BondDistance const & other) const {
+	  return index_a_ == other.index_a_ && index_b_ == other.index_b_ && elem_a_ == other.elem_a_ && elem_b_ == other.elem_b_;
+  }
+
+  /*bool operator==(BondDistance const & lhs, BondDistance const & rhs) {
+    return lhs.operator==(rhs);
+  }*/
+
   coords::float_type BondAngle::val(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::cross;
     using scon::dot;
@@ -163,6 +171,10 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
+  bool BondAngle::operator==(BondAngle const & other) const {
+    return index_a_ == other.index_a_ && index_b_ == other.index_b_ && index_c_ == other.index_c_ 
+      && elem_a_ == other.elem_a_ && elem_b_ == other.elem_b_ && elem_c_ == other.elem_c_;
+  }
 
   coords::float_type DihedralAngle::val(CartesiansForInternalCoordinates const& cartesians) const {
     using scon::cross;

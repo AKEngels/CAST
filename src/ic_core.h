@@ -221,7 +221,7 @@ system::create_distances(const Graph& g) const {
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -230,7 +230,7 @@ system::create_distances(const Graph& g) const {
     auto v_index = g[v].atom_serial;
     auto u_elem = g[u].element;
     auto v_elem = g[v].element;
-    result.emplace_back(std::make_unique<BondDistance>(u_index, v_index, u_elem, v_elem));
+    result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(u_index, v_index, u_elem, v_elem));
   }
   return result;
 }
@@ -241,7 +241,7 @@ system::create_angles(const Graph& g) const {
   using boost::adjacent_vertices;
   using boost::vertices;
 
-  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto a_vert = adjacent_vertices(*it, g);
@@ -254,7 +254,7 @@ system::create_angles(const Graph& g) const {
           auto a_elem = g[*it2].element;
           auto b_elem = g[*it].element;
           auto c_elem = g[*it3].element;
-          result.emplace_back(std::make_unique<BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
+          result.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
         }
       }
     }
@@ -282,7 +282,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
   using boost::vertices;
   using scon::dot;
 
-  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
   auto vert = vertices(g);
   for (auto it = vert.first; it != vert.second; ++it) {
     auto core = g[*it].atom_serial;
@@ -303,7 +303,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
         auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
         auto dot_n_vecs = dot(n_vec1, n_vec2);
         if (0.95 < std::fabs(dot_n_vecs)) {
-          result.emplace_back(std::make_unique<OutOfPlane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
+          result.emplace_back(std::make_unique<InternalCoordinates::OutOfPlane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
         }
       }
       //}
@@ -320,7 +320,7 @@ system::create_dihedrals(const Graph& g) const {
   using boost::source;
   using boost::target;
 
-  std::vector<std::unique_ptr<InternalCoordinateImpl>> result;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
   auto ed = edges(g);
   for (auto it = ed.first; it != ed.second; ++it) {
     auto u = source(*it, g);
@@ -338,7 +338,7 @@ system::create_dihedrals(const Graph& g) const {
           auto b_index = g[u].atom_serial;
           auto c_index = g[v].atom_serial;
           auto d_index = g[*v_vert_it].atom_serial;
-          result.emplace_back(std::make_unique<DihedralAngle>(a_index, b_index, c_index, d_index));
+          result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(a_index, b_index, c_index, d_index));
         }
       }
     }
