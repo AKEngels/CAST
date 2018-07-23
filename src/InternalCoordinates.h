@@ -132,6 +132,8 @@ namespace InternalCoordinates {
     std::size_t index_b_;
     std::size_t index_c_;
     std::size_t index_d_;
+
+    bool operator==(DihedralAngle const&) const;
   };
 
   struct OutOfPlane : public DihedralAngle {

@@ -95,6 +95,17 @@ namespace {
     };
   }
 
+  std::vector<InternalCoordinates::DihedralAngle> expectedDihedralsForTwoMethanol() {
+    return {
+      InternalCoordinates::DihedralAngle{ 3, 1, 2, 6 },
+      InternalCoordinates::DihedralAngle{ 4, 1, 2, 6 },
+      InternalCoordinates::DihedralAngle{ 5, 1, 2, 6 },
+      InternalCoordinates::DihedralAngle{ 9, 7, 8, 12 },
+      InternalCoordinates::DihedralAngle{ 10, 7, 8, 12 },
+      InternalCoordinates::DihedralAngle{ 11, 7, 8, 12 }
+    };
+  }
+
 }
 
 PrimitiveInternalSetTest::PrimitiveInternalSetTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()),
@@ -125,6 +136,18 @@ void PrimitiveInternalSetTest::bondAngleCreationTest() {
 
 TEST_F(PrimitiveInternalSetTest, bondAngleCreationTest) {
   bondAngleCreationTest();
+}
+
+void PrimitiveInternalSetTest::dihedralCreationTest() {
+  auto allDihedrals = testSystem.create_dihedrals(systemGraph);
+  auto expectedDihedrals = expectedDihedralsForTwoMethanol();
+  for (auto i = 0u; i < allDihedrals.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::DihedralAngle*>(allDihedrals.at(i).get()), expectedDihedrals.at(i));
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, dihedralCreationTest) {
+  dihedralCreationTest();
 }
 
 #endif

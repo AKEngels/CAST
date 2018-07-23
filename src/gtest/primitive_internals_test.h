@@ -18,6 +18,7 @@ public:
   ic_util::Graph<ic_util::Node> systemGraph;
   void distanceCreationTest();
   void bondAngleCreationTest();
+  void dihedralCreationTest();
 };
 
 

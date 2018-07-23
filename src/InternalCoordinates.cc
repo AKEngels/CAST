@@ -257,6 +257,10 @@ namespace InternalCoordinates {
     return oss.str();
   }
 
+  bool DihedralAngle::operator==(DihedralAngle const & other) const{
+    return index_a_ == other.index_a_ && index_b_ == other.index_b_ && index_c_ == other.index_c_ && index_d_ == other.index_d_;
+  }
+
   coords::float_type OutOfPlane::hessian_guess(CartesiansForInternalCoordinates const & cartesians) const
   {
     auto const& a = cartesians.at(index_a_ - 1u);
