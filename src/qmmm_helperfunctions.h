@@ -108,7 +108,7 @@ namespace qmmm_helpers
   @param cp: pointer to original coordobject
   @param indices: indizes of QM atoms
   @param new_indices: vector new_indices_qm
-  @param link_atoms: vector with link atom
+  @param link_atoms: vector with link atoms
   @param energy_interface: energy interface*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
