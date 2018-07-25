@@ -82,7 +82,7 @@ function that returns the path to a pythonmodule
 (path has to be appended to pythonpath if you want to call this module)
 @param modulename: name of the module
 */
-inline std::string get_python_modulepath(std::string &modulename)
+inline std::string get_python_modulepath(std::string modulename)
 {
   std::string find = "import " + modulename + "\nwith open('tmpfile.txt','w') as fn:\n    fn.write(" + modulename + ".__file__)";
   const char *c_find = find.c_str();
