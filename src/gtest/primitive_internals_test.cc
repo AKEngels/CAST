@@ -235,6 +235,21 @@ TEST_F(MatricesTest, gMatrixTest) {
   gMatrixTest();
 }
 
+void MatricesTest::hessianGuessTest() {
+  std::istringstream iss(exampleGuessHessianForTwoMethanols());
+
+  auto constexpr rowsOfHessian = 42u;
+  auto constexpr colsOfHessian = 42u;
+
+  auto expectedValuesForHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfHessian, colsOfHessian);
+
+  EXPECT_EQ(testSystem.guess_hessian(), expectedValuesForHessian);
+}
+
+TEST_F(MatricesTest, hessianGuessTest) {
+  hessianGuessTest();
+}
+
 void MatricesTest::delocalizedMatrixTest() {
   std::istringstream iss(exampleDelocalizedMatrixForTwoMethanols());
 
@@ -270,24 +285,31 @@ TEST_F(MatricesTest, delocalizedBMatrixTest) {
 void MatricesTest::delocalizedGMatrixTest() {
   std::istringstream iss(exampleDelocalizedGMatrixForTwoMethanols());
 
-
-
-
-
-  testSystem.delocalize_ic_system();
-
-  std::ofstream ofs("Gmat");
-  ofs << std::setprecision(15) << testSystem.ic_Gmat();
-
   auto constexpr rowsOfDelocalizedGMatrix = 36u;
   auto constexpr colsOfDelocalizedGMatrix = 36u;
 
   auto expectedValuesForDelocalizedGMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedGMatrix, colsOfDelocalizedGMatrix);
 
-
+  testSystem.delocalize_ic_system();
   EXPECT_EQ(testSystem.ic_Gmat(), expectedValuesForDelocalizedGMatrix);
 }
 
 TEST_F(MatricesTest, delocalizedGMatrixTest) {
   delocalizedGMatrixTest();
+}
+
+void MatricesTest::delocalizedInitialHessianTest() {
+  std::istringstream iss(exampleDelocalizedInitialHessianForTwoMethanols());
+
+  auto constexpr rowsOfDelocalizedInitialHessian = 36u;
+  auto constexpr colsOfDelocalizedInitialHessian = 36u;
+
+  auto expectedValuesForDelocalizedInitialHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedInitialHessian, colsOfDelocalizedInitialHessian);
+
+  testSystem.delocalize_ic_system();
+  EXPECT_EQ(testSystem.initial_delocalized_hessian(), expectedValuesForDelocalizedInitialHessian);
+}
+
+TEST_F(MatricesTest, delocalizedInitialHessianTest) {
+  delocalizedInitialHessianTest();
 }

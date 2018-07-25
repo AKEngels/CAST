@@ -33,9 +33,11 @@ public:
 
   void bMatrixTest();
   void gMatrixTest();
+  void hessianGuessTest();
   void delocalizedMatrixTest();
   void delocalizedBMatrixTest();
   void delocalizedGMatrixTest();
+  void delocalizedInitialHessianTest();
 };
 
 #endif
