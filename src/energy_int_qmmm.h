@@ -367,10 +367,10 @@ namespace energy
         /**calculates interaction between QM and MM part
         energy is only vdW interactions, gradients are coulomb and vdW
         @param if_gradient: true if gradients should be calculated, false if not*/
-        void ww_calc(bool);
+        void ww_calc(bool if_gradient);
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        coords::float_type qmmm_calc(bool);
+        coords::float_type qmmm_calc(bool if_gradient);
         /**calculates bonded energy and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
         double calc_bonded(bool if_gradient);

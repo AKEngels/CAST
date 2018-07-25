@@ -88,7 +88,7 @@ namespace energy
 
         /**calculates energies and gradients
         @param if_gradient: true if gradients should be calculated, false if not*/
-        coords::float_type qmmm_calc(bool);
+        coords::float_type qmmm_calc(bool if_gradient);
 
 		    /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;

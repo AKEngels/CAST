@@ -66,7 +66,7 @@ namespace energy
 				void print_E(std::ostream&) const;
 				/**prints 'headline' for energies*/
 				void print_E_head(std::ostream&, bool const endline = true) const;
-				/**prints partial energies (not much sense in it because not partial energies are read)*/
+				/**prints partial energies (not much sense in it because no partial energies are read)*/
 				void print_E_short(std::ostream&, bool const endline = true) const;
 				/**does nothing*/
 				void to_stream(std::ostream&) const;

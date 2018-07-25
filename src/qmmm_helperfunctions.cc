@@ -27,7 +27,7 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
   return links;
 }
 
-void qmmm_helpers::calc_link_atom_grad(LinkAtom l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
+void qmmm_helpers::calc_link_atom_grad(LinkAtom &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
 {
   double x, y, z;
 
@@ -168,7 +168,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
   }
 
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> link_atoms, config::interface_types::T energy_interface)
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface)
   {
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = energy_interface;

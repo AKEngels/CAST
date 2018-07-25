@@ -93,7 +93,7 @@ namespace qmmm_helpers
   @param coords: coordinates object of whole system
   @param G_QM: reference to QM gradient (is calculated)
   @param G_MM: reference to MM gradient (is calculated)*/
-  void calc_link_atom_grad(LinkAtom l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM);
+  void calc_link_atom_grad(LinkAtom &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM);
 
   /**creates a vector with the indizes of all MM atoms
   @param num_atoms: number of atoms in whole system*/
@@ -108,7 +108,7 @@ namespace qmmm_helpers
   for description of the vector see energy_int_qmmm.h
   @param num_atoms: number of atoms in whole system
   @param mmi: vector with indizes of MM atoms*/
-  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, std::vector<std::size_t> const& mmi);
+  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, std::vector<std::size_t> const &mmi);
 
   /**creates coordobject for MM interface (maybe also be replaced by make_small_coords?)
   @param cp: coordobj for whole system (QM + MM)
@@ -129,7 +129,7 @@ namespace qmmm_helpers
   @param energy_interface: energy interface*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
-    std::vector<LinkAtom> link_atoms, config::interface_types::T energy_interface);
+    std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface);
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
