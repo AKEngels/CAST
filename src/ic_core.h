@@ -123,13 +123,13 @@ public:
   template <typename Graph>
   void create_ic_system(const Graph&);
 
-  scon::mathmatrix<float_type>& delocalize_ic_system();
+  scon::mathmatrix<float_type>& delocalize_ic_system();//F
   scon::mathmatrix<float_type> guess_hessian();
   scon::mathmatrix<float_type>& initial_delocalized_hessian();
   std::vector<std::vector<float_type>> deriv_vec();
-  scon::mathmatrix<float_type>& Bmat();
-  scon::mathmatrix<float_type>& Gmat();
-  scon::mathmatrix<float_type>& ic_Bmat();
+  scon::mathmatrix<float_type>& Bmat();//F
+  scon::mathmatrix<float_type>& Gmat();//F
+  scon::mathmatrix<float_type>& ic_Bmat();//R
   scon::mathmatrix<float_type>& ic_Gmat();
 
 

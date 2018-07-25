@@ -33,6 +33,9 @@ public:
 
   void bMatrixTest();
   void gMatrixTest();
+  void delocalizedMatrixTest();
+  void delocalizedBMatrixTest();
+  void delocalizedGMatrixTest();
 };
 
 #endif

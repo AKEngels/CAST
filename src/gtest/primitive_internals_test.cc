@@ -234,3 +234,60 @@ void MatricesTest::gMatrixTest() {
 TEST_F(MatricesTest, gMatrixTest) {
   gMatrixTest();
 }
+
+void MatricesTest::delocalizedMatrixTest() {
+  std::istringstream iss(exampleDelocalizedMatrixForTwoMethanols());
+
+  auto constexpr rowsOfDelocalizedMatrix = 42u;
+  auto constexpr colsOfDelocalizedMatrix = 36u;
+
+  auto expectedValuesForDelocalizedMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedMatrix, colsOfDelocalizedMatrix);
+
+  EXPECT_EQ(testSystem.delocalize_ic_system(), expectedValuesForDelocalizedMatrix);
+}
+
+TEST_F(MatricesTest, delocalizedMatrixTest) {
+  delocalizedMatrixTest();
+}
+
+void MatricesTest::delocalizedBMatrixTest() {
+  std::istringstream iss(exampleDelocalizedBMatrixForTwoMethanols());
+
+  auto constexpr rowsOfDelocalizedBMatrix = 36u;
+  auto constexpr colsOfDelocalizedBMatrix = 36u;
+
+  auto expectedValuesForDelocalizedBMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedBMatrix, colsOfDelocalizedBMatrix);
+
+  testSystem.delocalize_ic_system();
+
+  EXPECT_EQ(testSystem.ic_Bmat(), expectedValuesForDelocalizedBMatrix);
+}
+
+TEST_F(MatricesTest, delocalizedBMatrixTest) {
+  delocalizedBMatrixTest();
+}
+
+void MatricesTest::delocalizedGMatrixTest() {
+  std::istringstream iss(exampleDelocalizedGMatrixForTwoMethanols());
+
+
+
+
+
+  testSystem.delocalize_ic_system();
+
+  std::ofstream ofs("Gmat");
+  ofs << std::setprecision(15) << testSystem.ic_Gmat();
+
+  auto constexpr rowsOfDelocalizedGMatrix = 36u;
+  auto constexpr colsOfDelocalizedGMatrix = 36u;
+
+  auto expectedValuesForDelocalizedGMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedGMatrix, colsOfDelocalizedGMatrix);
+
+
+  EXPECT_EQ(testSystem.ic_Gmat(), expectedValuesForDelocalizedGMatrix);
+}
+
+TEST_F(MatricesTest, delocalizedGMatrixTest) {
+  delocalizedGMatrixTest();
+}
