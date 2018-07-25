@@ -10,6 +10,7 @@
 #include"../graph.h"
 #include"../coords.h"
 #include"../ic_core.h"
+#include"TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
 
 class PrimitiveInternalSetTest : public testing::Test {
 public:
@@ -19,9 +20,20 @@ public:
   void distanceCreationTest();
   void bondAngleCreationTest();
   void dihedralCreationTest();
+  void tarnslationXCreationTest();
+  void tarnslationYCreationTest();
+  void tarnslationZCreationTest();
+  void rotationsCreationTest();
 };
 
+class MatricesTest : public testing::Test {
+public:
+  MatricesTest();
+  ic_core::system testSystem;
 
+  void bMatrixTest();
+  void gMatrixTest();
+};
 
 #endif
 

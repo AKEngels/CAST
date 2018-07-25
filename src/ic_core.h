@@ -346,6 +346,7 @@ system::create_dihedrals(const Graph& g) const {
   return result;
 }
 
+//TODO: Get rid of res_index_vec!!!!!!!!!!!!
 inline std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
 system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
   return std::make_tuple(
@@ -362,7 +363,7 @@ inline void system::create_ic_system(const Graph& g) {
   append_primitives(create_oops(xyz_, g));
   append_primitives(create_dihedrals(g));
 
-  std::vector<std::unique_ptr<InternalCoordinateImpl>> trans_x, trans_y, trans_z;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> trans_x, trans_y, trans_z;
   std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
 
   append_primitives(std::move(trans_x));

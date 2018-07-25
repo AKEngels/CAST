@@ -3,6 +3,8 @@
 #include "primitive_internals_test.h"
 #include"../InternalCoordinates.h"
 
+using namespace ExpectedValuesForInternalCoordinates;
+
 namespace {
 
   ic_util::Graph<ic_util::Node> createTestGraph(){
@@ -15,21 +17,6 @@ namespace {
       { 6u, 7u },{ 6u, 8u },{ 6u, 9u },{ 6u, 10u },{ 7u, 11u },
     };
     return ic_util::make_graph(connectivity, atomVector);
-  }
-
-  coords::Representation_3D createSystemOfTwoMethanolMolecules() {
-    return coords::Representation_3D{ coords::r3{ -6.053, -0.324, -0.108 },
-      coords::r3{ -4.677, -0.093, -0.024 },
-      coords::r3{ -6.262, -1.158, -0.813 },
-      coords::r3{ -6.582, 0.600, -0.424 },
-      coords::r3{ -6.431, -0.613, 0.894 },
-      coords::r3{ -4.387, 0.166, -0.937 },
-      coords::r3{ -6.146, 3.587, -0.024 },
-      coords::r3{ -4.755, 3.671, -0.133 },
-      coords::r3{ -6.427, 2.922, 0.821 },
-      coords::r3{ -6.587, 3.223, -0.978 },
-      coords::r3{ -6.552, 4.599, 0.179 },
-      coords::r3{ -4.441, 2.753, -0.339 } } / energy::bohr2ang;
   }
 
   coords::Representation_3D createFirstResidue() {
@@ -67,6 +54,7 @@ namespace {
       InternalCoordinates::BondDistance{ 1, 4, "C", "H" },
       InternalCoordinates::BondDistance{ 1, 5, "C", "H" },
       InternalCoordinates::BondDistance{ 2, 6, "O", "H" },
+
       InternalCoordinates::BondDistance{ 7, 8, "C", "O" },
       InternalCoordinates::BondDistance{ 7, 9, "C", "H" },
       InternalCoordinates::BondDistance{ 7, 10, "C", "H" },
@@ -106,11 +94,23 @@ namespace {
     };
   }
 
+  std::vector<InternalCoordinates::TranslationX> expectedTranslationsForTwoMethanol() {
+    return {
+      InternalCoordinates::TranslationX{ createFirstResidueIndices() },
+      InternalCoordinates::TranslationX{ createSecondResidueIndices() }
+    };
+  }
+
+  std::vector<std::shared_ptr<InternalCoordinates::Rotator>> expectedRotationsForTwoMethanol() {
+    InternalCoordinates::CartesiansForInternalCoordinates cartesians{createSystemOfTwoMethanolMolecules()};
+    return { InternalCoordinates::Rotator::buildRotator(cartesians, createFirstResidueIndices()),
+      InternalCoordinates::Rotator::buildRotator(cartesians, createSecondResidueIndices()) };
+  }
+
 }
 
 PrimitiveInternalSetTest::PrimitiveInternalSetTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()),
-  systemGraph{ createTestGraph() }
-{}
+  systemGraph{ createTestGraph() }{}
 
 void PrimitiveInternalSetTest::distanceCreationTest() {
   auto allBonds = testSystem.create_distances(systemGraph);
@@ -150,4 +150,87 @@ TEST_F(PrimitiveInternalSetTest, dihedralCreationTest) {
   dihedralCreationTest();
 }
 
+void PrimitiveInternalSetTest::tarnslationXCreationTest() {
+  auto transX = testSystem.create_trans_x({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto expectedTorsions = expectedTranslationsForTwoMethanol();
+  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transX.at(i).get()), expectedTorsions.at(i));
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, tarnslationXCreationTest) {
+  tarnslationXCreationTest();
+}
+
+void PrimitiveInternalSetTest::tarnslationYCreationTest() {
+  auto transY = testSystem.create_trans_y({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto expectedTorsions = expectedTranslationsForTwoMethanol();
+  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transY.at(i).get()), expectedTorsions.at(i));
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, tarnslationYCreationTest) {
+  tarnslationYCreationTest();
+}
+
+void PrimitiveInternalSetTest::tarnslationZCreationTest() {
+  auto transZ = testSystem.create_trans_z({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto expectedTorsions = expectedTranslationsForTwoMethanol();
+  for (auto i = 0u; i < expectedTorsions.size(); ++i) {
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transZ.at(i).get()), expectedTorsions.at(i));
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
+  tarnslationYCreationTest();
+}
+
+void PrimitiveInternalSetTest::rotationsCreationTest() {
+  auto translations = testSystem.create_rotations(createSystemOfTwoMethanolMolecules(), { createFirstResidueIndices(), createSecondResidueIndices() });
+  auto expectedRotations = expectedRotationsForTwoMethanol();
+  for (auto i = 0u; i < expectedRotations.size(); ++i) {
+    EXPECT_EQ(*translations.at(i).get(), *expectedRotations.at(i).get());
+  }
+}
+
+TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
+  rotationsCreationTest();
+}
+
 #endif
+
+MatricesTest::MatricesTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()/energy::bohr2ang) {
+  ic_util::Graph<ic_util::Node> graph{ createTestGraph() };
+  testSystem.create_ic_system(graph);
+}
+
+void MatricesTest::bMatrixTest(){
+  std::istringstream iss(exampleBmatrixForTwoMethanols());
+
+  auto constexpr rowsOfBmatrix = 42u;
+  auto constexpr colsOfBmatrix = 36u;
+
+  auto expectedValuesForTheBmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfBmatrix, colsOfBmatrix);
+
+  EXPECT_EQ(testSystem.Bmat(), expectedValuesForTheBmatrix);
+}
+
+TEST_F(MatricesTest, bMatrixTest) {
+  bMatrixTest();
+}
+
+void MatricesTest::gMatrixTest() {
+  std::istringstream iss(exampleGmatrixForTwoMethanols());
+
+  auto constexpr rowsOfGmatrix = 42u;
+  auto constexpr colsOfGmatrix = 42u;
+
+  auto expectedValuesForTheGmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfGmatrix, colsOfGmatrix);
+
+  EXPECT_EQ(testSystem.Gmat(), expectedValuesForTheGmatrix);
+}
+
+TEST_F(MatricesTest, gMatrixTest) {
+  gMatrixTest();
+}

@@ -157,7 +157,7 @@ std::string InternalCoordinatesDihedralsTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } } {}
+InternalCoordinatesTranslationTest::InternalCoordinatesTranslationTest() : InternalCoordinatesTestSubsystem(), translation{ { 0u,1u,2u,3u,4u,5u } } {}
 
 void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
 
@@ -180,7 +180,7 @@ void InternalCoordinatesTranslationTest::testTranslationDerivativeTest() {
 
 }
 
-InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {1u,2u,3u,4u,5u,6u} },
+InternalCoordinatesTranslationXTest::InternalCoordinatesTranslationXTest() : InternalCoordinatesTestSubsystem(), translation{ {0u,1u,2u,3u,4u,5u} },
 derivativeVector(3u*12u,0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 0u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -205,7 +205,7 @@ std::string InternalCoordinatesTranslationXTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } },
+InternalCoordinatesTranslationYTest::InternalCoordinatesTranslationYTest() : InternalCoordinatesTestSubsystem(), translation{ { 0u,1u,2u,3u,4u,5u } },
 derivativeVector(3u * 12u, 0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 1u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -230,7 +230,7 @@ std::string InternalCoordinatesTranslationYTest::returnInfoTest() {
     twoMethanolMolecules->getOneRepresentation().cartesianRepresentation);
 }
 
-InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTestSubsystem(), translation{ { 1u,2u,3u,4u,5u,6u } },
+InternalCoordinatesTranslationZTest::InternalCoordinatesTranslationZTest() : InternalCoordinatesTestSubsystem(), translation{ { 0u,1u,2u,3u,4u,5u } },
 derivativeVector(3u * 12u, 0.) {
   auto constexpr sizeOfMethanolWhichIsDescribed = 3u * 12u / 2u;
   for (auto i = 2u; i < sizeOfMethanolWhichIsDescribed; i += 3) {
@@ -259,7 +259,7 @@ InternalCoordinatesRotatorTest::InternalCoordinatesRotatorTest()
     : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
       .first.cartesianRepresentation),
       rotation(InternalCoordinates::Rotator::buildRotator(cartesianCoordinates,
-        std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 })) {}
+        std::vector<std::size_t>{ 0,1,2,3,4,5 })) {}
 
 void InternalCoordinatesRotatorTest::testRotationValue(){
   auto rotationsForXyz = rotation->valueOfInternalCoordinate(twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
@@ -282,8 +282,6 @@ void InternalCoordinatesRotatorTest::testRadiusOfGyration() {
 void InternalCoordinatesRotationsTest::checkIfVectorsAreSame(std::vector<double> const & lhs, std::vector<double> const & rhs){
   ASSERT_EQ(lhs.size(), rhs.size());
   for (auto i = 0u; i < lhs.size(); ++i) {
-    double bli = lhs.at(i), bla = rhs.at(i);
-    bool blub = bli == bla;
     EXPECT_NEAR(lhs.at(i), rhs.at(i), doubleNearThreshold);
   }
 }
@@ -420,20 +418,7 @@ scon::mathmatrix<double> CorrelationTests::readNextExponentialMapderivative(std:
   return ReadMatrixFiles(inputFileStream).readNLinesOfFileWithMNumbers(sizeOfDerivatives, sizeOfDerivatives);
 }
 
-scon::mathmatrix<double> CorrelationTests::ReadMatrixFiles::readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m)
-{
-  scon::mathmatrix<double> nextMatrix(n, m);
 
-  for (auto i = 0u; i < n; ++i) {
-    std::string line;
-    std::getline(inputStream, line);
-    std::stringstream lineStream(line);
-
-    for (auto j = 0u; j < m; ++j) lineStream >> nextMatrix(i, j);
-  }
-
-  return nextMatrix;
-}
 
 TEST_F(InternalCoordinatesDistancesTest, testBondLength) {
   EXPECT_NEAR(testBondLength(), 2.6414241359371124, doubleNearThreshold);

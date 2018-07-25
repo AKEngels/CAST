@@ -96,6 +96,21 @@ namespace ic_util{
     return a / scon::geometric_length(a);
   }
 
+  //not tested
+  inline coords::Cartesian_Point
+    normal_unit_vector(const coords::Cartesian_Point& a,
+      const coords::Cartesian_Point& b,
+      const coords::Cartesian_Point& c) {
+    using scon::cross;
+    using scon::len;
+
+    auto a_vec = b - a;
+    auto b_vec = b - c;
+    auto t1 = cross(a_vec, b_vec);
+    auto result = t1 / (len(t1));
+    return result;
+  }
+
   struct AtomConnector {
     using returnType = std::vector<std::pair<std::size_t, std::size_t>>;
 

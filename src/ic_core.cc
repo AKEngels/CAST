@@ -30,7 +30,7 @@ std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Re
   std::vector<std::size_t> const& index_vec) {
   coords::Representation_3D reference;
   for (auto const & ind : index_vec) {
-    reference.emplace_back(target.at(ind - 1));
+    reference.emplace_back(target.at(ind));
   }
   InternalCoordinates::CartesiansForInternalCoordinates cartesians(target);
   //auto bla = InternalCoordinates::Rotator::buildRotator(cartesians, std::vector<std::size_t>(index_vec));

@@ -206,7 +206,7 @@ struct ExpectedValuesForRotations{
 class InternalCoordinatesRotationsTest : public InternalCoordinatesTestRotatedMolecules, public testing::WithParamInterface<ExpectedValuesForRotations> {
 public:
   InternalCoordinatesRotationsTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
-    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1,2,3,4,5,6})->makeRotations() }{}
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{0,1,2,3,4,5})->makeRotations() }{}
 
   InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
   InternalCoordinates::Rotations rotations;
@@ -218,7 +218,7 @@ public:
 class InternalCoordinatesRotationInfoTest : public InternalCoordinatesTestRotatedMolecules {
 public:
   InternalCoordinatesRotationInfoTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
-    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1,2,3,4,5,6})->makeRotations() } {}
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{0,1,2,3,4,5})->makeRotations() } {}
 
   std::string infoOfRotationA();
   std::string infoOfRotationB();
@@ -256,13 +256,7 @@ public:
   void testExponentialMapDerivatives();
 
 private:
-  class ReadMatrixFiles {
-  public:
-    ReadMatrixFiles(std::istream & inputStream) : inputStream{ inputStream }{}
-    scon::mathmatrix<double> readNLinesOfFileWithMNumbers(std::size_t const n, std::size_t const m);
-  private:
-    std::istream & inputStream;
-  };
+  
   scon::mathmatrix<double> readNextFderivative(std::istream & inputFileStream);
   scon::mathmatrix<double> readNextQuaternionDerivative(std::istream & inputFileStream);
   scon::mathmatrix<double> readNextExponentialMapderivative(std::istream & inputFileStream);

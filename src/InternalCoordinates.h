@@ -55,7 +55,7 @@ namespace InternalCoordinates {
   inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
     coords::Representation_3D slicedCoordinates;
     for (auto const& index : indexVector) {
-      slicedCoordinates.emplace_back(cartesians.at(index-1u));
+      slicedCoordinates.emplace_back(cartesians.at(index));
     }
     return slicedCoordinates;
   }
@@ -159,7 +159,7 @@ namespace InternalCoordinates {
 
       auto const & s{ indices_.size() };
       for (auto const & i : indices_) {
-        result.at(i - 1) = coord(s);
+        result.at(i) = coord(s);
       }
       return result;
     }
@@ -167,6 +167,8 @@ namespace InternalCoordinates {
     coords::float_type hessian_guess(CartesiansForInternalCoordinates const& /*cartesians*/) const override {
       return 0.05;
     }
+
+    bool operator==(Translations const&) const;
 
   };
 
@@ -177,7 +179,7 @@ namespace InternalCoordinates {
     coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
       auto coord_sum{ 0.0 };
       for (auto& i : indices_) {
-        coord_sum += cartesians.at(i - 1u).x();
+        coord_sum += cartesians.at(i).x();
       }
       return coord_sum / indices_.size();
     }
@@ -193,7 +195,7 @@ namespace InternalCoordinates {
     coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
       auto coord_sum{ 0.0 };
       for (auto& i : indices_) {
-        coord_sum += cartesians.at(i - 1u).y();
+        coord_sum += cartesians.at(i).y();
       }
       return coord_sum / indices_.size();
     }
@@ -209,7 +211,7 @@ namespace InternalCoordinates {
     coords::float_type val(CartesiansForInternalCoordinates const& cartesians) const override {
       auto coord_sum{ 0.0 };
       for (auto& i : indices_) {
-        coord_sum += cartesians.at(i - 1u).z();
+        coord_sum += cartesians.at(i).z();
       }
       return coord_sum / indices_.size();
     }
@@ -257,6 +259,8 @@ namespace InternalCoordinates {
     scon::mathmatrix<coords::float_type> const& rot_der_mat(const coords::Representation_3D&);
 
     Rotations makeRotations();
+
+    bool operator==(Rotator const& other) const;
 
     //TODO make it private again
     Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :

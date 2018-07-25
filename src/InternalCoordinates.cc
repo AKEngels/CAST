@@ -64,8 +64,7 @@ namespace InternalCoordinates {
     return 1.734 / std::pow(val(cartesians) - B_val, 3);
   }
 
-  std::string BondDistance::info(CartesiansForInternalCoordinates const & cartesians) const
-  {
+  std::string BondDistance::info(CartesiansForInternalCoordinates const & cartesians) const {
     std::ostringstream oss;
     oss << "Bond: " << val(cartesians) << " || " << index_a_ << " || " << index_b_ << " ||";
     return oss.str();
@@ -363,7 +362,7 @@ namespace InternalCoordinates {
     coords::Representation_3D curr_xyz_;
     curr_xyz_.reserve(indices_.size());
     for (auto const & i : indices_) {
-      curr_xyz_.emplace_back(new_xyz.at(i - 1));
+      curr_xyz_.emplace_back(new_xyz.at(i));
     }
 
     storedValuesForRotations = ic_rotation::exponential_map(reference_, curr_xyz_);
@@ -378,7 +377,7 @@ namespace InternalCoordinates {
     
     coords::Representation_3D new_xyz_;
     for (auto const & indi : indices_) {
-      new_xyz_.emplace_back(new_xyz.at(indi - 1));
+      new_xyz_.emplace_back(new_xyz.at(indi));
     }
 
     return ic_rotation::exponential_derivs(reference_, new_xyz_);
@@ -397,16 +396,16 @@ namespace InternalCoordinates {
 
     auto first_ders = rot_der(new_xyz);
 
-    Mat X = zero(first_ders.size(), 3);
-    Mat Y = zero(first_ders.size(), 3);
-    Mat Z = zero(first_ders.size(), 3);
+    Mat X = zero(new_xyz.size(), 3);
+    Mat Y = zero(new_xyz.size(), 3);
+    Mat Z = zero(new_xyz.size(), 3);
 
     for (auto i{ 0u }; i<first_ders.size(); ++i) {
       auto const& ind = indices_.at(i);
       auto const& der = first_ders.at(i);
-      X.set_row(ind - 1, der.col(0).t());
-      Y.set_row(ind - 1, der.col(1).t());
-      Z.set_row(ind - 1, der.col(2).t());
+      X.set_row(ind, der.col(0).t());
+      Y.set_row(ind, der.col(1).t());
+      Z.set_row(ind, der.col(2).t());
     }
 
     X *= rad_gyr_;
@@ -414,7 +413,7 @@ namespace InternalCoordinates {
     Z *= rad_gyr_;
 
     //TODO initialize storedDerivativesForRotations in ctor
-    storedDerivativesForRotations = Mat(first_ders.size() * 3, 3);
+    storedDerivativesForRotations = Mat(new_xyz.size() * 3, 3);
     storedDerivativesForRotations.set_col(0, X.vectorise_row());
     storedDerivativesForRotations.set_col(1, Y.vectorise_row());
     storedDerivativesForRotations.set_col(2, Z.vectorise_row());
@@ -430,6 +429,14 @@ namespace InternalCoordinates {
     };
   }
 
+  bool Rotator::operator==(Rotator const & other) const {
+    if (indices_.size() != other.indices_.size()) return false;
+    for (auto i = 0u; i < indices_.size(); ++i) {
+      if (indices_.at(i) != other.indices_.at(i)) return false;
+    }
+    return true;
+  }
+
   coords::float_type
     InternalCoordinates::Rotator::radiusOfGyration(const coords::Representation_3D& struc) {
     return ic_util::rad_gyr(struc);
@@ -439,5 +446,13 @@ namespace InternalCoordinates {
     auto observer = std::make_shared<InternalCoordinates::RotatorObserver>();
     observer->setNewRotator(shared_from_this());
     cartesianCoordinates.registerObserver(observer);
+  }
+
+  bool Translations::operator==(Translations const & other) const{
+    if(indices_.size() != other.indices_.size()) return false;
+    for (auto i = 0u; i < indices_.size(); ++i) {
+      if (indices_.at(i) != other.indices_.at(i)) return false;
+    }
+    return true;
   }
 }
