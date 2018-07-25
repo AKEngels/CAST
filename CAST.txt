@@ -107,6 +107,7 @@ task                  SP
 # CHEMSHELL            under developement
 # QMMM                 (additive) QM/MM interface
 # ONIOM                (subtractive) QM/MM interface
+# THREE_LAYER          three-layer interface (analogous to ONIOM)
 
 interface              OPLSAA
 
@@ -129,21 +130,26 @@ switchdist             10.0
 
 ################## QM/MM OPTIONS ####################
 
-QMMMqmatoms           4-6
+QMMMqmatoms           1,2,4,5,17,18
 QMMMmminterface       OPLSAA
-QMMMqminterface       MOPAC
+QMMMqminterface       GAUSSIAN
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
 
-# energy types of link atoms in forcefield (in the order of MM atom)
+# energy types of link atoms in forcefield (in the order of QM atom)
+# if three-layer: for middle system
 QMMMlinkatomtype      85
-QMMMlinkatomtype      85
-QMMMlinkatomtype      221
 QMMMlinkatomtype      85
 
 # cutoff for electrostatic interaction
-QMMMcutoff            10
+#QMMMcutoff            10
+
+
+# for three-layer only:
+
+QMMMseatoms           3,6,7,8,10,11
+QMMMseinterface       DFTB
 
 
 ######################### MOPAC OPTIONS ###############
