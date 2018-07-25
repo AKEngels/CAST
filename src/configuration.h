@@ -135,13 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 13;
+  static std::size_t const NUM_INTERFACES = 14;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -155,7 +155,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER
     };
   };
 

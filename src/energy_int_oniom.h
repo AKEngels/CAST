@@ -1,6 +1,12 @@
 /**
 CAST 3
-bla
+energy_int_oniom.h
+Purpose: subtractive QM/MM interface
+
+This is a subtractive QM/MM interface between the interfaces OPLSAA, AMBER, MOPAC, DFTB+, PSI4 and GAUSSIAN.
+
+@author Susanne Sauer
+@version 1.0
 */
 
 #pragma once

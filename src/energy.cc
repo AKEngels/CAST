@@ -7,6 +7,7 @@
 #include "energy_int_amoeba.h"
 #include "energy_int_qmmm.h"
 #include "energy_int_oniom.h"
+#include "energy_int_3layer.h"
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
 #endif
@@ -73,6 +74,14 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 		  std::cout << "ONIOM-Interface choosen for energy calculations.\n";
 	  }
 	  return new energy::interfaces::oniom::ONIOM(coordinates);
+  }
+  case config::interface_types::T::THREE_LAYER:
+  {
+    if (Config::get().general.verbosity > 3)
+    {
+      std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+    }
+    return new energy::interfaces::three_layer::THREE_LAYER(coordinates);
   }
 
   case config::interface_types::T::TERACHEM:
