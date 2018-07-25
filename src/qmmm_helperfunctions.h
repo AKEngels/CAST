@@ -50,11 +50,15 @@ struct LinkAtom
     
     if (deq_L_QM == 0.0)   // equilibrium distance cannot be determined by forcefield -> sum of covalent radii
     {
+			if (Config::get().general.verbosity > 3)
+			{
+				std::cout << "determining link atom position from sum of covalent radii because forcefield parameter not available\n";
+			}
+
       size_t atomic_number_QM = atomic::atomic_number_by_symbol(coords->atoms().atom(b).symbol());
       size_t atomic_number_LA = atomic::atomic_number_by_symbol("H");  // only H-atoms
 
       deq_L_QM = atomic::cov_radiusMap[atomic_number_QM] + atomic::cov_radiusMap[atomic_number_LA];
-      std::cout << "equilibrium distance to link atom: " << deq_L_QM << "\n";
     }
 
     // calculate position of link atom
