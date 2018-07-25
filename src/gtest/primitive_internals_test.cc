@@ -313,3 +313,12 @@ void MatricesTest::delocalizedInitialHessianTest() {
 TEST_F(MatricesTest, delocalizedInitialHessianTest) {
   delocalizedInitialHessianTest();
 }
+
+void MatricesTest::calculateInternalGradsTest() {
+  testSystem.delocalize_ic_system();
+  EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), testSystem.calculate_internal_grads(gradientsOfTwoMethanolMolecules()));
+}
+
+TEST_F(MatricesTest, calculateInternalGradsTest) {
+  calculateInternalGradsTest();
+}

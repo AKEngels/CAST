@@ -38,6 +38,7 @@ public:
   void delocalizedBMatrixTest();
   void delocalizedGMatrixTest();
   void delocalizedInitialHessianTest();
+  void calculateInternalGradsTest();
 };
 
 #endif

@@ -124,17 +124,16 @@ public:
   void create_ic_system(const Graph&);
 
   scon::mathmatrix<float_type>& delocalize_ic_system();//F
-  scon::mathmatrix<float_type> guess_hessian();
-  scon::mathmatrix<float_type>& initial_delocalized_hessian();
-  std::vector<std::vector<float_type>> deriv_vec();
+  scon::mathmatrix<float_type> guess_hessian();//F
+  scon::mathmatrix<float_type>& initial_delocalized_hessian();//F
   scon::mathmatrix<float_type>& Bmat();//F
   scon::mathmatrix<float_type>& Gmat();//F
-  scon::mathmatrix<float_type>& ic_Bmat();//R
-  scon::mathmatrix<float_type>& ic_Gmat();
+  scon::mathmatrix<float_type>& ic_Bmat();//F
+  scon::mathmatrix<float_type>& ic_Gmat();//F
 
 
   scon::mathmatrix<float_type> calc() const;
-  scon::mathmatrix<float_type> calculate_internal_grads(scon::mathmatrix<float_type> const&);
+  scon::mathmatrix<float_type> calculate_internal_grads(scon::mathmatrix<float_type> const&);//F
   template<typename Gint>
   scon::mathmatrix<float_type> get_internal_step(Gint&&);
   template<typename Dint>
@@ -154,6 +153,7 @@ public:
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   
 private:
+    std::vector<std::vector<float_type>> deriv_vec();
     void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
     void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
     void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
