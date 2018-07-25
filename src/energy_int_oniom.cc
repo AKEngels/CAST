@@ -9,7 +9,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
-  link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
+  link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
   mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.mminterface)),
 	mmc_big(qmmm_helpers::make_mmbig_coords(cp)),

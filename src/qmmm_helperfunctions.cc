@@ -1,29 +1,31 @@
 #include"qmmm_helperfunctions.h"
 
 
-std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, std::vector<size_t> &mm_indices, tinker::parameter::parameters const &tp)
+std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, tinker::parameter::parameters const &tp)
 {
   std::vector<LinkAtom> links;
-  int type, counter = 0;
-  for (auto mma : mm_indices)
-  {
-    for (auto b : coords->atoms().atom(mma).bonds())
-    {
-      if (scon::sorted::exists(qm_indices, b))
-      {
-        try {type = Config::get().energy.qmmm.linkatom_types[counter];}
-				catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
-        LinkAtom link(b, mma, type, coords, tp);
-        links.push_back(link);
-        counter += 1;
+	int type, counter = 0;
 
-        if (Config::get().general.verbosity > 3)
-        {
-          std::cout << "created link atom between MM atom " << mma+1 << " and QM atom " << b+1 << " with atom type "<<link.energy_type<<", position: " << link.position << "\n";
-        }
-      }
-    }
-  }
+	for (auto q : qm_indices)
+	{
+		if (coords->atoms().size() == 0) break;  // this is necessary because this function will be called once in the beginning when coordinates object is not created yet
+		for (auto b : coords->atoms().atom(q).bonds())
+		{
+			if (!is_in(b, qm_indices))
+			{
+				try { type = Config::get().energy.qmmm.linkatom_types[counter]; }
+				catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+				LinkAtom link(q, b, type, coords, tp);
+				links.push_back(link);
+				counter += 1;
+
+				if (Config::get().general.verbosity > 3)
+				{
+					std::cout << "created link atom between QM atom " << q + 1 << " and MM atom " << b + 1 << " with atom type " << link.energy_type << ", position: " << link.position << "\n";
+				}
+			}
+		}
+	}
   return links;
 }
 

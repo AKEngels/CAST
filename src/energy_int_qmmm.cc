@@ -11,7 +11,7 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
   new_indices_mm(qmmm_helpers::make_new_indices_mm(cp->size(), mm_indices)),
-	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, mm_indices, tp)),
+	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
 	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
   mmc(qmmm_helpers::make_aco_coords(cp, mm_indices, new_indices_mm)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
