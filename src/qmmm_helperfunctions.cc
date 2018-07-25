@@ -69,35 +69,20 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return mm_atoms;
 }
 
-  std::vector<std::size_t> qmmm_helpers::make_new_indices_qm(std::size_t const num_atoms)
+  std::vector<std::size_t> qmmm_helpers::make_new_indices(std::size_t const num_atoms, std::vector<std::size_t> const& indices)
   {
-    std::vector<std::size_t> new_indices_qm;
-    if (num_atoms > 0)
-    {
-      new_indices_qm.resize(num_atoms);
-      std::size_t current_index = 0u;
-      for (auto&& a : Config::get().energy.qmmm.qmatoms)
-      {
-        new_indices_qm.at(a) = current_index++;
-      }
-    }
-    return new_indices_qm;
-  }
-
-  std::vector<std::size_t> qmmm_helpers::make_new_indices_mm(std::size_t const num_atoms, std::vector<std::size_t> const& mmi)
-  {
-    std::vector<std::size_t> new_indices_mm;
-    new_indices_mm.resize(num_atoms);
+    std::vector<std::size_t> new_indices;
+    new_indices.resize(num_atoms);
     if (num_atoms > 0u)
     {
       std::size_t current_index = 0u;
 
-      for (auto && a : mmi)
+      for (auto && a : indices)
       {
-				new_indices_mm.at(a) = current_index++;
+				new_indices.at(a) = current_index++;
       }
     }
-    return new_indices_mm;
+    return new_indices;
   }
 
   /**creates coordobject for MM interface

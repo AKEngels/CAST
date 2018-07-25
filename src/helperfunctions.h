@@ -159,4 +159,17 @@ inline bool file_is_empty(std::string &filename)
 	else return false;
 }
 
+/**adds two vectors like in python, i.e. [A, B] + [C, D] = [A, B, C, D]
+@param v1: first vector
+@param v2: second vector*/
+template <typename T>
+inline std::vector<T> add_vectors(std::vector<T> &v1, std::vector<T> &v2)
+{
+  std::vector<T> v12;
+  v12.reserve(v1.size() + v2.size());
+  v12.insert(v12.end(), v1.begin(), v1.end());
+  v12.insert(v12.end(), v2.begin(), v2.end());
+  return v12;
+}
+
 #endif

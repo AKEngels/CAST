@@ -529,6 +529,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.qmmm.qmatoms =
         sorted_indices_from_cs_string(value_string, true);
     }
+    else if (option.substr(4u) == "seatoms")
+    {
+      Config::set().energy.qmmm.seatoms =
+        sorted_indices_from_cs_string(value_string, true);
+    }
     else if (option.substr(4u) == "mminterface")
     {
       interface_types::T inter = Config::getInterface(value_string);
@@ -539,6 +544,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       else
       {
         std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+    else if (option.substr(4u) == "seinterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.seinterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal interface for middle layer." << std::endl;
       }
     }
     else if (option.substr(4u) == "qminterface")

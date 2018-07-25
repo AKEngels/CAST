@@ -98,16 +98,11 @@ namespace qmmm_helpers
   @param num_atoms: number of atoms in whole system*/
   std::vector<std::size_t> get_mm_atoms(std::size_t const num_atoms);
 
-  /**creates a vector new_indices_qm
-  for description of the vector see energy_int_qmmm.h
-  @param num_atoms: number of atoms in whole system*/
-  std::vector<std::size_t> make_new_indices_qm(std::size_t const num_atoms);
-
-  /**creates a vector new_indices_mm
+  /**creates a vector new_indices
   for description of the vector see energy_int_qmmm.h
   @param num_atoms: number of atoms in whole system
-  @param mmi: vector with indizes of MM atoms*/
-  std::vector<std::size_t> make_new_indices_mm(std::size_t const num_atoms, std::vector<std::size_t> const &mmi);
+  @param mmi: vector with original indizes*/
+  std::vector<std::size_t> make_new_indices(std::size_t const num_atoms, std::vector<std::size_t> const &indices);
 
   /**creates coordobject for MM interface (maybe also be replaced by make_small_coords?)
   @param cp: coordobj for whole system (QM + MM)
