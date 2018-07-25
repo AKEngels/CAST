@@ -127,7 +127,7 @@ inline bool check_if_number(std::string const & number) {
 }
 
 /**tests if a (one-letter) string is a digit*/
-inline bool isdigit(std::string &s)
+inline bool isdigit(std::string s)
 {
   return check_if_number(s);
 }
