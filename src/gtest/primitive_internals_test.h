@@ -34,11 +34,17 @@ public:
   void bMatrixTest();
   void gMatrixTest();
   void hessianGuessTest();
+};
+
+class DelocalizedMatricesTest : public MatricesTest {
+public:
+  DelocalizedMatricesTest();
   void delocalizedMatrixTest();
   void delocalizedBMatrixTest();
   void delocalizedGMatrixTest();
   void delocalizedInitialHessianTest();
   void calculateInternalGradsTest();
+  void getInternalStepTest();
 };
 
 #endif

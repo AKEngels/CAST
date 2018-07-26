@@ -84,6 +84,8 @@ public:
       std::make_move_iterator(pic.end()));
   }
 
+  scon::mathmatrix<float_type> const& getDelMat()const { return del_mat; }
+
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
   create_trans_x(const std::vector<std::vector<std::size_t>>&) const;
 
@@ -131,17 +133,13 @@ public:
   scon::mathmatrix<float_type>& ic_Bmat();//F
   scon::mathmatrix<float_type>& ic_Gmat();//F
 
-
-  scon::mathmatrix<float_type> calc() const;
   scon::mathmatrix<float_type> calculate_internal_grads(scon::mathmatrix<float_type> const&);//F
   template<typename Gint>
-  scon::mathmatrix<float_type> get_internal_step(Gint&&);
+  scon::mathmatrix<float_type> get_internal_step(Gint&&);//F
   template<typename Dint>
-  void apply_internal_change(Dint&&);
+  void apply_internal_change(Dint&&);//R
   template<typename Dcart>
   coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
-  template<typename XYZ>
-  coords::Representation_3D& set_xyz(XYZ&& new_xyz);
   
   scon::mathmatrix<float_type> calc_prims(coords::Representation_3D const& xyz) const;
 
@@ -161,6 +159,8 @@ private:
     void applyHessianChange();
     void setNewToOldVariables();
     scon::mathmatrix<float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+    template<typename XYZ>
+    coords::Representation_3D& set_xyz(XYZ&& new_xyz);
     
     
     class ConvergenceCheck{
