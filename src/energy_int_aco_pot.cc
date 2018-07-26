@@ -130,7 +130,7 @@ namespace energy
           auto const d = len(bv);
           auto const r = d - bond.ideal;
           E += bond.force*r*r;
-          if (abs(r) > 0.5) integrity = false;
+					if (abs(r) > 0.5) integrity = false;
         }
         return E;
       }
@@ -205,7 +205,7 @@ namespace energy
           auto const d(scon::angle(av1, av2).degrees() - angle.ideal);
           auto const r(d*SCON_PI180);
           E += angle.force*r*r;
-          if (abs(d) > 20.0) integrity = false;
+					if (abs(d) > 30.0) integrity = false;
         }
         return E;
       }
@@ -237,7 +237,7 @@ namespace energy
           coords::float_type const cvl(len(cv));
           if (abs(cvl) > 0.0)
           {
-            if (abs(d) > 20.0) integrity = false;
+            if (abs(d) > 30.0) integrity = false;
             dE *= 2.0 / cvl;
             //std::cout << dE << ", " << cvl << '\n';
             coords::Cartesian_Point const gv1(cross(av1, cv) * (dE / dot(av1, av1)));
