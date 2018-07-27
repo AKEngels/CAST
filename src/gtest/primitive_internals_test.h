@@ -48,6 +48,7 @@ public:
   void applyInternalChangeTest();
   void calculatePrimitiveInternalValuesTest();
   void internalDifferencesTest();
+  void internalValuesForTricTest();
 };
 
 #endif

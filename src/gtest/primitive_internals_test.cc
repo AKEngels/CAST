@@ -368,4 +368,12 @@ TEST_F(DelocalizedMatricesTest, internalDifferencesTest) {
   internalDifferencesTest();
 }
 
+void DelocalizedMatricesTest::internalValuesForTricTest() {
+  EXPECT_EQ(tricValuesAfterTheFirstStep(), testSystem.calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()));
+}
+
+TEST_F(DelocalizedMatricesTest, internalValuesForTricTest) {
+  internalValuesForTricTest();
+}
+
 #endif
