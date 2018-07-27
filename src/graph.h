@@ -62,8 +62,9 @@ public:
   \tparam undirectedS Specifies that the graph is undirected.
   \tparam Node Specifies vertex properties.
   */
-  using Graph_type =
-      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Node>;
+  using Graph_type = boost::adjacency_list<
+      boost::vecS, boost::vecS, boost::undirectedS, Node,
+      boost::property<boost::edge_color_t, boost::default_color_type>>;
 
   Graph_type g;
 

@@ -1,8 +1,10 @@
 #ifndef COORDS_IO_XYZ_H
 #define COORDS_IO_XYZ_H
 
+#include <boost/cstdlib.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
+#include <boost/graph/undirected_dfs.hpp>
 #include <set>
 #include <vector>
 
@@ -11,8 +13,9 @@
 #include "graph.h"
 #include "ic_util.h"
 
-using Graph_type = boost::adjacency_list<boost::vecS, boost::vecS,
-                                         boost::undirectedS, ic_util::Node>;
+using Graph_type = boost::adjacency_list<
+    boost::vecS, boost::vecS, boost::undirectedS, ic_util::Node,
+    boost::property<boost::edge_color_t, boost::default_color_type>>;
 namespace coords {
 namespace input {
 namespace formats {
@@ -121,6 +124,298 @@ public:
 
       void operator()(const std::string& str) { read_file(str); }
 
+      /* this is not working for molecules where rings share edges
+      only conjugated molecules (sp2)
+         source is the last atom visited, target the first one*/
+      struct detect_loops : public boost::dfs_visitor<> {
+
+        template <typename Function>
+        detect_loops(Function callback)
+            : boost::dfs_visitor<>(), callback(callback) {}
+
+        std::function<void(std::vector<int> const&)> callback;
+
+        template <class Edge, class Graph>
+        void back_edge(Edge e, const Graph& g) {
+
+          // std::cout << source(e, g) << " -- " << target(e, g) << "\n";
+
+          std::vector<int> back_edge_indices;
+          back_edge_indices.emplace_back(source(e, g));
+          back_edge_indices.emplace_back(target(e, g));
+
+          callback(back_edge_indices);
+        }
+      };
+
+      // static std::vector<std::vector<int>> get_back_edges(Graph_type const&
+      // graph) {
+
+      //  using Vertex_type =
+      //  boost::graph_traits<Graph_type>::vertex_descriptor;
+
+      //  std::vector<std::vector<int>> back_edges;
+      //  auto back_edges_callback = [&back_edges](std::vector<int> const& edge)
+      //  {
+      //    back_edges.emplace_back(edge);
+      //  };
+
+      //  detect_loops vis(back_edges_callback);
+      //  undirected_dfs(graph,
+      //                 boost::root_vertex(Vertex_type(0))
+      //                     .visitor(vis)
+      //                     .edge_color_map(get(boost::edge_color, graph)));
+      //  return back_edges;
+
+      //}
+
+      static std::vector<std::vector<size_t>>
+      find_aromatic_subunit(Graph_type graph) {
+
+        std::vector<std::vector<size_t>> aromatic_subunits;
+
+        using vertex_type = boost::graph_traits<Graph_type>::vertex_descriptor;
+
+        std::vector<std::vector<int>> back_edges;
+        auto back_edges_callback = [&back_edges](std::vector<int> const& edge) {
+          back_edges.emplace_back(edge);
+        };
+
+        detect_loops vis(back_edges_callback);
+        undirected_dfs(graph,
+                       boost::root_vertex(vertex_type(0))
+                           .visitor(vis)
+                           .edge_color_map(get(boost::edge_color, graph)));
+        /*       auto back_edges = get_back_edges(graph);*/
+
+        if (back_edges.size() == 0)
+          return aromatic_subunits;
+
+        else {
+          std::vector<std::vector<size_t>> cycles_in_molecule;
+          for (auto backedge : back_edges) {
+            auto one_cycle =
+                find_atoms_in_ring(graph, backedge[0], backedge[1]);
+            cycles_in_molecule.emplace_back(one_cycle);
+          }
+
+          std::vector<std::pair<int, int>> edges_to_ruin;
+
+          for (auto cycle = 1; cycle < cycles_in_molecule.size(); ++cycle) {
+
+            auto adj_first_atom_ring =
+                adjacents(graph, cycles_in_molecule[cycle][0]);
+
+            for (auto bridge_atom : adj_first_atom_ring) {
+              if (bridge_atom != cycles_in_molecule[cycle][1] &&
+                  bridge_atom != cycles_in_molecule[cycle][5] &&
+                  graph[bridge_atom].element != "H") {
+                std::pair<int, int> ruin_edge(bridge_atom,
+                                              cycles_in_molecule[cycle][0]);
+                edges_to_ruin.emplace_back(ruin_edge);
+              } else
+                continue;
+            }
+          }
+          for (auto one_edge_to_ruin : edges_to_ruin) {
+            boost::remove_edge(one_edge_to_ruin.first, one_edge_to_ruin.second,
+                               graph);
+          }
+          auto all_subunits = find_connected_components(graph);
+
+          for (auto one_edge_to_ruin : edges_to_ruin) {
+            boost::add_edge(one_edge_to_ruin.first, one_edge_to_ruin.second,
+                            graph);
+          }
+          for (auto unit : all_subunits) {
+            for (auto i = 0; i < back_edges.size(); ++i) {
+              for (auto atom_unit : unit) {
+                if (atom_unit == back_edges[i][0]) {
+
+                  aromatic_subunits.emplace_back(unit);
+                }
+              }
+            }
+          }
+          return aromatic_subunits;
+        }
+      }
+
+      /*gets the atoms of a (six-membered) ring
+      first atom in vector is the first atom visited, which is the C binding to
+      three Cs connecting bridge and ring. next one is adj, after that adj of
+      adj, fourth is the opposit atom binding to three Cs. Last entry is the
+      atom binding to the first one.*/
+      static std::vector<size_t> find_atoms_in_ring(Graph_type graph,
+                                                    int source, int target) {
+
+        int first_atom_ring, second_atom_ring;
+        std::vector<size_t> atoms_of_ring;
+
+        auto adj_source = adjacents(graph, source);
+        auto adj_target = adjacents(graph, target);
+        if (graph[adj_source[0]].element == "C" &&
+            graph[adj_source[1]].element == "C" &&
+            graph[adj_source[2]].element == "C") {
+          // source is atom connecting "bridge" and ring
+
+          first_atom_ring = source;
+          second_atom_ring = target;
+
+        } else if (graph[adj_target[0]].element == "C" &&
+                   graph[adj_target[1]].element == "C" &&
+                   graph[adj_target[2]].element == "C") {
+          // target is atom connecting "bridge" and ring
+
+          first_atom_ring = target;
+          second_atom_ring = source;
+
+        } else {
+
+          atoms_of_ring = first_cycle(graph, source, target);
+          return atoms_of_ring;
+        }
+
+        /* while loop could be more efficent, especially for NOT six-membered
+         rings. should already work for five-membered ones. aditionally while
+         loop searches for atoms between (and including) both Cs connecting ring
+         and bridge*/
+
+        double atomC_binds_three_Cs = 0.5;
+        int atom_current, atom_before;
+        atom_current = second_atom_ring;
+        atom_before = first_atom_ring;
+        atoms_of_ring.emplace_back(atom_before);
+        atoms_of_ring.emplace_back(atom_current);
+
+        while (atom_current != atomC_binds_three_Cs) {
+
+          auto adj_atom_current = adjacents(graph, atom_current);
+
+          if (graph[adj_atom_current[0]].element == "C" &&
+              graph[adj_atom_current[1]].element == "C" &&
+              graph[adj_atom_current[2]].element == "C") {
+
+            atomC_binds_three_Cs = atom_current;
+          } else {
+
+            for (auto atom_next : adj_atom_current) {
+              if (atom_next != atom_before && graph[atom_next].element != "H") {
+
+                atoms_of_ring.emplace_back(atom_next);
+                atom_before = atom_current;
+                atom_current = atom_next;
+                break;
+              }
+            }
+          }
+        }
+        if (first_atom_ring == atomC_binds_three_Cs) {
+          atoms_of_ring.pop_back();
+          return atoms_of_ring;
+
+        }
+
+        else {
+
+          auto adj_first_atom = adjacents(graph, first_atom_ring);
+          auto adj_C_binds_three_Cs = adjacents(graph, atomC_binds_three_Cs);
+
+          for (auto atom_next_to_first : adj_first_atom) {
+            for (auto atom_next_to_C_CCC : adj_C_binds_three_Cs) {
+              if (edge_exist(graph, atom_next_to_first, atom_next_to_C_CCC)) {
+
+                atoms_of_ring.emplace_back(atom_next_to_C_CCC);
+                atoms_of_ring.emplace_back(atom_next_to_first);
+                return atoms_of_ring;
+              } else if (atom_next_to_first == atom_next_to_C_CCC) {
+                atoms_of_ring.emplace_back(atom_next_to_first);
+                return atoms_of_ring;
+              }
+            }
+          }
+        }
+        std::cout << "Ring search failed probably. This ring seems to contain "
+                  << atoms_of_ring.size() << " atoms. Is this right?"
+                  << std::endl;
+        return atoms_of_ring;
+      }
+
+      static bool edge_exist(Graph_type graph, int one_atom, int another_atom) {
+        auto adj_one_atom = adjacents(graph, one_atom);
+        for (auto adj_atom : adj_one_atom) {
+          if (adj_atom == another_atom) {
+            return true;
+          } else
+            continue;
+        }
+        return false;
+      }
+
+      // funktion is working not only for six-membered rings, but for every one
+      // you can imagine IF no edges are shared with another ring last entry in
+      // vector cycle is the atom binding to three Cs connecting ring and bridge
+      static std::vector<size_t> first_cycle(Graph_type graph, int atom_a,
+                                             int atom_f) {
+        std::vector<size_t> cycle;
+
+        double C_binds_three_Cs = 0.5;
+        int atom_before = atom_f;
+        int atom_current = atom_a;
+
+        cycle.emplace_back(atom_a);
+        cycle.emplace_back(atom_f);
+
+        while (atom_current != C_binds_three_Cs) {
+
+          auto adj_atom_current = adjacents(graph, atom_current);
+
+          if (graph[adj_atom_current[0]].element == "C" &&
+              graph[adj_atom_current[1]].element == "C" &&
+              graph[adj_atom_current[2]].element == "C") {
+
+            C_binds_three_Cs = atom_current;
+            cycle.pop_back();
+          } else
+            for (auto atom_next : adj_atom_current) {
+
+              if (atom_next != atom_before && graph[atom_next].element != "H") {
+
+                cycle.emplace_back(atom_next);
+                atom_before = atom_current;
+                atom_current = atom_next;
+                break;
+              }
+            }
+        }
+        atom_before = atom_a;
+        atom_current = atom_f;
+
+        while (atom_current != atom_a) {
+
+          auto adj_atom_current = adjacents(graph, atom_current);
+
+          if (graph[adj_atom_current[0]].element == "C" &&
+              graph[adj_atom_current[1]].element == "C" &&
+              graph[adj_atom_current[2]].element == "C") {
+
+            return cycle;
+          }
+          for (auto atom_next : adj_atom_current) {
+
+            if (atom_next != atom_before && graph[atom_next].element != "H") {
+
+              cycle.emplace_back(atom_next);
+              atom_before = atom_current;
+              atom_current = atom_next;
+              break;
+            }
+          }
+        }
+
+        return cycle;
+      }
+
       /*!
           \brief Function for parsing the content of a xyz file in a
           std::vector<Atom_type>.
@@ -177,7 +472,7 @@ public:
       static std::vector<std::vector<Atom_type>>
       create_resids(const Vec& res_index_vec) {
 
-        return create_resids(res_index_vec, atom_vec);
+        return create_resids(atom_vec, res_index_vec);
       }
 
       /*!
@@ -191,9 +486,10 @@ public:
       static std::vector<std::vector<std::size_t>>
       create_resids_indices(Graph_type& graph) {
 
-        std::vector<std::size_t> molecule_vec;
+        std::vector<std::size_t> resids_vec;
 
-        std::vector<std::vector<std::size_t>> result, temp_result;
+        std::vector<std::vector<std::size_t>> result, temp_result_aa,
+            temp_result_cycle;
         std::vector<int> component(boost::num_vertices(graph));
 
         int num = connected_components(graph, &component[0]);
@@ -202,13 +498,15 @@ public:
           result = find_connected_components(graph);
         }
 
-        temp_result = find_amino_acids(graph);
-        for (auto a = 0; a < temp_result.size(); ++a) {
-          for (auto b : temp_result[a]) {
-            molecule_vec.emplace_back(b);
-          }
-          result.emplace_back(molecule_vec);
-          molecule_vec.clear();
+        temp_result_aa = find_amino_acids(graph);
+        for (auto aa : temp_result_aa) {
+
+          result.emplace_back(aa);
+        }
+
+        temp_result_cycle = find_aromatic_subunit(graph);
+        for (auto cycle_subunit : temp_result_cycle) {
+          result.emplace_back(cycle_subunit);
         }
 
         return result;
@@ -238,274 +536,106 @@ public:
         }
         return result;
       }
+
       // function to find amino acids in peptides
       static std::vector<std::vector<size_t>>
       find_amino_acids(Graph_type& graph) {
 
-        auto number_components_graph = number_of_components(graph);
-        
-        std::vector<std::size_t> molecule_vec, chiral_C_vec, carboxy_C_vec,
-            amine_vec;
+        std::vector<std::vector<size_t>> backbones, amino_acids, subgraphs;
+        backbones = find_backbone_in_aminoacid(graph);
 
-        std::vector<std::vector<std::size_t>> result, temp_result;
+        if (backbones.size() == 0)
+          return amino_acids;
+
+        else
+          for (auto one_backbone = 0; one_backbone < backbones.size() - 1;
+               ++one_backbone) {
+
+            auto carboxyC = backbones[one_backbone][1];
+            auto n_nextaa = backbones[one_backbone + 1][3];
+
+            boost::remove_edge(carboxyC, n_nextaa, graph);
+          }
+
+        subgraphs = find_connected_components(graph);
+
+        // subgraphs contains the amino acids and additionally seperated
+        // molecules if excisting else no problem
+        // needs to be checked!
+        if (subgraphs.size() != backbones.size()) {
+
+          for (auto sub = 0; sub < subgraphs.size(); ++sub) {
+            for (auto a = 0; a < subgraphs[sub].size(); ++a) {
+              for (auto b = 0; b < backbones.size(); ++b) {
+                if (subgraphs[sub][a] == backbones[b][0]) {
+
+                  amino_acids.push_back(subgraphs[sub]);
+                }
+              }
+            }
+          }
+        }
+
+        for (auto one_backbone = 0; one_backbone < backbones.size() - 1;
+             ++one_backbone) {
+
+          auto carboxyC = backbones[one_backbone][1];
+          auto n_nextaa = backbones[one_backbone + 1][3];
+
+          boost::add_edge(carboxyC, n_nextaa, graph);
+        }
+
+        return amino_acids;
+      }
+
+      static std::vector<std::vector<size_t>>
+      find_backbone_in_aminoacid(const Graph_type& graph) {
+
+        std::vector<std::vector<size_t>> backbones_indices;
+        std::vector<size_t> one_backbone;
+        int o, c1, c2, n;
 
         boost::graph_traits<Graph_type>::edge_iterator ei, ei_end;
         for (tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
           int u = boost::source(*ei, graph);
           int v = boost::target(*ei, graph);
-          
-          //the "terminal condition" is important for serin
+
           if (graph[u].element == "O" && graph[v].element == "C" &&
               terminal(graph, u)) {
 
-            carboxy_C_vec = adjacents(graph, v);
+            o = u;
+            c1 = v;
+          } else if (graph[v].element == "O" && graph[u].element == "C" &&
+                     terminal(graph, v)) {
 
-            for (auto w : carboxy_C_vec) {
-
-              if (graph[w].element == "C") {
-
-                chiral_C_vec = adjacents(graph, w);
-
-                for (auto x : chiral_C_vec) {
-                  if (graph[x].element == "N") {
-
-                    // backbone found
-                    molecule_vec.emplace_back(u);
-                    molecule_vec.emplace_back(v);
-                    molecule_vec.emplace_back(w);
-                    molecule_vec.emplace_back(x);
-
-                    // terminal -OH group
-                    for (auto z : carboxy_C_vec) {
-                      if (graph[z].element == "O" && !terminal(graph, z)) {
-                        molecule_vec.emplace_back(z);
-                        std::vector<size_t> O_vec;
-                        O_vec = adjacents(graph, z);
-                        for (auto zo : O_vec) {
-                          if (graph[zo].element == "H") {
-                            molecule_vec.emplace_back(zo);
-                          }
-                        }
-                      }
-                    }
-
-                    //finds hydrogen(s) from (terminal) amin group
-                    amine_vec = adjacents(graph, x);
-
-                    for (auto y : amine_vec) {
-
-                      if (graph[y].element == "H") {
-                        molecule_vec.emplace_back(y);
-                      }
-                    }
-
-                    // finds sidechain
-                    for (auto a : chiral_C_vec) {
-
-                      //finds hydrogens bonded to the chiral C and therefore glycin
-                      if (graph[a].element == "H") {
-                        molecule_vec.emplace_back(a);
-                      }
-
-                      //to get the complete sidechain, the edge between the first carbon in the sidechain and the chiral carbon from backbone is removed.
-                      //with "find_connected_components" we get the connected subsystems and search for the vector which contains the first carbon from sidechain
-                      else if (a != v && a != x && graph[a].element != "H") {
-
-                        boost::remove_edge(a, w, graph);
-
-                        auto num_comp = number_of_components(graph);
-
-                        // special case prolin
-                        //to use the "trick" mentioned above, we have to remove a second edge (between nitrogen and the carbon from ring)
-                        if (num_comp == number_components_graph) { 
-                          for (auto y : amine_vec) {
-                            if (graph[y].element == "C") {
-                              auto Pro_C_vec = adjacents(graph, y);
-                              if (Pro_C_vec.size() == 4) {
-
-                                boost::remove_edge(y, x, graph);
-                                temp_result = find_connected_components(graph);
-                                for (auto b = 0; b < temp_result.size(); ++b) {
-                                  for (auto c : temp_result[b]) {
-                                    if (c == a) {
-                                      for (auto d : temp_result[b]) {
-                                        molecule_vec.emplace_back(d);
-                                      }
-                                    }
-                                  }
-                                }
-                                temp_result.clear();
-
-                                boost::add_edge(y, x, graph);
-                              }
-                            }
-                          }
-                        } // prolin case close
-
-                        else {
-
-                          temp_result = find_connected_components(graph);
-                          for (auto b = 0; b < temp_result.size(); ++b) {
-                            for (auto c : temp_result[b]) {
-                              if (c == a) {
-                                for (auto d : temp_result[b]) {
-                                  molecule_vec.emplace_back(d);
-                                }
-                              }
-                            }
-                          }
-                          temp_result.clear();
-
-                          
-                        }
-                        boost::add_edge(a, w, graph);
-                        auto comp_graph = number_of_components(graph);
-
-                        if (comp_graph != number_components_graph) {
-                          std::cout << "ERROR: graph is ruined! Amino acids "
-                                       "may be wrong.\n";
-                        }
-                      }
-                    }
-                    result.emplace_back(molecule_vec);
-                    molecule_vec.clear();
-                  }
-                }
-                chiral_C_vec.clear();
-                carboxy_C_vec.clear();
-                amine_vec.clear();
-              }
-            }
+            o = v;
+            c1 = u;
           }
-          // the "terminal condition" is important for serin
-          if (graph[v].element == "O" && graph[u].element == "C" &&
-              terminal(graph, v)) {
 
-            carboxy_C_vec = adjacents(graph, u);
+          else
+            continue;
 
-            for (auto w : carboxy_C_vec) {
+          auto carboxy_C_vec = adjacents(graph, c1);
+          for (auto c2 : carboxy_C_vec) {
 
-              if (graph[w].element == "C") {
+            if (graph[c2].element == "C") {
 
-                chiral_C_vec = adjacents(graph, w);
+              auto chiral_C_vec = adjacents(graph, c2);
 
-                for (auto x : chiral_C_vec) {
-                  if (graph[x].element == "N") {
-
-                    // backbone found
-                    molecule_vec.emplace_back(u);
-                    molecule_vec.emplace_back(v);
-                    molecule_vec.emplace_back(w);
-                    molecule_vec.emplace_back(x);
-
-                    // terminal -OH group
-                    for (auto z : carboxy_C_vec) {
-                      if (graph[z].element == "O" && !terminal(graph, z)) {
-                        molecule_vec.emplace_back(z);
-                        std::vector<size_t> O_vec;
-                        O_vec = adjacents(graph, z);
-                        for (auto zo : O_vec) {
-                          if (graph[zo].element == "H") {
-                            molecule_vec.emplace_back(zo);
-                          }
-                        }
-                      }
-                    }
-
-                    //finds hydrogen(s) from (terminal) amin group
-                    amine_vec = adjacents(graph, x);
-                                        
-                    for (auto y : amine_vec) {
-
-                      if (graph[y].element == "H") {
-                        molecule_vec.emplace_back(y);
-                      }
-                    }
-
-                    //finds sidechain
-                    for (auto a : chiral_C_vec) {
-
-                      // finds hydrogens bonded to the chiral C and therefore glycin
-                      if (graph[a].element == "H") {
-                        molecule_vec.emplace_back(a);
-                      }
-
-                      // to get the complete sidechain, the edge between the
-                      // first carbon in the sidechain and the chiral carbon from
-                      // backbone is removed. With "find_connected_components" we
-                      // get the connected subsystems and search for the vector
-                      // which contains the first carbon from sidechain
-                      else if (a != u && a != x && graph[a].element != "H") {
-
-                        boost::remove_edge(a, w, graph);
-
-                        auto num_comp = number_of_components(graph);
-
-                        // special case prolin
-                        // to use the "trick" mentioned above, we have to remove a second edge (between nitrogen and the carbon from ring)
-                        if (num_comp == number_components_graph) { 
-                          for (auto y : amine_vec) {
-                            if (graph[y].element == "C") {
-                              auto Pro_C_vec = adjacents(graph, y);
-                              if (Pro_C_vec.size() == 4) {
-
-                                boost::remove_edge(y, x, graph);
-                                temp_result = find_connected_components(graph);
-                                for (auto b = 0; b < temp_result.size(); ++b) {
-                                  for (auto c : temp_result[b]) {
-                                    if (c == a) {
-                                      for (auto d : temp_result[b]) {
-                                        molecule_vec.emplace_back(d);
-                                      }
-                                    }
-                                  }
-                                }
-                                temp_result.clear();
-
-                                boost::add_edge(y, x, graph);
-                              }
-                            }
-                          }
-                        } // prolin case closed
-
-                        else {
-
-                          temp_result = find_connected_components(graph);
-                          for (auto b = 0; b < temp_result.size(); ++b) {
-                            for (auto c : temp_result[b]) {
-                              if (c == a) {
-                                for (auto d : temp_result[b]) {
-                                  molecule_vec.emplace_back(d);
-                                }
-                              }
-                            }
-                          }
-                          temp_result.clear();
-
-                          
-                        }
-                        boost::add_edge(a, w, graph);
-                        auto comp_graph = number_of_components(graph);
-
-                        if (comp_graph != number_components_graph) {
-                          std::cout << "ERROR: graph is ruined! Amino acids "
-                                       "may be wrong\n";
-                        }
-                      }
-                    }
-
-                    result.emplace_back(molecule_vec);
-                    molecule_vec.clear();
-                  }
+              for (auto n : chiral_C_vec) {
+                if (graph[n].element == "N") {
+                  one_backbone.emplace_back(o);
+                  one_backbone.emplace_back(c1);
+                  one_backbone.emplace_back(c2);
+                  one_backbone.emplace_back(n);
+                  backbones_indices.emplace_back(one_backbone);
+                  one_backbone.clear();
                 }
-                chiral_C_vec.clear();
-                carboxy_C_vec.clear();
-                amine_vec.clear();
               }
             }
           }
         }
-        return result;
+        return backbones_indices;
       }
 
       static bool terminal(const Graph_type& graph, size_t const& x) {
@@ -539,6 +669,7 @@ public:
         int num = connected_components(graph, &component[0]);
         return num;
       }
+
       /*!
       \brief Creates a coords::Representation_3D object from a std::vector of
       atoms. \param vec std::vector of atoms. \return coords::Representation_3D
@@ -669,18 +800,18 @@ public:
     public:
       std::vector<Atom_type> atom_vec;
 
-    }; // Parser
+    }; // class Parser
 
     static inline void make_bonds(Atoms&,
                                   std::vector<std::pair<int, int>> const&);
 
-  }; // helper
+  }; // struct helper
 
 public:
   inline Coordinates read(std::string const&) override;
   std::shared_ptr<coords::input::formats::xyz::helper::Parser<float_type>>
       parser;
-}; // namespace formats
+}; // struct xyz
 } // namespace formats
 } // namespace input
 } // namespace coords
