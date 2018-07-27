@@ -107,6 +107,14 @@ namespace {
       InternalCoordinates::Rotator::buildRotator(cartesians, createSecondResidueIndices()) };
   }
 
+  double constexpr doubleNearThreshold = 1.e-10;
+
+  inline void isCartesianPointNear(coords::r3 const& lhs, coords::r3 const& rhs) {
+    EXPECT_NEAR(lhs.x(), rhs.x(), doubleNearThreshold);
+    EXPECT_NEAR(lhs.y(), rhs.y(), doubleNearThreshold);
+    EXPECT_NEAR(lhs.z(), rhs.z(), doubleNearThreshold);
+  }
+
 }
 
 PrimitiveInternalSetTest::PrimitiveInternalSetTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()),
@@ -332,9 +340,32 @@ TEST_F(DelocalizedMatricesTest, getInternalStepTest) {
 
 void DelocalizedMatricesTest::applyInternalChangeTest() {
   testSystem.apply_internal_change(internalInitialStepOfTwoMethanolMolecules());
+
+  auto expectedChangeAfterFirstStep = cartesianChangeOfTwoMethanolMoleculesAfterFirstStep();
+
+  for (auto i = 0u; i < expectedChangeAfterFirstStep.size(); ++i) {
+    isCartesianPointNear(testSystem.getXyz().at(i), expectedChangeAfterFirstStep.at(i));
+  }
 }
 
 TEST_F(DelocalizedMatricesTest, applyInternalChangeTest) {
   applyInternalChangeTest();
 }
+
+void DelocalizedMatricesTest::calculatePrimitiveInternalValuesTest() {
+  EXPECT_EQ(testSystem.calc_prims(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
+}
+
+TEST_F(DelocalizedMatricesTest, calculatePrimitiveInternalValuesTest) {
+  calculatePrimitiveInternalValuesTest();
+}
+
+void DelocalizedMatricesTest::internalDifferencesTest() {
+  EXPECT_EQ(testSystem.calc_diff(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep(),createSystemOfTwoMethanolMolecules() / energy::bohr2ang), expectedInternalChangeBetweenInitialAndFirstStepStructure());
+}
+
+TEST_F(DelocalizedMatricesTest, internalDifferencesTest) {
+  internalDifferencesTest();
+}
+
 #endif

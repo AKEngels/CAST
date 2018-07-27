@@ -76,13 +76,14 @@ private:
   bool new_B_matrix = true;
   bool new_G_matrix = true;
 
-
 public:
   void append_primitives(std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> && pic) {
     primitive_internals.insert(primitive_internals.end(),
       std::make_move_iterator(pic.begin()),
       std::make_move_iterator(pic.end()));
   }
+
+  coords::Representation_3D const& getXyz() const { return xyz_; }
 
   scon::mathmatrix<float_type> const& getDelMat()const { return del_mat; }
 
@@ -137,20 +138,20 @@ public:
   template<typename Gint>
   scon::mathmatrix<float_type> get_internal_step(Gint&&);//F
   template<typename Dint>
-  void apply_internal_change(Dint&&);//R
-  template<typename Dcart>
-  coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
+  void apply_internal_change(Dint&&);//F
   
-  scon::mathmatrix<float_type> calc_prims(coords::Representation_3D const& xyz) const;
+  scon::mathmatrix<float_type> calc_prims(coords::Representation_3D const& xyz) const;//F
 
   template<typename XYZ>
-  scon::mathmatrix<float_type> calc(XYZ&& xyz) const;
+  scon::mathmatrix<float_type> calc(XYZ&& xyz) const;//To Test
   template<typename XYZ>
-  scon::mathmatrix<float_type> calc_diff(XYZ&& lhs, XYZ&& rhs) const;
+  scon::mathmatrix<float_type> calc_diff(XYZ&& lhs, XYZ&& rhs) const;//F
 
-  void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
   
 private:
+    template<typename Dcart>
+    coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
     std::vector<std::vector<float_type>> deriv_vec();
     void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
     void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);

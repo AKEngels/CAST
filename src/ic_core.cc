@@ -43,8 +43,6 @@ std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Re
   return InternalCoordinates::Rotator::buildRotator(cartesians, index_vec);
 }
 
-
-
 std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_x(
     const std::vector<std::vector<std::size_t>>& index_vec) const {
 

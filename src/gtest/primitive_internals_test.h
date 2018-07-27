@@ -46,6 +46,8 @@ public:
   void calculateInternalGradsTest();
   void getInternalStepTest(); 
   void applyInternalChangeTest();
+  void calculatePrimitiveInternalValuesTest();
+  void internalDifferencesTest();
 };
 
 #endif
