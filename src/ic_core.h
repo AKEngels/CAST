@@ -390,9 +390,6 @@ inline void system::apply_internal_change(Dint&& d_int){
   auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
   for(; micro_iter < 50; ++micro_iter){
 
-    //std::cout << "Bmat:\n" << ic_Bmat().t() << "\n\n";
-    //std::cout << "Ginv:\n" << ic_Gmat().pinv() << "\n\n";
-
     take_Cartesian_step(damp*ic_Bmat().t()*ic_Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
     //std::cout << "Cartesian:\n" << xyz_ << std::endl;
 
@@ -460,7 +457,15 @@ scon::mathmatrix<float_type> system::calc(XYZ&& xyz) const{
 
 template<typename XYZ>
 scon::mathmatrix<float_type> system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
+  //TODO remove these from here
+  for (auto & r : rotation_vec_) {
+    r->requestNewValueEvaluation();
+  }
   auto lprims = calc_prims(std::forward<XYZ>(lhs));
+  //TODO remove these from here
+  for (auto & r : rotation_vec_) {
+    r->requestNewValueEvaluation();
+  }
   auto rprims = calc_prims(std::forward<XYZ>(rhs));
   auto diff = lprims - rprims;
 

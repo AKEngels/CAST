@@ -252,6 +252,7 @@ namespace InternalCoordinates {
     }
 
     void setAllFlag()override { updateStoredValues = updateStoredDerivatives = true; }
+    void requestNewValueEvaluation() { updateStoredValues = true; }
     bool areValuesUpToDate() { return !updateStoredValues; }
     bool areDerivativesUpToDate() { return !updateStoredDerivatives; }
 

@@ -137,7 +137,6 @@ scon::mathmatrix<float_type>& ic_core::system::Bmat() {
     B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
   new_B_matrix = false;
-  //std::cout << "Bmat:\n" << B_matrix << "\n\n";
   return B_matrix;
 }
 

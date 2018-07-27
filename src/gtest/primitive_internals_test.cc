@@ -120,8 +120,6 @@ void PrimitiveInternalSetTest::distanceCreationTest() {
   }
 }
 
-
-
 TEST_F(PrimitiveInternalSetTest, distanceCreationTest) {
   distanceCreationTest();
 }
@@ -197,8 +195,6 @@ void PrimitiveInternalSetTest::rotationsCreationTest() {
 TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
   rotationsCreationTest();
 }
-
-#endif
 
 MatricesTest::MatricesTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()/energy::bohr2ang) {
   ic_util::Graph<ic_util::Node> graph{ createTestGraph() };
@@ -324,9 +320,21 @@ TEST_F(DelocalizedMatricesTest, calculateInternalGradsTest) {
 }
 
 void DelocalizedMatricesTest::getInternalStepTest() {
+  std::ofstream ofs("InternalStep");
+  ofs << std::setprecision(15) << testSystem.get_internal_step(internalGradientsOfTwoMethanolMolecules());
+
   EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), testSystem.get_internal_step(internalGradientsOfTwoMethanolMolecules()));
 }
 
 TEST_F(DelocalizedMatricesTest, getInternalStepTest) {
   getInternalStepTest();
 }
+
+void DelocalizedMatricesTest::applyInternalChangeTest() {
+  testSystem.apply_internal_change(internalInitialStepOfTwoMethanolMolecules());
+}
+
+TEST_F(DelocalizedMatricesTest, applyInternalChangeTest) {
+  applyInternalChangeTest();
+}
+#endif

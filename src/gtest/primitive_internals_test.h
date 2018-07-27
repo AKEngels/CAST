@@ -44,7 +44,8 @@ public:
   void delocalizedGMatrixTest();
   void delocalizedInitialHessianTest();
   void calculateInternalGradsTest();
-  void getInternalStepTest();
+  void getInternalStepTest(); 
+  void applyInternalChangeTest();
 };
 
 #endif
