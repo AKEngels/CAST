@@ -40,16 +40,8 @@ namespace InternalCoordinates {
 
     template<typename T>
     CartesiansForInternalCoordinates setCartesianCoordnates(T&& newCartesianCoordinates);
-    /*coords::Representation_3D & getCartesianCoordnates() { return cartesianCoordinates; };
-    coords::Representation_3D const& getCartesianCoordnates() const { return cartesianCoordinates; };
-
-    coords::r3 & at(std::size_t const index) { return cartesianCoordinates.at(index); }
-    coords::r3 const& at(std::size_t const index) const { return cartesianCoordinates.at(index); }
-
-    std::size_t size() const { return cartesianCoordinates.size(); }*/
 
   private:
-    //coords::Representation_3D cartesianCoordinates;
     std::vector<std::shared_ptr<AbstractGeometryObserver>> observerList;
     void notify();
   };
