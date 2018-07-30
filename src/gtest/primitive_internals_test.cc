@@ -339,9 +339,14 @@ TEST_F(DelocalizedMatricesTest, getInternalStepTest) {
 }
 
 void DelocalizedMatricesTest::applyInternalChangeTest() {
+  std::cout << testSystem.getXyz() << std::endl;
   testSystem.apply_internal_change(internalInitialStepOfTwoMethanolMolecules());
 
   auto expectedChangeAfterFirstStep = cartesianChangeOfTwoMethanolMoleculesAfterFirstStep();
+  for (auto i = 0u; i < expectedChangeAfterFirstStep.size(); ++i) {
+    auto const & point = testSystem.getXyz().at(i);
+    std::cout << std::fixed << std::setprecision(15) << point.x() << " " << point.y() << " " << point.z() << std::endl;
+  }
 
   for (auto i = 0u; i < expectedChangeAfterFirstStep.size(); ++i) {
     isCartesianPointNear(testSystem.getXyz().at(i), expectedChangeAfterFirstStep.at(i));

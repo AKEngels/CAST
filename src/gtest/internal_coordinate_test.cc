@@ -630,10 +630,10 @@ TEST_P(InternalCoordinatesRotationsTest, testValuesForAllRotations) {
       .second.cartesianRepresentation);
   }
   if (GetParam().evaluateValues) {
-    EXPECT_NEAR(rotation->val(cartesianCoordinates.getCartesianCoordnates()), expectedValue, doubleNearThreshold);
+    EXPECT_NEAR(rotation->val(cartesianCoordinates), expectedValue, doubleNearThreshold);
   }
   if (GetParam().evaluateDerivatives) {
-    checkIfVectorsAreSame(rotation->der_vec(cartesianCoordinates.getCartesianCoordnates()),
+    checkIfVectorsAreSame(rotation->der_vec(cartesianCoordinates),
       GetParam().expectedDerivatives);
   }
   EXPECT_EQ(GetParam().evaluateValues, rotations.rotator->areValuesUpToDate());

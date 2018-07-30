@@ -23,17 +23,13 @@ coords::Representation_3D ic_core::grads_to_bohr(coords::Representation_3D const
   return bohr_grads;
 }
 
-//coords::Representation_3D ic_core::rotation::xyz0;
-
-//TODO Replace target as a instance of CartesiansForInternalCoordinates
-std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Representation_3D const& target,
+std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target,
   std::vector<std::size_t> const& index_vec) {
   coords::Representation_3D reference;
   for (auto const & ind : index_vec) {
     reference.emplace_back(target.at(ind));
   }
-  InternalCoordinates::CartesiansForInternalCoordinates cartesians(target);
-  return InternalCoordinates::Rotator::buildRotator(cartesians, index_vec);
+  return InternalCoordinates::Rotator::buildRotator(target, index_vec);
 }
 
 std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_x() const {
@@ -278,11 +274,9 @@ std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMaxTwoStr
   return {norms.rmsd(), norms.max()};
 }
 
+
 std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMax()const{
-  auto const & oldXyz = oldVariables->systemCartesianRepresentation;
-  auto const & newXyz = xyz_;
-  
-  return displacementRmsValAndMaxTwoStructures(oldXyz, newXyz);
+  return displacementRmsValAndMaxTwoStructures(oldVariables->systemCartesianRepresentation, xyz_);
 }
 
 void ic_core::system::ConvergenceCheck::writeAndCalcEnergyDiffs(){

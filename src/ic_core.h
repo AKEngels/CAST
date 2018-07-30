@@ -46,15 +46,15 @@ using coords::float_type;
 coords::Representation_3D grads_to_bohr(coords::Representation_3D const& grads);
 coords::Representation_3D rep3d_bohr_to_ang(coords::Representation_3D const& bohr);
 
-//TODO Replace target as a instance of CartesiansForInternalCoordinates
-std::shared_ptr<InternalCoordinates::Rotator> build_rotation(const coords::Representation_3D& target,
+std::shared_ptr<InternalCoordinates::Rotator> build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target,
   const std::vector<std::size_t>& index_vec);
 
 class system {
+  using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
 public:
   system(const std::vector<coords::Representation_3D>& res_init,
          const std::vector<std::vector<std::size_t>>& res_index,
-         const coords::Representation_3D& xyz_init)
+    CartesianType const& xyz_init)
       : res_vec_{ res_init }, subSystemIndices{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
@@ -64,7 +64,7 @@ private:
   
   const std::vector<coords::Representation_3D> res_vec_;
   const std::vector<std::vector<std::size_t>> subSystemIndices;
-  coords::Representation_3D xyz_;
+  CartesianType xyz_;
   scon::mathmatrix<float_type> B_matrix;
   scon::mathmatrix<float_type> G_matrix;
   scon::mathmatrix<float_type> del_mat;
@@ -83,7 +83,7 @@ public:
       std::make_move_iterator(pic.end()));
   }
 
-  coords::Representation_3D const& getXyz() const { return xyz_; }
+  CartesianType const& getXyz() const { return xyz_; }
 
   scon::mathmatrix<float_type> const& getDelMat()const { return del_mat; }
 
@@ -206,7 +206,7 @@ private:
     struct SystemVariables{
         float_type systemEnergy;
         scon::mathmatrix<coords::float_type> systemGradients;
-        coords::Representation_3D systemCartesianRepresentation;
+        CartesianType systemCartesianRepresentation;
     };
     
     SystemVariables currentVariables;
@@ -446,7 +446,7 @@ template<typename XYZ>
 coords::Representation_3D& system::set_xyz(XYZ&& new_xyz){
   new_B_matrix = true;
   new_G_matrix = true;
-  return xyz_ = std::forward<XYZ>(new_xyz);
+  return xyz_.setCartesianCoordnates( std::forward<XYZ>(new_xyz) );
 }
 
 template<typename XYZ>
