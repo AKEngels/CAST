@@ -43,42 +43,37 @@ std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Re
   return InternalCoordinates::Rotator::buildRotator(cartesians, index_vec);
 }
 
-std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_x(
-    const std::vector<std::vector<std::size_t>>& index_vec) const {
+std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_x() const {
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  for (auto const & indices : index_vec) {
+  for (auto const & indices : subSystemIndices) {
     result.emplace_back(std::make_unique<InternalCoordinates::TranslationX>(indices));
   }
   return result;
 }
 
-std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_y(
-    const std::vector<std::vector<std::size_t>>& index_vec) const {
+std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_y() const {
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  for (auto const & indices : index_vec) {
+  for (auto const & indices : subSystemIndices) {
     result.emplace_back(std::make_unique<InternalCoordinates::TranslationY>(indices));
   }
   return result;
 }
 
-std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_z(
-    const std::vector<std::vector<std::size_t>>& index_vec) const {
+std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::system::create_trans_z() const {
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  for (auto const & indices : index_vec) {
+  for (auto const & indices : subSystemIndices) {
     result.emplace_back(std::make_unique<InternalCoordinates::TranslationZ>(indices));
   }
   return result;
 }
 
-std::vector<std::shared_ptr<InternalCoordinates::Rotator>> ic_core::system::create_rotations(
-    const coords::Representation_3D& rep,
-    const std::vector<std::vector<std::size_t>>& index_vec) {
+std::vector<std::shared_ptr<InternalCoordinates::Rotator>> ic_core::system::create_rotations() {
   std::vector<std::shared_ptr<InternalCoordinates::Rotator>> result;
-  for(auto const& iv : index_vec){
-    result.emplace_back(ic_core::build_rotation(rep, iv));
+  for(auto const& indices : subSystemIndices){
+    result.emplace_back(ic_core::build_rotation(xyz_, indices));
   }
   return result;
 }

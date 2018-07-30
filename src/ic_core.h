@@ -55,7 +55,7 @@ public:
   system(const std::vector<coords::Representation_3D>& res_init,
          const std::vector<std::vector<std::size_t>>& res_index,
          const coords::Representation_3D& xyz_init)
-      : res_vec_{ res_init }, res_index_vec_{ res_index }, xyz_{ xyz_init } {}
+      : res_vec_{ res_init }, subSystemIndices{ res_index }, xyz_{ xyz_init } {}
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
   std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
@@ -63,7 +63,7 @@ public:
 private:
   
   const std::vector<coords::Representation_3D> res_vec_;
-  const std::vector<std::vector<std::size_t>> res_index_vec_;
+  const std::vector<std::vector<std::size_t>> subSystemIndices;
   coords::Representation_3D xyz_;
   scon::mathmatrix<float_type> B_matrix;
   scon::mathmatrix<float_type> G_matrix;
@@ -88,20 +88,19 @@ public:
   scon::mathmatrix<float_type> const& getDelMat()const { return del_mat; }
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-  create_trans_x(const std::vector<std::vector<std::size_t>>&) const;
+  create_trans_x() const;
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-  create_trans_y(const std::vector<std::vector<std::size_t>>&) const;
+  create_trans_y() const;
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-  create_trans_z(const std::vector<std::vector<std::size_t>>&) const;
+  create_trans_z() const;
 
   std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
-    create_translations(const std::vector<std::vector<std::size_t>>&) const;
+    create_translations() const;
 
   std::vector<std::shared_ptr<InternalCoordinates::Rotator>>
-  create_rotations(const coords::Representation_3D&,
-                   const std::vector<std::vector<std::size_t>>&);
+  create_rotations();
 
   /*template<typename Graph>
   IC_System create_system(Graph const &);*/
@@ -143,7 +142,7 @@ public:
   scon::mathmatrix<float_type> calc_prims(coords::Representation_3D const& xyz) const;//F
 
   template<typename XYZ>
-  scon::mathmatrix<float_type> calc(XYZ&& xyz) const;//To Test
+  scon::mathmatrix<float_type> calc(XYZ&& xyz) const;//F
   template<typename XYZ>
   scon::mathmatrix<float_type> calc_diff(XYZ&& lhs, XYZ&& rhs) const;//F
 
@@ -349,11 +348,11 @@ system::create_dihedrals(const Graph& g) const {
 
 //TODO: Get rid of res_index_vec!!!!!!!!!!!!
 inline std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
-system::create_translations(const std::vector<std::vector<std::size_t>>& res_index_vec) const {
+system::create_translations() const {
   return std::make_tuple(
-    create_trans_x(res_index_vec),
-    create_trans_y(res_index_vec),
-    create_trans_z(res_index_vec)
+    create_trans_x(),
+    create_trans_y(),
+    create_trans_z()
   );
 }
 
@@ -365,13 +364,13 @@ inline void system::create_ic_system(const Graph& g) {
   append_primitives(create_dihedrals(g));
 
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> trans_x, trans_y, trans_z;
-  std::tie(trans_x, trans_y, trans_z) = create_translations(res_index_vec_);
+  std::tie(trans_x, trans_y, trans_z) = create_translations();
 
   append_primitives(std::move(trans_x));
   append_primitives(std::move(trans_y));
   append_primitives(std::move(trans_z));
 
-  rotation_vec_ = create_rotations(xyz_, res_index_vec_);
+  rotation_vec_ = create_rotations();
 }
 
 template<typename Gint>

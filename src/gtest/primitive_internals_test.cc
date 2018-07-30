@@ -157,7 +157,7 @@ TEST_F(PrimitiveInternalSetTest, dihedralCreationTest) {
 }
 
 void PrimitiveInternalSetTest::tarnslationXCreationTest() {
-  auto transX = testSystem.create_trans_x({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto transX = testSystem.create_trans_x();
   auto expectedTorsions = expectedTranslationsForTwoMethanol();
   for (auto i = 0u; i < expectedTorsions.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transX.at(i).get()), expectedTorsions.at(i));
@@ -169,7 +169,7 @@ TEST_F(PrimitiveInternalSetTest, tarnslationXCreationTest) {
 }
 
 void PrimitiveInternalSetTest::tarnslationYCreationTest() {
-  auto transY = testSystem.create_trans_y({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto transY = testSystem.create_trans_y();
   auto expectedTorsions = expectedTranslationsForTwoMethanol();
   for (auto i = 0u; i < expectedTorsions.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transY.at(i).get()), expectedTorsions.at(i));
@@ -181,7 +181,7 @@ TEST_F(PrimitiveInternalSetTest, tarnslationYCreationTest) {
 }
 
 void PrimitiveInternalSetTest::tarnslationZCreationTest() {
-  auto transZ = testSystem.create_trans_z({ createFirstResidueIndices(), createSecondResidueIndices() });
+  auto transZ = testSystem.create_trans_z();
   auto expectedTorsions = expectedTranslationsForTwoMethanol();
   for (auto i = 0u; i < expectedTorsions.size(); ++i) {
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::Translations*>(transZ.at(i).get()), expectedTorsions.at(i));
@@ -193,7 +193,7 @@ TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
 }
 
 void PrimitiveInternalSetTest::rotationsCreationTest() {
-  auto translations = testSystem.create_rotations(createSystemOfTwoMethanolMolecules(), { createFirstResidueIndices(), createSecondResidueIndices() });
+  auto translations = testSystem.create_rotations();
   auto expectedRotations = expectedRotationsForTwoMethanol();
   for (auto i = 0u; i < expectedRotations.size(); ++i) {
     EXPECT_EQ(*translations.at(i).get(), *expectedRotations.at(i).get());
