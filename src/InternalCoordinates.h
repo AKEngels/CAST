@@ -246,7 +246,7 @@ namespace InternalCoordinates {
   public:
 
     static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
-      auto newInstance = std::make_shared<Rotator>(sliceCartesianCoordinates(cartesians, indexVector), indexVector);
+      auto newInstance = std::shared_ptr<Rotator>(new Rotator(sliceCartesianCoordinates(cartesians, indexVector), indexVector));
       newInstance->registerCartesians(cartesians);
       return newInstance;
     }
@@ -262,12 +262,12 @@ namespace InternalCoordinates {
     Rotations makeRotations();
 
     bool operator==(Rotator const& other) const;
-
+    
+  private:
     //TODO make it private again
     Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
       reference_{ reference }, indices_{ index_vec },
       rad_gyr_{ radiusOfGyration(reference_) }, updateStoredValues{ true }, updateStoredDerivatives{ true } {}
-  private:
 
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(const coords::Representation_3D&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);

@@ -33,13 +33,6 @@ std::shared_ptr<InternalCoordinates::Rotator> ic_core::build_rotation(coords::Re
     reference.emplace_back(target.at(ind));
   }
   InternalCoordinates::CartesiansForInternalCoordinates cartesians(target);
-  //auto bla = InternalCoordinates::Rotator::buildRotator(cartesians, std::vector<std::size_t>(index_vec));
-  /*return std::make_shared<InternalCoordinates::Rotator>(coords::Representation_3D{ coords::r3{ -0.321, -0.087, 0.12733 },
-    coords::r3{ 1.055, 0.144, 0.21133 },
-    coords::r3{ -0.53, -0.921, -0.57767 },
-    coords::r3{ -0.85, 0.837, -0.18867 },
-    coords::r3{ -0.699, -0.376, 1.12933 },
-    coords::r3{ 1.345, 0.403, -0.70167 } }, std::vector<std::size_t>{ 1, 2, 3, 4, 5, 6 });*/
   return InternalCoordinates::Rotator::buildRotator(cartesians, index_vec);
 }
 
