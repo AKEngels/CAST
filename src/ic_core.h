@@ -108,9 +108,6 @@ public:
   std::tuple<InternalVec, InternalVec, InternalVec>
   create_rotations();
 
-  /*template<typename Graph>
-  IC_System create_system(Graph const &);*/
-
   template <typename Graph>
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> create_distances(const Graph&) const;
 

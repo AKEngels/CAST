@@ -85,25 +85,6 @@ std::vector<std::vector<float_type>> ic_core::system::deriv_vec(){
   for (auto const& pic : primitive_internals) {
     result.emplace_back(pic->der_vec(xyz_));
   }
-  //Refactor the next few lines!
-  //std::vector<std::vector<float_type>> X_rot;
-  //std::vector<std::vector<float_type>> Y_rot;
-  //std::vector<std::vector<float_type>> Z_rot;
-  //for (auto const& i : rotation_vec_) {
-  //  auto temp = i->rot_der_mat(xyz_);
-  //  //look for th cols and rows!
-  //  X_rot.emplace_back(temp.col_to_std_vector(0));
-  //  Y_rot.emplace_back(temp.col_to_std_vector(1));
-  //  Z_rot.emplace_back(temp.col_to_std_vector(2));
-  //}
-  //auto move_vecs = [&result](auto&& vec){
-  //  for(auto&&v : vec){
-  //    result.emplace_back(std::move(v));
-  //  }
-  //};
-  //move_vecs(X_rot);
-  //move_vecs(Y_rot);
-  //move_vecs(Z_rot);
 
   return result;
 }
@@ -164,31 +145,9 @@ scon::mathmatrix<float_type> ic_core::system::guess_hessian() {
   for (auto const & pic : primitive_internals) {
     values.emplace_back(pic->hessian_guess(xyz_));
   }
-  //values.insert(values.end(), rotation_vec_.size() * 3, 0.05);
   
   return Mat::col_from_vec(values).diagmat();
 }
-
-/*scon::mathmatrix<float_type>
-ic_core::system::G_mat_inversion(const scon::mathmatrix<float_type>& G_matrix) {
-
-  using Mat = scon::mathmatrix<float_type>;
-
-  Mat U, s, V;
-  G_matrix.singular_value_decomposition(U, s, V);
-  //remplace values smaller than 1e-6 with 0.0
-  s.replace_idx_with(s.find_idx([](float_type const & a) {
-    return a <= 1e-6;
-  }), 0.0);
-  auto index = s.find_idx([](float_type const & a) {
-    return a > 1e-6;
-  });
-  for (auto && el : s.elem(index)) {
-    el.get() = 1. / el.get();
-  }
-  auto G_mat_inv = U * s.diagmat() * V.t();
-  return G_mat_inv;
-}*/
 
 scon::mathmatrix<float_type>& ic_core::system::delocalize_ic_system() {
   using Mat = scon::mathmatrix<float_type>;
@@ -217,20 +176,11 @@ scon::mathmatrix<float_type>& ic_core::system::initial_delocalized_hessian(){
 
 scon::mathmatrix<float_type> ic_core::system::calc_prims(coords::Representation_3D const& xyz) const{
   std::vector<float_type> primitives;
-  primitives.reserve(primitive_internals.size()/* + rotation_vec_.size()*3*/);
+  primitives.reserve(primitive_internals.size());
 
   for(auto const & pic : primitive_internals){
     primitives.emplace_back(pic->val(xyz));
   }
-  /*std::vector<std::array<float_type,3u>> rotations;
-  for (auto const & rot : rotation_vec_) {
-    rotations.emplace_back(rot->valueOfInternalCoordinate(xyz));
-  }
-  for(auto i = 0u; i<3; ++i){
-    for(auto j = 0u; j<rotations.size(); ++j){
-      primitives.emplace_back(rotations.at(j).at(i));
-    }
-  }*/
   return scon::mathmatrix<float_type>::row_from_vec(primitives);
 }
 
@@ -263,7 +213,6 @@ std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMaxTwoStr
   
   return {norms.rmsd(), norms.max()};
 }
-
 
 std::pair<float_type,float_type> ic_core::system::displacementRmsValAndMax()const{
   return displacementRmsValAndMaxTwoStructures(oldVariables->systemCartesianRepresentation, xyz_);
