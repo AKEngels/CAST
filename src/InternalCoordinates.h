@@ -298,6 +298,9 @@ namespace InternalCoordinates {
       return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
+    bool operator==(RotationA const& other) const {
+      return *rotator.get() == *other.rotator.get();
+    }
   };
 
 
@@ -320,6 +323,9 @@ namespace InternalCoordinates {
         return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
+    bool operator==(RotationB const& other) const {
+      return *rotator.get() == *other.rotator.get();
+    }
   };
 
   struct RotationC : public InternalCoordinate {
@@ -341,19 +347,11 @@ namespace InternalCoordinates {
       return oss.str();
     }
     std::shared_ptr<Rotator> rotator;
+    bool operator==(RotationC const& other) const {
+      return *rotator.get() == *other.rotator.get();
+    }
   };
   
-
-  /*class Rotator : public InternalCoordinates::AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
-  public:
-    static std::shared_ptr<Rotator> buildInterestedRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians);
-    void setUpdateFlag()override { updateFlag = true; }
-    bool isFlagSet() { return updateFlag; }
-  private:
-    Rotator() : updateFlag{ false } {}
-    void registerCartesians(InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates);
-    bool updateFlag;
-  };*/
 }
 
 #endif

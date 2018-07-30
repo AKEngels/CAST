@@ -193,10 +193,13 @@ TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
 }
 
 void PrimitiveInternalSetTest::rotationsCreationTest() {
-  auto translations = testSystem.create_rotations();
+  auto rotations = testSystem.create_rotations();
   auto expectedRotations = expectedRotationsForTwoMethanol();
   for (auto i = 0u; i < expectedRotations.size(); ++i) {
-    EXPECT_EQ(*translations.at(i).get(), *expectedRotations.at(i).get());
+    auto currentExpectedRotations = expectedRotations.at(i)->makeRotations();
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationA*>(currentExpectedRotations.rotationA.get()), *dynamic_cast<InternalCoordinates::RotationA*>(std::get<0>(rotations).at(i).get()));
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationB*>(currentExpectedRotations.rotationB.get()), *dynamic_cast<InternalCoordinates::RotationB*>(std::get<1>(rotations).at(i).get()));
+    EXPECT_EQ(*dynamic_cast<InternalCoordinates::RotationC*>(currentExpectedRotations.rotationC.get()), *dynamic_cast<InternalCoordinates::RotationC*>(std::get<2>(rotations).at(i).get()));
   }
 }
 

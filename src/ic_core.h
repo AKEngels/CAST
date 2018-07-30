@@ -96,10 +96,16 @@ public:
   std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
   create_trans_z() const;
 
-  std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
-    create_translations() const;
+  using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
 
-  std::vector<std::shared_ptr<InternalCoordinates::Rotator>>
+  std::tuple<ic_core::system::InternalVec, ic_core::system::InternalVec, ic_core::system::InternalVec>
+    createRotationABC(std::vector<InternalCoordinates::Rotations> & rotations);
+
+
+  std::tuple<InternalVec, InternalVec, InternalVec>
+    create_translations()const;
+
+  std::tuple<InternalVec, InternalVec, InternalVec>
   create_rotations();
 
   /*template<typename Graph>
@@ -161,6 +167,7 @@ private:
     scon::mathmatrix<float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
     
     
     class ConvergenceCheck{
@@ -346,8 +353,7 @@ system::create_dihedrals(const Graph& g) const {
   return result;
 }
 
-//TODO: Get rid of res_index_vec!!!!!!!!!!!!
-inline std::tuple<std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>, std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>>
+inline std::tuple<ic_core::system::InternalVec, ic_core::system::InternalVec, ic_core::system::InternalVec>
 system::create_translations() const {
   return std::make_tuple(
     create_trans_x(),
@@ -370,7 +376,13 @@ inline void system::create_ic_system(const Graph& g) {
   append_primitives(std::move(trans_y));
   append_primitives(std::move(trans_z));
 
-  rotation_vec_ = create_rotations();
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> rotationA, rotationB, rotationC;
+
+  std::tie(rotationA, rotationB, rotationC) = create_rotations();
+
+  append_primitives(std::move(rotationA));
+  append_primitives(std::move(rotationB));
+  append_primitives(std::move(rotationC));
 }
 
 template<typename Gint>
@@ -458,12 +470,12 @@ scon::mathmatrix<float_type> system::calc(XYZ&& xyz) const{
 template<typename XYZ>
 scon::mathmatrix<float_type> system::calc_diff(XYZ&& lhs, XYZ&& rhs) const{
   //TODO remove these from here
-  for (auto & r : rotation_vec_) {
+  for (auto & r : registeredRotators) {
     r->requestNewValueEvaluation();
   }
   auto lprims = calc_prims(std::forward<XYZ>(lhs));
   //TODO remove these from here
-  for (auto & r : rotation_vec_) {
+  for (auto & r : registeredRotators) {
     r->requestNewValueEvaluation();
   }
   auto rprims = calc_prims(std::forward<XYZ>(rhs));
