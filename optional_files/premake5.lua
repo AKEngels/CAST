@@ -8,14 +8,6 @@ newoption {
    description = "Target SMURF cluster with MPI"
 }
 
-function os.winSdkVersion()
-    local reg_arch = iif( os.is64bit(), "\\Wow6432Node\\", "\\" )
-          if os.is("windows") then
-                    local sdk_version = os.getWindowsRegistry( "HKLM:SOFTWARE" .. reg_arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion" )
-                if sdk_version ~= nil then return sdk_version end
-    else return "nothing" end
-end
-
 workspace "CAST"
 	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug"}
 		location "project"
@@ -37,6 +29,10 @@ workspace "CAST"
     files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
     sysincludedirs { "../submodules/googletest/googletest/include" }
     includedirs{ "../submodules/googletest/googletest" }
+
+    filter "action:vs*"
+            system("windows")
+	        systemversion("10.0.16299.0")
 
     symbols"On"
 
@@ -143,7 +139,8 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-			--systemversion(os.winSdkVersion() .. ".0")
+               system("windows")
+	           systemversion("10.0.16299.0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
