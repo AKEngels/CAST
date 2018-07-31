@@ -208,7 +208,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		if (mmc_big.integrity() == false) integrity = false;
 		if (Config::get().general.verbosity > 4)
 		{
-			std::cout << "Energy of big MM system: \n";
+			std::cout << "MM energy of big system: \n";
 			mmc_big.e_head_tostream_short(std::cout);
 			mmc_big.e_tostream_short(std::cout);
 		}
@@ -314,11 +314,11 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	}
 	catch (...)
 	{
-		std::cout << "SE programme failed. Treating structure as broken.\n";
+		std::cout << "SE programme (for intermediate system) failed. Treating structure as broken.\n";
 		integrity = false;  // if SE programme fails: integrity is destroyed
 	}
 
- // // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
+ // // ############### ONLY AMBER: PREPARATION OF CHARGES FOR INTERMEDIATE SYSTEM ################
 
 	//// temporarily: only QM charges and those of link atoms in amber_charges
 	//std::vector<double> old_amber_charges;
@@ -369,7 +369,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 		if (Config::get().general.verbosity > 4)
 		{
-			std::cout << "Energy of small MM system: \n";
+			std::cout << "MM energy of intermediate system: \n";
 			mmc_middle.e_head_tostream_short(std::cout);
 			mmc_middle.e_tostream_short(std::cout);
 		}
@@ -397,6 +397,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ############### CREATE EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
+	Config::set().energy.qmmm.mm_charges.clear();
 	charge_vector = sec_middle.energyinterface()->charges();
 	charge_indices.clear();
 	for (auto i = qm_indices.size(); i < qm_se_indices.size(); ++i)  // go through all se atoms
@@ -483,18 +484,139 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		}
 	}
 
-	std::cout << "CHARGES:\n";
-	for (auto &c : Config::set().energy.qmmm.mm_charges) std::cout << c.x << " , " << c.y << " , " << c.z << " ,charge: " << c.charge << "\n";
+	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
+	try {
+		if (!if_gradient)
+		{
+			qm_energy = qmc.e();  // get qm energy  
+		}
+		else  // gradient calculation
+		{
+			qm_energy = qmc.g();    // get energy and calculate gradients
+			auto g_qm_small = qmc.g_xyz();        // get gradients
+			for (auto&& qmi : qm_indices)
+			{
+				new_grads[qmi] += g_qm_small[new_indices_middle[qmi]];
+			}
 
- // // ############### STUFF TO DO AT THE END OF CALCULATION ######################
+			for (auto i = 0u; i < link_atoms_small.size(); ++i)   // take into account link atoms
+			{
+				LinkAtom l = link_atoms_small[i];
 
- // Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
+				coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_qm_small[qm_indices.size() + i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] += g_qm;
+				new_grads[l.mm] += g_mm;
+
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+			}
+		}
+		if (qmc.integrity() == false) integrity = false;
+
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "QM energy of small system: \n";
+			qmc.e_head_tostream_short(std::cout);
+			qmc.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "QM programme (for small system) failed. Treating structure as broken.\n";
+		integrity = false;  // if QM programme fails: integrity is destroyed
+	}
+
+	// // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
+
+	//// temporarily: only QM charges and those of link atoms in amber_charges
+	//std::vector<double> old_amber_charges;
+	//if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
+	//{
+	//	old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
+	//	qmmm_helpers::select_from_ambercharges(qm_indices);                           // only QM charges in amber_charges
+	//	for (auto i = 0u; i < link_atoms.size(); ++i)                                   // add charges of link atoms
+	//	{
+	//		double la_charge = qmc.energyinterface()->charges()[qm_indices.size() + i]; // get charge
+	//		Config::set().coords.amber_charges.push_back(la_charge*18.2223);            // convert it to AMBER units and add it to vector
+	//	}
+	//}
+
+	// ############### SE ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
+
+	try {
+		if (!if_gradient)
+		{
+			se_energy_small = sec_small.e();  // calculate energy of small SE system
+		}
+		else  // gradient calculation
+		{
+			se_energy_small = sec_small.g();     // get energy and calculate gradients
+			auto g_se_small = sec_small.g_xyz(); // get gradients
+			for (auto&& qmi : qm_indices)
+			{
+				new_grads[qmi] -= g_se_small[new_indices_qm[qmi]];
+			}
+
+			for (auto i = 0u; i < link_atoms_middle.size(); ++i)  // take into account link atoms
+			{
+				LinkAtom l = link_atoms_middle[i];
+
+				coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_se_small[qm_se_indices.size() + i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] -= g_qm;
+				new_grads[l.mm] -= g_mm;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+			}
+		}
+		if (sec_small.integrity() == false) integrity = false;
+
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "SE energy of small system: \n";
+			sec_small.e_head_tostream_short(std::cout);
+			sec_small.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "SE programme (for small system) failed. Treating structure as broken.\n";
+		integrity = false;  // if SE programme fails: integrity is destroyed
+	}
+
+	// ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH MIDDLE REGION ###
+
+	if (if_gradient && integrity == true)
+	{
+		auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
+		auto sec_small_g_ext_charges = sec_small.energyinterface()->get_g_ext_chg();
+
+		for (auto i = 0u; i<charge_indices.size(); ++i)
+		{
+			int mma = charge_indices[i];
+			new_grads[mma] += qmc_g_ext_charges[i];
+			new_grads[mma] -= sec_small_g_ext_charges[i];
+		}
+	}
+
+  // ############### STUFF TO DO AT THE END OF CALCULATION ######################
+
+  Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
 	//Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
 
- // if (check_bond_preservation() == false) integrity = false;
- // else if (check_atom_dist() == false) integrity = false;
- // 
- // if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
+  if (check_bond_preservation() == false) integrity = false;
+  else if (check_atom_dist() == false) integrity = false;
+  
+  if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
  return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
 }
 

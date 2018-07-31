@@ -4,7 +4,7 @@
 std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, tinker::parameter::parameters const &tp)
 {
   std::vector<LinkAtom> links;
-	int type, counter = 0;
+	unsigned type, counter = 0;
 
 	for (auto q : qm_indices)
 	{
