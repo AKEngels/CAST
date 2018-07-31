@@ -9,13 +9,14 @@
 
 #include"../graph.h"
 #include"../coords.h"
-#include"../ic_core.h"
+#include"../PrimitiveInternalCoordinates.h"
+#include"../TranslationRotationInternalCoordinates.h"
 #include"TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
 
 class PrimitiveInternalSetTest : public testing::Test {
 public:
   PrimitiveInternalSetTest();
-  ic_core::system testSystem;
+  internals::system testSystem;
   ic_util::Graph<ic_util::Node> systemGraph;
   void distanceCreationTest();
   void bondAngleCreationTest();
@@ -29,14 +30,15 @@ public:
 class MatricesTest : public testing::Test {
 public:
   MatricesTest();
-  ic_core::system testSystem;
+  internals::system testSystem;
 
   void bMatrixTest();
   void gMatrixTest();
   void hessianGuessTest();
+  void calculatePrimitiveInternalValuesTest();
 };
 
-class DelocalizedMatricesTest : public MatricesTest {
+class DelocalizedMatricesTest : public testing::Test {
 public:
   DelocalizedMatricesTest();
   void delocalizedMatrixTest();
@@ -46,9 +48,10 @@ public:
   void calculateInternalGradsTest();
   void getInternalStepTest(); 
   void applyInternalChangeTest();
-  void calculatePrimitiveInternalValuesTest();
   void internalDifferencesTest();
   void internalValuesForTricTest();
+
+  internals::TRIC testSystem;
 };
 
 #endif

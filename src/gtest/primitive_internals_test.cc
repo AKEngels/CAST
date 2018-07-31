@@ -258,10 +258,7 @@ TEST_F(MatricesTest, hessianGuessTest) {
   hessianGuessTest();
 }
 
-DelocalizedMatricesTest::DelocalizedMatricesTest() : MatricesTest{} {
-  testSystem.delocalize_ic_system();
-  testSystem.initial_delocalized_hessian();
-}
+DelocalizedMatricesTest::DelocalizedMatricesTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules() / energy::bohr2ang, createTestGraph()) {}
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
   std::istringstream iss(exampleDelocalizedMatrixForTwoMethanols());
@@ -286,7 +283,7 @@ void DelocalizedMatricesTest::delocalizedBMatrixTest() {
 
   auto expectedValuesForDelocalizedBMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedBMatrix, colsOfDelocalizedBMatrix);
 
-  EXPECT_EQ(testSystem.ic_Bmat(), expectedValuesForDelocalizedBMatrix);
+  EXPECT_EQ(testSystem.Bmat(), expectedValuesForDelocalizedBMatrix);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
@@ -301,7 +298,7 @@ void DelocalizedMatricesTest::delocalizedGMatrixTest() {
 
   auto expectedValuesForDelocalizedGMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedGMatrix, colsOfDelocalizedGMatrix);
 
-  EXPECT_EQ(testSystem.ic_Gmat(), expectedValuesForDelocalizedGMatrix);
+  EXPECT_EQ(testSystem.Gmat(), expectedValuesForDelocalizedGMatrix);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
@@ -316,7 +313,7 @@ void DelocalizedMatricesTest::delocalizedInitialHessianTest() {
 
   auto expectedValuesForDelocalizedInitialHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedInitialHessian, colsOfDelocalizedInitialHessian);
 
-  EXPECT_EQ(testSystem.initial_delocalized_hessian(), expectedValuesForDelocalizedInitialHessian);
+  EXPECT_EQ(testSystem.guess_hessian(), expectedValuesForDelocalizedInitialHessian);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
@@ -356,11 +353,11 @@ TEST_F(DelocalizedMatricesTest, applyInternalChangeTest) {
   applyInternalChangeTest();
 }
 
-void DelocalizedMatricesTest::calculatePrimitiveInternalValuesTest() {
-  EXPECT_EQ(testSystem.calc_prims(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
+void MatricesTest::calculatePrimitiveInternalValuesTest() {
+  EXPECT_EQ(testSystem.calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
 }
 
-TEST_F(DelocalizedMatricesTest, calculatePrimitiveInternalValuesTest) {
+TEST_F(MatricesTest, calculatePrimitiveInternalValuesTest) {
   calculatePrimitiveInternalValuesTest();
 }
 
