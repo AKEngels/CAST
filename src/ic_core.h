@@ -201,7 +201,8 @@ private:
         float_type gradientMax;
         float_type displacementMax;
     };
-    
+
+    static scon::mathmatrix<float_type> atomsNorm(scon::mathmatrix<float_type> const& norm);
     static std::pair<float_type,float_type> gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads);
     std::pair<float_type,float_type> displacementRmsValAndMax()const;
     
@@ -218,52 +219,127 @@ private:
 
 };
 
+class InternalCoordinatesCreator{
+protected:
+  using BondGraph = ic_util::Graph<ic_util::Node>;
+public:
+  InternalCoordinatesCreator(BondGraph const& graph) : bondGraph{ graph } {}
+  virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() = 0;
+protected:
+  ic_util::Graph<ic_util::Node> const& bondGraph;
+};
+
+class DistanceCreator : public InternalCoordinatesCreator {
+public:
+  DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgePosition{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
+
+  virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override {
+    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+    while (nextEdgeDistances()) {
+      result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(bondGraph[source], bondGraph[target]));
+    }
+    return result;
+  }
+
+protected:
+  bool nextEdgeDistances() {
+    if (edgeIterators.first == edgeIterators.second) return false;
+    source = boost::source(*edgeIterators.first, bondGraph);
+    target = boost::target(*edgeIterators.first, bondGraph);
+    ++edgeIterators.first;
+    return true;
+  }
+  std::size_t source, target, edgePosition;
+  std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
+};
+
 template <typename Graph>
 inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_distances(const Graph& g) const {
-  using boost::edges;
-  using boost::source;
-  using boost::target;
 
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  auto ed = edges(g);
-  for (auto it = ed.first; it != ed.second; ++it) {
-    auto u = source(*it, g);
-    auto v = target(*it, g);
-    auto u_index = g[u].atom_serial;
-    auto v_index = g[v].atom_serial;
-    auto u_elem = g[u].element;
-    auto v_elem = g[v].element;
-    result.emplace_back(std::make_unique<InternalCoordinates::BondDistance>(u_index, v_index, u_elem, v_elem));
-  }
-  return result;
+  DistanceCreator dc(g);
+  return dc.getInternals();
 }
+
+class AngleCreator : public InternalCoordinatesCreator {
+public:
+  AngleCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, leftAtom{ 0u }, middleAtom{ 0u }, rightAtom{ 0u }, vertexIterators{ boost::vertices(graph) } {}
+  virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override {
+    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+    pointerToResult = &result;
+    while (nextVertex()) {
+      addAngleForAllNeighbors();
+    }
+    return result;
+  }
+protected:
+  bool nextVertex() {
+    if (vertexIterators.first == vertexIterators.second) return false;
+    middleAtom = *vertexIterators.first;
+    vertexIterators.first++;
+    return true;
+  }
+  void addAngleForAllNeighbors() {
+    auto allNeighbors = boost::adjacent_vertices(middleAtom, bondGraph);
+    spanLeftAndRightNeighborsForAngle(allNeighbors);
+  }
+  void spanLeftAndRightNeighborsForAngle(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighbors) {
+    
+    while (findLeftAtom(neighbors)) {
+      auto copyOfLeftNeighbors = neighbors;
+      while (findRightAtom(copyOfLeftNeighbors)) {
+        auto a_index = bondGraph[leftAtom].atom_serial;
+        auto b_index = bondGraph[middleAtom].atom_serial;
+        auto c_index = bondGraph[rightAtom].atom_serial;
+        auto a_elem = bondGraph[leftAtom].element;
+        auto b_elem = bondGraph[middleAtom].element;
+        auto c_elem = bondGraph[rightAtom].element;
+        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
+      }
+    }
+    
+  }
+  bool findLeftAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighbors) {
+    if (neighbors.first == neighbors.second) return false;
+    leftAtom = *neighbors.first;
+    ++neighbors.first;
+    return true;
+  }
+
+  bool findRightAtom(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & neighborsLeft) {
+    if (neighborsLeft.first == neighborsLeft.second) return false;
+    rightAtom = *neighborsLeft.first;
+    ++neighborsLeft.first;
+    return true;
+  }
+
+  std::size_t leftAtom, middleAtom, rightAtom;
+  std::pair<ic_util::Graph<ic_util::Node>::vertex_iterator, ic_util::Graph<ic_util::Node>::vertex_iterator> vertexIterators;
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> * pointerToResult;
+};
 
 template <typename Graph>
 inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_angles(const Graph& g) const {
-  using boost::adjacent_vertices;
-  using boost::vertices;
+  AngleCreator ac(g);
+  return ac.getInternals();
 
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  auto vert = vertices(g);
-  for (auto it = vert.first; it != vert.second; ++it) {
-    auto a_vert = adjacent_vertices(*it, g);
-    for (auto it2 = a_vert.first; it2 != a_vert.second; ++it2) {
-      for (auto it3 = a_vert.first; it3 != a_vert.second; ++it3) {
-        if (g[*it2].atom_serial < g[*it3].atom_serial) {
-          auto a_index = g[*it2].atom_serial;
-          auto b_index = g[*it].atom_serial;
-          auto c_index = g[*it3].atom_serial;
-          auto a_elem = g[*it2].element;
-          auto b_elem = g[*it].element;
-          auto c_elem = g[*it3].element;
-          result.emplace_back(std::make_unique<InternalCoordinates::BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
-        }
-      }
-    }
-  }
-  return result;
+  //using boost::adjacent_vertices;
+  //using boost::vertices;
+
+  //std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+  //auto vert = vertices(g);
+  //for (auto it = vert.first; it != vert.second; ++it) {
+  //  auto a_vert = adjacent_vertices(*it, g);
+  //  for (auto it2 = a_vert.first; it2 != a_vert.second; ++it2) {
+  //    for (auto it3 = it2+1; it3 != a_vert.second; ++it3) {
+  //      //if (g[*it2].atom_serial < g[*it3].atom_serial) {
+  //       
+  //      //}
+  //    }
+  //  }
+  //}
+  //return result;
 }
 
 template<typename VertIter>

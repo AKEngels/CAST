@@ -2,6 +2,7 @@
 
 #include "primitive_internals_test.h"
 #include"../InternalCoordinates.h"
+#include"../graph.h"
 
 using namespace ExpectedValuesForInternalCoordinates;
 
@@ -49,17 +50,17 @@ namespace {
 
   std::vector<InternalCoordinates::BondDistance> expectedBondsForTwoMethanol() {
     return { 
-      InternalCoordinates::BondDistance{ 1, 2, "C", "O" },
-      InternalCoordinates::BondDistance{ 1, 3, "C", "H" },
-      InternalCoordinates::BondDistance{ 1, 4, "C", "H" },
-      InternalCoordinates::BondDistance{ 1, 5, "C", "H" },
-      InternalCoordinates::BondDistance{ 2, 6, "O", "H" },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"O","O" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6,"H","H" } },
 
-      InternalCoordinates::BondDistance{ 7, 8, "C", "O" },
-      InternalCoordinates::BondDistance{ 7, 9, "C", "H" },
-      InternalCoordinates::BondDistance{ 7, 10, "C", "H" },
-      InternalCoordinates::BondDistance{ 7, 11, "C", "H" },
-      InternalCoordinates::BondDistance{ 8, 12, "O", "H" }
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8,"O","O" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11,"H","H" } },
+      InternalCoordinates::BondDistance{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12,"H","H" } },
     };
   }
 

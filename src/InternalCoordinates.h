@@ -62,10 +62,10 @@ namespace InternalCoordinates {
   };
 
   struct BondDistance : public InternalCoordinate {
-    BondDistance(const unsigned int& index_a, const unsigned int& index_b,
-      const std::string& elem_a, const std::string& elem_b)
-      : index_a_{ index_a }, index_b_{ index_b },
-      elem_a_{ elem_a }, elem_b_{ elem_b } {}
+    template<typename Atom>
+    BondDistance(Atom const& atomOne, Atom const& atomTwo)
+      : index_a_{ atomOne.atom_serial }, index_b_{ atomTwo.atom_serial },
+      elem_a_{ atomOne.element }, elem_b_{ atomTwo.element } {}
 
     std::size_t index_a_;
     std::size_t index_b_;

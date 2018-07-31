@@ -43,8 +43,7 @@ RotatetdMethanolMolecules::RotatetdMethanolMolecules()
 InternalCoordinatesDistancesTest::InternalCoordinatesDistancesTest()
     : InternalCoordinatesTestSubsystem(), firstAtomDerivatives{ firstBondAtomDerivative() },
       secondAtomDerivatives{ secondBondAtomDerivative() },
-      bond(1, 2, twoMethanolMolecules->getOneRepresentation().elementSymbols.at(0),
-           twoMethanolMolecules->getOneRepresentation().elementSymbols.at(1)),
+  bond(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2,"H","H" }),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = firstAtomDerivatives.x();
   derivativeVector.at(1) = firstAtomDerivatives.y();
@@ -578,15 +577,16 @@ TEST_P(InternalCoordinatesHessianTests, testHessianGuessesForAllInternalCoordina
 }
 
 INSTANTIATE_TEST_CASE_P(BondDistances, InternalCoordinatesHessianTests, testing::Values(
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "H"), 0.072180537605377640 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "H"), 0.14450082351214560 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "C"), 0.14450082351214560 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "H"), 0.22290342750129621 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "H", "Si"), 0.22290342750129621 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "C"), 1.2361326955675498 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "Si"), 1.2361326955675498 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "C", "C"), 0.45990191969419802 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(1, 2, "Si", "Si"), 9.1964705962169191 }
+  
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"H","H" }), 0.072180537605377640 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"H","H" }), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"C","C" }), 0.14450082351214560 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"H","H" }), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"H","H" }, ic_util::Node{ 2,"Si","Si" }), 0.22290342750129621 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"C","C" }), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"Si","Si" }), 1.2361326955675498 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"C","C" }, ic_util::Node{ 2,"C","C" }), 0.45990191969419802 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondDistance>(ic_util::Node{ 1,"Si","Si" }, ic_util::Node{ 2,"Si","Si" }), 9.1964705962169191 }
 ));
 
 INSTANTIATE_TEST_CASE_P(BondAndDihedralAngles, InternalCoordinatesHessianTests, testing::Values(

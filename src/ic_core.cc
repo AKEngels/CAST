@@ -108,9 +108,11 @@ scon::mathmatrix<float_type>& ic_core::system::Bmat() {
 
   std::size_t n_rows = ders.size(), n_cols = ders.at(0).size();
   B_matrix = Mat(n_rows, n_cols);
+
   for (std::size_t i{ 0 }; i < n_rows; ++i) {
     B_matrix.set_row(i, Mat::row_from_vec(ders.at(i)));
   }
+
   new_B_matrix = false;
   return B_matrix;
 }
@@ -181,18 +183,17 @@ scon::mathmatrix<float_type> ic_core::system::calc_prims(coords::Representation_
   for(auto const & pic : primitive_internals){
     primitives.emplace_back(pic->val(xyz));
   }
+
   return scon::mathmatrix<float_type>::row_from_vec(primitives);
 }
 
-
-scon::mathmatrix<float_type> atomsNorm(scon::mathmatrix<float_type> const& norm){
+scon::mathmatrix<float_type> ic_core::system::atomsNorm(scon::mathmatrix<float_type> const& norm){
   scon::mathmatrix<float_type> mat(norm.rows(),1);
   for(auto i = 0u; i<norm.rows(); ++i){
     mat(i,0) = norm.row(i).norm();
   }
   return mat;
 }
-
 
 std::pair<float_type,float_type> ic_core::system::gradientRmsValAndMax(scon::mathmatrix<float_type> const& grads){
   auto norms = atomsNorm(grads);
