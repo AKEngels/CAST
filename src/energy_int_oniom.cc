@@ -7,7 +7,6 @@
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
-  mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
   qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
@@ -41,7 +40,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  qm_indices(rhs.qm_indices), 
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
   qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big), 
   qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big)
@@ -51,7 +50,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
+  qm_indices(std::move(rhs.qm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), 
   qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big))
@@ -82,7 +81,6 @@ void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
-  mm_indices.swap(rhs.mm_indices);
   link_atoms.swap(rhs.link_atoms);
   new_indices_qm.swap(rhs.new_indices_qm);
   qmc.swap(rhs.qmc);
@@ -398,7 +396,7 @@ void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
 void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream &S, bool const endline) const
 {
   S << "QM-atoms: " << qm_indices.size() << '\n';
-  S << "MM-atoms: " << mm_indices.size() << '\n';
+  S << "MM-atoms: " << coords->size() - qm_indices.size() << '\n';
   S << "Potentials\n";
   S << std::right << std::setw(24) << "MM_big";
   S << std::right << std::setw(24) << "MM_small";

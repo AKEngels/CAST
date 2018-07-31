@@ -123,7 +123,7 @@ namespace qmmm_helpers
   @param energy_interface: energy interface*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
-    std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface);
+    std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface, std::string const& filename = "qm_system.arc");
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/

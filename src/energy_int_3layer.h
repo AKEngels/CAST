@@ -98,10 +98,8 @@ namespace energy
 
 		    /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;
-        /**indizes of SE atoms*/
-        std::vector<size_t> se_indices;
-        /**indizes of MM atoms*/
-        std::vector<size_t> mm_indices;
+        /**indizes of QM + SE atoms*/
+        std::vector<size_t> qm_se_indices;
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0

@@ -7,16 +7,15 @@
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
-  se_indices(Config::get().energy.qmmm.seatoms),
-  mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
+  qm_se_indices(add_vectors(qm_indices, Config::get().energy.qmmm.seatoms)),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
-  new_indices_middle(qmmm_helpers::make_new_indices(cp->size(), add_vectors(qm_indices, se_indices))),
+  new_indices_middle(qmmm_helpers::make_new_indices(cp->size(), qm_se_indices)),
   link_atoms_small(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-  link_atoms_middle(qmmm_helpers::create_link_atoms(cp, add_vectors(qm_indices,se_indices), tp)),
-  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.qminterface)),
-  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.seinterface)),
-  sec_middle(qmmm_helpers::make_small_coords(cp, add_vectors(qm_indices, se_indices), new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.seinterface)),
-  mmc_middle(qmmm_helpers::make_small_coords(cp, add_vectors(qm_indices, se_indices), new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.mminterface)),
+  link_atoms_middle(qmmm_helpers::create_link_atoms(cp, qm_se_indices, tp)),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.qminterface, "small_system.arc")),
+  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.seinterface, "small_system.arc")),
+  sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.seinterface, "intermediate_system.arc")),
+  mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.mminterface, "intermediate_system.arc")),
 	mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
   qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
@@ -34,11 +33,10 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
 	{
 		throw std::runtime_error("One of your chosen interfaces is not suitable for THREE_LAYER.");
 	}
-
   if (!file_exists(Config::get().get().general.paramFilename) &&    // if forcefield is desired but no parameterfile is given -> throw error
     (Config::get().energy.qmmm.qminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER
-      || Config::get().energy.qmmm.seinterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.seinterface == config::interface_types::T::AMBER)
-      || Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER)
+      || Config::get().energy.qmmm.seinterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.seinterface == config::interface_types::T::AMBER
+      || Config::get().energy.qmmm.mminterface == config::interface_types::T::OPLSAA || Config::get().energy.qmmm.qminterface == config::interface_types::T::AMBER))
   {
     throw std::runtime_error("You need a tinker-like parameterfile for your chosen forcefield.");
   }
@@ -51,7 +49,7 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  qm_indices(rhs.qm_indices), se_indices(rhs.se_indices), mm_indices(rhs.mm_indices),
+  qm_indices(rhs.qm_indices), qm_se_indices(rhs.qm_se_indices), 
   new_indices_qm(rhs.new_indices_qm), new_indices_middle(rhs.new_indices_middle), link_atoms_small(rhs.link_atoms_small),
   link_atoms_middle(rhs.link_atoms_middle), qmc(rhs.qmc), sec_small(rhs.sec_small),
   sec_middle(rhs.sec_middle), mmc_middle(rhs.mmc_middle), mmc_big(rhs.mmc_big), 
@@ -63,7 +61,7 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER const & rh
 
 energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(THREE_LAYER&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  qm_indices(std::move(rhs.qm_indices)), se_indices(std::move(rhs.se_indices)), mm_indices(std::move(rhs.mm_indices)),
+  qm_indices(std::move(rhs.qm_indices)), qm_se_indices(std::move(rhs.qm_se_indices)), 
   new_indices_qm(std::move(rhs.new_indices_qm)), new_indices_middle(std::move(rhs.new_indices_middle)), 
   link_atoms_small(std::move(rhs.link_atoms_small)), link_atoms_middle(std::move(rhs.link_atoms_middle)),
   qmc(std::move(rhs.qmc)), sec_small(std::move(rhs.sec_small)), sec_middle(std::move(rhs.sec_middle)), 
@@ -97,8 +95,7 @@ void energy::interfaces::three_layer::THREE_LAYER::swap(THREE_LAYER& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
-  se_indices.swap(rhs.se_indices);
-  mm_indices.swap(rhs.mm_indices);
+  qm_se_indices.swap(rhs.qm_se_indices);
   link_atoms_small.swap(rhs.link_atoms_small);
   link_atoms_middle.swap(rhs.link_atoms_middle);
   new_indices_qm.swap(rhs.new_indices_qm);
@@ -152,7 +149,7 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
   }
 
   std::size_t si = 0u;    // update position of atoms in middle systems
-  for (auto i : add_vectors(qm_indices, se_indices))
+  for (auto i : qm_se_indices)
   {
     sec_middle.move_atom_to(si, coords->xyz(i), true);
     mmc_middle.move_atom_to(si, coords->xyz(i), true);
@@ -161,7 +158,7 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
   for (auto &l : link_atoms_middle) l.calc_position(coords); // update positions of link atoms in middle systems
   for (auto i = 0u; i < link_atoms_middle.size(); ++i)
   {
-    int index = qm_indices.size() + se_indices.size() + i;
+    int index = qm_se_indices.size() + i;
     coords::cartesian_type &new_pos = link_atoms_middle[i].position;
     sec_middle.move_atom_to(index, new_pos, true);
     mmc_middle.move_atom_to(index, new_pos, true);
@@ -176,146 +173,150 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
-  return 0;
-	//if (link_atoms.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
-	//{                                                                          // can't be done in constructor because interface is first constructed without atoms 
-	//	std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
-	//	for (auto &l : link_atoms)
-	//	{
-	//		std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
-	//  }
-	//	throw std::runtime_error("wrong number of link atom types");
-	//}
+	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
+	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
+		std::cout << "Wrong number of link atom types given. You have " << link_atoms_middle.size() << " in the following order:\n";
+		for (auto &l : link_atoms_middle)
+		{
+			std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
+	  }
+		std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
+		throw std::runtime_error("wrong number of link atom types");
+	}
 
- // update_representation(); // update positions of QM and MM subsystems to those of coordinates object
- // 
-	//mm_energy_big = 0.0;     // set energies to zero
-	//mm_energy_small = 0.0;
-	//qm_energy = 0.0;
- // coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
+  update_representation(); // update positions of QM and MM subsystems to those of coordinates object
+  
+	mm_energy_big = 0.0;     // set energies to zero
+	mm_energy_middle = 0.0;
+	se_energy_middle = 0.0;
+	se_energy_small = 0.0;
+	qm_energy = 0.0;
+  coords::Gradients_3D new_grads;  // save gradients in case of gradient calculation
 
- // // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
+  // ############### MM ENERGY AND GRADIENTS FOR WHOLE SYSTEM ######################
 
-	//try {
-	//	if (!if_gradient)
-	//	{
-	//		mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
-	//	}
-	//	else   // gradient calculation
-	//	{
-	//		mm_energy_big = mmc_big.g();
-	//		new_grads = mmc_big.g_xyz();
-	//	}
-	//	if (mmc_big.integrity() == false) integrity = false;
-	//	if (Config::get().general.verbosity > 4)
-	//	{
-	//		std::cout << "Energy of big MM system: \n";
-	//		mmc_big.e_head_tostream_short(std::cout);
-	//		mmc_big.e_tostream_short(std::cout);
-	//	}
-	//}
-	//catch (...)
-	//{
-	//	std::cout << "MM programme (for big system) failed. Treating structure as broken.\n";
-	//	integrity = false;  // if MM programme fails: integrity is destroyed
-	//}
+	try {
+		if (!if_gradient)
+		{
+			mm_energy_big = mmc_big.e();   // calculate MM energy of whole system
+		}
+		else   // gradient calculation
+		{
+			mm_energy_big = mmc_big.g();
+			new_grads = mmc_big.g_xyz();
+		}
+		if (mmc_big.integrity() == false) integrity = false;
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "Energy of big MM system: \n";
+			mmc_big.e_head_tostream_short(std::cout);
+			mmc_big.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "MM programme (for big system) failed. Treating structure as broken.\n";
+		integrity = false;  // if MM programme fails: integrity is destroyed
+	}
 
-	//// if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
-	//if (integrity == false) return 0.0;   
+	// if program didn't calculate an energy: return zero-energy (otherwise CAST will break because it doesn't find charges)
+	if (integrity == false) return 0.0;   
 
- // // ############### CREATE MM CHARGES ######################
+  // ############### CREATE EXTERNAL CHARGES FOR MIDDLE SYSTEM ######################
 
- // std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+  std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
 
- // std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
+  std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
 
- // bool use_charge;
- // charge_indices.clear();
- // for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
- // {
-	//  use_charge = true;
-	//  for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
-	//  {
-	//	  if (l.mm == i) use_charge = false;
-	//  }
-	//  for (auto &qm : qm_indices) // ... and the QM atoms themselves
-	//  {
-	//	  if (qm == i) use_charge = false;
-	//  }
-	//  if (use_charge)  // for the other 
-	//  {
-	//		if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-	//		{
-	//			use_charge = false;
-	//			for (auto qm : qm_indices)
-	//			{
-	//				auto dist = len(coords->xyz(i) - coords->xyz(qm));
-	//				if (dist < Config::get().energy.qmmm.cutoff)
-	//				{
-	//					use_charge = true;
-	//					break;
-	//				}
-	//			}
-	//		}
+  bool use_charge;
+  charge_indices.clear();
+  for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
+  {
+	  use_charge = true;
+	  for (auto &l : link_atoms_middle) // ignore those atoms that are connected to a QM or SE atom...
+	  {
+		  if (l.mm == i) use_charge = false;
+	  }
+	  for (auto &qs : qm_se_indices) // ...and the QM and SE atoms
+	  {
+		  if (qs == i) use_charge = false;
+	  }
 
-	//		if (use_charge)  // if yes create a PointCharge and add it to vector
-	//		{
-	//			PointCharge new_charge;
-	//			new_charge.charge = charge_vector[i];
-	//			new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-	//			Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+	  if (use_charge)  // for the other 
+	  {
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM or SE atom is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qs : qm_se_indices)
+				{
+					auto dist = len(coords->xyz(i) - coords->xyz(qs));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+				
+			}
 
-	//			charge_indices.push_back(i);  // add index to charge_indices
-	//		}
-	//  }
- // }
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = charge_vector[i];
+				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
 
-	//// ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
-	//try {
-	//	if (!if_gradient)
-	//	{
-	//		qm_energy = qmc.e();  // get energy for QM part 
-	//	}
-	//	else  // gradient calculation
-	//	{
-	//		qm_energy = qmc.g();            // get energy and calculate gradients
-	//		auto g_qm_small = qmc.g_xyz();  // get gradients
-	//		for (auto&& qmi : qm_indices)
-	//		{
-	//			new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
-	//		}
+				charge_indices.push_back(i);  // add index to charge_indices
+			}
+	  }
+  }
 
-	//		for (auto i = 0u; i < link_atoms.size(); ++i)   // take into account link atoms
-	//		{
-	//			LinkAtom l = link_atoms[i];
+	// ############### SE ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
+	try {
+		if (!if_gradient)
+		{
+			se_energy_middle = sec_middle.e();  // get se energy for intermediate part 
+		}
+		else  // gradient calculation
+		{
+			se_energy_middle = sec_middle.g();    // get energy and calculate gradients
+			auto g_se_middle = sec_middle.g_xyz();        // get gradients
+			for (auto&& qsi : qm_se_indices)
+			{
+				new_grads[qsi] += g_se_middle[new_indices_middle[qsi]];
+			}
 
-	//			coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
-	//			auto link_atom_grad = g_qm_small[qm_indices.size() + i];
-	//			qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-	//			new_grads[l.qm] += g_qm;
-	//			new_grads[l.mm] += g_mm;
+			for (auto i = 0u; i < link_atoms_middle.size(); ++i)   // take into account link atoms
+			{
+				LinkAtom l = link_atoms_middle[i];
 
-	//			if (Config::get().general.verbosity > 4)
-	//			{
-	//				std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
-	//				std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
-	//			}
-	//		}
-	//	}
-	//	if (qmc.integrity() == false) integrity = false;
+				coords::r3 g_qm, g_mm;        // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_se_middle[qm_se_indices.size() + i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] += g_qm;
+				new_grads[l.mm] += g_mm;
 
-	//	if (Config::get().general.verbosity > 4)
-	//	{
-	//		std::cout << "Energy of QM system: \n";
-	//		qmc.e_head_tostream_short(std::cout);
-	//		qmc.e_tostream_short(std::cout);
-	//	}
-	//}
-	//catch (...)
-	//{
-	//	std::cout << "QM programme failed. Treating structure as broken.\n";
-	//	integrity = false;  // if QM programme fails: integrity is destroyed
-	//}
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+			}
+		}
+		if (sec_middle.integrity() == false) integrity = false;
+
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "SE energy of intermediate system: \n";
+			sec_middle.e_head_tostream_short(std::cout);
+			sec_middle.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "SE programme failed. Treating structure as broken.\n";
+		integrity = false;  // if SE programme fails: integrity is destroyed
+	}
 
  // // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
 
@@ -332,67 +333,160 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	//	}
 	//}
 
- // // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
+  // ############### MM ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 
-	//try {
-	//	if (!if_gradient)
-	//	{
-	//		mm_energy_small = mmc_small.e();  // calculate energy of small MM system
-	//	}
-	//	else  // gradient calculation
-	//	{
-	//		mm_energy_small = mmc_small.g();     // get energy and calculate gradients
-	//		auto g_mm_small = mmc_small.g_xyz(); // get gradients
-	//		for (auto&& qmi : qm_indices)
-	//		{
-	//			new_grads[qmi] -= g_mm_small[new_indices_qm[qmi]];
-	//		}
+	try {
+		if (!if_gradient)
+		{
+			mm_energy_middle = mmc_middle.e();  // calculate energy of intermediate MM system
+		}
+		else  // gradient calculation
+		{
+			mm_energy_middle = mmc_middle.g();     // get energy and calculate gradients
+			auto g_mm_middle = mmc_middle.g_xyz(); // get gradients
+			for (auto&& qsi : qm_se_indices)
+			{
+				new_grads[qsi] -= g_mm_middle[new_indices_qm[qsi]];
+			}
 
-	//		for (auto i = 0u; i < link_atoms.size(); ++i)  // take into account link atoms
-	//		{
-	//			LinkAtom l = link_atoms[i];
+			for (auto i = 0u; i < link_atoms_middle.size(); ++i)  // take into account link atoms
+			{
+				LinkAtom l = link_atoms_middle[i];
 
-	//			coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
-	//			auto link_atom_grad = g_mm_small[qm_indices.size() + i];
-	//			qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
-	//			new_grads[l.qm] -= g_qm;
-	//			new_grads[l.mm] -= g_mm;
-	//			if (Config::get().general.verbosity > 4)
-	//			{
-	//				std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
-	//				std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
-	//			}
-	//		}
-	//	}
- //   if (mmc_small.integrity() == false) integrity = false;
+				coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
+				auto link_atom_grad = g_mm_middle[qm_se_indices.size() + i];
+				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
+				new_grads[l.qm] -= g_qm;
+				new_grads[l.mm] -= g_mm;
+				if (Config::get().general.verbosity > 4)
+				{
+					std::cout << "Link atom between " << l.qm + 1 << " and " << l.mm + 1 << " has a gradient " << link_atom_grad << ".\n";
+					std::cout << "It causes a gradient on QM atom " << g_qm << " and on MM atom " << g_mm << ".\n";
+				}
+			}
+		}
+    if (mmc_middle.integrity() == false) integrity = false;
 
-	//	if (Config::get().general.verbosity > 4)
-	//	{
-	//		std::cout << "Energy of small MM system: \n";
-	//		mmc_small.e_head_tostream_short(std::cout);
-	//		mmc_small.e_tostream_short(std::cout);
-	//	}
-	//}
-	//catch (...)
-	//{
-	//	std::cout << "MM programme (for small system) failed. Treating structure as broken.\n";
-	//	integrity = false;  // if MM programme fails: integrity is destroyed
-	//}
+		if (Config::get().general.verbosity > 4)
+		{
+			std::cout << "Energy of small MM system: \n";
+			mmc_middle.e_head_tostream_short(std::cout);
+			mmc_middle.e_tostream_short(std::cout);
+		}
+	}
+	catch (...)
+	{
+		std::cout << "MM programme (for intermediate system) failed. Treating structure as broken.\n";
+		integrity = false;  // if MM programme fails: integrity is destroyed
+	}
 
- // // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH QM REGION ###
+  // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH MIDDLE REGION ###
 
- // if (if_gradient && integrity == true)
- // {
-	//	auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
- //   auto mmc_small_g_ext_charges = mmc_small.energyinterface()->get_g_ext_chg();
+  if (if_gradient && integrity == true)
+  {
+		auto sec_middle_g_ext_charges = sec_middle.energyinterface()->get_g_ext_chg();
+    auto mmc_middle_g_ext_charges = mmc_middle.energyinterface()->get_g_ext_chg();
 
- //   for (auto i=0u; i<charge_indices.size(); ++i)
- //   {
- //     int mma = charge_indices[i];
- //     new_grads[mma] += qmc_g_ext_charges[i];
- //     new_grads[mma] -= mmc_small_g_ext_charges[i];
- //   }
- // }
+    for (auto i=0u; i<charge_indices.size(); ++i)
+    {
+      int mma = charge_indices[i];
+      new_grads[mma] += sec_middle_g_ext_charges[i];
+      new_grads[mma] -= mmc_middle_g_ext_charges[i];
+    }
+  }
+
+	// ############### CREATE EXTERNAL CHARGES FOR SMALL SYSTEM ######################
+
+	charge_vector = sec_middle.energyinterface()->charges();
+
+	bool use_charge;
+	charge_indices.clear();
+	for (auto i = qm_indices.size(); i < qm_se_indices.size(); ++i)  // go through all se atoms
+	{
+		use_charge = true;
+		
+		for (auto b : sec_middle.atoms().atom(i).bonds())
+		{
+			if (b < qm_indices.size())  // and ignore those which are bonded to a QM atom
+			{
+				use_charge = false;
+				break;
+			}
+		}
+
+		if (use_charge)  // for the other 
+		{
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qm : qm_indices)
+				{
+					auto dist = len(sec_middle.xyz(i) - coords->xyz(qm));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+
+			}
+
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = charge_vector[i];
+				new_charge.set_xyz(sec_middle.xyz(i).x(), sec_middle.xyz(i).y(), sec_middle.xyz(i).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+				charge_indices.push_back(i);  // add index to charge_indices
+			}
+		}
+	}
+
+	charge_vector = mmc_big.energyinterface()->charges();
+	for (auto i = 0u; i < coords->size(); ++i)    // go through all atoms
+	{
+		use_charge = true;
+		for (auto &l : link_atoms_small) // ignore those atoms that are connected to a QM atom...
+		{
+			if (l.mm == i) use_charge = false;
+		}
+		for (auto &qs : qm_se_indices) // ...and the QM and SE atoms
+		{
+			if (qs == i) use_charge = false;
+		}
+
+		if (use_charge)  // for the other 
+		{
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qi : qm_indices)
+				{
+					auto dist = len(coords->xyz(i) - coords->xyz(qi));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+
+			}
+
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = charge_vector[i];
+				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+				charge_indices.push_back(i);  // add index to charge_indices
+			}
+		}
+	}
+
+	std::cout << "CHARGES:\n";
+	for (auto &c : Config::set().energy.qmmm.mm_charges) std::cout << c.x << " , " << c.y << " , " << c.z << " ,charge: " << c.charge << "\n";
 
  // // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
@@ -438,7 +532,7 @@ void energy::interfaces::three_layer::THREE_LAYER::print_E(std::ostream &) const
 void energy::interfaces::three_layer::THREE_LAYER::print_E_head(std::ostream &S, bool const endline) const
 {
   S << "QM-atoms: " << qm_indices.size() << '\n';
-  S << "MM-atoms: " << mm_indices.size() << '\n';
+  //S << "MM-atoms: " << mm_indices.size() << '\n';
   S << "Potentials\n";
   S << std::right << std::setw(24) << "MM_big";
   S << std::right << std::setw(24) << "MM_middle";

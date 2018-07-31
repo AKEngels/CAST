@@ -13,8 +13,11 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
 		{
 			if (!is_in(b, qm_indices))
 			{
-				try { type = Config::get().energy.qmmm.linkatom_types[counter]; }
-				catch (...) { type = 85; }  // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
+				if (counter < Config::get().energy.qmmm.linkatom_types.size())
+				{
+					type = Config::get().energy.qmmm.linkatom_types[counter];
+				}
+				else type = 85;    // if atomtype not found -> 85 (should mostly be correct for OPLSAA force field)
 				LinkAtom link(q, b, type, coords, tp);
 				links.push_back(link);
 				counter += 1;
@@ -155,7 +158,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
   }
 
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface)
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface, std::string const& filename)
   {
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = energy_interface;
@@ -213,7 +216,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 
     if (Config::set().energy.qmmm.qm_to_file)  // if desired: write QM region into file
     {
-      std::ofstream output("qm_region.arc");
+      std::ofstream output(filename);
       output << coords::output::formats::tinker(new_qm_coords);
     }
     

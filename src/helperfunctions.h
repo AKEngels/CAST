@@ -163,7 +163,7 @@ inline bool file_is_empty(std::string &filename)
 @param v1: first vector
 @param v2: second vector*/
 template <typename T>
-inline std::vector<T> add_vectors(std::vector<T> &v1, std::vector<T> &v2)
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2)
 {
   std::vector<T> v12;
   v12.reserve(v1.size() + v2.size());
