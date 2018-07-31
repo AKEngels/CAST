@@ -115,7 +115,7 @@ InternalCoordinatesDihedralsTest::InternalCoordinatesDihedralsTest()
       leftMiddleDerivative{ leftMiddleDihedralDerivative() },
       rightMiddleDerivative{ rightMiddleDihedralDerivative() },
       rightRightDerivative{ rightRightDihedralDerivative() },
-      dihedralAngle(1, 2, 3, 4), derivativeVector(3u * 12u, 0.) {
+  dihedralAngle(ic_util::Node{ 1 }, ic_util::Node{ 2 }, ic_util::Node{ 3 }, ic_util::Node{ 4 }), derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftLeftDerivative.x();
   derivativeVector.at(1) = leftLeftDerivative.y();
   derivativeVector.at(2) = leftLeftDerivative.z();
@@ -273,7 +273,7 @@ void InternalCoordinatesRotatorTest::testRotationDerivatives(){
 
 
 void InternalCoordinatesRotatorTest::testRadiusOfGyration() {
-  EXPECT_NEAR(ic_util::rad_gyr(ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() /= energy::bohr2ang), 2.2618755203155767, doubleNearThreshold);
+  EXPECT_NEAR(ic_util::rad_gyr(ExpectedValuesForInternalCoordinates::createInitialMethanolForRotationSystem() / energy::bohr2ang), 2.2618755203155767, doubleNearThreshold);
 }
 
 void InternalCoordinatesRotationsTest::checkIfVectorsAreSame(std::vector<double> const & lhs, std::vector<double> const & rhs){
@@ -592,7 +592,7 @@ INSTANTIATE_TEST_CASE_P(BondAndDihedralAngles, InternalCoordinatesHessianTests, 
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.16 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }), 0.16 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.25 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(1, 2, 3, 4), 0.023 }
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(ic_util::Node{1}, ic_util::Node{2 }, ic_util::Node{3}, ic_util::Node{4}), 0.023 }
 ));
 
 INSTANTIATE_TEST_CASE_P(Translations, InternalCoordinatesHessianTests, testing::Values(

@@ -32,6 +32,27 @@ namespace InternalCoordinates {
     return ic_util::flatten_c3_vec(der_vec);
   }
 
+  //enums hold an integral thus I pass them by value
+  bool BondDistance::bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB) const {
+    return atomA == ic_atom::period::one && atomB == ic_atom::period::one;
+  }
+
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
+    return atomA == ic_atom::period::one && atomB == ic_atom::period::two || atomA == ic_atom::period::two && atomB == ic_atom::period::one;
+  }
+
+  bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
+    return atomA == ic_atom::period::one && atomB == ic_atom::period::three || atomA == ic_atom::period::three && atomB == ic_atom::period::one;
+  }
+
+  bool BondDistance::bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
+    return atomA == ic_atom::period::two && atomB == ic_atom::period::two;
+  }
+
+  bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
+    return atomA == ic_atom::period::two && atomB == ic_atom::period::three || atomA == ic_atom::period::three && atomB == ic_atom::period::two;
+  }
+
   coords::float_type BondDistance::hessian_guess(coords::Representation_3D const& cartesians) const {
     using ic_atom::element_period;
     using ic_atom::period;
@@ -40,22 +61,19 @@ namespace InternalCoordinates {
     auto el_b = element_period(elem_b_);
 
     auto B_val{ 0.0 };
-    if (el_a == period::one && el_b == period::one) {
+    if (bothElementsInPeriodOne(el_a, el_b)) {
       B_val = -0.244;
     }
-    else if ((el_a == period::one && el_b == period::two) ||
-      (el_a == period::two && el_b == period::one)) {
+    else if (oneElementInPeriodOneTheOtherInPeriodTwo(el_a, el_b)) {
       B_val = 0.352;
     }
-    else if ((el_a == period::one && el_b == period::three) ||
-      (el_a == period::three && el_b == period::one)) {
+    else if (oneElementInPeriodOneTheOtherInPeriodThree(el_a, el_b)) {
       B_val = 0.660;
     }
-    else if (el_a == period::two && el_b == period::two) {
+    else if (bothElementsInPeriodTwo(el_a, el_b)) {
       B_val = 1.085;
     }
-    else if ((el_a == period::two && el_b == period::three) ||
-      (el_a == period::three && el_b == period::two)) {
+    else if (oneElementInPeriodTwoTheOtherInPeriodThree(el_a, el_b)) {
       B_val = 1.522;
     }
     else {

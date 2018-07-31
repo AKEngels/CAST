@@ -361,7 +361,7 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
         auto n_vec2 = ic_util::normal_unit_vector(core_cp, u_cp, v_cp);
         auto dot_n_vecs = dot(n_vec1, n_vec2);
         if (0.95 < std::fabs(dot_n_vecs)) {
-          result.emplace_back(std::make_unique<InternalCoordinates::OutOfPlane>(core, combination.at(0)+1, combination.at(1)+1, combination.at(2)+1));
+          result.emplace_back(std::make_unique<InternalCoordinates::OutOfPlane>(g[*it], g[combination.at(0)], g[combination.at(1)], g[combination.at(2)]));
         }
       }
       //}
@@ -388,7 +388,7 @@ protected:
       auto rightVertices = boost::adjacent_vertices(target, bondGraph);
       while (findRightAtoms(rightVertices)) {
         pointerToResult->emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(
-          bondGraph[outerLeft].atom_serial, bondGraph[source].atom_serial, bondGraph[target].atom_serial, bondGraph[outerRight].atom_serial));
+          bondGraph[outerLeft], bondGraph[source], bondGraph[target], bondGraph[outerRight]));
       }
     }
   }

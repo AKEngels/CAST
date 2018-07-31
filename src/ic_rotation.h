@@ -90,7 +90,7 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) //Seems to be right like described here. They are sorting it the other way round
   auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);
-  if (res_q.q_.at(0) < 0) {
+  if (res_q.q_.at(0) < 0.) {
     res_q = res_q * -1.;
   }
 

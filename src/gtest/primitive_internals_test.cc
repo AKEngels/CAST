@@ -86,12 +86,12 @@ namespace {
 
   std::vector<InternalCoordinates::DihedralAngle> expectedDihedralsForTwoMethanol() {
     return {
-      InternalCoordinates::DihedralAngle{ 3, 1, 2, 6 },
-      InternalCoordinates::DihedralAngle{ 4, 1, 2, 6 },
-      InternalCoordinates::DihedralAngle{ 5, 1, 2, 6 },
-      InternalCoordinates::DihedralAngle{ 9, 7, 8, 12 },
-      InternalCoordinates::DihedralAngle{ 10, 7, 8, 12 },
-      InternalCoordinates::DihedralAngle{ 11, 7, 8, 12 }
+      InternalCoordinates::DihedralAngle{ ic_util::Node{3}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{4}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{5}, ic_util::Node{1}, ic_util::Node{2}, ic_util::Node{6} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{9}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{10}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} },
+      InternalCoordinates::DihedralAngle{ ic_util::Node{11}, ic_util::Node{7}, ic_util::Node{8}, ic_util::Node{12} }
     };
   }
 
@@ -137,7 +137,6 @@ void PrimitiveInternalSetTest::bondAngleCreationTest() {
   auto allAngles = testSystem.create_angles(systemGraph);
   auto expectedAngles = expectedAnglesForTwoMethanol();
   for (auto i = 0u; i < allAngles.size(); ++i) {
-    auto bla = *dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()) == expectedAngles.at(i);
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()), expectedAngles.at(i));
   }
 }

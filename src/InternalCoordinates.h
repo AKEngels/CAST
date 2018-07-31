@@ -5,6 +5,7 @@
 
 #include "coords.h"
 #include "scon_mathmatrix.h"
+#include"ic_atom.h"
 
 namespace InternalCoordinates {
 
@@ -29,7 +30,6 @@ namespace InternalCoordinates {
     std::shared_ptr<AbstractRotatorListener> rotator;
   };
 
-  //Might rather inherit from Representation_3D
   class CartesiansForInternalCoordinates : public coords::Representation_3D {
   public:
     template<typename T>
@@ -79,9 +79,18 @@ namespace InternalCoordinates {
     std::string info(coords::Representation_3D const& cartesians) const override;
 
     bool operator==(BondDistance const&) const;
-  };
 
-  
+  private:
+    bool bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB)const;
+
+    bool oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
+
+    bool oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
+
+    bool bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
+
+    bool oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
+  };
 
   struct BondAngle : InternalCoordinate {
     template<typename Atom>
@@ -108,10 +117,12 @@ namespace InternalCoordinates {
   };
 
   struct DihedralAngle : public InternalCoordinates::InternalCoordinate {
-    DihedralAngle(const unsigned int& index_a, const unsigned int& index_b,
-      const unsigned int& index_c, const unsigned int& index_d)
-      : index_a_{ index_a },
-      index_b_{ index_b }, index_c_{ index_c }, index_d_{ index_d } {}
+
+    template<typename Atom>
+    DihedralAngle(Atom const& outerLeftAtom, Atom const& leftAtom,
+      Atom const& rightAtom, Atom const& outerRightAtom)
+      : index_a_{ outerLeftAtom.atom_serial },
+      index_b_{ leftAtom.atom_serial }, index_c_{ rightAtom.atom_serial }, index_d_{ outerRightAtom.atom_serial } {}
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
     std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
@@ -139,7 +150,6 @@ namespace InternalCoordinates {
     Translations(std::vector<std::size_t> const& index_vec)
       : indices_(index_vec) {}
 
-    //virtual coords::float_type val(coords::Representation_3D const& cartesians) const = 0;
     std::vector<std::size_t> indices_;
 
     template<typename Func>
@@ -161,7 +171,6 @@ namespace InternalCoordinates {
     }
 
     bool operator==(Translations const&) const;
-
   };
 
   struct TranslationX : Translations {
@@ -221,7 +230,7 @@ namespace InternalCoordinates {
     return *this = std::forward<T>(newCartesianCoordinates);
   }
 
-  struct Rotator;
+  class Rotator;
   struct RotationA;
   struct RotationB;
   struct RotationC;
@@ -236,7 +245,6 @@ namespace InternalCoordinates {
 
   class Rotator : public AbstractRotatorListener, public std::enable_shared_from_this<Rotator> {
   public:
-
     static std::shared_ptr<Rotator> buildRotator(InternalCoordinates::CartesiansForInternalCoordinates & cartesians, std::vector<std::size_t> const& indexVector){
       //The ctor should keep being private. Thus make_shared connot be used. If someone has a better idea, go ahead and refactor :)
       auto newInstance = std::shared_ptr<Rotator>(new Rotator(sliceCartesianCoordinates(cartesians, indexVector), indexVector));
