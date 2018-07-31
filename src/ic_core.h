@@ -288,13 +288,8 @@ protected:
     while (findLeftAtom(neighbors)) {
       auto copyOfLeftNeighbors = neighbors;
       while (findRightAtom(copyOfLeftNeighbors)) {
-        auto a_index = bondGraph[leftAtom].atom_serial;
-        auto b_index = bondGraph[middleAtom].atom_serial;
-        auto c_index = bondGraph[rightAtom].atom_serial;
-        auto a_elem = bondGraph[leftAtom].element;
-        auto b_elem = bondGraph[middleAtom].element;
-        auto c_elem = bondGraph[rightAtom].element;
-        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(a_index, b_index, c_index, a_elem, b_elem, c_elem));
+        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::BondAngle>(
+          bondGraph[leftAtom], bondGraph[middleAtom], bondGraph[rightAtom]));
       }
     }
     

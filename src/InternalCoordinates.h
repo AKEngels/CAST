@@ -84,13 +84,11 @@ namespace InternalCoordinates {
   
 
   struct BondAngle : InternalCoordinate {
-    BondAngle(const unsigned int& index_a,
-      const unsigned int& index_b, const unsigned int& index_c,
-      const std::string& elem_a, const std::string& elem_b,
-      const std::string& elem_c)
-      : index_a_{ index_a }, index_b_{ index_b },
-      index_c_{ index_c }, elem_a_{ elem_a }, elem_b_{ elem_b }, elem_c_{
-      elem_c
+    template<typename Atom>
+    BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom)
+      : index_a_{ leftAtom.atom_serial }, index_b_{ middleAtom.atom_serial },
+      index_c_{ rightAtom.atom_serial }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element }, elem_c_{
+      rightAtom.element
     } {}
 
     std::size_t index_a_;

@@ -66,21 +66,21 @@ namespace {
 
   std::vector<InternalCoordinates::BondAngle> expectedAnglesForTwoMethanol() {
     return {
-      InternalCoordinates::BondAngle{ 2, 1, 3, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 2, 1, 4, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 2, 1, 5, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 3, 1, 4, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 3, 1, 5, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 4, 1, 5, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 1, 2, 6, "C", "O", "H" },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 3, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 4, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 3, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 4, "H", "H" }, ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 5, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "O", "O" }, ic_util::Node{ 6, "H", "H" } },
 
-      InternalCoordinates::BondAngle{ 8, 7, 9, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 8, 7, 10, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 8, 7, 11, "O", "C", "H" },
-      InternalCoordinates::BondAngle{ 9, 7, 10, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 9, 7, 11, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 10, 7, 11, "H", "C", "H" },
-      InternalCoordinates::BondAngle{ 7, 8, 12, "C", "O", "H" }
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 9, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 10, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 11, "H", "H" } },
+      InternalCoordinates::BondAngle{ ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 12, "H", "H" } },
     };
   }
 
@@ -137,6 +137,7 @@ void PrimitiveInternalSetTest::bondAngleCreationTest() {
   auto allAngles = testSystem.create_angles(systemGraph);
   auto expectedAngles = expectedAnglesForTwoMethanol();
   for (auto i = 0u; i < allAngles.size(); ++i) {
+    auto bla = *dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()) == expectedAngles.at(i);
     EXPECT_EQ(*dynamic_cast<InternalCoordinates::BondAngle*>(allAngles.at(i).get()), expectedAngles.at(i));
   }
 }

@@ -77,9 +77,7 @@ InternalCoordinatesAnglesTest::InternalCoordinatesAnglesTest()
     : InternalCoordinatesTestSubsystem(), leftAtomsDerivative{ leftAngleAtomDerivative() },
       middleAtomsDerivative{ middleAngleAtomDerivative() },
       rightAtomsDerivative{ rightAngleAtomDerivative() },
-      angle(1, 2, 3, twoMethanolMolecules->getOneRepresentation().elementSymbols.at(0),
-            twoMethanolMolecules->getOneRepresentation().elementSymbols.at(1),
-            twoMethanolMolecules->getOneRepresentation().elementSymbols.at(2)),
+      angle(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }),
       derivativeVector(3u * 12u, 0.) {
   derivativeVector.at(0) = leftAtomsDerivative.x();
   derivativeVector.at(1) = leftAtomsDerivative.y();
@@ -590,10 +588,10 @@ INSTANTIATE_TEST_CASE_P(BondDistances, InternalCoordinatesHessianTests, testing:
 ));
 
 INSTANTIATE_TEST_CASE_P(BondAndDihedralAngles, InternalCoordinatesHessianTests, testing::Values(
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "H"), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "H", "C", "C"), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "H"), 0.16 },
-  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(1, 2, 3, "C", "C", "C"), 0.25 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "H", "H" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "H", "H" }), 0.16 },
+  DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::BondAngle>(ic_util::Node{ 1, "C", "C" }, ic_util::Node{ 2, "C", "C" }, ic_util::Node{ 3, "C", "C" }), 0.25 },
   DifferentInternalCoordinates{ std::make_shared<InternalCoordinates::DihedralAngle>(1, 2, 3, 4), 0.023 }
 ));
 
