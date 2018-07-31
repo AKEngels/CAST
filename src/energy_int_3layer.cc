@@ -398,8 +398,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	// ############### CREATE EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
 	charge_vector = sec_middle.energyinterface()->charges();
-
-	bool use_charge;
 	charge_indices.clear();
 	for (auto i = qm_indices.size(); i < qm_se_indices.size(); ++i)  // go through all se atoms
 	{
@@ -497,7 +495,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
  // else if (check_atom_dist() == false) integrity = false;
  // 
  // if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
- // return mm_energy_big - mm_energy_small + qm_energy; // return total energy
+ return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()
