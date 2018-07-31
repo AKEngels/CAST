@@ -311,6 +311,15 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			sec_middle.e_head_tostream_short(std::cout);
 			sec_middle.e_tostream_short(std::cout);
 		}
+
+		if (Config::get().general.verbosity > 3)   // TODO: rename output also for other interfaces to prevent it from being overwritten
+		{
+			if (Config::get().energy.qmmm.seinterface == config::interface_types::T::DFTB)
+			{
+				if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_intermediate.hsd");
+				if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_intermediate.txt");
+			}
+		}
 	}
 	catch (...)
 	{
