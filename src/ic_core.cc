@@ -59,6 +59,15 @@ std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> ic_core::s
   return result;
 }
 
+std::tuple<ic_core::system::InternalVec, ic_core::system::InternalVec, ic_core::system::InternalVec>
+ic_core::system::create_translations() const {
+  return std::make_tuple(
+    create_trans_x(),
+    create_trans_y(),
+    create_trans_z()
+  );
+}
+
 std::tuple<ic_core::system::InternalVec, ic_core::system::InternalVec, ic_core::system::InternalVec> 
 ic_core::system::createRotationABC(std::vector<InternalCoordinates::Rotations> & rotations) {
   ic_core::system::InternalVec resultA, resultB, resultC;

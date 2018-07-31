@@ -231,7 +231,7 @@ protected:
 
 class DistanceCreator : public InternalCoordinatesCreator {
 public:
-  DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgePosition{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
+  DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
 
   virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override {
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
@@ -249,7 +249,7 @@ protected:
     ++edgeIterators.first;
     return true;
   }
-  std::size_t source, target, edgePosition;
+  std::size_t source, target;
   std::pair<ic_util::Graph<ic_util::Node>::edge_iterator, ic_util::Graph<ic_util::Node>::edge_iterator> edgeIterators;
 };
 
@@ -318,23 +318,6 @@ inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
 system::create_angles(const Graph& g) const {
   AngleCreator ac(g);
   return ac.getInternals();
-
-  //using boost::adjacent_vertices;
-  //using boost::vertices;
-
-  //std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  //auto vert = vertices(g);
-  //for (auto it = vert.first; it != vert.second; ++it) {
-  //  auto a_vert = adjacent_vertices(*it, g);
-  //  for (auto it2 = a_vert.first; it2 != a_vert.second; ++it2) {
-  //    for (auto it3 = it2+1; it3 != a_vert.second; ++it3) {
-  //      //if (g[*it2].atom_serial < g[*it3].atom_serial) {
-  //       
-  //      //}
-  //    }
-  //  }
-  //}
-  //return result;
 }
 
 template<typename VertIter>
@@ -387,47 +370,53 @@ system::create_oops(const coords::Representation_3D& coords, const Graph& g) con
   return result;
 }
 
-template <typename Graph>
-inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
-system::create_dihedrals(const Graph& g) const {
-  using boost::adjacent_vertices;
-  using boost::edges;
-  using boost::source;
-  using boost::target;
-
-  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
-  auto ed = edges(g);
-  for (auto it = ed.first; it != ed.second; ++it) {
-    auto u = source(*it, g);
-    auto v = target(*it, g);
-    auto u_vert = adjacent_vertices(u, g);
-    for (auto u_vert_it = u_vert.first; u_vert_it != u_vert.second;
-         ++u_vert_it) {
-      auto v_vert = adjacent_vertices(v, g);
-      for (auto v_vert_it = v_vert.first; v_vert_it != v_vert.second;
-           ++v_vert_it) {
-        if (g[*u_vert_it].atom_serial != g[*v_vert_it].atom_serial &&
-            g[*u_vert_it].atom_serial != g[v].atom_serial &&
-            g[u].atom_serial != g[*v_vert_it].atom_serial) {
-          auto a_index = g[*u_vert_it].atom_serial;
-          auto b_index = g[u].atom_serial;
-          auto c_index = g[v].atom_serial;
-          auto d_index = g[*v_vert_it].atom_serial;
-          result.emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(a_index, b_index, c_index, d_index));
-        }
+class DihedralCreator : public DistanceCreator {
+public:
+  DihedralCreator(BondGraph const& graph) : DistanceCreator{ graph }, outerLeft{ 0u }, outerRight{ 0u } {}
+  virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override {
+    std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> result;
+    pointerToResult = &result;
+    while (nextEdgeDistances()) {
+      findLeftAndRightAtoms();
+    }
+    return result;
+  }
+protected:
+  void findLeftAndRightAtoms() {
+    auto leftVertices = boost::adjacent_vertices(source, bondGraph);
+    while (findLeftAtoms(leftVertices)) {
+      auto rightVertices = boost::adjacent_vertices(target, bondGraph);
+      while (findRightAtoms(rightVertices)) {
+        pointerToResult->emplace_back(std::make_unique<InternalCoordinates::DihedralAngle>(
+          bondGraph[outerLeft].atom_serial, bondGraph[source].atom_serial, bondGraph[target].atom_serial, bondGraph[outerRight].atom_serial));
       }
     }
   }
-  return result;
-}
+  bool findLeftAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & sourceNeighbors) {
+    if (sourceNeighbors.first == sourceNeighbors.second) return false;
+    outerLeft = *sourceNeighbors.first;
+    ++sourceNeighbors.first;
+    if (outerLeft == target) return findLeftAtoms(sourceNeighbors);
+    return true;
+  }
+  bool findRightAtoms(std::pair<BondGraph::adjacency_iterator, BondGraph::adjacency_iterator> & targetNeighbors) {
+    if (targetNeighbors.first == targetNeighbors.second) return false;
+    outerRight = *targetNeighbors.first;
+    ++targetNeighbors.first;
+    if (outerRight == source) return findRightAtoms(targetNeighbors);
+    return true;
+  }
 
-inline std::tuple<ic_core::system::InternalVec, ic_core::system::InternalVec, ic_core::system::InternalVec>
-system::create_translations() const {
-  return std::make_tuple(
-    create_trans_x(),
-    create_trans_y(),
-    create_trans_z()
-  );
+  std::size_t outerLeft, outerRight;
+
+  std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> * pointerToResult;
+};
+
+template <typename Graph>
+inline std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>
+system::create_dihedrals(const Graph& g) const {
+  DihedralCreator dc(g);
+  return dc.getInternals();
 }
 
 template <typename Graph>
