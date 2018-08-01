@@ -212,41 +212,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			mmc_big.e_head_tostream_short(std::cout);
 			mmc_big.e_tostream_short(std::cout);
 		}
-
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
-    {
-      if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_big.hsd");
-      if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_big.txt");
-      if (file_exists("charges.dat")) rename("charges.dat", "charges_big.dat");
-      if (file_exists("results.tag")) rename("results.tag", "results_big.tag");
-    }
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
-    {
-      std::string id = mmc_big.energyinterface()->id;
-      if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_big.xyz").c_str());
-      if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_big.out").c_str());
-      if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_big.arc").c_str());
-      if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_big_sys.out").c_str());
-      if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_big.xyz.out").c_str());
-      if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_big.xyz.aux").c_str());
-      if (file_exists("mol.in")) rename("mol.in", "mol_big.in");
-    }
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
-    {
-      std::string id = mmc_big.energyinterface()->id;
-      if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_big.gjf").c_str());
-      if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_big.log").c_str());
-      if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_big.gjf").c_str());
-      if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_big.log").c_str());
-    }
-    if (Config::get().energy.qmmm.mminterface == config::interface_types::T::PSI4)
-    {
-      std::string id = mmc_big.energyinterface()->id;
-      if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_big_inp.dat").c_str());
-      if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_big_out.dat").c_str());
-      if (file_exists("grid.dat")) rename("grid.dat", "grid_big.dat");
-      if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_big.dat");
-    }
 	}
 	catch (...)
 	{
@@ -346,41 +311,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			sec_middle.e_head_tostream_short(std::cout);
 			sec_middle.e_tostream_short(std::cout);
 		}
-
-		if (Config::get().energy.qmmm.seinterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
-		{
-			if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_intermediate.hsd");
-			if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_intermediate.txt");
-      if (file_exists("charges.dat")) rename("charges.dat", "charges_intermediate.dat");
-      if (file_exists("results.tag")) rename("results.tag", "results_intermediate.tag");
-		}
-    if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
-    {
-      std::string id = sec_middle.energyinterface()->id;
-      if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_intermediate.xyz").c_str());
-      if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_intermediate.out").c_str());
-      if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_intermediate.arc").c_str());
-      if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_intermediate_sys.out").c_str());
-      if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_intermediate.xyz.out").c_str());
-      if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_intermediate.xyz.aux").c_str());
-      if (file_exists("mol.in")) rename("mol.in", "mol_intermediate.in");
-    }
-    if (Config::get().energy.qmmm.seinterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
-    {
-      std::string id = sec_middle.energyinterface()->id;
-      if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_intermediate.gjf").c_str());
-      if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_intermediate.log").c_str());
-      if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_intermediate.gjf").c_str());
-      if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_intermediate.log").c_str());
-    }
-    if (Config::get().energy.qmmm.seinterface == config::interface_types::T::PSI4)
-    {
-      std::string id = sec_middle.energyinterface()->id;
-      if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_intermediate_inp.dat").c_str());
-      if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_intermediate_out.dat").c_str());
-      if (file_exists("grid.dat")) rename("grid.dat", "grid_intermediate.dat");
-      if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_intermediate.dat");
-    }
 	}
 	catch (...)
 	{
@@ -404,6 +334,41 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	//}
 
   // ############### MM ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
+
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
+  {
+    if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_big.hsd");
+    if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_big.txt");
+    if (file_exists("charges.dat")) rename("charges.dat", "charges_big.dat");
+    if (file_exists("results.tag")) rename("results.tag", "results_big.tag");
+  }
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
+  {
+    std::string id = mmc_big.energyinterface()->id;
+    if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_big.xyz").c_str());
+    if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_big.out").c_str());
+    if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_big.arc").c_str());
+    if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_big_sys.out").c_str());
+    if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_big.xyz.out").c_str());
+    if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_big.xyz.aux").c_str());
+    if (file_exists("mol.in")) rename("mol.in", "mol_big.in");
+  }
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
+  {
+    std::string id = mmc_big.energyinterface()->id;
+    if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_big.gjf").c_str());
+    if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_big.log").c_str());
+    if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_big.gjf").c_str());
+    if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_big.log").c_str());
+  }
+  if (Config::get().energy.qmmm.mminterface == config::interface_types::T::PSI4)
+  {
+    std::string id = mmc_big.energyinterface()->id;
+    if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_big_inp.dat").c_str());
+    if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_big_out.dat").c_str());
+    if (file_exists("grid.dat")) rename("grid.dat", "grid_big.dat");
+    if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_big.dat");
+  }
 
 	try {
 		if (!if_gradient)
@@ -617,6 +582,41 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	//}
 
 	// ############### SE ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
+
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
+  {
+    if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_intermediate.hsd");
+    if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_intermediate.txt");
+    if (file_exists("charges.dat")) rename("charges.dat", "charges_intermediate.dat");
+    if (file_exists("results.tag")) rename("results.tag", "results_intermediate.tag");
+  }
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
+  {
+    std::string id = sec_middle.energyinterface()->id;
+    if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_intermediate.xyz").c_str());
+    if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_intermediate.out").c_str());
+    if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_intermediate.arc").c_str());
+    if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_intermediate_sys.out").c_str());
+    if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_intermediate.xyz.out").c_str());
+    if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_intermediate.xyz.aux").c_str());
+    if (file_exists("mol.in")) rename("mol.in", "mol_intermediate.in");
+  }
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
+  {
+    std::string id = sec_middle.energyinterface()->id;
+    if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_intermediate.gjf").c_str());
+    if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_intermediate.log").c_str());
+    if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_intermediate.gjf").c_str());
+    if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_intermediate.log").c_str());
+  }
+  if (Config::get().energy.qmmm.seinterface == config::interface_types::T::PSI4)
+  {
+    std::string id = sec_middle.energyinterface()->id;
+    if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_intermediate_inp.dat").c_str());
+    if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_intermediate_out.dat").c_str());
+    if (file_exists("grid.dat")) rename("grid.dat", "grid_intermediate.dat");
+    if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_intermediate.dat");
+  }
 
 	try {
 		if (!if_gradient)
