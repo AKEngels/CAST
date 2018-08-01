@@ -210,7 +210,6 @@ TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
 
 MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {
   ic_util::Graph<ic_util::Node> graph{ createTestGraph() };
-  testSystem.create_ic_system(graph, cartesians);
 }
 
 void MatricesTest::bMatrixTest(){
@@ -267,6 +266,8 @@ void DelocalizedMatricesTest::delocalizedMatrixTest() {
   auto constexpr colsOfDelocalizedMatrix = 36u;
 
   auto expectedValuesForDelocalizedMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedMatrix, colsOfDelocalizedMatrix);
+
+  auto const& del = testSystem.getDelMat();
 
   EXPECT_EQ(testSystem.getDelMat(), expectedValuesForDelocalizedMatrix);
 }
