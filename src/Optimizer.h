@@ -1,3 +1,13 @@
+/**
+CAST 3
+Optimizer.h
+Purpose: Definition of the Optimizer for internal coordinates
+
+
+@author Julian Erdmannsdörfer
+@version 3.0
+*/
+
 #ifndef OPTIMIZER_H
 #define OPTIMIZER_H
 
@@ -7,14 +17,23 @@
 #include "scon_mathmatrix.h"
 
 class Optimizer {
-public:
-
-  Optimizer(internals::PrimitiveInternalCoordinates & internalSystem) : internalCoordinateSystem{internalSystem}{}
-
-  void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
 protected:
   using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
-  internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
+public:
+
+  Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
+    converter{ internalCoordinateSystem, cartesianCoordinates} {}
+
+  void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
+
+  scon::mathmatrix<coords::float_type>& getHessian() { return hessian; }
+  scon::mathmatrix<coords::float_type> const& getHessian() const { return hessian; };
+  template<typename Hessian>
+  typename std::enable_if<std::is_same<Hessian, scon::mathmatrix<coords::float_type>>::value>::type
+    setHessian(Hessian && newHessian) { hessian std::forward<Hessian>(newHessian); }
+  InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
+  
+protected:
   void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
@@ -22,6 +41,12 @@ protected:
   void applyHessianChange();
   void setNewToOldVariables();
   scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  
+  internals::InternalToCartesianConverter converter;
+
+  internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
+  CartesianType cartesianCoordinates;
+  scon::mathmatrix<coords::float_type> hessian;
 
   class ConvergenceCheck {
   public:
@@ -73,5 +98,4 @@ protected:
   SystemVariables currentVariables;
   std::unique_ptr<SystemVariables> oldVariables;
 };
-
 #endif

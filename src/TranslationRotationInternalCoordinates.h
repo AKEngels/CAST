@@ -1,3 +1,13 @@
+/**
+CAST 3
+TranslationRotationInternalCoordinates.h
+Purpose: Definition of the Rotation Translation Internal Coordinate System
+
+
+@author Julian Erdmannsdörfer, Michael Prem
+@version 3.0
+*/
+
 #ifndef TRANSLATION_ROTATION_INTERNAL_COORDINATES_H
 #define TRANSLATION_ROTATION_INTERNAL_COORDINATES_H
 
@@ -9,16 +19,16 @@ namespace internals {
   public:
     TRIC(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType const& xyz_init, BondGraph const& graph) : PrimitiveInternalCoordinates{ res_init, res_index, xyz_init } {
-      PrimitiveInternalCoordinates::create_ic_system(graph);
-      delocalize_ic_system();
+      CartesianType & xyz_init, BondGraph const& graph) : PrimitiveInternalCoordinates{ res_init, res_index, xyz_init, graph } {
+      PrimitiveInternalCoordinates::create_ic_system(graph, xyz_init);
+      delocalize_ic_system(xyz_init);
     }
 
 
-    scon::mathmatrix<coords::float_type>& Bmat() override;//F
-    scon::mathmatrix<coords::float_type>& Gmat() override;//F
-    scon::mathmatrix<coords::float_type>& delocalize_ic_system();//F
-    scon::mathmatrix<coords::float_type>& guess_hessian() override;
+    scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
+    scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians) override;//F
+    scon::mathmatrix<coords::float_type>& delocalize_ic_system(CartesianType const& cartesians);//F
+    scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const& cartesians) const override;
     scon::mathmatrix<coords::float_type> calc(coords::Representation_3D const& xyz) const override;//F
     scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const override;//F
 

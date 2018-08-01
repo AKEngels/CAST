@@ -74,10 +74,10 @@ namespace internals {
     return { std::move(resultA), std::move(resultB), std::move(resultC) };
   }
 
-  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec> PrimitiveInternalCoordinates::create_rotations() {
+  std::tuple<PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec, PrimitiveInternalCoordinates::InternalVec> PrimitiveInternalCoordinates::create_rotations(CartesianType & cartesians) {
     std::vector<InternalCoordinates::Rotations> result;
     for (auto const& indices : subSystemIndices) {
-      result.emplace_back(build_rotation(xyz_, indices)->makeRotations());
+      result.emplace_back(build_rotation(cartesians, indices)->makeRotations());
     }
     return createRotationABC(result);
   }
@@ -235,10 +235,10 @@ namespace internals {
     return dc.getInternals();
   }
 
-  void PrimitiveInternalCoordinates::create_ic_system(BondGraph const& g) {
+  void PrimitiveInternalCoordinates::create_ic_system(BondGraph const& g, CartesianType & cartesians) {
     append_primitives(create_distances(g));
     append_primitives(create_angles(g));
-    append_primitives(create_oops(xyz_, g));
+    append_primitives(create_oops(cartesians, g));
     append_primitives(create_dihedrals(g));
 
     //TODO own function for translations
@@ -251,36 +251,31 @@ namespace internals {
 
     //TODO own function for rotations
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> rotationA, rotationB, rotationC;
-    std::tie(rotationA, rotationB, rotationC) = create_rotations();
+    std::tie(rotationA, rotationB, rotationC) = create_rotations(cartesians);
 
     append_primitives(std::move(rotationA));
     append_primitives(std::move(rotationB));
     append_primitives(std::move(rotationC));
   }
 
-  scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::guess_hessian() {
+  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::guess_hessian(InternalCoordinates::CartesiansForInternalCoordinates const& cartesians) const {
     using Mat = scon::mathmatrix<coords::float_type>;
-    using scon::cross;
-    using scon::dot;
-    using scon::len;
 
     std::vector<coords::float_type> values;
     for (auto const & pic : primitive_internals) {
-      values.emplace_back(pic->hessian_guess(xyz_));
+      values.emplace_back(pic->hessian_guess(cartesians));
     }
 
-    hessian = Mat::col_from_vec(values).diagmat();
-
-    return hessian;
+    return Mat::col_from_vec(values).diagmat();
   }
 
-  scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Bmat() {
+  scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Bmat(CartesianType const& cartesians) {
     if (!new_B_matrix) {
       return B_matrix;
     }
     using Mat = scon::mathmatrix<coords::float_type>;
 
-    auto ders = deriv_vec();
+    auto ders = deriv_vec(cartesians);
 
     std::size_t n_rows = ders.size(), n_cols = ders.at(0).size();
     B_matrix = Mat(n_rows, n_cols);
@@ -293,21 +288,21 @@ namespace internals {
     return B_matrix;
   }
 
-  std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec() {
+  std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
     std::vector<std::vector<coords::float_type>> result;
 
     for (auto const& pic : primitive_internals) {
-      result.emplace_back(pic->der_vec(xyz_));
+      result.emplace_back(pic->der_vec(cartesians));
     }
 
     return result;
   }
 
-  scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Gmat() {
+  scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Gmat(CartesianType const& cartesians) {
     if (!new_G_matrix) {
       return G_matrix;
     }
-    PrimitiveInternalCoordinates::Bmat();
+    PrimitiveInternalCoordinates::Bmat(cartesians);
     G_matrix = B_matrix * B_matrix.t();
     new_G_matrix = false;
     return G_matrix;
@@ -353,7 +348,7 @@ namespace internals {
     return diff;
   }
 
-  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::calculate_internal_grads(scon::mathmatrix<coords::float_type> const& g) {
-    return Gmat().pinv() * Bmat() * g;
+  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalGradients(scon::mathmatrix<coords::float_type> const& g) {
+    return internalCoordinates.Gmat(cartesianCoordinates).pinv() * internalCoordinates.Bmat(cartesianCoordinates) * g;
   }
 }

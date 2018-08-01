@@ -2,11 +2,11 @@
 
 namespace internals {
 
-  scon::mathmatrix<coords::float_type>& TRIC::delocalize_ic_system() {
+  scon::mathmatrix<coords::float_type>& TRIC::delocalize_ic_system(CartesianType const& cartesians) {
     using Mat = scon::mathmatrix<coords::float_type>;
 
     Mat eigval, eigvec;
-    std::tie(eigval, eigvec) = PrimitiveInternalCoordinates::Gmat().eigensym(false);
+    std::tie(eigval, eigvec) = PrimitiveInternalCoordinates::Gmat(cartesians).eigensym(false);
 
     auto row_index_vec = eigval.sort_idx();
     auto col_index_vec = eigval.find_idx([](coords::float_type const & a) {
@@ -19,28 +19,27 @@ namespace internals {
   }
 
 
-  scon::mathmatrix<coords::float_type>& TRIC::Bmat() {
+  scon::mathmatrix<coords::float_type>& TRIC::Bmat(CartesianType const& cartesians) {
     if (!new_B_matrix) {
       return B_matrix;
     }
-    B_matrix = del_mat.t()*PrimitiveInternalCoordinates::Bmat();
+    B_matrix = del_mat.t()*PrimitiveInternalCoordinates::Bmat(cartesians);
     new_B_matrix = false;
     return B_matrix;
   }
 
-  scon::mathmatrix<coords::float_type>& TRIC::Gmat() {
+  scon::mathmatrix<coords::float_type>& TRIC::Gmat(CartesianType const& cartesians) {
     if (!new_G_matrix) {
       return G_matrix;
     }
-    Bmat();
+    Bmat(cartesians);
     G_matrix = B_matrix * B_matrix.t();
     new_G_matrix = false;
     return G_matrix;
   }
 
-  scon::mathmatrix<coords::float_type>& TRIC::guess_hessian() {
-    hessian = del_mat.t() * PrimitiveInternalCoordinates::guess_hessian() * del_mat;
-    return hessian;
+  scon::mathmatrix<coords::float_type> TRIC::guess_hessian(CartesianType const& cartesians) const {
+    return del_mat.t() * PrimitiveInternalCoordinates::guess_hessian(cartesians) * del_mat;
   }
 
   scon::mathmatrix<coords::float_type> TRIC::calc(coords::Representation_3D const& xyz) const {

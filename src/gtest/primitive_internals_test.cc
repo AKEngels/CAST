@@ -118,7 +118,7 @@ namespace {
 
 }
 
-PrimitiveInternalSetTest::PrimitiveInternalSetTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()),
+PrimitiveInternalSetTest::PrimitiveInternalSetTest() : cartesians{ createSystemOfTwoMethanolMolecules() }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()),
   systemGraph{ createTestGraph() }{}
 
 void PrimitiveInternalSetTest::distanceCreationTest() {
@@ -194,7 +194,7 @@ TEST_F(PrimitiveInternalSetTest, tarnslationZCreationTest) {
 }
 
 void PrimitiveInternalSetTest::rotationsCreationTest() {
-  auto rotations = testSystem.create_rotations();
+  auto rotations = testSystem.create_rotations(cartesians);
   auto expectedRotations = expectedRotationsForTwoMethanol();
   for (auto i = 0u; i < expectedRotations.size(); ++i) {
     auto currentExpectedRotations = expectedRotations.at(i)->makeRotations();
@@ -208,9 +208,9 @@ TEST_F(PrimitiveInternalSetTest, rotationsCreationTest) {
   rotationsCreationTest();
 }
 
-MatricesTest::MatricesTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules()/energy::bohr2ang) {
+MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {
   ic_util::Graph<ic_util::Node> graph{ createTestGraph() };
-  testSystem.create_ic_system(graph);
+  testSystem.create_ic_system(graph, cartesians);
 }
 
 void MatricesTest::bMatrixTest(){
@@ -221,7 +221,7 @@ void MatricesTest::bMatrixTest(){
 
   auto expectedValuesForTheBmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfBmatrix, colsOfBmatrix);
 
-  EXPECT_EQ(testSystem.Bmat(), expectedValuesForTheBmatrix);
+  EXPECT_EQ(testSystem.Bmat(cartesians), expectedValuesForTheBmatrix);
 }
 
 TEST_F(MatricesTest, bMatrixTest) {
@@ -236,7 +236,7 @@ void MatricesTest::gMatrixTest() {
 
   auto expectedValuesForTheGmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfGmatrix, colsOfGmatrix);
 
-  EXPECT_EQ(testSystem.Gmat(), expectedValuesForTheGmatrix);
+  EXPECT_EQ(testSystem.Gmat(cartesians), expectedValuesForTheGmatrix);
 }
 
 TEST_F(MatricesTest, gMatrixTest) {
@@ -251,14 +251,14 @@ void MatricesTest::hessianGuessTest() {
 
   auto expectedValuesForHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfHessian, colsOfHessian);
 
-  EXPECT_EQ(testSystem.guess_hessian(), expectedValuesForHessian);
+  EXPECT_EQ(testSystem.guess_hessian(cartesians), expectedValuesForHessian);
 }
 
 TEST_F(MatricesTest, hessianGuessTest) {
   hessianGuessTest();
 }
 
-DelocalizedMatricesTest::DelocalizedMatricesTest() : testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, createSystemOfTwoMethanolMolecules() / energy::bohr2ang, createTestGraph()) {}
+DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {}
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
   std::istringstream iss(exampleDelocalizedMatrixForTwoMethanols());
@@ -283,7 +283,7 @@ void DelocalizedMatricesTest::delocalizedBMatrixTest() {
 
   auto expectedValuesForDelocalizedBMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedBMatrix, colsOfDelocalizedBMatrix);
 
-  EXPECT_EQ(testSystem.Bmat(), expectedValuesForDelocalizedBMatrix);
+  EXPECT_EQ(testSystem.Bmat(cartesians), expectedValuesForDelocalizedBMatrix);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
@@ -298,7 +298,7 @@ void DelocalizedMatricesTest::delocalizedGMatrixTest() {
 
   auto expectedValuesForDelocalizedGMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedGMatrix, colsOfDelocalizedGMatrix);
 
-  EXPECT_EQ(testSystem.Gmat(), expectedValuesForDelocalizedGMatrix);
+  EXPECT_EQ(testSystem.Gmat(cartesians), expectedValuesForDelocalizedGMatrix);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
@@ -313,41 +313,43 @@ void DelocalizedMatricesTest::delocalizedInitialHessianTest() {
 
   auto expectedValuesForDelocalizedInitialHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedInitialHessian, colsOfDelocalizedInitialHessian);
 
-  EXPECT_EQ(testSystem.guess_hessian(), expectedValuesForDelocalizedInitialHessian);
+  EXPECT_EQ(testSystem.guess_hessian(cartesians), expectedValuesForDelocalizedInitialHessian);
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
   delocalizedInitialHessianTest();
 }
 
-void DelocalizedMatricesTest::calculateInternalGradsTest() {
-  EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), testSystem.calculate_internal_grads(gradientsOfTwoMethanolMolecules()));
+ConverterMatricesTest::ConverterMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()), converter{testSystem, cartesians }  {}
+
+
+void ConverterMatricesTest::calculateInternalGradsTest() {
+  EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), converter.calculateInternalGradients(gradientsOfTwoMethanolMolecules()));
 }
 
-TEST_F(DelocalizedMatricesTest, calculateInternalGradsTest) {
+TEST_F(ConverterMatricesTest, calculateInternalGradsTest) {
   calculateInternalGradsTest();
 }
 
-void DelocalizedMatricesTest::getInternalStepTest() {
-  testSystem.guess_hessian();
-  EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), testSystem.get_internal_step(internalGradientsOfTwoMethanolMolecules()));
+void ConverterMatricesTest::getInternalStepTest() {
+  EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), converter.getInternalStep(internalGradientsOfTwoMethanolMolecules(), testSystem.guess_hessian(cartesians)));
 }
 
-TEST_F(DelocalizedMatricesTest, getInternalStepTest) {
+TEST_F(ConverterMatricesTest, getInternalStepTest) {
   getInternalStepTest();
 }
 
-void DelocalizedMatricesTest::applyInternalChangeTest() {
-  testSystem.apply_internal_change(internalInitialStepOfTwoMethanolMolecules());
+void ConverterMatricesTest::applyInternalChangeTest() {
+  converter.applyInternalChange(internalInitialStepOfTwoMethanolMolecules());
 
   auto expectedChangeAfterFirstStep = cartesianChangeOfTwoMethanolMoleculesAfterFirstStep();
 
   for (auto i = 0u; i < expectedChangeAfterFirstStep.size(); ++i) {
-    isCartesianPointNear(testSystem.getXyz().at(i), expectedChangeAfterFirstStep.at(i));
+    isCartesianPointNear(cartesians.at(i), expectedChangeAfterFirstStep.at(i));
   }
 }
 
-TEST_F(DelocalizedMatricesTest, applyInternalChangeTest) {
+TEST_F(ConverterMatricesTest, applyInternalChangeTest) {
   applyInternalChangeTest();
 }
 

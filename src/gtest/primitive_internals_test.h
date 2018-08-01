@@ -11,11 +11,13 @@
 #include"../coords.h"
 #include"../PrimitiveInternalCoordinates.h"
 #include"../TranslationRotationInternalCoordinates.h"
+#include"../InternalCoordinates.h"
 #include"TestFiles/ExpectedValuesForInternalCoordinatesTest.h"
 
 class PrimitiveInternalSetTest : public testing::Test {
 public:
   PrimitiveInternalSetTest();
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   internals::PrimitiveInternalCoordinates testSystem;
   ic_util::Graph<ic_util::Node> systemGraph;
   void distanceCreationTest();
@@ -30,6 +32,7 @@ public:
 class MatricesTest : public testing::Test {
 public:
   MatricesTest();
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   internals::PrimitiveInternalCoordinates testSystem;
 
   void bMatrixTest();
@@ -45,13 +48,23 @@ public:
   void delocalizedBMatrixTest();
   void delocalizedGMatrixTest();
   void delocalizedInitialHessianTest();
-  void calculateInternalGradsTest();
-  void getInternalStepTest(); 
-  void applyInternalChangeTest();
   void internalDifferencesTest();
   void internalValuesForTricTest();
 
+
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   internals::TRIC testSystem;
+};
+
+class ConverterMatricesTest : public testing::Test {
+public:
+  ConverterMatricesTest();
+  void calculateInternalGradsTest();
+  void getInternalStepTest();
+  void applyInternalChangeTest();
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
+  internals::TRIC testSystem;
+  internals::InternalToCartesianConverter converter;
 };
 
 #endif

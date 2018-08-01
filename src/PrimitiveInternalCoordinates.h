@@ -1,3 +1,13 @@
+/**
+CAST 3
+PrimitiveInternalCoordinates.h
+Purpose: Definition of primitive Internal Coordinate Systems
+
+
+@author Julian Erdmannsdörfer, Michael Prem
+@version 3.0
+*/
+
 #ifndef PRIMITIVE_INTERNAL_COORDINATES_H
 #define PRIMITIVE_INTERNAL_COORDINATES_H
 
@@ -16,26 +26,33 @@ namespace internals {
   public:
     PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType const& xyz_init)
-      : res_vec_{ res_init }, subSystemIndices{ res_index }, xyz_{ xyz_init } {}
+      CartesianType & xyz_init, BondGraph const& graph)
+      : res_vec_{ res_init }, subSystemIndices{ res_index } {
+      create_ic_system(graph, xyz_init);
+    }
+    virtual ~PrimitiveInternalCoordinates() = default;
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
     std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
+
+    void requestNewBAndG(){
+     new_B_matrix = true;
+     new_G_matrix = true;
+    }
 
   protected:
 
     const std::vector<coords::Representation_3D> res_vec_;
     const std::vector<std::vector<std::size_t>> subSystemIndices;
-    CartesianType xyz_;
+    //CartesianType xyz_;
     std::vector<std::shared_ptr<InternalCoordinates::Rotator>> registeredRotators;
 
     scon::mathmatrix<coords::float_type> B_matrix;
     scon::mathmatrix<coords::float_type> G_matrix;
     scon::mathmatrix<coords::float_type> hessian;
 
-    std::vector<std::vector<coords::float_type>> deriv_vec();
-    template<typename XYZ>
-    coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    std::vector<std::vector<coords::float_type>> deriv_vec(CartesianType const& cartesians);
+    
 
     static std::vector<std::vector<std::size_t>> possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend);
     std::shared_ptr<InternalCoordinates::Rotator> build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target,
@@ -100,8 +117,6 @@ namespace internals {
   public:
     void append_primitives(InternalVec && pic);
 
-    CartesianType const& getXyz() const { return xyz_; }
-
     InternalVec create_distances(BondGraph const&) const;
     InternalVec create_angles(BondGraph const&) const;
     InternalVec create_oops(coords::Representation_3D const&, BondGraph const&) const;
@@ -116,49 +131,52 @@ namespace internals {
     std::tuple<InternalVec, InternalVec, InternalVec>
       createRotationABC(std::vector<InternalCoordinates::Rotations> & rotations);
     std::tuple<InternalVec, InternalVec, InternalVec>
-      create_rotations();
+      create_rotations(CartesianType & cartesians);
 
-    void create_ic_system(BondGraph const&);
+    void create_ic_system(BondGraph const&, CartesianType &);
 
     virtual scon::mathmatrix<coords::float_type> calc(coords::Representation_3D const& xyz) const;//F
     virtual scon::mathmatrix<coords::float_type> calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const;//F
 
-    virtual scon::mathmatrix<coords::float_type>& guess_hessian();//F
-    virtual scon::mathmatrix<coords::float_type>& Bmat();//F
-    virtual scon::mathmatrix<coords::float_type>& Gmat();//F
+    virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const;//F
+    virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);//F
+    virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
 
-    scon::mathmatrix<coords::float_type>& getHessian() { return hessian; }
-    scon::mathmatrix<coords::float_type> const& getHessian() const { return hessian; }; 
-    template<typename Hessian>
-    /*typename std::enable_if<std::is_same<Hessian, scon::Mathmatrix<coords::float_type>::value>::type*/ void
-      setHessian(Hessian && newHessian) { hessian std::forward<Hessian>(newHessian); }
-
-    scon::mathmatrix<coords::float_type> calculate_internal_grads(scon::mathmatrix<coords::float_type> const&);//F
-    template<typename Gint>
-    scon::mathmatrix<coords::float_type> get_internal_step(Gint&&);//F
-    template<typename Dint>
-    void apply_internal_change(Dint&&);//F
-    template<typename Dcart>
-    coords::Representation_3D& take_Cartesian_step(Dcart&& d_cart);
   };
 
-  template<typename XYZ>
-  coords::Representation_3D& PrimitiveInternalCoordinates::set_xyz(XYZ&& new_xyz) {
-    new_B_matrix = true;
-    new_G_matrix = true;
-    return xyz_.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
-  }
+
+  class InternalToCartesianConverter {
+  public:
+    InternalToCartesianConverter(PrimitiveInternalCoordinates & internals,
+      InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
+
+    scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
+    template<typename Gint>
+    scon::mathmatrix<coords::float_type> getInternalStep(Gint&&, scon::mathmatrix<coords::float_type> const&);//F
+    template<typename Dint>
+    void applyInternalChange(Dint&&);//F
+    template<typename XYZ>
+    coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+  protected:
+    PrimitiveInternalCoordinates & internalCoordinates;
+    InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
+  private:
+    template<typename Dcart>
+    coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
+  };
+
+  
 
   template<typename Gint>
-  inline scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::get_internal_step(Gint&& g_int) {
+  inline scon::mathmatrix<coords::float_type> InternalToCartesianConverter::getInternalStep(Gint&& g_int, scon::mathmatrix<coords::float_type> const& hessian) {
     return -1.*hessian.pinv()*g_int;
   }
 
   template<typename Dint>
-  inline void PrimitiveInternalCoordinates::apply_internal_change(Dint&& d_int) {
+  inline void InternalToCartesianConverter::applyInternalChange(Dint&& d_int) {
     using ic_util::flatten_c3_vec;
 
-    auto old_xyz = xyz_;
+    auto old_xyz = cartesianCoordinates;
     coords::Representation_3D first_struct, last_good_xyz;
     auto d_int_left = std::forward<Dint>(d_int);
     auto micro_iter{ 0 }, fail_count{ 0 };
@@ -166,20 +184,20 @@ namespace internals {
     auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
     for (; micro_iter < 50; ++micro_iter) {
 
-      take_Cartesian_step(damp*Bmat().t()*Gmat().pinv()*d_int_left); //should it not be G^-1*B^T?
+      takeCartesianStep(damp*internalCoordinates.Bmat(cartesianCoordinates).t()*internalCoordinates.Gmat(cartesianCoordinates).pinv()*d_int_left); //should it not be G^-1*B^T?
                                                                      //std::cout << "Cartesian:\n" << xyz_ << std::endl;
 
-      auto d_now = calc_diff(xyz_, old_xyz);
+      auto d_now = internalCoordinates.calc_diff(cartesianCoordinates, old_xyz);
       //std::cout << "Diff internal coordinates:\n" << d_now << std::endl;
 
       auto d_int_remain = d_int_left - d_now;
-      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - xyz_).rmsd();
+      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - cartesianCoordinates).rmsd();
       auto internal_norm = d_int_remain.norm();
       //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
       //std::cout << "internal norm: " << internal_norm << "\n\n";
       if (micro_iter == 0) {
-        first_struct = xyz_;
-        last_good_xyz = xyz_;
+        first_struct = cartesianCoordinates;
+        last_good_xyz = cartesianCoordinates;
         old_rmsd = cartesian_rmsd;
         old_inorm = internal_norm;
       }
@@ -193,7 +211,7 @@ namespace internals {
           damp = std::min(1.2*damp, 1.);
           old_rmsd = cartesian_rmsd;
           old_inorm = internal_norm;
-          last_good_xyz = xyz_;
+          last_good_xyz = cartesianCoordinates;
         }
       }
       if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
@@ -202,20 +220,27 @@ namespace internals {
       }
       else if (fail_count >= 10) {
         std::cout << "Failed ten times to converge.\n";
-        xyz_ = first_struct;
+        cartesianCoordinates = first_struct;
         return;
       }
 
-      old_xyz = xyz_;
+      old_xyz = cartesianCoordinates;
       d_int_left = std::move(d_int_remain);
     }
     std::cout << "Took all " << micro_iter + 1 << " steps, still not converged.\n";
   }
 
+
   template<typename Dcart>
-  coords::Representation_3D& PrimitiveInternalCoordinates::take_Cartesian_step(Dcart&& d_cart) {
+  coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(Dcart&& d_cart) {
     auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
-    return set_xyz(xyz_ + d_cart_rep3D);
+    return set_xyz(cartesianCoordinates + d_cart_rep3D);
+  }
+
+  template<typename XYZ>
+  coords::Representation_3D& InternalToCartesianConverter::set_xyz(XYZ&& new_xyz) {
+    internalCoordinates.requestNewBAndG();
+    return cartesianCoordinates.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
   }
 }
 

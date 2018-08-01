@@ -31,7 +31,7 @@ std::pair<coords::float_type, coords::float_type> Optimizer::displacementRmsValA
 }
 
 std::pair<coords::float_type, coords::float_type> Optimizer::displacementRmsValAndMax()const {
-  return displacementRmsValAndMaxTwoStructures(oldVariables->systemCartesianRepresentation, internalCoordinateSystem.getXyz());
+  return displacementRmsValAndMaxTwoStructures(oldVariables->systemCartesianRepresentation, cartesianCoordinates);
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
@@ -111,13 +111,13 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
 void Optimizer::initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
   setCartesianCoordinatesForGradientCalculation(coords);
-  internalCoordinateSystem.guess_hessian();
+  internalCoordinateSystem.guess_hessian(cartesianCoordinates);
 
   prepareOldVariablesPtr(coords);
 }
 
 void Optimizer::setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
-  coords.set_xyz(ic_core::rep3d_bohr_to_ang(internalCoordinateSystem.getXyz()));
+  coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
 
 void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
@@ -127,17 +127,17 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
   auto cartesianGradients = scon::mathmatrix<coords::float_type>::col_from_vec(ic_util::flatten_c3_vec(
     ic_core::grads_to_bohr(coords.g_xyz())
   ));
-  oldVariables->systemCartesianRepresentation = internalCoordinateSystem.getXyz();
-  oldVariables->systemGradients = internalCoordinateSystem.calculate_internal_grads(cartesianGradients);
+  oldVariables->systemCartesianRepresentation = cartesianCoordinates;
+  oldVariables->systemGradients = converter.calculateInternalGradients(cartesianGradients);
 }
 
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
-  auto dq_step = internalCoordinateSystem.get_internal_step(oldVariables->systemGradients);
+  auto dq_step = converter.getInternalStep(oldVariables->systemGradients, hessian);
 
   //std::cout << "U:\n" << del_mat << "\n\n";
-  internalCoordinateSystem.apply_internal_change(dq_step);
+  converter.applyInternalChange(dq_step);
 
-  coords.set_xyz(ic_core::rep3d_bohr_to_ang(internalCoordinateSystem.getXyz()));
+  coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
 
 scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
@@ -146,7 +146,7 @@ scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCar
     ic_core::grads_to_bohr(coords.g_xyz())
   ));
 
-  currentVariables.systemGradients = internalCoordinateSystem.calculate_internal_grads(cartesianGradients);
+  currentVariables.systemGradients = converter.calculateInternalGradients(cartesianGradients);
 
   return cartesianGradients;
 }
@@ -154,14 +154,14 @@ scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCar
 
 void Optimizer::applyHessianChange() {
   auto d_gq = currentVariables.systemGradients - oldVariables->systemGradients;
-  auto dq = internalCoordinateSystem.calc_diff(internalCoordinateSystem.getXyz(), oldVariables->systemCartesianRepresentation);
+  auto dq = internalCoordinateSystem.calc_diff(cartesianCoordinates, oldVariables->systemCartesianRepresentation);
   auto term1 = (d_gq*d_gq.t()) / (d_gq.t()*dq)(0, 0);
-  auto term2 = ((internalCoordinateSystem.getHessian()*dq)*(dq.t()*internalCoordinateSystem.getHessian())) / (dq.t()*internalCoordinateSystem.getHessian()*dq)(0, 0);
-  internalCoordinateSystem.getHessian() += term1 - term2;
+  auto term2 = ((hessian*dq)*(dq.t()*hessian)) / (dq.t()*hessian*dq)(0, 0);
+  hessian += term1 - term2;
 }
 
 void Optimizer::setNewToOldVariables() {
   oldVariables->systemEnergy = currentVariables.systemEnergy;
-  oldVariables->systemCartesianRepresentation = internalCoordinateSystem.getXyz();
+  oldVariables->systemCartesianRepresentation = cartesianCoordinates;
   oldVariables->systemGradients = std::move(currentVariables.systemGradients);
 }

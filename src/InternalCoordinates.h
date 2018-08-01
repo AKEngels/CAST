@@ -11,6 +11,7 @@ namespace InternalCoordinates {
 
   class AbstractGeometryObserver {
   public:
+    virtual ~AbstractGeometryObserver() = default;
     virtual void update() = 0;
   protected:
     virtual void notify() = 0;
@@ -23,6 +24,7 @@ namespace InternalCoordinates {
 
   class RotatorObserver : public AbstractGeometryObserver {
   public:
+    virtual ~RotatorObserver() = default;
     void setNewRotator(std::shared_ptr<AbstractRotatorListener> const rotator);
     void update() override;
   private:
@@ -59,6 +61,7 @@ namespace InternalCoordinates {
     virtual std::vector<coords::float_type> der_vec(coords::Representation_3D const& cartesians) const = 0;
     virtual coords::float_type hessian_guess(coords::Representation_3D const& cartesians) const = 0;
     virtual std::string info(coords::Representation_3D const & cartesians) const = 0;
+    virtual ~InternalCoordinate() = default;
   };
 
   struct BondDistance : public InternalCoordinate {
@@ -82,13 +85,9 @@ namespace InternalCoordinates {
 
   private:
     bool bothElementsInPeriodOne(ic_atom::period const atomA, ic_atom::period const atomB)const;
-
     bool oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
-
     bool oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
-
     bool bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB)const;
-
     bool oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB)const;
   };
 
@@ -123,6 +122,7 @@ namespace InternalCoordinates {
       Atom const& rightAtom, Atom const& outerRightAtom)
       : index_a_{ outerLeftAtom.atom_serial },
       index_b_{ leftAtom.atom_serial }, index_c_{ rightAtom.atom_serial }, index_d_{ outerRightAtom.atom_serial } {}
+    virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
     std::tuple<coords::r3, coords::r3, coords::r3, coords::r3>
@@ -149,6 +149,7 @@ namespace InternalCoordinates {
   struct Translations : public InternalCoordinates::InternalCoordinate {
     Translations(std::vector<std::size_t> const& index_vec)
       : indices_(index_vec) {}
+    virtual ~Translations() = default;
 
     std::vector<std::size_t> indices_;
 

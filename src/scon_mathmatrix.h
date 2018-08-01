@@ -9,7 +9,7 @@ available. Otherwise uses slow internal routines.
 Works on either internal scon::matrix types or arma::Mat types if
 the flag USE_ARMADILLO is specified
 
-@author Dustin Kaiser
+@author Julian Erdmannsdörfer, Dustin Kaiser
 @version 3.0
 */
 
