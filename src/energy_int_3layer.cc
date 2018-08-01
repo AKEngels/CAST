@@ -533,7 +533,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			auto g_qm_small = qmc.g_xyz();        // get gradients
 			for (auto&& qmi : qm_indices)
 			{
-				new_grads[qmi] += g_qm_small[new_indices_middle[qmi]];
+				new_grads[qmi] += g_qm_small[new_indices_qm[qmi]];
 			}
 
 			for (auto i = 0u; i < link_atoms_small.size(); ++i)   // take into account link atoms
