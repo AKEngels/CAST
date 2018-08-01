@@ -121,7 +121,10 @@ namespace energy
 
     /**total energy, in dftbaby interface this is called e_tot*/
     coords::float_type energy;
+		/**???*/
     coords::Cartesian_Point pb_max, pb_min, pb_dim;
+		/**name of input and output files in some interfaces (GAUSSIAN, PSI4, MOPAC)*/
+		std::string id;
 
     interface_base (coords::Coordinates *coord_pointer) :
       coords(coord_pointer), periodic(false), integrity(true),
