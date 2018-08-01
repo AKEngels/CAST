@@ -217,6 +217,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     {
       if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_big.hsd");
       if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_big.txt");
+      if (file_exists("charges.dat")) rename("charges.dat", "charges_big.dat");
+      if (file_exists("results.tag")) rename("results.tag", "results_big.tag");
     }
     if (Config::get().energy.qmmm.mminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
     {
@@ -349,6 +351,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		{
 			if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", "dftb_in_intermediate.hsd");
 			if (file_exists("output_dftb.txt")) rename("output_dftb.txt", "output_dftb_intermediate.txt");
+      if (file_exists("charges.dat")) rename("charges.dat", "charges_intermediate.dat");
+      if (file_exists("results.tag")) rename("results.tag", "results_intermediate.tag");
 		}
     if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
     {
