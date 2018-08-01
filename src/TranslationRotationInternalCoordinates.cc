@@ -6,7 +6,7 @@ namespace internals {
     using Mat = scon::mathmatrix<coords::float_type>;
 
     Mat eigval, eigvec;
-    std::tie(eigval, eigvec) = system::Gmat().eigensym(false);
+    std::tie(eigval, eigvec) = PrimitiveInternalCoordinates::Gmat().eigensym(false);
 
     auto row_index_vec = eigval.sort_idx();
     auto col_index_vec = eigval.find_idx([](coords::float_type const & a) {
@@ -23,7 +23,7 @@ namespace internals {
     if (!new_B_matrix) {
       return B_matrix;
     }
-    B_matrix = del_mat.t()*system::Bmat();
+    B_matrix = del_mat.t()*PrimitiveInternalCoordinates::Bmat();
     new_B_matrix = false;
     return B_matrix;
   }
@@ -39,17 +39,17 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type>& TRIC::guess_hessian() {
-    hessian = del_mat.t() * system::guess_hessian() * del_mat;
+    hessian = del_mat.t() * PrimitiveInternalCoordinates::guess_hessian() * del_mat;
     return hessian;
   }
 
   scon::mathmatrix<coords::float_type> TRIC::calc(coords::Representation_3D const& xyz) const {
-    auto prims = system::calc(xyz);
+    auto prims = PrimitiveInternalCoordinates::calc(xyz);
     return (prims * del_mat).t();
   }
 
   scon::mathmatrix<coords::float_type> TRIC::calc_diff(coords::Representation_3D const& lhs, coords::Representation_3D const& rhs) const {
-    auto diff = system::calc_diff(lhs, rhs);
+    auto diff = PrimitiveInternalCoordinates::calc_diff(lhs, rhs);
     return (diff * del_mat).t();
   }
 }

@@ -8,13 +8,13 @@
 
 
 namespace internals {
-  class system {
+  class PrimitiveInternalCoordinates {
   protected:
     using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
     using BondGraph = ic_util::Graph<ic_util::Node>;
     using InternalVec = std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>>;
   public:
-    system(const std::vector<coords::Representation_3D>& res_init,
+    PrimitiveInternalCoordinates(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
       CartesianType const& xyz_init)
       : res_vec_{ res_init }, subSystemIndices{ res_index }, xyz_{ xyz_init } {}
@@ -143,19 +143,19 @@ namespace internals {
   };
 
   template<typename XYZ>
-  coords::Representation_3D& system::set_xyz(XYZ&& new_xyz) {
+  coords::Representation_3D& PrimitiveInternalCoordinates::set_xyz(XYZ&& new_xyz) {
     new_B_matrix = true;
     new_G_matrix = true;
     return xyz_.setCartesianCoordnates(std::forward<XYZ>(new_xyz));
   }
 
   template<typename Gint>
-  inline scon::mathmatrix<coords::float_type> system::get_internal_step(Gint&& g_int) {
+  inline scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::get_internal_step(Gint&& g_int) {
     return -1.*hessian.pinv()*g_int;
   }
 
   template<typename Dint>
-  inline void system::apply_internal_change(Dint&& d_int) {
+  inline void PrimitiveInternalCoordinates::apply_internal_change(Dint&& d_int) {
     using ic_util::flatten_c3_vec;
 
     auto old_xyz = xyz_;
@@ -213,7 +213,7 @@ namespace internals {
   }
 
   template<typename Dcart>
-  coords::Representation_3D& system::take_Cartesian_step(Dcart&& d_cart) {
+  coords::Representation_3D& PrimitiveInternalCoordinates::take_Cartesian_step(Dcart&& d_cart) {
     auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
     return set_xyz(xyz_ + d_cart_rep3D);
   }

@@ -9,12 +9,12 @@
 class Optimizer {
 public:
 
-  Optimizer(internals::system & internalSystem) : internalCoordinateSystem{internalSystem}{}
+  Optimizer(internals::PrimitiveInternalCoordinates & internalSystem) : internalCoordinateSystem{internalSystem}{}
 
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
 protected:
   using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
-  internals::system & internalCoordinateSystem;
+  internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
   void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);

@@ -16,7 +16,7 @@
 class PrimitiveInternalSetTest : public testing::Test {
 public:
   PrimitiveInternalSetTest();
-  internals::system testSystem;
+  internals::PrimitiveInternalCoordinates testSystem;
   ic_util::Graph<ic_util::Node> systemGraph;
   void distanceCreationTest();
   void bondAngleCreationTest();
@@ -30,7 +30,7 @@ public:
 class MatricesTest : public testing::Test {
 public:
   MatricesTest();
-  internals::system testSystem;
+  internals::PrimitiveInternalCoordinates testSystem;
 
   void bMatrixTest();
   void gMatrixTest();

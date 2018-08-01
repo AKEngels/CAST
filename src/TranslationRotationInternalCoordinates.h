@@ -5,12 +5,12 @@
 
 namespace internals {
 
-  class TRIC : public system {
+  class TRIC : public PrimitiveInternalCoordinates {
   public:
     TRIC(const std::vector<coords::Representation_3D>& res_init,
       const std::vector<std::vector<std::size_t>>& res_index,
-      CartesianType const& xyz_init, BondGraph const& graph) : system{ res_init, res_index, xyz_init } {
-      system::create_ic_system(graph);
+      CartesianType const& xyz_init, BondGraph const& graph) : PrimitiveInternalCoordinates{ res_init, res_index, xyz_init } {
+      PrimitiveInternalCoordinates::create_ic_system(graph);
       delocalize_ic_system();
     }
 
