@@ -641,7 +641,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 				LinkAtom l = link_atoms_middle[i];
 
 				coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
-				auto link_atom_grad = g_se_small[qm_se_indices.size() + i];
+				auto link_atom_grad = g_se_small[qm_indices.size() + i];
 				qmmm_helpers::calc_link_atom_grad(l, link_atom_grad, coords, g_qm, g_mm);
 				new_grads[l.qm] -= g_qm;
 				new_grads[l.mm] -= g_mm;
