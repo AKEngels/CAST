@@ -307,7 +307,7 @@ namespace internals {
     if (!new_G_matrix) {
       return G_matrix;
     }
-    Bmat();
+    system::Bmat();
     G_matrix = B_matrix * B_matrix.t();
     new_G_matrix = false;
     return G_matrix;

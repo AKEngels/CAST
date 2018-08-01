@@ -329,9 +329,7 @@ TEST_F(DelocalizedMatricesTest, calculateInternalGradsTest) {
 }
 
 void DelocalizedMatricesTest::getInternalStepTest() {
-  std::ofstream ofs("InternalStep");
-  ofs << std::setprecision(15) << testSystem.get_internal_step(internalGradientsOfTwoMethanolMolecules());
-
+  testSystem.guess_hessian();
   EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), testSystem.get_internal_step(internalGradientsOfTwoMethanolMolecules()));
 }
 

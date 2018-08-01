@@ -6,7 +6,7 @@ namespace internals {
     using Mat = scon::mathmatrix<coords::float_type>;
 
     Mat eigval, eigvec;
-    std::tie(eigval, eigvec) = Gmat().eigensym(false);
+    std::tie(eigval, eigvec) = system::Gmat().eigensym(false);
 
     auto row_index_vec = eigval.sort_idx();
     auto col_index_vec = eigval.find_idx([](coords::float_type const & a) {
@@ -39,7 +39,7 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type>& TRIC::guess_hessian() {
-    hessian = del_mat.t() * guess_hessian() * del_mat;
+    hessian = del_mat.t() * system::guess_hessian() * del_mat;
     return hessian;
   }
 
