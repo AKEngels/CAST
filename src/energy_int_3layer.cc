@@ -344,28 +344,28 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   }
   if (Config::get().energy.qmmm.mminterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
   {
-    std::string id = mmc_big.energyinterface()->id;
-    if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_big.xyz").c_str());
-    if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_big.out").c_str());
-    if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_big.arc").c_str());
-    if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_big_sys.out").c_str());
-    if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_big.xyz.out").c_str());
-    if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_big.xyz.aux").c_str());
+    std::string new_id = mmc_big.energyinterface()->id;
+    if (file_exists(new_id + ".xyz")) rename((new_id + ".xyz").c_str(), (new_id + "_big.xyz").c_str());
+    if (file_exists(new_id + ".out")) rename((new_id + ".out").c_str(), (new_id + "_big.out").c_str());
+    if (file_exists(new_id + ".arc")) rename((new_id + ".arc").c_str(), (new_id + "_big.arc").c_str());
+    if (file_exists(new_id + "_sys.out")) rename((new_id + "_sys.out").c_str(), (new_id + "_big_sys.out").c_str());
+    if (file_exists(new_id + ".xyz.out")) rename((new_id + ".xyz.out").c_str(), (new_id + "_big.xyz.out").c_str());
+    if (file_exists(new_id + ".xyz.aux")) rename((new_id + ".xyz.aux").c_str(), (new_id + "_big.xyz.aux").c_str());
     if (file_exists("mol.in")) rename("mol.in", "mol_big.in");
   }
   if (Config::get().energy.qmmm.mminterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
   {
-    std::string id = mmc_big.energyinterface()->id;
-    if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_big.gjf").c_str());
-    if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_big.log").c_str());
-    if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_big.gjf").c_str());
-    if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_big.log").c_str());
+    std::string new_id = mmc_big.energyinterface()->id;
+    if (file_exists(new_id + ".gjf")) rename((new_id + ".gjf").c_str(), (new_id + "_big.gjf").c_str());
+    if (file_exists(new_id + ".log")) rename((new_id + ".log").c_str(), (new_id + "_big.log").c_str());
+    if (file_exists(new_id + "_G_.gjf")) rename((new_id + "_G_.gjf").c_str(), (new_id + "_G_big.gjf").c_str());
+    if (file_exists(new_id + "_G_.log")) rename((new_id + "_G_.log").c_str(), (new_id + "_G_big.log").c_str());
   }
   if (Config::get().energy.qmmm.mminterface == config::interface_types::T::PSI4)
   {
-    std::string id = mmc_big.energyinterface()->id;
-    if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_big_inp.dat").c_str());
-    if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_big_out.dat").c_str());
+    std::string new_id = mmc_big.energyinterface()->id;
+    if (file_exists(new_id + "_inp.dat")) rename((new_id + "_inp.dat").c_str(), (new_id + "_big_inp.dat").c_str());
+    if (file_exists(new_id + "_out.dat")) rename((new_id + "_out.dat").c_str(), (new_id + "_big_out.dat").c_str());
     if (file_exists("grid.dat")) rename("grid.dat", "grid_big.dat");
     if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_big.dat");
   }
@@ -594,28 +594,28 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   }
   if (Config::get().energy.qmmm.seinterface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
   {
-    std::string id = sec_middle.energyinterface()->id;
-    if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_intermediate.xyz").c_str());
-    if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_intermediate.out").c_str());
-    if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_intermediate.arc").c_str());
-    if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_intermediate_sys.out").c_str());
-    if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_intermediate.xyz.out").c_str());
-    if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_intermediate.xyz.aux").c_str());
+    std::string new_id = sec_middle.energyinterface()->id;
+    if (file_exists(new_id + ".xyz")) rename((new_id + ".xyz").c_str(), (new_id + "_intermediate.xyz").c_str());
+    if (file_exists(new_id + ".out")) rename((new_id + ".out").c_str(), (new_id + "_intermediate.out").c_str());
+    if (file_exists(new_id + ".arc")) rename((new_id + ".arc").c_str(), (new_id + "_intermediate.arc").c_str());
+    if (file_exists(new_id + "_sys.out")) rename((new_id + "_sys.out").c_str(), (new_id + "_intermediate_sys.out").c_str());
+    if (file_exists(new_id + ".xyz.out")) rename((new_id + ".xyz.out").c_str(), (new_id + "_intermediate.xyz.out").c_str());
+    if (file_exists(new_id + ".xyz.aux")) rename((new_id + ".xyz.aux").c_str(), (new_id + "_intermediate.xyz.aux").c_str());
     if (file_exists("mol.in")) rename("mol.in", "mol_intermediate.in");
   }
   if (Config::get().energy.qmmm.seinterface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
   {
-    std::string id = sec_middle.energyinterface()->id;
-    if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_intermediate.gjf").c_str());
-    if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_intermediate.log").c_str());
-    if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_intermediate.gjf").c_str());
-    if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_intermediate.log").c_str());
+    std::string new_id = sec_middle.energyinterface()->id;
+    if (file_exists(new_id + ".gjf")) rename((new_id + ".gjf").c_str(), (new_id + "_intermediate.gjf").c_str());
+    if (file_exists(new_id + ".log")) rename((new_id + ".log").c_str(), (new_id + "_intermediate.log").c_str());
+    if (file_exists(new_id + "_G_.gjf")) rename((new_id + "_G_.gjf").c_str(), (new_id + "_G_intermediate.gjf").c_str());
+    if (file_exists(new_id + "_G_.log")) rename((new_id + "_G_.log").c_str(), (new_id + "_G_intermediate.log").c_str());
   }
   if (Config::get().energy.qmmm.seinterface == config::interface_types::T::PSI4)
   {
-    std::string id = sec_middle.energyinterface()->id;
-    if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_intermediate_inp.dat").c_str());
-    if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_intermediate_out.dat").c_str());
+    std::string new_id = sec_middle.energyinterface()->id;
+    if (file_exists(new_id + "_inp.dat")) rename((new_id + "_inp.dat").c_str(), (new_id + "_intermediate_inp.dat").c_str());
+    if (file_exists(new_id + "_out.dat")) rename((new_id + "_out.dat").c_str(), (new_id + "_intermediate_out.dat").c_str());
     if (file_exists("grid.dat")) rename("grid.dat", "grid_intermediate.dat");
     if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_intermediate.dat");
   }
@@ -636,9 +636,9 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 				new_grads[qmi] -= g_se_small[new_indices_qm[qmi]];
 			}
 
-			for (auto i = 0u; i < link_atoms_middle.size(); ++i)  // take into account link atoms
+			for (auto i = 0u; i < link_atoms_small.size(); ++i)  // take into account link atoms
 			{
-				LinkAtom l = link_atoms_middle[i];
+				LinkAtom l = link_atoms_small[i];
 
 				coords::r3 g_qm, g_mm;             // divide link atom gradient to QM and MM atom
 				auto link_atom_grad = g_se_small[qm_indices.size() + i];
@@ -726,7 +726,8 @@ void energy::interfaces::three_layer::THREE_LAYER::print_E(std::ostream &) const
 void energy::interfaces::three_layer::THREE_LAYER::print_E_head(std::ostream &S, bool const endline) const
 {
   S << "QM-atoms: " << qm_indices.size() << '\n';
-  //S << "MM-atoms: " << mm_indices.size() << '\n';
+  S << "SE-atoms: " << qm_se_indices.size() - qm_indices.size() << '\n';
+	S << "MM-atoms: " << coords->size() - qm_se_indices.size() << '\n';
   S << "Potentials\n";
   S << std::right << std::setw(24) << "MM_big";
   S << std::right << std::setw(24) << "MM_middle";

@@ -76,8 +76,6 @@ namespace energy
         // energies
         double e_total, e_electron, e_core;
 
-        std::string id;
-
         // FAILCOUNTER
         int failcounter;
 
