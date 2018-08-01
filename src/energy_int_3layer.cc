@@ -333,7 +333,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	//	}
 	//}
 
-  // ############### MM ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
+  // ################ SAVE OUTPUT ########################################################
 
   if (Config::get().energy.qmmm.mminterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
   {
@@ -370,6 +370,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_big.dat");
   }
 
+	// ############### MM ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
+
 	try {
 		if (!if_gradient)
 		{
@@ -381,7 +383,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 			auto g_mm_middle = mmc_middle.g_xyz(); // get gradients
 			for (auto&& qsi : qm_se_indices)
 			{
-				new_grads[qsi] -= g_mm_middle[new_indices_qm[qsi]];
+				new_grads[qsi] -= g_mm_middle[new_indices_middle[qsi]];
 			}
 
 			for (auto i = 0u; i < link_atoms_middle.size(); ++i)  // take into account link atoms
@@ -581,7 +583,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 	//	}
 	//}
 
-	// ############### SE ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
+	// ################ SAVE OUTPUT ########################################################
 
   if (Config::get().energy.qmmm.seinterface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
   {
@@ -617,6 +619,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
     if (file_exists("grid.dat")) rename("grid.dat", "grid_intermediate.dat");
     if (file_exists("grid_field.dat")) rename("grid_field.dat", "grid_field_intermediate.dat");
   }
+
+	// ############### SE ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
 
 	try {
 		if (!if_gradient)
