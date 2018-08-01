@@ -174,7 +174,7 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool if_gradient)
 {
 	if (link_atoms_middle.size() != Config::get().energy.qmmm.linkatom_types.size())  // test if correct number of link atom types is given
-	{                                                                          // can't be done in constructor because interface is first constructed without atoms 
+	{                                                                                 // can't be done in constructor because interface is first constructed without atoms 
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms_middle.size() << " in the following order:\n";
 		for (auto &l : link_atoms_middle)
 		{
@@ -183,6 +183,9 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		std::cout << "This is assuming you are using a forcefield for your big system. \nIf you want to use one for the intermediate system talk to a CAST developer!\n";
 		throw std::runtime_error("wrong number of link atom types");
 	}
+
+  // test if no atom is double in intermediate system
+  if (double_element(qm_se_indices) == true) throw std::runtime_error("ERROR! You have at least one atom in QM as well as in SE atoms.");
 
   update_representation(); // update positions of QM and MM subsystems to those of coordinates object
   

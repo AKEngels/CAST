@@ -172,4 +172,20 @@ inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const
   return v12;
 }
 
+/**tests if a vector contains at least one element twice (or more)
+returns false if no element is in vector more than once, returns true otherwise
+@param v: vector that is to be tested*/
+template <typename T>
+inline bool double_element(std::vector<T> const &v)
+{
+	for (auto i = 0u; i < v.size(); ++i)
+	{
+		for (auto j = 0u; j < i; ++j)
+		{
+			if (v[i] == v[j]) return true;
+		}
+	}
+	return false;
+}
+
 #endif
