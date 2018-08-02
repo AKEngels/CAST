@@ -554,11 +554,11 @@ namespace config
     {
       /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
-      /**indices of SE atoms (only for three-layer)*/
+      /**indices of SE atoms [only for three-layer]*/
       std::vector <size_t> seatoms;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
-      /**SE interface (only for three-layer)*/
+      /**SE interface [only for three-layer]*/
       interface_types::T seinterface{ interface_types::T::MOPAC };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
@@ -572,6 +572,8 @@ namespace config
       std::vector<int> linkatom_types;
       /**cutoff for electrostatic interaction*/
 			double cutoff{0.0};
+			/**electronic embedding type for smallest system (0=EEx, 1=3-EE) [only for three-layer]*/
+			int emb_small{ 1 };
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/

@@ -585,6 +585,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.cutoff = std::stod(value_string);
 		}
+		else if (option.substr(4u) == "small_charges")
+		{
+			Config::set().energy.qmmm.emb_small = std::stoi(value_string);
+		}
   }
 
 
