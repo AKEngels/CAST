@@ -130,7 +130,11 @@ namespace energy
           auto const d = len(bv);
           auto const r = d - bond.ideal;
           E += bond.force*r*r;
-					if (abs(r) > 0.5) integrity = false;
+					if (abs(r) > 0.5)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because length of bond " << bond << " is " << d << " but should be " << bond.ideal << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -152,7 +156,11 @@ namespace energy
           dE *= 2;  // kcal/(mol*Angstrom)  gradient without direction
           if (abs(d) > 0.0)
           {
-            if (abs(r) > 0.5) integrity = false;
+						if (abs(r) > 0.5)
+						{
+							if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because length of bond " << bond << " is " << d << " but should be " << bond.ideal << "\n";
+							integrity = false;
+						}
             dE /= d;  // kcal/(mol*A^2)   gradient divided by distance because later it is multiplied with it again
             auto const gv = bv*dE;   // "force" on atom i due to atom j (kcal/(mol*A)), gradient with direction
             part_grad[BOND][bond.atoms[0]] += gv;   //(kcal/(mol*A))
@@ -178,7 +186,11 @@ namespace energy
             std::cout << part_virial[BOND][0][1] << "   " << part_virial[BOND][1][1] << "   " << part_virial[BOND][2][1] << std::endl;
             std::cout << part_virial[BOND][0][2] << "   " << part_virial[BOND][1][2] << "   " << part_virial[BOND][2][2] << std::endl;*/
           }
-          else integrity = false;
+					else
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of bond " << bond << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -205,7 +217,11 @@ namespace energy
           auto const d(scon::angle(av1, av2).degrees() - angle.ideal);
           auto const r(d*SCON_PI180);
           E += angle.force*r*r;
-					if (abs(d) > 30.0) integrity = false;
+					if (abs(d) > 30.0)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because angle " << angle << " is " << scon::angle(av1, av2).degrees() << " but should be " << angle.ideal << "\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -237,7 +253,11 @@ namespace energy
           coords::float_type const cvl(len(cv));
           if (abs(cvl) > 0.0)
           {
-            if (abs(d) > 30.0) integrity = false;
+						if (abs(d) > 30.0)
+						{
+							if (Config::get().general.verbosity > 3) std::cout << "Integrity broke because angle " << angle << " is " << scon::angle(av1, av2).degrees() << " but should be " << angle.ideal << "\n";
+							integrity = false;
+						}
             dE *= 2.0 / cvl;
             //std::cout << dE << ", " << cvl << '\n';
             coords::Cartesian_Point const gv1(cross(av1, cv) * (dE / dot(av1, av1)));
@@ -278,6 +298,7 @@ namespace energy
           }
           else
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of angle " << angle <<"\n";
             integrity = false;
           }
         }
@@ -311,7 +332,11 @@ namespace energy
           coords::float_type const d = len(bv);
           coords::float_type const r = d - urey.ideal;
           E += urey.force*r*r;
-          if (abs(d) < 1.0e-8) integrity = false;
+					if (abs(d) < 1.0e-8)
+					{
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of urey " << urey <<"\n";
+						integrity = false;
+					}
         }
         return E;
       }
@@ -403,6 +428,7 @@ namespace energy
           // check whether 
           if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
             integrity = false;
           }
           // Get multiple sine and cosine values
@@ -471,6 +497,7 @@ namespace energy
 
           if (abs(cos_scalar1) < 1.0e-8 || abs(sin_scalar1) < 1.0e-8)
           {
+						if (Config::get().general.verbosity > 3) std::cout << "WARNING! Integrity broke because of torsion " << torsion << "\n";
             integrity = false;
           }
 
