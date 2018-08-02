@@ -28,6 +28,10 @@ namespace internals {
     return B_matrix;
   }
 
+  scon::mathmatrix<coords::float_type> TRIC::transposeOfBmat(CartesianType const& cartesian) {
+    return Bmat(cartesian).t();
+  }
+
   scon::mathmatrix<coords::float_type>& TRIC::Gmat(CartesianType const& cartesians) {
     if (!new_G_matrix) {
       return G_matrix;

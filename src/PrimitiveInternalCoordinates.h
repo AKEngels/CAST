@@ -30,6 +30,7 @@ namespace internals {
       : res_vec_{ res_init }, subSystemIndices{ res_index } {
       create_ic_system(graph, xyz_init);
     }
+    PrimitiveInternalCoordinates() = default;
     virtual ~PrimitiveInternalCoordinates() = default;
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
@@ -66,6 +67,7 @@ namespace internals {
       using BondGraph = ic_util::Graph<ic_util::Node>;
     public:
       InternalCoordinatesCreator(BondGraph const& graph) : bondGraph{ graph } {}
+      virtual ~InternalCoordinatesCreator() = default;
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() = 0;
     protected:
       ic_util::Graph<ic_util::Node> const& bondGraph;
@@ -141,6 +143,7 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const&) const;//F
     virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);//F
     virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
+    virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian);
 
   };
 

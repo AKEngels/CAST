@@ -213,14 +213,7 @@ MatricesTest::MatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() 
 }
 
 void MatricesTest::bMatrixTest(){
-  std::istringstream iss(exampleBmatrixForTwoMethanols());
-
-  auto constexpr rowsOfBmatrix = 42u;
-  auto constexpr colsOfBmatrix = 36u;
-
-  auto expectedValuesForTheBmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfBmatrix, colsOfBmatrix);
-
-  EXPECT_EQ(testSystem.Bmat(cartesians), expectedValuesForTheBmatrix);
+  EXPECT_EQ(testSystem.Bmat(cartesians), exampleBmatrixForTwoMethanols());
 }
 
 TEST_F(MatricesTest, bMatrixTest) {
@@ -228,14 +221,7 @@ TEST_F(MatricesTest, bMatrixTest) {
 }
 
 void MatricesTest::gMatrixTest() {
-  std::istringstream iss(exampleGmatrixForTwoMethanols());
-
-  auto constexpr rowsOfGmatrix = 42u;
-  auto constexpr colsOfGmatrix = 42u;
-
-  auto expectedValuesForTheGmatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfGmatrix, colsOfGmatrix);
-
-  EXPECT_EQ(testSystem.Gmat(cartesians), expectedValuesForTheGmatrix);
+  EXPECT_EQ(testSystem.Gmat(cartesians), exampleGmatrixForTwoMethanols());
 }
 
 TEST_F(MatricesTest, gMatrixTest) {
@@ -243,14 +229,7 @@ TEST_F(MatricesTest, gMatrixTest) {
 }
 
 void MatricesTest::hessianGuessTest() {
-  std::istringstream iss(exampleGuessHessianForTwoMethanols());
-
-  auto constexpr rowsOfHessian = 42u;
-  auto constexpr colsOfHessian = 42u;
-
-  auto expectedValuesForHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfHessian, colsOfHessian);
-
-  EXPECT_EQ(testSystem.guess_hessian(cartesians), expectedValuesForHessian);
+  EXPECT_EQ(testSystem.guess_hessian(cartesians), exampleGuessHessianForTwoMethanols());
 }
 
 TEST_F(MatricesTest, hessianGuessTest) {
@@ -260,16 +239,7 @@ TEST_F(MatricesTest, hessianGuessTest) {
 DelocalizedMatricesTest::DelocalizedMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()) {}
 
 void DelocalizedMatricesTest::delocalizedMatrixTest() {
-  std::istringstream iss(exampleDelocalizedMatrixForTwoMethanols());
-
-  auto constexpr rowsOfDelocalizedMatrix = 42u;
-  auto constexpr colsOfDelocalizedMatrix = 36u;
-
-  auto expectedValuesForDelocalizedMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedMatrix, colsOfDelocalizedMatrix);
-
-  auto const& del = testSystem.getDelMat();
-
-  EXPECT_EQ(testSystem.getDelMat(), expectedValuesForDelocalizedMatrix);
+  EXPECT_EQ(testSystem.getDelMat(), exampleDelocalizedMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedMatrixTest) {
@@ -277,14 +247,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedBMatrixTest() {
-  std::istringstream iss(exampleDelocalizedBMatrixForTwoMethanols());
-
-  auto constexpr rowsOfDelocalizedBMatrix = 36u;
-  auto constexpr colsOfDelocalizedBMatrix = 36u;
-
-  auto expectedValuesForDelocalizedBMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedBMatrix, colsOfDelocalizedBMatrix);
-
-  EXPECT_EQ(testSystem.Bmat(cartesians), expectedValuesForDelocalizedBMatrix);
+  EXPECT_EQ(testSystem.Bmat(cartesians), exampleDelocalizedBMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
@@ -292,14 +255,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedBMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedGMatrixTest() {
-  std::istringstream iss(exampleDelocalizedGMatrixForTwoMethanols());
-
-  auto constexpr rowsOfDelocalizedGMatrix = 36u;
-  auto constexpr colsOfDelocalizedGMatrix = 36u;
-
-  auto expectedValuesForDelocalizedGMatrix = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedGMatrix, colsOfDelocalizedGMatrix);
-
-  EXPECT_EQ(testSystem.Gmat(cartesians), expectedValuesForDelocalizedGMatrix);
+  EXPECT_EQ(testSystem.Gmat(cartesians), exampleDelocalizedGMatrixForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
@@ -307,14 +263,7 @@ TEST_F(DelocalizedMatricesTest, delocalizedGMatrixTest) {
 }
 
 void DelocalizedMatricesTest::delocalizedInitialHessianTest() {
-  std::istringstream iss(exampleDelocalizedInitialHessianForTwoMethanols());
-
-  auto constexpr rowsOfDelocalizedInitialHessian = 36u;
-  auto constexpr colsOfDelocalizedInitialHessian = 36u;
-
-  auto expectedValuesForDelocalizedInitialHessian = ReadMatrixFiles(iss).readNLinesOfFileWithMNumbers(rowsOfDelocalizedInitialHessian, colsOfDelocalizedInitialHessian);
-
-  EXPECT_EQ(testSystem.guess_hessian(cartesians), expectedValuesForDelocalizedInitialHessian);
+  EXPECT_EQ(testSystem.guess_hessian(cartesians), exampleDelocalizedInitialHessianForTwoMethanols());
 }
 
 TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
@@ -322,7 +271,6 @@ TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
 }
 
 ConverterMatricesTest::ConverterMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()), converter{testSystem, cartesians }  {}
-
 
 void ConverterMatricesTest::calculateInternalGradsTest() {
   EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), converter.calculateInternalGradients(gradientsOfTwoMethanolMolecules()));
@@ -376,6 +324,19 @@ void DelocalizedMatricesTest::internalValuesForTricTest() {
 
 TEST_F(DelocalizedMatricesTest, internalValuesForTricTest) {
   internalValuesForTricTest();
+}
+
+ConverterMatricesTestTest::ConverterMatricesTestTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem{}, converter{testSystem, cartesians}{}
+
+void ConverterMatricesTestTest::calculateInternalGradsTest() {
+  EXPECT_CALL(testSystem, Bmat(cartesians)).WillRepeatedly(testing::ReturnRefOfCopy(exampleDelocalizedBMatrixForTwoMethanols()));
+  EXPECT_CALL(testSystem, Gmat(cartesians)).WillRepeatedly(testing::ReturnRefOfCopy(exampleDelocalizedGMatrixForTwoMethanols()));
+  
+  EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), converter.calculateInternalGradients(gradientsOfTwoMethanolMolecules()));
+}
+
+TEST_F(ConverterMatricesTestTest, calculateInternalGradsTest) {
+  calculateInternalGradsTest();
 }
 
 #endif

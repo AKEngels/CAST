@@ -34,9 +34,11 @@ workspace "CAST"
     targetdir"libs/%{cfg.buildcfg}"
     location"project/libs/GoogleTest"
 
-    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
+    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
     sysincludedirs { "../submodules/googletest/googletest/include" }
     includedirs{ "../submodules/googletest/googletest" }
+	sysincludedirs { "../submodules/googletest/googlemock/include" }
+    includedirs{ "../submodules/googletest/googlemock" }
 
     symbols"On"
 
@@ -83,6 +85,7 @@ workspace "CAST"
 				symbols "On"
 				defines "GOOGLE_MOCK"
 				includedirs {"../submodules/googletest/googletest/include"}
+				includedirs {"../submodules/googletest/googlemock/include"}
                 links"GoogleTest"
 
 		filter "action:gmake"

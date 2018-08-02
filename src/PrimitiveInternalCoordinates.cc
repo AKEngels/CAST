@@ -288,6 +288,10 @@ namespace internals {
     return B_matrix;
   }
 
+  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::transposeOfBmat(CartesianType const& cartesian) {
+    return Bmat(cartesian).t();
+  }
+
   std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
     std::vector<std::vector<coords::float_type>> result;
 

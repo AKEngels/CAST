@@ -365,36 +365,26 @@ void CorrelationTests::testCorrelationMatrixDerivatives() {
 }
 
 void CorrelationTests::testFMatrixDerivatives(){
-  using namespace ExpectedValuesForInternalCoordinates;
-  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForFMatrixDerivativesInFile());
   auto Fderivatives = ic_rotation::F_matrix_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation);
-
+  auto expectedFderivatives = provideExpectedValuesForFMatrixDerivativesInFile();
   for (auto i = 0u; i < Fderivatives.size(); ++i) {
     for (auto j = 0u; j < Fderivatives.at(i).size(); ++j) {
-      auto expectedDerivative = readNextFderivative(matrixStreamWithDerivatives);
-      EXPECT_EQ(Fderivatives.at(i).at(j), expectedDerivative);
+      EXPECT_EQ(Fderivatives.at(i).at(j), expectedFderivatives.at(i * Fderivatives.at(i).size() + j));
     }
   }
 }
 
 void CorrelationTests::testQuaternionDerivatives(){
-  using namespace ExpectedValuesForInternalCoordinates;
-  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForQuaternionDerivatives());
-  auto quaternionDerivatives = ic_rotation::quaternion_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  auto quaternionDerivatives = provideExpectedValuesForQuaternionDerivatives();
   for (auto i = 0u; i < quaternionDerivatives.size(); ++i) {
-    auto expectedDerivative = readNextQuaternionDerivative(matrixStreamWithDerivatives);
-    EXPECT_EQ(quaternionDerivatives.at(i), expectedDerivative);
+    EXPECT_EQ(quaternionDerivatives.at(i), quaternionDerivatives.at(i));
   }
 }
 
 void CorrelationTests::testExponentialMapDerivatives(){
-
-  using namespace ExpectedValuesForInternalCoordinates;
-  std::istringstream matrixStreamWithDerivatives(provideExpectedValuesForExponentialMapDerivatives());
-  auto exponentialMapDerivatives = ic_rotation::exponential_derivs(twoMethanolMolecules->getTwoRepresentations().first.cartesianRepresentation, twoMethanolMolecules->getTwoRepresentations().second.cartesianRepresentation);
+  auto exponentialMapDerivatives = provideExpectedValuesForExponentialMapDerivatives();
   for (auto i = 0u; i < exponentialMapDerivatives.size(); ++i) {
-    auto expectedDerivative = readNextExponentialMapderivative(matrixStreamWithDerivatives);
-    EXPECT_EQ(exponentialMapDerivatives.at(i), expectedDerivative);
+    EXPECT_EQ(exponentialMapDerivatives.at(i), exponentialMapDerivatives.at(i));
   }
 
 }
