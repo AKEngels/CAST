@@ -61,15 +61,15 @@ void coords::bias::Potentials::swap(Potentials & rhs)
 }
 
 coords::bias::Potentials::Potentials()
-  : b(), a(), d(), s(), c(),
-  m_dihedrals(Config::get().coords.bias.dihedral),
-  m_angles(Config::get().coords.bias.angle),
-  m_distances(Config::get().coords.bias.distance),
-  m_spherical(Config::get().coords.bias.spherical),
-  m_cubic(Config::get().coords.bias.cubic),
-  m_utors(Config::get().coords.bias.utors),
-  m_udist(Config::get().coords.bias.udist),
-  m_thresh(Config::get().coords.bias.threshold),
+  : b{}, a{}, d{}, s{}, c{},
+  m_dihedrals{Config::get().coords.bias.dihedral},
+  m_angles{Config::get().coords.bias.angle},
+  m_distances{Config::get().coords.bias.distance},
+  m_spherical{Config::get().coords.bias.spherical},
+  m_cubic{Config::get().coords.bias.cubic},
+  m_thresh{Config::get().coords.bias.threshold},
+  m_utors{Config::get().coords.bias.utors},
+  m_udist{Config::get().coords.bias.udist}
   m_threshBottom(Config::get().coords.bias.thresholdBottom)
 { }
 

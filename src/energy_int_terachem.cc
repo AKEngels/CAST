@@ -20,12 +20,11 @@
 /*
   Mopac sysCall functions
 */
-double const hartree_to_kcal(627.5095),bohr_to_angstroem(1 / 0.52918);
 cmpi::CMPI energy::interfaces::terachem::mpiInterface::mpo;
 
 bool energy::interfaces::terachem::mpiInterface::option_init_done(false);
 
-void energy::interfaces::terachem::mpiInterface::init_terachem (void) 
+void energy::interfaces::terachem::mpiInterface::init_terachem (void)
 {
   if(Config::get().general.verbosity >= 3) std::cout << "Reading TeraChem options from 'CAST_TERACHEM_OPTIONS.txt'.\n";
   LBL_FileReader options("CAST_TERACHEM_OPTIONS.txt");
@@ -57,10 +56,10 @@ void energy::interfaces::terachem::mpiInterface::init_terachem (void)
 }
 
 
-energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * cp) 
+energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * cp)
 : energy::interface_base(cp), qm_population_charges(cp->size())
-{ 
-  if (!mpiInterface::mpo.connected()) 
+{
+  if (!mpiInterface::mpo.connected())
   {
     mpiInterface::mpo.connect("terachem_port");
   }
@@ -69,7 +68,7 @@ energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * 
     mpiInterface::init_terachem();
     std::size_t const N(coords->size());
     // Check and convert number of atoms
-    if (N > 10000U || N > INT_MAX) 
+    if (N > 10000U || N > INT_MAX)
     {
       std::runtime_error("ERR_ENERGY_TERACHEM_MAXIMUM_ATOMS_EXCEEDED");
     }
@@ -77,7 +76,7 @@ energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * 
      //! atom symbol buffer
     std::vector<char> char_buffer(2U*N+1, 0U);
     // build atom-symbol C-style-string
-    for (std::size_t i=0; i<N; ++i) 
+    for (std::size_t i=0; i<N; ++i)
     {
       std::string const & smb = atomic::symbolMap[coords->atoms(i).number()];
       std::size_t const Q(i*2U);
@@ -92,7 +91,7 @@ energy::interfaces::terachem::mpiInterface::mpiInterface (coords::Coordinates * 
   }
   optimizer = true;
 }
-energy::interfaces::terachem::mpiInterface::~mpiInterface (void) 
+energy::interfaces::terachem::mpiInterface::~mpiInterface (void)
 {
   mpi_send_data(0);
 }
@@ -148,7 +147,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_send_data (const int tag)
   //! atom coordinates buffer
   std::vector<double> coords_buffer(N*3U, 0.0);
   // build atom-symbol C-style-string and coord buffer
-  for (std::size_t i=0; i<N; ++i) 
+  for (std::size_t i=0; i<N; ++i)
   {
     std::string const & smb = atomic::symbolMap[coords->atoms(i).number()];
     std::size_t const P(i*3U), Q(i*2U);
@@ -177,7 +176,7 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_energy (void)
   if (Config::get().general.verbosity >= 4) std::cout << "Recieving energy from TeraChem.\n";
   mpiInterface::mpo.recv(energy, MPI_ANY_SOURCE, MPI_ANY_TAG);
   if (Config::get().general.verbosity >= 4) std::cout << "Recieved energy with tag " << mpiInterface::mpo.status().MPI_TAG << " from TeraChem.\n";
-  if (mpiInterface::mpo.status().MPI_TAG == 1) 
+  if (mpiInterface::mpo.status().MPI_TAG == 1)
   {
     integrity = false;
     return;
@@ -201,10 +200,10 @@ void energy::interfaces::terachem::mpiInterface::mpi_recv_gradients (void)
   if (Config::get().general.verbosity >= 4) std::cout << "Recieving gradients.\n";
   mpiInterface::mpo.recv(grad_buffer, MPI_ANY_SOURCE, MPI_ANY_TAG);
   if (mpiInterface::mpo.status().MPI_TAG == 1) throw std::runtime_error("ERR_ENERGY_TERACHEM : SCF did not converge");
-  for (std::size_t i=0; i<N; ++i) 
+  for (std::size_t i=0; i<N; ++i)
   {
     std::size_t const P(i*3U);
-    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+1U]*(hartree_to_kcal*bohr_to_angstroem), grad_buffer[P+2U]*(hartree_to_kcal*bohr_to_angstroem)));
+    coords->update_g_xyz(i, coords::Cartesian_Point(grad_buffer[P]*(energy::Hartree_Bohr2Kcal_MolAng), grad_buffer[P+1U]*(energy::Hartree_Bohr2Kcal_MolAng), grad_buffer[P+2U]*(energy::Hartree_Bohr2Kcal_MolAng)));
   }
 }
 
@@ -237,7 +236,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::e (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for engery call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Energy+Gradient function
@@ -250,7 +249,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::g (void)
   mpi_recv_energy();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 2 for gradient call from <- TeraChem.\n";
   mpi_recv_gradients();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Energy+Gradient+Hessian function
@@ -272,7 +271,7 @@ coords::float_type energy::interfaces::terachem::mpiInterface::o (void)
   //mpi_recv_gradients();
   if (Config::get().general.verbosity >= 4) std::cout << "Data transfer 3 (recv positions) for opt call from <- TeraChem.\n";
   mpi_recv_positions();
-  return energy*=hartree_to_kcal;
+  return energy*=energy::au2kcal_mol;
 }
 
 // Output functions
@@ -295,27 +294,6 @@ void energy::interfaces::terachem::mpiInterface::print_E_short (std::ostream &S,
   S << std:: right << std::setw(26) << std::scientific << std::setprecision(5) << energy;
   if (endline) S << std::endl;
   S << std::fixed;
-}
-
-
-void energy::interfaces::terachem::mpiInterface::print_G_tinkerlike (std::ostream &S, bool const) const
-{
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for(std::size_t k=0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k+1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
 }
 
 void energy::interfaces::terachem::mpiInterface::update (bool const) { }

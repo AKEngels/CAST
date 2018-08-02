@@ -1,7 +1,7 @@
 #include "energy_int_dftb.h"
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp),energy(0.0)
+  energy::interface_base(cp), energy(0.0)
 {
   if (Config::get().energy.dftb.opt > 0) optimizer = true;
   else optimizer = false;
@@ -35,10 +35,7 @@ void energy::interfaces::dftb::sysCallInterface::swap(sysCallInterface &rhs)
   interface_base::swap(rhs);
 }
 
-energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void)
-{
-
-}
+energy::interfaces::dftb::sysCallInterface::~sysCallInterface(void) {}
 
 /**checks if all atom coordinates are numbers*/
 bool energy::interfaces::dftb::sysCallInterface::check_structure()
@@ -65,7 +62,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 {
   // create a vector with all element symbols that are found in the structure
   // are needed for writing angular momenta into inputfile
-  std::vector<std::string> elements;  
+  std::vector<std::string> elements;
   for (auto a : (*this->coords).atoms())
   {
     if (is_in(a.symbol(), elements) == false)
@@ -73,6 +70,19 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
       elements.push_back(a.symbol());
     }
   }
+
+  // create a chargefile for external charges if desired (needed for QM/MM methods)
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+    std::vector<PointCharge> charge_vector = Config::get().energy.qmmm.mm_charges;
+    std::ofstream chargefile("charges.dat");
+    for (auto j = 0u; j < charge_vector.size(); j++)
+    {
+      chargefile << charge_vector[j].x << " " << charge_vector[j].y << " " << charge_vector[j].z << "  " << charge_vector[j].charge << "\n";
+    }
+    chargefile.close();
+  }
+
 
   // create inputfile
   std::ofstream file("dftb_in.hsd");
@@ -101,29 +111,47 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   // write information that is needed for SCC calculation
   file << "Hamiltonian = DFTB {\n";
   file << "  SCC = Yes\n";
-  file << "  SCCTolerance = " <<std::scientific << Config::get().energy.dftb.scctol << "\n";
+  file << "  SCCTolerance = " << std::scientific << Config::get().energy.dftb.scctol << "\n";
   file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
   file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
-  file << "    Prefix = '"<<Config::get().energy.dftb.sk_files<<"'\n";
+  file << "    Prefix = '" << Config::get().energy.dftb.sk_files << "'\n";
   file << "    Separator = '-'\n";
   file << "    Suffix = '.skf'\n";
   file << "  }\n";
- 
+
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)  // include chargefile
+  {
+    file << "  ElectricField = {\n";
+    file << "    PointCharges = {\n";
+    file << "      CoordsAndCharges [Angstrom] = DirectRead {\n";
+    file << "        Records = " << Config::get().energy.qmmm.mm_charges.size() << "\n";
+    file << "        File = 'charges.dat'\n";
+    file << "      }\n";
+    file << "    }\n";
+    file << "  }\n";
+  }
+
   file << "  MaxAngularMomentum {\n";
   for (auto s : elements)
   {
     char angular_momentum = angular_momentum_by_symbol(s);
-    if (angular_momentum == 'e')
-    {
-      std::cout << "Angular momentum for element " << s << " not defined. \n";
-      std::cout << "Please go to file 'atomic.h' and define an angular momentum (s, p, d or f) in the array 'angular_momentum'.\n";
-      std::cout << "Talk to a CAST developer if this is not possible for you.";
-      std::exit(0);
-    }
     file << "    " << s << " = " << angular_momentum << "\n";
   }
   file << "  }\n";
+  if (Config::get().energy.dftb.dftb3 == true)
+  {
+    file << "  ThirdOrderFull = Yes\n";
+    file << "  DampXH = Yes\n";
+    file << "  DampXHExponent = " << get_zeta() << "\n";
+    file << "  HubbardDerivs {\n";
+    for (auto s : elements)
+    {
+      double hubbard_deriv = hubbard_deriv_by_symbol(s);
+      file << "    " << s << " = " << hubbard_deriv << "\n";
+    }
+    file << "  }\n";
+  }
   file << "}\n\n";
 
   // which information will be saved after calculation?
@@ -147,10 +175,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 {
-  if (file_exists("results.tag") == false) // if SCC does not converge DFTB+ doesn't produce this file
+  std::string res_filename{ "results.tag" };
+  if (file_is_empty(res_filename)) // if SCC does not converge this file is empty
   {
-    std::cout << "DFTB+ did not produce an output file. Treating structure as broken.\n";
+    std::cout << "DFTB+ produced an empty output file. Treating structure as broken.\n";
     integrity = false;
+    return 0.0;      // return zero-energy because no energy was calculated
   }
 
   // successfull SCC -> read output
@@ -167,7 +197,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       if (line == "total_energy        :real:0:")  // read energy
       {
         std::getline(in_file, line);
-        energy = std::stod(line)*627.503; // convert hartree to kcal/mol
+        energy = std::stod(line)*energy::au2kcal_mol; // convert hartree to kcal/mol
       }
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
@@ -180,27 +210,27 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
 
-        for (int i=0; i < link_atom_number; i++)  // read gradients of link atoms
+        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-          y = (-y) * (627.503 / 0.5291172107);
-          z = (-z) * (627.503 / 0.5291172107);
+          x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+          y *= -energy::Hartree_Bohr2Kcal_MolAng;
+          z *= -energy::Hartree_Bohr2Kcal_MolAng;
           coords::Cartesian_Point g(x, y, z);
           link_atom_grad.push_back(g);
         }
       }
 
-      else if (Config::get().energy.qmmm.use == true)
+      else if (Config::get().energy.qmmm.mm_charges.size() != 0)
       {    // in case of QM/MM calculation: read forces on external charges
         if (line.substr(0, 29) == "forces_ext_charges  :real:2:3")
         {
@@ -213,9 +243,9 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           {
             std::getline(in_file, line);
             std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-            x = (-x) * (627.503 / 0.5291172107);  // hartree/bohr -> kcal/(mol*A)
-            y = (-y) * (627.503 / 0.5291172107);
-            z = (-z) * (627.503 / 0.5291172107);
+            x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
+            y *= -energy::Hartree_Bohr2Kcal_MolAng;
+            z *= -energy::Hartree_Bohr2Kcal_MolAng;
             coords::Cartesian_Point g(x, y, z);
             grad_tmp.push_back(g);
           }
@@ -225,12 +255,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 27) == "hessian_numerical   :real:2" && t == 2)  // read hessian
       {
-        double CONVERSION_FACTOR = 627.503 / (0.5291172107*0.5291172107); // hartree/bohr^2 -> kcal/(mol*A^2)
+        double CONVERSION_FACTOR = energy::Hartree_Bohr2Kcal_MolAngSquare; // hartree/bohr^2 -> kcal/(mol*A^2)
 
-        // read all values into one vector (tmp)
+                                                                           // read all values into one vector (tmp)
         std::vector<double> tmp;
         double x, y, z;
-        for (int i=0; i < (3*N*3*N)/3; i++)  
+        for (int i = 0; i < (3 * N * 3 * N) / 3; i++)
         {
           std::getline(in_file, line);
           std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
@@ -242,12 +272,12 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         // format values in vector tmp into matrix hess
         std::vector<std::vector<double>> hess;
         std::vector<double> linevec;
-        for (int i = 0; i < 3*N; i++)
+        for (int i = 0; i < 3 * N; i++)
         {
           linevec.resize(0);
-          for (int j = 0; j < 3*N; j++)
+          for (int j = 0; j < 3 * N; j++)
           {
-            linevec.push_back(tmp[(i*3*N)+j]);
+            linevec.push_back(tmp[(i * 3 * N) + j]);
           }
           hess.push_back(linevec);
         }
@@ -268,14 +298,14 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       {
         std::ifstream geom_file("geo_end.gen", std::ios_base::in);
 
-        std::getline(geom_file, line);  
+        std::getline(geom_file, line);
         std::getline(geom_file, line);
 
         coords::Representation_3D xyz_tmp;
         std::string number, type;
         double x, y, z;
 
-        while (geom_file >> number >> type >> x >> y >> z) 
+        while (geom_file >> number >> type >> x >> y >> z)
         {
           coords::Cartesian_Point xyz(x, y, z);
           xyz_tmp.push_back(xyz);
@@ -299,10 +329,16 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
     }
   }
 
+  if (Config::get().energy.qmmm.mm_charges.size() != 0)
+  {
+    double ext_chg_energy = calc_self_interaction_of_external_charges();  // calculates self interaction energy of the external charges (in kcal/mol)
+    energy -= ext_chg_energy;  // subtract self-interaction because it's already in MM calculation
+  }
+
   // check if geometry is still intact
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
-  
+
   // remove files
   if (t > 1) std::remove("charges.bin");
   if (Config::get().energy.dftb.verbosity < 2)
@@ -314,7 +350,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
       std::remove("output_dftb.txt");
     }
   }
-   
+
   return energy;
 }
 
@@ -342,7 +378,7 @@ double energy::interfaces::dftb::sysCallInterface::g(void)
   integrity = check_structure();
   if (integrity == true)
   {
-    if (Config::get().energy.qmmm.use == false) write_inputfile(1);
+    write_inputfile(1);
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(1);
     return energy;
@@ -360,7 +396,7 @@ double energy::interfaces::dftb::sysCallInterface::h(void)
     scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
     energy = read_output(2);
     return energy;
-  } 
+  }
   else return 0;  // energy = 0 if structure contains NaN
 }
 
@@ -404,27 +440,28 @@ void energy::interfaces::dftb::sysCallInterface::print_E_short(std::ostream &S, 
   if (endline) S << '\n';
 }
 
-void energy::interfaces::dftb::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
-{ 
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for(std::size_t k=0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k+1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-    + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-    + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
-}
-
 void energy::interfaces::dftb::sysCallInterface::to_stream(std::ostream&) const { }
+
+double energy::interfaces::dftb::sysCallInterface::calc_self_interaction_of_external_charges()
+{
+  double energy{ 0.0 };
+  for (auto i = 0u; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
+  {
+    auto c1 = Config::get().energy.qmmm.mm_charges[i];
+    for (auto j = 0u; j < i; ++j)
+    {
+      auto c2 = Config::get().energy.qmmm.mm_charges[j];
+
+      double dist_x = c1.x - c2.x;
+      double dist_y = c1.y - c2.y;
+      double dist_z = c1.z - c2.z;
+      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
+
+      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
+    }
+  }
+  return energy;
+}
 
 bool energy::interfaces::dftb::sysCallInterface::check_bond_preservation(void) const
 {
@@ -481,9 +518,9 @@ energy::interfaces::dftb::sysCallInterface::charges() const
     while (!in_file.eof())
     {
       std::getline(in_file, line);
-      if (line.substr(0, 27) == "net_atomic_charges  :real:1")  
+      if (line.substr(0, 27) == "gross_atomic_charges:real:1")
       {
-        for (int i = 0; i < coords->size(); i++)
+        for (auto i = 0u; i < coords->size(); i++)
         {
           in_file >> q;
           charges.push_back(q);
@@ -495,12 +532,8 @@ energy::interfaces::dftb::sysCallInterface::charges() const
 }
 
 std::vector<coords::Cartesian_Point>
-energy::interfaces::dftb::sysCallInterface::get_g_coul_mm() const
+energy::interfaces::dftb::sysCallInterface::get_g_ext_chg() const
 {
   return grad_ext_charges;
 }
 
-coords::Gradients_3D energy::interfaces::dftb::sysCallInterface::get_link_atom_grad() const
-{
-  return link_atom_grad;
-}

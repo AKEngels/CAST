@@ -517,7 +517,8 @@ namespace tinker
       double imptorunit(void) const { return m_general.imptorunit; }
       double angleunit (void) const { return m_general.angleunit; }
       double bondunit (void) const { return m_general.bondunit; }
-
+      friend std::ostream& operator<< (std::ostream & stream, parameters const & p);
+      
     private:
 
       // get combination of vdw and charge parameters for given types
@@ -568,7 +569,7 @@ namespace tinker
       std::vector<vdw>        m_vdw14s;
 	    std::vector<combi::vdwc> m_vdwsc;
 
-      friend std::ostream& operator<< (std::ostream & stream, parameters const & p);
+      
 
     };
 

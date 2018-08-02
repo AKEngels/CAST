@@ -1,7 +1,7 @@
 #include "configuration.h"
 
 /**
- * Global static instance of the config-object. 
+ * Global static instance of the config-object.
  * There can only ever be one config-object.
  */
 Config * Config::m_instance = nullptr;
@@ -310,8 +310,8 @@ static bool outname_check(int x = 0)
 * function to find all appearing or disappearing atoms in an FEP input file
 * returns a vector with tinker atom numbers
 */
-std::vector<unsigned> FEP_get_inout()  
-{                                      
+std::vector<unsigned> FEP_get_inout()
+{
 	std::vector<unsigned> temp;
 	std::ifstream config_file_stream(Config::set().general.inputFilename.c_str(), std::ios_base::in);
 	std::string line;
@@ -365,7 +365,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  }
   }
   // Name of the outputfile
-  // Default: oplsaa.prm
   else if (option == "outname")
   {
 	  // outname_check is a small function used to test if
@@ -425,7 +424,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     if (Config::get().periodics.periodic)
     {
       double const min_cut(min(abs(Config::get().periodics.pb_box)) / 2.0);
-      if (min_cut > 9.0) 
+      if (min_cut > 9.0)
         Config::set().energy.cutoff = min_cut;
     }
     Config::set().energy.switchdist = Config::get().energy.cutoff - 4.0;
@@ -501,8 +500,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
-    if (inter == interface_types::QMMM) Config::set().energy.qmmm.use = true;
-    else Config::set().energy.qmmm.use = false;
+    if (inter == interface_types::QMMM || inter == interface_types::ONIOM) Config::set().energy.qmmm.use = true;
   }
 
   // Preoptimizazion energy calculation interface
@@ -528,7 +526,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     if (option.substr(4u) == "qmatoms")
     {
-      Config::set().energy.qmmm.qmatoms = 
+      Config::set().energy.qmmm.qmatoms =
         sorted_indices_from_cs_string(value_string, true);
     }
     else if (option.substr(4u) == "mminterface")
@@ -555,6 +553,18 @@ void config::parse_option(std::string const option, std::string const value_stri
         std::cout << "Configuration contained illegal QMMM QM-interface." << std::endl;
       }
     }
+	  else if (option.substr(4u) == "writeqmintofile")
+	  {
+	    if (value_string == "1") Config::set().energy.qmmm.qm_to_file = true;
+	  }
+	  else if (option.substr(4u) == "linkatomtype")
+	  {
+	    Config::set().energy.qmmm.linkatom_types.push_back(std::stoi(value_string));
+	  }
+		else if (option.substr(4u) == "cutoff")
+		{
+			Config::set().energy.qmmm.cutoff = std::stod(value_string);
+		}
   }
 
 
@@ -637,8 +647,8 @@ void config::parse_option(std::string const option, std::string const value_stri
   // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
-    if (option.substr(5, 3) == "key")
-      Config::set().energy.mopac.command = value_string;
+	  if (option.substr(5, 3) == "key")
+		  Config::set().energy.mopac.command = value_string;
     else if (option.substr(5, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(5, 4) == "path")
@@ -692,7 +702,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
        if (value_string == "1")
           Config::set().energy.dftbaby.longrange = true;
-    }   
+    }
     else if (option.substr(4,3) == "opt")
     {
       if (value_string == "1") Config::set().energy.dftbaby.opt = true;
@@ -702,22 +712,33 @@ void config::parse_option(std::string const option, std::string const value_stri
   //DFTB+ Options
   else if (option.substr(0, 5) == "DFTB+")
   {
-    if (option.substr(5, 4) == "path")
+    if (option.substr(5, 4) == "path"){
       Config::set().energy.dftb.path = value_string;
-    else if (option.substr(5, 7) == "skfiles")
+    }
+    else if (option.substr(5, 7) == "skfiles"){
       Config::set().energy.dftb.sk_files = value_string;
-    else if (option.substr(5, 7) == "verbose")
+    }
+    else if (option.substr(5, 7) == "verbose"){
       Config::set().energy.dftb.verbosity = std::stoi(value_string);
-    else if (option.substr(5, 6) == "scctol")
+    }
+    else if (option.substr(5, 6) == "scctol"){
       Config::set().energy.dftb.scctol = std::stod(value_string);
-    else if (option.substr(5, 13) == "max_steps_scc")
-      Config::set().energy.dftb.max_steps = std::stoi(value_string);     
-    else if (option.substr(5, 6) == "charge")
+    }
+    else if (option.substr(5, 13) == "max_steps_scc"){
+      Config::set().energy.dftb.max_steps = std::stoi(value_string);
+    }
+    else if (option.substr(5, 6) == "charge"){
       Config::set().energy.dftb.charge = std::stod(value_string);
-    else if (option.substr(5, 9) == "optimizer")
+    }
+    else if (option.substr(5, 1) == "3"){
+      if (value_string == "1") Config::set().energy.dftb.dftb3 = true;
+    }
+    else if (option.substr(5, 9) == "optimizer"){
       Config::set().energy.dftb.opt = std::stoi(value_string);
-    else if (option.substr(5, 13) == "max_steps_opt")
+    }
+    else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
+    }
   }
 
   //Gaussian options
@@ -815,6 +836,27 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().energy.chemshell.active_radius = value_string;
       }
   }
+  else if (option.substr(0, 4) == "PSI4") {
+    auto sub_option = option.substr(4);
+    if(sub_option == "path"){
+      Config::set().energy.psi4.path = value_string;
+    }
+    else if(sub_option == "memory"){
+      Config::set().energy.psi4.memory = value_string;
+    }
+    else if(sub_option == "basis"){
+      Config::set().energy.psi4.basis = value_string;
+    }
+    else if(sub_option == "method"){
+      Config::set().energy.psi4.method = value_string;
+    }
+    else if(sub_option == "spin"){
+      Config::set().energy.psi4.spin = value_string;
+    }
+    else if(sub_option == "charge"){
+      Config::set().energy.psi4.charge = value_string;
+    }
+  }
 
   // convergence threshold for bfgs
   // Default 0.001
@@ -825,7 +867,10 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Default: 10000
   else if (option == "BFGSmaxstep")
     cv >> Config::set().optimization.local.bfgs.maxstep;
-
+  
+  //should trace written into file?
+  else if (option == "BFGStrace")
+    Config::set().optimization.local.bfgs.trace = bool_from_iss(cv);
 
   //! STARTOPT
   else if (option == "SOtype")
@@ -1050,7 +1095,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  if (cv >> act_cent_atom)
 		  {
 			  if (act_cent_atom == 0 && Config::get().general.task == tasks::FEP)
-			  {     // for FEP calculation: if active_site is set to zero: 
+			  {     // for FEP calculation: if active_site is set to zero:
 				    // calculate active site out of all appearing or disappearing atoms
 				  Config::set().md.active_center = FEP_get_inout();
 			  }
@@ -1111,7 +1156,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().dimer.trans_F_rot_limit;
     }
-    //else if (option.substr(5,10) == "trans_type") 
+    //else if (option.substr(5,10) == "trans_type")
     //{
     //  Config::set().dimer.trans_type = enum_from_iss<config::dimer::translation_types::T>(cv);
     //}
@@ -1395,7 +1440,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     Config::set().energy.remove_fixed = bool_from_iss(cv, option.substr(0, 10));
   }
-  //! Fixation 
+  //! Fixation
   else if (option.substr(0, 8) == "FIXrange")
   {
     std::vector<size_t> indicesFromString = sorted_indices_from_cs_string(value_string);
@@ -1525,7 +1570,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   {
     // indices from current option value
     std::vector<size_t> ssi = sorted_indices_from_cs_string(value_string);
-    // check whether one of the atoms in that subsystem 
+    // check whether one of the atoms in that subsystem
     // is contained in any already given one
     for (auto & susy : Config::get().coords.subsystems)
     { // cycle present subsystems
@@ -2397,11 +2442,14 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   }
   else if (Config::get().general.energy_interface == interface_types::GAUSSIAN)
   {
-    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '" << "# " 
+    strm << "Gaussian path is '" << p.gaussian.path << "' and command is '# "
          << p.gaussian.method << " " << p.gaussian.basisset << " " << p.gaussian.spec << "'.\n";
   }
   else if (Config::get().general.energy_interface == interface_types::CHEMSHELL) {
-	  strm << "Chemshell path is '" << p.chemshell.path << " magic!" << "'.\n"; //<- Not done here!!!!!!
+	  strm << "Chemshell path is '" << p.chemshell.path << "'.\n"; //<- Not done here!!!!!!
+  }
+  else if(Config::get().general.energy_interface == interface_types::PSI4){
+    strm << "Psi4 path is '" << p.psi4.path << "'\n"; //<- Not done here!!!!!!
   }
   return strm;
 }

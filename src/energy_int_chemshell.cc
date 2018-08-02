@@ -1,4 +1,5 @@
 #include "energy_int_chemshell.h"
+#include "helperfunctions.h"
 
 template<typename T, typename U>
 auto zip(T && a, U && b) {
@@ -12,7 +13,7 @@ auto zip(T && a, U && b) {
 }
 
 void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_use()const {
-	
+
 	if (Config::get().energy.chemshell.extra_pdb == "") {
 		create_pdb();
 	}
@@ -52,7 +53,7 @@ void energy::interfaces::chemshell::sysCallInterface::initialize_before_first_us
 }
 
 void energy::interfaces::chemshell::sysCallInterface::create_pdb() const {
-	
+
 	write_xyz(tmp_file_name + ".xyz");
 
 	std::stringstream ss;
@@ -306,8 +307,8 @@ void energy::interfaces::chemshell::sysCallInterface::eval_constraints()
     constraints c;
     c.kind = "torsion";
     c.atoms.emplace_back(std::stoi(strs[1]));
-    c.atoms.emplace_back(std::stoi(strs[2])); 
-    c.atoms.emplace_back(std::stoi(strs[3])); 
+    c.atoms.emplace_back(std::stoi(strs[2]));
+    c.atoms.emplace_back(std::stoi(strs[3]));
     c.atoms.emplace_back(std::stoi(strs[4]));
     this->cons.emplace_back(c);
   };
@@ -331,7 +332,7 @@ void energy::interfaces::chemshell::sysCallInterface::eval_constraints()
       std::vector<std::string> split{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
       which_const(split);
     }
-  } 
+  }
 }
 
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()const {
@@ -358,7 +359,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 
 	std::ofstream chemshell_file_to_prepare_coords(o_file);
 
-	chemshell_file_to_prepare_coords << 
+	chemshell_file_to_prepare_coords <<
 		"set sys_name_id " << tmp_file_name << "\n"
 		"read_pdb file=./${sys_name_id}.pdb coords=./${sys_name_id}.c";
 
@@ -369,7 +370,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_coords()co
 }
 */
 void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool const & sp) const {
-	
+
 	auto o_file = tmp_file_name + ".chm";
 
 	std::ofstream chem_shell_input_stream(o_file);
@@ -396,7 +397,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 		"read_xyz file=" << tmp_file_name << ".xyz coords=" << tmp_file_name << ".c\n";
 	//Refactoring NEEDED!!!!!!
 	auto const & com_res = Config::get().energy.chemshell.com_residues;
-	
+
 	if (com_res != "") {
 		chem_shell_input_stream << "set residues [ inlist function= combine residues= $residues sets= {" << com_res << "} target= MOX ]\n\n";
 	}
@@ -412,7 +413,7 @@ void energy::interfaces::chemshell::sysCallInterface::write_chemshell_file(bool 
 	else {
 		make_opt_inp(chem_shell_input_stream);
 	}
-		
+
 	chem_shell_input_stream.close();
 
 }
@@ -426,12 +427,12 @@ void energy::interfaces::chemshell::sysCallInterface::make_sp()const {
 }
 
 std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterface::find_active_and_inactive_atoms(std::string const & qm_atoms) const {
-	
+
 	/*std::vector<int> indices(coords->size());
 	std::iota(indices.begin(), indices.end(), 1);
 	std::vector<int> final_vec;
 
-	std::transform(coords->atoms().begin(), coords->atoms().end(), indices.begin(), std::back_inserter(final_vec), 
+	std::transform(coords->atoms().begin(), coords->atoms().end(), indices.begin(), std::back_inserter(final_vec),
 		[](auto const & a, auto const & b) {
 			if (a.fixed()) {
 				return 0;
@@ -441,7 +442,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 			}
 	});
 
-	
+
 	for (auto const & i : final_vec) {
 		if (i != 0) {
 			final_atoms += std::to_string(i) + " ";
@@ -449,20 +450,20 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 	}*/
 
     auto make_string_to_numbers = [&](std::string const & str){
-    
+
         std::istringstream iss(str);
         std::vector<std::string> str_num{ std::istream_iterator<std::string>{iss}, std::istream_iterator<std::string>{} };
-    
+
         std::vector<std::size_t> ret;
-    
-        for(auto i = 0; i<str_num.size();++i){
+
+        for(auto i = 0u; i<str_num.size();++i){
             auto const & str_i = str_num[i];
             if(i==str_num.size()-1){
                 ret.emplace_back(std::stoi(str_i));
                 break;
             }
-        
-            if(str_num[i+1u] != "-" && this->check_if_number(str_i)){
+
+            if(str_num[i+1u] != "-" && check_if_number(str_i)){
                 ret.emplace_back(std::stoi(str_i));
             }
             else if(str_num[i+1u] == "-"){
@@ -473,9 +474,9 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
                 ret.insert(ret.end(), append_vec.begin(), append_vec.end());
                 i += 2u;
             }
-        
+
         }
-    
+
         return ret;
     };
 
@@ -483,7 +484,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
 
     std::string active_atoms = "";
 
-    auto qm_list = make_string_to_numbers(qm_atoms);    
+    auto qm_list = make_string_to_numbers(qm_atoms);
 
     std::set<std::size_t> active_atoms_set;
 
@@ -511,7 +512,7 @@ std::pair<std::string, std::string> energy::interfaces::chemshell::sysCallInterf
     }
 
 	std::string fixed_atoms = "";
-	for (auto i = 0; i < coords->size(); ++i) {
+	for (auto i = 0u; i < coords->size(); ++i) {
 		auto const & atom = coords->atoms().atom(i);
 		if (atom.fixed()) {
 			fixed_atoms += std::to_string(i + 1) + " ";
@@ -534,7 +535,7 @@ std::string energy::interfaces::chemshell::sysCallInterface::trim_space_and_tabs
 }
 
 void energy::interfaces::chemshell::sysCallInterface::call_chemshell(bool singlepoint) const {
-	
+
 	//create_pdb();
 	write_chemshell_file(singlepoint);
 	actual_call();
@@ -562,14 +563,6 @@ void energy::interfaces::chemshell::sysCallInterface::actual_call()const {
 	if (failcount == 10) {
 		throw std::runtime_error("10 Chemshell calls failed!");
 	}
-}
-
-bool energy::interfaces::chemshell::sysCallInterface::check_if_number(std::string const & number) const {
-
-	return !number.empty() && std::find_if(number.cbegin(), number.cend(), [](char n) {
-		return n != 'E' && n != 'e' && n != '-' && n != '+' && n != '.' && !std::isdigit(n); //check if the line contains digits, a minus or a dot to determine if its a floating point number
-	}) == number.end();
-
 }
 
 coords::float_type energy::interfaces::chemshell::sysCallInterface::read_energy()const {
@@ -606,7 +599,7 @@ coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::extra
 	return new_grads;
 }
 
-void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
+coords::Representation_3D energy::interfaces::chemshell::sysCallInterface::read_gradients() const{
 	std::ifstream ifile(tmp_file_name + ".gradient");
 
 	std::string line;
@@ -627,14 +620,11 @@ void energy::interfaces::chemshell::sysCallInterface::read_gradients() {
 		}
 	}
 
-	auto new_gradients = extract_gradients(gradients);
-
-	coords->swap_g_xyz(new_gradients);
-
+	return extract_gradients(gradients);
 }
 
 bool energy::interfaces::chemshell::sysCallInterface::check_if_line_is_coord(std::vector<std::string> const & coordobj)const {
-	return 
+	return
     coordobj.size() == 4 &&
 		check_if_number(coordobj.at(1)) &&
 		check_if_number(coordobj.at(2)) &&
@@ -732,7 +722,7 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords() {
 		if(words.size()==0){
 			continue;
 		}
-		
+
 		if (check_if_line_is_coord(words)) {
 			xyz.emplace_back(make_coords(words));
 		}
@@ -753,29 +743,30 @@ void energy::interfaces::chemshell::sysCallInterface::read_coords() {
         }
 }
 
-void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other){}
+void energy::interfaces::chemshell::sysCallInterface::swap(interface_base & other)
+{
+  swap(dynamic_cast<sysCallInterface&>(other));
+}
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::clone(coords::Coordinates * coord_object) const { return new sysCallInterface(*this, coord_object); }
 energy::interface_base * energy::interfaces::chemshell::sysCallInterface::move(coords::Coordinates * coord_object) { return new sysCallInterface(*this, coord_object); }
 
-void energy::interfaces::chemshell::sysCallInterface::update(bool const skip_topology){}
-
-coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) { 
+coords::float_type energy::interfaces::chemshell::sysCallInterface::e(void) {
 	check_for_first_call();
 	//write_chemshell_coords();
 	make_sp();
-	return read_energy()*au_to_kcalmol;
+	return read_energy()*au2kcal_mol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::g(void) {
 	check_for_first_call();
 	//write_chemshell_coords();
 	make_sp();
-	read_gradients();
-	return read_energy()*au_to_kcalmol;
+	set_gradients(read_gradients());
+	return read_energy()*au2kcal_mol;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::h(void) {
 	check_for_first_call();
 	//write_chemshell_coords();
-	return 0.0; 
+	return 0.0;
 }
 coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	check_for_first_call();
@@ -783,29 +774,7 @@ coords::float_type energy::interfaces::chemshell::sysCallInterface::o(void) {
 	make_opti();
 	++x;
 	change_name_of_energy_and_grad();
-	read_gradients();
+	set_gradients(read_gradients());
 	read_coords();
-	return read_energy()*au_to_kcalmol;
+	return read_energy()*au2kcal_mol;
 }
-
-void energy::interfaces::chemshell::sysCallInterface::print_E(std::ostream&) const{}
-
-void energy::interfaces::chemshell::sysCallInterface::print_E_head(std::ostream&, bool const endline) const {}
-
-void energy::interfaces::chemshell::sysCallInterface::print_E_short(std::ostream&, bool const endline) const {}
-
-void energy::interfaces::chemshell::sysCallInterface::print_G_tinkerlike(std::ostream & S, bool const aggregate) const {
-
-	coords::Representation_3D gradients;
-
-	coords->get_g_xyz(gradients);
-
-	for (auto const & grad : gradients) {
-
-		S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << grad << "\n";
-
-	}
-
-}
-
-void energy::interfaces::chemshell::sysCallInterface::to_stream(std::ostream&) const {}

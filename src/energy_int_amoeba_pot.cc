@@ -264,7 +264,6 @@ namespace energy
             av1(coords->xyz(ang13.atoms[0]) - coords->xyz(ang13.atoms[1])),
             av2(coords->xyz(ang13.atoms[2]) - coords->xyz(ang13.atoms[1]));
           coords::float_type const d(scon::angle(av1, av2).degrees() - ang13.ideal);
-          coords::float_type const r(d*SCON_PI180);
           E += (SCON_PI180*SCON_PI180)*ang13.force*d*d*(1.0 - 0.014*d + 5.60E-05*(d*d) - 7.0E-07*(d*d*d) + 2.2E-08*(d*d*d*d));
 
           if (std::abs(d) > 30.0) integrity = false;
@@ -2290,13 +2289,11 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
   size_t i, j, k;
   size_t ii, kk;
-  size_t ix, iy, iz, kx, ky, kz;
 
   double e(0.0), ei(0.0), f(0.0);
   double damp(0.0), expdamp(0.0);
-  double tempmulti(0.0), temppol(0.0);
   double pdi(0.0), pti(0.0), pgamma(0.0);
-  double scale3(0.0), scale3i(0.0), scale7(0.0), scale7i(0.0), scale5(0.0), scale5i(0.0);
+  double scale3(0.0), scale3i(0.0), scale7(0.0), scale5(0.0), scale5i(0.0);
   double temp3(0.0), temp5(0.0), temp7(0.0);
   double psc3(0.0), psc5(0.0), psc7(0.0), dsc3(0.0), dsc5(0.0), dsc7(0.0);
   double xr(0.0), yr(0.0), zr(0.0);
@@ -2366,9 +2363,9 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
     ii = ipole[i] + 1;
     if (ii == 0)continue;
-    iz = zaxis[i];
-    ix = xaxis[i];
-    iy = yaxis[i];
+    //auto iz = zaxis[i];
+    //auto ix = xaxis[i];
+    //auto iy = yaxis[i];
 
     pdi = pdamp[i];
     pti = thole[i];
@@ -2433,9 +2430,9 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
     for (k = i + 1; k <= N; k++) {
       kk = ipole[k] + 1;
       if (kk == 0)continue;
-      kz = zaxis[k];
-      kx = xaxis[k];
-      ky = yaxis[k];
+      //auto kz = zaxis[k];
+      //auto kx = xaxis[k];
+      //auto ky = yaxis[k];
       xr = positions[kk - 1].x() - positions[ii - 1].x();
       yr = positions[kk - 1].y() - positions[ii - 1].y();
       zr = positions[kk - 1].z() - positions[ii - 1].z();
@@ -2519,7 +2516,7 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         }
         scale3i = scale3 *uscale[kk];
         scale5i = scale5 * uscale[kk];
-        scale7i = scale7 * uscale[kk];
+        //scale7i = scale7 * uscale[kk];
 
         dsc3 = scale3 *dscale[kk];
         dsc5 = scale5 *dscale[kk];
@@ -2750,8 +2747,8 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
 
 
 
-        tempmulti = em;
-        temppol = ep;
+        //tempmulti = em;
+        //temppol = ep;
         //std::cout << "Test1\n";
 
               //!intermediate variables for the permanent components
@@ -2899,8 +2896,8 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         std::vector<double> uv(4), uw(4), vw(4), ur(4), us(4), vs(4), ws(4);
         double du(0.0), dv(0.0), dw(0.0), usiz(0.0), vsiz(0.0), wsiz(0.0), rsiz(0.0), ssiz(0.0);
         double t1siz(0.0), t2siz(0.0), uvsiz(0.0), uwsiz(0.0), vwsiz(0.0), ursiz(0.0), ussiz(0.0), vssiz(0.0), wssiz(0.0);
-        double uvcos(0.0), uwcos(0.0), vwcos(0.0), urcos(0.0), uscos(0.0), vscos(0.0), wscos(0.0);
-        double ut1cos(0.0), ut2cos(0.0), uvsin(0.0), uwsin(0.0), vwsin(0.0), ursin(0.0), ussin(0.0), vssin(0.0), wssin(0.0), ut1sin(0.0), ut2sin(0.0);
+        double uvcos(0.0), uwcos(0.0), vwcos(0.0), urcos(0.0), vscos(0.0), wscos(0.0);
+        double ut1cos(0.0), ut2cos(0.0), uvsin(0.0), uwsin(0.0), vwsin(0.0), ursin(0.0), vssin(0.0), wssin(0.0), ut1sin(0.0), ut2sin(0.0);
         double dphidu(0.0), dphidw(0.0), dphidv(0.0), dphids(0.0), dphidr(0.0);
 
 
@@ -3047,8 +3044,8 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (axistype[i] == 4) {
           urcos = u[1] * r[1] + u[2] * r[2] + u[3] * r[3];
           ursin = sqrt(1.0 - urcos*urcos);
-          uscos = u[1] * s[1] + u[2] * s[2] + u[3] * s[3];
-          ussin = sqrt(1.0 - uscos*uscos);
+          //uscos = u[1] * s[1] + u[2] * s[2] + u[3] * s[3];
+          //ussin = sqrt(1.0 - uscos*uscos);
           vscos = v[1] * s[1] + v[2] * s[2] + v[3] * s[3];
           vssin = sqrt(1.0 - vscos*vscos);
           wscos = w[1] * s[1] + w[2] * s[2] + w[3] * s[3];
@@ -3413,8 +3410,8 @@ void energy::interfaces::amoeba::amoeba_ff::e_perm(void)
         if (axistype[k] == 4) {
           urcos = u[1] * r[1] + u[2] * r[2] + u[3] * r[3];
           ursin = sqrt(1.0 - urcos*urcos);
-          uscos = u[1] * s[1] + u[2] * s[2] + u[3] * s[3];
-          ussin = sqrt(1.0 - uscos*uscos);
+          //uscos = u[1] * s[1] + u[2] * s[2] + u[3] * s[3];
+          //ussin = sqrt(1.0 - uscos*uscos);
           vscos = v[1] * s[1] + v[2] * s[2] + v[3] * s[3];
           vssin = sqrt(1.0 - vscos*vscos);
           wscos = w[1] * s[1] + w[2] * s[2] + w[3] * w[3];
@@ -3838,10 +3835,9 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
   //POLARIZATION GROUP VARIABLES
 
-  size_t it(0U);
   size_t jt(0U);
   bool done(false);
-  size_t start(0U), stop(0U), nlist(0U), nkeep(0U), maxval(0U);
+  size_t start(0U), stop(0U), nlist(0U), nkeep(0U);
 
   np11.resize(alloc_glob + 50);
   ip11.resize(alloc_glob + 50);
@@ -3981,12 +3977,12 @@ void energy::interfaces::amoeba::amoeba_ff::refine_pair_lists(void)
 
 
   //! assign direct list
-  maxval = 8;
+  //maxval = 8;
 
   for (i = 1; i <= n_atom; i++) {
     np11[i] = 1;
     ip11[1][i] = i;
-    it = coords->atoms(i - 1).energy_type();
+    //it = coords->atoms(i - 1).energy_type();
 
 
     for (size_t j = 0; j < coords->atoms(i - 1).bonds().size(); j++) {
@@ -5582,9 +5578,6 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_Energy() {
 
   double r_cutoff;
   r_cutoff = Config::get().energy.spackman.cut;
-  const size_t
-    n_atom = coords->xyz().size();
-
 
   size_t j, k, it, n;
   nbas = 19;
@@ -5766,7 +5759,8 @@ void energy::interfaces::amoeba::amoeba_ff::Spackman_GRAD() {
 //!calculation of analytical gradients for Spackman correction using generated list from Spackman_list	  
 void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 {
-  size_t n(0), contr(0);
+  //size_t n(0), 
+  size_t contr(0);
   double distx(0.0), disty(0.0), distz(0.0), dist_3(0.0),
     xx_in(0.0), fac_x(0.0), fac_y(0.0), fac_z(0.0),
     xgrad(0.0), ygrad(0.0), zgrad(0.0), y(0.0);
@@ -5860,7 +5854,7 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
       fac_x = distx / xx_in;
       fac_y = disty / xx_in;
       fac_z = distz / xx_in;
-      n = 1000;
+      //n = 1000;
       if (contr == 1) {
 
 
@@ -5970,9 +5964,9 @@ void energy::interfaces::amoeba::amoeba_ff::SpackmanGrad_3()
 //
 double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
 {
-  size_t n(0), contr(0);
-  double distx = 0, disty = 0, distz = 0, dist_3 = 0, xx_in(0.0),
-    y(0.0), energytemp(0.0);
+  //size_t n(0), 
+  size_t contr(0);
+  double dist_3 = 0, xx_in(0.0), y(0.0), energytemp(0.0);
   std::vector <double> dist_2;
   auto const &positions = coords->xyz();
   coords::Cartesian_Point bv;
@@ -6028,9 +6022,9 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "N" && coords->atoms(vec_spack[i].atom[1]).symbol() == "O") contr = 10;
     if (coords->atoms(vec_spack[i].atom[0]).symbol() == "O" && coords->atoms(vec_spack[i].atom[1]).symbol() == "N") contr = 10;
 
-    distx = positions[vec_spack[i].atom[0]].x() - positions[vec_spack[i].atom[1]].x();
-    disty = positions[vec_spack[i].atom[0]].y() - positions[vec_spack[i].atom[1]].y();
-    distz = positions[vec_spack[i].atom[0]].z() - positions[vec_spack[i].atom[1]].z();
+    //distx = positions[vec_spack[i].atom[0]].x() - positions[vec_spack[i].atom[1]].x();
+    //disty = positions[vec_spack[i].atom[0]].y() - positions[vec_spack[i].atom[1]].y();
+    //distz = positions[vec_spack[i].atom[0]].z() - positions[vec_spack[i].atom[1]].z();
     bv = positions[vec_spack[i].atom[0]] - positions[vec_spack[i].atom[1]];
 
     dist_3 = scon::len(bv);
@@ -6038,7 +6032,7 @@ double energy::interfaces::amoeba::amoeba_ff::Spackman_energy_analytical()
     if (dist_3 <= 10.0) {
 
       xx_in = dist_3;
-      n = 1000;
+      //n = 1000;
       if (contr == 1) {
         y = myfunc11.interpolate(xx_in);
 

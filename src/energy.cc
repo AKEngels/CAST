@@ -6,12 +6,14 @@
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
 #include "energy_int_qmmm.h"
+#include "energy_int_oniom.h"
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
 #endif
 #include "energy_int_dftb.h"
 #include "energy_int_gaussian.h"
 #include "energy_int_chemshell.h"
+#include "energy_int_psi4.h"
 #include "coords.h"
 #include "scon_utility.h"
 
@@ -21,7 +23,7 @@
 * This function returns a pointer to
 * a new energy interface. It should not be called
 * manually but is used by the energy::new_interface
-* function. Which interface is created depends on the 
+* function. Which interface is created depends on the
 * specifications in the global Config instance
 *
 * @param coordinates: Pointer to coordinates object for which energy interface will perform
@@ -39,7 +41,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
         std::cout << "Illegal Energy interface.\n";
       }
       return nullptr;
-    }  
+    }
   case config::interface_types::T::AMOEBA:
     {
       if (Config::get().general.verbosity >= 3)
@@ -58,11 +60,19 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
     }
   case config::interface_types::T::QMMM:
   {
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity > 3)
     {
       std::cout << "QMMM-Interface choosen for energy calculations.\n";
     }
     return new energy::interfaces::qmmm::QMMM(coordinates);
+  }
+  case config::interface_types::T::ONIOM:
+  {
+	  if (Config::get().general.verbosity > 3)
+	  {
+		  std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+	  }
+	  return new energy::interfaces::oniom::ONIOM(coordinates);
   }
 
   case config::interface_types::T::TERACHEM:
@@ -107,6 +117,13 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 	  }
 	  return new energy::interfaces::chemshell::sysCallInterface(coordinates);
   }
+  case config::interface_types::T::PSI4:
+  {
+    if (Config::get().general.verbosity >= 3){
+		  std::cout << "Psi4 chosen for energy calculations.\n";
+	  }
+	  return new energy::interfaces::psi4::sysCallInterface(coordinates);
+  }
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
@@ -150,11 +167,11 @@ energy::interface_base* energy::pre_interface(coords::Coordinates * coordinates)
 /*! Override of virtual void swap
 *
 * Virtual void swap is decleared in header, but is overrided in energy.cc, so swap is
-* useable with all general members of the class. For additional members 
+* useable with all general members of the class. For additional members
 * of derived classes it must be decleared there additionaly to
 * "void swap(sysCallInterface&)"
 */
-void energy::interface_base::swap (interface_base &other)    
+void energy::interface_base::swap (interface_base &other)
 {
   std::swap(energy,    other.energy);
   std::swap(pb_max,    other.pb_max);
@@ -166,10 +183,28 @@ void energy::interface_base::swap (interface_base &other)
   std::swap(interactions, other.interactions);
 }
 
+void energy::interface_base::print_G_tinkerlike(std::ostream &S, bool const endline) const{
+  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
+  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
+  for (std::size_t k = 0; k < coords->size(); ++k)
+  {
+    S << " Anlyt";
+    S << std::right << std::setw(10) << k + 1U;
+    S << "       ";
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
+    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
+    S << std::sqrt(
+      coords->g_xyz(k).x() * coords->g_xyz(k).x()
+      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
+      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << (endline ? "\n" : "");
+  }
+}
 
 /*! Override of virtual void to_stream
 *
-* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream 
+* Virtual void to_stream is decleared in header, but is overrided in energy.cc, so to_stream
 * is useable with all general members of the class fot output. For additional members
 * of derived classes it must be decleared there additionaly.
 */

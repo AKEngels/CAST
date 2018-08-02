@@ -54,30 +54,23 @@ namespace energy
         /**update structure (account for topology or rep change, or just non-bonded list)*/
         void update(bool const skip_topology = false);
 
-		/**Energy function*/
-		coords::float_type e(void);
-		/**Energy+Gradient function*/
-		coords::float_type g(void);
-		/** Energy+Gradient+Hessian function
-		at the moment does nothing because Hessians are not implemented yet*/
-		coords::float_type h(void);
-		/** Optimization in the intface or interfaced program*/
-		coords::float_type o(void);
+		    /**Energy function*/
+		    coords::float_type e(void);
+		    /**Energy+Gradient function*/
+		    coords::float_type g(void);
+		    /** Energy+Gradient+Hessian function
+		    at the moment does nothing because Hessians are not implemented yet*/
+		    coords::float_type h(void);
+		    /** Optimization in the intface or interfaced program*/
+		    coords::float_type o(void);
 
         /**get charges*/
         std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        /**function to get coulomb gradients on external charges*/
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+          return grad_ext_charges;
         }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
 
         // Virial Tensor
         std::array<std::array<coords::float_type, 3>, 3> virial();
@@ -86,7 +79,7 @@ namespace energy
         void print_E(std::ostream&) const;
         void print_E_head(std::ostream&, bool const endline = true) const;
         void print_E_short(std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
+        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final override;
         void to_stream(std::ostream&) const;
         void swap(interface_base&);
         void swap(aco_ff&);
@@ -165,6 +158,11 @@ namespace energy
         template<std::size_t T_DERV> coords::float_type f_it(void);
         /**impropers interactions*/
         template<std::size_t T_DERV> coords::float_type f_imp(void);
+        /**calculates interaction to external charges*/
+        void calc_ext_charges_interaction(size_t);
+
+        /**gradients on external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
 
         /**charge energy */
         coords::float_type eQ(coords::float_type const C, coords::float_type const r) const;

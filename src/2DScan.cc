@@ -2,7 +2,7 @@
 
 using length_type = Scan2D::length_type;
 
-Scan2D::Scan2D(coords::Coordinates & coords) 
+Scan2D::Scan2D(coords::Coordinates & coords)
   : _coords(coords), change_from_atom_to_atom(Config::get().scan2d.change_from_atom_to_atom), max_change_rotation(Config::get().scan2d.max_change_to_rotate_whole_molecule)
 {
 	logfile.open(structures_file);
@@ -71,16 +71,16 @@ void Scan2D::Normal_Input::fill_what(std::vector<std::string> & splitted_vals, c
 }
 
 std::unique_ptr<Scan2D::Input_types> Scan2D::parse_input(std::string const & input) {
-	
+
 	std::istringstream iss_axis(input);
-	
+
 	std::vector<std::string> splitted_vals{
 		std::istream_iterator<std::string>{iss_axis},
 		std::istream_iterator<std::string>{}
 	};
 
 	std::unique_ptr<Input_types> unique_parser;
-	
+
 	try {
 		unique_parser = Input_Factory(splitted_vals.size(), splitted_vals.front());
 		unique_parser->fill_what(splitted_vals, _coords.xyz());
@@ -122,7 +122,7 @@ Scan2D::length_type Scan2D::get_length(cbond const & ab) {
 }
 
 Scan2D::angle_type Scan2D::get_angle(cangle const & abc) {
-	
+
 	auto const b_to_a = abc.b - abc.a;
 	auto const b_to_c = abc.b - abc.c;
 	auto const AB_x_BC = scon::cross(b_to_c, b_to_a);
@@ -132,7 +132,7 @@ Scan2D::angle_type Scan2D::get_angle(cangle const & abc) {
 }
 
 Scan2D::angle_type Scan2D::get_dihedral(cdihedral const & abcd) {
-	
+
 	auto const b_to_a = abcd.a - abcd.b;
 	auto const b_to_c = abcd.b - abcd.c;//Shouldn't this be c-b?
 	auto const b_to_d = abcd.d - abcd.b;
@@ -167,14 +167,14 @@ coords::Cartesian_Point Scan2D::change_length_of_bond(cbond const & ab, length_t
 coords::Cartesian_Point Scan2D::rotate_a_to_new_angle(cangle const & abc, Scan2D::angle_type const & new_angle) {
 
 	cbond ab(abc.a, abc.b);
-	
+
 	auto radius = Scan2D::get_length(ab);
 	auto sin_inclination = sin(new_angle);
 	auto cos_inclination = cos(new_angle);
-	
+
 	auto new_x = radius * cos_inclination;
 	auto new_y = radius * sin_inclination;
-	
+
 	auto CB = scon::normalized(abc.c - abc.b);
 	auto ZxA = scon::normalized(scon::cross(CB, abc.a - abc.b));
 	auto ZxAxZ = scon::normalized(scon::cross(ZxA, CB));
@@ -196,7 +196,7 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(cdihedral const & abcd,
 	auto cos_inclination = cos(inclination);
 	auto sin_azimuth = -sin(new_angle);
 	auto cos_azimuth = cos(new_angle);
-	
+
 	coords::Cartesian_Point helper_point(
 		radius * sin_inclination * cos_azimuth,
 		radius * sin_inclination * sin_azimuth,
@@ -215,7 +215,7 @@ coords::Cartesian_Point Scan2D::rotate_a_to_new_dihedral(cdihedral const & abcd,
 coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Scan2D::length_type const & deg) const {
     using std::placeholders::_1;
 
-    auto xyz = _coords.xyz(); 
+    auto xyz = _coords.xyz();
     auto tmp_axis = xyz[atoms[1] - 1] - xyz[atoms[2] - 1];
     scon::RotationMatrix::Vector ax{ tmp_axis.x(),tmp_axis.y(),tmp_axis.z() };
     scon::RotationMatrix::Vector center{ xyz[atoms[1] - 1].x(), xyz[atoms[1] - 1].y(), xyz[atoms[1] - 1].z() };
@@ -230,11 +230,10 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
         std::size_t atom_number, bond_count;
         std::tie(atom_number, bond_count) = dd;
 
-        auto const change = angle_type::from_deg(deg < 0.0 ? 
+        auto const change = angle_type::from_deg(deg < 0.0 ?
           deg + parent->change_from_atom_to_atom*static_cast<double>(bond_count) :
           deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count)
         ).radians();
-        auto const change_in_deg = deg - parent->change_from_atom_to_atom*static_cast<double>(bond_count);
         if (fabs(change) <= max_change_rotation_rad || (deg * change) < 0.){
           continue;
         }
@@ -254,7 +253,7 @@ coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_dih(Sca
 
 coords::Representation_3D Scan2D::Move_Handler::rotate_molecule_behind_a_ang(Scan2D::length_type const & deg) const {
   using std::placeholders::_1;
-  
+
   auto xyz = _coords.xyz();
 
   auto ba = xyz[atoms[0u] - 1u] - xyz[atoms[1u] - 1u];
@@ -394,15 +393,15 @@ Scan2D::bond_set Scan2D::Move_Handler::go_along_backbone(std::vector<std::size_t
 void Scan2D::make_scan() {
 
 	prepare_scan();
-	
+
 	coords::output::formats::tinker output(_coords);
     //std::cout << parser->x_parser->say_val() << " " << parser->y_parser->say_val() << std::endl;
     //parser->fix_atoms(_coords);
     //write_energy_entry(optimize(_coords));
     //parser->x_parser->set_coords(_coords.xyz());
-    
+
     //output.to_stream(logfile);
-    
+
     //go_along_y_axis(_coords);
 
 	for (auto const & x_step : axis->x_steps) {
@@ -417,7 +416,7 @@ void Scan2D::make_scan() {
         parser->x_parser->set_coords(_coords.xyz());
 
 		_coords.set_xyz(
-          parser->x_parser->make_move(mh), 
+          parser->x_parser->make_move(mh),
           true
         );
         parser->x_parser->set_coords(_coords.xyz());
@@ -429,7 +428,7 @@ void Scan2D::make_scan() {
 		output.to_stream(logfile);
 
 		go_along_y_axis(_coords);
-		
+
 	}
 
 }
@@ -444,7 +443,7 @@ length_type Scan2D::optimize(coords::Coordinates & c) {
 
 void Scan2D::prepare_scan() {
 	auto xyz = _coords.xyz();
-   
+
     auto const x_move = parser->x_parser->what->from_position;
     auto const y_move = parser->y_parser->what->from_position;
     auto const & x_atoms = parser->x_parser->what->atoms;
@@ -613,7 +612,7 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 
 //coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
 //    auto p = parent.lock();
-//   
+//
 //    auto new_molecule = mh._coords.xyz();
 //    new_molecule[mh.atoms.at(0) - 1u] = rotate_a_to_new_dihedral(*dihedral, angle_type::from_deg(mh.new_pos));
 //    return new_molecule;
@@ -622,7 +621,6 @@ coords::Representation_3D Scan2D::Normal_Angle_Input::make_move(Scan2D::Move_Han
 coords::Representation_3D Scan2D::Normal_Dihedral_Input::make_move(Scan2D::Move_Handler const & mh) {
   auto p = parent.lock();
   auto const change = mh.new_pos - say_val();
-  auto const bla = say_val();
   if (fabs(change) > p->max_change_rotation) {
     return mh.rotate_molecule_behind_a_dih(change);
   }
@@ -646,7 +644,7 @@ Scan2D::length_type Scan2D::Normal_Dihedral_Input::say_val() {
 }
 
 void Scan2D::XY_Parser::fix_atoms(coords::Coordinates & coords)const{
-	
+
 	for (auto && atom : x_parser->what->atoms) {
 		coords.fix(atom-1);
 	}

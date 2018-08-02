@@ -38,7 +38,7 @@ namespace energy {
 				using angle_type = typename get_spherical_types<remove_cr<decltype(coords->intern(0))>>::angle_type;
 				*/
 				sysCallInterface(coords::Coordinates * coord_ptr)
-					: interface_base(coord_ptr), 
+					: interface_base(coord_ptr),
 					tmp_file_name(Config::get().general.outputFilename)
 				{
 					optimizer = true;
@@ -90,41 +90,27 @@ namespace energy {
 				interface_base * clone(coords::Coordinates * coord_object) const final;
 				interface_base * move(coords::Coordinates * coord_object) final;
 
-				void update(bool const skip_topology = false) final;
+				void update(bool const) final {};
 
 				coords::float_type e(void) final;
 				coords::float_type g(void) final;
 				coords::float_type h(void) final;
 				coords::float_type o(void) final;
 
-				void print_E(std::ostream&) const final;
-				void print_E_head(std::ostream&, bool const endline = true) const final;
-				void print_E_short(std::ostream&, bool const endline = true) const final;
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const final;
-				void to_stream(std::ostream&) const final;
-
-				//TODO: Get better value from better source
-				static auto constexpr au_to_kcalmol = 627.503;
+				void print_E(std::ostream&) const final {};
+				void print_E_head(std::ostream&, bool const) const final override {};
+				void print_E_short(std::ostream&, bool const) const final override {};
+				void to_stream(std::ostream&) const final {};
 
         /**overwritten function, should not be called*/
         std::vector<coords::float_type> charges() const override
         {
-          throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
+          throw std::runtime_error("TODO: Implement charge getter for CHEMSHELL.\n");
         }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
           throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
-        /**overwritten function*/
-        std::string get_id() const override 
-        {
-          throw std::runtime_error("function not implemented for chemshell interface\n");
-        }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
         }
 
 			private:
@@ -141,11 +127,9 @@ namespace energy {
 				void call_chemshell(bool single_point = true) const;
 				void actual_call()const;
 				std::pair<std::string, std::string> find_active_and_inactive_atoms(std::string const & qm_atoms)const;
-				void read_gradients();
+				coords::Representation_3D read_gradients() const;
 
 				static std::string trim_space_and_tabs(std::string const & str);
-
-				bool check_if_number(std::string const & number)const;
 
 				coords::float_type read_energy()const;
 				void read_coords();
@@ -154,6 +138,8 @@ namespace energy {
 				coords::Cartesian_Point make_coords(std::vector<std::string> const & line)const;
 				void change_name_of_energy_and_grad()const;
 				coords::Representation_3D extract_gradients(std::vector<coords::float_type> const & grads) const;
+				template<typename Rep3D>
+				void set_gradients(Rep3D && grads);
 
 				void change_input_file_names(std::string const & filename, std::string const & copy_or_move = "cp")const;
 
@@ -209,6 +195,14 @@ namespace energy {
 			};
 		}
 	}
+}
+
+template<typename Rep3D>
+void energy::interfaces::chemshell::sysCallInterface::set_gradients(Rep3D && grads){
+	for(auto && g : grads){
+		g *= energy::Hartree_Bohr2Kcal_MolAng;
+	}
+	coords->set_g_xyz(std::forward<Rep3D>(grads));
 }
 
 #endif

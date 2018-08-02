@@ -8,14 +8,6 @@ newoption {
    description = "Target SMURF cluster with MPI"
 }
 
-function os.winSdkVersion()
-    local reg_arch = iif( os.is64bit(), "\\Wow6432Node\\", "\\" )
-          if os.is("windows") then
-                    local sdk_version = os.getWindowsRegistry( "HKLM:SOFTWARE" .. reg_arch .."Microsoft\\Microsoft SDKs\\Windows\\v10.0\\ProductVersion" )
-                if sdk_version ~= nil then return sdk_version end
-    else return "nothing" end
-end
-
 workspace "CAST"
 	configurations { "Debug", "Release", "Armadillo_Debug", "Armadillo_Release", "Testing", "Armadillo_Testing", "Python_Release", "Python_Debug"}
 		location "project"
@@ -26,6 +18,23 @@ workspace "CAST"
 			defines "COMPILEX64"
 			architecture "x64"
 		filter{}
+
+  project "GoogleTest"
+    kind"StaticLib"
+    language"C++"
+    cppdialect"C++14"
+    targetdir"libs/%{cfg.buildcfg}"
+    location"project/libs/GoogleTest"
+
+    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
+    sysincludedirs { "../submodules/googletest/googletest/include" }
+    includedirs{ "../submodules/googletest/googletest" }
+
+    filter "action:vs*"
+            system("windows")
+	        systemversion("10.0.16299.0")
+
+    symbols"On"
 
 	project "CAST"
 		kind "ConsoleApp"
@@ -65,10 +74,12 @@ workspace "CAST"
 
 		filter "*Testing"
 				files "../src/gtest/*.cc"
+        vpaths {["Tests"] = "../src/gtest/*.cc"}
+
 				symbols "On"
 				defines "GOOGLE_MOCK"
-				includedirs {"includes/gtest", "includes"}
-				links "gmock"
+				includedirs {"../submodules/googletest/googletest/include"}
+                links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
@@ -102,8 +113,6 @@ workspace "CAST"
 		filter {"Armadillo_Debug", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_armadillo_debug"
 
-		filter "*Testing"
-			libdirs "linux_precompiled_libs"
 		filter {"Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_testing"
 		filter {"Testing", "platforms:x64", "action:gmake" }
@@ -130,7 +139,8 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-			--systemversion(os.winSdkVersion() .. ".0")
+               system("windows")
+	           systemversion("10.0.16299.0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"

@@ -7,7 +7,6 @@ bonds are created by distance criterion (1.2 times sum of covalent radii)
 @author Susanne Sauer
 @version 1.0
 */
-#pragma once
 #include "coords_io.h"
 #include "helperfunctions.h"
 
@@ -300,7 +299,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
   else if (res_name == "HIE")
   {
     if (atom_name.substr(0, 2) == "NE") return 444;
-    else if (atom_name.substr(0, 3) == "HE2") return 445;
+    else if (atom_name.substr(0, 3) == "HE2" || atom_name.substr(0, 3) == "HD1") return 445;
     else if (atom_name.substr(0, 2) == "CE") return 447;
     else if (atom_name.substr(0, 2) == "CG") return 448;
     else if (atom_name.substr(0, 2) == "CD") return 449;
@@ -510,14 +509,14 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
       atoms.add(current);
 
       // create residues
-      if (std::stoi(res_number) > residues.size())
+      if (std::stoul(res_number) > residues.size())
       {
         residue new_res;
         new_res.res_name = res_name;
         new_res.atoms.push_back(current);
         residues.push_back(new_res);
       }
-      else residues[std::stoi(res_number) - 1].atoms.push_back(current);
+      else residues[std::stoul(res_number) - 1].atoms.push_back(current);
 
       // read and create positions
       std::string x = line.substr(30, 8);

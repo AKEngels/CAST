@@ -88,7 +88,7 @@ energy::interfaces::mopac::sysCallInterface::~sysCallInterface(void)
   }
 }
 
-std::vector<coords::float_type> 
+std::vector<coords::float_type>
 energy::interfaces::mopac::sysCallInterface::charges() const
 {
   auto file = id + ".xyz.aux";
@@ -114,21 +114,58 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   }
   if (v.size() != coords->size())
   {
-    throw std::logic_error("Found " + std::to_string(v.size()) + 
+    throw std::logic_error("Found " + std::to_string(v.size()) +
       " charges instead of " + std::to_string(coords->size()) + " charges.");
   }
   return v;
 }
 
+// mol.in schreiben (see http://openmopac.net/manual/QMMM.html)
+void energy::interfaces::mopac::sysCallInterface::write_mol_in()
+{
+	auto elec_factor = 332.0;
+	std::cout << std::setprecision(6);
+
+	std::ofstream molstream{ "mol.in" };
+	if (molstream)
+	{
+		auto const n_qm = coords->size() - Config::get().energy.qmmm.linkatom_types.size(); // number of QM atoms
+		molstream << '\n';
+		molstream << n_qm << " "<<Config::get().energy.qmmm.linkatom_types.size()<<"\n";  // number of link atoms
+		for (std::size_t i = 0; i < coords->size(); ++i)  // for every atom (QM + link atom)
+		{
+			double qi{};
+			for (std::size_t j = 0; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every MM atom
+			{
+				auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+				double dist_x = coords->xyz(i).x() - current_charge.x;
+				double dist_y = coords->xyz(i).y() - current_charge.y;
+				double dist_z = coords->xyz(i).z() - current_charge.z;
+				double d = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z); // distance between QM and MM atom
+
+				qi += current_charge.charge / d;
+			}
+			qi *= elec_factor;
+			molstream << "0 0 0 0 " << qi << "\n";
+		}
+		molstream.close();
+	}
+	else
+	{
+		throw std::runtime_error("Cannot write mol.in file.");
+	}
+}
 
 void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const grad, bool const hess, bool const opt)
 {
+	if (Config::get().energy.qmmm.use) write_mol_in();
+
   std::string outstring(id);
   outstring.append(".xyz");
 
   /*! Special Input for modified MOPAC7
   *
-  * MOPAC7_HB is a modified version of MOPAC7 which 
+  * MOPAC7_HB is a modified version of MOPAC7 which
   * neglects hydrogenbonding and needs a special input.
   */
   if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
@@ -177,14 +214,14 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       out_file << " THREADS=" << omp_get_num_threads();
 #else
       out_file << " THREADS=1";
-#endif 
+#endif
     }
 
     out_file << '\n';
     out_file << '\n' << '\n';
-    
+
     out_file << coords::output::formats::xyz_mopac7(*coords);
-    
+
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -378,6 +415,37 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
             //coords->move_atom_to(i, p);
           }
         } // for atoms
+
+				if (Config::get().energy.qmmm.use)  // if QM/MM: add coulomb gradient due to external charges
+				{
+					double constexpr elec_factor = 332.06;
+					grad_ext_charges.clear();
+					grad_ext_charges.resize(Config::get().energy.qmmm.mm_charges.size());
+
+					for (auto i = 0u; i < coords->size(); ++i) // for every QM atom
+					{
+						double charge_i = charges()[i];
+
+						for (auto j = 0u; j < Config::get().energy.qmmm.mm_charges.size(); ++j) // for every external charge
+						{
+							auto current_charge = Config::get().energy.qmmm.mm_charges[j];
+
+							coords::r3 r_ij;
+							r_ij.x() = current_charge.x - coords->xyz(i).x();
+							r_ij.y() = current_charge.y - coords->xyz(i).y();
+							r_ij.z() = current_charge.z - coords->xyz(i).z();
+							coords::float_type d = len(r_ij);
+
+							coords::float_type b = (charge_i*current_charge.charge) / d * elec_factor;
+							coords::float_type db = b / d;
+							auto c_gradient_ij = r_ij * db / d;
+							g_tmp[i] += c_gradient_ij;            // gradient on QM atom
+							grad_ext_charges[j] -= c_gradient_ij; // gradient on external charge (= MM atom)
+						}
+
+					}
+
+				}
       }
       else if (buffer.find("CARTESIAN COORDINATES") != std::string::npos && Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
       {
@@ -406,7 +474,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 
       // if grad && final point
 
-      //Cartesian Coordinates for MOPAC7 
+      //Cartesian Coordinates for MOPAC7
 
       if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
       {
@@ -446,7 +514,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
     if (!done)
     {
 #ifndef _CAST_ALL_WARNINGS_ARE_ERRORS
-      if (Config::get().general.verbosity >= 1) 
+      if (Config::get().general.verbosity >= 1)
 		  std::cout << "ATTENTION: MOPAC calculation was not finished correctly.\n";
 	  // Keep (=Copy) failed output file if verbosity is >=3
 	  if (Config::get().general.verbosity >= 3)
@@ -507,7 +575,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
 //  int mopac_system_call(std::string const & command_line)
 //  {
 //#if defined (_MSC_VER)
-//    // get a modifiable character sequence of the command: 
+//    // get a modifiable character sequence of the command:
 //#if defined _UNICODE
 //    using cur_char = wchar_t;
 //    using cur_string = std::wstring;
@@ -673,26 +741,6 @@ void energy::interfaces::mopac::sysCallInterface::print_E_short(std::ostream &S,
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_electron;
   S << std::right << std::setw(16) << std::scientific << std::setprecision(5) << e_core;
   if (endline) S << '\n';
-}
-
-void energy::interfaces::mopac::sysCallInterface::print_G_tinkerlike(std::ostream &S, bool const) const 
-{
-  S << " Cartesian Gradient Breakdown over Individual Atoms :" << std::endl << std::endl;
-  S << "  Type      Atom              dE/dX       dE/dY       dE/dZ          Norm" << std::endl << std::endl;
-  for (std::size_t k = 0; k < coords->size(); ++k)
-  {
-    S << " Anlyt";
-    S << std::right << std::setw(10) << k + 1U;
-    S << "       ";
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).x();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).y();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4) << coords->g_xyz(k).z();
-    S << std::right << std::fixed << std::setw(12) << std::setprecision(4);
-    S << std::sqrt(
-      coords->g_xyz(k).x() * coords->g_xyz(k).x()
-      + coords->g_xyz(k).y() * coords->g_xyz(k).y()
-      + coords->g_xyz(k).z() * coords->g_xyz(k).z()) << std::endl;
-  }
 }
 
 void energy::interfaces::mopac::sysCallInterface::to_stream(std::ostream&) const { }

@@ -365,9 +365,10 @@ namespace md
     bool heat(std::size_t const step, bool fep);
     /** nose hoover thermostat (velocity scaling is done automatically in this function)*/
     void nose_hoover_thermostat(void);
-    /** nose hoover thermostat only for inner atoms when used together with biased potential
-    returns the temperature scaling factor for velocities (scaling has to be performed after this function)*/
-    double nose_hoover_thermostat_biased(void);
+    /** nose hoover thermostat only for some atoms when used together with biased potential or fixed atoms
+    returns the temperature scaling factor for velocities (scaling has to be performed after this function)
+    @param atoms: vector with atom indizes of those atoms that are to be used to calculate scaling factor*/
+    double nose_hoover_thermostat_some_atoms(std::vector<int> atoms);
 
     /**sets coordinates to original values and assigns random velocities*/
     void restart_broken();
@@ -489,7 +490,7 @@ namespace md
     void plot_temp(std::vector<double> temps);
     /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
-    void plot_distances(std::vector<ana_pair> pairs);
+    void plot_distances(std::vector<ana_pair> &pairs);
     /**function to plot temperatures for all zones*/
     void plot_zones();
     /**function that fills zones with atoms*/

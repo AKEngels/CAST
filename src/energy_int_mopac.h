@@ -2,7 +2,7 @@
 MOPAC Interface
 *                            DW*/
 
-#pragma once 
+#pragma once
 
 #include <vector>
 #include <string>
@@ -47,18 +47,11 @@ namespace energy
 
         /**get atom charges*/
         std::vector<coords::float_type> charges() const override;
-        /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        /**function to get gradients on external charges*/
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+					return grad_ext_charges;
         }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
 
 				//MOPAC7_HB VAR
 				bool grad_var;
@@ -66,7 +59,6 @@ namespace energy
 				void print_E(std::ostream&) const;
 				void print_E_head(std::ostream&, bool const endline = true) const;
 				void print_E_short(std::ostream&, bool const endline = true) const;
-				void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
 				void to_stream(std::ostream&) const;
 				// "update" function
 				void update(bool const) { }
@@ -82,6 +74,9 @@ namespace energy
 				double e_total, e_electron, e_core;
 				std::string id;
 
+				/**gradients of external charges*/
+				std::vector<coords::Cartesian_Point> grad_ext_charges;
+
 				// FAILCOUNTER
 				size_t failcounter;
 
@@ -96,7 +91,8 @@ namespace energy
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
 				bool check_bond_preservation(void) const;
-
+        /**writes mol.in file in case of QM/MM calculation*/
+				void write_mol_in();
 			};
 
 		}

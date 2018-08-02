@@ -7,8 +7,6 @@ Used mainly by configuration.h / .cc
 @author Dustin Kaiser
 @version 1.0
 */
-
-#pragma once
 #include "configurationHelperfunctions.h"
 
 namespace config

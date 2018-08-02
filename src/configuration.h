@@ -7,7 +7,10 @@ Purpose: class for extraction of information from inputfile
 @version 1.1
 */
 
-#pragma once
+#ifndef H_CONFIGURATION
+#define H_CONFIGURATION
+
+
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -132,13 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 11;
+  static std::size_t const NUM_INTERFACES = 13;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
-  { 
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL"
+  {
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -149,11 +152,11 @@ namespace config
   {
     /*! contains all interface_types currently supported in CAST
     */
-    enum T 
-    { 
-      ILLEGAL = -1, 
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL
-    }; 
+    enum T
+    {
+      ILLEGAL = -1,
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM
+    };
   };
 
   /**number of supported Mopac Versions*/
@@ -547,7 +550,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
@@ -558,6 +561,14 @@ namespace config
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
       bool use{ false };
+	    /**should QM region be written into file?*/
+	    bool qm_to_file{ false };
+      /**vector of MM charges (external charges for inner calculation)*/
+		  std::vector<PointCharge> mm_charges;
+      /**energy types of link atoms (in the order of MM atom)*/
+      std::vector<int> linkatom_types;
+      /**cutoff for electrostatic interaction*/
+			double cutoff{0.0};
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
@@ -624,9 +635,9 @@ namespace config
       /**constructor
       for most options if a value is set to 0, the default values from dftbaby are used
       exceptions: gradstate, verbose*/
-      dftbaby_conf(void): gradfile("grad.xyz"), gradstate(0), verbose(0), 
-      longrange(false), cutoff(0), lr_dist(0), maxiter(0), conv_threshold("0"),
-      states(0), orb_occ(0), orb_virt(0), diag_maxiter(0), diag_conv("0"), charge(0), opt(false) {}
+      dftbaby_conf(void): path{""}, gradfile{"grad.xyz"}, charge{0}, gradstate{0}, verbose{0}, maxiter{0},
+      conv_threshold{"0"}, cutoff{ 0.0f }, longrange{false}, lr_dist{0.0f},
+      states{0}, orb_occ{0}, orb_virt{0}, diag_maxiter{0}, diag_conv{"0"}, opt{false} {}
     } dftbaby;
 
     /**struct that contains all information necessary for DFTB+ calculation*/
@@ -644,6 +655,8 @@ namespace config
       int max_steps;
       /**total charge of the system*/
       double charge;
+      /**use DFTB3 ?*/
+      bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
@@ -651,7 +664,7 @@ namespace config
 
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        opt(2), max_steps_opt(5000) {}
+        dftb3(false), opt(2), max_steps_opt(5000) {}
     } dftb;
 
     /**struct that contains all information necessary for gaussian calculation*/
@@ -679,8 +692,8 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method("Hf/ "), basisset (""), spec(""), opt(true),
-        delete_input(true), maxfail(1000u)
+      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
+         steep{ true }, maxfail{1000u}
       {}
     } gaussian;
 
@@ -715,6 +728,14 @@ namespace config
 		bool dispersion = false;
 		bool delete_input = true;
 	} chemshell;
+  struct psi4_conf{
+    std::string path = "";
+    std::string memory = "";
+    std::string basis = "";
+    std::string method = "";
+    std::string spin = "";
+    std::string charge = "";
+  }psi4;
 
     energy() :
       cutoff(10000.0), switchdist(cutoff - 4.0),
@@ -907,15 +928,17 @@ namespace config
 
     /**constructor*/
     molecular_dynamics(void) :
-      timeStep(0.001), T_init(0.0), T_final(),
-      pcompress(0.000046), pdelay(2.0), ptarget(1.0),
-      num_steps(10000), num_snapShots(100), max_snap_buffer(50),
-      refine_offset(0), restart_offset(0), usequil(), usoffset(),
-      trackoffset(1), heat_steps(), spherical(), rattle(),
+      temp_control{true}, timeStep{0.001}, T_init{0.0}, T_final{0.0},
+      broken_restart{ 0 }, pcompress{0.000046}, pdelay{2.0}, ptarget{1.0},
+      set_active_center{ 0 }, adjustment_by_step { 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
+      active_center(), num_steps{10000}, num_snapShots{100}, max_snap_buffer{50},
+      refine_offset{0}, restart_offset{0}, trackoffset{1}, usoffset{0}, usequil{0},
+       heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
-      hooverHeatBath(false), veloScale(false), temp_control(true), fep(false), track(true),
-      optimize_snapshots(false), pressure(false),
-      resume(false), umbrella(false), pre_optimize(false), plot_temp(false), analyze_zones(false)
+      hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
+      optimize_snapshots{false}, pressure{false},
+      resume{false}, umbrella{false}, pre_optimize{false}, plot_temp{false}, ana_pairs(), analyze_zones{false},
+      zone_width{ 0.0 }
     { }
 
   };
@@ -969,11 +992,16 @@ namespace config
     struct lo_types { enum T { LBFGS = 0 }; };
     struct go_types { enum T { MCM, TABU }; };
 
+    /**struct that contains configuration options for local optimisation via L-BFGS*/
     struct lo
     {
+      /**convergence threshold for bfgs*/
       double grad;
+      /**max number of steps for bfgs*/
       std::size_t maxstep;
-      lo(void) : grad(0.001), maxstep(10000) { }
+      /**should trace written into file?*/
+      bool trace;
+      lo(void) : grad(0.001), maxstep(10000), trace(false) { }
     };
 
     struct mc
@@ -1204,12 +1232,12 @@ namespace config
     bool NEB_CONN, CONSTRAINT_GLOBAL, TAU, CONN,
       MIXED_MOVE, INT_PATH, CLIMBING, IDPP, MAXFLUX, MAXFLUX_PATHOPT, COMPLETE_PATH, MULTIPLE_POINTS, INTERNAL_INTERPOLATION, MCM_OPT;
 	neb() :
-		OPTMODE("PROJECTED"),
+		FINAL_STRUCTURE{ "" }, OPTMODE("PROJECTED"),
 		SPRINGCONSTANT(0.1), TEMPERATURE(298.15), MCSTEPSIZE(0.5),
 		BIASCONSTANT(0.1), VARIATION(3.0), PO_ENERGY_RANGE(100.0),
-		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),MCM_SAVEITER(1),
-		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),
-		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), MIXED_MOVE(false), CONN(true),
+		BOND_PARAM(2.2), INT_IT(0.5), IMAGES(12), MCITERATION(100),
+		GLOBALITERATION(1), CONNECT_NEB_NUMBER(3), NUMBER_OF_DIHEDRALS(1),MCM_SAVEITER(1),
+		NEB_CONN(false), CONSTRAINT_GLOBAL(false), TAU(true), CONN(true),MIXED_MOVE(false),
 		INT_PATH(false), CLIMBING(true), IDPP(false), MAXFLUX(false), MAXFLUX_PATHOPT(false), COMPLETE_PATH(false), MULTIPLE_POINTS(false), INTERNAL_INTERPOLATION(false), MCM_OPT(true)
     {}
   };
@@ -1649,3 +1677,5 @@ private:
    */
   static Config * m_instance;
 };
+
+#endif

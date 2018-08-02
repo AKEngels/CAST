@@ -2,7 +2,7 @@
 * GAUSSIAN Interface
 */
 
-#pragma once 
+#pragma once
 
 #include <vector>
 #include <string>
@@ -52,18 +52,13 @@ namespace energy
         void print_E(std::ostream&) const;
         void print_E_head(std::ostream&, bool const endline = true) const;
         void print_E_short(std::ostream&, bool const endline = true) const;
-        void print_G_tinkerlike(std::ostream&, bool const aggregate = false) const;
         void to_stream(std::ostream&) const;
 
         /**return charges*/
         std::vector<coords::float_type> charges() const override;
-        /**returns electric field that is given by GAUSSIAN
+        /**returns gradients on external charges (calculated by electric field from GAUSSIAN)
         (is used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
-        /**return id for gaussian call*/
-        std::string get_id() const override { return id;};
-        /**get gradients on link atoms (for QM/MM)*/
-        coords::Gradients_3D get_link_atom_grad() const override;
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
       private:
 
@@ -76,17 +71,20 @@ namespace energy
         sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj);
 
         // heat of formation
-				double hof_kcal_mol, hof_kj_mol;
+        double hof_kcal_mol, hof_kj_mol;
 
-				// energies
-				double e_total, e_electron, e_core;    
+        // energies
+        double e_total, e_electron, e_core;
 
-				std::string id;
+        std::string id;
 
-				// FAILCOUNTER
-				size_t failcounter;
+        // FAILCOUNTER
+        int failcounter;
 
+        /**mulliken charges*/
+        std::vector<double> atom_charges;
         /**electric field that is given by GAUSSIAN
+        contains the atoms and the external charges
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 
@@ -99,7 +97,7 @@ namespace energy
 
         int callGaussian(void);
         void print_gaussianInput(char);
-        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm=false);
+        void read_gaussianOutput(bool const grad = true, bool const opt = true, bool const qmmm = false);
         void removeTempFiles(void);
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/

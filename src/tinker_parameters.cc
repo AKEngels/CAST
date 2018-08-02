@@ -8,7 +8,6 @@
 #include "filemanipulation.h"
 #include "scon_utility.h"
 #include <iterator>
-#pragma once
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4996)
@@ -1122,6 +1121,7 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   // and m_uncontracted_atoms. Seems reasonable.
   // Adjusting the size of m_atoms, probably actually standing for
   // "Contracted atom types"
+  // I think m_atoms are still uncontracted atom types?
   parametersToBeContracted.m_atoms.resize(actual_types.size());
   parametersToBeContracted.m_uncontracted_atoms = m_atoms;
   // Huh, didnt expect this. Interesting
@@ -1141,10 +1141,10 @@ tinker::parameter::parameters tinker::parameter::parameters::contract(std::vecto
   // contract types & groups
   for (auto i : actual_types)
   {
-    if (i > m_atoms.size())
+    if (i > m_atoms.size() || i <= 0)
     {
       std::stringstream tmpss;
-      tmpss << i << " not a valid type in paramter file.";
+      tmpss << i << " is not a valid type in parameter file.";
       throw std::runtime_error(tmpss.str().c_str());
     }
     scon::sorted::insert_unique(parametersToBeContracted.m_reduced_groups, m_atoms[i-1].group);
@@ -1680,27 +1680,31 @@ std::ostream& tinker::parameter::combi::operator<< (std::ostream &stream, vdw co
   return stream;
 }
 
-std::ostream& tinker::parameter::operator<< (std::ostream & stream, parameters const & p)
-{
-  stream << p.m_general;
-  for ( auto const & v : p.m_atoms ) stream << v << std::endl;
-  for ( auto const & v : p.m_vdws ) stream << v << std::endl;
-  for ( auto const & v : p.m_charges ) stream << v << std::endl;
-  for ( auto const & v : p.m_bonds ) stream << v << std::endl;
-  for ( auto const & v : p.m_angles ) stream << v << std::endl;
-  for ( auto const & v : p.m_impropers ) v.to_stream(stream, "improper");
-  for ( auto const & v : p.m_imptors ) v.to_stream(stream, "imptors");
-  for ( auto const & v : p.m_torsions ) v.to_stream(stream, "torsion");
-  for ( auto const & v : p.m_multipoles ) stream << v << std::endl;
-  for ( auto const & v : p.m_opbends ) stream << v << std::endl;
-  for ( auto const & v : p.m_polarizes ) stream << v << std::endl;
-  for ( auto const & v : p.m_strbends ) stream << v << std::endl;
-  for ( auto const & v : p.m_ureybrads ) stream << v << std::endl;
-  for ( auto const & v : p.m_vdw14s ) stream << v << std::endl;
-  return stream;
+namespace tinker{
+    namespace parameter{
+
+        std::ostream& operator<< (std::ostream & stream, parameters const & p)
+        {
+          stream << p.m_general;
+          for ( auto const & v : p.m_atoms ) stream << v << std::endl;
+          for ( auto const & v : p.m_vdws ) stream << v << std::endl;
+          for ( auto const & v : p.m_charges ) stream << v << std::endl;
+          for ( auto const & v : p.m_bonds ) stream << v << std::endl;
+          for ( auto const & v : p.m_angles ) stream << v << std::endl;
+          for ( auto const & v : p.m_impropers ) v.to_stream(stream, "improper");
+          for ( auto const & v : p.m_imptors ) v.to_stream(stream, "imptors");
+          for ( auto const & v : p.m_torsions ) v.to_stream(stream, "torsion");
+          for ( auto const & v : p.m_multipoles ) stream << v << std::endl;
+          for ( auto const & v : p.m_opbends ) stream << v << std::endl;
+          for ( auto const & v : p.m_polarizes ) stream << v << std::endl;
+          for ( auto const & v : p.m_strbends ) stream << v << std::endl;
+          for ( auto const & v : p.m_ureybrads ) stream << v << std::endl;
+          for ( auto const & v : p.m_vdw14s ) stream << v << std::endl;
+          return stream;
+        }
+    }
+
 }
-
-
 std::size_t tinker::parameter::parameters::req_mem (void) const
 {
   //sizeof(parameters);
