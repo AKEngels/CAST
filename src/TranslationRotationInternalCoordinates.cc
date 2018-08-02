@@ -32,6 +32,10 @@ namespace internals {
     return Bmat(cartesian).t();
   }
 
+  scon::mathmatrix<coords::float_type> TRIC::pseudoInverseOfGmat(CartesianType const& cartesian) {
+    return Gmat(cartesian).pinv();
+  }
+
   scon::mathmatrix<coords::float_type>& TRIC::Gmat(CartesianType const& cartesians) {
     if (!new_G_matrix) {
       return G_matrix;

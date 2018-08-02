@@ -144,6 +144,7 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians);//F
     virtual scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians);//F
     virtual scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian);
+    virtual scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian);
 
   };
 
@@ -186,12 +187,9 @@ namespace internals {
     auto damp{ 1. };
     auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
     for (; micro_iter < 50; ++micro_iter) {
-
-      takeCartesianStep(damp*internalCoordinates.Bmat(cartesianCoordinates).t()*internalCoordinates.Gmat(cartesianCoordinates).pinv()*d_int_left); //should it not be G^-1*B^T?
-                                                                     //std::cout << "Cartesian:\n" << xyz_ << std::endl;
+      takeCartesianStep(damp*internalCoordinates.transposeOfBmat(cartesianCoordinates)*internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates)*d_int_left);
 
       auto d_now = internalCoordinates.calc_diff(cartesianCoordinates, old_xyz);
-      //std::cout << "Diff internal coordinates:\n" << d_now << std::endl;
 
       auto d_int_remain = d_int_left - d_now;
       auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - cartesianCoordinates).rmsd();

@@ -270,9 +270,12 @@ TEST_F(DelocalizedMatricesTest, delocalizedInitialHessianTest) {
   delocalizedInitialHessianTest();
 }
 
-ConverterMatricesTest::ConverterMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem({ createFirstResidue(), createSecondResidue() }, { createFirstResidueIndices(), createSecondResidueIndices() }, cartesians, createTestGraph()), converter{testSystem, cartesians }  {}
+ConverterMatricesTest::ConverterMatricesTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem{}, converter{ testSystem, cartesians } {}
 
 void ConverterMatricesTest::calculateInternalGradsTest() {
+  EXPECT_CALL(testSystem, Bmat(testing::_)).WillRepeatedly(testing::ReturnRefOfCopy(exampleDelocalizedBMatrixForTwoMethanols()));
+  EXPECT_CALL(testSystem, pseudoInverseOfGmat(testing::_)).WillRepeatedly(testing::Return(inverseOfGForTheFirstStep()));
+
   EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), converter.calculateInternalGradients(gradientsOfTwoMethanolMolecules()));
 }
 
@@ -280,15 +283,20 @@ TEST_F(ConverterMatricesTest, calculateInternalGradsTest) {
   calculateInternalGradsTest();
 }
 
-void ConverterMatricesTest::getInternalStepTest() {
-  EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), converter.getInternalStep(internalGradientsOfTwoMethanolMolecules(), testSystem.guess_hessian(cartesians)));
-}
-
-TEST_F(ConverterMatricesTest, getInternalStepTest) {
-  getInternalStepTest();
-}
-
 void ConverterMatricesTest::applyInternalChangeTest() {
+  EXPECT_CALL(testSystem, transposeOfBmat(testing::_))
+    .WillOnce(testing::Return(transposeOfBForTheFirstStep()))
+    .WillOnce(testing::Return(transposeOfBForTheSecondStep()))
+    .WillOnce(testing::Return(transposeOfBForTheThirdStep()));
+  EXPECT_CALL(testSystem, pseudoInverseOfGmat(testing::_))
+    .WillOnce(testing::Return(inverseOfGForTheFirstStep()))
+    .WillOnce(testing::Return(inverseOfGForTheSecondStep()))
+    .WillOnce(testing::Return(inverseOfGForTheThirdStep()));
+  EXPECT_CALL(testSystem, calc_diff(testing::_, testing::_))
+    .WillOnce(testing::Return(differncesInInternalCoordinatesAfterFirstStep()))
+    .WillOnce(testing::Return(differncesInInternalCoordinatesAfterSecondStep()))
+    .WillOnce(testing::Return(differncesInInternalCoordinatesAfterThirdStep()));
+
   converter.applyInternalChange(internalInitialStepOfTwoMethanolMolecules());
 
   auto expectedChangeAfterFirstStep = cartesianChangeOfTwoMethanolMoleculesAfterFirstStep();
@@ -300,6 +308,14 @@ void ConverterMatricesTest::applyInternalChangeTest() {
 
 TEST_F(ConverterMatricesTest, applyInternalChangeTest) {
   applyInternalChangeTest();
+}
+
+void ConverterMatricesTest::getInternalStepTest() {
+  EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), converter.getInternalStep(internalGradientsOfTwoMethanolMolecules(), exampleDelocalizedInitialHessianForTwoMethanols()));
+}
+
+TEST_F(ConverterMatricesTest, getInternalStepTest) {
+  getInternalStepTest();
 }
 
 void MatricesTest::calculatePrimitiveInternalValuesTest() {
@@ -326,17 +342,8 @@ TEST_F(DelocalizedMatricesTest, internalValuesForTricTest) {
   internalValuesForTricTest();
 }
 
-ConverterMatricesTestTest::ConverterMatricesTestTest() : cartesians{ createSystemOfTwoMethanolMolecules() / energy::bohr2ang }, testSystem{}, converter{testSystem, cartesians}{}
 
-void ConverterMatricesTestTest::calculateInternalGradsTest() {
-  EXPECT_CALL(testSystem, Bmat(cartesians)).WillRepeatedly(testing::ReturnRefOfCopy(exampleDelocalizedBMatrixForTwoMethanols()));
-  EXPECT_CALL(testSystem, Gmat(cartesians)).WillRepeatedly(testing::ReturnRefOfCopy(exampleDelocalizedGMatrixForTwoMethanols()));
-  
-  EXPECT_EQ(internalGradientsOfTwoMethanolMolecules(), converter.calculateInternalGradients(gradientsOfTwoMethanolMolecules()));
-}
 
-TEST_F(ConverterMatricesTestTest, calculateInternalGradsTest) {
-  calculateInternalGradsTest();
-}
+
 
 #endif

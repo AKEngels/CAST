@@ -25,7 +25,8 @@ namespace internals {
 
 
     scon::mathmatrix<coords::float_type>& Bmat(CartesianType const& cartesians) override;//F
-    scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override;
+    scon::mathmatrix<coords::float_type> transposeOfBmat(CartesianType const& cartesian) override; 
+    scon::mathmatrix<coords::float_type> pseudoInverseOfGmat(CartesianType const& cartesian) override;
     scon::mathmatrix<coords::float_type>& Gmat(CartesianType const& cartesians) override;//F
     scon::mathmatrix<coords::float_type>& delocalize_ic_system(CartesianType const& cartesians);//F
     scon::mathmatrix<coords::float_type> guess_hessian(CartesianType const& cartesians) const override;

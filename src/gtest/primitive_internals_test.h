@@ -18,11 +18,13 @@
 class MockPrimitiveInternals : public internals::PrimitiveInternalCoordinates {
 public:
   MockPrimitiveInternals(){}
-  MOCK_METHOD1(calc, scon::mathmatrix<coords::float_type>(coords::Representation_3D const&  xyz));
-  MOCK_METHOD2(calc_diff, scon::mathmatrix<coords::float_type>(coords::Representation_3D const&  lhs, coords::Representation_3D const&  rhs));
+  MOCK_CONST_METHOD1(calc, scon::mathmatrix<coords::float_type>(coords::Representation_3D const&  xyz));
+  MOCK_CONST_METHOD2(calc_diff, scon::mathmatrix<coords::float_type>(coords::Representation_3D const&  lhs, coords::Representation_3D const&  rhs));
   MOCK_CONST_METHOD1(guess_hessian, scon::mathmatrix<coords::float_type>(CartesianType const&));
   MOCK_METHOD1(Bmat, scon::mathmatrix<coords::float_type>&(CartesianType const& cartesians));
   MOCK_METHOD1(Gmat, scon::mathmatrix<coords::float_type>&(CartesianType const& cartesians));
+  MOCK_METHOD1(transposeOfBmat, scon::mathmatrix<coords::float_type>(CartesianType const& cartesians));
+  MOCK_METHOD1(pseudoInverseOfGmat, scon::mathmatrix<coords::float_type>(CartesianType const& cartesians));
 };
 
 class PrimitiveInternalSetTest : public testing::Test {
@@ -73,16 +75,6 @@ public:
   void calculateInternalGradsTest();
   void getInternalStepTest();
   void applyInternalChangeTest();
-  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  internals::TRIC testSystem;
-  internals::InternalToCartesianConverter converter;
-};
-
-class ConverterMatricesTestTest : public testing::Test {
-public:
-  ConverterMatricesTestTest();
-  void calculateInternalGradsTest(); 
-  void getInternalStepTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   MockPrimitiveInternals testSystem;
   internals::InternalToCartesianConverter converter;

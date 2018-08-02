@@ -292,6 +292,10 @@ namespace internals {
     return Bmat(cartesian).t();
   }
 
+  scon::mathmatrix<coords::float_type> PrimitiveInternalCoordinates::pseudoInverseOfGmat(CartesianType const& cartesian) {
+    return Gmat(cartesian).pinv();
+  }
+
   std::vector<std::vector<coords::float_type>> PrimitiveInternalCoordinates::deriv_vec(CartesianType const& cartesians) {
     std::vector<std::vector<coords::float_type>> result;
 
@@ -353,6 +357,6 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalGradients(scon::mathmatrix<coords::float_type> const& g) {
-    return internalCoordinates.Gmat(cartesianCoordinates).pinv() * internalCoordinates.Bmat(cartesianCoordinates) * g;
+    return internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates) * internalCoordinates.Bmat(cartesianCoordinates) * g;
   }
 }
