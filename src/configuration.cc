@@ -739,6 +739,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
     }
+		else if (option.substr(5, 10) == "fermi_temp") {
+			Config::set().energy.dftb.fermi_temp = std::stod(value_string);
+		}
   }
 
   //Gaussian options

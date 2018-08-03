@@ -152,6 +152,12 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
     }
     file << "  }\n";
   }
+	if (Config::get().energy.dftb.fermi_temp > 0)  
+	{
+		file << "  Filling = Fermi {\n";
+		file << "    Temperature [K] = " << Config::get().energy.dftb.fermi_temp << "\n";
+		file << "  }\n";
+	}
   file << "}\n\n";
 
   // which information will be saved after calculation?

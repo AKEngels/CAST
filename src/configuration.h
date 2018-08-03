@@ -660,10 +660,11 @@ namespace config
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
       int max_steps_opt;
-
+			/**temperature for fermi filling (in K)*/
+			double fermi_temp;
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        dftb3(false), opt(2), max_steps_opt(5000) {}
+        dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
     /**struct that contains all information necessary for gaussian calculation*/

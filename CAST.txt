@@ -228,6 +228,9 @@ DFTB+charge      0.0
 # use DFTB3 <0/1>
 DFTB+3           0
 
+# temperature for fermi filling (in K)
+#DFTB+fermi_temp       300
+
 # optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)
 DFTB+optimizer    2
 
