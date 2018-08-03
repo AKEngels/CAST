@@ -8,6 +8,8 @@
 #include "ic_util_and_graph_test.h"
 #include "../ic_util.h"
 
+#include "../scon_traits.h"
+
 namespace {
   double constexpr doubleNearThreshold = 1.e-10;
   inline void isCartesianPointNear(coords::r3 const& lhs, coords::r3 const& rhs) {
@@ -16,6 +18,7 @@ namespace {
     EXPECT_NEAR(lhs.z(), rhs.z(), doubleNearThreshold);
   }
 }
+
 TestCreateGraph::TestCreateGraph() : atomVector{
   {1, "C" ,"C", coords::r3{ -0.321, -0.087, 0.12733 } },
 {2, "O", "O", coords::r3{ 1.055, 0.144, 0.21133 } },
@@ -96,7 +99,7 @@ TEST_F(GetMeanTest, testVectorOfDoubles) {
 void ConvertContainerToVectorTest::arrayToVector(){
   std::array<double, 3u> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -107,7 +110,7 @@ TEST_F(ConvertContainerToVectorTest, arrayToVector) {
 void ConvertContainerToVectorTest::vectorToVector() {
   std::vector<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -118,7 +121,7 @@ TEST_F(ConvertContainerToVectorTest, vectorToVector) {
 void ConvertContainerToVectorTest::listToVector() {
   std::list<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -129,7 +132,7 @@ TEST_F(ConvertContainerToVectorTest, listToVector) {
 void ConvertContainerToVectorTest::dequeToVector() {
   std::deque<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -140,7 +143,7 @@ TEST_F(ConvertContainerToVectorTest, dequeToVector) {
 void ConvertContainerToVectorTest::setToVector(){
   std::set<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_vector<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -151,7 +154,7 @@ TEST_F(ConvertContainerToVectorTest, setToVector) {
 void ConvertContainerToVectorTest::multisetToVector() {
   std::multiset<double> container{ 1.,2.,3. };
   auto sameAsVector = ic_util::arr_to_vec(container);
-  EXPECT_EQ(is_vector<decltype(sameAsVector)>::value, true);
+  EXPECT_EQ(scon::is_container<decltype(sameAsVector)>::value, true);
   EXPECT_EQ(sameAsVector, referenceVector);
 }
 
@@ -327,13 +330,5 @@ void BuildUpGraphTest::testIfEdgesAreSetRight() {
 TEST_F(BuildUpGraphTest, testIfEdgesAreSetRight) {
   testIfEdgesAreSetRight();
 }
-
-
-
-
-
-
-
-
 
 #endif

@@ -12,16 +12,6 @@
 #include"../graph.h"
 #include"../coords.h"
 
-namespace is_vector_imp {
-  template<typename T> struct is_vector : std::false_type {};
-  template<typename T> struct is_vector<std::vector<T>> : std::true_type {};
-}
-
-template<typename T>
-struct is_vector {
-  static constexpr bool value = is_vector_imp::is_vector<std::decay_t<T>>::value;
-};
-
 struct expectedValuesForMap {
   std::string key;
   std::size_t expectedValue;

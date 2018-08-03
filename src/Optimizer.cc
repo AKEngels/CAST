@@ -48,7 +48,6 @@ void Optimizer::ConvergenceCheck::writeAndCalcGradientRmsd() {
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcDisplacementRmsd() {
-  coords::float_type drms, dmax;
   std::tie(displacementRms, displacementMax) = parentOptimizer.displacementRmsValAndMax();
   std::cout << "DRMS Cartesian: " << displacementRms << "\n";
   std::cout << "DRMS Max Val: " << displacementMax << "\n";
@@ -73,14 +72,13 @@ bool Optimizer::ConvergenceCheck::operator()() {
   return checkConvergence();
 }
 
-class cartesianToInternalNormHelper {
+/*class cartesianToInternalNormHelper {
 public:
   cartesianToInternalNormHelper();
   coords::float_type getDiffOfCartesianAndInternalNorm(coords::float_type const internalNorm) {
 
   }
-};
-
+};*/
 
 void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
 

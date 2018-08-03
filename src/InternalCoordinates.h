@@ -31,23 +31,26 @@ namespace InternalCoordinates {
     void notify() override;
     std::shared_ptr<AbstractRotatorListener> rotator;
   };
-
-  class CartesiansForInternalCoordinates : public coords::Representation_3D {
+  
+  template<typename CartesianType>
+  class CartesiansForInternalCoordinatesImpl : public coords::Container<CartesianType> {
   public:
     template<typename T>
-    CartesiansForInternalCoordinates(T&& cartesianCoordinates); 
-    CartesiansForInternalCoordinates() = default;
+    CartesiansForInternalCoordinatesImpl(T&& cartesianCoordinates); 
+    CartesiansForInternalCoordinatesImpl() = default;
 
     void registerObserver(std::shared_ptr<RotatorObserver> const observer);
 
     template<typename T>
-    CartesiansForInternalCoordinates setCartesianCoordnates(T&& newCartesianCoordinates);
+    CartesiansForInternalCoordinatesImpl& setCartesianCoordnates(T&& newCartesianCoordinates);
 
   private:
     std::vector<std::shared_ptr<AbstractGeometryObserver>> observerList;
     void notify();
   };
 
+  using CartesiansForInternalCoordinates = CartesiansForInternalCoordinatesImpl<coords::Cartesian_Point>;
+ 
   inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
     coords::Representation_3D slicedCoordinates;
     for (auto const& index : indexVector) {
@@ -221,14 +224,18 @@ namespace InternalCoordinates {
     std::vector<coords::float_type> der_vec(coords::Representation_3D const& rep)const override;
     std::string info(coords::Representation_3D const& cartesians) const override;
   };
+  
+  template<typename T>
+  template<typename T_>
+  inline CartesiansForInternalCoordinatesImpl<T>::CartesiansForInternalCoordinatesImpl(T_ && cartesians) 
+    : coords::Representation_3D(std::forward<T_>(cartesians)) {}
 
   template<typename T>
-  inline CartesiansForInternalCoordinates::CartesiansForInternalCoordinates(T && cartesians) : coords::Representation_3D(std::forward<T>(cartesians)) {}
-
-  template<typename T>
-  inline CartesiansForInternalCoordinates CartesiansForInternalCoordinates::setCartesianCoordnates(T && newCartesianCoordinates) {
+  template<typename T_>
+  inline CartesiansForInternalCoordinatesImpl<T>&
+    CartesiansForInternalCoordinatesImpl<T>::setCartesianCoordnates(T_ && newCartesianCoordinates) {
     notify();
-    return *this = std::forward<T>(newCartesianCoordinates);
+    return *this = std::forward<T_>(newCartesianCoordinates);
   }
 
   class Rotator;
@@ -267,9 +274,9 @@ namespace InternalCoordinates {
     
   private:
     Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
-      reference_{ reference }, indices_{ index_vec },
-      rad_gyr_{ radiusOfGyration(reference_) }, updateStoredValues{ true }, updateStoredDerivatives{ true } {}
-
+      updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, indices_{ index_vec }, 
+      rad_gyr_{ radiusOfGyration(reference_) }{}
+   
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(coords::Representation_3D const&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);
 
@@ -358,7 +365,18 @@ namespace InternalCoordinates {
       return *rotator.get() == *other.rotator.get();
     }
   };
-  
+
+  template<typename T>
+  void CartesiansForInternalCoordinatesImpl<T>::registerObserver(std::shared_ptr<RotatorObserver> const observer) {
+    observerList.emplace_back(observer);
+  }
+
+  template<typename T>
+  void CartesiansForInternalCoordinatesImpl<T>::notify(){
+    for (auto const& observer : observerList) {
+      observer->update();
+    }
+  }
 }
 
 #endif

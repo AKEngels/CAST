@@ -185,7 +185,7 @@ namespace internals {
     auto d_int_left = std::forward<Dint>(d_int);
     auto micro_iter{ 0 }, fail_count{ 0 };
     auto damp{ 1. };
-    auto old_rmsd{ 0.0 }, old_inorm{ 0.0 };
+    auto old_inorm{ 0.0 };
     for (; micro_iter < 50; ++micro_iter) {
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(cartesianCoordinates)*internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates)*d_int_left);
 
@@ -199,7 +199,6 @@ namespace internals {
       if (micro_iter == 0) {
         first_struct = cartesianCoordinates;
         last_good_xyz = cartesianCoordinates;
-        old_rmsd = cartesian_rmsd;
         old_inorm = internal_norm;
       }
       else {
@@ -210,7 +209,6 @@ namespace internals {
         else {
           fail_count = 0;
           damp = std::min(1.2*damp, 1.);
-          old_rmsd = cartesian_rmsd;
           old_inorm = internal_norm;
           last_good_xyz = cartesianCoordinates;
         }

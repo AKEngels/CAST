@@ -141,7 +141,7 @@ public:
     using boost::write_graphviz;
 
     std::ofstream output(out_file);
-    write_graphviz(output, g, make_label_writer(get(&Node::atom_serial, g)));
+    write_graphviz(output, *this, make_label_writer(get(&Node::atom_serial, *this)));
   }
   template<typename AtomType>
   friend Graph<AtomType> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec);

@@ -114,7 +114,7 @@ namespace coords {
             res_seq{ func.res_seq(file) }, insertion_code{ func.insertion_code(
               file) },
             cp{ std::move(func.cart_point(file)) }, element{ func.element(
-              file) } {};
+              file) } {}
 
           kindOfEntryInLine rec_name;
           unsigned int atom_serial;

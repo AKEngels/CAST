@@ -38,11 +38,13 @@ namespace InternalCoordinates {
   }
 
   bool BondDistance::oneElementInPeriodOneTheOtherInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return atomA == ic_atom::period::one && atomB == ic_atom::period::two || atomA == ic_atom::period::two && atomB == ic_atom::period::one;
+    return (atomA == ic_atom::period::one && atomB == ic_atom::period::two) 
+		|| (atomA == ic_atom::period::two && atomB == ic_atom::period::one);
   }
 
   bool BondDistance::oneElementInPeriodOneTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return atomA == ic_atom::period::one && atomB == ic_atom::period::three || atomA == ic_atom::period::three && atomB == ic_atom::period::one;
+    return (atomA == ic_atom::period::one && atomB == ic_atom::period::three) 
+		|| (atomA == ic_atom::period::three && atomB == ic_atom::period::one);
   }
 
   bool BondDistance::bothElementsInPeriodTwo(ic_atom::period const atomA, ic_atom::period const atomB) const {
@@ -50,7 +52,8 @@ namespace InternalCoordinates {
   }
 
   bool BondDistance::oneElementInPeriodTwoTheOtherInPeriodThree(ic_atom::period const atomA, ic_atom::period const atomB) const {
-    return atomA == ic_atom::period::two && atomB == ic_atom::period::three || atomA == ic_atom::period::three && atomB == ic_atom::period::two;
+    return (atomA == ic_atom::period::two && atomB == ic_atom::period::three)
+	   	|| (atomA == ic_atom::period::three && atomB == ic_atom::period::two);
   }
 
   coords::float_type BondDistance::hessian_guess(coords::Representation_3D const& cartesians) const {
@@ -359,16 +362,6 @@ namespace InternalCoordinates {
 
   void RotatorObserver::notify(){
     rotator->setAllFlag();
-  }
-
-  void CartesiansForInternalCoordinates::registerObserver(std::shared_ptr<RotatorObserver> const observer) {
-    observerList.emplace_back(observer);
-  }
-
-  void CartesiansForInternalCoordinates::notify(){
-    for (auto const& observer : observerList) {
-      observer->update();
-    }
   }
 
   std::array<coords::float_type, 3u> const&

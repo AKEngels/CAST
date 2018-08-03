@@ -15,6 +15,14 @@
 
 namespace scon
 {
+  namespace is_vector_impl{
+    template<typename T> struct is_vector : std::false_type {};
+    template<typename T> struct is_vector<std::vector<T>> : std::true_type {};
+  }
+
+  template<typename T>
+  struct is_vector : is_vector_impl::is_vector<std::decay_t<T>> {};
+
   namespace is_container_impl {
     template <typename T>                struct is_container :std::false_type {};
     template <typename T>                struct is_container<T[]>                          :std::true_type{};
@@ -27,9 +35,7 @@ namespace scon
     template <typename... Args>          struct is_container<std::unordered_map <Args...>> :std::true_type{};
   }
 
-  template<typename T> struct is_container {
-    static constexpr bool value = is_container_impl::is_container<std::decay_t<T>>::value;
-  };
+  template<typename T> struct is_container : is_container_impl::is_container<std::decay_t<T>> {};
 
   template<typename PtrDeriv, typename PtrBase>
   std::unique_ptr<PtrDeriv> dynamic_unique_cast(std::unique_ptr<PtrBase> to_cast) {

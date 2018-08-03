@@ -1110,7 +1110,7 @@ inline void mathmatrix<T>::set_row(std::size_t const nrow, mathmatrix const & ot
   if (other.cols() != cols() || other.rows() != 1) {
     throw std::runtime_error("By setting the row the sizes for both rows are different!");
   }
-  for (auto i = 0; i < cols(); ++i) {
+  for (auto i = 0u; i < cols(); ++i) {
     this->operator()(nrow, i) = other(0, i);
   }
 }
@@ -1121,7 +1121,7 @@ inline void mathmatrix<T>::set_col(std::size_t const ncol, mathmatrix const & ot
   if (other.rows() != rows() || other.cols() != 1) {
     throw std::runtime_error("By setting the col the sizes for both cols are different!");
   }
-  for (auto i = 0; i < rows(); ++i) {
+  for (auto i = 0u; i < rows(); ++i) {
     this->operator()(i, ncol) = other(i, 0);
   }
 }
@@ -1433,7 +1433,7 @@ mathmatrix<T> mathmatrix<T>::vectorise_row() const {
 
   std::vector<T> ret;
   ret.reserve(rows()*cols());
-  for (auto i = 0; i < rows(); ++i) {
+  for (auto i = 0u; i < rows(); ++i) {
     auto tmp_row = row_to_std_vector(i);
     ret.insert(ret.end(), tmp_row.begin(), tmp_row.end());
   }
@@ -1549,7 +1549,7 @@ mathmatrix<T> mathmatrix<T>::t() const {
 
 template <typename T>
 std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const iter) const {
-  if (cols() <= static_cast<int>(iter)) {
+  if (cols() <= iter) {
     throw std::runtime_error("The required col is out of bounds!");
   }
 #ifndef CAST_USE_ARMADILLO
@@ -1566,7 +1566,7 @@ std::vector<T> mathmatrix<T>::col_to_std_vector(std::size_t const iter) const {
 
 template <typename T>
 std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const iter) const {
-  if (rows() <= static_cast<int>(iter)) {
+  if (rows() <= iter) {
     throw std::runtime_error("The required row is out of bounds!");
   }
   std::vector<T> ret;
@@ -1577,7 +1577,7 @@ std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const iter) const {
   auto const& dat = base_type::memptr();
 #endif
   auto const& r = rows();
-  for (auto i = 0; i < cols(); ++i) {
+  for (auto i = 0u; i < cols(); ++i) {
     ret.emplace_back(*(dat + (r*i) + iter));
   }
   return ret;

@@ -21,8 +21,9 @@ protected:
   using CartesianType = InternalCoordinates::CartesiansForInternalCoordinates;
 public:
 
-  Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
-    converter{ internalCoordinateSystem, cartesianCoordinates} {}
+  Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) 
+	  : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
+        converter{ internalCoordinateSystem, cartesianCoordinates} {}
 
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
 
@@ -30,7 +31,7 @@ public:
   scon::mathmatrix<coords::float_type> const& getHessian() const { return hessian; };
   template<typename Hessian>
   typename std::enable_if<std::is_same<Hessian, scon::mathmatrix<coords::float_type>>::value>::type
-    setHessian(Hessian && newHessian) { hessian std::forward<Hessian>(newHessian); }
+    setHessian(Hessian && newHessian) { hessian = std::forward<Hessian>(newHessian); }
   InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
   
 protected:
@@ -42,12 +43,12 @@ protected:
   void setNewToOldVariables();
   scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   
-  internals::InternalToCartesianConverter converter;
-
+  
   internals::PrimitiveInternalCoordinates & internalCoordinateSystem;
   CartesianType cartesianCoordinates;
+  internals::InternalToCartesianConverter converter;
   scon::mathmatrix<coords::float_type> hessian;
-
+  
   class ConvergenceCheck {
   public:
     ConvergenceCheck(int step, scon::mathmatrix<coords::float_type> & gxyz, Optimizer const& parent) :
