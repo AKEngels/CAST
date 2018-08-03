@@ -54,10 +54,12 @@ public:
             // output graphviz file from graph
             graph.visualize_graph("Graphviz");
 
-            // create initial internal coordinates system
-            ic_core::system icSystem(residue_vec, index_vec, cp_vec);
+            InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec);
 
-            icSystem.create_ic_system(graph.g);
+            // create initial internal coordinates system
+            ic_core::system icSystem(residue_vec, index_vec, cartesians);
+
+            icSystem.create_ic_system(graph);
             
             std::cout << "Normal Bmat:\n";
             std::cout << std::fixed << std::setprecision(5) << icSystem.Bmat() << "\n\n";
@@ -79,7 +81,7 @@ public:
             std::cout << "Rotation:\n";
             for (auto& i : icSystem.rotation_vec_)
             {
-                    auto j = i.rot_val(cp_vec);
+                    auto j = i->valueOfInternalCoordinate(cp_vec);
                     std::cout << j.at(0) << "||" << j.at(1) << "||" << j.at(2) << "||" << std::endl;
             }
 

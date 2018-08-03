@@ -259,8 +259,8 @@ TEST(SconTraits, ReturnTypeTrait)
   auto char_returning_functor = some_functor{};
   EXPECT_TRUE((std::is_same<scon::return_type<decltype(char_returning_functor)>, char>::value));
 
-  // Note; bind expressions not possible using scon::return_type: 
-  // empty operator() required which is not necessarily there 
+  // Note; bind expressions not possible using scon::return_type:
+  // empty operator() required which is not necessarily there
 
   // function pointers
   EXPECT_TRUE((std::is_same<scon::return_type<decltype(&some_bool_ret_test)>, bool>::value));
@@ -317,13 +317,21 @@ TEST(SconTraits, ConvertibleFromtTrait)
   EXPECT_FALSE((scon::is_convertible_from<some_A, explicitly_convertible_to_some_A>::value));
 }
 
-TEST(SconTraits, ExplicitlyConstructibleTrait)
-{
-  // explicitly constructible!
+TEST(SconTraits, UnsignedShouldBeExplicitlyConstructible) {
   EXPECT_TRUE((scon::is_explicitly_constructible<some_A, unsigned>::value));
-  // convertible!
-  EXPECT_FALSE((scon::is_explicitly_constructible<some_A, explicitly_convertible_to_some_A>::value));
+}
+
+//Not sure if this test gets the intention right.
+TEST(SconTraits, ExplicitlyConvertibleShouldBeExplicitlyConstructible) {
+  EXPECT_TRUE((scon::is_explicitly_constructible<some_A, explicitly_convertible_to_some_A>::value));
+}
+
+TEST(SconTraits, StdVectorValueShouldNotBeExplicitlyConstructible) {
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, std::vector<int>>::value));
+}
+
+TEST(SconTraits, ConvertibleShouldNotBeExplicitlyConstructible) {
   EXPECT_FALSE((scon::is_explicitly_constructible<some_A, convertible_to_some_A>::value));
 }
+
 #endif

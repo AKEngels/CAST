@@ -27,13 +27,28 @@ workspace "CAST"
 			architecture "x64"
 		filter{}
 
+  project "GoogleTest"
+    kind"StaticLib"
+    language"C++"
+    cppdialect"C++14"
+    targetdir"libs/%{cfg.buildcfg}"
+    location"project/libs/GoogleTest"
+
+    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googlemock/src/gmock-all.cc" }
+    sysincludedirs { "../submodules/googletest/googletest/include" }
+    includedirs{ "../submodules/googletest/googletest" }
+	sysincludedirs { "../submodules/googletest/googlemock/include" }
+    includedirs{ "../submodules/googletest/googlemock" }
+
+    symbols"On"
+
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
 		files { "../src/*.h", "../src/*.cc" }
 		vpaths {
-			["Headers"] = "../src/**.h",
+			["Headers"] = "../src/*.h",
 			["Sources"] = "../src/*.cc"
 		}
 		--flags "C++14"
@@ -64,11 +79,14 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				files "../src/gtest/*.cc"
+				files { "../src/gtest/*.cc", "../src/gtest/**.h" }
+        vpaths {["Tests"] = {"../src/gtest/*.cc", "../src/gtest/**.h" } }
+
 				symbols "On"
 				defines "GOOGLE_MOCK"
-				includedirs {"includes/gtest", "includes"}
-				links "gmock"
+				includedirs {"../submodules/googletest/googletest/include"}
+				includedirs {"../submodules/googletest/googlemock/include"}
+                links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
@@ -102,8 +120,6 @@ workspace "CAST"
 		filter {"Armadillo_Debug", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_armadillo_debug"
 
-		filter "*Testing"
-			libdirs "linux_precompiled_libs"
 		filter {"Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_testing"
 		filter {"Testing", "platforms:x64", "action:gmake" }

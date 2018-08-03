@@ -85,10 +85,6 @@
 //
 //#define CAST_DEBUG_DROP_EXCEPTIONS
 
-#include "energy_int_qmmm.h"
-//#include "scon_utility.h"
-
-
 int main(int argc, char **argv)
 {
 #ifdef USE_PYTHON   
@@ -292,7 +288,6 @@ int main(int argc, char **argv)
     }
     case config::tasks::SP:
       { // singlepoint
-        coords.e_head_tostream_short(std::cout);
         std::size_t i(0u);
         auto sp_energies_fn = coords::output::filename("_SP", ".txt");
         std::ofstream sp_estr(sp_energies_fn, std::ios_base::out);
@@ -314,6 +309,7 @@ int main(int argc, char **argv)
           std::cout << "Structure " << ++i << " (" << tim.count() << " s)" << '\n';
           short_ene_stream(coords, sp_estr, 16);
           sp_estr << std::setw(16) << tim.count() << '\n';
+          coords.e_head_tostream_short(std::cout);
           coords.e_tostream_short(std::cout);
         }
         break;
@@ -321,7 +317,6 @@ int main(int argc, char **argv)
     case config::tasks::GRAD:
     {
       // calculate gradient
-      coords.e_head_tostream_short(std::cout);
       std::size_t i(0u);
       std::ofstream gstream(coords::output::filename("_GRAD", ".txt").c_str());
       for (auto const & pes : *ci)
@@ -329,6 +324,7 @@ int main(int argc, char **argv)
         coords.set_xyz(pes.structure.cartesian);
         coords.g();
         std::cout << "Structure " << ++i << '\n';
+        coords.e_head_tostream_short(std::cout);
         coords.e_tostream_short(std::cout);
         coords.energyinterface()->print_G_tinkerlike(gstream);
       }
@@ -353,6 +349,7 @@ int main(int argc, char **argv)
     case config::tasks::LOCOPT:
     {
       // local optimization
+      std::remove("trace.arc"); // delete trace.arc file from former run
       coords.e_head_tostream_short(std::cout);
       auto lo_structure_fn = coords::output::filename("_LOCOPT");
       std::ofstream locoptstream(lo_structure_fn, std::ios_base::out);
@@ -376,7 +373,9 @@ int main(int argc, char **argv)
         coords.e_tostream_short(std::cout);
         loclogstream << std::setw(16) << i;
         short_ene_stream(coords, loclogstream, 16);
+        coords::Representation_3D oldC = coords.xyz();
         coords.o();
+        coords::Representation_3D newC = coords.xyz();
         auto tim = duration_cast<duration<double>>
           (high_resolution_clock::now() - start);
         short_ene_stream(coords, loclogstream, 16);
@@ -384,6 +383,22 @@ int main(int argc, char **argv)
         std::cout << "Post-Opt: " << i << "(" << tim.count() << " s)\n";
         coords.e_tostream_short(std::cout);
         locoptstream << coords;
+
+        // calculate RMSD
+        double sum_d_square=0, sum_d_square_not_fixed = 0;
+        for (auto i = 0u; i < coords.size(); i++)
+        {
+          sum_d_square += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
+          if (is_in(i, Config::get().coords.fixed) == false)
+          {
+            sum_d_square_not_fixed += dist(oldC[i], newC[i]) * dist(oldC[i], newC[i]);
+          }
+        }
+        double rmsd = std::sqrt(sum_d_square / coords.size());
+        double rmsd_not_fixed = std::sqrt(sum_d_square_not_fixed / (coords.size()- Config::get().coords.fixed.size()));
+        std::cout << "RMSD between starting and optimized structure is " << rmsd << " angstrom.\n";
+        if (Config::get().coords.fixed.size() != 0) std::cout << "If taking into account only non-fixed atoms it is " << rmsd_not_fixed << " angstrom.\n";
+        loclogstream << "\nRMSD: " << rmsd << "\nRMSD(only_non_fixed): " << rmsd_not_fixed << "\n";
       }
       break;
     }

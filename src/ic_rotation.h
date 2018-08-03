@@ -90,7 +90,7 @@ quaternion(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
   //shouldn't that be col_to_vector(0)? See rotate.py line 272 (in get_quat) //Seems to be right like described here. They are sorting it the other way round
   auto q_std = eigvec.col_to_std_vector(eigvec.cols()-1);
   ic_util::Quaternion<T> res_q(q_std);
-  if (res_q.q_.at(0) < 0) {
+  if (res_q.q_.at(0) < 0.) {
     res_q = res_q * -1.;
   }
 
@@ -192,32 +192,34 @@ F_matrix_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
   return result;
 }
 
+template <typename T, template <typename> class CoordType,
+          template <typename, typename...> class ContainerType,
+          typename... ContainerArgs>
+typename std::enable_if<std::is_arithmetic<T>::value,
+                        std::vector<scon::mathmatrix<T>>>::type
+quaternion_derivs(
+    ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
+    ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz) {
+  using Mat = scon::mathmatrix<T>;
 
+  auto q_eigval = quaternion(old_xyz, new_xyz);
+  auto F = F_matrix(old_xyz, new_xyz);
+  auto F_der = F_matrix_derivs(old_xyz); // is it really the old xyz???
 
-template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-typename std::enable_if<std::is_arithmetic<T>::value, std::vector<scon::mathmatrix<T>>>::type
-quaternion_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& new_xyz,
-                  ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz){
-using Mat = scon::mathmatrix<T>;
+  auto t = (Mat::fill_diag(4, 4, q_eigval.first) - F).pinv();
 
-auto q_eigval = quaternion(old_xyz, new_xyz);
-auto F = F_matrix(old_xyz, new_xyz);
-auto F_der = F_matrix_derivs(new_xyz);
-
-auto t = (Mat::fill_diag(4, 4, q_eigval.first) -F).pinv();
-
-std::vector<Mat> result;
-auto q = q_eigval.second;
-auto q_in_vec = ic_util::arr_to_vec(q.q_);
-auto qrow = Mat::col_from_vec(q_in_vec);
-for (auto&& Fd : F_der) {
-Mat qtemp(3, 4);
-for (std::size_t c = 0; c < Fd.size(); ++c) {
-qtemp.set_row(c, (t * Fd.at(c) * qrow).t());
-}
-result.emplace_back(qtemp);
-}
-return result;
+  std::vector<Mat> result;
+  auto q = q_eigval.second;
+  auto q_in_vec = ic_util::arr_to_vec(q.q_);
+  auto qrow = Mat::col_from_vec(q_in_vec);
+  for (auto&& Fd : F_der) {
+    Mat qtemp(3, 4);
+    for (std::size_t c = 0; c < Fd.size(); ++c) {
+      qtemp.set_row(c, (t * Fd.at(c) * qrow).t());
+    }
+    result.emplace_back(qtemp);
+  }
+  return result;
 }
 
 template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
@@ -256,7 +258,7 @@ exponential_derivs(ContainerType<CoordType<T>, ContainerArgs...> const& old_xyz,
       auto const& dqdx_ij = dqdx_i.row(j);
       auto new_row = Mat::zero(1,3);
       for(auto k{ 0u }; k<dqdx_i.cols(); ++k){
-        new_row += dv_mat.row(k) * dqdx_ij(k);
+        new_row += dv_mat.row(k) * dqdx_ij(0, k);
       }
       R.set_row(j,new_row);
     }

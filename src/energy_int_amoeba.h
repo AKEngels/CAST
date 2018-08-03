@@ -53,17 +53,10 @@ namespace energy
           throw std::runtime_error("TODO: Implement charge getter for AMOEBA.\n");
         }
         /**overwritten function, should not be called*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override
         {
-          throw std::runtime_error("TODO: Implement electric field.\n");
+          throw std::runtime_error("function not implemented yet\n");
         }
-        /**overwritten function, should not be called*/
-        coords::Gradients_3D get_link_atom_grad() const override
-        {
-          throw std::runtime_error("function not implemented\n");
-        }
-        /**overwritten function*/
-        std::string get_id() const override { return "bullshit"; }
 
         // Output functions
         void print_E (std::ostream&) const;

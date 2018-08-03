@@ -9,10 +9,10 @@ Purpose: Tests functions in configuration.cc
 
 
 #ifdef GOOGLE_MOCK
-#pragma once
+
 #include "../configuration.h"
 #include "../configurationHelperfunctions.h"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 TEST(sorted_indices_from_cs_string, withProperInput)
 {

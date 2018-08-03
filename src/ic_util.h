@@ -44,6 +44,11 @@ namespace ic_util{
   \param arr Input array.
   \return std::vector.
   */
+  template <template<typename, typename ...> class Conatiner, typename VectorType, typename ... VectorArguments> 
+  inline typename std::enable_if<std::is_arithmetic<VectorType>::value, std::vector<VectorType>>::type
+    arr_to_vec(const Conatiner<VectorType, VectorArguments ...>& container) {
+    return std::vector<VectorType>(container.begin(), container.end());
+  }
   template <typename U, std::size_t N>
   inline typename std::enable_if<std::is_arithmetic<U>::value, std::vector<U>>::type
   arr_to_vec(const std::array<U, N>& arr) {
@@ -65,22 +70,13 @@ namespace ic_util{
     return A;
   }
 
-  // mean function for coordinates
-  inline coords::Cartesian_Point cp_mean(const coords::Representation_3D& rep) {
-    coords::Cartesian_Point cp{};
-    for (auto&& i : rep) {
-      cp += i;
-    }
-    cp /= static_cast<float_type>(rep.size());
-    return cp;
-  }
 
   // radius of gyration from Rep3D
   // coords have to be in Bohr
   template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
   inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
   rad_gyr(ContainerType<CoordType<T>, ContainerArgs...> const& rep) {
-    auto mean = cp_mean(rep);
+    auto mean = get_mean(rep);
     auto diff = rep - mean;
     auto sum{ 0.0 };
     for (auto& i : diff) {
@@ -89,79 +85,6 @@ namespace ic_util{
     }
     sum /= rep.size();
     return std::sqrt(sum);
-  }
-
-  inline coords::Cartesian_Point
-  normal_unit_vector(const coords::Cartesian_Point& a,
-                     const coords::Cartesian_Point& b,
-                     const coords::Cartesian_Point& c) {
-    using scon::cross;
-    using scon::len;
-
-    auto a_vec = b - a;
-    auto b_vec = b - c;
-    auto t1 = cross(a_vec, b_vec);
-    auto result = t1 / (len(t1));
-    return result;
-  }
-
-  /*!
-  \brief Creates all possible 2-permutations from a maximum number and sorts them
-  according to size.
-  \details Used as a helper function to create a vector of bonded atom pairs.
-  \param num Maximum number used for permutations.
-  \return Sorted std::vector of std::pair.
-  */
-  inline std::vector<std::pair<int, int>>
-  permutation(const std::size_t& num) {
-    std::vector<int> s(num);
-    // std::iota fills the range from std::begin(s) to std::end(s) with
-    // incremented integer values starting from 1.
-    std::iota(std::begin(s), std::end(s), 1);
-    std::vector<std::pair<int, int>> perm_vec;
-    for (auto& i : s) {
-      for (auto& f : s) {
-        if (i < f) {
-          auto par = std::make_pair(i, f);
-          perm_vec.emplace_back(par);
-        }
-      }
-    }
-    return perm_vec;
-  }
-
-  /*!
-  \brief Calculates the Euclidean distance between two Cartesian_Points.
-  \tparam T Arithmetic type. Enforced by type traits.
-  \param a First Cartesian_Point.
-  \param b Second Cartesian_Point.
-  \return Euclidean distance.
-  */
-  template <typename T>
-  inline typename std::enable_if<std::is_arithmetic<T>::value, T>::type
-  euclid_dist(const coords::Cartesian_Point& a, const coords::Cartesian_Point& b) {
-    auto f{ (a - b) * (a - b) };
-    auto dist = std::sqrt(f.x() + f.y() + f.z());
-    return dist;
-  }
-
-  /*!
-  \brief Creates a std::vector of Euclidean distances for each possible pair
-  of atoms.
-  \tparam T Arithmetic type. Enforced by type traits.
-  \param cp_vec Structure of the system.
-  \return std::vector of Euclidean distances.
-  */
-  template <typename T, template<typename> class CoordType, template<typename, typename ...> class ContainerType, typename ... ContainerArgs>
-  inline typename std::enable_if<std::is_arithmetic<T>::value, std::vector<T>>::type
-  dist_vec(ContainerType<CoordType<T>, ContainerArgs...> const& cp_vec) {
-    std::vector<T> result;
-    auto perm_vec = permutation(cp_vec.size());
-    for (auto& i : perm_vec) {
-      auto dist = euclid_dist<T>(cp_vec.at(i.first - 1), cp_vec.at(i.second - 1));
-      result.emplace_back(dist);
-    }
-    return result;
   }
 
   /*!
@@ -173,61 +96,84 @@ namespace ic_util{
     return a / scon::geometric_length(a);
   }
 
-  inline std::vector<std::pair<int, int>>
+  //not tested
+  inline coords::Cartesian_Point
+    normal_unit_vector(const coords::Cartesian_Point& a,
+      const coords::Cartesian_Point& b,
+      const coords::Cartesian_Point& c) {
+    using scon::cross;
+    using scon::len;
+
+    auto a_vec = b - a;
+    auto b_vec = b - c;
+    auto t1 = cross(a_vec, b_vec);
+    auto result = t1 / (len(t1));
+    return result;
+  }
+
+  struct AtomConnector {
+    using returnType = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    AtomConnector(std::vector<std::string> const& elem_vec,
+      coords::Representation_3D const& cp_vec) : sequenceOfSymbols{ elem_vec }, cartesianRepresentation{ cp_vec }, firstAtomIndex{ 0u }, secondAtomIndex{ 0u } {}
+    returnType operator()();
+
+  private:
+    double getThresholdForBeingNotConnected(std::string const& oneAtom, std::string const& otherAtom);
+    void findTheFirstAtom(returnType & connectedAtoms);
+    void findAtomWithIndexHigherThanFirst(returnType & connectedAtoms);
+    void connectIfCloseEnough(returnType & connectedAtoms);
+    bool areTheyCloseEnough();
+
+    std::vector<std::string> const& sequenceOfSymbols;
+    coords::Representation_3D const& cartesianRepresentation;
+
+    std::size_t firstAtomIndex;
+    std::size_t secondAtomIndex;
+  };
+
+  inline std::vector<std::pair<std::size_t, std::size_t>> AtomConnector::operator()() {
+    std::vector<std::pair<std::size_t, std::size_t>> connectedAtoms;
+    findTheFirstAtom(connectedAtoms);
+    return connectedAtoms;
+  }
+
+  inline void AtomConnector::findTheFirstAtom(returnType & connectedAtoms){
+    for (firstAtomIndex = 0u; firstAtomIndex < sequenceOfSymbols.size(); ++firstAtomIndex) {
+      findAtomWithIndexHigherThanFirst(connectedAtoms);
+    }
+  }
+
+  inline void AtomConnector::findAtomWithIndexHigherThanFirst(returnType & connectedAtoms){
+    for (secondAtomIndex = firstAtomIndex+1u; secondAtomIndex < sequenceOfSymbols.size(); ++secondAtomIndex) {
+      connectIfCloseEnough(connectedAtoms);
+    }
+  }
+
+  inline void AtomConnector::connectIfCloseEnough(returnType & connectedAtoms) {
+    if (areTheyCloseEnough()) {
+      connectedAtoms.emplace_back(firstAtomIndex, secondAtomIndex);
+    }
+  }
+
+  inline bool AtomConnector::areTheyCloseEnough() {
+    double const threshold = getThresholdForBeingNotConnected(sequenceOfSymbols.at(firstAtomIndex), sequenceOfSymbols.at(secondAtomIndex));
+    double const actualDistance = scon::len(cartesianRepresentation.at(firstAtomIndex) - cartesianRepresentation.at(secondAtomIndex));
+    return actualDistance < threshold;
+  }
+
+  inline double AtomConnector::getThresholdForBeingNotConnected(std::string const& oneAtom, std::string const& otherAtom) {
+    using ic_atom::element_radius;
+    return 1.2 * (element_radius(oneAtom) + element_radius(otherAtom));
+  }
+
+  inline std::vector<std::pair<std::size_t, std::size_t>>
   bonds(std::vector<std::string> const& elem_vec,
         coords::Representation_3D const& cp_vec) {
-    using ic_atom::radius_vec;
 
-    auto radii = radius_vec(elem_vec);
-    auto perm = permutation(elem_vec.size());
-    std::vector<double> thres;
-    for (const auto& i : perm) {
-      thres.emplace_back(1.2 * (radii.at(i.first - 1) + radii.at(i.second - 1)));
-    }
-    auto dist = dist_vec(cp_vec);
-    auto thres_it{ thres.cbegin() };
-    auto dist_it{ dist.cbegin() };
-    std::vector<std::pair<int, int>> result;
-    for (; dist_it != dist.cend() && thres_it != thres.cend();
-         ++dist_it, ++thres_it) {
-      if (*dist_it < *thres_it) {
-        auto pos = std::distance(dist.cbegin(), dist_it);
-        result.emplace_back(perm.at(pos));
-      }
-    }
-    return result;
-  }
+    AtomConnector atomCreator(elem_vec, cp_vec);
+    return atomCreator();
 
-  /*!
-  \brief Creates all possible 3-permutations from a vector containing 3 integers.
-  \param vec Vector containing 3 integers.
-  \return Vector of all created permutations, where each permutation is itself a
-  3-dimensional vector.
-  */
-  inline std::vector<std::vector<std::size_t>>
-  permutation_from_vec(std::vector<std::size_t>& vec) {
-    std::vector<std::vector<std::size_t>> result;
-    do {
-      std::cout << vec.at(0) << " " << vec.at(1) << " " << vec.at(2) << "\n";
-      result.emplace_back(std::vector<std::size_t>{ vec.at(0), vec.at(1), vec.at(2) });
-    } while (std::next_permutation(vec.begin(), vec.end()));
-    return result;
-  }
-
-  /*!
-  \brief Performs standard container flattening.
-  \tparam ContainerIt Type of container that is to be flattened.
-  \tparam Result Type of resulting container; might be an iterator.
-  \param st begin() iterator.
-  \param fi end() iterator.
-  \param res Usually an iterator to the flattened container.
-  */
-  template <typename ContainerIt, typename Result>
-  void concatenate(ContainerIt st, ContainerIt fi, Result res) {
-    while (st != fi) {
-      res = std::move(st->begin(), st->end(), res);
-      ++st;
-    }
   }
 
   /*!

@@ -74,7 +74,7 @@ namespace scon
   struct Any : Boolean<false> {};
 
   template <typename Head, typename... Tail>
-  struct Any<Head, Tail...> : 
+  struct Any<Head, Tail...> :
     Conditional<Head::value, Boolean<true>, Any<Tail...>>{};
 
   // All
@@ -83,17 +83,17 @@ namespace scon
   struct All : Boolean<true> {};
 
   template <typename Head, typename... Tail>
-  struct All<Head, Tail...> : 
+  struct All<Head, Tail...> :
     Conditional<Head::value, All<Tail...>, Boolean<false>>{};
 
   // Enable and Disable
 
   template<class ... Conditions>
-  using EnableIf = typename std::enable_if<All<Conditions...>::value, 
+  using EnableIf = typename std::enable_if<All<Conditions...>::value,
     trait_detail::enabled_ty>::type;
 
   template<class ... Condition>
-  using DisableIf = typename std::enable_if<Not<Any<Condition...>>::value, 
+  using DisableIf = typename std::enable_if<Not<Any<Condition...>>::value,
     trait_detail::enabled_ty>::type;
 
   // Qualification conversion
@@ -121,7 +121,7 @@ namespace scon
     // is_range: is begin(v) and end(v) valid for v of type T
 
     template<class T>
-    struct is_range
+    struct is_range_impl
     {
     private:
       // helper function declarations usign expression sfinae
@@ -137,8 +137,11 @@ namespace scon
       using b_return = decltype(b<T>(std::declval<T&>()));
       using e_return = decltype(e<T>(std::declval<T&>()));
     public:
-      static const bool value = b_return::value && e_return::value;
+      using boolValue = std::integral_constant<bool, b_return::value && e_return::value>;
     };
+
+    template<typename T>
+    using is_range = typename is_range_impl<T>::boolValue;
 
     template<class T, bool b = is_range<T>::value>
     struct range_begin_iterator_type { };
@@ -174,10 +177,10 @@ namespace scon
 
   // alias for is_range and range_value_type
 
-  template <class T> using is_range = 
+  template <class T> using is_range =
     trait_detail::is_range < T >;
 
-  template <class T> using range_value = 
+  template <class T> using range_value =
     typename trait_detail::range_value_type<T>::type;
 
   template <class T> using range_begin_iterator =
@@ -203,7 +206,7 @@ namespace scon
   // Construction and conversion traits
 
   template<typename T, typename... Args>
-  struct is_convertible_from : 
+  struct is_convertible_from :
     std::is_constructible<T, Args...> {};
 
   template<typename T, typename U>
@@ -212,7 +215,7 @@ namespace scon
 
   template<typename T, typename U>
   struct is_explicitly_constructible :
-    Boolean<std::is_constructible<T, U>::value && 
+    Boolean<std::is_constructible<T, U>::value &&
     !std::is_convertible<U, T>::value> {};
 
 

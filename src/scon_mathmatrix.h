@@ -9,7 +9,7 @@ available. Otherwise uses slow internal routines.
 Works on either internal scon::matrix types or arma::Mat types if
 the flag USE_ARMADILLO is specified
 
-@author Dustin Kaiser
+@author Julian Erdmannsdörfer, Dustin Kaiser
 @version 3.0
 */
 
@@ -48,6 +48,7 @@ arma::Mat kind
 #include <tuple>
 #include <utility>
 #include <vector>
+#include "configuration.h"
 
 ///////////////////////////////
 //                           //
@@ -145,7 +146,9 @@ public:
   using int_type = int;
   using uint_type = std::size_t;
   static auto constexpr printFunctionCallVerbosity = 5u;
-  static auto constexpr mat_comp_tol = 0.1;
+  static auto constexpr matCompTol(){
+	  return 0.1;
+  }
   static auto constexpr close_to_zero_tol = 1.e-7;
 
   /////////////////////////////////////
@@ -202,8 +205,33 @@ public:
   using base_type::row;*/
 
   // element access from base class
-  using base_type::operator();
-  using base_type::operator[];
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+  >::type &
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("Error: out of bound exception in operator() of scon_mathmatrix");
+    }
+    return base_type::operator()(row,col);
+  }
+  template<typename LeftIntegral, typename RightIntegral = std::size_t>
+  typename std::enable_if<std::is_integral<LeftIntegral>::value,
+    typename std::enable_if<std::is_integral<RightIntegral>::value, T>::type
+    >::type const 
+  operator()(LeftIntegral const row, RightIntegral const col = RightIntegral()) const {
+    if (checkIfIndexOutOfBounds(row, col)) {
+      throw std::runtime_error("error: out of bound exception in operator() const of scon_mathmatrix");
+    }
+    return base_type::operator()(row, col);
+  }
+  /*T operator[](std::size_t const row, std::size_t const col) {
+    if (checkIfIndexOutOfBounds()) {
+      std::runtime_error("Error: out of bound exception in operator[] of scon_mathmatrix");
+    }
+    return base_type::operator[];
+  }*/
+
 #ifndef CAST_USE_ARMADILLO
   void resize(uint_type const rows, uint_type const cols);
 #else
@@ -293,18 +321,18 @@ public:
   /**
    * @brief Sheds the specified rows from the matrix
    */
-  void shed_rows(long const& first_in, long const& last_in = 0);
+  void shed_rows(long const first_in, long const last_in = 0);
 
   /**
    * @brief Sheds the specified columns from the matrix
    */
-  void shed_cols(long const& first_in, long const& last_in = 0);
+  void shed_cols(long const first_in, long const last_in = 0);
 
   /**
    * @brief Returns number of rows
    */
 #ifndef CAST_USE_ARMADILLO
-  using base_type::rows;
+  std::size_t rows() const { return base_type::rows();}
 #else
   std::size_t rows() const;
 #endif
@@ -313,7 +341,7 @@ public:
    * @brief Returns number of columns
    */
 #ifndef CAST_USE_ARMADILLO
-  using base_type::cols;
+  std::size_t cols() const { return base_type::cols();}
 #else
   std::size_t cols() const;
 #endif
@@ -620,6 +648,10 @@ public:
 #else
   class Quaternion {};
 #endif
+  private:
+    bool checkIfIndexOutOfBounds(std::size_t const row, std::size_t const col) const {
+      return row > rows() || col > cols();
+    }
 };
 
 template <typename T>
@@ -994,47 +1026,47 @@ void mathmatrix<T>::append_right(const mathmatrix& I_will_be_the_right_part) {
 }
 
 template <typename T>
-void mathmatrix<T>::shed_rows(long const& first_in, long const& last_in) {
+void mathmatrix<T>::shed_rows(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0 || first_in > last_in_ || last_in >= this->rows()) {
+  if (first_in < 0 || first_in > last_in_ || last_in >= static_cast<long>(this->rows())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_rows()");
   }
 
 
   mathmatrix newOne(this->rows() - (last_in_ - first_in + 1u), this->cols());
-  for (auto i = 0; i < first_in; ++i) {
-    for (auto j = 0; j < this->cols(); ++j) {
+  for (auto i = 0u; i < first_in; ++i) {
+    for (auto j = 0u; j < this->cols(); ++j) {
       newOne(i, j) = (*this)(i, j);
     }
   }
-  for (auto i = first_in; i < this->rows() - last_in_ - 1 + first_in; ++i) {
+  for (auto i = first_in; i < static_cast<long>(this->rows()) - last_in_ - 1u + first_in; ++i) {
     for (auto j = 0u; j < this->cols(); ++j) {
-      newOne(i, j) = (*this)(i + (last_in_ - first_in) + 1, j);
+      newOne(i, j) = (*this)(i + (last_in_ - first_in) + 1u, j);
     }
   }
   this->swap(newOne);
 }
 
 template <typename T>
-void mathmatrix<T>::shed_cols(long const& first_in, long const& last_in) {
+void mathmatrix<T>::shed_cols(long const first_in, long const last_in) {
 
   auto const last_in_ = last_in == 0 ? first_in : last_in;
 
-  if (first_in < 0 || first_in > last_in_ || last_in >= this->cols()) {
+  if (first_in < 0 || first_in > last_in_ || last_in >= static_cast<long>(this->cols())) {
     throw std::runtime_error("Index Out of Bounds in mathmatrix:shed_cols()");
   }
 
   mathmatrix newOne(this->rows(), this->cols() - (last_in_ - first_in + 1u));
-  for (auto j = 0; j < this->rows(); ++j) {
-    for (auto i = 0; i < first_in; ++i) {
+  for (auto j = 0u; j < this->rows(); ++j) {
+    for (auto i = 0u; i < first_in; ++i) {
       newOne(j, i) = (*this)(j, i);
     }
   }
-  for (auto j = 0; j < this->rows(); ++j) {
-    for (auto i = first_in; i < this->cols() - last_in_ - 1 + first_in; ++i) {
-      newOne(j, i) = (*this)(j, i + (last_in_ - first_in) + 1);
+  for (auto j = 0u; j < this->rows(); ++j) {
+    for (auto i = first_in; i < static_cast<long>(this->cols()) - last_in_ - 1u + first_in; ++i) {
+      newOne(j, i) = (*this)(j, i + (last_in_ - first_in) + 1u);
     }
   }
   this->swap(newOne);
@@ -1056,6 +1088,9 @@ std::size_t mathmatrix<T>::cols() const {
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::col(std::size_t const idx) const {
+  if (idx > cols() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function col(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::col(idx);
 #else
@@ -1093,6 +1128,9 @@ inline void mathmatrix<T>::set_col(std::size_t const ncol, mathmatrix const & ot
 
 template <typename T>
 inline mathmatrix<T> mathmatrix<T>::row(std::size_t const idx) const {
+  if (idx > rows() - 1u) {
+    throw std::runtime_error("The boundaries for the rows are exceeded. See function row(std::size_t const) in the mathmatrix class");
+  }
 #ifndef CAST_USE_ARMADILLO
   return base_type::row(idx);
 #else
@@ -1153,11 +1191,11 @@ mathmatrix<T> mathmatrix<T>::upper_left_submatrix(uint_type rows_in,
 template <typename T>
 bool mathmatrix<T>::operator==(mathmatrix<T> const& in) const {
 #ifndef CAST_USE_ARMADILLO
-  return this->isApprox(in, mat_comp_tol);
+  return this->isApprox(in, matCompTol());
 #else
   return (arma::approx_equal(static_cast<base_type>(*this),
                              static_cast<base_type>(in), "absdiff",
-                             mat_comp_tol));
+                             matCompTol()));
 #endif
 }
 

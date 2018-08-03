@@ -946,7 +946,7 @@ void alignment(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& 
 #pragma omp parallel for firstprivate(coordsReferenceStructure, coordsTemporaryStructure) reduction(+:mean_value) shared(hold_coords_str, hold_str)
   for (std::ptrdiff_t i = 0; i < n_omp; ++i)
 #else
-  for (std::size_t i = 0; i < ci->size(); ++i)
+  for (auto i = 0; i < static_cast<int>(ci->size()); ++i)
 #endif
   {
     if (i != static_cast<std::ptrdiff_t>(Config::get().alignment.reference_frame_num))

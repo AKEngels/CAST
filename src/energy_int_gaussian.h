@@ -56,13 +56,9 @@ namespace energy
 
         /**return charges*/
         std::vector<coords::float_type> charges() const override;
-        /**returns electric field that is given by GAUSSIAN
+        /**returns gradients on external charges (calculated by electric field from GAUSSIAN)
         (is used for QM/MM)*/
-        std::vector<coords::Cartesian_Point> get_g_coul_mm() const override;
-        /**return id for gaussian call*/
-        std::string get_id() const override { return id;};
-        /**get gradients on link atoms (for QM/MM)*/
-        coords::Gradients_3D get_link_atom_grad() const override;
+        std::vector<coords::Cartesian_Point> get_g_ext_chg() const override;
 
       private:
 
@@ -86,6 +82,7 @@ namespace energy
 				size_t failcounter;
 
         /**electric field that is given by GAUSSIAN
+				contains the atoms and the external charges
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 

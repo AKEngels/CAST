@@ -6,6 +6,7 @@
 #include "energy_int_terachem.h"
 #include "energy_int_amoeba.h"
 #include "energy_int_qmmm.h"
+#include "energy_int_oniom.h"
 #ifdef USE_PYTHON
 #include "energy_int_dftbaby.h"
 #endif
@@ -59,11 +60,19 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
     }
   case config::interface_types::T::QMMM:
   {
-    if (Config::get().general.verbosity > 29)
+    if (Config::get().general.verbosity > 3)
     {
       std::cout << "QMMM-Interface choosen for energy calculations.\n";
     }
     return new energy::interfaces::qmmm::QMMM(coordinates);
+  }
+  case config::interface_types::T::ONIOM:
+  {
+	  if (Config::get().general.verbosity > 3)
+	  {
+		  std::cout << "ONIOM-Interface choosen for energy calculations.\n";
+	  }
+	  return new energy::interfaces::oniom::ONIOM(coordinates);
   }
 
   case config::interface_types::T::TERACHEM:

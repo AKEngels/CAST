@@ -27,7 +27,7 @@ inline void short_ene_stream(
   coords::Coordinates const &coords,
   std::ostream &strm, std::streamsize const w)
 {
-  strm << std::setw(w) << coords.pes().energy;
+  strm << std::fixed << std::setw(w) << coords.pes().energy;
   for (auto const& ia : coords.pes().ia_matrix)
   {
     strm << std::setw(w) << ia.energy;
@@ -143,8 +143,20 @@ inline bool file_exists(const std::string& name) {
 inline std::string last_line(std::ifstream& in)
 {
   std::string line;
-  while (in >> std::ws && std::getline(in, line)); // skip empty lines
+  while (in >> std::ws && std::getline(in, line));
   return line;
+}
+
+/**tests if a file is empty
+returns true if it is empty, false if not
+@param filename: name of the file*/
+inline bool file_is_empty(std::string &filename)
+{
+	std::ifstream file (filename);
+	std::string some_string;
+	file >> some_string;
+	if (some_string.empty()) return true;
+	else return false;
 }
 
 #endif

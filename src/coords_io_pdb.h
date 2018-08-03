@@ -580,7 +580,7 @@ namespace coords {
           possible values: no (not terminal), C (C terminal), N (N terminal)*/
           std::string terminal;
         };
-        static inline void make_bonds(Atoms&, std::vector<std::pair<int, int>> const&);
+        static inline void make_bonds(Atoms&, std::vector<std::pair<std::size_t, std::size_t>> const&);
         static inline std::vector<terminals> get_terminals(Atoms const&, std::vector<std::vector<std::size_t>> const &);
         static inline void set_energy_type(Atoms&, std::vector<std::vector<std::size_t>> const&);
       };
@@ -632,7 +632,7 @@ coords::input::formats::pdb::helper::get_terminals(Atoms const& atoms, std::vect
   return result;
 }
 
-void coords::input::formats::pdb::helper::make_bonds(coords::Atoms & atoms, std::vector<std::pair<int, int>> const& bonds) {
+void coords::input::formats::pdb::helper::make_bonds(coords::Atoms & atoms, std::vector<std::pair<std::size_t, std::size_t>> const& bonds) {
   for (auto const& bond : bonds) {
     auto is_ion = [](std::string const & s) {
       return s.substr(s.size() - 1, 1) == "+" || s.substr(s.size() - 1, 1) == "-";

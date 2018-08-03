@@ -914,8 +914,7 @@ namespace coords
       return m_atoms.atom(index);
     }
     //adapts indexation of coords object to initially read structure
-    void adapt_indexation(size_t no_dist, size_t no_angle, size_t no_dihedral,
-      std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
+    void adapt_indexation(std::vector<std::vector<std::pair<std::vector<size_t>, double>>> const &reference,
       coords::Coordinates const *cPtr);
 
     //returns maximal found values of cartesian coordiantes as a Cartesian_Point for fixed atoms
