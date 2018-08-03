@@ -203,7 +203,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 		atoms = std::stoi(stringvec[1]);
 	  }
 
-      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energieds were read and deleting older data
+      if (buffer.find("Alpha  occ. eigenvalues --") != std::string::npos) //ascertain if before mo energies were read and deleting older data
       {
         if (test_lastMOs == true)
         {

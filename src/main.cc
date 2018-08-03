@@ -55,6 +55,7 @@
 #include "periodicCutout.h"
 #include "replaceMonomers.h"
 #include "modify_sk.h"
+#include "excitonDiffusion.h"
 
 
 //////////////////////////
@@ -952,6 +953,13 @@ int main(int argc, char **argv)
 
         std::ofstream output(Config::get().general.outputFilename, std::ios_base::out);       
         output << coords;
+        break;
+      }
+
+      case config::tasks::EXCITONDIMER:
+      {
+        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.pscpairexrates);
+
         break;
       }
 
