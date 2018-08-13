@@ -14,8 +14,8 @@ namespace {
       ic_util::Node{ 7, "C", "C" }, ic_util::Node{ 8, "O", "O" }, ic_util::Node{ 9, "H", "H" }, ic_util::Node{ 10, "H", "H" }, ic_util::Node{ 11, "H", "H" }, ic_util::Node{ 12, "H", "H" }
     };
     std::vector<std::pair<std::size_t, std::size_t>> connectivity{ 
-      { 1u, 2u },{ 1u, 3u },{ 1u, 4u },{ 1u, 5u },{ 2u, 6u },
-      { 7u, 8u },{ 7u, 9u },{ 7u, 10u },{ 7u, 11u },{ 8u, 12u },
+      { 0u, 1u },{ 0u, 2u },{ 0u, 3u },{ 0u, 4u },{ 1u, 5u },
+      { 6u, 7u },{ 6u, 8u },{ 6u, 9u },{ 6u, 10u },{ 7u, 11u },
     };
     return ic_util::make_graph(connectivity, atomVector);
   }

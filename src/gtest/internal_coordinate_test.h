@@ -206,7 +206,7 @@ struct ExpectedValuesForRotations{
 class InternalCoordinatesRotationsTest : public InternalCoordinatesTestRotatedMolecules, public testing::WithParamInterface<ExpectedValuesForRotations> {
 public:
   InternalCoordinatesRotationsTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
-    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{0,1,2,3,4,5})->makeRotations() }{}
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1u,2u,3u,4u,5u,6u})->makeRotations() }{}
 
   InternalCoordinates::CartesiansForInternalCoordinates cartesianCoordinates;
   InternalCoordinates::Rotations rotations;
@@ -218,7 +218,7 @@ public:
 class InternalCoordinatesRotationInfoTest : public InternalCoordinatesTestRotatedMolecules {
 public:
   InternalCoordinatesRotationInfoTest() : InternalCoordinatesTestRotatedMolecules(), cartesianCoordinates(twoMethanolMolecules->getTwoRepresentations()
-    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{0,1,2,3,4,5})->makeRotations() } {}
+    .first.cartesianRepresentation), rotations{ InternalCoordinates::Rotator::buildRotator(cartesianCoordinates, std::vector<std::size_t>{1u,2u,3u,4u,5u,6u})->makeRotations() } {}
 
   std::string infoOfRotationA();
   std::string infoOfRotationB();

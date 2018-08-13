@@ -6,16 +6,16 @@
 namespace InternalCoordinates {
 
   coords::float_type BondDistance::val(coords::Representation_3D const& cartesians) const {
-    auto const& a = cartesians.at(index_a_ - 1u);
-    auto const& b = cartesians.at(index_b_ - 1u);
+    auto const& a = cartesians.at(index_a_);
+    auto const& b = cartesians.at(index_b_);
 
     return scon::len(a - b);
   }
 
   std::pair<coords::r3, coords::r3> BondDistance::der(coords::Representation_3D const& cartesians) const {
 
-    auto const& a = cartesians.at(index_a_ - 1u);
-    auto const& b = cartesians.at(index_b_ - 1u);
+    auto const& a = cartesians.at(index_a_);
+    auto const& b = cartesians.at(index_b_);
 
     auto bond = ic_util::normalize(a - b);
     return std::make_pair(bond, -bond);
@@ -27,8 +27,8 @@ namespace InternalCoordinates {
 
     auto firstder = der(cartesians);
     std::vector<coords::r3> der_vec(cartesians.size(), coords::r3(0.0, 0.0, 0.0));
-    der_vec.at(index_a_ - 1) = firstder.first;
-    der_vec.at(index_b_ - 1) = firstder.second;
+    der_vec.at(index_a_) = firstder.first;
+    der_vec.at(index_b_) = firstder.second;
     return ic_util::flatten_c3_vec(der_vec);
   }
 
@@ -87,7 +87,7 @@ namespace InternalCoordinates {
 
   std::string BondDistance::info(coords::Representation_3D const & cartesians) const {
     std::ostringstream oss;
-    oss << "Bond: " << val(cartesians) << " || " << index_a_ << " || " << index_b_ << " ||";
+    oss << "Bond: " << val(cartesians) << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " ||";
     return oss.str();
   }
 
@@ -104,9 +104,9 @@ namespace InternalCoordinates {
     using scon::dot;
     using scon::len;
 
-    auto const& a = cartesians.at(index_a_ - 1u);
-    auto const& b = cartesians.at(index_b_ - 1u);
-    auto const& c = cartesians.at(index_c_ - 1u);
+    auto const& a = cartesians.at(index_a_);
+    auto const& b = cartesians.at(index_b_);
+    auto const& c = cartesians.at(index_c_);
 
     auto u = a - b;
     auto v = c - b;
@@ -123,9 +123,9 @@ namespace InternalCoordinates {
     using scon::dot;
     using scon::len;
 
-    auto const& a = cartesians.at(index_a_ - 1u);
-    auto const& b = cartesians.at(index_b_ - 1u);
-    auto const& c = cartesians.at(index_c_ - 1u);
+    auto const& a = cartesians.at(index_a_);
+    auto const& b = cartesians.at(index_b_);
+    auto const& c = cartesians.at(index_c_);
 
     auto u = a - b;
     auto v = c - b;
@@ -162,9 +162,9 @@ namespace InternalCoordinates {
 
     auto firstder = BondAngle::der(cartesians);
     std::vector<coords::r3> der_vec(cartesians.size(), coords::r3(0.0, 0.0, 0.0));
-    der_vec.at(index_a_ - 1) = std::get<0>(firstder);
-    der_vec.at(index_b_ - 1) = std::get<1>(firstder);
-    der_vec.at(index_c_ - 1) = std::get<2>(firstder);
+    der_vec.at(index_a_) = std::get<0>(firstder);
+    der_vec.at(index_b_) = std::get<1>(firstder);
+    der_vec.at(index_c_) = std::get<2>(firstder);
     return ic_util::flatten_c3_vec(der_vec);
   }
 
@@ -187,7 +187,7 @@ namespace InternalCoordinates {
 
   std::string BondAngle::info(coords::Representation_3D const & cartesians) const {
     std::ostringstream oss;
-    oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " ||";
+    oss << "Angle: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1 << " || " << index_b_ + 1 << " || " << index_c_ + 1 << " ||";
     return oss.str();
   }
 
@@ -203,10 +203,10 @@ namespace InternalCoordinates {
 
 
     //Eigentlich sollte das hier richtig sein:
-    auto const & a = cartesians.at(index_a_ - 1u);
-    auto const & b = cartesians.at(index_b_ - 1u);
-    auto const & c = cartesians.at(index_c_ - 1u);
-    auto const & d = cartesians.at(index_d_ - 1u);
+    auto const & a = cartesians.at(index_a_);
+    auto const & b = cartesians.at(index_b_);
+    auto const & c = cartesians.at(index_c_);
+    auto const & d = cartesians.at(index_d_);
 
     auto b1 = b - a;
     b1 /= len(b1);
@@ -226,10 +226,10 @@ namespace InternalCoordinates {
     using scon::dot;
     using scon::len;
 
-    auto const & a = cartesians.at(index_a_ - 1u);
-    auto const & b = cartesians.at(index_b_ - 1u);
-    auto const & c = cartesians.at(index_c_ - 1u);
-    auto const & d = cartesians.at(index_d_ - 1u);
+    auto const & a = cartesians.at(index_a_);
+    auto const & b = cartesians.at(index_b_);
+    auto const & c = cartesians.at(index_c_);
+    auto const & d = cartesians.at(index_d_);
 
     auto u_p = a - b;
     auto w_p = c - b;
@@ -260,10 +260,10 @@ namespace InternalCoordinates {
     auto firstder = der(cartesians);
     coords::r3 temp(0.0, 0.0, 0.0);
     std::vector<coords::r3> der_vec(cartesians.size(), temp);
-    der_vec.at(index_a_ - 1) = std::get<0>(firstder);
-    der_vec.at(index_b_ - 1) = std::get<1>(firstder);
-    der_vec.at(index_c_ - 1) = std::get<2>(firstder);
-    der_vec.at(index_d_ - 1) = std::get<3>(firstder);
+    der_vec.at(index_a_) = std::get<0>(firstder);
+    der_vec.at(index_b_) = std::get<1>(firstder);
+    der_vec.at(index_c_) = std::get<2>(firstder);
+    der_vec.at(index_d_) = std::get<3>(firstder);
     return ic_util::flatten_c3_vec(der_vec);
   }
 
@@ -273,7 +273,7 @@ namespace InternalCoordinates {
 
   std::string DihedralAngle::info(coords::Representation_3D const & cartesians) const{
     std::ostringstream oss;
-    oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ << " || " << index_b_ << " || " << index_c_ << " || " << index_d_ << " ||";
+    oss << "Dihedral: " << val(cartesians) * SCON_180PI << " || " << index_a_ + 1u << " || " << index_b_ + 1u << " || " << index_c_ + 1u << " || " << index_d_ + 1u << " ||";
     return oss.str();
   }
 
@@ -283,10 +283,10 @@ namespace InternalCoordinates {
 
   coords::float_type OutOfPlane::hessian_guess(coords::Representation_3D const & cartesians) const
   {
-    auto const& a = cartesians.at(index_a_ - 1u);
-    auto const& b = cartesians.at(index_b_ - 1u);
-    auto const& c = cartesians.at(index_c_ - 1u);
-    auto const& d = cartesians.at(index_d_ - 1u);
+    auto const& a = cartesians.at(index_a_);
+    auto const& b = cartesians.at(index_b_);
+    auto const& c = cartesians.at(index_c_);
+    auto const& d = cartesians.at(index_d_);
     auto r1 = b - a;
     auto r2 = b - c;
     auto r3 = b - d;
@@ -301,7 +301,7 @@ namespace InternalCoordinates {
   std::string OutOfPlane::info(coords::Representation_3D const & cartesians) const
   {
     std::ostringstream oss;
-    oss << "Out of plane: " << val(cartesians) * SCON_180PI << "||" << index_a_ << "||" << index_b_ << "||" << index_c_ << "||" << index_d_ << "\n";
+    oss << "Out of plane: " << val(cartesians) * SCON_180PI << "||" << index_a_ + 1u << "||" << index_b_ + 1u << "||" << index_c_ + 1u << "||" << index_d_ + 1u << "\n";
     return oss.str();
   }
 

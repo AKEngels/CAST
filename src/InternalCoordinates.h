@@ -54,7 +54,7 @@ namespace InternalCoordinates {
   inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
     coords::Representation_3D slicedCoordinates;
     for (auto const& index : indexVector) {
-      slicedCoordinates.emplace_back(cartesians.at(index));
+      slicedCoordinates.emplace_back(cartesians.at(index - 1));
     }
     return slicedCoordinates;
   }
@@ -97,8 +97,8 @@ namespace InternalCoordinates {
   struct BondAngle : InternalCoordinate {
     template<typename Atom>
     BondAngle(Atom const& leftAtom, Atom const& middleAtom, Atom const& rightAtom)
-      : index_a_{ leftAtom.atom_serial }, index_b_{ middleAtom.atom_serial },
-      index_c_{ rightAtom.atom_serial }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element }, elem_c_{
+      : index_a_{ leftAtom.atom_serial - 1u }, index_b_{ middleAtom.atom_serial - 1u },
+      index_c_{ rightAtom.atom_serial - 1u }, elem_a_{ leftAtom.element }, elem_b_{ middleAtom.element }, elem_c_{
       rightAtom.element
     } {}
 
@@ -123,8 +123,8 @@ namespace InternalCoordinates {
     template<typename Atom>
     DihedralAngle(Atom const& outerLeftAtom, Atom const& leftAtom,
       Atom const& rightAtom, Atom const& outerRightAtom)
-      : index_a_{ outerLeftAtom.atom_serial },
-      index_b_{ leftAtom.atom_serial }, index_c_{ rightAtom.atom_serial }, index_d_{ outerRightAtom.atom_serial } {}
+      : index_a_{ outerLeftAtom.atom_serial - 1u },
+      index_b_{ leftAtom.atom_serial - 1u }, index_c_{ rightAtom.atom_serial - 1u }, index_d_{ outerRightAtom.atom_serial - 1u } {}
     virtual ~DihedralAngle() = default;
 
     coords::float_type val(coords::Representation_3D const& cartesians) const override;
@@ -150,8 +150,11 @@ namespace InternalCoordinates {
   };
 
   struct Translations : public InternalCoordinates::InternalCoordinate {
-    Translations(std::vector<std::size_t> const& index_vec)
-      : indices_(index_vec) {}
+    Translations(std::vector<std::size_t> const& index_vec) {
+      for (auto index : index_vec) {
+        indices_.emplace_back(index - 1u);
+      }
+    }
     virtual ~Translations() = default;
 
     std::vector<std::size_t> indices_;
@@ -274,8 +277,11 @@ namespace InternalCoordinates {
     
   private:
     Rotator(coords::Representation_3D const& reference, std::vector<std::size_t> const& index_vec) :
-      updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, indices_{ index_vec }, 
-      rad_gyr_{ radiusOfGyration(reference_) }{}
+      updateStoredValues{ true }, updateStoredDerivatives{ true }, reference_{ reference }, rad_gyr_{ radiusOfGyration(reference_) }{
+      for (auto index : index_vec) {
+        indices_.emplace_back(index - 1u);
+      }
+    }
    
     std::vector<scon::mathmatrix<coords::float_type>> rot_der(coords::Representation_3D const&) const;
     coords::float_type radiusOfGyration(const coords::Representation_3D&);

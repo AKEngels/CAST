@@ -15,7 +15,7 @@ namespace internals {
   std::shared_ptr<InternalCoordinates::Rotator> PrimitiveInternalCoordinates::build_rotation(InternalCoordinates::CartesiansForInternalCoordinates & target, std::vector<std::size_t> const & index_vec) {
     coords::Representation_3D reference;
     for (auto const & ind : index_vec) {
-      reference.emplace_back(target.at(ind));
+      reference.emplace_back(target.at(ind-1));
     }
     return InternalCoordinates::Rotator::buildRotator(target, index_vec);
   }
@@ -167,8 +167,10 @@ namespace internals {
     auto vert = vertices(g);
     for (auto it = vert.first; it != vert.second; ++it) {
       auto core = g[*it].atom_serial;
-      auto core_cp = coords.at(core - 1);
+      auto core_cp = coords.at(core - 1u);
       auto vert_i = adjacent_vertices(*it, g);
+      auto sym = g[*it].element;
+      auto dist = (vert_i.second - vert_i.first);
       if ((vert_i.second - vert_i.first) >= 3) {
         auto permutations = possible_sets_of_3(vert_i.first, vert_i.second);
         for (auto & combination : permutations) {
