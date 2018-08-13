@@ -430,7 +430,7 @@ namespace coords {
             for (auto& res : resids) {
               std::vector<std::size_t> temp;
               for (auto& i : res) {
-                temp.emplace_back(i.atom_serial-1);
+                temp.emplace_back(i.atom_serial);
               }
               result.emplace_back(temp);
             }
