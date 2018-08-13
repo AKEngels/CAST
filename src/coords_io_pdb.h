@@ -430,7 +430,7 @@ namespace coords {
             for (auto& res : resids) {
               std::vector<std::size_t> temp;
               for (auto& i : res) {
-                temp.emplace_back(i.atom_serial);
+                temp.emplace_back(i.atom_serial-1);
               }
               result.emplace_back(temp);
             }
@@ -638,7 +638,7 @@ void coords::input::formats::pdb::helper::make_bonds(coords::Atoms & atoms, std:
       return s.substr(s.size() - 1, 1) == "+" || s.substr(s.size() - 1, 1) == "-";
     };
     // do not bond ions
-    auto i = bond.first - 1u, j = bond.second - 1u;
+    auto i = bond.first, j = bond.second;
     auto & atom1 = atoms.atom(i);
     auto & atom2 = atoms.atom(j);
     if (is_ion(atom1.get_pdb_atom_name()) || is_ion(atom2.get_pdb_atom_name())) continue;

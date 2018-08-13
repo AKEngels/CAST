@@ -70,7 +70,7 @@ namespace InternalCoordinates {
   struct BondDistance : public InternalCoordinate {
     template<typename Atom>
     BondDistance(Atom const& atomOne, Atom const& atomTwo)
-      : index_a_{ atomOne.atom_serial }, index_b_{ atomTwo.atom_serial },
+      : index_a_{ atomOne.atom_serial - 1u }, index_b_{ atomTwo.atom_serial - 1u },
       elem_a_{ atomOne.element }, elem_b_{ atomTwo.element } {}
 
     std::size_t index_a_;

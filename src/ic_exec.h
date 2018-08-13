@@ -1,23 +1,14 @@
 #pragma once
 
-#include "ic_exec.h"
 #include "coords.h"
 #include "coords_rep.h"
 #include "graph.h"
-#include "ic_core.h"
-#include "ic_rotation.h"
-#include "ic_util.h"
-#include "quaternion.h"
-#include "scon_angle.h"
-#include "scon_spherical.h"
-#include "scon_vect.h"
+#include "InternalCoordinates.h"
+#include "TranslationRotationInternalCoordinates.h"
+#include "Optimizer.h"
 
-#include "scon_mathmatrix.h"
-#include "coords_io_pdb.h"
-#include <array>
 #include <iostream>
 #include <iomanip>
-#include <vector>
 
 class ic_testing
 {
@@ -49,21 +40,16 @@ public:
             auto bonds = ic_util::bonds(p.create_element_vec(), coords::input::formats::pdb::helper::ang_from_bohr(cp_vec));
 
             // create graph from bonds vector and atom vector
-            auto  graph = ic_util::make_graph(bonds, p.atom_vec);
+	    ic_util::Graph<ic_util::Node> graph = ic_util::make_graph(bonds, p.atom_vec);
 
             // output graphviz file from graph
             graph.visualize_graph("Graphviz");
 
             InternalCoordinates::CartesiansForInternalCoordinates cartesians(cp_vec);
-
-            // create initial internal coordinates system
-            ic_core::system icSystem(residue_vec, index_vec, cartesians);
-
-            icSystem.create_ic_system(graph);
             
-            std::cout << "Normal Bmat:\n";
-            std::cout << std::fixed << std::setprecision(5) << icSystem.Bmat() << "\n\n";
-
+            // create initial internal coordinates system
+	    internals::TRIC icSystem(residue_vec, index_vec, cartesians, graph);
+            
             //auto write_with_zero = [](auto&& ofs, auto&& mat) {
             //  for (auto r = 0; r < mat.rows(); ++r) {
             //    for (auto c = 0; c < mat.cols(); ++c) {
@@ -72,11 +58,6 @@ public:
             //    ofs << "\n";
             //  }
             //};
-
-            icSystem.delocalize_ic_system();
-            
-            std::cout << "IC Bmat:\n";
-            std::cout << std::fixed << std::setprecision(5) << icSystem.ic_Bmat() << "\n\n";
 
             std::cout << "Rotation:\n";
             for (auto& i : icSystem.rotation_vec_)
@@ -88,6 +69,8 @@ public:
             for (auto const & pic : icSystem.primitive_internals) {
               std::cout << pic->info(cp_vec);
             }
-            icSystem.optimize(coords);
+	    Optimizer optimizer(icSystem, cartesians);
+            optimizer.optimize(coords);
+	    
         }
 };

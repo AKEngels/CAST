@@ -65,8 +65,9 @@ public:
   */
   using Graph_type = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Atom_type>;
 private:
+    template<typename CoordsAtomType>
     Graph(const std::vector<std::pair<std::size_t, std::size_t>>& connectedAtoms,
-        const std::vector<Atom_type>& atomVector)
+        const std::vector<CoordsAtomType>& atomVector)
       : Graph_type{ create_graph(connectedAtoms, atomVector) } {}
 public:
   
@@ -78,12 +79,16 @@ public:
   \param vec Vector of atoms.
   \return Graph_type object.
   */
+  template<typename CoordsAtomType>
   Graph_type create_graph(const std::vector<std::pair<std::size_t, std::size_t>>& connectedAtoms,
-                          const std::vector<Atom_type>& atomVector) {
+                          const std::vector<CoordsAtomType>& atomVector) {
     Graph_type graph(connectedAtoms.cbegin(), connectedAtoms.cend(), atomVector.size());
     
     for (auto i = 0u; i < atomVector.size(); ++i) {
-      graph[i] = atomVector.at(i);
+      graph[i].atom_serial = atomVector.at(i).atom_serial;
+      graph[i].atom_name = atomVector.at(i).atom_name;
+      graph[i].element = atomVector.at(i).element;
+      graph[i].cp = atomVector.at(i).cp;
     }
 
     return graph;
@@ -144,12 +149,12 @@ public:
     write_graphviz(output, *this, make_label_writer(get(&Node::atom_serial, *this)));
   }
   template<typename AtomType>
-  friend Graph<AtomType> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec);
+  friend Graph<Node> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec);
 };
 
 template<typename AtomType>
-Graph<AtomType> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec){
-  return Graph<AtomType>(b_atoms, vec);
+Graph<Node> make_graph(std::vector<std::pair<std::size_t, std::size_t>> const& b_atoms, std::vector<AtomType> const& vec){
+  return Graph<Node>(b_atoms, vec);
 }
 
 }

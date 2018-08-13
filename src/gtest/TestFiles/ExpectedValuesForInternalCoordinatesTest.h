@@ -305,7 +305,6 @@ inline std::array<scon::mathmatrix<double>, 6u> const provideExpectedValuesForQu
   { -0.00370844399038483, -0.0221432488354194, -0.00256677285936839, -0.0212672000198415 } } };
 }
 
-
 inline std::array<scon::mathmatrix<double>, 6u> const provideExpectedValuesForExponentialMapDerivatives() {
   return { scon::mathmatrix<double>{ { 0.0194835904440135, -0.0204438852085228, 0.0151301168034264 },
   { 0.011062681811963, 0.025750085381058, 0.015139020939647 },
