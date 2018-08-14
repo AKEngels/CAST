@@ -109,7 +109,7 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
 void Optimizer::initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
   setCartesianCoordinatesForGradientCalculation(coords);
-  internalCoordinateSystem.guess_hessian(cartesianCoordinates);
+  hessian = internalCoordinateSystem.guess_hessian(cartesianCoordinates);
 
   prepareOldVariablesPtr(coords);
 }

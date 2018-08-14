@@ -59,15 +59,8 @@ public:
             //  }
             //};
 
-            std::cout << "Rotation:\n";
-            for (auto& i : icSystem.rotation_vec_)
-            {
-                    auto j = i->valueOfInternalCoordinate(cp_vec);
-                    std::cout << j.at(0) << "||" << j.at(1) << "||" << j.at(2) << "||" << std::endl;
-            }
-
             for (auto const & pic : icSystem.primitive_internals) {
-              std::cout << pic->info(cp_vec);
+              std::cout << pic->info(cp_vec) << "\n";
             }
 	    Optimizer optimizer(icSystem, cartesians);
             optimizer.optimize(coords);
