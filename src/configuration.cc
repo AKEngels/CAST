@@ -833,7 +833,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       }
   }
   else if (option.substr(0, 4) == "PSI4") {
-    auto sub_option = option.substr(4);
+    auto sub_option = option.substr(5);
     if(sub_option == "path"){
       Config::set().energy.psi4.path = value_string;
     }
@@ -2244,7 +2244,7 @@ void config::parse_option(std::string const option, std::string const value_stri
 
 void Config::parse_file(std::string const & filename)
 {
-
+  //TODO not even save commented lines by LBL_FileReader
   auto data = LBL_FileReader(filename).data;
   std::size_t const N(data.size());
   for (std::size_t i = 0; i < N; i++)
