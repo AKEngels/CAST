@@ -367,13 +367,29 @@ namespace internals {
     return -1.*(*inverseHessian)*g_int;
   }
 
+  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::alterHessian(scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const alteration) {
+    return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
+  }
+
   coords::float_type InternalToCartesianConverter::getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) {
     scon::mathmatrix<coords::float_type> deltaPrime = -1.*(*inverseHessian)*internalStep;
     return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
   }
 
-  std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> InternalToCartesianConverter::restrictStep(coords::float_type const trust, coords::float_type v0, InternalCoordinates::CartesiansForInternalCoordinates const & cartesians, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
-  {
+  std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> InternalToCartesianConverter::restrictStep(coords::float_type const target, coords::float_type v0, InternalCoordinates::CartesiansForInternalCoordinates const & cartesians, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian){
+    //TODO make it work
+    auto internalStep = getInternalStep(gradients, hessian);
+    auto deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
+    auto internalStepNorm = internalStep.norm();
+    for (auto i = 0u; i < 1000; ++i) {
+      v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYprimeAndSol.first);
+      internalStep = getInternalStep(gradients, alterHessian(hessian, v0));
+      deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
+      internalStepNorm = internalStep.norm();
+      if (std::fabs(internalStepNorm - target) / target < 0.001) {
+        std::cout << deltaYprimeAndSol.second << std::endl;
+      }
+    }
     return std::pair<scon::mathmatrix<coords::float_type>, coords::float_type>();
   }
 

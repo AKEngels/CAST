@@ -76,7 +76,6 @@ public:
   void getInternalStepTest();
   void applyInternalChangeTest();
   void getDeltaYPrimeAndSolTest();
-  void restrictStepTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   MockPrimitiveInternals testSystem;
   internals::InternalToCartesianConverter converter;

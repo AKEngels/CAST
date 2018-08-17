@@ -8,10 +8,10 @@
 #include"../../coords.h"
 #include"../../scon_mathmatrix.h"
 
-namespace ExpectedValuesForTrustRadisu {
+namespace ExpectedValuesForTrustRadius {
 
   inline coords::Representation_3D initialCartesians() {
-    coords::Representation_3D{ coords::r3{ -6.058811812312187, -0.354313886776057, -0.146565957749694, },
+    return coords::Representation_3D{ coords::r3{ -6.058811812312187, -0.354313886776057, -0.146565957749694, },
     coords::r3{ -4.675947459916880, 0.012497665567106, -0.103332563032209, },
     coords::r3{ -6.236013818556981, -1.225478301770730, -0.788186424034976, },
     coords::r3{ -6.687237728459280, 0.472910605425243, -0.499017982487933, },

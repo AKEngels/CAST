@@ -155,7 +155,8 @@ namespace internals {
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
-    scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);//F
+    scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);
+
     std::pair<coords::float_type, coords::float_type> getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
     template<typename Dint>
     void applyInternalChange(Dint&&);//F
@@ -174,6 +175,7 @@ namespace internals {
     template<typename Dcart>
     coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
     std::unique_ptr<scon::mathmatrix<coords::float_type>> inverseHessian;
+    scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration);
   };
   
   template<typename Dint>
