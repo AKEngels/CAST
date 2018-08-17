@@ -188,7 +188,7 @@ public:
                            .edge_color_map(get(boost::edge_color, graph)));
         /*       auto back_edges = get_back_edges(graph);*/
 
-        if (back_edges.size() == 0)
+        if (back_edges.size() == 0)//braces
           return aromatic_subunits;
 
         else {
@@ -213,7 +213,7 @@ public:
                 std::pair<int, int> ruin_edge(bridge_atom,
                                               cycles_in_molecule[cycle][0]);
                 edges_to_ruin.emplace_back(ruin_edge);
-              } else
+              } else//obsolet
                 continue;
             }
           }
@@ -276,7 +276,7 @@ public:
           return atoms_of_ring;
         }
 
-        /* while loop could be more efficent, especially for NOT six-membered
+        /* TODO while loop could be more efficent, especially for NOT six-membered
          rings. should already work for five-membered ones. aditionally while
          loop searches for atoms between (and including) both Cs connecting ring
          and bridge*/
@@ -287,7 +287,7 @@ public:
         atom_before = first_atom_ring;
         atoms_of_ring.emplace_back(atom_before);
         atoms_of_ring.emplace_back(atom_current);
-
+        //Same while loop in first_cycle <- refactoring!
         while (atom_current != atomC_binds_three_Cs) {
 
           auto adj_atom_current = adjacents(graph, atom_current);
@@ -335,6 +335,7 @@ public:
             }
           }
         }
+        //TODO throw an exception
         std::cout << "Ring search failed probably. This ring seems to contain "
                   << atoms_of_ring.size() << " atoms. Is this right?"
                   << std::endl;
@@ -346,7 +347,7 @@ public:
         for (auto adj_atom : adj_one_atom) {
           if (adj_atom == another_atom) {
             return true;
-          } else
+          } else//obsolet else
             continue;
         }
         return false;
@@ -366,8 +367,10 @@ public:
         cycle.emplace_back(atom_a);
         cycle.emplace_back(atom_f);
 
+        //Comparision between double and integral. Neither wise nor necessary
         while (atom_current != C_binds_three_Cs) {
 
+          //refactor in function hasThreeAdjacentCarbons
           auto adj_atom_current = adjacents(graph, atom_current);
 
           if (graph[adj_atom_current[0]].element == "C" &&
@@ -376,10 +379,10 @@ public:
 
             C_binds_three_Cs = atom_current;
             cycle.pop_back();
-          } else
-            for (auto atom_next : adj_atom_current) {
+          } else//braces!!!
+            for (auto atom_next : adj_atom_current) {//Can be refactored in a function, too
 
-              if (atom_next != atom_before && graph[atom_next].element != "H") {
+              if (atom_next != atom_before && graph[atom_next].element != "H") {//If there is a Carbon bridge to another substitute in the ring structure this won't work
 
                 cycle.emplace_back(atom_next);
                 atom_before = atom_current;
@@ -393,7 +396,7 @@ public:
 
         while (atom_current != atom_a) {
 
-          auto adj_atom_current = adjacents(graph, atom_current);
+          auto adj_atom_current = adjacents(graph, atom_current);//same as above
 
           if (graph[adj_atom_current[0]].element == "C" &&
               graph[adj_atom_current[1]].element == "C" &&
@@ -403,7 +406,7 @@ public:
           }
           for (auto atom_next : adj_atom_current) {
 
-            if (atom_next != atom_before && graph[atom_next].element != "H") {
+            if (atom_next != atom_before && graph[atom_next].element != "H") {//same same
 
               cycle.emplace_back(atom_next);
               atom_before = atom_current;
@@ -413,7 +416,7 @@ public:
           }
         }
 
-        return cycle;
+        return cycle;//If the while loop does not find an appropriate cycle an arbitrary cycle is returned?
       }
 
       /*!
@@ -547,7 +550,8 @@ public:
         if (backbones.size() == 0)
           return amino_acids;
 
-        else
+        else//obsolet else. Curly braces are missing (not noticable because obsolet)
+          //own function
           for (auto one_backbone = 0; one_backbone < backbones.size() - 1;
                ++one_backbone) {
 
@@ -557,11 +561,12 @@ public:
             boost::remove_edge(carboxyC, n_nextaa, graph);
           }
 
-        subgraphs = find_connected_components(graph);
+        subgraphs = find_connected_components(graph);//
 
         // subgraphs contains the amino acids and additionally seperated
         // molecules if excisting else no problem
         // needs to be checked!
+        //own function
         if (subgraphs.size() != backbones.size()) {
 
           for (auto sub = 0; sub < subgraphs.size(); ++sub) {
@@ -575,7 +580,7 @@ public:
             }
           }
         }
-
+        //own function
         for (auto one_backbone = 0; one_backbone < backbones.size() - 1;
              ++one_backbone) {
 
@@ -595,6 +600,7 @@ public:
         std::vector<size_t> one_backbone;
         int o, c1, c2, n;
 
+        //Too large. refactor in functions or class
         boost::graph_traits<Graph_type>::edge_iterator ei, ei_end;
         for (tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
           int u = boost::source(*ei, graph);
@@ -616,19 +622,20 @@ public:
             continue;
 
           auto carboxy_C_vec = adjacents(graph, c1);
-          for (auto c2 : carboxy_C_vec) {
+          for (auto c2 : carboxy_C_vec) {//<- Why not boost::adjacent_vertices?
 
             if (graph[c2].element == "C") {
 
               auto chiral_C_vec = adjacents(graph, c2);
 
-              for (auto n : chiral_C_vec) {
+              for (auto n : chiral_C_vec) {//<- Why not boost::adjacent_vertices?
                 if (graph[n].element == "N") {
                   one_backbone.emplace_back(o);
                   one_backbone.emplace_back(c1);
                   one_backbone.emplace_back(c2);
                   one_backbone.emplace_back(n);
-                  backbones_indices.emplace_back(one_backbone);
+                  backbones_indices.emplace_back(one_backbone);//move one_backbone
+                  //As soon as the clear function is called by a non member vector you should rather limit the scope of the vector
                   one_backbone.clear();
                 }
               }
@@ -638,6 +645,9 @@ public:
         return backbones_indices;
       }
 
+      //gives the number of vertices without a vector and even without a loop. Much clearer
+      //auto adjacentVertices = boost::adjacent_vertices(x, graph);
+      //numAdjacentVertices = adjacentVertices.second - adjacentVertices.first; // Maybe even define a inline function declaring the intent of this line (i. e. numberOfAdjacentVertices)
       static bool terminal(const Graph_type& graph, size_t const& x) {
         std::vector<size_t> number_adjacents;
         Graph_type::adjacency_iterator ai, ai_end;
