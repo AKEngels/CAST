@@ -155,27 +155,27 @@ namespace internals {
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
-    template<typename Gint>
-    scon::mathmatrix<coords::float_type> getInternalStep(Gint&&, scon::mathmatrix<coords::float_type> const&);//F
+    scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);//F
+    std::pair<coords::float_type, coords::float_type> getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
     template<typename Dint>
     void applyInternalChange(Dint&&);//F
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> restrictStep(coords::float_type const trust, coords::float_type v0,
+      InternalCoordinates::CartesiansForInternalCoordinates const& cartesians,
+      scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
+    void invertNormalHessian(scon::mathmatrix<double> const& hessian);
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
+    coords::float_type getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep);
+    coords::float_type InternalToCartesianConverter::getSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
   private:
     template<typename Dcart>
     coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
+    std::unique_ptr<scon::mathmatrix<coords::float_type>> inverseHessian;
   };
-
   
-
-  template<typename Gint>
-  inline scon::mathmatrix<coords::float_type> InternalToCartesianConverter::getInternalStep(Gint&& g_int, scon::mathmatrix<coords::float_type> const& hessian) {
-    return -1.*hessian.pinv()*g_int;
-  }
-
   template<typename Dint>
   inline void InternalToCartesianConverter::applyInternalChange(Dint&& d_int) {
     using ic_util::flatten_c3_vec;

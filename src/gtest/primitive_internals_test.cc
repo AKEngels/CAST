@@ -318,6 +318,28 @@ TEST_F(ConverterMatricesTest, getInternalStepTest) {
   getInternalStepTest();
 }
 
+void ConverterMatricesTest::getDeltaYPrimeAndSolTest() {
+  converter.invertNormalHessian(exampleDelocalizedInitialHessianForTwoMethanols());
+  auto deltaYPrimeAndSol = converter.getDeltaYPrimeAndSol(internalInitialStepOfTwoMethanolMolecules(), internalGradientsOfTwoMethanolMolecules(), exampleDelocalizedInitialHessianForTwoMethanols());
+  EXPECT_NEAR(deltaYPrimeAndSol.first, -2.5064668766365501, doubleNearThreshold);
+  EXPECT_NEAR(deltaYPrimeAndSol.second, -0.008120906957751, doubleNearThreshold);
+}
+
+TEST_F(ConverterMatricesTest, getDeltaYPrimeAndSolTest) {
+  getDeltaYPrimeAndSolTest();
+}
+
+void ConverterMatricesTest::restrictStepTest() {
+  converter.invertNormalHessian(exampleDelocalizedInitialHessianForTwoMethanols());
+  auto deltaYPrimeAndSol = converter.getDeltaYPrimeAndSol(internalInitialStepOfTwoMethanolMolecules(), internalGradientsOfTwoMethanolMolecules(), exampleDelocalizedInitialHessianForTwoMethanols());
+  EXPECT_NEAR(deltaYPrimeAndSol.first, -2.5064668766365501, doubleNearThreshold);
+  EXPECT_NEAR(deltaYPrimeAndSol.second, -0.008120906957751, doubleNearThreshold);
+}
+
+TEST_F(ConverterMatricesTest, restrictStepTest) {
+  getDeltaYPrimeAndSolTest();
+}
+
 void MatricesTest::calculatePrimitiveInternalValuesTest() {
   EXPECT_EQ(testSystem.calc(cartesianChangeOfTwoMethanolMoleculesAfterFirstStep()), expectedPrimitiveValuesForTwoMethanol());
 }

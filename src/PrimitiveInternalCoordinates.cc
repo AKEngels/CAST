@@ -358,7 +358,34 @@ namespace internals {
     return diff;
   }
 
-  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalGradients(scon::mathmatrix<coords::float_type> const& g) {
-    return internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates) * internalCoordinates.Bmat(cartesianCoordinates) * g;
+  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::calculateInternalGradients(scon::mathmatrix<coords::float_type> const& gradients) {
+    return internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates) * internalCoordinates.Bmat(cartesianCoordinates) * gradients;
+  }
+
+  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::getInternalStep(scon::mathmatrix<coords::float_type> const& g_int, scon::mathmatrix<coords::float_type> const& hessian) {
+    invertNormalHessian(hessian);
+    return -1.*(*inverseHessian)*g_int;
+  }
+
+  coords::float_type InternalToCartesianConverter::getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) {
+    scon::mathmatrix<coords::float_type> deltaPrime = -1.*(*inverseHessian)*internalStep;
+    return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
+  }
+
+  std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> InternalToCartesianConverter::restrictStep(coords::float_type const trust, coords::float_type v0, InternalCoordinates::CartesiansForInternalCoordinates const & cartesians, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
+  {
+    return std::pair<scon::mathmatrix<coords::float_type>, coords::float_type>();
+  }
+
+  void InternalToCartesianConverter::invertNormalHessian(scon::mathmatrix<double> const& hessian) {
+    inverseHessian = std::make_unique < scon::mathmatrix<coords::float_type>>(hessian.pinv());
+  }
+
+  coords::float_type InternalToCartesianConverter::getSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) {
+    auto transposedInternalStep = internalStep.t();
+    return (0.5 * transposedInternalStep * hessian * internalStep)(0, 0) + (transposedInternalStep*gradients)(0, 0);
+  }
+  std::pair<coords::float_type, coords::float_type> InternalToCartesianConverter::getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const & internalStep, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian){
+    return { getDeltaYPrime(internalStep), getSol(internalStep, gradients, hessian) };
   }
 }
