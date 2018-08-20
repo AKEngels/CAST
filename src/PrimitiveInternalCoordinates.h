@@ -152,7 +152,7 @@ namespace internals {
   class InternalToCartesianConverter {
   public:
     InternalToCartesianConverter(PrimitiveInternalCoordinates & internals,
-      InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
+      InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians }, inverseHessian(0u,0u) {}
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
     scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);
@@ -169,12 +169,13 @@ namespace internals {
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
+    //write in another class so that it gets deleted after used by all functions
+    scon::mathmatrix<coords::float_type> inverseHessian;
     coords::float_type getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep);
     coords::float_type InternalToCartesianConverter::getSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
   private:
     template<typename Dcart>
     coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
-    std::unique_ptr<scon::mathmatrix<coords::float_type>> inverseHessian;
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration);
   };
   

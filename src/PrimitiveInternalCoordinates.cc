@@ -364,7 +364,7 @@ namespace internals {
 
   scon::mathmatrix<coords::float_type> InternalToCartesianConverter::getInternalStep(scon::mathmatrix<coords::float_type> const& g_int, scon::mathmatrix<coords::float_type> const& hessian) {
     invertNormalHessian(hessian);
-    return -1.*(*inverseHessian)*g_int;
+    return -1.*inverseHessian*g_int;
   }
 
   scon::mathmatrix<coords::float_type> InternalToCartesianConverter::alterHessian(scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const alteration) {
@@ -372,12 +372,11 @@ namespace internals {
   }
 
   coords::float_type InternalToCartesianConverter::getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) {
-    scon::mathmatrix<coords::float_type> deltaPrime = -1.*(*inverseHessian)*internalStep;
+    scon::mathmatrix<coords::float_type> deltaPrime = -1.*inverseHessian*internalStep;
     return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
   }
 
   std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> InternalToCartesianConverter::restrictStep(coords::float_type const target, coords::float_type v0, InternalCoordinates::CartesiansForInternalCoordinates const & cartesians, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian){
-    //TODO make it work
     auto internalStep = getInternalStep(gradients, hessian);
     auto deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
     auto internalStepNorm = internalStep.norm();
@@ -387,14 +386,14 @@ namespace internals {
       deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
       internalStepNorm = internalStep.norm();
       if (std::fabs(internalStepNorm - target) / target < 0.001) {
-        std::cout << deltaYprimeAndSol.second << std::endl;
+        return { internalStep, deltaYprimeAndSol.second };
       }
     }
-    return std::pair<scon::mathmatrix<coords::float_type>, coords::float_type>();
+    throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 
-  void InternalToCartesianConverter::invertNormalHessian(scon::mathmatrix<double> const& hessian) {
-    inverseHessian = std::make_unique < scon::mathmatrix<coords::float_type>>(hessian.pinv());
+  void InternalToCartesianConverter::invertNormalHessian(scon::mathmatrix<coords::float_type> const& hessian) {
+    inverseHessian = std::move(hessian.pinv());
   }
 
   coords::float_type InternalToCartesianConverter::getSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) {

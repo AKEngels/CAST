@@ -1,12 +1,11 @@
 #include "optimization_test.h"
 #include "TestFiles\ExpectedValuesForTrustRadius.h"
-#include "primitive_internals_test.h"
 
 namespace {
   double constexpr doubleNearThreshold = 1.e-10;
 }
 
-OptimizerTest::OptimizerTest() : converter{ ExpectedValuesForTrustRadius::initialCartesians(), MockPrimitiveInternals{} } {}
+OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians } {}
 
 void OptimizerTest::restrictStepTest(){
   auto expectedValues = converter.restrictStep(
