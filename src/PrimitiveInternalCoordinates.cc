@@ -408,4 +408,8 @@ namespace internals {
     }
     throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
+
+  coords::float_type InternalToCartesianStep::operator()(coords::float_type const trial){
+    return coords::float_type();
+  }
 }

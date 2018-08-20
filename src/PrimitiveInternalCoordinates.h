@@ -191,6 +191,19 @@ namespace internals {
     scon::mathmatrix<coords::float_type> restrictedStep;
     coords::float_type restrictedSol, v0;
   };
+
+  class InternalToCartesianStep {
+  public:
+    InternalToCartesianStep(InternalToCartesianConverter & converter, coords::float_type const target) : restrictor(converter, target) {}
+    coords::float_type operator()(coords::float_type const trial);
+  protected:
+    StepRestrictor restrictor;
+  };
+
+  class AppropriateStepFinder {
+  public:
+    AppropriateStepFinder(){}
+  };
   
   template<typename Dint>
   inline void InternalToCartesianConverter::applyInternalChange(Dint&& d_int) {

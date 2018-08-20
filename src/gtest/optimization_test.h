@@ -12,11 +12,13 @@
 class OptimizerTest : public testing::Test {
 public:
   OptimizerTest();
-  void restrictStepTest(); 
+  void restrictStepTest();
+  void restrictCartesianStepTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   MockPrimitiveInternals testSystem;
   internals::InternalToCartesianConverter converter;
   internals::StepRestrictor restrictor;
+  internals::InternalToCartesianStep toCartesianNorm;
 };
 
 #endif

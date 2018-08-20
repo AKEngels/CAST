@@ -5,7 +5,8 @@ namespace {
   double constexpr doubleNearThreshold = 1.e-10;
 }
 
-OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians }, restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()) {}
+OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians }, 
+  restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()), toCartesianNorm(converter, ExpectedValuesForTrustRadius::initialTarget()) {}
 
 void OptimizerTest::restrictStepTest(){
   restrictor.setInitialV0(ExpectedValuesForTrustRadius::initialAlterationOfDiagonals());
@@ -19,4 +20,12 @@ void OptimizerTest::restrictStepTest(){
 
 TEST_F(OptimizerTest, restrictStepTest) {
   restrictStepTest();
+}
+
+void OptimizerTest::restrictCartesianStepTest() {
+  EXPECT_NEAR(toCartesianNorm(ExpectedValuesForTrustRadius::initialTarget()), ExpectedValuesForTrustRadius::expectedRestrictedCartesianNorm(), doubleNearThreshold);
+}
+
+TEST_F(OptimizerTest, restrictCartesianStepTest) {
+  restrictCartesianStepTest();
 }
