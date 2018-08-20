@@ -155,15 +155,15 @@ namespace internals {
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians }, inverseHessian(0u,0u) {}
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
-    scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);
+    virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);
 
-    std::pair<coords::float_type, coords::float_type> getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
-    template<typename Dint>
-    void applyInternalChange(Dint&&);//F
+    virtual std::pair<coords::float_type, coords::float_type> getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
+    
+    virtual void applyInternalChange(scon::mathmatrix<coords::float_type>);//F
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
-    InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
-    InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
+    virtual InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
+    virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
     
     void invertNormalHessian(scon::mathmatrix<double> const& hessian);
   protected:
@@ -212,13 +212,11 @@ namespace internals {
     AppropriateStepFinder(){}
   };
   
-  template<typename Dint>
-  inline void InternalToCartesianConverter::applyInternalChange(Dint&& d_int) {
+  inline void InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) {
     using ic_util::flatten_c3_vec;
 
     auto old_xyz = cartesianCoordinates;
     coords::Representation_3D first_struct, last_good_xyz;
-    auto d_int_left = std::forward<Dint>(d_int);
     auto micro_iter{ 0 }, fail_count{ 0 };
     auto damp{ 1. };
     auto old_inorm{ 0.0 };

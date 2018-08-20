@@ -416,7 +416,8 @@ namespace internals {
     auto expect = restrictor(gradients, hessian);
     auto oldCartesians = converter.getCartesianCoordinates();
     converter.applyInternalChange(restrictor.getRestrictedStep());
-    Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates());
-    return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
+    auto newCartesians = converter.getCartesianCoordinates();
+    auto bla = Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, newCartesians);
+    return bla.first - trustRadius;
   }
 }
