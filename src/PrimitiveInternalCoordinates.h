@@ -162,9 +162,6 @@ namespace internals {
     void applyInternalChange(Dint&&);//F
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
-    std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> restrictStep(coords::float_type const trust, coords::float_type v0,
-      InternalCoordinates::CartesiansForInternalCoordinates const& cartesians,
-      scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
     void invertNormalHessian(scon::mathmatrix<double> const& hessian);
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
@@ -176,7 +173,23 @@ namespace internals {
   private:
     template<typename Dcart>
     coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
-    scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration);
+  };
+
+  class StepRestrictor {
+  public:
+    StepRestrictor(InternalToCartesianConverter & converter, coords::float_type const target) : converter{ converter }, target{ target }, restrictedStep{}, restrictedSol{ 0.0 }, v0{0.0} {}
+    coords::float_type operator()(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const & hessian);
+    scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
+    scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
+    void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
+  protected:
+    scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
+    coords::float_type getStepNorm() const { return restrictedStep.norm(); }
+
+    InternalToCartesianConverter & converter;
+    coords::float_type target;
+    scon::mathmatrix<coords::float_type> restrictedStep;
+    coords::float_type restrictedSol, v0;
   };
   
   template<typename Dint>

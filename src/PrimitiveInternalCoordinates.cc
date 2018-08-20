@@ -367,29 +367,10 @@ namespace internals {
     return -1.*inverseHessian*g_int;
   }
 
-  scon::mathmatrix<coords::float_type> InternalToCartesianConverter::alterHessian(scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const alteration) {
-    return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
-  }
-
+  
   coords::float_type InternalToCartesianConverter::getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) {
     scon::mathmatrix<coords::float_type> deltaPrime = -1.*inverseHessian*internalStep;
     return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
-  }
-
-  std::pair<scon::mathmatrix<coords::float_type>, coords::float_type> InternalToCartesianConverter::restrictStep(coords::float_type const target, coords::float_type v0, InternalCoordinates::CartesiansForInternalCoordinates const & cartesians, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian){
-    auto internalStep = getInternalStep(gradients, hessian);
-    auto deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
-    auto internalStepNorm = internalStep.norm();
-    for (auto i = 0u; i < 1000; ++i) {
-      v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYprimeAndSol.first);
-      internalStep = getInternalStep(gradients, alterHessian(hessian, v0));
-      deltaYprimeAndSol = getDeltaYPrimeAndSol(internalStep, gradients, hessian);
-      internalStepNorm = internalStep.norm();
-      if (std::fabs(internalStepNorm - target) / target < 0.001) {
-        return { internalStep, deltaYprimeAndSol.second };
-      }
-    }
-    throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 
   void InternalToCartesianConverter::invertNormalHessian(scon::mathmatrix<coords::float_type> const& hessian) {
@@ -400,7 +381,31 @@ namespace internals {
     auto transposedInternalStep = internalStep.t();
     return (0.5 * transposedInternalStep * hessian * internalStep)(0, 0) + (transposedInternalStep*gradients)(0, 0);
   }
+
   std::pair<coords::float_type, coords::float_type> InternalToCartesianConverter::getDeltaYPrimeAndSol(scon::mathmatrix<coords::float_type> const & internalStep, scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian){
     return { getDeltaYPrime(internalStep), getSol(internalStep, gradients, hessian) };
+  }
+
+  scon::mathmatrix<coords::float_type> StepRestrictor::alterHessian(scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const alteration) const {
+    return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
+  }
+
+
+  coords::float_type StepRestrictor::operator()(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
+  {
+    restrictedStep = converter.getInternalStep(gradients, hessian);
+    double deltaYPrime = 0.0;
+    std::tie(deltaYPrime, restrictedSol) = converter.getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+    auto internalStepNorm = getStepNorm();
+    for (auto i = 0u; i < 1000; ++i) {
+      v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYPrime);
+      restrictedStep = converter.getInternalStep(gradients, alterHessian(hessian, v0));
+      std::tie(deltaYPrime, restrictedSol) = converter.getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+      internalStepNorm = getStepNorm();
+      if (std::fabs(internalStepNorm - target) / target < 0.001) {
+        return restrictedSol;
+      }
+    }
+    throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 }

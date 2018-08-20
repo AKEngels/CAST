@@ -5,18 +5,16 @@ namespace {
   double constexpr doubleNearThreshold = 1.e-10;
 }
 
-OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians } {}
+OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians }, restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()) {}
 
 void OptimizerTest::restrictStepTest(){
-  auto expectedValues = converter.restrictStep(
-    ExpectedValuesForTrustRadius::initialTarget(),
-    ExpectedValuesForTrustRadius::initialAlterationOfDiagonals(),
-    ExpectedValuesForTrustRadius::initialCartesians(),
+  restrictor.setInitialV0(ExpectedValuesForTrustRadius::initialAlterationOfDiagonals());
+  auto sol = restrictor(
     ExpectedValuesForTrustRadius::initialGradients(),
     ExpectedValuesForTrustRadius::initialHessianForTrust()
   );
-  EXPECT_EQ(expectedValues.first, ExpectedValuesForTrustRadius::expectedTrustStep());
-  EXPECT_NEAR(expectedValues.second, ExpectedValuesForTrustRadius::expectedSol(), doubleNearThreshold);
+  EXPECT_EQ(restrictor.getRestrictedStep(), ExpectedValuesForTrustRadius::expectedTrustStep());
+  EXPECT_NEAR(sol, ExpectedValuesForTrustRadius::expectedSol(), doubleNearThreshold);
 }
 
 TEST_F(OptimizerTest, restrictStepTest) {

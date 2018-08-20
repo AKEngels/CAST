@@ -16,6 +16,7 @@ public:
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   MockPrimitiveInternals testSystem;
   internals::InternalToCartesianConverter converter;
+  internals::StepRestrictor restrictor;
 };
 
 #endif
