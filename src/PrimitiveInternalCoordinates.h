@@ -162,6 +162,9 @@ namespace internals {
     void applyInternalChange(Dint&&);//F
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
+    InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
+    
     void invertNormalHessian(scon::mathmatrix<double> const& hessian);
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
@@ -194,10 +197,14 @@ namespace internals {
 
   class InternalToCartesianStep {
   public:
-    InternalToCartesianStep(InternalToCartesianConverter & converter, coords::float_type const target) : restrictor(converter, target) {}
+    InternalToCartesianStep(InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius) 
+      : converter{ converter }, gradients{ gradients }, hessian{ hessian }, trustRadius{ trustRadius } {}
     coords::float_type operator()(coords::float_type const trial);
   protected:
-    StepRestrictor restrictor;
+    InternalToCartesianConverter & converter;
+    scon::mathmatrix<coords::float_type> const& gradients;
+    scon::mathmatrix<coords::float_type> const& hessian;
+    coords::float_type trustRadius;
   };
 
   class AppropriateStepFinder {

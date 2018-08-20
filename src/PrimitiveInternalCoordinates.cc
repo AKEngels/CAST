@@ -1,4 +1,6 @@
 #include "PrimitiveInternalCoordinates.h"
+#include "Optimizer.h"
+
 namespace internals {
   std::vector<std::vector<std::size_t>> PrimitiveInternalCoordinates::possible_sets_of_3(BondGraph::adjacency_iterator const vbegin, BondGraph::adjacency_iterator const vend) {
     std::vector<std::vector<std::size_t>> result;
@@ -410,6 +412,11 @@ namespace internals {
   }
 
   coords::float_type InternalToCartesianStep::operator()(coords::float_type const trial){
-    return coords::float_type();
+    StepRestrictor restrictor(converter, trial);
+    auto expect = restrictor(gradients, hessian);
+    auto oldCartesians = converter.getCartesianCoordinates();
+    converter.applyInternalChange(restrictor.getRestrictedStep());
+    Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates());
+    return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
   }
 }

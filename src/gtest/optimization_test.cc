@@ -6,7 +6,7 @@ namespace {
 }
 
 OptimizerTest::OptimizerTest() : cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{}, converter{ testSystem, cartesians }, 
-  restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()), toCartesianNorm(converter, ExpectedValuesForTrustRadius::initialTarget()) {}
+  restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()), toCartesianNorm(converter, ExpectedValuesForTrustRadius::initialGradients(), ExpectedValuesForTrustRadius::initialHessianForTrust(), ExpectedValuesForTrustRadius::initialTrustRadius()) {}
 
 void OptimizerTest::restrictStepTest(){
   restrictor.setInitialV0(ExpectedValuesForTrustRadius::initialAlterationOfDiagonals());

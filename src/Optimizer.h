@@ -33,7 +33,10 @@ public:
   typename std::enable_if<std::is_same<Hessian, scon::mathmatrix<coords::float_type>>::value>::type
     setHessian(Hessian && newHessian) { hessian = std::forward<Hessian>(newHessian); }
   InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
-  
+
+  static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
+  static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
+  static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 protected:
   void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
@@ -84,11 +87,7 @@ protected:
     coords::float_type displacementMax;
   };
 
-  static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
-  static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
   std::pair<coords::float_type, coords::float_type> displacementRmsValAndMax()const;
-
-  static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 
   struct SystemVariables {
     coords::float_type systemEnergy;
