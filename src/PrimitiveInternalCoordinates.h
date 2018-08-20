@@ -181,9 +181,9 @@ namespace internals {
   class StepRestrictor {
   public:
     StepRestrictor(InternalToCartesianConverter & converter, coords::float_type const target) : converter{ converter }, target{ target }, restrictedStep{}, restrictedSol{ 0.0 }, v0{0.0} {}
-    coords::float_type operator()(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const & hessian);
-    scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
-    scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
+    virtual coords::float_type operator()(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const & hessian);
+    virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
+    virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
     void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
@@ -199,7 +199,7 @@ namespace internals {
   public:
     InternalToCartesianStep(InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius) 
       : converter{ converter }, gradients{ gradients }, hessian{ hessian }, trustRadius{ trustRadius } {}
-    coords::float_type operator()(coords::float_type const trial);
+    coords::float_type operator()(StepRestrictor & restrictor);
   protected:
     InternalToCartesianConverter & converter;
     scon::mathmatrix<coords::float_type> const& gradients;

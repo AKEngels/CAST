@@ -411,13 +411,10 @@ namespace internals {
     throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 
-  coords::float_type InternalToCartesianStep::operator()(coords::float_type const trial){
-    StepRestrictor restrictor(converter, trial);
+  coords::float_type InternalToCartesianStep::operator()(StepRestrictor & restrictor){
     auto expect = restrictor(gradients, hessian);
     auto oldCartesians = converter.getCartesianCoordinates();
     converter.applyInternalChange(restrictor.getRestrictedStep());
-    auto newCartesians = converter.getCartesianCoordinates();
-    auto bla = Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, newCartesians);
-    return bla.first - trustRadius;
+    return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
   }
 }
