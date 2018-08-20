@@ -185,6 +185,8 @@ namespace internals {
     virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
     virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
     void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
+    virtual bool targetIsZero() const { return target == 0.0; }
+    virtual coords::float_type getTarget() const { return target; }
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
     coords::float_type getStepNorm() const { return restrictedStep.norm(); }
@@ -199,7 +201,7 @@ namespace internals {
   public:
     InternalToCartesianStep(InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius) 
       : converter{ converter }, gradients{ gradients }, hessian{ hessian }, trustRadius{ trustRadius } {}
-    coords::float_type operator()(StepRestrictor & restrictor);
+    virtual coords::float_type operator()(StepRestrictor & restrictor);
   protected:
     InternalToCartesianConverter & converter;
     scon::mathmatrix<coords::float_type> const& gradients;
@@ -210,6 +212,22 @@ namespace internals {
   class AppropriateStepFinder {
   public:
     AppropriateStepFinder(){}
+  };
+
+  /*// store a call to a member function
+  std::function<void(const Foo&, int)> f_add_display = &Foo::print_add;
+  Foo foo(314159);
+  f_add_display(foo, 1);*/
+
+  class BrentsMethod {
+  public:
+    BrentsMethod(coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep) 
+      : leftLimit{ leftLimit }, rightLimit{ rightLimit }, trustStep{ trustStep }, threshold{ 0.1 } {}
+    coords::float_type operator()(InternalToCartesianStep & internalToCartesianStep);
+  protected:
+    coords::float_type leftLimit, rightLimit;
+    coords::float_type const trustStep;
+    coords::float_type const threshold;
   };
   
   inline void InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) {

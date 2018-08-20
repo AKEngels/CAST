@@ -412,9 +412,16 @@ namespace internals {
   }
 
   coords::float_type InternalToCartesianStep::operator()(StepRestrictor & restrictor){
+    if (restrictor.targetIsZero()) {
+      return restrictor.getTarget();
+    }
     auto expect = restrictor(gradients, hessian);
     auto oldCartesians = converter.getCartesianCoordinates();
     converter.applyInternalChange(restrictor.getRestrictedStep());
     return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
+  }
+
+  coords::float_type BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
+    return coords::float_type();
   }
 }

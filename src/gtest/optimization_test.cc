@@ -6,7 +6,8 @@ namespace {
 }
 
 OptimizerTest::OptimizerTest() : gradients{ ExpectedValuesForTrustRadius::initialGradients() }, hessian{ ExpectedValuesForTrustRadius::initialHessianForTrust() }, cartesians { ExpectedValuesForTrustRadius::initialCartesians() }, testSystem{},
-converter{ testSystem, cartesians }, restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()), toCartesianNorm(converter, gradients, hessian, ExpectedValuesForTrustRadius::initialTrustRadius())
+converter{ testSystem, cartesians }, restrictor(converter, ExpectedValuesForTrustRadius::initialTarget()), toCartesianNorm(converter, gradients, hessian, ExpectedValuesForTrustRadius::initialTrustRadius()),
+brent{ 0.0, ExpectedValuesForTrustRadius::initialInternalNorm(), ExpectedValuesForTrustRadius::initialTrustRadius() }
 {}
 
 void OptimizerTest::restrictStepTest(){
@@ -33,6 +34,8 @@ void OptimizerTest::restrictCartesianStepTest() {
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::expectedSol()));
   EXPECT_CALL(restrictorMock, getRestrictedStep())
     .WillOnce(testing::ReturnRefOfCopy(ExpectedValuesForTrustRadius::expectedTrustStep()));
+  EXPECT_CALL(restrictorMock, targetIsZero())
+    .WillOnce(testing::Return(false));
 
   EXPECT_CALL(converter, getCartesianCoordinates())
     .WillOnce(testing::ReturnRefOfCopy(InternalCoordinates::CartesiansForInternalCoordinates(ExpectedValuesForTrustRadius::initialCartesians() / energy::bohr2ang)))
@@ -42,6 +45,29 @@ void OptimizerTest::restrictCartesianStepTest() {
   EXPECT_NEAR(toCartesianNorm(restrictorMock), ExpectedValuesForTrustRadius::expectedRestrictedCartesianNorm(), doubleNearThreshold);
 }
 
-TEST_F(OptimizerTest, restrictCartesianStepTest) {
-  restrictCartesianStepTest();
+void OptimizerTest::restrictCartesianStepWithZeroTargetTest() {
+
+  StepRestrictorMock restrictorMock{ converter, 0.0 };
+  EXPECT_CALL(restrictorMock, getTarget())
+    .WillOnce(testing::Return(ExpectedValuesForTrustRadius::initialTarget()));
+  EXPECT_CALL(restrictorMock, targetIsZero())
+    .WillOnce(testing::Return(true));
+
+  EXPECT_NEAR(toCartesianNorm(restrictorMock), ExpectedValuesForTrustRadius::initialTarget(), doubleNearThreshold);
+}
+
+TEST_F(OptimizerTest, restrictCartesianStepWithZeroTargetTest) {
+  restrictCartesianStepWithZeroTargetTest();
+}
+
+void OptimizerTest::BrentsTrustStepTest() {
+  InternalToCartesianStepMock internalCartesianStep{ converter, gradients, hessian, ExpectedValuesForTrustRadius::initialTrustRadius() };
+
+
+
+  EXPECT_NEAR(brent(internalCartesianStep), ExpectedValuesForTrustRadius::expectedBrent(), doubleNearThreshold);
+}
+
+TEST_F(OptimizerTest, BrentsTrustStepTest) {
+  BrentsTrustStepTest();
 }

@@ -224,6 +224,14 @@ namespace ExpectedValuesForTrustRadius {
   inline std::pair<double, double> constexpr finalSolAndPrime() {
     return { -586.628654683768787 ,expectedSol() };
   }
+
+  inline double constexpr expectedBrent() {
+    return 1.181296074023785;
+  }
+
+  inline double constexpr initialInternalNorm() {
+    return 1.312049175094087;
+  }
 }
 
 

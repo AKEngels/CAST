@@ -32,6 +32,19 @@ public:
 
   MOCK_CONST_METHOD0(getRestrictedStep, scon::mathmatrix<coords::float_type> const&());
   MOCK_METHOD0(getRestrictedStep, scon::mathmatrix<coords::float_type> &());
+  MOCK_CONST_METHOD0(targetIsZero, bool());
+  MOCK_CONST_METHOD0(getTarget, coords::float_type());
+};
+
+class InternalToCartesianStepMock : public internals::InternalToCartesianStep {
+public:
+  InternalToCartesianStepMock(internals::InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius)
+    : InternalToCartesianStep(converter, gradients, hessian, trustRadius) {}
+
+  MOCK_METHOD1(execute, coords::float_type(internals::StepRestrictor &));
+  coords::float_type operator()(internals::StepRestrictor & restrictor) override {
+    return execute(restrictor);
+  }
 };
 
 class OptimizerTest : public testing::Test {
@@ -39,6 +52,8 @@ public:
   OptimizerTest();
   void restrictStepTest();
   void restrictCartesianStepTest();
+  void restrictCartesianStepWithZeroTargetTest();
+  void BrentsTrustStepTest();
   scon::mathmatrix<double> gradients;
   scon::mathmatrix<double> hessian;
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
@@ -46,6 +61,7 @@ public:
   internals::StepRestrictor restrictor;
   InternalToCartesianConverterMock converter;
   internals::InternalToCartesianStep toCartesianNorm;
+  internals::BrentsMethod brent;
 };
 
 #endif
