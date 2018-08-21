@@ -561,7 +561,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   auto bpv = check_bond_preservation();
   if (Config::get().general.verbosity >= 2 && !bpv)
   {
-    std::cout << "A covalent bond > 2.2A, structure integrity not warranted anymore. "
+    std::cout << "Broken bond detected, structure integrity not warranted anymore. "
       " Current conformation will be treated as broken structure.\n";
   }
   integrity = bpv;
