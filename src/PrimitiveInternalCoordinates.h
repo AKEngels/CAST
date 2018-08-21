@@ -34,7 +34,7 @@ namespace internals {
     virtual ~PrimitiveInternalCoordinates() = default;
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
+    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
     void requestNewBAndG(){
      new_B_matrix = true;
@@ -76,6 +76,7 @@ namespace internals {
     class DistanceCreator : public InternalCoordinatesCreator {
     public:
       DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
+      virtual ~DistanceCreator() = default;
 
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
 
@@ -88,6 +89,8 @@ namespace internals {
     class AngleCreator : public InternalCoordinatesCreator {
     public:
       AngleCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, leftAtom{ 0u }, middleAtom{ 0u }, rightAtom{ 0u }, vertexIterators{ boost::vertices(graph) } {}
+      virtual ~AngleCreator() = default;
+
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
     protected:
       bool nextVertex();
@@ -105,6 +108,8 @@ namespace internals {
     class DihedralCreator : public DistanceCreator {
     public:
       DihedralCreator(BondGraph const& graph) : DistanceCreator{ graph }, outerLeft{ 0u }, outerRight{ 0u } {}
+      virtual ~DihedralCreator() = default;
+
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
     protected:
       void findLeftAndRightAtoms();
@@ -153,6 +158,7 @@ namespace internals {
   public:
     InternalToCartesianConverter(PrimitiveInternalCoordinates & internals,
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians }, inverseHessian(0u,0u) {}
+    virtual ~InternalToCartesianConverter() = default;
 
     scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
     virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&);
@@ -180,8 +186,10 @@ namespace internals {
 
   class StepRestrictor {
   public:
-    StepRestrictor(InternalToCartesianConverter & converter, coords::float_type const target) : converter{ converter }, target{ target }, restrictedStep{}, restrictedSol{ 0.0 }, v0{0.0} {}
+    StepRestrictor(InternalToCartesianConverter & converter, coords::float_type const target) : converter{ &converter }, target{ target }, restrictedStep{}, restrictedSol{ 0.0 }, v0{0.0} {}
+    virtual ~StepRestrictor() = default;
     virtual coords::float_type operator()(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const & hessian);
+    virtual coords::float_type getRestrictedSol() const { return restrictedSol; }
     virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
     virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
     void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
@@ -191,7 +199,7 @@ namespace internals {
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
     coords::float_type getStepNorm() const { return restrictedStep.norm(); }
 
-    InternalToCartesianConverter & converter;
+    InternalToCartesianConverter * converter;
     coords::float_type target;
     scon::mathmatrix<coords::float_type> restrictedStep;
     coords::float_type restrictedSol, v0;
@@ -201,7 +209,13 @@ namespace internals {
   public:
     InternalToCartesianStep(InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius) 
       : converter{ converter }, gradients{ gradients }, hessian{ hessian }, trustRadius{ trustRadius } {}
+    virtual ~InternalToCartesianStep() = default;
+
     virtual coords::float_type operator()(StepRestrictor & restrictor);
+    virtual std::pair<coords::float_type, StepRestrictor> operator()(coords::float_type const target);//How to Test this one ...
+    StepRestrictor makeRestrictor(coords::float_type const target) const {
+      return StepRestrictor{ converter, target };
+    }
   protected:
     InternalToCartesianConverter & converter;
     scon::mathmatrix<coords::float_type> const& gradients;
@@ -222,12 +236,18 @@ namespace internals {
   class BrentsMethod {
   public:
     BrentsMethod(coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep) 
-      : leftLimit{ leftLimit }, rightLimit{ rightLimit }, trustStep{ trustStep }, threshold{ 0.1 } {}
-    coords::float_type operator()(InternalToCartesianStep & internalToCartesianStep);
+      : leftLimit{ leftLimit }, middle{ 0.0 }, oldMiddle{ 0.0 }, rightLimit{ rightLimit }, result{ 0.0 },
+      trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true } {}
+
+    std::pair<coords::float_type, scon::mathmatrix<coords::float_type> > operator()(InternalToCartesianStep & internalToCartesianStep);
   protected:
-    coords::float_type leftLimit, rightLimit;
+    bool useBisection()const;
+
+    coords::float_type leftLimit, middle, oldMiddle, rightLimit, result;
     coords::float_type const trustStep;
     coords::float_type const threshold;
+    coords::float_type const delta;
+    bool bisectionWasUsed;
   };
   
   inline void InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) {

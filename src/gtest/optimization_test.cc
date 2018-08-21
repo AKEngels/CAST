@@ -63,9 +63,12 @@ TEST_F(OptimizerTest, restrictCartesianStepWithZeroTargetTest) {
 void OptimizerTest::BrentsTrustStepTest() {
   InternalToCartesianStepMock internalCartesianStep{ converter, gradients, hessian, ExpectedValuesForTrustRadius::initialTrustRadius() };
 
+  EXPECT_CALL(internalCartesianStep, execute(testing::_))
+    .WillOnce(testing::Return(-0.282842712474619))
+    .WillOnce(testing::Return(0.031306767697298))
+    .WillOnce(testing::Return(0.000914776842788));
 
-
-  EXPECT_NEAR(brent(internalCartesianStep), ExpectedValuesForTrustRadius::expectedBrent(), doubleNearThreshold);
+  EXPECT_NEAR(brent(internalCartesianStep).first, ExpectedValuesForTrustRadius::expectedBrent(), doubleNearThreshold);
 }
 
 TEST_F(OptimizerTest, BrentsTrustStepTest) {

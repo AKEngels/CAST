@@ -395,14 +395,14 @@ namespace internals {
 
   coords::float_type StepRestrictor::operator()(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
   {
-    restrictedStep = converter.getInternalStep(gradients, hessian);
+    restrictedStep = converter->getInternalStep(gradients, hessian);
     double deltaYPrime = 0.0;
-    std::tie(deltaYPrime, restrictedSol) = converter.getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+    std::tie(deltaYPrime, restrictedSol) = converter->getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
     auto internalStepNorm = getStepNorm();
     for (auto i = 0u; i < 1000; ++i) {
       v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYPrime);
-      restrictedStep = converter.getInternalStep(gradients, alterHessian(hessian, v0));
-      std::tie(deltaYPrime, restrictedSol) = converter.getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+      restrictedStep = converter->getInternalStep(gradients, alterHessian(hessian, v0));
+      std::tie(deltaYPrime, restrictedSol) = converter->getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
       internalStepNorm = getStepNorm();
       if (std::fabs(internalStepNorm - target) / target < 0.001) {
         return restrictedSol;
@@ -421,7 +421,79 @@ namespace internals {
     return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
   }
 
-  coords::float_type BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
-    return coords::float_type();
+  std::pair<coords::float_type, StepRestrictor> InternalToCartesianStep::operator()(coords::float_type const target){
+    auto restrictor = makeRestrictor(target);
+    auto result = operator()(restrictor);
+    return { result, restrictor };
+  }
+
+  bool BrentsMethod::useBisection() const {
+    auto firstCondition = !((result > (3.*leftLimit + rightLimit) / 4.) && (result < rightLimit));
+    auto secondCondition = (bisectionWasUsed && std::fabs(result - rightLimit) >= std::fabs(rightLimit - middle) / 2.);
+    auto thirdCondition = (!bisectionWasUsed && std::fabs(result - rightLimit) >= std::fabs(result - oldMiddle)/2.);
+    auto fourthCondition = (bisectionWasUsed && std::fabs(rightLimit - middle) < delta);
+    auto fifthCondition = (!bisectionWasUsed && std::fabs(middle-oldMiddle) < delta);
+    return firstCondition || secondCondition || thirdCondition || fourthCondition || fifthCondition;
+  }
+
+  std::pair<coords::float_type, scon::mathmatrix<coords::float_type> > BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
+    auto valueLeft = internalToCartesianStep(leftLimit);
+    auto valueRight = internalToCartesianStep(rightLimit);
+    if (valueLeft.first * valueRight.first > 0.0) {
+      throw std::runtime_error("In Brents method both limits are either positive or negative. Thus no zero can be found.");
+    }
+    if (std::fabs(valueLeft.first) < std::fabs(valueRight.first)) {
+      std::swap(valueLeft, valueRight);
+      std::swap(leftLimit, rightLimit);
+    }
+    middle = leftLimit;
+    auto valueMiddle = valueLeft;
+
+    auto epsilon = 0.01 > 1e-2*std::fabs(valueLeft.first - valueRight.first) ? 1e-2*std::fabs(valueLeft.first - valueRight.first) : 0.01;
+
+    for(;;) {
+      if (valueLeft.first != valueMiddle.first && valueRight.first != valueMiddle.first) {
+        result = leftLimit * valueRight.first * valueMiddle.first / ((valueLeft.first - valueRight.first) * (valueLeft.first - valueMiddle.first));
+        result += rightLimit * valueLeft.first * valueMiddle.first / ((valueMiddle.first - valueLeft.first) * (valueRight.first - valueRight.first));
+        result += middle * valueLeft.first * valueRight.first / ((valueMiddle.first - valueLeft.first) * (valueMiddle.first - valueRight.first));
+      }
+      else {
+        result = rightLimit - valueRight.first * (rightLimit - leftLimit) / (valueRight.first - valueLeft.first);
+      }
+      if (useBisection()) {
+        result = (leftLimit + rightLimit) / 2.;
+        bisectionWasUsed = true;
+      }
+      else {
+        bisectionWasUsed = false;
+      }
+      auto valueResult = internalToCartesianStep(result);
+
+      if (valueResult.first / trustStep <= threshold) {
+        return { result, valueResult.second.getRestrictedStep() };
+      }
+
+      oldMiddle = middle;
+      middle = rightLimit;
+
+      if (valueLeft.first * valueResult.first < 0.0) {
+        std::swap(valueRight, valueResult);
+        std::swap(rightLimit, result);
+      }
+      else {
+        std::swap(valueLeft, valueResult);
+        std::swap(leftLimit, result);
+      }
+
+      if (std::fabs(leftLimit - rightLimit) < epsilon) {
+        std::cout << "Warning: In Brents method the left and right interval are getting too close. Now returning.\n";
+        return { result, valueResult.second.getRestrictedStep() };
+      }
+
+      if (std::fabs(valueLeft.first) < std::fabs(valueRight.first)) {
+        std::swap(valueLeft, valueRight);
+        std::swap(leftLimit, rightLimit);
+      }
+    }
   }
 }

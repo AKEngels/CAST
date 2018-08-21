@@ -45,6 +45,11 @@ public:
   coords::float_type operator()(internals::StepRestrictor & restrictor) override {
     return execute(restrictor);
   }
+
+  /*MOCK_METHOD1(execute, std::pair<coords::float_type, internals::StepRestrictor>(coords::float_type const));
+  std::pair<coords::float_type, internals::StepRestrictor> operator()(coords::float_type const target) override {
+    return execute(target);
+  }*/
 };
 
 class OptimizerTest : public testing::Test {
