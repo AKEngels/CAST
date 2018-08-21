@@ -161,14 +161,17 @@ inline bool file_is_empty(std::string &filename)
 
 /**adds two vectors like in python, i.e. [A, B] + [C, D] = [A, B, C, D]
 @param v1: first vector
-@param v2: second vector*/
+@param v2: second vector
+@param sort: if true sort resulting vector with the std::sort-function*/
 template <typename T>
-inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2)
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool sort = false)
 {
   std::vector<T> v12;
   v12.reserve(v1.size() + v2.size());
   v12.insert(v12.end(), v1.begin(), v1.end());
   v12.insert(v12.end(), v2.begin(), v2.end());
+
+	if (sort) std::sort(v12.begin(), v12.end());
   return v12;
 }
 
