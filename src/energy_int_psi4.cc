@@ -134,7 +134,11 @@ void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostr
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and electric field
 	{
 		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		if (Config::get().energy.qmmm.mm_charges.size() != 0)    // electric field can/must only be calculated if there are external charges
+		{
+			os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		}
+		else os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
 	}
 	else os << "gradient ('" << method << "')";
 }
