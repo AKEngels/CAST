@@ -436,6 +436,8 @@ namespace internals {
     return firstCondition || secondCondition || thirdCondition || fourthCondition || fifthCondition;
   }
 
+  
+
   std::pair<coords::float_type, scon::mathmatrix<coords::float_type> > BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
     auto valueLeft = internalToCartesianStep(leftLimit);
     auto valueRight = internalToCartesianStep(rightLimit);
@@ -496,4 +498,36 @@ namespace internals {
       }
     }
   }
+  StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder & finder) : finalStep{ finder.getAddressOfInternalStep() } {}
+
+  scon::mathmatrix<coords::float_type> AppropriateStepFinder::appropriateStep(coords::float_type const trustRadius){
+    InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
+    BrentsMethod brent(internalToCartesianStep);
+    return scon::mathmatrix<coords::float_type>();
+  }
+  
+  
+  coords::float_type AppropriateStepFinder::getDeltaYPrime(scon::mathmatrix<coords::float_type> const & internalStep) const {
+    scon::mathmatrix<coords::float_type> deltaPrime = -1.*inverseHessian*internalStep;
+    return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
+  }
+
+  coords::float_type AppropriateStepFinder::getSol(scon::mathmatrix<coords::float_type> const & internalStep) const {
+    auto transposedInternalStep = internalStep.t();
+    return (0.5 * transposedInternalStep * hessian * internalStep)(0, 0) + (transposedInternalStep*gradients)(0, 0);
+  }
+
+  scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep() const {
+    return -1.*inverseHessian*gradients;
+  }
+
+  /*EnergyStep & InternalStep::takeStep(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
+  {
+    invertNormalHessian(hessian);
+    return *this = -1.*(*inverseHessian)*gradients;
+  }
+
+  void InternalStep::invertNormalHessian(scon::mathmatrix<double> const & hessian){
+    inverseHessian = std::make_unique<scon::mathmatrix<double>>(hessian.pinv());
+  }*/
 }

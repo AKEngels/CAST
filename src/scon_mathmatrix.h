@@ -238,6 +238,7 @@ public:
   using base_type::resize;
 #endif
 
+  using base_type::operator=;
   using base_type::operator*=;
   using base_type::operator-=;
   using base_type::operator/=;
