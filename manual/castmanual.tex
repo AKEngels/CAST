@@ -1422,6 +1422,12 @@ EXwellenzahl                  28514.91
 	\subsection{WRITE\_TINKER}
 	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
 	
+	\subsection{WRITE\_GAUSSVIEW}
+	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
+	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM, ONIOM or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
+	
+	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
+	
 	\subsection{MODIFY\_SK\_FILES}
 	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see: \url{http://gaussian.com/dftb/}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
 	
