@@ -105,6 +105,7 @@ task                  SP
 # DFTBABY              DFTBaby interface
 # GAUSSIAN             GAUSSIAN interface 
 # CHEMSHELL            under developement
+# PSI4                 interface to PSI4
 # QMMM                 (additive) QM/MM interface
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)

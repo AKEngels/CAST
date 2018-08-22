@@ -273,7 +273,7 @@
 
 	%%%% Energy Interfaces %%%%
 	\subsection{Energy Interfaces}
-	The energy interfaces are the main parts of \ac{CAST} for the choice of the underlying computational method. Via the interface the different force fields as well as the interfaces to external programs can be accessed. For semi-empirical calculations an interface to \ac{MOPAC} (2012) (serial\supercite{mopac} and parallel\supercite{mopac_parallel}) is present, for \ac{DFT} computations the \ac{GPU} accelerated program TeraChem\supercite{terachem} can be accessed. Both programs are not part of the \ac{CAST} distribution and the authors are not responsible for access to those programs. \ac{MOPAC}\supercite{mopac, mopac_parallel} is freely available from the \ac{MOPAC} website. TeraChem\supercite{terachem} can be purchased at the PetaChem website.
+	The energy interfaces are the main parts of \ac{CAST} for the choice of the underlying computational method. Via the interface the different force fields as well as the interfaces to external programs can be accessed. For semi-empirical calculations an interface to \ac{MOPAC} (2016) (serial\supercite{mopac} and parallel\supercite{mopac_parallel}) is present, for \ac{DFT} computations the \ac{GPU} accelerated program TeraChem\supercite{terachem} can be accessed. These and the other external programs that can be found at the table below are not part of the \ac{CAST} distribution and the authors are not responsible for access to those programs. \ac{MOPAC}\supercite{mopac, mopac_parallel} is freely available from the \ac{MOPAC} website. TeraChem\supercite{terachem} can be purchased at the PetaChem website.
 	The following interfaces and keywords are available:\\~\\
 	\begin{tabularx}{\textwidth}{l|l|l}
 		Interface & Type & Further input \\
@@ -284,8 +284,15 @@
 		\textbf{AMOEBA} & internal & parameterfile\\
 		\textbf{SAPT-FF} & internal &parameterfile and Spackman-input\\
 		\textbf{MOPAC} & external & MOPAC variables\\
+		\textbf{GAUSSIAN} & external & Gaussian variables\\
 		\textbf{TeraChem} & external & TeraChem input\\
-		\textbf{DFTB} & external & path to DFTBaby\\
+		\textbf{DFTB} & external & DFTB\textsuperscript{+} variables\\
+		\textbf{DFTBaby} & external & DFTBaby variables\\
+		\textbf{PSI4} & external & Psi4 variables\\
+		\textbf{CHEMSHELL} & external & ???\\
+		\textbf{QMMM} & internal & QM/MM variables and input for QM and MM interface\\
+		\textbf{ONIOM} & internal &  QM/MM variables and input for QM and MM interface\\
+		\textbf{THREE\_LAYER} & internal &  QM/MM variables and input for QM, SE and MM interface\\
 	\end{tabularx}	\\~\\
 	\ifverbose
 	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
@@ -535,9 +542,13 @@ As in the subtractive QM/MM approach the QM and MM system are treated in a simil
 			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
 			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
 			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
-      QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+            QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
 			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the QM atoms to which the link atom belongs & int \\
 		\end{longtable}~\\
+	
+\subsubsection{Three-layer-Interface}
+
+As an extension of the ONIOM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By QMMMqminterface you choose the energy interface of the inner layer, by QMMMmminterface you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option QMMMseinterface. In the same way you define which atoms are in which layer: QMMMqmatoms are the atoms in the inner layer, QMMMseatoms are the ones in the intermediate layer. All other atoms are in the outer layer. By QMMMlinkatomtype you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. With the option QMMMsmall\_charges you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM).
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
