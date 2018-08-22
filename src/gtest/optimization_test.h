@@ -23,11 +23,11 @@ public:
 
 class StepRestrictorMock : public internals::StepRestrictor {
 public:
-  StepRestrictorMock(internals::InternalToCartesianConverter & converter, coords::float_type const target) : StepRestrictor{ converter, target } {}
+  StepRestrictorMock(scon::mathmatrix<coords::float_type> * const step, coords::float_type const target) : StepRestrictor{ step, target } {}
 
-  MOCK_METHOD2(execute, coords::float_type(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&));
-  coords::float_type operator()(scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const & hessian) override {
-    return execute(gradients, hessian);
+  MOCK_METHOD1(execute, coords::float_type(internals::AppropriateStepFinder &));
+  coords::float_type operator()(internals::AppropriateStepFinder & finder) override {
+    return execute(finder);
   }
 
   MOCK_CONST_METHOD0(getRestrictedStep, scon::mathmatrix<coords::float_type> const&());
@@ -38,8 +38,8 @@ public:
 
 class InternalToCartesianStepMock : public internals::InternalToCartesianStep {
 public:
-  InternalToCartesianStepMock(internals::InternalToCartesianConverter & converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const trustRadius)
-    : InternalToCartesianStep(converter, gradients, hessian, trustRadius) {}
+  InternalToCartesianStepMock(internals::AppropriateStepFinder & finder, coords::float_type const trustRadius)
+    : InternalToCartesianStep(finder, trustRadius) {}
 
   MOCK_METHOD1(execute, coords::float_type(internals::StepRestrictor &));
   coords::float_type operator()(internals::StepRestrictor & restrictor) override {
@@ -65,6 +65,7 @@ public:
   MockPrimitiveInternals testSystem;
   internals::StepRestrictor restrictor;
   InternalToCartesianConverterMock converter;
+  internals::AppropriateStepFinder finder;
   internals::InternalToCartesianStep toCartesianNorm;
   internals::BrentsMethod brent;
 };

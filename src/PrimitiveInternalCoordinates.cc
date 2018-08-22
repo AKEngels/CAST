@@ -388,24 +388,27 @@ namespace internals {
     return { getDeltaYPrime(internalStep), getSol(internalStep, gradients, hessian) };
   }
 
-  scon::mathmatrix<coords::float_type> StepRestrictor::alterHessian(scon::mathmatrix<coords::float_type> const& hessian, coords::float_type const alteration) const {
+  std::pair<coords::float_type, coords::float_type> InternalToCartesianConverter::cartesianNormOfOtherStructureAndCurrent(coords::Representation_3D const& otherCartesians) const {
+    return Optimizer::displacementRmsValAndMaxTwoStructures(cartesianCoordinates, otherCartesians);
+  }
+
+  scon::mathmatrix<coords::float_type> AppropriateStepFinder::alterHessian(coords::float_type const alteration) const {
     return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
   }
 
 
-  coords::float_type StepRestrictor::operator()(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
+  coords::float_type StepRestrictor::operator()(AppropriateStepFinder & finder)
   {
-    restrictedStep = converter->getInternalStep(gradients, hessian);
-    double deltaYPrime = 0.0;
-    std::tie(deltaYPrime, restrictedSol) = converter->getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+    restrictedStep = finder.getInternalStep();
+    auto deltaYPrime = finder.getDeltaYPrime(restrictedStep);
     auto internalStepNorm = getStepNorm();
     for (auto i = 0u; i < 1000; ++i) {
       v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYPrime);
-      restrictedStep = converter->getInternalStep(gradients, alterHessian(hessian, v0));
-      std::tie(deltaYPrime, restrictedSol) = converter->getDeltaYPrimeAndSol(restrictedStep, gradients, hessian);
+      restrictedStep = finder.getInternalStep(finder.alterHessian(v0));
+      deltaYPrime = finder.getDeltaYPrime(restrictedStep);
       internalStepNorm = getStepNorm();
       if (std::fabs(internalStepNorm - target) / target < 0.001) {
-        return restrictedSol;
+        return restrictedSol = finder.getSol(restrictedStep);
       }
     }
     throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
@@ -413,18 +416,10 @@ namespace internals {
 
   coords::float_type InternalToCartesianStep::operator()(StepRestrictor & restrictor){
     if (restrictor.targetIsZero()) {
-      return restrictor.getTarget();
+      return -restrictor.getTarget();
     }
-    auto expect = restrictor(gradients, hessian);
-    auto oldCartesians = converter.getCartesianCoordinates();
-    converter.applyInternalChange(restrictor.getRestrictedStep());
-    return Optimizer::displacementRmsValAndMaxTwoStructures(oldCartesians, converter.getCartesianCoordinates()).first - trustRadius;
-  }
-
-  std::pair<coords::float_type, StepRestrictor> InternalToCartesianStep::operator()(coords::float_type const target){
-    auto restrictor = makeRestrictor(target);
-    auto result = operator()(restrictor);
-    return { result, restrictor };
+    auto expect = restrictor(finder);
+    return finder.applyInternalChangeAndGetNorm(restrictor.getRestrictedStep()) - trustRadius;
   }
 
   bool BrentsMethod::useBisection() const {
@@ -436,31 +431,33 @@ namespace internals {
     return firstCondition || secondCondition || thirdCondition || fourthCondition || fifthCondition;
   }
 
-  
+  coords::float_type BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
+    auto leftRestrictor = finder.generateStepRestrictor(leftLimit);
+    auto rightRestrictor = finder.generateStepRestrictor(leftLimit);
 
-  std::pair<coords::float_type, scon::mathmatrix<coords::float_type> > BrentsMethod::operator()(InternalToCartesianStep & internalToCartesianStep){
-    auto valueLeft = internalToCartesianStep(leftLimit);
-    auto valueRight = internalToCartesianStep(rightLimit);
-    if (valueLeft.first * valueRight.first > 0.0) {
+    auto valueLeft = internalToCartesianStep(leftRestrictor);
+    auto valueRight = internalToCartesianStep(rightRestrictor);
+    if (valueLeft * valueRight > 0.0) {
       throw std::runtime_error("In Brents method both limits are either positive or negative. Thus no zero can be found.");
     }
-    if (std::fabs(valueLeft.first) < std::fabs(valueRight.first)) {
+    if (std::fabs(valueLeft) < std::fabs(valueRight)) {
+      std::swap(leftRestrictor, rightRestrictor);
       std::swap(valueLeft, valueRight);
       std::swap(leftLimit, rightLimit);
     }
     middle = leftLimit;
     auto valueMiddle = valueLeft;
 
-    auto epsilon = 0.01 > 1e-2*std::fabs(valueLeft.first - valueRight.first) ? 1e-2*std::fabs(valueLeft.first - valueRight.first) : 0.01;
+    auto epsilon = 0.01 > 1e-2*std::fabs(valueLeft - valueRight) ? 1e-2*std::fabs(valueLeft - valueRight) : 0.01;
 
     for(;;) {
-      if (valueLeft.first != valueMiddle.first && valueRight.first != valueMiddle.first) {
-        result = leftLimit * valueRight.first * valueMiddle.first / ((valueLeft.first - valueRight.first) * (valueLeft.first - valueMiddle.first));
-        result += rightLimit * valueLeft.first * valueMiddle.first / ((valueMiddle.first - valueLeft.first) * (valueRight.first - valueRight.first));
-        result += middle * valueLeft.first * valueRight.first / ((valueMiddle.first - valueLeft.first) * (valueMiddle.first - valueRight.first));
+      if (valueLeft != valueMiddle && valueRight != valueMiddle) {
+        result = leftLimit * valueRight * valueMiddle / ((valueLeft - valueRight) * (valueLeft - valueMiddle));
+        result += rightLimit * valueLeft * valueMiddle / ((valueMiddle - valueLeft) * (valueRight - valueRight));
+        result += middle * valueLeft * valueRight / ((valueMiddle - valueLeft) * (valueMiddle - valueRight));
       }
       else {
-        result = rightLimit - valueRight.first * (rightLimit - leftLimit) / (valueRight.first - valueLeft.first);
+        result = rightLimit - valueRight * (rightLimit - leftLimit) / (valueRight - valueLeft);
       }
       if (useBisection()) {
         result = (leftLimit + rightLimit) / 2.;
@@ -469,44 +466,60 @@ namespace internals {
       else {
         bisectionWasUsed = false;
       }
-      auto valueResult = internalToCartesianStep(result);
+      auto resultRestrictor = finder.generateStepRestrictor(result);
+      auto valueResult = internalToCartesianStep(resultRestrictor);
 
-      if (valueResult.first / trustStep <= threshold) {
-        return { result, valueResult.second.getRestrictedStep() };
+      if (valueResult / trustStep <= threshold) {
+        resultRestrictor.registerBestGuess();
+        return result;
       }
 
       oldMiddle = middle;
       middle = rightLimit;
 
-      if (valueLeft.first * valueResult.first < 0.0) {
+      if (valueLeft * valueResult < 0.0) {
+        std::swap(rightRestrictor, resultRestrictor);
         std::swap(valueRight, valueResult);
         std::swap(rightLimit, result);
       }
       else {
+        std::swap(leftRestrictor, resultRestrictor);
         std::swap(valueLeft, valueResult);
         std::swap(leftLimit, result);
       }
 
       if (std::fabs(leftLimit - rightLimit) < epsilon) {
         std::cout << "Warning: In Brents method the left and right interval are getting too close. Now returning.\n";
-        return { result, valueResult.second.getRestrictedStep() };
+        resultRestrictor.registerBestGuess();
+        return result;
       }
 
-      if (std::fabs(valueLeft.first) < std::fabs(valueRight.first)) {
+      if (std::fabs(valueLeft) < std::fabs(valueRight)) {
+        std::swap(leftRestrictor, rightRestrictor);
         std::swap(valueLeft, valueRight);
         std::swap(leftLimit, rightLimit);
       }
     }
+    return 0.0;
   }
   StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder & finder) : finalStep{ finder.getAddressOfInternalStep() } {}
 
   scon::mathmatrix<coords::float_type> AppropriateStepFinder::appropriateStep(coords::float_type const trustRadius){
-    InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
-    BrentsMethod brent(internalToCartesianStep);
+    if (takeStepAndGetCartesianNorm() > 1.1*trustRadius) {
+      InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
+      BrentsMethod brent(*this, 0.0, bestStepSoFar.norm(), trustRadius);
+      brent(internalToCartesianStep);
+    }
     return scon::mathmatrix<coords::float_type>();
   }
   
-  
+  coords::float_type AppropriateStepFinder::takeStepAndGetCartesianNorm() {
+    bestStepSoFar = getInternalStep();
+    auto cartesian = converter.applyInternalChange(bestStepSoFar);
+    return converter.cartesianNormOfOtherStructureAndCurrent(cartesian).first;
+  }
+
+
   coords::float_type AppropriateStepFinder::getDeltaYPrime(scon::mathmatrix<coords::float_type> const & internalStep) const {
     scon::mathmatrix<coords::float_type> deltaPrime = -1.*inverseHessian*internalStep;
     return (internalStep.t()*deltaPrime)(0, 0) / internalStep.norm();
@@ -521,6 +534,10 @@ namespace internals {
     return -1.*inverseHessian*gradients;
   }
 
+  scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const {
+    return -1.*hessian.pinv()*gradients;
+  }
+
   /*EnergyStep & InternalStep::takeStep(scon::mathmatrix<coords::float_type> const & gradients, scon::mathmatrix<coords::float_type> const & hessian)
   {
     invertNormalHessian(hessian);
@@ -530,4 +547,113 @@ namespace internals {
   void InternalStep::invertNormalHessian(scon::mathmatrix<double> const & hessian){
     inverseHessian = std::make_unique<scon::mathmatrix<double>>(hessian.pinv());
   }*/
+
+  void InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) {
+    using ic_util::flatten_c3_vec;
+
+    auto old_xyz = cartesianCoordinates;
+    coords::Representation_3D first_struct, last_good_xyz;
+    auto micro_iter{ 0 }, fail_count{ 0 };
+    auto damp{ 1. };
+    auto old_inorm{ 0.0 };
+    for (; micro_iter < 50; ++micro_iter) {
+      takeCartesianStep(damp*internalCoordinates.transposeOfBmat(cartesianCoordinates)*internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates)*d_int_left);
+
+      auto d_now = internalCoordinates.calc_diff(cartesianCoordinates, old_xyz);
+
+      auto d_int_remain = d_int_left - d_now;
+      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - cartesianCoordinates).rmsd();
+      auto internal_norm = d_int_remain.norm();
+      //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
+      //std::cout << "internal norm: " << internal_norm << "\n\n";
+      if (micro_iter == 0) {
+        first_struct = cartesianCoordinates;
+        last_good_xyz = cartesianCoordinates;
+        old_inorm = internal_norm;
+      }
+      else {
+        if (internal_norm > old_inorm) {
+          damp /= 2.;
+          ++fail_count;
+        }
+        else {
+          fail_count = 0;
+          damp = std::min(1.2*damp, 1.);
+          old_inorm = internal_norm;
+          last_good_xyz = cartesianCoordinates;
+        }
+      }
+      if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
+        std::cout << "Took " << micro_iter << " steps to converge.\n";
+        return;
+      }
+      else if (fail_count >= 10) {
+        std::cout << "Failed ten times to converge.\n";
+        cartesianCoordinates = first_struct;
+        return;
+      }
+
+      old_xyz = cartesianCoordinates;
+      d_int_left = std::move(d_int_remain);
+    }
+    std::cout << "Took all " << micro_iter + 1 << " steps, still not converged.\n";
+  }
+
+  void InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const {
+    cartesians.coordinates += ic_util::mat_to_rep3D(std::move(cartesianChange));
+    cartesians.stolenNotify();
+    internalCoordinates.requestNewBAndG();
+  }
+
+  coords::Representation_3D InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) const {
+    using ic_util::flatten_c3_vec;
+
+    InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
+    InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;;
+    coords::Representation_3D first_struct, last_good_xyz;
+    auto micro_iter{ 0 }, fail_count{ 0 };
+    auto damp{ 1. };
+    auto old_inorm{ 0.0 };
+    for (; micro_iter < 50; ++micro_iter) {
+      takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
+
+      auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);
+
+      auto d_int_remain = d_int_left - d_now;
+      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates).rmsd();
+      auto internal_norm = d_int_remain.norm();
+      //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
+      //std::cout << "internal norm: " << internal_norm << "\n\n";
+      if (micro_iter == 0) {
+        first_struct = actual_xyz.coordinates;
+        last_good_xyz = actual_xyz.coordinates;
+        old_inorm = internal_norm;
+      }
+      else {
+        if (internal_norm > old_inorm) {
+          damp /= 2.;
+          ++fail_count;
+        }
+        else {
+          fail_count = 0;
+          damp = std::min(1.2*damp, 1.);
+          old_inorm = internal_norm;
+          last_good_xyz = actual_xyz.coordinates;
+        }
+      }
+      if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
+        std::cout << "Took " << micro_iter << " steps to converge.\n";
+        return actual_xyz.coordinates;
+      }
+      else if (fail_count >= 10) {
+        std::cout << "Failed ten times to converge.\n";
+        return first_struct;
+      }
+
+      old_xyz = actual_xyz;
+      d_int_left = std::move(d_int_remain);
+    }
+    std::cout << "Took all " << micro_iter + 1 << " steps, still not converged.\n";
+    return actual_xyz.coordinates;
+  }
 }
