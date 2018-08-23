@@ -32,8 +32,6 @@ public:
 
   MOCK_CONST_METHOD0(getRestrictedStep, scon::mathmatrix<coords::float_type> const&());
   MOCK_METHOD0(getRestrictedStep, scon::mathmatrix<coords::float_type> &());
-  MOCK_CONST_METHOD0(targetIsZero, bool());
-  MOCK_CONST_METHOD0(getTarget, coords::float_type());
 };
 
 class InternalToCartesianStepMock : public internals::InternalToCartesianStep {
@@ -52,21 +50,47 @@ public:
   }*/
 };
 
-class OptimizerTest : public testing::Test {
+class AppropriateStepFinderMock : public internals::AppropriateStepFinder {
 public:
-  OptimizerTest();
-  void restrictStepTest();
-  void restrictCartesianStepTest();
-  void restrictCartesianStepWithZeroTargetTest();
-  void BrentsTrustStepTest();
-  scon::mathmatrix<double> gradients;
-  scon::mathmatrix<double> hessian;
+  AppropriateStepFinderMock(internals::InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
+
+  MOCK_CONST_METHOD1(getDeltaYPrime, coords::float_type(scon::mathmatrix<coords::float_type> const&));
+  MOCK_CONST_METHOD1(getSol, coords::float_type(scon::mathmatrix<coords::float_type> const&));
+  MOCK_CONST_METHOD0(getInternalStep, scon::mathmatrix<coords::float_type>());
+  MOCK_CONST_METHOD1(getInternalStep, scon::mathmatrix<coords::float_type>(scon::mathmatrix<coords::float_type> const&));
+  MOCK_METHOD1(applyInternalChangeAndGetNorm, coords::float_type(scon::mathmatrix<coords::float_type> const&));
+  MOCK_CONST_METHOD1(alterHessian, scon::mathmatrix<coords::float_type>(coords::float_type const));
+};
+
+class FinderImplementation {
+private:
+  MockPrimitiveInternals internals;
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  MockPrimitiveInternals testSystem;
-  internals::StepRestrictor restrictor;
-  InternalToCartesianConverterMock converter;
-  internals::AppropriateStepFinder finder;
+  InternalToCartesianConverterMock converter{ internals, cartesians };
+  scon::mathmatrix<coords::float_type> emptyGradients;
+  scon::mathmatrix<coords::float_type> emptyHessian;
+public:
+  FinderImplementation();
+  AppropriateStepFinderMock finder;
+};
+
+class StepRestrictorTest : public testing::Test, public FinderImplementation {
+public:
+  StepRestrictorTest();
+  scon::mathmatrix<coords::float_type> expectedStep;
+  internals::StepRestrictor  restrictor;
+};
+
+class InternalToCartesianStepTest : public testing::Test, public FinderImplementation {
+public:
+  InternalToCartesianStepTest();
+  scon::mathmatrix<coords::float_type> fakeStep;
   internals::InternalToCartesianStep toCartesianNorm;
+};
+
+class BrentsMethodTest : public testing::Test, public FinderImplementation {
+public:
+  BrentsMethodTest();
   internals::BrentsMethod brent;
 };
 

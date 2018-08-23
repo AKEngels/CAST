@@ -217,12 +217,21 @@ namespace ExpectedValuesForTrustRadius {
     { 0.238155685913000, }, };
 
   }
-  inline std::pair<double, double> constexpr initialSolAndPrime() {
-    return { -723.911639117864524, -0.001657048601097 };
+
+  inline double constexpr initialDeltaYPrime() {
+    return -723.911639117864524;
   }
 
-  inline std::pair<double, double> constexpr finalSolAndPrime() {
-    return { -586.628654683768787 ,expectedSol() };
+  inline double constexpr initialSol() {
+    return -0.001657048601097;
+  }
+
+  inline double constexpr finalDeltaYPrime() {
+    return -586.628654683768787;
+  }
+
+  inline double constexpr finalSol() {
+    return expectedSol();
   }
 
   inline double constexpr expectedBrent() {
@@ -231,6 +240,10 @@ namespace ExpectedValuesForTrustRadius {
 
   inline double constexpr initialInternalNorm() {
     return 1.312049175094087;
+  }
+
+  inline double constexpr restrictedStepFromInternalToCartesian() {
+    return 0.283757489317407;
   }
 }
 

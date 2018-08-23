@@ -215,13 +215,13 @@ namespace internals {
     virtual ~StepRestrictor() = default;
     virtual coords::float_type operator()(AppropriateStepFinder & finder);
 
-    virtual coords::float_type getRestrictedSol() const { return restrictedSol; }
+    coords::float_type getRestrictedSol() const { return restrictedSol; }
     virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
     virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
 
     void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
-    virtual bool targetIsZero() const { return target == 0.0; }
-    virtual coords::float_type getTarget() const { return target; }
+    bool targetIsZero() const { return target == 0.0; }
+    coords::float_type getTarget() const { return target; }
     void registerBestGuess() { *stepCallbackReference = std::move(restrictedStep); }
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
@@ -291,18 +291,11 @@ namespace internals {
     virtual coords::float_type getSol(scon::mathmatrix<coords::float_type> const& internalStep) const;
     virtual scon::mathmatrix<coords::float_type> getInternalStep() const;
     virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const;
-    coords::float_type takeStepAndGetCartesianNorm();
-    void registerBestStep(scon::mathmatrix<coords::float_type> && newStep) {
-      bestStepSoFar = std::move(newStep);
-    }
     StepRestrictor generateStepRestrictor(coords::float_type const target) {
       return stepRestrictorFactory.makeStepRestrictor(target);
     }
-    coords::float_type applyInternalChangeAndGetNorm(scon::mathmatrix<coords::float_type> const& internalStep) {
-      bestCartesiansSoFar = converter.applyInternalChange(internalStep);
-      return converter.cartesianNormOfOtherStructureAndCurrent(bestCartesiansSoFar).first;
-    }
-    scon::mathmatrix<coords::float_type> alterHessian(coords::float_type const alteration) const;
+    virtual coords::float_type applyInternalChangeAndGetNorm(scon::mathmatrix<coords::float_type> const& internalStep);
+    virtual scon::mathmatrix<coords::float_type> alterHessian(coords::float_type const alteration) const;
   protected:
     InternalToCartesianConverter const& converter;
     scon::mathmatrix<coords::float_type> bestStepSoFar;
