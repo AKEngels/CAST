@@ -168,7 +168,50 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
   {
     mmc_big.move_atom_to(mi, coords->xyz()[mi], true);
   }
+}
 
+void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vector<size_t> &qm_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges, 
+	std::vector<LinkAtom> &link_atoms, coords::Coordinates &coordobj, std::vector<int> &charge_indizes)
+{
+	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
+	{
+		bool use_charge = true;
+		for (auto &l : link_atoms)   // ignore those atoms that are connected to an atom to the "QM system"
+		{
+			if (l.mm == i) use_charge = false;
+		}
+		for (auto &qs : indizes_of_charges) // ...and those of the "QM system" itself
+		{
+			if (qs == i) use_charge = false;
+		}
+
+		if (use_charge)  // for the other 
+		{
+			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one "QM atom" is nearer than cutoff
+			{
+				use_charge = false;
+				for (auto qs : qm_indizes)
+				{
+					auto dist = len(coords->xyz(i) - coords->xyz(qs));
+					if (dist < Config::get().energy.qmmm.cutoff)
+					{
+						use_charge = true;
+						break;
+					}
+				}
+			}
+
+			if (use_charge)  // if yes create a PointCharge and add it to vector
+			{
+				PointCharge new_charge;
+				new_charge.charge = charges[i];
+				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+				charge_indizes.push_back(i);  // add index to charge_indices
+			}
+		}
+	}
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool if_gradient)
@@ -227,52 +270,10 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // ############### CREATE EXTERNAL CHARGES FOR MIDDLE SYSTEM ######################
 
-  std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
-
   std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
-
-  bool use_charge;
   charge_indices.clear();
-  for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
-  {
-	  use_charge = true;
-	  for (auto &l : link_atoms_middle) // ignore those atoms that are connected to a QM or SE atom...
-	  {
-		  if (l.mm == i) use_charge = false;
-	  }
-	  for (auto &qs : qm_se_indices) // ...and the QM and SE atoms
-	  {
-		  if (qs == i) use_charge = false;
-	  }
 
-	  if (use_charge)  // for the other 
-	  {
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM or SE atom is nearer than cutoff
-			{
-				use_charge = false;
-				for (auto qs : qm_se_indices)
-				{
-					auto dist = len(coords->xyz(i) - coords->xyz(qs));
-					if (dist < Config::get().energy.qmmm.cutoff)
-					{
-						use_charge = true;
-						break;
-					}
-				}
-				
-			}
-
-			if (use_charge)  // if yes create a PointCharge and add it to vector
-			{
-				PointCharge new_charge;
-				new_charge.charge = charge_vector[i];
-				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-
-				charge_indices.push_back(i);  // add index to charge_indices
-			}
-	  }
-  }
+	add_external_charges(qm_se_indices, mmc_big.energyinterface()->charges(), range(coords->size()), link_atoms_middle, *coords, charge_indices);
 
 	// ############### SE ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 	try {
@@ -447,89 +448,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		Config::set().energy.qmmm.mm_charges.clear();
 		charge_indices.clear();
 
-		charge_vector = sec_middle.energyinterface()->charges();
-		bool use_charge;
-		for (auto i : qm_se_indices) // go through all SE atoms
-		{
-			use_charge = true;
-			for (auto &l : link_atoms_small) // ignore those atoms that are connected to a QM atom...
-			{
-				if (l.mm == i) use_charge = false;
-			}
-			for (auto &qs : qm_indices) // ...and the QM atoms
-			{
-				if (qs == i) use_charge = false;
-			}
-
-			if (use_charge)  // for the other 
-			{
-				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-				{
-					use_charge = false;
-					for (auto q : qm_indices)
-					{
-						auto dist = len(coords->xyz(i) - coords->xyz(q));
-						if (dist < Config::get().energy.qmmm.cutoff)
-						{
-							use_charge = true;
-							break;
-						}
-					}
-
-				}
-
-				if (use_charge)  // if yes create a PointCharge and add it to vector
-				{
-					PointCharge new_charge;
-					new_charge.charge = charge_vector[i];
-					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-
-					charge_indices.push_back(i);  // add index to charge_indices
-				}
-			}
-		}
-
-		charge_vector = mmc_big.energyinterface()->charges();
-		for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
-		{
-			use_charge = true;
-			for (auto &l : link_atoms_small) // ignore those atoms that are connected to a QM atom...
-			{
-				if (l.mm == i) use_charge = false;
-			}
-			for (auto &qs : qm_se_indices) // ...and the QM and SE atoms
-			{
-				if (qs == i) use_charge = false;
-			}
-
-			if (use_charge)  // for the other 
-			{
-				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-				{
-					use_charge = false;
-					for (auto q : qm_indices)
-					{
-						auto dist = len(coords->xyz(i) - coords->xyz(q));
-						if (dist < Config::get().energy.qmmm.cutoff)
-						{
-							use_charge = true;
-							break;
-						}
-					}
-				}
-
-				if (use_charge)  // if yes create a PointCharge and add it to vector
-				{
-					PointCharge new_charge;
-					new_charge.charge = charge_vector[i];
-					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-
-					charge_indices.push_back(i);  // add index to charge_indices
-				}
-			}
-		}
+		add_external_charges(qm_indices, sec_middle.energyinterface()->charges(), qm_se_indices, link_atoms_small, *coords, charge_indices);      // add charges from SE atoms
+		add_external_charges(qm_indices, mmc_big.energyinterface()->charges(), range(coords->size()), link_atoms_small, *coords, charge_indices); // add charges from MM atoms
 	}
 
 	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################

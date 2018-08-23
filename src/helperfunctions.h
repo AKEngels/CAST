@@ -191,4 +191,28 @@ inline bool double_element(std::vector<T> const &v)
 	return false;
 }
 
+/**function analogous to python range function (see https://stackoverflow.com/questions/13152252/is-there-a-compact-equivalent-to-python-range-in-c-stl) 
+Attention! The order of start and stop is switched, so you can use:
+range(10) = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+range(10, 5) = [5, 6, 7, 8, 9,]
+range(11, 5, 2) = [5, 7, 9]*/
+template <typename IntType>
+std::vector<IntType> range(IntType stop, IntType start=0, IntType step=1)
+{
+	if (step == IntType(0))
+	{
+		throw std::invalid_argument("step for range must be non-zero");
+	}
+
+	std::vector<IntType> result;
+	IntType i = start;
+	while ((step > 0) ? (i < stop) : (i > stop))
+	{
+		result.push_back(i);
+		i += step;
+	}
+
+	return result;
+}
+
 #endif
