@@ -53,11 +53,11 @@ bool modify_file(std::vector<std::string> pair)
   bool search = true; //still search for first line containing grid points
   int begin, end;
   int counter = 1;
-  std::string new_string = "";
+  std::vector<std::string> stringvec;
   while (file_stream)
   {
     std::getline(file_stream, line);
-    new_string += "\n"+line;  // write every line from the second on in a new string (only first line is modified)
+    stringvec.push_back(line);  // save every line from the second on in a vector (only first line is modified)
     counter += 1;
     if (search && is_in('*', line))  // where is the first grid point?
     {
@@ -69,6 +69,24 @@ bool modify_file(std::vector<std::string> pair)
       end = counter;
     }
   }
+
+  // test if line before spline is empty and if yes, remove it
+  for (auto i=0u; i < stringvec.size(); ++i)
+  {
+    if (stringvec[i] == "Spline")
+    {
+      if (stringvec[i-1] == "")
+      {
+        end = end - 1;                           // decrement number of grid points
+        stringvec.erase(stringvec.begin() + i - 1);  // delete line from vector
+      }
+      break;
+    }
+  }
+
+  // write all lines from the second on in a new string
+  std::string new_string = "";
+  for (auto line : stringvec) new_string += "\n" + line;
 
   // construct new first line
   int second_number = end - begin;  // second number = number of lines with grid points
