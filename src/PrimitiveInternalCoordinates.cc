@@ -397,8 +397,7 @@ namespace internals {
   }
 
 
-  coords::float_type StepRestrictor::operator()(AppropriateStepFinder & finder)
-  {
+  coords::float_type StepRestrictor::operator()(AppropriateStepFinder & finder){
     restrictedStep = finder.getInternalStep();
     auto deltaYPrime = finder.getDeltaYPrime(restrictedStep);
     auto internalStepNorm = getStepNorm();
@@ -502,20 +501,25 @@ namespace internals {
     }
     return 0.0;
   }
-  StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder & finder) : finalStep{ finder.getAddressOfInternalStep() } {}
 
-  scon::mathmatrix<coords::float_type> AppropriateStepFinder::appropriateStep(coords::float_type const trustRadius){
+  StepRestrictorFactory::StepRestrictorFactory(AppropriateStepFinder & finder) : finalStep{ finder.getAddressOfInternalStep() }, finalCartesians{ finder.getAddressOfCartesians() } {}
+
+  void AppropriateStepFinder::appropriateStep(coords::float_type const trustRadius){
     if (applyInternalChangeAndGetNorm(getInternalStep()) > 1.1*trustRadius) {
       InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
       BrentsMethod brent(*this, 0.0, bestStepSoFar.norm(), trustRadius);
       brent(internalToCartesianStep);
     }
-    return scon::mathmatrix<coords::float_type>();
   }
-  
+
   coords::float_type AppropriateStepFinder::applyInternalChangeAndGetNorm(scon::mathmatrix<coords::float_type> const& internalStep) {
     bestCartesiansSoFar = converter.applyInternalChange(internalStep);
     return converter.cartesianNormOfOtherStructureAndCurrent(bestCartesiansSoFar).first;
+  }
+  
+  coords::float_type AppropriateStepFinder::applyInternalChangeAndGetNorm(StepRestrictor & restrictor) {
+    restrictor.setCartesians(converter.applyInternalChange(restrictor.getRestrictedStep()));
+    return converter.cartesianNormOfOtherStructureAndCurrent(restrictor.getCartesians()).first;
   }
 
   coords::float_type AppropriateStepFinder::getDeltaYPrime(scon::mathmatrix<coords::float_type> const & internalStep) const {

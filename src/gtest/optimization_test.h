@@ -23,7 +23,7 @@ public:
 
 class StepRestrictorMock : public internals::StepRestrictor {
 public:
-  StepRestrictorMock(scon::mathmatrix<coords::float_type> * const step, coords::float_type const target) : StepRestrictor{ step, target } {}
+  StepRestrictorMock(scon::mathmatrix<coords::float_type> * const step, coords::Representation_3D * cartesians, coords::float_type const target) : StepRestrictor{ step, cartesians, target } {}
 
   MOCK_METHOD1(execute, coords::float_type(internals::AppropriateStepFinder &));
   coords::float_type operator()(internals::AppropriateStepFinder & finder) override {
@@ -66,7 +66,7 @@ class FinderImplementation {
 private:
   MockPrimitiveInternals internals;
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
-  InternalToCartesianConverterMock converter{ internals, cartesians };
+  InternalToCartesianConverterMock converter;
   scon::mathmatrix<coords::float_type> emptyGradients;
   scon::mathmatrix<coords::float_type> emptyHessian;
 public:
@@ -78,6 +78,7 @@ class StepRestrictorTest : public testing::Test, public FinderImplementation {
 public:
   StepRestrictorTest();
   scon::mathmatrix<coords::float_type> expectedStep;
+  coords::Representation_3D expectedCartesians;
   internals::StepRestrictor  restrictor;
 };
 
@@ -85,6 +86,7 @@ class InternalToCartesianStepTest : public testing::Test, public FinderImplement
 public:
   InternalToCartesianStepTest();
   scon::mathmatrix<coords::float_type> fakeStep;
+  coords::Representation_3D fakeCartesians;
   internals::InternalToCartesianStep toCartesianNorm;
 };
 
@@ -92,6 +94,17 @@ class BrentsMethodTest : public testing::Test, public FinderImplementation {
 public:
   BrentsMethodTest();
   internals::BrentsMethod brent;
+};
+
+class AppropriateStepFinderTest : public testing::Test {
+public:
+  AppropriateStepFinderTest();
+  MockPrimitiveInternals internals;
+  InternalCoordinates::CartesiansForInternalCoordinates cartesians;
+  InternalToCartesianConverterMock converter;
+  scon::mathmatrix<coords::float_type> gradients;
+  scon::mathmatrix<coords::float_type> hessian;
+  internals::AppropriateStepFinder finder;
 };
 
 #endif

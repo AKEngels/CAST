@@ -13,11 +13,10 @@ AppropriateStepFinderMock::AppropriateStepFinderMock(internals::InternalToCartes
 FinderImplementation::FinderImplementation() : internals{}, cartesians{}, converter{ internals, cartesians }, emptyGradients{}, emptyHessian{ { 1., 0. },{ 0.,1. }, },
 finder{ converter, emptyGradients, emptyHessian } {}
 
-StepRestrictorTest::StepRestrictorTest() : FinderImplementation{}, expectedStep {}, restrictor{ &expectedStep, ExpectedValuesForTrustRadius::initialTarget() } {}
+StepRestrictorTest::StepRestrictorTest() : FinderImplementation{}, expectedStep{}, expectedCartesians{}, restrictor{ &expectedStep, &expectedCartesians, ExpectedValuesForTrustRadius::initialTarget() } {}
 
 TEST_F(StepRestrictorTest, TestIfTargetIsZero) {
-  scon::mathmatrix<coords::float_type> someDummy{};
-  EXPECT_TRUE(internals::StepRestrictor(&someDummy, 0.0).targetIsZero());
+  EXPECT_TRUE(internals::StepRestrictor(&expectedStep, &expectedCartesians, 0.0).targetIsZero());
 }
 
 TEST_F(StepRestrictorTest, restrictStepTest) {
@@ -38,10 +37,14 @@ TEST_F(StepRestrictorTest, restrictStepTest) {
   EXPECT_NEAR(sol, ExpectedValuesForTrustRadius::expectedSol(), doubleNearThreshold);
 }
 
-InternalToCartesianStepTest::InternalToCartesianStepTest() : FinderImplementation{}, fakeStep{}, toCartesianNorm { finder, ExpectedValuesForTrustRadius::initialTrustRadius() } {}
+TEST_F(StepRestrictorTest, registerBestGuessTest) {
+  auto bla = restrictor.getRestrictedStep();
+}
+
+InternalToCartesianStepTest::InternalToCartesianStepTest() : FinderImplementation{}, fakeStep{}, fakeCartesians{}, toCartesianNorm{ finder, ExpectedValuesForTrustRadius::initialTrustRadius() } {}
 
 TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_NonZeroTrial) {
-  StepRestrictorMock NonZeroRestrictor{ &fakeStep, ExpectedValuesForTrustRadius::initialTarget() };
+  StepRestrictorMock NonZeroRestrictor{ &fakeStep, &fakeCartesians, ExpectedValuesForTrustRadius::initialTarget() };
   
   EXPECT_CALL(NonZeroRestrictor, execute(testing::_))
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::expectedSol()));
@@ -58,7 +61,7 @@ TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_NonZeroTr
 TEST_F(InternalToCartesianStepTest, convertFromInternalToCartesianTest_ZeroTrial) {
   internals::InternalToCartesianStep toCartesianNorm{ finder, ExpectedValuesForTrustRadius::initialTrustRadius() };
 
-  StepRestrictorMock TargetZeroRestrictor{ &fakeStep, 0.0 };
+  StepRestrictorMock TargetZeroRestrictor{ &fakeStep, &fakeCartesians, 0.0 };
 
   EXPECT_NEAR(toCartesianNorm(TargetZeroRestrictor), -ExpectedValuesForTrustRadius::initialTrustRadius(), doubleNearThreshold);
 }
@@ -75,3 +78,7 @@ TEST_F(BrentsMethodTest, testFirstRestrictedStepOfTwoMethanol) {
 
   EXPECT_NEAR(brent(internalToCartesian), ExpectedValuesForTrustRadius::expectedBrent(), doubleNearThreshold);
 }
+
+AppropriateStepFinderTest::AppropriateStepFinderTest() : internals{}, cartesians{ ExpectedValuesForTrustRadius::initialCartesians() }, 
+converter{ internals, cartesians }, gradients{ ExpectedValuesForTrustRadius::initialGradients() }, hessian{ ExpectedValuesForTrustRadius::initialHessianForTrust() }, 
+finder{ converter, gradients, hessian } {}
