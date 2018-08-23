@@ -440,6 +440,8 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
+  Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
+
   if (Config::get().energy.qmmm.emb_small == 0)   // if EEx: no external charges for small system
   {
     Config::set().energy.qmmm.mm_charges.clear();
@@ -621,7 +623,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   // ############### STUFF TO DO AT THE END OF CALCULATION ######################
 
   Config::set().energy.qmmm.mm_charges.clear();  // clear vector -> no point charges in calculation of mmc_big
-	Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
 
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
