@@ -170,8 +170,8 @@ void energy::interfaces::three_layer::THREE_LAYER::update_representation()
   }
 }
 
-void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vector<size_t> &qm_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges, 
-	std::vector<LinkAtom> &link_atoms, coords::Coordinates &coordobj, std::vector<int> &charge_indizes)
+void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges,
+	std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes)
 {
 	for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 	{
@@ -180,7 +180,7 @@ void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vec
 		{
 			if (l.mm == i) use_charge = false;
 		}
-		for (auto &qs : indizes_of_charges) // ...and those of the "QM system" itself
+		for (auto &qs : ignore_indizes) // ...and those which are destined to be ignored
 		{
 			if (qs == i) use_charge = false;
 		}
@@ -273,7 +273,9 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
   charge_indices.clear();
 
-	add_external_charges(qm_se_indices, mmc_big.energyinterface()->charges(), range(coords->size()), link_atoms_middle, *coords, charge_indices);
+	auto mmc_big_charges = mmc_big.energyinterface()->charges();
+	auto all_indices = range(coords->size());
+	add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices);
 
 	// ############### SE ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 	try {
@@ -448,8 +450,11 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		Config::set().energy.qmmm.mm_charges.clear();
 		charge_indices.clear();
 
-		add_external_charges(qm_indices, sec_middle.energyinterface()->charges(), qm_se_indices, link_atoms_small, *coords, charge_indices);      // add charges from SE atoms
-		add_external_charges(qm_indices, mmc_big.energyinterface()->charges(), range(coords->size()), link_atoms_small, *coords, charge_indices); // add charges from MM atoms
+		auto sec_middle_charges = sec_middle.energyinterface()->charges();
+		auto mmc_big_charges = mmc_big.energyinterface()->charges();
+		auto all_indices = range(coords->size());
+		add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices);   // add charges from SE atoms
+		add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices);     // add charges from MM atoms
 	}
 
 	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
