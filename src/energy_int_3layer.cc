@@ -437,11 +437,100 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ############### EXTERNAL CHARGES FOR SMALL SYSTEM ######################
 
-  if (Config::get().energy.qmmm.emb_small == 0)   // if EEx: no external charges for small system, otherwise same external charges as before
+  if (Config::get().energy.qmmm.emb_small == 0)   // if EEx: no external charges for small system
   {
     Config::set().energy.qmmm.mm_charges.clear();
   }
 	
+	else if (Config::get().energy.qmmm.emb_small == 2)  // external charges from SE and MM atoms
+	{
+		Config::set().energy.qmmm.mm_charges.clear();
+		charge_indices.clear();
+
+		charge_vector = sec_middle.energyinterface()->charges();
+		bool use_charge;
+		for (auto i : qm_se_indices) // go through all SE atoms
+		{
+			use_charge = true;
+			for (auto &l : link_atoms_small) // ignore those atoms that are connected to a QM atom...
+			{
+				if (l.mm == i) use_charge = false;
+			}
+			for (auto &qs : qm_indices) // ...and the QM atoms
+			{
+				if (qs == i) use_charge = false;
+			}
+
+			if (use_charge)  // for the other 
+			{
+				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+				{
+					use_charge = false;
+					for (auto q : qm_indices)
+					{
+						auto dist = len(coords->xyz(i) - coords->xyz(q));
+						if (dist < Config::get().energy.qmmm.cutoff)
+						{
+							use_charge = true;
+							break;
+						}
+					}
+
+				}
+
+				if (use_charge)  // if yes create a PointCharge and add it to vector
+				{
+					PointCharge new_charge;
+					new_charge.charge = charge_vector[i];
+					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+					charge_indices.push_back(i);  // add index to charge_indices
+				}
+			}
+		}
+
+		charge_vector = mmc_big.energyinterface()->charges();
+		for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
+		{
+			use_charge = true;
+			for (auto &l : link_atoms_small) // ignore those atoms that are connected to a QM atom...
+			{
+				if (l.mm == i) use_charge = false;
+			}
+			for (auto &qs : qm_se_indices) // ...and the QM and SE atoms
+			{
+				if (qs == i) use_charge = false;
+			}
+
+			if (use_charge)  // for the other 
+			{
+				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
+				{
+					use_charge = false;
+					for (auto q : qm_indices)
+					{
+						auto dist = len(coords->xyz(i) - coords->xyz(q));
+						if (dist < Config::get().energy.qmmm.cutoff)
+						{
+							use_charge = true;
+							break;
+						}
+					}
+				}
+
+				if (use_charge)  // if yes create a PointCharge and add it to vector
+				{
+					PointCharge new_charge;
+					new_charge.charge = charge_vector[i];
+					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+					charge_indices.push_back(i);  // add index to charge_indices
+				}
+			}
+		}
+	}
 
 	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
 	try {
@@ -591,7 +680,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH SMALL REGION ###
 
-	if (Config::get().energy.qmmm.emb_small == 1 && if_gradient && integrity == true)
+	if (Config::get().energy.qmmm.emb_small != 0 && if_gradient && integrity == true)
 	{
 		auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
 		auto sec_small_g_ext_charges = sec_small.energyinterface()->get_g_ext_chg();
@@ -613,7 +702,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   else if (check_atom_dist() == false) integrity = false;
   
   if (if_gradient) coords->swap_g_xyz(new_grads);     // swap gradients into coordobj
- return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
+  return mm_energy_big + se_energy_middle - mm_energy_middle + qm_energy - se_energy_small; // return total energy
 }
 
 coords::float_type energy::interfaces::three_layer::THREE_LAYER::g()
