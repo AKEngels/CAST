@@ -348,7 +348,6 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
 }
 
 /**function that assigns atom types (oplsaa) to atoms of protein backbone
-(they are not suitable for force field calucations)
 @param atom_name: atom name from pdb file
 @param res_name: residue name from pdb file
 @param terminal: is residue N-terminal, C-terminal or not?*/
