@@ -271,6 +271,7 @@ namespace internals {
 
     virtual coords::float_type getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) const;
     virtual coords::float_type getSol(scon::mathmatrix<coords::float_type> const& internalStep) const;
+    virtual coords::float_type getSolBestStep() const;//Test
 
     virtual scon::mathmatrix<coords::float_type> getInternalStep() const;
     virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const;

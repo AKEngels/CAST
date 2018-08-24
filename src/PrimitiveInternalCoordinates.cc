@@ -507,6 +507,10 @@ namespace internals {
     return (0.5 * transposedInternalStep * hessian * internalStep)(0, 0) + (transposedInternalStep*gradients)(0, 0);
   }
 
+  coords::float_type AppropriateStepFinder::getSolBestStep() const{
+    return getSol(bestStepSoFar);
+  }
+
   scon::mathmatrix<coords::float_type> AppropriateStepFinder::getInternalStep() const {
     return -1.*inverseHessian*gradients;
   }

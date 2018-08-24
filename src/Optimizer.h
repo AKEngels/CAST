@@ -23,7 +23,7 @@ public:
 
   Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) 
 	  : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
-        converter{ internalCoordinateSystem, cartesianCoordinates} {}
+    converter{ internalCoordinateSystem, cartesianCoordinates }, hessian{ internalCoordinateSystem.guess_hessian(cartesianCoordinates) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 } {}
 
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
 
@@ -42,6 +42,7 @@ protected:
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  void changeTrustStepIfNeccessary();
   void applyHessianChange();
   void setNewToOldVariables();
   scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
@@ -51,6 +52,12 @@ protected:
   CartesianType cartesianCoordinates;
   internals::InternalToCartesianConverter converter;
   scon::mathmatrix<coords::float_type> hessian;
+  coords::float_type trustRadius;
+  coords::float_type expectedChangeInEnergy;
+
+  static auto constexpr thre_rj = 0.01;
+  static auto constexpr badQualityThreshold = 0.25;
+  static auto constexpr goodQualityThreshold = 0.75;
   
   class ConvergenceCheck {
   public:

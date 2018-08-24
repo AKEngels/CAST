@@ -90,6 +90,8 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
     auto cartesianGradients = getInternalGradientsButReturnCartesianOnes(coords);
 
+    changeTrustStepIfNeccessary();
+
     applyHessianChange();
 
     if (ConvergenceCheck{ i + 1,cartesianGradients,*this }()) {
@@ -109,7 +111,6 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
 void Optimizer::initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
   setCartesianCoordinatesForGradientCalculation(coords);
-  internalCoordinateSystem.guess_hessian(cartesianCoordinates);
 
   prepareOldVariablesPtr(coords);
 }
@@ -130,15 +131,25 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
 }
 
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
-  //TODO own class for handling the internal Step
-  //Appropriate Step Finder got to be inserted here
-  //auto dq_step = converter.getInternalStep(oldVariables->systemGradients, hessian);
-
-  //
-  //std::cout << "U:\n" << del_mat << "\n\n";
-  //converter.applyInternalChange(dq_step);
+  
+  internals::AppropriateStepFinder stepFinder(converter, oldVariables->systemGradients, hessian);
+  
+  stepFinder.appropriateStep(trustRadius);
+  expectedChangeInEnergy = stepFinder.getSolBestStep();
 
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
+}
+
+void Optimizer::changeTrustStepIfNeccessary() {
+  auto quality = (currentVariables.systemEnergy - oldVariables->systemEnergy) / expectedChangeInEnergy;
+  if (quality < badQualityThreshold) {
+    trustRadius = std::max(0.0012, trustRadius / 2.);
+    std::cout << "I am bad. Trust Radius now: " << trustRadius << "\n";
+  }
+  else if(quality < goodQualityThreshold){
+    trustRadius = std::max(0.3, trustRadius / std::sqrt(2));
+    std::cout << "I am good. Trust Radius now: " << trustRadius << "\n";
+  }
 }
 
 scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
