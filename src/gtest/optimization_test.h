@@ -16,7 +16,7 @@ public:
 
   MOCK_METHOD2(getInternalStep, scon::mathmatrix<coords::float_type>(scon::mathmatrix<coords::float_type> const&, scon::mathmatrix<coords::float_type> const&));
   MOCK_METHOD3(getDeltaYPrimeAndSol, std::pair<coords::float_type, coords::float_type>(scon::mathmatrix<coords::float_type> const& internalStep, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian));
-  MOCK_METHOD1(applyInternalChange, void(scon::mathmatrix<coords::float_type>));
+  MOCK_CONST_METHOD1(applyInternalChange, coords::Representation_3D(scon::mathmatrix<coords::float_type>));
   MOCK_CONST_METHOD0(getCartesianCoordinates, InternalCoordinates::CartesiansForInternalCoordinates const&());
   MOCK_METHOD0(getCartesianCoordinates, InternalCoordinates::CartesiansForInternalCoordinates &());
 };
@@ -59,6 +59,7 @@ public:
   MOCK_CONST_METHOD0(getInternalStep, scon::mathmatrix<coords::float_type>());
   MOCK_CONST_METHOD1(getInternalStep, scon::mathmatrix<coords::float_type>(scon::mathmatrix<coords::float_type> const&));
   MOCK_METHOD1(applyInternalChangeAndGetNorm, coords::float_type(scon::mathmatrix<coords::float_type> const&));
+  MOCK_METHOD1(applyInternalChangeAndGetNorm, coords::float_type(internals::StepRestrictor &));
   MOCK_CONST_METHOD1(alterHessian, scon::mathmatrix<coords::float_type>(coords::float_type const));
 };
 
@@ -72,6 +73,11 @@ private:
 public:
   FinderImplementation();
   AppropriateStepFinderMock finder;
+};
+
+class AppropriateStepFinderAvoidingInverseOfHessian : public internals::AppropriateStepFinder {
+public:
+  AppropriateStepFinderAvoidingInverseOfHessian(internals::InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian);
 };
 
 class StepRestrictorTest : public testing::Test, public FinderImplementation {
@@ -104,7 +110,7 @@ public:
   InternalToCartesianConverterMock converter;
   scon::mathmatrix<coords::float_type> gradients;
   scon::mathmatrix<coords::float_type> hessian;
-  internals::AppropriateStepFinder finder;
+  AppropriateStepFinderAvoidingInverseOfHessian finder;
 };
 
 #endif

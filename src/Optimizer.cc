@@ -131,11 +131,12 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
 
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
   //TODO own class for handling the internal Step
-  auto dq_step = converter.getInternalStep(oldVariables->systemGradients, hessian);
+  //Appropriate Step Finder got to be inserted here
+  //auto dq_step = converter.getInternalStep(oldVariables->systemGradients, hessian);
 
   //
   //std::cout << "U:\n" << del_mat << "\n\n";
-  converter.applyInternalChange(dq_step);
+  //converter.applyInternalChange(dq_step);
 
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
