@@ -297,25 +297,17 @@ void ConverterMatricesTest::applyInternalChangeTest() {
     .WillOnce(testing::Return(differncesInInternalCoordinatesAfterSecondStep()))
     .WillOnce(testing::Return(differncesInInternalCoordinatesAfterThirdStep()));
 
-  converter.applyInternalChange(internalInitialStepOfTwoMethanolMolecules());
+  auto newCartesians = converter.applyInternalChange(internalInitialStepOfTwoMethanolMolecules());
 
   auto expectedChangeAfterFirstStep = cartesianChangeOfTwoMethanolMoleculesAfterFirstStep();
 
   for (auto i = 0u; i < expectedChangeAfterFirstStep.size(); ++i) {
-    isCartesianPointNear(cartesians.at(i), expectedChangeAfterFirstStep.at(i));
+    isCartesianPointNear(newCartesians.at(i), expectedChangeAfterFirstStep.at(i));
   }
 }
 
 TEST_F(ConverterMatricesTest, applyInternalChangeTest) {
   applyInternalChangeTest();
-}
-
-void ConverterMatricesTest::getInternalStepTest() {
-  EXPECT_EQ(internalInitialStepOfTwoMethanolMolecules(), converter.getInternalStep(internalGradientsOfTwoMethanolMolecules(), exampleDelocalizedInitialHessianForTwoMethanols()));
-}
-
-TEST_F(ConverterMatricesTest, getInternalStepTest) {
-  getInternalStepTest();
 }
 
 void MatricesTest::calculatePrimitiveInternalValuesTest() {

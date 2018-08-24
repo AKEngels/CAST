@@ -237,11 +237,13 @@ public:
 #else
   using base_type::resize;
 #endif
-
+  
+  //If these guys are enabled the code won't compile. Don't ask me why...
+  /*using base_type::operator=;
   using base_type::operator*=;
   using base_type::operator-=;
   using base_type::operator/=;
-  using base_type::operator+=;
+  using base_type::operator+=;*/
   /*! mathmatrix += operator
    *
    * @param in: Matrix to the right of the summation (this + in)

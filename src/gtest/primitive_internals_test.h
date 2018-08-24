@@ -73,7 +73,6 @@ class ConverterMatricesTest : public testing::Test {
 public:
   ConverterMatricesTest();
   void calculateInternalGradsTest();
-  void getInternalStepTest();
   void applyInternalChangeTest();
   InternalCoordinates::CartesiansForInternalCoordinates cartesians;
   MockPrimitiveInternals testSystem;

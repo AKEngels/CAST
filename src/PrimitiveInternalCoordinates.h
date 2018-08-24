@@ -16,7 +16,6 @@ Purpose: Definition of primitive Internal Coordinate Systems
 #include "ic_core.h"
 #include "graph.h"
 
-
 namespace internals {
   class PrimitiveInternalCoordinates {
   protected:
@@ -34,7 +33,7 @@ namespace internals {
     virtual ~PrimitiveInternalCoordinates() = default;
 
     std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> primitive_internals;
-    std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
+    //std::vector<std::shared_ptr<InternalCoordinates::Rotator>> rotation_vec_;
 
     void requestNewBAndG(){
      new_B_matrix = true;
@@ -76,6 +75,7 @@ namespace internals {
     class DistanceCreator : public InternalCoordinatesCreator {
     public:
       DistanceCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, source{ 0u }, target{ 0u }, edgeIterators{ boost::edges(bondGraph) } {}
+      virtual ~DistanceCreator() = default;
 
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
 
@@ -88,6 +88,8 @@ namespace internals {
     class AngleCreator : public InternalCoordinatesCreator {
     public:
       AngleCreator(BondGraph const& graph) : InternalCoordinatesCreator{ graph }, leftAtom{ 0u }, middleAtom{ 0u }, rightAtom{ 0u }, vertexIterators{ boost::vertices(graph) } {}
+      virtual ~AngleCreator() = default;
+
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
     protected:
       bool nextVertex();
@@ -105,6 +107,8 @@ namespace internals {
     class DihedralCreator : public DistanceCreator {
     public:
       DihedralCreator(BondGraph const& graph) : DistanceCreator{ graph }, outerLeft{ 0u }, outerRight{ 0u } {}
+      virtual ~DihedralCreator() = default;
+
       virtual std::vector<std::unique_ptr<InternalCoordinates::InternalCoordinate>> getInternals() override;
     protected:
       void findLeftAndRightAtoms();
@@ -148,87 +152,158 @@ namespace internals {
 
   };
 
-
   class InternalToCartesianConverter {
   public:
     InternalToCartesianConverter(PrimitiveInternalCoordinates & internals,
       InternalCoordinates::CartesiansForInternalCoordinates & cartesians) : internalCoordinates{ internals }, cartesianCoordinates{ cartesians } {}
+    virtual ~InternalToCartesianConverter() = default;
 
-    scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);
-    template<typename Gint>
-    scon::mathmatrix<coords::float_type> getInternalStep(Gint&&, scon::mathmatrix<coords::float_type> const&);//F
-    template<typename Dint>
-    void applyInternalChange(Dint&&);//F
+    scon::mathmatrix<coords::float_type> calculateInternalGradients(scon::mathmatrix<coords::float_type> const&);//Test?
+
+    virtual coords::Representation_3D applyInternalChange(scon::mathmatrix<coords::float_type>) const;
     template<typename XYZ>
     coords::Representation_3D& set_xyz(XYZ&& new_xyz);
+    virtual InternalCoordinates::CartesiansForInternalCoordinates const& getCartesianCoordinates() const { return cartesianCoordinates; }
+    virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
+    
+    std::pair<coords::float_type, coords::float_type> cartesianNormOfOtherStructureAndCurrent(coords::Representation_3D const& otherCartesians) const;//Test
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
+
   private:
     template<typename Dcart>
     coords::Representation_3D& takeCartesianStep(Dcart&& d_cart);
+    void takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const;
   };
 
+  class AppropriateStepFinder;
+
+  class StepRestrictor {
+  public:
+    StepRestrictor(scon::mathmatrix<coords::float_type> * step, coords::Representation_3D * cartesians, coords::float_type const target) : stepCallbackReference{ step }, cartesianCallbackReference{ cartesians }, target{ target }, restrictedStep{}, correspondingCartesians{}, restrictedSol { 0.0 }, v0{ 0.0 } {}
+    virtual ~StepRestrictor() = default;
+    virtual coords::float_type operator()(AppropriateStepFinder & finder);
+
+    void registerBestGuess();
+
+    coords::float_type getRestrictedSol() const { return restrictedSol; }
+    virtual scon::mathmatrix<coords::float_type> const& getRestrictedStep() const { return restrictedStep; }
+    virtual scon::mathmatrix<coords::float_type> & getRestrictedStep() { return restrictedStep; }
+
+    void setCartesians(coords::Representation_3D && cartesians) { correspondingCartesians = std::move(cartesians); }
+    coords::Representation_3D const& getCartesians() const { return correspondingCartesians; }
+
+    void setInitialV0(coords::float_type const initialV0) { v0 = initialV0; }
+    
+    bool targetIsZero() const { return target == 0.0; }
+    
+    coords::float_type getTarget() const { return target; }
   
+  protected:
+    scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
+    coords::float_type getStepNorm() const { return restrictedStep.norm(); }
 
-  template<typename Gint>
-  inline scon::mathmatrix<coords::float_type> InternalToCartesianConverter::getInternalStep(Gint&& g_int, scon::mathmatrix<coords::float_type> const& hessian) {
-    return -1.*hessian.pinv()*g_int;
-  }
+    scon::mathmatrix<coords::float_type> * stepCallbackReference;//TODO make these pointers to shared pointer
+    coords::Representation_3D * cartesianCallbackReference;//TODO make these pointers to shared pointer
+    coords::float_type target;
+    scon::mathmatrix<coords::float_type> restrictedStep;
+    coords::Representation_3D correspondingCartesians;
+    coords::float_type restrictedSol, v0;
+  };
 
-  template<typename Dint>
-  inline void InternalToCartesianConverter::applyInternalChange(Dint&& d_int) {
-    using ic_util::flatten_c3_vec;
+  class StepRestrictorFactory {
+  public:
+    StepRestrictorFactory(AppropriateStepFinder & finder);
 
-    auto old_xyz = cartesianCoordinates;
-    coords::Representation_3D first_struct, last_good_xyz;
-    auto d_int_left = std::forward<Dint>(d_int);
-    auto micro_iter{ 0 }, fail_count{ 0 };
-    auto damp{ 1. };
-    auto old_inorm{ 0.0 };
-    for (; micro_iter < 50; ++micro_iter) {
-      takeCartesianStep(damp*internalCoordinates.transposeOfBmat(cartesianCoordinates)*internalCoordinates.pseudoInverseOfGmat(cartesianCoordinates)*d_int_left);
+    StepRestrictor makeStepRestrictor(coords::float_type const target);
 
-      auto d_now = internalCoordinates.calc_diff(cartesianCoordinates, old_xyz);
+  private:
+    scon::mathmatrix<coords::float_type> * const finalStep;
+    coords::Representation_3D * const finalCartesians;
+  };
 
-      auto d_int_remain = d_int_left - d_now;
-      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz - cartesianCoordinates).rmsd();
-      auto internal_norm = d_int_remain.norm();
-      //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
-      //std::cout << "internal norm: " << internal_norm << "\n\n";
-      if (micro_iter == 0) {
-        first_struct = cartesianCoordinates;
-        last_good_xyz = cartesianCoordinates;
-        old_inorm = internal_norm;
-      }
-      else {
-        if (internal_norm > old_inorm) {
-          damp /= 2.;
-          ++fail_count;
-        }
-        else {
-          fail_count = 0;
-          damp = std::min(1.2*damp, 1.);
-          old_inorm = internal_norm;
-          last_good_xyz = cartesianCoordinates;
-        }
-      }
-      if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
-        std::cout << "Took " << micro_iter << " steps to converge.\n";
-        return;
-      }
-      else if (fail_count >= 10) {
-        std::cout << "Failed ten times to converge.\n";
-        cartesianCoordinates = first_struct;
-        return;
-      }
+  class InternalToCartesianStep {
+  public:
+    InternalToCartesianStep(AppropriateStepFinder & finder, coords::float_type const trustRadius)
+      : finder{ finder }, trustRadius {trustRadius} {}
+    virtual ~InternalToCartesianStep() = default;
 
-      old_xyz = cartesianCoordinates;
-      d_int_left = std::move(d_int_remain);
-    }
-    std::cout << "Took all " << micro_iter + 1 << " steps, still not converged.\n";
-  }
+    virtual coords::float_type operator()(StepRestrictor & restrictor);
+    
+  protected:
+    AppropriateStepFinder & finder;
+    coords::float_type trustRadius;
+  };
 
+  class BrentsMethod {
+  public:
+    BrentsMethod(AppropriateStepFinder & finder, coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep)
+      : finder{ finder }, leftLimit{ leftLimit }, middle{ 0.0 }, oldMiddle{ 0.0 }, rightLimit{ rightLimit }, result{ 0.0 },
+      trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true } {}
+
+    BrentsMethod(AppropriateStepFinder & finder, coords::float_type const leftLimit, coords::float_type const rightLimit, coords::float_type const trustStep, coords::float_type const cartesianNorm)
+      : finder{ finder }, leftLimit{ leftLimit }, middle{ 0.0 }, oldMiddle{ 0.0 }, rightLimit{ rightLimit }, result{ 0.0 },
+      trustStep{ trustStep }, threshold{ 0.1 }, delta{ 1.e-6 }, bisectionWasUsed{ true }, valueLeft{ -trustStep }, valueRight{ cartesianNorm - trustStep} {}
+
+    coords::float_type operator()(InternalToCartesianStep & internalToCartesianStep);
+  protected:
+    bool useBisection()const;
+
+    AppropriateStepFinder & finder;
+    coords::float_type leftLimit, middle, oldMiddle, rightLimit, result, valueLeft, valueRight;
+    coords::float_type const trustStep;
+    coords::float_type const threshold;
+    coords::float_type const delta;
+    bool bisectionWasUsed;
+  };
+  
+  class AppropriateStepFinder {
+  public:
+    AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian) : 
+      converter{ converter }, gradients { gradients }, hessian{ hessian }, inverseHessian{ hessian.pinv() }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+
+    scon::mathmatrix<coords::float_type> const& gradients;
+    scon::mathmatrix<coords::float_type> const& hessian;
+    scon::mathmatrix<coords::float_type> inverseHessian;
+
+    virtual void appropriateStep(coords::float_type const trustRadius);
+
+    virtual coords::float_type getDeltaYPrime(scon::mathmatrix<coords::float_type> const& internalStep) const;
+    virtual coords::float_type getSol(scon::mathmatrix<coords::float_type> const& internalStep) const;
+    virtual coords::float_type getSolBestStep() const;//Test
+
+    virtual scon::mathmatrix<coords::float_type> getInternalStep() const;
+    virtual scon::mathmatrix<coords::float_type> getInternalStep(scon::mathmatrix<coords::float_type> const& hessian) const;
+
+    coords::Representation_3D & getCartesians() { return bestCartesiansSoFar; }
+
+    StepRestrictor generateStepRestrictor(coords::float_type const target);
+
+    virtual coords::float_type applyInternalChangeAndGetNorm(StepRestrictor & internalStep);
+    virtual coords::float_type applyInternalChangeAndGetNorm(scon::mathmatrix<coords::float_type> const& internalStep);
+
+    virtual scon::mathmatrix<coords::float_type> alterHessian(coords::float_type const alteration) const;
+
+
+    scon::mathmatrix<coords::float_type> && extractBestStep() { return std::move(bestStepSoFar); }
+    coords::Representation_3D && extractCartesians() { return std::move(bestCartesiansSoFar); }
+
+  protected:
+    //Constructor for Testclass
+    AppropriateStepFinder(InternalToCartesianConverter const& converter, scon::mathmatrix<coords::float_type> const& gradients, scon::mathmatrix<coords::float_type> const& hessian, scon::mathmatrix<coords::float_type> && invertedHessian) :
+      converter{ converter }, gradients{ gradients }, hessian{ hessian }, inverseHessian{ std::move(invertedHessian) }, bestStepSoFar{}, stepRestrictorFactory{ *this } {}
+
+    friend class StepRestrictorFactory;
+
+    scon::mathmatrix<coords::float_type> * getAddressOfInternalStep() { return std::addressof(bestStepSoFar); }
+    coords::Representation_3D * getAddressOfCartesians() { return std::addressof(bestCartesiansSoFar); }
+
+    InternalToCartesianConverter const& converter;
+    scon::mathmatrix<coords::float_type> bestStepSoFar;
+    coords::Representation_3D bestCartesiansSoFar;
+    StepRestrictorFactory stepRestrictorFactory;
+  };
 
   template<typename Dcart>
   coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(Dcart&& d_cart) {

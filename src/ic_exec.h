@@ -62,6 +62,7 @@ public:
             for (auto const & pic : icSystem.primitive_internals) {
               std::cout << pic->info(cp_vec) << "\n";
             }
+
 	    Optimizer optimizer(icSystem, cartesians);
             optimizer.optimize(coords);
 	    

@@ -32,6 +32,8 @@ namespace InternalCoordinates {
     std::shared_ptr<AbstractRotatorListener> rotator;
   };
   
+  class temporaryCartesian;
+
   template<typename CartesianType>
   class CartesiansForInternalCoordinatesImpl : public coords::Container<CartesianType> {
   public:
@@ -45,12 +47,21 @@ namespace InternalCoordinates {
     CartesiansForInternalCoordinatesImpl& setCartesianCoordnates(T&& newCartesianCoordinates);
 
   private:
+    friend class temporaryCartesian;
     std::vector<std::shared_ptr<AbstractGeometryObserver>> observerList;
     void notify();
   };
 
   using CartesiansForInternalCoordinates = CartesiansForInternalCoordinatesImpl<coords::Cartesian_Point>;
- 
+
+  class temporaryCartesian{
+  public:
+    temporaryCartesian(CartesiansForInternalCoordinates & cartesians) : coordinates{ cartesians },
+      stolenNotify{ [&cartesians]() { cartesians.notify(); } } {}
+    coords::Representation_3D coordinates;
+    std::function<void()> stolenNotify;
+  };
+
   inline coords::Representation_3D sliceCartesianCoordinates(CartesiansForInternalCoordinates const& cartesians, std::vector<std::size_t> const& indexVector) {
     coords::Representation_3D slicedCoordinates;
     for (auto const& index : indexVector) {

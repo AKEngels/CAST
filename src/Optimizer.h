@@ -23,7 +23,7 @@ public:
 
   Optimizer(internals::PrimitiveInternalCoordinates & internals, CartesianType const& cartesians) 
 	  : internalCoordinateSystem{ internals }, cartesianCoordinates{cartesians},
-        converter{ internalCoordinateSystem, cartesianCoordinates} {}
+    converter{ internalCoordinateSystem, cartesianCoordinates }, hessian{ internalCoordinateSystem.guess_hessian(cartesianCoordinates) }, trustRadius{ 0.1 }, expectedChangeInEnergy{ 0.0 } {}
 
   void optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords);//To Test
 
@@ -33,12 +33,16 @@ public:
   typename std::enable_if<std::is_same<Hessian, scon::mathmatrix<coords::float_type>>::value>::type
     setHessian(Hessian && newHessian) { hessian = std::forward<Hessian>(newHessian); }
   InternalCoordinates::CartesiansForInternalCoordinates const& getXyz() const { return cartesianCoordinates; }
-  
+
+  static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
+  static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
+  static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 protected:
   void initializeOptimization(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
+  void changeTrustStepIfNeccessary();
   void applyHessianChange();
   void setNewToOldVariables();
   scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
@@ -48,6 +52,12 @@ protected:
   CartesianType cartesianCoordinates;
   internals::InternalToCartesianConverter converter;
   scon::mathmatrix<coords::float_type> hessian;
+  coords::float_type trustRadius;
+  coords::float_type expectedChangeInEnergy;
+
+  static auto constexpr thre_rj = 0.01;
+  static auto constexpr badQualityThreshold = 0.25;
+  static auto constexpr goodQualityThreshold = 0.75;
   
   class ConvergenceCheck {
   public:
@@ -84,11 +94,7 @@ protected:
     coords::float_type displacementMax;
   };
 
-  static scon::mathmatrix<coords::float_type> atomsNorm(scon::mathmatrix<coords::float_type> const& norm);
-  static std::pair<coords::float_type, coords::float_type> gradientRmsValAndMax(scon::mathmatrix<coords::float_type> const& grads);
   std::pair<coords::float_type, coords::float_type> displacementRmsValAndMax()const;
-
-  static std::pair<coords::float_type, coords::float_type> displacementRmsValAndMaxTwoStructures(coords::Representation_3D const& oldXyz, coords::Representation_3D const& newXyz);
 
   struct SystemVariables {
     coords::float_type systemEnergy;
