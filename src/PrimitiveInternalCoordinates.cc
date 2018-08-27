@@ -579,18 +579,18 @@ namespace internals {
         }
       }
       if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
-        std::cout << "Took " << micro_iter << " steps to converge.\n";
+        std::cout << "Applying internal changes took " << micro_iter << " steps to converge.\n";
         return actual_xyz.coordinates;
       }
       else if (fail_count >= 10) {
-        std::cout << "Failed ten times to converge.\n";
+        std::cout << "Applying internal changes failed ten times to converge.\n";
         return first_struct;
       }
 
       old_xyz = actual_xyz;
       d_int_left = std::move(d_int_remain);
     }
-    std::cout << "Took all " << micro_iter + 1 << " steps, still not converged.\n";
+    std::cout << "Applying internal changes took all " << micro_iter + 1 << " steps, still not converged. Returning best step.\n";
     return actual_xyz.coordinates;
   }
 

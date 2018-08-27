@@ -42,9 +42,10 @@ protected:
   void setCartesianCoordinatesForGradientCalculation(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   void evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
-  void changeTrustStepIfNeccessary();
+  bool changeTrustStepIfNeccessary();
   void applyHessianChange();
   void setNewToOldVariables();
+  void resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   scon::mathmatrix<coords::float_type> getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords);
   
   

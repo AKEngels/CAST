@@ -85,9 +85,12 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
     evaluateNewCartesianStructure(coords);
 
     auto cartesianGradients = getInternalGradientsButReturnCartesianOnes(coords);
-
-    changeTrustStepIfNeccessary();
-
+    std::cout << "Trust Radius: " << trustRadius << std::endl;
+    if(changeTrustStepIfNeccessary()) {
+      resetStep(coords);
+      continue;
+    }
+    
     applyHessianChange();
 
     if (ConvergenceCheck{ i + 1,cartesianGradients,*this }()) {
@@ -97,7 +100,9 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
     //output.to_stream(std::cout);
 
     setNewToOldVariables();
-    std::ofstream stepStream("StructureInCycle" + std::to_string(i+1u) + ".xyz");
+    std::stringstream ss;
+    ss << "StructureInCycle" << std::setfill('0') << std::setw(5) << i+1u << ".xyz";
+    std::ofstream stepStream(ss.str());
  
     output.to_stream(stepStream);
   }
@@ -130,6 +135,11 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
   oldVariables->systemGradients = converter.calculateInternalGradients(cartesianGradients);
 }
 
+void Optimizer::resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
+  cartesianCoordinates.setCartesianCoordnates(oldVariables->systemCartesianRepresentation);
+  coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
+}
+		  
 void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
   
   internals::AppropriateStepFinder stepFinder(converter, oldVariables->systemGradients, hessian);
@@ -141,16 +151,30 @@ void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::inp
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
 
-void Optimizer::changeTrustStepIfNeccessary() {
-  auto quality = (currentVariables.systemEnergy - oldVariables->systemEnergy) / expectedChangeInEnergy;
-  if (quality < badQualityThreshold) {
-    trustRadius = std::max(0.0012, trustRadius / 2.);
-    std::cout << "I am bad. Trust Radius now: " << trustRadius << "\n";
-  }
-  else if(quality < goodQualityThreshold){
+bool Optimizer::changeTrustStepIfNeccessary() {
+  auto differenceInEnergy = currentVariables.systemEnergy - oldVariables->systemEnergy;
+  auto quality = (differenceInEnergy) / expectedChangeInEnergy;
+  std::cout << "E: " << std::setprecision(10) << currentVariables.systemEnergy << 
+	  " Eprev: " << std::setprecision(10) << oldVariables->systemEnergy << 
+	  " Expect: " << std::setprecision(10) << expectedChangeInEnergy << 
+	  " Quality: " << std::setprecision(10) << quality << std::endl;
+  
+  if(quality > goodQualityThreshold){
     trustRadius = std::min(0.3, trustRadius * std::sqrt(2.));
     std::cout << "I am good. Trust Radius now: " << trustRadius << "\n";
   }
+  else if(quality < -1. && currentVariables.systemEnergy > oldVariables->systemEnergy && trustRadius > thre_rj){
+    trustRadius = std::max(0.0012, trustRadius / 2.);
+    auto cartesianNorm = displacementRmsValAndMax().first;
+    
+    trustRadius = std::max(0.0012, std::min(trustRadius, cartesianNorm/2.));
+    return true;
+  }
+  else if (quality < badQualityThreshold) {
+    trustRadius = std::max(0.0012, trustRadius / 2.);
+    std::cout << "I am bad. Trust Radius now: " << trustRadius << "\n";
+  }
+  return false;
 }
 
 scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCartesianOnes(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
