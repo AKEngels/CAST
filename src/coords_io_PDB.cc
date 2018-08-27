@@ -24,184 +24,322 @@ struct residue
   std::string terminal;
 };
 
-/**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
-@param atom_name: atom name from pdb file
-@param res_name: residue name from pdb file*/
-int find_at_sidechain(std::string atom_name, std::string res_name)
+/**function to build up a vector with the element symbols of the bonding partners of an atom
+@param a: atom
+@param atoms: vector of atoms (needed to get the element symbol)*/
+std::vector<std::string> get_bonding_symbols(coords::Atom &a, coords::Atoms &atoms)
 {
+	std::vector<std::string> result;
+	for (auto b : a.bonds())
+	{
+		result.push_back(atoms.atom(b).symbol());
+	}
+	return result;
+}
+
+/**finds and returns atom type for atoms in protein sidechain (OPLSAA forcefield)
+@param a: atom for which the parameter should be found
+@param res_name: residue name from pdb file
+@param atoms: vector of atoms*/
+int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &atoms)
+{
+  std::string element = a.symbol();  // element symbol
+
   if (res_name == "ALA")
   {
-    if (atom_name.substr(0, 1) == "C") return 80;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "C") return 80;
+    else if (element == "H") return 85;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
-  else if (res_name == "PRO")
+  else if (res_name == "PRO")       
   {
-    if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name == "CD") return 187;
-    else if (atom_name.substr(0, 1) == "C") return 81;
+    std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
+    std::cout << "If you want to implement this residue take a look at HIE.\n";
+    return 0;
+  //  if (element == "H") return 85;
+  //  else if (atom_name == "CD") return 187;
+  //  else if (atom_name.substr(0, 1) == "C") return 81;
+  //  else
+  //  {
+  //    std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+  //    return 0;
+  //  }
+  }
+  else if (res_name == "VAL" || res_name == "LEU" || res_name == "ILE")
+  {
+    if (element == "H") return 85;
+    else if (element == "C")
+    {
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+      if (count_element("C", bonding_symbols) == 3 && count_element("H", bonding_symbols) == 1)
+      {
+			  return 82;
+      }
+			else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2)
+			{
+			  return 81;
+			}
+			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 3)
+			{
+				return 80;
+			}
+			else std::cout << "Something went wrong in residue " << res_name << " with atom " << element << ".\nNo atom type assigned.\n";
+    }
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
-  else if (res_name == "VAL")
+  else if (res_name == "ASP" || res_name == "GLU")
   {
-    if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name == "CB") return 82;
-    else if (atom_name.substr(0, 1) == "C") return 80;
+    if (element == "H") return 85;
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (is_in("O", bonding_symbols)) return 213;
+			else return 81;
+		}
+    else if (element == "O") return 214;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "ASP")
-  {
-    if (atom_name == "HA" || atom_name.substr(0, 2) == "HB") return 85;
-    else if (atom_name == "CB") return 81;
-    else if (atom_name.substr(0, 1) == "C") return 213;
-    else if (atom_name.substr(0, 1) == "O") return 214;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "TRP")
   {
-    if (atom_name == "CD1") return 455;
-    else if (atom_name.substr(0, 2) == "CD") return 442;
-    else if (atom_name == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "CG") return 441;
-    else if (atom_name.substr(0, 3) == "CE2") return 443;
-    else if (atom_name.substr(0, 1) == "N") return 444;
-    else if (atom_name.substr(0, 3) == "HE1") return 445;
-    else if (atom_name.substr(0, 2) == "HB" || atom_name.substr(0, 2) == "HA") return 85;
-    else if (atom_name.substr(0, 1) == "H") return 91;
-    else if (atom_name.substr(0, 1) == "C") return 90;
+		if (element == "N") return 444;
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "N") return 445;
+			else if (bonding_partner.symbol() == "C")
+			{
+				if (bonding_partner.bonds().size() == 3) return 91;
+				else return 85;
+			}
+			else
+			{
+				std::cout << "Wrong bonding partner for " << element << " in residue " << res_name << "\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (bonding_symbols.size() == 4) return 81;
+			else   // 3 bonding partners
+			{
+				if (count_element("C", bonding_symbols) == 2 && count_element("N", bonding_symbols) == 1) return 443;
+				else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) return 90;
+				else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 1 && count_element("N", bonding_symbols) == 1) return 455;
+				else
+				{
+					for (auto b : a.bonds())
+					{
+						std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
+						if (count_element("C", bbonds) == 3) {}
+						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 2) return 442;
+						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1) return 441;
+						else if (count_element("C", bbonds) == 2 && count_element("N", bbonds) == 1) return 442;
+						else if (count_element("C", bbonds) == 1 && count_element("N", bbonds) == 1 && count_element("H", bbonds) == 1) return 441;
+						else
+						{
+							std::cout << "Something went wrong with element " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+							return 0;
+						}
+					}
+				}
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "ARG")
   {
-    if (atom_name.substr(0, 2) == "CD") return 250;
-    else if (atom_name.substr(0, 2) == "CG") return 251;
-    else if (atom_name.substr(0, 2) == "CZ") return 245;
-    else if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "NH") return 243;
-    else if (atom_name.substr(0, 2) == "NE") return 246;
-    else if (atom_name.substr(0, 2) == "HE") return 247;
-    else if (atom_name.substr(0, 2) == "HH") return 244;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+		if (element == "N")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) return 246;
+			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2) return 243;
+			else
+			{
+				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "C") return 85;
+			else if (bonding_partner.symbol() == "N")
+			{
+				std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(a.bonds()[0]), atoms);
+				if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1) return 247;
+				else if (count_element("C", bbonds) == 1 && count_element("H", bbonds) == 2) return 244;
+				else
+				{
+					std::cout << "Something went wrong with " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+					return 0;
+				}
+			}
+			else
+			{
+				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (bonding_symbols.size() == 3) return 245;
+			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("N", bonding_symbols) == 1) return 250;
+			else
+			{
+				for (auto b : a.bonds())
+				{
+					if (atoms.atom(b).symbol() == "C")
+					{
+						std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
+						if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 2) {}
+						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1 && count_element("N", bbonds) == 1) return 81;
+						else if (count_element("C", bbonds) == 1 && count_element("H", bbonds) == 2 && count_element("N", bbonds) == 1) return 251;
+						else
+						{
+							std::cout << "Something went wrong with " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+							return 0;
+						}
+					}
+				}
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "GLU")
-  {
-    if (atom_name.substr(0, 2) == "OE") return 214;
-    else if (atom_name.substr(0, 2) == "CD") return 213;
-    else if (atom_name.substr(0, 1) == "C") return 81;
-    else if (atom_name.substr(0, 2) == "HB" || atom_name.substr(0, 2) == "HG" || atom_name.substr(0, 2) == "HA") return 85;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "LYS")
   {
-    if (atom_name.substr(0, 1) == "N") return 230;
-    else if (atom_name.substr(0, 2) == "HZ") return 233;
-    else if (atom_name.substr(0, 2) == "CE") return 236;
-    else if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name.substr(0, 1) == "C") return 81;
+		if (element == "N") return 230;
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (is_in("N", bonding_symbols)) return 236;
+			else return 81;
+		}
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "N") return 233;
+			else if (bonding_partner.symbol() == "C") return 85;
+			else
+			{
+				std::cout << "Wrong binding partner for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "GLY")
   {
-    if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "H") return 85;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
-  else if (res_name == "THR")
+  else if (res_name == "THR" || res_name == "SER")
   {
-    if (atom_name.substr(0, 1) == "O") return 96;
-    else if (atom_name.substr(0, 3) == "HG1") return 97;
-    else if (atom_name.substr(0, 2) == "CB") return 99;
-    else if (atom_name.substr(0, 2) == "CG") return 80;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "O") return 96;
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "O") return 97;
+			else if (bonding_partner.symbol() == "C") return 85;
+			else
+			{
+				std::cout << "Wrong binding partner for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 3) return 80;
+			else if (count_element("C", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) return 115;
+			else if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1 && count_element("O", bonding_symbols) == 1) return 99;
+			else
+			{
+				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
-  else if (res_name == "GLN")
+  else if (res_name == "GLN" || res_name == "ASN")
   {
-    if (atom_name.substr(0, 1) == "O") return 178;
-    else if (atom_name.substr(0, 1) == "N") return 179;
-    else if (atom_name.substr(0, 2) == "HE") return 182;
-    else if (atom_name.substr(0, 2) == "CD") return 177;
-    else if (atom_name.substr(0, 1) == "C") return 81;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "O") return 178;
+    else if (element == "N") return 179;
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (is_in("N", bonding_symbols)) return 177;
+			else return 81;
+		}
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "N") return 182;
+			else if (bonding_partner.symbol() == "C") return 85;
+			else
+			{
+				std::cout << "Wrong binding partner for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "ASN")
-  {
-    if (atom_name.substr(0, 1) == "O") return 178;
-    else if (atom_name.substr(0, 1) == "N") return 179;
-    else if (atom_name.substr(0, 2) == "HD") return 182;
-    else if (atom_name.substr(0, 2) == "CG") return 177;
-    else if (atom_name.substr(0, 1) == "C") return 81;
-    else if (atom_name.substr(0, 1) == "H") return 85;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "CYX")  // disulfide
   {
-    if (atom_name.substr(0, 1) == "S") return 145;
-    else if (atom_name.substr(0, 1) == "C") return 156;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "S") return 145;
+    else if (element == "C") return 156;
+    else if (element == "H") return 85;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "CYP")  // bound to ligand
   {
-    if (atom_name.substr(0, 1) == "S") return 144;
-    else if (atom_name.substr(0, 1) == "C") return 156;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "S") return 144;
+    else if (element == "C") return 156;
+    else if (element == "H") return 85;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
@@ -211,111 +349,126 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
     {
       std::cout << "Warning! Residue " << res_name << " can't be parametrized with OPLSAA. Taken parameters for CYS instead.\n";
     }
-    if (atom_name.substr(0, 1) == "S") return 142;
-    else if (atom_name.substr(0, 1) == "C") return 148;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+    if (element == "S") return 142;
+    else if (element == "C") return 148;
+    else if (element == "H") return 85;
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
-  else if (res_name == "SER")
+  else if (res_name == "PHE" || res_name == "THR")
   {
-    if (atom_name.substr(0, 1) == "O") return 96;
-    else if (atom_name.substr(0, 1) == "C") return 115;
-    else if (atom_name.substr(0, 2) == "HG") return 97;
-    else if (atom_name.substr(0, 1) == "H") return 85;
+		if (element == "O") return 109;
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 81;
+			else if (count_element("C", bonding_symbols) == 2 && count_element("O", bonding_symbols) == 1) return 108;
+			else if ((count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) || count_element("C", bonding_symbols) == 3) return 90;
+			else
+			{
+				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
+		else if (element == "H")
+		{
+			auto bonding_partner = atoms.atom(a.bonds()[0]);
+			if (bonding_partner.symbol() == "O") return 110;
+			else if (bonding_partner.symbol() == "C")
+			{
+				if (bonding_partner.bonds().size() == 3) return 91;
+				else return 85;
+			}
+			else
+			{
+				std::cout << "Wrong binding partner for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "PHE")
-  {
-    if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
-    else if (atom_name.substr(0, 1) == "C") return 90;
-    else if (atom_name.substr(0, 1) == "H") return 91;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "TYR")
-  {
-    if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
-    else if (atom_name.substr(0, 1) == "O") return 109;
-    else if (atom_name.substr(0, 2) == "CZ") return 108;
-    else if (atom_name.substr(0, 2) == "HH") return 110;
-    else if (atom_name.substr(0, 1) == "C") return 90;
-    else if (atom_name.substr(0, 1) == "H") return 91;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "ILE")
-  {
-    if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name.substr(0, 2) == "CB") return 82;
-    else if (atom_name == "CG1") return 81;
-    else if (atom_name.substr(0, 1) == "C") return 80;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }
-  }
-  else if (res_name == "LEU")
-  {
-    if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "CG") return 82;
-    else if (atom_name.substr(0, 2) == "CD") return 80;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "MET")
   {
-    if (atom_name.substr(0,1) == "S") return 144;
-    else if (atom_name.substr(0, 1) == "H") return 85;
-    else if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "CG") return 152;
-    else if (atom_name.substr(0, 2) == "CE") return 151;
+    if (element == "S") return 144;
+    else if (element == "H") return 85;
+		else if (element == "C")
+		{
+			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 81;
+			else if (count_element("S", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 3) return 151;
+			else if (count_element("S", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 2 && count_element("C", bonding_symbols) == 1) return 152;
+			else
+			{
+				std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+				return 0;
+			}
+		}
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "HIE")
   {
-    if (atom_name.substr(0, 2) == "NE") return 444;
-    else if (atom_name.substr(0, 3) == "HE2" || atom_name.substr(0, 3) == "HD1") return 445;
-    else if (atom_name.substr(0, 2) == "CE") return 447;
-    else if (atom_name.substr(0, 2) == "CG") return 448;
-    else if (atom_name.substr(0, 2) == "CD") return 449;
-    else if (atom_name.substr(0, 2) == "ND") return 452;
-    else if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
-    else if (atom_name.substr(0, 2) == "HD" || atom_name.substr(0, 2) == "HE") return 91;
+    if (element == "H")
+    {
+      auto bonding_partner = atoms.atom(a.bonds()[0]);
+      if (bonding_partner.symbol() == "N") return 445;
+      else if (bonding_partner.symbol() == "C")
+      {
+        if (bonding_partner.bonds().size() == 3) return 91;
+        else return 85;
+      }
+      else
+      {
+        std::cout << "Wrong binding partner for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+        return 0;
+      }
+    }
+    if (element == "N")
+    {
+      std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+      if (bonding_symbols.size() == 3) return 444;
+      else if (bonding_symbols.size() == 2) return 452;
+      else
+      {
+        std::cout << "Wrong number of binding partners for element " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+        return 0;
+      }
+    }
+    if (element == "C")
+    {
+      std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+      if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 81;
+      else if (count_element("C", bonding_symbols) == 2 && count_element("N", bonding_symbols) == 1) return 448;
+      else if (count_element("N", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) return 447;
+      else if (count_element("C", bonding_symbols) == 1 && count_element("N", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 1) return 449;
+      else
+      {
+        std::cout << "Wrong binding partners for " << element << " in residue " << res_name << ".\nNo atom type assigned.\n";
+        return 0;
+      }
+    }
     else
     {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
       return 0;
     }
   }
   else if (res_name == "HIP")
   {
-    if (atom_name.substr(0, 2) == "CE") return 450;
+    std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
+    std::cout << "If you want to implement this residue take a look at HIE.\n";
+    return 0;
+    /*if (atom_name.substr(0, 2) == "CE") return 450;
     else if (atom_name.substr(0, 2) == "CG" || atom_name.substr(0, 2) == "CD") return 451;
     else if (atom_name.substr(0, 2) == "ND" || atom_name.substr(0, 2) == "NE") return 453;
     else if (atom_name == "HD1" || atom_name == "HE2") return 454;
@@ -326,7 +479,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
     {
       std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
       return 0;
-    }
+    }*/
   }
   else if (res_name == "CYS")
   {
@@ -337,7 +490,7 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
   else if (res_name == "HIS" || res_name == "HID")
   {
     std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
-    std::cout << "If you want to implement this residue take a look at HIE or HIP.\n";
+    std::cout << "If you want to implement this residue take a look at HIE.\n";
     return 0;
   }
   else
@@ -347,12 +500,16 @@ int find_at_sidechain(std::string atom_name, std::string res_name)
   }
 }
 
-/**function that assigns atom types (oplsaa) to atoms of protein backbone
-@param atom_name: atom name from pdb file
+/**function that assigns atom types (oplsaa) to atoms
+@param a: atom
 @param res_name: residue name from pdb file
-@param terminal: is residue N-terminal, C-terminal or not?*/
-int find_energy_type(std::string atom_name, std::string res_name, std::string terminal)
+@param terminal: is residue N-terminal, C-terminal or not?
+@param atoms: vector of atoms*/
+int find_energy_type(coords::Atom &a, std::string terminal, coords::Atoms &atoms)
 {
+  std::string atom_name = a.get_pdb_atom_name();
+  std::string res_name = a.get_residue();
+
   if (is_in(res_name, RESIDUE_NAMES))  // protein
   {
     if (terminal == "no")
@@ -364,7 +521,7 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
       else if (atom_name == "O") return 178;  // amid O 
       else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
       else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom
-      else return find_at_sidechain(atom_name,res_name);
+      else return find_at_sidechain(a,res_name, atoms);
     }
     else if (terminal == "C")
     {
@@ -375,7 +532,7 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
       else if (atom_name == "O" || atom_name == "OXT") return 214;  // C-terminal O
       else if (atom_name == "CA" && res_name != "GLY") return 166; // alpha C atom 
       else if (atom_name == "CA" && res_name == "GLY") return 165; // alpha C atom 
-      else return find_at_sidechain(atom_name, res_name);
+      else return find_at_sidechain(a, res_name, atoms);
     }
     else if (terminal == "N")
     {
@@ -393,7 +550,7 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
         return 0;
       }
       else if (atom_name.substr(0, 1) == "H" && isdigit(atom_name.substr(1, 1))) return 233; // terminal H(N)      
-      else return find_at_sidechain(atom_name, res_name);
+      else return find_at_sidechain(a, res_name, atoms);
     }
     else
     {
@@ -582,7 +739,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
     {
       std::cout << "Atom " << a.symbol() << " belongs to residue " << a.get_residue() << " that is terminal: " << residues[a.get_res_id() - 1].terminal << "\n";
     }
-    int et = find_energy_type(a.get_pdb_atom_name(), a.get_residue(), residues[a.get_res_id() - 1].terminal);
+    int et = find_energy_type(a, residues[a.get_res_id() - 1].terminal, atoms);
     if (et == 0 && Config::get().general.energy_interface == config::interface_types::T::OPLSAA)
     {
       std::cout << "Assigment of atom types failed. Please use another energy interface.\n";

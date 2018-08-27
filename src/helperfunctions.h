@@ -215,4 +215,13 @@ std::vector<IntType> range(IntType stop, IntType start=0, IntType step=1)
 	return result;
 }
 
+/**function to count an element in a vector
+@param e: element that should be counted
+@param vec: vector in which should be counted*/
+template <typename T, typename U>
+int count_element(T const &e, std::vector<U> const &vec)
+{
+	return std::count(vec.begin(), vec.end(), e);
+}
+
 #endif

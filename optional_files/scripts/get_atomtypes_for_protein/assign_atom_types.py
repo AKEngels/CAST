@@ -337,7 +337,7 @@ class Segment:
                             elif bbonds.count("C") == 2 and bbonds.count("H") == 1:
                                 types[a] = 442
                             elif bbonds.count("C") == 2 and bbonds.count("N") == 1:
-                                types[a] = 441
+                                types[a] = 442
                             else:
                                 print "something went wrong with C in Trp"
                 else:
