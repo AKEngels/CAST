@@ -427,7 +427,7 @@ int find_energy_type(std::string atom_name, std::string res_name, std::string te
   }
 }
 
-/**finds element symbol and energy type
+/**finds element symbol
 @param atom_name: atom name from pdb file
 @param res_name: residue name from pdb file
 returns element symbol*/
@@ -472,7 +472,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
 		(Config::get().general.energy_interface == config::interface_types::T::CHARMM22))
 	{
 		std::cout << "ERROR: It is not possible to use PDB files with that interface because wrong atom types are assigned!\n";
-		if (Config::get().general.task == config::tasks::WRITE_TINKER)
+		if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::WRITE_GAUSSVIEW)
 		{
 			std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
 		}
@@ -586,7 +586,7 @@ coords::Coordinates coords::input::formats::pdb::read(std::string file)
     if (et == 0 && Config::get().general.energy_interface == config::interface_types::T::OPLSAA)
     {
       std::cout << "Assigment of atom types failed. Please use another energy interface.\n";
-      if (Config::get().general.task == config::tasks::WRITE_TINKER)
+      if (Config::get().general.task == config::tasks::WRITE_TINKER || Config::get().general.task == config::tasks::WRITE_GAUSSVIEW)
       {
         std::cout << "Yes, I know you just want to write a tinkerstructure and you don't need any energies. But it doesn't work like this. So just use GAUSSIAN or MOPAC as energy interface and all will be fine (even if you don't have access to any of these programmes).\n";
       }
