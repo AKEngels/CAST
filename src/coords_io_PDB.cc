@@ -57,17 +57,18 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
   }
   else if (res_name == "PRO")       
   {
-    std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
-    std::cout << "If you want to implement this residue take a look at HIE.\n";
-    return 0;
-  //  if (element == "H") return 85;
-  //  else if (atom_name == "CD") return 187;
-  //  else if (atom_name.substr(0, 1) == "C") return 81;
-  //  else
-  //  {
-  //    std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-  //    return 0;
-  //  }
+    if (element == "H") return 85;
+    else if (element == "C")
+    {
+      std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
+      if (is_in("N", bonding_symbols)) return 187;
+      else return 81;
+    }
+    else
+    {
+      std::cout << "Strange atom in residue " << res_name << ": " << element << "\nNo atom type assigned.\n";
+      return 0;
+    }
   }
   else if (res_name == "VAL" || res_name == "LEU" || res_name == "ILE")
   {
@@ -358,7 +359,7 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
       return 0;
     }
   }
-  else if (res_name == "PHE" || res_name == "THR")
+  else if (res_name == "PHE" || res_name == "TYR")
   {
 		if (element == "O") return 109;
 		else if (element == "C")
@@ -463,31 +464,14 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
       return 0;
     }
   }
-  else if (res_name == "HIP")
-  {
-    std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
-    std::cout << "If you want to implement this residue take a look at HIE.\n";
-    return 0;
-    /*if (atom_name.substr(0, 2) == "CE") return 450;
-    else if (atom_name.substr(0, 2) == "CG" || atom_name.substr(0, 2) == "CD") return 451;
-    else if (atom_name.substr(0, 2) == "ND" || atom_name.substr(0, 2) == "NE") return 453;
-    else if (atom_name == "HD1" || atom_name == "HE2") return 454;
-    else if (atom_name.substr(0, 2) == "HD" || atom_name.substr(0, 2) == "HE") return 91;
-    else if (atom_name.substr(0, 2) == "CB") return 81;
-    else if (atom_name.substr(0, 2) == "HA" || atom_name.substr(0, 2) == "HB") return 85;
-    else
-    {
-      std::cout << "Strange atom in residue " << res_name << ": " << atom_name << "\nNo atom type assigned.\n";
-      return 0;
-    }*/
-  }
+
   else if (res_name == "CYS")
   {
     std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
     std::cout << "If you want to implement this residue take a look at CYM.\n";
     return 0;
   }
-  else if (res_name == "HIS" || res_name == "HID")
+  else if (res_name == "HIS" || res_name == "HID" || res_name == "HIP")
   {
     std::cout << "Residue " << res_name << " not implemented yet. No atom types assigned.\n";
     std::cout << "If you want to implement this residue take a look at HIE.\n";
