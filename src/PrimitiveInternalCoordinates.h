@@ -177,6 +177,17 @@ namespace internals {
     void takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const;
   };
 
+  class RandomNumberForHessianAlteration{
+  public:
+    RandomNumberForHessianAlteration() : engine{std::random_device()()}, distribution(0.0,1.0){}
+    coords::float_type getRandomNumberBetweenZeroAndOne() {
+      return distribution(engine);
+    }
+  private:
+    std::mt19937 engine;
+    std::uniform_real_distribution<coords::float_type> distribution;
+  };
+
   class AppropriateStepFinder;
 
   class StepRestrictor {
@@ -202,6 +213,7 @@ namespace internals {
   
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
+    coords::float_type randomizeAlteration(std::size_t const step);
     coords::float_type getStepNorm() const { return restrictedStep.norm(); }
 
     scon::mathmatrix<coords::float_type> * stepCallbackReference;//TODO make these pointers to shared pointer

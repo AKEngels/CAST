@@ -72,17 +72,13 @@ bool Optimizer::ConvergenceCheck::operator()() {
   return checkConvergence();
 }
 
-/*class cartesianToInternalNormHelper {
-public:
-  cartesianToInternalNormHelper();
-  coords::float_type getDiffOfCartesianAndInternalNorm(coords::float_type const internalNorm) {
-
-  }
-};*/
-
 void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & coords) {
 
   initializeOptimization(coords);
+  coords::output::formats::xyz output(coords);
+  std::ofstream initialStream("InitialStucture.xyz");
+
+  output.to_stream(initialStream);
 
   for (auto i = 0; i< 100; ++i) {
 
@@ -101,8 +97,12 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
     //output.to_stream(std::cout);
 
     setNewToOldVariables();
-
+    std::ofstream stepStream("StructureInCycle" + std::to_string(i+1u) + ".xyz");
+ 
+    output.to_stream(stepStream);
   }
+  std::ofstream ofs("FinalStruct.xyz");
+  output.to_stream(ofs);
   /*std::cout << "Final Structure: \n\n";
   output.to_stream(std::cout);
   std::ofstream ofs("Conf_struc.txyz");
@@ -148,7 +148,7 @@ void Optimizer::changeTrustStepIfNeccessary() {
     std::cout << "I am bad. Trust Radius now: " << trustRadius << "\n";
   }
   else if(quality < goodQualityThreshold){
-    trustRadius = std::max(0.3, trustRadius / std::sqrt(2));
+    trustRadius = std::min(0.3, trustRadius * std::sqrt(2.));
     std::cout << "I am good. Trust Radius now: " << trustRadius << "\n";
   }
 }

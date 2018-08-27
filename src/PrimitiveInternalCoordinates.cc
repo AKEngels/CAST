@@ -372,20 +372,37 @@ namespace internals {
     return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
   }
 
+  coords::float_type StepRestrictor::randomizeAlteration(std::size_t const step){
+    static RandomNumberForHessianAlteration randomNumberForHessianAlteration;
+    v0 += randomNumberForHessianAlteration.getRandomNumberBetweenZeroAndOne() * static_cast<coords::float_type>(step) / 100.;
+  }
+
   coords::float_type StepRestrictor::operator()(AppropriateStepFinder & finder){
     restrictedStep = finder.getInternalStep();
     auto deltaYPrime = finder.getDeltaYPrime(restrictedStep);
+    auto lastInternalNorm = 0.0;
     auto internalStepNorm = getStepNorm();
-    for (auto i = 0u; i < 1000; ++i) {
+    auto i = 0u;
+    for (; i < 1000; ++i) {
       v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYPrime);
       restrictedStep = finder.getInternalStep(finder.alterHessian(v0));
-      deltaYPrime = finder.getDeltaYPrime(restrictedStep);
       internalStepNorm = getStepNorm();
       if (std::fabs(internalStepNorm - target) / target < 0.001) {
         return restrictedSol = finder.getSol(restrictedStep);
       }
+      else if(i>10 && ((std::fabs(lastInternalNorm - internalStepNorm) / internalStepNorm)<0.001)){
+        return restrictedSol = finder.getSol(restrictedStep);
+      }
+      else if((i+1u) % 100u == 0){
+	std::cout << "Trust Step did not converge after " << i+1 << " steps. Starting to randomize.\n";
+	randomizeAlteration(i);
+      }
+      deltaYPrime = finder.getDeltaYPrime(restrictedStep);
+      lastInternalNorm = internalStepNorm;
     }
-    throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
+    std::cout << "Took over 1000 steps to retrict the trust step. Breaking up optimization and return current value.\n";
+    return restrictedSol = finder.getSol(restrictedStep);
+    //throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 
   coords::float_type InternalToCartesianStep::operator()(StepRestrictor & restrictor){
