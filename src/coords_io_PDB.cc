@@ -145,8 +145,8 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 					{
 						std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
 						if (count_element("C", bbonds) == 3) {}
-						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 2) return 442;
-						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1) return 441;
+						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 2) return 441;
+						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1) return 442;
 						else if (count_element("C", bbonds) == 2 && count_element("N", bbonds) == 1) return 442;
 						else if (count_element("C", bbonds) == 1 && count_element("N", bbonds) == 1 && count_element("H", bbonds) == 1) return 441;
 						else
