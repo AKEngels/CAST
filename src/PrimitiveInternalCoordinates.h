@@ -213,7 +213,7 @@ namespace internals {
   
   protected:
     scon::mathmatrix<coords::float_type> alterHessian(scon::mathmatrix<coords::float_type> const & hessian, coords::float_type const alteration) const;
-    coords::float_type randomizeAlteration(std::size_t const step);
+    void randomizeAlteration(std::size_t const step);
     coords::float_type getStepNorm() const { return restrictedStep.norm(); }
 
     scon::mathmatrix<coords::float_type> * stepCallbackReference;//TODO make these pointers to shared pointer

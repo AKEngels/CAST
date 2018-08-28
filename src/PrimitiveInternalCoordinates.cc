@@ -372,7 +372,7 @@ namespace internals {
     return hessian + alteration * scon::mathmatrix<coords::float_type>::identity(hessian.rows(), hessian.cols());
   }
 
-  coords::float_type StepRestrictor::randomizeAlteration(std::size_t const step){
+  void StepRestrictor::randomizeAlteration(std::size_t const step){
     static RandomNumberForHessianAlteration randomNumberForHessianAlteration;
     v0 += randomNumberForHessianAlteration.getRandomNumberBetweenZeroAndOne() * static_cast<coords::float_type>(step) / 100.;
   }
