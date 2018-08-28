@@ -784,11 +784,11 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
 void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const endline) const
 {
   S << '\n';
-  S << std::right << std::setw(24) << qm_energy;
-  S << std::right << std::setw(24) << mm_energy;
-  S << std::right << std::setw(24) << vdw_energy;
-  S << std::right << std::setw(24) << bonded_energy;
-  S << std::right << std::setw(24) << energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << vdw_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << bonded_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }
 
