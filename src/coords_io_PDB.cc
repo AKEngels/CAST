@@ -88,7 +88,11 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 			{
 				return 80;
 			}
-			else std::cout << "Something went wrong in residue " << res_name << " with atom " << element << ".\nNo atom type assigned.\n";
+      else
+      {
+        std::cout << "Something went wrong in residue " << res_name << " with atom " << element << ".\nNo atom type assigned.\n";
+        return 0;
+      }
     }
     else
     {
@@ -144,7 +148,7 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 					for (auto b : a.bonds())
 					{
 						std::vector<std::string> bbonds = get_bonding_symbols(atoms.atom(b), atoms);
-						if (count_element("C", bbonds) == 3) {}
+            if (count_element("C", bbonds) == 3) {}
 						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 2) return 441;
 						else if (count_element("C", bbonds) == 2 && count_element("H", bbonds) == 1) return 442;
 						else if (count_element("C", bbonds) == 2 && count_element("N", bbonds) == 1) return 442;
@@ -482,6 +486,10 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
     std::cout << "ERROR in assigning atom types!!! Residue name: "<<res_name<<". This should not happen.\n";
     return 0;
   }
+
+  std::cout << "This function is not expected to reach this point. Something seems to have gone wrong.\n";
+  std::cout << "Residue: " << res_name << ", element: " << element << "\n";
+  return 0;
 }
 
 /**function that assigns atom types (oplsaa) to atoms
