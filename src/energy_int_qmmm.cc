@@ -719,12 +719,12 @@ coords::float_type energy::interfaces::qmmm::QMMM::h()
 
 coords::float_type energy::interfaces::qmmm::QMMM::o()
 {
-  throw std::runtime_error("QMMM cannot optimize");
+  throw std::runtime_error("QMMM-cannot optimize");
 }
 
 std::vector<coords::float_type> energy::interfaces::qmmm::QMMM::charges() const
 {
-	std::vector<double> qm_charge_vector;                                     // vector with all charges of QM atoms
+	std::vector<double> qm_charge_vector;                                   // vector with all charges of QM atoms
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();  // vector with all charges of MM atoms
 	qm_charge_vector = qmc.energyinterface()->charges(); // still link atoms in it
 	for (auto i = 0u; i < link_atoms.size(); ++i)
@@ -796,7 +796,7 @@ void energy::interfaces::qmmm::QMMM::to_stream(std::ostream &S) const
 {
   S << '\n';
   interface_base::to_stream(S);
-  throw std::runtime_error("function not implemented");
+  throw std::runtime_error("no QMMM-function yet");
 }
 
 bool energy::interfaces::qmmm::QMMM::check_bond_preservation(void) const
