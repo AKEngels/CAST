@@ -164,7 +164,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 			mm_energy_big = mmc_big.g();
 			new_grads = mmc_big.g_xyz();
 		}
-		if (mmc_big.integrity() == false) integrity = false;
+		if (mm_energy_big == 0) integrity = false;
 		if (Config::get().general.verbosity > 4)
 		{
 			std::cout << "Energy of big MM system: \n";
@@ -260,7 +260,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 			}
 		}
-		if (qmc.integrity() == false) integrity = false;
+		if (qm_energy == 0) integrity = false;
 
 		if (Config::get().general.verbosity > 4)
 		{
@@ -322,7 +322,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 			}
 		}
-    if (mmc_small.integrity() == false) integrity = false;
+    if (mm_energy_small == 0) integrity = false;
 
 		if (Config::get().general.verbosity > 4)
 		{
