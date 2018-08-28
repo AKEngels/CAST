@@ -64,12 +64,12 @@ at http://ambermd.org/
    ##                                                 ##
    ##  TINKER Atom Class Numbers to Amber Atom Types  ##
    ##                                                 ##
-   ##    1  CT      11  CN      21  OW      31  HO    ##
+   ##    1  1      11  CN      21  OW      31  HO    ##
    ##    2  C       12  CK      22  OH      32  HS    ##
-   ##    3  CA      13  CQ      23  OS      33  HA    ##
-   ##    4  CM      14  N       24  O       34  HC    ##
+   ##    3  3      13  CQ      23  OS      33  HA    ##
+   ##    4  CM      14 14      24 24      34  34    ##
    ##    5  CC      15  NA      25  O2      35  H1    ##
-   ##    6  CV      16  NB      26  S       36  H2    ##
+   ##    6  CV      16  NB      26 26      36  H2    ##
    ##    7  CW      17  NC      27  SH      37  H3    ##
    ##    8  CR      18  N*      28  P       38  HP    ##
    ##    9  CB      19  N2      29  H       39  H4    ##
@@ -78,151 +78,151 @@ at http://ambermd.org/
    #####################################################
 
 
-atom          1   14    N     "Glycine N"                    7    14.010    3
-atom          2    1    CT    "Glycine CA"                   6    12.010    4
+atom          1   14   14    "Glycine N"                    7    14.010    3
+atom          2    1    1    "Glycine 3"                   6    12.010    4
 atom          3    2    C     "Glycine C"                    6    12.010    3
 atom          4   29    H     "Glycine HN"                   1     1.008    1
-atom          5   24    O     "Glycine O"                    8    16.000    1
+atom          5   24   24    "Glycine O"                    8    16.000    1
 atom          6   35    H1    "Glycine HA"                   1     1.008    1
-atom          7   14    N     "Alanine N"                    7    14.010    3
-atom          8    1    CT    "Alanine CA"                   6    12.010    4
+atom          7   14   14    "Alanine N"                    7    14.010    3
+atom          8    1    1    "Alanine 3"                   6    12.010    4
 atom          9    2    C     "Alanine C"                    6    12.010    3
 atom         10   29    H     "Alanine HN"                   1     1.008    1
-atom         11   24    O     "Alanine O"                    8    16.000    1
+atom         11   24   24    "Alanine O"                    8    16.000    1
 atom         12   35    H1    "Alanine HA"                   1     1.008    1
-atom         13    1    CT    "Alanine CB"                   6    12.010    4
-atom         14   34    HC    "Alanine HB"                   1     1.008    1
-atom         15   14    N     "Valine N"                     7    14.010    3
-atom         16    1    CT    "Valine CA"                    6    12.010    4
+atom         13    1    1    "Alanine CB"                   6    12.010    4
+atom         14   34    34    "Alanine HB"                   1     1.008    1
+atom         15   14   14    "Valine N"                     7    14.010    3
+atom         16    1    1    "Valine 3"                    6    12.010    4
 atom         17    2    C     "Valine C"                     6    12.010    3
 atom         18   29    H     "Valine HN"                    1     1.008    1
-atom         19   24    O     "Valine O"                     8    16.000    1
+atom         19   24   24    "Valine O"                     8    16.000    1
 atom         20   35    H1    "Valine HA"                    1     1.008    1
-atom         21    1    CT    "Valine CB"                    6    12.010    4
-atom         22   34    HC    "Valine HB"                    1     1.008    1
-atom         23    1    CT    "Valine CG1"                   6    12.010    4
-atom         24   34    HC    "Valine HG1"                   1     1.008    1
-atom         25    1    CT    "Valine CG2"                   6    12.010    4
-atom         26   34    HC    "Valine HG2"                   1     1.008    1
-atom         27   14    N     "Leucine N"                    7    14.010    3
-atom         28    1    CT    "Leucine CA"                   6    12.010    4
+atom         21    1    1    "Valine CB"                    6    12.010    4
+atom         22   34    34    "Valine HB"                    1     1.008    1
+atom         23    1    1    "Valine CG1"                   6    12.010    4
+atom         24   34    34    "Valine HG1"                   1     1.008    1
+atom         25    1    1    "Valine CG2"                   6    12.010    4
+atom         26   34    34    "Valine HG2"                   1     1.008    1
+atom         27   14   14    "Leucine N"                    7    14.010    3
+atom         28    1    1    "Leucine 3"                   6    12.010    4
 atom         29    2    C     "Leucine C"                    6    12.010    3
 atom         30   29    H     "Leucine HN"                   1     1.008    1
-atom         31   24    O     "Leucine O"                    8    16.000    1
+atom         31   24   24    "Leucine O"                    8    16.000    1
 atom         32   35    H1    "Leucine HA"                   1     1.008    1
-atom         33    1    CT    "Leucine CB"                   6    12.010    4
-atom         34   34    HC    "Leucine HB"                   1     1.008    1
-atom         35    1    CT    "Leucine CG"                   6    12.010    4
-atom         36   34    HC    "Leucine HG"                   1     1.008    1
-atom         37    1    CT    "Leucine CD1"                  6    12.010    4
-atom         38   34    HC    "Leucine HD1"                  1     1.008    1
-atom         39    1    CT    "Leucine CD2"                  6    12.010    4
-atom         40   34    HC    "Leucine HD2"                  1     1.008    1
-atom         41   14    N     "Isoleucine N"                 7    14.010    3
-atom         42    1    CT    "Isoleucine CA"                6    12.010    4
+atom         33    1    1    "Leucine CB"                   6    12.010    4
+atom         34   34    34    "Leucine HB"                   1     1.008    1
+atom         35    1    1    "Leucine CG"                   6    12.010    4
+atom         36   34    34    "Leucine HG"                   1     1.008    1
+atom         37    1    1    "Leucine CD1"                  6    12.010    4
+atom         38   34    34    "Leucine HD1"                  1     1.008    1
+atom         39    1    1    "Leucine CD2"                  6    12.010    4
+atom         40   34    34    "Leucine HD2"                  1     1.008    1
+atom         41   14   14    "Isoleucine N"                 7    14.010    3
+atom         42    1    1    "Isoleucine 3"                6    12.010    4
 atom         43    2    C     "Isoleucine C"                 6    12.010    3
 atom         44   29    H     "Isoleucine HN"                1     1.008    1
-atom         45   24    O     "Isoleucine O"                 8    16.000    1
+atom         45   24   24    "Isoleucine O"                 8    16.000    1
 atom         46   35    H1    "Isoleucine HA"                1     1.008    1
-atom         47    1    CT    "Isoleucine CB"                6    12.010    4
-atom         48   34    HC    "Isoleucine HB"                1     1.008    1
-atom         49    1    CT    "Isoleucine CG1"               6    12.010    4
-atom         50   34    HC    "Isoleucine HG1"               1     1.008    1
-atom         51    1    CT    "Isoleucine CG2"               6    12.010    4
-atom         52   34    HC    "Isoleucine HG2"               1     1.008    1
-atom         53    1    CT    "Isoleucine CD"                6    12.010    4
-atom         54   34    HC    "Isoleucine HD"                1     1.008    1
-atom         55   14    N     "Serine N"                     7    14.010    3
-atom         56    1    CT    "Serine CA"                    6    12.010    4
+atom         47    1    1    "Isoleucine CB"                6    12.010    4
+atom         48   34    34    "Isoleucine HB"                1     1.008    1
+atom         49    1    1    "Isoleucine CG1"               6    12.010    4
+atom         50   34    34    "Isoleucine HG1"               1     1.008    1
+atom         51    1    1    "Isoleucine CG2"               6    12.010    4
+atom         52   34    34    "Isoleucine HG2"               1     1.008    1
+atom         53    1    1    "Isoleucine CD"                6    12.010    4
+atom         54   34    34    "Isoleucine HD"                1     1.008    1
+atom         55   14   14    "Serine N"                     7    14.010    3
+atom         56    1    1    "Serine 3"                    6    12.010    4
 atom         57    2    C     "Serine C"                     6    12.010    3
 atom         58   29    H     "Serine HN"                    1     1.008    1
-atom         59   24    O     "Serine O"                     8    16.000    1
+atom         59   24   24    "Serine O"                     8    16.000    1
 atom         60   35    H1    "Serine HA"                    1     1.008    1
-atom         61    1    CT    "Serine CB"                    6    12.010    4
+atom         61    1    1    "Serine CB"                    6    12.010    4
 atom         62   35    H1    "Serine HB"                    1     1.008    1
 atom         63   22    OH    "Serine OG"                    8    16.000    2
 atom         64   31    HO    "Serine HG"                    1     1.008    1
-atom         65   14    N     "Threonine N"                  7    14.010    3
-atom         66    1    CT    "Threonine CA"                 6    12.010    4
+atom         65   14   14    "Threonine N"                  7    14.010    3
+atom         66    1    1    "Threonine 3"                 6    12.010    4
 atom         67    2    C     "Threonine C"                  6    12.010    3
 atom         68   29    H     "Threonine HN"                 1     1.008    1
-atom         69   24    O     "Threonine O"                  8    16.000    1
+atom         69   24   24    "Threonine O"                  8    16.000    1
 atom         70   35    H1    "Threonine HA"                 1     1.008    1
-atom         71    1    CT    "Threonine CB"                 6    12.010    4
+atom         71    1    1    "Threonine CB"                 6    12.010    4
 atom         72   35    H1    "Threonine HB"                 1     1.008    1
 atom         73   22    OH    "Threonine OG1"                8    16.000    2
 atom         74   31    HO    "Threonine HG1"                1     1.008    1
-atom         75    1    CT    "Threonine CG2"                6    12.010    4
-atom         76   34    HC    "Threonine HG2"                1     1.008    1
-atom         77   14    N     "Cysteine (-SH) N"             7    14.010    3
-atom         78    1    CT    "Cysteine (-SH) CA"            6    12.010    4
+atom         75    1    1    "Threonine CG2"                6    12.010    4
+atom         76   34    34    "Threonine HG2"                1     1.008    1
+atom         77   14   14    "Cysteine (-SH) N"             7    14.010    3
+atom         78    1    1    "Cysteine (-SH) 3"            6    12.010    4
 atom         79    2    C     "Cysteine (-SH) C"             6    12.010    3
 atom         80   29    H     "Cysteine (-SH) HN"            1     1.008    1
-atom         81   24    O     "Cysteine (-SH) O"             8    16.000    1
+atom         81   24   24    "Cysteine (-SH) O"             8    16.000    1
 atom         82   35    H1    "Cysteine (-SH) HA"            1     1.008    1
-atom         83    1    CT    "Cysteine (-SH) CB"            6    12.010    4
+atom         83    1    1    "Cysteine (-SH) CB"            6    12.010    4
 atom         84   35    H1    "Cysteine (-SH) HB"            1     1.008    1
 atom         85   27    SH    "Cysteine (-SH) SG"           16    32.060    2
 atom         86   32    HS    "Cysteine (-SH) HG"            1     1.008    1
-atom         87   14    N     "Cystine (-SS-) N"             7    14.010    3
-atom         88    1    CT    "Cystine (-SS-) CA"            6    12.010    4
+atom         87   14   14    "Cystine (-SS-) N"             7    14.010    3
+atom         88    1    1    "Cystine (-SS-) 3"            6    12.010    4
 atom         89    2    C     "Cystine (-SS-) C"             6    12.010    3
 atom         90   29    H     "Cystine (-SS-) HN"            1     1.008    1
-atom         91   24    O     "Cystine (-SS-) O"             8    16.000    1
+atom         91   24   24    "Cystine (-SS-) O"             8    16.000    1
 atom         92   35    H1    "Cystine (-SS-) HA"            1     1.008    1
-atom         93    1    CT    "Cystine (-SS-) CB"            6    12.010    4
+atom         93    1    1    "Cystine (-SS-) CB"            6    12.010    4
 atom         94   35    H1    "Cystine (-SS-) HB"            1     1.008    1
-atom         95   26    S     "Cystine (-SS-) SG"           16    32.060    2
-atom         96   14    N     "Proline N"                    7    14.010    3
-atom         97    1    CT    "Proline CA"                   6    12.010    4
+atom         95   26   26    "Cystine (-SS-) SG"           16    32.060    2
+atom         96   14   14    "Proline N"                    7    14.010    3
+atom         97    1    1    "Proline 3"                   6    12.010    4
 atom         98    2    C     "Proline C"                    6    12.010    3
-atom         99   24    O     "Proline O"                    8    16.000    1
+atom         99   24   24    "Proline O"                    8    16.000    1
 atom        100   35    H1    "Proline HA"                   1     1.008    1
-atom        101    1    CT    "Proline CB"                   6    12.010    4
-atom        102   34    HC    "Proline HB"                   1     1.008    1
-atom        103    1    CT    "Proline CG"                   6    12.010    4
-atom        104   34    HC    "Proline HG"                   1     1.008    1
-atom        105    1    CT    "Proline CD"                   6    12.010    4
+atom        101    1    1    "Proline CB"                   6    12.010    4
+atom        102   34    34    "Proline HB"                   1     1.008    1
+atom        103    1    1    "Proline CG"                   6    12.010    4
+atom        104   34    34    "Proline HG"                   1     1.008    1
+atom        105    1    1    "Proline CD"                   6    12.010    4
 atom        106   35    H1    "Proline HD"                   1     1.008    1
-atom        107   14    N     "Phenylalanine N"              7    14.010    3
-atom        108    1    CT    "Phenylalanine CA"             6    12.010    4
+atom        107   14   14    "Phenylalanine N"              7    14.010    3
+atom        108    1    1    "Phenylalanine 3"             6    12.010    4
 atom        109    2    C     "Phenylalanine C"              6    12.010    3
 atom        110   29    H     "Phenylalanine HN"             1     1.008    1
-atom        111   24    O     "Phenylalanine O"              8    16.000    1
+atom        111   24   24    "Phenylalanine O"              8    16.000    1
 atom        112   35    H1    "Phenylalanine HA"             1     1.008    1
-atom        113    1    CT    "Phenylalanine CB"             6    12.010    4
-atom        114   34    HC    "Phenylalanine HB"             1     1.008    1
-atom        115    3    CA    "Phenylalanine CG"             6    12.010    3
-atom        116    3    CA    "Phenylalanine CD"             6    12.010    3
+atom        113    1    1    "Phenylalanine CB"             6    12.010    4
+atom        114   34    34    "Phenylalanine HB"             1     1.008    1
+atom        115    3    3    "Phenylalanine CG"             6    12.010    3
+atom        116    3    3    "Phenylalanine CD"             6    12.010    3
 atom        117   33    HA    "Phenylalanine HD"             1     1.008    1
-atom        118    3    CA    "Phenylalanine CE"             6    12.010    3
+atom        118    3    3    "Phenylalanine CE"             6    12.010    3
 atom        119   33    HA    "Phenylalanine HE"             1     1.008    1
-atom        120    3    CA    "Phenylalanine CZ"             6    12.010    3
+atom        120    3    3    "Phenylalanine CZ"             6    12.010    3
 atom        121   33    HA    "Phenylalanine HZ"             1     1.008    1
-atom        122   14    N     "Tyrosine N"                   7    14.010    3
-atom        123    1    CT    "Tyrosine CA"                  6    12.010    4
+atom        122   14   14    "Tyrosine N"                   7    14.010    3
+atom        123    1    1    "Tyrosine 3"                  6    12.010    4
 atom        124    2    C     "Tyrosine C"                   6    12.010    3
 atom        125   29    H     "Tyrosine HN"                  1     1.008    1
-atom        126   24    O     "Tyrosine O"                   8    16.000    1
+atom        126   24   24    "Tyrosine O"                   8    16.000    1
 atom        127   35    H1    "Tyrosine HA"                  1     1.008    1
-atom        128    1    CT    "Tyrosine CB"                  6    12.010    4
-atom        129   34    HC    "Tyrosine HB"                  1     1.008    1
-atom        130    3    CA    "Tyrosine CG"                  6    12.010    3
-atom        131    3    CA    "Tyrosine CD"                  6    12.010    3
+atom        128    1    1    "Tyrosine CB"                  6    12.010    4
+atom        129   34    34    "Tyrosine HB"                  1     1.008    1
+atom        130    3    3    "Tyrosine CG"                  6    12.010    3
+atom        131    3    3    "Tyrosine CD"                  6    12.010    3
 atom        132   33    HA    "Tyrosine HD"                  1     1.008    1
-atom        133    3    CA    "Tyrosine CE"                  6    12.010    3
+atom        133    3    3    "Tyrosine CE"                  6    12.010    3
 atom        134   33    HA    "Tyrosine HE"                  1     1.008    1
-atom        135    3    CA    "Tyrosine CZ"                  6    12.010    3
+atom        135    3    3    "Tyrosine CZ"                  6    12.010    3
 atom        136   22    OH    "Tyrosine OH"                  8    16.000    2
 atom        137   31    HO    "Tyrosine HH"                  1     1.008    1
-atom        138   14    N     "Tryptophan N"                 7    14.010    3
-atom        139    1    CT    "Tryptophan CA"                6    12.010    4
+atom        138   14   14    "Tryptophan N"                 7    14.010    3
+atom        139    1    1    "Tryptophan 3"                6    12.010    4
 atom        140    2    C     "Tryptophan C"                 6    12.010    3
 atom        141   29    H     "Tryptophan HN"                1     1.008    1
-atom        142   24    O     "Tryptophan O"                 8    16.000    1
+atom        142   24   24    "Tryptophan O"                 8    16.000    1
 atom        143   35    H1    "Tryptophan HA"                1     1.008    1
-atom        144    1    CT    "Tryptophan CB"                6    12.010    4
-atom        145   34    HC    "Tryptophan HB"                1     1.008    1
+atom        144    1    1    "Tryptophan CB"                6    12.010    4
+atom        145   34    34    "Tryptophan HB"                1     1.008    1
 atom        146   10    C*    "Tryptophan CG"                6    12.010    3
 atom        147    7    CW    "Tryptophan CD1"               6    12.010    3
 atom        148   39    H4    "Tryptophan HD1"               1     1.008    1
@@ -230,22 +230,22 @@ atom        149    9    CB    "Tryptophan CD2"               6    12.010    3
 atom        150   15    NA    "Tryptophan NE1"               7    14.010    3
 atom        151   29    H     "Tryptophan HE1"               1     1.008    1
 atom        152   11    CN    "Tryptophan CE2"               6    12.010    3
-atom        153    3    CA    "Tryptophan CE3"               6    12.010    3
+atom        153    3    3    "Tryptophan CE3"               6    12.010    3
 atom        154   33    HA    "Tryptophan HE3"               1     1.008    1
-atom        155    3    CA    "Tryptophan CZ2"               6    12.010    3
+atom        155    3    3    "Tryptophan CZ2"               6    12.010    3
 atom        156   33    HA    "Tryptophan HZ2"               1     1.008    1
-atom        157    3    CA    "Tryptophan CZ3"               6    12.010    3
+atom        157    3    3    "Tryptophan CZ3"               6    12.010    3
 atom        158   33    HA    "Tryptophan HZ3"               1     1.008    1
-atom        159    3    CA    "Tryptophan CH2"               6    12.010    3
+atom        159    3    3    "Tryptophan CH2"               6    12.010    3
 atom        160   33    HA    "Tryptophan HH2"               1     1.008    1
-atom        161   14    N     "Histidine (+) N"              7    14.010    3
-atom        162    1    CT    "Histidine (+) CA"             6    12.010    4
+atom        161   14   14    "Histidine (+) N"              7    14.010    3
+atom        162    1    1    "Histidine (+) 3"             6    12.010    4
 atom        163    2    C     "Histidine (+) C"              6    12.010    3
 atom        164   29    H     "Histidine (+) HN"             1     1.008    1
-atom        165   24    O     "Histidine (+) O"              8    16.000    1
+atom        165   24   24    "Histidine (+) O"              8    16.000    1
 atom        166   35    H1    "Histidine (+) HA"             1     1.008    1
-atom        167    1    CT    "Histidine (+) CB"             6    12.010    4
-atom        168   34    HC    "Histidine (+) HB"             1     1.008    1
+atom        167    1    1    "Histidine (+) CB"             6    12.010    4
+atom        168   34    34    "Histidine (+) HB"             1     1.008    1
 atom        169    5    CC    "Histidine (+) CG"             6    12.010    3
 atom        170   15    NA    "Histidine (+) ND1"            7    14.010    3
 atom        171   29    H     "Histidine (+) HD1"            1     1.008    1
@@ -255,14 +255,14 @@ atom        174    8    CR    "Histidine (+) CE1"            6    12.010    3
 atom        175   40    H5    "Histidine (+) HE1"            1     1.008    1
 atom        176   15    NA    "Histidine (+) NE2"            7    14.010    3
 atom        177   29    H     "Histidine (+) HE2"            1     1.008    1
-atom        178   14    N     "Histidine (HD) N"             7    14.010    3
-atom        179    1    CT    "Histidine (HD) CA"            6    12.010    4
+atom        178   14   14    "Histidine (HD) N"             7    14.010    3
+atom        179    1    1    "Histidine (HD) 3"            6    12.010    4
 atom        180    2    C     "Histidine (HD) C"             6    12.010    3
 atom        181   29    H     "Histidine (HD) HN"            1     1.008    1
-atom        182   24    O     "Histidine (HD) O"             8    16.000    1
+atom        182   24   24    "Histidine (HD) O"             8    16.000    1
 atom        183   35    H1    "Histidine (HD) HA"            1     1.008    1
-atom        184    1    CT    "Histidine (HD) CB"            6    12.010    4
-atom        185   34    HC    "Histidine (HD) HB"            1     1.008    1
+atom        184    1    1    "Histidine (HD) CB"            6    12.010    4
+atom        185   34    34    "Histidine (HD) HB"            1     1.008    1
 atom        186    5    CC    "Histidine (HD) CG"            6    12.010    3
 atom        187   15    NA    "Histidine (HD) ND1"           7    14.010    3
 atom        188   29    H     "Histidine (HD) HD1"           1     1.008    1
@@ -271,14 +271,14 @@ atom        190   39    H4    "Histidine (HD) HD2"           1     1.008    1
 atom        191    8    CR    "Histidine (HD) CE1"           6    12.010    3
 atom        192   40    H5    "Histidine (HD) HE1"           1     1.008    1
 atom        193   16    NB    "Histidine (HD) NE2"           7    14.010    2
-atom        194   14    N     "Histidine (HE) N"             7    14.010    3
-atom        195    1    CT    "Histidine (HE) CA"            6    12.010    4
+atom        194   14   14    "Histidine (HE) N"             7    14.010    3
+atom        195    1    1    "Histidine (HE) 3"            6    12.010    4
 atom        196    2    C     "Histidine (HE) C"             6    12.010    3
 atom        197   29    H     "Histidine (HE) HN"            1     1.008    1
-atom        198   24    O     "Histidine (HE) O"             8    16.000    1
+atom        198   24   24    "Histidine (HE) O"             8    16.000    1
 atom        199   35    H1    "Histidine (HE) HA"            1     1.008    1
-atom        200    1    CT    "Histidine (HE) CB"            6    12.010    4
-atom        201   34    HC    "Histidine (HE) HB"            1     1.008    1
+atom        200    1    1    "Histidine (HE) CB"            6    12.010    4
+atom        201   34    34    "Histidine (HE) HB"            1     1.008    1
 atom        202    5    CC    "Histidine (HE) CG"            6    12.010    3
 atom        203   16    NB    "Histidine (HE) ND1"           7    14.010    2
 atom        204    7    CW    "Histidine (HE) CD2"           6    12.010    3
@@ -287,457 +287,457 @@ atom        206    8    CR    "Histidine (HE) CE1"           6    12.010    3
 atom        207   40    H5    "Histidine (HE) HE1"           1     1.008    1
 atom        208   15    NA    "Histidine (HE) NE2"           7    14.010    3
 atom        209   29    H     "Histidine (HE) HE2"           1     1.008    1
-atom        210   14    N     "Aspartic Acid N"              7    14.010    3
-atom        211    1    CT    "Aspartic Acid CA"             6    12.010    4
+atom        210   14   14    "Aspartic Acid N"              7    14.010    3
+atom        211    1    1    "Aspartic Acid 3"             6    12.010    4
 atom        212    2    C     "Aspartic Acid C"              6    12.010    3
 atom        213   29    H     "Aspartic Acid HN"             1     1.008    1
-atom        214   24    O     "Aspartic Acid O"              8    16.000    1
+atom        214   24   24    "Aspartic Acid O"              8    16.000    1
 atom        215   35    H1    "Aspartic Acid HA"             1     1.008    1
-atom        216    1    CT    "Aspartic Acid CB"             6    12.010    4
-atom        217   34    HC    "Aspartic Acid HB"             1     1.008    1
+atom        216    1    1    "Aspartic Acid CB"             6    12.010    4
+atom        217   34    34    "Aspartic Acid HB"             1     1.008    1
 atom        218    2    C     "Aspartic Acid CG"             6    12.010    3
 atom        219   25    O2    "Aspartic Acid OD"             8    16.000    1
-atom        220   14    N     "Asparagine N"                 7    14.010    3
-atom        221    1    CT    "Asparagine CA"                6    12.010    4
+atom        220   14   14    "Asparagine N"                 7    14.010    3
+atom        221    1    1    "Asparagine 3"                6    12.010    4
 atom        222    2    C     "Asparagine C"                 6    12.010    3
 atom        223   29    H     "Asparagine HN"                1     1.008    1
-atom        224   24    O     "Asparagine O"                 8    16.000    1
+atom        224   24   24    "Asparagine O"                 8    16.000    1
 atom        225   35    H1    "Asparagine HA"                1     1.008    1
-atom        226    1    CT    "Asparagine CB"                6    12.010    4
-atom        227   34    HC    "Asparagine HB"                1     1.008    1
+atom        226    1    1    "Asparagine CB"                6    12.010    4
+atom        227   34    34    "Asparagine HB"                1     1.008    1
 atom        228    2    C     "Asparagine CG"                6    12.010    3
-atom        229   24    O     "Asparagine OD1"               8    16.000    1
-atom        230   14    N     "Asparagine ND2"               7    14.010    3
+atom        229   24   24    "Asparagine OD1"               8    16.000    1
+atom        230   14   14    "Asparagine ND2"               7    14.010    3
 atom        231   29    H     "Asparagine HD2"               1     1.008    1
-atom        232   14    N     "Glutamic Acid N"              7    14.010    3
-atom        233    1    CT    "Glutamic Acid CA"             6    12.010    4
+atom        232   14   14    "Glutamic Acid N"              7    14.010    3
+atom        233    1    1    "Glutamic Acid 3"             6    12.010    4
 atom        234    2    C     "Glutamic Acid C"              6    12.010    3
 atom        235   29    H     "Glutamic Acid HN"             1     1.008    1
-atom        236   24    O     "Glutamic Acid O"              8    16.000    1
+atom        236   24   24    "Glutamic Acid O"              8    16.000    1
 atom        237   35    H1    "Glutamic Acid HA"             1     1.008    1
-atom        238    1    CT    "Glutamic Acid CB"             6    12.010    4
-atom        239   34    HC    "Glutamic Acid HB"             1     1.008    1
-atom        240    1    CT    "Glutamic Acid CG"             6    12.010    4
-atom        241   34    HC    "Glutamic Acid HG"             1     1.008    1
+atom        238    1    1    "Glutamic Acid CB"             6    12.010    4
+atom        239   34    34    "Glutamic Acid HB"             1     1.008    1
+atom        240    1    1    "Glutamic Acid CG"             6    12.010    4
+atom        241   34    34    "Glutamic Acid HG"             1     1.008    1
 atom        242    2    C     "Glutamic Acid CD"             6    12.010    3
 atom        243   25    O2    "Glutamic Acid OE"             8    16.000    1
-atom        244   14    N     "Glutamine N"                  7    14.010    3
-atom        245    1    CT    "Glutamine CA"                 6    12.010    4
+atom        244   14   14    "Glutamine N"                  7    14.010    3
+atom        245    1    1    "Glutamine 3"                 6    12.010    4
 atom        246    2    C     "Glutamine C"                  6    12.010    3
 atom        247   29    H     "Glutamine HN"                 1     1.008    1
-atom        248   24    O     "Glutamine O"                  8    16.000    1
+atom        248   24   24    "Glutamine O"                  8    16.000    1
 atom        249   35    H1    "Glutamine HA"                 1     1.008    1
-atom        250    1    CT    "Glutamine CB"                 6    12.010    4
-atom        251   34    HC    "Glutamine HB"                 1     1.008    1
-atom        252    1    CT    "Glutamine CG"                 6    12.010    4
-atom        253   34    HC    "Glutamine HG"                 1     1.008    1
+atom        250    1    1    "Glutamine CB"                 6    12.010    4
+atom        251   34    34    "Glutamine HB"                 1     1.008    1
+atom        252    1    1    "Glutamine CG"                 6    12.010    4
+atom        253   34    34    "Glutamine HG"                 1     1.008    1
 atom        254    2    C     "Glutamine CD"                 6    12.010    3
-atom        255   24    O     "Glutamine OE1"                8    16.000    1
-atom        256   14    N     "Glutamine NE2"                7    14.010    3
+atom        255   24   24    "Glutamine OE1"                8    16.000    1
+atom        256   14   14    "Glutamine NE2"                7    14.010    3
 atom        257   29    H     "Glutamine HE2"                1     1.008    1
-atom        258   14    N     "Methionine N"                 7    14.010    3
-atom        259    1    CT    "Methionine CA"                6    12.010    4
+atom        258   14   14    "Methionine N"                 7    14.010    3
+atom        259    1    1    "Methionine 3"                6    12.010    4
 atom        260    2    C     "Methionine C"                 6    12.010    3
 atom        261   29    H     "Methionine HN"                1     1.008    1
-atom        262   24    O     "Methionine O"                 8    16.000    1
+atom        262   24   24    "Methionine O"                 8    16.000    1
 atom        263   35    H1    "Methionine HA"                1     1.008    1
-atom        264    1    CT    "Methionine CB"                6    12.010    4
-atom        265   34    HC    "Methionine HB"                1     1.008    1
-atom        266    1    CT    "Methionine CG"                6    12.010    4
+atom        264    1    1    "Methionine CB"                6    12.010    4
+atom        265   34    34    "Methionine HB"                1     1.008    1
+atom        266    1    1    "Methionine CG"                6    12.010    4
 atom        267   35    H1    "Methionine HG"                1     1.008    1
-atom        268   26    S     "Methionine SD"               16    32.060    2
-atom        269    1    CT    "Methionine CE"                6    12.010    4
+atom        268   26   26    "Methionine SD"               16    32.060    2
+atom        269    1    1    "Methionine CE"                6    12.010    4
 atom        270   35    H1    "Methionine HE"                1     1.008    1
-atom        271   14    N     "Lysine N"                     7    14.010    3
-atom        272    1    CT    "Lysine CA"                    6    12.010    4
+atom        271   14   14    "Lysine N"                     7    14.010    3
+atom        272    1    1    "Lysine 3"                    6    12.010    4
 atom        273    2    C     "Lysine C"                     6    12.010    3
 atom        274   29    H     "Lysine HN"                    1     1.008    1
-atom        275   24    O     "Lysine O"                     8    16.000    1
+atom        275   24   24    "Lysine O"                     8    16.000    1
 atom        276   35    H1    "Lysine HA"                    1     1.008    1
-atom        277    1    CT    "Lysine CB"                    6    12.010    4
-atom        278   34    HC    "Lysine HB"                    1     1.008    1
-atom        279    1    CT    "Lysine CG"                    6    12.010    4
-atom        280   34    HC    "Lysine HG"                    1     1.008    1
-atom        281    1    CT    "Lysine CD"                    6    12.010    4
-atom        282   34    HC    "Lysine HD"                    1     1.008    1
-atom        283    1    CT    "Lysine CE"                    6    12.010    4
+atom        277    1    1    "Lysine CB"                    6    12.010    4
+atom        278   34    34    "Lysine HB"                    1     1.008    1
+atom        279    1    1    "Lysine CG"                    6    12.010    4
+atom        280   34    34    "Lysine HG"                    1     1.008    1
+atom        281    1    1    "Lysine CD"                    6    12.010    4
+atom        282   34    34    "Lysine HD"                    1     1.008    1
+atom        283    1    1    "Lysine CE"                    6    12.010    4
 atom        284   38    HP    "Lysine HE"                    1     1.008    1
 atom        285   20    N3    "Lysine NZ"                    7    14.010    4
 atom        286   29    H     "Lysine HZ"                    1     1.008    1
-atom        287   14    N     "Arginine N"                   7    14.010    3
-atom        288    1    CT    "Arginine CA"                  6    12.010    4
+atom        287   14   14    "Arginine N"                   7    14.010    3
+atom        288    1    1    "Arginine 3"                  6    12.010    4
 atom        289    2    C     "Arginine C"                   6    12.010    3
 atom        290   29    H     "Arginine HN"                  1     1.008    1
-atom        291   24    O     "Arginine O"                   8    16.000    1
+atom        291   24   24    "Arginine O"                   8    16.000    1
 atom        292   35    H1    "Arginine HA"                  1     1.008    1
-atom        293    1    CT    "Arginine CB"                  6    12.010    4
-atom        294   34    HC    "Arginine HB"                  1     1.008    1
-atom        295    1    CT    "Arginine CG"                  6    12.010    4
-atom        296   34    HC    "Arginine HG"                  1     1.008    1
-atom        297    1    CT    "Arginine CD"                  6    12.010    4
+atom        293    1    1    "Arginine CB"                  6    12.010    4
+atom        294   34    34    "Arginine HB"                  1     1.008    1
+atom        295    1    1    "Arginine CG"                  6    12.010    4
+atom        296   34    34    "Arginine HG"                  1     1.008    1
+atom        297    1    1    "Arginine CD"                  6    12.010    4
 atom        298   35    H1    "Arginine HD"                  1     1.008    1
 atom        299   19    N2    "Arginine NE"                  7    14.010    3
 atom        300   29    H     "Arginine HE"                  1     1.008    1
-atom        301    3    CA    "Arginine CZ"                  6    12.010    3
+atom        301    3    3    "Arginine CZ"                  6    12.010    3
 atom        302   19    N2    "Arginine NH"                  7    14.010    3
 atom        303   29    H     "Arginine HH"                  1     1.008    1
-atom        304   14    N     "Ornithine N"                  7    14.010    3
-atom        305    1    CT    "Ornithine CA"                 6    12.010    4
+atom        304   14   14    "Ornithine N"                  7    14.010    3
+atom        305    1    1    "Ornithine 3"                 6    12.010    4
 atom        306    2    C     "Ornithine C"                  6    12.010    3
 atom        307   29    H     "Ornithine HN"                 1     1.008    1
-atom        308   24    O     "Ornithine O"                  8    16.000    1
+atom        308   24   24    "Ornithine O"                  8    16.000    1
 atom        309   35    H1    "Ornithine HA"                 1     1.008    1
-atom        310    1    CT    "Ornithine CB"                 6    12.010    4
-atom        311   34    HC    "Ornithine HB"                 1     1.008    1
-atom        312    1    CT    "Ornithine CG"                 6    12.010    4
-atom        313   34    HC    "Ornithine HG"                 1     1.008    1
-atom        314    1    CT    "Ornithine CD"                 6    12.010    4
+atom        310    1    1    "Ornithine CB"                 6    12.010    4
+atom        311   34    34    "Ornithine HB"                 1     1.008    1
+atom        312    1    1    "Ornithine CG"                 6    12.010    4
+atom        313   34    34    "Ornithine HG"                 1     1.008    1
+atom        314    1    1    "Ornithine CD"                 6    12.010    4
 atom        315   38    HP    "Ornithine HD"                 1     1.008    1
 atom        316   20    N3    "Ornithine NE"                 7    14.010    4
 atom        317   29    H     "Ornithine HE"                 1     1.008    1
-atom        318   14    N     "MethylAlanine N"              7    14.010    3
-atom        319    1    CT    "MethylAlanine CA"             6    12.010    4
+atom        318   14   14    "MethylAlanine N"              7    14.010    3
+atom        319    1    1    "MethylAlanine 3"             6    12.010    4
 atom        320    2    C     "MethylAlanine C"              6    12.010    3
 atom        321   29    H     "MethylAlanine HN"             1     1.008    1
-atom        322   24    O     "MethylAlanine O"              8    16.000    1
-atom        323    1    CT    "MethylAlanine CB"             6    12.010    4
-atom        324   34    HC    "MethylAlanine HB"             1     1.008    1
-atom        325   14    N     "Pyroglutamate N"              7    14.010    3
-atom        326    1    CT    "Pyroglutamate CA"             6    12.010    4
+atom        322   24   24    "MethylAlanine O"              8    16.000    1
+atom        323    1    1    "MethylAlanine CB"             6    12.010    4
+atom        324   34    34    "MethylAlanine HB"             1     1.008    1
+atom        325   14   14    "Pyroglutamate N"              7    14.010    3
+atom        326    1    1    "Pyroglutamate 3"             6    12.010    4
 atom        327    2    C     "Pyroglutamate C"              6    12.010    3
 atom        328   29    H     "Pyroglutamate HN"             1     1.008    1
-atom        329   24    O     "Pyroglutamate O"              8    16.000    1
+atom        329   24   24    "Pyroglutamate O"              8    16.000    1
 atom        330   35    H1    "Pyroglutamate HA"             1     1.008    1
-atom        331    1    CT    "Pyroglutamate CB"             6    12.010    4
-atom        332   34    HC    "Pyroglutamate HB"             1     1.008    1
-atom        333    1    CT    "Pyroglutamate CG"             6    12.010    4
-atom        334   34    HC    "Pyroglutamate HG"             1     1.008    1
+atom        331    1    1    "Pyroglutamate CB"             6    12.010    4
+atom        332   34    34    "Pyroglutamate HB"             1     1.008    1
+atom        333    1    1    "Pyroglutamate CG"             6    12.010    4
+atom        334   34    34    "Pyroglutamate HG"             1     1.008    1
 atom        335    2    C     "Pyroglutamate CD"             6    12.010    3
-atom        336   24    O     "Pyroglutamate OE"             8    16.000    1
+atom        336   24   24    "Pyroglutamate OE"             8    16.000    1
 atom        337    2    C     "Formyl C"                     6    12.010    3
 atom        338    0    H     "Formyl H"                     1     1.008    1
-atom        339   24    O     "Formyl O"                     8    16.000    1
-atom        340    1    CT    "Acetyl CA"                    6    12.010    4
-atom        341   34    HC    "Acetyl HA"                    1     1.008    1
+atom        339   24   24    "Formyl O"                     8    16.000    1
+atom        340    1    1    "Acetyl 3"                    6    12.010    4
+atom        341   34    34    "Acetyl HA"                    1     1.008    1
 atom        342    2    C     "Acetyl C"                     6    12.010    3
-atom        343   24    O     "Acetyl O"                     8    16.000    1
-atom        344   14    N     "C-Term Amide N"               7    14.010    3
+atom        343   24   24    "Acetyl O"                     8    16.000    1
+atom        344   14   14    "C-Term Amide N"               7    14.010    3
 atom        345   29    H     "C-Term Amide HN"              1     1.008    1
-atom        346   14    N     "N-MeAmide N"                  7    14.010    3
+atom        346   14   14    "N-MeAmide N"                  7    14.010    3
 atom        347   29    H     "N-MeAmide HN"                 1     1.008    1
-atom        348    1    CT    "N-MeAmide C"                  6    12.010    4
-atom        349   35    H1    "N-MeAmide HC"                 1     1.008    1
+atom        348    1    1    "N-MeAmide C"                  6    12.010    4
+atom        349   35    H1    "N-MeAmide 34"                 1     1.008    1
 atom        350   20    N3    "N-Term GLY N"                 7    14.010    4
-atom        351    1    CT    "N-Term GLY CA"                6    12.010    4
+atom        351    1    1    "N-Term GLY 3"                6    12.010    4
 atom        352    2    C     "N-Term GLY C"                 6    12.010    3
 atom        353   29    H     "N-Term GLY HN"                1     1.008    1
-atom        354   24    O     "N-Term GLY O"                 8    16.000    1
+atom        354   24   24    "N-Term GLY O"                 8    16.000    1
 atom        355   35    H1    "N-Term GLY HA"                1     1.008    1
 atom        356   20    N3    "N-Term ALA N"                 7    14.010    4
-atom        357    1    CT    "N-Term ALA CA"                6    12.010    4
+atom        357    1    1    "N-Term ALA 3"                6    12.010    4
 atom        358    2    C     "N-Term ALA C"                 6    12.010    3
 atom        359   29    H     "N-Term ALA HN"                1     1.008    1
-atom        360   24    O     "N-Term ALA O"                 8    16.000    1
+atom        360   24   24    "N-Term ALA O"                 8    16.000    1
 atom        361   35    H1    "N-Term ALA HA"                1     1.008    1
 atom        362   20    N3    "N-Term VAL N"                 7    14.010    4
-atom        363    1    CT    "N-Term VAL CA"                6    12.010    4
+atom        363    1    1    "N-Term VAL 3"                6    12.010    4
 atom        364    2    C     "N-Term VAL C"                 6    12.010    3
 atom        365   29    H     "N-Term VAL HN"                1     1.008    1
-atom        366   24    O     "N-Term VAL O"                 8    16.000    1
+atom        366   24   24    "N-Term VAL O"                 8    16.000    1
 atom        367   35    H1    "N-Term VAL HA"                1     1.008    1
 atom        368   20    N3    "N-Term LEU N"                 7    14.010    4
-atom        369    1    CT    "N-Term LEU CA"                6    12.010    4
+atom        369    1    1    "N-Term LEU 3"                6    12.010    4
 atom        370    2    C     "N-Term LEU C"                 6    12.010    3
 atom        371   29    H     "N-Term LEU HN"                1     1.008    1
-atom        372   24    O     "N-Term LEU O"                 8    16.000    1
+atom        372   24   24    "N-Term LEU O"                 8    16.000    1
 atom        373   35    H1    "N-Term LEU HA"                1     1.008    1
 atom        374   20    N3    "N-Term ILE N"                 7    14.010    4
-atom        375    1    CT    "N-Term ILE CA"                6    12.010    4
+atom        375    1    1    "N-Term ILE 3"                6    12.010    4
 atom        376    2    C     "N-Term ILE C"                 6    12.010    3
 atom        377   29    H     "N-Term ILE HN"                1     1.008    1
-atom        378   24    O     "N-Term ILE O"                 8    16.000    1
+atom        378   24   24    "N-Term ILE O"                 8    16.000    1
 atom        379   35    H1    "N-Term ILE HA"                1     1.008    1
 atom        380   20    N3    "N-Term SER N"                 7    14.010    4
-atom        381    1    CT    "N-Term SER CA"                6    12.010    4
+atom        381    1    1    "N-Term SER 3"                6    12.010    4
 atom        382    2    C     "N-Term SER C"                 6    12.010    3
 atom        383   29    H     "N-Term SER HN"                1     1.008    1
-atom        384   24    O     "N-Term SER O"                 8    16.000    1
+atom        384   24   24    "N-Term SER O"                 8    16.000    1
 atom        385   35    H1    "N-Term SER HA"                1     1.008    1
 atom        386   20    N3    "N-Term THR N"                 7    14.010    4
-atom        387    1    CT    "N-Term THR CA"                6    12.010    4
+atom        387    1    1    "N-Term THR 3"                6    12.010    4
 atom        388    2    C     "N-Term THR C"                 6    12.010    3
 atom        389   29    H     "N-Term THR HN"                1     1.008    1
-atom        390   24    O     "N-Term THR O"                 8    16.000    1
+atom        390   24   24    "N-Term THR O"                 8    16.000    1
 atom        391   35    H1    "N-Term THR HA"                1     1.008    1
 atom        392   20    N3    "N-Term CYS (-SH) N"           7    14.010    4
-atom        393    1    CT    "N-Term CYS (-SH) CA"          6    12.010    4
+atom        393    1    1    "N-Term CYS (-SH) 3"          6    12.010    4
 atom        394    2    C     "N-Term CYS (-SH) C"           6    12.010    3
 atom        395   29    H     "N-Term CYS (-SH) HN"          1     1.008    1
-atom        396   24    O     "N-Term CYS (-SH) O"           8    16.000    1
+atom        396   24   24    "N-Term CYS (-SH) O"           8    16.000    1
 atom        397   35    H1    "N-Term CYS (-SH) HA"          1     1.008    1
 atom        398   20    N3    "N-Term CYS (-SS-) N"          7    14.010    4
-atom        399    1    CT    "N-Term CYS (-SS-) CA"         6    12.010    4
+atom        399    1    1    "N-Term CYS (-SS-) 3"         6    12.010    4
 atom        400    2    C     "N-Term CYS (-SS-) C"          6    12.010    3
 atom        401   29    H     "N-Term CYS (-SS-) HN"         1     1.008    1
-atom        402   24    O     "N-Term CYS (-SS-) O"          8    16.000    1
+atom        402   24   24    "N-Term CYS (-SS-) O"          8    16.000    1
 atom        403   35    H1    "N-Term CYS (-SS-) HA"         1     1.008    1
 atom        404   20    N3    "N-Term PRO N"                 7    14.010    4
-atom        405    1    CT    "N-Term PRO CA"                6    12.010    4
+atom        405    1    1    "N-Term PRO 3"                6    12.010    4
 atom        406    2    C     "N-Term PRO C"                 6    12.010    3
 atom        407   29    H     "N-Term PRO HN"                1     1.008    1
-atom        408   24    O     "N-Term PRO O"                 8    16.000    1
+atom        408   24   24    "N-Term PRO O"                 8    16.000    1
 atom        409   35    H1    "N-Term PRO HA"                1     1.008    1
-atom        410    1    CT    "N-Term PRO CD"                6    12.010    4
+atom        410    1    1    "N-Term PRO CD"                6    12.010    4
 atom        411   38    HP    "N-Term PRO HD"                1     1.008    1
 atom        412   20    N3    "N-Term PHE N"                 7    14.010    4
-atom        413    1    CT    "N-Term PHE CA"                6    12.010    4
+atom        413    1    1    "N-Term PHE 3"                6    12.010    4
 atom        414    2    C     "N-Term PHE C"                 6    12.010    3
 atom        415   29    H     "N-Term PHE HN"                1     1.008    1
-atom        416   24    O     "N-Term PHE O"                 8    16.000    1
+atom        416   24   24    "N-Term PHE O"                 8    16.000    1
 atom        417   35    H1    "N-Term PHE HA"                1     1.008    1
 atom        418   20    N3    "N-Term TYR N"                 7    14.010    4
-atom        419    1    CT    "N-Term TYR CA"                6    12.010    4
+atom        419    1    1    "N-Term TYR 3"                6    12.010    4
 atom        420    2    C     "N-Term TYR C"                 6    12.010    3
 atom        421   29    H     "N-Term TYR HN"                1     1.008    1
-atom        422   24    O     "N-Term TYR O"                 8    16.000    1
+atom        422   24   24    "N-Term TYR O"                 8    16.000    1
 atom        423   35    H1    "N-Term TYR HA"                1     1.008    1
 atom        424   20    N3    "N-Term TRP N"                 7    14.010    4
-atom        425    1    CT    "N-Term TRP CA"                6    12.010    4
+atom        425    1    1    "N-Term TRP 3"                6    12.010    4
 atom        426    2    C     "N-Term TRP C"                 6    12.010    3
 atom        427   29    H     "N-Term TRP HN"                1     1.008    1
-atom        428   24    O     "N-Term TRP O"                 8    16.000    1
+atom        428   24   24    "N-Term TRP O"                 8    16.000    1
 atom        429   35    H1    "N-Term TRP HA"                1     1.008    1
 atom        430   20    N3    "N-Term HIS (+) N"             7    14.010    4
-atom        431    1    CT    "N-Term HIS (+) CA"            6    12.010    4
+atom        431    1    1    "N-Term HIS (+) 3"            6    12.010    4
 atom        432    2    C     "N-Term HIS (+) C"             6    12.010    3
 atom        433   29    H     "N-Term HIS (+) HN"            1     1.008    1
-atom        434   24    O     "N-Term HIS (+) O"             8    16.000    1
+atom        434   24   24    "N-Term HIS (+) O"             8    16.000    1
 atom        435   35    H1    "N-Term HIS (+) HA"            1     1.008    1
 atom        436   20    N3    "N-Term HIS (HD) N"            7    14.010    4
-atom        437    1    CT    "N-Term HIS (HD) CA"           6    12.010    4
+atom        437    1    1    "N-Term HIS (HD) 3"           6    12.010    4
 atom        438    2    C     "N-Term HIS (HD) C"            6    12.010    3
 atom        439   29    H     "N-Term HIS (HD) HN"           1     1.008    1
-atom        440   24    O     "N-Term HIS (HD) O"            8    16.000    1
+atom        440   24   24    "N-Term HIS (HD) O"            8    16.000    1
 atom        441   35    H1    "N-Term HIS (HD) HA"           1     1.008    1
 atom        442   20    N3    "N-Term HIS (HE) N"            7    14.010    4
-atom        443    1    CT    "N-Term HIS (HE) CA"           6    12.010    4
+atom        443    1    1    "N-Term HIS (HE) 3"           6    12.010    4
 atom        444    2    C     "N-Term HIS (HE) C"            6    12.010    3
 atom        445   29    H     "N-Term HIS (HE) HN"           1     1.008    1
-atom        446   24    O     "N-Term HIS (HE) O"            8    16.000    1
+atom        446   24   24    "N-Term HIS (HE) O"            8    16.000    1
 atom        447   35    H1    "N-Term HIS (HE) HA"           1     1.008    1
 atom        448   20    N3    "N-Term ASP N"                 7    14.010    4
-atom        449    1    CT    "N-Term ASP CA"                6    12.010    4
+atom        449    1    1    "N-Term ASP 3"                6    12.010    4
 atom        450    2    C     "N-Term ASP C"                 6    12.010    3
 atom        451   29    H     "N-Term ASP HN"                1     1.008    1
-atom        452   24    O     "N-Term ASP O"                 8    16.000    1
+atom        452   24   24    "N-Term ASP O"                 8    16.000    1
 atom        453   35    H1    "N-Term ASP HA"                1     1.008    1
 atom        454   20    N3    "N-Term ASN N"                 7    14.010    4
-atom        455    1    CT    "N-Term ASN CA"                6    12.010    4
+atom        455    1    1    "N-Term ASN 3"                6    12.010    4
 atom        456    2    C     "N-Term ASN C"                 6    12.010    3
 atom        457   29    H     "N-Term ASN HN"                1     1.008    1
-atom        458   24    O     "N-Term ASN O"                 8    16.000    1
+atom        458   24   24    "N-Term ASN O"                 8    16.000    1
 atom        459   35    H1    "N-Term ASN HA"                1     1.008    1
 atom        460   20    N3    "N-Term GLU N"                 7    14.010    4
-atom        461    1    CT    "N-Term GLU CA"                6    12.010    4
+atom        461    1    1    "N-Term GLU 3"                6    12.010    4
 atom        462    2    C     "N-Term GLU C"                 6    12.010    3
 atom        463   29    H     "N-Term GLU HN"                1     1.008    1
-atom        464   24    O     "N-Term GLU O"                 8    16.000    1
+atom        464   24   24    "N-Term GLU O"                 8    16.000    1
 atom        465   35    H1    "N-Term GLU HA"                1     1.008    1
 atom        466   20    N3    "N-Term GLN N"                 7    14.010    4
-atom        467    1    CT    "N-Term GLN CA"                6    12.010    4
+atom        467    1    1    "N-Term GLN 3"                6    12.010    4
 atom        468    2    C     "N-Term GLN C"                 6    12.010    3
 atom        469   29    H     "N-Term GLN HN"                1     1.008    1
-atom        470   24    O     "N-Term GLN O"                 8    16.000    1
+atom        470   24   24    "N-Term GLN O"                 8    16.000    1
 atom        471   35    H1    "N-Term GLN HA"                1     1.008    1
 atom        472   20    N3    "N-Term MET N"                 7    14.010    4
-atom        473    1    CT    "N-Term MET CA"                6    12.010    4
+atom        473    1    1    "N-Term MET 3"                6    12.010    4
 atom        474    2    C     "N-Term MET C"                 6    12.010    3
 atom        475   29    H     "N-Term MET HN"                1     1.008    1
-atom        476   24    O     "N-Term MET O"                 8    16.000    1
+atom        476   24   24    "N-Term MET O"                 8    16.000    1
 atom        477   35    H1    "N-Term MET HA"                1     1.008    1
 atom        478   20    N3    "N-Term LYS N"                 7    14.010    4
-atom        479    1    CT    "N-Term LYS CA"                6    12.010    4
+atom        479    1    1    "N-Term LYS 3"                6    12.010    4
 atom        480    2    C     "N-Term LYS C"                 6    12.010    3
 atom        481   29    H     "N-Term LYS HN"                1     1.008    1
-atom        482   24    O     "N-Term LYS O"                 8    16.000    1
+atom        482   24   24    "N-Term LYS O"                 8    16.000    1
 atom        483   35    H1    "N-Term LYS HA"                1     1.008    1
 atom        484   20    N3    "N-Term ARG N"                 7    14.010    4
-atom        485    1    CT    "N-Term ARG CA"                6    12.010    4
+atom        485    1    1    "N-Term ARG 3"                6    12.010    4
 atom        486    2    C     "N-Term ARG C"                 6    12.010    3
 atom        487   29    H     "N-Term ARG HN"                1     1.008    1
-atom        488   24    O     "N-Term ARG O"                 8    16.000    1
+atom        488   24   24    "N-Term ARG O"                 8    16.000    1
 atom        489   35    H1    "N-Term ARG HA"                1     1.008    1
 atom        490   20    N3    "N-Term ORN N"                 7    14.010    4
-atom        491    1    CT    "N-Term ORN CA"                6    12.010    4
+atom        491    1    1    "N-Term ORN 3"                6    12.010    4
 atom        492    2    C     "N-Term ORN C"                 6    12.010    3
 atom        493   29    H     "N-Term ORN HN"                1     1.008    1
-atom        494   24    O     "N-Term ORN O"                 8    16.000    1
+atom        494   24   24    "N-Term ORN O"                 8    16.000    1
 atom        495   35    H1    "N-Term ORN HA"                1     1.008    1
 atom        496   20    N3    "N-Term AIB N"                 7    14.010    4
-atom        497    1    CT    "N-Term AIB CA"                6    12.010    4
+atom        497    1    1    "N-Term AIB 3"                6    12.010    4
 atom        498    2    C     "N-Term AIB C"                 6    12.010    3
 atom        499   29    H     "N-Term AIB HN"                1     1.008    1
-atom        500   24    O     "N-Term AIB O"                 8    16.000    1
-atom        501   14    N     "C-Term GLY N"                 7    14.010    3
-atom        502    1    CT    "C-Term GLY CA"                6    12.010    4
+atom        500   24   24    "N-Term AIB O"                 8    16.000    1
+atom        501   14   14    "C-Term GLY N"                 7    14.010    3
+atom        502    1    1    "C-Term GLY 3"                6    12.010    4
 atom        503    2    C     "C-Term GLY C"                 6    12.010    3
 atom        504   29    H     "C-Term GLY HN"                1     1.008    1
 atom        505   25    O2    "C-Term GLY OXT"               8    16.000    1
 atom        506   35    H1    "C-Term GLY HA"                1     1.008    1
-atom        507   14    N     "C-Term ALA N"                 7    14.010    3
-atom        508    1    CT    "C-Term ALA CA"                6    12.010    4
+atom        507   14   14    "C-Term ALA N"                 7    14.010    3
+atom        508    1    1    "C-Term ALA 3"                6    12.010    4
 atom        509    2    C     "C-Term ALA C"                 6    12.010    3
 atom        510   29    H     "C-Term ALA HN"                1     1.008    1
 atom        511   25    O2    "C-Term ALA OXT"               8    16.000    1
 atom        512   35    H1    "C-Term ALA HA"                1     1.008    1
-atom        513   14    N     "C-Term VAL N"                 7    14.010    3
-atom        514    1    CT    "C-Term VAL CA"                6    12.010    4
+atom        513   14   14    "C-Term VAL N"                 7    14.010    3
+atom        514    1    1    "C-Term VAL 3"                6    12.010    4
 atom        515    2    C     "C-Term VAL C"                 6    12.010    3
 atom        516   29    H     "C-Term VAL HN"                1     1.008    1
 atom        517   25    O2    "C-Term VAL OXT"               8    16.000    1
 atom        518   35    H1    "C-Term VAL HA"                1     1.008    1
-atom        519   14    N     "C-Term LEU N"                 7    14.010    3
-atom        520    1    CT    "C-Term LEU CA"                6    12.010    4
+atom        519   14   14    "C-Term LEU N"                 7    14.010    3
+atom        520    1    1    "C-Term LEU 3"                6    12.010    4
 atom        521    2    C     "C-Term LEU C"                 6    12.010    3
 atom        522   29    H     "C-Term LEU HN"                1     1.008    1
 atom        523   25    O2    "C-Term LEU OXT"               8    16.000    1
 atom        524   35    H1    "C-Term LEU HA"                1     1.008    1
-atom        525   14    N     "C-Term ILE N"                 7    14.010    3
-atom        526    1    CT    "C-Term ILE CA"                6    12.010    4
+atom        525   14   14    "C-Term ILE N"                 7    14.010    3
+atom        526    1    1    "C-Term ILE 3"                6    12.010    4
 atom        527    2    C     "C-Term ILE C"                 6    12.010    3
 atom        528   29    H     "C-Term ILE HN"                1     1.008    1
 atom        529   25    O2    "C-Term ILE OXT"               8    16.000    1
 atom        530   35    H1    "C-Term ILE HA"                1     1.008    1
-atom        531   14    N     "C-Term SER N"                 7    14.010    3
-atom        532    1    CT    "C-Term SER CA"                6    12.010    4
+atom        531   14   14    "C-Term SER N"                 7    14.010    3
+atom        532    1    1    "C-Term SER 3"                6    12.010    4
 atom        533    2    C     "C-Term SER C"                 6    12.010    3
 atom        534   29    H     "C-Term SER HN"                1     1.008    1
 atom        535   25    O2    "C-Term SER OXT"               8    16.000    1
 atom        536   35    H1    "C-Term SER HA"                1     1.008    1
-atom        537   14    N     "C-Term THR N"                 7    14.010    3
-atom        538    1    CT    "C-Term THR CA"                6    12.010    4
+atom        537   14   14    "C-Term THR N"                 7    14.010    3
+atom        538    1    1    "C-Term THR 3"                6    12.010    4
 atom        539    2    C     "C-Term THR C"                 6    12.010    3
 atom        540   29    H     "C-Term THR HN"                1     1.008    1
 atom        541   25    O2    "C-Term THR OXT"               8    16.000    1
 atom        542   35    H1    "C-Term THR HA"                1     1.008    1
-atom        543   14    N     "C-Term CYS (-SH) N"           7    14.010    3
-atom        544    1    CT    "C-Term CYS (-SH) CA"          6    12.010    4
+atom        543   14   14    "C-Term CYS (-SH) N"           7    14.010    3
+atom        544    1    1    "C-Term CYS (-SH) 3"          6    12.010    4
 atom        545    2    C     "C-Term CYS (-SH) C"           6    12.010    3
 atom        546   29    H     "C-Term CYS (-SH) HN"          1     1.008    1
 atom        547   25    O2    "C-Term CYS (-SH) OXT"         8    16.000    1
 atom        548   35    H1    "C-Term CYS (-SH) HA"          1     1.008    1
-atom        549   14    N     "C-Term CYS (-SS-) N"          7    14.010    3
-atom        550    1    CT    "C-Term CYS (-SS-) CA"         6    12.010    4
+atom        549   14   14    "C-Term CYS (-SS-) N"          7    14.010    3
+atom        550    1    1    "C-Term CYS (-SS-) 3"         6    12.010    4
 atom        551    2    C     "C-Term CYS (-SS-) C"          6    12.010    3
 atom        552   29    H     "C-Term CYS (-SS-) HN"         1     1.008    1
 atom        553   25    O2    "C-Term CYS (-SS-) OXT"        8    16.000    1
 atom        554   35    H1    "C-Term CYS (-SS-) HA"         1     1.008    1
-atom        555   14    N     "C-Term PRO N"                 7    14.010    3
-atom        556    1    CT    "C-Term PRO CA"                6    12.010    4
+atom        555   14   14    "C-Term PRO N"                 7    14.010    3
+atom        556    1    1    "C-Term PRO 3"                6    12.010    4
 atom        557    2    C     "C-Term PRO C"                 6    12.010    3
 atom        558   25    O2    "C-Term PRO OXT"               8    16.000    1
 atom        559   35    H1    "C-Term PRO HA"                1     1.008    1
-atom        560   14    N     "C-Term PHE N"                 7    14.010    3
-atom        561    1    CT    "C-Term PHE CA"                6    12.010    4
+atom        560   14   14    "C-Term PHE N"                 7    14.010    3
+atom        561    1    1    "C-Term PHE 3"                6    12.010    4
 atom        562    2    C     "C-Term PHE C"                 6    12.010    3
 atom        563   29    H     "C-Term PHE HN"                1     1.008    1
 atom        564   25    O2    "C-Term PHE OXT"               8    16.000    1
 atom        565   35    H1    "C-Term PHE HA"                1     1.008    1
-atom        566   14    N     "C-Term TYR N"                 7    14.010    3
-atom        567    1    CT    "C-Term TYR CA"                6    12.010    4
+atom        566   14   14    "C-Term TYR N"                 7    14.010    3
+atom        567    1    1    "C-Term TYR 3"                6    12.010    4
 atom        568    2    C     "C-Term TYR C"                 6    12.010    3
 atom        569   29    H     "C-Term TYR HN"                1     1.008    1
 atom        570   25    O2    "C-Term TYR OXT"               8    16.000    1
 atom        571   35    H1    "C-Term TYR HA"                1     1.008    1
-atom        572   14    N     "C-Term TRP N"                 7    14.010    3
-atom        573    1    CT    "C-Term TRP CA"                6    12.010    4
+atom        572   14   14    "C-Term TRP N"                 7    14.010    3
+atom        573    1    1    "C-Term TRP 3"                6    12.010    4
 atom        574    2    C     "C-Term TRP C"                 6    12.010    3
 atom        575   29    H     "C-Term TRP HN"                1     1.008    1
 atom        576   25    O2    "C-Term TRP OXT"               8    16.000    1
 atom        577   35    H1    "C-Term TRP HA"                1     1.008    1
-atom        578   14    N     "C-Term HIS (+) N"             7    14.010    3
-atom        579    1    CT    "C-Term HIS (+) CA"            6    12.010    4
+atom        578   14   14    "C-Term HIS (+) N"             7    14.010    3
+atom        579    1    1    "C-Term HIS (+) 3"            6    12.010    4
 atom        580    2    C     "C-Term HIS (+) C"             6    12.010    3
 atom        581   29    H     "C-Term HIS (+) HN"            1     1.008    1
 atom        582   25    O2    "C-Term HIS (+) OXT"           8    16.000    1
 atom        583   35    H1    "C-Term HIS (+) HA"            1     1.008    1
-atom        584   14    N     "C-Term HIS (HD) N"            7    14.010    3
-atom        585    1    CT    "C-Term HIS (HD) CA"           6    12.010    4
+atom        584   14   14    "C-Term HIS (HD) N"            7    14.010    3
+atom        585    1    1    "C-Term HIS (HD) 3"           6    12.010    4
 atom        586    2    C     "C-Term HIS (HD) C"            6    12.010    3
 atom        587   29    H     "C-Term HIS (HD) HN"           1     1.008    1
 atom        588   25    O2    "C-Term HIS (HD) OXT"          8    16.000    1
 atom        589   35    H1    "C-Term HIS (HD) HA"           1     1.008    1
-atom        590   14    N     "C-Term HIS (HE) N"            7    14.010    3
-atom        591    1    CT    "C-Term HIS (HE) CA"           6    12.010    4
+atom        590   14   14    "C-Term HIS (HE) N"            7    14.010    3
+atom        591    1    1    "C-Term HIS (HE) 3"           6    12.010    4
 atom        592    2    C     "C-Term HIS (HE) C"            6    12.010    3
 atom        593   29    H     "C-Term HIS (HE) HN"           1     1.008    1
 atom        594   25    O2    "C-Term HIS (HE) OXT"          8    16.000    1
 atom        595   35    H1    "C-Term HIS (HE) HA"           1     1.008    1
-atom        596   14    N     "C-Term ASP N"                 7    14.010    3
-atom        597    1    CT    "C-Term ASP CA"                6    12.010    4
+atom        596   14   14    "C-Term ASP N"                 7    14.010    3
+atom        597    1    1    "C-Term ASP 3"                6    12.010    4
 atom        598    2    C     "C-Term ASP C"                 6    12.010    3
 atom        599   29    H     "C-Term ASP HN"                1     1.008    1
 atom        600   25    O2    "C-Term ASP OXT"               8    16.000    1
 atom        601   35    H1    "C-Term ASP HA"                1     1.008    1
-atom        602   14    N     "C-Term ASN N"                 7    14.010    3
-atom        603    1    CT    "C-Term ASN CA"                6    12.010    4
+atom        602   14   14    "C-Term ASN N"                 7    14.010    3
+atom        603    1    1    "C-Term ASN 3"                6    12.010    4
 atom        604    2    C     "C-Term ASN C"                 6    12.010    3
 atom        605   29    H     "C-Term ASN HN"                1     1.008    1
 atom        606   25    O2    "C-Term ASN OXT"               8    16.000    1
 atom        607   35    H1    "C-Term ASN HA"                1     1.008    1
-atom        608   14    N     "C-Term GLU N"                 7    14.010    3
-atom        609    1    CT    "C-Term GLU CA"                6    12.010    4
+atom        608   14   14    "C-Term GLU N"                 7    14.010    3
+atom        609    1    1    "C-Term GLU 3"                6    12.010    4
 atom        610    2    C     "C-Term GLU C"                 6    12.010    3
 atom        611   29    H     "C-Term GLU HN"                1     1.008    1
 atom        612   25    O2    "C-Term GLU OXT"               8    16.000    1
 atom        613   35    H1    "C-Term GLU HA"                1     1.008    1
-atom        614   14    N     "C-Term GLN N"                 7    14.010    3
-atom        615    1    CT    "C-Term GLN CA"                6    12.010    4
+atom        614   14   14    "C-Term GLN N"                 7    14.010    3
+atom        615    1    1    "C-Term GLN 3"                6    12.010    4
 atom        616    2    C     "C-Term GLN C"                 6    12.010    3
 atom        617   29    H     "C-Term GLN HN"                1     1.008    1
 atom        618   25    O2    "C-Term GLN OXT"               8    16.000    1
 atom        619   35    H1    "C-Term GLN HA"                1     1.008    1
-atom        620   14    N     "C-Term MET N"                 7    14.010    3
-atom        621    1    CT    "C-Term MET CA"                6    12.010    4
+atom        620   14   14    "C-Term MET N"                 7    14.010    3
+atom        621    1    1    "C-Term MET 3"                6    12.010    4
 atom        622    2    C     "C-Term MET C"                 6    12.010    3
 atom        623   29    H     "C-Term MET HN"                1     1.008    1
 atom        624   25    O2    "C-Term MET OXT"               8    16.000    1
 atom        625   35    H1    "C-Term MET HA"                1     1.008    1
-atom        626   14    N     "C-Term LYS N"                 7    14.010    3
-atom        627    1    CT    "C-Term LYS CA"                6    12.010    4
+atom        626   14   14    "C-Term LYS N"                 7    14.010    3
+atom        627    1    1    "C-Term LYS 3"                6    12.010    4
 atom        628    2    C     "C-Term LYS C"                 6    12.010    3
 atom        629   29    H     "C-Term LYS HN"                1     1.008    1
 atom        630   25    O2    "C-Term LYS OXT"               8    16.000    1
 atom        631   35    H1    "C-Term LYS HA"                1     1.008    1
-atom        632   14    N     "C-Term ARG N"                 7    14.010    3
-atom        633    1    CT    "C-Term ARG CA"                6    12.010    4
+atom        632   14   14    "C-Term ARG N"                 7    14.010    3
+atom        633    1    1    "C-Term ARG 3"                6    12.010    4
 atom        634    2    C     "C-Term ARG C"                 6    12.010    3
 atom        635   29    H     "C-Term ARG HN"                1     1.008    1
 atom        636   25    O2    "C-Term ARG OXT"               8    16.000    1
 atom        637   35    H1    "C-Term ARG HA"                1     1.008    1
-atom        638   14    N     "C-Term ORN N"                 7    14.010    3
-atom        639    1    CT    "C-Term ORN CA"                6    12.010    4
+atom        638   14   14    "C-Term ORN N"                 7    14.010    3
+atom        639    1    1    "C-Term ORN 3"                6    12.010    4
 atom        640    2    C     "C-Term ORN C"                 6    12.010    3
 atom        641   29    H     "C-Term ORN HN"                1     1.008    1
 atom        642   25    O2    "C-Term ORN OXT"               8    16.000    1
 atom        643   35    H1    "C-Term ORN HA"                1     1.008    1
-atom        644   14    N     "C-Term AIB N"                 7    14.010    3
-atom        645    1    CT    "C-Term AIB CA"                6    12.010    4
+atom        644   14   14    "C-Term AIB N"                 7    14.010    3
+atom        645    1    1    "C-Term AIB 3"                6    12.010    4
 atom        646    2    C     "C-Term AIB C"                 6    12.010    3
 atom        647   29    H     "C-Term AIB HN"                1     1.008    1
 atom        648   25    O2    "C-Term AIB OXT"               8    16.000    1
 atom       1001   23    OS    "R-Adenosine O5'"              8    16.000    2
-atom       1002    1    CT    "R-Adenosine C5'"              6    12.010    4
+atom       1002    1    1    "R-Adenosine C5'"              6    12.010    4
 atom       1003   35    H1    "R-Adenosine H5'1"             1     1.008    1
 atom       1004   35    H1    "R-Adenosine H5'2"             1     1.008    1
-atom       1005    1    CT    "R-Adenosine C4'"              6    12.010    4
+atom       1005    1    1    "R-Adenosine C4'"              6    12.010    4
 atom       1006   35    H1    "R-Adenosine H4'"              1     1.008    1
 atom       1007   23    OS    "R-Adenosine O4'"              8    16.000    2
-atom       1008    1    CT    "R-Adenosine C1'"              6    12.010    4
+atom       1008    1    1    "R-Adenosine C1'"              6    12.010    4
 atom       1009   36    H2    "R-Adenosine H1'"              1     1.008    1
-atom       1010    1    CT    "R-Adenosine C3'"              6    12.010    4
+atom       1010    1    1    "R-Adenosine C3'"              6    12.010    4
 atom       1011   35    H1    "R-Adenosine H3'"              1     1.008    1
-atom       1012    1    CT    "R-Adenosine C2'"              6    12.010    4
+atom       1012    1    1    "R-Adenosine C2'"              6    12.010    4
 atom       1013   35    H1    "R-Adenosine H2'1"             1     1.008    1
 atom       1014   22    OH    "R-Adenosine O2'"              8    16.000    2
 atom       1015   31    HO    "R-Adenosine HO'2"             1     1.008    1
@@ -750,24 +750,24 @@ atom       1021   12    CK    "R-Adenosine C8"               6    12.010    3
 atom       1022   17    NC    "R-Adenosine N3"               7    14.010    2
 atom       1023   13    CQ    "R-Adenosine C2"               6    12.010    3
 atom       1024   17    NC    "R-Adenosine N1"               7    14.010    2
-atom       1025    3    CA    "R-Adenosine C6"               6    12.010    3
+atom       1025    3    3    "R-Adenosine C6"               6    12.010    3
 atom       1026   40    H5    "R-Adenosine H2"               1     1.008    1
 atom       1027   19    N2    "R-Adenosine N6"               7    14.010    3
 atom       1028   29    H     "R-Adenosine H61"              1     1.008    1
 atom       1029   29    H     "R-Adenosine H62"              1     1.008    1
 atom       1030   40    H5    "R-Adenosine H8"               1     1.008    1
 atom       1031   23    OS    "R-Guanosine O5'"              8    16.000    2
-atom       1032    1    CT    "R-Guanosine C5'"              6    12.010    4
+atom       1032    1    1    "R-Guanosine C5'"              6    12.010    4
 atom       1033   35    H1    "R-Guanosine H5'1"             1     1.008    1
 atom       1034   35    H1    "R-Guanosine H5'2"             1     1.008    1
-atom       1035    1    CT    "R-Guanosine C4'"              6    12.010    4
+atom       1035    1    1    "R-Guanosine C4'"              6    12.010    4
 atom       1036   35    H1    "R-Guanosine H4'"              1     1.008    1
 atom       1037   23    OS    "R-Guanosine O4'"              8    16.000    2
-atom       1038    1    CT    "R-Guanosine C1'"              6    12.010    4
+atom       1038    1    1    "R-Guanosine C1'"              6    12.010    4
 atom       1039   36    H2    "R-Guanosine H1'"              1     1.008    1
-atom       1040    1    CT    "R-Guanosine C3'"              6    12.010    4
+atom       1040    1    1    "R-Guanosine C3'"              6    12.010    4
 atom       1041   35    H1    "R-Guanosine H3'"              1     1.008    1
-atom       1042    1    CT    "R-Guanosine C2'"              6    12.010    4
+atom       1042    1    1    "R-Guanosine C2'"              6    12.010    4
 atom       1043   35    H1    "R-Guanosine H2'1"             1     1.008    1
 atom       1044   22    OH    "R-Guanosine O2'"              8    16.000    2
 atom       1045   31    HO    "R-Guanosine HO'2"             1     1.008    1
@@ -778,27 +778,27 @@ atom       1049    9    CB    "R-Guanosine C5"               6    12.010    3
 atom       1050   16    NB    "R-Guanosine N7"               7    14.010    2
 atom       1051   12    CK    "R-Guanosine C8"               6    12.010    3
 atom       1052   17    NC    "R-Guanosine N3"               7    14.010    2
-atom       1053    3    CA    "R-Guanosine C2"               6    12.010    3
+atom       1053    3    3    "R-Guanosine C2"               6    12.010    3
 atom       1054   15    NA    "R-Guanosine N1"               7    14.010    3
 atom       1055    2    C     "R-Guanosine C6"               6    12.010    3
 atom       1056   29    H     "R-Guanosine H1"               1     1.008    1
 atom       1057   19    N2    "R-Guanosine N2"               7    14.010    3
 atom       1058   29    H     "R-Guanosine H21"              1     1.008    1
 atom       1059   29    H     "R-Guanosine H22"              1     1.008    1
-atom       1060   24    O     "R-Guanosine O6"               8    16.000    1
+atom       1060   24   24    "R-Guanosine O6"               8    16.000    1
 atom       1061   40    H5    "R-Guanosine H8"               1     1.008    1
 atom       1062   23    OS    "R-Cytosine O5'"               8    16.000    2
-atom       1063    1    CT    "R-Cytosine C5'"               6    12.010    4
+atom       1063    1    1    "R-Cytosine C5'"               6    12.010    4
 atom       1064   35    H1    "R-Cytosine H5'1"              1     1.008    1
 atom       1065   35    H1    "R-Cytosine H5'2"              1     1.008    1
-atom       1066    1    CT    "R-Cytosine C4'"               6    12.010    4
+atom       1066    1    1    "R-Cytosine C4'"               6    12.010    4
 atom       1067   35    H1    "R-Cytosine H4'"               1     1.008    1
 atom       1068   23    OS    "R-Cytosine O4'"               8    16.000    2
-atom       1069    1    CT    "R-Cytosine C1'"               6    12.010    4
+atom       1069    1    1    "R-Cytosine C1'"               6    12.010    4
 atom       1070   36    H2    "R-Cytosine H1'"               1     1.008    1
-atom       1071    1    CT    "R-Cytosine C3'"               6    12.010    4
+atom       1071    1    1    "R-Cytosine C3'"               6    12.010    4
 atom       1072   35    H1    "R-Cytosine H3'"               1     1.008    1
-atom       1073    1    CT    "R-Cytosine C2'"               6    12.010    4
+atom       1073    1    1    "R-Cytosine C2'"               6    12.010    4
 atom       1074   35    H1    "R-Cytosine H2'1"              1     1.008    1
 atom       1075   22    OH    "R-Cytosine O2'"               8    16.000    2
 atom       1076   31    HO    "R-Cytosine HO'2"              1     1.008    1
@@ -806,27 +806,27 @@ atom       1077   23    OS    "R-Cytosine O3'"               8    16.000    2
 atom       1078   18    N*    "R-Cytosine N1"                7    14.010    3
 atom       1079    2    C     "R-Cytosine C2"                6    12.010    3
 atom       1080   17    NC    "R-Cytosine N3"                7    14.010    2
-atom       1081    3    CA    "R-Cytosine C4"                6    12.010    3
+atom       1081    3    3    "R-Cytosine C4"                6    12.010    3
 atom       1082    4    CM    "R-Cytosine C5"                6    12.010    3
 atom       1083    4    CM    "R-Cytosine C6"                6    12.010    3
-atom       1084   24    O     "R-Cytosine O2"                8    16.000    1
+atom       1084   24   24    "R-Cytosine O2"                8    16.000    1
 atom       1085   19    N2    "R-Cytosine N4"                7    14.010    3
 atom       1086   29    H     "R-Cytosine H41"               1     1.008    1
 atom       1087   29    H     "R-Cytosine H42"               1     1.008    1
 atom       1088   33    HA    "R-Cytosine H5"                1     1.008    1
 atom       1089   39    H4    "R-Cytosine H6"                1     1.008    1
 atom       1090   23    OS    "R-Uracil O5'"                 8    16.000    2
-atom       1091    1    CT    "R-Uracil C5'"                 6    12.010    4
+atom       1091    1    1    "R-Uracil C5'"                 6    12.010    4
 atom       1092   35    H1    "R-Uracil H5'1"                1     1.008    1
 atom       1093   35    H1    "R-Uracil H5'2"                1     1.008    1
-atom       1094    1    CT    "R-Uracil C4'"                 6    12.010    4
+atom       1094    1    1    "R-Uracil C4'"                 6    12.010    4
 atom       1095   35    H1    "R-Uracil H4'"                 1     1.008    1
 atom       1096   23    OS    "R-Uracil O4'"                 8    16.000    2
-atom       1097    1    CT    "R-Uracil C1'"                 6    12.010    4
+atom       1097    1    1    "R-Uracil C1'"                 6    12.010    4
 atom       1098   36    H2    "R-Uracil H1'"                 1     1.008    1
-atom       1099    1    CT    "R-Uracil C3'"                 6    12.010    4
+atom       1099    1    1    "R-Uracil C3'"                 6    12.010    4
 atom       1100   35    H1    "R-Uracil H3'"                 1     1.008    1
-atom       1101    1    CT    "R-Uracil C2'"                 6    12.010    4
+atom       1101    1    1    "R-Uracil C2'"                 6    12.010    4
 atom       1102   35    H1    "R-Uracil H2'1"                1     1.008    1
 atom       1103   22    OH    "R-Uracil O2'"                 8    16.000    2
 atom       1104   31    HO    "R-Uracil HO'2"                1     1.008    1
@@ -837,25 +837,25 @@ atom       1108   15    NA    "R-Uracil N3"                  7    14.010    3
 atom       1109    2    C     "R-Uracil C4"                  6    12.010    3
 atom       1110    4    CM    "R-Uracil C5"                  6    12.010    3
 atom       1111    4    CM    "R-Uracil C6"                  6    12.010    3
-atom       1112   24    O     "R-Uracil O2"                  8    16.000    1
+atom       1112   24   24    "R-Uracil O2"                  8    16.000    1
 atom       1113   29    H     "R-Uracil H3"                  1     1.008    1
-atom       1114   24    O     "R-Uracil O4"                  8    16.000    1
+atom       1114   24   24    "R-Uracil O4"                  8    16.000    1
 atom       1115   33    HA    "R-Uracil H5"                  1     1.008    1
 atom       1116   39    H4    "R-Uracil H6"                  1     1.008    1
 atom       1117   23    OS    "D-Adenosine O5'"              8    16.000    2
-atom       1118    1    CT    "D-Adenosine C5'"              6    12.010    4
+atom       1118    1    1    "D-Adenosine C5'"              6    12.010    4
 atom       1119   35    H1    "D-Adenosine H5'1"             1     1.008    1
 atom       1120   35    H1    "D-Adenosine H5'2"             1     1.008    1
-atom       1121    1    CT    "D-Adenosine C4'"              6    12.010    4
+atom       1121    1    1    "D-Adenosine C4'"              6    12.010    4
 atom       1122   35    H1    "D-Adenosine H4'"              1     1.008    1
 atom       1123   23    OS    "D-Adenosine O4'"              8    16.000    2
-atom       1124    1    CT    "D-Adenosine C1'"              6    12.010    4
+atom       1124    1    1    "D-Adenosine C1'"              6    12.010    4
 atom       1125   36    H2    "D-Adenosine H1'"              1     1.008    1
-atom       1126    1    CT    "D-Adenosine C3'"              6    12.010    4
+atom       1126    1    1    "D-Adenosine C3'"              6    12.010    4
 atom       1127   35    H1    "D-Adenosine H3'"              1     1.008    1
-atom       1128    1    CT    "D-Adenosine C2'"              6    12.010    4
-atom       1129   34    HC    "D-Adenosine H2'1"             1     1.008    1
-atom       1130   34    HC    "D-Adenosine H2'2"             1     1.008    1
+atom       1128    1    1    "D-Adenosine C2'"              6    12.010    4
+atom       1129   34    34    "D-Adenosine H2'1"             1     1.008    1
+atom       1130   34    34    "D-Adenosine H2'2"             1     1.008    1
 atom       1131   23    OS    "D-Adenosine O3'"              8    16.000    2
 atom       1132   18    N*    "D-Adenosine N9"               7    14.010    3
 atom       1133    9    CB    "D-Adenosine C4"               6    12.010    3
@@ -865,26 +865,26 @@ atom       1136   12    CK    "D-Adenosine C8"               6    12.010    3
 atom       1137   17    NC    "D-Adenosine N3"               7    14.010    2
 atom       1138   13    CQ    "D-Adenosine C2"               6    12.010    3
 atom       1139   17    NC    "D-Adenosine N1"               7    14.010    2
-atom       1140    3    CA    "D-Adenosine C6"               6    12.000    3
+atom       1140    3    3    "D-Adenosine C6"               6    12.000    3
 atom       1141   40    H5    "D-Adenosine H2"               1     1.008    1
 atom       1142   19    N2    "D-Adenosine N6"               7    14.010    3
 atom       1143   29    H     "D-Adenosine H61"              1     1.008    1
 atom       1144   29    H     "D-Adenosine H62"              1     1.008    1
 atom       1145   40    H5    "D-Adenosine H8"               1     1.008    1
 atom       1146   23    OS    "D-Guanosine O5'"              8    16.000    2
-atom       1147    1    CT    "D-Guanosine C5'"              6    12.010    4
+atom       1147    1    1    "D-Guanosine C5'"              6    12.010    4
 atom       1148   35    H1    "D-Guanosine H5'1"             1     1.008    1
 atom       1149   35    H1    "D-Guanosine H5'2"             1     1.008    1
-atom       1150    1    CT    "D-Guanosine C4'"              6    12.010    4
+atom       1150    1    1    "D-Guanosine C4'"              6    12.010    4
 atom       1151   35    H1    "D-Guanosine H4'"              1     1.008    1
 atom       1152   23    OS    "D-Guanosine O4'"              8    16.000    2
-atom       1153    1    CT    "D-Guanosine C1'"              6    12.010    4
+atom       1153    1    1    "D-Guanosine C1'"              6    12.010    4
 atom       1154   36    H2    "D-Guanosine H1'"              1     1.008    1
-atom       1155    1    CT    "D-Guanosine C3'"              6    12.010    4
+atom       1155    1    1    "D-Guanosine C3'"              6    12.010    4
 atom       1156   35    H1    "D-Guanosine H3'"              1     1.008    1
-atom       1157    1    CT    "D-Guanosine C2'"              6    12.010    4
-atom       1158   34    HC    "D-Guanosine H2'1"             1     1.008    1
-atom       1159   34    HC    "D-Guanosine H2'2"             1     1.008    1
+atom       1157    1    1    "D-Guanosine C2'"              6    12.010    4
+atom       1158   34    34    "D-Guanosine H2'1"             1     1.008    1
+atom       1159   34    34    "D-Guanosine H2'2"             1     1.008    1
 atom       1160   23    OS    "D-Guanosine O3'"              8    16.000    2
 atom       1161   18    N*    "D-Guanosine N9"               7    14.010    3
 atom       1162    9    CB    "D-Guanosine C4"               6    12.010    3
@@ -892,56 +892,56 @@ atom       1163    9    CB    "D-Guanosine C5"               6    12.010    3
 atom       1164   16    NB    "D-Guanosine N7"               7    14.010    2
 atom       1165   12    CK    "D-Guanosine C8"               6    12.010    3
 atom       1166   17    NC    "D-Guanosine N3"               7    14.010    2
-atom       1167    3    CA    "D-Guanosine C2"               6    12.010    3
+atom       1167    3    3    "D-Guanosine C2"               6    12.010    3
 atom       1168   15    NA    "D-Guanosine N1"               7    14.010    3
 atom       1169    2    C     "D-Guanosine C6"               6    12.010    3
 atom       1170   29    H     "D-Guanosine H1"               1     1.008    1
 atom       1171   19    N2    "D-Guanosine N2"               7    14.010    3
 atom       1172   29    H     "D-Guanosine H21"              1     1.008    1
 atom       1173   29    H     "D-Guanosine H22"              1     1.008    1
-atom       1174   24    O     "D-Guanosine O6"               8    16.000    1
+atom       1174   24   24    "D-Guanosine O6"               8    16.000    1
 atom       1175   40    H5    "D-Guanosine H8"               1     1.008    1
 atom       1176   23    OS    "D-Cytosine O5'"               8    16.000    2
-atom       1177    1    CT    "D-Cytosine C5'"               6    12.010    4
+atom       1177    1    1    "D-Cytosine C5'"               6    12.010    4
 atom       1178   35    H1    "D-Cytosine H5'1"              1     1.008    1
 atom       1179   35    H1    "D-Cytosine H5'2"              1     1.008    1
-atom       1180    1    CT    "D-Cytosine C4'"               6    12.010    4
+atom       1180    1    1    "D-Cytosine C4'"               6    12.010    4
 atom       1181   35    H1    "D-Cytosine H4'"               1     1.008    1
 atom       1182   23    OS    "D-Cytosine O4'"               8    16.000    2
-atom       1183    1    CT    "D-Cytosine C1'"               6    12.010    4
+atom       1183    1    1    "D-Cytosine C1'"               6    12.010    4
 atom       1184   36    H2    "D-Cytosine H1'"               1     1.008    1
-atom       1185    1    CT    "D-Cytosine C3'"               6    12.010    4
+atom       1185    1    1    "D-Cytosine C3'"               6    12.010    4
 atom       1186   35    H1    "D-Cytosine H3'"               1     1.008    1
-atom       1187    1    CT    "D-Cytosine C2'"               6    12.010    4
-atom       1188   34    HC    "D-Cytosine H2'1"              1     1.008    1
-atom       1189   34    HC    "D-Cytosine H2'2"              1     1.008    1
+atom       1187    1    1    "D-Cytosine C2'"               6    12.010    4
+atom       1188   34    34    "D-Cytosine H2'1"              1     1.008    1
+atom       1189   34    34    "D-Cytosine H2'2"              1     1.008    1
 atom       1190   23    OS    "D-Cytosine O3'"               8    16.000    2
 atom       1191   18    N*    "D-Cytosine N1"                7    14.010    3
 atom       1192    2    C     "D-Cytosine C2"                6    12.010    3
 atom       1193   17    NC    "D-Cytosine N3"                7    14.010    2
-atom       1194    3    CA    "D-Cytosine C4"                6    12.010    3
+atom       1194    3    3    "D-Cytosine C4"                6    12.010    3
 atom       1195    4    CM    "D-Cytosine C5"                6    12.010    3
 atom       1196    4    CM    "D-Cytosine C6"                6    12.010    3
-atom       1197   24    O     "D-Cytosine O2"                8    16.000    1
+atom       1197   24   24    "D-Cytosine O2"                8    16.000    1
 atom       1198   19    N2    "D-Cytosine N4"                7    14.010    3
 atom       1199   29    H     "D-Cytosine H41"               1     1.008    1
 atom       1200   29    H     "D-Cytosine H42"               1     1.008    1
 atom       1201   33    HA    "D-Cytosine H5"                1     1.008    1
 atom       1202   39    H4    "D-Cytosine H6"                1     1.008    1
 atom       1203   23    OS    "D-Thymine O5'"                8    16.000    2
-atom       1204    1    CT    "D-Thymine C5'"                6    12.010    4
+atom       1204    1    1    "D-Thymine C5'"                6    12.010    4
 atom       1205   35    H1    "D-Thymine H5'1"               1     1.008    1
 atom       1206   35    H1    "D-Thymine H5'2"               1     1.008    1
-atom       1207    1    CT    "D-Thymine C4'"                6    12.010    4
+atom       1207    1    1    "D-Thymine C4'"                6    12.010    4
 atom       1208   35    H1    "D-Thymine H4'"                1     1.008    1
 atom       1209   23    OS    "D-Thymine O4'"                8    16.000    2
-atom       1210    1    CT    "D-Thymine C1'"                6    12.010    4
+atom       1210    1    1    "D-Thymine C1'"                6    12.010    4
 atom       1211   36    H2    "D-Thymine H1'"                1     1.008    1
-atom       1212    1    CT    "D-Thymine C3'"                6    12.010    4
+atom       1212    1    1    "D-Thymine C3'"                6    12.010    4
 atom       1213   35    H1    "D-Thymine H3'"                1     1.008    1
-atom       1214    1    CT    "D-Thymine C2'"                6    12.010    4
-atom       1215   34    HC    "D-Thymine H2'1"               1     1.008    1
-atom       1216   34    HC    "D-Thymine H2'2"               1     1.008    1
+atom       1214    1    1    "D-Thymine C2'"                6    12.010    4
+atom       1215   34    34    "D-Thymine H2'1"               1     1.008    1
+atom       1216   34    34    "D-Thymine H2'2"               1     1.008    1
 atom       1217   23    OS    "D-Thymine O3'"                8    16.000    2
 atom       1218   18    N*    "D-Thymine N1"                 7    14.010    3
 atom       1219    2    C     "D-Thymine C2"                 6    12.010    3
@@ -949,11 +949,11 @@ atom       1220   15    NA    "D-Thymine N3"                 7    14.010    3
 atom       1221    2    C     "D-Thymine C4"                 6    12.010    3
 atom       1222    4    CM    "D-Thymine C5"                 6    12.010    3
 atom       1223    4    CM    "D-Thymine C6"                 6    12.010    3
-atom       1224   24    O     "D-Thymine O2"                 8    16.000    1
+atom       1224   24   24    "D-Thymine O2"                 8    16.000    1
 atom       1225   29    H     "D-Thymine H3"                 1     1.008    1
-atom       1226   24    O     "D-Thymine O4"                 8    16.000    1
-atom       1227    1    CT    "D-Thymine C7"                 6    12.010    4
-atom       1228   34    HC    "D-Thymine H7"                 1     1.008    1
+atom       1226   24   24    "D-Thymine O4"                 8    16.000    1
+atom       1227    1    1    "D-Thymine C7"                 6    12.010    4
+atom       1228   34    34    "D-Thymine H7"                 1     1.008    1
 atom       1229   39    H4    "D-Thymine H6"                 1     1.008    1
 atom       1230   28    P     "R-Phosphodiester P"          15    30.970    4
 atom       1231   25    O2    "R-Phosphodiester OP"          8    16.000    1
@@ -2071,6 +2071,8 @@ bond        119  119           80.90     2.3910  !! GAFF
 bond        119  120          105.30     2.2550  !! GAFF
 bond        120  120          106.40     2.2500  !! GAFF
 bond          2   33          325.10     1.1010  !! from GAFF
+bond         24   26          194.80     1.8020  
+bond          3   26          277.90     1.7390  
 
 
 
@@ -6346,6 +6348,24 @@ angle        33    2   24      54.27     121.94  !! from GAFF
 angle        33    2   14      52.40     112.37  !! from GAFF
 angle        34    1   14      49.78     109.50  !! from GAFF
 angle        14    2   14      74.80     113.38  !! from GAFF
+angle        34    1   26      50.0      108.60
+angle        34    1   35      50.0      109.50
+angle        34    2   14      50.0      109.50
+angle         1   26   24      68.0      103.70
+angle        34    2   24      50.0      120.00
+angle         1   26    3      62.0       98.90
+angle        26    3    3      62.2      122.55
+angle        24   26   24      68.0      103.70
+angle        24   26    3      68.0      103.70
+angle        14    1   34      50.0      109.50
+angle        14    2   14      70.0      120.00
+angle         3   26    3      38.085    103.410
+angle        26    3   39      54.15     115.450
+angle        14    1    3      70.00     120.000
+angle         1    3   33      50.000    120.000
+angle         3    1   35      50.00     109.500
+angle        34    1   27      50.0      109.50
+angle        34    1   22      50.0      109.50
 
 
       #####################################
@@ -7434,25 +7454,25 @@ torsion       0    1    1    0            1.400    0.0  3
       ########################################
 
 
-biotype       1    N       "Glycine"                           1
-biotype       2    CA      "Glycine"                           2
+biotype       1   14      "Glycine"                           1
+biotype       2    3      "Glycine"                           2
 biotype       3    C       "Glycine"                           3
 biotype       4    HN      "Glycine"                           4
-biotype       5    O       "Glycine"                           5
+biotype       5   24      "Glycine"                           5
 biotype       6    HA      "Glycine"                           6
-biotype       7    N       "Alanine"                           7
-biotype       8    CA      "Alanine"                           8
+biotype       7   14      "Alanine"                           7
+biotype       8    3      "Alanine"                           8
 biotype       9    C       "Alanine"                           9
 biotype      10    HN      "Alanine"                          10
-biotype      11    O       "Alanine"                          11
+biotype      11   24      "Alanine"                          11
 biotype      12    HA      "Alanine"                          12
 biotype      13    CB      "Alanine"                          13
 biotype      14    HB      "Alanine"                          14
-biotype      15    N       "Valine"                           15
-biotype      16    CA      "Valine"                           16
+biotype      15   14      "Valine"                           15
+biotype      16    3      "Valine"                           16
 biotype      17    C       "Valine"                           17
 biotype      18    HN      "Valine"                           18
-biotype      19    O       "Valine"                           19
+biotype      19   24      "Valine"                           19
 biotype      20    HA      "Valine"                           20
 biotype      21    CB      "Valine"                           21
 biotype      22    HB      "Valine"                           22
@@ -7460,11 +7480,11 @@ biotype      23    CG1     "Valine"                           23
 biotype      24    HG1     "Valine"                           24
 biotype      25    CG2     "Valine"                           25
 biotype      26    HG2     "Valine"                           26
-biotype      27    N       "Leucine"                          27
-biotype      28    CA      "Leucine"                          28
+biotype      27   14      "Leucine"                          27
+biotype      28    3      "Leucine"                          28
 biotype      29    C       "Leucine"                          29
 biotype      30    HN      "Leucine"                          30
-biotype      31    O       "Leucine"                          31
+biotype      31   24      "Leucine"                          31
 biotype      32    HA      "Leucine"                          32
 biotype      33    CB      "Leucine"                          33
 biotype      34    HB      "Leucine"                          34
@@ -7474,11 +7494,11 @@ biotype      37    CD1     "Leucine"                          37
 biotype      38    HD1     "Leucine"                          38
 biotype      39    CD2     "Leucine"                          39
 biotype      40    HD2     "Leucine"                          40
-biotype      41    N       "Isoleucine"                       41
-biotype      42    CA      "Isoleucine"                       42
+biotype      41   14      "Isoleucine"                       41
+biotype      42    3      "Isoleucine"                       42
 biotype      43    C       "Isoleucine"                       43
 biotype      44    HN      "Isoleucine"                       44
-biotype      45    O       "Isoleucine"                       45
+biotype      45   24      "Isoleucine"                       45
 biotype      46    HA      "Isoleucine"                       46
 biotype      47    CB      "Isoleucine"                       47
 biotype      48    HB      "Isoleucine"                       48
@@ -7488,21 +7508,21 @@ biotype      51    CG2     "Isoleucine"                       51
 biotype      52    HG2     "Isoleucine"                       52
 biotype      53    CD      "Isoleucine"                       53
 biotype      54    HD      "Isoleucine"                       54
-biotype      55    N       "Serine"                           55
-biotype      56    CA      "Serine"                           56
+biotype      55   14      "Serine"                           55
+biotype      56    3      "Serine"                           56
 biotype      57    C       "Serine"                           57
 biotype      58    HN      "Serine"                           58
-biotype      59    O       "Serine"                           59
+biotype      59   24      "Serine"                           59
 biotype      60    HA      "Serine"                           60
 biotype      61    CB      "Serine"                           61
 biotype      62    HB      "Serine"                           62
 biotype      63    OG      "Serine"                           63
 biotype      64    HG      "Serine"                           64
-biotype      65    N       "Threonine"                        65
-biotype      66    CA      "Threonine"                        66
+biotype      65   14      "Threonine"                        65
+biotype      66    3      "Threonine"                        66
 biotype      67    C       "Threonine"                        67
 biotype      68    HN      "Threonine"                        68
-biotype      69    O       "Threonine"                        69
+biotype      69   24      "Threonine"                        69
 biotype      70    HA      "Threonine"                        70
 biotype      71    CB      "Threonine"                        71
 biotype      72    HB      "Threonine"                        72
@@ -7510,38 +7530,38 @@ biotype      73    OG1     "Threonine"                        73
 biotype      74    HG1     "Threonine"                        74
 biotype      75    CG2     "Threonine"                        75
 biotype      76    HG2     "Threonine"                        76
-biotype      77    N       "Cysteine (SH)"                    77
-biotype      78    CA      "Cysteine (SH)"                    78
+biotype      77   14      "Cysteine (SH)"                    77
+biotype      78    3      "Cysteine (SH)"                    78
 biotype      79    C       "Cysteine (SH)"                    79
 biotype      80    HN      "Cysteine (SH)"                    80
-biotype      81    O       "Cysteine (SH)"                    81
+biotype      81   24      "Cysteine (SH)"                    81
 biotype      82    HA      "Cysteine (SH)"                    82
 biotype      83    CB      "Cysteine (SH)"                    83
 biotype      84    HB      "Cysteine (SH)"                    84
 biotype      85    SG      "Cysteine (SH)"                    85
 biotype      86    HG      "Cysteine (SH)"                    86
-biotype      87    N       "Cystine (SS)"                     87
-biotype      88    CA      "Cystine (SS)"                     88
+biotype      87   14      "Cystine (SS)"                     87
+biotype      88    3      "Cystine (SS)"                     88
 biotype      89    C       "Cystine (SS)"                     89
 biotype      90    HN      "Cystine (SS)"                     90
-biotype      91    O       "Cystine (SS)"                     91
+biotype      91   24      "Cystine (SS)"                     91
 biotype      92    HA      "Cystine (SS)"                     92
 biotype      93    CB      "Cystine (SS)"                     93
 biotype      94    HB      "Cystine (SS)"                     94
 biotype      95    SG      "Cystine (SS)"                     95
-biotype      96    N       "Cysteine (S-)"                    -1
-biotype      97    CA      "Cysteine (S-)"                    -1
+biotype      96   14      "Cysteine (S-)"                    -1
+biotype      97    3      "Cysteine (S-)"                    -1
 biotype      98    C       "Cysteine (S-)"                    -1
 biotype      99    HN      "Cysteine (S-)"                    -1
-biotype     100    O       "Cysteine (S-)"                    -1
+biotype     100   24      "Cysteine (S-)"                    -1
 biotype     101    HA      "Cysteine (S-)"                    -1
 biotype     102    CB      "Cysteine (S-)"                    -1
 biotype     103    HB      "Cysteine (S-)"                    -1
 biotype     104    SG      "Cysteine (S-)"                    -1
-biotype     105    N       "Proline"                          96
-biotype     106    CA      "Proline"                          97
+biotype     105   14      "Proline"                          96
+biotype     106    3      "Proline"                          97
 biotype     107    C       "Proline"                          98
-biotype     108    O       "Proline"                          99
+biotype     108   24      "Proline"                          99
 biotype     109    HA      "Proline"                         100
 biotype     110    CB      "Proline"                         101
 biotype     111    HB      "Proline"                         102
@@ -7549,11 +7569,11 @@ biotype     112    CG      "Proline"                         103
 biotype     113    HG      "Proline"                         104
 biotype     114    CD      "Proline"                         105
 biotype     115    HD      "Proline"                         106
-biotype     116    N       "Phenylalanine"                   107
-biotype     117    CA      "Phenylalanine"                   108
+biotype     116   14      "Phenylalanine"                   107
+biotype     117    3      "Phenylalanine"                   108
 biotype     118    C       "Phenylalanine"                   109
 biotype     119    HN      "Phenylalanine"                   110
-biotype     120    O       "Phenylalanine"                   111
+biotype     120   24      "Phenylalanine"                   111
 biotype     121    HA      "Phenylalanine"                   112
 biotype     122    CB      "Phenylalanine"                   113
 biotype     123    HB      "Phenylalanine"                   114
@@ -7564,11 +7584,11 @@ biotype     127    CE      "Phenylalanine"                   118
 biotype     128    HE      "Phenylalanine"                   119
 biotype     129    CZ      "Phenylalanine"                   120
 biotype     130    HZ      "Phenylalanine"                   121
-biotype     131    N       "Tyrosine"                        122
-biotype     132    CA      "Tyrosine"                        123
+biotype     131   14      "Tyrosine"                        122
+biotype     132    3      "Tyrosine"                        123
 biotype     133    C       "Tyrosine"                        124
 biotype     134    HN      "Tyrosine"                        125
-biotype     135    O       "Tyrosine"                        126
+biotype     135   24      "Tyrosine"                        126
 biotype     136    HA      "Tyrosine"                        127
 biotype     137    CB      "Tyrosine"                        128
 biotype     138    HB      "Tyrosine"                        129
@@ -7580,11 +7600,11 @@ biotype     143    HE      "Tyrosine"                        134
 biotype     144    CZ      "Tyrosine"                        135
 biotype     145    OH      "Tyrosine"                        136
 biotype     146    HH      "Tyrosine"                        137
-biotype     147    N       "Tyrosine (O-)"                    -1
-biotype     148    CA      "Tyrosine (O-)"                    -1
+biotype     147   14      "Tyrosine (O-)"                    -1
+biotype     148    3      "Tyrosine (O-)"                    -1
 biotype     149    C       "Tyrosine (O-)"                    -1
 biotype     150    HN      "Tyrosine (O-)"                    -1
-biotype     151    O       "Tyrosine (O-)"                    -1
+biotype     151   24      "Tyrosine (O-)"                    -1
 biotype     152    HA      "Tyrosine (O-)"                    -1
 biotype     153    CB      "Tyrosine (O-)"                    -1
 biotype     154    HB      "Tyrosine (O-)"                    -1
@@ -7595,11 +7615,11 @@ biotype     158    CE      "Tyrosine (O-)"                    -1
 biotype     159    HE      "Tyrosine (O-)"                    -1
 biotype     160    CZ      "Tyrosine (O-)"                    -1
 biotype     161    OH      "Tyrosine (O-)"                    -1
-biotype     162    N       "Tryptophan"                      138
-biotype     163    CA      "Tryptophan"                      139
+biotype     162   14      "Tryptophan"                      138
+biotype     163    3      "Tryptophan"                      139
 biotype     164    C       "Tryptophan"                      140
 biotype     165    HN      "Tryptophan"                      141
-biotype     166    O       "Tryptophan"                      142
+biotype     166   24      "Tryptophan"                      142
 biotype     167    HA      "Tryptophan"                      143
 biotype     168    CB      "Tryptophan"                      144
 biotype     169    HB      "Tryptophan"                      145
@@ -7618,11 +7638,11 @@ biotype     181    CZ3     "Tryptophan"                      157
 biotype     182    HZ3     "Tryptophan"                      158
 biotype     183    CH2     "Tryptophan"                      159
 biotype     184    HH2     "Tryptophan"                      160
-biotype     185    N       "Histidine (+)"                   161
-biotype     186    CA      "Histidine (+)"                   162
+biotype     185   14      "Histidine (+)"                   161
+biotype     186    3      "Histidine (+)"                   162
 biotype     187    C       "Histidine (+)"                   163
 biotype     188    HN      "Histidine (+)"                   164
-biotype     189    O       "Histidine (+)"                   165
+biotype     189   24      "Histidine (+)"                   165
 biotype     190    HA      "Histidine (+)"                   166
 biotype     191    CB      "Histidine (+)"                   167
 biotype     192    HB      "Histidine (+)"                   168
@@ -7635,11 +7655,11 @@ biotype     198    CE1     "Histidine (+)"                   174
 biotype     199    HE1     "Histidine (+)"                   175
 biotype     200    NE2     "Histidine (+)"                   176
 biotype     201    HE2     "Histidine (+)"                   177
-biotype     202    N       "Histidine (HD)"                  178
-biotype     203    CA      "Histidine (HD)"                  179
+biotype     202   14      "Histidine (HD)"                  178
+biotype     203    3      "Histidine (HD)"                  179
 biotype     204    C       "Histidine (HD)"                  180
 biotype     205    HN      "Histidine (HD)"                  181
-biotype     206    O       "Histidine (HD)"                  182
+biotype     206   24      "Histidine (HD)"                  182
 biotype     207    HA      "Histidine (HD)"                  183
 biotype     208    CB      "Histidine (HD)"                  184
 biotype     209    HB      "Histidine (HD)"                  185
@@ -7651,11 +7671,11 @@ biotype     214    HD2     "Histidine (HD)"                  190
 biotype     215    CE1     "Histidine (HD)"                  191
 biotype     216    HE1     "Histidine (HD)"                  192
 biotype     217    NE2     "Histidine (HD)"                  193
-biotype     218    N       "Histidine (HE)"                  194
-biotype     219    CA      "Histidine (HE)"                  195
+biotype     218   14      "Histidine (HE)"                  194
+biotype     219    3      "Histidine (HE)"                  195
 biotype     220    C       "Histidine (HE)"                  196
 biotype     221    HN      "Histidine (HE)"                  197
-biotype     222    O       "Histidine (HE)"                  198
+biotype     222   24      "Histidine (HE)"                  198
 biotype     223    HA      "Histidine (HE)"                  199
 biotype     224    CB      "Histidine (HE)"                  200
 biotype     225    HB      "Histidine (HE)"                  201
@@ -7667,21 +7687,21 @@ biotype     230    CE1     "Histidine (HE)"                  206
 biotype     231    HE1     "Histidine (HE)"                  207
 biotype     232    NE2     "Histidine (HE)"                  208
 biotype     233    HE2     "Histidine (HE)"                  209
-biotype     234    N       "Aspartic Acid"                   210
-biotype     235    CA      "Aspartic Acid"                   211
+biotype     234   14      "Aspartic Acid"                   210
+biotype     235    3      "Aspartic Acid"                   211
 biotype     236    C       "Aspartic Acid"                   212
 biotype     237    HN      "Aspartic Acid"                   213
-biotype     238    O       "Aspartic Acid"                   214
+biotype     238   24      "Aspartic Acid"                   214
 biotype     239    HA      "Aspartic Acid"                   215
 biotype     240    CB      "Aspartic Acid"                   216
 biotype     241    HB      "Aspartic Acid"                   217
 biotype     242    CG      "Aspartic Acid"                   218
 biotype     243    OD      "Aspartic Acid"                   219
-biotype     244    N       "Aspartic Acid (COOH)"             -1
-biotype     245    CA      "Aspartic Acid (COOH)"             -1
+biotype     244   14      "Aspartic Acid (COOH)"             -1
+biotype     245    3      "Aspartic Acid (COOH)"             -1
 biotype     246    C       "Aspartic Acid (COOH)"             -1
 biotype     247    HN      "Aspartic Acid (COOH)"             -1
-biotype     248    O       "Aspartic Acid (COOH)"             -1
+biotype     248   24      "Aspartic Acid (COOH)"             -1
 biotype     249    HA      "Aspartic Acid (COOH)"             -1
 biotype     250    CB      "Aspartic Acid (COOH)"             -1
 biotype     251    HB      "Aspartic Acid (COOH)"             -1
@@ -7689,11 +7709,11 @@ biotype     252    CG      "Aspartic Acid (COOH)"             -1
 biotype     253    OD1     "Aspartic Acid (COOH)"             -1
 biotype     254    OD2     "Aspartic Acid (COOH)"             -1
 biotype     255    HD2     "Aspartic Acid (COOH)"             -1
-biotype     256    N       "Asparagine"                      220
-biotype     257    CA      "Asparagine"                      221
+biotype     256   14      "Asparagine"                      220
+biotype     257    3      "Asparagine"                      221
 biotype     258    C       "Asparagine"                      222
 biotype     259    HN      "Asparagine"                      223
-biotype     260    O       "Asparagine"                      224
+biotype     260   24      "Asparagine"                      224
 biotype     261    HA      "Asparagine"                      225
 biotype     262    CB      "Asparagine"                      226
 biotype     263    HB      "Asparagine"                      227
@@ -7701,11 +7721,11 @@ biotype     264    CG      "Asparagine"                      228
 biotype     265    OD1     "Asparagine"                      229
 biotype     266    ND2     "Asparagine"                      230
 biotype     267    HD2     "Asparagine"                      231
-biotype     268    N       "Glutamic Acid"                   232
-biotype     269    CA      "Glutamic Acid"                   233
+biotype     268   14      "Glutamic Acid"                   232
+biotype     269    3      "Glutamic Acid"                   233
 biotype     270    C       "Glutamic Acid"                   234
 biotype     271    HN      "Glutamic Acid"                   235
-biotype     272    O       "Glutamic Acid"                   236
+biotype     272   24      "Glutamic Acid"                   236
 biotype     273    HA      "Glutamic Acid"                   237
 biotype     274    CB      "Glutamic Acid"                   238
 biotype     275    HB      "Glutamic Acid"                   239
@@ -7713,11 +7733,11 @@ biotype     276    CG      "Glutamic Acid"                   240
 biotype     277    HG      "Glutamic Acid"                   241
 biotype     278    CD      "Glutamic Acid"                   242
 biotype     279    OE      "Glutamic Acid"                   243
-biotype     280    N       "Glutamic Acid (COOH)"             -1
-biotype     281    CA      "Glutamic Acid (COOH)"             -1
+biotype     280   14      "Glutamic Acid (COOH)"             -1
+biotype     281    3      "Glutamic Acid (COOH)"             -1
 biotype     282    C       "Glutamic Acid (COOH)"             -1
 biotype     283    HN      "Glutamic Acid (COOH)"             -1
-biotype     284    O       "Glutamic Acid (COOH)"             -1
+biotype     284   24      "Glutamic Acid (COOH)"             -1
 biotype     285    HA      "Glutamic Acid (COOH)"             -1
 biotype     286    CB      "Glutamic Acid (COOH)"             -1
 biotype     287    HB      "Glutamic Acid (COOH)"             -1
@@ -7727,11 +7747,11 @@ biotype     290    CD      "Glutamic Acid (COOH)"             -1
 biotype     291    OE1     "Glutamic Acid (COOH)"             -1
 biotype     292    OE2     "Glutamic Acid (COOH)"             -1
 biotype     293    HE2     "Glutamic Acid (COOH)"             -1
-biotype     294    N       "Glutamine"                       244
-biotype     295    CA      "Glutamine"                       245
+biotype     294   14      "Glutamine"                       244
+biotype     295    3      "Glutamine"                       245
 biotype     296    C       "Glutamine"                       246
 biotype     297    HN      "Glutamine"                       247
-biotype     298    O       "Glutamine"                       248
+biotype     298   24      "Glutamine"                       248
 biotype     299    HA      "Glutamine"                       249
 biotype     300    CB      "Glutamine"                       250
 biotype     301    HB      "Glutamine"                       251
@@ -7741,11 +7761,11 @@ biotype     304    CD      "Glutamine"                       254
 biotype     305    OE1     "Glutamine"                       255
 biotype     306    NE2     "Glutamine"                       256
 biotype     307    HE2     "Glutamine"                       257
-biotype     308    N       "Methionine"                      258
-biotype     309    CA      "Methionine"                      259
+biotype     308   14      "Methionine"                      258
+biotype     309    3      "Methionine"                      259
 biotype     310    C       "Methionine"                      260
 biotype     311    HN      "Methionine"                      261
-biotype     312    O       "Methionine"                      262
+biotype     312   24      "Methionine"                      262
 biotype     313    HA      "Methionine"                      263
 biotype     314    CB      "Methionine"                      264
 biotype     315    HB      "Methionine"                      265
@@ -7754,11 +7774,11 @@ biotype     317    HG      "Methionine"                      267
 biotype     318    SD      "Methionine"                      268
 biotype     319    CE      "Methionine"                      269
 biotype     320    HE      "Methionine"                      270
-biotype     321    N       "Lysine"                          271
-biotype     322    CA      "Lysine"                          272
+biotype     321   14      "Lysine"                          271
+biotype     322    3      "Lysine"                          272
 biotype     323    C       "Lysine"                          273
 biotype     324    HN      "Lysine"                          274
-biotype     325    O       "Lysine"                          275
+biotype     325   24      "Lysine"                          275
 biotype     326    HA      "Lysine"                          276
 biotype     327    CB      "Lysine"                          277
 biotype     328    HB      "Lysine"                          278
@@ -7770,11 +7790,11 @@ biotype     333    CE      "Lysine"                          283
 biotype     334    HE      "Lysine"                          284
 biotype     335    NZ      "Lysine"                          285
 biotype     336    HZ      "Lysine"                          286
-biotype     337    N       "Lysine (NH2)"                     -1
-biotype     338    CA      "Lysine (NH2)"                     -1
+biotype     337   14      "Lysine (NH2)"                     -1
+biotype     338    3      "Lysine (NH2)"                     -1
 biotype     339    C       "Lysine (NH2)"                     -1
 biotype     340    HN      "Lysine (NH2)"                     -1
-biotype     341    O       "Lysine (NH2)"                     -1
+biotype     341   24      "Lysine (NH2)"                     -1
 biotype     342    HA      "Lysine (NH2)"                     -1
 biotype     343    CB      "Lysine (NH2)"                     -1
 biotype     344    HB      "Lysine (NH2)"                     -1
@@ -7786,11 +7806,11 @@ biotype     349    CE      "Lysine (NH2)"                     -1
 biotype     350    HE      "Lysine (NH2)"                     -1
 biotype     351    NZ      "Lysine (NH2)"                     -1
 biotype     352    HZ      "Lysine (NH2)"                     -1
-biotype     353    N       "Arginine"                        287
-biotype     354    CA      "Arginine"                        288
+biotype     353   14      "Arginine"                        287
+biotype     354    3      "Arginine"                        288
 biotype     355    C       "Arginine"                        289
 biotype     356    HN      "Arginine"                        290
-biotype     357    O       "Arginine"                        291
+biotype     357   24      "Arginine"                        291
 biotype     358    HA      "Arginine"                        292
 biotype     359    CB      "Arginine"                        293
 biotype     360    HB      "Arginine"                        294
@@ -7803,11 +7823,11 @@ biotype     366    HE      "Arginine"                        300
 biotype     367    CZ      "Arginine"                        301
 biotype     368    NH      "Arginine"                        302
 biotype     369    HH      "Arginine"                        303
-biotype     370    N       "Ornithine"                       304
-biotype     371    CA      "Ornithine"                       305
+biotype     370   14      "Ornithine"                       304
+biotype     371    3      "Ornithine"                       305
 biotype     372    C       "Ornithine"                       306
 biotype     373    HN      "Ornithine"                       307
-biotype     374    O       "Ornithine"                       308
+biotype     374   24      "Ornithine"                       308
 biotype     375    HA      "Ornithine"                       309
 biotype     376    CB      "Ornithine"                       310
 biotype     377    HB      "Ornithine"                       311
@@ -7817,18 +7837,18 @@ biotype     380    CD      "Ornithine"                       314
 biotype     381    HD      "Ornithine"                       315
 biotype     382    NE      "Ornithine"                       316
 biotype     383    HE      "Ornithine"                       317
-biotype     384    N       "MethylAlanine (AIB)"             318
-biotype     385    CA      "MethylAlanine (AIB)"             319
+biotype     384   14      "MethylAlanine (AIB)"             318
+biotype     385    3      "MethylAlanine (AIB)"             319
 biotype     386    C       "MethylAlanine (AIB)"             320
 biotype     387    HN      "MethylAlanine (AIB)"             321
-biotype     388    O       "MethylAlanine (AIB)"             322
+biotype     388   24      "MethylAlanine (AIB)"             322
 biotype     389    CB      "MethylAlanine (AIB)"             323
 biotype     390    HB      "MethylAlanine (AIB)"             324
-biotype     391    N       "Pyroglutamic Acid"               325
-biotype     392    CA      "Pyroglutamic Acid"               326
+biotype     391   14      "Pyroglutamic Acid"               325
+biotype     392    3      "Pyroglutamic Acid"               326
 biotype     393    C       "Pyroglutamic Acid"               327
 biotype     394    HN      "Pyroglutamic Acid"               328
-biotype     395    O       "Pyroglutamic Acid"               329
+biotype     395   24      "Pyroglutamic Acid"               329
 biotype     396    HA      "Pyroglutamic Acid"               330
 biotype     397    CB      "Pyroglutamic Acid"               331
 biotype     398    HB      "Pyroglutamic Acid"               332
@@ -7836,381 +7856,381 @@ biotype     399    CG      "Pyroglutamic Acid"               333
 biotype     400    HG      "Pyroglutamic Acid"               334
 biotype     401    CD      "Pyroglutamic Acid"               335
 biotype     402    OE      "Pyroglutamic Acid"               336
-biotype     403    N       "N-Terminal GLY"                  350
-biotype     404    CA      "N-Terminal GLY"                  351
+biotype     403   14      "N-Terminal GLY"                  350
+biotype     404    3      "N-Terminal GLY"                  351
 biotype     405    C       "N-Terminal GLY"                  352
 biotype     406    HN      "N-Terminal GLY"                  353
-biotype     407    O       "N-Terminal GLY"                  354
+biotype     407   24      "N-Terminal GLY"                  354
 biotype     408    HA      "N-Terminal GLY"                  355
-biotype     409    N       "N-Terminal ALA"                  356
-biotype     410    CA      "N-Terminal ALA"                  357
+biotype     409   14      "N-Terminal ALA"                  356
+biotype     410    3      "N-Terminal ALA"                  357
 biotype     411    C       "N-Terminal ALA"                  358
 biotype     412    HN      "N-Terminal ALA"                  359
-biotype     413    O       "N-Terminal ALA"                  360
+biotype     413   24      "N-Terminal ALA"                  360
 biotype     414    HA      "N-Terminal ALA"                  361
-biotype     415    N       "N-Terminal VAL"                  362
-biotype     416    CA      "N-Terminal VAL"                  363
+biotype     415   14      "N-Terminal VAL"                  362
+biotype     416    3      "N-Terminal VAL"                  363
 biotype     417    C       "N-Terminal VAL"                  364
 biotype     418    HN      "N-Terminal VAL"                  365
-biotype     419    O       "N-Terminal VAL"                  366
+biotype     419   24      "N-Terminal VAL"                  366
 biotype     420    HA      "N-Terminal VAL"                  367
-biotype     421    N       "N-Terminal LEU"                  368
-biotype     422    CA      "N-Terminal LEU"                  369
+biotype     421   14      "N-Terminal LEU"                  368
+biotype     422    3      "N-Terminal LEU"                  369
 biotype     423    C       "N-Terminal LEU"                  370
 biotype     424    HN      "N-Terminal LEU"                  371
-biotype     425    O       "N-Terminal LEU"                  372
+biotype     425   24      "N-Terminal LEU"                  372
 biotype     426    HA      "N-Terminal LEU"                  373
-biotype     427    N       "N-Terminal ILE"                  374
-biotype     428    CA      "N-Terminal ILE"                  375
+biotype     427   14      "N-Terminal ILE"                  374
+biotype     428    3      "N-Terminal ILE"                  375
 biotype     429    C       "N-Terminal ILE"                  376
 biotype     430    HN      "N-Terminal ILE"                  377
-biotype     431    O       "N-Terminal ILE"                  378
+biotype     431   24      "N-Terminal ILE"                  378
 biotype     432    HA      "N-Terminal ILE"                  379
-biotype     433    N       "N-Terminal SER"                  380
-biotype     434    CA      "N-Terminal SER"                  381
+biotype     433   14      "N-Terminal SER"                  380
+biotype     434    3      "N-Terminal SER"                  381
 biotype     435    C       "N-Terminal SER"                  382
 biotype     436    HN      "N-Terminal SER"                  383
-biotype     437    O       "N-Terminal SER"                  384
+biotype     437   24      "N-Terminal SER"                  384
 biotype     438    HA      "N-Terminal SER"                  385
-biotype     439    N       "N-Terminal THR"                  386
-biotype     440    CA      "N-Terminal THR"                  387
+biotype     439   14      "N-Terminal THR"                  386
+biotype     440    3      "N-Terminal THR"                  387
 biotype     441    C       "N-Terminal THR"                  388
 biotype     442    HN      "N-Terminal THR"                  389
-biotype     443    O       "N-Terminal THR"                  390
+biotype     443   24      "N-Terminal THR"                  390
 biotype     444    HA      "N-Terminal THR"                  391
-biotype     445    N       "N-Terminal CYS (SH)"             392
-biotype     446    CA      "N-Terminal CYS (SH)"             393
+biotype     445   14      "N-Terminal CYS (SH)"             392
+biotype     446    3      "N-Terminal CYS (SH)"             393
 biotype     447    C       "N-Terminal CYS (SH)"             394
 biotype     448    HN      "N-Terminal CYS (SH)"             395
-biotype     449    O       "N-Terminal CYS (SH)"             396
+biotype     449   24      "N-Terminal CYS (SH)"             396
 biotype     450    HA      "N-Terminal CYS (SH)"             397
-biotype     451    N       "N-Terminal CYX (SS)"             398
-biotype     452    CA      "N-Terminal CYX (SS)"             399
+biotype     451   14      "N-Terminal CYX (SS)"             398
+biotype     452    3      "N-Terminal CYX (SS)"             399
 biotype     453    C       "N-Terminal CYX (SS)"             400
 biotype     454    HN      "N-Terminal CYX (SS)"             401
-biotype     455    O       "N-Terminal CYX (SS)"             402
+biotype     455   24      "N-Terminal CYX (SS)"             402
 biotype     456    HA      "N-Terminal CYX (SS)"             403
-biotype     457    N       "N-Terminal CYD (S-)"              -1
-biotype     458    CA      "N-Terminal CYD (S-)"              -1
+biotype     457   14      "N-Terminal CYD (S-)"              -1
+biotype     458    3      "N-Terminal CYD (S-)"              -1
 biotype     459    C       "N-Terminal CYD (S-)"              -1
 biotype     460    HN      "N-Terminal CYD (S-)"              -1
-biotype     461    O       "N-Terminal CYD (S-)"              -1
+biotype     461   24      "N-Terminal CYD (S-)"              -1
 biotype     462    HA      "N-Terminal CYD (S-)"              -1
-biotype     463    N       "N-Terminal PRO"                  404
-biotype     464    CA      "N-Terminal PRO"                  405
+biotype     463   14      "N-Terminal PRO"                  404
+biotype     464    3      "N-Terminal PRO"                  405
 biotype     465    C       "N-Terminal PRO"                  406
 biotype     466    HN      "N-Terminal PRO"                  407
-biotype     467    O       "N-Terminal PRO"                  408
+biotype     467   24      "N-Terminal PRO"                  408
 biotype     468    HA      "N-Terminal PRO"                  409
 biotype     469    CD      "N-Terminal PRO"                  410
 biotype     470    HD      "N-Terminal PRO"                  411
-biotype     471    N       "N-Terminal PHE"                  412
-biotype     472    CA      "N-Terminal PHE"                  413
+biotype     471   14      "N-Terminal PHE"                  412
+biotype     472    3      "N-Terminal PHE"                  413
 biotype     473    C       "N-Terminal PHE"                  414
 biotype     474    HN      "N-Terminal PHE"                  415
-biotype     475    O       "N-Terminal PHE"                  416
+biotype     475   24      "N-Terminal PHE"                  416
 biotype     476    HA      "N-Terminal PHE"                  417
-biotype     477    N       "N-Terminal TYR"                  418
-biotype     478    CA      "N-Terminal TYR"                  419
+biotype     477   14      "N-Terminal TYR"                  418
+biotype     478    3      "N-Terminal TYR"                  419
 biotype     479    C       "N-Terminal TYR"                  420
 biotype     480    HN      "N-Terminal TYR"                  421
-biotype     481    O       "N-Terminal TYR"                  422
+biotype     481   24      "N-Terminal TYR"                  422
 biotype     482    HA      "N-Terminal TYR"                  423
-biotype     483    N       "N-Terminal TYD (O-)"              -1
-biotype     484    CA      "N-Terminal TYD (O-)"              -1
+biotype     483   14      "N-Terminal TYD (O-)"              -1
+biotype     484    3      "N-Terminal TYD (O-)"              -1
 biotype     485    C       "N-Terminal TYD (O-)"              -1
 biotype     486    HN      "N-Terminal TYD (O-)"              -1
-biotype     487    O       "N-Terminal TYD (O-)"              -1
+biotype     487   24      "N-Terminal TYD (O-)"              -1
 biotype     488    HA      "N-Terminal TYD (O-)"              -1
-biotype     489    N       "N-Terminal TRP"                  424
-biotype     490    CA      "N-Terminal TRP"                  425
+biotype     489   14      "N-Terminal TRP"                  424
+biotype     490    3      "N-Terminal TRP"                  425
 biotype     491    C       "N-Terminal TRP"                  426
 biotype     492    HN      "N-Terminal TRP"                  427
-biotype     493    O       "N-Terminal TRP"                  428
+biotype     493   24      "N-Terminal TRP"                  428
 biotype     494    HA      "N-Terminal TRP"                  429
-biotype     495    N       "N-Terminal HIS (+)"              430
-biotype     496    CA      "N-Terminal HIS (+)"              431
+biotype     495   14      "N-Terminal HIS (+)"              430
+biotype     496    3      "N-Terminal HIS (+)"              431
 biotype     497    C       "N-Terminal HIS (+)"              432
 biotype     498    HN      "N-Terminal HIS (+)"              433
-biotype     499    O       "N-Terminal HIS (+)"              434
+biotype     499   24      "N-Terminal HIS (+)"              434
 biotype     500    HA      "N-Terminal HIS (+)"              435
-biotype     501    N       "N-Terminal HIS (HD)"             436
-biotype     502    CA      "N-Terminal HIS (HD)"             437
+biotype     501   14      "N-Terminal HIS (HD)"             436
+biotype     502    3      "N-Terminal HIS (HD)"             437
 biotype     503    C       "N-Terminal HIS (HD)"             438
 biotype     504    HN      "N-Terminal HIS (HD)"             439
-biotype     505    O       "N-Terminal HIS (HD)"             440
+biotype     505   24      "N-Terminal HIS (HD)"             440
 biotype     506    HA      "N-Terminal HIS (HD)"             441
-biotype     507    N       "N-Terminal HIS (HE)"             442
-biotype     508    CA      "N-Terminal HIS (HE)"             443
+biotype     507   14      "N-Terminal HIS (HE)"             442
+biotype     508    3      "N-Terminal HIS (HE)"             443
 biotype     509    C       "N-Terminal HIS (HE)"             444
 biotype     510    HN      "N-Terminal HIS (HE)"             445
-biotype     511    O       "N-Terminal HIS (HE)"             446
+biotype     511   24      "N-Terminal HIS (HE)"             446
 biotype     512    HA      "N-Terminal HIS (HE)"             447
-biotype     513    N       "N-Terminal ASP"                  448
-biotype     514    CA      "N-Terminal ASP"                  449
+biotype     513   14      "N-Terminal ASP"                  448
+biotype     514    3      "N-Terminal ASP"                  449
 biotype     515    C       "N-Terminal ASP"                  450
 biotype     516    HN      "N-Terminal ASP"                  451
-biotype     517    O       "N-Terminal ASP"                  452
+biotype     517   24      "N-Terminal ASP"                  452
 biotype     518    HA      "N-Terminal ASP"                  453
-biotype     519    N       "N-Terminal ASH (COOH)"            -1
-biotype     520    CA      "N-Terminal ASH (COOH)"            -1
+biotype     519   14      "N-Terminal ASH (COOH)"            -1
+biotype     520    3      "N-Terminal ASH (COOH)"            -1
 biotype     521    C       "N-Terminal ASH (COOH)"            -1
 biotype     522    HN      "N-Terminal ASH (COOH)"            -1
-biotype     523    O       "N-Terminal ASH (COOH)"            -1
+biotype     523   24      "N-Terminal ASH (COOH)"            -1
 biotype     524    HA      "N-Terminal ASH (COOH)"            -1
-biotype     525    N       "N-Terminal ASN"                  454
-biotype     526    CA      "N-Terminal ASN"                  455
+biotype     525   14      "N-Terminal ASN"                  454
+biotype     526    3      "N-Terminal ASN"                  455
 biotype     527    C       "N-Terminal ASN"                  456
 biotype     528    HN      "N-Terminal ASN"                  457
-biotype     529    O       "N-Terminal ASN"                  458
+biotype     529   24      "N-Terminal ASN"                  458
 biotype     530    HA      "N-Terminal ASN"                  459
-biotype     531    N       "N-Terminal GLU"                  460
-biotype     532    CA      "N-Terminal GLU"                  461
+biotype     531   14      "N-Terminal GLU"                  460
+biotype     532    3      "N-Terminal GLU"                  461
 biotype     533    C       "N-Terminal GLU"                  462
 biotype     534    HN      "N-Terminal GLU"                  463
-biotype     535    O       "N-Terminal GLU"                  464
+biotype     535   24      "N-Terminal GLU"                  464
 biotype     536    HA      "N-Terminal GLU"                  465
-biotype     537    N       "N-Terminal GLH (COOH)"            -1
-biotype     538    CA      "N-Terminal GLH (COOH)"            -1
+biotype     537   14      "N-Terminal GLH (COOH)"            -1
+biotype     538    3      "N-Terminal GLH (COOH)"            -1
 biotype     539    C       "N-Terminal GLH (COOH)"            -1
 biotype     540    HN      "N-Terminal GLH (COOH)"            -1
-biotype     541    O       "N-Terminal GLH (COOH)"            -1
+biotype     541   24      "N-Terminal GLH (COOH)"            -1
 biotype     542    HA      "N-Terminal GLH (COOH)"            -1
-biotype     543    N       "N-Terminal GLN"                  466
-biotype     544    CA      "N-Terminal GLN"                  467
+biotype     543   14      "N-Terminal GLN"                  466
+biotype     544    3      "N-Terminal GLN"                  467
 biotype     545    C       "N-Terminal GLN"                  468
 biotype     546    HN      "N-Terminal GLN"                  469
-biotype     547    O       "N-Terminal GLN"                  470
+biotype     547   24      "N-Terminal GLN"                  470
 biotype     548    HA      "N-Terminal GLN"                  471
-biotype     549    N       "N-Terminal MET"                  472
-biotype     550    CA      "N-Terminal MET"                  473
+biotype     549   14      "N-Terminal MET"                  472
+biotype     550    3      "N-Terminal MET"                  473
 biotype     551    C       "N-Terminal MET"                  474
 biotype     552    HN      "N-Terminal MET"                  475
-biotype     553    O       "N-Terminal MET"                  476
+biotype     553   24      "N-Terminal MET"                  476
 biotype     554    HA      "N-Terminal MET"                  477
-biotype     555    N       "N-Terminal LYS"                  478
-biotype     556    CA      "N-Terminal LYS"                  479
+biotype     555   14      "N-Terminal LYS"                  478
+biotype     556    3      "N-Terminal LYS"                  479
 biotype     557    C       "N-Terminal LYS"                  480
 biotype     558    HN      "N-Terminal LYS"                  481
-biotype     559    O       "N-Terminal LYS"                  482
+biotype     559   24      "N-Terminal LYS"                  482
 biotype     560    HA      "N-Terminal LYS"                  483
-biotype     561    N       "N-Terminal LYD (NH2)"             -1
-biotype     562    CA      "N-Terminal LYD (NH2)"             -1
+biotype     561   14      "N-Terminal LYD (NH2)"             -1
+biotype     562    3      "N-Terminal LYD (NH2)"             -1
 biotype     563    C       "N-Terminal LYD (NH2)"             -1
 biotype     564    HN      "N-Terminal LYD (NH2)"             -1
-biotype     565    O       "N-Terminal LYD (NH2)"             -1
+biotype     565   24      "N-Terminal LYD (NH2)"             -1
 biotype     566    HA      "N-Terminal LYD (NH2)"             -1
-biotype     567    N       "N-Terminal ARG"                  484
-biotype     568    CA      "N-Terminal ARG"                  485
+biotype     567   14      "N-Terminal ARG"                  484
+biotype     568    3      "N-Terminal ARG"                  485
 biotype     569    C       "N-Terminal ARG"                  486
 biotype     570    HN      "N-Terminal ARG"                  487
-biotype     571    O       "N-Terminal ARG"                  488
+biotype     571   24      "N-Terminal ARG"                  488
 biotype     572    HA      "N-Terminal ARG"                  489
-biotype     573    N       "N-Terminal ORN"                  490
-biotype     574    CA      "N-Terminal ORN"                  491
+biotype     573   14      "N-Terminal ORN"                  490
+biotype     574    3      "N-Terminal ORN"                  491
 biotype     575    C       "N-Terminal ORN"                  492
 biotype     576    HN      "N-Terminal ORN"                  493
-biotype     577    O       "N-Terminal ORN"                  494
+biotype     577   24      "N-Terminal ORN"                  494
 biotype     578    HA      "N-Terminal ORN"                  495
-biotype     579    N       "N-Terminal AIB"                  496
-biotype     580    CA      "N-Terminal AIB"                  497
+biotype     579   14      "N-Terminal AIB"                  496
+biotype     580    3      "N-Terminal AIB"                  497
 biotype     581    C       "N-Terminal AIB"                  498
 biotype     582    HN      "N-Terminal AIB"                  499
-biotype     583    O       "N-Terminal AIB"                  500
-biotype     584    N       "C-Terminal GLY"                  501
-biotype     585    CA      "C-Terminal GLY"                  502
+biotype     583   24      "N-Terminal AIB"                  500
+biotype     584   14      "C-Terminal GLY"                  501
+biotype     585    3      "C-Terminal GLY"                  502
 biotype     586    C       "C-Terminal GLY"                  503
 biotype     587    HN      "C-Terminal GLY"                  504
 biotype     588    OXT     "C-Terminal GLY"                  505
 biotype     589    HA      "C-Terminal GLY"                  506
-biotype     590    N       "C-Terminal ALA"                  507
-biotype     591    CA      "C-Terminal ALA"                  508
+biotype     590   14      "C-Terminal ALA"                  507
+biotype     591    3      "C-Terminal ALA"                  508
 biotype     592    C       "C-Terminal ALA"                  509
 biotype     593    HN      "C-Terminal ALA"                  510
 biotype     594    OXT     "C-Terminal ALA"                  511
 biotype     595    HA      "C-Terminal ALA"                  512
-biotype     596    N       "C-Terminal VAL"                  513
-biotype     597    CA      "C-Terminal VAL"                  514
+biotype     596   14      "C-Terminal VAL"                  513
+biotype     597    3      "C-Terminal VAL"                  514
 biotype     598    C       "C-Terminal VAL"                  515
 biotype     599    HN      "C-Terminal VAL"                  516
 biotype     600    OXT     "C-Terminal VAL"                  517
 biotype     601    HA      "C-Terminal VAL"                  518
-biotype     602    N       "C-Terminal LEU"                  519
-biotype     603    CA      "C-Terminal LEU"                  520
+biotype     602   14      "C-Terminal LEU"                  519
+biotype     603    3      "C-Terminal LEU"                  520
 biotype     604    C       "C-Terminal LEU"                  521
 biotype     605    HN      "C-Terminal LEU"                  522
 biotype     606    OXT     "C-Terminal LEU"                  523
 biotype     607    HA      "C-Terminal LEU"                  524
-biotype     608    N       "C-Terminal ILE"                  525
-biotype     609    CA      "C-Terminal ILE"                  526
+biotype     608   14      "C-Terminal ILE"                  525
+biotype     609    3      "C-Terminal ILE"                  526
 biotype     610    C       "C-Terminal ILE"                  527
 biotype     611    HN      "C-Terminal ILE"                  528
 biotype     612    OXT     "C-Terminal ILE"                  529
 biotype     613    HA      "C-Terminal ILE"                  530
-biotype     614    N       "C-Terminal SER"                  531
-biotype     615    CA      "C-Terminal SER"                  532
+biotype     614   14      "C-Terminal SER"                  531
+biotype     615    3      "C-Terminal SER"                  532
 biotype     616    C       "C-Terminal SER"                  533
 biotype     617    HN      "C-Terminal SER"                  534
 biotype     618    OXT     "C-Terminal SER"                  535
 biotype     619    HA      "C-Terminal SER"                  536
-biotype     620    N       "C-Terminal THR"                  537
-biotype     621    CA      "C-Terminal THR"                  538
+biotype     620   14      "C-Terminal THR"                  537
+biotype     621    3      "C-Terminal THR"                  538
 biotype     622    C       "C-Terminal THR"                  539
 biotype     623    HN      "C-Terminal THR"                  540
 biotype     624    OXT     "C-Terminal THR"                  541
 biotype     625    HA      "C-Terminal THR"                  542
-biotype     626    N       "C-Terminal CYS (SH)"             543
-biotype     627    CA      "C-Terminal CYS (SH)"             544
+biotype     626   14      "C-Terminal CYS (SH)"             543
+biotype     627    3      "C-Terminal CYS (SH)"             544
 biotype     628    C       "C-Terminal CYS (SH)"             545
 biotype     629    HN      "C-Terminal CYS (SH)"             546
 biotype     630    OXT     "C-Terminal CYS (SH)"             547
 biotype     631    HA      "C-Terminal CYS (SH)"             548
-biotype     632    N       "C-Terminal CYX (SS)"             549
-biotype     633    CA      "C-Terminal CYX (SS)"             550
+biotype     632   14      "C-Terminal CYX (SS)"             549
+biotype     633    3      "C-Terminal CYX (SS)"             550
 biotype     634    C       "C-Terminal CYX (SS)"             551
 biotype     635    HN      "C-Terminal CYX (SS)"             552
 biotype     636    OXT     "C-Terminal CYX (SS)"             553
 biotype     637    HA      "C-Terminal CYX (SS)"             554
-biotype     638    N       "C-Terminal CYD (S-)"              -1
-biotype     639    CA      "C-Terminal CYD (S-)"              -1
+biotype     638   14      "C-Terminal CYD (S-)"              -1
+biotype     639    3      "C-Terminal CYD (S-)"              -1
 biotype     640    C       "C-Terminal CYD (S-)"              -1
 biotype     641    HN      "C-Terminal CYD (S-)"              -1
 biotype     642    OXT     "C-Terminal CYD (S-)"              -1
 biotype     643    HA      "C-Terminal CYD (S-)"              -1
-biotype     644    N       "C-Terminal PRO"                  555
-biotype     645    CA      "C-Terminal PRO"                  556
+biotype     644   14      "C-Terminal PRO"                  555
+biotype     645    3      "C-Terminal PRO"                  556
 biotype     646    C       "C-Terminal PRO"                  557
 biotype     647    OXT     "C-Terminal PRO"                  558
 biotype     648    HA      "C-Terminal PRO"                  559
-biotype     649    N       "C-Terminal PHE"                  560
-biotype     650    CA      "C-Terminal PHE"                  561
+biotype     649   14      "C-Terminal PHE"                  560
+biotype     650    3      "C-Terminal PHE"                  561
 biotype     651    C       "C-Terminal PHE"                  562
 biotype     652    HN      "C-Terminal PHE"                  563
 biotype     653    OXT     "C-Terminal PHE"                  564
 biotype     654    HA      "C-Terminal PHE"                  565
-biotype     655    N       "C-Terminal TYR"                  566
-biotype     656    CA      "C-Terminal TYR"                  567
+biotype     655   14      "C-Terminal TYR"                  566
+biotype     656    3      "C-Terminal TYR"                  567
 biotype     657    C       "C-Terminal TYR"                  568
 biotype     658    HN      "C-Terminal TYR"                  569
 biotype     659    OXT     "C-Terminal TYR"                  570
 biotype     660    HA      "C-Terminal TYR"                  571
-biotype     661    N       "C-Terminal TYD (O-)"              -1
-biotype     662    CA      "C-Terminal TYD (O-)"              -1
+biotype     661   14      "C-Terminal TYD (O-)"              -1
+biotype     662    3      "C-Terminal TYD (O-)"              -1
 biotype     663    C       "C-Terminal TYD (O-)"              -1
 biotype     664    HN      "C-Terminal TYD (O-)"              -1
 biotype     665    OXT     "C-Terminal TYD (O-)"              -1
 biotype     666    HA      "C-Terminal TYD (O-)"              -1
-biotype     667    N       "C-Terminal TRP"                  572
-biotype     668    CA      "C-Terminal TRP"                  573
+biotype     667   14      "C-Terminal TRP"                  572
+biotype     668    3      "C-Terminal TRP"                  573
 biotype     669    C       "C-Terminal TRP"                  574
 biotype     670    HN      "C-Terminal TRP"                  575
 biotype     671    OXT     "C-Terminal TRP"                  576
 biotype     672    HA      "C-Terminal TRP"                  577
-biotype     673    N       "C-Terminal HIS (+)"              578
-biotype     674    CA      "C-Terminal HIS (+)"              579
+biotype     673   14      "C-Terminal HIS (+)"              578
+biotype     674    3      "C-Terminal HIS (+)"              579
 biotype     675    C       "C-Terminal HIS (+)"              580
 biotype     676    HN      "C-Terminal HIS (+)"              581
 biotype     677    OXT     "C-Terminal HIS (+)"              582
 biotype     678    HA      "C-Terminal HIS (+)"              583
-biotype     679    N       "C-Terminal HIS (HD)"             584
-biotype     680    CA      "C-Terminal HIS (HD)"             585
+biotype     679   14      "C-Terminal HIS (HD)"             584
+biotype     680    3      "C-Terminal HIS (HD)"             585
 biotype     681    C       "C-Terminal HIS (HD)"             586
 biotype     682    HN      "C-Terminal HIS (HD)"             587
 biotype     683    OXT     "C-Terminal HIS (HD)"             588
 biotype     684    HA      "C-Terminal HIS (HD)"             589
-biotype     685    N       "C-Terminal HIS (HE)"             590
-biotype     686    CA      "C-Terminal HIS (HE)"             591
+biotype     685   14      "C-Terminal HIS (HE)"             590
+biotype     686    3      "C-Terminal HIS (HE)"             591
 biotype     687    C       "C-Terminal HIS (HE)"             592
 biotype     688    HN      "C-Terminal HIS (HE)"             593
 biotype     689    OXT     "C-Terminal HIS (HE)"             594
 biotype     690    HA      "C-Terminal HIS (HE)"             595
-biotype     691    N       "C-Terminal ASP"                  596
-biotype     692    CA      "C-Terminal ASP"                  597
+biotype     691   14      "C-Terminal ASP"                  596
+biotype     692    3      "C-Terminal ASP"                  597
 biotype     693    C       "C-Terminal ASP"                  598
 biotype     694    HN      "C-Terminal ASP"                  599
 biotype     695    OXT     "C-Terminal ASP"                  600
 biotype     696    HA      "C-Terminal ASP"                  601
-biotype     697    N       "C-Terminal ASH (COOH)"            -1
-biotype     698    CA      "C-Terminal ASH (COOH)"            -1
+biotype     697   14      "C-Terminal ASH (COOH)"            -1
+biotype     698    3      "C-Terminal ASH (COOH)"            -1
 biotype     699    C       "C-Terminal ASH (COOH)"            -1
 biotype     700    HN      "C-Terminal ASH (COOH)"            -1
 biotype     701    OXT     "C-Terminal ASH (COOH)"            -1
 biotype     702    HA      "C-Terminal ASH (COOH)"            -1
-biotype     703    N       "C-Terminal ASN"                  602
-biotype     704    CA      "C-Terminal ASN"                  603
+biotype     703   14      "C-Terminal ASN"                  602
+biotype     704    3      "C-Terminal ASN"                  603
 biotype     705    C       "C-Terminal ASN"                  604
 biotype     706    HN      "C-Terminal ASN"                  605
 biotype     707    OXT     "C-Terminal ASN"                  606
 biotype     708    HA      "C-Terminal ASN"                  607
-biotype     709    N       "C-Terminal GLU"                  608
-biotype     710    CA      "C-Terminal GLU"                  609
+biotype     709   14      "C-Terminal GLU"                  608
+biotype     710    3      "C-Terminal GLU"                  609
 biotype     711    C       "C-Terminal GLU"                  610
 biotype     712    HN      "C-Terminal GLU"                  611
 biotype     713    OXT     "C-Terminal GLU"                  612
 biotype     714    HA      "C-Terminal GLU"                  613
-biotype     715    N       "C-Terminal GLH (COOH)"            -1
-biotype     716    CA      "C-Terminal GLH (COOH)"            -1
+biotype     715   14      "C-Terminal GLH (COOH)"            -1
+biotype     716    3      "C-Terminal GLH (COOH)"            -1
 biotype     717    C       "C-Terminal GLH (COOH)"            -1
 biotype     718    HN      "C-Terminal GLH (COOH)"            -1
 biotype     719    OXT     "C-Terminal GLH (COOH)"            -1
 biotype     720    HA      "C-Terminal GLH (COOH)"            -1
-biotype     721    N       "C-Terminal GLN"                  614
-biotype     722    CA      "C-Terminal GLN"                  615
+biotype     721   14      "C-Terminal GLN"                  614
+biotype     722    3      "C-Terminal GLN"                  615
 biotype     723    C       "C-Terminal GLN"                  616
 biotype     724    HN      "C-Terminal GLN"                  617
 biotype     725    OXT     "C-Terminal GLN"                  618
 biotype     726    HA      "C-Terminal GLN"                  619
-biotype     727    N       "C-Terminal MET"                  620
-biotype     728    CA      "C-Terminal MET"                  621
+biotype     727   14      "C-Terminal MET"                  620
+biotype     728    3      "C-Terminal MET"                  621
 biotype     729    C       "C-Terminal MET"                  622
 biotype     730    HN      "C-Terminal MET"                  623
 biotype     731    OXT     "C-Terminal MET"                  624
 biotype     732    HA      "C-Terminal MET"                  625
-biotype     733    N       "C-Terminal LYS"                  626
-biotype     734    CA      "C-Terminal LYS"                  627
+biotype     733   14      "C-Terminal LYS"                  626
+biotype     734    3      "C-Terminal LYS"                  627
 biotype     735    C       "C-Terminal LYS"                  628
 biotype     736    HN      "C-Terminal LYS"                  629
 biotype     737    OXT     "C-Terminal LYS"                  630
 biotype     738    HA      "C-Terminal LYS"                  631
-biotype     739    N       "C-Terminal LYD (NH2)"             -1
-biotype     740    CA      "C-Terminal LYD (NH2)"             -1
+biotype     739   14      "C-Terminal LYD (NH2)"             -1
+biotype     740    3      "C-Terminal LYD (NH2)"             -1
 biotype     741    C       "C-Terminal LYD (NH2)"             -1
 biotype     742    HN      "C-Terminal LYD (NH2)"             -1
 biotype     743    OXT     "C-Terminal LYD (NH2)"             -1
 biotype     744    HA      "C-Terminal LYD (NH2)"             -1
-biotype     745    N       "C-Terminal ARG"                  632
-biotype     746    CA      "C-Terminal ARG"                  633
+biotype     745   14      "C-Terminal ARG"                  632
+biotype     746    3      "C-Terminal ARG"                  633
 biotype     747    C       "C-Terminal ARG"                  634
 biotype     748    HN      "C-Terminal ARG"                  635
 biotype     749    OXT     "C-Terminal ARG"                  636
 biotype     750    HA      "C-Terminal ARG"                  637
-biotype     751    N       "C-Terminal ORN"                  638
-biotype     752    CA      "C-Terminal ORN"                  639
+biotype     751   14      "C-Terminal ORN"                  638
+biotype     752    3      "C-Terminal ORN"                  639
 biotype     753    C       "C-Terminal ORN"                  640
 biotype     754    HN      "C-Terminal ORN"                  641
 biotype     755    OXT     "C-Terminal ORN"                  642
 biotype     756    HA      "C-Terminal ORN"                  643
-biotype     757    N       "C-Terminal AIB"                  644
-biotype     758    CA      "C-Terminal AIB"                  645
+biotype     757   14      "C-Terminal AIB"                  644
+biotype     758    3      "C-Terminal AIB"                  645
 biotype     759    C       "C-Terminal AIB"                  646
 biotype     760    HN      "C-Terminal AIB"                  647
 biotype     761    OXT     "C-Terminal AIB"                  648
-biotype     762    N       "Deprotonated N-Terminus"          -1
+biotype     762   14      "Deprotonated N-Terminus"          -1
 biotype     763    H       "Deprotonated N-Terminus"          -1
 biotype     764    C       "Formyl N-Terminus"               337
 biotype     765    H       "Formyl N-Terminus"               338
-biotype     766    O       "Formyl N-Terminus"               339
+biotype     766   24      "Formyl N-Terminus"               339
 biotype     767    CH3     "Acetyl N-Terminus"               340
 biotype     768    H       "Acetyl N-Terminus"               341
 biotype     769    C       "Acetyl N-Terminus"               342
-biotype     770    O       "Acetyl N-Terminus"               343
+biotype     770   24      "Acetyl N-Terminus"               343
 biotype     771    C       "Protonated C-Terminus"            -1
-biotype     772    O       "Protonated C-Terminus"            -1
+biotype     772   24      "Protonated C-Terminus"            -1
 biotype     773    OH      "Protonated C-Terminus"            -1
 biotype     774    HO      "Protonated C-Terminus"            -1
-biotype     775    N       "Amide C-Terminus"                344
+biotype     775   14      "Amide C-Terminus"                344
 biotype     776    HN      "Amide C-Terminus"                345
-biotype     777    N       "N-MeAmide C-Terminus"            346
+biotype     777   14      "N-MeAmide C-Terminus"            346
 biotype     778    HN      "N-MeAmide C-Terminus"            347
 biotype     779    CH3     "N-MeAmide C-Terminus"            348
 biotype     780    H       "N-MeAmide C-Terminus"            349
@@ -8467,10 +8487,10 @@ biotype    1250    H3T     "3'-Hydroxyl DNA"                1250
 biotype    1251    O3*     "3'-Phosphate OS DNA"            1251
 biotype    1252    P       "3'-Phosphate P DNA"             1252
 biotype    1253    OP      "3'-Phosphate OP DNA"            1253
-biotype    2001    O       "Water"                          2001
+biotype    2001   24      "Water"                          2001
 biotype    2002    H       "Water"                          2002
 biotype    2003    NA      "Sodium Ion"                     2004
 biotype    2004    K       "Potassium Ion"                  2005
 biotype    2005    MG      "Magnesium Ion"                  2008
-biotype    2006    CA      "Calcium Ion"                    2009
+biotype    2006    3      "Calcium Ion"                    2009
 biotype    2007    CL      "Chloride Ion"                   2012
