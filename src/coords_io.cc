@@ -401,10 +401,10 @@ void coords::output::formats::xyz::to_stream(std::ostream & stream) const
   //stream << N << '\n';
   for (std::size_t i(0U); i < N; ++i)
   {
-     stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];
-     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).x();
-     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).y();
-     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(6) << ref.xyz(i).z();
+     stream << std::left  << std::setw(3) << atomic::symbolMap[ref.atoms(i).number()];//Made the precision from 6 to 7 according to Lee-Pings Code
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).x();
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).y();
+     stream << std::fixed << std::showpoint << std::right << std::setw(12) << std::setprecision(7) << ref.xyz(i).z();
      stream << '\n';
   }
 }

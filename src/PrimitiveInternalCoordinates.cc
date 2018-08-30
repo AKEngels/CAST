@@ -497,6 +497,7 @@ namespace internals {
   void AppropriateStepFinder::appropriateStep(coords::float_type const trustRadius){
     auto cartesianNorm = applyInternalChangeAndGetNorm(getInternalStep());
     if (cartesianNorm > 1.1*trustRadius) {
+      std::cout << "\033[31mTrust radius exceeded.\033[0m\n";
       InternalToCartesianStep internalToCartesianStep(*this, trustRadius);
       BrentsMethod brent(*this, 0.0, bestStepSoFar.norm(), trustRadius, cartesianNorm);//very ugly
       brent(internalToCartesianStep);
@@ -546,6 +547,7 @@ namespace internals {
     using ic_util::flatten_c3_vec;
 
     InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
+    actual_xyz.stolenNotify();
     InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;;
     coords::Representation_3D first_struct, last_good_xyz;
     auto micro_iter{ 0 }, fail_count{ 0 };
@@ -555,23 +557,38 @@ namespace internals {
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
 
       auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);
-
+      
       auto d_int_remain = d_int_left - d_now;
-      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates).rmsd();
+      auto cartesian_rmsd = ic_util::Rep3D_to_Mat(old_xyz.coordinates - actual_xyz.coordinates).rmsd();//Optimizer::displacementRmsValAndMaxTwoStructures(old_xyz.coordinates, actual_xyz.coordinates).first;
       auto internal_norm = d_int_remain.norm();
       //std::cout << "Left change internal coordinates:\n" << d_int_remain << "\n\n";
       //std::cout << "internal norm: " << internal_norm << "\n\n";
       if (micro_iter == 0) {
+	std::cout << "Iter " << micro_iter + 1u << 
+          " Internal Norm: " << std::scientific << std::setprecision(5) << internal_norm << 
+	  " Cartesian RMSD: " << std::scientific << std::setprecision(5) << cartesian_rmsd << 
+	  " Damp: " << std::scientific << std::setprecision(5) << damp << "\n";
         first_struct = actual_xyz.coordinates;
         last_good_xyz = actual_xyz.coordinates;
         old_inorm = internal_norm;
       }
       else {
         if (internal_norm > old_inorm) {
+          std::cout << "Iter " << micro_iter + 1u << 
+            " Internal Norm: " << std::scientific << std::setprecision(5) << internal_norm << 
+	    " Last Internal Norm: " << std::scientific << std::setprecision(5) << old_inorm <<
+	    " Cartesian RMSD: " << std::scientific << std::setprecision(5) << cartesian_rmsd << 
+	    " Damp: " << std::scientific << std::setprecision(5) << damp << "\n";
           damp /= 2.;
           ++fail_count;
         }
         else {
+          std::cout << "Iter " << micro_iter + 1u << 
+            " Internal Norm: " << std::scientific << std::setprecision(5) << internal_norm << 
+	    " Last Internal Norm: " << std::scientific << std::setprecision(5) << old_inorm <<
+	    " Cartesian RMSD: " << std::scientific << std::setprecision(5) << cartesian_rmsd << 
+	    " Damp: " << std::scientific << std::setprecision(5) << damp << "\n";
+
           fail_count = 0;
           damp = std::min(1.2*damp, 1.);
           old_inorm = internal_norm;
@@ -579,18 +596,18 @@ namespace internals {
         }
       }
       if (cartesian_rmsd < 1.e-6 || internal_norm < 1.e-6) {
-        std::cout << "Applying internal changes took " << micro_iter << " steps to converge.\n";
+        std::cout << "Applying internal changes took " << micro_iter + 1u << " steps to converge.\n";
         return actual_xyz.coordinates;
       }
       else if (fail_count >= 10) {
-        std::cout << "Applying internal changes failed ten times to converge.\n";
+        std::cout << "Applying internal changes failed ten times to converge. Aborting after " << micro_iter + 1u << "steps.\n";
         return first_struct;
       }
 
       old_xyz = actual_xyz;
       d_int_left = std::move(d_int_remain);
     }
-    std::cout << "Applying internal changes took all " << micro_iter + 1 << " steps, still not converged. Returning best step.\n";
+    std::cout << "Applying internal changes took all " << micro_iter + 1u << " steps, still not converged. Returning best step.\n";
     return actual_xyz.coordinates;
   }
 

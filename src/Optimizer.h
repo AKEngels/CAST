@@ -94,12 +94,13 @@ protected:
     coords::float_type gradientMax;
     coords::float_type displacementMax;
   };
-
+  scon::mathmatrix<coords::float_type> stepSize;
   std::pair<coords::float_type, coords::float_type> displacementRmsValAndMax()const;
 
   struct SystemVariables {
     coords::float_type systemEnergy;
     scon::mathmatrix<coords::float_type> systemGradients;
+    scon::mathmatrix<coords::float_type> internalValues;
     CartesianType systemCartesianRepresentation;
   };
 

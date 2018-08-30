@@ -366,9 +366,10 @@ namespace InternalCoordinates {
 
   std::array<coords::float_type, 3u> const&
     Rotator::valueOfInternalCoordinate(const coords::Representation_3D& new_xyz) {
-    if (!updateStoredValues) {
-      return storedValuesForRotations;
-    }
+    //TODO This needs to be activated again
+    //if (!updateStoredValues) {
+    //  return storedValuesForRotations;
+    //}
     updateStoredValues = false;
     coords::Representation_3D curr_xyz_;
     curr_xyz_.reserve(indices_.size());
@@ -397,10 +398,10 @@ namespace InternalCoordinates {
   scon::mathmatrix<coords::float_type> const&
     InternalCoordinates::Rotator::rot_der_mat(coords::Representation_3D const& new_xyz) {
     using Mat = scon::mathmatrix<coords::float_type>;
-
-    if (!updateStoredDerivatives) {
-      return storedDerivativesForRotations;
-    }
+    //TODO This needs to be activated again
+    //if (!updateStoredDerivatives) {
+    //  return storedDerivativesForRotations;
+    //}
     updateStoredDerivatives = false;
 
     auto const & zero = scon::mathmatrix<coords::float_type>::zero;

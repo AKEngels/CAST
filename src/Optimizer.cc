@@ -80,25 +80,29 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
 
   output.to_stream(initialStream);
 
-  for (auto i = 0; i< 100; ++i) {
-
+  for (auto i = 0; i< 500; ++i) {
+    
     evaluateNewCartesianStructure(coords);
 
     auto cartesianGradients = getInternalGradientsButReturnCartesianOnes(coords);
     std::cout << "Trust Radius: " << trustRadius << std::endl;
     if(changeTrustStepIfNeccessary()) {
+      std::cout << "Rejected Step" << std::endl;
       resetStep(coords);
       continue;
     }
     
+    std::stringstream strstr;
+    strstr << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
+    std::ofstream hessianOfs(strstr.str());
+    hessianOfs << std::fixed << std::setprecision(15) << hessian;
+
     applyHessianChange();
 
     if (ConvergenceCheck{ i + 1,cartesianGradients,*this }()) {
       std::cout << "Converged after " << i + 1 << " steps!\n";
       break;
     }
-    //output.to_stream(std::cout);
-
     setNewToOldVariables();
     std::stringstream ss;
     ss << "StructureInCycle" << std::setfill('0') << std::setw(5) << i+1u << ".xyz";
@@ -133,6 +137,7 @@ void Optimizer::prepareOldVariablesPtr(coords::DL_Coordinates<coords::input::for
   ));
   oldVariables->systemCartesianRepresentation = cartesianCoordinates;
   oldVariables->systemGradients = converter.calculateInternalGradients(cartesianGradients);
+  oldVariables->internalValues = converter.calculateInternalValues();
 }
 
 void Optimizer::resetStep(coords::DL_Coordinates<coords::input::formats::pdb> & coords){
@@ -146,7 +151,8 @@ void Optimizer::evaluateNewCartesianStructure(coords::DL_Coordinates<coords::inp
   
   stepFinder.appropriateStep(trustRadius);
   expectedChangeInEnergy = stepFinder.getSolBestStep();
-  
+  stepSize = stepFinder.getBestStep();
+
   cartesianCoordinates.setCartesianCoordnates(stepFinder.extractCartesians());
   coords.set_xyz(ic_core::rep3d_bohr_to_ang(cartesianCoordinates));
 }
@@ -161,7 +167,6 @@ bool Optimizer::changeTrustStepIfNeccessary() {
   
   if(quality > goodQualityThreshold){
     trustRadius = std::min(0.3, trustRadius * std::sqrt(2.));
-    std::cout << "I am good. Trust Radius now: " << trustRadius << "\n";
   }
   else if(quality < -1. && currentVariables.systemEnergy > oldVariables->systemEnergy && trustRadius > thre_rj){
     trustRadius = std::max(0.0012, trustRadius / 2.);
@@ -172,7 +177,6 @@ bool Optimizer::changeTrustStepIfNeccessary() {
   }
   else if (quality < badQualityThreshold) {
     trustRadius = std::max(0.0012, trustRadius / 2.);
-    std::cout << "I am bad. Trust Radius now: " << trustRadius << "\n";
   }
   return false;
 }
@@ -190,11 +194,29 @@ scon::mathmatrix<coords::float_type> Optimizer::getInternalGradientsButReturnCar
 
 
 void Optimizer::applyHessianChange() {
+  static auto i = 0u;
   auto d_gq = currentVariables.systemGradients - oldVariables->systemGradients;
-  auto dq = internalCoordinateSystem.calc_diff(cartesianCoordinates, oldVariables->systemCartesianRepresentation);
+  auto dq = stepSize;//internalCoordinateSystem.calc_diff(cartesianCoordinates, oldVariables->systemCartesianRepresentation);
+  
+  std::stringstream hessianSS;
+  hessianSS << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
+  std::ofstream hessianOfs(hessianSS.str());
+  hessianOfs << std::fixed << std::setprecision(15) << hessian;
+
+  std::stringstream gradientSS;
+  gradientSS << "CASTGradientChange" << std::setfill('0') << std::setw(5u) << i +1u << ".dat";
+  std::ofstream gradientOfs(gradientSS.str());
+  gradientOfs << std::fixed << std::setprecision(15) << d_gq;
+
+  std::stringstream displacementSS;
+  displacementSS << "CASTDisplacementChange" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+  std::ofstream displacementOfs(displacementSS.str());
+  displacementOfs << dq;
+
   auto term1 = (d_gq*d_gq.t()) / (d_gq.t()*dq)(0, 0);
   auto term2 = ((hessian*dq)*(dq.t()*hessian)) / (dq.t()*hessian*dq)(0, 0);
   hessian += term1 - term2;
+  ++i;
 }
 
 void Optimizer::setNewToOldVariables() {

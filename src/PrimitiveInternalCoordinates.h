@@ -167,6 +167,9 @@ namespace internals {
     virtual InternalCoordinates::CartesiansForInternalCoordinates & getCartesianCoordinates() { return cartesianCoordinates; }
     
     std::pair<coords::float_type, coords::float_type> cartesianNormOfOtherStructureAndCurrent(coords::Representation_3D const& otherCartesians) const;//Test
+    scon::mathmatrix<coords::float_type> calculateInternalValues()const{
+      return internalCoordinates.calc(cartesianCoordinates);
+    }
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;
@@ -300,6 +303,7 @@ namespace internals {
 
     scon::mathmatrix<coords::float_type> && extractBestStep() { return std::move(bestStepSoFar); }
     coords::Representation_3D && extractCartesians() { return std::move(bestCartesiansSoFar); }
+    scon::mathmatrix<coords::float_type> const& getBestStep() const {return bestStepSoFar;}
 
   protected:
     //Constructor for Testclass
