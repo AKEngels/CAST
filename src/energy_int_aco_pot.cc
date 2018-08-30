@@ -919,12 +919,12 @@ namespace energy
 						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);  // distance or length of vector
 						double inverse_dist = 1.0 / dist;  // get inverse distance
 
-						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
+						if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
 
 						else  // gradient calculation
 						{
 							coords::float_type dQ;
-							energy += gQ(charge_product, inverse_dist, dQ);
+              part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
 
               coords::Cartesian_Point grad = (vector/dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
