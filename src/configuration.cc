@@ -589,6 +589,10 @@ void config::parse_option(std::string const option, std::string const value_stri
 		{
 			Config::set().energy.qmmm.emb_small = std::stoi(value_string);
 		}
+		else if (option.substr(4u) == "zerocharge_bonds")
+		{
+			Config::set().energy.qmmm.zerocharge_bonds = std::stoi(value_string);
+		}
   }
 
 

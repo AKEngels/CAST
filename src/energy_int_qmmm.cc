@@ -366,6 +366,16 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 		for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom
 		{
 			if (l.mm == mm) use_charge = false;
+			else
+			{
+				if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from QM system
+				{
+					for (auto b : coords->atoms(mm).bonds())
+					{
+						if (b == l.mm) use_charge = false;
+					}
+				}
+			}
 		}
 		if (use_charge)  // for the other 
 		{

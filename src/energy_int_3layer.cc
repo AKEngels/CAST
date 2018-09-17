@@ -179,6 +179,16 @@ void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vec
 		for (auto &l : link_atoms)   // ignore those atoms that are connected to an atom to the "QM system"
 		{
 			if (l.mm == i) use_charge = false;
+      else
+      {
+        if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from "QM system"
+        {
+          for (auto b : coords->atoms(i).bonds())
+          {
+            if (b == l.mm) use_charge = false;
+          }
+        }
+      }
 		}
 		for (auto &qs : ignore_indizes) // ...and those which are destined to be ignored
 		{
@@ -204,7 +214,7 @@ void energy::interfaces::three_layer::THREE_LAYER::add_external_charges(std::vec
 			if (use_charge)  // if yes create a PointCharge and add it to vector
 			{
 				PointCharge new_charge;
-				new_charge.charge = charges[i];
+        new_charge.charge = charges[find_index(i, indizes_of_charges)];
 				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
 				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
 
