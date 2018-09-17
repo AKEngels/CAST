@@ -356,55 +356,10 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
 	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
+	auto all_indices = range(coords->size());
 
-	bool use_charge;
-	int counter = 0;
 	charge_indices.clear();
-	for (auto mm : mm_indices) // go through all MM atoms
-	{
-		use_charge = true;
-		for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom
-		{
-			if (l.mm == mm) use_charge = false;
-			else
-			{
-				if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from QM system
-				{
-					for (auto b : coords->atoms(mm).bonds())
-					{
-						if (b == l.mm) use_charge = false;
-					}
-				}
-			}
-		}
-		if (use_charge)  // for the other 
-		{
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-			{
-				use_charge = false;
-				for (auto qm : qm_indices)
-				{
-					auto dist = len(coords->xyz(mm) - coords->xyz(qm));
-					if (dist < Config::get().energy.qmmm.cutoff)
-					{
-						use_charge = true;
-						break;
-					}
-				}
-			}
-
-			if (use_charge)  // if yes create a PointCharge and add it to vector
-			{
-				PointCharge new_charge;
-				new_charge.charge = mm_charge_vector[counter];
-				new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
-				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-				charge_indices.push_back(mm);
-			}
-			
-		}
-		counter += 1;
-	}
+	qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, all_indices, link_atoms, charge_indices, coords);
 
   // ################### DO CALCULATION ###########################################
 

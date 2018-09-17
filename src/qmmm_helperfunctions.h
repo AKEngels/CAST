@@ -128,6 +128,17 @@ namespace qmmm_helpers
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
   void select_from_ambercharges(std::vector<std::size_t> const & indices);
+
+	/**adds external charges to the following calculations
+	@param qm_indizes: indizes of current "QM system", can be the "real" QM system or the intermediate system of QM and SE atoms
+	@param ignore_indizes: indizes of atoms that should be ignored
+	@param charges: vector of charge values that might be added to the calculation
+	@param indizes_of_charges: indizes of the charges in the overall coordinates object
+	@param link_atoms: vector of link atoms for the current "QM system"
+	@param charge_indizes: reference to a vector where the indizes of the atoms whose charges are taken into account are added
+	@param coords: pointer to original coordobject*/
+	void add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges, 
+		std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
 }
 
 #endif

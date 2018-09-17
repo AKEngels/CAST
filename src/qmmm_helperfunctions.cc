@@ -237,3 +237,57 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 		}
 		Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
 	}
+
+	void qmmm_helpers::add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges,
+		std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords)
+	{
+		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
+		{
+			bool use_charge = true;
+			for (auto &l : link_atoms)   // ignore those atoms that are connected to an atom to the "QM system"
+			{
+				if (l.mm == i) use_charge = false;
+				else
+				{
+					if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from "QM system"
+					{
+						for (auto b : coords->atoms(i).bonds())
+						{
+							if (b == l.mm) use_charge = false;
+						}
+					}
+				}
+			}
+			for (auto &qs : ignore_indizes) // ...and those which are destined to be ignored
+			{
+				if (qs == i) use_charge = false;
+			}
+
+			if (use_charge)  // for the other 
+			{
+				if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one "QM atom" is nearer than cutoff
+				{
+					use_charge = false;
+					for (auto qs : qm_indizes)
+					{
+						auto dist = len(coords->xyz(i) - coords->xyz(qs));
+						if (dist < Config::get().energy.qmmm.cutoff)
+						{
+							use_charge = true;
+							break;
+						}
+					}
+				}
+
+				if (use_charge)  // if yes create a PointCharge and add it to vector
+				{
+					PointCharge new_charge;
+					new_charge.charge = charges[find_index(i, indizes_of_charges)];
+					new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
+					Config::set().energy.qmmm.mm_charges.push_back(new_charge);
+
+					charge_indizes.push_back(i);  // add index to charge_indices
+				}
+			}
+		}
+	}

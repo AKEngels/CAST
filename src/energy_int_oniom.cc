@@ -184,59 +184,11 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   // ############### CREATE MM CHARGES ######################
 
   std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+  std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
+	auto all_indices = range(coords->size());
 
-  std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
-
-  bool use_charge;
-  charge_indices.clear();
-  for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
-  {
-	  use_charge = true;
-	  for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
-	  {
-		  if (l.mm == i) use_charge = false;
-			else
-			{
-				if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from QM system
-				{
-					for (auto b : coords->atoms(i).bonds())
-					{
-						if (b == l.mm) use_charge = false;
-					}
-				}
-			}
-	  }
-	  for (auto &qm : qm_indices) // ... and the QM atoms themselves
-	  {
-		  if (qm == i) use_charge = false;
-	  }
-	  if (use_charge)  // for the other 
-	  {
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-			{
-				use_charge = false;
-				for (auto qm : qm_indices)
-				{
-					auto dist = len(coords->xyz(i) - coords->xyz(qm));
-					if (dist < Config::get().energy.qmmm.cutoff)
-					{
-						use_charge = true;
-						break;
-					}
-				}
-			}
-
-			if (use_charge)  // if yes create a PointCharge and add it to vector
-			{
-				PointCharge new_charge;
-				new_charge.charge = charge_vector[i];
-				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-
-				charge_indices.push_back(i);  // add index to charge_indices
-			}
-	  }
-  }
+	charge_indices.clear();
+	qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords);
 
 	// ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
 	try {
