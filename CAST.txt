@@ -146,7 +146,7 @@ QMMMlinkatomtype      85
 # cutoff for electrostatic interaction
 #QMMMcutoff            10
 
-# for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 1 or 2)
+# for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 1, 2 or 3)
 QMMMzerocharge_bonds   2
 
 

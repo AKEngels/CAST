@@ -244,16 +244,28 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 		{
 			bool use_charge = true;
-			for (auto &l : link_atoms)   // ignore those atoms that are connected to an atom to the "QM system"
+
+			for (auto &l : link_atoms)      // look at every link atom
 			{
-				if (l.mm == i) use_charge = false;
+				if (l.mm == i) use_charge = false;   // ignore those atoms that are connected to an atom to the "QM system"
 				else
 				{
 					if (Config::get().energy.qmmm.zerocharge_bonds > 1)   // if desired: also ignore atoms that are two bonds away from "QM system"
 					{
 						for (auto b : coords->atoms(i).bonds())
 						{
-							if (b == l.mm) use_charge = false;
+              if (b == l.mm) use_charge = false;
+
+              else
+              {
+                if (Config::get().energy.qmmm.zerocharge_bonds > 2)  // if desired: also ignore atoms that are three bonds away from "QM system"
+                {
+                  for (auto b2 : coords->atoms(b).bonds())
+                  {
+                    if (b2 == l.mm) use_charge = false;
+                  }
+                }
+              }
 						}
 					}
 				}
