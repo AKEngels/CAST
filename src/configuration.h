@@ -559,7 +559,7 @@ namespace config
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
       /**SE interface [only for three-layer]*/
-      interface_types::T seinterface{ interface_types::T::MOPAC };
+      interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
