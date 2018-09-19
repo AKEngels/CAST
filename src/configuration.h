@@ -549,7 +549,7 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
