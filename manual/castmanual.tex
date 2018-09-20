@@ -295,7 +295,7 @@
 		\textbf{THREE\_LAYER} & internal &  QM/MM variables and input for QM, SE and MM interface\\
 	\end{tabularx}	\\~\\
 	\ifverbose
-	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
+	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
 	\fi
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -1416,6 +1416,9 @@ EXwellenzahl                  28514.91
 	\subsection{PATHSAMPLING - ?}	
 	\ifdevmode \colorbox{red}{write something here} \fi	
 	
+	\subsection{SCAN2D - ?}	
+	\ifdevmode \colorbox{red}{write something here} \fi	
+	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	
 	This task will remove all explicit water from the input trajectory and write out the truncated coordinate. This may be useful to prepare data for tasks such as ENTROPY, PCAgen or ALIGN. In detail, the truncation is performed by detecting oxygen atoms which are only bound to two hydrogen atoms.\\
@@ -1492,8 +1495,7 @@ EXwellenzahl                  28514.91
 	\ifdevelopment
 	\newpage
 	\section{Coding within the CAST Framework}
-	Lorem Ipsum here be text it the future \\
-	\ifdevmode \colorbox{red}{Once CAST4 is up and running we should put some information on the code here.} \fi
+	Lorem Ipsum \colorbox{red}{here be text it the future} \\
 	\fi
 
 

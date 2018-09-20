@@ -1574,7 +1574,7 @@ public:
   config::PCA					          PCA;
   config::entropy				        entropy;
   config::io                    io;
-  config::scan2d					scan2d;
+  config::scan2d				      	scan2d;
   config::exbreak				        exbreak;
   config::interfcrea            interfcrea;
   config::center                center;

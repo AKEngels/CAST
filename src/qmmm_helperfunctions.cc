@@ -47,7 +47,7 @@ void qmmm_helpers::calc_link_atom_grad(LinkAtom &l, coords::r3 const &G_L, coord
 
   x = g * G_L.x() - g * scon::dot(G_L, n) * n.x();
   y = g * G_L.y() - g * scon::dot(G_L, n) * n.y();
-  z = g * G_L.z() - g * scon::dot(G_L, n) * n.z();
+  z = g * G_L.z() - g * scon::dot(G_L, n) * n.z(); 
   coords::r3 new_grad2(x, y, z);
   G_MM = new_grad2;
 }
