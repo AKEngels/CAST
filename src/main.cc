@@ -958,7 +958,7 @@ int main(int argc, char **argv)
 
       case config::tasks::EXCITONDIMER:
       {
-        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.pscpairexrates);
+        exciD::dimexc(Config::get().exbreak.masscenters, Config::get().exbreak.pscpairexrates, 100, 50);
 
         break;
       }

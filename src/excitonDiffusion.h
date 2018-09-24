@@ -75,6 +75,7 @@ namespace exciD {
   coords::Cartesian_Point avgDimCoM(coords::Cartesian_Point, coords::Cartesian_Point);
   double length(coords::Cartesian_Point, coords::Cartesian_Point);
   double marcus(double, double, double);
+  double coulomb(coords::Cartesian_Point, coords::Cartesian_Point, double);
   coords::Cartesian_Point structCenter(std::vector <exciD::Couplings>);
   coords::Cartesian_Point min(std::vector<exciD::Couplings>);
 }
