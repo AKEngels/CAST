@@ -88,77 +88,9 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
     return new_indices;
   }
 
-  /**creates coordobject for MM interface
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of MM atoms
-  @param new_indices: new indizes (see new_indices_mm)*/
-  coords::Coordinates qmmm_helpers::make_aco_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices)
-  {
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.mminterface;
-    coords::Coordinates new_aco_coords;
-    if (cp->size() >= indices.size())
-    {
-      coords::Atoms new_aco_atoms;
-      coords::PES_Point pes;
-      pes.structure.cartesian.reserve(indices.size());
-      for (auto && a : indices)
-      {
-        auto && ref_at = (*cp).atoms().atom(a);
-        coords::Atom at{ (*cp).atoms().atom(a).number() };
-        at.set_energy_type(ref_at.energy_type());
-        auto bonds = ref_at.bonds();
-        for (auto && b : bonds)
-        {
-          at.detach_from(b);
-        }
-        for (auto && b : bonds)
-        {
-          if (is_in(b, indices)) at.bind_to(new_indices[b]);  // only bind if bonding partner is also in ACO coords
-        }
-        new_aco_atoms.add(at);
-        pes.structure.cartesian.push_back(cp->xyz(a));
-      }
-      new_aco_coords.init_swap_in(new_aco_atoms, pes);
-    }
-    Config::set().general.energy_interface = tmp_i;
-    return new_aco_coords;
-  }
-
-  coords::Coordinates qmmm_helpers::make_mmbig_coords(coords::Coordinates const * cp)
-  {
-    auto tmp_i = Config::get().general.energy_interface;
-    Config::set().general.energy_interface = Config::get().energy.qmmm.mminterface;
-    coords::Coordinates new_aco_coords;
-    coords::Atoms new_aco_atoms;
-    coords::PES_Point pes;
-
-    pes.structure.cartesian.reserve(cp->atoms().size());
-    for (auto a{ 0u }; a < cp->atoms().size(); ++a)
-    {
-      auto && ref_at = (*cp).atoms().atom(a);
-      coords::Atom at{ (*cp).atoms().atom(a).number() };
-      at.set_energy_type(ref_at.energy_type());
-      auto bonds = ref_at.bonds();
-      for (auto && b : bonds)
-      {
-        at.detach_from(b);
-      }
-      for (auto && b : bonds)
-      {
-        at.bind_to(b);
-      }
-      new_aco_atoms.add(at);
-      pes.structure.cartesian.push_back(cp->xyz(a));
-    }
-    new_aco_coords.init_swap_in(new_aco_atoms, pes);
-    Config::set().general.energy_interface = tmp_i;
-    return new_aco_coords;
-  }
-
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface, std::string const& filename)
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file, std::vector<LinkAtom> &link_atoms,
+		std::string const& filename)
   {
     auto tmp_i = Config::get().general.energy_interface;
     Config::set().general.energy_interface = energy_interface;
@@ -182,7 +114,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
         }
         for (auto && b : bonds)
         {
-          if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in QM coords
+          if (is_in(b, indices)) at.bind_to(new_indices.at(b)); // only bind if bonding partner is also in new subsystem
         }
         
         new_qm_atoms.add(at);
@@ -214,7 +146,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
       new_qm_coords.init_swap_in(new_qm_atoms, pes);
     }
 
-    if (Config::set().energy.qmmm.qm_to_file)  // if desired: write QM region into file
+    if (write_into_file)  // if desired: write QM region into file
     {
       std::ofstream output(filename);
       output << coords::output::formats::tinker(new_qm_coords);

@@ -9,9 +9,9 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
   new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
-  mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.mminterface)),
-	mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.qminterface != config::interface_types::T::AMBER &&

@@ -12,11 +12,11 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
   new_indices_middle(qmmm_helpers::make_new_indices(cp->size(), qm_se_indices)),
   link_atoms_small(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
   link_atoms_middle(qmmm_helpers::create_link_atoms(cp, qm_se_indices, tp)),
-  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.qminterface, "small_system.arc")),
-  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms_small, Config::get().energy.qmmm.seinterface, "small_system.arc")),
-  sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.seinterface, "intermediate_system.arc")),
-  mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, link_atoms_middle, Config::get().energy.qmmm.mminterface, "intermediate_system.arc")),
-	mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
+  sec_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_small, "small_system.arc")),
+  sec_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.seinterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
+  mmc_middle(qmmm_helpers::make_small_coords(cp, qm_se_indices, new_indices_middle, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms_middle, "intermediate_system.arc")),
+	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.qminterface != config::interface_types::T::AMBER &&

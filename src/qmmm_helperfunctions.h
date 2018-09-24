@@ -104,26 +104,20 @@ namespace qmmm_helpers
   @param mmi: vector with original indizes*/
   std::vector<std::size_t> make_new_indices(std::size_t const num_atoms, std::vector<std::size_t> const &indices);
 
-  /**creates coordobject for MM interface (maybe also be replaced by make_small_coords?)
-  @param cp: coordobj for whole system (QM + MM)
-  @param indices: indizes of MM atoms
-  @param new_indices: new indizes (see new_indices_mm)*/
-  coords::Coordinates make_aco_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices);
-
-  /**creates a coordobject out of the whole system with MM interface (used for ONIOM)
-  @param cp: pointer to original coordobject*/
-  coords::Coordinates make_mmbig_coords(coords::Coordinates const * cp);
-
-  /**creates a coordobject from the QM atoms and link atoms with either QM or MM interface
+  /**creates a coordobject for partial systems (if QM system link atoms are added, too)
   @param cp: pointer to original coordobject
-  @param indices: indizes of QM atoms
-  @param new_indices: vector new_indices_qm
-  @param link_atoms: vector with link atoms
-  @param energy_interface: energy interface*/
+  @param indices: indizes of atoms that should be in new coordobject
+  @param new_indices: vector of length total number of atoms
+                      only those elements are filled whose position corresponds to atoms of new coordobject
+                      they are filled with successive numbers starting from 0
+                      purpose: faciliate mapping between total coordinates object and subsystems
+  @param link_atoms: vector with link atoms (if present)
+  @param energy_interface: energy interface of new coordobject
+	@param write_into_file: if true writes subsystem into tinkerfile
+	@param filename: name of the tinkerfile (only when write_into_file = true)*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, 
-    std::vector<LinkAtom> &link_atoms, config::interface_types::T energy_interface, std::string const& filename = "qm_system.arc");
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
+    std::vector<LinkAtom> &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
