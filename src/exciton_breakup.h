@@ -381,7 +381,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   switch (ebene) { //different cases for the possible planes of the interface
 
   case 'x':
-    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interace
+    for (i = 1; i < (pscanzahl + 1); i++) //determining the maximal distance to interface
     { 
       if (x[i] > max) {
         max = x[i];

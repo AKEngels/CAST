@@ -59,13 +59,13 @@ namespace config
   static std::string const task_strings[NUM_TASKS] =
   {
     "SP", "GRAD", "TS", "LOCOPT", "REMOVE_EXPLICIT_WATER",
-    "MC", "DIMER", "MD", "NEB", "GOSOL",
+    "MC", "MD", "NEB", "GOSOL",
     "STARTOPT",  "INTERNAL", "ENTROPY", "PCAgen", "PCAproc",
     "DEVTEST", "UMBRELLA", "FEP", "PATHOPT",
     "GRID", "ALIGN", "PATHSAMPLING", "SCAN2D", "XB_EXCITON_BREAKUP",
     "XB_INTERFACE_CREATION", "XB_CENTER", "XB_COUPLINGS",
     "LAYER_DEPOSITION", "HESS", "WRITE_TINKER", "MODIFY_SK_FILES",
-    "EXCITONDIMER",
+    "EXCITONDIMER", "DIMER",
   };
 
   /*! contains enum with all tasks currently present in CAST
@@ -80,13 +80,13 @@ namespace config
     {
       ILLEGAL = -1,
       SP, GRAD, TS, LOCOPT, REMOVE_EXPLICIT_WATER,
-      MC, DIMER, MD, NEB, GOSOL,
+      MC, MD, NEB, GOSOL,
       STARTOPT, INTERNAL, ENTROPY, PCAgen, PCAproc,
       DEVTEST, UMBRELLA, FEP, PATHOPT,
       GRID, ALIGN, PATHSAMPLING, SCAN2D, XB_EXCITON_BREAKUP,
       XB_INTERFACE_CREATION, XB_CENTER, XB_COUPLINGS,
       LAYER_DEPOSITION, HESS, WRITE_TINKER, MODIFY_SK_FILES,
-      EXCITONDIMER
+      EXCITONDIMER, DIMER
     };
   };
 
