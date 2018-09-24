@@ -89,7 +89,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
   }
 
   coords::Coordinates qmmm_helpers::make_small_coords(coords::Coordinates const * cp,
-    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file, std::vector<LinkAtom> &link_atoms,
+    std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file, std::vector<LinkAtom> const &link_atoms,
 		std::string const& filename)
   {
     auto tmp_i = Config::get().general.energy_interface;

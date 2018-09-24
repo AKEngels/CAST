@@ -117,7 +117,7 @@ namespace qmmm_helpers
 	@param filename: name of the tinkerfile (only when write_into_file = true)*/
   coords::Coordinates make_small_coords(coords::Coordinates const * cp,
     std::vector<std::size_t> const & indices, std::vector<std::size_t> const & new_indices, config::interface_types::T energy_interface, bool const write_into_file = false,
-    std::vector<LinkAtom> &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
+    std::vector<LinkAtom> const &link_atoms = std::vector<LinkAtom>(), std::string const& filename = "qm_system.arc");
 
   /**selects only those charges from amber_charges vector which correspond to the indices
   all other charges are removed*/
