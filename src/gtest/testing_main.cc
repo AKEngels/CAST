@@ -20,9 +20,7 @@ int main(int argc, char** argv) {
   Config main_configuration(config_filename);
   config::parse_command_switches(argc, argv);
   Config::set().general.verbosity = 3u;
-
-
-
+	Config::set().general.paramFilename = "test_files/oplsaa.prm";
 
   testing::InitGoogleTest(&argc, argv);
   int result = RUN_ALL_TESTS();

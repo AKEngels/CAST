@@ -15,11 +15,11 @@ Purpose: Tests stuff for QM/MM interfaces
 
 TEST(qmmm, test_number_of_link_atoms)
 {
-	std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-	coords::Coordinates coords(ci->read("butanol.arc"));
+  std::unique_ptr<coords::input::format> ci(coords::input::new_format());
+	coords::Coordinates coords(ci->read("test_files/butanol.arc"));
 
 	tinker::parameter::parameters tp;
-	tp.from_file("oplsaa_mod2.prm");
+	tp.from_file("test_files/oplsaa.prm");
 
 	std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
 
@@ -30,10 +30,10 @@ TEST(qmmm, test_number_of_link_atoms)
 TEST(qmmm, test_position_of_link_atom)
 {
 	std::unique_ptr<coords::input::format> ci(coords::input::new_format());
-	coords::Coordinates coords(ci->read("butanol.arc"));
+	coords::Coordinates coords(ci->read("test_files/butanol.arc"));
 
 	tinker::parameter::parameters tp;
-	tp.from_file("oplsaa_mod2.prm");
+	tp.from_file("test_files/oplsaa.prm");
 
 	std::vector<size_t> qm_indizes = { 5,8,9,10,11,12,13,14 };
 
