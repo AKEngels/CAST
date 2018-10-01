@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/AKEngels/CAST.svg?branch=devel)](https://travis-ci.com/AKEngels/CAST) (for branch devel)
+
 # CAST (Conformational Analysis and Search Tool)
 This is the official repository for the
 CAST
