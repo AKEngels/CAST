@@ -97,13 +97,15 @@ inline std::string get_python_modulepath(std::string modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no */
+returns true if yes and false if no  (overloaded function)*/
 template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
 inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
 is_in(T const& x, Cont<U, ContArgs...> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
+/**looks if vector v contains element x
+returns true if yes and false if no (overloaded function)*/
 template<typename T, typename U, std::size_t N>
 inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
