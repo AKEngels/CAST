@@ -14,6 +14,7 @@ namespace energy
   static coords::float_type constexpr au2kcal_mol{ 627.5095 }, eV2kcal_mol{23.061078};  //1 au = 627.5095 kcal/mol
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAng{ au2kcal_mol / 0.52918 };
   static coords::float_type constexpr Hartree_Bohr2Kcal_MolAngSquare{ Hartree_Bohr2Kcal_MolAng / 0.52918 };
+
 	/**object where fep parameters for one window are saved*/
   struct fepvar
   {

@@ -391,7 +391,6 @@ void coords::Coordinates::swap(Coordinates &rhs) // object swap
   //m_sub_interaction.swap(rhs.m_sub_interaction);
   swap(energy_valid, rhs.energy_valid);
   swap(this->fep, rhs.fep);
-  swap(this->use_fep, rhs.use_fep);
   swap(this->mult_struc_counter, rhs.mult_struc_counter);
   swap(this->NEB_control, rhs.NEB_control);
   swap(this->orthogonalize, rhs.orthogonalize);

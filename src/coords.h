@@ -190,8 +190,11 @@ namespace coords
     };
   }
 
+	/**all important information collected during FEP run*/
   struct fep_data
   {
+		/**object in which data for one conformation is saved
+		which is relevant for FEP calculation*/
     energy::fepvect feptemp;
     /**object in which data for one window is saved
     which is relevant for FEP calculation
@@ -221,7 +224,7 @@ namespace coords
 
   typedef Tensor virial_t;
 
-
+	/**set viral tensor to all zeroes*/
   static inline coords::virial_t empty_virial()
   {
     coords::virial_t v;
@@ -232,22 +235,31 @@ namespace coords
     return v;
   }
 
-
+	/**coordinates object
+	most important part of CAST program as nearly every task works with one (or more) objects of this class*/
   class Coordinates
   {
-
+		/**atoms (without xyz coordinates)*/
     Atoms                     m_atoms;
+		/**other information about system (i.e. xyz coordinates)*/
     PES_Point                 m_representation;
+		/**stereo information*/
     Stereo                    m_stereo;
+		/**external potentials*/
     bias::Potentials          m_potentials;
+		/**virial (needed for pressure)*/
     virial_t                  m_virial;
+		/**pointer to energy interface*/
     energy::interface_base    *m_interface;
+		/**pointer to energy interface that is preinterface*/
     energy::interface_base    *m_preinterface;
+		/**???*/
     bool                      energy_valid;
 
     coords::float_type prelbfgs();
     coords::float_type lbfgs();
 
+		/**function to calculate energy*/
     coords::float_type m_e(energy::interface_base * const p)
     {
       if (p)
@@ -264,6 +276,7 @@ namespace coords
       return coords::float_type();
     }
 
+		/**function to calculate energy and gradients*/
     coords::float_type m_g(energy::interface_base * const p)
     {
       if (p)
@@ -289,6 +302,7 @@ namespace coords
       energy::interface_base   *catch_interface = m_interface;
     }*/
 
+		/**contains all important information collected during FEP run*/
     fep_data              fep;
 
     bool                  NEB_control, PathOpt_control;
@@ -297,15 +311,21 @@ namespace coords
     //aditional variables for perpendicular g() and o() and NEB
 
     // Orthogonalize is used in Dimer method
-    bool									orthogonalize, use_fep;
+		bool									orthogonalize;
 
     typedef PES_Point::size_type size_type;
 
+		/**default constructor*/
     Coordinates();
+		/**copy constructor*/
     Coordinates(Coordinates const &r);
+		/**move constructor)*/
     Coordinates(Coordinates &&r);
+		/**move assign operator*/
     Coordinates& operator= (Coordinates&& rhs);
+		/**copy assign operator*/
     Coordinates& operator= (Coordinates const & rhs);
+		/**destructor*/
     ~Coordinates();
 
     /**fix an atom, i.e. this atom can't be moved
@@ -424,9 +444,10 @@ namespace coords
 
     /**determines if structure is intact,
     i.e. bond lengths do not differ from ideal bond length by more than 5 angstrom,
-    angles do not differ from ideal angle by more than 20 degrees
+    angles do not differ from ideal angle by more than 30 degrees
     and similar criteria for dihedrals and ureys
-    details see in energy_int_..._pot.cc*/
+    details see in energy_int_..._pot.cc
+		for other energy interfaces integrity is destroyed when external program can't calculate an energy*/
     bool               integrity() const { return pes().integrity; }
     /**returns the size of the coordinates object, i.e. the total number of atoms*/
     size_type          size() const { return m_atoms.size(); }
