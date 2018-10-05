@@ -402,6 +402,7 @@ namespace internals {
     }
     std::cout << "Took over 1000 steps to retrict the trust step. Breaking up optimization and return current value.\n";
     return restrictedSol = finder.getSol(restrictedStep);
+    //throw std::runtime_error("Took over 1000 steps to retrict the trust step in InternalToCartesianConverter::restrictStep. Breaking up optimization.");
   }
 
   coords::float_type InternalToCartesianStep::operator()(StepRestrictor & restrictor){
@@ -439,9 +440,6 @@ namespace internals {
     auto epsilon = 0.01 > 1e-2*std::fabs(valueLeft - valueRight) ? 1e-2*std::fabs(valueLeft - valueRight) : 0.01;
 
     for(;;) {
-      std::cout << "fa: " << std::fixed << std::setprecision(15) << valueLeft << "\n";
-      std::cout << "fb: " << std::fixed << std::setprecision(15) << valueRight << "\n";
-      std::cout << "fc: " << std::fixed << std::setprecision(15) << valueMiddle << "\n";
       if (valueLeft != valueMiddle && valueRight != valueMiddle) {
         result = leftLimit * valueRight * valueMiddle / ((valueLeft - valueRight) * (valueLeft - valueMiddle));
         result += rightLimit * valueLeft * valueMiddle / ((valueMiddle - valueLeft) * (valueRight - valueRight));
@@ -547,7 +545,7 @@ namespace internals {
 
   coords::Representation_3D InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) const {
     using ic_util::flatten_c3_vec;
-    static auto count = 0;
+
     InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
     actual_xyz.stolenNotify();
     InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;;
@@ -555,19 +553,8 @@ namespace internals {
     auto micro_iter{ 0 }, fail_count{ 0 };
     auto damp{ 1. };
     auto old_inorm{ 0.0 };
-    ++count;
     for (; micro_iter < 50; ++micro_iter) {
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
-      
-      std::stringstream Bss;
-      Bss << "CASTBmat" << std::setfill('0') << std::setw(5) << micro_iter + 1u << "_" << std::setfill('0') << std::setw(5) << count << ".dat";
-      std::ofstream Bofs(Bss.str());
-      Bofs << std::setprecision(15) <<  internalCoordinates.Bmat(actual_xyz.coordinates);
-      
-      std::stringstream Gss;
-      Gss << "CASTGinv" << std::setfill('0') << std::setw(5) << micro_iter + 1u << "_" << std::setfill('0') << std::setw(5) << count << ".dat";
-      std::ofstream Gofs(Gss.str());
-      Gofs << std::setprecision(15) << internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates);
 
       auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);
       

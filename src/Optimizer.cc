@@ -103,7 +103,6 @@ void Optimizer::optimize(coords::DL_Coordinates<coords::input::formats::pdb> & c
       std::cout << "Converged after " << i + 1 << " steps!\n";
       break;
     }
-
     setNewToOldVariables();
     std::stringstream ss;
     ss << "StructureInCycle" << std::setfill('0') << std::setw(5) << i+1u << ".xyz";
@@ -199,6 +198,21 @@ void Optimizer::applyHessianChange() {
   auto d_gq = currentVariables.systemGradients - oldVariables->systemGradients;
   auto dq = stepSize;//internalCoordinateSystem.calc_diff(cartesianCoordinates, oldVariables->systemCartesianRepresentation);
   
+  std::stringstream hessianSS;
+  hessianSS << "CASTHessianStep" << std::setfill('0') << std::setw(5u) << i + 1u << ".dat";
+  std::ofstream hessianOfs(hessianSS.str());
+  hessianOfs << std::fixed << std::setprecision(15) << hessian;
+
+  std::stringstream gradientSS;
+  gradientSS << "CASTGradientChange" << std::setfill('0') << std::setw(5u) << i +1u << ".dat";
+  std::ofstream gradientOfs(gradientSS.str());
+  gradientOfs << std::fixed << std::setprecision(15) << d_gq;
+
+  std::stringstream displacementSS;
+  displacementSS << "CASTDisplacementChange" << std::setfill('0') << std::setw(5) << i + 1u << ".dat";
+  std::ofstream displacementOfs(displacementSS.str());
+  displacementOfs << dq;
+
   auto term1 = (d_gq*d_gq.t()) / (d_gq.t()*dq)(0, 0);
   auto term2 = ((hessian*dq)*(dq.t()*hessian)) / (dq.t()*hessian*dq)(0, 0);
   hessian += term1 - term2;
