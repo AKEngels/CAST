@@ -35,7 +35,7 @@ TEST_F(StepRestrictorTest, restrictStepTest) {
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::expectedTrustStep()));
   EXPECT_CALL(finder, getDeltaYPrime(testing::_))
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::initialDeltaYPrime()))
-    .WillOnce(testing::Return(ExpectedValuesForTrustRadius::finalDeltaYPrime()));
+    /*.WillOnce(testing::Return(ExpectedValuesForTrustRadius::finalDeltaYPrime()))*/;
   EXPECT_CALL(finder, getSol(testing::_))
     .WillOnce(testing::Return(ExpectedValuesForTrustRadius::finalSol()));
   EXPECT_CALL(finder, alterHessian(testing::_)).Times(testing::AtLeast(1));

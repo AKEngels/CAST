@@ -387,10 +387,10 @@ namespace internals {
       v0 += (1. - internalStepNorm / target)*(internalStepNorm / deltaYPrime);
       restrictedStep = finder.getInternalStep(finder.alterHessian(v0));
       internalStepNorm = getStepNorm();
-      if (std::fabs(internalStepNorm - target) / target < 0.001) {
+      if (std::fabs((internalStepNorm - target) / target) < 0.001) {
         return restrictedSol = finder.getSol(restrictedStep);
       }
-      else if(i>10 && ((std::fabs(lastInternalNorm - internalStepNorm) / internalStepNorm)<0.001)){
+      else if(i>10 && ((std::fabs((lastInternalNorm - internalStepNorm) / internalStepNorm))<0.001)){
         return restrictedSol = finder.getSol(restrictedStep);
       }
       else if((i+1u) % 100u == 0){
@@ -559,16 +559,6 @@ namespace internals {
     for (; micro_iter < 50; ++micro_iter) {
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
       
-      std::stringstream Bss;
-      Bss << "CASTBmat" << std::setfill('0') << std::setw(5) << micro_iter + 1u << "_" << std::setfill('0') << std::setw(5) << count << ".dat";
-      std::ofstream Bofs(Bss.str());
-      Bofs << std::setprecision(15) <<  internalCoordinates.Bmat(actual_xyz.coordinates);
-      
-      std::stringstream Gss;
-      Gss << "CASTGinv" << std::setfill('0') << std::setw(5) << micro_iter + 1u << "_" << std::setfill('0') << std::setw(5) << count << ".dat";
-      std::ofstream Gofs(Gss.str());
-      Gofs << std::setprecision(15) << internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates);
-
       auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);
       
       auto d_int_remain = d_int_left - d_now;
