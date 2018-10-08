@@ -1,6 +1,6 @@
 ### script that takes a tinkerstructure from a peptide and cuts in into single amino acids, writes them into xyz-files
 
-STRUCTURENAME = "19_15.arc"
+STRUCTURENAME = "35_10.arc"
 
 class Atom:
 
@@ -45,14 +45,17 @@ for i in range(len(atoms)-3):
     if atoms[i].symbol == "C" and atoms[i+1].symbol == "O" and atoms[i+2].symbol == "N" and atoms[i+3].symbol == "H":
         indices_of_new_peptide.append(i+2)
 
-### get the indices of atoms that are in each segment
+### get the indices of atoms that are in each segment and write segments into file "bla.txt"
 segment_ranges = []
-for i, index in enumerate(indices_of_new_peptide):
-    if i == 0:
-        segment_ranges.append(range(index))
-    else:
-        segment_ranges.append(range(indices_of_new_peptide[i-1], index))
-segment_ranges.append(range(indices_of_new_peptide[-1], len(atoms)))
+with open("bla.txt","w") as segfile:
+    for i, index in enumerate(indices_of_new_peptide):
+        if i == 0:
+            segment_ranges.append(range(index))
+        else:
+            segment_ranges.append(range(indices_of_new_peptide[i-1], index))
+        segfile.write("Segment {} : {} to {} ({} atoms):\n".format(i+1, segment_ranges[-1][0]+1, segment_ranges[-1][-1]+1, len(segment_ranges[-1])))
+    segment_ranges.append(range(indices_of_new_peptide[-1], len(atoms)))
+    segfile.write("Segment {} : {} to {} ({} atoms):\n".format(i+1, segment_ranges[-1][0]+1, segment_ranges[-1][-1]+1, len(segment_ranges[-1])))
 
 ### writes an xyz structure for every segment
 for i, s in enumerate(segment_ranges):

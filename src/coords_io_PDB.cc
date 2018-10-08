@@ -452,7 +452,7 @@ int find_at_sidechain(coords::Atom &a, std::string &res_name, coords::Atoms &ato
 		if (element == "C")
 		{
 			std::vector<std::string> bonding_symbols = get_bonding_symbols(a, atoms);
-			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 81;
+			if (count_element("C", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 2) return 446;
 			else if (count_element("C", bonding_symbols) == 2 && count_element("N", bonding_symbols) == 1) return 448;
 			else if (count_element("N", bonding_symbols) == 2 && count_element("H", bonding_symbols) == 1) return 447;
 			else if (count_element("C", bonding_symbols) == 1 && count_element("N", bonding_symbols) == 1 && count_element("H", bonding_symbols) == 1) return 449;

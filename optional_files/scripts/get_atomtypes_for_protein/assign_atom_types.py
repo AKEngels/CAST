@@ -1,11 +1,12 @@
 ### script that takes a tinkerstructure and a file where the single residues are defined (like in bla.txt, the script cut_peptide.py can help you to create this file)
 ### and assigns atom types to those residues that it recognises. The are written into a new tinkerstructure new_struc.arc.
+### Attention!!! Prolin doesn't work!
 
-STRUCTURENAME = "19_15.arc"
+STRUCTURENAME = "35_10.arc"
 SEGMENTFILE = "bla.txt"
 
-# number are the numbers of atoms in the amino acid. If an amino acid is terminal this number might be different, but than the atom types might also be different. In the moment the script can't handle this.
-RESIDUE_NAMES_AND_NUMBERS = {"ALA":10, "ARG":24, "ASN":14, "ASP":12, "CYS":11, "GLN":17, "GLU":15, "GLY":7, "HIS":16, "ILE":19, "LEU":19, "LYS":22, "MET":17, "PHE":20, "SER":11, "THR":14, "TRP":24, "TYR":21, "VAL":16, "CYX":10, "CYM":10, "CYP":10, "HID":17, "HIE":17, "HIP":18}
+# number are the numbers of atoms in the amino acid. If an amino acid is terminal this number might be different, but then the atom types might also be different. In the moment the script can't handle this.
+RESIDUE_NAMES_AND_NUMBERS = {"ALA":10, "ARG":24, "ASN":14, "ASP":12, "CYS":11, "GLN":17, "GLU":15, "GLY":7, "HIS":16, "ILE":19, "LEU":19, "LYS":22, "MET":17, "PHE":20, "SER":11, "THR":14, "TRP":24, "TYR":21, "VAL":16, "CYX":10, "CYM":10, "CYP":10, "HID":17, "HIE":17, "HIP":18, "PRO":14}
 
 class Atom:
 
@@ -273,7 +274,7 @@ class Segment:
                 for b in atom.bonds:
                     bonding_symbols.append(atoms[b].symbol)
                 if bonding_symbols.count("C") == 2 and bonding_symbols.count("H") == 2:
-                    types[a] = 81
+                    types[a] = 446
                 elif bonding_symbols.count("C") == 2 and bonding_symbols.count("N") == 1:
                     types[a] = 448
                 elif bonding_symbols.count("N") == 2 and bonding_symbols.count("H") == 1:
@@ -303,6 +304,40 @@ class Segment:
                     types[a] = 452
                 else:
                     print "wrong number of bonding partners for N in {}".format(self.res_name)
+            else:
+                print "strange element {} in residue {}".format(atom.symbol, self.res_name)
+        return types
+
+    def get_atom_types_hip(self, atoms, types):
+        for a in range(3, self.number_of_atoms-2):
+            atom = atoms[a + self.index_range[0]]
+            if atom.symbol == "C":
+                bonding_symbols = []
+                for b in atom.bonds:
+                    bonding_symbols.append(atoms[b].symbol)
+                if bonding_symbols.count("C") == 2 and bonding_symbols.count("H") == 2:
+                    types[a] = 446
+                elif bonding_symbols.count("C") == 2 and bonding_symbols.count("N") == 1:
+                    types[a] = 451
+                elif bonding_symbols.count("N") == 2 and bonding_symbols.count("H") == 1:
+                    types[a] = 450
+                elif bonding_symbols.count("C") == 1 and bonding_symbols.count("H") == 1 and bonding_symbols.count("N") == 1:
+                    types[a] = 451
+                else:
+                    print "wrong bonding partners for C in {}".format(self.res_name)
+            elif atom.symbol == "H":
+                bonding_partner = atoms[atom.bonds[0]]
+                if bonding_partner.symbol == "N":
+                    types[a] = 454
+                elif bonding_partner.symbol == "C":
+                    if len(bonding_partner.bonds) == 3:
+                        types[a] = 91
+                    else:
+                        types[a] = 85
+                else:
+                    print "wrong bonding partner for H in {}".format(self.res_name)
+            elif atom.symbol == "N":
+                types[a] = 453
             else:
                 print "strange element {} in residue {}".format(atom.symbol, self.res_name)
         return types
@@ -414,6 +449,23 @@ class Segment:
                 print "strange element {} in residue {}".format(atom.symbol, self.res_name)
         return types
 
+    def get_atom_types_pro(self, atoms, types):
+        for a in range(3, self.number_of_atoms-2):
+            atom = atoms[a + self.index_range[0]]
+            if atom.symbol == "H":
+                types[a] = 85
+            elif atom.symbol == "C":
+                bonding_symbols = []
+                for b in atom.bonds:
+                    bonding_symbols.append(atoms[b].symbol)
+                if "N" in bonding_symbols:
+                    types[a] = 187
+                else:
+                    types[a] = 81
+            else:
+                print "strange element {} in residue {}".format(atom.symbol, self.res_name)
+        return types
+
     def find_atom_types(self, atoms):
         """function to assign atom types to a residue"""
         
@@ -425,7 +477,10 @@ class Segment:
         else:   # residue is recognised
 
             # backbone atomtypes
-            types[0] = 180
+            if self.res_name == "Pro":
+                types[0] = 181
+            else:
+                types[0] = 180
             types[1] = 183
             if self.res_name == "Gly":
                 types[2] = 165
@@ -461,6 +516,10 @@ class Segment:
                 types = self.get_atom_types_trp(atoms, types)
             elif self.res_name == "Hie":
                 types = self.get_atom_types_hie(atoms, types)
+            elif self.res_name == "Hip":
+                types = self.get_atom_types_hip(atoms, types)
+            elif self.res_name == "Pro":
+                types = self.get_atom_types_pro(atoms, types)
             else:
                 print "residue {} not implemented yet".format(self.res_name)
 
