@@ -35,7 +35,7 @@ std::pair<coords::float_type, coords::float_type> Optimizer::displacementRmsValA
 }
 
 void Optimizer::ConvergenceCheck::writeAndCalcEnergyDiffs() {
-  auto energyDiff = parentOptimizer.currentVariables.systemEnergy - parentOptimizer.oldVariables->systemEnergy;
+  /*auto */energyDiff = parentOptimizer.currentVariables.systemEnergy - parentOptimizer.oldVariables->systemEnergy;
   std::cout << "Energy now: " << std::fixed << parentOptimizer.currentVariables.systemEnergy
     << " Energy diff: " << energyDiff << "\n";
 }
