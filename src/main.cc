@@ -632,6 +632,7 @@ int main(int argc, char **argv)
 				gstream << "# ONIOM(HF/6-31G:UFF)\n\n";                      // method
 				gstream << "some stupid title\n\n";
 				gstream << "0 1 0 1 0 1\n";                                  // charge and multiplicity
+        gstream << std::fixed << std::setprecision(3);
 				for (auto i = 0u; i < coords.size(); ++i)                    // atom information
 				{
 					auto symbol = coords.atoms(i).symbol();
@@ -648,7 +649,8 @@ int main(int argc, char **argv)
 			{
 				gstream << "# ONIOM(B3LYP/6-31G:HF/STO-3G:UFF)\n\n";                      // method
 				gstream << "some stupid title\n\n";
-				gstream << "0 1 0 1 0 1 0 1 0 1\n";                                  // charge and multiplicity
+				gstream << "0 1 0 1 0 1 0 1 0 1\n";                                       // charge and multiplicity
+        gstream << std::fixed << std::setprecision(3);
 				for (auto i = 0u; i < coords.size(); ++i)                    // atom information
 				{
 					auto symbol = coords.atoms(i).symbol();
