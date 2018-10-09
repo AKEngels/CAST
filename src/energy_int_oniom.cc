@@ -140,7 +140,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
 		{
-			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+			std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
 	  }
 		throw std::runtime_error("wrong number of link atom types");
 	}
