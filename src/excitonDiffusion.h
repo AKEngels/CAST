@@ -25,17 +25,21 @@ namespace exciD {
     std::size_t monA;
     std::size_t monB;
     double coupling;
+    double seccoupling;
     coords::Cartesian_Point position;
 
     /**default constructor*/
-    Couplings() : monA(), monB(), coupling() {}
+    Couplings() : monA(), monB(), coupling(), seccoupling() {}
 
     /** another constructor taking members as parameters*/
     Couplings(std::size_t monAp, std::size_t monBp, double couplingp) :
       monA(monAp), monB(monBp), coupling(couplingp) {}
 
-    Couplings(std::size_t monAp, std::size_t monBp, double couplingp, coords::Cartesian_Point pos) :
-      monA(monAp), monB(monBp), coupling(couplingp), position(pos) {}
+    Couplings(std::size_t monAp, std::size_t monBp, double couplingp, double seccouplingp) :
+      monA(monAp), monB(monBp), coupling(couplingp), seccoupling(seccouplingp) {}
+
+    Couplings(std::size_t monAp, std::size_t monBp, double couplingp, double seccouplingp, coords::Cartesian_Point pos) :
+      monA(monAp), monB(monBp), coupling(couplingp), seccoupling(seccouplingp), position(pos) {}
 
   };
 
