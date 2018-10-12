@@ -17,15 +17,15 @@ namespace energy{
       class sysCallInterface final: public interface_base{
       public:
         sysCallInterface(coords::Coordinates* coords_ptr)
-          : interface_base(coords_ptr),
-          tmp_file_name(create_random_file_name(Config::get().general.outputFilename))
+          : interface_base(coords_ptr)
         {
+					id = create_random_file_name(Config::get().general.outputFilename);
           optimizer = true;
         }
         sysCallInterface(sysCallInterface const& other, coords::Coordinates* coord)
-          : interface_base(coord),
-          tmp_file_name(create_random_file_name(Config::get().general.outputFilename))
+          : interface_base(coord)
         {
+					id = create_random_file_name(Config::get().general.outputFilename);
           interface_base::operator=(other);
           optimizer = true;
         }
@@ -113,9 +113,6 @@ namespace energy{
 
         template<typename StrCont>
         coords::Representation_3D extract_Rep3D(StrCont && lines)const;
-
-				/**randomly created name of input and output file*/
-        std::string tmp_file_name;
 
 				/**partial energies (in hartree!!!)*/
         std::vector<std::pair<std::string, float_type>> energies;//<- energy in Hartree!

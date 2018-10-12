@@ -1,9 +1,9 @@
 /**
 CAST 3
-energy_int_oniom.h
-Purpose: subtractive QM/MM interface
+energy_int_3layer.h
+Purpose: three-layer-interface (analogous to ONIOM)
 
-This is a subtractive QM/MM interface between the interfaces OPLSAA, AMBER, MOPAC, DFTB+, PSI4 and GAUSSIAN.
+available interfaces: OPLSAA, AMBER, MOPAC, DFTB+, PSI4, GAUSSIAN.
 
 @author Susanne Sauer
 @version 1.0
@@ -26,10 +26,10 @@ namespace energy
   namespace interfaces
   {
     /**namespace for ONIOM interface*/
-    namespace oniom
+    namespace three_layer
     {
       /**ONIOM interface class*/
-      class ONIOM
+      class THREE_LAYER
         : public interface_base
       {
 
@@ -39,11 +39,11 @@ namespace energy
       public:
 
         /**Constructor*/
-        ONIOM(coords::Coordinates*);
+        THREE_LAYER(coords::Coordinates*);
         /**overloaded Constructor*/
-        ONIOM(ONIOM const&, coords::Coordinates*);
+        THREE_LAYER(THREE_LAYER const&, coords::Coordinates*);
         /**another overload of Constructor*/
-		    ONIOM(ONIOM&&, coords::Coordinates*);
+        THREE_LAYER(THREE_LAYER&&, coords::Coordinates*);
 
         /*
         Energy class functions that need to be overloaded (for documentation see also energy.h)
@@ -53,7 +53,7 @@ namespace energy
         interface_base * move(coords::Coordinates*);
 
         void swap(interface_base &);
-        void swap(ONIOM &);
+        void swap(THREE_LAYER &);
 
         /** update structure (account for topology or rep change)*/
         void update(bool const skip_topology = false);
@@ -98,26 +98,43 @@ namespace energy
 
 		    /**indizes of QM atoms*/
         std::vector<size_t> qm_indices;
+        /**indizes of QM + SE atoms*/
+        std::vector<size_t> qm_se_indices;
         /**vector of length total number of atoms
         only those elements are filled whose position corresponds to QM atoms
         they are filled with successive numbers starting from 0
         purpose: faciliate mapping between total coordinates object and subsystems*/
         std::vector<size_t> new_indices_qm;
+        /**vector of length total number of atoms
+        only those elements are filled whose position corresponds to atoms of the middle system (i.e. QM + SE)
+        they are filled with successive numbers starting from 0
+        purpose: faciliate mapping between total coordinates object and subsystems*/
+        std::vector<size_t> new_indices_middle;
 
-        /**vector with link atoms*/
-        std::vector<LinkAtom> link_atoms;
+        /**vector with link atoms for small system*/
+        std::vector<LinkAtom> link_atoms_small;
+        /**vector with link atoms for middle system*/
+        std::vector<LinkAtom> link_atoms_middle;
 
         /**coordinates object for QM part*/
         coords::Coordinates qmc;
-        /**MM coordinates object for QM part*/
-        coords::Coordinates mmc_small;
+        /**SE coordinates object for QM part*/
+        coords::Coordinates sec_small;
+        /**SE coordinates object for middle system*/
+        coords::Coordinates sec_middle;
+        /**MM coordinates object for middle system*/
+        coords::Coordinates mmc_middle;
         /**coordinates object for whole system*/
         coords::Coordinates mmc_big;
         
         /**energy of QM system*/
         coords::float_type qm_energy;
-        /**energy of small MM system*/
-        coords::float_type mm_energy_small;
+        /**energy of small SE system*/
+        coords::float_type se_energy_small;
+        /**energy of middle SE system*/
+        coords::float_type se_energy_middle;
+        /**energy of middle MM system*/
+        coords::float_type mm_energy_middle;
         /**energy of big MM system*/
         coords::float_type mm_energy_big;
 

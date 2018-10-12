@@ -137,13 +137,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 13;
+  static std::size_t const NUM_INTERFACES = 14;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -157,7 +157,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER
     };
   };
 
@@ -552,13 +552,17 @@ namespace config
       spack(void) : cut(10.0), on(false), interp(true) { }
     } spackman;
 
-    /**struct that contains information necessary for QM/MM calculation (also with ONIOM)*/
+    /**struct that contains information necessary for QM/MM calculation (also with ONIOM and THREE_LAYER)*/
     struct qmmm_conf
     {
       /**indices of QM atoms*/
       std::vector <size_t> qmatoms;
+      /**indices of SE atoms [only for three-layer]*/
+      std::vector <size_t> seatoms;
       /**MM interface*/
       interface_types::T mminterface{ interface_types::T::OPLSAA };
+      /**SE interface [only for three-layer]*/
+      interface_types::T seinterface{ interface_types::T::DFTB };
       /**QM interface*/
       interface_types::T qminterface{ interface_types::T::MOPAC };
       /**is QM/MM interface active?*/
@@ -571,6 +575,10 @@ namespace config
       std::vector<int> linkatom_types;
       /**cutoff for electrostatic interaction*/
 			double cutoff{0.0};
+			/**for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (1, 2 or 3)*/
+			int zerocharge_bonds{ 1 };
+			/**electronic embedding type for smallest system (0=EEx, 1=3-EE, 2=MM+SE) [only for three-layer]*/
+			int emb_small{ 1 };
     } qmmm{};
 
     /**struct that contains information necessary for MOPAC calculation*/
@@ -663,10 +671,11 @@ namespace config
       int opt;
       /**maximal number of steps for optimization with DFTB+ optimizer*/
       int max_steps_opt;
-
+			/**temperature for fermi filling (in K)*/
+			double fermi_temp;
       /**constructor*/
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
-        dftb3(false), opt(2), max_steps_opt(5000) {}
+        dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
     /**struct that contains all information necessary for gaussian calculation*/

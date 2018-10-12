@@ -500,7 +500,10 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::cout << "Configuration contained illegal interface." << std::endl;
       std::cout << "Using default energy interface: OPLSAA." << std::endl;
     }
-    if (inter == interface_types::QMMM || inter == interface_types::ONIOM) Config::set().energy.qmmm.use = true;
+		if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
+		{
+			Config::set().energy.qmmm.use = true;
+		}
   }
 
   // Preoptimizazion energy calculation interface
@@ -529,6 +532,11 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.qmmm.qmatoms =
         sorted_indices_from_cs_string(value_string, true);
     }
+    else if (option.substr(4u) == "seatoms")
+    {
+      Config::set().energy.qmmm.seatoms =
+        sorted_indices_from_cs_string(value_string, true);
+    }
     else if (option.substr(4u) == "mminterface")
     {
       interface_types::T inter = Config::getInterface(value_string);
@@ -539,6 +547,18 @@ void config::parse_option(std::string const option, std::string const value_stri
       else
       {
         std::cout << "Configuration contained illegal QMMM MM-interface." << std::endl;
+      }
+    }
+    else if (option.substr(4u) == "seinterface")
+    {
+      interface_types::T inter = Config::getInterface(value_string);
+      if (inter != interface_types::ILLEGAL)
+      {
+        Config::set().energy.qmmm.seinterface = inter;
+      }
+      else
+      {
+        std::cout << "Configuration contained illegal interface for middle layer." << std::endl;
       }
     }
     else if (option.substr(4u) == "qminterface")
@@ -564,6 +584,14 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(4u) == "cutoff")
 		{
 			Config::set().energy.qmmm.cutoff = std::stod(value_string);
+		}
+		else if (option.substr(4u) == "small_charges")
+		{
+			Config::set().energy.qmmm.emb_small = std::stoi(value_string);
+		}
+		else if (option.substr(4u) == "zerocharge_bonds")
+		{
+			Config::set().energy.qmmm.zerocharge_bonds = std::stoi(value_string);
 		}
   }
 
@@ -739,6 +767,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(5, 13) == "max_steps_opt"){
       Config::set().energy.dftb.max_steps_opt = std::stoi(value_string);
     }
+		else if (option.substr(5, 10) == "fermi_temp") {
+			Config::set().energy.dftb.fermi_temp = std::stod(value_string);
+		}
   }
 
   //Gaussian options

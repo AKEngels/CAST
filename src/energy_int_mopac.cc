@@ -28,8 +28,9 @@ Mopac sysCall functions
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp),
   hof_kcal_mol(0.0), hof_kj_mol(0.0), e_total(0.0),
-  e_electron(0.0), e_core(0.0), id(Config::get().general.outputFilename), failcounter(0u)
+  e_electron(0.0), e_core(0.0), failcounter(0u)
 {
+	id = Config::get().general.outputFilename;
   std::stringstream ss;
   std::srand(std::time(0));
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
@@ -40,8 +41,9 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
   interface_base(cobj),
   hof_kcal_mol(rhs.hof_kcal_mol), hof_kj_mol(rhs.hof_kj_mol), e_total(rhs.e_total),
-  e_electron(rhs.e_electron), e_core(rhs.e_core), id(rhs.id), failcounter(rhs.failcounter)
+  e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
+	id = rhs.id;
   interface_base::operator=(rhs);
 }
 
@@ -561,7 +563,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   auto bpv = check_bond_preservation();
   if (Config::get().general.verbosity >= 2 && !bpv)
   {
-    std::cout << "A covalent bond > 2.2A, structure integrity not warranted anymore. "
+    std::cout << "Broken bond detected, structure integrity not warranted anymore. "
       " Current conformation will be treated as broken structure.\n";
   }
   integrity = bpv;

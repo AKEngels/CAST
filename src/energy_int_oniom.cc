@@ -7,12 +7,11 @@
 
 energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
   energy::interface_base(cp), qm_indices(Config::get().energy.qmmm.qmatoms),
-  mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
-  new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
+  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
   link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
-  mmc_small(qmmm_helpers::make_small_coords(coords, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.mminterface)),
-	mmc_big(qmmm_helpers::make_mmbig_coords(cp)),
+  qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc_small(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.mminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy_small(0.0), mm_energy_big(0.0)
 {
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.qminterface != config::interface_types::T::AMBER &&
@@ -41,7 +40,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(coords::Coordinates *cp):
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
   coords::Coordinates *cobj) : interface_base(cobj),
-  qm_indices(rhs.qm_indices), mm_indices(rhs.mm_indices),
+  qm_indices(rhs.qm_indices), 
   new_indices_qm(rhs.new_indices_qm), link_atoms(rhs.link_atoms),
   qmc(rhs.qmc), mmc_small(rhs.mmc_small), mmc_big(rhs.mmc_big), 
   qm_energy(rhs.qm_energy), mm_energy_small(rhs.mm_energy_small), mm_energy_big(rhs.mm_energy_big)
@@ -51,7 +50,7 @@ energy::interfaces::oniom::ONIOM::ONIOM(ONIOM const & rhs,
 
 energy::interfaces::oniom::ONIOM::ONIOM(ONIOM&& rhs, coords::Coordinates *cobj)
   : interface_base(cobj),
-  qm_indices(std::move(rhs.qm_indices)), mm_indices(std::move(rhs.mm_indices)),
+  qm_indices(std::move(rhs.qm_indices)),
   new_indices_qm(std::move(rhs.new_indices_qm)), link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc_small(std::move(rhs.mmc_small)), mmc_big(std::move(rhs.mmc_big)), 
   qm_energy(std::move(rhs.qm_energy)), mm_energy_small(std::move(rhs.mm_energy_small)), mm_energy_big(std::move(rhs.mm_energy_big))
@@ -82,7 +81,6 @@ void energy::interfaces::oniom::ONIOM::swap(ONIOM& rhs)
 {
   interface_base::swap(rhs);
   qm_indices.swap(rhs.qm_indices);
-  mm_indices.swap(rhs.mm_indices);
   link_atoms.swap(rhs.link_atoms);
   new_indices_qm.swap(rhs.new_indices_qm);
   qmc.swap(rhs.qmc);
@@ -142,7 +140,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
 		{
-			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+			std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
 	  }
 		throw std::runtime_error("wrong number of link atom types");
 	}
@@ -166,7 +164,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 			mm_energy_big = mmc_big.g();
 			new_grads = mmc_big.g_xyz();
 		}
-		if (mmc_big.integrity() == false) integrity = false;
+		if (mm_energy_big == 0) integrity = false;
 		if (Config::get().general.verbosity > 4)
 		{
 			std::cout << "Energy of big MM system: \n";
@@ -186,49 +184,11 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   // ############### CREATE MM CHARGES ######################
 
   std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+  std::vector<int> charge_indices;                  // indizes of all atoms that are in charge_vector
+	auto all_indices = range(coords->size());
 
-  std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
-
-  bool use_charge;
-  charge_indices.clear();
-  for (auto i = 0u; i < coords->size(); ++i) // go through all atoms
-  {
-	  use_charge = true;
-	  for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom...
-	  {
-		  if (l.mm == i) use_charge = false;
-	  }
-	  for (auto &qm : qm_indices) // ... and the QM atoms themselves
-	  {
-		  if (qm == i) use_charge = false;
-	  }
-	  if (use_charge)  // for the other 
-	  {
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-			{
-				use_charge = false;
-				for (auto qm : qm_indices)
-				{
-					auto dist = len(coords->xyz(i) - coords->xyz(qm));
-					if (dist < Config::get().energy.qmmm.cutoff)
-					{
-						use_charge = true;
-						break;
-					}
-				}
-			}
-
-			if (use_charge)  // if yes create a PointCharge and add it to vector
-			{
-				PointCharge new_charge;
-				new_charge.charge = charge_vector[i];
-				new_charge.set_xyz(coords->xyz(i).x(), coords->xyz(i).y(), coords->xyz(i).z());
-				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-
-				charge_indices.push_back(i);  // add index to charge_indices
-			}
-	  }
-  }
+	charge_indices.clear();
+	qmmm_helpers::add_external_charges(qm_indices, qm_indices, charge_vector, all_indices, link_atoms, charge_indices, coords);
 
 	// ############### QM ENERGY AND GRADIENTS FOR QM SYSTEM ######################
 	try {
@@ -262,7 +222,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 			}
 		}
-		if (qmc.integrity() == false) integrity = false;
+		if (qm_energy == 0) integrity = false;
 
 		if (Config::get().general.verbosity > 4)
 		{
@@ -324,7 +284,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 				}
 			}
 		}
-    if (mmc_small.integrity() == false) integrity = false;
+    if (mm_energy_small == 0) integrity = false;
 
 		if (Config::get().general.verbosity > 4)
 		{
@@ -398,7 +358,7 @@ void energy::interfaces::oniom::ONIOM::print_E(std::ostream &) const
 void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream &S, bool const endline) const
 {
   S << "QM-atoms: " << qm_indices.size() << '\n';
-  S << "MM-atoms: " << mm_indices.size() << '\n';
+  S << "MM-atoms: " << coords->size() - qm_indices.size() << '\n';
   S << "Potentials\n";
   S << std::right << std::setw(24) << "MM_big";
   S << std::right << std::setw(24) << "MM_small";
@@ -410,10 +370,10 @@ void energy::interfaces::oniom::ONIOM::print_E_head(std::ostream &S, bool const 
 void energy::interfaces::oniom::ONIOM::print_E_short(std::ostream &S, bool const endline) const
 {
   S << '\n';
-  S << std::right << std::setw(24) << mm_energy_big;
-  S << std::right << std::setw(24) << mm_energy_small;
-  S << std::right << std::setw(24) << qm_energy;
-  S << std::right << std::setw(24) << energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy_big;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy_small;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }
 

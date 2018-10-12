@@ -9,11 +9,11 @@ energy::interfaces::qmmm::QMMM::QMMM(coords::Coordinates * cp) :
   interface_base(cp),
   qm_indices(Config::get().energy.qmmm.qmatoms),
   mm_indices(qmmm_helpers::get_mm_atoms(cp->size())),
-  new_indices_qm(qmmm_helpers::make_new_indices_qm(cp->size())),
-  new_indices_mm(qmmm_helpers::make_new_indices_mm(cp->size(), mm_indices)),
+  new_indices_qm(qmmm_helpers::make_new_indices(cp->size(), qm_indices)),
+  new_indices_mm(qmmm_helpers::make_new_indices(cp->size(), mm_indices)),
 	link_atoms(qmmm_helpers::create_link_atoms(cp, qm_indices, tp)),
-	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, link_atoms, Config::get().energy.qmmm.qminterface)),
-  mmc(qmmm_helpers::make_aco_coords(cp, mm_indices, new_indices_mm)),
+	qmc(qmmm_helpers::make_small_coords(cp, qm_indices, new_indices_qm, Config::get().energy.qmmm.qminterface, Config::get().energy.qmmm.qm_to_file, link_atoms)),
+  mmc(qmmm_helpers::make_small_coords(cp, mm_indices, new_indices_mm, Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), mm_energy(0.0), vdw_energy(0.0), bonded_energy(0.0)
 {
   if (!tp.valid())
@@ -342,7 +342,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 		std::cout << "Wrong number of link atom types given. You have " << link_atoms.size() << " in the following order:\n";
 		for (auto &l : link_atoms)
 		{
-			std::cout << "MM atom: " << l.mm + 1 << ", QM atom: " << l.qm + 1 << "\n";
+			std::cout << "QM atom: " << l.qm + 1 << ", MM atom: " << l.mm + 1 << "\n";
 		}
 		throw std::runtime_error("wrong number of link atom types");
 	}
@@ -357,44 +357,8 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
 	std::vector<double> mm_charge_vector = mmc.energyinterface()->charges();
 
-	bool use_charge;
-	int counter = 0;
 	charge_indices.clear();
-	for (auto mm : mm_indices) // go through all MM atoms
-	{
-		use_charge = true;
-		for (auto &l : link_atoms) // ignore those atoms that are connected to a QM atom
-		{
-			if (l.mm == mm) use_charge = false;
-		}
-		if (use_charge)  // for the other 
-		{
-			if (Config::get().energy.qmmm.cutoff != 0.0)  // if cutoff given: test if one QM atom is nearer than cutoff
-			{
-				use_charge = false;
-				for (auto qm : qm_indices)
-				{
-					auto dist = len(coords->xyz(mm) - coords->xyz(qm));
-					if (dist < Config::get().energy.qmmm.cutoff)
-					{
-						use_charge = true;
-						break;
-					}
-				}
-			}
-
-			if (use_charge)  // if yes create a PointCharge and add it to vector
-			{
-				PointCharge new_charge;
-				new_charge.charge = mm_charge_vector[counter];
-				new_charge.set_xyz(mmc.xyz(counter).x(), mmc.xyz(counter).y(), mmc.xyz(counter).z());
-				Config::set().energy.qmmm.mm_charges.push_back(new_charge);
-				charge_indices.push_back(mm);
-			}
-			
-		}
-		counter += 1;
-	}
+	qmmm_helpers::add_external_charges(qm_indices, qm_indices, mm_charge_vector, mm_indices, link_atoms, charge_indices, coords);
 
   // ################### DO CALCULATION ###########################################
 
@@ -784,11 +748,11 @@ void energy::interfaces::qmmm::QMMM::print_E_head(std::ostream &S, bool const en
 void energy::interfaces::qmmm::QMMM::print_E_short(std::ostream &S, bool const endline) const
 {
   S << '\n';
-  S << std::right << std::setw(24) << qm_energy;
-  S << std::right << std::setw(24) << mm_energy;
-  S << std::right << std::setw(24) << vdw_energy;
-  S << std::right << std::setw(24) << bonded_energy;
-  S << std::right << std::setw(24) << energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << qm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << mm_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << vdw_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << bonded_energy;
+  S << std::fixed << std::setprecision(1) << std::right << std::setw(24) << energy;
   if (endline) S << '\n';
 }
 

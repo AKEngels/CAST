@@ -191,12 +191,12 @@ workspace "CAST"
 		filter {"Python_Debug", "platforms:x64", "action:vs*"}
 			targetname "CAST_win_x64_python_debug"
 
-		filter { "Testing", "platforms:x86" }
+		filter { "Testing", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_testing"
-		filter { "Testing", "platforms:x64"}
+		filter { "Testing", "platforms:x64", "action:vs*" }
 			targetname "CAST_win_x64_testing"
 
-		filter { "Armadillo_Testing", "platforms:x86" }
+		filter { "Armadillo_Testing", "platforms:x86", "action:vs*"  }
 			targetname "CAST_win_x86_armadillo_testing"
-		filter { "Armadillo_Testing", "platforms:x64"}
+		filter { "Armadillo_Testing", "platforms:x64", "action:vs*" }
 			targetname "CAST_win_x64_armadillo_testing"

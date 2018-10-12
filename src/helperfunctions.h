@@ -97,13 +97,15 @@ inline std::string get_python_modulepath(std::string modulename)
 #endif
 
 /**looks if vector v contains element x
-returns true if yes and false if no */
+returns true if yes and false if no  (overloaded function)*/
 template<typename T, typename U, template<typename, typename ...> class Cont, typename ... ContArgs>
 inline typename std::enable_if<scon::is_container<Cont<U, ContArgs...>>::value || std::is_same<Cont<U, ContArgs...>, std::string>::value, bool>::type
 is_in(T const& x, Cont<U, ContArgs...> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
 }
 
+/**looks if vector v contains element x
+returns true if yes and false if no (overloaded function)*/
 template<typename T, typename U, std::size_t N>
 inline bool is_in(T const& x, std::array<U, N> const& v) {
   return std::find(v.begin(), v.end(), x) != v.end();
@@ -157,6 +159,71 @@ inline bool file_is_empty(std::string &filename)
 	file >> some_string;
 	if (some_string.empty()) return true;
 	else return false;
+}
+
+/**adds two vectors like in python, i.e. [A, B] + [C, D] = [A, B, C, D]
+@param v1: first vector
+@param v2: second vector
+@param sort: if true sort resulting vector with the std::sort-function*/
+template <typename T>
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool sort = false)
+{
+  std::vector<T> v12;
+  v12.reserve(v1.size() + v2.size());
+  v12.insert(v12.end(), v1.begin(), v1.end());
+  v12.insert(v12.end(), v2.begin(), v2.end());
+
+	if (sort) std::sort(v12.begin(), v12.end());
+  return v12;
+}
+
+/**tests if a vector contains at least one element twice (or more)
+returns false if no element is in vector more than once, returns true otherwise
+@param v: vector that is to be tested*/
+template <typename T>
+inline bool double_element(std::vector<T> const &v)
+{
+	for (auto i = 0u; i < v.size(); ++i)
+	{
+		for (auto j = 0u; j < i; ++j)
+		{
+			if (v[i] == v[j]) return true;
+		}
+	}
+	return false;
+}
+
+/**function analogous to python range function (see https://stackoverflow.com/questions/13152252/is-there-a-compact-equivalent-to-python-range-in-c-stl) 
+Attention! The order of start and stop is switched, so you can use:
+range(10) = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+range(10, 5) = [5, 6, 7, 8, 9,]
+range(11, 5, 2) = [5, 7, 9]*/
+template <typename IntType>
+std::vector<IntType> range(IntType stop, IntType start=0, IntType step=1)
+{
+	if (step == IntType(0))
+	{
+		throw std::invalid_argument("step for range must be non-zero");
+	}
+
+	std::vector<IntType> result;
+	IntType i = start;
+	while ((step > 0) ? (i < stop) : (i > stop))
+	{
+		result.push_back(i);
+		i += step;
+	}
+
+	return result;
+}
+
+/**function to count an element in a vector
+@param e: element that should be counted
+@param vec: vector in which should be counted*/
+template <typename T, typename U>
+int count_element(T const &e, std::vector<U> const &vec)
+{
+	return std::count(vec.begin(), vec.end(), e);
 }
 
 #endif

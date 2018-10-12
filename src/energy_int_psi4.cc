@@ -63,7 +63,7 @@ void energy::interfaces::psi4::sysCallInterface::print_E_short(std::ostream& os,
 void energy::interfaces::psi4::sysCallInterface::to_stream(std::ostream&) const{}
 
 void energy::interfaces::psi4::sysCallInterface::write_input(energy::interfaces::psi4::sysCallInterface::Calc kind) const{
-  std::ofstream ofs(tmp_file_name + "_inp.dat");
+  std::ofstream ofs(id + "_inp.dat");
   if(kind == Calc::energy){
     write_energy_input(ofs);
   }
@@ -134,7 +134,11 @@ void energy::interfaces::psi4::sysCallInterface::write_gradients_input(std::ostr
 	if (Config::get().energy.qmmm.use == true)  // if QM/MM: calculate charges and electric field
 	{
 		os << "E, wfn = gradient ('"<<method<<"', return_wfn=True)\n";
-		os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		if (Config::get().energy.qmmm.mm_charges.size() != 0)    // electric field can/must only be calculated if there are external charges
+		{
+			os << "oeprop(wfn, 'MULLIKEN_CHARGES', 'GRID_FIELD', title='" << method << "')\n";
+		}
+		else os << "oeprop(wfn, 'MULLIKEN_CHARGES', title='" << method << "')\n";
 	}
 	else os << "gradient ('" << method << "')";
 }
@@ -148,8 +152,8 @@ void energy::interfaces::psi4::sysCallInterface::make_call()const{
   std::stringstream call_stream;
   auto const& path = Config::get().energy.psi4.path;
 	call_stream << path << " "
-    << tmp_file_name << "_inp.dat "
-    << tmp_file_name << "_out.dat";
+    << id << "_inp.dat "
+    << id << "_out.dat";
 
   auto failcount = 0u;
   for (; failcount < 3u; ++failcount) {
@@ -185,12 +189,12 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::parse_speci
 }
 
 coords::Representation_3D energy::interfaces::psi4::sysCallInterface::get_final_geometry() const{
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+  std::ifstream ifs(id + "_out.dat");
   return extract_Rep3D(parse_specific_position(ifs, "Final optimized geometry", 6));
 }
 
 std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gradients()const{
-  std::ifstream ifs(tmp_file_name + "_out.dat");
+  std::ifstream ifs(id + "_out.dat");
   std::vector<std::string> grads;
   for(auto tmp_grads = parse_specific_position(ifs, "Total Grad", 3);
     !tmp_grads.empty(); tmp_grads = parse_specific_position(ifs, "Total Grad", 3)){
@@ -201,7 +205,7 @@ std::vector<std::string> energy::interfaces::psi4::sysCallInterface::get_last_gr
 
 coords::float_type energy::interfaces::psi4::sysCallInterface::parse_energy()
 { 
-	std::ifstream ifs(tmp_file_name + "_out.dat");
+	std::ifstream ifs(id + "_out.dat");
   energies.clear();
   std::vector<std::string> energy;
 
@@ -241,10 +245,10 @@ energy::interfaces::psi4::sysCallInterface::parse_geometry_and_gradients(){
 
 std::vector<double> energy::interfaces::psi4::sysCallInterface::charges() const
 {
-	if (!file_exists(tmp_file_name + "_out.dat")) throw std::runtime_error("Didn't find Psi4 output file for getting charges.");
+	if (!file_exists(id + "_out.dat")) throw std::runtime_error("Didn't find Psi4 output file for getting charges.");
 
 	std::ifstream in_file;
-	in_file.open(tmp_file_name + "_out.dat");
+	in_file.open(id + "_out.dat");
 
 	std::string line;
 	std::vector<std::string> linevec;

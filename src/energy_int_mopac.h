@@ -72,7 +72,6 @@ namespace energy
 				double hof_kcal_mol, hof_kj_mol;
 				// energies
 				double e_total, e_electron, e_core;
-				std::string id;
 
 				/**gradients of external charges*/
 				std::vector<coords::Cartesian_Point> grad_ext_charges;

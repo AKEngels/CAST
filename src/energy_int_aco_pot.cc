@@ -22,19 +22,17 @@ This file contains the calculation of energy and gradients for amber, oplsaa and
 
 coords::float_type energy::interfaces::aco::aco_ff::e(void)
 {
-  pre();
-  // calc with derivates 0
-  calc<0>();
-  post();
+  pre();      // set everything to zero
+  calc<0>();  // calc partial energies
+  post();     // sum up partial energies
   return energy;
 }
 
 coords::float_type energy::interfaces::aco::aco_ff::g(void)
 {
-  pre();
-  // calc with derivatives 1
-  calc<1>();
-  post();
+  pre();      // set everything to zero
+  calc<1>();  // calc partial energies and gradients
+  post();     // sum up partial energies
   return energy;
 }
 
@@ -79,6 +77,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
   part_energy[types::IMPROPER] = f_imp<DERIV>();
 #endif
 
+  // fill part_energy[CHARGE], part_energy[VDW] and part_grad[VDWC]
   if (cparams.radiustype() == ::tinker::parameter::radius_types::R_MIN)
   {
     g_nb< ::tinker::parameter::radius_types::R_MIN>();
@@ -87,7 +86,7 @@ void energy::interfaces::aco::aco_ff::calc(void)
 
 	if (Config::get().energy.qmmm.mm_charges.size() != 0)
 	{
-		calc_ext_charges_interaction(DERIV);
+		calc_ext_charges_interaction(DERIV);   // adds to part_energy[CHARGE] and part_grad[CHARGE]
 	}
 }
 
@@ -919,12 +918,12 @@ namespace energy
 						double dist = std::sqrt( dist_x*dist_x + dist_y* dist_y + dist_z* dist_z);  // distance or length of vector
 						double inverse_dist = 1.0 / dist;  // get inverse distance
 
-						if (deriv == 0) energy += eQ(charge_product, inverse_dist);  // energy calculation
+						if (deriv == 0) part_energy[CHARGE] += eQ(charge_product, inverse_dist);  // energy calculation
 
 						else  // gradient calculation
 						{
 							coords::float_type dQ;
-							energy += gQ(charge_product, inverse_dist, dQ);
+              part_energy[CHARGE] += gQ(charge_product, inverse_dist, dQ);
 
               coords::Cartesian_Point grad = (vector/dist) * dQ;     // dQ is a float, now the gradient gets a direction
 
@@ -1237,7 +1236,7 @@ namespace energy
 
         part_energy[types::CHARGE] = 0.0;
         part_energy[types::VDW] = 0.0;
-        part_energy[types::VDWC] = 0.0;
+        part_energy[types::VDWC] = 0.0;   // is not used but maybe it's safer to set it to zero
         part_grad[types::VDWC].assign(part_grad[types::VDWC].size(), coords::Cartesian_Point());
 
         coords->fep.feptemp = energy::fepvect();
@@ -1637,7 +1636,6 @@ namespace energy
         }
         e_nb += e_c + e_v;
 
-        //part_energy[types::VDWC] += e_c+e_v;
         part_energy[types::CHARGE] += e_c;
         part_energy[types::VDW] += e_v;
       }
@@ -1719,7 +1717,6 @@ namespace energy
           }
         }
         e_nb += e_c + e_v;
-        //part_energy[types::VDWC] += e_c+e_v;
         part_energy[types::CHARGE] += e_c;
         part_energy[types::VDW] += e_v;
       }

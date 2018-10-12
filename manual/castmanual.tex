@@ -9,7 +9,6 @@
 \usepackage{color} %COLOURS
 \usepackage{amsmath} %math
 \usepackage{bm} %VECTOR BOLD AND ITALIC
-\usepackage{tabularx} %BETTER TABLES THROUGH tabularx
 \usepackage{longtable} %table over more than one page
 \usepackage{listings} %ENABLE (SOURCE) CODE LISTINGS
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
@@ -50,25 +49,6 @@
 	Wuerzburg, Germany}
 	
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%                            %%%%
-%%%%     CONDITIONALS           %%%%
-%%%%                            %%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Different versions of the manual generatable through custom conditionals
-\newif\ifverbose %VERBOSE
-%VERBOSE: Use this conditional to describe procedures in detail or write detailed usage describtions which bloat the manual.
-
-\newif\ifdevelopment %DEVELOPMENT
-%DEVELOPMENT: Notes for people who have access to the CAST source and / or are coding inside CAST
-
-\newif\ifdevmode %DEVMODE
-%DEVMODE: Notes we (the authors of this manual) pass to each other.
-
-\devmodetrue
-\verbosetrue
-\developmenttrue
-
 \begin{document}
 \pagenumbering{Roman}
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,25 +59,14 @@
 
 	% FRONT PAGE
 \begin{center} 
-	CAST - Conformational Search and Analysis Tool
+	{\LARGE {\Huge \textbf{CAST}} \\ \vspace{1cm} Conformational Search and Analysis Tool}
 
-	\ifdevelopment
-		Manual for developers and programmers
-	\else
-		Manual
-	\fi
-
-	\ifverbose\else
-		quick reference - short version
-	\fi
-
-	\ifdevmode
-		\colorbox{green}{DEV MODE! THIS MANUAL IS NOT DESTINED TO BE RELEASED!}
-	\fi
-
+    \colorbox{red}{STILL STUFF MISSING! (red boxes)}
+    
+    \vspace{1cm}
 	Version 3.1 \\
 	\today
-
+    \vspace{2cm}
 	\includegraphics[width=\textwidth]{img/CAST_CMYK_small.png}
 	\end{center}
 
@@ -123,7 +92,7 @@
 	%%%%     LIST OF TABLES         %%%%
 	%%%%                            %%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\newpage
+	%\newpage
 	% We don't need this right now
 	%\listoftables
 	
@@ -179,7 +148,7 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\pagenumbering{arabic}
 	\section{Preface}
-	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. There are also interfaces to different external programs for Semi-Empirical computations (e.\,g. DFTB+\supercite{dftb} or MOPAC\supercite{mopac, mopac_parallel}) and for quantum chemistry methods (e.\,g. TeraChem\supercite{terachem} or Gaussian). For more information on \ac{CAST} see \cite{cast}.
+	The \ac{CAST} allows the accurate treatment of large and flexible (macro-)molecular systems. For the determination of thermally accessible minima \ac{CAST} offers the newly developed \ac{TS} algorithm \supercite{tabusearch}, as well as \ac{MC}\supercite{mc_original}, \ac{MCM}\supercite{MCM_original} and \acf{MD}\supercite{computer_simulation_of_MD} implementations. For the determination of reaction paths \ac{CAST} provides the PathOpt\supercite{pathopt}, the \ac{NEB}\supercite{neb_original} and the \ac{US}\supercite{umbrella_sampling} approach. Access to free energies is possible through the \ac{FEP} approach. Along with a number of standard force fields, a newly developed Symmetry Adapted Perturbation Theory based force field (\acs{SAPT-FF}) is included. There are also interfaces to different external programs for Semi-Empirical computations (e.\,g. DFTB\textsuperscript{+}\supercite{dftb} or MOPAC\supercite{mopac, mopac_parallel}) and for quantum chemistry methods (e.\,g. TeraChem\supercite{terachem} or Gaussian). For more information on \ac{CAST} see \cite{cast}.
 	\newpage
 	
 	
@@ -188,7 +157,6 @@
 	%%%%     COMPILING CAST         %%%%
 	%%%%                            %%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\ifdevelopment
 	\section{Compiling CAST} \label{sec:compile}
 	The \ac{CAST} source code is published at \url{https://github.com/AKEngels/CAST}. There is a \textit{premake5} configuration file included to automatically generate makefiles as well as Visual Studio solutions. See \url{https://premake.github.io/} for more information on premake.
 	
@@ -209,8 +177,14 @@
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 	\section{Installation}
-	\ac{CAST} is usually distributed as a precompiled executable for Linux and Windows. If you want to compile and install it by yourself look at the github repository \url{https://github.com/AKEngels/CAST} and read the wiki entry ``How to build CAST''.
+	At the moment there are no precompiled executables of \ac{CAST} provided online so you have to clone the github repository (\url{https://github.com/AKEngels/CAST}) and compile the code by yourself. You can get hints about how to do that from the wiki entry ``How to build CAST''. Be aware that the default branch of the repository is the devel branch but the latest stable release is the master branch.
 
+	\newpage
+	
+	\section{First Steps}
+	
+	If you use \ac{CAST} for the first time consider looking at the CAST tutorial which can also be found on the github repository:\\ \url{https://github.com/AKEngels/CAST/tree/master/manual/Tutorial/LaTeX}
+	
 	\newpage
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,7 +202,7 @@
 
 	The following input commands are compulsory for \ac{CAST} to work and have to be set for every calculation.\\~\\
 	\begin{minipage}{\textwidth}
-	\begin{tabularx}{\textwidth}{l|l|l}
+	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		Variable&	Effect &	Default \\
 		\hline
 		verbosity &	Amount of \ac{CAST} output &	1\\
@@ -236,7 +210,7 @@
 		name &	Name of input file &	none\\
 		outname &	Name of output files &	none\\
 		input-type &	Format of coordinate file &	TINKER\\
-	\end{tabularx}\\~\\
+	\end{longtable}
 	\end{minipage}
 	
 	The keyword for the path of the used coordinate file is "name". The variable ``cores'' controls the number of threads if multi-threated \ac{CAST} is used (i.e. if \ac{CAST} has been compiled with OpenMP\supercite{openmp08}). ``outname'' defines the name of the outputfile with information regarding the calculation.
@@ -264,18 +238,154 @@
 	 \item \acf{AMBER}\supercite{amber}
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
-	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and \ac{SPME} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website (\url{https://dasher.wustl.edu/tinker/distribution/params/}).
+	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \colorbox{red}{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
-		\ifdevmode \colorbox{red}{Blalala yaddayaddayadda... insert stuff here.} \fi
-		%% Smooth particle Mesh Ewald
+The AMOEBA FF belongs to the class of polarizable FFs. The energy description should not be described in detail. A detailed description can be found in \cite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, whereas the short-range electrostatics are treated within a partitioning scheme.
+For the description of the electrostatic energy it is a common approach
+to use a finite expansion over atomic multipoles. The simple multipole
+expansion underestimates the electrostatic energy and for a better
+description a penetration energy can be included by using the Coulombic
+energy between pro molecular charge densities. The classical electrostatic
+energy (Coulomb) between two molecules A and B is described by the
+following expression,
+\begin{equation}
+E_{es}=\int\int\rho_{A}(r_{A})\rho_{B}(r_{B})|r_{A}-r_{B}|^{-1}dr_{A}dr_{B}\label{eq:Coulombic}
+\end{equation}
+where $\rho_{A}(r_{A})$ and $\rho_{B}(r_{B})$ are the molecular
+charge distributions, containing nuclear and electronic contributions.
+In most cases in computational work the electron distribution is approximated
+by a set of multipole moments.\supercite{Stone1996} But it is shown that
+they underestimate the exact energies which can be calculated by exact
+integration methods. This is related due to the fact that the penetration
+of the electronic distribution of molecule A inside molecule B is
+not included in these approaches. 
+
+The penetration energy is affected by the Coulombic charge density
+between pro molecular charge distributions (atomic charge distributions),
+which means that it is the dominant part. Therefore, the charge distribution
+can be split into a sum of atomic and deformation terms. The atomic
+charge distributions are described by spherical ones. In consequence
+the Coulombic energy is relatively easy to compute. It can be calculated
+as functions depending on the distance and several parameters. Then
+the contribution term of atom A can be written in the following way\\supercite{Spackman1986a},
+\begin{equation}
+\rho_{A}(r_{A})=\sum_{i\in A}[\rho_{A,i}^{atomic}(r_{A})+\Delta\rho_{A,i}^{elec}(r_{A})]=\rho_{A}^{pro}(r_{A})+\Delta\rho_{A,i}^{elec}(r_{A})
+\end{equation}
+which describes the partitioning of the molecular electronic distribution.
+The pro molecular charge distribution of spherical atom A is $\rho_{A}^{pro}(r_{A})$
+and $\Delta\rho_{A,i}^{elec}(r_{A})$ is the deformation term. Now
+it is possible to rewrite $E_{es}$ and fill in $\rho_{A}\rho_{B}$
+in eq. \ref{eq:Coulombic} For this $\rho_{A}\rho_{B}$ is shown.
+\[
+\rho_{A}\rho_{B}=\sum_{i\in A}\sum_{j\in B}[\rho_{A,i}^{atomic}\rho_{B,i}^{atomic}+\rho_{B,j}^{atomic}\Delta\rho_{A,i}^{elec}+\rho_{A,i}^{atomic}\Delta\rho_{B,j}^{elec}+\Delta\rho_{A,i}^{elec}\Delta\rho_{B,j}^{elec}]
+\]
+\begin{equation}
+=\rho_{A}^{pro}\rho_{B}^{pro}+\rho_{A}^{pro}\Delta\rho_{B}^{elec}+\rho_{B}^{pro}\Delta\rho_{A}^{elec}+\Delta\rho_{A}^{elec}+\Delta\rho_{B}^{elec}
+\end{equation}
+\\
+In consequence $E_{es}$ can be expressed in three terms containing
+pro molecule and deformation depending energies.
+\begin{equation}
+E_{es}=E_{pro-pro}+E_{pro-def}+E_{def-def}\label{Ees}
+\end{equation}
+The description with pseudo atomic spheres leads to zero multipole
+moments for the spherical atom. Only the deformation term $E_{def-def}$
+includes multipole moments. If no atomic multipole moments are used
+all other terms are zero for spherical pseudoatoms, so it is necessary
+to use an atomic description. This is the case for the Bader's atoms
+in molecules (AIM) theory. There the electronic distribution is divided
+into discrete atomic fragments. In the case of fitted charge/multipole
+expansions derived from electrostatic potentials it would generally
+work, but there are cases for which this approach fails. It is important
+to know that there are many differences between the partitioning schemes
+and how they are implemented. Especially the multipole expansion and
+the convergence criteria can be very different. For instance, AIM
+uses a formally infinite expansion, truncated at some level for the
+multipole expansion or in the evaluation of the energy. AIM stops
+a the hexadecapole level and the energy calculation at $L=l_{A}+l_{B}=8$
+(hexadecapole-hexadecapole).
+
+The $E_{pro-pro}$ term in eq. \ref{Ees} describes the Coulomb interaction
+between pairs of spherical atomic charge densities. $E_{pro-pro}$
+can be the constitutive term in the expression for $E_{es}$ which
+is related to the large contribution in the description of an attractive
+interaction and is substantial at normal bindings and Van-der-Waals
+separations. This energy can be expressed as a function of the distance
+between two atomic centers
+
+\begin{equation}
+E^{a,b}(R)=\frac{Z_{A}Z_{B}}{R}-\int_{-\infty}^{\infty}\frac{Z_{a}\rho_{b}(r_{2})}{|R_{a}-r_{2}|}dr_{2}-\int_{-\infty}^{\infty}\frac{Z_{b}\rho_{a}(r_{1})}{|R_{b}-r_{1}|}dr_{2}-\int\int_{-\infty}^{\infty}\frac{\rho_{a}(r_{1})\rho_{b}(r_{2})}{|r_{1}-r_{2}|}dr_{1}dr_{2}
+\end{equation}
+with the nuclear charges $Z$ and the charge distributions $\rho(r)$.
+The first term represents the coulomb interactions between two atomic
+centers with their charges, the second and the third term represents
+the coulomb interaction between the atomic charges and the atomic
+charge densities (spherical), and the last term is the interaction
+between the charge densities. This three dimensional problem can be
+reduced to a one-dimensional integral for integration in reciprocal
+space (in atomic units)\supercite{Spackman1986}, 
+\begin{equation}
+E_{es}^{a,b}=\frac{2}{\pi}\int_{0}^{\infty}[Z_{a}-f_{a}(s)][Z_{b}-f_{b}(s)]j_{0}(sR)ds\label{eq:Spackman E1}
+\end{equation}
+where $Z_{a}$ is a nuclear charge, $f_{i}(s)$ are the atomic scattering
+factors with the scattering vector $s=(4\pi sin\Theta/\lambda)$ and
+$j_{o}(sR)$ the spherical Bessel function of zero order\supercite{Tafipolsky2011}.
+The atomic scattering factors
+\begin{equation}
+f_{a}(s)=4\pi\int_{0}^{\infty}\rho_{a}(r)\frac{sin(sr)}{sr}dr
+\end{equation}
+are obtained from analytical atomic ground state wave functions. The
+scattering factors can be expanded with linear combinations of Slater-type
+functions. There are a few commonly known possibilities for the ground
+state wave function available. For a appropriate description of aromatic
+dimers, as noted by Spackman\supercite{Spackman2006}, a contraction scheme
+of the hydrogen atom charge density is needed (for the reproduction
+of reference data). In consequence to this a description for the contraction
+is needed. This can be done by rewriting eq. \ref{eq:Spackman E1}
+and obtain
+\begin{equation}
+E_{es}^{a,b}=\frac{2}{\pi}\int_{0}^{\infty}[Z_{a}-f_{a}(s)/\kappa_{a}][Z_{b}-f_{b}(s)/\kappa_{b}]j_{0}(sR)ds\label{Spackman E2}
+\end{equation}
+where $\kappa_{a}$ and $\kappa_{b}$ are contraction parameters for
+the charge densities of atoms $a$ and $b$. In the original paper
+of Spackman \\supercite{Spackman2006} this contraction parameter has been
+set to the value of 1. If $\kappa>1$ then a contraction is the result
+and if $\kappa<1$ an expansion is realized. The integral in eq. \ref{Spackman E2}
+can be solved numerically by a one dimensional numerical strategy.
+
+The $E_{pro-def}$ term in eq. \ref{Ees} characterizes the interaction
+between the charge density of one molecule and the atomic deformation
+term in another. This term is very small and only notable for small
+separations between atoms. For dimers of small molecules the energy
+is always positive and in the range of 1.5 kJ/mol. In conclusion,
+it can be said that $E_{pro-pro}$ is one of the most important terms
+for the electrostatic energy description and is called the \textbf{Spackman-correction}
+in this work. The deformation energy $E_{def-def}$ is also one of
+the key terms in the description of intermolecular interactions. For
+this term the description depends on the used force field or the used
+multipole moments (for example DMA multipoles).\\
+
+\begin{itemize}
+	\item \textbf{How to run a SAPT-FF/AMOEBA calculation?}
+	
+	For running an AMOEBA or the SAPT-FF calculation the \texttt{interface} keyword should be set to \texttt{AMOEBA}. The SAPT-FF is activated by using the \texttt{Spackman} keyword. This keywords needs three input parameters: activation (0/1), interpolated gradients (0/1) and cutoff radius for the elect. interactions (standard=10.0).
+	
+	\item \textbf{Spackman} 1 1 10.0 - short-range correction activated, interpolative calculation activated and cutoff is set to 10.0 $\AA$
+	
+	The SAPT-FF calculation needs several additional input files. The minimum which is requested is the Spackman.prm file which contains the $\kappa$ and the atomic basis information. If one would like to use the interpolative variant the precalculated energy and gradient lists are needed. These files are called XY\_EN.in or XY\_GRAD.in. For a successful calculation one needs all the .in files (at the moment 20 files). The Spackman.prm file can be found in the folder \glqq optional\_files/forcefield\_utility\grqq. Within the parameter files the $\kappa$ values can be changed in line 51. The first number indicates the atom type by the atomic charge value.
+	
+	
+\end{itemize}
 
 
 	%%%% Energy Interfaces %%%%
 	\subsection{Energy Interfaces}
-	The energy interfaces are the main parts of \ac{CAST} for the choice of the underlying computational method. Via the interface the different force fields as well as the interfaces to external programs can be accessed. For semi-empirical calculations an interface to \ac{MOPAC} (2012) (serial\supercite{mopac} and parallel\supercite{mopac_parallel}) is present, for \ac{DFT} computations the \ac{GPU} accelerated program TeraChem\supercite{terachem} can be accessed. Both programs are not part of the \ac{CAST} distribution and the authors are not responsible for access to those programs. \ac{MOPAC}\supercite{mopac, mopac_parallel} is freely available from the \ac{MOPAC} website. TeraChem\supercite{terachem} can be purchased at the PetaChem website.
-	The following interfaces and keywords are available:\\~\\
-	\begin{tabularx}{\textwidth}{l|l|l}
+	The energy interfaces are the main parts of \ac{CAST} for the choice of the underlying computational method. Via the interface the different force fields as well as the interfaces to external programs can be accessed.
+	External programs which can be used as interfaces are MOPAC (2016)\supercite{mopac}\supercite{mopac_parallel}, Terachem\supercite{terachem} (recommended for use on GPU), Gaussian (2016)\supercite{g16}, DFTB\textsuperscript{+}\supercite{dftb} (version 18.2), Psi4\supercite{parrish_psi4_2017}, Chemshell\supercite{metz_chemshellmodular_2014} and DFTBaby\supercite{humeniuk_dftbaby:_2017}. These programs are not part of the \ac{CAST} distribution and the authors are not responsible for access to those programs.
+	
+	The following interfaces and keywords are available:
+	\begin{longtable}{l|l|p{6.5cm}}
 		Interface & Type & Further input \\
 		\hline
 		\textbf{OPLS-AA} & internal & parameterfile \\
@@ -284,32 +394,45 @@
 		\textbf{AMOEBA} & internal & parameterfile\\
 		\textbf{SAPT-FF} & internal &parameterfile and Spackman-input\\
 		\textbf{MOPAC} & external & MOPAC variables\\
+		\textbf{GAUSSIAN} & external & Gaussian variables\\
 		\textbf{TeraChem} & external & TeraChem input\\
-		\textbf{DFTB} & external & path to DFTBaby\\
-	\end{tabularx}	\\~\\
-	\ifverbose
-	In contrast to the force fields, the external interfaces do not need correct force field parameters. The coordinate file has to be in TINKER\supercite{tinker} format, however, it can be generated with arbitrary parameters.
-	\fi
+		\textbf{DFTB} & external & DFTB\textsuperscript{+} variables\\
+		\textbf{DFTBaby} & external & DFTBaby variables\\
+		\textbf{PSI4} & external & Psi4 variables\\
+		\textbf{CHEMSHELL} & external & ???\\
+		\textbf{QMMM} & internal & QM/MM variables and input for QM and MM interface\\
+		\textbf{ONIOM} & internal &  QM/MM variables and input for QM and MM interface\\
+		\textbf{THREE\_LAYER} & internal &  QM/MM variables and input for QM, SE and MM interface\\
+	\end{longtable}	
+
+	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
+
 		%% MOPAC
 		\subsubsection{MOPAC}
-		\ac{MOPAC} is accessed via system call. The \ac{MOPAC} interface expects the \ac{MOPAC} executable path to be either \glqq \textbackslash opt\textbackslash mopac\textbackslash MOPAC2012.exe\grqq on Linux \ifverbose (yes, the executable default fileending is .exe even on Linux-Systems) \fi or \glqq C:\textbackslash Program Files\textbackslash mopac\textbackslash MOPAC2012.exe\grqq~on Windows systems by default. The path can be changed using the config-variable \glqq MOPACpath\grqq.~\\
+		\ac{MOPAC} is accessed via system call. The \ac{MOPAC} interface expects the \ac{MOPAC} executable path to be either
+		\begin{itemize}
+			\item ``\textbackslash opt\textbackslash mopac\textbackslash MOPAC2016.exe'' on Linux (yes, the executable default file ending is .exe even on Linux-Systems)
+			\item ``C:\textbackslash Program Files\textbackslash mopac\textbackslash MOPAC2016.exe'' on Windows systems
+		\end{itemize} by default. The path can be changed using the config-variable \glqq MOPACpath\grqq.~\\
 		The following keywords are handed over to \ac{MOPAC}. They are controlling the calculation and they can be adjusted via the \glqq MOPACkey\grqq parameter.
 		If the value of the keyword \glqq MOPACdelete\grqq \ is set to 0, \ac{CAST} will not delete the temporary input and output transfer-files written by \ac{CAST} and \ac{MOPAC}.
 
-		\begin{tabularx}{\textwidth}{l|l|l}
+		\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 			variable & effect & default \\
 			\hline
 			MOPACkey & Input parameters, see MOPAC manual & PM7 MOZYME\\
 			MOPACpath & Path to MOAPC executable & see text\\
-			MOPACversion & Version of MOPAC (2007, 2012) & MOPAC2012\\
+			MOPACversion & Version of MOPAC (2007, 2012, 2016) & MOPAC2016\\
 			MOPACdelete & Delete MOPAC temporary files 0=no, 1=yes & 1\\
-
-		\end{tabularx}~\\
+		\end{longtable}
 		
 		Sometimes, when performing extended calculations such as \ac{MD} Simulations, \ac{MOPAC} calls may fail. For this reason, \ac{CAST} keeps a failcounter. If more than 1000 \ac{MOPAC} calls have failed, \ac{CAST} will abort. This implies that if only a single \ac{MOPAC} call fails, \ac{CAST} will continue. A short error message can in this case be found in the \ac{CAST} output (independent of the verbosity setting).
 		
 		%% TeraChem
 		\subsubsection{TeraChem}
+		
+		\colorbox{red}{Does this interface still work???}
+		
 		TeraChem\supercite{terachem} is accessed via \ac{MPI}\supercite{mpi} when the keyword \glqq TERACHEM\grqq~is specified in the energy interface. All further parameters regarding basis set, functional and so on have to be set in an extra file readable by \ac{CAST}. \ac{CAST} then transfers the input parameters to TeraChem via \ac{MPI}. The syntax for the TeraChem input is such that each string needs to be set in its own line. Otherwise it's identical to the TeraChem input. An example is shown below:
 
 		\begin{lstlisting}
@@ -328,7 +451,9 @@
 		
 		\subsubsection{Psi4}
 		
-			\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+		For the interface to the quantumchemistry program Psi4 you need to set the following keywords:
+		
+			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 			PSI4path  & path to Psi4 including command & string [no default]\\
@@ -390,9 +515,9 @@ GAUSSIANmaxfail      1000
 
 If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual.
 
-\subsubsection{DFTB+}
+\subsubsection{DFTB\textsuperscript{+}}
 
-If you want to run DFTB calculations it is recommended not to use the GAUSSIAN interface but the one to DFTB+ (\url{https://www.dftbplus.org/}). Choose this interface by setting the keyword ``interface'' to ``DFTB''. Besides DFTB+ (you can download it on the homepage) you need slater-koster files for every atom pair in your structure. You can download several sets of slater-koster files from \url{https://www.dftb.org/parameters/download/}. They need to be called: \textit{element1}-\textit{element2}.skf (e.\,g. C-H.skf). \textbf{Important!} In order to assign the correct slater-koster files the symbol column of the tinkerfile has to contain the element symbol and nothing else. Furthermore even if an element appears only once in the structure the slater-koster file for the homonuclear atom pair in this structure has to be present because CAST reads the angular momentum from it.
+If you want to run DFTB calculations it is recommended not to use the GAUSSIAN interface but the one to DFTB\textsuperscript{+} (\url{https://www.dftbplus.org/}). Choose this interface by setting the keyword ``interface'' to ``DFTB''. Besides DFTB\textsuperscript{+} (you can download it on the homepage) you need slater-koster files for every atom pair in your structure. You can download several sets of slater-koster files from \url{https://www.dftb.org/parameters/download/}. They need to be called: \textit{element1}-\textit{element2}.skf (e.\,g. C-H.skf). \textbf{Important!} In order to assign the correct slater-koster files the symbol column of the tinkerfile has to contain the element symbol and nothing else. Furthermore even if an element appears only once in the structure the slater-koster file for the homonuclear atom pair in this structure has to be present because \ac{CAST} reads the angular momentum from it.
 
 If you want to use DFTB3 you have to download a parameter set designed for DFTB3 and you have to switch on the option DFTB+3 that adds the necessary lines to the inputfile \textit{dftb\_in.hsd}. Furthermore you have to provide a parameter for the exponent $\zeta$ and a hubbard derivative for every element. This is done by adding a file \textit{dftb3.info} in the folder of the slater koster files (i.\,e. DFTB+skfiles). The necessary information you should find somewhere in your parameter set. The file \textit{dftb3.info} has to look like this:
 
@@ -420,7 +545,7 @@ K  -0.0339
 \textbf{For users on ECPC}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
 
-The following list contains the options for DFTB+. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
+The following list contains the options for DFTB\textsuperscript{+}. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
 
 		\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
@@ -432,6 +557,7 @@ The following list contains the options for DFTB+. DFTB+path and DFTB+skfiles ar
       DFTB+max\_steps\_scc & Maximum number of steps for SCC procedure & int [1000]\\
 			DFTB+charge & Total charge of the sytem & double [0.0] \\
 			DFTB+3 & use DFTB3? (0=no, 1=yes) & bool [0] \\
+			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
 		\end{longtable}~\\
@@ -445,12 +571,12 @@ Helpful links for DFTB+:
 
 \subsubsection{DFTBaby} \label{sec:DFTB}
 
-Another interface for DFTB calculations is the one to DFTBaby (\url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/mdwiki.html#!WIKI/main_page.md}). Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
+Another interface for DFTB calculations is the one to DFTBaby\supercite{noauthor_dftbaby_nodate}. Because DFTBaby is written in python CAST needs to be set up to deal with python. To learn how to do this see section \ref{sec:compile}.
 
 
 \paragraph{Downloading and installing DFTBaby}\mbox{}\\
 
-If you want to use CAST with DFTB you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
+First you have to install DFTBaby. How this is done depends on your operating system. The following instructions work on linux ubuntu. On windows it is more complicated because you need to compile the fortran libraries that are already precompiled for linux.
 
 In addition to python you also need the following:
 \begin{itemize}
@@ -459,7 +585,7 @@ In addition to python you also need the following:
 \item BLAS (To install BLAS, open a terminal and run \$sudo apt-get install libblas-dev liblapack-dev.)
 \end{itemize}
 
-Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. It is recommended to use the version from July 20, 2017 because newer versions can't deal with atoms different from C, H, N and O.
+Then download and unpack DFTBaby from here: \url{http://userpage.fu-berlin.de/humeniuka/DFTBaby/RELEASES/}. The version which is described here is from July 20, 2017 but newer versions should work similarly.
 
 \textbf{For users on ECPC}: The packages you need should be already installed on the system. However you have to recompile the fortran extensions. So first download DFTBaby and unpack it (\$ tar xf DFTBaby-0.1.0.tar.gz). Then go to the folder ``DFTBaby-\#\#\#/DFTB/Extensions'', open the Makefile and replace ``f2py'' in lines 38, 41, 44, 47 and 50 by ``/apps/python27/bin/f2py2.7''. After running
 \begin{lstlisting}
@@ -470,7 +596,7 @@ DFTBaby should work.
 
 \paragraph{Fix bug in DFTBaby}\mbox{}\\
 
-There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
+In the DFTBaby version we use there is a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= scaling'' between line 96 and 97 in file ``DFTBaby-\#\#\#/DFTB/RepulsivePotential/RepulsivePotential.py''. It should then look like this:
 \begin{lstlisting}[firstnumber=92]
         else:
             self.dmax = max(reppot_module.d)
@@ -483,14 +609,14 @@ There's currently a bug in DFTBaby. Fix this by adding ``reppot\_module.d /= sca
 
 \paragraph{Run CAST with DFTBaby}\mbox{}\\
 
-If you want to run CAST with DFTBaby, set the interface parameter in the CAST inputfile to DFTBABY. To interact with DFTBaby CAST needs access to the file ``dftbaby\_interface.py'', currently located in the folder ``cast/optional\_files/build/python\_modules''. If you run CAST from the build folder all is well. Otherwise you have to create a subfolder in the folder where you run CAST called ``python\_modules'' and copy the file there. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTB options apart from DFTBath are optional. 
+If you want to run CAST with DFTBaby, set the interface parameter in the CAST inputfile to DFTBABY. To interact with DFTBaby CAST needs access to the file ``dftbaby\_interface.py'', currently located in the folder ``cast/optional\_files/build/python\_modules''. If you run CAST from the build folder all is well. Otherwise you have to create a subfolder in the folder where you run CAST called ``python\_modules'' and copy the file there. You also have to provide the path to DFTBaby (.../DFTBaby-\#\#\#) as DFTBath. Now you can run your calculation. The output of DFTBaby is written into the file ``output\_dftb.txt''. All DFTBaby options apart from DFTBath are optional. 
 
 
-\textbf{DFTB Options} 
-\\(default value none means defalt value is taken from DFTBaby)
+\textbf{DFTBaby Options} 
+\\(default value none means default value is taken from DFTBaby)
 \\(bool values have to be given as 1=true and 0=false)
 
-\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	\textbf{DFTBath} & Path to DFTBaby & string \\
@@ -511,32 +637,46 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 	\textbf{DFTBopt} & use DFTBaby optimizer for optimization instead of steepest gradient that is implemented in CAST (of course this is not an option of DFTBaby) & bool [true] \\
 \end{longtable} 
 
-\textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \url{http://www.dftbaby.chemie.uni-wuerzburg.de/DFTBaby/mdwiki.html#!WIKI/main_page.md}, Known Quirks and Work-Arounds)
+\textbf{NOTE}: If calculating ground state gradients it should be enough to take one eigenstate into account. To even further speed up the calculation set a very small active space (e.\,g. occ\_orb=2 and virt\_orb=2). (see \cite{noauthor_dftbaby_nodate}, Known Quirks and Work-Arounds)
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN and DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. All combinations of these QM and MM interfaces are possible with non-bonded QM/MM, i.\,e. there must not be bonds between the QM and MM system. As the van der Waals part of the interaction is done by force field potential the whole system must be parametrized with the force field you use for the MM part, even for additive QM/MM. Coulomb interaction is done by electrostatic embedding so the charges of the MM atoms are taken into account when calculating the energy and the charge distribution of the QM part.
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' (e.\,g. total charge of the system) are also fitting the QM system.
 
-A link atom approach is implemented to run a bonded QM/MM calculation. The atom type of the link atoms must be given by the option ``QMMMlinkatomtype''. This option must be given as often as the number of link atoms in your system and the types must be in the order of the QM atoms that correspond to the link atoms. Link atoms can only be hydrogen atoms. Dealing with charges is done by switching off the M1 charge for the coulomb interactions between QM and MM system and keeping all the other MM charges. This is the same as the option \textit{scalecharge}=555 in gaussian oniom calculations. Furthermore there is a cutoff (given by ``QMMMcutoff''). MM atoms whose distance to the nearest QM atom is more than this are not taken into account for the electrostatic interactions.
+\paragraph{General Usage\\}
 
-To use this interface set the energy interface to ``QMMM'' for an additive scheme or ``ONIOM'' for a subtractive scheme (keyword ``interface''). You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see \url{http://openmopac.net/manual/QMMM.html}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}. For DFTB+ and PSI4 the commands that tell DFTB\textsuperscript{+} to deal with external charges are also set automatically.
+Which interfaces you use for the QM and MM part of your system is detemined by the options ``QMMMqminterface'' and ``QMMMmminterface'' respectively. With the option ``QMMMqmatoms'' you give the indices of the QM atoms in tinker indexation, i.\,e. starting with 1. (Of course all other atoms then belong to the MM system.) If you want to check if you have chosen the correct atoms switch on ``QMMMwriteqmintofile''. Then your QM system (including link atoms) is written into a tinkerfile which you can view for example in VMD.
 
-By ``QMMMqmatoms'' you define which atoms belong to the QM system (of course all other atoms then belong to the MM system). Write the indizes in TINKER indexation (i.\,e. starting with 1) either separated by comma (``1,5,7'') or as a range (``1-4''). The keyword ``QMMMmminterface'' tells CAST which forcefield to use as MM interface (this has to be in accordance with the parameter file and the parametrization of your input structure). The keyword ``QMMMqminterface'' sets the QM program. If you activate ``QMMMwriteqmintofile'' a tinkerstructure of the QM region (with link atoms) is written to the file ``qm\_region.arc''.
+You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see reference \cite{noauthor_qmmm_nodate}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}. For DFTB\textsuperscript{+} and PSI4 the commands that tell DFTB\textsuperscript{+} to deal with external charges are also set automatically.
 
-\textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group) are in the MM part near the QM part. So try to avoid this situation.
+\textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group) are in the MM part near the QM part.
 
-As in the subtractive QM/MM approach the QM and MM system are treated in a similar way you can combine them as you want. So it is for example possible to use DFTB\textsuperscript{+} as ``MM'' method and GAUSSIAN as QM method. But you have to pay attention because your MM interface is used twice during the calculation, once for the total system and once for the QM system. But the options for the interface can only be given once. So for example the total charge of the system that is a necessary option in the DFTB\textsuperscript{+} must be the same for the total system and the QM system, otherwise it is not possible to use DFTB\textsuperscript{+} as MM interface. The position of the link atoms is determined by parameter file if possible, otherwise the equilibrium distance between link atoms and QM atom will be the sum of the covalent radii. 
+\paragraph{Boundary Treatment \\}
 
-			\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+A link atom approach is implemented to run a bonded QM/MM calculation. The forcefield atom type of the link atoms must be set by the option ``QMMMlinkatomtype''. This option must be given as often as the number of link atoms in your system and the types must be in the order of the QM atoms that correspond to the link atoms. Link atoms can only be hydrogen atoms, so the atom types you give must be those of hydrogen atoms.
+
+\paragraph{Treatment of Electrostatic Interactions\\}
+
+The electrostatic interactions between QM and MM part are calculated by electrostatic embedding, i.\,e. the charges of the MM atoms are taken into account as external charges when doing calculations for the QM system. However, in the case of bonds between the two subsystems, the interactions of some MM atoms with some QM atoms are already treated by bonding, angle and dihedral terms of the forcefield. In order to deal with this certain MM atoms can be deleted when creating the external charges. Which atoms are deleted is determined by the option ```QMMMzerocharge\_bonds''. The number you give here is the number of bonds from the inner region up to which the charges of atoms are ignored. So if it's 1 only charges of atoms that are directly bonded to the QM system are deleted, if it's set to 2 one more layer of atoms is not taken into account and so on. Currently you can choose a number between 1 and 3.
+
+Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance given in Angstrom. MM atoms whose distance to the nearest QM atoms is larger than this number are not taken into account for the electrostatic interactions.
+
+\textbf{Overview of Options for QM/MM\\}
+			\begin{longtable}{|p{3.7cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 			QMMMqmatoms  & atom numbers of QM system (starting with 1) & std::vector [none]\\
 			QMMMmminterface  & interface for MM system & interface\_types::T [OPLSAA]\\
 			QMMMqminterface & interface for QM system & interface\_types::T [MOPAC]\\
 			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
-      QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
+            QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
 			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the QM atoms to which the link atom belongs & int \\
+			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. & int[1] \\
 		\end{longtable}~\\
+	
+\subsubsection{Three-layer-Interface}
+
+As an extension of the ONIOM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By QMMMqminterface you choose the energy interface of the inner layer, by QMMMmminterface you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option QMMMseinterface. In the same way you define which atoms are in which layer: QMMMqmatoms are the atoms in the inner layer, QMMMseatoms are the ones in the intermediate layer. All other atoms are in the outer layer. By QMMMlinkatomtype you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. With the option QMMMsmall\_charges you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM) and 2 takes into account all SE and MM atoms exept for those directly bound to a QM atom.
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -544,11 +684,10 @@ As in the subtractive QM/MM approach the QM and MM system are treated in a simil
 	\subsubsection{TINKER (Standard)}
 	\ac{CAST} makes use of the TINKER\supercite{tinker} style .xyz files. This format has the advantage of carrying more information in the file than the standard xyz format. Programs that are able to read and/or write TINKER style files are Molden\supercite{molden}, \ac{VMD}\supercite{vmd}, Avogadro\supercite{avogadro}, ChemBioOffice\supercite{chembiooffice}, TINKER\supercite{tinker} and Open Babel\supercite{openbabel}. \\~\\
 	A Tinker format file contains a sequence of structures where the first line of each structure contains the number of atoms while the following lines cover one atom each. The next table explicates the composition of the atom lines.\\~\\
-	\ifverbose
-	\begin{tabularx}{\textwidth}{l|l|l|l}
+
+	\begin{longtable}{|l|l|l|l}
 		Column & Width & Justification & Miscellaneous\\
 		\hline
-
 		\textbf{Number}	& 6			& R	& ~\\
 		\textbf{\textit{Free}}	& 2			&  ~ & ~\\
 		\textbf{Symbol}	& 3			& L	& ~\\
@@ -557,19 +696,19 @@ As in the subtractive QM/MM approach the QM and MM system are treated in a simil
 		\textbf{Z coordinate in \AA}	& 12			& R	& 6 decimal places\\
 		\textbf{Atomtype}	& 6			& R	& ~\\
 		\textbf{Bound atoms}	& 6 (each index)			& R	& multiple values\\
-	\end{tabularx}
+	\end{longtable}
 	\textbf{Note}: For alchemical transformations during \acl{FEP} simulations, each line may also contain the \glqq IN\grqq~or \glqq OUT\grqq~$($ case insensitive $)$ keyword at the end, separated by at least one space from the last bound atom.
-	\fi
+
 	
 	\subsubsection{How to obtain TINKER structures} \label{sec:tinker}
 	
 	Depending on the molecule you want to convert to the TINKER format there are several ways to do this:
 	
-	If you have a quite small molecule you may draw it in Avogadro (\url{http://avogadro.cc/wiki/Main_Page}). There you can save it as a .xyz file without information about topology. This .xyz file can be read by MOLDEN (\url{http://www.cmbi.ru.nl/molden/}) where you can write a Tinker file from it. However the atomtypes in this file are for the mm3 forcefield that is not supported by \ac{CAST} so you have to assign them manually. You find the atomtype in the forcefield .prm file that you use for your energy calculations in the first column in the section ``Atom type definitions''. If strange things happen during the conversion (e.\,g. appearance of dummy atoms) you can also fix this manually in the tinkerfile but this shouldn't happen frequently.
+	If you have a quite small molecule you may draw it in Avogadro. There you can save it as a .xyz file without information about topology. This .xyz file can be read by MOLDEN where you can write a Tinker file from it. However the atomtypes in this file are for the mm3 forcefield that is not supported by \ac{CAST} so you have to assign them manually. You find the atomtype in the forcefield .prm file that you use for your energy calculations in the first column in the section ``Atom type definitions''. If strange things happen during the conversion (e.\,g. appearance of dummy atoms) you can also fix this manually in the tinkerfile but this shouldn't happen frequently.
 	
-	It is also possible to convert .pdb files (e.g. from the protein data bank \url{http://www.rcsb.org/pdb/home/home.do}) into tinkerstructures using the TINKER software you can get from the TINKER website (\url{https://dasher.wustl.edu/tinker/}). Open the TINKER Executables for your system and unpack the files ``pdbxyz.exe'' and ``libiomp5md.dll'' into a folder (this explanation is for windows but the procedure should be similar on other systems). Additionally you need a parameterfile of one of the forcefields supported by \ac{CAST} that you can also obtain from the TINKER website (\url{https://dasher.wustl.edu/tinker/distribution/params/}). Then put your pdb-structure in the same folder, open the cmd there and type ``pdbxyz.exe $<$pdb-name$>$.pdb $<$prmfile-name$>$.prm''. If there is more than one chain in the pdb file you might be asked which chain you want to convert and then again what the name of your parameter file is. Then you get a TINKER .xyz file that has already assigned the correct parameter types for the forcefield corresponding to the parameter file you used for the conversion. Some structures might contain atom types that are not supported by the forcefield you chose, then you get a warning and no tinkerstructure is produced.
+	It is also possible to convert .pdb files (e.g. from the protein data bank\supercite{noauthor_rcsb_nodate}) into tinkerstructures using the TINKER software you can get from the TINKER website\supercite{noauthor_tinker_nodate}. Open the TINKER Executables for your system and unpack the files ``pdbxyz.exe'' and ``libiomp5md.dll'' into a folder (this explanation is for windows but the procedure should be similar on other systems). Additionally you need a parameterfile of one of the forcefields supported by \ac{CAST} that you can also obtain from the TINKER website. Then put your pdb-structure in the same folder, open the cmd there and type ``pdbxyz.exe $<$pdb-name$>$.pdb $<$prmfile-name$>$.prm''. If there is more than one chain in the pdb file you might be asked which chain you want to convert and then again what the name of your parameter file is. Then you get a TINKER .xyz file that has already assigned the correct parameter types for the forcefield corresponding to the parameter file you used for the conversion. Some structures might contain atom types that are not supported by the forcefield you chose, then you get a warning and no tinkerstructure is produced.
 	
-	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. To do this in a comfortable way open it with LibreOfficeCalc, give as seperation option ``spaces'' and activate the option ``Feldtrenner zusammenfassen''. Then you can write the atom types in column G, mark the whole file and copy the text in a text editor. Then save the file from the texteditor as .arc. This file you can use as inputstructure for CAST forcefield calculations.
+	There's also the possibility to use CAST to obtain tinkerstructures out of .xyz files for example created by Avogadro. Because CAST uses a distance criterion to find bonds it is important that you use something like ``optimize geometry'' before saving the file. After saving the file run the task ``WRITE\_TINKER'' in CAST with the .xyz file as Input file name and give as inputtype ``XYZ''. As energy interface you have to use something that doesn't need atom types (i.\,e. no forcefield). Your outputfile with the ending .arc is a tinkerfile of the inputstructure. If you want to use this file as inputstructure for a forcefield calculation you have to manually assign atom types. This file you can use as inputstructure for CAST forcefield calculations.
 	
 	You can also use CAST to obtain tinkerstructures from PDB files in the same way as from XYZ files. If you are lucky you also get atom types for the OPLSAA forcefield in your output structure (see section \ref{sec:pdb}).
 	
@@ -586,7 +725,7 @@ As in the subtractive QM/MM approach the QM and MM system are treated in a simil
 
 For the coordinate file there are several options (see above). An AMBER \textbf{restart file }should look like this:
 \begin{itemize}
-\item The first line contains the title..
+\item The first line contains the title.
 \item The second number contains the number of atoms.
 \item The rest of the lines contain the coordinates. In each line (except the last in case of an odd number of atoms) there are the coordinates of two atoms in the order x y z x y z where each number has a width of 12.
 \item In the last line there might be box parameters also in the format x y z x y z or not.
@@ -596,9 +735,9 @@ If you encounter some problems with \ac{AMBER} files the most probable reason is
 
 \paragraph{Charges}
 
-In contrast to other forcefields (and the ``normal'' design of CAST) amber atom types originally don't have a charge parameter but the charge of every atom is written in the .prmtop file. So the parameter file ``amber99\_gaff\_nocharge.prm'' doesn't contain a charge section but the charges are taken from the .prmtop file. However it is theoretically possible to use the AMBER forcefield together with a tinkerstructure. Then you have two options:
+In contrast to other forcefields (and the ``normal'' design of CAST) amber atom types originally don't have a charge parameter but the charge of every atom is written in the .prmtop file. So the parameter file doesn't contain a charge section but the charges are taken from the .prmtop file. An example for such a parameterfile is ``amber99\_gaff\_nocharge.prm''. However it is theoretically possible to use the AMBER forcefield together with a tinkerstructure. Then you have two options:
 \begin{itemize}
-\item If you deactivate the option ``chargefile'' you need a TINKER-like forcefield with a charge section. A prototype of this is ``amber99\_gaff\_charge.prm''. (Attention: It does not provide parameters for bonds between AMBER and GAFF parts of the system. The charges for atom types 1 to 2012 are provided by TINKER so it should not be necessary to change them. You have however to fill out the charge parameters for gaff atom types (3000 to 3070) that are present in your structure. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \url{http://ambermd.org/formats.html\#topo.cntrl}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.
+\item If you deactivate the option ``chargefile'' you need a TINKER-like forcefield with a charge section. A prototype of this is ``amber99\_gaff\_charge.prm''. (Attention: It does not provide parameters for bonds between AMBER and GAFF parts of the system. The charges for atom types 1 to 2012 are provided by TINKER so it should not be necessary to change them. You have however to fill out the charge parameters for gaff atom types (3000 to 3070) that are present in your structure. In case of doubt use the charge of the corresponding amber atom type (i.\,e. the type with the same symbol but in capital letters). If you want (or need) to use the charges from the .prmtop file you have to divide them by 18.2223 (see \cite{noauthor_amber_nodate}). You can use the script ``amber\_find\_atomnumber\_and\_charge.py'' to find the charge. There you have to put the name of your .prmtop file in the first line and after running it you get a file named ``charges.txt'' with consecutive numbers, atom types and charges that are already divided by 18.2223.
 \item If you activate the option ``chargefile'' the charges are taken from a file called ``charges.txt'' that is structured like the file described before but without dividing the charges by 18.2223. You get such a file by running the script ``amber\_find\_atomnumber\_and\_ambercharge.py'' over a .prmtop file.
 \end{itemize}
 
@@ -608,9 +747,24 @@ If you use an energy interface that doesn't need atom types (i.\,e. no forcefiel
 
 \subsubsection{PDB}  \label{sec:pdb}
 
-CAST can also read in PDB files. It only uses the lines starting with ``ATOM''. In principle they must look like described in this file: \url{ftp://ftp.wwpdb.org/pub/pdb/doc/format_descriptions/Format_v33_A4.pdf}, p. 180 but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). There can be problems if amino acids other than the 20 standard amino acids + those from AMBER (CYX, CYM, HID, HIE, HIP, see \url{http://ambermd.org/tutorials/advanced/tutorial1_orig/section1.htm}) are used. A cysteine residue bound to a ligand is called CYP. Because CAST doesn't assign bonds to ions (residue names end with + or -) there can be problems if you have charged molecules in your structure. 
+CAST can also read in PDB files. It only uses the lines starting with ``ATOM''. In principle they must look like shown below\supercite{noauthor_protein_nodate} but it is not necessary that they contain sections after the coordinates (occupancy, temperature factor, element symbol and charge). 
 
-CAST tries to assign atom types according to the OPLSAA force field to the atoms. To do so it uses the atom name and the residue name from the PDB file. The atom names have to be something like CA, CB, ... according to the position where they are in the amino acid relative to the carboxyl group. If there is more than one atom of the same element in the same relative position those atoms have to be numbered. H atoms have to be named by the atom they are bound to, e.\,g. HE2 for a hydrogen that is bound to the atom with the position E2 to the carboxyl group. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to comnplement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
+\begin{center}
+	\includegraphics[width=\textwidth]{img/pdb.png}
+\end{center}
+
+
+Amino acids should be named like AMBER does, i.\,e. most with their ``normal'' 3-letter-code with the following exceptions:
+\begin{itemize}
+	\item CYX: cysteine in disulfide bond
+	\item CYM: cysteine bound to metal ion
+	\item CYP: cysteine bound to ligand
+	\item HID: histidine protonated at $\delta$-position
+	\item HIE: histidine protonated at $\epsilon$-position
+	\item HIP: histidine protonated at both nitrogen atoms
+\end{itemize}
+
+CAST tries to assign atom types according to the OPLSAA force field to the atoms. To find correct peptide bonds, which are necessary for getting atom types, the atom names of the proteine backbone have to be C, O, CA, N, H and no other atom must have one of these atom types. Not all amino acids and protonation states are implemented yet but you should get a warning if you have a residue that is not implemented. If you want to comnplement the implementation you can do this in file ``coords\_io\_PDB.cc'', function ``find\_at\_sidechain''. Aside of proteins CAST also assignes atom types to the residues ``Na+'' (sodium ion) and ``WAT'' (water).
 
 If CAST is able to assign atom types to all atoms in the structure (this is probably a rare event) you can use the OPLSAA forcefield for calculations. Otherwise you have to use an energy interface that doesn't need atom types. You can use this interface to write out a tinkerstructure, assign atom types to this tinkerstructure and use it as input for a forcefield calculation. 
 
@@ -618,7 +772,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 %%%% Fixations and biases %%%%
 \subsection{Fixations, Biases and coordinate manipulations}
 \ac{CAST} is able to work with bias potentials and atom fixation globally in all methods. Global optimization routines will usually operate on \textit{main dihedrals}. \textit{Main dihedrals} make up a subset of independent dihedrals. Rotating a main dihedral often implies the alteration of several dihedrals. \ac{CAST} uses a very generalized internal coordinate system which can be heavily tailored by expert users.
-\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	\textbf{FIXexclude} & Exclude nonbonded interactions between two fixed atoms when using force-field energy interfaces & int, int [none] \\
@@ -646,11 +800,11 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 
 	%%%% SP %%%%
 	\subsection{SP - Single point energy calculation}
-	A single point calculation calculates the potential energy of the respective system. Single point calculations can be run with either using a force field as well as semi-empirical or \ac{DFT} methods. In case of force field calculations the output is decomposed into the different force field contributions.\\
+	A single point calculation calculates the potential energy of the respective system. Single point calculations can be run either using a force field or one of the external energy interfaces. In case of force field calculations the output is decomposed into the different force field contributions.\\
 
 	The output consists of the abbreviations for the different force field contributions as well as their respective energy in $\frac{kcal}{mol}$. At the end the total potential energy is given in $\frac{kcal}{mol}$.\\~\\
 
-	\begin{tabularx}{\textwidth}{l|l}
+	\begin{longtable}{l|l}
 		symbol & energy\\
 		\hline
 		\textbf{B} & Bond energy\\
@@ -663,26 +817,26 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{SOLV} & Solvent energy (if implicit solvent is used)\\
 		\textbf{SUM} & Total potential energy\\
 
-	\end{tabularx}\\~\\
+	\end{longtable}
 
 
 	%%%% GRAD %%%%
 	\subsection{GRAD - Single point energy and gradient calculation}
-	The result of a gradient calculation is the same as the result for a single point calculation with the addition that the gradients of the atoms are also calculated. The output is can be found as a file where the filename specified by the configuration parameter "output" is amended by the keyword "GRAD". This file contains the information about the gradients with respect to atoms, force field contributions and x-, y- and z-coordinates.
+	The result of a gradient calculation is the same as the result for a single point calculation with the addition that the gradients of the atoms are also calculated. The output can be found as a file where the filename specified by the configuration parameter "output" is amended by the keyword "GRAD". This file contains the information about the gradients with respect to atoms, force field contributions and x-, y- and z-coordinates. If an external interface is used only the total gradients in x-, y- and z-direction on every atom are given.
 	
 	\subsection{HESS - Single point energy and hessian calculation}
-	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is only implemented in the DFTB+ and DFTBaby interface so it will give an error for forcefields and I don't know what will happen for GAUSSIAN, MOPAC or TeraChem.
+	The result of this task is also the same as for a single point calculation. In addition to the energy the hessian matrix is also calculated. You find the matrix in a file called \textit{outname}\_HESS.txt. Currently the calculation of hessians is only implemented in the DFTB\textsuperscript{+} and DFTBaby interface so it will give an error for other interfaces.
 	
 
 	%%%% LOCOPT %%%%
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
-	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface. \ifdevmode ~\\ \colorbox{red}{what does additional forces applied mean?} ~\\ \fi
-	If an interface with included optimizer (MOPAC, TeraChem, Tinker) is used (and if no bias forces are to be applied), the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values.
+	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \colorbox{red}{what does additional forces applied mean?}
+	If an interface with included optimizer (most external interfaces) is used (and if no bias forces are to be applied), the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values.
 	The integrated L-BFGS can be adjusted regarding the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$.
 	The convergence criterion can be altered using "BFGSgrad" $($default "0.001"$)$.
 
-	\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	\begin{longtable}{|p{4cm}|p{5cm}|p{2cm}|}
 		variable & effect & default \\
 		\hline
 		\textbf{BGFSgrad (float)} & Threshold for gradients & 0.0001 \\
@@ -722,7 +876,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
 		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 fixation (atomnumbers of the constrained bonds starting with 0, i.\,e number in tinkerstructure -1; first has to be an H-atom) & integer, integer [none] \\
-			\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
+		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
 		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
 		\textbf{MDadjust\_by\_step} & calculate the geometrical center for the active site and the distances to it new for every step \begin{itemize} \item 0 = no \item 1  = yes \end{itemize} & integer [not defined] \\
@@ -732,11 +886,10 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{MDpre\_optimze} & Perform Optimization before starting the Simulation \begin{itemize} \item 0 = no \item 1 = yes\end{itemize}& integer [0] \\
 			\end{longtable} 
 	
-	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting. If you, for example, desire a descriptor of columns to be printed at the top of the logfile, chose a verbosity higher than 4. (	IS THIS STILL CORRECT??? ) \\
+	Note: In case you enable logging, the verbosity will be controlled by global verbosity setting.\\
 	
 	\ac{MD} Simulations use the common types of boundary conditions present in \ac{CAST}. For more information on this, see section \ref{sec:boundary}.
 
-	\ifverbose
 	\subsubsection{Heating}
 	Note: The settings for "MDheat" can be applied multiple times. The first number indicates the snapshot number, the second one the desired temperature at this snapshot. If the "MDheat" keyword is specified multiple times heating and cooling can be applied sequentially during a single simulation. \ac{CAST} reads the "MDheat" keywords from top to bottom and starts with the first one, finishing with the one on the bottom.\\~\\
 	\begin{lstlisting}
@@ -755,7 +908,7 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat 			 1000     300
 	\end{lstlisting}
 
-	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. Another difference to the direct velocity scaling is that the Nosé-Hoover thermostat will not be automatically turned off after reaching the last temperature set by the ``MDheat'' option but continue to keep this temperature until the end of the simulation. So if you want the same temperature evolution as above with the thermostat your input might be:
+	The other possibility is the Nosé-Hoover thermostat that is used if ``MDthermostat'' is enabled. Then the Nosé-Hoover thermostat controls the temperature set by ``MDheat''. If you have switched on the thermostat you may set the starting temperature to zero. So if you want the same temperature evolution as above with the thermostat your input might be:
 		\begin{lstlisting}
 	MDheat			    0  	  0
 	MDheat 			 1000     300
@@ -768,7 +921,10 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	MDheat			  200  	  50
 	MDheat 			 1000     300
 	\end{lstlisting}
-	the starting temperature (at step 0) is 50\,K and the second line is just ignored. To avoid confusion it is recommended only to use one line of MDheat and set it to step 0: \\MDheat  \hspace{2cm}  0 \hspace{0.5cm}  300
+	the starting temperature (at step 0) is 50\,K and the second line is just ignored. To avoid confusion it is recommended only to use one line of MDheat and set it to step 0:
+\begin{lstlisting}
+MDheat			    0  	  300
+\end{lstlisting}		
 		
 	\subsubsection{MD with biased potential}
 	
@@ -797,14 +953,8 @@ The option ``MDplot\_temp'' plots the temperature for every frame into an image 
 Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''.
 	
 %%%% GOSOL %%%%
-	
-	
-	
-	\fi
-	
-	%%%% GOSOL %%%%
-	\subsection{GOSOL - Global Optimization and Solvation}	
-	\ifdevmode \colorbox{red}{write something here} \fi
+\subsection{GOSOL - Global Optimization and Solvation}	
+ \colorbox{red}{write something here} 
 
 	
 	%%%% Global Optimization (GO) %%%%
@@ -812,13 +962,13 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\ac{CAST} can be used to perform Conformational Analysis. To find the lowest possible conformation, either a standard Monte-Carlo-Simulation\supercite{mc_original, mmc_original} or a Tabu-Search\cite{tabusearch_original1, tabusearch_original2, tabusearch_original3} based approach can be choosen. The total number of steps for the global optimization routines is set by ``Iterations'' (default ``1000''). \ac{CAST} will save all minima between $E_0$ (current lowest energy) and $E_0 + D$ where the value of D is adjusted with the ``Erange'' keyword (default ``0.0'').
 	If the current step does not result in a newly accepted minimum, \ac{CAST} will select a new starting point. The key ``GOfallback'' selects either a simple fallback to local / global minimum (value ``LAST\_GLOBAL'', default) or an evolutionary selection algorithm (value ``EVOLUTION'').
 	
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{l|l|l}
 	variable & effect & default \\
 	\hline
 	\textbf{Iterations} & Number of iterations & 1000 \\
 	\textbf{Erange} & Energy range for output & 0.0 \\
 		\textbf{GOfallback} & Type of fallback & LAST\_GLOBAL \\
-	\end{tabularx}
+	\end{longtable}
 	
 	%% Starting point selection
 	\subsubsection{Starting point selection}
@@ -832,15 +982,14 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The interpolation between those points (1,H) -> (N,L) can be controlled by ``GOfitness'' where the value ``LINEAR'' (default) denotes linear interpolation while ``EXPONENTIAL'' activates exponential decay.
 	\ac{CAST} makes up to 100 attempts to select a minimum which hasn't reached the limit yet and stops if none is found.
 	
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 	variable & effect & default \\
 		\hline
 		\textbf{GOfallback\_limit} & Number of times a minimum can be used & - \\
 		\textbf{GOincluded\_minima} & Number of minima to look for new starting point & 10 \\
 		\textbf{GOfitness\_bounds} (2 values) & Lower and upper bound for fitness & 0.5 1.0 \\
 		\textbf{GOfitness} & Interpolation between \textbf{GOfitness\_bounds} & LINEAR \\
-	\end{tabularx}
-	\\~\\
+	\end{longtable}
 
 	%% Metropolis Criterion
 	\textbf{Metropolix Criterion} \\
@@ -858,13 +1007,13 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The reference energy E\_0 can either be the energy representing the most stable structure (current ``global minimum'') or the last local minimum energy. The corresponding control option is called ``GOmetrolocal'' and defaults to 0 (off) which means that the current global minimum energy is used in the conditional. A value of ``1'' will make \ac{CAST} use the ``current local minimum'' energy (the starting point of the current iteration). If the Metropolis Criterion is not met, the conformation will be discarded.
 	The temperature used is controlled via ``Temperature'' and defaults to ``298.15''. It is multiplied by a factor, adjusted via ``Tempscale'' (default: ``1.0'').\\~\\
 	
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default\\
 		\hline
 		\textbf{GOmetrolocal} & Use global or current local minimum energy as reference; 0 = no, yes = 1 & 0 \\
 		\textbf{Temperature} & Temperature in Kelvin & 298.15 \\
 		\textbf{Tempscale} & Multiplication factor for temperature & 1.0
-	\end{tabularx}
+	\end{longtable}
 	
 	%% Monte Carlo
 	\subsubsection{MC - Monte Carlo}
@@ -883,28 +1032,27 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\textbf{Move types}\\~\\
 	\ac{CAST} can move to the next sampling point during \ac{MC} in three different ways, controlled via the ``MCmovetype'' option (default ``1''). A value of ``2'' will make the program carry out the contortion in Cartesian space (where the ``MCstep\_size'' option with a default value of ``2.0'' will restrict the absolute value of the distortion vector). The value ``1'' represents direct rotation of randomly selected main dihedral angles (see 1.5). A value of ``0'' means that the target conformation is not obtained directly by adjusting dihedrals but the conformational change will be achieved by applying quadratic bias potentials on the main dihedrals towards the target conformation during a local optimization process (``MCmax\_dihedral'' restricts the maximum distortion of a dihedral angle; default ``160.0''). \\
 		
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		MCmovetype value & Move type & Associated options \\
 		\hline
 		0 & Biased main dihedral optimization & MCmax\_dihedral \\
 		1 & Main dihedral & MCmax\_dihedral \\
 		2 & Cartesian & MCstep\_size \\
-	\end{tabularx}
-	\\~\\
+	\end{longtable}
+
 	The number of distorted dihedrals is selected randomly in case of a ``MCmovetype'' value of 0 or 1 (biased or direct main dihedral adjustment).
 	\begin{equation}
 	N = - log (R) + 1
 	\end{equation}
 	with R being a random number between 0 and 1 and N being the number of distorted rotated dihedrals.\\~\\
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default \\
 		\hline
 		MCminimization & Turn minimization on or off; 0 = off, 1 = on & 1 \\
 		MCmovetype & Movetype to go to next sampling point & 1 \\
 		MCstep\_size & Absolute value of distortion vector & 2.0 \\
 		MCmax\_dihedral & Maximum distortion of dihedral angle in degre & 160.0 \\
-	\end{tabularx}
-	\\~\\
+	\end{longtable}
 		
 	%% Tabu Search
 	\subsubsection{TS - Tabu Search}
@@ -913,21 +1061,21 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The ``TSdivers\_iter'' option (default ``30'') represents the number of iterations during one diversification routine.
 	If you want \ac{CAST} to start with \ac{DS} iterations instead of the \ac{TS} iteration you can set ``TSmc\_first'' to ``1'' (default ``0'').\\~\\
 	
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default \\
 		\hline
 		TSdivers\_threshold & Number of failed steps before \acl{DS} & 25 \\
 		TSdivers\_iter & Number of iterations during diversification & 30 \\
 		TSmc\_first & Start with diversification instead of Tabu-Search iterations; 0 = no, 1 = yes & 1 \\
-	\end{tabularx}
-	\\~\\
+	\end{longtable}
+
 		%% Output
 	\subsubsection{Output}
 	The output for verbsity settings of 2 and higher includes 15 columns (with \textit{NA} being the number of currently accepted minima):\\
 	\begin{itemize}
 		\item Method (\ac{MC}, \ac{MCM} or \ac{TS})
 		\item Current iteration
-		\item \textbackslash \ifdevmode \colorbox{red}{I guess that means blank line, does it?} \fi
+		\item \textbackslash  \colorbox{red}{I guess that means blank line, does it?} 
 		\item Maximum number of iteration
 		\item Index of current minimum in the interval (0, \textit{NA})
 		\item Current minimum energy (starting point of current step)
@@ -962,28 +1110,28 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The maximum number of iterations for the dimer rotation and translation steps can be set in the combined "DIMERmaxit" option, which takes two parameters where the first one limits the number of rotation iterations per translation step while the second one represents the maximum number of translations.
 	The convergence criterion for the dimer rotation (the angle that needs to be undercut) in degrees can be adjusted using "DIMERrotconvergence".
 		
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{4cm}|p{3.5cm}|p{2.5cm}|}
 		variable & effect & default \\
 		\hline
 		\textbf{DIMERdistance} & Controls magnitude of dimer vector & float [0.01] \\
 		\textbf{DIMERtflimit} & Controls magnitude of dimer force & float [0.01] \\
 		\textbf{DIMERmaxit}& Controls rotation steps per translation and total translation steps & integer, integer [20 100]\\
 		\textbf{DIMERrotconvergence} & Convergence criterium for rotation in degree & float [5.0] \\
-	\end{tabularx}
+	\end{longtable}
 	
 	%%%% UMBRELLA %%%%
 	\subsection{UMBRELLA - Umbrella Sampling}
 	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features three reaction coordinates which can be sampled: distances, angles and dihedral angles. Distances can be chosen between any two particles in the system. Bond angles and dihedrals can be defined between any three or four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		variable & effect & default \\
 		\hline
 		\textbf{USequil} & number of equilibration steps & integer [0] \\
 		\textbf{USsnap} & Offset for snapshots (Snapshot every x steps) & integer [0]  \\
 		\textbf{UStorsion} & Definition for torsion angle & integer, integer, integer, integer, float, float [none] \\
 		\textbf{USdist} & Definition for distance & integer, integer, float, float [none] \\
-	\end{tabularx}~\\
+	\end{longtable}
 
 	The syntax for the definition of the restraints can be seen in the following listing:\\
 
@@ -1000,26 +1148,225 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	
-	%\ifdevmode \colorbox{red}{write something here} \fi	
-	The \acf{NEB} method is currently one of the most useful and powerful
-double-ended chain-of-states methods for transition state optimisation \supercite{Wales2003}. The mapping
-of the minimum energy path begins with a set of intermediate images (usually consisting of 4
-to 20 images) between the start and final geometries. This set or string of replicas constitutes
-an initial path for a subsequent optimisation procedure based on the minimisation of the forces
-acting on each image. A spring force between two subsequent images is introduced to ensure
-proper spacing of the images and prevent discontinuity of the path. The resulting minimum
-energy path is discrete up to the resolution of individual images. 
+NEB is a double ended or chain of states method in which the start and the end position has to be known in order to generate a reaction path. 
+The following NEB methods are included in the CAST program: Standard method Henkelman and Jonsson\supercite{JonssonH.1998}, improved tangent estimate\supercite{Henkelman2000}, climbing image variant\supercite{Henkelman2000a}, temperature dependent neb\supercite{Crehuet2003} and image dependent pair potential for improved interpolation\supercite{Smidstrup2014}.
+In the following the procedure how to do a NEB calculation should be illustrated on the example of the rotation of pentane.\newline
 
-The nudged elastic band force acting on each image (i.e. the force to be minimised) is given by \supercite{henkelman2002}:
-\begin{align}
-\bm{F}_i^{\mathrm{NEB}}&=\bm{F}_i^{S\vert\vert}-\nabla V^\perp(\bm{X}_i)\label{eq:fneb}\\
-&=\bm{F}_i^{S\vert\vert}- \left(\nabla V(\bm{X}_i)-\nabla V(\bm{X}_i)\bm{\hat{\tau}}_i\right),
-\end{align}
-with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on image $i$ parallel to the path and $\nabla V^\perp (\bm{X}_i)$ describing the component of the true force acting on image $i$ orthogonal to the path. $\bm{\hat{\tau}}_i$ is the unit vector of the tangent to the path. The spring force $\bm{F}_i^{S\vert\vert}$ that acts parallel to the path tangent $\bm{\hat{\tau}}$ can be written as \supercite{Sheppard2008}: 
-\begin{equation}
-\label{eq:springf}
-\bm{F}_i^{S\vert\vert}=k(\vert\bm{X}_{i+1}-\bm{X}_i\vert -\vert\bm{X}_{i}-\bm{X}_{i-1}\vert)\bm{\hat{\tau}}_i.
-\end{equation}
+\begin{itemize}
+	\item 
+	\textbf{First steps}\newline
+	The first step is the preparation of the Input structures. For exclusion of translational and rotational
+	degrees of freedom the structures should aligned beforehand. This can be done by using the \texttt{TASK ALIGN} in CAST or e.g. VMD for this purpose. It is also important that the ordering of atoms is identical in both structures which are used.
+	The first structure is defined as the standard input structure by using  the keyword \texttt{name} (-name=input1.arc). The second structure is defined by the keyword \texttt{NEB-PATHOPT-FINAL}. For all methods applying an optimization via the NEB scheme the
+	following keywords have to be assigned:
+	
+	\texttt{NEB-PATHOPT-IMAGES} \textit{integer value} - defines the total number of interpolated structures which define the band\newline
+	
+	\texttt{NEB-PATHOPT-SPRING} \textit{floating point value} - defines the strength of the force which couples the structures of the band and is defined in kcal/mol$\AA^{2}$  \newline
+		
+	
+	\item \textbf{Standard NEB method}
+	
+	In NEB the band is defined by $N+1$ structures $\{ R_{0},R_{1},...,R_{N} \}$. The start ($R_{0}$) and the final structure ($R_{N}$) remain unchanged by the optimization process. They serve as the anchor points of the band. The force which acts on a projected structure is the sum of the perpendicular component with respect to the derivative of the potential energy function $\nabla E(R^{\bot}_{i})$ and the tangential component $F^{||}_{i}$. In this way the force $F_{i}$ on the projected structure is
+	
+	\begin{equation}
+	F_{i}=F^{||}_{i}-\nabla E(R^{\bot}_{i}),
+	\end{equation}
+	thereby one can write the resulting force (derived from the potential energy function) as:
+	
+	\begin{equation}
+	\nabla E(R^{\bot}_{i})=\nabla E(R_{i}) -\nabla E(R_{i})\cdot \hat{\tau}_{i}.
+	\end{equation}
+	Within these equations $E$ describes the potential energy of the system which is a function of the atomic coordinates. The normalized tangent vector is denoted by $\hat{\tau}_{i}$, whereas $i$ stands for the projected structure although the calculation is atom wise defined. The force component along the band (tangential) is the spring force and defined as
+	
+	\begin{equation}
+	F^{||}_{i}=k\left(\left|R_{i+1}-R_{i}\right|-\left|R_{i}-R_{i-1}\right|\right)\hat{\tau}_{i},
+	\end{equation}
+	with $k$ the spring constant. The modified force is then used by the optimizer to find the relaxed pathway. 
+	
+	\begin{itemize}
+		
+		\item \texttt{NEB-PATHOPT-TAU} is set to 0 using the standard tangent approach 
+		
+	\end{itemize}
+	
+	
+	\item \textbf{Climbing image and improved tangent estimate}
+	
+	Various improvements of the standard NEB approach exist. One example is the climbing image (CI) variant which is only a small correction with respect to the standard approach. The information about the MEP is included as well, as the better convergence to the TS. Within the CI calculation the maximum energy image is calculated within the optimization procedure, whereas the calculation is repeated for each step. This projected structure is then called $i(MAX)$. For this special structure the force acting on it is computed in a modified approach:
+	
+	\begin{equation}
+	F_{i(MAX)}=-\nabla E(R_{i(MAX)})+2 \nabla E(R^{||}_{i(MAX)}).
+	\end{equation}
+	In detail this equation can be written as:
+	\begin{equation}
+	F_{i(MAX)}=-\nabla E(R_{i(MAX)})+2\nabla E(R_{i(MAX)})\cdot \hat{\tau}_{i((MAX)}\hat{\tau}_{i((MAX)}.
+	\end{equation}
+	Within the CI variant the maximum energy structure is not influenced by the spring forces during the optimization step. 
+	
+	\begin{itemize}
+		
+		\item \texttt{NEB-PATHOPT-CI} \textit{bool value} - is set to 1 to use the climbing image variant.
+		
+	\end{itemize}
+	
+	Within the improved tangent estimate the connecting vectors $\tau$ are defined in the following manner:
+	
+	\begin{equation}
+	\tau_{i}=\frac{R_{i}-R_{i-1}}{\left|R_{i}-R_{i-1}\right|}+\frac{R_{i+1}-R_{i}}{\left|R_{i+1}-R_{i}\right|}.
+	\end{equation}
+	
+	\begin{itemize}
+		
+		\item \texttt{NEB-PATHOPT-TAU} \textit{bool value} - is set to 1 using the improved tangent approach.
+		
+	\end{itemize}
+	
+	
+	
+	\item \textbf{Temperature dependent NEB (MAXFLUX)}
+	
+	The temperature dependent NEB method accordingly to Crehuet and Field  is based on the maximization of the flux related to the Smoluchowski equation\supercite{Smoluchowski1916}. The method applies a differential equation and is directly inherited within the NEB algorithm. Starting from the Smoluchowski equation, Berkowitz and co-workers\supercite{Berkowitz1983} showed how the flux j of an optimal reaction path P can be expressed
+	
+	\begin{equation}
+	j_{p} = \frac{const}{y\int_{p}exp(\beta U)ds},
+	\label{eq:flux1}
+	\end{equation}
+	whereas along an ideal pathway (which is assumed to exist) all particles will flow and the friction $y$ is constant for all positions. Hereby $U$ is the potential energy and $s$ the position of the particles along the path. The factor $\beta$ is equal to $ 1/k_{b}T$. One way to optimize the flux is the discretization of the integral, $ \int_{p} exp(\beta U)ds$ given in Equation \ref{eq:flux1}. This can be done using the Euler formalism leading to the function $F$:
+	\begin{equation}
+	F(R_{1}...R_{N})=\sum^{N-1}_{i=0}\frac{1}{2}(e^{(\beta U (R_{i+1}))} + e^{(\beta U (R_{i}))})\left|R_{i-1}-R_{i}\right|.
+	\end{equation}
+	Within this equation, $ R_{i} $ is the coordinates vector of the i-th image along the pathways. $N$ is the total number of images/configurations. Starting from the discrete function, also gradients can be derived numerically. Still instabilities may arise during the optimization due to the presence of the exponential terms. Crehuet and Field\supercite{Crehuet2003} present a different approach to circumvent this issue. They start with the differential equation related to the Euler-Lagrange equation for the above mentioned integral (see Equation \ref{eq:flux1}). Therefore, one obtains the equation of Berkowitz and co-workers in the following form:		
+	\begin{equation}
+	\kappa \hat{t} + \hat{n} (\nabla \beta U \cdot \hat{t})-\nabla \beta U = 0.	
+	\end{equation}
+	Within this equation, the gradient along the reaction pathway is defined as $ g = \nabla U$ and the curvature of the RP is $\kappa$. The tangent and the normal vectors are $\hat{t}$ and $\hat{n}$. In a next step one can split the gradient into its components along and perpendicular to the band $ g = g_{||} + g_{\bot} $. The perpendicular component can be described as follows:	
+	\begin{equation}
+	g_{\bot}=\frac{\kappa}{\beta} \hat{n}.
+	\end{equation}
+	Using this equation, the transition between steepest descent pathways and finite temperature pathways is obtained. For $T\rightarrow 0K$ the equation is equal to $ g_{\bot}=0$. At infinite temperatures the path is straight, because all existing barriers can be overcome. Also $\kappa$ must be zero, as $ \beta \rightarrow 0$ and $g_{\bot}$ is not allowed to be singular. This new scheme for the perpendicular gradient component can be easily applied to the existing NEB scheme using the projection scheme. The force component which defines the perpendicular acting part of the NEB forces can be redefined,
+	\begin{equation}
+	F^{\bot}_{i}=g^{\bot}_{i} - \frac{\kappa}{\beta} \hat{n}
+	\end{equation}
+	whereas the force acting on the i-th atom is shown. The curvature of the band is defined by,	
+	\begin{equation}
+	\kappa_{i}=\frac{arccos(\hat{\tau}_{i-1}\cdot\hat{\tau}_{i+1})}{\left|R_{i}-R_{i-1}\right|+\left|R_{i+1}-R_{i}\right|}
+	\end{equation}
+	with $\tau_{i}$ the tangential vector along the band. The temperature dependent calculation is carried out by inclusion of the following flag:
+	
+	\item \texttt{NEB-PATHOPT-MAXFLUX}  \textit{bool value} - setting the value to 1 enable the temperature dependent calculation \newline
+	
+	Besides this flag also the temperature values have to be assigned using the specific flag. \newline
+	
+	\item \texttt{NEB-PATHOPT-TEMP} \textit{floating point value} - assigns temperature value in K
+	
+	
+	
+	
+	\item \textbf{IDPP} 
+	
+	One of the first steps within a NEB calculation is the generation of the initial pathway which is built up by $N-2$ intermediate projected structures. Normally, this initial band is built up using a linear interpolation between the two starting minimum structures. Within this approach the interpolated structures can be far from being reasonable in terms of the internal coordinates (bonds, angles and dihedrals). Therefore, Smidstrup et al.\supercite{Smidstrup2014} introduced a new method for the calculation of the initial band of projected structures. This method is based on the interpolation of pairwise distances which are calculated for the whole band and additional acting forces which are deduced from these distances. The linearly projected structures ($R_{i}$) can be defined via their position vector ($r$), whereas each structure is built up by $N$ atoms. By using $i-2$ projected structures and the $start$ and $end$ structure, the interpolated distances between atom $n$ and $m$ at structure $i$	are given as
+	\begin{equation}
+	\begin{aligned}
+	d^{i}_{nm} &= d^{start}_{nm} + \frac{i\left(d^{end}_{nm}-d^{start}_{nm}\right)}{N},\\
+	&=\sqrt{\sum_{\sigma}\left(r_{n}-r_{m}\right)^2}\\
+	&+\frac{i}{N}\left(\sqrt{\sum_{\sigma}\left(r_{n}-r_{m}\right)^2}^{end}-\sqrt{\sum_{\sigma}\left(r_{n}-r_{m}\right)^2}^{start}\right).	
+	\end{aligned}
+	\end{equation}
+	For finding the improved pathway the objective function for a projected structure can be defined as follows:
+	\begin{equation}
+	\begin{aligned}
+	S^{IDPP}_{i}(r) &=\sum^{N}_{n}\sum^{N}_{n>m}\omega (d_{nm}) \left(d^{i}_{nm}-\sqrt{\sum_{\sigma}\left(r_{n}-r_{m}\right)^2}\right)^{2},\\
+	&=\sum^{N}_{n}\sum^{N}_{n>m} \frac{1}{d^{4}_{nm}} \left(d^{i}_{nm}-\sqrt{\left(x_{n}-x_{m}\right)^{2}+\left(y_{n}-y_{m}\right)^{2}+\left(z_{n}-z_{m}\right)^{2}}\right)^{2},\\
+	&=\sum^{N}_{n}\sum^{N}_{n>m} \frac{\left(d^{i}_{nm}-d_{nm} \right)^{2}}{d^{4}_{nm}},\\
+	&=\frac{1}{2}\sum^{N}_{n}\sum^{N}_{m} \frac{\left(d^{i}_{nm}-d_{nm} \right)^{2}}{d^{4}_{nm}}.
+	\end{aligned}
+	\end{equation}
+	Therefore, the objective function $S^{IDPP}_{i}(r)$ can be described as the square deviation of the interpolated distances $d^{i}_{nm}$ with respect to the Euclidean distances $d_{nm}$. So it acts like the pairwise potential that is related to an effective energy surface. This function is then applied to the NEB method for finding the optimal initial pathway. The function $\omega(d_{nm})=1/d^{4}_{nm}$ is a weight function which takes into account that shorter distances within the overall description stronger contribute. The resulting force acting on atom $n$ in structure $i$ can be assigned to
+	
+	\begin{equation}
+	\begin{aligned}
+	F^{i}_{n}(r) &=-\nabla_{n}S^{IDPP}_{i}, \\
+	&= -\left(\begin{matrix}
+	\frac{\partial}{\partial x_{n}} \\
+	\frac{\partial}{\partial y_{n}} \\
+	\frac{\partial}{\partial z_{n}}  \\
+	\end{matrix} \right) \sum^{N}_{n}\sum^{N}_{n>m} \frac{1}{d^{4}_{nm}} \left(d^{i}_{nm}-\sqrt{\left(x_{n}-x_{m}\right)^{2}+\left(y_{n}-y_{m}\right)^{2}+\left(z_{n}-z_{m}\right)^{2}}\right)^{2}.
+	\end{aligned}											
+	\end{equation}
+	The force on atom $n$ in the projected structure $i$ can be written as the sum of all forces derived from IDPP along the bonds $n,m$. 
+	
+	\item \texttt{NEB-PATHOPT-IDPP} \textit{bool} -  de/-activates the image dependent pair potential approach.
+	
+	\item \textbf{Complete Pathway (NEB) calculations}
+	
+	Instead of using two starting structures it is possible to use a complete pathway and optimize this pathway within the predescribed NEB methods.
+	The Input structures have to be prepared, as aligned ones.
+	
+	\item \texttt{NEB-PATHOPT-NEB-COMPLETE} \textit{bool} -  de/-activates the complete pathway calculation.
+    \end{itemize}
+
+In the standard case a calculation would be carried out by using 10-20 images (\texttt{NEB-PATHOPT-IMAGES}) and using the standard method for estimating the tangents (\texttt{NEB-PATHOPT-TANGENT}). The force constant (\texttt{NEB-PATHOPT-SPRING}) can be set to a value of 1.0 kcal/mol$\AA^{2}$  and the climbing image variant can be used (\texttt{NEB-PATHOPT-CI} 1). The optimizer settings can be chosen to be the default values.
+
+After a normal NEB run one should obtain the following files:IMAGES\_START.arc, IMAGES\_FINAL.arc and ENERGIES\_COMPLETE.dat.
+
+For an improved tangent estimate or temperature dependent calculations the input file has to be modified according to the specifications explained in the related sections. \colorbox{red}{other outputfiles?}
+
+	%%%% PATHOPT %%%%
+\subsection{PATHOPT}	
+Pathopt\supercite{Grebner2013b,Weber2016} is a newly developed algorithm for finding reaction paths. It is a double-ended method that means, two structures are used. The main idea of the algorithm is, to make an initial guess between the start and final structure. This is performed by using the Nudged Elastic Band (NEB) approach. In a next step, this initial path is divided by perpendicular (n-1) dimensional hyperplanes. Subsequently, we perform global optimization on these hyperplanes. This is done with projected gradients (see figure \ref{fig:MCM}). The resulting minima are traces of possible reaction paths between the start and final structure. The number of planes can be varied and depends on the system, which is investigated. In addition, the connection method for the found traces of pathways can also be chosen. This pathways can be obtained in a direct manner via RMSD criterion or by using additional NEB simulations. The movement within the global optimization scheme can be chosen by using a distortion in Cartesian space or by applying a mixed move strategy (see figure \ref{fig:MIX}) and distorting dihedral angles as well.\newline
+
+\begin{figure}[h]
+	\center
+	\includegraphics[scale=0.4]{img/MCM_scheme_new.png}\caption{Schematic representation of the Pathopt algorithm}
+	\label{fig:MCM}
+\end{figure}
+
+\begin{figure}[h]
+	\center
+	\includegraphics[scale=0.6]{img/grafik_rot_scheme.png}\caption{The mixed move strategy is illustrated by rotating only main dihedrals perpendicular to the connecting vectors $\tau$.}
+	\label{fig:MIX}
+\end{figure}
+
+PO calculations can be carried out by using various optional configurations. For the MCM procedure within PO the following settings can be varied: Steps, number of total MCM runs, Temperature criterion, stepsize, acceptance criteria, move-type and optimization settings (standard L-BFGS settings are used e.g. convergence).
+\begin{itemize}
+	
+	\item \texttt{NEB-PATHOPT-ITER} \textit{integer} - number of constraint MCM steps
+	
+	\item \texttt{NEB-PATHOPT-GLOBITER} \textit{integer} - number of total MC runs for multiple calculations
+	
+	\item \texttt{NEB-PATHOPT-TEMP} \textit{floating point value} - assigns temperature value in K
+	
+	\item \texttt{NEB-PATHOPT-STEPSIZE} \textit{floating point value} - Cartesian step size in $\AA$
+	
+	\item \texttt{NEB-PATHOPT-MAXVAR} \textit{floating point value} - maximum allowed displacement in $\AA$
+	
+	\item \texttt{NEB-PATHOPT-ENERGY\_RANGE} \textit{floating point value} - maximum allowed energy difference with respect to starting structure 
+	
+	\item \texttt{NEB-PATHOPT-MIXMOVE} \textit{bool} - de/-activates the dihedral movement approach
+	
+	\item \texttt{NEB-PATHOPT-MODE} \textit{character string} - assigns the gradient calculation scheme: PROJECTED=projected gradients / BIAS=bias potential
+	
+	\item \texttt{NEB-PATHOPT-BIAS} \textit{floating point value} - bias constant in kcal/mol$\AA^{2}$
+	
+	\item \texttt{NEB-PATHOPT-MF\_PATHOPT} \textit{bool} - de/-activates the temperature dependent MAXFLUX optimization of PO pathways (uses standard temp. criterion) 
+	
+\end{itemize}
+
+After a successful PO calculation one should obtain the following files and folders: PATHOPT\_BASIN\_ENERGIES\_X.dat, PATHOPT\_STRUCTURES\_X\_Y.arc, arrhenius\_global.dat and folders 1-3. X and Y stand for the global run and concerning hyperplane.\newline
+
+\begin{itemize}
+	
+	\item \texttt{PATHOPT\_BASIN\_ENERGIES} - contains the energies of the accepted structures with mcstep number, hyperplane number and energy in kcal/mol.
+	
+	\item \texttt{PATHOPT\_STRUCTURES} - contains the structures found on each hyperplane in TINKER format.
+	
+	\item \texttt{FOLDERS 1-3} - the connected pathways sorted as energy and structure files, whereas folder 1 contains next minimum RMSD moves along the hyperplanes and further on by increasing order.
+	
+	
+	\item \texttt{arrhenius\_global.dat} - the arrhenius rates are given, but without any preexponential factor included.
+	
+\end{itemize}
 	
 	%%%% INTERNAL %%%%
 	\subsection{INTERNAL - Conversion to internal coordinates}	
@@ -1030,30 +1377,34 @@ with $\bm{F}_i^{S}\vert\vert$ being the component of the spring force acting on 
 	
 	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
 	
-	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the STARTOPT task.\\
+	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the START\-OPT task.\\
 	
 	Other options of this task are described in the following table:
 	
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default \\
 		\hline
     \textbf{\underline{Startopt Options}} &  &  \\ 
-		\textbf{SOtype} & 0 = Ringsearch, 1 = Solvadd, 2 = Ringsearch + Solvadd	& int [1]\\
+		\textbf{SOtype} & what kind of calculation will be performed? 
+	\begin{itemize}
+		\item  0 = Ringsearch
+		\item 1 = Solvadd
+		\item 3 = Ringsearch + Solvadd
+	\end{itemize}	
+	  & int [1]\\
 		\textbf{SOstructures} & ??? & ??? \\
 		\hline
 		\textbf{\underline{Solvadd Options}} & &  \\
 		\textbf{SAhb} & ??? & float [1.8] \\
 		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
-		\textbf{SAboundary} & shape of the water shell (0 = layer, 1 = sphere, 2 = box) & integer [10] \\
+		\textbf{SAboundary} & shape of the water shell \begin{itemize} \item 0 = layer\item 1 = sphere \item 2 = box \end{itemize} & integer [10] \\
 		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
-		\textbf{SAtypes} & force field parameter types of water oxygen and hydrogen & 2 integers \\
-		\textbf{SAopt} & how is structure optimised? (0 = not at all, 1 = after adding of each shell, 2 = once after adding all waters, 3 = each shell and all at the end & int \\
+		\textbf{SAtypes} & force field parameter types of water oxygen and hydrogen & two integers \\
+		\textbf{SAopt} & how is structure optimised? \begin{itemize} \item 0 = not at all \item 1 = after adding of each shell \item 2 = once after adding all waters \item 3 = each shell and all at the end \end{itemize} & int \\
 		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
 		\hline
 		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
-
-		
-	\end{tabularx}\\~\\
+	\end{longtable}
 
 	%%%% Free energy perturbation %%%%
 	\subsection{FEP - Free Energy Perturbation}
@@ -1090,12 +1441,12 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 \end{align}
 	
 	
-	\ac{FEP} calculations can be modified with various parameters.
+	\ac{FEP} calculations can be modified with various parameters:
 
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		variable & effect & default \\
 		\hline
-		\ifdevmode \textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\ \fi 
+		\textbf{FEPlambda} & Final value for order parameter. Doesn't need to be changed at all & float [1.0] \\
 		\textbf{FEPdlambda} & Lambda increment. ${FEPdlambda}^{-1} =$ number of \ac{FEP} windows.	& float [0.05] \\
 		\textbf{FEPvdwcouple} & Controls coupling of \ac{VdW} interactions $\lambda_{vdw,in} = \frac{\lambda}{FEPvdwcouple}$ for incoming atoms and $\lambda_{vdw,out} = \frac{1-\lambda}{FEPvdwcouple}$ for leaving atoms - both if the term is smaller than 1, else $\lambda_{vdw} = 1$ \supercite{_implementation_????} & float [1.0] \\
 		\textbf{FEPeleccouple} & Controls coupling of electrostatics \mbox{$\lambda_{el, out} = 1- \frac{\lambda}{1-FEPeleccouple}$} for leaving atoms and \mbox{$\lambda_{el, in} = 1- \frac{1-\lambda}{1-FEPeleccouple}$} for incoming atoms - both if the term is bigger than 0, else $\lambda_{el} = 0$ \supercite{_implementation_????}
@@ -1107,7 +1458,7 @@ U_{vdw}(ab) = \lambda_{vdw} \cdot \epsilon_{AB} \left[ \frac{R_{ab,0}^{12}}{\lef
 		\textbf{FEPfreq} & Frequency of \ac{FEP} output & integer [1] \\
 		\textbf{FEPanalyze} & switch on or off analyzing of FEP calculation (0 or 1) & bool [1] \\
 		\textbf{FEPbar} & switch on or off calculating $\Delta G$ from Bennets Acceptance Ratio (BAR) (0 or 1)  & bool [0] \\
-	\end{tabularx}\\~\\
+	\end{longtable}
 
 	\ac{FEP} calculations produce two output files: ``alchemical.txt'' and ``FEP\_Results.txt''. ``alchemical.txt'' contains detailed information about electrostatic and \ac{VdW} interactions for the current lambda value. Furthermore, the temperature and free energy change is displayed. The columns are:
 	\begin{itemize}
@@ -1142,7 +1493,7 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 	\label{sec:align}
 	The trajectory alignment task allows the alignment of ensembles of structures, for example structures obtained from molecular dynamics. For translational alignment, the center-of-mass of all structures are aligned to the origin of the coordinate system. Rotational alignment is performed via Kabsch's method\supercite{kabsch1, kabsch2}. This task can furthermore calculate distance measures between the structures of the ensemble in regard to a reference structure. Regarding the distance metric, one can chose between the (standard) \ac{RMSD}, the \ac{dRMSD} and the Holm and Sander Score\supercite{holmsander}. For a comparison of molecular distance meassures see \cite{distancemeasures}. If no alignment is performed beforehand the distance measures are calculated among the unaligned snapshots. \ac{CAST} provides the following options for the task ALIGN: \\~\\
 	
-	\begin{tabularx}{\textwidth}{l|X|r}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default\\
 		\hline
 		traj\_align\_translational & Switch translational (= center-of-mass) alignment on or off, false = off, true = on & true\\
@@ -1153,13 +1504,13 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		dist\_unit & Specifies the distance metric; 0 = RMSD, 1 = dRMSD, 2 = Holm and Sander Score & 0\\
 		holm\_sand\_r0 & value for Holm and Sander Score's contact cutoff distance in \AA & 20 \\
 		
-	\end{tabularx}
+	\end{longtable}
 	
 	%%%% Entropy calculations (ENTROPY) %%%%
 	\subsection{ENTROPY - Conformational and Configurational entropy calculations}
 	For further analysis of \acl{MD} ensembles \ac{CAST} provides the calculation of entropy contributions. Different approaches for entropy calculation can be used. Currently \ac{CAST} offers calculations according to Karplus\supercite{karplus_entropy}and Schlitter\supercite{schlitter_entropy}. Entropy calculations according to Karplus are modified from the original publication, as some minor math errors have been fixed. Calculations can be performed in cartesian or internal coordinates for all or only several snapshots. Furthermore, the \acp{DOF} can also be truncated to a selection of internals or cartesian coordinates. If internal coordinates are to be used, you need to specify the indentifying integer of the atom where the desired internal coordinate belongs to. Since the building of internal Z-Matrices can differ between different software packages, we suggest you run the task ``INTERNAL'' to obtain the Z-Matrix \ac{CAST} will use for your specific molecular system. The following options are provided by \ac{CAST}: \\~\\
 	
-	\begin{tabularx}{\textwidth}{l|X|r}
+	\begin{longtable}{|p{4cm}|p{5cm}|p{2cm}|}
 		variable & effect & default\\
 		\hline
 		entropy\_alignment & Switch alignment of structures according to Kabsch's method\cite{kabsch1, kabsch2} on or off, false = off, true = on; see section \ref{sec:align} & true\\
@@ -1180,13 +1531,13 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		\item 0 = All of the above, executed sequentially
 		\end{itemize}\\
 		
-	\end{tabularx}
+	\end{longtable}
 		
 	%%%% Principal Component Analysis (PCA) %%%%
 	\subsection{PCA - Principal Component Analysis}
 	The \acl{PCA} tasks performs a principal component analysis on Simulation trajectories. The procedure is split into two tasks, \textit{PCAgen} and \textit{PCAproc}. First, \textit{PCAgen} is run to obtain the coordinates of the input trajectory in their transformed form as \ac{PCA} modes. These are contained in a file titled ``pca\_modes.dat'' which also contains the eigenvalues and eigenvectors of the covariance matrix. For more information on the theoretical background of the use of \ac{PCA} see \cite{pca_review, pca_review2, dpca1, dpca2, dpca3}. The mathematical steps in performing \ac{PCA} are closely related to those during conformational and configurational entropy calculations, therefore the configuration options of this task are very similar to those of the task ENTROPY:
 	
-	\begin{tabularx}{\textwidth}{l|X|r}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default\\
 		\hline
 		pca\_alignment & Switch alignment of structures according to Kabsch's method\cite{kabsch1, kabsch2} on or off, false = off, true = on; see section \ref{sec:align} & true\\
@@ -1200,9 +1551,9 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		pca\_ignore\_hydrogen & Ignore either all cartesian coordinates of hydrogens or all dihedrals including hydrogen & ``false'' \\
 		pca\_trunc\_atoms\_bool & If cartesian coordinates are used, this specifies weather only those belonging to certain atoms will be used in the\ac{PCA}. Options are ``true'' = truncation activated and ``false'' = all atoms will be included. & false\\
 		pca\_trunc\_atoms\_num & If pca\_trunc\_atoms\_bool = true, specify the integers of those atoms whose coordinates are to be included (example: ``1,3,7,11-45,2,77-99'') & none\\
-		\end{tabularx}
+		\end{longtable}
 		~\\
-		\begin{tabularx}{\textwidth}{l|X|r}
+		\begin{longtable}{|p{5.1cm}|p{5cm}|p{1cm}|}
 		variable & effect & default\\
 		\hline
 		pca\_print\_probability\_density & Boolean flag (``true'' / ``false'' ): Print probability density of generated PCA modes (obtained through internal histogramming). & true\\
@@ -1210,7 +1561,7 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 		pca\_histogram\_number\_of\_bins & Number of histogram bins per dimension. Bin size is adjusted accordingly. ``pca\_histogram\_width'' can be used alternatively. & none\\
 		pca\_dimensions\_for\_histogramming & Specify an integer range identifying the dimensions that will be histogrammed. Alternativly, write "all" to obtain one-dimensional hisograms of all dimensions. Example: ``1,2'': Two dimensional histogramming of the first two \ac{PCA} Modes. Example: ``1-3'': Three-Dimensional histogramming of the first three \ac{PCA} Modes. Example: ``1,5,8,11-15'' etc.& none\\
 		
-	\end{tabularx}~\\
+	\end{longtable}~\\
 		
 	 \ac{CAST} will, after performing \ac{PCA}, perform histogramming of \ac{PCA} modes as desired by the user to get an approximation to the free energy landscape of the molecular system. Usually, one would want to histogram the first two \ac{PCA} modes to obtain a two-dimensional approximation to the free energy landscape. An example for the configuration flags for the most common application of (cartesian) \ac{PCA} through \ac{CAST} is:\\
 	 
@@ -1233,12 +1584,12 @@ For example if your ``MDsteps'' is 1000, ``FEPequil'' is 10000 and ``FEPsteps'' 
 	splot ``pca\_histograms.dat''\end{lstlisting}~\\	
 	
 	From this plot, one can identify basins of the \acl{PES}. To obtain the structures corresponding to those basins, the second task \textit{PCAproc} may be used. It reads the file \textit{pca\_modes.dat} and the original input ensemble to extract structures corresponding to desired regions of the histogrammed \ac{PCA} Modes. It is important to note that in this task coordinates are regained from the PCA-modes via an unitary transformation. Then, they are matched to the full input-trajectory. Therefore, options such as \textit{pca\_start\_frame\_num} or \textit{pca\_offset} are ignored for the \textit{PCAproc} task. Input options for this task are the following:\\~\\~\\
-	\begin{tabularx}{\textwidth}{l|X|r}
+	\begin{longtable}{|p{3.5cm}|p{5cm}|p{2.5cm}|}
 		variable & effect & default\\
 		\hline			
 		proc\_desired\_start & Float values, each one corresponding to the start of a desired region in one dimension (Example:'' -5.0, -1.0'') & none\\
 		proc\_desired\_stop & Float values, each one corresponding to the stop of a desired region in one dimension (Example:'' 5.0, 6.0'') & none\\
-	\end{tabularx}~\\
+	\end{longtable}
 
 	%%%%INTERFACE_CREATION%%%%
 	\subsection{INTERFACE CREATION}
@@ -1388,20 +1739,16 @@ EXoscillatorstrength          0.0852
 EXwellenzahl                  28514.91
 \end{lstlisting}	
 	
-	%%%% ADJUST %%%%
-	\subsection{ADJUST - something something}	
-	\ifdevmode \colorbox{red}{doesn't seem to exist any more???} \fi	
-	
 	%%%% GRID %%%%
-	\subsection{GRID - jajajajjajaja blub}	
-	
-	%%%% PATHOPT %%%%
-	\subsection{PATHOPT - I dont even know}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	\subsection{GRID - ?}	
+	\colorbox{red}{write something here}
 	
 	%%%% PATHSAMPLING %%%%
 	\subsection{PATHSAMPLING - ?}	
-	\ifdevmode \colorbox{red}{write something here} \fi	
+	\colorbox{red}{write something here} 	
+	
+	\subsection{SCAN2D - ?}	
+	\colorbox{red}{write something here} 	
 	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	
@@ -1410,8 +1757,14 @@ EXwellenzahl                  28514.91
 	\subsection{WRITE\_TINKER}
 	This task writes out the tinkerstructure into the file \textit{outname}.arc. If your inputfile is also a tinkerstructure this task is not of much use because input and output are identical. But if your inputfile is of another type, e.\,g. XYZ you can convert it to a tinkerfile (see also section \ref{sec:tinker}).
 	
+	\subsection{WRITE\_GAUSSVIEW}
+	This task writes a file that you can open with gaussview. It is meant to help you with finding the correct atom numbers for your QM- and SE- atoms in a QM/MM or three-layer calculation or get a better view at existent layers.
+	\textbf{WARNING!} Though the file that is created is technically a gaussian inputfile it is not meant to be used to run gaussian calculations because a lot of input is filled by random stuff. CAST only takes the atom information (element and coordinates) and -- if QMMM, ONIOM or THREE\_LAYER is given as energy interface -- the information which atom belongs to which layer.
+	
+	You can open the resulting .gjf file with gaussview. To show the atomic numbers by clicking View $\rightarrow$ Labels. To play around with QM/MM layers open Tools $\rightarrow$ Atom Groups. Then under "`Atom Group Class"' select "`ONIOM Layer"'.
+	
 	\subsection{MODIFY\_SK\_FILES}
-	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see: \url{http://gaussian.com/dftb/}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
+	This task converts DFTB parameter files from the dftb.org format to the format needed by gaussian16. For details of the conversion see \cite{noauthor_dftbgaussian_nodate}, Modifying Slater-Koster Files. In order to perform a DFTB calculation gaussian needs parameters for every pair of elements in the input structure. So for every pair of elements in your input structure you need to provide CAST with a parameter file. Those files can be downloaded here: \url{http://www.dftb.org/parameters/download/}. CAST takes the structure, looks which element pairs are present and converts the files. If there is an element pair in your structure for which no parameter file is provided CAST gives a warning. The old parameter files are deleted and replaced by the new ones. These can be used for gaussian calculations.
 	
 \textbf{Important!} If you run this task the symbol column of the tinkerfile has to contain the element symbol and nothing else. Otherwise CAST is not able to find the correct element pairs!
 		
@@ -1425,15 +1778,15 @@ EXwellenzahl                  28514.91
 	\subsection{Spherical boundaries}
 	Spherical boundaries apply a harmonic potential on particles which drift farer away from the geometric center of the simulation than a certain threshold. There are 7 input parameters in total which are defined in a single line in the input file. \\~\\
 
-	\begin{tabularx}{\textwidth}{l|X|X|X|X|X|X|X}
+	\begin{longtable}{l|l|l|l|l|l|l|l}
 		keyword & param1 & param3 & param4 & param5 & param6 & param7 \\
 		\hline
 		MDspherical & active & Radius1 & Radius1 & Force1 & Force2 & Exp1 & Exp2 \\
 		MDspherical & 1 & 30.0 & 0.0 & 10.0 & 0.0 & 2 & 0 \\
-	\end{tabularx}~\\
+	\end{longtable}~\\
 
-	Effects of the input variables in detail:\\~\\
-	\begin{tabularx}{\textwidth}{l|X|X}
+	Effects of the input variables in detail:
+	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 		\textbf{variable} & effect & default \\
 		\hline
 		\textbf{Active} & Switches spherical boundaries on or off; 0 = off, 1 = on & 0 \\
@@ -1443,39 +1796,39 @@ EXwellenzahl                  28514.91
 		\textbf{Force2} & Force constant for outer radius & none \\
 		\textbf{Exp1} & Exponent for inner potential & None, only 2 and 4 are reasonable \\
 		\textbf{Exp2} & Exponent for outer potential & None, only 2 and 4 are reasonable \\
-	\end{tabularx}~\\
+	\end{longtable}
 	There are two potentials that can be applied: a standard harmonic potential if only the variables with index 1 are used and if the variables with index 2 are also used, a second harmonic potential with a different radius can be applied.
 	Force constants are given in $\frac{kcal}{mol}$. Negative force constants push atoms away from the center, positive force constants push it toward the center.
 
 	\subsection{Periodic boundary conditions}
 	Periodic boundary conditions can be used to simulate periodic systems. The basic idea is to choose the smallest possible unit cell in the systems as the simulated system and virtually copy it indefinitely in all directions to generate an infinite system. In the actual simulation only the conditions of the initial unit cell are calculated. The infinity is generated by the fact, that particles that leave the simulation box reenter from the opposite side. \acf{PBC} are usually used for the simulation of solvated macromolecules or other mixtures, as well as bulk gases, liquids and crystals. Crucial parameters for the correct behavior of the boundary conditions are the size and shape of the unit cell as well as the chosen cutoff radius. Periodic boundaries are enabled in a single line in the input file with the keyword "Periodics".\\
-	\begin{tabularx}{\textwidth}{l|X|X|X|X}
+	\begin{longtable}{l|l|l|l|l}
 		\textbf{keyword} & param1 & param2 & param3 & param4 \\
 		\hline
 		\textbf{periodics} & active & x-dim & y-dim & z-dim \\
 		\textbf{periodics} & 1 & 10.0 & 10.0 & 10.0 \\
-	\end{tabularx}\\~\\~\\
-	Effects of the input variables in detail:\\~\\
-	\begin{tabularx}{\textwidth}{l|X|X}
+	\end{longtable}
+
+	Effects of the input variables in detail:
+	\begin{longtable}{|p{3cm}|p{6.5cm}|p{1.5cm}|}
 		\textbf{variable} & effect & default \\
 		\hline
 		\textbf{active} & Switch periodics on or off, 0 = off, 1 = on & 0 \\
 		\textbf{x-dim} & Box-dimension in x-direction in \AA & 0 \\
 		\textbf{y-dim} & Box-dimension in y-direction in \AA & 0 \\
 		\textbf{z-dim} & Box-dimension in z-direction in \AA & 0 \\
-	\end{tabularx}~\\
+	\end{longtable}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
 	%%%% CODING THE CAST FRAMEWORK  %%%%
 	%%%%                            %%%%
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\ifdevelopment
+
 	\newpage
 	\section{Coding within the CAST Framework}
-	Lorem Ipsum here be text it the future \\
-	\ifdevmode \colorbox{red}{Once CAST4 is up and running we should put some information on the code here.} \fi
-	\fi
+	Lorem Ipsum \colorbox{red}{here be text it the future} \\
+
 
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1485,9 +1838,9 @@ EXwellenzahl                  28514.91
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\newpage
 	\section{What to do if something goes wrong}
-	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with \textit{verbosity} set to a very high number (for example \textit{500}, or, if this produces too much data, \textit{20}) and sending us the text-output as well as the generated files. \\
+	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with the maximum \textit{verbosity} of 5 and sending us the text-output as well as the generated files. \colorbox{red}{email?} \\
 
-	Even though the \ac{CAST} source code is currently not available to the public, we provide a dedicated \textit{github} repository for providing feedback to users and resolve issues. It may be found at \url{https://github.com/djmuw/cast_feedback}. If you do not want to use the \textit{github} repository, you can also write us an E-Mail.
+    The recommended way to provide feedback for CAST is to write an issue in the public \textit{github} repository which is found at \url{https://github.com/AKEngels/CAST}.
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -1510,7 +1863,6 @@ EXwellenzahl                  28514.91
 	\newpage
 	\section{Contact and Support}
 	\label{sec:contact}
-	\href{mailto:cast@chemie.uni-wuerzburg.de}{cast@chemie.uni-wuerzburg.de} \ifdevmode \colorbox{red}{we should really acquire this mail adress, better than not having it.} \fi \\~\\
 
 	Working Group Prof. Dr. Bernd Engels\\
 	Institute for Physical and Theoretical Chemistry\\
@@ -1519,9 +1871,9 @@ EXwellenzahl                  28514.91
 	97074 Wuerzburg\\
 	GERMANY\\~\\
 	Technical Support via:\\
-	\url{https://github.com/djmuw/cast_feedback}\\
+	\url{https://github.com/AKEngels/CAST}\\
 	or\\
-	\href{mailto:cast@chemie.uni-wuerzburg.de}{cast@chemie.uni-wuerzburg.de}\\
+	\colorbox{red}{e-mail address???}\\
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%

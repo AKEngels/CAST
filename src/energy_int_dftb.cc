@@ -142,8 +142,6 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   if (Config::get().energy.dftb.dftb3 == true)
   {
     file << "  ThirdOrderFull = Yes\n";
-    file << "  DampXH = Yes\n";
-    file << "  DampXHExponent = " << get_zeta() << "\n";
     file << "  HubbardDerivs {\n";
     for (auto s : elements)
     {
@@ -151,7 +149,16 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
       file << "    " << s << " = " << hubbard_deriv << "\n";
     }
     file << "  }\n";
+		file << "  HCorrection = Damping {\n";
+		file << "    Exponent = " << get_zeta() << "\n";
+		file << "  }\n";
   }
+	if (Config::get().energy.dftb.fermi_temp > 0)  
+	{
+		file << "  Filling = Fermi {\n";
+		file << "    Temperature [K] = " << Config::get().energy.dftb.fermi_temp << "\n";
+		file << "  }\n";
+	}
   file << "}\n\n";
 
   // which information will be saved after calculation?
@@ -169,7 +176,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
 
   // parser version (recommended so it is possible to use newer DFTB+ versions without adapting inputfile)
   file << "ParserOptions {\n";
-  file << "  ParserVersion = 5\n";
+  file << "  ParserVersion = 6\n";
   file << "}";
 }
 
