@@ -98,16 +98,23 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
 
     comf.open(masscenters);
     comf >> numbermon;
-    //comf.ignore(256, '\n');//ignore all till newline | linux doesn't like
+    //comf.ignore(256, '\n');//ignore all till newline 
 
     coords::Cartesian_Point tmp;
     int unnecessaryindex;
-    comf >> unnecessaryindex;//to skip blankline, hopfully linux will accept this
+    std::string line;
+
     //read centers of mass
     while (!comf.eof())
     {
-      comf >> unnecessaryindex >> tmp;
-      com.push_back(tmp);
+      std::getline(comf, line);
+      std::istringstream iss(line);
+    
+      if (line.size() != 0)
+      {
+        iss >> unnecessaryindex >> tmp;
+        com.push_back(tmp);
+      }
     }
 
     //check if the number of masscenters matches the expected value
@@ -125,7 +132,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
     exciD::Couplings tmpE;
     std::vector<exciD::Couplings> excCoup;
     double avgCoup;
-    std::string line;
 
     //read monomer indices of dimers and corresponding exciton-coupling and save in vector of couplings
     while (!coupf.eof())
