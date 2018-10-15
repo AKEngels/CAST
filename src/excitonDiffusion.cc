@@ -342,7 +342,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
 
           if (excPos.state == 'e')//Exciton state
           {
-
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
               if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)
@@ -435,6 +434,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
             std::cout << "Successful run." << '\n';
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();
+            excPos.state = 'e';
             break;
           }//state s
           else if (excPos.state == 't')//termination state
@@ -442,6 +442,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
             std::cout << "Broken." << '\n';
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();
+            excPos.state = 'e';
             break;
           }// state t
           else
