@@ -98,11 +98,11 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
 
     comf.open(masscenters);
     comf >> numbermon;
-    comf.ignore(256, '\n');//ignore all till newline
+    //comf.ignore(256, '\n');//ignore all till newline | linux doesn't like
 
     coords::Cartesian_Point tmp;
     int unnecessaryindex;
-
+    comf >> unnecessaryindex;//to skip blankline, hopfully linux will accept this
     //read centers of mass
     while (!comf.eof())
     {
@@ -111,6 +111,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, double pscnum
     }
 
     //check if the number of masscenters matches the expected value
+      std::cout << numbermon << " " << com.size() << '\n';    
     if (numbermon != com.size())
     {
       throw std::logic_error("Unclear number of centers of mass.");
