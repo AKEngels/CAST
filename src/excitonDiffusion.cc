@@ -415,6 +415,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
           else if (excPos.state == 'c')//charge separated state
           {
+            if (nscnumber == 0)//if only pSC are availeable
+            {
+              std::cout << "Only Exciton movement in p-type semiconductor possible, due to lack of n-type semiconductors.";
+              excPos.state = 's';
+              break;
+            }
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
               if (excCoup[excPos.location].monA < pscnumber || excCoup[excPos.location].monB < pscnumber)
