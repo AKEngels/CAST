@@ -95,7 +95,7 @@ namespace energy
         double read_output(int t);
 
         /**total energy*/
-		double energy;
+		    double energy;
 
         /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;

@@ -5,11 +5,14 @@ energy::interfaces::dftb::sysCallInterface::sysCallInterface(coords::Coordinates
 {
   if (Config::get().energy.dftb.opt > 0) optimizer = true;
   else optimizer = false;
+	charge = Config::get().energy.dftb.charge;
 }
 
 energy::interfaces::dftb::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
   interface_base(cobj), energy(rhs.energy)
 {
+	optimizer = rhs.optimizer;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
@@ -113,7 +116,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "  SCC = Yes\n";
   file << "  SCCTolerance = " << std::scientific << Config::get().energy.dftb.scctol << "\n";
   file << "  MaxSCCIterations = " << Config::get().energy.dftb.max_steps << "\n";
-  file << "  Charge = " << Config::get().energy.dftb.charge << "\n";
+  file << "  Charge = " << charge << "\n";
   file << "  SlaterKosterFiles = Type2FileNames {\n";
   file << "    Prefix = '" << Config::get().energy.dftb.sk_files << "'\n";
   file << "    Separator = '-'\n";

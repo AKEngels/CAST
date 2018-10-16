@@ -89,7 +89,6 @@ void energy::interfaces::psi4::sysCallInterface::write_head(std::ostream& os) co
 
 void energy::interfaces::psi4::sysCallInterface::write_molecule(std::ostream& os) const{
   auto const& spin = Config::get().energy.psi4.spin;
-  auto const& charge = Config::get().energy.psi4.charge;
   os << "molecule mol{\n"
     "  " << charge << " " << spin << "\n"
     << coords::output::formats::xyz(*coords);

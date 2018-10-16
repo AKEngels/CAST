@@ -19,6 +19,9 @@ energy::interfaces::three_layer::THREE_LAYER::THREE_LAYER(coords::Coordinates *c
 	mmc_big(qmmm_helpers::make_small_coords(cp, range(cp->size()), range(cp->size()), Config::get().energy.qmmm.mminterface)),
   qm_energy(0.0), se_energy_small(0.0), se_energy_middle(0.0), mm_energy_middle(0.0), mm_energy_big(0.0)
 {
+	sec_small.energyinterface()->charge = qmc.energyinterface()->charge;          // set correct charges for small and intermediate system
+	mmc_middle.energyinterface()->charge = sec_middle.energyinterface()->charge;
+
 	if ((Config::get().energy.qmmm.qminterface != config::interface_types::T::OPLSAA && Config::get().energy.qmmm.qminterface != config::interface_types::T::AMBER &&
 		Config::get().energy.qmmm.qminterface != config::interface_types::T::DFTB && Config::get().energy.qmmm.qminterface != config::interface_types::T::GAUSSIAN
     && Config::get().energy.qmmm.qminterface != config::interface_types::T::PSI4 && Config::get().energy.qmmm.qminterface != config::interface_types::T::MOPAC)

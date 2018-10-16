@@ -36,6 +36,17 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
+
+	// calculate total charge
+	try
+	{
+		auto c = charges();        // partial charges
+		double charge_tmp{ 0.0 };  // partial charges are not integers
+		for (auto chg : c) charge_tmp += chg;
+		charge = charge_tmp;       // round to int
+	}
+	catch (...) { charge = 0; }  // in case of doubt: set total charge to zero
+	
 }
 
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
