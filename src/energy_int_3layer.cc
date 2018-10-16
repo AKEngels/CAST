@@ -300,7 +300,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
 
-	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, id, "big");
+	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
 
 	// ############### MM ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 
@@ -449,7 +449,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ################ SAVE OUTPUT FOR INTERMEDIATE SE SYSTEM ########################################################
 
-	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.seinterface, id, "intermediate");
+	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.seinterface, sec_middle.energyinterface()->id, "intermediate");
 
 	// ############### SE ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
 

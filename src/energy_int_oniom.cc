@@ -256,7 +256,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
 
 	// ################ SAVE OUTPUT FOR BIG MM SYSTEM ########################################################
 
-	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, id, "big");
+	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.mminterface, mmc_big.energyinterface()->id, "big");
 
   // ############### MM ENERGY AND GRADIENTS FOR SMALL MM SYSTEM ######################
 
