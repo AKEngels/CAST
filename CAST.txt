@@ -162,8 +162,8 @@ QMMMsmall_charges     1
 
 ######################### MOPAC OPTIONS ###############
 
-# Keywords for MOPAC Call
-MOPACkey               PM7
+# Keywords for MOPAC Call (!!!never forget QMMM AUX in QM/MM calculations!!!)
+MOPACkey               PM7 QMMM AUX
 
 # Delete temporary MOPAC comm files?
 MOPACdelete            1

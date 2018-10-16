@@ -235,3 +235,38 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 			}
 		}
 	}
+
+	void qmmm_helpers::save_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname)
+	{
+		if (interface == config::interface_types::T::DFTB && Config::get().energy.dftb.verbosity > 0)
+		{
+			if (file_exists("dftb_in.hsd")) rename("dftb_in.hsd", ("dftb_in_"+systemname+".hsd").c_str());
+			if (file_exists("output_dftb.txt")) rename("output_dftb.txt", ("output_dftb_"+systemname+".txt").c_str());
+			if (file_exists("charges.dat")) rename("charges.dat", ("charges_"+systemname+".dat").c_str());
+			if (file_exists("results.tag")) rename("results.tag", ("results_"+systemname+".tag").c_str());
+		}
+		if (interface == config::interface_types::T::MOPAC && Config::get().energy.mopac.delete_input == false)
+		{
+			if (file_exists(id + ".xyz")) rename((id + ".xyz").c_str(), (id + "_"+systemname+".xyz").c_str());
+			if (file_exists(id + ".out")) rename((id + ".out").c_str(), (id + "_"+systemname+".out").c_str());
+			if (file_exists(id + ".arc")) rename((id + ".arc").c_str(), (id + "_"+systemname+".arc").c_str());
+			if (file_exists(id + "_sys.out")) rename((id + "_sys.out").c_str(), (id + "_"+systemname+"_sys.out").c_str());
+			if (file_exists(id + ".xyz.out")) rename((id + ".xyz.out").c_str(), (id + "_"+systemname+".xyz.out").c_str());
+			if (file_exists(id + ".xyz.aux")) rename((id + ".xyz.aux").c_str(), (id + "_"+systemname+".xyz.aux").c_str());
+			if (file_exists("mol.in")) rename("mol.in", ("mol_"+systemname+".in").c_str());
+		}
+		if (interface == config::interface_types::T::GAUSSIAN && Config::get().energy.gaussian.delete_input == false)
+		{
+			if (file_exists(id + ".gjf")) rename((id + ".gjf").c_str(), (id + "_"+systemname+".gjf").c_str());
+			if (file_exists(id + ".log")) rename((id + ".log").c_str(), (id + "_"+systemname+".log").c_str());
+			if (file_exists(id + "_G_.gjf")) rename((id + "_G_.gjf").c_str(), (id + "_G_"+systemname+".gjf").c_str());
+			if (file_exists(id + "_G_.log")) rename((id + "_G_.log").c_str(), (id + "_G_"+systemname+".log").c_str());
+		}
+		if (interface == config::interface_types::T::PSI4)
+		{
+			if (file_exists(id + "_inp.dat")) rename((id + "_inp.dat").c_str(), (id + "_"+systemname+"_inp.dat").c_str());
+			if (file_exists(id + "_out.dat")) rename((id + "_out.dat").c_str(), (id + "_"+systemname+"_out.dat").c_str());
+			if (file_exists("grid.dat")) rename("grid.dat", ("grid_"+systemname+".dat").c_str());
+			if (file_exists("grid_field.dat")) rename("grid_field.dat", ("grid_field_"+systemname+".dat").c_str());
+		}
+	}
