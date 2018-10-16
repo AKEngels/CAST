@@ -36,12 +36,6 @@ energy::interfaces::aco::aco_ff::aco_ff (coords::Coordinates *cobj)
   }
   cparams = tp.contract(types);
   refined.refine(*cobj, cparams);
-
-	// calculate total charge
-	auto c = charges();        // partial charges
-	double charge_tmp{ 0.0 };  // partial charges are not integers
-	for (auto chg : c) charge_tmp += chg;
-	charge = charge_tmp;       // round to int
 }
 
 energy::interfaces::aco::aco_ff::aco_ff (aco_ff const & rhs, 

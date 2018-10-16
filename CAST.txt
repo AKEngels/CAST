@@ -173,6 +173,9 @@ MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
 
+# total charge of system (not used for calculation, only for QM/MM)
+MOPACcharge            0
+
 
 ############################ GAUSSIAN OPTIONS ########################
 
@@ -237,7 +240,7 @@ DFTB+scctol       0.00001
 DFTB+max_steps_scc   1000
 
 # total charge of the system
-DFTB+charge      0.0
+DFTB+charge      0
 
 # use DFTB3 <0/1>
 DFTB+3           0
