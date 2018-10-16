@@ -72,7 +72,7 @@ coords::Cartesian_Point exciD::min(std::vector<exciD::Couplings> coords)
   return min;
 }
 
-void exciD::dimexc(std::string masscenters, std::string couplings, double pscnumber, double nscnumber) {
+void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber, int nscnumber) {
   try {
 
     double reorganisationsenergie_exciton = Config::get().exbreak.ReorgE_exc;//noch extra variablen in config.h und config.cc einfügen
