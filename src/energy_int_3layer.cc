@@ -430,21 +430,6 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 		integrity = false;  // if QM programme fails: integrity is destroyed
 	}
 
-	// // ############### ONLY AMBER: PREPARATION OF CHARGES FOR SMALL SYSTEM ################
-
-	//// temporarily: only QM charges and those of link atoms in amber_charges
-	//std::vector<double> old_amber_charges;
-	//if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)
-	//{
-	//	old_amber_charges = Config::get().coords.amber_charges;                       // save old amber_charges
-	//	qmmm_helpers::select_from_ambercharges(qm_indices);                           // only QM charges in amber_charges
-	//	for (auto i = 0u; i < link_atoms.size(); ++i)                                   // add charges of link atoms
-	//	{
-	//		double la_charge = qmc.energyinterface()->charges()[qm_indices.size() + i]; // get charge
-	//		Config::set().coords.amber_charges.push_back(la_charge*18.2223);            // convert it to AMBER units and add it to vector
-	//	}
-	//}
-
 	// ################ SAVE OUTPUT FOR INTERMEDIATE SE SYSTEM ########################################################
 
 	qmmm_helpers::save_outputfiles(Config::get().energy.qmmm.seinterface, sec_middle.energyinterface()->id, "intermediate");
