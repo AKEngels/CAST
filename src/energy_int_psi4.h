@@ -21,11 +21,13 @@ namespace energy{
         {
 					id = create_random_file_name(Config::get().general.outputFilename);
           optimizer = true;
+					charge = std::stoi(Config::get().energy.psi4.charge);
         }
         sysCallInterface(sysCallInterface const& other, coords::Coordinates* coord)
           : interface_base(coord)
         {
-					id = create_random_file_name(Config::get().general.outputFilename);
+					id = other.id;
+					charge = other.charge;
           interface_base::operator=(other);
           optimizer = true;
         }

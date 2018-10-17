@@ -162,8 +162,8 @@ QMMMsmall_charges     1
 
 ######################### MOPAC OPTIONS ###############
 
-# Keywords for MOPAC Call
-MOPACkey               PM7
+# Keywords for MOPAC Call (!!!never forget QMMM AUX in QM/MM calculations!!!)
+MOPACkey               PM7 QMMM AUX
 
 # Delete temporary MOPAC comm files?
 MOPACdelete            1
@@ -172,6 +172,9 @@ MOPACdelete            1
 MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
+
+# total charge of system (not used for calculation, only for QM/MM)
+MOPACcharge            0
 
 
 ############################ GAUSSIAN OPTIONS ########################
@@ -237,7 +240,7 @@ DFTB+scctol       0.00001
 DFTB+max_steps_scc   1000
 
 # total charge of the system
-DFTB+charge      0.0
+DFTB+charge      0
 
 # use DFTB3 <0/1>
 DFTB+3           0

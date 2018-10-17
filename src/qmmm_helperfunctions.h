@@ -133,6 +133,12 @@ namespace qmmm_helpers
 	@param coords: pointer to original coordobject*/
 	void add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges, 
 		std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
+
+	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten
+	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, GAUSSIAN or PSI4)
+	@param id: id from which filesnames in that interface are created (should be member of energy interface)
+	@param systemname: string which is inserted in filenames*/
+	void save_outputfiles(config::interface_types::T const &interface, std::string const &id, std::string const &systemname);
 }
 
 #endif

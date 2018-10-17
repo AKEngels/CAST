@@ -675,24 +675,26 @@ void config::parse_option(std::string const option, std::string const value_stri
   // MOPAC options
   else if (option.substr(0, 5) == "MOPAC")
   {
-	  if (option.substr(5, 3) == "key")
-		  Config::set().energy.mopac.command = value_string;
-    else if (option.substr(5, 4) == "link")
-      Config::set().energy.gaussian.link = value_string;
-    else if (option.substr(5, 4) == "path")
-      Config::set().energy.mopac.path = value_string;
-    else if (option.substr(5, 6) == "delete")
-      Config::set().energy.mopac.delete_input = bool_from_iss(cv);
-    else if (option.substr(5, 7) == "version")
-    {
-      // Matching the "value string"
-      // to the enum config::mopac_ver_type
-      Config::set().energy.mopac.version =
-        enum_type_from_string_arr<
-        config::mopac_ver_type::T,
-        config::NUM_MOPAC_VERSION
-        >(value_string, config::mopac_ver_string);
-    }
+		if (option.substr(5, 3) == "key")
+			Config::set().energy.mopac.command = value_string;
+		else if (option.substr(5, 4) == "link")
+			Config::set().energy.gaussian.link = value_string;
+		else if (option.substr(5, 4) == "path")
+			Config::set().energy.mopac.path = value_string;
+		else if (option.substr(5, 6) == "delete")
+			Config::set().energy.mopac.delete_input = bool_from_iss(cv);
+		else if (option.substr(5, 7) == "version")
+		{
+			// Matching the "value string"
+			// to the enum config::mopac_ver_type
+			Config::set().energy.mopac.version =
+				enum_type_from_string_arr<
+				config::mopac_ver_type::T,
+				config::NUM_MOPAC_VERSION
+				>(value_string, config::mopac_ver_string);
+		}
+		else if (option.substr(5, 6) == "charge")
+			Config::set().energy.mopac.charge = std::stoi(value_string);
   }
 
   //DFTBaby options
@@ -724,7 +726,7 @@ void config::parse_option(std::string const option, std::string const value_stri
          Config::set().energy.dftbaby.diag_conv = value_string;
     else if (option.substr(7,12) == "diag_maxiter")
         Config::set().energy.dftbaby.diag_maxiter = std::stoi(value_string);
-    else if (option.substr(7,12) == "charge")
+    else if (option.substr(7,6) == "charge")
         Config::set().energy.dftbaby.charge = std::stoi(value_string);
     else if (option.substr(7,7) == "lr_corr")
     {
@@ -756,7 +758,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.dftb.max_steps = std::stoi(value_string);
     }
     else if (option.substr(5, 6) == "charge"){
-      Config::set().energy.dftb.charge = std::stod(value_string);
+      Config::set().energy.dftb.charge = std::stoi(value_string);
     }
     else if (option.substr(5, 1) == "3"){
       if (value_string == "1") Config::set().energy.dftb.dftb3 = true;

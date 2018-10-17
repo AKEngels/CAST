@@ -438,9 +438,9 @@ namespace coords
       return dimermethod_dihedral(std::vector<coords::Gradients_Main>());
     }
     /**returns the energy interface*/
-    energy::interface_base const * energyinterface() const { return m_interface; }
+    energy::interface_base * energyinterface() const { return m_interface; }
     /**returns the energy preinterface*/
-    energy::interface_base const * preinterface() const { return m_preinterface; }
+    energy::interface_base * preinterface() const { return m_preinterface; }
 
     /**determines if structure is intact,
     i.e. bond lengths do not differ from ideal bond length by more than 5 angstrom,

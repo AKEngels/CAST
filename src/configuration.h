@@ -589,6 +589,8 @@ namespace config
       mopac_ver_type::T version;
       /**should MOPAC input be deleted after run?*/
       bool delete_input;
+			/**charge of total system (not used for calculation, only for QM/MM)*/
+			int charge;
       mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
         path(MOPAC_EXEC_PATH)
@@ -661,7 +663,7 @@ namespace config
       /**maximum number of steps for SCC procedure*/
       int max_steps;
       /**total charge of the system*/
-      double charge;
+      int charge;
       /**use DFTB3 ?*/
       bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/

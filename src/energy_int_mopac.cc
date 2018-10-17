@@ -36,6 +36,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
+	charge = Config::get().energy.mopac.charge;
 }
 
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -44,6 +45,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface c
   e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
 	id = rhs.id;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
