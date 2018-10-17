@@ -411,7 +411,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 break;
               }
             }
-          }//state e
+          }//state e end
 
           else if (excPos.state == 'c')//charge separated state
           {
@@ -434,7 +434,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();
             break;
-          }// state c
+          }// state c end
           else if (excPos.state == 's')//separated state
           {
             std::cout << "Successful run." << '\n';
@@ -442,7 +442,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             partnerConnections.clear();
             excPos.state = 'e';
             break;
-          }//state s
+          }//state s end
           else if (excPos.state == 't')//termination state
           {
             std::cout << "Broken." << '\n';
@@ -450,7 +450,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             partnerConnections.clear();
             excPos.state = 'e';
             break;
-          }// state t
+          }// state t end
           else
           {
             throw std::logic_error("Something somewhere went terribly wrong and the simulation ended up in an unknown state.");
@@ -467,6 +467,11 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
         std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << '\n';
       }//100 try loop j
     }//loop over startingpoints i
+    for (std::size_t i = 0u; i < startPind.size(); i++)
+    {
+      std::cout << "Radiating decays for Starting point " << i << ": " << radiating[i] << "." << '\n';
+      std::cout << "Trappings for Starting point " << i << ": " << trapped[i] << "." << '\n';
+    }
   }//try
 
   catch (std::exception & e)
