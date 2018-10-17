@@ -194,6 +194,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
   if (in_file)
   {
     std::string buffer;
+    bool normalGaussianTermination = false;
     while (!in_file.eof())
     {
 
@@ -400,7 +401,17 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
       }
 
+      if (buffer.find("Normal termination of Gaussian") != std::string::npos)
+      {
+        normalGaussianTermination = true;
+      }
+
     }//end while(!in_file.eof())
+
+    if (normalGaussianTermination == false)
+    {
+      throw std::runtime_error("Gaussian calculation did not terminate normally.");
+    }
 
 	  if (qmmm)
 	  {
