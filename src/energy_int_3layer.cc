@@ -230,10 +230,13 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
   std::vector<int> charge_indices;  // indizes of all atoms that are in charge_vector
   charge_indices.clear();
 
-	auto mmc_big_charges = mmc_big.energyinterface()->charges();
-	auto all_indices = range(coords->size());
-	qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
-
+  if (Config::get().energy.qmmm.zerocharge_bonds != 0)
+  {
+    auto mmc_big_charges = mmc_big.energyinterface()->charges();
+    auto all_indices = range(coords->size());
+    qmmm_helpers::add_external_charges(qm_se_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_middle, charge_indices, coords);
+  }
+	
 	// ############### SE ENERGY AND GRADIENTS FOR MIDDLE SYSTEM ######################
 	try {
 		if (!if_gradient)
@@ -349,7 +352,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   // ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH MIDDLE REGION ###
 
-  if (if_gradient && integrity == true)
+  if (if_gradient && integrity == true && Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
 		auto sec_middle_g_ext_charges = sec_middle.energyinterface()->get_g_ext_chg();
     auto mmc_middle_g_ext_charges = mmc_middle.energyinterface()->get_g_ext_chg();
@@ -366,22 +369,25 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
   Config::set().coords.amber_charges = old_amber_charges;  // set AMBER charges back to total AMBER charges
 
-  if (Config::get().energy.qmmm.emb_small == 0)   // if EEx: no external charges for small system
+  if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
-    Config::set().energy.qmmm.mm_charges.clear();
-  }
-	
-	else if (Config::get().energy.qmmm.emb_small == 2)  // external charges from SE and MM atoms
-	{
-		Config::set().energy.qmmm.mm_charges.clear();
-		charge_indices.clear();
+    if (Config::get().energy.qmmm.emb_small == 0)   // if EEx: no external charges for small system
+    {
+      Config::set().energy.qmmm.mm_charges.clear();
+    }
 
-		auto sec_middle_charges = sec_middle.energyinterface()->charges();
-		auto mmc_big_charges = mmc_big.energyinterface()->charges();
-		auto all_indices = range(coords->size());
-		qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords);   // add charges from SE atoms
-		qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
-	}
+    else if (Config::get().energy.qmmm.emb_small == 2)  // external charges from SE and MM atoms
+    {
+      Config::set().energy.qmmm.mm_charges.clear();
+      charge_indices.clear();
+
+      auto sec_middle_charges = sec_middle.energyinterface()->charges();
+      auto mmc_big_charges = mmc_big.energyinterface()->charges();
+      auto all_indices = range(coords->size());
+      qmmm_helpers::add_external_charges(qm_indices, qm_indices, sec_middle_charges, qm_se_indices, link_atoms_small, charge_indices, coords);   // add charges from SE atoms
+      qmmm_helpers::add_external_charges(qm_indices, qm_se_indices, mmc_big_charges, all_indices, link_atoms_small, charge_indices, coords);     // add charges from MM atoms
+    }
+  }
 
 	// ############### QM ENERGY AND GRADIENTS FOR SMALL SYSTEM ######################
 	try {
@@ -483,7 +489,7 @@ coords::float_type energy::interfaces::three_layer::THREE_LAYER::qmmm_calc(bool 
 
 	// ############### GRADIENTS ON MM ATOMS DUE TO COULOMB INTERACTION WITH SMALL REGION ###
 
-	if (Config::get().energy.qmmm.emb_small != 0 && if_gradient && integrity == true)
+	if (Config::get().energy.qmmm.emb_small != 0 && if_gradient && integrity == true && Config::get().energy.qmmm.zerocharge_bonds != 0)
 	{
 		auto qmc_g_ext_charges = qmc.energyinterface()->get_g_ext_chg();
 		auto sec_small_g_ext_charges = sec_small.energyinterface()->get_g_ext_chg();
