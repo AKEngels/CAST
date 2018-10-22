@@ -349,7 +349,7 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
   
   // ############ UPDATE STUFF ##############################
 
-  update_representation(); // update positions of QM and MM subsystem to those of coordinates object
+  update_representation();  // update positions of QM and MM subsystem to those of coordinates object
   for (auto &l : link_atoms) l.calc_position(coords); // update positions of link atoms
 
 	// ############### CREATE MM CHARGES ######################
