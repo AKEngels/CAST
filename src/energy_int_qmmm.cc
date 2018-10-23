@@ -667,8 +667,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (if_gradient == true)   // calculate gradient
             {
               current_coul_grad = -current_coul_energy / d;     
-              c_gradient[i] -= current_coul_grad;
-              c_gradient[j] += current_coul_grad;
+              c_gradient[i] += current_coul_grad;
+              c_gradient[j] -= current_coul_grad;
             }
           }
           j2++;
