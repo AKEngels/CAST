@@ -50,8 +50,8 @@ energy::interfaces::qmmm::QMMM::QMMM(QMMM&& rhs, coords::Coordinates *cobj)
   link_atoms(std::move(rhs.link_atoms)),
   qmc(std::move(rhs.qmc)), mmc(std::move(rhs.mmc)),
   qm_energy(std::move(rhs.qm_energy)), mm_energy(std::move(rhs.mm_energy)), vdw_energy(std::move(rhs.vdw_energy)),
-  coulomb_energy(std::move(rhs.coulomb_energy)),
-  bonded_energy(std::move(rhs.bonded_energy)), c_gradient(std::move(rhs.c_gradient)), 
+  bonded_energy(std::move(rhs.bonded_energy)), coulomb_energy(std::move(rhs.coulomb_energy)),
+  c_gradient(std::move(rhs.c_gradient)), 
   vdw_gradient(std::move(rhs.vdw_gradient)), bonded_gradient(std::move(rhs.bonded_gradient))
 {
   interface_base::operator=(rhs);
@@ -667,8 +667,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
             if (if_gradient == true)   // calculate gradient
             {
               current_coul_grad = -current_coul_energy / d;     
-              c_gradient[i] += current_coul_grad;
-              c_gradient[j] -= current_coul_grad;
+              c_gradient[i] -= current_coul_grad;
+              c_gradient[j] += current_coul_grad;
             }
           }
           j2++;

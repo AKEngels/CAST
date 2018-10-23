@@ -125,7 +125,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
-				if (Config::get().energy.qmmm.use) out_file << " Prop=(Field,Read) Density";
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
