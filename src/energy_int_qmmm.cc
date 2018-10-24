@@ -355,8 +355,11 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
 
 	// ############### CREATE MM CHARGES ######################
 
-  total_amber_charges = Config::get().coords.amber_charges;  // save all amber charges (for mechanical embedding)
-	if (Config::get().coords.amber_charges.size() > mm_indices.size()) qmmm_helpers::select_from_ambercharges(mm_indices);
+	if (Config::get().coords.amber_charges.size() > mm_indices.size())
+	{
+		total_amber_charges = Config::get().coords.amber_charges;  // save all amber charges (for mechanical embedding)
+		qmmm_helpers::select_from_ambercharges(mm_indices);
+	}
 
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
