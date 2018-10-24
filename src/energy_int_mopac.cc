@@ -183,6 +183,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
     {
       out_file << Config::get().energy.mopac.command;
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM AUX ";
       out_file << (opt ?  " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
     }
@@ -195,6 +196,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         std::string str_t1, str_t2;
         str_t1 = Config::get().energy.mopac.command.substr(0, found + 1);
         str_t2 = Config::get().energy.mopac.command.substr(found + 1);
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM AUX ";
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
         out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
@@ -202,6 +204,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
       else
       {
         out_file << Config::get().energy.mopac.command;
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM AUX ";
         out_file << (opt ? (coords->size() > 250 ? " EF" : " EF") : " 1SCF");
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
       }
@@ -209,7 +212,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     else                                                                       // "normal" MOPAC, e.g. version 2016
     {
       out_file << Config::get().energy.mopac.command;
-			if (Config::get().energy.qmmm.use) out_file << " QMMM AUX ";
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM AUX ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
     }
