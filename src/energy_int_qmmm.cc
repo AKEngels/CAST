@@ -407,11 +407,6 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
       auto g_qm = qmc.g_xyz(); // QM
       auto g_mm = mmc.g_xyz(); // MM
 
-      for (auto&& qmi : qm_indices)
-      {
-        new_grad[qmi] += g_qm[new_indices_qm[qmi]];
-      }
-
       // calculate gradients from link atoms
       for (auto j=0u; j<link_atoms.size(); j++)
       {
@@ -431,10 +426,15 @@ coords::float_type energy::interfaces::qmmm::QMMM::qmmm_calc(bool if_gradient)
         }
       }
 
-      for (auto && mmi : mm_indices)
-      {
-        new_grad[mmi] += g_mm[new_indices_mm[mmi]];
-      }
+      // get gradients from pure QM and MM system
+			for (auto&& qmi : qm_indices)
+			{
+				new_grad[qmi] += g_qm[new_indices_qm[qmi]];
+			}
+			for (auto && mmi : mm_indices)
+			{
+				new_grad[mmi] += g_mm[new_indices_mm[mmi]];
+			}
       coords->swap_g_xyz(new_grad);
     }
     else  // only energy
