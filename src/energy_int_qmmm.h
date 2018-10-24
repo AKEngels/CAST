@@ -435,7 +435,7 @@ namespace energy
         for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
         std::vector<coords::Cartesian_Point> g_coul_mm;
 
-				/**total amber charges (only used for mechanical embedding)*/
+				/**total amber charges in amber units, i.e. they must be divided by 18.2223 (only used for mechanical embedding)*/
 				std::vector<double> total_amber_charges;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/

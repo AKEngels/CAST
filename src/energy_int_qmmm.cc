@@ -630,7 +630,7 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       {
         if (Config::get().general.input == config::input_types::AMBER || Config::get().general.chargefile)  // amber charges
         {
-          qm_charge = total_amber_charges[i];
+          qm_charge = total_amber_charges[i] / 18.2223;
         }
         else   // normally (i.e. OPLSAA)
         {
