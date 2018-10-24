@@ -162,7 +162,7 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 
 void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const grad, bool const hess, bool const opt)
 {
-	if (Config::get().energy.qmmm.use) write_mol_in();
+	if (Config::get().energy.qmmm.mm_charges.size() != 0) write_mol_in();
 
   std::string outstring(id);
   outstring.append(".xyz");
@@ -206,9 +206,10 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
       }
     }
-    else
+    else                                                                       // "normal" MOPAC, e.g. version 2016
     {
       out_file << Config::get().energy.mopac.command;
+			if (Config::get().energy.qmmm.use) out_file << " QMMM AUX ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
     }
