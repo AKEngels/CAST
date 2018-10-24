@@ -515,13 +515,18 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
 
   if (integrity == true)
   {
-    c_gradient.assign(coords->size(), coords::r3{});
-    vdw_gradient.assign(coords->size(), coords::r3{});
+    //########## reset vdw gradients and energies #################################
 
-    std::size_t i2 = 0u;
-    vdw_energy = 0;
+    c_gradient.assign(coords->size(), coords::r3{});     
+    vdw_gradient.assign(coords->size(), coords::r3{});
+    vdw_energy = 0.0;
+		coulomb_energy = 0.0;
+
+		// ########## calculate vdw interactions ##########################################
+
     auto vdw_params = cparams.vdws();  // get vdw parameters
 
+		std::size_t i2 = 0u;
     for (auto i : qm_indices)  // for every QM atom
     {
       auto z = qmc.atoms(i2).energy_type();  // get atom type
@@ -610,6 +615,8 @@ void energy::interfaces::qmmm::QMMM::ww_calc(bool if_gradient)
       }
       ++i2;
     }
+
+		// ########## calculate coulomb interactions ##########################################
 
     if (if_gradient == true && Config::get().energy.qmmm.zerocharge_bonds != 0)  // electrostatic embedding -> coulomb gradients on MM atoms
     {
