@@ -24,3 +24,6 @@ On using the git repositry:
 - The master branch should be the current "nightly" build and should always compile.
 - Use issues and also resolve some issues if you have time. :)
 - Don't hesitate to comment on commits or issues if you have questions or suggestions
+
+**Attention!**
+Tests do not work if there is a CAST inputfile in the folder where you run the tests!
