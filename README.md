@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.com/AKEngels/CAST.svg?branch=devel)](https://travis-ci.com/AKEngels/CAST) (for branch devel)
+[![Build Status](https://travis-ci.com/AKEngels/CAST.svg?branch=devel)](https://travis-ci.com/AKEngels/CAST) 
+[![Coverage Status](https://coveralls.io/repos/github/AKEngels/CAST/badge.svg?branch=devel)](https://coveralls.io/github/AKEngels/CAST?branch=devel) (for branch devel)
 
 # CAST (Conformational Analysis and Search Tool)
 This is the official repository for the
