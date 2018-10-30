@@ -23,6 +23,7 @@ install:
 after_success:
   - cd ..
   - cd ..
-  - coveralls --include src/
+  - gcov optional_files/project/obj/x64/Testing/*
+  - coveralls --no-gcov --include src/
 notifications:
   email: false
