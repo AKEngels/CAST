@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.com/AKEngels/CAST.svg?branch=devel)](https://travis-ci.com/AKEngels/CAST) (for branch devel)
+[![Build Status](https://travis-ci.com/AKEngels/CAST.svg?branch=devel)](https://travis-ci.com/AKEngels/CAST) 
+[![Coverage Status](https://coveralls.io/repos/github/AKEngels/CAST/badge.svg?branch=devel)](https://coveralls.io/github/AKEngels/CAST?branch=devel) (for branch devel)
 
 # CAST (Conformational Analysis and Search Tool)
 This is the official repository for the
@@ -24,3 +25,6 @@ On using the git repositry:
 - The master branch should be the current "nightly" build and should always compile.
 - Use issues and also resolve some issues if you have time. :)
 - Don't hesitate to comment on commits or issues if you have questions or suggestions
+
+**Attention!**
+Tests do not work if there is a CAST inputfile in the folder where you run the tests!
