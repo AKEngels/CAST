@@ -18,6 +18,6 @@ install:
 after_success:
   - cd ..
   - cd ..
-  - coveralls --include src/ --verbose
+  - coveralls --include src/
 notifications:
   email: false
