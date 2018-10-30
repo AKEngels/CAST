@@ -13,7 +13,7 @@ optional_files/premake5.exe
 optional_files/build/*
 optional_files/project/*
 !optional_files/project/Makefile
-!optional_files/project/libs//GoogleTest/Makefile
+!optional_files/project/libs/GoogleTest/Makefile
 !optional_files/project/CAST.make
 !optional_files/build/test_files
 !optional_files/build/python_modules
