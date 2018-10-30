@@ -115,8 +115,12 @@ workspace "CAST"
 
 		filter {"Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_testing"
+                        buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+                        linkoptions { "-fprofile-arcs" }
 		filter {"Testing", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_testing"
+                        buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+                        linkoptions { "-fprofile-arcs" }
 		filter {"Armadillo_Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_armadillo_testing"
 		filter {"Armadillo_Testing", "platforms:x64", "action:gmake" }
