@@ -2,6 +2,9 @@ language: cpp
 compiler: gcc
 dist: trusty
 script: 
+  - gcc --version
+  - g++ --version
+  - gcov --version
   - cd optional_files
   - cd project
   - make config=testing_x64
