@@ -1,10 +1,6 @@
 language: cpp
 compiler: gcc
 script: 
-  - gcc --version
-  - g++ --version
-  - gcov --version
-  - lcov --version
   - cd optional_files
   - cd project
   - make config=testing_x64
