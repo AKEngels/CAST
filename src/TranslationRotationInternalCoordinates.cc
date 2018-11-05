@@ -20,9 +20,10 @@ namespace internals {
 
 
   scon::mathmatrix<coords::float_type>& TRIC::Bmat(CartesianType const& cartesians) {
-    if (!new_B_matrix) {
+    //TODO activate it again!!!!!
+    /*if (!new_B_matrix) {
       return B_matrix;
-    }
+    }*/
     B_matrix = del_mat.t()*PrimitiveInternalCoordinates::Bmat(cartesians);
     new_B_matrix = false;
     return B_matrix;
@@ -37,9 +38,10 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type>& TRIC::Gmat(CartesianType const& cartesians) {
-    if (!new_G_matrix) {
+    //TODO activate it again!!!!!
+    /*if (!new_G_matrix) {
       return G_matrix;
-    }
+    }*/
     Bmat(cartesians);
     G_matrix = B_matrix * B_matrix.t();
     new_G_matrix = false;

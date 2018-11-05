@@ -170,6 +170,7 @@ namespace internals {
     scon::mathmatrix<coords::float_type> calculateInternalValues()const{
       return internalCoordinates.calc(cartesianCoordinates);
     }
+    virtual void reset();
   protected:
     PrimitiveInternalCoordinates & internalCoordinates;
     InternalCoordinates::CartesiansForInternalCoordinates & cartesianCoordinates;

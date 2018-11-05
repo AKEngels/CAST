@@ -274,9 +274,10 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Bmat(CartesianType const& cartesians) {
-    if (!new_B_matrix) {
+    //TODO activate it again!!!!!
+    /*if (!new_B_matrix) {
       return B_matrix;
-    }
+    }*/
     using Mat = scon::mathmatrix<coords::float_type>;
 
     auto ders = deriv_vec(cartesians);
@@ -289,6 +290,7 @@ namespace internals {
     }
 
     new_B_matrix = false;
+    //std::cout << "Bmat:\n" << std::fixed << std::setprecision(15) << B_matrix << "\n\n";
     return B_matrix;
   }
 
@@ -311,9 +313,10 @@ namespace internals {
   }
 
   scon::mathmatrix<coords::float_type>& PrimitiveInternalCoordinates::Gmat(CartesianType const& cartesians) {
-    if (!new_G_matrix) {
+    //TODO activate it again!!!!!
+    /*if (!new_G_matrix) {
       return G_matrix;
-    }
+    }*/
     PrimitiveInternalCoordinates::Bmat(cartesians);
     G_matrix = B_matrix * B_matrix.t();
     new_G_matrix = false;
@@ -419,6 +422,11 @@ namespace internals {
     auto thirdCondition = (!bisectionWasUsed && std::fabs(result - rightLimit) >= std::fabs(result - oldMiddle)/2.);
     auto fourthCondition = (bisectionWasUsed && std::fabs(rightLimit - middle) < delta);
     auto fifthCondition = (!bisectionWasUsed && std::fabs(middle-oldMiddle) < delta);
+    std::cout << "Condition 1: " << std::boolalpha << firstCondition << "\n";
+    std::cout << "Condition 2: " << std::boolalpha << secondCondition << "\n";
+    std::cout << "Condition 3: " << std::boolalpha << thirdCondition << "\n";
+    std::cout << "Condition 4: " << std::boolalpha << fourthCondition << "\n";
+    std::cout << "Condition 5: " << std::boolalpha << fifthCondition << "\n";
     return firstCondition || secondCondition || thirdCondition || fourthCondition || fifthCondition;
   }
 
@@ -440,21 +448,29 @@ namespace internals {
     auto epsilon = 0.01 > 1e-2*std::fabs(valueLeft - valueRight) ? 1e-2*std::fabs(valueLeft - valueRight) : 0.01;
 
     for(;;) {
+      std::cout << std::fixed << std::setprecision(15) << valueLeft << "\n";
+      std::cout << std::fixed << std::setprecision(15) << valueRight << "\n";
+      std::cout << std::fixed << std::setprecision(15) << valueMiddle << "\n";
       if (valueLeft != valueMiddle && valueRight != valueMiddle) {
         result = leftLimit * valueRight * valueMiddle / ((valueLeft - valueRight) * (valueLeft - valueMiddle));
         result += rightLimit * valueLeft * valueMiddle / ((valueMiddle - valueLeft) * (valueRight - valueRight));
         result += middle * valueLeft * valueRight / ((valueMiddle - valueLeft) * (valueMiddle - valueRight));
+	std::cout << "Inverse Quadratic interpolation\n";
       }
       else {
         result = rightLimit - valueRight * (rightLimit - leftLimit) / (valueRight - valueLeft);
+	std::cout << "Secant method\n";
       }
+      std::cout << "Before Bisection" << std::fixed << std::setprecision(15) << result << "\n";
       if (useBisection()) {
         result = (leftLimit + rightLimit) / 2.;
         bisectionWasUsed = true;
+	std::cout << "Bisection\n";
       }
       else {
         bisectionWasUsed = false;
       }
+      std::cout << "After Bisection" << std::fixed << std::setprecision(15) << result << "\n";
       auto resultRestrictor = finder.generateStepRestrictor(result);
       auto valueResult = internalToCartesianStep(resultRestrictor);
 
@@ -537,6 +553,11 @@ namespace internals {
     return -1.*hessian.pinv()*gradients;
   }
 
+  void InternalToCartesianConverter::reset(){
+    internalCoordinates.requestNewBAndG();
+    cartesianCoordinates.reset();
+  }
+
   void InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const {
     cartesians.coordinates += ic_util::mat_to_rep3D(std::move(cartesianChange));
     cartesians.stolenNotify();
@@ -545,7 +566,7 @@ namespace internals {
 
   coords::Representation_3D InternalToCartesianConverter::applyInternalChange(scon::mathmatrix<coords::float_type> d_int_left) const {
     using ic_util::flatten_c3_vec;
-
+    //std::cout << "Internal Step:\n" << std::fixed << std::setprecision(15) << d_int_left << "\n\n";
     InternalCoordinates::temporaryCartesian actual_xyz = cartesianCoordinates;
     actual_xyz.stolenNotify();
     InternalCoordinates::temporaryCartesian old_xyz = cartesianCoordinates;;
@@ -554,6 +575,13 @@ namespace internals {
     auto damp{ 1. };
     auto old_inorm{ 0.0 };
     for (; micro_iter < 50; ++micro_iter) {
+      /*std::cout << "Bmat MicroIteration " << micro_iter << "\n\n"
+	<< std::fixed << std::setprecision(15) << internalCoordinates.transposeOfBmat(actual_xyz.coordinates) << "\n\n"
+        << "Gmat inverser MicroIteration " << micro_iter << "\n\n"
+	<< std::fixed << std::setprecision(15) << internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates) << "\n\n";
+      std::cout << "Cartesians in Microiteration " << micro_iter << ":\n\n"
+	      << actual_xyz.coordinates << "\n\n";*/
+
       takeCartesianStep(damp*internalCoordinates.transposeOfBmat(actual_xyz.coordinates)*internalCoordinates.pseudoInverseOfGmat(actual_xyz.coordinates)*d_int_left, actual_xyz);
 
       auto d_now = internalCoordinates.calc_diff(actual_xyz.coordinates, old_xyz.coordinates);

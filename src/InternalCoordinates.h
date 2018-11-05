@@ -46,6 +46,8 @@ namespace InternalCoordinates {
     template<typename T>
     CartesiansForInternalCoordinatesImpl& setCartesianCoordnates(T&& newCartesianCoordinates);
 
+    void reset() { notify(); };
+
   private:
     friend class temporaryCartesian;
     std::vector<std::shared_ptr<AbstractGeometryObserver>> observerList;
