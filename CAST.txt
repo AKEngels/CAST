@@ -173,7 +173,7 @@ MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
 
-# total charge of system (not used for calculation, only for QM/MM)
+# total charge of system
 MOPACcharge            0
 
 

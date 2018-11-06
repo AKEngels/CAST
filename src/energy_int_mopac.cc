@@ -124,7 +124,7 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   return v;
 }
 
-// mol.in schreiben (see http://openmopac.net/manual/QMMM.html)
+// write mol.in (see http://openmopac.net/manual/QMMM.html)
 void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 {
 	auto elec_factor = 332.0;
@@ -186,6 +186,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ?  " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (Config::get().energy.mopac.charge != 0) out_file << " CHARGE=" << Config::get().energy.mopac.charge;
     }
     else if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
@@ -200,6 +201,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
         out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
+				if (Config::get().energy.mopac.charge != 0) out_file << " CHARGE=" << Config::get().energy.mopac.charge;
       }
       else
       {
@@ -207,6 +209,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? " EF" : " EF") : " 1SCF");
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+				if (Config::get().energy.mopac.charge != 0) out_file << " CHARGE=" << Config::get().energy.mopac.charge;
       }
     }
     else                                                                       // "normal" MOPAC, e.g. version 2016
@@ -215,6 +218,7 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
 			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (Config::get().energy.mopac.charge != 0) out_file << " CHARGE=" << Config::get().energy.mopac.charge;
     }
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC2012MT)
     {

@@ -589,18 +589,19 @@ namespace config
       mopac_ver_type::T version;
       /**should MOPAC input be deleted after run?*/
       bool delete_input;
-			/**charge of total system (not used for calculation, only for QM/MM)*/
+			/**charge of total system*/
 			int charge;
-      mopac_conf(void) : command("PM7 MOZYME"),
+			mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
-        path(MOPAC_EXEC_PATH)
+				path(MOPAC_EXEC_PATH)
 #elif defined(_MSC_VER)
-        path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
+				path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
 #else
-        path("/opt/mopac/MOPAC2012.exe"),
+				path("/opt/mopac/MOPAC2012.exe"),
 #endif
-        version(mopac_ver_type::T::MOPAC2012MT),
-        delete_input(true)
+				version(mopac_ver_type::T::MOPAC2012MT),
+				delete_input(true),
+				charge(0)
       {}
     } mopac;
 
