@@ -964,7 +964,7 @@ namespace energy
       @param ri: distance between the two atoms
       @param cout: lambda_el
       @param dQ: reference to variable that saves absolute value of gradient */
-      inline coords::float_type energy::interfaces::aco::aco_ff::gQ_fep
+      coords::float_type energy::interfaces::aco::aco_ff::gQ_fep
       (coords::float_type const C, coords::float_type const ri,
         coords::float_type const c_out, coords::float_type & dQ) const
       {
@@ -1056,7 +1056,7 @@ namespace energy
       @param r: distance between the two atoms
       @param vout: lambda_vdw
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::R_MIN>
         (coords::float_type const E, coords::float_type const R, coords::float_type const r,
           coords::float_type const vout, coords::float_type &dV) const
@@ -1083,7 +1083,7 @@ namespace energy
       @param r: distance between the two atoms
       @param vout: lambda_vdw
       @param dV: reference to variable that saves absolute value of gradient*/
-      template<> inline coords::float_type energy::interfaces::aco::aco_ff::gV_fep
+      template<> coords::float_type energy::interfaces::aco::aco_ff::gV_fep
         < ::tinker::parameter::radius_types::SIGMA>
         (coords::float_type const E, coords::float_type const R,
           coords::float_type const r, coords::float_type const vout,
@@ -1149,7 +1149,7 @@ namespace energy
      @param e_v: reference to variable that saves vdw-energy
      @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_fep
+      void energy::interfaces::aco::aco_ff::g_QV_fep
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const c_io, coords::float_type const v_io,
@@ -1171,7 +1171,7 @@ namespace energy
       @param e_c: reference to variable that saves coulomb-energy
       @param e_v: reference to variable that saves vdw-energy*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::e_QV_cutoff
+      void energy::interfaces::aco::aco_ff::e_QV_cutoff
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const fQ, coords::float_type const fV,
@@ -1192,7 +1192,7 @@ namespace energy
       @param e_v: reference to variable that saves vdw-energy
       @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_cutoff
+      void energy::interfaces::aco::aco_ff::g_QV_cutoff
       (coords::float_type const C, coords::float_type const E,
         coords::float_type const R, coords::float_type const d,
         coords::float_type const fQ, coords::float_type const fV,
@@ -1218,7 +1218,7 @@ namespace energy
       @param e_v: reference to variable that saves vdw-energy
       @param dE: reference to variable that saves gradient divided by distance*/
       template< ::tinker::parameter::radius_types::T RT>
-      inline void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
+      void energy::interfaces::aco::aco_ff::g_QV_fep_cutoff
       (coords::float_type const C, coords::float_type const E, coords::float_type const R, coords::float_type const d,
         coords::float_type const c_out, coords::float_type const v_out, coords::float_type const fQ,
         coords::float_type const fV, coords::float_type &e_c, coords::float_type &e_v, coords::float_type &dE) const
