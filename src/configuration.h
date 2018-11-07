@@ -674,7 +674,7 @@ namespace config
 			/**temperature for fermi filling (in K)*/
 			double fermi_temp;
       /**constructor*/
-      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
+      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
         dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
@@ -831,9 +831,9 @@ namespace config
       {
         /**ideal bond length (from parameter file)*/
         double len;
-        /**number of H-atom a (number from tinker file - 1)*/
+        /**index of first atom (starting with 0)*/
         std::size_t a;
-        /**number of atom b (number from tinker file - 1)*/
+        /**index of second atom (starting with 0)*/
         std::size_t b;
       };
       /**???*/
@@ -846,10 +846,14 @@ namespace config
       bool use;
       /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
       bool all;
+      /**use parameterfile to get constrained distances or rather define them by yourself?*/
+      bool use_paramfile;
       /**name of parameter file where bond lengths for constrained bonds are taken from*/
       std::string ratpar;
+      /**distances for rattlepairs in the same order as specified rattle*/
+      std::vector<double> dists;
       /**constructor*/
-      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
+      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true), use_paramfile(true)
       { }
     };
   }

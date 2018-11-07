@@ -289,84 +289,110 @@ static inline double ldrand(void)
   return std::log(std::max(scon::random::threaded_rand(dist01), 1.0e-20));
 }
 
+// check if the two atom of a rattlepair are bonded with each other
+void md::simulation::check_rattlepair_for_bond(config::md_conf::config_rattle::rattle_constraint_bond &rctemp)
+{
+	bool is_a_bond = false;
+	for (auto bonding_partner : coordobj.atoms(rctemp.a).bonds())
+	{
+		if (bonding_partner == rctemp.b)
+		{
+			is_a_bond = true;
+			break;
+		}
+	}
+	if (is_a_bond == false)
+	{
+		throw std::runtime_error("No bond between " + std::to_string(rctemp.a + 1) + " and " + std::to_string(rctemp.b + 1) + ". It doesn't make sense to use a bonding parameter.");
+	}
+}
+
 // set up constraints for H-X bonds if requested
 // ideal bond lengths are taken from the foce field parameter file
 // specified by RATTpar in the INPUTFILE
 void md::simulation::rattlesetup(void)
 {
-  config::md_conf::config_rattle::rattle_constraint_bond rctemp;
-  //open rattle par file
-  std::ifstream ifs;
-  ifs.open(Config::get().md.rattle.ratpar.c_str());
-  if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
-  if (!ifs.good()) {
-    std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
-    throw;
-  }
-  // temp vars and vectors;
-  struct trat {
-    std::size_t ia, ib;
-    double ideal;
-  };
-  struct ratatoms {
-    std::size_t ia, ga;
-  };
-  ratatoms RTA;
-  trat TRAT;
-  std::vector<trat> temprat;
-  std::vector<ratatoms> ratoms;
-  std::size_t tia = std::size_t(), tib = std::size_t();
-  char buffer[150];
-  std::string bufferc;
-  std::size_t found;
-  std::vector < std::string > tokens;
-  // read parameter file and extract ideal bond lengths
-  while (!ifs.eof())
-  {
-    ifs.getline(buffer, 150);
-    bufferc = buffer;
-    found = bufferc.find("bond");
-    if (found != std::string::npos)
-    {
-      tokens.clear();
-      std::istringstream iss(bufferc);
-      std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-      TRAT.ia = atoi(tokens[1].c_str());
-      TRAT.ib = atoi(tokens[2].c_str());
-      TRAT.ideal = atof(tokens[4].c_str());
-      temprat.push_back(TRAT);
-    }
-  }// end of file check
-  ifs.close();
-  ifs.open(Config::get().md.rattle.ratpar.c_str());
-  // read parameter file and get atoms
-  while (!ifs.eof())
-  {
-    ifs.getline(buffer, 150);
-    bufferc = buffer;
-    found = bufferc.find("atom");
-    if (found != std::string::npos)
-    {
-      tokens.clear();
-      std::istringstream iss(bufferc);
-      std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
-      RTA.ia = atoi(tokens[1].c_str());
-      RTA.ga = atoi(tokens[2].c_str());
-      ratoms.push_back(RTA);
-    }
-  }
-  ifs.close();
+  config::md_conf::config_rattle::rattle_constraint_bond rctemp;  // temporary rattlebond
+
+	// temp vars and vectors;
+	struct trat {
+		std::size_t ia, ib;
+		double ideal;
+	};
+	struct ratatoms {
+		std::size_t ia, ga;
+	};
+	std::vector<trat> temprat;
+	std::vector<ratatoms> ratoms;
+	std::size_t tia = std::size_t(), tib = std::size_t();
+  
+	if (Config::get().md.rattle.use_paramfile)    //open rattle par file and look for atomtypes and distances
+	{
+		std::ifstream ifs;
+		ifs.open(Config::get().md.rattle.ratpar.c_str());
+		if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
+		if (!ifs.good()) {
+			std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
+			throw;
+		}
+		
+		// more temporary variables
+		ratatoms RTA;
+		trat TRAT;
+		char buffer[150];
+		std::string bufferc;
+		std::size_t found;
+		std::vector < std::string > tokens;
+
+		// read parameter file and extract ideal bond lengths
+		while (!ifs.eof())
+		{
+			ifs.getline(buffer, 150);
+			bufferc = buffer;
+			found = bufferc.find("bond");
+			if (found != std::string::npos)
+			{
+				tokens.clear();
+				std::istringstream iss(bufferc);
+				std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
+				TRAT.ia = atoi(tokens[1].c_str());
+				TRAT.ib = atoi(tokens[2].c_str());
+				TRAT.ideal = atof(tokens[4].c_str());
+				temprat.push_back(TRAT);
+			}
+		}// end of file check
+		ifs.close();
+		ifs.open(Config::get().md.rattle.ratpar.c_str());
+		// read parameter file and get atoms
+		while (!ifs.eof())
+		{
+			ifs.getline(buffer, 150);
+			bufferc = buffer;
+			found = bufferc.find("atom");
+			if (found != std::string::npos)
+			{
+				tokens.clear();
+				std::istringstream iss(bufferc);
+				std::copy(std::istream_iterator <std::string>(iss), std::istream_iterator <std::string>(), std::back_inserter <std::vector <std::string >>(tokens));
+				RTA.ia = atoi(tokens[1].c_str());
+				RTA.ga = atoi(tokens[2].c_str());
+				ratoms.push_back(RTA);
+			}
+		}
+		ifs.close();
+	}
+
   // Generate vector with bonds which are to be constraint
   const std::size_t N = coordobj.size();
-  //loop over all atoms
+
 	if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
 	{
-		for (std::size_t i = 0; i < N; i++)
+		for (std::size_t i = 0; i < N; i++) //loop over all atoms
 		{
 			if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
 			{
-				rctemp.a = i;
-				rctemp.b = coordobj.atoms(i).bonds(0);
+				rctemp.a = i;                            // hydrogen atom
+				rctemp.b = coordobj.atoms(i).bonds(0);   // bonding partner of hydrogen atom
 				//loop over param vector
 				for (unsigned j = 0; j < ratoms.size(); j++)
 				{
@@ -385,48 +411,46 @@ void md::simulation::rattlesetup(void)
 			}
 		}
 	}
-  else   // if MDrattle = 2 i.e. only specified distances are constrained
-  {
-    for (auto s : Config::get().md.rattle.specified_rattle)
-        {
-					rctemp.a = s.a;
-					rctemp.b = s.b;
+	else   // if MDrattle = 2 i.e. only specified distances are constrained
+	{
+		if (Config::get().md.rattle.use_paramfile == false && Config::get().md.rattle.dists.size() != Config::get().md.rattle.specified_rattle.size())
+		{
+			throw std::runtime_error("Wrong number of atom distances given for rattlepairs!");
+		}
 
-					bool is_a_bond = false;
-					for (auto bonding_partner : coordobj.atoms(rctemp.a).bonds())
+		for (auto i=0u; i<Config::get().md.rattle.specified_rattle.size(); ++i)
+		{
+			rctemp = Config::get().md.rattle.specified_rattle[i];
+
+			if (Config::get().md.rattle.use_paramfile)   // if distances are to be taken from parameterfile
+			{
+				// check if atoms share a bond
+				check_rattlepair_for_bond(rctemp);
+
+				//loop over param vector
+				for (unsigned j = 0; j < ratoms.size(); j++)
+				{
+					if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+					if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+				}
+				for (unsigned k = 0; k < temprat.size(); k++)
+				{
+					// found matching parameters -> get ideal bond distance
+					if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
 					{
-						if (bonding_partner == rctemp.b)
-						{
-							is_a_bond = true;
-							break;
-						}
+						rctemp.len = temprat[k].ideal;
+						break;
 					}
-					if (is_a_bond == false)
-					{
-						throw std::runtime_error("No bond between "+std::to_string(rctemp.a)+" and "+ std::to_string(rctemp.b)+". It doesn't make sense to use a bonding parameter.");
-					}
+				}
+			}
 
-
-            //loop over param vector
-            for (unsigned j = 0; j < ratoms.size(); j++)
-            {
-              if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-              if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-            }
-            for (unsigned k = 0; k < temprat.size(); k++)
-            {
-              // found matching parameters -> get ideal bond distance
-              if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-              {
-                rctemp.len = temprat[k].ideal;
-								break;
-              }
-            }
-            rattle_bonds.push_back(rctemp);
-         
-        }
-
-  }
+			else   // get rattledist from inputfile
+			{
+				rctemp.len = Config::get().md.rattle.dists[i];
+			}
+			rattle_bonds.push_back(rctemp);
+		}
+	}
 }
 
 // Initialization of MD parameters and functions
@@ -522,13 +546,12 @@ void md::simulation::init(void)
   // get degrees of freedom
   freedom = 3U * N;
 
-  // Set up rattle vector for constraints
   if (Config::get().md.rattle.use == true)
   {
-    rattlesetup();
+    rattlesetup();                   // Set up rattle vector for constraints
+		freedom -= rattle_bonds.size();  // constraint degrees of freedom
   }
-  // constraint degrees of freedom
-  if (Config::get().md.rattle.use == true) freedom -= rattle_bonds.size();
+  
   // periodics and isothermal cases
   if (Config::get().md.hooverHeatBath == true)
   {

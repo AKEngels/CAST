@@ -1104,6 +1104,16 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  rattlebondBuffer.b = b-1;
 		  Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
 	  }
+		else if (option.substr(2, 10) == "rattledist")
+		{
+			double value;
+			cv >> value;
+			Config::set().md.rattle.dists.push_back(value);
+		}
+		else if (option.substr(2, 20) == "rattle_use_paramfile")
+		{
+			Config::set().md.rattle.use_paramfile = bool_from_iss(cv);
+		}
 	  else if (option.substr(2, 6) == "rattle")
 	  {
 		  int val(0);
@@ -1116,7 +1126,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 	  else if (option.substr(2, 7) == "rattpar")
 	  {
 		  cv >> Config::set().md.rattle.ratpar;
-		  std::cout << "Rattle pars:  " << Config::get().md.rattle.ratpar << std::endl;
 	  }
 	  else if (option.substr(2, 16) == "biased_potential")
 	  {

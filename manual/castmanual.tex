@@ -884,7 +884,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
 		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
-		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 fixation (atomnumbers of the constrained bonds starting with 0, i.\,e number in tinkerstructure -1; first has to be an H-atom) & integer, integer [none] \\
+		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (atom indices, starting with 1) & integer, integer [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
 		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
