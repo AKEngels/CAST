@@ -267,10 +267,10 @@ void md::simulation::print_init_info(void)
     if (Config::get().md.rattle.all) std::cout << "All covalent hydrogen bonds will be fixed\n";
     else if (nr > 0)
     {
-      std::cout << "The following covalent hydrogen bonds will be fixed: \n";
+      std::cout << "The following distances will be fixed: \n";
       for (auto const & bond : Config::get().md.rattle.specified_rattle)
       {
-        std::cout << "[" << bond.a << ":" << bond.b << "] ";
+        std::cout << "[" << bond.a+1 << ":" << bond.b+1 << "] ";
       }
       std::cout << std::endl;
     }
@@ -359,40 +359,54 @@ void md::simulation::rattlesetup(void)
   // Generate vector with bonds which are to be constraint
   const std::size_t N = coordobj.size();
   //loop over all atoms
-  for (std::size_t i = 0; i < N; i++) {
-    if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
-    {
-      if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
-      {
-        rctemp.a = i;
-        rctemp.b = coordobj.atoms(i).bonds(0);
-        //loop over param vector
-        for (unsigned j = 0; j < ratoms.size(); j++)
+	if (Config::get().md.rattle.all == true)  // all H-bonds are constraint
+	{
+		for (std::size_t i = 0; i < N; i++)
+		{
+			if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
+			{
+				rctemp.a = i;
+				rctemp.b = coordobj.atoms(i).bonds(0);
+				//loop over param vector
+				for (unsigned j = 0; j < ratoms.size(); j++)
+				{
+					if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
+					if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
+				}
+				for (unsigned k = 0; k < temprat.size(); k++)
+				{
+					// found matching parameters -> get ideal bond distance
+					if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
+					{
+						rctemp.len = temprat[k].ideal;
+					}
+				}
+				rattle_bonds.push_back(rctemp);
+			}
+		}
+	}
+  else   // if MDrattle = 2 i.e. only specified distances are constrained
+  {
+    for (auto s : Config::get().md.rattle.specified_rattle)
         {
-          if (ratoms[j].ia == coordobj.atoms(rctemp.a).energy_type()) tia = ratoms[j].ga;
-          if (ratoms[j].ia == coordobj.atoms(rctemp.b).energy_type()) tib = ratoms[j].ga;
-        }
-        for (unsigned k = 0; k < temprat.size(); k++)
-        {
-          // found matching parameters -> get ideal bond distance
-          if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
-          {
-            rctemp.len = temprat[k].ideal;
-          }
-        }
-        rattle_bonds.push_back(rctemp);
-      }
-    }
-    else   // if MDrattle = 2 i.e. only specified H-atoms are constrained
-    {
-      if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
-      {
-        rctemp.a = i;
-        rctemp.b = coordobj.atoms(i).bonds(0);
-        for (auto s : Config::get().md.rattle.specified_rattle)
-        {
-          if (s.a == rctemp.a)   // if H-atom is in the rattlebond list 
-          {
+					rctemp.a = s.a;
+					rctemp.b = s.b;
+
+					bool is_a_bond = false;
+					for (auto bonding_partner : coordobj.atoms(rctemp.a).bonds())
+					{
+						if (bonding_partner == rctemp.b)
+						{
+							is_a_bond = true;
+							break;
+						}
+					}
+					if (is_a_bond == false)
+					{
+						throw std::runtime_error("No bond between "+std::to_string(rctemp.a)+" and "+ std::to_string(rctemp.b)+". It doesn't make sense to use a bonding parameter.");
+					}
+
+
             //loop over param vector
             for (unsigned j = 0; j < ratoms.size(); j++)
             {
@@ -405,13 +419,12 @@ void md::simulation::rattlesetup(void)
               if ((tia == temprat[k].ia || tia == temprat[k].ib) && (tib == temprat[k].ia || tib == temprat[k].ib))
               {
                 rctemp.len = temprat[k].ideal;
+								break;
               }
             }
             rattle_bonds.push_back(rctemp);
-          }
+         
         }
-      }
-    }
 
   }
 }
@@ -1977,7 +1990,7 @@ void md::simulation::rattle_pre(void)
         double inv_ma = 1.0 / M[rattlebond.a];
         double inv_mb = 1.0 / M[rattlebond.b];
         //calculate lagrange multiplier
-        coords::Cartesian_Point rattle(1.25*delta / (2.0 * (inv_ma + inv_mb) * dot(d, d_old)));
+        coords::Cartesian_Point rattle(delta / (2.0 * (inv_ma + inv_mb) * dot(d, d_old)));
         rattle *= d_old;
         // update half step positions
         coordobj.move_atom_by(rattlebond.a, -(rattle*inv_ma));
@@ -2019,7 +2032,7 @@ void md::simulation::rattle_post(void)
       if (std::fabs(lagrange) > Config::get().md.rattle.tolerance)
       {
         done = false;
-        coords::Cartesian_Point rattle(d*lagrange*1.25);
+        coords::Cartesian_Point rattle(d*lagrange);
         // update full step velocities
         V[rattlebond.a] -= rattle*inv_ma;
         V[rattlebond.b] += rattle*inv_mb;
