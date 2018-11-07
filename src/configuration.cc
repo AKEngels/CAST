@@ -1100,8 +1100,8 @@ void config::parse_option(std::string const option, std::string const value_stri
 		  cv >> a >> b;
 
 		  config::md_conf::config_rattle::rattle_constraint_bond rattlebondBuffer;
-		  rattlebondBuffer.a = a;
-		  rattlebondBuffer.b = b;
+		  rattlebondBuffer.a = a-1;
+		  rattlebondBuffer.b = b-1;
 		  Config::set().md.rattle.specified_rattle.push_back(rattlebondBuffer);
 	  }
 	  else if (option.substr(2, 6) == "rattle")

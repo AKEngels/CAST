@@ -383,7 +383,7 @@ void md::simulation::rattlesetup(void)
         rattle_bonds.push_back(rctemp);
       }
     }
-    else   // if MDrattle = 2 i.e. only spcified H-atoms are constrained
+    else   // if MDrattle = 2 i.e. only specified H-atoms are constrained
     {
       if (coordobj.atoms(i).number() == 1) //check if atom is hydrogen
       {
