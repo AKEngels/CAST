@@ -848,8 +848,6 @@ namespace config
       bool all;
       /**use parameterfile to get constrained distances or rather define them by yourself?*/
       bool use_paramfile;
-      /**name of parameter file where bond lengths for constrained bonds are taken from*/
-      std::string ratpar;
       /**distances for rattlepairs in the same order as specified rattle*/
       std::vector<double> dists;
       /**constructor*/

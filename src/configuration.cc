@@ -386,7 +386,7 @@ void config::parse_option(std::string const option, std::string const value_stri
   // Has to be in same folder as executable
   // Default: oplsaa.prm
   else if (option == "paramfile")
-	  Config::set().general.paramFilename = value_string;
+    Config::set().general.paramFilename = value_string;
 
   // Option to read charges from seperate file "charges.txt"
   // has to be in the same folder as executable
@@ -1122,10 +1122,6 @@ void config::parse_option(std::string const option, std::string const value_stri
 			  Config::set().md.rattle.use = (val != 0);
 			  if (val == 2) Config::set().md.rattle.all = false;
 		  }
-	  }
-	  else if (option.substr(2, 7) == "rattpar")
-	  {
-		  cv >> Config::set().md.rattle.ratpar;
 	  }
 	  else if (option.substr(2, 16) == "biased_potential")
 	  {

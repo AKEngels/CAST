@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   tridecaalanin.arc
+name                   3-hexanol.arc
 
 # Output file name
 
@@ -87,7 +87,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  SP
+task                  MD
 
 
 ####################################
@@ -118,7 +118,7 @@ interface              OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa_mod2.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 cutoff                 12.0
@@ -166,14 +166,14 @@ QMMMsmall_charges     1
 MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-MOPACdelete            1
+MOPACdelete            0
 
 #MOPAC executable path
 MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
 
-# total charge of system
+# total charge of system 
 MOPACcharge            0
 
 
@@ -880,15 +880,19 @@ MDsnap_opt             0
 # 1                    All Hydrogend Bonds
 # 2                    Specific Hydrogen Bonds
 
-MDrattle               0
+MDrattle               2
 
-#MDrattpar
+# use paramfile to get distance, can't be used when distances between non-bound atoms are constrained
+MDrattle_use_paramfile        0
 
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
 
-#MDrattlebond           7 12
+MDrattlebond           3   4
+
+#distance for rattlebonds (only for MDrattle=2)
+MDrattledist           1.8
 
 #apply a biased potential
 #MDbiased potential        <0/1>

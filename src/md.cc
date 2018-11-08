@@ -329,7 +329,7 @@ void md::simulation::rattlesetup(void)
 	if (Config::get().md.rattle.use_paramfile)    //open rattle par file and look for atomtypes and distances
 	{
 		std::ifstream ifs;
-		ifs.open(Config::get().md.rattle.ratpar.c_str());
+		ifs.open(Config::get().general.paramFilename.c_str());
 		if (ifs.good()) std::cout << "Opened file for RATTLE parameters successfully." << std::endl;
 		if (!ifs.good()) {
 			std::cout << "Couldn't open file for RATTLE parameters. Check your input" << std::endl;
@@ -362,7 +362,7 @@ void md::simulation::rattlesetup(void)
 			}
 		}// end of file check
 		ifs.close();
-		ifs.open(Config::get().md.rattle.ratpar.c_str());
+		ifs.open(Config::get().general.paramFilename.c_str());
 		// read parameter file and get atoms
 		while (!ifs.eof())
 		{
