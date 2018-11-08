@@ -857,7 +857,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	\subsection{MD - Molecular Dynamics}
 	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). 
 
-	\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	\begin{longtable}{|p{4cm}|p{4.5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
@@ -883,8 +883,9 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
-		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
-		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (atom indices, starting with 1) & integer, integer [none] \\
+		\textbf{MDrattle\_use\_paramfile} & if true constrained distances are bond length parameters from the forcefield parameter file, if false the distance for every constrained atom pair must be given with the option MDrattledist & bool [true] \\
+		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (pairs of atom indices, starting with 1) & integer, integer [none] \\
+		\textbf{MDrattledist} & distances to which the atom pairs given in MDrattlebond are constrained if MDrattle\_use\_paramfile is false. The rattlebonds and rattledists have to be given in the same order. If you use this option you can also constrain distances between non-bound atoms. & double [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
 		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
@@ -933,7 +934,23 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	the starting temperature (at step 0) is 50\,K and the second line is just ignored. To avoid confusion it is recommended only to use one line of MDheat and set it to step 0:
 \begin{lstlisting}
 MDheat			    0  	  300
-\end{lstlisting}		
+\end{lstlisting}	
+
+\subsubsection{Rattle}
+
+You can use the Rattle Algorithm\supercite{rattle} to constrain atom distances during the MD simulation. With the option ``MDrattle'' you activate this option. If it's set to 1 all bonds that contain a hydrogen atom are automatically constrained, if it's set to 2 you can choose atom pairs to constrain. Another important option for rattle is ``MDrattle\_use\_paramfile''. If it's set to true (default) the distances to which the atom pairs are constrained are taken from the forcefield parameter file. If you use MDrattle=1 you have to use this option. If some of your atom pairs don't share a bond you can't use this option because it wouldn't make sense to constrain them to the bond distance. 
+
+If you want to define the atom pairs to be constrained yourself you do that with the option ``MDrattlebond''. There you give the atom indices (starting with 1) of your atom pairs. Every atom pair is in a new line so this section might look like this:
+\begin{lstlisting}
+MDrattlebond           3117   347
+MDrattlebond           3160   2276
+\end{lstlisting}
+
+If you have chosen not to use the bond distances from the parameter file but to define your own atom distances you use the option ``MDrattledist''. There you give the atom distances for the atom pairs defined in ``MDrattlebond''. Again every atom pair gets its own line. So if you want to constrain the distance between atoms 3117 and 347 to 2.5\,\AA~and that beween atoms 3160 and 2276 to 1.1\,\AA~this section is:
+\begin{lstlisting}
+MDrattledist           2.5
+MDrattledist           1.1
+\end{lstlisting}
 		
 	\subsubsection{MD with biased potential}
 	

@@ -836,9 +836,9 @@ namespace config
         /**index of second atom (starting with 0)*/
         std::size_t b;
       };
-      /**???*/
+      /**maximum number of iterations in rattle algorithm*/
       std::size_t num_iter;
-      /**???*/
+      /**tolerance critirion for rattle algorithm*/
       double tolerance;
       /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;

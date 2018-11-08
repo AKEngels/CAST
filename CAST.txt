@@ -878,7 +878,7 @@ MDsnap_opt             0
 #
 # 0                    No Constraints
 # 1                    All Hydrogend Bonds
-# 2                    Specific Hydrogen Bonds
+# 2                    Specific Bonds
 
 MDrattle               2
 
