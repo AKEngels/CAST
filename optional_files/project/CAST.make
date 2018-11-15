@@ -235,12 +235,12 @@ ifeq ($(config),testing_x86)
   INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I../../submodules/googletest/googletest/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wall -Wextra -std=c++14 -Wextra -Wall -pedantic -static -fopenmp
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp -fprofile-arcs -ftest-coverage
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wall -Wextra -std=c++14 -Wextra -Wall -pedantic -static -fopenmp -fprofile-arcs -ftest-coverage
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Testing/libGoogleTest.a
   LDDEPS += ../libs/Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -m32 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -L../../submodules/boost/stage/lib -m32 -fopenmp -fprofile-arcs
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef
@@ -262,12 +262,12 @@ ifeq ($(config),testing_x64)
   INCLUDES += -I../../submodules/boost -I../../submodules/eigen -I../../submodules/googletest/googletest/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp
-  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -std=c++14 -Wextra -Wall -pedantic -static -fopenmp
+  ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -Wextra -Wall -pedantic -static -fopenmp -fprofile-arcs -ftest-coverage
+  ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wall -Wextra -std=c++14 -Wextra -Wall -pedantic -static -fopenmp -fprofile-arcs -ftest-coverage
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LIBS += ../libs/Testing/libGoogleTest.a
   LDDEPS += ../libs/Testing/libGoogleTest.a
-  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -m64 -fopenmp
+  ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -L../../submodules/boost/stage/lib -m64 -fopenmp -fprofile-arcs
   LINKCMD = $(CXX) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
   define PREBUILDCMDS
   endef

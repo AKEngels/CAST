@@ -1,4 +1,3 @@
-#pragma once
 #ifdef GOOGLE_MOCK
 #include <gtest/gtest.h>
 #include "../configuration.h"

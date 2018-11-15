@@ -416,6 +416,8 @@ namespace energy
         coords::float_type vdw_energy;
         /**energy of bonded interactions between QM and MM atoms (bonds, angles and dihedrals)*/
         coords::float_type bonded_energy;
+				/**coulomb energy between QM and MM system (only used for mechanical embedding)*/
+				coords::float_type coulomb_energy;
 
         /**gradients of electrostatic interaction between QM and MM atoms
         for MOPAC gradients on QM as well as on MM atoms
@@ -432,6 +434,9 @@ namespace energy
         between QM and MM atoms on the MM atoms
         for DFTB+: coulomb gradients on MM atoms due to QM atoms*/
         std::vector<coords::Cartesian_Point> g_coul_mm;
+
+				/**total amber charges in amber units, i.e. they must be divided by 18.2223 (only used for mechanical embedding)*/
+				std::vector<double> total_amber_charges;
 
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;

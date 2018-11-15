@@ -1,6 +1,5 @@
 language: cpp
 compiler: gcc
-dist: trusty
 script: 
   - cd optional_files
   - cd project
@@ -14,5 +13,21 @@ before_install:
 install:
   - sudo apt-get install -qq g++-5
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 90
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 90
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
+
+  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz
+  - tar xf lcov_1.13.orig.tar.gz
+  - sudo make -C lcov-1.13/ install  
+  - gem install coveralls-lcov
+after_success:
+  - cd ..
+  - cd project/obj/x64/Testing
+  - lcov --capture --directory . --output-file coverage.info
+  - lcov --remove coverage.info '/usr/*' --output-file coverage.info
+  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/submodules/*' --output-file coverage.info
+  - lcov --remove coverage.info '/home/travis/build/AKEngels/CAST/src/gtest/*' --output-file coverage.info 
+  - lcov --list coverage.info
+  - coveralls-lcov coverage.info
 notifications:
   email: false

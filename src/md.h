@@ -390,6 +390,10 @@ namespace md
     */
     coords::Cartesian_Point adjust_velocities(int atom_number, double inner_cutoff, double outer_cutoff);
 
+		/**function that checks if the two atoms of a rattlepair are bonded with each other,
+		throws an error if not
+		@param rctemp: rattlepair*/
+		void check_rattlepair_for_bond(config::md_conf::config_rattle::rattle_constraint_bond &rctemp);
     /** rattle feature pre */
     void rattle_pre(void);
     /** rattle feature post */

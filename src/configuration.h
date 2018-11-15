@@ -592,16 +592,19 @@ namespace config
       mopac_ver_type::T version;
       /**should MOPAC input be deleted after run?*/
       bool delete_input;
-      mopac_conf(void) : command("PM7 MOZYME"),
+			/**charge of total system*/
+			int charge;
+			mopac_conf(void) : command("PM7 MOZYME"),
 #if defined(MOPAC_EXEC_PATH)
-        path(MOPAC_EXEC_PATH)
+				path(MOPAC_EXEC_PATH)
 #elif defined(_MSC_VER)
-        path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
+				path("\"C:\\Program Files\\mopac\\MOPAC2012.exe\""),
 #else
-        path("/opt/mopac/MOPAC2012.exe"),
+				path("/opt/mopac/MOPAC2012.exe"),
 #endif
-        version(mopac_ver_type::T::MOPAC2012MT),
-        delete_input(true)
+				version(mopac_ver_type::T::MOPAC2012MT),
+				delete_input(true),
+				charge(0)
       {}
     } mopac;
 
@@ -664,7 +667,7 @@ namespace config
       /**maximum number of steps for SCC procedure*/
       int max_steps;
       /**total charge of the system*/
-      double charge;
+      int charge;
       /**use DFTB3 ?*/
       bool dftb3;
       /**optimizer (0 = CAST, 1 = Steepest Decent, 2 = Conjugate Gradient)*/
@@ -674,7 +677,7 @@ namespace config
 			/**temperature for fermi filling (in K)*/
 			double fermi_temp;
       /**constructor*/
-      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0.0),
+      dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
         dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
 
@@ -831,14 +834,14 @@ namespace config
       {
         /**ideal bond length (from parameter file)*/
         double len;
-        /**number of H-atom a (number from tinker file - 1)*/
+        /**index of first atom (starting with 0)*/
         std::size_t a;
-        /**number of atom b (number from tinker file - 1)*/
+        /**index of second atom (starting with 0)*/
         std::size_t b;
       };
-      /**???*/
+      /**maximum number of iterations in rattle algorithm*/
       std::size_t num_iter;
-      /**???*/
+      /**tolerance critirion for rattle algorithm*/
       double tolerance;
       /**vectors of bonds that should be constrained*/
       std::vector<rattle_constraint_bond> specified_rattle;
@@ -846,10 +849,12 @@ namespace config
       bool use;
       /**true all bonds with an H-atom should be constrained, false if only specified bonds*/
       bool all;
-      /**name of parameter file where bond lengths for constrained bonds are taken from*/
-      std::string ratpar;
+      /**use parameterfile to get constrained distances or rather define them by yourself?*/
+      bool use_paramfile;
+      /**distances for rattlepairs in the same order as specified rattle*/
+      std::vector<double> dists;
       /**constructor*/
-      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true)
+      config_rattle(void) : num_iter(100), tolerance(1.0e-6), use(false), all(true), use_paramfile(true)
       { }
     };
   }

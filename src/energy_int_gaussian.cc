@@ -39,6 +39,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(coord
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = Config::get().energy.gaussian.opt;
+	charge = std::stoi(Config::get().energy.gaussian.charge);
 }
 
 energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(sysCallInterfaceGauss const & rhs, coords::Coordinates *cobj) :
@@ -47,6 +48,7 @@ energy::interfaces::gaussian::sysCallInterfaceGauss::sysCallInterfaceGauss(sysCa
   e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
 	id = rhs.id;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
@@ -123,7 +125,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
         break;
       case 'g' :
         out_file << " Force";
-				if (Config::get().energy.qmmm.use) out_file << " Prop=(Field,Read) Density";
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " Prop=(Field,Read) Density";
         break;
     }
 
@@ -132,7 +134,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     out_file << Config::get().general.outputFilename;
     out_file << '\n';
     out_file << '\n';
-    out_file << Config::get().energy.gaussian.charge << " ";
+    out_file << charge << " ";
     out_file << Config::get().energy.gaussian.multipl;
     out_file << '\n';
     out_file << coords::output::formats::xyz(*coords);

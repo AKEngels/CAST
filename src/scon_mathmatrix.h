@@ -718,7 +718,7 @@ mathmatrix<T> mathmatrix<T>::col_from_vec(std::vector<T> const& col) {
 
   mathmatrix ret(size, 1);
 
-  for (auto i = 0; i < size; ++i) {
+  for (auto i = 0u; i < size; ++i) {
     ret(i, 0) = col.at(i);
   }
   return ret;
@@ -1199,7 +1199,7 @@ mathmatrix<T> mathmatrix<T>::sort_col(Comp comp, std::size_t const ind) const {
 
   mathmatrix ret(size, 1);
 
-  for (auto i = 0; i < size; ++i) {
+  for (auto i = 0u; i < size; ++i) {
     ret(i, 0) = sorted_vec.at(i);
   }
 
@@ -1446,7 +1446,6 @@ template <typename T>
 std::pair<mathmatrix<T>, mathmatrix<T>> mathmatrix<T>::diag() {
   auto ret = eigensym();
 
-  auto const& EVal = ret.first;
   auto const& EVec = ret.second;
 
   *this = EVec.t() * (*this) * EVec;
@@ -1492,7 +1491,7 @@ std::vector<T> mathmatrix<T>::row_to_std_vector(std::size_t const iter) const {
   auto const& dat = base_type::memptr();
 #endif
   auto const& r = rows();
-  for (auto i = 0; i < cols(); ++i) {
+  for (auto i = 0u; i < cols(); ++i) {
     ret.emplace_back(*(dat + (r*i) + iter));
   }
   return ret;
@@ -1505,7 +1504,7 @@ template <typename T>
 std::vector<std::vector<T>> mathmatrix<T>::to_std_vector() const {
   std::vector<std::vector<T>> ret;
   ret.reserve(rows());
-  for (auto i = 0; i < rows(); ++i) {
+  for (auto i = 0u; i < rows(); ++i) {
     ret.emplace_back(row_to_std_vector(i));
   }
   return ret;

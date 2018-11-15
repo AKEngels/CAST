@@ -36,6 +36,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(coords::Coordinate
   ss << (std::size_t(std::rand()) | (std::size_t(std::rand()) << 15));
   id.append("_tmp_").append(ss.str());
   optimizer = true;
+	charge = Config::get().energy.mopac.charge;
 }
 
 energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -44,6 +45,7 @@ energy::interfaces::mopac::sysCallInterface::sysCallInterface(sysCallInterface c
   e_electron(rhs.e_electron), e_core(rhs.e_core), failcounter(rhs.failcounter)
 {
 	id = rhs.id;
+	charge = rhs.charge;
   interface_base::operator=(rhs);
 }
 
@@ -122,7 +124,7 @@ energy::interfaces::mopac::sysCallInterface::charges() const
   return v;
 }
 
-// mol.in schreiben (see http://openmopac.net/manual/QMMM.html)
+// write mol.in (see http://openmopac.net/manual/QMMM.html)
 void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 {
 	auto elec_factor = 332.0;
@@ -160,7 +162,7 @@ void energy::interfaces::mopac::sysCallInterface::write_mol_in()
 
 void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const grad, bool const hess, bool const opt)
 {
-	if (Config::get().energy.qmmm.use) write_mol_in();
+	if (Config::get().energy.qmmm.mm_charges.size() != 0) write_mol_in();
 
   std::string outstring(id);
   outstring.append(".xyz");
@@ -180,9 +182,11 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
   {
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7)
     {
-      out_file << Config::get().energy.mopac.command;
+      out_file << Config::get().energy.mopac.command << " AUX ";
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ?  " LINMIN" : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (charge != 0) out_file << " CHARGE=" << charge;
     }
     else if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC7_HB)
     {
@@ -193,22 +197,28 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
         std::string str_t1, str_t2;
         str_t1 = Config::get().energy.mopac.command.substr(0, found + 1);
         str_t2 = Config::get().energy.mopac.command.substr(found + 1);
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? "EF " : "EF ") : "1SCF ") << (grad ? "GRADIENTS " : " ");
         out_file << (hess ? "HESSIAN " : " ") << str_t1 << '\n';
         out_file << str_t2;
+				if (charge != 0) out_file << " CHARGE=" << charge;
       }
       else
       {
-        out_file << Config::get().energy.mopac.command;
+        out_file << Config::get().energy.mopac.command << " AUX ";
+				if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
         out_file << (opt ? (coords->size() > 250 ? " EF" : " EF") : " 1SCF");
         out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+				if (charge != 0) out_file << " CHARGE=" << charge;
       }
     }
-    else
+    else                                                                       // "normal" MOPAC, e.g. version 2016
     {
-      out_file << Config::get().energy.mopac.command;
+      out_file << Config::get().energy.mopac.command << " AUX ";
+			if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << " QMMM ";
       out_file << (opt ? (coords->size() > 250 ? " LBFGS" : " EF") : " 1SCF");
       out_file << (grad ? " GRADIENTS" : "") << (hess ? " HESSIAN" : "");
+			if (charge != 0) out_file << " CHARGE=" << charge;
     }
     if (Config::get().energy.mopac.version == config::mopac_ver_type::MOPAC2012MT)
     {
@@ -223,7 +233,6 @@ void energy::interfaces::mopac::sysCallInterface::print_mopacInput(bool const gr
     out_file << '\n' << '\n';
 
     out_file << coords::output::formats::xyz_mopac7(*coords);
-
   }
   else std::runtime_error("Writing MOPAC Inputfile failed.");
 }
@@ -261,7 +270,6 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
   coords::Representation_3D g_tmp(coords->size()), xyz_tmp(coords->size());
   if (in_file)
   {
-
     std::string buffer;
     while (!in_file.eof())
     {
@@ -418,7 +426,7 @@ void energy::interfaces::mopac::sysCallInterface::read_mopacOutput(bool const gr
           }
         } // for atoms
 
-				if (Config::get().energy.qmmm.use)  // if QM/MM: add coulomb gradient due to external charges
+				if (Config::get().energy.qmmm.mm_charges.size() != 0)  // if QM/MM: add coulomb gradient due to external charges
 				{
 					double constexpr elec_factor = 332.06;
 					grad_ext_charges.clear();

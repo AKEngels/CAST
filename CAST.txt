@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   tridecaalanin.arc
+name                   3-hexanol.arc
 
 # Output file name
 
@@ -87,7 +87,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  SP
+task                  MD
 
 
 ####################################
@@ -118,7 +118,7 @@ interface              OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod.prm
+paramfile              oplsaa_mod2.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 cutoff                 12.0
@@ -147,7 +147,7 @@ QMMMlinkatomtype      85
 # cutoff for electrostatic interaction
 #QMMMcutoff            10
 
-# for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 1, 2 or 3)
+# for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
 QMMMzerocharge_bonds   2
 
 
@@ -156,22 +156,25 @@ QMMMzerocharge_bonds   2
 QMMMseatoms           3,6,7,8,10,11
 QMMMseinterface       DFTB
 
-# include MM charges in QM system (0=EEx, 1=3-EE in Gaussian, 2=MM+SE)
+# include MM charges in QM system (0=EEx, 1=3-EE in Gaussian, 2=EE+, 3=MM+SE)
 QMMMsmall_charges     1
 
 
 ######################### MOPAC OPTIONS ###############
 
-# Keywords for MOPAC Call
+# Keywords for MOPAC Call 
 MOPACkey               PM7
 
 # Delete temporary MOPAC comm files?
-MOPACdelete            1
+MOPACdelete            0
 
 #MOPAC executable path
 MOPACpath              /apps/mopac/MOPAC2016.exe
 
 MOPACversion           MOPAC2016
+
+# total charge of system 
+MOPACcharge            0
 
 
 ############################ GAUSSIAN OPTIONS ########################
@@ -237,7 +240,7 @@ DFTB+scctol       0.00001
 DFTB+max_steps_scc   1000
 
 # total charge of the system
-DFTB+charge      0.0
+DFTB+charge      0
 
 # use DFTB3 <0/1>
 DFTB+3           0
@@ -877,17 +880,21 @@ MDsnap_opt             0
 #
 # 0                    No Constraints
 # 1                    All Hydrogend Bonds
-# 2                    Specific Hydrogen Bonds
+# 2                    Specific Bonds
 
-MDrattle               0
+MDrattle               2
 
-#MDrattpar
+# use paramfile to get distance, can't be used when distances between non-bound atoms are constrained
+MDrattle_use_paramfile        0
 
 # Rattle bond specification
 #
 # MDrattlebond         <H index>
 
-#MDrattlebond           7 12
+MDrattlebond           3   4
+
+#distance for rattlebonds (only for MDrattle=2)
+MDrattledist           1.8
 
 #apply a biased potential
 #MDbiased potential        <0/1>

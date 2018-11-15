@@ -424,6 +424,7 @@ multipole moments (for example DMA multipoles).\\
 			MOPACpath & Path to MOAPC executable & see text\\
 			MOPACversion & Version of MOPAC (2007, 2012, 2016) & MOPAC2016\\
 			MOPACdelete & Delete MOPAC temporary files 0=no, 1=yes & 1\\
+			MOPACcharge & total charge of system & 0\\
 		\end{longtable}
 		
 		Sometimes, when performing extended calculations such as \ac{MD} Simulations, \ac{MOPAC} calls may fail. For this reason, \ac{CAST} keeps a failcounter. If more than 1000 \ac{MOPAC} calls have failed, \ac{CAST} will abort. This implies that if only a single \ac{MOPAC} call fails, \ac{CAST} will continue. A short error message can in this case be found in the \ac{CAST} output (independent of the verbosity setting).
@@ -564,7 +565,7 @@ The following list contains the options for DFTB\textsuperscript{+}. DFTB+path a
 		
 Helpful links for DFTB+:
 \begin{itemize}
-\item First steps: \url{https://dftbplus-recipes.readthedocs.io/en/latest/basics/firstcalc.html}
+\item First steps: \url{https://dftbplus-recipes.readthedocs.io/en/master/}
 \item Manual: \url{https://www.dftbplus.org/fileadmin/DFTBPLUS/public/dftbplus/latest/manual.pdf}
 \end{itemize}
 
@@ -641,13 +642,15 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' (e.\,g. total charge of the system) are also fitting the QM system.
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
+
+Normally the only problem there should be the charge but the interface is implemented in a way that you give the charge of the QM system in the input options for the QM interface and the charge of the total system in the input options for the MM interface. Then when calculating the QM system with the MM interface CAST will automatically take the charge you have given for the QM interface. This is also the reason you can use forcefields only as MM interface, not as QM interface, as there is no option to give the total charge for a forcefield.
 
 \paragraph{General Usage\\}
 
 Which interfaces you use for the QM and MM part of your system is detemined by the options ``QMMMqminterface'' and ``QMMMmminterface'' respectively. With the option ``QMMMqmatoms'' you give the indices of the QM atoms in tinker indexation, i.\,e. starting with 1. (Of course all other atoms then belong to the MM system.) If you want to check if you have chosen the correct atoms switch on ``QMMMwriteqmintofile''. Then your QM system (including link atoms) is written into a tinkerfile which you can view for example in VMD.
 
-You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. The keywords for MOPAC must contain ``QMMM AUX'' because you want to do a QM/MM calculation and the information you need is read from an auxiliary file (for details about a MOPAC QM/MM calculation see reference \cite{noauthor_qmmm_nodate}). For GAUSSIAN the necessary keywords (``Charge'', ``NoSymm'' and ``Density'', for gradient calculations also ``Prop=(Field,Read)'') are automatically added to the gaussian input file, so you don't have to set them. However not all methods might be compatible with these keywords so take care of this. The QM/MM interface with GAUSSIAN is similar to the AMBER-GAUSSIAN interface described in reference \cite{okamoto_minimal_2011}. For DFTB\textsuperscript{+} and PSI4 the commands that tell DFTB\textsuperscript{+} to deal with external charges are also set automatically.
+You furthermore have to give all options for your forcefield (especially the parameter file ``paramfile'') and for the QM program you want to use. You don't have to care about special keywords needed only for QM/MM calculations because they are added automatically. However if you encounter strange problems it might be a good idea to look in the inputfile of the QM program which options are set and if there are any compatibility issues with stuff you gave to the program.
 
 \textbf{Attention!} Problems might occur if charged atoms (e.\,g. a COO\textsuperscript{-} group) are in the MM part near the QM part.
 
@@ -657,7 +660,9 @@ A link atom approach is implemented to run a bonded QM/MM calculation. The force
 
 \paragraph{Treatment of Electrostatic Interactions\\}
 
-The electrostatic interactions between QM and MM part are calculated by electrostatic embedding, i.\,e. the charges of the MM atoms are taken into account as external charges when doing calculations for the QM system. However, in the case of bonds between the two subsystems, the interactions of some MM atoms with some QM atoms are already treated by bonding, angle and dihedral terms of the forcefield. In order to deal with this certain MM atoms can be deleted when creating the external charges. Which atoms are deleted is determined by the option ```QMMMzerocharge\_bonds''. The number you give here is the number of bonds from the inner region up to which the charges of atoms are ignored. So if it's 1 only charges of atoms that are directly bonded to the QM system are deleted, if it's set to 2 one more layer of atoms is not taken into account and so on. Currently you can choose a number between 1 and 3.
+The electrostatic interactions between QM and MM part can be calculated using mechanical  or electrostatic embedding. Mechanical embedding means the coulomb interactions are treated on the level of the MM system. By setting the option ``QMMMzerocharge\_bonds'' to 0 you chose this embedding option.
+
+In most cases it is better to use electrostatic embedding, i.\,e. the charges of the MM atoms are taken into account as external charges when doing calculations for the QM system. However, in the case of bonds between the two subsystems, the interactions of some MM atoms with some QM atoms are already treated by bonding, angle and dihedral terms of the forcefield. In order to deal with this certain MM atoms can be deleted when creating the external charges. Which atoms are deleted is determined by the option ``QMMMzerocharge\_bonds'' (if it is set to a non-zero-number). The number you give here is the number of bonds from the inner region up to which the charges of atoms are ignored. So if it's 1 only charges of atoms that are directly bonded to the QM system are deleted, if it's set to 2 one more layer of atoms is not taken into account and so on. Currently you can choose a number between 1 and 3.
 
 Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance given in Angstrom. MM atoms whose distance to the nearest QM atoms is larger than this number are not taken into account for the electrostatic interactions.
 
@@ -671,12 +676,16 @@ Furthermore there is a cutoff option (given by ``QMMMcutoff''). It is a distance
 			QMMMwriteqmintofile & if yes, writes the QM system (with link atoms) as tinkerstructure to a file  &  bool [false]\\
             QMMMcutoff & cutoff for electrostatic interactions between QM and MM system & double [none]\\
 			QMMMlinkatomtype   & forcefield type for link atom, if more than one bond is cut this option is needed several times in the order of the QM atoms to which the link atom belongs & int \\
-			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. & int[1] \\
+			QMMMzerocharge\_bonds   & For atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding. This is something similar as the gaussian option \textit{scalecharge} but charges can't be scaled down, only set to zero. At the moment the options 1 (deleting charges of atoms that are directly bonded to inner system), 2 (deleting one more layer of atom chages) and 3 are available. Furthermore you can set it to 0 in order to switch off electrostatic embedding at all. & int[1] \\
 		\end{longtable}~\\
 	
 \subsubsection{Three-layer-Interface}
 
-As an extension of the ONIOM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By QMMMqminterface you choose the energy interface of the inner layer, by QMMMmminterface you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option QMMMseinterface. In the same way you define which atoms are in which layer: QMMMqmatoms are the atoms in the inner layer, QMMMseatoms are the ones in the intermediate layer. All other atoms are in the outer layer. By QMMMlinkatomtype you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. With the option QMMMsmall\_charges you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM) and 2 takes into account all SE and MM atoms exept for those directly bound to a QM atom.
+As an extension of the ONIOM method three layers can be combined via the interface THREE\_LAYER. It is also controlled by the variables in the section QM/MM OPTIONS of the inputfile. By ``QMMMqminterface'' you choose the energy interface of the inner layer, by ``QMMMmminterface'' you choose the interface of the outer layer. The energy interface of the intermediate layer is given by the additional option ``QMMMseinterface''. In the same way you define which atoms are in which layer: ``QMMMqmatoms'' are the atoms in the inner layer, ``QMMMseatoms'' are the ones in the intermediate layer. All other atoms are in the outer layer. By ``QMMMlinkatomtype'' you have to give the atom type for the link atoms of the intermediate system which consists of the QM and SE atoms. Forcefields can only be used as outer layer in this interface while all other interfaces can be combined as you want. 
+
+With the option ``QMMMsmall\_charges'' you decide which atoms you want to take into account as external charges in the calculations for the inner system. 0 means no charges are taken into account (like EEx in Gaussian-ONIOM), 1 means the same atoms are taken into account as in the description of the intermediate system (like 3-EE in Gaussian-ONIOM), 2 uses the charges of all MM atoms except those that are directly bound to a QM atom (in the sense of ``QMMMzerocharge\_bonds'' so atoms with two or three bonds between them might also count as directly bound) and 3 takes into account all SE and MM atoms exept for those directly bound to a QM atom.
+
+If your subsystems have different charges give the charge for the small system in the input options for your QM interface, the charge for the intermediate system in the input options for your SE interface and -- if your MM interface is not a forcefield -- the charge of the total system in the input options for that. Forcefields can only be used as MM interface not as SE or QM interface. 
 			
 	%%%% COORDINATES FILE %%%%
 	\subsection{Coordinates file}
@@ -848,7 +857,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	\subsection{MD - Molecular Dynamics}
 	The MD keyword is used to start a \acf{MD} Simulation\supercite{md_art}. \acp{MD} can be performed in NVE, NVT and NPT ensembles. For temperature control a Nose-Hoover thermostat\supercite{nose,hoover} is available or the temperature control can be done by direct velocity scaling. Pressure can be controlled by a Berendsen-barostat\supercite{berendsen}. If constant pressure is desired, the use of periodic boundary conditions is compulsory. Integration of the equations of motion can be done via Velocity-Verlet or Beeman\supercite{beeman} integration scheme (implementation see \cite{becker_development_2015}). 
 
-	\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
+	\begin{longtable}{|p{4cm}|p{4.5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
 		\hline
 		\textbf{MDsteps} & Number of MD steps & integer [10000] \\
@@ -874,8 +883,9 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 		\textbf{MDptarget} & Target pressure in atm & float [1.0] \\
 		\textbf{MDspehrical} & Switches for spherical boundary conditions & integer, float, float, float, float, float, float [deactivated] (\textit{details below}) \\
 		\textbf{MDrattle} & Switch for Rattle\supercite{rattle} H-bond constraints\begin{itemize} \item 0 = no \item 1 = all hydrogen bonds \item 2 = specific bonds (\textit{see below}) \end{itemize} & integer [0] \\
-		\textbf{MDrattpar} & Filename for the parameter file for equilibrium distances of h-bonds, e.g. the parameter file for the forcefield that is used for energy and gradient calculation & string [none]  \\
-		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 fixation (atomnumbers of the constrained bonds starting with 0, i.\,e number in tinkerstructure -1; first has to be an H-atom) & integer, integer [none] \\
+		\textbf{MDrattle\_use\_paramfile} & if true constrained distances are bond length parameters from the forcefield parameter file, if false the distance for every constrained atom pair must be given with the option MDrattledist & bool [true] \\
+		\textbf{MDrattlebond} & Specify certain atom pairs for Rattle\supercite{rattle} if MDrattle = 2 (pairs of atom indices, starting with 1) & integer, integer [none] \\
+		\textbf{MDrattledist} & distances to which the atom pairs given in MDrattlebond are constrained if MDrattle\_use\_paramfile is false. The rattlebonds and rattledists have to be given in the same order. If you use this option you can also constrain distances between non-bound atoms. & double [none] \\
 		\textbf{MDbiased\_potential} & Switch on and off a biased potential around the active site \begin{itemize} \item 0 = off \item 1  = on \end{itemize} & integer [0] \\
 		\textbf{MDactive\_site} & atom numbers of active site (write a new line for every atom) & integer [none] \\
 		\textbf{MDcutoff} & inner and outer cutoff for biased potential & integer, integers [not defined] \\
@@ -924,7 +934,23 @@ If you disable the option ``MDthermostat'' a simple velocity scaling is used for
 	the starting temperature (at step 0) is 50\,K and the second line is just ignored. To avoid confusion it is recommended only to use one line of MDheat and set it to step 0:
 \begin{lstlisting}
 MDheat			    0  	  300
-\end{lstlisting}		
+\end{lstlisting}	
+
+\subsubsection{Rattle}
+
+You can use the Rattle Algorithm\supercite{rattle} to constrain atom distances during the MD simulation. With the option ``MDrattle'' you activate this option. If it's set to 1 all bonds that contain a hydrogen atom are automatically constrained, if it's set to 2 you can choose atom pairs to constrain. Another important option for rattle is ``MDrattle\_use\_paramfile''. If it's set to true (default) the distances to which the atom pairs are constrained are taken from the forcefield parameter file. If you use MDrattle=1 you have to use this option. If some of your atom pairs don't share a bond you can't use this option because it wouldn't make sense to constrain them to the bond distance. 
+
+If you want to define the atom pairs to be constrained yourself you do that with the option ``MDrattlebond''. There you give the atom indices (starting with 1) of your atom pairs. Every atom pair is in a new line so this section might look like this:
+\begin{lstlisting}
+MDrattlebond           3117   347
+MDrattlebond           3160   2276
+\end{lstlisting}
+
+If you have chosen not to use the bond distances from the parameter file but to define your own atom distances you use the option ``MDrattledist''. There you give the atom distances for the atom pairs defined in ``MDrattlebond''. Again every atom pair gets its own line. So if you want to constrain the distance between atoms 3117 and 347 to 2.5\,\AA~and that beween atoms 3160 and 2276 to 1.1\,\AA~this section is:
+\begin{lstlisting}
+MDrattledist           2.5
+MDrattledist           1.1
+\end{lstlisting}
 		
 	\subsubsection{MD with biased potential}
 	
