@@ -339,7 +339,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           double random_normal, random_normal1;
           double random_eq;
           random_normal1 = distributionN(engine);
-
+//EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
           if (excPos.state == 'e')//Exciton state
           {
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
@@ -348,8 +348,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
 
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1), reorganisationsenergie_exciton);//rate for homoPSCpartner
-                raten.push_back(rate_sum);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1), reorganisationsenergie_exciton * 0.5);//rate for homoPSCpartner
               }
 
               else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)
@@ -357,9 +356,9 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 random_normal = distributionN(engine);//generating normal distributed random number
 
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy /*+ ct_drivingforce */, reorganisationsenergie_ct);//rate for heteroPSCpartner
-                raten.push_back(rate_sum);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy /*+ ct_drivingforce */, reorganisationsenergie_ct * 0.5);//rate for heteroPSCpartner
               }
+              raten.push_back(rate_sum);
 
               std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
             }// p
@@ -388,9 +387,14 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             {
               if (raten[q] > rate_KMC)
               {
+                if (excCoup[viablePartners[q]].monA >= pscnumber && excCoup[viablePartners[q]].monB >= pscnumber)
+                {
+                  excPos.h_location = excPos.location; //set hole position to former exciton position for charge separation
+                }
+
                 excPos.location = viablePartners[q];
 
-                if (excCoup[excPos.location].monA > pscnumber && excCoup[excPos.location].monB > pscnumber)
+                if (excCoup[excPos.location].monA >= pscnumber && excCoup[excPos.location].monB >= pscnumber)
                 {
                   excPos.state = 'c';
                   std::cout << "Chargeseparation." << '\n';
@@ -412,7 +416,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               }
             }
           }//state e end
-
+//CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
           else if (excPos.state == 'c')//charge separated state
           {
             if (nscnumber == 0)//if only pSC are availeable
@@ -423,13 +427,24 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             }
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
-              if (excCoup[excPos.location].monA < pscnumber || excCoup[excPos.location].monB < pscnumber)
+              if (excCoup[excPos.location].monA < pscnumber || excCoup[excPos.location].monB < pscnumber)//charge movement
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge * 0.5);
               }
+
+              if (excCoup[excPos.location].monA > pscnumber && excCoup[excPos.location].monB > pscnumber)
+              {
+                random_normal = distributionN(engine);//generating normal distributed random number
+                coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek * 0.5);
+              }
+              raten.push_back(rate_sum);
+
             }
+
+
 
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();

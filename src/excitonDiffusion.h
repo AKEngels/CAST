@@ -63,7 +63,7 @@ namespace exciD {
 
   struct Exciton
   {
-    std::size_t location;
+    std::size_t location, h_location;
     char state;
 
     Exciton() : location(), state('e') {} //state of exciton is by default set to e for Exciton in constructor, is changed to different states when exciton changes (vgl excitonbreakup task)
