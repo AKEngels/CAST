@@ -677,7 +677,7 @@ void md::simulation::fepinit(void)
     else if (dlambda > 1) coordobj.fep.window[i].dvout = 0;
     else coordobj.fep.window[i].dvout = (1 - dlambda) / Config::get().fep.vdwcouple;
 
-    double mlambda = (i-1) * Config::get().fep.dlambda;  // lambda - dlambda
+    double mlambda = (int)(i-1) * Config::get().fep.dlambda;  // lambda - dlambda
     if (mlambda < Config::get().fep.eleccouple) coordobj.fep.window[i].mein = 0;
     else coordobj.fep.window[i].mein = 1 - (1 - mlambda) / (1 - Config::get().fep.eleccouple);
     if (mlambda > Config::get().fep.vdwcouple) coordobj.fep.window[i].mvin = 1;
