@@ -768,6 +768,8 @@ void md::simulation::bar(int current_window)
    {
      std::cout << "Start solution of BAR equation from dG_SOS: " << dG_SOS << "\n";
    }
+
+	 auto count_iterations{ 0u };
    do    // iterative solution for BAR equation
    {
      c = dG_BAR;
@@ -796,7 +798,8 @@ void md::simulation::bar(int current_window)
      }
      de_ensemble_v_BAR = ensemble;  // this is needed in next step
      
-   } while (fabs(c - dG_BAR) > 0.001);  //0.001 = convergence threshold (maybe later define by user?)
+		 count_iterations += 1;
+   } while (fabs(c - dG_BAR) > 0.001 && count_iterations < 5000);  // 0.001 = convergence threshold and 5000 = maximum number of iterations (maybe later define by user?)
    this->FEPsum_BAR += dG_BAR;
 }
 
