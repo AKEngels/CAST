@@ -1,6 +1,3 @@
-[submodule "submodules/eigen"]
-	path = submodules/eigen
-	url = https://github.com/eigenteam/eigen-git-mirror.git
 [submodule "submodules/cubature"]
 	path = submodules/cubature
 	url = https://github.com/stevengj/cubature
