@@ -3011,17 +3011,17 @@ void neb::create_internal_interpolation(std::vector <coords::Representation_3D> 
   {
 
     //converts Z-matrix to cartesian structure using OpenBabel
-    write_gzmat("NEB_" + to_string(i) + ".gzmat", Z_matrices[i], coords);
+    write_gzmat("NEB_" + std::to_string(i) + ".gzmat", Z_matrices[i], coords);
 
     std::string command = "obabel -i gzmat NEB_"
-      + to_string(i)
+      + std::to_string(i)
       + ".gzmat -o txyz -O NEB_coordinates_cartesian_"
-      + to_string(i);
+      + std::to_string(i);
     system(command.c_str());
 
     //saves new structure
     structure = format_ptr->read("NEB_coordinates_cartesian_"
-      + to_string(i));
+      + std::to_string(i));
     structure.adapt_indexation(no_dist, no_angle, no_dihedral,
       Z_matrices[0], cPtr);
 
@@ -3201,7 +3201,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
       {
         if (cPtr->atoms(j).bonds().size() != 1)
           throw std::logic_error("Terminal atom "
-            + to_string(j + 1)
+            + std::to_string(j + 1)
             + "not actually terminal.");
         for (size_t k = 0;
           k < redundant_dists[backbone_indeces[cPtr->atoms(j).bonds(0)] - 1].size();
@@ -3228,7 +3228,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
       {
         if (backbone_indeces[j] == 0)
           throw std::logic_error("Backbone atom "
-            + to_string(j + 1)
+            + std::to_string(j + 1)
             + " not actually part of backbone.");
         for (size_t k = 0; k < redundant_dists[backbone_indeces[j] - 1].size(); ++k)
         {
@@ -3279,7 +3279,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
   {
     if (!defined[i])
       throw std::runtime_error("No bond parameter could be defined for atom "
-        + to_string(i + 1));
+        + std::to_string(i + 1));
     defined[i] = false;
   }
   //gets angles
@@ -3388,7 +3388,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
   {
     if (!defined[i])
       throw std::runtime_error("No angle parameter could be defined for atom "
-        + to_string(i + 1));
+        + std::to_string(i + 1));
     defined[i] = false;
   }
   //gets torsions
@@ -3532,7 +3532,7 @@ std::vector<std::vector<std::pair<std::vector<size_t>, double>>> neb::redundant_
   {
     if (!defined[i])
       throw std::runtime_error("No torsion parameter could be defined for atom "
-        + to_string(i + 1));
+        + std::to_string(i + 1));
   }
   //end of param reduction
   //getting actual coords

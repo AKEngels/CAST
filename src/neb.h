@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iomanip>
 #include "interpolation.h"
-#include "nr3.h"
+//#include "nr3.h"
 #include "alignment.h"
 
 

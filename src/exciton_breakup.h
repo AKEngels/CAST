@@ -13,9 +13,9 @@
 
 
 
-istream& skipline(istream& in)
+std::istream& skipline(std::istream& in)
 {
-  return in.ignore(numeric_limits < streamsize >::max(), '\n');
+  return in.ignore(std::numeric_limits < std::streamsize >::max(), '\n');
 }
 
 // Definition der length-berechnung
@@ -78,7 +78,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   double k_rad = wellenzahl*wellenzahl*oszillatorstrength; // fluoreszenz
 
   /////////////////////////////////// INPUT-READING
-  ifstream schwerpunkt;
+  std::ifstream schwerpunkt;
   schwerpunkt.open(masscenters);
   schwerpunkt >> gesamtanzahl;
   std::cout << "Read number of Monomers: " << gesamtanzahl << std::endl;
@@ -99,7 +99,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     schwerpunkt >> zeile >> x[i] >> y[i] >> z[i]; //reading and saving balance points for molecules
   }
   ///////////////////////////////////
-  ifstream exciton;
+  std::ifstream exciton;
   exciton.open(pscpairexrates);
   while (getline(exciton, zeile)) 
   { //counting of excitonpairs in homodimers
@@ -283,20 +283,20 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
     if (partneranzahl[i] != j - 1) //after implementation into CAST replace by throw
     { 
-      cout << "Error with number of partners for monomer " << i << std::endl;
+      std::cout << "Error with number of partners for monomer " << i << std::endl;
     }
   }
 
   // INPUT-END
 
-  ofstream kopplung;
+  std::ofstream kopplung;
   kopplung.open("partner.txt");
   for (i = 1; i < (gesamtanzahl + 1); i++) 
   {
-    kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
+    kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
     for (j = 1; j < (partneranzahl[i] + 1); j++) 
     {
-      kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
+      kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
     }
     kopplung << '\n';
   }
@@ -305,18 +305,18 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   kopplung.open("couplings.txt");
   for (i = 1; i < (pscanzahl + 1); i++) 
   {
-    kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
+    kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
 
     for (j = 1; j < (partneranzahl[i] + 1); j++) 
     {
-      kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
+      kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
       if (partner[i][j] < (pscanzahl + 1)) 
       {
-        kopplung << setw(12) << setprecision(6) << fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
+        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
       }
       else if (partner[i][j] > pscanzahl)
       {
-        kopplung << setw(12) << setprecision(6) << fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
+        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
       }
     }
     kopplung << '\n';
@@ -324,17 +324,17 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
   for (i = (pscanzahl + 1); i < (gesamtanzahl + 1); i++)
   {
-    kopplung << setw(6) << i << setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
+    kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
     for (j = 1; j < (partneranzahl[i] + 1); j++) 
     {
-      kopplung << setw(6) << partner[i][j]; //writes the indices of the partners j
+      kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
       if (partner[i][j] < (pscanzahl)) 
       {
-        kopplung << setw(12) << setprecision(6) << fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
+        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
       }
       else if (partner[i][j] > pscanzahl)
       {
-        kopplung << setw(12) << setprecision(6) << fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
+        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
       }
     }
     kopplung << '\n';
@@ -370,13 +370,13 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   y_mittel = (y_monomer + y_fulleren) / 2;
   z_mittel = (z_monomer + z_fulleren) / 2;
 
-  ofstream interface;
+  std::ofstream interface;
   interface.open("massponts_general.xyz"); //writing out average balance points for all groupings of monomers
   interface << "4" << '\n' << '\n';
-  interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_monomer << setw(12) << setprecision(6) << fixed << y_monomer << setw(12) << setprecision(6) << fixed << z_monomer << '\n';
-  interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_fulleren << setw(12) << setprecision(6) << fixed << y_fulleren << setw(12) << setprecision(6) << fixed << z_fulleren << '\n';
-  interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_gesamt << setw(12) << setprecision(6) << fixed << y_gesamt << setw(12) << setprecision(6) << fixed << z_gesamt << '\n';
-  interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x_mittel << setw(12) << setprecision(6) << fixed << y_mittel << setw(12) << setprecision(6) << fixed << z_mittel << '\n';
+  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_monomer << std::setw(12) << std::setprecision(6) << std::fixed << y_monomer << std::setw(12) << std::setprecision(6) << std::fixed << z_monomer << '\n';
+  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << y_fulleren << std::setw(12) << std::setprecision(6) << std::fixed << z_fulleren << '\n';
+  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << y_gesamt << std::setw(12) << std::setprecision(6) << std::fixed << z_gesamt << '\n';
+  interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x_mittel << std::setw(12) << std::setprecision(6) << std::fixed << y_mittel << std::setw(12) << std::setprecision(6) << std::fixed << z_mittel << '\n';
   interface.close();
 
   index = 0;
@@ -392,7 +392,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         max = x[i];
       }
     }
-    std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
+    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
 
     for (i = 1; i < (pscanzahl + 1); i++)  //determining the necessary number of starting points? 
     {
@@ -410,7 +410,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         max = y[i];
       }
     }
-    std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
+    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
 
     for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
     { 
@@ -429,7 +429,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         max = z[i];
       }
     }
-    std::cout << "Maxdistance is " << setw(12) << setprecision(6) << fixed << max << std::endl;
+    std::cout << "Maxdistance is " << std::setw(12) << std::setprecision(6) << std::fixed << max << std::endl;
 
     for (i = 1; i < (pscanzahl + 1); i++) //determining the necessary number of starting points? 
     { 
@@ -448,9 +448,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   interface << index << '\n' << '\n'; //writes the number of startingponts
   for (i = 1; i < (index + 1); i++) 	//writes coordinates of startingpoints
   {			
-    interface << setw(5) << "X" << setw(12) << setprecision(6) << fixed << x[startpunkt[i]];
-    interface << setw(12) << setprecision(6) << fixed << y[startpunkt[i]];
-    interface << setw(12) << setprecision(6) << fixed << z[startpunkt[i]] << '\n';
+    interface << std::setw(5) << "X" << std::setw(12) << std::setprecision(6) << std::fixed << x[startpunkt[i]];
+    interface << std::setw(12) << std::setprecision(6) << std::fixed << y[startpunkt[i]];
+    interface << std::setw(12) << std::setprecision(6) << std::fixed << z[startpunkt[i]] << '\n';
   }
   interface.close();
 
@@ -498,7 +498,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     punkt[i] = 0;
   }
 
-  ofstream run;
+  std::ofstream run;
   run.open("run.txt");
 
   for (k = 1; k < (index + 1); k++) // schleife über startpunkte "index durch 1 vertauscht"
@@ -520,9 +520,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
           // site energies berechnen
           //########## raten addieren für monomere ##########
           r_summe = 0;
-          random_device rd;
-          default_random_engine engine(rd());
-          normal_distribution<double> distribution0(0.0, 0.068584577); // hier neue standardabweichung eintragen
+          std::random_device rd;
+          std::default_random_engine engine(rd());
+          std::normal_distribution<double> distribution0(0.0, 0.068584577); // hier neue standardabweichung eintragen
           zufall1 = distribution0(engine); //generating normal-distributed random number
 
           std::vector<double> raten(partneranzahl[punkt_ladung[i - 1]] + 1);
@@ -613,7 +613,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
               return 0;
             }
             // monomerhüpfen ausführen
-            uniform_real_distribution<double> distribution1(0, 1);
+            std::uniform_real_distribution<double> distribution1(0, 1);
             zufall = distribution1(engine);
             r_i = zufall*r_summe;
             for (g = 1; g < (partneranzahl[punkt_ladung[i - 1]] + 1); g++)
@@ -663,10 +663,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
                 }
 
                 //#########################################################################################################################
-                run << "old Monomer " << setw(5) << punkt_ladung[i - 1] << std::endl;
-                run << "new Monomer " << setw(5) << punkt_ladung[i] << std::endl;
-                run << "Coupling " << setw(12) << setprecision(6) << fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
-                run << "Fulleren " << setw(5) << punkt[i] << setw(5) << punkt[i - 1] << std::endl;
+                run << "old Monomer " << std::setw(5) << punkt_ladung[i - 1] << std::endl;
+                run << "new Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
+                run << "Coupling " << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ladung[punkt_ladung[i - 1]][punkt_ladung[i]] << std::endl;
+                run << "Fulleren " << std::setw(5) << punkt[i] << std::setw(5) << punkt[i - 1] << std::endl;
                 break;
               }
               else if ((raten[g] > r_i) && (partner[punkt_ladung[i - 1]][g] > (pscanzahl)))
@@ -705,7 +705,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
             }
 
             // fullerenhüpfen ausführen
-            uniform_real_distribution<double> distribution1(0, 1);
+            std::uniform_real_distribution<double> distribution1(0, 1);
             zufall = distribution1(engine);
             r_i = zufall*r_summe_fulleren;
 
@@ -717,10 +717,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
                 punkt[i] = partner[punkt[i - 1]][g];
                 punkt_ladung[i] = punkt_ladung[i - 1];
-                run << "old Fulleren " << setw(5) << punkt[i - 1] << std::endl;
-                run << "new Fulleren " << setw(5) << punkt[i] << std::endl;
-                run << "Monomer " << setw(5) << punkt_ladung[i] << std::endl;
-                run << "Coupling " << setw(12) << setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
+                run << "old Fulleren " << std::setw(5) << punkt[i - 1] << std::endl;
+                run << "new Fulleren " << std::setw(5) << punkt[i] << std::endl;
+                run << "Monomer " << std::setw(5) << punkt_ladung[i] << std::endl;
+                run << "Coupling " << std::setw(12) << std::setprecision(6) << coupling_fulleren[punkt[i]][punkt[i - 1]] << std::endl;
                 break;
               }
               else if ((raten_fulleren[g] > r_i) && ((partner[punkt[i - 1]][g]) < (pscanzahl + 1)))
@@ -745,9 +745,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         {
           // site energies berechnen
           r_summe = 0;
-          random_device rd;
-          default_random_engine engine(rd());
-          normal_distribution<double> distribution0(0.0, 0.0338987); // hier neue standardabweichung eintragen
+          std::random_device rd;
+          std::default_random_engine engine(rd());
+          std::normal_distribution<double> distribution0(0.0, 0.0338987); // hier neue standardabweichung eintragen
           zufall1 = distribution0(engine); //generating an normal-distributed random number
 
           std::vector <double> raten(partneranzahl[punkt[i - 1]] + 1);
@@ -780,7 +780,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
           dwelltime = 1 / r_summe;
 
           // schritt bestimmen
-          uniform_real_distribution<double> distribution1(0, 1);
+          std::uniform_real_distribution<double> distribution1(0, 1);
           zufall = distribution1(engine);
           r_i = zufall*r_summe;
           zeit = zeit + 1 / r_summe;
@@ -858,9 +858,9 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   run.close();
 
   // Auswertung: Prozentsätze
-  ofstream auswertung;
+  std::ofstream auswertung;
   auswertung.open("evaluation.txt");
-  auswertung << setw(4) << "k" << setw(4) << "IX" << setw(9) << "Ex_Diss." << setw(9) << "Ch_Diss" << setw(9) << "Rek." << setw(9) << "Trapp." << setw(9) << "Fluor." << '\n';
+  auswertung << std::setw(4) << "k" << std::setw(4) << "IX" << std::setw(9) << "Ex_Diss." << std::setw(9) << "Ch_Diss" << std::setw(9) << "Rek." << std::setw(9) << "Trapp." << std::setw(9) << "Fluor." << '\n';
 
   double ex_diss_efficiency, ch_diss_efficiency, rek_efficiency, trapp_efficiency, rad_efficiency;
   double mittel_ex = 0;
@@ -882,16 +882,16 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     rek_efficiency = rek[k];
     trapp_efficiency = trapping[k];
     rad_efficiency = radiativ[k];
-    auswertung << setw(4) << k << setw(4) << startpunkt[k] << setw(9) << setprecision(5) << ex_diss_efficiency;
-    auswertung << setw(9) << setprecision(5) << ch_diss_efficiency;
-    auswertung << setw(9) << setprecision(5) << rek_efficiency << setw(9) << setprecision(5) << trapp_efficiency << setw(9) << setprecision(5) << rad_efficiency << '\n';
+    auswertung << std::setw(4) << k << std::setw(4) << startpunkt[k] << std::setw(9) << std::setprecision(5) << ex_diss_efficiency;
+    auswertung << std::setw(9) << std::setprecision(5) << ch_diss_efficiency;
+    auswertung << std::setw(9) << std::setprecision(5) << rek_efficiency << std::setw(9) << std::setprecision(5) << trapp_efficiency << std::setw(9) << std::setprecision(5) << rad_efficiency << '\n';
   }
 
-  auswertung << setw(9) << "Average " << setw(9) << setprecision(5) << fixed << mittel_ex / index << setw(9) << setprecision(5) << fixed << mittel_ch / index;
-  auswertung << setw(9) << setprecision(5) << fixed << mittel_rek / index << setw(9) << setprecision(5) << fixed << mittel_trapp / index;
-  auswertung << setw(9) << setprecision(5) << fixed << mittel_rad / index << '\n';
+  auswertung << std::setw(9) << "Average " << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ex / index << std::setw(9) << std::setprecision(5) << std::fixed << mittel_ch / index;
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rek / index << std::setw(9) << std::setprecision(5) << std::fixed << mittel_trapp / index;
+  auswertung << std::setw(9) << std::setprecision(5) << std::fixed << mittel_rad / index << '\n';
   auswertung << "Velocities" << '\n';
-  auswertung << setw(4) << "k" << setw(5) << "IX" << setw(11) << "Ex_vel" << setw(11) << "Ex_s_dev" << setw(11) << "Ch_vel" << setw(11) << "Ch_s_dev" << '\n';
+  auswertung << std::setw(4) << "k" << std::setw(5) << "IX" << std::setw(11) << "Ex_vel" << std::setw(11) << "Ex_s_dev" << std::setw(11) << "Ch_vel" << std::setw(11) << "Ch_s_dev" << '\n';
 
   // mittlere Geschwindigkeit
   for (k = 1; k < (index + 1); k++) {
@@ -943,10 +943,10 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     else if (ex_diss[k] < 2) {
       standard_ex[k] = 0;
     }
-    auswertung << setw(4) << k << setw(5) << startpunkt[k] << setw(11) << setprecision(5) << fixed << mittel_ex_vel[k] * 1e-9;
-    auswertung << setw(11) << setprecision(5) << fixed << standard_ex[k] * 1e-9;
-    auswertung << setw(11) << setprecision(5) << fixed << mittel_ch_vel[k] * 1e-9;
-    auswertung << setw(11) << setprecision(5) << fixed << standard_ch[k] * 1e-9 << '\n';
+    auswertung << std::setw(4) << k << std::setw(5) << startpunkt[k] << std::setw(11) << std::setprecision(5) << std::fixed << mittel_ex_vel[k] * 1e-9;
+    auswertung << std::setw(11) << std::setprecision(5) << std::fixed << standard_ex[k] * 1e-9;
+    auswertung << std::setw(11) << std::setprecision(5) << std::fixed << mittel_ch_vel[k] * 1e-9;
+    auswertung << std::setw(11) << std::setprecision(5) << std::fixed << standard_ch[k] * 1e-9 << '\n';
   }
   double mittelwert_geschw_exciton = 0;
   double mittelwert_geschw_ladung = 0;
@@ -954,11 +954,11 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     mittelwert_geschw_exciton = mittelwert_geschw_exciton + mittel_ex_vel[k];
     mittelwert_geschw_ladung = mittelwert_geschw_ladung + mittel_ch_vel[k];
   }
-  auswertung << left << setw(7) << " Average    " << left << setw(22) << setprecision(5) << fixed << mittelwert_geschw_exciton / index*1e-9;
-  auswertung << left << setw(9) << setprecision(5) << fixed << mittelwert_geschw_ladung / index*1e-9 << '\n';
+  auswertung << std::left << std::setw(7) << " Average    " << std::left << std::setw(22) << std::setprecision(5) << std::fixed << mittelwert_geschw_exciton / index*1e-9;
+  auswertung << std::left << std::setw(9) << std::setprecision(5) << std::fixed << mittelwert_geschw_ladung / index*1e-9 << '\n';
 
   // Verteilung Ladungen und Exzitonengeschwindigkeiten
-  ofstream exciton_verteilung;
+  std::ofstream exciton_verteilung;
   exciton_verteilung.open("exciton_distribution.txt");
   for (i = 1; i < 21; i++) {
     zahl = 0;
@@ -969,7 +969,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         }
       }
     }
-    exciton_verteilung << setw(9) << setprecision(5) << i * 50 << setw(9) << zahl / index << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / index << '\n';
   }
 
   exciton_verteilung.close();
@@ -983,7 +983,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
         }
       }
     }
-    exciton_verteilung << setw(9) << setprecision(5) << i * 50 << setw(9) << zahl / index << '\n';
+    exciton_verteilung << std::setw(9) << std::setprecision(5) << i * 50 << std::setw(9) << zahl / index << '\n';
   }
   exciton_verteilung.close();
 
