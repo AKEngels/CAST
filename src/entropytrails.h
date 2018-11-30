@@ -758,7 +758,7 @@ int cubaturefunctionEntropy(unsigned ndim, size_t npts, const double *x, void *f
   if (fdim != 1)
     throw;
 
-  for (int j = 0; j < npts; ++j) 
+  for (int j = 0; j < static_cast<int>(npts); ++j) 
   { // evaluate the integrand for npts points
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
@@ -797,7 +797,7 @@ int cubaturefunctionProbDens(unsigned ndim, size_t npts, const double *x, void *
   if (fdim != 1)
     throw;
 
-  for (int j = 0; j < npts; ++j)
+  for (int j = 0; j < static_cast<int>(npts); ++j)
   { // evaluate the integrand for npts points
     std::vector<double> input;
     for (unsigned int i = 0u; i < ndim; i++)
@@ -845,7 +845,6 @@ public:
   {
     analyticalEntropy = probdens.analyticEntropy();
     writeToCSV("entropy.csv", "analytic", analyticalEntropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
-
   }
 
   void empiricalGaussianEntropy()
@@ -1182,10 +1181,6 @@ public:
           }
         }
 
-
-
-
-        // Lombardi kPN hier, fehlt bisher noch
       }
       delete[] buffer;
 #ifdef _OPENMP
@@ -1336,6 +1331,95 @@ public:
 
     std::cout << "NN Calculation took " << timer << " ." << std::endl;
 
+    //Neccessarry
+    transpose(drawMatrix);
+    return returnValue;
+  }
+
+  double lombardiNN(const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
+  {
+    std::cout << "Commencing NNEntropy calculation." << std::endl;
+
+    //Neccessarry
+    transpose(drawMatrix);
+
+    Matrix_Class copytemp = drawMatrix;
+    Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
+    Matrix_Class maxnorm_kNN_neighbors(numberOfDraws, kNN + 1, 0.);
+
+#ifdef _OPENMP
+#pragma omp parallel firstprivate(copytemp) \ 
+    shared(maxnorm_kNN_neighbors, maxnorm_kNN_distances)
+    {
+#endif
+      float_type* buffer = new float_type[kNN];
+      size_t* intbuffer = new size_t[kNN];
+#ifdef _OPENMP
+      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfDraws);
+
+#pragma omp for
+      for (std::ptrdiff_t i = 0; i < n_omp; ++i)
+#else
+      for (size_t i = 0u; i < numberOfDraws; i++)
+#endif
+      {
+        std::vector<size_t> rowQueryPts;
+        for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+        {
+          rowQueryPts.push_back(currentDim);
+        }
+
+        std::vector<double> current;
+
+        const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance_with_pointiters(copytemp, this->dimension, kNN, rowQueryPts, i, buffer, intbuffer);
+        maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
+        for (size_t j = 0u; j < kNN; j++)
+          maxnorm_kNN_neighbors(i, j) = static_cast<float_type>(intbuffer[j]);
+
+      }
+      delete[] buffer;
+      delete[] intbuffer;
+#ifdef _OPENMP
+    }
+#endif
+    double returnValue = std::numeric_limits<double>::quiet_NaN();
+
+    // Eucledean ArdakaniSum 
+
+    if (true)
+    {
+      KahanAccumulation<double> kahan_acc_max_sum;
+      for (size_t i = 0u; i < numberOfDraws; i++)
+        kahan_acc_max_sum = KahanSum(kahan_acc_max_sum, log(maxnorm_kNN_distances(0, i)));
+      double maxNormSum = kahan_acc_max_sum.sum;
+
+      //
+      maxNormSum = maxNormSum / double(numberOfDraws);
+      maxNormSum *= double(dimension);
+      maxNormSum += log(pow(2., this->dimension));
+
+      maxNormSum -= digammal(double(kNN));
+
+      double sum_lombardi = maxNormSum + digammal(double(numberOfDraws));
+      double sum_goria = maxNormSum + log(double(numberOfDraws - 1.));
+      double sum_hnizdo = maxNormSum + log(double(numberOfDraws));
+
+
+
+      writeToCSV("entropy.csv", "fullNNentropy", sum_hnizdo, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_goria, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, numberOfDraws);
+      writeToCSV("entropy.csv", "fullNNentropy", sum_lombardi, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, numberOfDraws);
+
+
+      if (func == kNN_FUNCTION::LOMBARDI)
+        returnValue = sum_lombardi;
+      else if (func == kNN_FUNCTION::GORIA)
+        returnValue = sum_goria;
+      else if (func == kNN_FUNCTION::HNIZDO)
+        returnValue = sum_hnizdo;
+      else
+        throw std::runtime_error("Critical Error in NN Entropy.");
+    }
     //Neccessarry
     transpose(drawMatrix);
     return returnValue;

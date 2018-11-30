@@ -909,6 +909,20 @@ typedef size_t uint_type;
 #endif
     }
 
+#ifdef CAST_USE_ARMADILLO
+    template<typename T>
+    void inverse(mathmatrix<T>& in)
+    {
+      in = mathmatrix<T>(inv(static_cast<CAST_ARMA_MATRIX_TYPE&>(in)));
+    }
+#else
+
+    template<typename T>
+    void inverse(mathmatrix<T>& in)
+    {
+      static_cast<CAST_EIGEN_MATRIX_TYPE&>(in).inverse();
+    }
+#endif
 
 		/**
 		 * @breif Returns mathmatrix-obj as std vector of vector of float_type.

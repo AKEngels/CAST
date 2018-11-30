@@ -62,6 +62,15 @@ namespace entropy
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
+  float_type maximum_norm_knn_distance_with_pointiters(
+    Matrix_Class const& input,
+    size_t const& dimension_in,
+    size_t const& k_in,
+    std::vector<size_t> const& row_querypts,
+    size_t const& col_querypt,
+    coords::float_type* buffer = nullptr,
+    size_t* intbuffer = nullptr);
+
 
   /**
   * Class used for Entropy calculations based
