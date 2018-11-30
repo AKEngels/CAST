@@ -708,10 +708,10 @@ namespace pca
     arma::Mat<double> & pca_modes_matrix = submodes;
     arma::gmm_full model;
 
-    bool status = model.learn(pca_modes_matrix, numberOfGaussians, eucl_dist, random_spread, 10, 7, 0, true);
+    bool status = model.learn(pca_modes_matrix, numberOfGaussians, eucl_dist, random_spread, 10, 25, 1e-80, true);
     if (status == false)
     {
-      std::cout << "learning failed ofr GMM model with " << dimensions.size() << " dimensions and " << numberOfGaussians << " number of gaussians." << std::endl;
+      std::cout << "learning of GMM model with " << dimensions.size() << " dimensions and " << numberOfGaussians << " number of gaussians failed." << std::endl;
     }
     else
     {
