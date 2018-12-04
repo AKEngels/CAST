@@ -47,15 +47,15 @@ namespace exciD {
   {
     std::size_t partnerIndex;
     std::vector<std::size_t> connect;
-    double avgCoup;
+    double avgCoup, avgsecCoup;
 
-    Partners() : partnerIndex(), connect(),avgCoup() {}
+    Partners() : partnerIndex(), connect(),avgCoup(), avgsecCoup() {}
 
     Partners(std::size_t partnerIndexp, std::vector<std::size_t> connectp) :
       partnerIndex(partnerIndexp), connect(connectp) {}
 
-    Partners(std::size_t partnerIndexp, std::vector<std::size_t> connectp, double avgCoupp) :
-      partnerIndex(partnerIndexp), connect(connectp), avgCoup(avgCoupp) {}
+    Partners(std::size_t partnerIndexp, std::vector<std::size_t> connectp, double avgCoupp, double avgsecCoupp) :
+      partnerIndex(partnerIndexp), connect(connectp), avgCoup(avgCoupp), avgsecCoup(avgsecCoupp) {}
 
     Partners(std::size_t partnerIndexp) :
       partnerIndex(partnerIndexp) {}

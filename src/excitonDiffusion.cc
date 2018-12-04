@@ -80,6 +80,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     double reorganisationsenergie_nSC = Config::get().exbreak.ReorgE_nSC;
     double reorganisationsenergie_ct = Config::get().exbreak.ReorgE_ct;
     double reorganisationsenergie_rek = Config::get().exbreak.ReorgE_rek;
+    double triebkraft_ct = Config::get().exbreak.ct_triebkraft;
+    double triebkraft_rek = Config::get().exbreak.rek_triebkraft;
     double oszillatorstrength = Config::get().exbreak.oscillatorstrength;
     double wellenzahl = Config::get().exbreak.wellenzahl;
     double k_rad = wellenzahl * wellenzahl * oszillatorstrength; // fluoreszenz
@@ -252,7 +254,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           for (std::size_t k = 0; k < excCoup.size(); k++)
           {
 
-            //in this i-cause the viable partners to the actual location are determined and the dimer pairs necessary to calculate the average couplings between the dimers are determined.
+            //in this if-cause the viable partners to the actual location are determined and the dimer pairs necessary to calculate the average couplings between the dimers are determined.
             if (excPos.location != k)//skip k if k is the index of the dimer where the exciton is at the moment
             {
               //ensure monomers at excCoup[excPos] are not part of excCoup[k]
@@ -305,17 +307,28 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             partnerConnections.push_back(tmpH);
           } //m
 
-          //calculate avgCouplings
+          //calculate avgCouplings & avgsecCouplings
           for (std::size_t n = 0u; n < partnerConnections.size(); n++)
           {
-            partnerConnections[n].avgCoup = 0.0;
+            partnerConnections[n].avgCoup = 0.0;//prevent visiting undefined behaviour land
+            partnerConnections[n].avgsecCoup = 0.0;
 
             for (std::size_t o = 0u; o < partnerConnections[n].connect.size(); o++)
             {
               partnerConnections[n].avgCoup += excCoup[partnerConnections[n].connect[o]].coupling;
+              
+              if (excCoup[partnerConnections[n].connect[o]].seccoupling != 0.0)//if a opair has a second coupling its value is addet to avgsecCoup
+              {
+                partnerConnections[n].avgsecCoup += excCoup[partnerConnections[n].connect[o]].seccoupling;
+              }
             }// o
             //partnerConnections[w].avgCoup /= partnerConnections[w].connect.size();
             partnerConnections[n].avgCoup /= 4; //unsure if the average coupling is gained by dividing the sum of relevant couplings by their number or the maximum (4) number of relevant couplings (assuming not added couplings are zero).
+            
+            if (partnerConnections[n].avgsecCoup != 0.0)//not every pair has a second coupling so bevoreS dividing its existence is checked
+            {
+              partnerConnections[n].avgsecCoup /= 4;
+            }
           }// n
 
           //writing loop for calculated avg Couplings
@@ -335,7 +348,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << '\n';
 
           double rate_sum(0.0), coulombenergy, rate_KMC;
-          std::vector <double> raten;
+          std::vector <double> raten;//used for exciton and electron rates
+          std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
           double random_eq;
           random_normal1 = distributionN(engine);
@@ -344,22 +358,34 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
           {
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
-              if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)
+              double tmp_ratesum(0);
+              bool heterodimer(false);
+              if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//only for homo p-type SC due to reorganisation energies
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
 
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1), reorganisationsenergie_exciton * 0.5);//rate for homoPSCpartner
+                rate_sum += marcus(partnerConnections[p].avgsecCoup, (random_normal - random_normal1), reorganisationsenergie_exciton);//rate for homoPSCpartner
               }
 
-              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//CT only if BOTH patrner molecules are n-type SC
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
 
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy /*+ ct_drivingforce */, reorganisationsenergie_ct * 0.5);//rate for heteroPSCpartner
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy + triebkraft_ct, reorganisationsenergie_ct);//rate for heteroPSCpartner
+              }
+              else//to prevent heterodimersfrom participating as exciton location HOW TO HANDLE HETERO DIMERS? CT OR EXCITONDIFFUSION?
+              {
+                tmp_ratesum = rate_sum;
+                rate_sum = 0.0;
+                heterodimer = true;
               }
               raten.push_back(rate_sum);
-
+              if (heterodimer) //set rate_sum back to previous value
+              {
+                heterodimer = false;
+                rate_sum = tmp_ratesum;
+              }
               std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
             }// p
             rate_sum += k_rad;//accounting for fluorescence
@@ -392,7 +418,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                   excPos.h_location = excPos.location; //set hole position to former exciton position for charge separation
                 }
 
-                excPos.location = viablePartners[q];
+                excPos.location = viablePartners[q];//after chargeseparation excPos.location tracks electron position.
 
                 if (excCoup[excPos.location].monA >= pscnumber && excCoup[excPos.location].monB >= pscnumber)
                 {
@@ -425,24 +451,38 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               excPos.state = 's';
               break;
             }
+
+            //electron movement in pSC****************************************************************************************************
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
-              if (excCoup[excPos.location].monA < pscnumber || excCoup[excPos.location].monB < pscnumber)//charge movement
+              double tmp_ratesum(0);
+              bool heterodimer(false);
+              if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//movement on pSC
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
-                coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge * 0.5);
+                coulombenergy = coulomb(excCoup[excPos.h_location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.h_location].position, excCoup[excPos.location].position, 3.4088);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge);
               }
-
-              if (excCoup[excPos.location].monA > pscnumber && excCoup[excPos.location].monB > pscnumber)
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//movement to nSC --> recombination
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
-                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek * 0.5);
+                rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
+              }
+              else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? electrondiffusion or recombination?
+              {
+                tmp_ratesum = rate_sum;
+                rate_sum = 0.0;
+                heterodimer = true;
               }
               raten.push_back(rate_sum);
-
-            }
+              if (heterodimer) //set rate_sum back to previous value
+              {
+                heterodimer = false;
+                rate_sum = tmp_ratesum;
+              }
+              std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
+            }//p
 
 
 
