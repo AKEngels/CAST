@@ -217,7 +217,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
     }
   }
 
-  std::vector<std::vector<int>> partner(gesamtanzahl + 1, std::vector<int>());//2D-vector with variing length for second vector
+  std::vector<std::vector<int>> partner(gesamtanzahl + 1, std::vector<int>());//2D-vector with varying length for second vector
 
   for (i = 1; i < (gesamtanzahl + 1); i++) //dynamic allocation for length of 2nd vector
   { 
@@ -297,44 +297,44 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
   }
   kopplung.close();
 
-  kopplung.open("couplings.txt");
-  for (i = 1; i < (pscanzahl + 1); i++) 
-  {
-    kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
+  //kopplung.open("couplings.txt");
+  //for (i = 1; i < (pscanzahl + 1); i++) 
+  //{
+  //  kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
 
-    for (j = 1; j < (partneranzahl[i] + 1); j++) 
-    {
-      kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
-      if (partner[i][j] < (pscanzahl + 1)) 
-      {
-        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
-      }
-      else if (partner[i][j] > pscanzahl)
-      {
-        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
-      }
-    }
-    kopplung << '\n';
-  }
+  //  for (j = 1; j < (partneranzahl[i] + 1); j++) 
+  //  {
+  //    kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
+  //    if (partner[i][j] < (pscanzahl + 1)) 
+  //    {
+  //      kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_exciton[i][partner[i][j]]; //writes the exciton-coupling between i and j
+  //    }
+  //    else if (partner[i][j] > pscanzahl)
+  //    {
+  //      kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_ct[i][partner[i][j]];     //writes charge-transfer-coupling between i and j 
+  //    }
+  //  }
+  //  kopplung << '\n';
+  //}
 
-  for (i = (pscanzahl + 1); i < (gesamtanzahl + 1); i++)
-  {
-    kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
-    for (j = 1; j < (partneranzahl[i] + 1); j++) 
-    {
-      kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
-      if (partner[i][j] < (pscanzahl)) 
-      {
-        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
-      }
-      else if (partner[i][j] > pscanzahl)
-      {
-        kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
-      }
-    }
-    kopplung << '\n';
-  }
-  kopplung.close();
+  //for (i = (pscanzahl + 1); i < (gesamtanzahl + 1); i++)
+  //{
+  //  kopplung << std::setw(6) << i << std::setw(6) << partneranzahl[i]; //writes the indices of the molecules and the ammount of partners they posess
+  //  for (j = 1; j < (partneranzahl[i] + 1); j++) 
+  //  {
+  //    kopplung << std::setw(6) << partner[i][j]; //writes the indices of the partners j
+  //    if (partner[i][j] < (pscanzahl)) 
+  //    {
+  //      kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_rek[i][partner[i][j]]; //writes the recombination coupling between i and j
+  //    }
+  //    else if (partner[i][j] > pscanzahl)
+  //    {
+  //      kopplung << std::setw(12) << std::setprecision(6) << std::fixed << coupling_fulleren[i][partner[i][j]]; // writes some coupling regarding fullerens?
+  //    }
+  //  }
+  //  kopplung << '\n';
+  //}
+  //kopplung.close();
 
   // Startpunkte bestimmen ##################################################################################################################
   double x_monomer(0.), y_monomer(0.), z_monomer(0.), x_fulleren(0.), y_fulleren(0.), z_fulleren(0.),
