@@ -36,7 +36,7 @@ void couplings::coupling::kopplung()
 
           INDO(dim_coords, Config::get().couplings.pSCmethod_el, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
-         V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
+         V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
 
           ZINDO(dim_coords, Config::get().couplings.pSCmethod_ex, Config::get().couplings.pSCmultipl, Config::get().couplings.pSCcharge);
 
@@ -53,7 +53,7 @@ void couplings::coupling::kopplung()
 
           INDO(dim_coords, Config::get().couplings.nSCmethod, Config::get().couplings.nSCmultipl, Config::get().couplings.nSCcharge);
 
-          V_hole.push_back(0.5*(c_occMO[0] - c_occMO[1]) / au2kcal_mol);
+          V_el.push_back(0.5 * (c_virtMO[1] - c_virtMO[0]) / au2kcal_mol);
 
         }//nSC homo-pair end
 
@@ -192,7 +192,7 @@ void couplings::coupling::write()
   {
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_el[i] << " ";
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_hole[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_ex[i] << '\n';
   }
 
@@ -208,7 +208,7 @@ void couplings::coupling::write()
   {
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " ";
     all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_2[i] << " ";
-    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_hole[i] << '\n';
+    all_couplings << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_el[i] << '\n';
   }
 
   all_couplings.close();
@@ -227,7 +227,7 @@ void couplings::coupling::write()
   {
     homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_1[i] << " ";
     homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << pSC_homo_2[i] << " ";
-    homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_el[i] << '\n';
+    homo_ch << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_hole[i] << '\n';
   }
   homo_ch.close();
 
@@ -246,7 +246,7 @@ void couplings::coupling::write()
   {
     nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_1[i] << " ";
     nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << nSC_homo_2[i] << " ";
-    nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_hole[i] << '\n';
+    nSC << std::setw(12) << std::setprecision(6) << std::fixed << std::left << V_el[i] << '\n';
   }
 
 
