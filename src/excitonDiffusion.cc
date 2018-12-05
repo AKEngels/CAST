@@ -347,7 +347,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
           std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << '\n';
 
-          double rate_sum(0.0), coulombenergy, rate_KMC;
+          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC;
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
@@ -452,7 +452,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               break;
             }
 
-            //electron movement in pSC****************************************************************************************************
+            //electron rates in pSC
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
               double tmp_ratesum(0);
@@ -463,12 +463,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 coulombenergy = coulomb(excCoup[excPos.h_location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.h_location].position, excCoup[excPos.location].position, 3.4088);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge);
               }
-              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber)//movement to nSC --> recombination
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex == excPos.h_location)//movement to nSC --> recombination | only possible if electron presen on nSC dimer
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
-              }
+              }            
               else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? electrondiffusion or recombination?
               {
                 tmp_ratesum = rate_sum;
@@ -476,6 +476,12 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 heterodimer = true;
               }
               raten.push_back(rate_sum);
+
+              if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.h_location)
+              { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
+                raten[p] = 0.0;
+              }
+
               if (heterodimer) //set rate_sum back to previous value
               {
                 heterodimer = false;
@@ -490,6 +496,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             partnerConnections.clear();
             break;
           }// state c end
+//SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
           else if (excPos.state == 's')//separated state
           {
             std::cout << "Successful run." << '\n';
@@ -498,6 +505,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             excPos.state = 'e';
             break;
           }//state s end
+//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
           else if (excPos.state == 't')//termination state
           {
             std::cout << "Broken." << '\n';
@@ -506,6 +514,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             excPos.state = 'e';
             break;
           }// state t end
+//??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
           else
           {
             throw std::logic_error("Something somewhere went terribly wrong and the simulation ended up in an unknown state.");
