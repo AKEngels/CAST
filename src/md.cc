@@ -1055,6 +1055,8 @@ void md::simulation::plot_temp(std::vector<double> temperatures)
 /**function to plot temperatures for all zones*/
 void md::simulation::plot_zones()
 {
+  write_zones_into_file();
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
@@ -1112,6 +1114,24 @@ void md::simulation::plot_zones()
 }
 
 #endif
+
+void md::simulation::write_zones_into_file()
+{
+  std::ofstream zonefile;
+  zonefile.open("zones.csv");
+
+  zonefile << "Steps";                               // write headline
+  for (auto &z : zones) zonefile << "," << z.legend;
+  zonefile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    zonefile << i + 1;
+    for (auto &z : zones) zonefile << "," << z.temperatures[i];  // write a line with temperatures
+    zonefile << "\n";
+  }
+  zonefile.close();
+}
 
 // perform FEP calculation if requested
 void md::simulation::feprun()
@@ -1971,7 +1991,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
 #else
   if (Config::get().md.plot_temp == true) std::cout << "The MD analysis you requested is not possible without python!\n";
   if (Config::get().md.ana_pairs.size() > 0) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.analyze_zones == true) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.analyze_zones == true)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_zones_into_file();
+  }
 #endif
 
   // calculate average pressure over whole simulation time

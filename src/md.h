@@ -496,6 +496,8 @@ namespace md
     void plot_distances(std::vector<ana_pair> &pairs);
     /**function to plot temperatures for all zones*/
     void plot_zones();
+		/**function to write the temperatures for all zones into a file "zones.txt"*/
+		void write_zones_into_file();
     /**function that fills zones with atoms*/
     std::vector<zone> find_zones();
     /**bool that determines if the current run is a production run or an equilibration run*/

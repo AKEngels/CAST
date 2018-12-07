@@ -964,7 +964,7 @@ Don't use ``MDveloscale'' with biased potential because it doesn't make sense to
 
 \subsubsection{Tools to analyze MD simulations}
 
-You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed.
+You can perform several graphical analyses on MD trajectories. To create the graphs CAST uses the python matplotlib module so you have to compile CAST with python enabled and matplotlib must be installed. If you don't have python enabled you get a warning that plotting is not possible without python. The information you need for the MDanalyze\_zones option is nevertheless saved in the outputfile ``zones.csv''. Information for the other analyses is not saved explicitly because you can get the distances from the snapshot file and the total temperature from the tracefile.
 
 By the option ``MDana\_pair'' you can choose one or more atom pairs whose distances are plotted during an MD simulation into an image called ``distances.png''. The two atoms of the atom pair are seperated by a comma. For analyzing more than one atom pair just repeat the option several times. So this section might look: 
 			\begin{lstlisting}
@@ -976,7 +976,7 @@ MDana_pair         2277,2276
 	
 The option ``MDplot\_temp'' plots the temperature for every frame into an image called ``temperature.png'' if it is enabled. 
 
-Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''.
+Another possibility is ``MDanalyze\_zones''. If you activate this option CAST first determines zones around your active site (defined by ``MDactive\_site'', geometrical center of those atoms) with the width ``MDzone\_width''. For each of those zones CAST saves the average temperature after every step and plots them after the simulation into the file ``zones.png''. 
 	
 %%%% GOSOL %%%%
 \subsection{GOSOL - Global Optimization and Solvation}	
