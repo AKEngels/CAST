@@ -494,9 +494,12 @@ namespace md
     /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
     void plot_distances(std::vector<ana_pair> &pairs);
+		/**function to write distances into a file "distances.csv"
+		@param pairs: atom pairs between which the distance should be calculated*/
+		void write_dists_into_file(std::vector<ana_pair> &pairs);
     /**function to plot temperatures for all zones*/
     void plot_zones();
-		/**function to write the temperatures for all zones into a file "zones.txt"*/
+		/**function to write the temperatures for all zones into a file "zones.csv"*/
 		void write_zones_into_file();
     /**function that fills zones with atoms*/
     std::vector<zone> find_zones();

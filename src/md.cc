@@ -953,6 +953,8 @@ std::vector<double> md::simulation::fepanalyze(std::vector<double> dE_pots, int 
 
 void md::simulation::plot_distances(std::vector<ana_pair> &pairs)
 {
+  write_dists_into_file(pairs);
+
   std::string add_path = get_pythonpath();
 
   PyObject *modul, *funk, *prm, *ret, *pValue;
@@ -1052,6 +1054,7 @@ void md::simulation::plot_temp(std::vector<double> temperatures)
   Py_DECREF(temps);
 }
 
+
 /**function to plot temperatures for all zones*/
 void md::simulation::plot_zones()
 {
@@ -1131,6 +1134,24 @@ void md::simulation::write_zones_into_file()
     zonefile << "\n";
   }
   zonefile.close();
+}
+
+void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
+{
+  std::ofstream distfile;
+  distfile.open("distances.csv");
+
+  distfile << "Steps";                               // write headline
+  for (auto &p : pairs) distfile << "," << p.legend;
+  distfile << "\n";
+
+  for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
+  {
+    distfile << i + 1;
+    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with temperatures
+    distfile << "\n";
+  }
+  distfile.close();
 }
 
 // perform FEP calculation if requested
@@ -1990,7 +2011,11 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   if (Config::get().md.analyze_zones == true) plot_zones();
 #else
   if (Config::get().md.plot_temp == true) std::cout << "The MD analysis you requested is not possible without python!\n";
-  if (Config::get().md.ana_pairs.size() > 0) std::cout << "The MD analysis you requested is not possible without python!\n";
+  if (Config::get().md.ana_pairs.size() > 0)
+  {
+    std::cout << "Plotting is not possible without python!\n";
+    write_dists_into_file(ana_pairs);
+  }
   if (Config::get().md.analyze_zones == true)
   {
     std::cout << "Plotting is not possible without python!\n";
