@@ -91,8 +91,8 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
     std::ifstream comf;
     std::ifstream coupf;
     std::size_t numbermon;
-    std::vector<std::size_t> startPind, viablePartners;
-    std::vector<exciD::Partners> partnerConnections;
+    std::vector<std::size_t> startPind, viablePartners, h_viablePartners;
+    std::vector<exciD::Partners> partnerConnections, h_partnerConnections;
     coords::Representation_3D com;
     coords::Cartesian_Point avg;
     exciD::Exciton excPos;
@@ -267,6 +267,23 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 }
               }
             }// #if(excPos != k)
+
+            if (excPos.state == 'c')
+            {
+              //same purpose as above but for location of possible second particle
+              if (excPos.h_location != k)
+              {
+                if ((excCoup[excPos.h_location].monA != excCoup[k].monA) && (excCoup[excPos.h_location].monA != excCoup[k].monB) && (excCoup[excPos.h_location].monB != excCoup[k].monA) && (excCoup[excPos.h_location].monB != excCoup[k].monB))
+                {
+                  //check if excCoup[k] is close enough to excCoup[excPos]
+                  if (exciD::length(excCoup[excPos.h_location].position, excCoup[k].position) < 5.0)
+                  {
+                    h_viablePartners.push_back(k);
+                  }
+                }
+              }
+            }
+
           }//dertermining of viable partners k
 
                 //check if couplings of monomers in excPos exist to viable partner monomers, if not set value to zero
@@ -280,12 +297,10 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               {
                 if (excCoup[excPos.location].monB != excCoup[l].monA && excCoup[excPos.location].monB != excCoup[l].monB)//ensure the other monomer is not also part of the viewed dimer
                 {
-
                   if (excCoup[viablePartners[m]].monA == excCoup[l].monA || excCoup[viablePartners[m]].monA == excCoup[l].monB || excCoup[viablePartners[m]].monB == excCoup[l].monA || excCoup[viablePartners[m]].monB == excCoup[l].monB)//look if monomer of viablöe Parner is part of the viewed dimer
                   {
                     tmpG.push_back(l);
                   }
-
                 }
               }
               else if (excCoup[excPos.location].monB == excCoup[l].monA || excCoup[excPos.location].monB == excCoup[l].monB)//look if monomer B of the current location is part of the viewed Dimer if monomer A is not
@@ -303,9 +318,42 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               }
             }// l
             exciD::Partners tmpH(viablePartners[m], tmpG);
-
             partnerConnections.push_back(tmpH);
           } //m
+
+          if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
+          {
+            for (std::size_t m = 0u; m < h_viablePartners.size(); m++)//loop over viable partners to find couplings between monomers in current posirtion and viable partners
+            {
+              std::vector<std::size_t> tmpG;
+              std::cout << "  Partners: " << excCoup[h_viablePartners[m]].monA << " " << excCoup[h_viablePartners[m]].monB << " " << excCoup[h_viablePartners[m]].coupling << '\n';
+              for (std::size_t l = 0u; l < excCoup.size(); l++)//loop over all dimerpairs which have couplings
+              {
+                if (excCoup[excPos.h_location].monA == excCoup[l].monA || excCoup[excPos.h_location].monA == excCoup[l].monB)//look if monomer A of the current location is part of the viewed Dimer
+                {
+                  if (excCoup[excPos.h_location].monB != excCoup[l].monA && excCoup[excPos.h_location].monB != excCoup[l].monB)//ensure the other monomer is not also part of the viewed dimer
+                  {
+                    if (excCoup[h_viablePartners[m]].monA == excCoup[l].monA || excCoup[h_viablePartners[m]].monA == excCoup[l].monB || excCoup[h_viablePartners[m]].monB == excCoup[l].monA || excCoup[h_viablePartners[m]].monB == excCoup[l].monB)//look if monomer of viablöe Parner is part of the viewed dimer
+                    {
+                      tmpG.push_back(l);
+                    }
+                  }
+                }
+                else if (excCoup[excPos.h_location].monB == excCoup[l].monA || excCoup[excPos.h_location].monB == excCoup[l].monB)//look if monomer B of the current location is part of the viewed Dimer if monomer A is not
+                {
+                  if (excCoup[excPos.h_location].monA != excCoup[l].monA && excCoup[excPos.h_location].monA != excCoup[l].monB)//ensure the other monomer is not also part of the viewed dimer
+                  {
+                    if (excCoup[h_viablePartners[m]].monA == excCoup[l].monA || excCoup[h_viablePartners[m]].monA == excCoup[l].monB || excCoup[h_viablePartners[m]].monB == excCoup[l].monA || excCoup[h_viablePartners[m]].monB == excCoup[l].monB)//look if monomer of viablöe Parner is part of the viewed dimer
+                    {
+                      tmpG.push_back(l);
+                    }
+                  }
+                }
+              }
+              exciD::Partners tmpH(h_viablePartners[m], tmpG);
+              h_partnerConnections.push_back(tmpH);
+            }
+          }
 
           //calculate avgCouplings & avgsecCouplings
           for (std::size_t n = 0u; n < partnerConnections.size(); n++)
@@ -331,6 +379,31 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             }
           }// n
 
+          if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
+          {
+            for (std::size_t n = 0u; n < h_partnerConnections.size(); n++)
+            {
+              partnerConnections[n].avgCoup = 0.0;//prevent visiting undefined behaviour land
+              partnerConnections[n].avgsecCoup = 0.0;
+
+              for (std::size_t o = 0u; o < h_partnerConnections[n].connect.size(); o++)
+              {
+                h_partnerConnections[n].avgCoup += excCoup[h_partnerConnections[n].connect[o]].coupling;
+
+                if (excCoup[h_partnerConnections[n].connect[o]].seccoupling != 0.0)//if a opair has a second coupling its value is addet to avgsecCoup
+                {
+                  h_partnerConnections[n].avgsecCoup += excCoup[h_partnerConnections[n].connect[o]].seccoupling;
+                }
+              }
+              h_partnerConnections[n].avgCoup /= 4; //unsure if the average coupling is gained by dividing the sum of relevant couplings by their number or the maximum (4) number of relevant couplings (assuming not added couplings are zero).
+
+              if (h_partnerConnections[n].avgsecCoup != 0.0)//not every pair has a second coupling so bevoreS dividing its existence is checked
+              {
+                h_partnerConnections[n].avgsecCoup /= 4;
+              }
+            }
+          }
+
           //writing loop for calculated avg Couplings
           for (std::size_t n = 0u; n < partnerConnections.size(); n++)
           {
@@ -347,19 +420,18 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
 
           std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << '\n';
 
-          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC;
+          double rate_sum(0.0), rateFul_sum(0.0), coulombenergy, rate_KMC, tmp_ratesum(0.0);
           std::vector <double> raten;//used for exciton and electron rates
           std::vector <double> raten_hole;//used for hole rates
           double random_normal, random_normal1;
           double random_eq;
+          bool heterodimer(false);
           random_normal1 = distributionN(engine);
 //EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
           if (excPos.state == 'e')//Exciton state
           {
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
-              double tmp_ratesum(0);
-              bool heterodimer(false);
               if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//only for homo p-type SC due to reorganisation energies
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
@@ -455,8 +527,6 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             //electron rates in pSC
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
-              double tmp_ratesum(0);
-              bool heterodimer(false);
               if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//movement on pSC
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
@@ -468,19 +538,19 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
-              }            
+              }   
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.h_location)
+              { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
+                raten[p] = 0.0;
+              }
               else//to prevent heterodimersfrom participating as electron location HOW TO HANDLE HETERO DIMERS? electrondiffusion or recombination?
               {
                 tmp_ratesum = rate_sum;
                 rate_sum = 0.0;
                 heterodimer = true;
               }
-              raten.push_back(rate_sum);
 
-              if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.h_location)
-              { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
-                raten[p] = 0.0;
-              }
+              raten.push_back(rate_sum);
 
               if (heterodimer) //set rate_sum back to previous value
               {
@@ -490,7 +560,10 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
             }//p
 
+            for (std::size_t p = 0u; p < partnerConnections.size(); p++)
+            {
 
+            }
 
             viablePartners.clear();//empties vector containing possible partners for step so it can be reused in next step
             partnerConnections.clear();

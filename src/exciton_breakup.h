@@ -542,7 +542,7 @@ int exciton_breakup(int pscanzahl, int nscanzahl, char ebene, std::string massce
 
               raten[h] = r_summe;
             }
-            //ACHTUNG: hier Korrektur ///////////////////////////////////////////////////
+            //ACHTUNG: hier Korrektur ///////////////////////////////////////////////////actually exclusion nSC without electron as viable target
             else if ((partner[punkt_ladung[i - 1]][h] > (pscanzahl)) && (partner[punkt_ladung[i - 1]][h] != punkt[i - 1]))
             {
               r_summe = r_summe;
