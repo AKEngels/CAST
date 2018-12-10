@@ -12,7 +12,7 @@
 #include "coords.h"
 
 // Define Function to output molar mass of a coords object
-inline double sys_mass(coords::Coordinates &sys)
+inline double sys_mass(coords::Coordinates const &sys)
 {
   double m = 0;
   for (auto const& a : sys.atoms())
@@ -50,7 +50,7 @@ inline void short_ene_stream_h(
 @ param text: string that is to be splitted
 @ param sep: char where the string should be splitted
 @ param remove: removes empty elements (i.e. if more than one seperator directly follow each other they are treated as one)*/
-inline std::vector<std::string> split(const std::string &text, char sep, bool remove=false) {
+inline std::vector<std::string> split(std::string const &text, char const sep, bool const remove=false) {
   std::vector<std::string> tokens;
   std::size_t start = 0, end = 0;
   while ((end = text.find(sep, start)) != std::string::npos) {
@@ -71,7 +71,7 @@ inline std::vector<std::string> split(const std::string &text, char sep, bool re
 }
 
 /**calculates the distance between two points in Cartesian Space*/
-inline double dist(coords::Cartesian_Point a, coords::Cartesian_Point b)
+inline double dist(coords::Cartesian_Point const &a, coords::Cartesian_Point const &b)
 {
   return sqrt((a.x() - b.x())*(a.x() - b.x()) + (a.y() - b.y())*(a.y() - b.y()) + (a.z() - b.z())*(a.z() - b.z()));
 }
@@ -82,7 +82,7 @@ function that returns the path to a pythonmodule
 (path has to be appended to pythonpath if you want to call this module)
 @param modulename: name of the module
 */
-inline std::string get_python_modulepath(std::string modulename)
+inline std::string get_python_modulepath(std::string const &modulename)
 {
   std::string find = "import " + modulename + "\nwith open('tmpfile.txt','w') as fn:\n    fn.write(" + modulename + ".__file__)";
   const char *c_find = find.c_str();
@@ -136,7 +136,7 @@ inline bool isdigit(std::string s)
 
 /**tests if a file exists
 @param name: name of the file*/
-inline bool file_exists(const std::string& name) {
+inline bool file_exists(std::string const &name) {
   std::ifstream f(name.c_str());
   return f.good();
 }
@@ -152,7 +152,7 @@ inline std::string last_line(std::ifstream& in)
 /**tests if a file is empty
 returns true if it is empty, false if not
 @param filename: name of the file*/
-inline bool file_is_empty(std::string &filename)
+inline bool file_is_empty(std::string const &filename)
 {
 	std::ifstream file (filename);
 	std::string some_string;
@@ -166,7 +166,7 @@ inline bool file_is_empty(std::string &filename)
 @param v2: second vector
 @param sort: if true sort resulting vector with the std::sort-function*/
 template <typename T>
-inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool sort = false)
+inline std::vector<T> add_vectors(std::vector<T> const &v1, std::vector<T> const &v2, bool const sort = false)
 {
   std::vector<T> v12;
   v12.reserve(v1.size() + v2.size());
@@ -199,7 +199,7 @@ range(10) = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 range(10, 5) = [5, 6, 7, 8, 9,]
 range(11, 5, 2) = [5, 7, 9]*/
 template <typename IntType>
-std::vector<IntType> range(IntType stop, IntType start=0, IntType step=1)
+std::vector<IntType> range(IntType const stop, IntType const start=0, IntType const step=1)
 {
 	if (step == IntType(0))
 	{

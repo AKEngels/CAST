@@ -1,7 +1,7 @@
 #include"qmmm_helperfunctions.h"
 
 
-std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, tinker::parameter::parameters const &tp)
+std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coords, std::vector<size_t> const &qm_indices, tinker::parameter::parameters const &tp)
 {
   std::vector<LinkAtom> links;
 	unsigned type, counter = 0;
@@ -32,7 +32,7 @@ std::vector<LinkAtom> qmmm_helpers::create_link_atoms(coords::Coordinates* coord
   return links;
 }
 
-void qmmm_helpers::calc_link_atom_grad(LinkAtom &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
+void qmmm_helpers::calc_link_atom_grad(LinkAtom const &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM)
 {
   double x, y, z;
 
@@ -170,8 +170,8 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
 		Config::set().coords.amber_charges = charges_temp; // set new AMBER charges
 	}
 
-	void qmmm_helpers::add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges,
-		std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords)
+	void qmmm_helpers::add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges,
+		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords)
 	{
 		for (auto i : indizes_of_charges)  // go through all atoms from which charges are looked at
 		{

@@ -84,7 +84,7 @@ namespace qmmm_helpers
   @param coords: pointer to coordinates object
   @param qm_indices: indizes of QM atoms
   @param tp: tinker parameter object*/
-  std::vector<LinkAtom> create_link_atoms(coords::Coordinates* coords, std::vector<size_t> &qm_indices, tinker::parameter::parameters const &tp);
+  std::vector<LinkAtom> create_link_atoms(coords::Coordinates* coords, std::vector<size_t> const &qm_indices, tinker::parameter::parameters const &tp);
 
   /**calculate gradients on QM and MM atom from link atom (see DOI 10.1002/(SICI)1096-987X(199703)18:4<463::AID-JCC2>3.0.CO;2-R)
   @param l: link atom
@@ -92,7 +92,7 @@ namespace qmmm_helpers
   @param coords: coordinates object of whole system
   @param G_QM: reference to QM gradient (is calculated)
   @param G_MM: reference to MM gradient (is calculated)*/
-  void calc_link_atom_grad(LinkAtom &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM);
+  void calc_link_atom_grad(LinkAtom const &l, coords::r3 const &G_L, coords::Coordinates* coords, coords::r3 &G_QM, coords::r3 &G_MM);
 
   /**creates a vector with the indizes of all MM atoms
   @param num_atoms: number of atoms in whole system*/
@@ -131,8 +131,8 @@ namespace qmmm_helpers
 	@param link_atoms: vector of link atoms for the current "QM system"
 	@param charge_indizes: reference to a vector where the indizes of the atoms whose charges are taken into account are added
 	@param coords: pointer to original coordobject*/
-	void add_external_charges(std::vector<size_t> &qm_indizes, std::vector<size_t> &ignore_indizes, std::vector<double> &charges, std::vector<size_t> &indizes_of_charges, 
-		std::vector<LinkAtom> &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
+	void add_external_charges(std::vector<size_t> const &qm_indizes, std::vector<size_t> const &ignore_indizes, std::vector<double> const &charges, std::vector<size_t> const &indizes_of_charges, 
+		std::vector<LinkAtom> const &link_atoms, std::vector<int> &charge_indizes, coords::Coordinates *coords);
 
 	/**renames outputfiles for calculations with external energyinterfaces to prevent them from being overwritten
 	@param interface: energy interface for which files should be renamed (can be DFTB, MOPAC, GAUSSIAN or PSI4)
