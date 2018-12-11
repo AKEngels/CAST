@@ -411,10 +411,24 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             for (std::size_t o = 0u; o < partnerConnections[n].connect.size(); o++)
             {
               std::cout << " ConnectorIndex: " << partnerConnections[n].connect[o] << " Monomers: " << excCoup[partnerConnections[n].connect[o]].monA << " " << excCoup[partnerConnections[n].connect[o]].monB
-                << " Coupling: " << excCoup[partnerConnections[n].connect[o]].coupling << " |" << '\n';
+                << " Coupling: " << excCoup[partnerConnections[n].connect[o]].coupling << " |" << " secCoupling: " << excCoup[partnerConnections[n].connect[o]].seccoupling << " |" << '\n';
             } //o
-            std::cout << " Average Coupling: " << partnerConnections[n].avgCoup << '\n';
+            std::cout << " Average Coupling: " << partnerConnections[n].avgCoup << " |" << "Average secCoupling: " << partnerConnections[n].avgsecCoup <<  '\n';
           }// n
+
+          if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
+          {
+            for (std::size_t n = 0u; n < h_partnerConnections.size(); n++)
+            {
+              std::cout << "h_PartnerIndex: " << h_partnerConnections[n].partnerIndex << " Monomers: " << excCoup[h_partnerConnections[n].partnerIndex].monA << " " << excCoup[h_partnerConnections[n].partnerIndex].monB << '\n';
+              for (std::size_t o = 0u; o < h_partnerConnections[n].connect.size(); o++)
+              {
+                std::cout << " h_ConnectorIndex: " << h_partnerConnections[n].connect[o] << " Monomers: " << excCoup[h_partnerConnections[n].connect[o]].monA << " " << excCoup[h_partnerConnections[n].connect[o]].monB
+                  << " h_Coupling: " << excCoup[partnerConnections[n].connect[o]].coupling << " |" << " h_Coupling: " << excCoup[h_partnerConnections[n].connect[o]].seccoupling << " |" << '\n';
+              } //o
+              std::cout << " Average Coupling: " << h_partnerConnections[n].avgCoup << " |" << "Average secCoupling: " << h_partnerConnections[n].avgsecCoup << '\n';
+            }// n
+          }
 
           //algorithm for exciton movement starts here all before was preparation to know where movement to is possible
 
