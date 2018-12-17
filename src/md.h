@@ -433,9 +433,6 @@ namespace md
     */
     void write_restartfile(std::size_t const k);
 
-    /**vector with average temperature for every frame*/
-    std::vector<double> temperatures;
-
     /**vector of atom pairs that are to be analyzed*/
     std::vector<ana_pair> ana_pairs;
 
@@ -488,9 +485,6 @@ namespace md
     @param window: number of current window
     returns vector with dE_pot values (explanation see above)*/
     std::vector<double> fepanalyze(std::vector<double> dE_pots, int window);
-    /**function to plot temperature
-    @param temps: temperatures to be plotted*/
-    void plot_temp(std::vector<double> temps);
     /**function to plot distances for atom pairs
     @param pairs: atom pairs to be plotted*/
     void plot_distances(std::vector<ana_pair> &pairs);

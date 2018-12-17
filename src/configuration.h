@@ -930,8 +930,6 @@ namespace config
     bool umbrella;
     /**perform local optimization before starting simulation yes or no*/
     bool pre_optimize;
-    /**plot temperature during MD?*/
-    bool plot_temp;
     /**atom pairs to analyze*/
     std::vector<std::vector<size_t>> ana_pairs;
     /**analyze zones?*/
@@ -950,7 +948,7 @@ namespace config
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},
       optimize_snapshots{false}, pressure{false},
-      resume{false}, umbrella{false}, pre_optimize{false}, plot_temp{false}, ana_pairs(), analyze_zones{false},
+      resume{false}, umbrella{false}, pre_optimize{false}, ana_pairs(), analyze_zones{false},
       zone_width{ 0.0 }
     { }
 

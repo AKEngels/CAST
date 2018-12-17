@@ -940,10 +940,6 @@ MDresume               0
 #MDana_pair         2277,3151
 #MDana_pair         2277,2276
 
-# plot temperature <0/1>
-
-#MDplot_temp        1
-
 # analyze temperature in different zones around active site <0/1>
 # (active site defined by MDactive site)
 
