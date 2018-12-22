@@ -910,14 +910,14 @@ typedef size_t uint_type;
     }
 
 #ifdef CAST_USE_ARMADILLO
-    template<typename T>
+    //template<typename T>
     void inverse(mathmatrix<T>& in)
     {
       in = mathmatrix<T>(inv(static_cast<CAST_ARMA_MATRIX_TYPE&>(in)));
     }
 #else
 
-    template<typename T>
+    //template<typename T>
     void inverse(mathmatrix<T>& in)
     {
       static_cast<CAST_EIGEN_MATRIX_TYPE&>(in).inverse();

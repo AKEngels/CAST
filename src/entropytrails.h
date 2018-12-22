@@ -387,7 +387,8 @@ public:
           long double returnValue = 0.;
           for (unsigned int i = 0u; i < numberOfGaussians; i++)
           {
-            Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+            Matrix_Class tempMatr1 = Matrix_Class(covariance[i].inversed() * Matrix_Class(Matrix_Class(input) - mean [i]));
+            Matrix_Class value = Matrix_Class(transposed(Matrix_Class(input - mean[i])) * tempMatr1);
             const long double cov_determ = covariance[i].determ();
             const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
 
@@ -445,7 +446,7 @@ public:
           long double returnValue = 0.;
           for (unsigned int i = 0u; i < numberOfGaussians; i++)
           {
-            Matrix_Class value = transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]);
+            Matrix_Class value = Matrix_Class(transposed(Matrix_Class(input - mean[i])) * covariance[i].inversed() * Matrix_Class(input - mean[i]));
             const long double cov_determ = covariance[i].determ();
             const long double prefactor = 1. / std::sqrt(std::pow(2 * ::constants::pi, x.size()) * cov_determ);
 
@@ -1412,7 +1413,7 @@ public:
     Matrix_Class input(this->drawMatrix);
     transpose(input);
 
-    Matrix_Class pca_modes = eigenvectors_t * input;
+    Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
 
     Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);

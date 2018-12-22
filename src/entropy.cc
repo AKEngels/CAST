@@ -635,7 +635,7 @@ namespace entropy
     //Corrections for anharmonicity and M.I.
     // I. Create PCA-Modes matrix
     Matrix_Class eigenvectors_t(transposed(eigenvectors));
-    Matrix_Class pca_modes = eigenvectors_t * input;
+    Matrix_Class pca_modes = mathmatrix<float_type>(eigenvectors_t * Matrix_Class(input));
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
     Matrix_Class entropy_kNN(pca_modes.rows(), 1u, 0.);
     Matrix_Class entropy_mi(pca_modes.rows(), pca_modes.rows(), 0.);
