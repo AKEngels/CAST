@@ -297,7 +297,7 @@ public:
       PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
-          throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
         return (1. / sqrt(2. * pi * 1. * 1.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 1. * 1.));
       };
       //PDFrange = 5.920; // range incorporating function values up to under 10e-7
@@ -310,7 +310,7 @@ public:
       PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
-          throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
         return (1. / sqrt(2. * pi * 10. * 10.)) * exp(-1.*(x.at(0)*x.at(0)) / double(2. * 10. * 10.));
       };
       maximumOfPDF = 1. / (10. * sqrt(2. * pi));
@@ -325,7 +325,7 @@ public:
       PDF = [&, this](std::vector<double> const& x, std::vector<size_t> const& subdims = std::vector<size_t>())
       {
         if (x.size() != 1)
-          throw std::runtime_error("Wring dimensionality for chosen Probability Density.");
+          throw std::runtime_error("Wrong dimensionality for chosen Probability Density.");
         if (x.at(0) < -1. || x.at(0) > 1.)
           return 0.;
         else
@@ -589,11 +589,11 @@ public:
     return this->m_identString;
   }
 
-  double analyticEntropy() {
+  double analyticEntropy() const {
     return this->analyticEntropy_;
   };
 
-  auto function() -> std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)>
+  auto function() -> std::function<double(std::vector<double> const& x, std::vector<size_t> const& subdims)> const
   {
     return this->PDF;
   };
@@ -1348,8 +1348,7 @@ public:
     Matrix_Class maxnorm_kNN_neighbors(numberOfDraws, kNN + 1, 0.);
 
 #ifdef _OPENMP
-#pragma omp parallel firstprivate(copytemp) \ 
-    shared(maxnorm_kNN_neighbors, maxnorm_kNN_distances)
+#pragma omp parallel firstprivate(copytemp) shared(maxnorm_kNN_neighbors, maxnorm_kNN_distances)
     {
 #endif
       float_type* buffer = new float_type[kNN];
