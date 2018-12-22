@@ -1032,6 +1032,12 @@ int main(int argc, char **argv)
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, false);
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, false);
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, false);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, true);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, true);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, true);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, true);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, true);
+          calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, true);
         }
         
       }
