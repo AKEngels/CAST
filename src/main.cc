@@ -1011,9 +1011,13 @@ int main(int argc, char **argv)
 
       if (Config::get().entropytrails.NNcalculation)
       {
+        std::cout << "NN (full dim) Entropy Starting - Maximum Norm with Ardakani" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, true);
+        std::cout << "NN (full dim) Entropy Starting - Maximum Norm w/o Ardakani" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, false);
+        std::cout << "NN (full dim) Entropy Starting - Eucl Norm with Ardakani" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, true);
+        std::cout << "NN (full dim) Entropy Starting - Eucl Norm w/o Ardakani" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, false);
       }
 
