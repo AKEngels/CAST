@@ -33,7 +33,13 @@ class op_strans
     };
   
   template<typename eT, typename TA>
-  arma_hot inline static void apply_mat_noalias_tinysq(Mat<eT>& out, const TA& A);
+  arma_cold inline static void apply_mat_noalias_tinysq(Mat<eT>& out, const TA& A);
+  
+  template<typename eT>
+  arma_hot inline static void block_worker(eT* Y, const eT* X, const uword X_n_rows, const uword Y_n_rows, const uword n_rows, const uword n_cols);
+  
+  template<typename eT>
+  arma_hot inline static void apply_mat_noalias_large(Mat<eT>& out, const Mat<eT>& A);
   
   template<typename eT, typename TA>
   arma_hot inline static void apply_mat_noalias(Mat<eT>& out, const TA& A);
@@ -66,7 +72,7 @@ class op_strans2
     };
   
   template<typename eT, typename TA>
-  arma_hot inline static void apply_noalias_tinysq(Mat<eT>& out, const TA& A, const eT val);
+  arma_cold inline static void apply_noalias_tinysq(Mat<eT>& out, const TA& A, const eT val);
   
   template<typename eT, typename TA>
   arma_hot inline static void apply_noalias(Mat<eT>& out, const TA& A, const eT val);

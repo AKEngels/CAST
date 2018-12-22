@@ -162,7 +162,7 @@ gmm_full<eT>::set_params(const Base<eT,T1>& in_means_expr, const BaseCube<eT,T2>
   
   const eT s = accu(in_hefts);
   
-  arma_debug_check( ((s < (eT(1) - Datum<eT>::eps)) || (s > (eT(1) + Datum<eT>::eps))), "gmm_full::set_params(): sum of given hefts is not 1" );
+  arma_debug_check( ((s < (eT(1) - eT(0.001))) || (s > (eT(1) + eT(0.001)))), "gmm_full::set_params(): sum of given hefts is not 1" );
   
   access::rw(means) = in_means;
   access::rw(fcovs) = in_fcovs;
@@ -185,8 +185,8 @@ gmm_full<eT>::set_means(const Base<eT,T1>& in_means_expr)
   
   const Mat<eT>& in_means = tmp.M;
   
-  arma_debug_check( (size(in_means) != size(means)), "gmm_full::set_means(): given means have incompatible size" );
-  arma_debug_check( (in_means.is_finite() == false), "gmm_full::set_means(): given means have non-finite values" );
+  arma_debug_check( (arma::size(in_means) != arma::size(means)), "gmm_full::set_means(): given means have incompatible size" );
+  arma_debug_check( (in_means.is_finite() == false),             "gmm_full::set_means(): given means have non-finite values" );
   
   access::rw(means) = in_means;
   }
@@ -205,8 +205,8 @@ gmm_full<eT>::set_fcovs(const BaseCube<eT,T1>& in_fcovs_expr)
   
   const Cube<eT>& in_fcovs = tmp.M;
   
-  arma_debug_check( (size(in_fcovs) != size(fcovs)), "gmm_full::set_fcovs(): given fcovs have incompatible size" );
-  arma_debug_check( (in_fcovs.is_finite() == false), "gmm_full::set_fcovs(): given fcovs have non-finite values" );
+  arma_debug_check( (arma::size(in_fcovs) != arma::size(fcovs)), "gmm_full::set_fcovs(): given fcovs have incompatible size" );
+  arma_debug_check( (in_fcovs.is_finite() == false),             "gmm_full::set_fcovs(): given fcovs have non-finite values" );
   
   for(uword i=0; i < in_fcovs.n_slices; ++i)
     {
@@ -232,13 +232,13 @@ gmm_full<eT>::set_hefts(const Base<eT,T1>& in_hefts_expr)
   
   const Mat<eT>& in_hefts = tmp.M;
   
-  arma_debug_check( (size(in_hefts) != size(hefts)),     "gmm_full::set_hefts(): given hefts have incompatible size" );
-  arma_debug_check( (in_hefts.is_finite() == false),     "gmm_full::set_hefts(): given hefts have non-finite values" );
-  arma_debug_check( (any(vectorise(in_hefts) <  eT(0))), "gmm_full::set_hefts(): given hefts have negative values"   );
+  arma_debug_check( (arma::size(in_hefts) != arma::size(hefts)), "gmm_full::set_hefts(): given hefts have incompatible size" );
+  arma_debug_check( (in_hefts.is_finite() == false),             "gmm_full::set_hefts(): given hefts have non-finite values" );
+  arma_debug_check( (any(vectorise(in_hefts) <  eT(0))),         "gmm_full::set_hefts(): given hefts have negative values"   );
   
   const eT s = accu(in_hefts);
   
-  arma_debug_check( ((s < (eT(1) - Datum<eT>::eps)) || (s > (eT(1) + Datum<eT>::eps))), "gmm_full::set_hefts(): sum of given hefts is not 1" );
+  arma_debug_check( ((s < (eT(1) - eT(0.001))) || (s > (eT(1) + eT(0.001)))), "gmm_full::set_hefts(): sum of given hefts is not 1" );
   
   // make sure all hefts are positive and non-zero
   
@@ -832,7 +832,7 @@ gmm_full<eT>::learn
     
     reset(X.n_rows, N_gaus);
     
-    if(print_mode)  { get_stream_err2() << "gmm_full::learn(): generating initial means\n"; get_stream_err2().flush(); }
+    if(print_mode)  { get_cout_stream() << "gmm_full::learn(): generating initial means\n"; get_cout_stream().flush(); }
     
          if(dist_mode == eucl_dist)  { generate_initial_means<1>(X, seed_mode); }
     else if(dist_mode == maha_dist)  { generate_initial_means<2>(X, seed_mode); }
@@ -843,14 +843,14 @@ gmm_full<eT>::learn
   
   if(km_iter > 0)
     {
-    const arma_ostream_state stream_state(get_stream_err2());
+    const arma_ostream_state stream_state(get_cout_stream());
     
     bool status = false;
     
          if(dist_mode == eucl_dist)  { status = km_iterate<1>(X, km_iter, print_mode); }
     else if(dist_mode == maha_dist)  { status = km_iterate<2>(X, km_iter, print_mode); }
     
-    stream_state.restore(get_stream_err2());
+    stream_state.restore(get_cout_stream());
     
     if(status == false)  { arma_debug_warn("gmm_full::learn(): k-means algorithm failed; not enough data, or too many gaussians requested"); init(orig); return false; }
     }
@@ -862,7 +862,7 @@ gmm_full<eT>::learn
   
   if(seed_mode != keep_existing)
     {
-    if(print_mode)  { get_stream_err2() << "gmm_full::learn(): generating initial covariances\n"; get_stream_err2().flush(); }
+    if(print_mode)  { get_cout_stream() << "gmm_full::learn(): generating initial covariances\n"; get_cout_stream().flush(); }
     
          if(dist_mode == eucl_dist)  { generate_initial_params<1>(X, var_floor_actual); }
     else if(dist_mode == maha_dist)  { generate_initial_params<2>(X, var_floor_actual); }
@@ -873,11 +873,11 @@ gmm_full<eT>::learn
   
   if(em_iter > 0)
     {
-    const arma_ostream_state stream_state(get_stream_err2());
+    const arma_ostream_state stream_state(get_cout_stream());
     
     const bool status = em_iterate(X, em_iter, var_floor_actual, print_mode);
     
-    stream_state.restore(get_stream_err2());
+    stream_state.restore(get_cout_stream());
     
     if(status == false)  { arma_debug_warn("gmm_full::learn(): EM algorithm failed"); init(orig); return false; }
     }
@@ -1014,6 +1014,8 @@ gmm_full<eT>::init_constants(const bool calc_chol)
       }
     else
       {
+      // last resort: treat the covariance matrix as diagonal
+      
       inv_fcov.zeros();
       
       log_det_val = eT(0);
@@ -1056,7 +1058,7 @@ gmm_full<eT>::init_constants(const bool calc_chol)
       
       const uword chol_layout = 1;  // indicates "lower"
       
-      const bool chol_ok = auxlib::chol(tmp_chol, fcov, chol_layout);
+      const bool chol_ok = op_chol::apply_direct(tmp_chol, fcov, chol_layout);
       
       if(chol_ok)
         {
@@ -1064,6 +1066,8 @@ gmm_full<eT>::init_constants(const bool calc_chol)
         }
       else
         {
+        // last resort: treat the covariance matrix as diagonal
+        
         chol_fcov.zeros();
         
         for(uword d=0; d < N_dims; ++d)
@@ -1093,7 +1097,7 @@ gmm_full<eT>::internal_gen_boundaries(const uword N) const
     static const uword n_threads = 1;
   #endif
   
-  // get_stream_err2() << "gmm_full::internal_gen_boundaries(): n_threads: " << n_threads << '\n';
+  // get_cout_stream() << "gmm_full::internal_gen_boundaries(): n_threads: " << n_threads << '\n';
   
   umat boundaries(2, n_threads);
   
@@ -1119,7 +1123,7 @@ gmm_full<eT>::internal_gen_boundaries(const uword N) const
     boundaries.zeros();
     }
   
-  // get_stream_err2() << "gmm_full::internal_gen_boundaries(): boundaries: " << '\n' << boundaries << '\n';
+  // get_cout_stream() << "gmm_full::internal_gen_boundaries(): boundaries: " << '\n' << boundaries << '\n';
   
   return boundaries;
   }
@@ -1982,7 +1986,7 @@ gmm_full<eT>::generate_initial_means(const Mat<eT>& X, const gmm_seed_mode& seed
       }
     }
   
-  // get_stream_err2() << "generate_initial_means():" << '\n';
+  // get_cout_stream() << "generate_initial_means():" << '\n';
   // means.print();
   }
 
@@ -2153,13 +2157,13 @@ gmm_full<eT>::km_iterate(const Mat<eT>& X, const uword max_iter, const bool verb
   
   if(verbose)
     {
-    get_stream_err2().unsetf(ios::showbase);
-    get_stream_err2().unsetf(ios::uppercase);
-    get_stream_err2().unsetf(ios::showpos);
-    get_stream_err2().unsetf(ios::scientific);
+    get_cout_stream().unsetf(ios::showbase);
+    get_cout_stream().unsetf(ios::uppercase);
+    get_cout_stream().unsetf(ios::showpos);
+    get_cout_stream().unsetf(ios::scientific);
     
-    get_stream_err2().setf(ios::right);
-    get_stream_err2().setf(ios::fixed);
+    get_cout_stream().setf(ios::right);
+    get_cout_stream().setf(ios::fixed);
     }
   
   const uword X_n_cols = X.n_cols;
@@ -2191,7 +2195,7 @@ gmm_full<eT>::km_iterate(const Mat<eT>& X, const uword max_iter, const bool verb
     const uword n_threads = 1;
   #endif
   
-  if(verbose)  { get_stream_err2() << "gmm_full::learn(): k-means: n_threads: " << n_threads << '\n';  get_stream_err2().flush(); }
+  if(verbose)  { get_cout_stream() << "gmm_full::learn(): k-means: n_threads: " << n_threads << '\n';  get_cout_stream().flush(); }
   
   for(uword iter=1; iter <= max_iter; ++iter)
     {
@@ -2307,7 +2311,7 @@ gmm_full<eT>::km_iterate(const Mat<eT>& X, const uword max_iter, const bool verb
     
     if(dead_gs.n_elem > 0)
       {
-      if(verbose)  { get_stream_err2() << "gmm_full::learn(): k-means: recovering from dead means\n"; get_stream_err2().flush(); }
+      if(verbose)  { get_cout_stream() << "gmm_full::learn(): k-means: recovering from dead means\n"; get_cout_stream().flush(); }
       
       uword* last_indx_mem = last_indx.memptr();
     
@@ -2353,16 +2357,16 @@ gmm_full<eT>::km_iterate(const Mat<eT>& X, const uword max_iter, const bool verb
     
     if(verbose)
       {
-      get_stream_err2() << "gmm_full::learn(): k-means: iteration: ";
-      get_stream_err2().unsetf(ios::scientific);
-      get_stream_err2().setf(ios::fixed);
-      get_stream_err2().width(std::streamsize(4));
-      get_stream_err2() << iter;
-      get_stream_err2() << "   delta: ";
-      get_stream_err2().unsetf(ios::fixed);
-      //get_stream_err2().setf(ios::scientific);
-      get_stream_err2() << rs_delta.mean() << '\n';
-      get_stream_err2().flush();
+      get_cout_stream() << "gmm_full::learn(): k-means: iteration: ";
+      get_cout_stream().unsetf(ios::scientific);
+      get_cout_stream().setf(ios::fixed);
+      get_cout_stream().width(std::streamsize(4));
+      get_cout_stream() << iter;
+      get_cout_stream() << "   delta: ";
+      get_cout_stream().unsetf(ios::fixed);
+      //get_cout_stream().setf(ios::scientific);
+      get_cout_stream() << rs_delta.mean() << '\n';
+      get_cout_stream().flush();
       }
     
     arma::swap(old_means, new_means);
@@ -2392,13 +2396,13 @@ gmm_full<eT>::em_iterate(const Mat<eT>& X, const uword max_iter, const eT var_fl
   
   if(verbose)
     {
-    get_stream_err2().unsetf(ios::showbase);
-    get_stream_err2().unsetf(ios::uppercase);
-    get_stream_err2().unsetf(ios::showpos);
-    get_stream_err2().unsetf(ios::scientific);
+    get_cout_stream().unsetf(ios::showbase);
+    get_cout_stream().unsetf(ios::uppercase);
+    get_cout_stream().unsetf(ios::showpos);
+    get_cout_stream().unsetf(ios::scientific);
     
-    get_stream_err2().setf(ios::right);
-    get_stream_err2().setf(ios::fixed);
+    get_cout_stream().setf(ios::right);
+    get_cout_stream().setf(ios::fixed);
     }
   
   const umat boundaries = internal_gen_boundaries(X.n_cols);
@@ -2425,7 +2429,7 @@ gmm_full<eT>::em_iterate(const Mat<eT>& X, const uword max_iter, const eT var_fl
   
   if(verbose)
     {
-    get_stream_err2() << "gmm_full::learn(): EM: n_threads: " << n_threads  << '\n';
+    get_cout_stream() << "gmm_full::learn(): EM: n_threads: " << n_threads  << '\n';
     }
   
   eT old_avg_log_p = -Datum<eT>::inf;
@@ -2444,16 +2448,16 @@ gmm_full<eT>::em_iterate(const Mat<eT>& X, const uword max_iter, const eT var_fl
     
     if(verbose)
       {
-      get_stream_err2() << "gmm_full::learn(): EM: iteration: ";
-      get_stream_err2().unsetf(ios::scientific);
-      get_stream_err2().setf(ios::fixed);
-      get_stream_err2().width(std::streamsize(4));
-      get_stream_err2() << iter;
-      get_stream_err2() << "   avg_log_p: ";
-      get_stream_err2().unsetf(ios::fixed);
-      //get_stream_err2().setf(ios::scientific);
-      get_stream_err2() << new_avg_log_p << '\n';
-      get_stream_err2().flush();
+      get_cout_stream() << "gmm_full::learn(): EM: iteration: ";
+      get_cout_stream().unsetf(ios::scientific);
+      get_cout_stream().setf(ios::fixed);
+      get_cout_stream().width(std::streamsize(4));
+      get_cout_stream() << iter;
+      get_cout_stream() << "   avg_log_p: ";
+      get_cout_stream().unsetf(ios::fixed);
+      //get_cout_stream().setf(ios::scientific);
+      get_cout_stream() << new_avg_log_p << '\n';
+      get_cout_stream().flush();
       }
     
     if(arma_isfinite(new_avg_log_p) == false)  { return false; }

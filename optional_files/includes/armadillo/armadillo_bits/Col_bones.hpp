@@ -57,13 +57,14 @@ class Col : public Mat<eT>
   inline Col& operator=(Col&& m);
   #endif
   
-  inline explicit Col(const SpCol<eT>& X);
-  
   inline Col& operator=(const eT val);
   inline Col& operator=(const Col& m);
   
   template<typename T1> inline             Col(const Base<eT,T1>& X);
   template<typename T1> inline Col&  operator=(const Base<eT,T1>& X);
+  
+  template<typename T1> inline explicit    Col(const SpBase<eT,T1>& X);
+  template<typename T1> inline Col&  operator=(const SpBase<eT,T1>& X);
   
   inline Col(      eT* aux_mem, const uword aux_length, const bool copy_aux_mem = true, const bool strict = false);
   inline Col(const eT* aux_mem, const uword aux_length);
@@ -171,8 +172,6 @@ class Col<eT>::fixed : public Col<eT>
   
   arma_align_mem eT mem_local_extra[ (use_extra) ? fixed_n_elem : 1 ];
   
-  arma_inline void change_to_row();
-  
   
   public:
   
@@ -184,9 +183,9 @@ class Col<eT>::fixed : public Col<eT>
   static const bool is_col = true;
   static const bool is_row = false;
   
-  static const uword n_rows = fixed_n_elem;
-  static const uword n_cols = 1;
-  static const uword n_elem = fixed_n_elem;
+  static const uword n_rows;  // value provided below the class definition
+  static const uword n_cols;  // value provided below the class definition
+  static const uword n_elem;  // value provided below the class definition
   
   arma_inline fixed();
   arma_inline fixed(const fixed<fixed_n_elem>& X);
@@ -247,6 +246,23 @@ class Col<eT>::fixed : public Col<eT>
   arma_hot inline const Col<eT>& zeros();
   arma_hot inline const Col<eT>& ones();
   };
+
+
+
+// these definitions are outside of the class due to bizarre C++ rules;
+// C++17 has inline variables to address this shortcoming
+
+template<typename eT>
+template<uword fixed_n_elem>
+const uword Col<eT>::fixed<fixed_n_elem>::n_rows = fixed_n_elem;
+
+template<typename eT>
+template<uword fixed_n_elem>
+const uword Col<eT>::fixed<fixed_n_elem>::n_cols = 1u;
+
+template<typename eT>
+template<uword fixed_n_elem>
+const uword Col<eT>::fixed<fixed_n_elem>::n_elem = fixed_n_elem;
 
 
 

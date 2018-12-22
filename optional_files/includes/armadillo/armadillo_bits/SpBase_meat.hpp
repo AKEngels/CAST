@@ -30,6 +30,16 @@ SpBase<elem_type,derived>::get_ref() const
 
 
 template<typename elem_type, typename derived>
+arma_inline
+bool
+SpBase<elem_type,derived>::is_alias(const SpMat<elem_type>& X) const
+  {
+  return (*this).get_ref().is_alias(X);
+  }
+
+
+
+template<typename elem_type, typename derived>
 inline
 const SpOp<derived, spop_htrans>
 SpBase<elem_type,derived>::t() const
@@ -59,6 +69,7 @@ SpBase<elem_type,derived>::st() const
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type,derived>::print(const std::string extra_text) const
@@ -71,6 +82,7 @@ SpBase<elem_type,derived>::print(const std::string extra_text) const
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type,derived>::print(std::ostream& user_stream, const std::string extra_text) const
@@ -83,6 +95,7 @@ SpBase<elem_type,derived>::print(std::ostream& user_stream, const std::string ex
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type,derived>::raw_print(const std::string extra_text) const
@@ -95,6 +108,7 @@ SpBase<elem_type,derived>::raw_print(const std::string extra_text) const
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type,derived>::raw_print(std::ostream& user_stream, const std::string extra_text) const
@@ -107,6 +121,7 @@ SpBase<elem_type,derived>::raw_print(std::ostream& user_stream, const std::strin
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type, derived>::print_dense(const std::string extra_text) const
@@ -119,6 +134,7 @@ SpBase<elem_type, derived>::print_dense(const std::string extra_text) const
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type, derived>::print_dense(std::ostream& user_stream, const std::string extra_text) const
@@ -131,6 +147,7 @@ SpBase<elem_type, derived>::print_dense(std::ostream& user_stream, const std::st
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type, derived>::raw_print_dense(const std::string extra_text) const
@@ -143,6 +160,7 @@ SpBase<elem_type, derived>::raw_print_dense(const std::string extra_text) const
 
 
 template<typename elem_type, typename derived>
+arma_cold
 inline
 void
 SpBase<elem_type, derived>::raw_print_dense(std::ostream& user_stream, const std::string extra_text) const

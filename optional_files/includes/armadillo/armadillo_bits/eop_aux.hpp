@@ -133,11 +133,6 @@ class eop_aux
   template<typename eT> arma_inline static typename              arma_real_only<eT>::result arma_abs (const eT               x) { return std::abs(x); }
   template<typename  T> arma_inline static typename              arma_real_only< T>::result arma_abs (const std::complex<T>& x) { return std::abs(x); }
   
-  template<typename eT> arma_inline static typename arma_unsigned_integral_only<eT>::result sign (const eT  x) { return (x > eT(0)) ? eT(+1) : eT(0);                                                                      }
-  template<typename eT> arma_inline static typename   arma_signed_integral_only<eT>::result sign (const eT  x) { return (x > eT(0)) ? eT(+1) : ( (x < eT(0)) ? eT(-1) : eT(0) );                                           }
-  template<typename eT> arma_inline static typename              arma_real_only<eT>::result sign (const eT  x) { return (x > eT(0)) ? eT(+1) : ( (x < eT(0)) ? eT(-1) : eT(0) );                                           }
-  template<typename eT> arma_inline static typename                arma_cx_only<eT>::result sign (const eT& x) { typedef typename eT::value_type T; return (x.real() != T(0) && x.imag() != T(0)) ? (x / std::abs(x)) : x; }
-  
   #if defined(ARMA_USE_CXX11)
   template<typename eT> arma_inline static typename arma_integral_only<eT>::result erf (const eT  x) { return eT( std::erf(double(x)) ); }
   template<typename eT> arma_inline static typename     arma_real_only<eT>::result erf (const eT  x) { return std::erf(x);               }
@@ -147,7 +142,7 @@ class eop_aux
   template<typename eT> arma_inline static typename     arma_real_only<eT>::result erf (const eT  x) { return std::tr1::erf(x);               }
   template<typename eT> arma_inline static typename       arma_cx_only<eT>::result erf (const eT& x) { arma_ignore(x); return eT(0);          }
   #else
-  template<typename eT> arma_inline static                                      eT erf (const eT  x) { arma_ignore(x); arma_stop_logic_error("erf(): need C++11 compiler"); return eT(0); }
+  template<typename eT> arma_inline static                                      eT erf (const eT  x) { arma_ignore(x); arma_stop_logic_error("erf(): C++11 compiler required"); return eT(0); }
   #endif
   
   #if defined(ARMA_USE_CXX11)
@@ -159,7 +154,7 @@ class eop_aux
   template<typename eT> arma_inline static typename     arma_real_only<eT>::result erfc (const eT  x) { return std::tr1::erfc(x);               }
   template<typename eT> arma_inline static typename       arma_cx_only<eT>::result erfc (const eT& x) { arma_ignore(x); return eT(0);           }
   #else
-  template<typename eT> arma_inline static                                      eT erfc (const eT  x) { arma_ignore(x); arma_stop_logic_error("erfc(): need C++11 compiler"); return eT(0); }
+  template<typename eT> arma_inline static                                      eT erfc (const eT  x) { arma_ignore(x); arma_stop_logic_error("erfc(): C++11 compiler required"); return eT(0); }
   #endif
   
   #if defined(ARMA_USE_CXX11)
@@ -171,7 +166,7 @@ class eop_aux
   template<typename eT> arma_inline static typename     arma_real_only<eT>::result lgamma (const eT  x) { return std::tr1::lgamma(x);               }
   template<typename eT> arma_inline static typename       arma_cx_only<eT>::result lgamma (const eT& x) { arma_ignore(x); return eT(0);             }
   #else
-  template<typename eT> arma_inline static                                      eT lgamma (const eT  x) { arma_ignore(x); arma_stop_logic_error("lgamma(): need C++11 compiler"); return eT(0); }
+  template<typename eT> arma_inline static                                      eT lgamma (const eT  x) { arma_ignore(x); arma_stop_logic_error("lgamma(): C++11 compiler required"); return eT(0); }
   #endif
   
   

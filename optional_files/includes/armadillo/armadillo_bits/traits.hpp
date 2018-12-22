@@ -257,6 +257,18 @@ template<typename eT>
 struct is_subview_cube< const subview_cube<eT> >
   { static const bool value = true; };
 
+template<typename T>
+struct is_subview_cube_slices
+  { static const bool value = false; };
+
+template<typename eT, typename T1>
+struct is_subview_cube_slices< subview_cube_slices<eT,T1> >
+  { static const bool value = true; };
+
+template<typename eT, typename T1>
+struct is_subview_cube_slices< const subview_cube_slices<eT,T1> >
+  { static const bool value = true; };
+
 
 //
 //
@@ -682,6 +694,7 @@ struct is_arma_cube_type
   || is_eGlueCube<T1>::value
   || is_mtGlueCube<T1>::value
   || is_subview_cube<T1>::value
+  || is_subview_cube_slices<T1>::value
   ;
   };
 
@@ -741,6 +754,15 @@ struct is_SpSubview< SpSubview<eT> >
 
 
 template<typename T>
+struct is_spdiagview
+  { static const bool value = false; };
+
+template<typename eT>
+struct is_spdiagview< spdiagview<eT> >
+  { static const bool value = true; };
+
+
+template<typename T>
 struct is_SpOp
   { static const bool value = false; };
  
@@ -774,6 +796,7 @@ struct is_arma_sparse_type
   static const bool value
   =  is_SpMat<T1>::value
   || is_SpSubview<T1>::value
+  || is_spdiagview<T1>::value
   || is_SpOp<T1>::value
   || is_SpGlue<T1>::value
   || is_mtSpOp<T1>::value
@@ -1328,17 +1351,12 @@ template<>                   struct is_spop_elem<spop_scalar_times> { static con
 
 template<typename spglue_type> struct is_spglue_elem                { static const bool value = false; };
 template<>                     struct is_spglue_elem<spglue_plus>   { static const bool value = true;  };
-template<>                     struct is_spglue_elem<spglue_plus2>  { static const bool value = true;  };
 template<>                     struct is_spglue_elem<spglue_minus>  { static const bool value = true;  };
-template<>                     struct is_spglue_elem<spglue_minus2> { static const bool value = true;  };
+template<>                     struct is_spglue_elem<spglue_schur>  { static const bool value = true;  };
 
 
 template<typename spglue_type> struct is_spglue_times               { static const bool value = false; };
 template<>                     struct is_spglue_times<spglue_times> { static const bool value = true;  };
-
-
-template<typename spglue_type> struct is_spglue_times2               { static const bool value = false; };
-template<>                     struct is_spglue_times<spglue_times2> { static const bool value = true;  };
 
 
 

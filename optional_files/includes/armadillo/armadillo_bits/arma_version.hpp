@@ -19,10 +19,10 @@
 
 
 
-#define ARMA_VERSION_MAJOR 7
-#define ARMA_VERSION_MINOR 960
-#define ARMA_VERSION_PATCH 1
-#define ARMA_VERSION_NAME  "Northern Banana Republic Deluxe"
+#define ARMA_VERSION_MAJOR 9
+#define ARMA_VERSION_MINOR 200
+#define ARMA_VERSION_PATCH 6
+#define ARMA_VERSION_NAME  "Carpe Noctem"
 
 
 
