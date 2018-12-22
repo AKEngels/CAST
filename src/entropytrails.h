@@ -851,6 +851,8 @@ public:
   {
     std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
 
+    standardDeviation = 0.0;
+    mean = 0.0;
     if (this->dimension == 1)
     {
       // Calculate Mean
