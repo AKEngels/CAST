@@ -134,17 +134,6 @@ namespace entropy
     float_type knapp_marginal(float_type const temperatureInKelvin = 300.0, bool removeDOF = false);
 
     /**
-    * Performs entropy calculation according to Knapp et al. with corrections
-    * for anharmonicity or Mutual Information.
-    * Quasi-Harmonic-Approximation used.
-    * Hnizdo's entropy estimator is used to calculate the corrections.
-    * Gives a strict upper limit to the actual entropy.
-    * see: (Genome Inform. 2007;18:192-205.)
-    *
-    */
-    float_type knapp(float_type const temperatureInKelvin = 300.0, size_t const k = 5, bool removeDOF = false);
-
-    /**
     * Performs entropy calculation according to Schlitter
     * Quasi-Harmonic-Approximation used.
     * Gives a strict upper limit to the actual entropy.

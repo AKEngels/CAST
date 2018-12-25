@@ -692,7 +692,7 @@ int main(int argc, char **argv)
       if (Config::get().PCA.pca_print_probability_density)
       {
         // Create Histograms
-        // ATTENTION: This function read from Config::PCA
+        // ATTENTION: This function reads from Config::PCA
         pcaptr->writeHistogrammedProbabilityDensity("pca_histogrammed.dat");
 
         // Write Stock's Delta, see DOI 10.1063/1.2746330
@@ -763,7 +763,7 @@ int main(int argc, char **argv)
        // Create TrajectoryMatrixRepresentation
        // This is actually quite elaborate and involves many steps
        // If cartesians are desired they will always be massweightend
-       // If itnernals are desired they will always be transformed
+       // If internals are desired they will always be transformed
        // to a linear (i.e. not circular) coordinate space)
        // Check the proceedings for more details
       entropy::TrajectoryMatrixRepresentation repr(ci, coords);
@@ -795,7 +795,7 @@ int main(int argc, char **argv)
           Matrix_Class eigenvec, eigenval;
           calcObj.pcaTransformDraws(eigenval, eigenvec, true);
 
-          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, norm, func, true);
+          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, norm, func);
 
         }
         // Hnizdo's method

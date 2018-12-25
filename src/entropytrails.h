@@ -1401,8 +1401,17 @@ public:
     return entropy_sho;
   }
 
+  /**
+  * Performs entropy calculation according to Knapp et al. with corrections
+  * for anharmonicity or Mutual Information.
+  * Quasi-Harmonic-Approximation used.
+  * Hnizdo's entropy estimator is used to calculate the corrections.
+  * Gives a strict upper limit to the actual entropy.
+  * see: (Genome Inform. 2007;18:192-205.)
+  *
+  */
   double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, 
-    const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI)
+    const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
   {
     scon::chrono::high_resolution_timer timer;
 
@@ -1497,15 +1506,16 @@ public:
 
       if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
       {
-        if (abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < 0.007)
+        if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
         {
           entropy_anharmonic(i, 0u) = 0.0;
-          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small).\n";
+          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
         }
       }
       else
       {
-        std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity since it is not in the classical limit.\n";
+        std::cout << "Notice: PCA-Mode " << i << " not corrected since it is not within the classical limit (PCA-Freq needs to be smaller than ";
+        std::cout << (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
         entropy_anharmonic(i, 0u) = 0.0;
       }
 
@@ -1551,6 +1561,11 @@ public:
       if (i == 2u)
       {
         std::cout << "Counted " << countNegativeSecondOrderMIs << " negative second order MI terms with a summed value of " << sumOfNegativeSecondOrderMIs << " cal / (mol * K)" << std::endl;
+        std::cout << "--- This is not good and should not happen ---\n";
+        if (removeNegativeMI)
+        {
+          std::cout << "--- Negative 2nd order MI terms are set to zero and thus ignored ---\n";
+        }
       }
     }
 
