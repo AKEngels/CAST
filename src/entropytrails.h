@@ -1449,8 +1449,8 @@ public:
     {
       pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvaluesPCA(i, 0u));
       alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
-      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-      entropy_sho += quantum_entropy(i, 0u);
+      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) ; // This was wrong (remove this comment only for github commit)
+      entropy_sho += quantum_entropy(i, 0u) * 1.380648813 * 6.02214129 * 0.239005736;
     }
 
     std::vector<calcBuffer> tempMIs = this->calculatedMIs;
@@ -1487,21 +1487,24 @@ public:
 
     for (size_t i = 0; i < entropy_kNN.rows(); i++)
     {
-      statistical_entropy(i, 0u) = /*-1.0*  */ (log(alpha_i(i, 0u)) + log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
-      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.);
-      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - entropy_kNN(i, 0u);
+      //These are in units S/k_B (therefore: not multiplied by k_B)
+      statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - (-1.0) * entropy_kNN(i, 0u);
 
       // Debug output for developers
       if (Config::get().general.verbosity >= 4)
       {
-        std::cout << "mode " << i << ". entropy kNN: " << entropy_kNN(i, 0u) << "\n";
-        std::cout << "mode " << i << ". entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
-        std::cout << "mode " << i << ". classical entropy: " << classical_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". statistical entropy: " << statistical_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". quantum entropy: " << quantum_entropy(i, 0u) << "\n";
-        std::cout << "mode " << i << ". pca freq: " << pca_frequencies(i, 0u) << "\n";
-        std::cout << "mode " << i << ". alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
-        std::cout << "mode " << i << ". standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << "\n";
+        std::cout << "---------------------" << std::endl;
+        std::cout << "--- Units: S/k_B ---" << std::endl;
+        std::cout << "Mode " << i << ": entropy kNN: " << -1.0*entropy_kNN(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": classical entropy: " << classical_entropy(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": pca freq: " << pca_frequencies(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
+        std::cout << "Mode " << i << ": standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << std::endl;
       }
 
       if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
