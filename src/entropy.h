@@ -62,15 +62,6 @@ namespace entropy
     size_t const& col_querypt,
     coords::float_type* buffer = nullptr);
 
-  float_type maximum_norm_knn_distance_with_pointiters(
-    Matrix_Class const& input,
-    size_t const& dimension_in,
-    size_t const& k_in,
-    std::vector<size_t> const& row_querypts,
-    size_t const& col_querypt,
-    coords::float_type* buffer = nullptr,
-    size_t* intbuffer = nullptr);
-
 
   /**
   * Class used for Entropy calculations based
@@ -91,29 +82,6 @@ namespace entropy
     * a MD trajectory
     */
     void generateCoordinateMatrix(std::unique_ptr<coords::input::format>& ci, coords::Coordinates& coords);
-
-    /**
-    * Performs entropy calculation according to Hnizdo et al.
-    * see: (DOI: 10.1002/jcc.20589)
-    * If rows > 10 this might be really computationally expensive
-    * Basically, many "next-neighbor"-searches are performed using a
-    * primitive brute-force approach.
-    *
-    * @param k: value of k for k nearest neighboor search
-    */
-    float_type hnizdo(size_t const k = 5 );
-
-    /**
-    * Performs entropy calculation according to Hnizdo et al.
-    * Sums marginal (== 1-dimensional) entropy, i.e. calculating
-    * values for each "row" independently and then building sum.
-    * see: (DOI: 10.1002/jcc.20589)
-    * Marginal Entropy is upper limit to actual entropy which is
-    * computationally expensive ( "hnizdo()" )
-    *
-    * @param k: value of k for k nearest neighboor search
-    */
-    float_type hnizdo_marginal(size_t const k = 5);
 
     /**
      * Karplus entropy,
