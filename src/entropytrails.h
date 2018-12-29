@@ -829,11 +829,12 @@ public:
   double mean, standardDeviation;
   double analyticalEntropy;
   double empiricalNormalDistributionEntropy;
-
+  Matrix_Class pcaModes;
 
   calculatedentropyobj(size_t k_, entropyobj const& obj) :
     entropyobj(obj),
     kNN(k_),
+    pcaModes(Matrix_Class(0u, 0u)),
     mean(std::numeric_limits<double>::quiet_NaN()),
     standardDeviation(std::numeric_limits<double>::quiet_NaN()),
     analyticalEntropy(std::numeric_limits<double>::quiet_NaN()),
@@ -1101,6 +1102,7 @@ public:
     delete histograms_p;
   }
 
+  // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
   double calculateNN(const kNN_NORM norm, bool const& ardakaniCorrection , const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
   {
     std::cout << "Commencing NNEntropy calculation." << std::endl;
@@ -1339,6 +1341,7 @@ public:
     return returnValue;
   }
 
+  // pca Transformation is applied to the Draw-Matrix and the resulting PCA eigenvalues und eigenvectors are stored.
   double pcaTransformDraws(Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, bool removeDOF)
   {
     Matrix_Class input(this->drawMatrix);
@@ -1398,6 +1401,17 @@ public:
 
     writeToCSV("entropy.csv", "numata_no_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
+    
+
+    //Corrections for anharmonicity and M.I.
+    // I. Create PCA-Modes matrix
+    Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
+
+    Matrix_Class input2(this->drawMatrix);
+    transpose(input2);
+
+    this->pcaModes = Matrix_Class(eigenvectors_t * input2);
+    transpose(this->pcaModes);
     return entropy_sho;
   }
 
@@ -1414,15 +1428,8 @@ public:
     const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
   {
     scon::chrono::high_resolution_timer timer;
+    Matrix_Class& pca_modes = this->pcaModes;
 
-    //Corrections for anharmonicity and M.I.
-    // I. Create PCA-Modes matrix
-    Matrix_Class eigenvectors_t(transposed(eigenvectorsPCA));
-
-    Matrix_Class input(this->drawMatrix);
-    transpose(input);
-
-    Matrix_Class pca_modes = Matrix_Class(eigenvectors_t * input);
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
 
     Matrix_Class statistical_entropy(pca_modes.rows(), 1u, 0.);
@@ -1434,12 +1441,14 @@ public:
     scalePCACoordinatesForQuasiHarmonicTreatment(pca_modes, temperatureInK);
 
     const Matrix_Class storeDrawMatrix = this->drawMatrix;
-    this->drawMatrix = transposed(pca_modes);
+    
     const size_t storeDim = this->dimension;
     this->dimension = pca_modes.rows();
 
+    this->drawMatrix = pca_modes;
     this->calculateNN_MIExpansion(orderOfCorrection, norm, func, false);
-
+    this->drawMatrix = storeDrawMatrix;
+    this->dimension = storeDim;
 
     Matrix_Class pca_frequencies(eigenvaluesPCA.rows(), 1u);
     Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
@@ -1552,6 +1561,11 @@ public:
               higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
             }
             countNegativeSecondOrderMIs++;
+            if (Config::get().general.verbosity >= 3)
+            {
+              std::cout << "Notice: Negative 2nd order MI for modes " << element.rowIdent.at(0u) << " and " << element.rowIdent.at(1u);
+              std::cout << ": " << element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736 <<  " cal / (mol * K)\n";
+            }
             sumOfNegativeSecondOrderMIs += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
           }
           else
@@ -1625,9 +1639,28 @@ public:
       }
     }
 
+
+    if (Config::get().general.verbosity >= 4)
+    {
+      std::cout << "--- MI-EXPANSION INFO ---" << "\n";
+      std::cout << "--- Order: << " << order_N << "---" << "\n";
+    }
     for (size_t i = 0u; i < buffer.size(); i++)
     {
+      if (Config::get().general.verbosity >= 4)
+      {
+        std::cout << "Contribution " << i << ":  Dimensionality " << buffer.at(i).dim << "\n";
+        for (size_t j = 0u; j < buffer.at(i).dim; j++)
+        {
+          std::cout << "Mode " << buffer.at(i).rowIdent.at(j) << "\n";
+        }
+        std::cout << "Value: " << std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue << std::endl;
+      }
       miEntropy += std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
+    }
+    if (Config::get().general.verbosity >= 4)
+    {
+      std::cout << "--- MI-EXPANSION INFO DONE ---" << "\n";
     }
 
     storeMI mi;
@@ -1635,7 +1668,13 @@ public:
     mi.value = miEntropy;
     this->calculatedMIEs.push_back(mi);
 
-    std::cout << "NN Calculation took " << timer << " ." << std::endl;
+    if (Config::get().general.verbosity >= 3)
+    {
+      std::cout << "NN Calculation took " << timer << " ." << std::endl;
+      std::cout << "NN Value: " << miEntropy << " ." << std::endl;
+
+    }
+    
 
     writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func, this->numberOfDraws);
 
