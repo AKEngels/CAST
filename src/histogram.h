@@ -398,6 +398,12 @@ namespace histo
         stream << std::right << "Sum of dimension " << i + 1 << ": " << this->sum(i) << "\n";
       }
       stream << "\n\n";
+
+      for (unsigned int i = 0; i < this->dimensions(); i++)
+      {
+        stream << std::right << "Extremes of dimension " << i + 1 << ": " << this->minimum(i) << "  -  " << this->maximum(i) << "\n";
+      }
+      stream << "\n" << std::endl;
     }
   };
 

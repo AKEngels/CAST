@@ -681,7 +681,8 @@ int main(int argc, char **argv)
       }
 
       // If modes or vectors have changed, write them to new file
-      if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) pcaptr->writePCAModesFile("pca_modes_new.dat");
+      if (Config::get().PCA.pca_read_modes != Config::get().PCA.pca_read_vectors) 
+        pcaptr->writePCAModesFile("pca_modes_new.dat");
 
       if (Config::get().entropytrails.inPCATaskWriteQHTransformedModes)
       {

@@ -935,14 +935,13 @@ public:
         }
       }
 
-      float_type cov_determ = 0.;
       Matrix_Class eigenval, eigenvec;
-      double determinant = cov_matr.determ();
+      const double determinant = cov_matr.determ();
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy =  gaussentropy;
-      std::cout << "Empirical gaussian entropy: " << gaussentropy << std::endl;
-      writeToCSV("entropy.csv", "empricial_gaussian", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
+      std::cout << "Empirical gaussian entropy (statistical): " << gaussentropy << std::endl;
+      writeToCSV("entropy.csv", "empricial_gaussian_statistical", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
       //Covariance Matrix
     }
   }
@@ -951,8 +950,10 @@ public:
   {
     std::cout << "Commencing cubature integration of entropy." << std::endl;
     const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
-
     std::cout << "Dimensionality: " << dimensionality << std::endl;
+    std::cout << "Integrating in a hypercube region ranging from " << probdens.meaningfulRange().first;
+    std::cout << " to " << probdens.meaningfulRange().second << " in each dimension." << std::endl;
+
     const double min_ = (probdens.meaningfulRange().first);
     const double max_ = (probdens.meaningfulRange().second);
     double* xmin, *xmax, *val, *err;
@@ -970,9 +971,9 @@ public:
 
     informationForCubatureIntegration info(probdens, this->subDims);
 
-    double range = std::abs(probdens.meaningfulRange().first - probdens.meaningfulRange().second);
+    const double range = std::abs(probdens.meaningfulRange().first - probdens.meaningfulRange().second);
 
-    std::cout << "Relative error (L2 norm) for cubature integration is " << std::scientific <<
+    std::cout << "Relative desired error (L2 norm) for cubature integration is " << std::scientific <<
       std::setw(5) << Config::get().entropytrails.errorThresholdForCubatureIntegration << "." << std::endl;
 
     int returncode = hcubature_v(1, cubaturefunctionProbDens, &(info),
@@ -984,7 +985,7 @@ public:
       std::cout << "Returncode was not zero. An error occured." << std::endl;
     }
 
-    std::cout << "Integral of ProbDens is: " << std::defaultfloat << val[0] << " with error " << err[0] << "." << std::endl;
+    std::cout << "Integral of the Probability Density is: " << std::defaultfloat << val[0] << " with error " << err[0] << " (this should be close to 1.0)." << std::endl;
     
 
     returncode = hcubature_v(1, cubaturefunctionEntropy, &(info),
@@ -999,6 +1000,7 @@ public:
     const double value = val[0];
 
     std::cout << "Computed Entropy via cubature integration: " << value << " with error: " << err[0] << std::endl;
+    std::cout << "NOTICE: This is a statistical entropy, no thermodynamic transformation has been applied." << std::endl;
 
     writeToCSV("entropy.csv", "cubature_with_error_" + std::to_string(err[0]), value, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
@@ -1454,7 +1456,7 @@ public:
         entropy_sho += quantum_entropy(i, 0u);
       }
     }
-    std::cout << "Entropy in QH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
+    std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
     const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
     std::cout << "Dimensionality: " << dimensionality << std::endl;
 
@@ -1621,7 +1623,7 @@ public:
         delta_entropy += entropy_anharmonic(i, 0u);
       }
       if (i == entropy_anharmonic.rows() - 1u)
-        std::cout << "Correction for entropy (order 1): " << delta_entropy << " cal / (mol * K)\n";
+        std::cout << "Correction for entropy (anharmonicity, order 1): " << delta_entropy << " cal / (mol * K)\n";
     }
 
     float_type higher_order_entropy = 0.;
@@ -1640,7 +1642,7 @@ public:
               higher_order_entropy += element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736;
             }
             countNegativeSecondOrderMIs++;
-            if (Config::get().general.verbosity >= 3)
+            if (Config::get().general.verbosity >= 4)
             {
               std::cout << "Notice: Negative 2nd order MI for modes " << element.rowIdent.at(0u) << " and " << element.rowIdent.at(1u);
               std::cout << ": " << element.entropyValue * 1.380648813 * 6.02214129 * 0.239005736 <<  " cal / (mol * K)\n";
@@ -1653,7 +1655,7 @@ public:
           }
         }
       }
-      std::cout << "Correction for higher order entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)" << std::endl;
+      std::cout << "Correction for higher order entropy (mutual information, up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)" << std::endl;
       if (i == 2u)
       {
         std::cout << "Counted " << countNegativeSecondOrderMIs << " negative second order MI terms with a summed value of " << sumOfNegativeSecondOrderMIs << " cal / (mol * K)" << std::endl;
