@@ -1393,7 +1393,7 @@ public:
       std::cout << "NN Calculation took " << timer << " ." << std::endl;
     }
     //Neccessarry
-    transpose(drawMatrix);
+    //transpose(drawMatrix);
     return returnValue;
   }
 
@@ -1472,7 +1472,7 @@ public:
     transpose(input2);
 
     this->pcaModes = Matrix_Class(eigenvectors_t * input2);
-    transpose(this->pcaModes);
+
     return entropy_sho;
   }
 
@@ -1708,7 +1708,7 @@ public:
       for (size_t i = 0u; i < this->dimension; i++)
         rowPts.push_back(i);
     }
-    transpose(drawMatrix);
+    //transpose(drawMatrix);
     helperFKT(norm, func, ardakaniCorrection, order_N, buffer, rowPts);
     transpose(drawMatrix);
     //Insert unique
