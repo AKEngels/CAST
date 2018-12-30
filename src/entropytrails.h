@@ -852,7 +852,9 @@ public:
   void empiricalGaussianEntropy()
   {
     std::cout << "Commencing empirical gaussian entropy calculation." << std::endl;
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
     standardDeviation = 0.0;
     mean = 0.0;
     if (this->dimension == 1)
@@ -875,15 +877,27 @@ public:
     }
     else
     {
-      Matrix_Class cov_matr;
-      cov_matr = Matrix_Class(this->dimension, this->dimension, 0.);
-      Matrix_Class meanPerDim(this->dimension, 1u, std::numeric_limits<double>::quiet_NaN());
-      for (unsigned int dim = 0u; dim < this->dimension; dim++)
+      Matrix_Class cov_matr,meanPerDim;
+      
+      if (this->subDims != std::vector<size_t>())
       {
+        cov_matr = Matrix_Class(this->subDims.size(), this->subDims.size(), 0.);
+        meanPerDim = Matrix_Class(this->subDims.size(), 1u, std::numeric_limits<double>::quiet_NaN());
+      }
+      else
+      {
+        cov_matr = Matrix_Class(this->dimension, this->dimension, 0.);
+        meanPerDim = Matrix_Class(this->dimension, 1u, std::numeric_limits<double>::quiet_NaN());
+      }
+      
+      //const unsigned int dimensionality = std::max(this->dimension, this->subDims.size());
+      for (unsigned int dim = 0u; dim < dimensionality; dim++)
+      {
+        const unsigned int currentDimension = this->subDims.size() > 0 ? this->subDims.at(dim) : dim;
         double meanThisDim = 0u;
         for (unsigned int i = 0u; i < this->numberOfDraws; i++)
         {
-          meanThisDim += this->drawMatrix(i, dim);
+          meanThisDim += this->drawMatrix(i, currentDimension);
         }
         meanThisDim /= double(this->numberOfDraws);
         meanPerDim(dim, 0u) = meanThisDim;
@@ -891,19 +905,20 @@ public:
         double sum = 0.;
         for (unsigned int i = 0u; i < this->numberOfDraws; i++)
         {
-          sum += std::pow(this->drawMatrix(i, dim) - meanThisDim, 2);
+          sum += std::pow(this->drawMatrix(i, currentDimension) - meanThisDim, 2);
         }
         sum /= double(this->numberOfDraws);
         cov_matr(dim, dim) = sum;
 
-        for (unsigned int dim2 = dim + 1; dim2 < this->dimension; dim2++)
+        for (unsigned int dim2 = dim + 1; dim2 < dimensionality; dim2++)
         {
+          const unsigned int currentDimension2 = this->subDims.size() > 0 ? this->subDims.at(dim2) : dim2;
           if (meanPerDim(dim2, 0u) != meanPerDim(dim2, 0u))
           {
             double mean = 0u;
             for (unsigned int i = 0u; i < this->numberOfDraws; i++)
             {
-              mean += this->drawMatrix(i, dim2);
+              mean += this->drawMatrix(i, currentDimension2);
             }
             mean /= double(this->numberOfDraws);
             meanPerDim(dim2, 0u) = mean;
@@ -912,7 +927,7 @@ public:
           double sum2 = 0.;
           for (unsigned int i = 0u; i < this->numberOfDraws; i++)
           {
-            sum2 += (this->drawMatrix(i, dim2) - meanPerDim(dim2, 0u)) * (this->drawMatrix(i, dim) - meanPerDim(dim, 0u));
+            sum2 += (this->drawMatrix(i, currentDimension2) - meanPerDim(dim2, 0u)) * (this->drawMatrix(i, currentDimension) - meanPerDim(dim, 0u));
           }
           sum2 /= double(this->numberOfDraws);
           cov_matr(dim, dim2) = sum2;
@@ -921,12 +936,12 @@ public:
       }
 
       float_type cov_determ = 0.;
-      int *cov_rank = new int;
       Matrix_Class eigenval, eigenvec;
       double determinant = cov_matr.determ();
 
-      const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(this->dimension) / 2. * std::log(2. * ::constants::pi * ::constants::e);
+      const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy =  gaussentropy;
+      std::cout << "Empirical gaussian entropy: " << gaussentropy << std::endl;
       writeToCSV("entropy.csv", "empricial_gaussian", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
       //Covariance Matrix
     }
@@ -935,6 +950,9 @@ public:
   double cubatureIntegrationEntropy(ProbabilityDensity probdens)
   {
     std::cout << "Commencing cubature integration of entropy." << std::endl;
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
+
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
     const double min_ = (probdens.meaningfulRange().first);
     const double max_ = (probdens.meaningfulRange().second);
     double* xmin, *xmax, *val, *err;
@@ -1107,10 +1125,30 @@ public:
   {
     std::cout << "Commencing NNEntropy calculation." << std::endl;
 
-    //Neccessarry
-    transpose(drawMatrix);
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
-    Matrix_Class copytemp = drawMatrix;
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
+    Matrix_Class dimPurgedDrawMatrix = Matrix_Class(static_cast<uint_type>(this->drawMatrix.rows()), static_cast<uint_type>(dimensionality));
+    if (this->subDims != std::vector<size_t>())
+    {
+      for (size_t i = 0u; i < this->subDims.size(); i++)
+      {
+        for (size_t j = 0u; j < numberOfDraws; j++)
+        {
+          dimPurgedDrawMatrix(j, i) = drawMatrix(j, this->subDims.at(i));
+        }
+      }
+    }
+    else
+    {
+      dimPurgedDrawMatrix = drawMatrix;
+    }
+    
+    //Neccessarry
+    transpose(dimPurgedDrawMatrix);
+    //transpose(drawMatrix);
+
+    Matrix_Class& copytemp = dimPurgedDrawMatrix;
     Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
     Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
     Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
@@ -1118,13 +1156,13 @@ public:
 
     scon::chrono::high_resolution_timer timer;
     //std::function<std::vector<double>(std::vector<double> const& x)> PDFtemporary = this->probdens.function();
-    std::vector<float_type> ardakaniCorrection_minimumValueInDataset(this->dimension, std::numeric_limits<float_type>::max());
-    std::vector<float_type> ardakaniCorrection_maximumValueInDataset(this->dimension, -std::numeric_limits<float_type>::max());
+    std::vector<float_type> ardakaniCorrection_minimumValueInDataset(dimensionality, std::numeric_limits<float_type>::max());
+    std::vector<float_type> ardakaniCorrection_maximumValueInDataset(dimensionality, -std::numeric_limits<float_type>::max());
     if (ardakaniCorrection)
     {
       for (size_t j = 0; j < drawMatrix.cols(); j++)
       {
-        for (unsigned int i = 0u; i < this->dimension; i++)
+        for (unsigned int i = 0u; i < dimensionality; i++)
         {
           if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, j))
             ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, j);
@@ -1151,7 +1189,7 @@ public:
 #endif
       {
         std::vector<size_t> rowQueryPts;
-        for (unsigned int currentDim = 0u; currentDim < this->dimension; currentDim++)
+        for (unsigned int currentDim = 0u; currentDim < dimensionality; currentDim++)
         {
           rowQueryPts.push_back(currentDim);
         }
@@ -1159,13 +1197,13 @@ public:
         std::vector<double> current;
         if (ardakaniCorrection)
         {
-          for (unsigned int j = 0u; j < this->dimension; j++)
+          for (unsigned int j = 0u; j < dimensionality; j++)
             current.push_back(copytemp(j, i));
         }
 
         if (norm == kNN_NORM::EUCLEDEAN)
         {
-          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, this->dimension, kNN, rowQueryPts, i, buffer));
+          const float_type holdNNdistanceEucl = sqrt(entropy::knn_distance_eucl_squared(copytemp, dimensionality, kNN, rowQueryPts, i, buffer));
           eucl_kNN_distances(0, i) = holdNNdistanceEucl;
 
           if (ardakaniCorrection)
@@ -1176,7 +1214,7 @@ public:
         }
         else // norm == kNN_NORM::MAX
         {
-          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, this->dimension, kNN, rowQueryPts, i, buffer);
+          const float_type holdNNdistanceMax = entropy::maximum_norm_knn_distance(copytemp, dimensionality, kNN, rowQueryPts, i, buffer);
           maxnorm_kNN_distances(0, i) = holdNNdistanceMax;
 
           if (ardakaniCorrection)
@@ -1201,8 +1239,8 @@ public:
         kahan_acc_eucl_ardakani_sum = KahanSum(kahan_acc_eucl_ardakani_sum, log(eucl_kNN_distances_ardakani_corrected(0, i)));
 
       double ardakaniSum = kahan_acc_eucl_ardakani_sum.sum / double(numberOfDraws);
-      ardakaniSum *= double(dimension);
-      ardakaniSum += log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
+      ardakaniSum *= double(dimensionality);
+      ardakaniSum += log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
   
       ardakaniSum -= digammal(double(kNN));
 
@@ -1234,8 +1272,8 @@ public:
         kahan_acc_max_ardakani_sum = KahanSum(kahan_acc_max_ardakani_sum, log(maxnorm_kNN_distances_ardakani_corrected(0, i)));
 
       double maxArdakaniEntropy = kahan_acc_max_ardakani_sum.sum / double(numberOfDraws);
-      maxArdakaniEntropy *= double(dimension);
-      maxArdakaniEntropy += log(pow(2., this->dimension));
+      maxArdakaniEntropy *= double(dimensionality);
+      maxArdakaniEntropy += log(pow(2., dimensionality));
       
 
 
@@ -1272,9 +1310,9 @@ public:
 
       double sum = kahan_acc_eucl_sum.sum;
       sum /= double(numberOfDraws);
-      sum *= double(dimension);
+      sum *= double(dimensionality);
 
-      sum = sum + log(pow(pi, double(dimension) / 2.) / (tgamma(0.5 * dimension + 1)));
+      sum = sum + log(pow(pi, double(dimensionality) / 2.) / (tgamma(0.5 * dimensionality + 1)));
 
       sum -= digammal(double(kNN));
 
@@ -1308,8 +1346,8 @@ public:
 
       //
       maxNormSum = maxNormSum / double(numberOfDraws);
-      maxNormSum *= double(dimension);
-      maxNormSum += log(pow(2., this->dimension));
+      maxNormSum *= double(dimensionality);
+      maxNormSum += log(pow(2., dimensionality));
       
       maxNormSum -= digammal(double(kNN));
 
@@ -1334,8 +1372,24 @@ public:
         throw std::runtime_error("Critical Error in NN Entropy.");
     }
 
-    std::cout << "NN Calculation took " << timer << " ." << std::endl;
-
+    if (Config::get().general.verbosity >= 3)
+    {
+      std::cout << "NN Entropy";
+      if (ardakaniCorrection)
+        std::cout << " with Ardakani-Correction";
+      if (norm == kNN_NORM::EUCLEDEAN)
+        std::cout << " with L2 norm";
+      else
+        std::cout << " with Lmax norm";
+      if (func == kNN_FUNCTION::LOMBARDI)
+        std::cout << " using Lombardi's function";
+      else if (func == kNN_FUNCTION::GORIA)
+        std::cout << " using Goria's function";
+      else if (func == kNN_FUNCTION::HNIZDO)
+        std::cout << " using Hnizdo's function";
+      std::cout << ": " << returnValue << "." << std::endl;
+      std::cout << "NN Calculation took " << timer << " ." << std::endl;
+    }
     //Neccessarry
     transpose(drawMatrix);
     return returnValue;
@@ -1392,12 +1446,17 @@ public:
     float_type entropy_sho = 0;
     for (std::size_t i = 0; i < eigenvalues.rows(); i++)
     {
-      pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
-      alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
-      quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
-      entropy_sho += quantum_entropy(i, 0u);
+      if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
+      {
+        pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+        alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+        quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+        entropy_sho += quantum_entropy(i, 0u);
+      }
     }
     std::cout << "Entropy in QH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
 
     writeToCSV("entropy.csv", "numata_no_corrections", entropy_sho, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
 
@@ -1424,11 +1483,14 @@ public:
   * see: (Genome Inform. 2007;18:192-205.)
   *
   */
-  double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class & eigenvaluesPCA, Matrix_Class & eigenvectorsPCA, 
+  double numataCorrectionsFromMI(size_t orderOfCorrection, Matrix_Class & eigenvaluesPCA,
     const double temperatureInK,const kNN_NORM norm, const kNN_FUNCTION func, const bool removeNegativeMI = true, const float_type anharmonicityCutoff = 0.007)
   {
+    const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
+
+    std::cout << "Dimensionality: " << dimensionality << std::endl;
     scon::chrono::high_resolution_timer timer;
-    Matrix_Class& pca_modes = this->pcaModes;
+    Matrix_Class pca_modes = this->pcaModes;
 
     Matrix_Class entropy_anharmonic(pca_modes.rows(), 1u, 0.);
 
@@ -1459,7 +1521,10 @@ public:
       pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * temperatureInK / eigenvaluesPCA(i, 0u));
       alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * temperatureInK) * sqrt(eigenvaluesPCA(i, 0u)));
       quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) ; // This was wrong (remove this comment only for github commit)
-      entropy_sho += quantum_entropy(i, 0u) * 1.380648813 * 6.02214129 * 0.239005736;
+      if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
+      {
+        entropy_sho += quantum_entropy(i, 0u) * 1.380648813 * 6.02214129 * 0.239005736;
+      }
     }
 
     std::vector<calcBuffer> tempMIs = this->calculatedMIs;
@@ -1496,51 +1561,65 @@ public:
 
     for (size_t i = 0; i < entropy_kNN.rows(); i++)
     {
-      //These are in units S/k_B (therefore: not multiplied by k_B)
-      statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
-      classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
-      entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - (-1.0) * entropy_kNN(i, 0u);
-
-      // Debug output for developers
-      if (Config::get().general.verbosity >= 4)
+      if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
       {
-        std::cout << "---------------------" << std::endl;
-        std::cout << "--- Units: S/k_B ---" << std::endl;
-        std::cout << "Mode " << i << ": entropy kNN: " << -1.0*entropy_kNN(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": classical entropy: " << classical_entropy(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": statistical entropy: " << statistical_entropy(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": quantum entropy: " << quantum_entropy(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": pca freq: " << pca_frequencies(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
-        std::cout << "Mode " << i << ": standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << std::endl;
-      }
+        //These are in units S/k_B (therefore: not multiplied by k_B)
+        statistical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) -/*this might be plus or minus?!*/ log(sqrt(2. * 3.14159265358979323846 * 2.71828182845904523536)));
+        classical_entropy(i, 0u) = -1.0 * (log(alpha_i(i, 0u)) - 1.); // should this be +1??? // The formula written HERE NOW is correct, there is a sign error in the original pape rof Knapp/numata
+        entropy_anharmonic(i, 0u) = statistical_entropy(i, 0u) - (-1.0) * entropy_kNN(i, 0u);
 
-      if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
-      {
-        if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
+        // Debug output for developers
+        if (Config::get().general.verbosity >= 4)
         {
-          entropy_anharmonic(i, 0u) = 0.0;
-          std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
+          std::cout << "---------------------" << std::endl;
+          std::cout << "--- Units: S/k_B ---" << std::endl;
+          std::cout << "Mode " << i << ": entropy kNN: " << -1.0*entropy_kNN(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": entropy anharmonic correction: " << entropy_anharmonic(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": classical entropy: " << classical_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": statistical entropy: " << statistical_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": quantum entropy: " << quantum_entropy(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": pca freq: " << pca_frequencies(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": alpha (dimensionless, standard deviation): " << alpha_i(i, 0u) << "\n";
+          std::cout << "Mode " << i << ": standard deviation in mw-pca-units: " << sqrt(eigenvaluesPCA(i, 0u)) << std::endl;
+          std::cout << "---------------------" << std::endl;
         }
-      }
-      else
-      {
-        std::cout << "Notice: PCA-Mode " << i << " not corrected since it is not within the classical limit (PCA-Freq needs to be smaller than ";
-        std::cout << (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
-        entropy_anharmonic(i, 0u) = 0.0;
-      }
 
-      // Change dimensionless entropy to cal / K * mol
-      entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+        if (pca_frequencies(i, 0u) < (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)))
+        {
+          if (std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) < anharmonicityCutoff)
+          {
+            entropy_anharmonic(i, 0u) = 0.0;
+            std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (value too small: " << std::abs(entropy_anharmonic(i, 0u) / quantum_entropy(i, 0u)) << " < " << anharmonicityCutoff << ").\n";
+          }
+          else
+          {
+            if (entropy_anharmonic(i, 0u) < 0.0)
+            {
+              std::cout << "Notice: PCA-Mode " << i << " not corrected for anharmonicity (estimated correction is < 0.0 : " << entropy_anharmonic(i, 0u)  << ").\n";
+              entropy_anharmonic(i, 0u) = 0.0;
+            }
+          }
+        }
+        else
+        {
+          std::cout << "Notice: PCA-Mode " << i << " not corrected since it is not within the classical limit (PCA-Freq needs to be smaller than ";
+          std::cout << (temperatureInK * 1.380648813 * 10e-23 / (1.05457172647 * 10e-34)) << ", but is " << pca_frequencies(i, 0u) << "; equipartition is not a valid assumption).\n";
+          entropy_anharmonic(i, 0u) = 0.0;
+        }
 
+        // Change dimensionless entropy to cal / K * mol
+        entropy_anharmonic(i, 0u) *= 1.380648813 * 6.02214129 * 0.239005736;
+      }
     }
 
     // III. Calculate Difference of Entropies
     double delta_entropy = 0;
     for (size_t i = 0; i < entropy_anharmonic.rows(); i++)
     {
-      delta_entropy += entropy_anharmonic(i, 0u);
+      if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
+      {
+        delta_entropy += entropy_anharmonic(i, 0u);
+      }
       if (i == entropy_anharmonic.rows() - 1u)
         std::cout << "Correction for entropy (order 1): " << delta_entropy << " cal / (mol * K)\n";
     }
@@ -1574,7 +1653,7 @@ public:
           }
         }
       }
-      std::cout << "Correction for entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)" << std::endl;
+      std::cout << "Correction for higher order entropy (up to order " << i << "): " << higher_order_entropy << " cal / (mol * K)" << std::endl;
       if (i == 2u)
       {
         std::cout << "Counted " << countNegativeSecondOrderMIs << " negative second order MI terms with a summed value of " << sumOfNegativeSecondOrderMIs << " cal / (mol * K)" << std::endl;
@@ -1605,7 +1684,7 @@ public:
     return entropy_sho - delta_entropy;
   }
 
-  // Calculates the Mutual Information Expansion of the entropy up to order "N"
+  // Calculates the full dimensional Mutual Information Expansion of the entropy up to order "N"
   double calculateNN_MIExpansion(const size_t order_N, const kNN_NORM norm, 
     const kNN_FUNCTION func, bool const& ardakaniCorrection)
   {

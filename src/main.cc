@@ -769,6 +769,7 @@ int main(int argc, char **argv)
       entropy::TrajectoryMatrixRepresentation repr(ci, coords);
 
       entropyobj obj(repr);
+      obj.subDims = Config::get().entropytrails.subDimsForGMM;
       kNN_NORM norm = static_cast<kNN_NORM>(Config::get().entropy.knnnorm);
       kNN_FUNCTION func = static_cast<kNN_FUNCTION>(Config::get().entropy.knnfunc);
 
@@ -783,9 +784,13 @@ int main(int argc, char **argv)
         // Knapp's method, marginal
         if (m == 2)
         {
-          /*double entropy_value = */repr.knapp_marginal(
+          /*double entropy_value = repr.knapp_marginal(
             Config::get().entropy.entropy_temp,
-            Config::get().entropy.entropy_remove_dof);
+            Config::get().entropy.entropy_remove_dof);*/
+
+          auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
+          Matrix_Class eigenvec, eigenval;
+          calcObj.pcaTransformDraws(eigenval, eigenvec, true);
         }
         // Knapp's method
         if (m == 3 || m == 0)
@@ -793,9 +798,10 @@ int main(int argc, char **argv)
           auto calcObj = calculatedentropyobj(Config::get().entropy.entropy_method_knn_k, obj);
 
           Matrix_Class eigenvec, eigenval;
+
           calcObj.pcaTransformDraws(eigenval, eigenvec, true);
 
-          calcObj.numataCorrectionsFromMI(2, eigenval, eigenvec, Config::get().entropy.entropy_temp, norm, func);
+          calcObj.numataCorrectionsFromMI(2, eigenval, Config::get().entropy.entropy_temp, norm, func);
 
         }
         // Hnizdo's method
