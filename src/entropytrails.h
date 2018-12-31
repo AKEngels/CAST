@@ -1150,7 +1150,7 @@ public:
     transpose(dimPurgedDrawMatrix);
     //transpose(drawMatrix);
 
-    Matrix_Class& copytemp = dimPurgedDrawMatrix;
+    Matrix_Class copytemp = dimPurgedDrawMatrix;
     Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
     Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
     Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
