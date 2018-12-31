@@ -943,6 +943,38 @@ public:
       std::cout << "Empirical gaussian entropy (statistical): " << gaussentropy << std::endl;
       writeToCSV("entropy.csv", "empricial_gaussian_statistical", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
       //Covariance Matrix
+
+
+      //Calculate PCA Frequencies in quasi-harmonic approximation and Entropy in SHO approximation; provides upper limit of entropy
+      Matrix_Class eigenvalues;
+      Matrix_Class eigenvectors;
+      cov_matr.eigensym(eigenvalues, eigenvectors);
+      Matrix_Class pca_frequencies(eigenvalues.rows(), 1u);
+      Matrix_Class alpha_i(pca_frequencies.rows(), 1u);
+      Matrix_Class quantum_entropy(pca_frequencies.rows(), 1u);
+      float_type entropy_sho = 0;
+      if (Config::get().general.verbosity >= 3)
+      {
+        std::cout << "Gaussian Entropy in qQH-approximation is estimated from eigenvalues of draw matrix.\n";
+        std::cout << "NOTICE: The draw-matrix will be transformed to obtain thermodynamically valid units." << std::endl;
+      }
+      for (std::size_t i = 0; i < eigenvalues.rows(); i++)
+      {
+        if (this->subDims == std::vector<size_t>() || std::find(this->subDims.begin(), this->subDims.end(), i) != this->subDims.end())
+        {
+          // Thermodynamic transformation is applied to eigenvalues here
+          //pca_frequencies(i, 0u) = sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp / eigenvalues(i, 0u));
+          alpha_i(i, 0u) = 1.05457172647 * 10e-34 / (sqrt(1.380648813 * 10e-23 * Config::get().entropy.entropy_temp) * sqrt(eigenvalues(i, 0u)));
+          quantum_entropy(i, 0u) = ((alpha_i(i, 0u) / (exp(alpha_i(i, 0u)) - 1)) - log(1 - exp(-1 * alpha_i(i, 0u)))) * 1.380648813 * 6.02214129 * 0.239005736;
+          entropy_sho += quantum_entropy(i, 0u);
+          if (Config::get().general.verbosity >= 4)
+          {
+            std::cout << "MODE " << i << " - Entropy: " << quantum_entropy(i, 0u) << " cal / (mol * K)" << std::endl;
+          }
+        }
+      }
+      std::cout << "Entropy in qQH-approximation from PCA-Modes: " << entropy_sho << " cal / (mol * K)" << std::endl;
+      writeToCSV("entropy.csv", "qQH_approx", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
     }
   }
 
