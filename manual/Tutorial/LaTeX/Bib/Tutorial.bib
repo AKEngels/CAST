@@ -929,3 +929,68 @@
   timestamp = {2012.02.23}
 }
 
+@book{becker_development_2015,
+  location = {Würzburg},
+  title = {Development and implementation of new simulation possibilities in the {CAST} program package},
+  url = {https://opus.bibliothek.uni-wuerzburg.de/frontdoor/index/index/docId/13203},
+  abstract = {The aim of the present work is the development and implementation of new simulation
+possibilities for the {CAST} program package. Development included, among other
+things, the partial parallelization of the already existing force fields, extension of the
+treatment of electrostatic interactions and implementation of molecular dynamics and
+free energy algorithms.
+The most time consuming part of force field calculations is the evaluation of the nonbonded
+interactions. The calculation of these interactions has been parallelized and
+it could be shown to yield a significant speed up for multi-core calculations compared
+to the serial execution on only one {CPU}. For both, simple energy/gradient as well as
+molecular dynamics simulations the computational time could be significantly reduced.
+To further increase the performance of calculations employing a cutoff radius, a linkedcell
+algorithm was implemented which is able to build up the non-bonded interaction
+list up to 7 times faster than the original algorithm.
+To provide access to dynamic properties based on the natural time evolution of a system,
+a molecular dynamics code has been implemented. The {MD} implementation features
+two integration schemes for the equations of motion which are able to generate stable
+trajectories. The basic {MD} algorithm as described in Section 1.2 leads to the sampling
+in the microcanonical ({NVE}) ensemble. The practical use of {NVE} simulations is limited
+though because it does not correspond to any experimentally realistic situation.
+More realistic simulation conditions are found in the isothermal ({NVT}) and isothermalisobaric
+({NPT}) ensembles. To generate those ensembles, temperature and pressure
+control has been implemented. The temperature can be controlled in two ways: by direct
+velocity scaling and by a Nose-Hoover thermostat which produces a real canonical
+ensemble. The pressure coupling is realized by implementation of a Berendsen barostat.
+The pressure coupling can be used for isotropic or anisotropic box dimensions with the
+restriction that the angles of the box need to be 90. A crucial simulation parameter in
+{MD} simulations is the length of the timestep. The timestep is usually in the rang of 1fs.
+Increasing the timestep beyond 1fs can lead to unstable trajectories since the fastest
+motion in the system, usually the H-X stretch vibration can not be sampled anymore.
+A way to allow for bigger timesteps is the use of a constraint algorithm which constrains the H-X bonds to the equilibrium distance. For this the {RATTLE} algorithm has been
+implemented in the {CAST} program. The velocity Verlet algorithm in combination with
+the {RATTLE} algorithm has been shown to yield stable trajectories for an arbitrary
+length of simulation time. In a first application the {MD} implementation is used in conjunction
+with the {MOPAC} interface for the investigation of {PBI} sidechains and their
+rigidity. The theoretical investigations show a nice agreement with experimentally obtained
+results. Based on the {MD} techniques two algorithms for the determination of free
+energy differences have been implemented. The umbrella sampling algorithm can be
+used to determine the free energy change along a reaction coordinate based on distances
+or dihedral angles. The implementation was tested on the stretching of a deca-L-alanine
+and the rotation barrier of butane in vacuum. The results are in nearly perfect agreement
+with literature values. For the {FEP} implementation calculations were performed
+for a zero-sum transformation of ethane in explicit solvent, the charging of a sodium
+ion in explicit solvent and the transformations of a tripeptide in explicit solvent. All
+results are in agreement with benchmark calculations of the {NAMD} program as well
+as literature values. The {FEP} formalism was then applied to determine the relative
+binding free energies between two inhibitors in an inhibitor-protein complex.
+Next to force fields, ab-initio methods can be used for simulations and global optimizations.
+Since the performance of such methods is usually significantly poorer than force
+field applications, the use for global optimizations is limited. Nevertheless significant
+progress has been made by porting these codes to {GPUs}. In order to make use of these
+developments a {MPI} interface has been implemented into {CAST} for communication
+with the {DFT} code {TeraChem}. The {CAST}/{TeraChem} combination has been tested
+on the \$H\_2 O\_\{10\}\$ cluster as well as the polypeptide met-Enkephalin. The pure ab-initio
+calculations showed a superior behavior compared to the standard procedure where the
+force field results are usually refined using quantum chemical methods.},
+  author = {Becker, Johannes},
+  urldate = {2016-09-05},
+  date = {2015},
+  file = {Snapshot:C\:\\Users\\Susanne\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\0yf8lrpj.default\\zotero\\storage\\V3D54NTF\\13203.html:text/html}
+}
+
