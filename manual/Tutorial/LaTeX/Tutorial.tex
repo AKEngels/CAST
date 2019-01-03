@@ -1300,11 +1300,12 @@ import os
 import shutil
 
 # USER INPUT
-STEPS = range(-180, 185, 5)           # to which values should the restraint be set? 
+STEPS = range(-180, 185, 5)           # to which values was the restraint set? 
 FORCE_CONSTANT = 0.05                 # force constant of biasing potential
 PATH = "/apps/wham/wham/wham"         # path to WHAM program
 
 # ... for WHAM
+REACTION_COORD = "torsion"   # what kind of reaction coordinate? 'bond' or 'torsion'
 BINS = 73                    # number of points in final PMF (= number of bins)
 MIN = -182.5                 # minimum boundary of histogram
 MAX = 182.5                  # maximum boundary of histogram
@@ -1333,7 +1334,12 @@ def copy_and_and_create_inputfile():
 
 if copy_and_and_create_inputfile():
     os.chdir("analysis")
-    os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP)) |\label{runWHAM}
+    if REACTION_COORD == "bond":
+        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP))
+    elif REACTION_COORD == "torsion":
+        os.popen("{} P {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP)) |\label{runWHAM}|
+    else:
+        print "ERROR: unvalid kind of reaction coordinate!"
 \end{lstlisting}
 
 We start this script the same way as before by typing \texttt{python umbrella\_analysis.py} into a command prompt. Let's see what user input we need:
@@ -1342,6 +1348,7 @@ We start this script the same way as before by typing \texttt{python umbrella\_a
 	\item \texttt{FORCE\_CONSTANT} is the force constant of the biasing potential. 
 	\item For \texttt{PATH} we give the path to the WHAM program including the command \texttt{wham} itself. 
 	\item These three options we need to write the WHAM inputfile \texttt{in.txt}. The following options are needed for running WHAM in line \ref{runWHAM}:
+	\item WHAM needs to know if your reaction coordinate is a bond or a torsion because in case of a torsion it takes into account the symmetry. This information is given by \texttt{REACTION\_COORD}.
 	\item \texttt{BINS} is the number of points where the PMF is calculated. This is not necessarily the same number as the number of the simulations we ran but it's a good point to start.
 	\item \texttt{MIN} and \texttt{MAX} are the minimum and maximum boundary of the histogram. As we want our 73 bins to have their center at the same value for the torsion restraints, -182.5° and 182.5° are the values we have to type here.
 	\item \texttt{TEMP} is the temperature where WHAM should be performed. Again it doesn't have to be the same as where the MD simulations were performed but again, why not?
@@ -1352,7 +1359,7 @@ After we have run the script we can go into the folder \texttt{analysis} which w
 
 We first have a look into the inputfile: It contains for every single window the name of the \texttt{umbrella\_*.txt} file, the value to which the torsinal angle was restrained and the force constant of the biasing potential.
 
-In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (gauche conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is around $6.1 \frac{kcal}{mol}$. Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
+In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (gauche conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is around $5.99 \frac{kcal}{mol}$ or $5.83 \frac{kcal}{mol}$ depending on if I define zero energy as the energy at -180° (where it should be lowest) or as the energy at -175° (where it is lowest). Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
 
 \begin{figure} [htb]
 	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrella_FreeEnergy.png}}
