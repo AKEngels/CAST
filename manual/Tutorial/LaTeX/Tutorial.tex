@@ -1233,6 +1233,61 @@ Then we move to the snapshot file and open it with VMD where we can watch the mo
 \end{figure}
 
 The last file is that called \texttt{umbrella.txt}. It contains the value of the restrained torsion for every step of the sampling simulation. As we saw in the snapshot file all the values are quite near to 150°. This file will later be used by the external program WHAM\myCite{grossfield_wham_nodate} to calculate the PMF.
+\\
+\FloatBarrier
+
+So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our ECPC cluster. 
+
+First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{oplsaa\_mod2.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on ECPC. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{optional\_files/scripts}:
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
+### script to start an umbrella calculation on ECPC ###
+### things users probably want to change are marked with USER INPUT ###
+
+import os
+import shutil
+
+steps = range(-180, 185, 5)  # to which values should the restraint be set? (USER INPUT)
+
+# copies all necessary files for a calculation into folders and changes lines in inputfiles
+def run_calc(step):
+
+    # create folder for current window
+    os.mkdir("{}".format(step))  
+
+    # copy necessary files to that folder (USER INPUT)
+    shutil.copy("butan.arc","{}/butan.arc".format(step))
+    shutil.copy("oplsaa_mod2.prm","{}/oplsaa_mod2.prm".format(step))
+    shutil.copy("cast.sh", "{}/cast.sh".format(step))
+    shutil.copy("CAST.txt", "{}/CAST.txt".format(step))
+
+    # optional: change jobname
+    with open("{}/cast.sh".format(step)) as inp:
+        x = inp.read()
+        x = x.replace("TITEL",str(step))
+    with open("{}/cast.sh".format(step),"w") as inp:
+        inp.write(x)
+
+    # important: set correct restraint in inputfile
+    with open("{}/CAST.txt".format(step)) as inp:
+        x = inp.read()
+        x = x.replace("UMBRELLA_RESTRAINT",str(float(step)))
+    with open("{}/CAST.txt".format(step),"w") as inp:
+        inp.write(x)
+
+    # submit calculation
+    os.chdir(str(step))
+    os.popen("qsub cast.sh")
+    os.chdir("..")
+
+for s in steps:
+    run_calc(s)
+\end{lstlisting}
+
+Before we run this script we have to open the CAST inputfile and replace our torsional angle of 150.0° by a placeholder \texttt{UMBRELLA\_RESTRAINT}. So the line now looks like this:\\
+\texttt{UStorsion\hspace{2cm}1 2 6 9\quad0.05\quad UMBRELLA\_RESTRAINT}\\
+Now we start our python script by typing \texttt{python umbrella.py} into the command line. For each of the 73 steps it creates a folder where the name is identical to the torsional angle of the step, copies all the files into it, replaces \texttt{UMBRELLA\_RESTRAINT} by the correct angle and submits a CAST calculation. After some minutes all the calculations should be finished. If we want we can go into the single folders and look at the output files.
 
 \FloatBarrier
 \newpage
