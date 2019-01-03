@@ -1175,13 +1175,13 @@ In this case it was possible to create a different pathway by varying the energy
 
 \paragraph{UMBRELLA}
 
-With Umbrella Sampling one can calculate the Free Energy $A$ along a \mbox{reaction coordinate $\xi$.} $A(\xi)$ is also called Potential of Mean Force (PMF). To do this several MD simulations on different points of the reaction paths are performed where the position on the path (which means the value for $\xi$) is restrained by an additional potential. After that the results from the single MD simulations are combined by Weighted Histogram Anylysis Method (WHAM). For details about the theoretical background of Umbrella Sampling see literature. \colorbox{red}{Quellen einfügen!}
+With Umbrella Sampling one can calculate the Free Energy $A$ along a \mbox{reaction coordinate $\xi$.} $A(\xi)$ is also called Potential of Mean Force (PMF). To do this several MD simulations on different points of the reaction paths are performed where the position on the path (which means the value for $\xi$) is restrained by an additional potential. After that the results from the single MD simulations are combined by Weighted Histogram Anylysis Method (WHAM). For details about the theoretical background of Umbrella Sampling see literature.\myCite{kastner_umbrella_2011}\myCite{souaille_extension_2001}
 
 In CAST the reaction coordinate is either defined as distance between two atoms or as a torsional angle (consisting of four atoms). In our example we want to calculate the changes of the PMF for the main rotation of the butane molecule. This example is taken from reference \cite{becker_development_2015}.
 
 The reaction coordinate (i.\,e. the torsional angle) should vary from -180° to +180° in steps of 5° so we will have to perform 73 simulations in total. For each of these simulations we have to start a new CAST run. We will do this later by using a script. For now we just want to see how to start one of these simulations and what will be the results. 
 
-So first we need our input structure, butan.arc, as tinkerfile:
+So first we need our input structure, \texttt{butan.arc}, as tinkerfile:
 \begin{lstlisting}[frame=single,]
 14      (oplsaa_mod2.prm)
  1  C     -5.942760    2.779360    0.148310     80     2     3     4     5
@@ -1200,31 +1200,31 @@ So first we need our input structure, butan.arc, as tinkerfile:
 14  H     -3.267820    3.565990    0.408600     85     9
 \end{lstlisting}
 
-Then we go into the inputfile CAST.txt.
+Then we go into the inputfile \texttt{CAST.txt}.
 \begin{itemize}
-	\item The name of our inputfile is of course butan.arc, the inputtype is TINKER.
-	\item The task is UMBRELLA.
-	\item Our energy interface is OPLSAA.
-	\item The paramfile is called oplsaa\_mod2.prm. You can find this file in the Github Repository in optional\_files/forcefields\_utility.
+	\item The \texttt{name} of our inputfile is of course \texttt{butan.arc}, the \texttt{inputtype} is \texttt{TINKER}.
+	\item The \texttt{task} is \texttt{UMBRELLA}.
+	\item Our energy \texttt{interface} is \texttt{OPLSAA}.
+	\item The \texttt{paramfile} is called \texttt{oplsaa\_mod2.prm}. You can find this file in the Github Repository in \mbox{optional\_files/forcefields\_utility}.
 	\item Then we scroll down a lot to the section MD OPTIONS.
-	\item We want to sample the molecule for 500\,ps, so we choose 500000 MDsteps. Velocity scaling may be switched on by giving option 1 for MDveloscale.
-	\item We use the Velocity-Verlet integrator, so the value for integrator is 0.
-	\item Because we want to keep the temperature at 300\,K by the Nosé-Hoover thermostat we set MDtemp\_control and MD\_thermostat to 1. Furthermore we set MDheat to ``0    300'' which means that the thermostat should try to set the temperature to 300\,K immediately (at step 0).
-	\item For MDtimestep we use the default timestep of 0.001\,ps, we switch off MDrestart\_if\_broken (hopefully our molecule won't break) and switch on MDtrack.
-	\item 1000 snapshots should be enough so we set MDsnap to 1000, MDsnapbuffer might be 100 and the snapshots mustn't be optimized so we set MDsnap\_opt to 0.
+	\item We want to sample the molecule for 500\,ps, so we choose \texttt{500000 MDsteps}. Velocity scaling may be switched on by giving option \texttt{1} for \texttt{MDveloscale}.
+	\item We use the Velocity-Verlet integrator, so the value for \texttt{integrator} is \texttt{0}.
+	\item Because we want to keep the temperature at 300\,K by the Nosé-Hoover thermostat we set \texttt{MDtemp\_control} and \texttt{MD\_thermostat} to \texttt{1}. Furthermore we set \texttt{MDheat} to \texttt{0\quad300} which means that the thermostat should try to set the temperature to 300\,K immediately (at step 0).
+	\item For \texttt{MDtimestep} we use the default timestep of \texttt{0.001}\,ps, we switch off \texttt{MDrestart\_if\_broken} (hopefully our molecule won't break) and switch on \texttt{MDtrack}.
+	\item 1000 snapshots should be enough so we set \texttt{MDsnap} to \texttt{1000}, \texttt{MDsnapbuffer} might be \texttt{100} and the snapshots mustn't be optimized so we set \texttt{MDsnap\_opt} to \texttt{0}.
 	\item The rest of the MD options is not necessary.
 	\item Then we scroll to UMBRELLA SAMPLING.
-	\item Before every sampling there is a short MD simulation to eqilibrate the system. We want to equilibrate the system for 10000 steps so we set USequil to 10000. 
-	\item The main torsion of our butane molecule is defined by the atoms 1, 2, 6 and 9. It should be constrained to an angle of 150° (this is just an example we could also use any other value between -180° and +180°) with a spring constant of $0.05 \frac{kcal}{mol \cdot deg^2}$. So the option for UStorsion looks like that: ``UStorsion              1 2 6 9  0.05 150.0''.
-	\item If our reaction coordinate was a distance we would give it as USbond. Because this is not the case we comment out this line.
-	\item For the sampling we want to use the conformations of every step. So we set USsnap to 1.
+	\item Before every sampling there is a short MD simulation to eqilibrate the system. We want to equilibrate the system for 10000 steps so we set \texttt{USequil} to \texttt{10000}. 
+	\item The main torsion of our butane molecule is defined by the atoms 1, 2, 6 and 9. It should be constrained to an angle of 150° (this is just an example we could also use any other value between -180° and +180°) with a spring constant of $0.05 \frac{kcal}{mol \cdot deg^2}$. So the option for \texttt{UStorsion} looks like that: \mbox{\texttt{1 2 6 9\quad0.05\quad150.0}}.
+	\item If our reaction coordinate was a distance we would give it as \texttt{USbond}. Because this is not the case we comment out this line.
+	\item For the sampling we want to use the conformations of every step. So we set \texttt{USsnap} to \texttt{1}.
 \end{itemize}
 
-Now we run CAST. After the calculation has finished we have three output files: A tracefile, a snapshot file and a file that is called umbrella.txt.
+Now we run CAST. After the calculation has finished we have three output files: A tracefile, a snapshot file and a file that is called \texttt{umbrella.txt}.
 
 First we look at the tracefile. Interesting here are the first two lines. The first line shows the simulation step and the second one the temperature at this step. The temperature should be around 300\,K. But we see that in the beginning it is much higher. That is caused by the restraint. In the inputstructure we had a torsional angle of around -50° and we restrain it to 150° which is quite far away. So at the beginning the molecule has to move fast to reach this restraint. But when we scroll down to the end of the equilibration (step 9999) we see that the temperature there is around 300\,K, so the structures used for the sampling should be fine.
 
-Then we move to the snapshot file and open it with VMD where we can watch the movement of the molecule. Here we can see that the torsional angle is moved from around -50° to about +150° during the first snapshot (i.\,e. the first 1000 steps). In order to take a deeper look into the torsional angle we can mark the torsion by pressing the 4-button and after that clicking on the 4 carbon atoms in the right order. Then the torsion is highlighted and a number appears. We can also plot this value by choosing Graphics -> Labels -> ``Dihedrals'' in Dropdown-Menu -> clicking on the dihedral consisting of the 4 Cs -> tab ``Graph'' -> click on ``Graph''. The resulting plot should look like the one in figure \ref{fig:umbrella_torsion}. We see that the torsional angle is slightly moving around 150°.
+Then we move to the snapshot file and open it with VMD where we can watch the movement of the molecule. Here we can see that the torsional angle is moved from around -50° to about +150° during the first snapshot (i.\,e. the first 1000 steps). In order to take a deeper look into the torsional angle we can mark the torsion by pressing the button ``4'' on the keyboard and after that clicking on the 4 carbon atoms in the right order. Then the torsion is highlighted and a number appears. We can also plot this value by choosing Graphics -> Labels -> ``Dihedrals'' in Dropdown-Menu -> clicking on the dihedral consisting of the 4 C's -> tab ``Graph'' -> click on ``Graph''. The resulting plot should look like the one in figure \ref{fig:umbrella_torsion}. We see that the torsional angle is slightly moving around 150°.
 
 \begin{figure}[htb]
 	\center
@@ -1232,7 +1232,7 @@ Then we move to the snapshot file and open it with VMD where we can watch the mo
 	\label{fig:umbrella_torsion}
 \end{figure}
 
-The last file is that called umbrella.txt. It contains the value of the restrained torsion for every step of the sampling simulation. As we saw in the snapshot file all the values are quite near to 150°. This file will later be used by WHAM to calculate the PMF.
+The last file is that called \texttt{umbrella.txt}. It contains the value of the restrained torsion for every step of the sampling simulation. As we saw in the snapshot file all the values are quite near to 150°. This file will later be used by the external program WHAM\myCite{grossfield_wham_nodate} to calculate the PMF.
 
 \FloatBarrier
 \newpage
