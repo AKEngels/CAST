@@ -1183,29 +1183,28 @@ The reaction coordinate (i.\,e. the torsional angle) should vary from -180° to 
 
 So first we need our input structure, \texttt{butan.arc}, as tinkerfile:
 \begin{lstlisting}[frame=single,]
-14      (oplsaa_mod2.prm)
- 1  C     -5.942760    2.779360    0.148310     80     2     3     4     5
- 2  C     -5.217520    1.481290   -0.169120     81     1     6     7     8
- 3  H     -7.014540    2.669170   -0.044280     85     1
- 4  H     -5.578860    3.597360   -0.481310     85     1
- 5  H     -5.811080    3.062510    1.197470     85     1
- 6  C     -3.751490    1.455970    0.267600     81     2     9    10    11
- 7  H     -5.280610    1.294710   -1.248420     85     2
- 8  H     -5.739010    0.651730    0.322560     85     2
- 9  C     -2.952440    2.679850   -0.151080     80     6    12    13    14
-10  H     -3.280410    0.560620   -0.154690     85     6
-11  H     -3.696970    1.353180    1.358550     85     6
-12  H     -3.068160    2.883970   -1.220280     85     9
-13  H     -1.888730    2.523830    0.054180     85     9
-14  H     -3.267820    3.565990    0.408600     85     9
+14      (charmmm22.prm)
+ 1  C     -5.942760    2.779360    0.148310     27     2     3     4     5
+ 2  C     -5.217520    1.481290   -0.169120     26     1     6     7     8
+ 3  H     -7.014540    2.669170   -0.044280      1     1
+ 4  H     -5.578860    3.597360   -0.481310      1     1
+ 5  H     -5.811080    3.062510    1.197470      1     1
+ 6  C     -3.751490    1.455970    0.267600     26     2     9    10    11
+ 7  H     -5.280610    1.294710   -1.248420      1     2
+ 8  H     -5.739010    0.651730    0.322560      1     2
+ 9  C     -2.952440    2.679850   -0.151080     27     6    12    13    14
+10  H     -3.280410    0.560620   -0.154690      1     6
+11  H     -3.696970    1.353180    1.358550      1     6
+12  H     -3.068160    2.883970   -1.220280      1     9
+13  H     -1.888730    2.523830    0.054180      1     9
+14  H     -3.267820    3.565990    0.408600      1     9
 \end{lstlisting}
 
 Then we go into the inputfile \texttt{CAST.txt}.
 \begin{itemize}
 	\item The \texttt{name} of our inputfile is of course \texttt{butan.arc}, the \texttt{inputtype} is \texttt{TINKER}.
 	\item The \texttt{task} is \texttt{UMBRELLA}.
-	\item Our energy \texttt{interface} is \texttt{OPLSAA}.
-	\item The \texttt{paramfile} is called \texttt{oplsaa\_mod2.prm}. You can find this file in the Github Repository in \mbox{optional\_files/forcefields\_utility}.
+	\item Our energy \texttt{interface} is \texttt{CHARMM} and the \texttt{paramfile} is called \texttt{charmm22.prm}. 
 	\item Then we scroll down a lot to the section MD OPTIONS.
 	\item We want to sample the molecule for 500\,ps, so we choose \texttt{500000 MDsteps}. Velocity scaling may be switched on by giving option \texttt{1} for \texttt{MDveloscale}.
 	\item We use the Velocity-Verlet integrator, so the value for \texttt{integrator} is \texttt{0}.
@@ -1238,27 +1237,30 @@ The last file is that called \texttt{umbrella.txt}. It contains the value of the
 
 So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our ECPC cluster. 
 
-First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{oplsaa\_mod2.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on ECPC. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{optional\_files/scripts}:
+First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{charmm22.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on ECPC. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{optional\_files/scripts}:
 
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
 ### script to start an umbrella calculation on ECPC ###
-### things users probably want to change are marked with USER INPUT ###
 
 import os
 import shutil
 
-steps = range(-180, 185, 5)  # to which values should the restraint be set? (USER INPUT)
+# USER INPUT
+MOLECULE = "butan.arc"              # name of molecule file
+FORCEFIELD = "charmm22.prm"         # name of forcefield file
+STEPS = range(-180, 185, 5)         # to which values should the restraint be set?
+PLACEHOLDER = "UMBRELLA_RESTRAINT"  # placeholder in CAST.txt file
 
-# copies all necessary files for a calculation into folders and changes lines in inputfiles
+# starts one of the calculations
 def run_calc(step):
 
     # create folder for current window
     os.mkdir("{}".format(step))  
 
     # copy necessary files to that folder (USER INPUT)
-    shutil.copy("butan.arc","{}/butan.arc".format(step))
-    shutil.copy("oplsaa_mod2.prm","{}/oplsaa_mod2.prm".format(step))
+    shutil.copy(MOLECULE,"{}/{}".format(step,MOLECULE))
+    shutil.copy(FORCEFIELD,"{}/{}".format(step,FORCEFIELD))
     shutil.copy("cast.sh", "{}/cast.sh".format(step))
     shutil.copy("CAST.txt", "{}/CAST.txt".format(step))
 
@@ -1272,7 +1274,7 @@ def run_calc(step):
     # important: set correct restraint in inputfile
     with open("{}/CAST.txt".format(step)) as inp:
         x = inp.read()
-        x = x.replace("UMBRELLA_RESTRAINT",str(float(step)))
+        x = x.replace(PLACEHOLDER,str(float(step)))
     with open("{}/CAST.txt".format(step),"w") as inp:
         inp.write(x)
 
@@ -1281,13 +1283,85 @@ def run_calc(step):
     os.popen("qsub cast.sh")
     os.chdir("..")
 
-for s in steps:
+for s in STEPS:
     run_calc(s)
 \end{lstlisting}
 
 Before we run this script we have to open the CAST inputfile and replace our torsional angle of 150.0° by a placeholder \texttt{UMBRELLA\_RESTRAINT}. So the line now looks like this:\\
 \texttt{UStorsion\hspace{2cm}1 2 6 9\quad0.05\quad UMBRELLA\_RESTRAINT}\\
 Now we start our python script by typing \texttt{python umbrella.py} into the command line. For each of the 73 steps it creates a folder where the name is identical to the torsional angle of the step, copies all the files into it, replaces \texttt{UMBRELLA\_RESTRAINT} by the correct angle and submits a CAST calculation. After some minutes all the calculations should be finished. If we want we can go into the single folders and look at the output files.
+\\
+
+Now that we have the \texttt{umbrella.txt} output files of all our single simulations the next steps is to give all of them to WHAM and perform a weighted histogram analysis. A documentation for the WHAM program can be found at reference \cite{grossfield_wham_nodate}. To do so we have to copy all the files into one folder that we call analysis, write a WHAM inputfile (in the documentation it is called metadatafile) and start WHAM. This is also done by a python script (\texttt{umbrella\_analysis.py}) which looks like that:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
+### script to analyse an umbrella calculation on ECPC ###
+
+import os
+import shutil
+
+# USER INPUT
+STEPS = range(-180, 185, 5)           # to which values should the restraint be set? 
+FORCE_CONSTANT = 0.05                 # force constant of biasing potential
+PATH = "/apps/wham/wham/wham"         # path to WHAM program
+
+# ... for WHAM
+BINS = 73                    # number of points in final PMF (= number of bins)
+MIN = -182.5                 # minimum boundary of histogram
+MAX = 182.5                  # maximum boundary of histogram
+TEMP = 300                   # temperature for WHAM 
+TOL = 0.00001                # tolerance for WHAM interations
+
+
+# creates a folder 'analysis' and copies all 'umbrella.txt' files there
+# to the names of the files the step is added
+# furthermore a file 'input.txt' is created that is used as input for WHAM
+# if files are missing this function returns false, otherwise true
+def copy_and_and_create_inputfile():
+    success = True
+    os.mkdir("analysis") # create folder
+    for s in STEPS:
+        if os.path.isfile("{}/umbrella.txt".format(s)):
+            # copy and rename file
+            shutil.copy("{}/umbrella.txt".format(s),"analysis/umbrella_{}.txt".format(s))
+            # write inputfile for WHAM
+            with open("analysis/in.txt","a") as inp:         
+                inp.write("umbrella_{}.txt    {}    {}\n".format(s,float(s),FORCE_CONSTANT))
+        else:
+            print "No file 'umbrella.txt' in folder", s
+            sucess = False
+    return success
+
+if copy_and_and_create_inputfile():
+    os.chdir("analysis")
+    os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP)) |\label{runWHAM}
+\end{lstlisting}
+
+We start this script the same way as before by typing \texttt{python umbrella\_analysis.py} into a command prompt. Let's see what user input we need:
+\begin{itemize}
+	\item \texttt{STEPS} is again a list of all values that our torsional angle is restricted to in the MD simulations. 
+	\item \texttt{FORCE\_CONSTANT} is the force constant of the biasing potential. 
+	\item For \texttt{PATH} we give the path to the WHAM program including the command \texttt{wham} itself. 
+	\item These three options we need to write the WHAM inputfile \texttt{in.txt}. The following options are needed for running WHAM in line \ref{runWHAM}:
+	\item \texttt{BINS} is the number of points where the PMF is calculated. This is not necessarily the same number as the number of the simulations we ran but it's a good point to start.
+	\item \texttt{MIN} and \texttt{MAX} are the minimum and maximum boundary of the histogram. As we want our 73 bins to have their center at the same value for the torsion restraints, -182.5° and 182.5° are the values we have to type here.
+	\item \texttt{TEMP} is the temperature where WHAM should be performed. Again it doesn't have to be the same as where the MD simulations were performed but again, why not?
+	\item \texttt{TOL} is a tolerance value for the WHAM iterations. As WHAM is quite fast it is also possible to try different values here and compare the results.
+\end{itemize}
+
+After we have run the script we can go into the folder \texttt{analysis} which was created by the script. Besides the single \texttt{umbrella\_*.txt} files, that were copied from the simulation folders, an input file \texttt{in.txt} was created by the script and an output file \texttt{out.txt} was created by WHAM. 
+
+We first have a look into the inputfile: It contains for every single window the name of the \texttt{umbrella\_*.txt} file, the value to which the torsinal angle was restrained and the force constant of the biasing potential.
+
+In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (gauche conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is around $6.1 \frac{kcal}{mol}$. Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
+
+\begin{figure} [htb]
+	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrella_FreeEnergy.png}}
+	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/umbrella_Probability.png}}
+	\caption{Results of the WHAM calculation}
+	\label{fig:wham_result}
+\end{figure} 
+
+
 
 \FloatBarrier
 \newpage
