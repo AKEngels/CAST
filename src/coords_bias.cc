@@ -178,7 +178,6 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     // Apply half harmonic bias potential according to torsion value
     if (dih.angle > 0) {
       if (torsion > 0) {
-        uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff < -180) {
           diff = diff + 360;
@@ -189,11 +188,6 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
         dE = dih.force * diff * SCON_180PI;
       }
       else {
-        if (((360 + torsion) > 180) && dih.angle > 90)
-        {
-          uout.push_back(torsion + 360);
-        }
-        else uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff < -180) {
           diff = diff + 360;
@@ -206,7 +200,6 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     }// end of angle > 0
     else if (dih.angle < 0) {
       if (torsion < 0) {
-        uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff < -180) {
           diff = diff + 360;
@@ -217,11 +210,6 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
         dE = dih.force * diff * SCON_180PI;
       }
       else {
-        if (((-360 + torsion) < -180) && dih.angle < -90)
-        {
-          uout.push_back(-360 + torsion);
-        }
-        else  uout.push_back(torsion);
         diff = torsion - dih.angle;
         if (diff > 180) {
           diff = diff - 360;
@@ -234,7 +222,6 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     }// end of angle < 0
     else if (dih.angle == 0) {
       diff = torsion;
-      uout.push_back(torsion);
       dE = dih.force * diff * SCON_180PI;
     }
     // Derivatives
@@ -242,6 +229,14 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     t *= dE / (tl2*r12);
     u = cross(u, b12);
     u *= -dE / (ul2*r12);
+    // fill udatacontainer
+    double diff_tors = std::abs(torsion - dih.angle);
+    double diff_tors_m = std::abs(torsion - 360 - dih.angle);
+    double diff_tors_p = std::abs(torsion + 360 - dih.angle);
+    if (diff_tors_m < diff_tors) uout.push_back(torsion - 360);
+    else if (diff_tors_p < diff_tors) uout.push_back(torsion + 360);
+    else uout.push_back(torsion);
+
     if (Config::get().general.verbosity == 4)
     {
       std::cout << "U W: " << torsion << ", AW: " << diff << ", SOLL: " << dih.angle;
