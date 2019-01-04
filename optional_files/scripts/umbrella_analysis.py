@@ -9,12 +9,12 @@ FORCE_CONSTANT = 0.05                 # force constant of biasing potential
 PATH = "/apps/wham/wham/wham"         # path to WHAM program
 
 # ... for WHAM
-REACTION_COORD = "torsion"   # what kind of reaction coordinate? 'bond' or 'torsion'
-MIN = -182.5                 # minimum boundary of histogram
-MAX = 182.5                  # maximum boundary of histogram
-BINS = 73                    # number of points in final PMF (= number of bins)
-TEMP = 300                   # temperature for WHAM 
-TOL = 0.00001                # tolerance for WHAM interations
+PERIOD = "P"        # periodicity of the reaction coordinate, description see WHAM manual
+MIN = -180          # minimum boundary of histogram
+MAX = 180           # maximum boundary of histogram
+BINS = 73           # number of points in final PMF (= number of bins)
+TEMP = 300          # temperature for WHAM 
+TOL = 0.00001       # tolerance for WHAM interations
 
 
 # creates a folder 'analysis' and copies all 'umbrella.txt' files there
@@ -38,9 +38,9 @@ def copy_and_and_create_inputfile():
 
 if copy_and_and_create_inputfile():
     os.chdir("analysis")
-    if REACTION_COORD == "bond":
-        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP))
-    elif REACTION_COORD == "torsion":
-        os.popen("{} P {} {} {} {:.9f} {} 0 in.txt out.txt".format(PATH,MIN,MAX,BINS,TOL,TEMP))
+    if PERIOD == None:
+        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(
+            PATH,MIN,MAX,BINS,TOL,TEMP))
     else:
-        print "ERROR: unvalid kind of reaction coordinate!"
+        os.popen("{} {} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(
+            PATH,PERIOD,MIN,MAX,BINS,TOL,TEMP))
