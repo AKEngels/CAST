@@ -237,7 +237,7 @@ void coords::bias::Potentials::umbrelladih(Representation_3D const &positions,
     else if (diff_tors_p < diff_tors) uout.push_back(torsion + 360);
     else uout.push_back(torsion);
 
-    if (Config::get().general.verbosity == 4)
+    if (Config::get().general.verbosity >= 4)
     {
       std::cout << "U W: " << torsion << ", AW: " << diff << ", SOLL: " << dih.angle;
       std::cout << "; FORCE: " << dih.force << ", DE: " << dE << ", PW: " << uout.back() << std::endl;
