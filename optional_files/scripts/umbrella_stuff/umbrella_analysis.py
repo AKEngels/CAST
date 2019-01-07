@@ -9,7 +9,7 @@ FORCE_CONSTANT = 0.05                 # force constant of biasing potential
 PATH = "/apps/wham/wham/wham"         # path to WHAM program
 
 # ... for WHAM
-PERIOD = "P"        # periodicity of the reaction coordinate, description see WHAM manual
+PERIOD = None       # periodicity of the reaction coordinate, description see WHAM manual
 MIN = -180          # minimum boundary of histogram
 MAX = 180           # maximum boundary of histogram
 BINS = 73           # number of points in final PMF (= number of bins)

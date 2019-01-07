@@ -1385,40 +1385,14 @@ Now we plot the output file again with gnuplot. The results are shown in figure 
 \end{figure} 
 
 As you see the energy here goes up a little at the edges so the minimum energy point is not at a torsional angle of 180° as it should. So in this case the periodic conditions don't seem to be perfect.
-\\
 
-In our previous calculations we have seen that when we switch on a periodicity the edges of the graph (points -180° and 180) rise in comparison to the calculation without periodicity. So what will happen to our PMF if we choose to let the torsional angle vary not between -180° and 180° but between 0° and 360°?
-
-To start this calculation we have to change line \ref{change_range} \texttt{umbrella.py} script to \texttt{STEPS = range(0,365,5)}. After the calculations are finished we start the WHAM analysis with our \texttt{umbrella\_analysis.py} script. There we also have to change the value for \texttt{STEPS} to \texttt{range(0, 365, 5)}. First we perform a calculation without taking periodicity into account so we set \texttt{PERIOD} to \texttt{None}. The results are shown in figure \ref{fig:wham360}. Everything looks fine.
+What is the reason for that? When switching on periodicity the only thing that changes in the WHAM code is that the minimal image convention is applied. This means that for example the distance from a bin centered at 175° to a bin that is centered at -175° is 10°, not 350° as it would be without periodicity (see WHAM manual). However we have one bin centered at 0° and one bin centered at 360° which are on the same place as far as the minimum image convention is concerned. It seems that WHAM can't correctly handle this. If I remove the last simulation and the last bin from the analysis (so I have to change \texttt{STEPS} to \texttt{range(-180, 180, 5)}, \texttt{MAX} to \texttt{177.5} and \texttt{BINS} to 72) the value for -180° is still higher than for -175° but only slightly (by $0.016 \frac{kcal}{mol}$). You can see the improvement of the curves if you compare figure \ref{fig:wham_180} to \mbox{figure \ref{fig:wham_result_period}}.
 
 \begin{figure} [htb]
-	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrellaFree360.png}}
-	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/umbrellaProb360.png}}
-	\caption{Results of the WHAM calculation for torsional angles between 0° and 360° without periodicity}
-	\label{fig:wham360}
-\end{figure} 
-
-Then we do the calculation again but with a periodicity of 360°. So we change \texttt{PERIOD} to \texttt{"P"} in the script \texttt{umbrella\_analysis.py}. The results are shown in figure \ref{fig:wham360_period}.
-
-\begin{figure} [htb]
-	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrellaFree360_period.png}}
-	\subfigure[Probability]{\includegraphics[width=0.49\textwidth]{Img/umbrellaProb360_period.png}}
-	\caption{Results of the WHAM calculation for torsional angles between 0° and 360° with periodicity}
-	\label{fig:wham360_period}
-\end{figure}
-
-Here also everything seems to look fine. The highest energy values are at 0° and 360° (both methyle groups point in the same direction) and the minimum is at 180° (anti conformation). But in comparison to the calculation without periodicity the rotation barrier rises from $6.01 \frac{kcal}{mol}$ to $6.3 \frac{kcal}{mol}$. If we compare that to the literature value of $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015} and the above calculations for the torsional angles between -180° and 180° we can assume that calculations without taking into account periodicity seem to be more reliable.
-\\
-
-What is the reason for that? When switching on periodicity the only thing that changes in the WHAM code is that the minimal image convention is applied. This means that for example the distance from a bin centered at 175° to a bin that is centered at -175° is 10°, not 350° as it would be without periodicity (see WHAM manual). However we have one bin centered at 0° and one bin centered at 360° which are on the same place at far as the minimum image convention is regarded. It seems that WHAM can't correctly handle this. If I remove the last simulation and the last bin from the analysis (so I have to change \texttt{STEPS} to \texttt{range(0, 360, 5)}, \texttt{MAX} to \texttt{357.5} and \texttt{BINS} to 72) I get a rotational barrier of $6.1 \frac{kcal}{mol}$ which is better as before but still worse than the simulation without periodicity. When doing the same (removing one bin) with the calculation with torsional angles from -180° to 180° the value for -180° is still higher than the one for -175° but only slightly (see figure \ref{fig:wham_180_360}).
-
-\begin{figure} [htb]
-	\subfigure[Free Energy for -180° to 180°]{\includegraphics[width=0.49\textwidth]{Img/free_360.png}}
-	\subfigure[Probability for -180° to 180°]{\includegraphics[width=0.49\textwidth]{Img/prob_360.png}}
-	\subfigure[Free Energy for 0° to 360°]{\includegraphics[width=0.49\textwidth]{Img/free_180.png}}
-	\subfigure[Probability for 0° to 360°]{\includegraphics[width=0.49\textwidth]{Img/prob_180.png}}
+	\subfigure[Free Energy for 0° to 180°]{\includegraphics[width=0.49\textwidth]{Img/free_180.png}}
+	\subfigure[Probability for 0° to 180°]{\includegraphics[width=0.49\textwidth]{Img/prob_180.png}}
 	\caption{Results of the WHAM calculation with periodicity after removing the last bin}
-	\label{fig:wham_180_360}
+	\label{fig:wham_180}
 \end{figure}
 
 
