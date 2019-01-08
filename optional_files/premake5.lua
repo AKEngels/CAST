@@ -1,5 +1,3 @@
-
-
 -- If using Windows and using Python these values depend on the directory your Python27 is installed
 local python27_dir = "C:/Python27"
 
@@ -19,33 +17,32 @@ workspace "CAST"
 			architecture "x64"
 		filter{}
 
-  project "GoogleTest"
-    kind"StaticLib"
-    language"C++"
-    cppdialect"C++14"
-    targetdir"libs/%{cfg.buildcfg}"
-    location"project/libs/GoogleTest"
+    project "GoogleTest"
+        kind"StaticLib"
+        language"C++"
+        cppdialect"C++14"
+        targetdir"libs/%{cfg.buildcfg}"
+        location"project/libs/GoogleTest"
 
-    files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
-    sysincludedirs { "../submodules/googletest/googletest/include" }
-    includedirs{ "../submodules/googletest/googletest" }
+        files{ "../submodules/googletest/googletest/src/gtest-all.cc","../submodules/googletest/googletest/src/gtest_main.cc" }
+        sysincludedirs { "../submodules/googletest/googletest/include" }
+        includedirs{ "../submodules/googletest/googletest" }
 
-    filter "action:vs*"
+        filter "action:vs*"
             system("windows")
 	        systemversion("10.0.16299.0")
-
-    symbols"On"
+        symbols"On"
 
 	project "CAST"
 		kind "ConsoleApp"
 		language "C++"
 		targetdir "build"
-		files { "../src/*.h", "../src/*.cc" }
+		files { "../src/*.h", "../src/*.cc","../src/gtest/*.cc" }
 		vpaths {
 			["Headers"] = "../src/**.h",
-			["Sources"] = "../src/*.cc"
+			["Sources"] = "../src/*.cc",
+			["Tests"] = "../src/gtest/*.cc"
 		}
-		--flags "C++14"
 		cppdialect "C++14"
 		warnings "Extra"
 		includedirs "../submodules/boost"
@@ -53,7 +50,7 @@ workspace "CAST"
 
 		--enable if Armadillo Transformations are implemented
 		--filter "not Armadillo_*"
-				includedirs "../submodules/eigen"
+		includedirs "../submodules/eigen"
 		filter { "not Armadillo_*", "not *Debug" }
 			defines "EIGEN_NO_DEBUG"
 
@@ -73,13 +70,10 @@ workspace "CAST"
 			defines "USE_PYTHON"
 
 		filter "*Testing"
-				files "../src/gtest/*.cc"
-        vpaths {["Tests"] = "../src/gtest/*.cc"}
-
-				symbols "On"
-				defines "GOOGLE_MOCK"
-				includedirs {"../submodules/googletest/googletest/include"}
-                links"GoogleTest"
+			symbols "On"
+			defines "GOOGLE_MOCK"
+			includedirs {"../submodules/googletest/googletest/include"}
+            links"GoogleTest"
 
 		filter "action:gmake"
 			buildoptions { "-Wextra", "-Wall", "-pedantic", "-static", "-fopenmp" }
@@ -115,12 +109,12 @@ workspace "CAST"
 
 		filter {"Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_testing"
-                        buildoptions { "-fprofile-arcs", "-ftest-coverage"}
-                        linkoptions { "-fprofile-arcs" }
+            buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+            linkoptions { "-fprofile-arcs" }
 		filter {"Testing", "platforms:x64", "action:gmake" }
 			targetname "CAST_linux_x64_testing"
-                        buildoptions { "-fprofile-arcs", "-ftest-coverage"}
-                        linkoptions { "-fprofile-arcs" }
+            buildoptions { "-fprofile-arcs", "-ftest-coverage"}
+            linkoptions { "-fprofile-arcs" }
 		filter {"Armadillo_Testing", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_armadillo_testing"
 		filter {"Armadillo_Testing", "platforms:x64", "action:gmake" }
@@ -130,7 +124,7 @@ workspace "CAST"
 			links { "python2.7", "util", "lapack" }
 			linkoptions {  "-export-dynamic", "-pthread", "-ldl", --[["-Wl"--]] }
 			libdirs { "linux_precompiled_libs" }
-                        includedirs "/usr/include/python2.7"
+            includedirs "/usr/include/python2.7"
 
 		filter {"Python_Release", "platforms:x86", "action:gmake" }
 			targetname "CAST_linux_x86_python_release"
@@ -143,15 +137,15 @@ workspace "CAST"
 			targetname "CAST_linux_x64_python_debug"
 
 		filter "action:vs*"
-               system("windows")
-	           systemversion("10.0.16299.0")
+            system("windows")
+	        systemversion("10.0.16299.0")
 
 			buildoptions "/openmp"
 			flags "MultiProcessorCompile"
 
 		--enable if Armadillo Transformations are implemented
 		--filter { "not Armadillo_*", "action:vs*" }
-				buildoptions "/bigobj"
+		    buildoptions "/bigobj"
 
 		filter { "Release", "platforms:x86", "action:vs*" }
 			targetname "CAST_win_x86_release"
