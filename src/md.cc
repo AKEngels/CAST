@@ -878,7 +878,6 @@ std::string md::simulation::get_pythonpath()
   path += "sys.path.append('" + get_python_modulepath("fractions") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("csv") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("atexit") + "')\n";
-  path += "sys.path.append('" + get_python_modulepath("unicodedata") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("calendar") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("Tkinter") + "')\n";
   path += "sys.path.append('" + get_python_modulepath("FileDialog") + "')\n";
