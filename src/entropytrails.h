@@ -66,6 +66,10 @@ float_type ardakaniCorrectionGeneralizedEucledeanNorm(std::vector<T> const& glob
     double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
     double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
     radiiOfHyperEllipsoid.at(i) = min - max;
+    if (radiiOfHyperEllipsoid.at(i) < 0.f)
+    {
+      radiiOfHyperEllipsoid.at(i) *= -1.f;
+    }
   }
 
   // Getting determinant of Mahalanobis distance for calculation of
@@ -108,6 +112,11 @@ float_type ardakaniCorrectionGeneralizedMaximumNorm(std::vector<T> const& globMi
     double min = std::min(currentPoint.at(i) + NNdistance * 0.5, globMax.at(i));
     double max = std::max(currentPoint.at(i) - NNdistance * 0.5, globMin.at(i));
     radiiOfBox.at(i) = min - max;
+    // due to numerics, this can become zero or below. -NaN results and propagates
+    if (radiiOfBox.at(i) < 0.f)
+    {
+      radiiOfBox.at(i) *= -1.f;
+    }
   }
 
   T volumeOfBox = 1.;
