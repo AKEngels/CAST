@@ -1204,15 +1204,15 @@ public:
     std::vector<float_type> ardakaniCorrection_maximumValueInDataset(dimensionality, -std::numeric_limits<float_type>::max());
     if (ardakaniCorrection)
     {
-      for (size_t j = 0; j < drawMatrix.cols(); j++)
+      for (size_t currentDraw = 0u; currentDraw < drawMatrix.rows(); currentDraw++)
       {
         for (unsigned int i = 0u; i < dimensionality; i++)
         {
-          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(i, j))
-            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(i, j);
+          if (ardakaniCorrection_minimumValueInDataset.at(i) > drawMatrix(currentDraw,i))
+            ardakaniCorrection_minimumValueInDataset.at(i) = drawMatrix(currentDraw, i);
 
-          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(i, j))
-            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(i, j);
+          if (ardakaniCorrection_maximumValueInDataset.at(i) < drawMatrix(currentDraw, i))
+            ardakaniCorrection_maximumValueInDataset.at(i) = drawMatrix(currentDraw, i);
         }
       }
     }
