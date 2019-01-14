@@ -1167,7 +1167,7 @@ public:
   // Full dimensional nearest neighbor entropy computation (without MI-Expansion)
   double calculateNN(const kNN_NORM norm, bool const& ardakaniCorrection , const kNN_FUNCTION func = kNN_FUNCTION::HNIZDO)
   {
-    std::cout << "Commencing NNEntropy calculation." << std::endl;
+    std::cout << "--------------------------\nCommencing Full-Dimensional NNEntropy calculation." << std::endl;
 
     const unsigned int dimensionality = this->subDims != std::vector<size_t>() ? this->subDims.size() : this->dimension;
 
@@ -1431,8 +1431,9 @@ public:
         std::cout << " using Goria's function";
       else if (func == kNN_FUNCTION::HNIZDO)
         std::cout << " using Hnizdo's function";
-      std::cout << ": " << returnValue << "." << std::endl;
-      std::cout << "NN Calculation took " << timer << " ." << std::endl;
+      std::cout << ": " << std::setprecision(6) << returnValue << ".\n";
+      std::cout << "NN Calculation took " << timer << " .\n";
+      std::cout << "--------------------------\n" << std::endl;
     }
     //Neccessarry
     //transpose(drawMatrix);
@@ -1766,7 +1767,7 @@ public:
     if (Config::get().general.verbosity >= 4)
     {
       std::cout << "--- MI-EXPANSION INFO ---" << "\n";
-      std::cout << "--- Order: << " << order_N << "---" << "\n";
+      std::cout << "--- Order: " << order_N << "---" << "\n";
     }
     for (size_t i = 0u; i < buffer.size(); i++)
     {
@@ -1777,13 +1778,13 @@ public:
         {
           std::cout << "Mode " << buffer.at(i).rowIdent.at(j) << "\n";
         }
-        std::cout << "Value: " << std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue << std::endl;
+        std::cout << "Value: " << std::setprecision(6) << std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue << std::endl;
       }
       miEntropy += std::pow(-1., buffer.at(i).dim + 1.) * buffer.at(i).entropyValue;
     }
     if (Config::get().general.verbosity >= 4)
     {
-      std::cout << "--- MI-EXPANSION INFO DONE ---" << "\n";
+      std::cout << "--- MI-EXPANSION INFO DONE ---" << "\n---------------------------------\n";
     }
 
     storeMI mi;
@@ -1794,13 +1795,15 @@ public:
     if (Config::get().general.verbosity >= 3)
     {
       std::cout << "NN Calculation took " << timer << " ." << std::endl;
-      std::cout << "NN Value: " << miEntropy << " ." << std::endl;
+      std::cout << "NN Value: " << std::setprecision(6) << miEntropy << ".\n\n" << std::endl;
 
     }
     
 
     writeToCSV("entropy.csv", "MIE_order_" + std::to_string(order_N) + (ardakaniCorrection ? "_ardakanicorrected" : ""), miEntropy, norm, func, this->numberOfDraws);
 
+
+    //transpose(drawMatrix);
     return miEntropy;
 
   }
