@@ -949,7 +949,7 @@ public:
 
       const double gaussentropy = 0.5 * log(cov_matr.determ()) + double(dimensionality) / 2. * std::log(2. * ::constants::pi * ::constants::e);
       empiricalNormalDistributionEntropy =  gaussentropy;
-      std::cout << "Empirical gaussian entropy (statistical): " << gaussentropy << std::endl;
+      std::cout << "Entropy of multivariate Gaussian with sigma of the draws (statistical entropy, no thermodyn. units): " << gaussentropy << std::endl;
       writeToCSV("entropy.csv", "empricial_gaussian_statistical", gaussentropy, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, this->numberOfDraws);
       //Covariance Matrix
 
@@ -966,6 +966,7 @@ public:
       {
         std::cout << "Gaussian Entropy in qQH-approximation is estimated from eigenvalues of draw matrix.\n";
         std::cout << "NOTICE: The draw-matrix will be transformed to obtain thermodynamically valid units." << std::endl;
+        std::cout << "Using Temperature: " << Config::get().entropy.entropy_temp << " Kelvin." << std::endl;
       }
       for (std::size_t i = 0; i < eigenvalues.rows(); i++)
       {
