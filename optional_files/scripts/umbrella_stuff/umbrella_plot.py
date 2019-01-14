@@ -2,11 +2,9 @@
 
 import glob
 import math
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-# USER INPUT (only needed for distribution)
-MIN = -182.5
-MAX = 182.5
 
 # read outputfile
 with open("out.txt") as outfile:
@@ -50,10 +48,8 @@ for filename in glob.glob("umbrella_*.txt"):
     for i,line in enumerate(lines):
         xi.append(float(line.split()[1]))
     xi_lists.append(xi)
-    print min(xi),max(xi)
 
 plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
 number = int(math.sqrt(len(xi_lists[0])))
 n, bins, patches = plt.hist(xi_lists, number, histtype='step')
-#plt.xlim(MIN,MAX)
 plt.savefig("distribution.png", dpi=100)  
