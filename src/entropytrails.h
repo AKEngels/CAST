@@ -527,11 +527,11 @@ public:
 
     const size_t currentDimensionality = subdims.size() == 0 ? this->dimension : subdims.size();
 
-#ifdef _OPENMP
-#pragma omp parallel firstprivate(currentDimensionality, cPDFrange,cPDF,subdims ) \
-    shared(draws)
-    {
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel firstprivate(currentDimensionality, cPDFrange,cPDF,subdims ) \
+//    shared(draws)
+//    {
+//#endif
 
       std::random_device rd;
       std::mt19937 gen;
@@ -540,14 +540,14 @@ public:
       const long double absrange = cPDFrange->second - cPDFrange->first;
       const long double unifWithRangeProbability = 1. / absrange;
       const long double k = maximumOfPDF * 1.05 / unifWithRangeProbability;
-#ifdef _OPENMP
-      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfSamples);
-
-#pragma omp for
-      for (std::ptrdiff_t n = 0; n < n_omp; ++n)
-#else
+//#ifdef _OPENMP
+//      auto const n_omp = static_cast<std::ptrdiff_t>(numberOfSamples);
+//
+//#pragma omp for
+//      for (std::ptrdiff_t n = 0; n < n_omp; ++n)
+//#else
       for (size_t n = 0u; n < numberOfSamples; n++)
-#endif
+//#endif
       {
         bool inRange = false;
 
@@ -574,20 +574,20 @@ public:
               draws.push_back(drawUnifWithRange);
 
               if (draws.size() % 25 == 0)
-#ifdef _OPENMP
-#pragma omp critical
-              {
-#endif
+//#ifdef _OPENMP
+//#pragma omp critical
+//              {
+//#endif
                 std::cout << "Number of draws: " << draws.size() << std::endl;
-#ifdef _OPENMP
-              }
-#endif
+//#ifdef _OPENMP
+//              }
+//#endif
           }
         }
       }
-#ifdef _OPENMP
-    }
-#endif
+//#ifdef _OPENMP
+//    }
+//#endif
 
     return draws;
   };
