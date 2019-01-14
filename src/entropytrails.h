@@ -1753,7 +1753,7 @@ public:
     }
     //transpose(drawMatrix);
     helperFKT(norm, func, ardakaniCorrection, order_N, buffer, rowPts);
-    transpose(drawMatrix);
+    //transpose(drawMatrix); ??
     //Insert unique
     for (auto&& element : buffer)
     {
@@ -1867,7 +1867,7 @@ private:
     {
       //transpose(drawMatrix);
 
-      Matrix_Class copytemp = drawMatrix;
+      Matrix_Class copytemp = transposed(drawMatrix); // rows are dimensions
       Matrix_Class eucl_kNN_distances(1u, numberOfDraws, 0.);
       Matrix_Class maxnorm_kNN_distances(1u, numberOfDraws, 0.);
       Matrix_Class eucl_kNN_distances_ardakani_corrected(1u, numberOfDraws, 0.);
