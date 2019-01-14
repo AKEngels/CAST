@@ -958,6 +958,7 @@ int main(int argc, char **argv)
     {
       std::cout << "Entropy Evaluations from analytic distributions and Gaussian Mixtures.\n\n";
       std::cout << "Number of draws for NN entropies: " << Config::get().entropytrails.numberOfDraws << ".\n";
+      std::cout << "In NN entropies, the k'th neighbor with k=" << Config::get().entropytrails.k << " is considered.\n";
 
       ProbabilityDensity probdens(Config::get().entropytrails.ident);
 
@@ -1005,10 +1006,14 @@ int main(int argc, char **argv)
         calculatedDistribution.histogramProbabilityDensity(20, "dim23_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(1), Config::get().entropytrails.subDimsForGMM.at(2)});
         calculatedDistribution.histogramProbabilityDensity(20, "dim13_ident_" + std::to_string(Config::get().entropytrails.ident), std::vector<size_t>{Config::get().entropytrails.subDimsForGMM.at(0), Config::get().entropytrails.subDimsForGMM.at(2)});
       }
-      calculatedDistribution.empiricalGaussianEntropy();
-      std::cout << "Entropy of multivariate Gaussian with sigma of the draws: " << calculatedDistribution.empiricalNormalDistributionEntropy << std::endl;
 
-      calculatedDistribution.setAnalyticalEntropy(probdens);
+
+      std::cout << "\n";
+      calculatedDistribution.empiricalGaussianEntropy();
+      //scalePCACoordinatesForQuasiHarmonicTreatment(calculatedDistribution.drawMatrix, Config::get().entropy.entropy_temp);
+      //calculatedDistribution.empiricalGaussianEntropy();
+
+      //calculatedDistribution.setAnalyticalEntropy(probdens);
 
       if (Config::get().entropytrails.cubatureIntegration)
         calculatedDistribution.cubatureIntegrationEntropy(probdens);
@@ -1018,13 +1023,16 @@ int main(int argc, char **argv)
 
       if (Config::get().entropytrails.NNcalculation)
       {
-        std::cout << "NN (full dim) Entropy Starting - Maximum Norm with Ardakani" << std::endl;
+        std::cout << "\n" << std::endl;
+        std::cout << "NN (full dim) Entropy Starting - Maximum Norm with Ardakani:" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, true);
-        std::cout << "NN (full dim) Entropy Starting - Maximum Norm w/o Ardakani" << std::endl;
+        std::cout << "\n" << std::endl;        std::cout << "NN (full dim) Entropy Starting - Maximum Norm w/o Ardakani:" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::MAXIMUM, false);
-        std::cout << "NN (full dim) Entropy Starting - Eucl Norm with Ardakani" << std::endl;
+        std::cout << "\n" << std::endl;
+        std::cout << "NN (full dim) Entropy Starting - Eucl Norm with Ardakani:" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, true);
-        std::cout << "NN (full dim) Entropy Starting - Eucl Norm w/o Ardakani" << std::endl;
+        std::cout << "\n" << std::endl;
+        std::cout << "NN (full dim) Entropy Starting - Eucl Norm w/o Ardakani:" << std::endl;
         calculatedDistribution.calculateNN(kNN_NORM::EUCLEDEAN, false);
       }
 
@@ -1032,18 +1040,30 @@ int main(int argc, char **argv)
       {
         for (auto&& item : Config::get().entropytrails.MI_Expansions)
         {
-          std::cout << "Commencing MI Expansion of Entropy up to order " << item << "." << std::endl;
+          std::cout << "\n##\nCommencing MI Expansion of Entropy up to order " << item << ".\n##\n" << std::endl;
+          std::cout << "Maximum Norm, Goria's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, false);
+          std::cout << "Maximum Norm, Hnizdo's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, false);
+          std::cout << "Maximum Norm, Lombardi's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, false);
+          std::cout << "Eucledean Norm, Goria's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, false);
+          std::cout << "Eucledean Norm, Hnizdo's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, false);
+          std::cout << "Eucledean Norm, Lombardi's Function w/o Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, false);
+          std::cout << "Maximum Norm, Goria's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::GORIA, true);
+          std::cout << "Maximum Norm, Hnizdo's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::HNIZDO, true);
+          std::cout << "Maximum Norm, Lombardi's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::MAXIMUM, kNN_FUNCTION::LOMBARDI, true);
+          std::cout << "Eucledean Norm, Goria's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::GORIA, true);
+          std::cout << "Eucledean Norm, Hnizdo's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::HNIZDO, true);
+          std::cout << "Eucledean Norm, Lombardi's Function with Ardakani Correction:" << std::endl;
           calculatedDistribution.calculateNN_MIExpansion(item, kNN_NORM::EUCLEDEAN, kNN_FUNCTION::LOMBARDI, true);
         }
         
