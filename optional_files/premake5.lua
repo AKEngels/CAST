@@ -132,7 +132,7 @@ project "CAST"
     filter { "configurations:Armadillo_Debug", "action:gmake" }
       includedirs { "../optional_files/includes/armadillo/", "../submodules/cubature/"}
       buildoptions { "-I ../includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
+      linkoptions { "-lblas  -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER -llapack  -lgfortran" }
       defines { "CAST_DEBUG_DROP_EXCEPTIONS" }
       optimize "Debug"
       flags { "Symbols" }
@@ -145,7 +145,7 @@ project "CAST"
     filter { "configurations:Armadillo_Release", "action:gmake" }
       includedirs { "./includes/armadillo/", "../submodules/cubature/"}
       buildoptions { "-I ../optional_files/includes -DARMA_DONT_USE_WRAPPER -lgfortran" }
-      linkoptions { "../linux_precompiled_libs/libopenblas.a -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER ../linux_precompiled_libs/liblapack.a -lgfortran" }
+      linkoptions { "-lblas -I ../optional_files/includes/ -DARMA_DONT_USE_WRAPPER -llapack -lgfortran" }
       optimize "Full"
       flags { "LinkTimeOptimization" }
       defines { "CAST_USE_ARMADILLO"}
