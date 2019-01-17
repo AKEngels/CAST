@@ -204,10 +204,27 @@ void md::simulation::umbrella_run(bool const restart) {
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
-  //write output
-  for (std::size_t i = 0; i < udatacontainer.size(); i++) {
+
+  // write output: preparations
+  int number_of_reactions_coords;  // number of reactions coordinates that are looked at
+                                   // 1 = 1D WHAM, 2 = 2D WHAM (normally not more)
+  if (Config::get().coords.bias.utors.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.utors.size();
+  }
+  else if (Config::set().coords.bias.udist.size() != 0)
+  {
+    number_of_reactions_coords = Config::get().coords.bias.udist.size();
+  }
+  // write file "umbrella.txt"
+  for (std::size_t i = 0; i < udatacontainer.size()/number_of_reactions_coords; i++) {
     if (i% Config::get().md.usoffset == 0) {
-      ofs << i << "   " << udatacontainer[i] << std::endl;
+      ofs << i << "   ";
+      for (auto j{ 0u }; j < number_of_reactions_coords; ++j)
+      {
+        ofs << udatacontainer[i*number_of_reactions_coords+j] << "  ";
+      }
+      ofs << std::endl;
     }
   }
   ofs.close();
