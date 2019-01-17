@@ -179,7 +179,7 @@ MOPACcharge            0
 
 ############################ GAUSSIAN OPTIONS ########################
 
-GAUSSIANlink NProcShared=4 Mem=4GB
+GAUSSIANlink NProcShared=4 Mem=3GB
 
 #Methods for Gaussian Call
 
