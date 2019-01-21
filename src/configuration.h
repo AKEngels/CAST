@@ -135,13 +135,13 @@ namespace config
   };
 
   /**number of Interface Types*/
-  static std::size_t const NUM_INTERFACES = 14;
+  static std::size_t const NUM_INTERFACES = 15;
 
   /**Interface Types*/
   static std::string const
     interface_strings[NUM_INTERFACES] =
   {
-    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER"
+    "AMBER", "AMOEBA", "CHARMM22", "OPLSAA", "TERACHEM", "MOPAC" , "DFTBABY", "GAUSSIAN", "QMMM", "DFTB", "CHEMSHELL", "PSI4", "ONIOM", "THREE_LAYER", "ORCA"
   };
 
   /*! contains enum with all energy interface_types currently supported in CAST
@@ -155,7 +155,7 @@ namespace config
     enum T
     {
       ILLEGAL = -1,
-      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER
+      AMBER, AMOEBA, CHARMM22, OPLSAA, TERACHEM, MOPAC, DFTBABY, GAUSSIAN, QMMM, DFTB, CHEMSHELL, PSI4, ONIOM, THREE_LAYER, ORCA
     };
   };
 
@@ -677,6 +677,23 @@ namespace config
       dftb_conf(void): verbosity(0), scctol(0.00001), max_steps(1000), charge(0),
         dftb3(false), opt(2), max_steps_opt(5000), fermi_temp(0.0) {}
     } dftb;
+
+		struct orca_conf
+		{
+			/**path to orca*/
+			std::string path;
+			/**method*/
+			std::string method;
+			/**basisset*/
+			std::string basisset;
+			/**total charge of the system*/
+			int charge;
+			/**multiplicity*/
+			int multiplicity;
+			
+			/**constructor*/
+			orca_conf(void):charge(0), multiplicity(1) {}
+		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
     struct gaussian_conf

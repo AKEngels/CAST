@@ -15,6 +15,7 @@
 #include "energy_int_gaussian.h"
 #include "energy_int_chemshell.h"
 #include "energy_int_psi4.h"
+#include "energy_int_orca.h"
 #include "coords.h"
 #include "scon_utility.h"
 
@@ -133,6 +134,13 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 	  }
 	  return new energy::interfaces::psi4::sysCallInterface(coordinates);
   }
+	case config::interface_types::T::ORCA:
+	{
+		if (Config::get().general.verbosity >= 3) {
+			std::cout << "ORCA chosen for energy calculations.\n";
+		}
+		return new energy::interfaces::orca::sysCallInterface(coordinates);
+	}
 #if defined(USE_MPI)
   case config::interface_types::T::TERACHEM:
     {
