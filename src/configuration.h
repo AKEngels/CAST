@@ -690,9 +690,12 @@ namespace config
 			int charge;
 			/**multiplicity*/
 			int multiplicity;
+
+			/**optimizer (0 = CAST, 1 = ORCA)*/
+			int opt;
 			
 			/**constructor*/
-			orca_conf(void):charge(0), multiplicity(1) {}
+			orca_conf(void):charge(0), multiplicity(1), opt(1) {}
 		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/

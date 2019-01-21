@@ -792,6 +792,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(4, 12) == "multiplicity") {
 			Config::set().energy.orca.multiplicity = std::stoi(value_string);
 		}
+		else if (option.substr(4, 3) == "opt") {
+			Config::set().energy.orca.opt = std::stoi(value_string);
+		}
 	}
 
   //Gaussian options

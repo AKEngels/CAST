@@ -3,9 +3,9 @@
 energy::interfaces::orca::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
   energy::interface_base(cp), energy(0.0), nuc_rep(0.0), elec_en(0.0), one_elec(0.0), two_elec(0.0)
 {
-  if (Config::get().energy.dftb.opt > 0) optimizer = true;
+  if (Config::get().energy.orca.opt > 0) optimizer = true;
   else optimizer = false;
-	charge = Config::get().energy.dftb.charge;
+	charge = Config::get().energy.orca.charge;
 }
 
 energy::interfaces::orca::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
@@ -69,6 +69,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset << "\n";  // method and basisset
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
+	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
 
 	inp << "\n";  // empty line
 	inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -277,7 +278,7 @@ double energy::interfaces::orca::sysCallInterface::h(void)
 // Optimization
 double energy::interfaces::orca::sysCallInterface::o(void)
 {
-  //integrity = check_structure();
+	  //integrity = check_structure();
   //if (integrity == true)
   //{
     write_inputfile(3);
