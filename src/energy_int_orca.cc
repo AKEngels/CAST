@@ -94,8 +94,6 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 			linevec = split(line, ' ', true);
 			double energy_in_hartree = std::stod(linevec[4]);
 			energy = energy_in_hartree * energy::au2kcal_mol;
-
-			std::cout << "energy in hartree: " << energy_in_hartree << "\n";
 		}
 	}
   return energy;
