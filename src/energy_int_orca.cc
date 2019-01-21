@@ -172,7 +172,7 @@ void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::str
 		if (line.substr(0, 8) == "$hessian")
 		{
 			std::getline(hess, line);  // get size if hessian (= 3x number of atoms)
-			int size = stoi(line);
+			unsigned size = stoi(line) ;
 			if (size != 3 * coords->size()) throw std::runtime_error("wrong size of hessian: " + size);
 
 			else   // if correct size
@@ -181,7 +181,7 @@ void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::str
 				std::vector<double> hessian_line;
 				hessian_line.resize(size);
 				std::vector<std::vector<double>> hessian;
-				for (int i = 0; i < size; ++i) hessian.push_back(hessian_line);
+				for (auto i = 0u; i < size; ++i) hessian.push_back(hessian_line);
 
 				// start reading
 				std::getline(hess, line);         // headline of first block
@@ -195,7 +195,7 @@ void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::str
 				// really reading numbers
 				for (int block = 0; block < number_of_reading_blocks; ++block)
 				{
-					for (int j = 0; j < size; ++j)  
+					for (auto j = 0u; j < size; ++j)  
 					{
 						std::getline(hess, line);         // "real" line
 						linevec = split(line, ' ', true);
@@ -208,7 +208,7 @@ void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::str
 				}
 
 				// last block
-				for (int j = 0; j < size; ++j)
+				for (auto j = 0u; j < size; ++j)
 				{
 					std::getline(hess, line);         // "real" line
 					linevec = split(line, ' ', true);
