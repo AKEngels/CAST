@@ -67,6 +67,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	inp.open("orca.inp");
 
 	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset << "\n";  // method and basisset
+	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 
 	inp << "\n";  // empty line
 	inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -117,6 +118,33 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 		{
 			linevec = split(line, ' ', true);
 			two_elec = std::stod(linevec[3]) * energy::au2kcal_mol;
+		}
+
+		int N = (*this->coords).size();  // number of atoms
+
+		if (t == 1)   // if gradients requested
+		{
+			if (line.substr(0, 18) == "CARTESIAN GRADIENT")  // get gradients
+			{
+				std::getline(out, line);    // ------------------
+				std::getline(out, line);    // empty line
+
+				double x, y, z;
+				coords::Representation_3D g_tmp;
+
+				for (auto i = 0u; i < N; ++i)     // for every atom
+				{
+					std::getline(out, line);
+					linevec = split(line, ' ', true);
+					x = std::stod(linevec[3]) * energy::Hartree_Bohr2Kcal_MolAng;
+					y = std::stod(linevec[4]) * energy::Hartree_Bohr2Kcal_MolAng;
+					z = std::stod(linevec[5]) * energy::Hartree_Bohr2Kcal_MolAng;
+
+					coords::Cartesian_Point g(x, y, z);
+					g_tmp.push_back(g);
+				}
+				coords->swap_g_xyz(g_tmp);  // set gradients
+			}
 		}
 	}
   return energy;
