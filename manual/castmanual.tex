@@ -166,7 +166,7 @@
 	
 	Some parts of \ac{CAST} also use python modules or interfaces to perform calculations. The version of python you need to install before the compilation of CAST is 2.7. You also have to install the python modules that are needed for the task you desire. Compiling CAST with python enabled can also be done by premake. Choose the configuration Python\_Release or Python\_Debug. If you have a 32bit version of python installed you can only compile \ac{CAST} in 32bit mode, if you have python 64bit you can only compile \ac{CAST} in 64bit mode. 
 	
-	\textbf{For users on ECPC:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
+	\textbf{For users on ECPC or UNICORN:} CAST is installed in the folder /apps/CAST/. Submit scripts to submit a job with CAST (``normal'', with python or with armadillo) are also provided in that folder. If it is important for you to use the newest CAST version run the script update.sh in the folder /apps/CAST/CAST as a sudo user or ask someone with the sudo password to do it for you.
 
 	
 	\newpage
@@ -468,7 +468,7 @@ multipole moments (for example DMA multipoles).\\
 			%Gaussian
 			\subsubsection{Gaussian}
  When it is requested the options specified in the exemplary input shown below are put to use. The commands are the same as in Gaussian09\supercite{M.J.Frisch2009} or Gaussian16 itself.\\
-The \textit{GAUSSIANlink} option is used for the link 0 commands from Gaussian, these commands are used to control computing resources for the calculation. For example, the number of processors used, the amount of memory or if checkpoint files should be created. A difference to the link 0 commands in Gaussian is that there is no need to put every command in a separate line and ``\%'' mustn't to be put in front of every line but within a command no blank may be used.\\
+The \textit{GAUSSIANlink} option is used for the link 0 commands from Gaussian, these commands are used to control computing resources for the calculation. For example, the number of processors used, the amount of memory or if checkpoint files should be created. A difference to the link 0 commands in Gaussian is that there is no need to put every command in a separate line and ``\%'' mustn't to be put in front of every line but within a command no blank may be used. \textbf{Attention!} The memory given here for \textit{mem} should be at least 1\,GB less than the memory you give in your submit script, otherwise you will get the error ``galloc: could not allocate memory''.\\
 In the Gaussian program the options for the calculation like applied method or basis set or further specifying options like the request for an excited state calculation are all written in a single line. For user convenience and as a reminder this was split into two for the implementation in CAST. The lines \textit{GAUSSIANmethod} and \textit{GAUSSIANbasisset} perform this function in the implementation. This was done in an attempt to make the user consider if a basis set is needed, as methods like INDO\supercite{Pople1967} and ZINDO\supercite{Ridley1973,Ridley1976} do not need one, and which basis set would be appropriate.\\
 The Gaussian program needs information about the charge of the system and the multiplicity. These information are to be given at the options \textit{GAUSSIANcharge} and \textit{GAUSSIANmultiplicity}, respectively.\\
 To be able to use Gaussian, CAST must be given the information where the Gaussian program is located on the system the calculation is done on. The \textit{GAUSSIANpath} option is used to get this path.\\
@@ -543,7 +543,7 @@ Zn  -0.03
 K  -0.0339		
 \end{lstlisting}
 
-\textbf{For users on ECPC}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
+\textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
 
 The following list contains the options for DFTB\textsuperscript{+}. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.

@@ -18,19 +18,6 @@ def plot_dists(legends, distances):
         print sys.exc_info()
         return "error"
 
-def plot_temp(temperatures):
-    try:
-        plt.plot(temperatures)
-        plt.xlabel("frame")
-        plt.ylabel("temperature [K]")
-        plt.savefig("temperature.png")
-        plt.close()
-        
-        return "Python here: All is wonderful!"
-    except:
-        print sys.exc_info()
-        return "error"
-
 def plot_zones(legends, temp_lists):
     try:
         for t in temp_lists:  # for every zone
