@@ -97,6 +97,9 @@ namespace energy
         /**total energy*/
 		    double energy;
 
+				// partial energies
+				double nuc_rep, elec_en, one_elec, two_elec;
+
         /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
 

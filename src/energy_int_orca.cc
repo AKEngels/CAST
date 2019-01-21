@@ -1,7 +1,7 @@
 #include "energy_int_orca.h"
 
 energy::interfaces::orca::sysCallInterface::sysCallInterface(coords::Coordinates * cp) :
-  energy::interface_base(cp), energy(0.0)
+  energy::interface_base(cp), energy(0.0), nuc_rep(0.0), elec_en(0.0), one_elec(0.0), two_elec(0.0)
 {
   if (Config::get().energy.dftb.opt > 0) optimizer = true;
   else optimizer = false;
@@ -9,7 +9,7 @@ energy::interfaces::orca::sysCallInterface::sysCallInterface(coords::Coordinates
 }
 
 energy::interfaces::orca::sysCallInterface::sysCallInterface(sysCallInterface const & rhs, coords::Coordinates *cobj) :
-  interface_base(cobj), energy(rhs.energy)
+  interface_base(cobj), energy(rhs.energy), nuc_rep(rhs.nuc_rep), elec_en(rhs.elec_en), one_elec(rhs.one_elec), two_elec(rhs.two_elec)
 {
 	optimizer = rhs.optimizer;
 	charge = rhs.charge;
@@ -81,6 +81,8 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::orca::sysCallInterface::read_output(int t)
 {
+	if (file_exists("output_orca.txt") == false) throw std::runtime_error("ORCA output file not present");
+
 	std::ifstream out;
 	out.open("output_orca.txt");
 
@@ -88,12 +90,33 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 	std::vector<std::string> linevec;
 	while (out.eof() == false)
 	{
-		std::getline(out, line);
-		if (line.substr(0, 25) == "FINAL SINGLE POINT ENERGY")
+		std::getline(out, line);  // reading
+
+		if (line.substr(0, 25) == "FINAL SINGLE POINT ENERGY")  // get single point energy
 		{
 			linevec = split(line, ' ', true);
-			double energy_in_hartree = std::stod(linevec[4]);
-			energy = energy_in_hartree * energy::au2kcal_mol;
+			energy = std::stod(linevec[4]) * energy::au2kcal_mol;
+		}
+
+		else if (line.substr(0, 17) == "Nuclear Repulsion")    // get partial energies
+		{
+			linevec = split(line, ' ', true);
+			nuc_rep = std::stod(linevec[3]) * energy::au2kcal_mol;
+		}
+		else if (line.substr(0, 17) == "Electronic Energy")   
+		{
+			linevec = split(line, ' ', true);
+			elec_en = std::stod(linevec[3]) * energy::au2kcal_mol;
+		}
+		else if (line.substr(0, 19) == "One Electron Energy")   
+		{
+			linevec = split(line, ' ', true);
+			one_elec = std::stod(linevec[3]) * energy::au2kcal_mol;
+		}
+		else if (line.substr(0, 19) == "Two Electron Energy")    
+		{
+			linevec = split(line, ' ', true);
+			two_elec = std::stod(linevec[3]) * energy::au2kcal_mol;
 		}
 	}
   return energy;
@@ -110,7 +133,8 @@ double energy::interfaces::orca::sysCallInterface::e(void)
   /*if (integrity == true)
   {*/
     write_inputfile(0);
-    scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
+    int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
+		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(0);
     return energy;
   //}
@@ -124,7 +148,8 @@ double energy::interfaces::orca::sysCallInterface::g(void)
   //if (integrity == true)
   //{
     write_inputfile(1);
-    scon::system_call(Config::get().energy.orca.path + " orca_input.txt > output_orca.txt");
+		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
+		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(1);
     return energy;
   //}
@@ -153,7 +178,8 @@ double energy::interfaces::orca::sysCallInterface::o(void)
   //if (integrity == true)
   //{
     write_inputfile(3);
-    scon::system_call(Config::get().energy.orca.path + " orca_input.txt > output_dftb.txt");
+		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
+		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(3);
     return energy;
   //}
@@ -169,19 +195,21 @@ void energy::interfaces::orca::sysCallInterface::print_E(std::ostream &S) const
 
 void energy::interfaces::orca::sysCallInterface::print_E_head(std::ostream &S, bool const endline) const
 {
-  S << "Energies\n";
-  S << std::right << std::setw(24) << "E_bs";
-  S << std::right << std::setw(24) << "E_coul";
-  S << std::right << std::setw(24) << "E_rep";
+  S << "Partial energies (only for SCF):\n";
+  S << std::right << std::setw(24) << "E_nuc";
+  S << std::right << std::setw(24) << "E_elec";
+  S << std::right << std::setw(24) << "E_one_elec";
+	S << std::right << std::setw(24) << "E_two_elec";
   S << std::right << std::setw(24) << "SUM\n";
   if (endline) S << '\n';
 }
 
 void energy::interfaces::orca::sysCallInterface::print_E_short(std::ostream &S, bool const endline) const
 {
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
-  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << 0;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << nuc_rep;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << elec_en;
+  S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << one_elec;
+	S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << two_elec;
   S << std::right << std::setw(24) << std::fixed << std::setprecision(8) << energy << '\n';
   if (endline) S << '\n';
 }
