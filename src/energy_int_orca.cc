@@ -68,6 +68,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 
 	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset << "\n";  // method and basisset
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
+	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
 
 	inp << "\n";  // empty line
 	inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -132,7 +133,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 				double x, y, z;
 				coords::Representation_3D g_tmp;
 
-				for (auto i = 0u; i < N; ++i)     // for every atom
+				for (int i = 0; i < N; ++i)     // for every atom
 				{
 					std::getline(out, line);
 					linevec = split(line, ' ', true);
@@ -147,7 +148,81 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 			}
 		}
 	}
+
+	if (t == 2)
+	{
+		if (file_exists("orca.hess") == false) throw std::runtime_error("ORCA hessian file not present");
+		read_hessian_from_file("orca.hess");
+	}
+
   return energy;
+}
+
+void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::string filename)
+{
+	std::ifstream hess;
+	hess.open(filename);
+
+	std::string line;
+	std::vector<std::string> linevec;
+	while (hess.eof() == false)
+	{
+		std::getline(hess, line);
+
+		if (line.substr(0, 8) == "$hessian")
+		{
+			std::getline(hess, line);  // get size if hessian (= 3x number of atoms)
+			int size = stoi(line);
+			if (size != 3 * coords->size()) throw std::runtime_error("wrong size of hessian: " + size);
+
+			else   // if correct size
+			{
+				// initialize hessian matrix
+				std::vector<double> hessian_line;
+				hessian_line.resize(size);
+				std::vector<std::vector<double>> hessian;
+				for (int i = 0; i < size; ++i) hessian.push_back(hessian_line);
+
+				// start reading
+				std::getline(hess, line);         // headline of first block
+				linevec = split(line, ' ', true);  
+
+				// get a bit of information how much is there to read
+				int columns = linevec.size();
+				int number_of_reading_blocks = size / columns;
+				int number_of_columns_in_last_block = size % columns;
+
+				// really reading numbers
+				for (int block = 0; block < number_of_reading_blocks; ++block)
+				{
+					for (int j = 0; j < size; ++j)  
+					{
+						std::getline(hess, line);         // "real" line
+						linevec = split(line, ' ', true);
+						for (int k = 1; k <= columns; ++k)
+						{
+							hessian[j][k-1+block*columns] = std::stod(linevec[k]) * energy::Hartree_Bohr2Kcal_MolAngSquare;
+						}
+					}
+					std::getline(hess, line); // headline of next block
+				}
+
+				// last block
+				for (int j = 0; j < size; ++j)
+				{
+					std::getline(hess, line);         // "real" line
+					linevec = split(line, ' ', true);
+					for (int k = 1; k <= number_of_columns_in_last_block; ++k)
+					{
+						hessian[j][k-1+number_of_reading_blocks * columns] = std::stod(linevec[k]) * energy::Hartree_Bohr2Kcal_MolAngSquare;
+					}
+				}
+
+				coords->set_hessian(hessian);  //set hessian
+				break;
+			}
+		}
+	}
 }
 
 /*
@@ -187,14 +262,14 @@ double energy::interfaces::orca::sysCallInterface::g(void)
 // Hessian function
 double energy::interfaces::orca::sysCallInterface::h(void)
 {
-	return 0;
   //integrity = check_structure();
   //if (integrity == true)
   //{
-    //write_inputfile(2);
-    //scon::system_call(Config::get().energy.dftb.path + " > output_dftb.txt");
-    //energy = read_output(2);
-    //return energy;
+    write_inputfile(2);
+		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
+		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
+    energy = read_output(2);
+    return energy;
   //}
   //else return 0;  // energy = 0 if structure contains NaN
 }

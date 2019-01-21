@@ -94,11 +94,24 @@ namespace energy
         @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
         double read_output(int t);
 
+				/**function to read hessian from file
+				@filename: name of file (normally ending in .hess)*/
+				void read_hessian_from_file(std::string filename);
+
         /**total energy*/
 		    double energy;
 
-				// partial energies
-				double nuc_rep, elec_en, one_elec, two_elec;
+				// partial energies (scf energy = nuc_rep + elec_en, elec_en = one_elec + two_elec)
+				// for total energy there might be even more contributions
+
+				/**nuclear repulsion energy*/
+				double nuc_rep;
+				/**electronic energy*/
+				double elec_en;
+				/**one-electron contribution*/
+				double one_elec;
+				/**two-electron contribution*/
+				double two_elec;
 
         /**gradients of external charges*/
         std::vector<coords::Cartesian_Point> grad_ext_charges;
