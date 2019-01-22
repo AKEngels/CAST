@@ -148,6 +148,30 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 				coords->swap_g_xyz(g_tmp);  // set gradients
 			}
 		}
+
+    if (t == 3)        // if optimization requested
+    {
+      if (file_exists("orca.xyz") == false) throw std::runtime_error("Optimization produced no output file.");
+
+      std::ifstream geom_file;
+      geom_file.open("orca.xyz");
+
+      std::getline(geom_file, line);        // first line: number of atoms
+      int number_of_atoms = std::stoi(line);
+      if (N != number_of_atoms) throw std::runtime_error("wrong number of atoms in structure");
+      std::getline(geom_file, line);        // second line: stuff
+
+      std::string element;
+      double x, y, z;
+      coords::Representation_3D xyz_tmp;
+
+      while (geom_file >> element >> x >> y >> z)
+      {
+        coords::Cartesian_Point xyz(x, y, z);
+        xyz_tmp.push_back(xyz);
+      }
+      coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
+    }
 	}
 
 	if (t == 2)
