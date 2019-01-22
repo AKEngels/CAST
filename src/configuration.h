@@ -694,7 +694,7 @@ namespace config
 			/**optimizer (0 = CAST, 1 = ORCA)*/
 			int opt;
       
-      /**verbosity (from 0 to 5)*/
+      /**verbosity (from 0 to 4)*/
       int verbose;
 			
 			/**constructor*/
