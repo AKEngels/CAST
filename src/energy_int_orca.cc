@@ -205,7 +205,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
   }
   if (Config::get().energy.orca.verbose < 1)
   {
-    std::remove("output.txt");
+    std::remove("output_orca.txt");
     std::remove("orca.inp");
   }
 
