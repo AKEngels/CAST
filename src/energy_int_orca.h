@@ -70,7 +70,7 @@ namespace energy
 				void print_E_short(std::ostream&, bool const endline = true) const;
 				/**does nothing*/
 				void to_stream(std::ostream&) const;
-				// "update" function
+				/** "update" function*/
 				void update(bool const) { }
         /**returns partial atomic charges*/
         std::vector<coords::float_type> charges() const override;
@@ -84,7 +84,7 @@ namespace energy
 
         /**checks if structure is complete, i.e. no coordinates are NaN
         coordinates become NaN sometimes in TS (dimer method)*/
-        //bool check_structure();
+        bool check_structure();
 
         /**writes orca inputfile
         @param t: type of calculation (0 = energy, 1 = gradient, 2 = hessian, 3 = optimize)*/
@@ -113,20 +113,23 @@ namespace energy
 				/**two-electron contribution*/
 				double two_elec;
 
-        /**gradients of external charges*/
-        std::vector<coords::Cartesian_Point> grad_ext_charges;
-
-        /**gradients of link atoms*/
-        coords::Gradients_3D link_atom_grad;
-
-        /**calculates coulomb energy the self interaction between the external charges*/
-        //double calc_self_interaction_of_external_charges();
-
         /**checks if all bonds are still intact (bond length smaller than 1.2 sum of covalent radii)*/
         bool check_bond_preservation(void) const;
 
         /**checks if there is a minimum atom distance (0.3 Angstrom) between atoms*/
         bool check_atom_dist(void) const;
+
+
+        // STUFF FOR QM/MM (not implemented yet)
+
+        ///**gradients of external charges*/
+        //std::vector<coords::Cartesian_Point> grad_ext_charges;
+
+        ///**gradients of link atoms*/
+        //coords::Gradients_3D link_atom_grad;
+
+        /**calculates coulomb energy the self interaction between the external charges*/
+        //double calc_self_interaction_of_external_charges();
 
 			};
 

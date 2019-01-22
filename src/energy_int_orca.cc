@@ -41,25 +41,25 @@ void energy::interfaces::orca::sysCallInterface::swap(sysCallInterface &rhs)
 energy::interfaces::orca::sysCallInterface::~sysCallInterface(void) {}
 
 /**checks if all atom coordinates are numbers*/
-//bool energy::interfaces::orca::sysCallInterface::check_structure()
-//{
-//  bool structure = true;
-//  double x, y, z;
-//  for (auto i : (*this->coords).xyz())
-//  {
-//    x = i.x();
-//    y = i.y();
-//    z = i.z();
-//
-//    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
-//    {
-//      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
-//      structure = false;
-//      break;
-//    }
-//  }
-//  return structure;
-//}
+bool energy::interfaces::orca::sysCallInterface::check_structure()
+{
+  bool structure = true;
+  double x, y, z;
+  for (auto i : (*this->coords).xyz())
+  {
+    x = i.x();
+    y = i.y();
+    z = i.z();
+
+    if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+    {
+      std::cout << "Atom coordinates are not a number. Treating structure as broken.\n";
+      structure = false;
+      break;
+    }
+  }
+  return structure;
+}
 
 void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 {
@@ -180,6 +180,10 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 		read_hessian_from_file("orca.hess");
 	}
 
+  // check if geometry is still intact
+  if (check_bond_preservation() == false) integrity = false;
+  else if (check_atom_dist() == false) integrity = false;
+
   return energy;
 }
 
@@ -257,61 +261,61 @@ Energy class functions that need to be overloaded
 // Energy function
 double energy::interfaces::orca::sysCallInterface::e(void)
 {
-  //integrity = check_structure();
-  /*if (integrity == true)
-  {*/
+  integrity = check_structure();
+  if (integrity == true)
+  {
     write_inputfile(0);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
 		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(0);
     return energy;
-  //}
-  //else return 0;  // energy = 0 if structure contains NaN
+  }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Energy+Gradient function
 double energy::interfaces::orca::sysCallInterface::g(void)
 {
-  //integrity = check_structure();
-  //if (integrity == true)
-  //{
+  integrity = check_structure();
+  if (integrity == true)
+  {
     write_inputfile(1);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
 		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(1);
     return energy;
-  //}
-  //else return 0;  // energy = 0 if structure contains NaN
+  }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Hessian function
 double energy::interfaces::orca::sysCallInterface::h(void)
 {
-  //integrity = check_structure();
-  //if (integrity == true)
-  //{
+  integrity = check_structure();
+  if (integrity == true)
+  {
     write_inputfile(2);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
 		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(2);
     return energy;
-  //}
-  //else return 0;  // energy = 0 if structure contains NaN
+  }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Optimization
 double energy::interfaces::orca::sysCallInterface::o(void)
 {
-	  //integrity = check_structure();
-  //if (integrity == true)
-  //{
+	integrity = check_structure();
+  if (integrity == true)
+  {
     write_inputfile(3);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
 		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
     energy = read_output(3);
     return energy;
-  //}
-  //else return 0;  // energy = 0 if structure contains NaN
+  }
+  else return 0;  // energy = 0 if structure contains NaN
 }
 
 // Output functions
@@ -343,27 +347,6 @@ void energy::interfaces::orca::sysCallInterface::print_E_short(std::ostream &S, 
 }
 
 void energy::interfaces::orca::sysCallInterface::to_stream(std::ostream&) const { }
-
-//double energy::interfaces::orca::sysCallInterface::calc_self_interaction_of_external_charges()
-//{
-//  double energy{ 0.0 };
-//  for (auto i = 0u; i < Config::get().energy.qmmm.mm_charges.size(); ++i)
-//  {
-//    auto c1 = Config::get().energy.qmmm.mm_charges[i];
-//    for (auto j = 0u; j < i; ++j)
-//    {
-//      auto c2 = Config::get().energy.qmmm.mm_charges[j];
-//
-//      double dist_x = c1.x - c2.x;
-//      double dist_y = c1.y - c2.y;
-//      double dist_z = c1.z - c2.z;
-//      double dist = std::sqrt(dist_x*dist_x + dist_y * dist_y + dist_z * dist_z);  // distance in angstrom
-//
-//      energy += 332.0 * c1.charge * c2.charge / dist;  // energy in kcal/mol
-//    }
-//  }
-//  return energy;
-//}
 
 bool energy::interfaces::orca::sysCallInterface::check_bond_preservation(void) const
 {
@@ -403,13 +386,12 @@ bool energy::interfaces::orca::sysCallInterface::check_atom_dist(void) const
 std::vector<coords::float_type>
 energy::interfaces::orca::sysCallInterface::charges() const
 {
-	std::vector<coords::float_type> charges;
-	return charges;
+  throw std::runtime_error("Function not implemented yet");
 }
 
 std::vector<coords::Cartesian_Point>
 energy::interfaces::orca::sysCallInterface::get_g_ext_chg() const
 {
-  return grad_ext_charges;
+  throw std::runtime_error("Function not implemented yet");
 }
 
