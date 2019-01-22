@@ -795,6 +795,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(4, 3) == "opt") {
 			Config::set().energy.orca.opt = std::stoi(value_string);
 		}
+    else if (option.substr(4, 7) == "verbose") {
+      Config::set().energy.orca.verbose = std::stoi(value_string);
+    }
 	}
 
   //Gaussian options

@@ -96,7 +96,7 @@ namespace energy
 
 				/**function to read hessian from file
 				@filename: name of file (normally ending in .hess)*/
-				void read_hessian_from_file(std::string filename);
+				void read_hessian_from_file(std::string const &filename);
 
         /**total energy*/
 		    double energy;

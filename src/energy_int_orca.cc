@@ -184,10 +184,35 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
   if (check_bond_preservation() == false) integrity = false;
   else if (check_atom_dist() == false) integrity = false;
 
+  // deleting files
+  if (Config::get().energy.orca.verbose < 4)
+  {
+    std::remove("orca.gbw");
+    std::remove("orca.ges");
+    std::remove("orca.prop");
+  }
+  if (Config::get().energy.orca.verbose < 3)
+  {
+    std::remove("orca.opt");
+    std::remove("orca.trj");
+    std::remove("orca.engrad");
+    std::remove("orca_property.txt");
+  }
+  if (Config::get().energy.orca.verbose < 2)
+  {
+    std::remove("orca.xyz");
+    std::remove("orca.hess");
+  }
+  if (Config::get().energy.orca.verbose < 1)
+  {
+    std::remove("output.txt");
+    std::remove("orca.inp");
+  }
+
   return energy;
 }
 
-void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::string filename)
+void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::string const &filename)
 {
 	std::ifstream hess;
 	hess.open(filename);

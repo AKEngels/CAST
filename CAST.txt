@@ -243,6 +243,9 @@ ORCAmultiplicity   1
 # which optimizer should be used? (0=CAST, 1=ORCA)
 ORCAopt        1
 
+# verbosity for ORCA (0 - 5)
+ORCAverbose     1
+
 
 ################# DFTB+ Options #################################################
 
