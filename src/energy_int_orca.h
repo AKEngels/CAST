@@ -129,8 +129,8 @@ namespace energy
         @param filename: name of the file*/
         void write_external_pointcharges(std::string const &filename);
 
-        ///**gradients of external charges*/
-        //std::vector<coords::Cartesian_Point> grad_ext_charges;
+        /**gradients of external charges*/
+        std::vector<coords::Cartesian_Point> grad_ext_charges;
 			};
 
 		}
