@@ -226,12 +226,12 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
     std::ifstream pcgrad;
     pcgrad.open("orca.pcgrad");
 
-    int number_of_pointcharges;         // read number of point charges
+    unsigned number_of_pointcharges;         // read number of point charges
     pcgrad >> number_of_pointcharges;
     if (number_of_pointcharges != Config::get().energy.qmmm.mm_charges.size()) throw std::runtime_error("wrong number of gradients on external point charges");
 
     double x, y, z;                                  // read gradients
-    for (int i = 0; i < number_of_pointcharges; ++i)
+    for (auto i = 0u; i < number_of_pointcharges; ++i)
     {
       pcgrad >> x >> y >> z;                    // read
       x = x * energy::Hartree_Bohr2Kcal_MolAng; // convert to correct units
