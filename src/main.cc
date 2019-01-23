@@ -277,12 +277,6 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-			coords.e();
-
-			for (auto i = 0u; i < coords.energyinterface()->charges().size(); ++i)
-			{
-				std::cout << coords.energyinterface()->charges()[i] << "\n";
-			}
       // DEVTEST: Room for Development testing
       break;
     }
