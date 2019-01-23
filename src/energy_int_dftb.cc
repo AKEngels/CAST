@@ -212,7 +212,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
 
       else if (line.substr(0, 29) == "forces              :real:2:3" && t == 1)  // read gradients
       {
-        int link_atom_number = std::stoi(line.substr(30)) - N;
         double x, y, z;
         coords::Representation_3D g_tmp;
 

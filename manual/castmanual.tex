@@ -463,7 +463,23 @@ multipole moments (for example DMA multipoles).\\
 			PSI4method & calculation method for Psi4 (e.\,g. HF) &  string [no default]\\
       PSI4spin & spin multiplicity for molecule & string [no default]\\
 			PSI4charge   & Total charge of the sytem &string [no default] \\
-		\end{longtable}~\\
+		\end{longtable}
+	
+\subsubsection{ORCA}
+	
+There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords you have to set:
+
+			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	ORCApath  & path to Orca including command & string [no default]\\
+	ORCAmethod & calculation method for Orca & string [no default]\\
+	ORCAbasisset & basisset for Orca calculation & string [no default]\\
+	ORCAcharge & total charge of the system & int [0] \\
+	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
+	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
+	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+\end{longtable}
 			
 			%Gaussian
 			\subsubsection{Gaussian}
@@ -546,7 +562,7 @@ K  -0.0339
 \textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
 
-The following list contains the options for DFTB\textsuperscript{+}. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
+The following list contains the options for DFTB\textsuperscript{+}. 
 
 		\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
@@ -561,7 +577,7 @@ The following list contains the options for DFTB\textsuperscript{+}. DFTB+path a
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
-		\end{longtable}~\\
+		\end{longtable}
 		
 Helpful links for DFTB+:
 \begin{itemize}
