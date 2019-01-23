@@ -125,9 +125,6 @@ namespace energy
         ///**gradients of external charges*/
         //std::vector<coords::Cartesian_Point> grad_ext_charges;
 
-        ///**gradients of link atoms*/
-        //coords::Gradients_3D link_atom_grad;
-
         /**calculates coulomb energy the self interaction between the external charges*/
         //double calc_self_interaction_of_external_charges();
 

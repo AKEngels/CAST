@@ -227,17 +227,6 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
           g_tmp.push_back(g);
         }
         coords->swap_g_xyz(g_tmp);  // set gradients
-
-        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
-        {
-          std::getline(in_file, line);
-          std::sscanf(line.c_str(), "%lf %lf %lf", &x, &y, &z);
-          x *= -energy::Hartree_Bohr2Kcal_MolAng;  // hartree/bohr -> kcal/(mol*A)
-          y *= -energy::Hartree_Bohr2Kcal_MolAng;
-          z *= -energy::Hartree_Bohr2Kcal_MolAng;
-          coords::Cartesian_Point g(x, y, z);
-          link_atom_grad.push_back(g);
-        }
       }
 
       else if (Config::get().energy.qmmm.mm_charges.size() != 0)

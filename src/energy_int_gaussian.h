@@ -86,9 +86,6 @@ namespace energy
         (is used for QM/MM)*/
         std::vector<coords::Cartesian_Point> electric_field;
 
-        /**gradients of link atoms*/
-        coords::Gradients_3D link_atom_grad;
-
         /*
         Gaussian sysCall funcntions
         */

@@ -325,12 +325,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
       if (grad && buffer.find("Old X    -DE/DX   Delta X") != std::string::npos) //fetches last calculated gradients from output
       {
-        int link_atom_number = atoms - (*this->coords).size();  // number of link atoms (0 for no QM/MM)
-		    if (link_atom_number < 0)
-		    {
-		      throw std::logic_error("Something has gone wrong as you have a negative number of link atoms.\n");
-		    }
-
         coords::Cartesian_Point g;
         double temp;
 
@@ -350,21 +344,6 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 
           std::getline(in_file, buffer);
           g_tmp[i] = g * energy::Hartree_Bohr2Kcal_MolAng;
-        }
-
-        for (int i = 0; i < link_atom_number; i++)  // read gradients of link atoms
-        {
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.x() = -temp;
-          std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.y() = -temp;
-          std::getline(in_file, buffer);
-          std::sscanf(buffer.c_str(), "%*s %*s %lf %*s %*s %*s %*s", &temp);
-          g.z() = -temp;
-
-          std::getline(in_file, buffer);
-          link_atom_grad.push_back(g * energy::Hartree_Bohr2Kcal_MolAng);
         }
       }//end gradient reading
 
