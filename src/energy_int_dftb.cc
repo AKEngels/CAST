@@ -181,6 +181,7 @@ void energy::interfaces::dftb::sysCallInterface::write_inputfile(int t)
   file << "ParserOptions {\n";
   file << "  ParserVersion = 6\n";
   file << "}";
+	file.close();
 }
 
 double energy::interfaces::dftb::sysCallInterface::read_output(int t)
@@ -284,6 +285,7 @@ double energy::interfaces::dftb::sysCallInterface::read_output(int t)
         std::remove("hessian.out"); // delete file
       }
     }
+		in_file.close();
 
     if (t == 3)  // optimization
     {
@@ -525,6 +527,7 @@ energy::interfaces::dftb::sysCallInterface::charges() const
         }
       }
     }
+		in_file.close();
   }
   return charges;
 }

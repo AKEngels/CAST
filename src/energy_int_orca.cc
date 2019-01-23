@@ -61,8 +61,26 @@ bool energy::interfaces::orca::sysCallInterface::check_structure()
   return structure;
 }
 
+void energy::interfaces::orca::sysCallInterface::write_external_pointcharges(std::string const &filename)
+{
+  std::vector<PointCharge> chargevec = Config::get().energy.qmmm.mm_charges;
+
+  std::ofstream pointcharges;
+  pointcharges.open(filename);
+
+  pointcharges << chargevec.size() <<"\n";
+  for (auto &charge : chargevec)
+  {
+    pointcharges << charge.charge << "  " << charge.x << "  " << charge.y << "  " << charge.z << "\n";
+  }
+  pointcharges.close();
+}
+  
+
 void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 {
+  if (Config::get().energy.qmmm.mm_charges.size() != 0) write_external_pointcharges("pointcharges.pc");  // write external pointcharges into file
+
 	std::ofstream inp;
 	inp.open("orca.inp");
 
@@ -70,6 +88,8 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
 	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
+
+  if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 
 	inp << "\n";  // empty line
 	inp << "*xyz " << charge << " " << Config::get().energy.orca.multiplicity << "\n";  // headline for geometry input
@@ -80,6 +100,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 			<< "  " << std::setw(12) << std::setprecision(6) << coords->xyz(i).z() << "\n";
 	}
 	inp << "*\n";  // end of coordinates definition
+  inp.close();
 }
 
 double energy::interfaces::orca::sysCallInterface::read_output(int t)
@@ -151,6 +172,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 
     if (line.substr(0, 23) == "MULLIKEN ATOMIC CHARGES")  // reading charges
     {
+      mulliken_charges.clear(); // delete whatever is in there before
       std::getline(out, line);  // '---------------'
 
       std::string buffer;
@@ -162,6 +184,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
       }
     }
 	}
+  out.close();
 
 	if (t == 2)
 	{
@@ -191,6 +214,7 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
       xyz_tmp.push_back(xyz);
     }
     coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
+    geom_file.close();
   }
 
   // check if geometry is still intact
@@ -290,6 +314,7 @@ void energy::interfaces::orca::sysCallInterface::read_hessian_from_file(std::str
 			}
 		}
 	}
+  hess.close();
 }
 
 /*
