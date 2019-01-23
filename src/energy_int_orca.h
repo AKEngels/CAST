@@ -122,6 +122,9 @@ namespace energy
 
         // STUFF FOR QM/MM (not implemented yet)
 
+        /**mulliken charges of every atom*/
+        std::vector<double> mulliken_charges;
+
         ///**gradients of external charges*/
         //std::vector<coords::Cartesian_Point> grad_ext_charges;
 

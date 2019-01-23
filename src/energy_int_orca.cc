@@ -86,12 +86,14 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 {
 	if (file_exists("output_orca.txt") == false) throw std::runtime_error("ORCA output file not present");
 
+  int N = (*this->coords).size();  // number of atoms
+
 	std::ifstream out;
 	out.open("output_orca.txt");
 
 	std::string line;
 	std::vector<std::string> linevec;
-	while (out.eof() == false)
+	while (out.eof() == false)          // reading output file
 	{
 		std::getline(out, line);  // reading
 
@@ -122,8 +124,6 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 			two_elec = std::stod(linevec[3]) * energy::au2kcal_mol;
 		}
 
-		int N = (*this->coords).size();  // number of atoms
-
 		if (t == 1)   // if gradients requested
 		{
 			if (line.substr(0, 18) == "CARTESIAN GRADIENT")  // get gradients
@@ -149,28 +149,17 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 			}
 		}
 
-    if (t == 3)        // if optimization requested
+    if (line.substr(0, 23) == "MULLIKEN ATOMIC CHARGES")  // reading charges
     {
-      if (file_exists("orca.xyz") == false) throw std::runtime_error("Optimization produced no output file.");
+      std::getline(out, line);  // '---------------'
 
-      std::ifstream geom_file;
-      geom_file.open("orca.xyz");
-
-      std::getline(geom_file, line);        // first line: number of atoms
-      int number_of_atoms = std::stoi(line);
-      if (N != number_of_atoms) throw std::runtime_error("wrong number of atoms in structure");
-      std::getline(geom_file, line);        // second line: stuff
-
-      std::string element;
-      double x, y, z;
-      coords::Representation_3D xyz_tmp;
-
-      while (geom_file >> element >> x >> y >> z)
+      std::string buffer;
+      double charge;
+      for (int i = 0; i < N; ++i)
       {
-        coords::Cartesian_Point xyz(x, y, z);
-        xyz_tmp.push_back(xyz);
+        out >> buffer >> buffer >> buffer >> charge;
+        mulliken_charges.emplace_back(charge);
       }
-      coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
     }
 	}
 
@@ -179,6 +168,30 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 		if (file_exists("orca.hess") == false) throw std::runtime_error("ORCA hessian file not present");
 		read_hessian_from_file("orca.hess");
 	}
+
+  if (t == 3)        // if optimization requested
+  {
+    if (file_exists("orca.xyz") == false) throw std::runtime_error("Optimization produced no output file.");
+
+    std::ifstream geom_file;
+    geom_file.open("orca.xyz");
+
+    std::getline(geom_file, line);        // first line: number of atoms
+    int number_of_atoms = std::stoi(line);
+    if (N != number_of_atoms) throw std::runtime_error("wrong number of atoms in structure");
+    std::getline(geom_file, line);        // second line: stuff
+
+    std::string element;
+    double x, y, z;
+    coords::Representation_3D xyz_tmp;
+
+    while (geom_file >> element >> x >> y >> z)
+    {
+      coords::Cartesian_Point xyz(x, y, z);
+      xyz_tmp.push_back(xyz);
+    }
+    coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
+  }
 
   // check if geometry is still intact
   if (check_bond_preservation() == false) integrity = false;
@@ -411,7 +424,7 @@ bool energy::interfaces::orca::sysCallInterface::check_atom_dist(void) const
 std::vector<coords::float_type>
 energy::interfaces::orca::sysCallInterface::charges() const
 {
-  throw std::runtime_error("Function not implemented yet");
+  return mulliken_charges;
 }
 
 std::vector<coords::Cartesian_Point>
