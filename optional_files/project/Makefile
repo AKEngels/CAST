@@ -122,4 +122,4 @@ help:
 	@echo "   GoogleTest"
 	@echo "   CAST"
 	@echo ""
-	@echo "For more information, see http://industriousone.com/premake/quick-start"
+	@echo "For more information, see https://github.com/premake/premake-core/wiki"
