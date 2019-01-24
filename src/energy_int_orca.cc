@@ -251,7 +251,6 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
   // deleting files
   if (Config::get().energy.orca.verbose < 4)
   {
-    std::remove("orca.gbw");
     std::remove("orca.ges");
     std::remove("orca.prop");
   }
