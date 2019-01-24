@@ -469,6 +469,7 @@ OBJECTS := \
 	$(OBJDIR)/energy_int_gaussian.o \
 	$(OBJDIR)/energy_int_mopac.o \
 	$(OBJDIR)/energy_int_oniom.o \
+	$(OBJDIR)/energy_int_orca.o \
 	$(OBJDIR)/energy_int_psi4.o \
 	$(OBJDIR)/energy_int_qmmm.o \
 	$(OBJDIR)/energy_int_terachem.o \
@@ -632,6 +633,9 @@ $(OBJDIR)/energy_int_mopac.o: ../../src/energy_int_mopac.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_oniom.o: ../../src/energy_int_oniom.cc
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/energy_int_orca.o: ../../src/energy_int_orca.cc
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/energy_int_psi4.o: ../../src/energy_int_psi4.cc
