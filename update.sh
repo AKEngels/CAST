@@ -1,3 +1,4 @@
+git stash
 git pull
 cd optional_files
 /apps/premake5/premake5 gmake
