@@ -277,8 +277,6 @@ int main(int argc, char **argv)
     {
     case config::tasks::DEVTEST:
     {
-#pragma omp parallel
-      std::cout<<"Number of threads used for calculation: "<<omp_get_num_threads()<<"\n";
       // DEVTEST: Room for Development testing
       break;
     }
