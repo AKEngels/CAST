@@ -1233,8 +1233,6 @@ Then we move to the snapshot file and open it with VMD where we can watch the mo
 
 The last file is that called \texttt{umbrella.txt}. It contains the value of the restrained torsion for every step of the sampling simulation. As we saw in the snapshot file all the values are quite near to 150°. This file will later be used by the external program WHAM\myCite{grossfield_wham_nodate} to calculate the PMF.
 
-\colorbox{red}{Everything until here (including picture) done with wrong forcefield}
-\\
 \FloatBarrier
 
 So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our ECPC cluster. 
@@ -1366,7 +1364,7 @@ After we have run the script we can go into the folder \texttt{analysis} which w
 
 We first have a look into the inputfile: It contains for every single window the name of the \texttt{umbrella\_*.txt} file, the value to which the torsinal angle was restrained and the force constant of the biasing potential.
 
-In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (eclipsed conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is around $6.13 \frac{kcal}{mol}$. Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
+In the output file we only look at lines 1 to 74. The first column contains the center of the bins we defined by the minimum and maximum value of the torsional angle and the number of bins. The second column contains the Free Energy difference $A(\xi)$. We see that it's highest value is at 0°. This is what we expect because there the two methyl groups are next to each other (eclipsed conformation). This value should be somewhere near $5.76 \frac{kcal}{mol}$\myCite{becker_development_2015}. In my example it is $6.02 \frac{kcal}{mol}$. Results here can differ a bit because there is always a lot of randomness in MD simulations. The third and the fifth column are bullshit, the fourth line contains the probability. When the Free Energy is high the probability is low and the other way round. Because all other lines start with \texttt{\#} it is quite easy to plot this file with gnuplot: \texttt{plot "out.txt" using 1:2 with lines} shows the Free Energy, \texttt{plot "out.txt" using 1:4 with lines} shows the probability. The results should look something like figure \ref{fig:wham_result}.
 
 \begin{figure} [htb]
 	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/umbrella_FreeEnergy.png}}
@@ -1388,7 +1386,7 @@ Now we plot the output file again with gnuplot. The results are shown in figure 
 
 As you see the energy here goes up a little at the edges so the minimum energy point is not at a torsional angle of 180° as it should. So in this case the periodic conditions don't seem to be perfect.
 
-What is the reason for that? When switching on periodicity the only thing that changes in the WHAM code is that the minimal image convention is applied. This means that for example the distance from a bin centered at 175° to a bin that is centered at -175° is 10°, not 350° as it would be without periodicity (see WHAM manual). However we have one bin centered at 0° and one bin centered at 360° which are on the same place as far as the minimum image convention is concerned. It seems that WHAM can't correctly handle this. If I remove the last simulation and the last bin from the analysis (so I have to change \texttt{STEPS} to \texttt{range(-180, 180, 5)}, \texttt{MAX} to \texttt{177.5} and \texttt{BINS} to 72) the value for -180° is still higher than for -175° but only slightly (by $0.012 \frac{kcal}{mol}$). You can see the improvement of the curves if you compare figure \ref{fig:wham_180} to \mbox{figure \ref{fig:wham_result_period}}.
+What is the reason for that? When switching on periodicity the only thing that changes in the WHAM code is that the minimal image convention is applied. This means that for example the distance from a bin centered at 175° to a bin that is centered at -175° is 10°, not 350° as it would be without periodicity (see WHAM manual). However we have one bin centered at 0° and one bin centered at 360° which are on the same place as far as the minimum image convention is concerned. It seems that WHAM can't correctly handle this. If I remove the last simulation and the last bin from the analysis (so I have to change \texttt{STEPS} to \texttt{range(-180, 180, 5)}, \texttt{MAX} to \texttt{177.5} and \texttt{BINS} to 72) the value for -180° is still higher than for -175° but less than before (by $0.07 \frac{kcal}{mol}$). You can see the improvement of the curves if you compare figure \ref{fig:wham_180} to \mbox{figure \ref{fig:wham_result_period}}.
 
 \begin{figure} [htb]
 	\subfigure[Free Energy]{\includegraphics[width=0.49\textwidth]{Img/free_180.png}}
@@ -1413,7 +1411,7 @@ import matplotlib.pyplot as plt
 with open("out.txt") as outfile:
     lines = outfile.readlines()
 
-# get values for reaction coordinae, free energy and probability
+# get values for reaction coordinate, free energy and probability
 xi = []  # reaction coordinate
 A = []   # free energy
 P = []   # probability
@@ -1487,8 +1485,6 @@ You see that for every trajectory the distribution is kind of a gaussian distrib
 \FloatBarrier
 
 \textbf{2D Umbrella Sampling}
-
-\colorbox{red}{DONE WITH WRONG FORCEFIELD}
 
 Often during a reaction more than one distance or dihedral angle change, so the Free Energy depends on more than one reaction coordinate. If taking into account 2 reaction coordinates you get something similar as a PES (just that it describes not only the potential energy but also entropic contributions). This two-dimensional case can also be treated by Umbrella Sampling in combination with WHAM.
 

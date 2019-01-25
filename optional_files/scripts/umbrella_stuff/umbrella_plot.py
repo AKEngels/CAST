@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 with open("out.txt") as outfile:
     lines = outfile.readlines()
 
-# get values for reaction coordinae, free energy and probability
+# get values for reaction coordinate, free energy and probability
 xi = []  # reaction coordinate
 A = []   # free energy
 P = []   # probability
