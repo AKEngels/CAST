@@ -206,7 +206,7 @@ void md::simulation::umbrella_run(bool const restart) {
   integrate(false);
 
   // write output: preparations
-  int number_of_reactions_coords;  // number of reactions coordinates that are looked at
+  size_t number_of_reactions_coords;  // number of reactions coordinates that are looked at
                                    // 1 = 1D WHAM, 2 = 2D WHAM (normally not more)
   if (Config::get().coords.bias.utors.size() != 0)
   {
