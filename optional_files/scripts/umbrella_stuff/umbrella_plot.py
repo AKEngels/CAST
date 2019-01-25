@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 with open("out.txt") as outfile:
     lines = outfile.readlines()
 
-# get values for reaction coordinae, free energy and probability
+# get values for reaction coordinate, free energy and probability
 xi = []  # reaction coordinate
 A = []   # free energy
 P = []   # probability
@@ -20,6 +20,9 @@ for line in lines:
         xi.append(float(linelist[0]))
         A.append(float(linelist[1]))
         P.append(float(linelist[3]))
+        
+# determine minimum and maximum value for xi
+MIN, MAX = min(xi), max(xi)
 
 # plot Free Energy
 plt.plot(xi, A, linewidth=2, color='black')
@@ -51,5 +54,6 @@ for filename in glob.glob("umbrella_*.txt"):
 
 plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
 number = int(math.sqrt(len(xi_lists[0])))
+plt.xlim(MIN, MAX)
 n, bins, patches = plt.hist(xi_lists, number, histtype='step')
 plt.savefig("distribution.png", dpi=100)  
