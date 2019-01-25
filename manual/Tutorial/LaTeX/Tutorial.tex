@@ -1482,47 +1482,6 @@ What is more interesting is the 3rd picture \texttt{distribution.png}. It plots 
 
 You see that for every trajectory the distribution is kind of a gaussian distribution around the value to which the torsion is constrained. The distributions are wider and lower where the free energy is high whereas in regions of lower energy the peaks of the distributions are higher. Furthermore the individual distributions overlap each other. This is important because WHAM calculates an unbiased distribution out of these biased distributions so the distributions for all values of $\xi$ has to be sampled. If this wasn't the case, i.\,e. if the single histograms didn't overlap, we would need more windows. Another thing to play with is the force constant for the constraint. It influences the shape of the histograms as well as the width of them.\supercite{mills_experimentally_2008}
 
-\FloatBarrier
-
-\textbf{2D Umbrella Sampling}
-
-Often during a reaction more than one distance or dihedral angle change, so the Free Energy depends on more than one reaction coordinate. If taking into account 2 reaction coordinates you get something similar as a PES (just that it describes not only the potential energy but also entropic contributions). This two-dimensional case can also be treated by Umbrella Sampling in combination with WHAM.
-
-As an example we will once more use torsional rotations. Instead of butane we now use pentane which has one more carbon atom and as a consequence two main torsions. The tinkerstructure (\texttt{pentan.arc}) for this molecule looks like this:
-\begin{lstlisting}[frame=single,]
-14      (charmmm22.prm)
- 1  C     -5.942760    2.779360    0.148310     27     2     3     4     5
- 2  C     -5.217520    1.481290   -0.169120     26     1     6     7     8
- 3  H     -7.014540    2.669170   -0.044280     1      1
- 4  H     -5.578860    3.597360   -0.481310     1      1
- 5  H     -5.811080    3.062510    1.197470     1      1
- 6  C     -3.751490    1.455970    0.267600     26     2     9    10    11
- 7  H     -5.280610    1.294710   -1.248420     1      2
- 8  H     -5.739010    0.651730    0.322560     1      2
- 9  C     -2.952440    2.679850   -0.151080     27     6    12    13    14
-10  H     -3.280410    0.560620   -0.154690     1      6
-11  H     -3.696970    1.353180    1.358550     1      6
-12  H     -3.068160    2.883970   -1.220280     1      9
-13  H     -1.888730    2.523830    0.054180     1      9
-14  H     -3.267820    3.565990    0.408600     1     9
-\end{lstlisting}
-
-As we again want to perform 73 simulations per dimension we will later need $73 \cdot 73 = 5329$ calculations. This we will again do with a script. For now we'll just start one of them to see how it looks and what the results are. So let's go into the inputfile \texttt{CAST.txt}. There is not much to change there. The \texttt{name} of our inputfile must be changed to \texttt{pentan.arc}. Then we scroll down to the section \texttt{UMBRELLA SAMPLING}. There we have to define the torsional angles we want to restrain. The first main torsion again consists of the atoms 1, 2, 6 and 9, the seconds is formed by the atoms 2, 6, 9 and 12. We leave the force at $0.05 \frac{kcal}{mol \cdot deg^2}$. In order to be able to distinct the two main torsions we restrain the first to 0 degree, the second to 180 degree. So the \texttt{UStorsion} option looks like that:
-\begin{lstlisting}[frame=single,]
-UStorsion              1 2 6 9  0.05   0.0
-UStorsion              2 6 9 12 0.05 180.0
-\end{lstlisting}
-Now we run the program...
-
-After it has finished we again get a tracefile, a snapshot file and a file \texttt{umbrella.txt}. We can look at the tracefile to see if the temperature is near 300\,K (yes, after the first few hundred steps it is) and at the snapshot file to look if the torsions are restrained to the correct values (if it looks like in figure \ref{fig:pentan} for most of the time it is). The last file \texttt{umbrella.txt} will be the one used by WHAM to calculate the Free Energy. It consists of three columns: The first is the number of the simulation step that is not used by WHAM, the second and third are the values for the two restrained torsions for every step of the simulation. We see that the first number is near 0 and the second number is near 180 so everything is fine and we can go to simulate the whole 2-dimensional surface.
-
-\begin{figure}[htb]
-	\center
-	\includegraphics[width=0.5\textwidth]{Img/pentan.png}\caption{Pentane molecule during restrained MD simulation.}
-	\label{fig:pentan}
-\end{figure}
-
-
 
 \FloatBarrier
 \newpage
