@@ -152,8 +152,7 @@ static inline energy::interface_base * get_interface (coords::Coordinates * coor
 
   default:
     {
-    if (Config::get().general.verbosity >= 3) std::cout << "Default (force field) interface choosen for energy calculations.\n";
-      return new energy::interfaces::aco::aco_ff(coordinates);
+    throw std::runtime_error("Unknown energy interface given!");
     }
   }
 }
