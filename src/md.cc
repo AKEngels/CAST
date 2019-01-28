@@ -4,17 +4,17 @@
 
 std::ostream& md::operator<<(std::ostream &strm, trace_data const &d)
 {
-  strm << std::right << std::setw(10) << d.i;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(3) << d.T;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.P;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ep;
-  strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << d.Ek + d.Ep;
-  if (d.snapshot > 0u) strm << std::right << std::setw(20) << d.snapshot;
+  strm  << d.i<<",";
+  strm  << std::fixed << std::setprecision(3) << d.T << ",";
+  strm << std::fixed << std::setprecision(5) << d.P << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ep << ",";
+  strm   << std::fixed << std::setprecision(5) << d.Ek + d.Ep << ",";
+  if (d.snapshot > 0u) strm <<  d.snapshot;
   else strm << std::right << std::setw(20) << '-';
   for (auto iae : d.Eia)
   {
-    strm << std::right << std::setw(20) << std::fixed << std::setprecision(5) << iae;
+    strm << "," << std::fixed << std::setprecision(5) << iae;
   }
   strm << '\n';
   return strm;
@@ -25,18 +25,18 @@ void md::trace_writer::operator() (md::trace_data const & d)
   static std::atomic<bool> x(true);
   if (x && Config::get().general.verbosity > 1)
   {
-    *strm << std::right << std::setw(10u) << "It";
-    *strm << std::right << std::setw(20u) << "T";
-    *strm << std::right << std::setw(20u) << "P";
-    *strm << std::right << std::setw(20u) << "E_kin";
-    *strm << std::right << std::setw(20u) << "E_pot";
-    *strm << std::right << std::setw(20u) << "E_tot";
-    *strm << std::right << std::setw(20u) << "Snapsh.";
+    *strm  << "It,";
+    *strm << "T,";
+    *strm  << "P,";
+    *strm  << "kin.En.,";
+    *strm  << "pot.En.,";
+    *strm  << "tot.En.,";
+    *strm  << "Snapsh.";
     if (d.Eia.size() > 1u)
     {
       for (auto i : scon::index_range(d.Eia))
       {
-        *strm << std::right << std::setw(20u) << "E_ia(# " << i << ')';
+        *strm << "," << "E_ia(# " << i << ')';
       }
     }
     *strm << '\n';
@@ -59,7 +59,7 @@ md::Logger::Logger(coords::Coordinates &coords, std::size_t snap_offset) :
   snap_buffer(coords::make_buffered_cartesian_log(coords, "_MD_SNAP",
     Config::get().md.max_snap_buffer, snap_offset, Config::get().md.optimize_snapshots)),
   data_buffer(scon::offset_call_buffer<trace_data>(50u, Config::get().md.trackoffset,
-    trace_writer{ coords::output::filename("_MD_TRACE", ".txt").c_str() })),
+    trace_writer{ coords::output::filename("_MD_TRACE", ".csv").c_str() })),
   snapnum()
 {
 }

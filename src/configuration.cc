@@ -497,8 +497,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
-      std::cout << "Configuration contained illegal interface." << std::endl;
-      std::cout << "Using default energy interface: OPLSAA." << std::endl;
+      throw std::runtime_error("Configuration contained illegal interface.");
     }
 		if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
 		{
