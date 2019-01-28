@@ -105,7 +105,12 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 
 double energy::interfaces::orca::sysCallInterface::read_output(int t)
 {
-	if (file_exists("output_orca.txt") == false) throw std::runtime_error("ORCA output file not present");
+  if (file_exists("output_orca.txt") == false)   // if orca produced no outputfile
+  {
+    std::cout << "ORCA output file not present. Integrity is broken\n";
+    integrity = false;
+    return 0;
+  }
 
   int N = (*this->coords).size();  // number of atoms
 
@@ -188,33 +193,39 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
 
 	if (t == 2)
 	{
-		if (file_exists("orca.hess") == false) throw std::runtime_error("ORCA hessian file not present");
-		read_hessian_from_file("orca.hess");
+		if (file_exists("orca.hess") == true) read_hessian_from_file("orca.hess");
+    else std::cout<<"ORCA hessian file not present\n";
 	}
 
   if (t == 3)        // if optimization requested
   {
-    if (file_exists("orca.xyz") == false) throw std::runtime_error("Optimization produced no output file.");
-
-    std::ifstream geom_file;
-    geom_file.open("orca.xyz");
-
-    std::getline(geom_file, line);        // first line: number of atoms
-    int number_of_atoms = std::stoi(line);
-    if (N != number_of_atoms) throw std::runtime_error("wrong number of atoms in structure");
-    std::getline(geom_file, line);        // second line: stuff
-
-    std::string element;
-    double x, y, z;
-    coords::Representation_3D xyz_tmp;
-
-    while (geom_file >> element >> x >> y >> z)
+    if (file_exists("orca.xyz") == false)
     {
-      coords::Cartesian_Point xyz(x, y, z);
-      xyz_tmp.push_back(xyz);
+      std::cout << "Optimization produced no output file.\n";
+      integrity = false;
     }
-    coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
-    geom_file.close();
+    else
+    {
+      std::ifstream geom_file;
+      geom_file.open("orca.xyz");
+
+      std::getline(geom_file, line);        // first line: number of atoms
+      int number_of_atoms = std::stoi(line);
+      if (N != number_of_atoms) throw std::runtime_error("wrong number of atoms in structure");
+      std::getline(geom_file, line);        // second line: stuff
+
+      std::string element;
+      double x, y, z;
+      coords::Representation_3D xyz_tmp;
+
+      while (geom_file >> element >> x >> y >> z)
+      {
+        coords::Cartesian_Point xyz(x, y, z);
+        xyz_tmp.push_back(xyz);
+      }
+      coords->set_xyz(std::move(xyz_tmp));  // set new coordinates
+      geom_file.close();
+    }
   }
 
   if (t == 1 && Config::get().energy.qmmm.mm_charges.size() != 0)      // read gradients on external point charges
@@ -355,8 +366,15 @@ double energy::interfaces::orca::sysCallInterface::e(void)
   {
     write_inputfile(0);
     int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
-    energy = read_output(0);
+		if (res == 0) energy = read_output(0);
+    else
+    {
+      if (Config::get().general.verbosity >= 2)
+      {
+        std::cout << "Orca call (e) return value was not 0. Treating structure as broken.\n";
+      }
+      integrity = false;
+    }
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -370,8 +388,15 @@ double energy::interfaces::orca::sysCallInterface::g(void)
   {
     write_inputfile(1);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
-    energy = read_output(1);
+    if (res == 0) energy = read_output(1);
+    else
+    {
+      if (Config::get().general.verbosity >= 2)
+      {
+        std::cout << "Orca call (g) return value was not 0. Treating structure as broken.\n";
+      }
+      integrity = false;
+    }
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -385,8 +410,15 @@ double energy::interfaces::orca::sysCallInterface::h(void)
   {
     write_inputfile(2);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
-    energy = read_output(2);
+    if (res == 0) energy = read_output(2);
+    else
+    {
+      if (Config::get().general.verbosity >= 2)
+      {
+        std::cout << "Orca call (h) return value was not 0. Treating structure as broken.\n";
+      }
+      integrity = false;
+    }
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
@@ -400,8 +432,15 @@ double energy::interfaces::orca::sysCallInterface::o(void)
   {
     write_inputfile(3);
 		int res = scon::system_call(Config::get().energy.orca.path + " orca.inp > output_orca.txt");
-		if (res != 0) throw std::runtime_error("call to ORCA was not successfull");
-    energy = read_output(3);
+    if (res == 0) energy = read_output(3);
+    else
+    {
+      if (Config::get().general.verbosity >= 2)
+      {
+        std::cout << "Orca call (o) return value was not 0. Treating structure as broken.\n";
+      }
+      integrity = false;
+    }
     return energy;
   }
   else return 0;  // energy = 0 if structure contains NaN
