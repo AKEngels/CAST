@@ -480,6 +480,8 @@ There is also an interface to the program Orca available. To use it set the opti
 	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
 	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
 \end{longtable}
+
+\textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. To fix this you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			
 			%Gaussian
 			\subsubsection{Gaussian}
@@ -658,7 +660,7 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, ORCA, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
 
 Normally the only problem there should be the charge but the interface is implemented in a way that you give the charge of the QM system in the input options for the QM interface and the charge of the total system in the input options for the MM interface. Then when calculating the QM system with the MM interface CAST will automatically take the charge you have given for the QM interface. This is also the reason you can use forcefields only as MM interface, not as QM interface, as there is no option to give the total charge for a forcefield.
 
