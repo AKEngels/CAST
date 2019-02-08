@@ -280,6 +280,7 @@ std::vector<std::size_t> qmmm_helpers::get_mm_atoms(std::size_t const num_atoms)
       if (file_exists("orca.xyz")) rename("orca.xyz", ("orca_" + systemname + ".xyz").c_str());
       if (file_exists("orca.hess")) rename("orca.hess", ("orca_" + systemname + ".hess").c_str());
       if (file_exists("orca.inp")) rename("orca.inp", ("orca_" + systemname + ".inp").c_str());
+      if (file_exists("pointcharges.pc")) rename("pointcharges.pc", ("pointcharges_" + systemname + ".pc").c_str());
       if (file_exists("output_orca.txt")) rename("output_orca.txt", ("output_orca_" + systemname + ".txt").c_str());
       if (file_exists("orca.gbw")) std::remove("orca.gbw");       // this is important because otherwise orca will try to read MOs from other system
     }
