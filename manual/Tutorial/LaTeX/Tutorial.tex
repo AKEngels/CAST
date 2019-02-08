@@ -1528,17 +1528,22 @@ After it has finished we again get a tracefile, a snapshot file and a file \text
 	\label{fig:pentan}
 \end{figure}
 
-So what we have to do now is to perform this calculation for every combination of the two torsional angles. In each of the two dimensions we want to have 73 windows as before so we have a total of 5329 calculations. To submit them we again want to use a python script. So we create a folder on the cluster, copy the files \texttt{pentan.arc}, \texttt{charmm22.arc} and \texttt{CAST.txt} into it. In \texttt{CAST.txt} you have to replace the restrained torsional angles by placeholders that will be replaced by the script, so the \texttt{UStorsion} option is:
+So what we have to do now is to perform this calculation for every combination of the two torsional angles. In each of the two dimensions we want to have 73 windows as before so we have a total of 5329 calculations. To submit them we again want to use a python script which will be shown below. What is does is to create a folder for every calculation and start it. Because we have a lot of calculations there will be a hierachy of folders so that a calculation where the first torsion is restrained to angle $x$ and the second torsion to angle $y$ is in a folder \texttt{f\_x/f\_y}. So if you are not on UNICORN and can't use our script you must somehow perform the calculations in folders of the same name and the same hierarchy in order to be able to use the analyse scripts provided.
+
+If you are on UNICORN and want to use the recommended script to start the calculations create a folder and copy the files \texttt{pentan.arc}, \texttt{charmm22.arc} and \texttt{CAST.txt} into it. In \texttt{CAST.txt} you have to replace the restrained torsional angles by placeholders that will be replaced by the script, so the \texttt{UStorsion} option is:
 \begin{lstlisting}[frame=single,]
 UStorsion              1 2 6 9  0.05 RESTRAINT_1
 UStorsion              2 6 9 12 0.05 RESTRAINT_2
 \end{lstlisting}
- Furthermore we need a submit script \texttt{cast.sh} that we can copy from the one-dimensional umbrella calculation above. The python script for submitting the calculations is called \texttt{fake\_queue.py} and looks like this:
+Again we set \texttt{MDtrack} and \texttt{MDsnap} to \texttt{0} to save disk space.
+ 
+The script we use now is a bit more complicated than the above one because it doesn't send all the calculations at once but uses a timing. You don't have to understand in detail what it's doing so for a better explanation of the script \texttt{fake\_queue.py} we refer to the AKEngels Wiki. So you should  start the script in a terminal where it's okay if the script is running for some hours or days. The script will call two other scripts called \texttt{python.sh} and \texttt{umbrella\_helper.py} which have also be copied into the folder. You also find them in folder optional\_files/scripts.
+
 \begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
 ############################## DESCRIPTION ##############################################
 
 # This is a script with which you can get a better control over the queue on UNICORN.
-# You can give a maximum number of jobs which you want to send to the queue and a time <t>.
+# You can give a number of jobs which you want to at maximum send to the queue and a time <t>.
 # Every <t> seconds the script looks at qstat how many jobs you have currently running.
 # It determines how many jobs can now be sent and submits them.
 
@@ -1550,18 +1555,12 @@ UStorsion              2 6 9 12 0.05 RESTRAINT_2
 
 ####################################### STUFF DEFINED BY USER ############################
 
-MAX_JOBS = 25      # this is the maximum number of jobs I want to send to queue        |\label{maxJobs}|
-DELAY = 300        # time in seconds for which the program waits before looking again  |\label{delay}|
+MAX_JOBS = 25      # this is the maximum number of jobs I want to send to queue
+DELAY = 300        # time in seconds for which the program waits before looking again
 
 # list where every element is the parameter of one calculation
 # elements of list can be anything, like numbers, lists or objects of a user-defined class
-dim_1 = range(-180, 185, 5)
-dim_2 = range(-180, 185, 5)
-PARAMETER_LIST = []
-for d1 in dim_1:
-    for d2 in dim_2:
-        PARAMETER_LIST.append([d1, d2])
-
+PARAMETER_LIST = range(-180, 185, 5)
 
 # user defined function to start a job, depending on one element from PARAMETER_LIST
 # this function is just an example (it performs an umbrella sampling with CAST)
@@ -1573,43 +1572,38 @@ def run_calc(param):
     import shutil
 
     # user variables for calculation
-    MOLECULE = "pentan.arc"             # name of molecule file
-    FORCEFIELD = "charmm22.prm"         # name of forcefield file
-
-    PLACEHOLDER_1 = "RESTRAINT_1"       # placeholders in CAST.txt file 
-    PLACEHOLDER_2 = "RESTRAINT_2"
+    MOLECULE = "pentan.arc"           # name of molecule file
+    FORCEFIELD = "charmm22.prm"       # name of forcefield file
+    SUBMIT_SCRIPT = "python.sh"       # submit script
+    PLACEHOLDER = "RESTRAINT_1"       # placeholder in CAST.txt file that is replaced by step number
 
     # create folder for current window
-    if os.path.isdir("f_{}".format(str(param[0]))) == False:
-        os.mkdir("f_{}".format(str(param[0])))
-    os.mkdir("f_{}/f_{}".format(param[0], param[1]))  
+    os.mkdir("f_{}".format(param))
 
     # copy necessary files to that folder (USER INPUT)
-    shutil.copy(MOLECULE,"f_{}/f_{}/{}".format(param[0], param[1],MOLECULE))
-    shutil.copy(FORCEFIELD,"f_{}/f_{}/{}".format(param[0], param[1],FORCEFIELD))
-    shutil.copy("cast.sh", "f_{}/f_{}/cast.sh".format(param[0], param[1]))
-    shutil.copy("CAST.txt", "f_{}/f_{}/CAST.txt".format(param[0], param[1]))
-
-    # optional: change jobname
-    with open("f_{}/f_{}/cast.sh".format(param[0], param[1])) as inp:
-        x = inp.read()
-        x = x.replace("TITEL","calc{}_{}".format(param[0],param[1]))
-    with open("f_{}/f_{}/cast.sh".format(param[0], param[1]),"w") as inp:
-        inp.write(x)
+    shutil.copy(MOLECULE,"f_{}/{}".format(param, MOLECULE))
+    shutil.copy(FORCEFIELD,"f_{}/{}".format(param, FORCEFIELD))
+    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(param))
+    shutil.copy("python.sh", "f_{}/python.sh".format(param))
+    shutil.copy("umbrella_helper.py", "f_{}/umbrella_helper.py".format(param))
 
     # important: set correct parameter in inputfile
-    with open("f_{}/f_{}/CAST.txt".format(param[0], param[1])) as inp:
+    with open("f_{}/CAST.txt".format(param)) as inp:
         x = inp.read()
-        x = x.replace(PLACEHOLDER_1,str(float(param[0])))
-        x = x.replace(PLACEHOLDER_2,str(float(param[1])))
-    with open("f_{}/f_{}/CAST.txt".format(param[0], param[1]),"w") as inp:
+        x = x.replace(PLACEHOLDER,str(float(param)))
+    with open("f_{}/CAST.txt".format(param),"w") as inp:
+        inp.write(x)
+
+    # optional: change jobtitle in submit-script
+    with open("f_{}/python.sh".format(param)) as inp:
+        x = inp.read()
+        x = x.replace("TITEL",str(param))
+    with open("f_{}/python.sh".format(param),"w") as inp:
         inp.write(x)
 
     # submit calculation
-    os.chdir("f_{}".format(str(param[0])))
-    os.chdir("f_{}".format(str(param[1])))
-    os.popen("qsub -V cast.sh")
-    os.chdir("..")
+    os.chdir("f_{}".format(param))
+    os.popen("qsub -V python.sh")
     os.chdir("..")
 
 
@@ -1663,13 +1657,68 @@ while True:
         print time.ctime(), ":", current_jobs, "jobs running,", jobs_to_be_sent, "will be sent"
         counter = start_next_jobs(counter, jobs_to_be_sent)
 \end{lstlisting}
+\raggedleft{\texttt{fake\_queue.py}}
 
-This script does in principle the same as the \texttt{umbrella.py} script we used before. For every single calculation we need it creates a folder, copies the necessary files into it, modifies the input and submits the calculation. Only two things are different:
-\begin{enumerate}
-	\item Because now we have two parameters we change and a big number of calculations there is a hierachy in the folders. So to get into the folder of the calculation where e.\,g. the first torsional angle is 50° and the second is 30° you first have to go into a folder called \texttt{f\_50} and in this folder you wilf find a subfolder called \texttt{f\_30} where the calculation is stored.
-	\item Also because of the big number of calculations there is a timing in submitting them so that not all of them get on the cluster at the same time. You can control the timing by the variables \texttt{MAX\_JOBS} and \texttt{DELAY} in lines \ref{maxJobs} and \ref{delay}. With the first you tell the script the maximum number of jobs you want to send to the cluster at once (in our case 25 so after you have sent 25 calculations the script won't send any more) and with the second number you determine the interval where the script looks whether it can send new calculations. In our case it's 300 seconds.\\
-	So when you start the script it will look how many jobs you have already sent (it also counts jobs that you sent before manually as it just reads \texttt{qstat}). Then it sends as much of them until you have 25 jobs in the queue. Then it waits 5 minutes until it looks again. If jobs have finished (which will be the case as each calculations only needs a few seconds) it again sends as many new ones until the total number of your calculations in the queue is 25. Then it again waits 5 minutes. This will continue until all of the calculations are sent. In the meantime you can just work on any other stuff, also submit more calculations, even if then you have more than 25 jobs in the queue. The script will just notice that and stop submitting calculations until you're again below 25 jobs in the queue.
-\end{enumerate}
+\begin{lstlisting}[frame=single,language=bash,basicstyle=\footnotesize,numbers=left,escapechar=|]
+#PBS -l nodes=1:ppn=4                                                           
+#PBS -l mem=4020MB
+#PBS -l walltime=999:00:00
+#PBS -N TITEL
+
+cd $PBS_O_WORKDIR
+cp -pr * $TMPDIR
+cd $TMPDIR
+python umbrella_helper.py
+cp -pr * $PBS_O_WORKDIR
+\end{lstlisting}
+\raggedleft{\texttt{python.sh}}
+
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
+# list of parameters (in this case torsional angle 1)
+PARAMETER_LIST = range(-180, 185, 5)
+
+# user defined function to start a job, depending on one element from PARAMETER_LIST
+def run_calc(param):
+
+    # modules necessary for running the job
+    import os
+    import shutil
+
+    # user variables for calculation
+    PLACEHOLDER = "RESTRAINT_2"       # placeholder in CAST.txt file
+
+    # create folder for current window
+    os.mkdir("f_{}".format(param))
+
+    # copy necessary files to that folder (USER INPUT)
+    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(param))
+    shutil.copy("pentan.arc", "f_{}/pentan.arc".format(param))
+    shutil.copy("charmm22.prm", "f_{}/charmm22.prm".format(param))
+    shutil.copy("/home/susanne/CAST/optional_files/build/CAST_linux_x64_release", 
+                "f_{}/CAST.exe".format(param))
+
+    # important: set correct parameter in inputfile
+    with open("f_{}/CAST.txt".format(param)) as inp:
+        x = inp.read()
+        x = x.replace(PLACEHOLDER,str(float(param)))
+    with open("f_{}/CAST.txt".format(param),"w") as inp:
+        inp.write(x)
+
+    # submit calculation
+    os.chdir("f_{}".format(param))
+    os.popen("chmod +x CAST")
+    os.popen("./CAST.exe | tee CAST_OUTPUT.txt")
+    os.chdir("..")
+
+
+########################################### PROGRAM ########################################
+
+for p in PARAMETER_LIST:
+    run_calc(p)
+\end{lstlisting}
+\raggedleft{\texttt{umbrella\_helper.py}}
+
+\raggedright
 So we start the script by typing \texttt{python fake\_queue.py} into the terminal and wait...
 
 \FloatBarrier
