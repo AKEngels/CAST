@@ -1235,66 +1235,69 @@ The last file is that called \texttt{umbrella.txt}. It contains the value of the
 
 \FloatBarrier
 
-So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our ECPC cluster. 
+So now we have seen how to perform a single MD simulation for umbrella sampling. What we have to do now is to do the same calculation 73 times where the only thing that has changed is the angle in the option \texttt{UStorsion} in the CAST inputfile. Because it is annoying to do this manually we use a python script for that. Furthermore we do the calculations on a computer cluster where all of them can be run simultanously. The following procedure works on our UNICORN cluster. If you are on another machine you can either start the 73 calculations with torsional angle $x$ by hand, each in a folder called \texttt{f\_x}, or modify the script so that it works on your machine.
 
-First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{charmm22.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on ECPC. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{optional\_files/scripts}:
+First we copy all files we need into a folder on the cluster. These are of course the structure file \texttt{butan.arc}, the parameterfile \texttt{charmm22.prm} and the inputfile \texttt{CAST.txt}. Furthermore we need a submit script called \texttt{cast.sh} to submit the calculations. It should be found somewhere in the CAST folder on UNICORN. The last file we need is our python script \texttt{umbrella.py}. It looks like this and can be found in the Github Repository in folder \mbox{optional\_files/scripts}:
 
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
-### script to start an umbrella calculation on ECPC ###
+### script to start an umbrella calculation on UNICORN ###
 
 import os
 import shutil
 
-# USER INPUT
 MOLECULE = "butan.arc"              # name of molecule file
 FORCEFIELD = "charmm22.prm"         # name of forcefield file
-STEPS = range(-180, 185, 5)         # to which values should the restraint be set? |\label{change_range}|
-PLACEHOLDER = "UMBRELLA_RESTRAINT"  # placeholder in CAST.txt file
+STEPS = range(-180, 185, 5)         # to which values should the restraint be set?
+PLACEHOLDER = "UMBRELLA_RESTRAINT"  # placeholder in CAST.txt file 
 
-# starts one of the calculations
+"""function that copies all necessary files for a calculation 
+   into folders and changes lines in inputfiles"""
 def run_calc(step):
 
     # create folder for current window
-    os.mkdir("{}".format(step))  
+    os.mkdir("f_{}".format(step))  
 
     # copy necessary files to that folder (USER INPUT)
-    shutil.copy(MOLECULE,"{}/{}".format(step,MOLECULE))
-    shutil.copy(FORCEFIELD,"{}/{}".format(step,FORCEFIELD))
-    shutil.copy("cast.sh", "{}/cast.sh".format(step))
-    shutil.copy("CAST.txt", "{}/CAST.txt".format(step))
+    shutil.copy(MOLECULE,"f_{}/{}".format(step,MOLECULE))
+    shutil.copy(FORCEFIELD,"f_{}/{}".format(step,FORCEFIELD))
+    shutil.copy("cast.sh", "f_{}/cast.sh".format(step))
+    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(step))
 
     # optional: change jobname
-    with open("{}/cast.sh".format(step)) as inp:
+    with open("f_{}/cast.sh".format(step)) as inp:
         x = inp.read()
         x = x.replace("TITEL",str(step))
-    with open("{}/cast.sh".format(step),"w") as inp:
+    with open("f_{}/cast.sh".format(step),"w") as inp:
         inp.write(x)
 
     # important: set correct restraint in inputfile
-    with open("{}/CAST.txt".format(step)) as inp:
+    with open("f_{}/CAST.txt".format(step)) as inp:
         x = inp.read()
         x = x.replace(PLACEHOLDER,str(float(step)))
-    with open("{}/CAST.txt".format(step),"w") as inp:
+    with open("f_{}/CAST.txt".format(step),"w") as inp:
         inp.write(x)
 
     # submit calculation
-    os.chdir(str(step))
-    os.popen("qsub cast.sh")
+    os.chdir("f_{}".format(step))
+    os.popen("qsub -V cast.sh")
     os.chdir("..")
 
 for s in STEPS:
     run_calc(s)
+
 \end{lstlisting}
 
 Before we run this script we have to open the CAST inputfile and replace our torsional angle of 150.0° by a placeholder \texttt{UMBRELLA\_RESTRAINT}. So the line now looks like this:\\
 \texttt{UStorsion\hspace{2cm}1 2 6 9\quad0.05\quad UMBRELLA\_RESTRAINT}\\
+In order to save disk space we also set \texttt{MDtrack} and \texttt{MDsnap} to \texttt{0}.\\
+
 Now we start our python script by typing \texttt{python umbrella.py} into the command line. For each of the 73 steps it creates a folder where the name is identical to the torsional angle of the step, copies all the files into it, replaces \texttt{UMBRELLA\_RESTRAINT} by the correct angle and submits a CAST calculation. After some minutes all the calculations should be finished. If we want we can go into the single folders and look at the output files.
 \\
 
 Now that we have the \texttt{umbrella.txt} output files of all our single simulations the next steps is to give all of them to WHAM and perform a weighted histogram analysis. A documentation for the WHAM program can be found at reference \cite{grossfield_wham_nodate}. To do so we have to copy all the files into one folder that we call analysis, write a WHAM inputfile (in the documentation it is called metadatafile) and start WHAM. This is also done by a python script (\texttt{umbrella\_analysis.py}) which looks like that:
 \begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
-### script to analyse an umbrella calculation on ECPC ###
+### script to analyse an umbrella calculation ###
 
 import os
 import shutil
@@ -1321,9 +1324,9 @@ def copy_and_and_create_inputfile():
     success = True
     os.mkdir("analysis") # create folder
     for s in STEPS:
-        if os.path.isfile("{}/umbrella.txt".format(s)):
+        if os.path.isfile("f_{}/umbrella.txt".format(s)):
             # copy and rename file
-            shutil.copy("{}/umbrella.txt".format(s),"analysis/umbrella_{}.txt".format(s))
+            shutil.copy("f_{}/umbrella.txt".format(s),"analysis/umbrella_{}.txt".format(s))
             # write inputfile for WHAM
             with open("analysis/in.txt","a") as inp:         
                 inp.write("umbrella_{}.txt   {}    {}\n".format(s,float(s),FORCE_CONSTANT))
@@ -1335,15 +1338,14 @@ def copy_and_and_create_inputfile():
 if copy_and_and_create_inputfile():
     os.chdir("analysis")
     if PERIOD == None:
-        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(   |\label{runWHAM}|
+        os.popen("{} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(       |\label{runWHAM}|
             PATH,MIN,MAX,BINS,TOL,TEMP))
     else:
-        os.popen("{} {} {} {} {} {:.9f} {} 0 in.txt out.txt  > wham_output.txt".format(
+        os.popen("{} {} {} {} {} {:.9f} {} 0 in.txt out.txt > wham_output.txt".format(
             PATH,PERIOD,MIN,MAX,BINS,TOL,TEMP))
-
 \end{lstlisting}
 
-We start this script the same way as before by typing \texttt{python umbrella\_analysis.py} into a command prompt. Let's see what user input we need:
+We start this script the same way as before by typing \texttt{python umbrella\_analysis.py} into a command prompt. This should work on any machine where python is installed. Let's see what user input we need:
 \begin{itemize}
 	\item \texttt{STEPS} is again a list of all values that our torsional angle is restricted to in the MD simulations. 
 	\item \texttt{FORCE\_CONSTANT} is the force constant of the biasing potential. 
