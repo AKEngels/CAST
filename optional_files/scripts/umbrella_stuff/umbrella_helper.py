@@ -1,4 +1,4 @@
-# list of parameters (in this case torsional angle 1)
+# list of parameters (in this case torsional angle 2)
 PARAMETER_LIST = range(-180, 185, 5)
 
 # user defined function to start a job, depending on one element from PARAMETER_LIST
