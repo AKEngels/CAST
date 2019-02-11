@@ -497,8 +497,7 @@ void config::parse_option(std::string const option, std::string const value_stri
     }
     else
     {
-      std::cout << "Configuration contained illegal interface." << std::endl;
-      std::cout << "Using default energy interface: OPLSAA." << std::endl;
+      throw std::runtime_error("Configuration contained illegal interface.");
     }
 		if (inter == interface_types::QMMM || inter == interface_types::ONIOM || inter == interface_types::THREE_LAYER)
 		{
@@ -773,6 +772,32 @@ void config::parse_option(std::string const option, std::string const value_stri
 			Config::set().energy.dftb.fermi_temp = std::stod(value_string);
 		}
   }
+
+	// ORCA options
+	else if (option.substr(0, 4) == "ORCA")
+	{
+		if (option.substr(4, 4) == "path") {
+			Config::set().energy.orca.path = value_string;
+		}
+		else if (option.substr(4, 6) == "method") {
+			Config::set().energy.orca.method = value_string;
+		}
+		else if (option.substr(4, 8) == "basisset") {
+			Config::set().energy.orca.basisset = value_string;
+		}
+		else if (option.substr(4, 6) == "charge") {
+			Config::set().energy.orca.charge = std::stoi(value_string);
+		}
+		else if (option.substr(4, 12) == "multiplicity") {
+			Config::set().energy.orca.multiplicity = std::stoi(value_string);
+		}
+		else if (option.substr(4, 3) == "opt") {
+			Config::set().energy.orca.opt = std::stoi(value_string);
+		}
+    else if (option.substr(4, 7) == "verbose") {
+      Config::set().energy.orca.verbose = std::stoi(value_string);
+    }
+	}
 
   //Gaussian options
   else if (option.substr(0, 8) == "GAUSSIAN")
@@ -2472,6 +2497,12 @@ std::ostream & config::operator<< (std::ostream &strm, energy const &p)
   else if(Config::get().general.energy_interface == interface_types::PSI4){
     strm << "Psi4 path is '" << p.psi4.path << "'\n"; //<- Not done here!!!!!!
   }
+	else if (Config::get().general.energy_interface == interface_types::DFTB) {
+		strm << "Path to DFTB+ is '" << p.dftb.path << "'\n"; 
+	}
+	else if (Config::get().general.energy_interface == interface_types::ORCA) {
+		strm << "Path to ORCA is '" << p.orca.path << "'\n";
+	}
   return strm;
 }
 

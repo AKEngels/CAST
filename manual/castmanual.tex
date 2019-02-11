@@ -399,6 +399,7 @@ multipole moments (for example DMA multipoles).\\
 		\textbf{DFTB} & external & DFTB\textsuperscript{+} variables\\
 		\textbf{DFTBaby} & external & DFTBaby variables\\
 		\textbf{PSI4} & external & Psi4 variables\\
+		\textbf{ORCA} & external & ORCA variables\\
 		\textbf{CHEMSHELL} & external & ???\\
 		\textbf{QMMM} & internal & QM/MM variables and input for QM and MM interface\\
 		\textbf{ONIOM} & internal &  QM/MM variables and input for QM and MM interface\\
@@ -463,7 +464,25 @@ multipole moments (for example DMA multipoles).\\
 			PSI4method & calculation method for Psi4 (e.\,g. HF) &  string [no default]\\
       PSI4spin & spin multiplicity for molecule & string [no default]\\
 			PSI4charge   & Total charge of the sytem &string [no default] \\
-		\end{longtable}~\\
+		\end{longtable}
+	
+\subsubsection{ORCA}
+	
+There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords you have to set:
+
+			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+	variable & effect & type [default value] \\
+	\hline
+	ORCApath  & path to Orca including command & string [no default]\\
+	ORCAmethod & calculation method for Orca & string [no default]\\
+	ORCAbasisset & basisset for Orca calculation & string [no default]\\
+	ORCAcharge & total charge of the system & int [0] \\
+	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
+	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
+	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+\end{longtable}
+
+\textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. To fix this you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			
 			%Gaussian
 			\subsubsection{Gaussian}
@@ -546,7 +565,7 @@ K  -0.0339
 \textbf{For users on ECPC or UNICORN}: The DFTB3 parameter set 3ob with a \textit{dftb3.info} file can be found at /apps/dftbplus/3ob-3-1/.
 
 
-The following list contains the options for DFTB\textsuperscript{+}. DFTB+path and DFTB+skfiles are mandatory because they don't have default values.
+The following list contains the options for DFTB\textsuperscript{+}. 
 
 		\begin{longtable}{|p{3.5cm}|p{5cm}|p{3cm}|}
 		variable & effect & type [default value] \\
@@ -561,7 +580,7 @@ The following list contains the options for DFTB\textsuperscript{+}. DFTB+path a
 			DFTB+fermi\_temp & temperature for fermi filling \mbox{(in Kelvin)}, setting it e.\,g. to 300 can improve convergence & double [0.0] \\
 			DFTB+optimizer & 0 = CAST optimizer, 1 = steepest descent, 2 = Conjugate Gradient & int [2] \\
 			DFTB+max\_steps\_opt & maximum number of steps for optimization with DFTB+ optimizer & int [5000] \\
-		\end{longtable}~\\
+		\end{longtable}
 		
 Helpful links for DFTB+:
 \begin{itemize}
@@ -642,7 +661,7 @@ If you want to run CAST with DFTBaby, set the interface parameter in the CAST in
 
 \subsubsection{QM/MM}
 
-There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
+There is also the possibility to use QM/MM (additive or subtractive) as energy interface. For the QM part you can choose between MOPAC, GAUSSIAN, ORCA, DFTB\textsuperscript{+} and PSI4, for the MM part you can choose one of the force fields OPLSAA, CHARMM (not tested with subtractive QM/MM) and AMBER. To use the additive QM/MM scheme choose ``QMMM'' as energy interface, if you want subtractive QM/MM choose ONIOM. In additve QM/MM the ``MM interface'' always must be a forcefield as vdW interactions between the two subsystems are calculated using forcefield parameters. (So the whole system, including the QM atoms, must be correctly parameterized.) In subtractive QM/MM you can also combine two semiempirical or quantumchemical interfaces. Then you don't need correct parameters but you have to be careful if all options you give for the ``MM interface'' are also fitting the QM system. 
 
 Normally the only problem there should be the charge but the interface is implemented in a way that you give the charge of the QM system in the input options for the QM interface and the charge of the total system in the input options for the MM interface. Then when calculating the QM system with the MM interface CAST will automatically take the charge you have given for the QM interface. This is also the reason you can use forcefields only as MM interface, not as QM interface, as there is no option to give the total charge for a forcefield.
 

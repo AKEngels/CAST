@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   butan.arc
+name                   pentan.arc
 
 # Output file name
 
@@ -87,7 +87,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  UMBRELLA
+task                  SP
 
 
 ####################################
@@ -107,23 +107,24 @@ task                  UMBRELLA
 # GAUSSIAN             GAUSSIAN interface 
 # CHEMSHELL            under developement
 # PSI4                 interface to PSI4
+# ORCA                 interface to ORCA
 # QMMM                 (additive) QM/MM interface
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              OPLSAA
+interface              ORCA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              oplsaa_mod2.prm
+paramfile              charmm22.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
-cutoff                 12.0
+#cutoff                 12.0
 #Radius to start switching function to kick in; scales interactions smoothly to zero at cutoff radius
-switchdist             10.0
+#switchdist             10.0
 
 # reading amber charges from separate file (called charges.txt) <0/1>,
 # necessary for reproducing AMBER forefields accuratly
@@ -179,7 +180,7 @@ MOPACcharge            0
 
 ############################ GAUSSIAN OPTIONS ########################
 
-GAUSSIANlink NProcShared=4 Mem=3GB
+GAUSSIANlink NProcShared=4 Mem=4GB
 
 #Methods for Gaussian Call
 
@@ -220,6 +221,30 @@ GAUSSIANdelete 0
 #Number of failed gaussian calls when CAST breaks
 
 GAUSSIANmaxfail      1000
+
+
+################## ORCA OPTIONS #################################################
+
+# path to ORCA
+ORCApath      /apps/orca/4.1/ORCA/orca
+
+# method for ORCA
+ORCAmethod    HF
+
+# basisset for ORCA
+ORCAbasisset   6-31G
+
+# charge of the molecule
+ORCAcharge     0
+
+# multiplicity of the molecule
+ORCAmultiplicity   1
+
+# which optimizer should be used? (0=CAST, 1=ORCA)
+ORCAopt        1
+
+# verbosity for ORCA (0 - 4)
+ORCAverbose     1
 
 
 ################# DFTB+ Options #################################################
@@ -878,7 +903,7 @@ MDheat                 0  300
 #
 # 0                    No Constraints
 # 1                    All Hydrogen Bonds
-# 2                    Specific Bonds
+# 2                    Specific Hydrogen Bonds
 
 MDrattle               0
 
@@ -903,7 +928,7 @@ MDbiased_potential         0
 #atom number(s) of active site <every atom a new line>
 #MDactive_site        14
 
-#MDactive_site        11
+MDactive_site        11
 
 #cutoff around active site <inner/outer>
 #MDcutoff                10 20
@@ -936,9 +961,9 @@ MDresume               0
 
 # the distances between these atoms are to be plotted during MD simulation
 
-#MDana_pair         347,3149
-#MDana_pair         2277,3151
-#MDana_pair         2277,2276
+#MDana_pair         1,2
+#MDana_pair         7,13
+#MDana_pair         5,9
 
 # analyze temperature in different zones around active site <0/1>
 # (active site defined by MDactive site)
@@ -947,7 +972,7 @@ MDresume               0
 
 # zone width (Angstrom)
 
-#MDzonewidth        5
+#MDzonewidth        1
 
 
 ####################################
@@ -1022,14 +1047,15 @@ DIMERmaxit             50 250
 # number of equilibration steps
 USequil                10000
 
-# definition of strained torsion
+# definition of strained torsion 
 
 #UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <dist>
 #[int] 1-4              atom indices
 #[float] force          potential force constant
 #[float] phi0           start angle
 
-UStorsion              1 2 6 9  0.05 180.0 
+#UStorsion              1 2 6 9  0.05   0.0
+#UStorsion              2 6 9 12 0.05 180.0
 
 # definition of strained bond
 
