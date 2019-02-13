@@ -79,9 +79,9 @@ if copy_and_and_create_inputfile():
     os.chdir("analysis")
     order = ""
     if AUTO_MASK == False:
-        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 0 > wham_out.txt".format(
+        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 0 > wham_output.txt".format(
             PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
     else:
-        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 1 > wham_out.txt".format(
+        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 1 > wham_output.txt".format(
             PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
     submit_pbs(order)
