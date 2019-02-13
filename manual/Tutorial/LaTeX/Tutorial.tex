@@ -2255,6 +2255,245 @@ So in principal the blue cells are everything we need to know. With a little les
 \end{figure}
 
 Now that we know where the lowest energy path is and how the energy should look like on it we want to try to get the energy of the path without sampling the whole surface but only the structures on the path. This means we don't have 5329 surface points any more, but just 145 (see in \texttt{path.csv}).
+\\
+
+Because we already ran all the MDs we won't repeat them but just take the results of those MDs that we want to take into account now. These are for the first step those that lie on the path. So we create a folder \texttt{path} and copy into it all \texttt{umbrella\_x\_y.txt} files where x and y are in the lowest energy path (\texttt{path.csv}). If we are too lazy to do this by hand we can use a small script like the following:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
+import shutil
+
+def remove_spaces(string):
+    """removes unnecessary spaces from a string
+
+    input: string
+    return: string without the unnecessary spaces"""
+
+    newstring = ""
+    for i, a in enumerate(string):
+        if i == 0 and a == " ":  # spaces at the beginning
+            pass
+        elif a == " " and i == len(string) - 1:  # spaces at the end
+            return remove_spaces(newstring)
+        elif a == " " and string[i - 1] == " ":  # two spaces back to back
+            pass
+        else:
+            newstring = newstring + a
+    return newstring
+
+with open("path.csv") as pathfile:
+    lines = pathfile.readlines()
+
+for i,line in enumerate(lines):
+    if i != 0:
+        linelist = line.split(',')
+        x = remove_spaces(linelist[1])
+        y = remove_spaces(linelist[2])
+        shutil.copy("umbrella_{}_{}.txt".format(x,y), "path/umbrella_{}_{}.txt".format(x,y))
+\end{lstlisting}
+
+To start the WHAM calculation we use a slightly modified \texttt{umbrella2d\_analysis} script that has to be started in the folder \texttt{path}:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
+### script to analyse a 2D umbrella calculation ###
+
+import os
+import shutil
+
+# USER INPUT
+PATH = "/apps/wham/wham-2d/wham-2d"   # path to WHAM program
+
+STEPS_1 = range(-180, 185, 5)         # values for first restraint
+FORCE_CONSTANT_1 = 0.05               # force constant of biasing potential for restraint 1
+STEPS_2 = range(-180, 185, 5)         # values for second restraint
+FORCE_CONSTANT_2 = 0.05               # force constant of biasing potential for restraint 2
+
+# ... for WHAM
+MIN_1 = -182.5        # boundaries of historgram for restraint 1
+MAX_1 = 182.5
+BINS_1 = 73           # number of points in final PMF (= number of bins) for restraint 1
+
+MIN_2 = -182.5        # boundaries of historgram for restraint 2
+MAX_2 = 182.5
+BINS_2 = 73           # number of points in final PMF (= number of bins) for restraint 2
+
+TEMP = 300          # temperature for WHAM 
+TOL = 0.00001       # tolerance for WHAM interations
+AUTO_MASK = True    # should auto-mask feature be turned on?
+
+COMBINATIONS = [[-180, -180], [-180, -175], [-175, -175], [-175, -170], [-170, -170],
+                [-170, -165], [-165, -165], [-165, -160], [-160, -160], [-160, -155],
+                [-155, -155], [-155, -150], [-150, -150], [-150, -145], [-150, -140],
+                [-150, -135], [-150, -130], [-150, -125], [-150, -120], [-150, -115],
+                [-150, -110], [-150, -105], [-150, -100], [-150, -95], [-150, -90],
+                [-150, -85], [-150, -80], [-150, -75], [-150, -70], [-150, -65],
+                [-150, -60], [-150, -55], [-150, -50], [-145, -50], [-140, -50],
+                [-135, -50], [-130, -50], [-125, -50], [-120, -50], [-115, -50],
+                [-110, -50], [-105, -50], [-100, -50], [-95, -50], [-90, -50], [-85, -50],
+                [-80, -50], [-75, -50], [-70, -50], [-65, -50], [-60, -50], [-55, -50],
+                [-50, -50], [-50, -45], [-45, -45], [-45, -40], [-40, -40], [-40, -35],
+                [-35, -35], [-35, -30], [-35, -25], [-35, -20], [-35, -15], [-35, -10],
+                [-35, -5], [-35, 0], [-35, 5], [-35, 10], [-35, 15], [-35, 20], [-35, 25],
+                [-35, 30], [-35, 35], [-35, 40], [-35, 45], [-35, 50], [-35, 55], [-35, 60],
+                [-35, 65], [-35, 70], [-35, 75], [-35, 80], [-35, 85], [-35, 90], [-35, 95],
+                [-35, 100], [-35, 105], [-35, 110], [-35, 115], [-35, 120], [-35, 125],
+                [-35, 130], [-35, 135], [-35, 140], [-35, 145], [-35, 150], [-35, 155],
+                [-35, 160], [-35, 165], [-35, 170], [-35, 175], [-35, 180], [-30, 180],
+                [-25, 180], [-20, 180], [-15, 180], [-10, 180], [-5, 180], [0, 180], [5, 180],
+                [10, 180], [15, 180], [20, 180], [25, 180], [30, 180], [35, 180], [40, 180],
+                [45, 180], [50, 180], [55, 180], [60, 180], [65, 180], [70, 180], [75, 180],
+                [80, 180], [85, 180], [90, 180], [95, 180], [100, 180], [105, 180], [110, 180],
+                [115, 180], [120, 180], [125, 180], [130, 180], [135, 180], [140, 180],
+                [145, 180], [150, 180], [155, 180], [160, 180], [165, 180], [170, 180],
+                [175, 180], [180, 180]]
+
+
+# submits a calculation
+# order is a string which should be executed
+def submit_pbs(order):
+
+    # parameters for PBS
+    NUM_PROCESSORS = 4  # number of processors
+    MEMORY = 4024       # working memory in MB
+    WALLTIME = 999      # walltime in hours
+    TITEL = "wham2d"    # jobtitle
+
+    with open("pbs.sh","w") as pbs:
+        pbs.write("#PBS -l nodes=1:ppn={}\n".format(NUM_PROCESSORS))
+        pbs.write("#PBS -l mem={}MB\n".format(MEMORY))
+        pbs.write("#PBS -l walltime={}:00:00\n".format(WALLTIME))
+        pbs.write("#PBS -N {}\n\n".format(TITEL))
+
+        pbs.write("cd $PBS_O_WORKDIR\n")
+        pbs.write("cp -pr * $TMPDIR\n")
+        pbs.write("cd $TMPDIR\n\n")
+
+        pbs.write(order + "\n\n")
+        pbs.write("cp -pr * $PBS_O_WORKDIR\n")
+
+    os.popen("qsub -V pbs.sh")
+
+
+# creates wham inputfile
+def create_inputfile():
+    for s1 in STEPS_1:
+        for s2 in STEPS_2:
+            if [s1,s2] in COMBINATIONS:
+                with open("in.txt","a") as inp:         
+                    inp.write("umbrella_{}_{}.txt   {}  {}   {}  {}\n".format(
+                        s1,s2,float(s1), float(s2),FORCE_CONSTANT_1, FORCE_CONSTANT_2))
+
+
+create_inputfile()
+order = ""
+if AUTO_MASK == False:
+    order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 0 > wham_out.txt".format(
+        PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
+else:
+    order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 1 > wham_out.txt".format(
+        PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
+submit_pbs(order)
+\end{lstlisting}
+
+The user input stays the same, except that \texttt{AUTO\_MASK} is now set to \texttt{True}. This is necessary because we now have bins in our surface for which there is no data. This feature tells WHAM to exclude those bins from the calculation. Furthermore we need to give a list of \texttt{COMBINATIONS} for which we have done an MD simulation (i.\,e. those from the path). Later in the script the function \texttt{create\_inputfile()} is a bit different from before and thus has to called a bit differently in the last paragraph of the code.
+
+This calculation is much shorter than the one before (just around 15 minutes) so by excluding points on the surface which are not interesting to us we don't just save time for the MD simulations but also time for the analysis with WHAM. If we look at the outputfile \texttt{out.txt} we see that for a lot of points the Free Energy is 9999999 and the probability is 0. These are probably the points which are not included in the calculation. Let's see what happens when we plot the Free Energy with the script \texttt{umbrella2d\_plot.py}. We don't have to change anything in there just copy it into the \texttt{path} folder and run it. The result is shown in figure \ref{fig:freeE_path}.
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.7\textwidth]{Img/FreeEnergy_path.png}
+	\caption{Free Energy from WHAM calculation where only surface points from lowest energy path are taken into account}
+	\label{fig:freeE_path}
+\end{figure}
+
+We see that most of the surface is yellow which means the energy is 9999999 and there's no data for that point. We also see that the violet points are where the lowest energy path was before (compare figure \ref{fig:surface_with_path}) which is good because we hope to get reasonable data for this path.
+
+The next thing we want to do is to walk on the path and plot the energy. For this we can't use the \texttt{walkThroughSurface.py} script because it searches the lowest energy path on a surface. As our surface contains a lot of bullshit entries the path it would find would probably also be bullshit (you can try if you want). Instead we have to tell where the path is that we want to walk on. We use the following script \texttt{walkOnPath.py} which can also be found in folder \texttt{optional\_files/scripts}:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
+### script that takes a PES or a Free Energy Surface and walks on a given path
+
+# USER INPUT
+FILENAME = "freeEnergy.csv"  # name of the csv file
+PATH = [[-180, -180], [-180, -175], [-175, -175], [-175, -170], [-170, -170],
+        [-170, -165], [-165, -165], [-165, -160], [-160, -160], [-160, -155],
+        [-155, -155], [-155, -150], [-150, -150], [-150, -145], [-150, -140],
+        [-150, -135], [-150, -130], [-150, -125], [-150, -120], [-150, -115],
+        [-150, -110], [-150, -105], [-150, -100], [-150, -95], [-150, -90],
+        [-150, -85], [-150, -80], [-150, -75], [-150, -70], [-150, -65],
+        [-150, -60], [-150, -55], [-150, -50], [-145, -50], [-140, -50],
+        [-135, -50], [-130, -50], [-125, -50], [-120, -50], [-115, -50],
+        [-110, -50], [-105, -50], [-100, -50], [-95, -50], [-90, -50], [-85, -50],
+        [-80, -50], [-75, -50], [-70, -50], [-65, -50], [-60, -50], [-55, -50],
+        [-50, -50], [-50, -45], [-45, -45], [-45, -40], [-40, -40], [-40, -35],
+        [-35, -35], [-35, -30], [-35, -25], [-35, -20], [-35, -15], [-35, -10],
+        [-35, -5], [-35, 0], [-35, 5], [-35, 10], [-35, 15], [-35, 20], [-35, 25],
+        [-35, 30], [-35, 35], [-35, 40], [-35, 45], [-35, 50], [-35, 55], [-35, 60],
+        [-35, 65], [-35, 70], [-35, 75], [-35, 80], [-35, 85], [-35, 90], [-35, 95],
+        [-35, 100], [-35, 105], [-35, 110], [-35, 115], [-35, 120], [-35, 125],
+        [-35, 130], [-35, 135], [-35, 140], [-35, 145], [-35, 150], [-35, 155],
+        [-35, 160], [-35, 165], [-35, 170], [-35, 175], [-35, 180], [-30, 180],
+        [-25, 180], [-20, 180], [-15, 180], [-10, 180], [-5, 180], [0, 180], [5, 180],
+        [10, 180], [15, 180], [20, 180], [25, 180], [30, 180], [35, 180], [40, 180],
+        [45, 180], [50, 180], [55, 180], [60, 180], [65, 180], [70, 180], [75, 180],
+        [80, 180], [85, 180], [90, 180], [95, 180], [100, 180], [105, 180], [110, 180],
+        [115, 180], [120, 180], [125, 180], [130, 180], [135, 180], [140, 180],
+        [145, 180], [150, 180], [155, 180], [160, 180], [165, 180], [170, 180],
+        [175, 180], [180, 180]]
+
+################################################################################
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+# read csv file
+with open(FILENAME) as pesfile:
+    lines = pesfile.readlines()
+
+# save content of csv file in matrix 'pes'
+pes = []
+for l in lines:
+    linelist = l.split(",")
+    for i,c in enumerate(linelist):
+        if c.find("\n") != -1:
+            c = c.replace("\n","")
+            linelist[i] = c
+    pes.append(linelist)
+
+# get labels
+x_labels = pes[0][1:len(pes[0])-1]  # first line
+for i,x in enumerate(x_labels):
+    x_labels[i] = int(x)
+y_labels = []                       # first column
+for i, line in enumerate(pes):
+    if i != 0 and i != len(pes)-1:
+        y_labels.append(int(line[0]))
+
+# walk path
+energies = []
+with open("path.csv","w") as path:
+    path.write("step, x, y, value\n")  # write headline
+    for i,p in enumerate(PATH):
+        x = x_labels.index(p[0])+1
+        y = y_labels.index(p[1])+1
+        value = float(pes[y][x])
+        energies.append(value)
+        path.write("{}, {}, {}, {}\n".format(i+1, p[0], p[1], value))
+
+# plot path
+plt.plot(energies)
+plt.xlabel("Step")
+plt.ylabel("Energy [kcal/mol]")
+plt.savefig("path.png")
+plt.close()
+\end{lstlisting}
+
+As input we only have to give the name of the csvfile that contains the surface and the path as a list of points on the surface. The energy of the path that is plotted by this script is shown in figure \ref{fig:path_walk}
+
+\begin{figure}[htb]
+	\center
+	\includegraphics[width=0.7\textwidth]{Img/path_walk.png}
+	\caption{Free Energy on lowest energy path for pentane if only surface points from lowest path are taken into account for WHAM calculation}
+	\label{fig:path_walk}
+\end{figure}
+
+This looks quite different from figure \ref{fig:path} where the same path is plotted just from the WHAM calculation where all data points are taken into account, not just those from lowest energy path. Furthermore an angle of -180° is identical to one of +180° which has a consequence that starting and endpoint of the ``reaction'' are the same and should have the same energy. In figure \ref{fig:path} this is the case (the difference is $0.26 \frac{kcal}{mol}$) but here the difference is around $50 \frac{kcal}{mol}$ which is quite a lot. However if we just look at the first half of the path the figures are quite similar. We see two peaks which have a height of about $6 \frac{kcal}{mol}$ (be aware that the graph in figure \ref{fig:path_walk} doesn't start which 0!) and then at step 50 the energy starts rising quite strongly. But while in figure \ref{fig:path} the energy reaches a maximum at step 67 (this is surface point -35, 5) in figure \ref{fig:path_walk} the energy continues rising until around step 100 (surface point -35, 170). After that the relative energies seem quite okay. In both paths there are two more maxima, one at around step 110 and one around step 130.
 
 \FloatBarrier
 \newpage
