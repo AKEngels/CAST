@@ -36,7 +36,7 @@ def run_calc(param):
     import shutil
     
     # user variables for calculation
-    MOLECULE = "pentan.arc"              # name of molecule file
+    MOLECULE = "pentan.arc"             # name of molecule file
     FORCEFIELD = "charmm22.prm"         # name of forcefield file
     
     PLACEHOLDER_1 = "RESTRAINT_1"       # placeholders in CAST.txt file that is replaced by step number

@@ -7,6 +7,6 @@ cd $PBS_O_WORKDIR
 cp -pr * $TMPDIR
 cd $TMPDIR
 
-python umbrella_helper.py
+python umbrella2d_helper.py
 
 cp -pr * $PBS_O_WORKDIR
