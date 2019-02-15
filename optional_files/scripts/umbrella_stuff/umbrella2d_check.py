@@ -8,8 +8,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-RANGE_X = range(-180, 185, 5)
-RANGE_Y = range(-180, 185, 5)
+# USER INPUT
+# values for the reaction coordinates in PMF
+X_MIN, X_MAX, X_STEP = -180, 180, 5
+Y_MIN, Y_MAX, Y_STEP = -180, 180, 5
+
+# calculate some stuff
+RANGE_X = range(X_MIN, X_MAX+X_STEP, X_STEP)
+RANGE_Y = range(Y_MIN, Y_MAX+Y_STEP, Y_STEP)
 
 broken_files = []
 
@@ -18,14 +24,13 @@ for VALUE in RANGE_X:
     xi_lists = []
     for filename in glob.glob("umbrella_{}_*.txt".format(VALUE)):
         print "looking at file", filename
-        error_counter = 0
         with open(filename) as umbrella_file:
             lines = umbrella_file.readlines()
         xi = []
         for i,line in enumerate(lines):
-            if error_counter == 0 and float(line.split()[2]) == 0 and filename not in broken_files:
-                broken_files.append(filename)
-                error_counter +=1
+            if float(line.split()[1]) == 0 and float(line.split()[2]) == 0 and filename not in broken_files:
+                broken_files.append(filename) # both coordinates are exactly 0 (should not happen accidently)
+                break
             xi.append(float(line.split()[2]))
         xi_lists.append(xi)
 
@@ -40,14 +45,13 @@ for VALUE in RANGE_Y:
     xi_lists = []
     for filename in glob.glob("umbrella_*_{}.txt".format(VALUE)):
         print "looking at file", filename
-        error_counter = 0
         with open(filename) as umbrella_file:
             lines = umbrella_file.readlines()
         xi = []
         for i,line in enumerate(lines):
-            if error_counter == 0 and float(line.split()[1]) == 0 and filename not in broken_files:
-                broken_files.append(filename)
-                error_counter +=1
+            if float(line.split()[1]) == 0 and float(line.split()[2]) == 0 and filename not in broken_files:
+                broken_files.append(filename) # both coordinates are exactly 0 (should not happen accidently)
+                break
             xi.append(float(line.split()[1]))
         xi_lists.append(xi)
 
@@ -57,7 +61,6 @@ for VALUE in RANGE_Y:
     plt.savefig("distribution_Y{}.png".format(VALUE), dpi=100)
     plt.close()
 
-print "BROKEN SIMULATIONS"
-print broken_files
-
+with open("broken_files.txt","w") as outfile:
+    outfile.write(broken_files)
 

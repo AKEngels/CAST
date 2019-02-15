@@ -12,10 +12,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # USER INPUT
-DIRECTION = "X"             # direction that should be plotted
-STEPS = range(-180, 185, 5) # possible values for that direction
+DIRECTION = "X"                # direction that should be plotted
+MIN, MAX, STEP = -180, 180, 5  # possible values for that direction
 
 ######################################################################
+
+STEPS = range(MIN, MAX+STEP, STEP) 
 
 P = [0]*len(STEPS)             # list for saving probability
 A = [0]*len(STEPS)             # list for saving sum of free energy

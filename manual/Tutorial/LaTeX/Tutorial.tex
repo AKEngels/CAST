@@ -1528,7 +1528,9 @@ After it has finished we again get a tracefile, a snapshot file and a file \text
 	\label{fig:pentan}
 \end{figure}
 
-So what we have to do now is to perform this calculation for every combination of the two torsional angles. In each of the two dimensions we want to have 73 windows as before so we have a total of 5329 calculations. To submit them we again want to use a python script which will be shown below. What is does is to create a folder for every calculation and start it. Because we have a lot of calculations there will be a hierachy of folders so that a calculation where the first torsion is restrained to angle $x$ and the second torsion to angle $y$ is in a folder \texttt{f\_x/f\_y}. So if you are not on UNICORN and can't use our script you must somehow perform the calculations in folders of the same name and the same hierarchy in order to be able to use the analyse scripts provided.
+So what we have to do now is to perform this calculation for every combination of the two torsional angles. In each of the two dimensions we want to have 73 windows as before so we have a total of 5329 calculations. To submit them we again want to use a python script. What is does is to create a folder for every calculation and start it. Because we have a lot of calculations there will be a hierachy of folders so that a calculation where the first torsion is restrained to angle $x$ and the second torsion to angle $y$ is in a folder \texttt{f\_x/f\_y}. So if you are not on UNICORN and can't use our script you must somehow perform the calculations in folders of the same name and the same hierarchy in order to be able to use the analyse scripts provided.
+
+\textbf{General hint about scripts} For performing and analyzing 2D umbrella calculations we will use a lot of script some of which are quite long. For this reason it would be confusing to print all of them in this tutorial. So they won't be included here but you can find the exact version which was used for the tutorial in folder \texttt{manual/Tutorial/scripts} of the CAST repository. Furthermore most of them are also in folder \texttt{optional\_files/scripts} but they might change in time.
 
 If you are on UNICORN and want to use the recommended script to start the calculations create a folder and copy the files \texttt{pentan.arc}, \texttt{charmm22.arc} and \texttt{CAST.txt} into it. In \texttt{CAST.txt} you have to replace the restrained torsional angles by placeholders that will be replaced by the script, so the \texttt{UStorsion} option is:
 \begin{lstlisting}[frame=single,]
@@ -1537,290 +1539,22 @@ UStorsion              2 6 9 12 0.05 RESTRAINT_2
 \end{lstlisting}
 Again we set \texttt{MDtrack} and \texttt{MDsnap} to \texttt{0} to save disk space.
  
-The script we use now is a bit more complicated than the above one because it doesn't send all the calculations at once but uses a timing. You don't have to understand in detail what it's doing so for a better explanation of the script \texttt{fake\_queue.py} we refer to the AKEngels Wiki. So you should  start the script in a terminal where it's okay if the script is running for some hours. The script will call two other scripts called \texttt{python.sh} and \texttt{umbrella\_helper.py} which have also be copied into the folder. You also find them in folder \texttt{optional\_files/scripts/umbrella\_stuff}.
+The script we use now is a bit more complicated than the above one because it doesn't send all the calculations at once but uses a timing. You don't have to understand in detail what it's doing so for a better explanation of the script \texttt{fake\_queue.py} we refer to the AKEngels Wiki. So you should start the script in a terminal where it's okay if the script is running for some hours. The script will call two other scripts called \texttt{python.sh} and \texttt{umbrella2d\_helper.py} which have also be copied into the folder. 
 
-\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,escapechar=|]
-############################## DESCRIPTION ##############################################
-
-# This is a script with which you can get a better control over the queue on UNICORN.
-# You can give a number of jobs which you want to at maximum send to the queue and a time <t>.
-# Every <t> seconds the script looks at qstat how many jobs you have currently running.
-# It determines how many jobs can now be sent and submits them.
-
-# You have to give a list of parameters with which the calculation is sent.
-# Furthermore you have to give a function run_calc(param) which runs the calculation.
-# For a better understanding you can imagine this program to just take the parameter list
-# and run the function for every parameter in there (just in a more clever timing).
-
-
-####################################### STUFF DEFINED BY USER ############################
-
-MAX_JOBS = 25      # this is the maximum number of jobs I want to send to queue
-DELAY = 300        # time in seconds for which the program waits before looking again
-
-# list where every element is the parameter of one calculation
-# elements of list can be anything, like numbers, lists or objects of a user-defined class
-PARAMETER_LIST = range(-180, 185, 5)
-
-# user defined function to start a job, depending on one element from PARAMETER_LIST
-# this function is just an example (it performs an umbrella sampling with CAST)
-# the user might delete the content of this function and write it new
-def run_calc(param):
-
-    # modules necessary for running the job
-    import os
-    import shutil
-
-    # user variables for calculation
-    MOLECULE = "pentan.arc"      # name of molecule file
-    FORCEFIELD = "charmm22.prm"  # name of forcefield file
-    SUBMIT_SCRIPT = "python.sh"  # submit script
-    PLACEHOLDER = "RESTRAINT_1"  # placeholder in CAST.txt file that is replaced by step number
-
-    # create folder for current window
-    os.mkdir("f_{}".format(param))
-
-    # copy necessary files to that folder (USER INPUT)
-    shutil.copy(MOLECULE,"f_{}/{}".format(param, MOLECULE))
-    shutil.copy(FORCEFIELD,"f_{}/{}".format(param, FORCEFIELD))
-    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(param))
-    shutil.copy("python.sh", "f_{}/python.sh".format(param))
-    shutil.copy("umbrella_helper.py", "f_{}/umbrella_helper.py".format(param))
-
-    # important: set correct parameter in inputfile
-    with open("f_{}/CAST.txt".format(param)) as inp:
-        x = inp.read()
-        x = x.replace(PLACEHOLDER,str(float(param)))
-    with open("f_{}/CAST.txt".format(param),"w") as inp:
-        inp.write(x)
-
-    # optional: change jobtitle in submit-script
-    with open("f_{}/python.sh".format(param)) as inp:
-        x = inp.read()
-        x = x.replace("TITEL",str(param))
-    with open("f_{}/python.sh".format(param),"w") as inp:
-        inp.write(x)
-
-    # submit calculation
-    os.chdir("f_{}".format(param))
-    os.popen("qsub -V python.sh")
-    os.chdir("..")
-
-
-########################################### PROGRAM ########################################
-
-import subprocess
-import sys
-import time
-
-# function that executes qstat and counts how many jobs are already there
-def look_for_running_jobs():
-    qstat_str = subprocess.Popen(['qstat'], stdout=subprocess.PIPE).stdout.read()
-    qstat_list = qstat_str.split('\n')
-    return len(qstat_list) - 3   # subtract two lines for title and one empty line at the end
-
-# function that submits a certain number of jobs
-# starting_counter: index of the first calculation to be sent
-# jobs_to_be_sent: total number of calculations that should be sent now
-# returns the index of the next calculation that must be sent afterwards
-def start_next_jobs(starting_counter, jobs_to_be_sent):
-    counter = starting_counter
-    for i in range(starting_counter, jobs_to_be_sent+starting_counter):
-        print "Starting job", counter+1, "of", len(PARAMETER_LIST), ":", PARAMETER_LIST[counter]
-        run_calc(PARAMETER_LIST[counter])
-        counter += 1
-        if counter == len(PARAMETER_LIST):
-            sys.exit(0)
-    return counter
-
-# counter of the jobs that are already sent
-counter = 0
-
-# see how many jobs are running and how much can be sent now
-current_jobs = look_for_running_jobs()
-jobs_to_be_sent = MAX_JOBS - current_jobs
-if jobs_to_be_sent < 0:
-    raise ValueError("There are more jobs running than are allowed to be sent.")
-
-# start the first jobs
-print time.ctime(), ":", current_jobs, "jobs running,", jobs_to_be_sent, "will be sent"
-counter = start_next_jobs(counter, jobs_to_be_sent)
-
-# while there are still jobs left:
-while True:
-    time.sleep(DELAY)
-    current_jobs = look_for_running_jobs()
-    jobs_to_be_sent = MAX_JOBS - current_jobs
-    if jobs_to_be_sent < 0:
-        print time.ctime(), ":", current_jobs, "jobs running, no jobs will be sent"
-    else:
-        print time.ctime(), ":", current_jobs, "jobs running,", jobs_to_be_sent, "will be sent"
-        counter = start_next_jobs(counter, jobs_to_be_sent)
-\end{lstlisting}
-{\raggedleft\texttt{fake\_queue.py}}
-
-\begin{lstlisting}[frame=single,language=bash,basicstyle=\footnotesize,numbers=left,escapechar=|]
-#PBS -l nodes=1:ppn=4                                                           
-#PBS -l mem=4020MB
-#PBS -l walltime=999:00:00
-#PBS -N TITEL
-
-cd $PBS_O_WORKDIR
-cp -pr * $TMPDIR
-cd $TMPDIR
-python umbrella_helper.py
-cp -pr * $PBS_O_WORKDIR
-\end{lstlisting}
-{\raggedleft\texttt{python.sh}}
-
-\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
-# list of parameters (in this case torsional angle 2)
-PARAMETER_LIST = range(-180, 185, 5)
-
-# user defined function to start a job, depending on one element from PARAMETER_LIST
-def run_calc(param):
-
-    # modules necessary for running the job
-    import os
-    import shutil
-
-    # user variables for calculation
-    PLACEHOLDER = "RESTRAINT_2"       # placeholder in CAST.txt file
-
-    # create folder for current window
-    os.mkdir("f_{}".format(param))
-
-    # copy necessary files to that folder (USER INPUT)
-    shutil.copy("CAST.txt", "f_{}/CAST.txt".format(param))
-    shutil.copy("pentan.arc", "f_{}/pentan.arc".format(param))
-    shutil.copy("charmm22.prm", "f_{}/charmm22.prm".format(param))
-    shutil.copy("/apps/CAST/CAST/optional_files/build/CAST_linux_x64_release", 
-                "f_{}/CAST.exe".format(param))
-
-    # important: set correct parameter in inputfile
-    with open("f_{}/CAST.txt".format(param)) as inp:
-        x = inp.read()
-        x = x.replace(PLACEHOLDER,str(float(param)))
-    with open("f_{}/CAST.txt".format(param),"w") as inp:
-        inp.write(x)
-
-    # submit calculation
-    os.chdir("f_{}".format(param))
-    os.popen("chmod +x CAST")
-    os.popen("./CAST.exe | tee CAST_OUTPUT.txt")
-    os.chdir("..")
-
-
-########################################### PROGRAM ########################################
-
-for p in PARAMETER_LIST:
-    run_calc(p)
-\end{lstlisting}
-{\raggedleft\texttt{umbrella\_helper.py}}
+As user input you only need a \texttt{PARAMETER\_LIST} in \texttt{fake\_queue.py} and one in \texttt{umbrella2d\_helper}. The first contains the values for the x-coordinate (i.\,e. the first torsion), the second contains the values for the y-coordinate (i.\,e. the second torsion). In our case both are [-180, -175, ..., 0, 5, 10, ..., 180].
 
 So we start the script by typing \texttt{python fake\_queue.py} into the terminal and wait...\\
-\vspace{0.3cm}
 
-For the next step we again have to copy all the \texttt{umbrella.txt} files into one folder and run the WHAM program on them. Because now we have two dimensions we have to use the subprogram \texttt{wham2d}. The use of it is quite similar to the one-dimensional program and is also described in the WHAM manual. For copying the files and running \texttt{wham2d} we use the python script \texttt{umbrella2d\_analysis.py} which looks like that:
-\begin{landscape}
-\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left]
-### script to analyse a 2D umbrella calculation ###
-
-import os
-import shutil
-
-# USER INPUT
-PATH = "/apps/wham/wham-2d/wham-2d"   # path to WHAM program
-
-STEPS_1 = range(-180, 185, 5)         # values for first restraint
-FORCE_CONSTANT_1 = 0.05               # force constant of biasing potential for restraint 1
-STEPS_2 = range(-180, 185, 5)         # values for second restraint
-FORCE_CONSTANT_2 = 0.05               # force constant of biasing potential for restraint 2
-
-# ... for WHAM
-MIN_1 = -182.5        # boundaries of historgram for restraint 1
-MAX_1 = 182.5
-BINS_1 = 73           # number of points in final PMF (= number of bins) for restraint 1
-
-MIN_2 = -182.5        # boundaries of historgram for restraint 2
-MAX_2 = 182.5
-BINS_2 = 73           # number of points in final PMF (= number of bins) for restraint 2
-
-TEMP = 300          # temperature for WHAM 
-TOL = 0.00001       # tolerance for WHAM interations
-AUTO_MASK = False   # should auto-mask feature be turned on?
-
-
-# submits a calculation
-# order is a string which should be executed
-def submit_pbs(order):
-
-    # parameters for PBS
-    NUM_PROCESSORS = 4  # number of processors
-    MEMORY = 4024       # working memory in MB
-    WALLTIME = 999      # walltime in hours
-    TITEL = "wham2d"    # jobtitle
-
-    with open("pbs.sh","w") as pbs:
-        pbs.write("#PBS -l nodes=1:ppn={}\n".format(NUM_PROCESSORS))
-        pbs.write("#PBS -l mem={}MB\n".format(MEMORY))
-        pbs.write("#PBS -l walltime={}:00:00\n".format(WALLTIME))
-        pbs.write("#PBS -N {}\n\n".format(TITEL))
-
-        pbs.write("cd $PBS_O_WORKDIR\n")
-        pbs.write("cp -pr * $TMPDIR\n")
-        pbs.write("cd $TMPDIR\n\n")
-
-        pbs.write(order + "\n\n")
-        pbs.write("cp -pr * $PBS_O_WORKDIR\n")
-
-    os.popen("qsub -V pbs.sh")
-
-
-# creates a folder 'analysis' and copies all 'umbrella.txt' files there
-# to the names of the files the step is added
-# furthermore a file 'in.txt' is created that is used as input for WHAM
-# if files are missing this function returns false, otherwise true
-def copy_and_and_create_inputfile():
-    success = True
-    os.mkdir("analysis") # create folder
-    for s1 in STEPS_1:
-        for s2 in STEPS_2:
-            print "looking at", s1, s2
-            if os.path.isfile("f_{}/f_{}/umbrella.txt".format(s1,s2)):
-                # copy and rename file
-                shutil.copy("f_{}/f_{}/umbrella.txt".format(s1,s2), "analysis/umbrella_{}_{}.txt".format(s1,s2))
-                # write inputfile for WHAM
-                with open("analysis/in.txt","a") as inp:         
-                    inp.write("umbrella_{}_{}.txt   {}  {}   {}  {}\n".format(s1,s2,float(s1), float(s2),
-                                                                              FORCE_CONSTANT_1, FORCE_CONSTANT_2))
-            else:
-                print "No file 'umbrella.txt' in folder", s
-                sucess = False
-    return success
-
-
-if copy_and_and_create_inputfile():
-    os.chdir("analysis")
-    order = ""
-    if AUTO_MASK == False:
-        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 0 > wham_output.txt".format(
-                PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
-    else:
-        order = "{} Px=0 {} {} {} Py=0 {} {} {} {:.9f} {} 0 in.txt out.txt 1 > wham_output.txt".format(
-                PATH, MIN_1, MAX_1, BINS_1, MIN_2, MAX_2, BINS_2, TOL, TEMP)
-    submit_pbs(order)
-\end{lstlisting}
-\end{landscape}
-
-Because now the WHAM calculation lasts much longer it is submitted to the queue by the function \texttt{submit\_pbs()}. If you don't want this but instead want to run \texttt{wham2d} on the headnode (not recommended on UNICORN!) just replace the last line by:
-\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen},numbers=left,firstnumber=86]
+For the next step we again have to copy all the \texttt{umbrella.txt} files into one folder and run the WHAM program on them. Because now we have two dimensions we have to use the subprogram \texttt{wham2d}. The use of it is quite similar to the one-dimensional program and is also described in the WHAM manual. For copying the files and running \texttt{wham2d} we use the python script \texttt{umbrella2d\_analysis.py}. Because now the WHAM calculation lasts much longer it is submitted to the queue by the function \texttt{submit\_pbs()}. If you don't want this but instead want to run \texttt{wham2d} on the headnode (not recommended on UNICORN!) just replace the last line by:
+\begin{lstlisting}[frame=single,language=python,basicstyle=\footnotesize,commentstyle=\color{red},keywordstyle=\color{blue},stringstyle=\color{mygreen}]
     os.popen(order)
 \end{lstlisting}
 
-Most of the user input is self-explanatory as it is quite the same as for 1D-WHAM. The only thing that is new is the parameter \texttt{AUTO\_MASK}. We will see later what this is, for now we just deactivate it.
+As user input we need the path to \texttt{wham2d}. As \texttt{WINDOWS\_X} and \texttt{WINDOWS\_Y} we have to give a list of the values for the x- and y-coordinate respectively (identical to \texttt{PARAMETER\_LISTS}) before. \texttt{FORCE\_CONSTANT\_X} and \texttt{FORCE\_CONSTANT\_Y} are the two force constants (in our case they are identical at 0.05). WHAM also needs the minimum and maximum values as well as the number of bins for both directions. We give the same values here as for the one-dimensional umbrella above. Furthermore we have to give the temperature and a tolerance which is also the same as before. The only really new parameter is \texttt{AUTO\_MASK}. We will see later what this is, for now we just deactivate it.
 
 Again we start our script with \texttt{python umbrella2d\_analysis.py} and wait...
+
+\colorbox{red}{Written new until here!}
 
 After the script has finished (in my case it needed around 21 hours) we can look at the output. The interesting stuff again is in the output file \texttt{out.txt}. It contains four columns: In the first and second are the reaction coordinates x and y (i.\,e. the two torsional angles), the third contains the free energy for this combination of reaction coordinates and the fourth the probability. 
 
