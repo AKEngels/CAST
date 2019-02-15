@@ -8,14 +8,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-# USER INPUT
-# values for the reaction coordinates in PMF
-X_MIN, X_MAX, X_STEP = -180, 180, 5
-Y_MIN, Y_MAX, Y_STEP = -180, 180, 5
-
-# calculate some stuff
-RANGE_X = range(X_MIN, X_MAX+X_STEP, X_STEP)
-RANGE_Y = range(Y_MIN, Y_MAX+Y_STEP, Y_STEP)
+RANGE_X = range(-180, 185, 5)
+RANGE_Y = range(-180, 185, 5)
 
 broken_files = []
 
@@ -62,5 +56,5 @@ for VALUE in RANGE_Y:
     plt.close()
 
 with open("broken_files.txt","w") as outfile:
-    outfile.write(broken_files)
+    outfile.write(str(broken_files))
 
