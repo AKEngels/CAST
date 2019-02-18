@@ -88,6 +88,27 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
 	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
+  if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";    // set number of processors
+
+  if (Config::get().energy.orca.cpcm == true)    // if implicit solvent requested
+  {
+    inp << "\n%cpcm\n";
+    inp << "  epsilon " << Config::get().energy.orca.eps << "\n";
+    inp << "  refrac " << Config::get().energy.orca.refrac << "\n";
+    inp << "end\n";
+  }
+
+  if (Config::get().energy.orca.casscf == true)   // if casscf section requested
+  {
+    inp << "\n%casscf\n";
+    inp << "  nel " << Config::get().energy.orca.nelec << "\n";
+    inp << "  norb " << Config::get().energy.orca.norb << "\n";
+    inp << "  nroots " << Config::get().energy.orca.nroots << "\n";
+    inp << "  mult " << Config::get().energy.orca.multiplicity << "\n";
+    if (Config::get().energy.orca.nr == true) inp << "  switchstep nr\n";
+    if (Config::get().energy.orca.nevpt == true) inp << "  NEVPT2 true\n";
+    inp << "end\n";
+  }
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 

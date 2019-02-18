@@ -779,6 +779,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 		if (option.substr(4, 4) == "path") {
 			Config::set().energy.orca.path = value_string;
 		}
+		else if (option.substr(4, 5) == "nproc") {
+			Config::set().energy.orca.nproc = std::stoi(value_string);
+		}
 		else if (option.substr(4, 6) == "method") {
 			Config::set().energy.orca.method = value_string;
 		}
@@ -797,6 +800,33 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4, 7) == "verbose") {
       Config::set().energy.orca.verbose = std::stoi(value_string);
     }
+		else if (option.substr(4, 6) == "casscf") {
+			if (value_string == "1") Config::set().energy.orca.casscf = true;
+		}
+		else if (option.substr(4, 5) == "nelec") {
+			Config::set().energy.orca.nelec = std::stoi(value_string);
+		}
+		else if (option.substr(4, 4) == "norb") {
+			Config::set().energy.orca.norb = std::stoi(value_string);
+		}
+		else if (option.substr(4, 6) == "nroots") {
+			Config::set().energy.orca.nroots = std::stoi(value_string);
+		}
+		else if (option.substr(4, 2) == "nr") {
+			if (value_string == "1") Config::set().energy.orca.nr = true;
+		}
+		else if (option.substr(4, 5) == "nevpt") {
+			if (value_string == "1") Config::set().energy.orca.nevpt = true;
+		}
+		else if (option.substr(4, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.orca.cpcm = true;
+		}
+		else if (option.substr(4, 3) == "eps") {
+			Config::set().energy.orca.eps = std::stod(value_string);
+		}
+		else if (option.substr(4, 6) == "refrac") {
+			Config::set().energy.orca.refrac = std::stod(value_string);
+		}
 	}
 
   //Gaussian options
@@ -824,6 +854,15 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.delete_input = bool_from_iss(cv);
     else if (option.substr(8, 7) == "maxfail")
       Config::set().energy.gaussian.maxfail = std::stoi(value_string);
+		else if (option.substr(8, 4) == "cpcm") {
+			if (value_string == "1") Config::set().energy.gaussian.cpcm = true;
+		}
+		else if (option.substr(8, 6) == "epsinf") {
+			Config::set().energy.gaussian.epsinf = std::stod(value_string);
+		}
+		else if (option.substr(8, 3) == "eps") {
+			Config::set().energy.gaussian.eps = std::stod(value_string);
+		}
   }
   else if (option.substr(0, 9) == "CHEMSHELL") {
 	  auto sub_option = option.substr(10);

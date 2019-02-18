@@ -417,6 +417,9 @@ multipole moments (for example DMA multipoles).\\
 	\end{longtable}	
 
 	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
+	
+	\textbf{Hint about the interfaces to external programs}\\
+	For all the external programs (MOPAC, GAUSSIAN, PSI4, DFTB, ORCA) only selected features are available for CAST. However for most feature it is not that much of a problem to provide access. So if you desire a feature from one of those programs that is currently not available through CAST just write an issue in our github repository then we will try to fix this.
 
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -478,19 +481,33 @@ multipole moments (for example DMA multipoles).\\
 	
 \subsubsection{ORCA}
 	
-There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords you have to set:
+There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords:
 
-			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	ORCApath  & path to Orca including command & string [no default]\\
+	ORCAnproc  & number of processors used for parallel computing & int [4]\\
 	ORCAmethod & calculation method for Orca & string [no default]\\
 	ORCAbasisset & basisset for Orca calculation & string [no default]\\
 	ORCAcharge & total charge of the system & int [0] \\
 	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
 	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
 	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+	\textbf{OPTIONS} & \textbf{FOR}  & \textbf{CASSCF}  \\
+    ORCAcasscf & add casscf section to inputfile? & bool [false]   \\
+    ORCAnelec  & number of electrons & int [no default]   \\
+    ORCAnorb  & number of orbitals & int [no default]   \\
+    ORCAnroots  & number of roots & int [no default]   \\
+    ORCAnr & use Newton-Raphson algorithm?  & bool [false]   \\
+    ORCAnevpt & switch on NEVPT2?  & bool [false]   \\
+    \textbf{OPTIONS} & \textbf{FOR}  & \textbf{CPCM}  \\
+    ORCAcpcm & add cpcm section to inputfile? & bool [false]   \\
+    ORCAeps & dielectric constant & double [no default]   \\
+    ORCArefrac & refractive index & double [no default]   \\
 \end{longtable}
+
+\textbf{Attention!} If you choose to add a section for CASSCF or CPCM you have to set \textbf{all} the keywords for this section otherwise there will be nonsense in the orca inputfile!
 
 \textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. To fix this you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			
@@ -541,7 +558,20 @@ GAUSSIANdelete          1
 #Number of failed gaussian calls when CAST breaks
 
 GAUSSIANmaxfail      1000
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
 \end{lstlisting}
+
+\textbf{Attention!} If you switch on CPCM you also have to set \texttt{GAUSSIANeps} and \texttt{GAUSSIANepsinf} otherwise the gaussian inputfile will be nonsense.
 
 If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual.
 

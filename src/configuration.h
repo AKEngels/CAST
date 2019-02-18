@@ -682,6 +682,8 @@ namespace config
 		{
 			/**path to orca*/
 			std::string path;
+			/**number of processors used*/
+			int nproc;
 			/**method*/
 			std::string method;
 			/**basisset*/
@@ -696,9 +698,33 @@ namespace config
       
       /**verbosity (from 0 to 4)*/
       int verbose;
+
+			// stuff for casscf calculation
+
+			/**add casscf section*/
+			bool casscf;
+			/**number of electrons*/
+			int nelec;
+			/**number of orbitals*/
+			int norb;
+			/**number of roots*/
+			int nroots;
+			/**use Newton-Raphson algorithm?*/
+			bool nr;
+			/**switch on NEVPT2?*/
+			bool nevpt;
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double refrac;
 			
 			/**constructor*/
-			orca_conf(void):charge(0), multiplicity(1), opt(1), verbose(1) {}
+			orca_conf(void): nproc(4), charge(0), multiplicity(1), opt(1), verbose(1), casscf(false), nr(false), nevpt(false), cpcm(false) {}
 		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
@@ -726,8 +752,18 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
-         steep{ true }, maxfail{1000u}
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double epsinf;
+
+			gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, delete_input{ true }, opt{ true }, 
+         steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;
 
