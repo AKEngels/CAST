@@ -480,7 +480,7 @@ multipole moments (for example DMA multipoles).\\
 	
 There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords:
 
-			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
+\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
 	\hline
 	ORCApath  & path to Orca including command & string [no default]\\
@@ -555,7 +555,20 @@ GAUSSIANdelete          1
 #Number of failed gaussian calls when CAST breaks
 
 GAUSSIANmaxfail      1000
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+GAUSSIANcpcm        1
+
+# dielectric constant 
+GAUSSIANeps         2.0
+
+# dynamic dielectric constant (might be square of refractive index)
+GAUSSIANepsinf      1.0
 \end{lstlisting}
+
+\textbf{Attention!} If you switch on CPCM you also have to set GAUSSIANeps and GAUSSIANepsinf otherwise the gaussian inputfile will be nonsense.
 
 If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual.
 

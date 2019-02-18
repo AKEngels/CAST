@@ -752,7 +752,17 @@ namespace config
       bool steep;
       /**after this number of failed gaussian calls CAST breaks*/
       int maxfail;
-      gaussian_conf(void) : method{"Hf/ "}, basisset {""}, spec{""}, delete_input{true}, opt{true},
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double epsinf;
+
+			gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, delete_input{ true }, opt{ true }, cpcm{ false },
          steep{ true }, maxfail{1000u}
       {}
     } gaussian;
