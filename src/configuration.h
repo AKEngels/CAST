@@ -698,9 +698,33 @@ namespace config
       
       /**verbosity (from 0 to 4)*/
       int verbose;
+
+			// stuff for casscf calculation
+
+			/**add casscf section*/
+			bool casscf;
+			/**number of electrons*/
+			int nelec;
+			/**number of orbitals*/
+			int norb;
+			/**number of roots*/
+			int nroots;
+			/**use Newton-Raphson algorithm?*/
+			bool nr;
+			/**switch on NEVPT2?*/
+			bool nevpt;
+
+			// stuff for implicit solvent (CPCM)
+
+			/**switch on cpcm?*/
+			bool cpcm;
+			/**dielectric constant*/
+			double eps;
+			/**refractive index*/
+			double refrac;
 			
 			/**constructor*/
-			orca_conf(void):charge(0), multiplicity(1), opt(1), verbose(1), nproc(4) {}
+			orca_conf(void): nproc(4), charge(0), multiplicity(1), opt(1), verbose(1), casscf(false), nr(false), nevpt(false), cpcm(false) {}
 		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
