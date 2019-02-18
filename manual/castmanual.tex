@@ -1164,7 +1164,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	
 	%%%% UMBRELLA %%%%
 	\subsection{UMBRELLA - Umbrella Sampling}
-	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features two kinds of reaction coordinates which can be sampled: distances and dihedral angles. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any three or four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
+	The \acf{US}\supercite{umbrellasampling1, umbrellasampling2, umbrellasamplingreview} implementation features two kinds of reaction coordinates which can be sampled: distances and dihedral angles. Distances can be chosen between any two particles in the system. Dihedrals can be defined between any four particles in the system. None of the reaction coordinates is limited to existing internal coordinates of the system.
 	The \acl{US} implementation is divided into two parts: equilibration with the applied bias potential and a production run with the applied bias potential. For all reaction coordinates a half harmonic potential is used. The number of steps for equilibration is defined by the \glqq\textit{USequil}\grqq~configuration variable. The number of production steps is defined by the \glqq\textit{MDsteps}\grqq~variable.
 
 	\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
@@ -1193,6 +1193,20 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The \acl{US} output is written to a file named ``umbrella.txt''. For every window one has to start an individual run with the corresponding value of the restraint. The output is formatted for use with the \ac{WHAM} program\supercite{wham1, wham2} for post-processing. For details on the use of WHAM we refer the reader to the corresponding \ac{WHAM} manual.
 	
 	In our tutorial we describe in detail how to perform an Umbrella Sampling including the analsis with WHAM.
+	
+	\textbf{2D Umbrella}
+	
+	It is also possible to perform umbrella sampling in two dimensions. The two reaction coordinates which are sampled must be of the same type, i.\,e. it is not possible to combine a distance and a torsion. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
+	
+	\begin{itemize}
+		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py}
+		\item Start WHAM with \texttt{umbrella2d\_analysis.py}
+		\item Plot distributions and check if all simulations are okey with \texttt{umbrella2d\_check.py}
+		\item Plot heatmaps for Free Energy and Probability with \texttt{umbrella2d\_plot.py}. This script also writes a csv file which can be used as input for \texttt{walkThroughSurface.py} which finds lowest energy path through the surface.
+		\item If desired: create more detailed plots with \texttt{umbrella2d\_cut.py} and \texttt{umbrella2d\_add.py}
+	\end{itemize}
+
+    If you don't want the whole free energy surface but just a given path you don't have to perform MDs on every point of the surface but only on those on or near the path. An example of that is also described in the tutorial.
 
 	%%%% NEB %%%%
 	\subsection{NEB - Nudged Elastic Band Method}	

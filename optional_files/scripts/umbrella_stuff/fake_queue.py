@@ -75,7 +75,10 @@ import time
 def look_for_running_jobs():
     qstat_str = subprocess.Popen(['qstat'], stdout=subprocess.PIPE).stdout.read()
     qstat_list = qstat_str.split('\n')
-    return len(qstat_list) - 3   # subtract two lines for title and one empty line at the end
+    if len(qstat_list) < 3:     # no calculations running
+        return 0
+    else:                       # subtract two lines for title and one empty line at the end
+        return len(qstat_list) - 3   
 
 # function that submits a certain number of jobs
 # starting_counter: index of the first calculation to be sent
