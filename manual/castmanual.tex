@@ -417,6 +417,9 @@ multipole moments (for example DMA multipoles).\\
 	\end{longtable}	
 
 	In contrast to the force fields, the external interfaces do not need correct force field parameters, so you can use PDB or XYZ as input (or TINKER with bullshit parameters).
+	
+	\textbf{Hint about the interfaces to external programs}\\
+	For all the external programs (MOPAC, GAUSSIAN, PSI4, DFTB, ORCA) only selected features are available for CAST. However for most feature it is not that much of a problem to provide access. So if you desire a feature from one of those programs that is currently not available through CAST just write an issue in our github repository then we will try to fix this.
 
 		%% MOPAC
 		\subsubsection{MOPAC}
@@ -568,7 +571,7 @@ GAUSSIANeps         2.0
 GAUSSIANepsinf      1.0
 \end{lstlisting}
 
-\textbf{Attention!} If you switch on CPCM you also have to set GAUSSIANeps and GAUSSIANepsinf otherwise the gaussian inputfile will be nonsense.
+\textbf{Attention!} If you switch on CPCM you also have to set \texttt{GAUSSIANeps} and \texttt{GAUSSIANepsinf} otherwise the gaussian inputfile will be nonsense.
 
 If you want to do DFTB calculations with GAUSSIAN set the GAUSSIANmethod to ``DFTB=read'' or ``DFTBA'' and comment out GAUSSIANbasisset in the inputfile. For DFTB you have to provide the slater-koster files for the atom pairs in your molecule. Download them from dftb.org and convert them to the needed format with the help of the task MODIFY\_SK\_FILES. For further information see the description of this task later in the manual.
 

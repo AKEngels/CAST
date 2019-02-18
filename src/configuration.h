@@ -762,8 +762,8 @@ namespace config
 			/**refractive index*/
 			double epsinf;
 
-			gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, delete_input{ true }, opt{ true }, cpcm{ false },
-         steep{ true }, maxfail{1000u}
+			gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, delete_input{ true }, opt{ true }, 
+         steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;
 
