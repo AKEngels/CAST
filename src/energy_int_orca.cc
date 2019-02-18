@@ -88,7 +88,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
 	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
-  inp << "! PAL" << Config::get().energy.orca.nproc << "\n";                                             // set number of processors
+  if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";    // set number of processors
 
   if (Config::get().energy.orca.cpcm == true)    // if implicit solvent requested
   {

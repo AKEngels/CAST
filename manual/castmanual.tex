@@ -478,7 +478,7 @@ multipole moments (for example DMA multipoles).\\
 	
 \subsubsection{ORCA}
 	
-There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords you have to set:
+There is also an interface to the program Orca available. To use it set the option \texttt{interface} to \texttt{ORCA}. These are the keywords:
 
 			\begin{longtable}{|p{3cm}|p{5cm}|p{3cm}|}
 	variable & effect & type [default value] \\
@@ -491,7 +491,20 @@ There is also an interface to the program Orca available. To use it set the opti
 	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
 	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
 	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+	\textbf{OPTIONS} & \textbf{FOR}  & \textbf{CASSCF}  \\
+    ORCAcasscf & add casscf section to inputfile? & bool [false]   \\
+    ORCAnelec  & number of electrons & int [no default]   \\
+    ORCAnorb  & number of orbitals & int [no default]   \\
+    ORCAnroots  & number of roots & int [no default]   \\
+    ORCAnr & use Newton-Raphson algorithm?  & bool [false]   \\
+    ORCAnevpt & switch on NEVPT2?  & bool [false]   \\
+    \textbf{OPTIONS} & \textbf{FOR}  & \textbf{CPCM}  \\
+    ORCAcpcm & add cpcm section to inputfile? & bool [false]   \\
+    ORCAeps & dielectric constant & double [no default]   \\
+    ORCArefrac & refractive index & double [no default]   \\
 \end{longtable}
+
+\textbf{Attention!} If you choose to add a section for CASSCF or CPCM you have to set \textbf{all} the keywords for this section otherwise there will be nonsense in the orca inputfile!
 
 \textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. To fix this you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			

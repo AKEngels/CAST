@@ -133,9 +133,9 @@ paramfile              charmm22.prm
 
 ################## QM/MM OPTIONS ####################
 
-QMMMqmatoms           1,6-12
+QMMMqmatoms           6,9,10,11,12,13,14,15
 QMMMmminterface       OPLSAA
-QMMMqminterface       GAUSSIAN
+QMMMqminterface       ORCA
 
 # write tinkerstructure of QM region into file? <0/1>
 QMMMwriteqmintofile   1
@@ -143,13 +143,12 @@ QMMMwriteqmintofile   1
 # energy types of link atoms in forcefield (in the order of QM atom)
 # if three-layer: for middle system
 QMMMlinkatomtype      85
-QMMMlinkatomtype      221
 
 # cutoff for electrostatic interaction
 #QMMMcutoff            10
 
 # for atoms that are seperated from the inner region by a maximum of ... bonds the charges are set to zero for electronic embedding (available options: 0, 1, 2 or 3; where 0 means mechanical embedding)
-QMMMzerocharge_bonds   3
+QMMMzerocharge_bonds   1
 
 
 # for three-layer only:
@@ -229,7 +228,7 @@ GAUSSIANmaxfail      1000
 ORCApath      /apps/orca/4.1/ORCA/orca
 
 # number of processors used
-ORCAnproc     4
+ORCAnproc     8
 
 # method for ORCA
 ORCAmethod    HF
@@ -246,8 +245,39 @@ ORCAmultiplicity   1
 # which optimizer should be used? (0=CAST, 1=ORCA)
 ORCAopt        1
 
-# verbosity for ORCA (0 - 4)
+# verbosity for ORCA (0 - 5)
 ORCAverbose     1
+
+###### stuff for casscf calculations ######
+
+# add casscf section to inputfile <0/1>
+ORCAcasscf      1
+
+# number of electrons
+ORCAnelec       2
+
+# number of orbitals
+ORCAnorb        4
+
+# number of roots
+ORCAnroots      1
+
+# use Newton-Raphson algorithm <0/1>
+ORCAnr          1
+
+# switch on NEVPT2 <0/1>
+ORCAnevpt       1
+
+###### stuff for implicit solvent ######
+
+# use conductor-like polarizable continuum model (CPCM) <0/1>
+ORCAcpcm        1
+
+# dielectric constant 
+ORCAeps         2.0
+
+# refractive index
+ORCArefrac      1.0
 
 
 ################# DFTB+ Options #################################################
@@ -1057,8 +1087,8 @@ USequil                10000
 #[float] force          potential force constant
 #[float] phi0           start angle
 
-#UStorsion              1 2 6 9  0.05   0.0
-#UStorsion              2 6 9 12 0.05 180.0
+UStorsion              1 2 6 9  0.05   0.0
+UStorsion              2 6 9 12 0.05 180.0
 
 # definition of strained bond
 
