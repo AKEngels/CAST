@@ -14,6 +14,7 @@
 %\usepackage{underscore} %AUTOMATICLY ESCAPING UNDERSCORES
 \usepackage{graphicx} %LATEX CANT MANAGE IMAGES, SO WE NEED THIS
 \usepackage{hyperref} %ENABLE URL SUPPORT
+\usepackage{todonotes} % add TODO notes, use option [disable] to not show them
 \usepackage[backend=biber,style=chem-angew,biblabel=dot]{biblatex} %REFERENCES
 \addbibresource{castmanualReferences.bib} %ADD BIBLATEX REFERENCES FILE.
 \usepackage{acronym} %SUPPORT FOR ABBREVIATIONS
@@ -61,7 +62,7 @@
 \begin{center} 
 	{\LARGE {\Huge \textbf{CAST}} \\ \vspace{1cm} Conformational Search and Analysis Tool}
 
-    \colorbox{red}{STILL STUFF MISSING! (red boxes)}
+    \todo[inline]{STILL STUFF MISSING! (todonotes, see next page)}
     
     \vspace{1cm}
 	Version 3.1 \\
@@ -69,6 +70,15 @@
     \vspace{2cm}
 	\includegraphics[width=\textwidth]{img/CAST_CMYK_small.png}
 	\end{center}
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%                            %%%%
+    %%%%        LIST OF TODOS       %%%%
+    %%%%                            %%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \newpage
+    \listoftodos[TODOs for Manual]
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -238,7 +248,7 @@
 	 \item \acf{AMBER}\supercite{amber}
 	 \item \acf{AMOEBA}\supercite{amoeba_current, amoeba_current2}
 	\end{itemize}~\\
-	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \colorbox{red}{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
+	With the exception of the \ac{AMOEBA} force field, the non-bonded parts of the force fields have been parallelized using the OpenMP programming model. Furthermore, the \ac{FEP} and SPME \todo{smooth particle mesh ewald? - does it still exist???} methods can only be used with \ac{OPLS-AA}, \ac{CHARMM} and \ac{AMBER}. The force fields have to be in a format similar to the one used by the TINKER\supercite{tinker} program. They may be obtained from the TINKER\supercite{tinker} website.
 		%% AMOEBA and short range correction
 		\subsubsection{AMOEBA and short range correction}
 The AMOEBA FF belongs to the class of polarizable FFs. The energy description should not be described in detail. A detailed description can be found in \cite{Ponder2010}  The SAPT-FF is a specialized kind of the AMOEBA FF, whereas the short-range electrostatics are treated within a partitioning scheme.
@@ -433,7 +443,7 @@ multipole moments (for example DMA multipoles).\\
 		%% TeraChem
 		\subsubsection{TeraChem}
 		
-		\colorbox{red}{Does this interface still work???}
+		\todo{Does this interface still work??? only with an old version of TeraChem?}
 		
 		TeraChem\supercite{terachem} is accessed via \ac{MPI}\supercite{mpi} when the keyword \glqq TERACHEM\grqq~is specified in the energy interface. All further parameters regarding basis set, functional and so on have to be set in an extra file readable by \ac{CAST}. \ac{CAST} then transfers the input parameters to TeraChem via \ac{MPI}. The syntax for the TeraChem input is such that each string needs to be set in its own line. Otherwise it's identical to the TeraChem input. An example is shown below:
 
@@ -859,7 +869,7 @@ If CAST is able to assign atom types to all atoms in the structure (this is prob
 	%%%% LOCOPT %%%%
 	\subsection{LOCOPT - Local optimization}
 	\label{sec:locopt}
-	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \colorbox{red}{what does additional forces applied mean?}
+	\ac{CAST} is using the L-BFGS algorithm\supercite{bfgs} with the More and Thuente linesearch\supercite{morethuente} for local optimizations if an interface without optimizer is used or additional forces are applied. An example for this is using force fields as the energy interface.  \todo{what does additional forces applied mean?}
 	If an interface with included optimizer (most external interfaces) is used (and if no bias forces are to be applied), the optimization process will be carried out by those programs and \ac{CAST} will only retrieve the final geometry and gradient values.
 	The integrated L-BFGS can be adjusted regarding the maximum number of steps performed in the optimization routine via the "BFGSmaxstep"\ configuration option $($default "10000"$)$.
 	The convergence criterion can be altered using "BFGSgrad" $($default "0.001"$)$.
@@ -997,7 +1007,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	
 %%%% GOSOL %%%%
 \subsection{GOSOL - Global Optimization and Solvation}	
- \colorbox{red}{write something here} 
+ \todo[inline]{write something about task GOSOL} 
 
 	
 	%%%% Global Optimization (GO) %%%%
@@ -1016,7 +1026,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	%% Starting point selection
 	\subsubsection{Starting point selection}
 	\textbf{Simple Fallback} \\
-	This method uses the parameter ``GOfallback\_limit'' to determine how often the program can use a specific minimum as a starting point. If the limit for the last accepted minimum is reached, \ac{CAST} uses the current ``global'' minimum instead. If the limit for this minimum has also been reached, \ac{CAST} stops.\\~\\
+	This method uses the parameter ``GOfallback\_limit'' to determine how often the program can use a specific minimum as a starting point. If the limit for the last accepted minimum is reached, \ac{CAST} uses the current ``global'' minimum instead. If the limit for this minimum has also been reached, \ac{CAST} stops.\\
 		
 	%% Evolutionary selection
 	\textbf{Evolutionary selection} \\
@@ -1118,7 +1128,7 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	\begin{itemize}
 		\item Method (\ac{MC}, \ac{MCM} or \ac{TS})
 		\item Current iteration
-		\item \textbackslash  \colorbox{red}{I guess that means blank line, does it?} 
+		\item \todo{I guess that means blank line, does it?} 
 		\item Maximum number of iteration
 		\item Index of current minimum in the interval (0, \textit{NA})
 		\item Current minimum energy (starting point of current step)
@@ -1372,7 +1382,7 @@ In the standard case a calculation would be carried out by using 10-20 images (\
 
 After a normal NEB run one should obtain the following files:IMAGES\_START.arc, IMAGES\_FINAL.arc and ENERGIES\_COMPLETE.dat.
 
-For an improved tangent estimate or temperature dependent calculations the input file has to be modified according to the specifications explained in the related sections. \colorbox{red}{other outputfiles?}
+For an improved tangent estimate or temperature dependent calculations the input file has to be modified according to the specifications explained in the related sections. \todo[inline]{other outputfiles for NEB?}
 
 	%%%% PATHOPT %%%%
 \subsection{PATHOPT}	
@@ -1437,7 +1447,7 @@ After a successful PO calculation one should obtain the following files and fold
 	%%%% STARTOPT %%%%
 	\subsection{STARTOPT}	
 	
-	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch task (\colorbox{red}{no idea what this is doing}). Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
+	This task can be used to add water around a given molecule. To add a water box (for use of periodic boundaries) set the option SOtype to 1. The other possibility for this option is the Ringsearch\todo{what is RINGSEARCH doing?} task. Switch off periodic boundaries but set the boundary type SAboundary to 2 (box) and the SAradius to the desired boxsize. Pay attention that you give the correct atom types for the oxygen and hydrogen atoms in water (for the standard oplsaa forcefield those suggested in the inputfile are wrong) and decide if you want to optimize the water shell by the option SAopt. Then run the task STARTOPT.\\
 	
 	To use the outputstructure with periodic boundaries it is recommended to perform a LOCOPT run after adding the solvent box. So choose the task LOCOPT, switch on the periodic boundaries and set the box size in every direction to the size of your waterbox (SAradius) and run \ac{CAST} with the output of the START\-OPT task.\\
 	
@@ -1449,15 +1459,15 @@ After a successful PO calculation one should obtain the following files and fold
     \textbf{\underline{Startopt Options}} &  &  \\ 
 		\textbf{SOtype} & what kind of calculation will be performed? 
 	\begin{itemize}
-		\item  0 = Ringsearch
+		\item 0 = Ringsearch
 		\item 1 = Solvadd
 		\item 3 = Ringsearch + Solvadd
 	\end{itemize}	
 	  & int [1]\\
-		\textbf{SOstructures} & ??? & ??? \\
+		\textbf{SOstructures} & \todo[inline]{SOstructures} & ??? \\
 		\hline
 		\textbf{\underline{Solvadd Options}} & &  \\
-		\textbf{SAhb} & ??? & float [1.8] \\
+		\textbf{SAhb} & \todo[inline]{SAhb} & float [1.8] \\
 		\textbf{SAlimit} & number of water molecules that are added (0 = as many waters as needed for SAradius) & int [0] \\
 		\textbf{SAboundary} & shape of the water shell \begin{itemize} \item 0 = layer\item 1 = sphere \item 2 = box \end{itemize} & integer [10] \\
 		\textbf{SAradius} & size of the water shell (thickness of layer, radius of sphere or length of box) & float [10.0]\\
@@ -1465,7 +1475,7 @@ After a successful PO calculation one should obtain the following files and fold
 		\textbf{SAopt} & how is structure optimised? \begin{itemize} \item 0 = not at all \item 1 = after adding of each shell \item 2 = once after adding all waters \item 3 = each shell and all at the end \end{itemize} & int \\
 		\textbf{SAfixinit} & fix initial structure during optimizations? (0 = no, 1 = yes) & int \\
 		\hline
-		\textbf{\underline{Ringsearch Options}} & \colorbox{red}{to be added} &  \\ 
+		\textbf{\underline{Ringsearch Options}} & \todo[inline]{Ringsearch options} &  \\ 
 	\end{longtable}
 
 	%%%% Free energy perturbation %%%%
@@ -1803,14 +1813,14 @@ EXwellenzahl                  28514.91
 	
 	%%%% GRID %%%%
 	\subsection{GRID - ?}	
-	\colorbox{red}{write something here}
+	\todo[inline]{write something about task GRID}
 	
 	%%%% PATHSAMPLING %%%%
 	\subsection{PATHSAMPLING - ?}	
-	\colorbox{red}{write something here} 	
+	\todo[inline]{write something about task PATHSAMPLING} 	
 	
 	\subsection{SCAN2D - ?}	
-	\colorbox{red}{write something here} 	
+	\todo[inline]{write something about task SCAN2D} 	
 	
 	%%%% REMOVE_EXPLICIT_WATER %%%%
 	\subsection{REMOVE\_EXPLICIT\_WATER}	
@@ -1889,7 +1899,7 @@ EXwellenzahl                  28514.91
 
 	\newpage
 	\section{Coding within the CAST Framework}
-	Lorem Ipsum \colorbox{red}{here be text it the future} \\
+	\todo[inline]{write something about coding in CAST or remove this section}
 
 
 
@@ -1900,9 +1910,11 @@ EXwellenzahl                  28514.91
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\newpage
 	\section{What to do if something goes wrong}
-	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with the maximum \textit{verbosity} of 5 and sending us the text-output as well as the generated files. \colorbox{red}{email?} \\
+	If you encounter unexpected behavior when using \ac{CAST}, you may contact the developers for support. In order to properly categorize the issue you may be encountering, consider running \ac{CAST} again with the maximum \textit{verbosity} of 5 and sending us the text-output as well as the generated files. \\
 
     The recommended way to provide feedback for CAST is to write an issue in the public \textit{github} repository which is found at \url{https://github.com/AKEngels/CAST}.
+    
+    \todo[inline]{Email here?}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
@@ -1935,7 +1947,7 @@ EXwellenzahl                  28514.91
 	Technical Support via:\\
 	\url{https://github.com/AKEngels/CAST}\\
 	or\\
-	\colorbox{red}{e-mail address???}\\
+	\todo[inline]{Provide an email for CAST support?}
 
 	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	%%%%                            %%%%
