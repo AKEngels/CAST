@@ -228,6 +228,9 @@ GAUSSIANmaxfail      1000
 # path to ORCA
 ORCApath      /apps/orca/4.1/ORCA/orca
 
+# number of processors used
+ORCAnproc     4
+
 # method for ORCA
 ORCAmethod    HF
 

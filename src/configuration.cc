@@ -779,6 +779,9 @@ void config::parse_option(std::string const option, std::string const value_stri
 		if (option.substr(4, 4) == "path") {
 			Config::set().energy.orca.path = value_string;
 		}
+		else if (option.substr(4, 5) == "nproc") {
+			Config::set().energy.orca.nproc = std::stoi(value_string);
+		}
 		else if (option.substr(4, 6) == "method") {
 			Config::set().energy.orca.method = value_string;
 		}

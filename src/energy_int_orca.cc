@@ -88,6 +88,7 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
 	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
 	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
+  inp << "! PAL" << Config::get().energy.orca.nproc << "\n";                                             // set number of processors
 
   if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 

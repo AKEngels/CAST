@@ -682,6 +682,8 @@ namespace config
 		{
 			/**path to orca*/
 			std::string path;
+			/**number of processors used*/
+			int nproc;
 			/**method*/
 			std::string method;
 			/**basisset*/
@@ -698,7 +700,7 @@ namespace config
       int verbose;
 			
 			/**constructor*/
-			orca_conf(void):charge(0), multiplicity(1), opt(1), verbose(1) {}
+			orca_conf(void):charge(0), multiplicity(1), opt(1), verbose(1), nproc(4) {}
 		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
