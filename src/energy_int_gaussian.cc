@@ -111,7 +111,8 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::print_gaussianInput(ch
     }
     out_file << "# " << Config::get().energy.gaussian.method << " " << Config::get().energy.gaussian.basisset << " " << Config::get().energy.gaussian.spec << " ";
 		if (Config::get().energy.gaussian.cpcm == true) out_file << "scrf(cpcm,solvent=generic,read) ";
-		if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge NoSymm ";
+    if (Config::get().energy.qmmm.mm_charges.size() != 0) out_file << "Charge ";
+    if (Config::get().energy.qmmm.use == true) out_file << "NoSymm ";
 
     switch (calc_type) {// to ensure the needed gaussian keywords are used in gausian inputfile for the specified calculation
       case 'o' :
