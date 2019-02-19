@@ -1219,9 +1219,9 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	The syntax for the definition of the restraints can be seen in the following listing:\\
 
 	\begin{lstlisting}
-	#Torsion restraint    <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
+	#Torsion restraint <atom 1> <atom 2> <atom 3> <atom 4> <force> <value>
 	UStorsion                  1      5        7         9      0.05    0.0
-	#Distance restraint   <atom 1> <atom 2> <force> <value>
+	#Distance restraint <atom 1> <atom 2> <force> <value>
 	USdist                     1      9        10.0    3.0
 	\end{lstlisting}
 	~\\
@@ -1239,10 +1239,10 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	It is also possible to perform umbrella sampling in two dimensions. The two reaction coordinates which are sampled must be of the same type, i.\,e. it is not possible to combine a distance and a torsion. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
 	
 	\begin{itemize}
-		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py}
+		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py} (for short calculations)
 		\item Start WHAM with \texttt{umbrella2d\_analysis.py}
 		\item Plot distributions and check if all simulations are okey with \texttt{umbrella2d\_check.py}
-		\item Plot heatmaps for Free Energy and Probability with \texttt{umbrella2d\_plot.py}. This script also writes a csv file which can be used as input for \texttt{walkThroughSurface.py} which finds lowest energy path through the surface.
+		\item Plot heatmaps for Free Energy and Probability with \texttt{umbrella2d\_plot.py}. This script also writes a csv file which can be used as input for \texttt{walkThroughSurface.py} which finds lowest energy path through the surface or for \texttt{walkOnPath.py} which walks through the surface on a given path.
 		\item If desired: create more detailed plots with \texttt{umbrella2d\_cut.py} and \texttt{umbrella2d\_add.py}
 	\end{itemize}
 
