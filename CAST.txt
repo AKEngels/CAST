@@ -236,10 +236,10 @@ GAUSSIANepsinf      1.0
 ################## ORCA OPTIONS #################################################
 
 # path to ORCA
-ORCApath      /apps/orca/4.1/ORCA/orca
+ORCApath      /apps/orca/4.1.1/ORCA/orca
 
 # number of processors used
-ORCAnproc     8
+ORCAnproc     4
 
 # method for ORCA
 ORCAmethod    HF
@@ -262,7 +262,7 @@ ORCAverbose     1
 ###### stuff for casscf calculations ######
 
 # add casscf section to inputfile <0/1>
-ORCAcasscf      1
+ORCAcasscf      0
 
 # number of electrons
 ORCAnelec       2
@@ -282,7 +282,7 @@ ORCAnevpt       1
 ###### stuff for implicit solvent ######
 
 # use conductor-like polarizable continuum model (CPCM) <0/1>
-ORCAcpcm        1
+ORCAcpcm        0
 
 # dielectric constant 
 ORCAeps         2.0
