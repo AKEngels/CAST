@@ -1230,15 +1230,13 @@ Another possibility is ``MDanalyze\_zones''. If you activate this option CAST fi
 	Torsion restraints consist of 6 values: the first 4 integers are the index numbers of the atoms which form the dihedral. Indices start at "1". The fifth number is the force constant of the harmonic potential in $\frac{kcal}{deg^2}$ and the last index the desired value of the angle in degree.
 	The distance restraint consist of the two indices for the atoms, the force constant in $\frac{kcal}{{\mathring{A}}^2}$ and the distance in \AA.
 	
-	It is also possible to set more than one restraint but only of the same type. It is not possible to set a bond restraint and a torsion restraint.
-	
 	The \acl{US} output is written to a file named ``umbrella.txt''. For every window one has to start an individual run with the corresponding value of the restraint. The output is formatted for use with the \ac{WHAM} program\supercite{wham1, wham2} for post-processing. For details on the use of WHAM we refer the reader to the corresponding \ac{WHAM} manual.
 	
 	In our tutorial we describe in detail how to perform an Umbrella Sampling including the analsis with WHAM.
 	
 	\textbf{2D Umbrella}
 	
-	It is also possible to perform umbrella sampling in two dimensions. The two reaction coordinates which are sampled must be of the same type, i.\,e. it is not possible to combine a distance and a torsion. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
+	It is also possible to perform umbrella sampling in two dimensions. An example how to perform such a simulation is also described in detail in the tutorial. Some python scripts help you to perform and analyse the simulation. Those steps are recommended:
 	
 	\begin{itemize}
 		\item Start MD simulations either with \texttt{fake\_queue\_umbrella2D.py} (for longer calculations) or with \texttt{fake\_queue.py} which calls \texttt{python.sh} and \texttt{umbrella2d\_helper.py} (for short calculations)
