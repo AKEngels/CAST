@@ -9,16 +9,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 # USER INPUT
-X_MIN, X_MAX, X_STEP = -180, 180, 5
-Y_MIN, Y_MAX, Y_STEP = -180, 180, 5
-
-# PROGRAM
-RANGE_X = range(X_MIN, X_MAX+X_STEP, X_STEP)
-RANGE_Y = range(Y_MIN, Y_MAX+Y_STEP, Y_STEP)
+WINDOWS_X = range(-180, 185, 5)       # values for first restraint (X)
+WINDOWS_Y = range(-180, 185, 5)       # values for first restraint (Y)
 
 broken_files = []
 
-for VALUE in RANGE_X:
+for VALUE in WINDOWS_X:
     print "searching distributions with X =", VALUE
     xi_lists = []
     for filename in glob.glob("umbrella_{}_*.txt".format(VALUE)):
@@ -39,7 +35,7 @@ for VALUE in RANGE_X:
     plt.savefig("distribution_X{}.png".format(VALUE), dpi=100)
     plt.close()
     
-for VALUE in RANGE_Y:
+for VALUE in WINDOWS_Y:
     print "searching distributions with Y =", VALUE
     xi_lists = []
     for filename in glob.glob("umbrella_*_{}.txt".format(VALUE)):
