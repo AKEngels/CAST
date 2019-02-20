@@ -1834,7 +1834,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         // write data into umbrella.txt file
         std::ofstream ofs;
         ofs.open("umbrella.txt", std::ios::app);
-        for (auto s{ 0u }; s < 100000; ++s)      // for every step
+        for (auto s{ 0u }; s < 100000; ++s)      // for every step (100000 is the buffer)
         {
           ofs << k-100000 + s << "   ";                                            // stepnumber
           auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
@@ -1965,7 +1965,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   {
       std::ofstream ofs;
       ofs.open("umbrella.txt", std::ios::app);
-      for (auto s{ 0u }; s < (Config::get().md.num_steps-1)%100000 +1 ; ++s)      // for remaining step
+      for (auto s{ 0u }; s < (Config::get().md.num_steps-1)%100000 +1 ; ++s)      // for remaining step (the 100000 are the buffer)
       {
         ofs << ((Config::get().md.num_steps - 1) / 100000)*100000 + s << "   ";   // stepnumber
         auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
