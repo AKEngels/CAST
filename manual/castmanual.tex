@@ -487,9 +487,11 @@ There is also an interface to the program Orca available. To use it set the opti
 	variable & effect & type [default value] \\
 	\hline
 	ORCApath  & path to Orca including command & string [no default]\\
-	ORCAnproc  & number of processors used for parallel computing & int [4]\\
+	ORCAnproc  & number of processors used for parallel computing & int [1]\\
+	ORCAmaxcore  & maximum amount of scratch memory per core (in MB), 0 = no memory specified & int [0]\\
 	ORCAmethod & calculation method for Orca & string [no default]\\
-	ORCAbasisset & basisset for Orca calculation & string [no default]\\
+	ORCAbasisset & basisset for Orca calculation & string [""]\\
+	ORCAbasisset & further specifications for ORCA call (written in line with method and basisset)  & string [""]\\
 	ORCAcharge & total charge of the system & int [0] \\
 	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
 	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
@@ -509,7 +511,7 @@ There is also an interface to the program Orca available. To use it set the opti
 
 \textbf{Attention!} If you choose to add a section for CASSCF or CPCM you have to set \textbf{all} the keywords for this section otherwise there will be nonsense in the orca inputfile!
 
-\textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. To fix this you can set down the convergence criterion for the LBFGS optimizer to 0.001.
+\textbf{Attention!} If you use the CAST optimizer with ORCA interface (or a QM/MM method with ORCA) you might get an error state of -97. Probably this doesn't matter. If you want to fix this error you can set down the convergence criterion for the LBFGS optimizer to 0.001.
 			
 			%Gaussian
 			\subsubsection{Gaussian}

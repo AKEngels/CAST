@@ -84,11 +84,13 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
 	std::ofstream inp;
 	inp.open("orca.inp");
 
-	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset << "\n";  // method and basisset
-	if (t == 1) inp << "! EnGrad\n";                                                                       // request gradients
-	if (t == 2) inp << "! Freq\n";                                                                         // request hessian
-	if (t == 3) inp << "! Opt\n";                                                                          // request optimization
-  if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";    // set number of processors
+	inp << "! " << Config::get().energy.orca.method << " " << Config::get().energy.orca.basisset;                 // method and basisset
+  inp << " " << Config::get().energy.orca.spec << "\n";                                                         // further specifications
+	if (t == 1) inp << "! EnGrad\n";                                                                              // request gradients
+	if (t == 2) inp << "! Freq\n";                                                                                // request hessian
+	if (t == 3) inp << "! Opt\n";                                                                                 // request optimization
+  if (Config::get().energy.orca.nproc > 1) inp << "! PAL" << Config::get().energy.orca.nproc << "\n";           // set number of processors
+  if (Config::get().energy.orca.maxcore != 0) inp << "%maxcore " << Config::get().energy.orca.maxcore << "\n";  // set maxcore
 
   if (Config::get().energy.orca.cpcm == true)    // if implicit solvent requested
   {

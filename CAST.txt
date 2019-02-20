@@ -112,7 +112,7 @@ task                  SP
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              GAUSSIAN
+interface              ORCA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
@@ -239,13 +239,19 @@ GAUSSIANepsinf      1.0
 ORCApath      /apps/orca/4.1.1/ORCA/orca
 
 # number of processors used
-ORCAnproc     4
+ORCAnproc     1
+
+# maximum amount of scratch memory per core (in MB)
+ORCAmaxcore   1000
 
 # method for ORCA
 ORCAmethod    HF
 
 # basisset for ORCA
 ORCAbasisset   6-31G
+
+# further specifications for ORCA call (written in line with method and basisset)
+#ORCAspec       bla
 
 # charge of the molecule
 ORCAcharge     0

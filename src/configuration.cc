@@ -782,12 +782,18 @@ void config::parse_option(std::string const option, std::string const value_stri
 		else if (option.substr(4, 5) == "nproc") {
 			Config::set().energy.orca.nproc = std::stoi(value_string);
 		}
+    else if (option.substr(4, 7) == "maxcore") {
+      Config::set().energy.orca.maxcore = std::stoi(value_string);
+    }
 		else if (option.substr(4, 6) == "method") {
 			Config::set().energy.orca.method = value_string;
 		}
 		else if (option.substr(4, 8) == "basisset") {
 			Config::set().energy.orca.basisset = value_string;
 		}
+    else if (option.substr(4, 4) == "spec") {
+      Config::set().energy.orca.spec = value_string;
+    }
 		else if (option.substr(4, 6) == "charge") {
 			Config::set().energy.orca.charge = std::stoi(value_string);
 		}

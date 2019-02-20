@@ -683,26 +683,32 @@ namespace config
 			/**path to orca*/
 			std::string path;
 			/**number of processors used*/
-			int nproc;
+      int nproc{ 1 };
+      /**maximum amount of scratch memory per core (in MB)*/
+      int maxcore{ 0 };
+
 			/**method*/
 			std::string method;
 			/**basisset*/
-			std::string basisset;
+      std::string basisset{ "" };
+      /**further specifications for ORCA call*/
+      std::string spec{ "" };
+
 			/**total charge of the system*/
-			int charge;
+      int charge{ 0 };
 			/**multiplicity*/
-			int multiplicity;
+      int multiplicity{ 1 };
 
 			/**optimizer (0 = CAST, 1 = ORCA)*/
-			int opt;
+      int opt{ 1 };
       
       /**verbosity (from 0 to 4)*/
-      int verbose;
+      int verbose{ 1 };
 
 			// stuff for casscf calculation
 
 			/**add casscf section*/
-			bool casscf;
+      bool casscf{ false };
 			/**number of electrons*/
 			int nelec;
 			/**number of orbitals*/
@@ -710,21 +716,19 @@ namespace config
 			/**number of roots*/
 			int nroots;
 			/**use Newton-Raphson algorithm?*/
-			bool nr;
+      bool nr{ false };
 			/**switch on NEVPT2?*/
-			bool nevpt;
+      bool nevpt{ false };
 
 			// stuff for implicit solvent (CPCM)
 
 			/**switch on cpcm?*/
-			bool cpcm;
+      bool cpcm{ false };
 			/**dielectric constant*/
 			double eps;
 			/**refractive index*/
 			double refrac;
 			
-			/**constructor*/
-			orca_conf(void): nproc(4), charge(0), multiplicity(1), opt(1), verbose(1), casscf(false), nr(false), nevpt(false), cpcm(false) {}
 		} orca;
 
     /**struct that contains all information necessary for gaussian calculation*/
