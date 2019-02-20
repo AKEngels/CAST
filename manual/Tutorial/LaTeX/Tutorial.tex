@@ -1216,7 +1216,7 @@ Then we go into the inputfile \texttt{CAST.txt}.
 	\item Then we scroll to UMBRELLA SAMPLING.
 	\item Before every sampling there is a short MD simulation to eqilibrate the system. We want to equilibrate the system for 10000 steps so we set \texttt{USequil} to \texttt{10000}. 
 	\item The main torsion of our butane molecule is defined by the atoms 1, 2, 6 and 9. It should be restrained to an angle of 150° (this is just an example we could also use any other value between -180° and +180°) with a spring constant of $0.05 \frac{kcal}{mol \cdot deg^2}$. So the option for \texttt{UStorsion} looks like that: \mbox{\texttt{1 2 6 9\quad0.05\quad150.0}}.
-	\item If our reaction coordinate were a distance we would give it as \texttt{USbond}. Because this is not the case we comment out this line.
+	\item If our reaction coordinate were a distance we would give it as \texttt{USdist}. Because this is not the case we comment out this line.
 	\item For the sampling we want to use the conformations of every step. So we set \texttt{USsnap} to \texttt{1}.
 \end{itemize}
 
@@ -2571,8 +2571,8 @@ USsteps                60
 
 # definition of strained bond
 
-#USbond                 <index 1> <index 2> <force> <r0> <flat bottom 0/1> <width>
-#USbond                 1 2 155.0 1.09 1 0.2
+#USdist                 <index 1> <index 2> <force> <r0> <flat bottom 0/1> <width>
+#USdist                 1 2 155.0 1.09 1 0.2
 
 # Offset for taking snapshots
 
