@@ -1120,10 +1120,10 @@ USequil                10000
 
 
 # Offset for taking snapshots
-
 USsnap                 1
 
-
+# Offset for writing stuff into 'umbrella.txt'
+USbuffer               1000
 
 
 ####################################

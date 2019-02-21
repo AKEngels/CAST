@@ -1829,14 +1829,14 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       // apply biases and fill udatacontainer with values for restrained coordinates
       coordobj.ubias(udatacontainer);
 
-      if (k % 100000 == 0 && k > 0)   // use a buffer of 100000 steps
+      if (k % Config::get().md.usbuffer == 0 && k > 0)   
       {
         // write data into umbrella.txt file
         std::ofstream ofs;
         ofs.open("umbrella.txt", std::ios::app);
-        for (auto s{ 0u }; s < 100000; ++s)      // for every step (100000 is the buffer)
+        for (auto s{ 0u }; s < Config::get().md.usbuffer; ++s)      // for every step 
         {
-          ofs << k-100000 + s << "   ";                                            // stepnumber
+          ofs << k- Config::get().md.usbuffer + s << "   ";            // stepnumber
           auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
           for (auto b{ 0u }; b < number_of_restraints; ++b) {
             ofs << udatacontainer[b+ number_of_restraints*s] << "  ";  // value(s)
@@ -1965,9 +1965,9 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
   {
       std::ofstream ofs;
       ofs.open("umbrella.txt", std::ios::app);
-      for (auto s{ 0u }; s < (Config::get().md.num_steps-1)%100000 +1 ; ++s)      // for remaining step (the 100000 are the buffer)
+      for (auto s{ 0u }; s < (Config::get().md.num_steps-1)% Config::get().md.usbuffer +1 ; ++s)      // for remaining steps 
       {
-        ofs << ((Config::get().md.num_steps - 1) / 100000)*100000 + s << "   ";   // stepnumber
+        ofs << ((Config::get().md.num_steps - 1) / Config::get().md.usbuffer)*Config::get().md.usbuffer + s << "   ";   // stepnumber
         auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
         for (auto b{ 0u }; b < number_of_restraints; ++b) {
           ofs << udatacontainer[b + number_of_restraints * s] << "  ";            // value(s)
