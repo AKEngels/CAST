@@ -496,6 +496,7 @@ There is also an interface to the program Orca available. To use it set the opti
 	ORCAmultiplicity & spin multiplicity of the system & int [1] \\
 	ORCAopt & which optimizer to use for local optimization? (0=CAST, 1=ORCA) & int [1] \\
 	ORCAverbose & verbosity for Orca, i.\,e. which of the output files are kept and which are deleted, ranging from 0 to 4 & int [1] \\
+	ORCAcube & numbers of orbitals that should be plotted as cubefiles & vector$<$int$>$ [none] \\
 	\textbf{OPTIONS} & \textbf{FOR}  & \textbf{CASSCF}  \\
     ORCAcasscf & add casscf section to inputfile? & bool [false]   \\
     ORCAnelec  & number of electrons & int [no default]   \\
@@ -524,6 +525,9 @@ The option \textit{GAUSSIANdelete} is used to determine if the Gaussian files sh
 By the option \textit{GAUSSIANmaxfail} you determine how often GAUSSIAN is allowed to fail before CAST breaks. For tasks like MC or TS it might be a good idea to use a higher number.\\
 \begin{lstlisting}
 GAUSSIANlink  &  NProcShared=1 Mem=2GB
+
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
 
 #Methods for Gaussian Call
 

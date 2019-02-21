@@ -112,6 +112,15 @@ void energy::interfaces::orca::sysCallInterface::write_inputfile(int t)
     inp << "end\n";
   }
 
+  if (Config::get().energy.orca.cube_orbs.size() != 0)   // if orbitals for plotting are specified
+  {
+    inp << "\n%plots Format Cube\n";
+    for (auto orb : Config::get().energy.orca.cube_orbs) {
+      inp << "  MO(\"MyMO-" << orb << ".cube\"," << orb << ");\n";
+    }
+    inp << "end\n";
+  }
+
   if (Config::get().energy.qmmm.mm_charges.size() != 0) inp << "\n% pointcharges \"pointcharges.pc\"\n";     // tell orca that there are pointcharges in this file
 
 	inp << "\n";  // empty line

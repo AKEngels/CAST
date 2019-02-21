@@ -705,6 +705,9 @@ namespace config
       /**verbosity (from 0 to 4)*/
       int verbose{ 1 };
 
+      /**numbers of orbitals that should be plotted as cubefiles*/
+      std::vector<size_t> cube_orbs;
+
 			// stuff for casscf calculation
 
 			/**add casscf section*/
@@ -748,6 +751,8 @@ namespace config
       std::string basisset;
       /**further specifications for gaussian call*/
       std::string spec;
+      /**name of checkpoint file*/
+      std::string chk;
       /**should gaussian input be deleted after calculation?*/
       bool delete_input;
       /**should gaussian optimizer be used? (otherwise CAST optimizer)*/
@@ -766,7 +771,7 @@ namespace config
 			/**refractive index*/
 			double epsinf;
 
-			gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, delete_input{ true }, opt{ true }, 
+      gaussian_conf(void) : method{ "Hf/ " }, basisset{ "" }, spec{ "" }, chk{ "" }, delete_input { true }, opt{ true },
          steep{ true }, maxfail{1000u}, cpcm {false}
       {}
     } gaussian;

@@ -181,6 +181,9 @@ MOPACcharge            0
 
 GAUSSIANlink NProcShared=4 Mem=4GB
 
+# Name of Gaussian checkpoint file
+#GAUSSIANchk     OPT.chk
+
 #Methods for Gaussian Call
 
 GAUSSIANmethod HF
@@ -264,6 +267,9 @@ ORCAopt        1
 
 # verbosity for ORCA (0 - 5)
 ORCAverbose     1
+
+# orbitals that should be plotted as cubefiles
+#ORCAcube        56-63
 
 ###### stuff for casscf calculations ######
 
@@ -1104,13 +1110,14 @@ USequil                10000
 #[float] force          potential force constant
 #[float] phi0           start angle
 
-UStorsion              1 2 6 9  0.05   0.0
-UStorsion              2 6 9 12 0.05 180.0
+#UStorsion              1 2 6 9  0.05   0.0
+#UStorsion              2 6 9 12 0.05 150.0
 
 # definition of strained bond
 
 #USdist                 <index 1> <index 2> <force> <dist>
 #USdist                 1 2 155.0 1.09
+
 
 # Offset for taking snapshots
 
