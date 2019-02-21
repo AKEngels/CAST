@@ -402,7 +402,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
 				for (std::size_t i(0); i < coords->size(); ++i)
 				{
 					std::getline(in_file, buffer);
-					std::sscanf(buffer.c_str(), "%*s %*s %lf %s", &charge);
+					std::sscanf(buffer.c_str(), "%*s %*s %lf %*s", &charge);
 					atom_charges.push_back(charge);
 				}
 			}
