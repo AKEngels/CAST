@@ -190,6 +190,7 @@ coords::float_type energy::interfaces::oniom::ONIOM::qmmm_calc(bool if_gradient)
   if (Config::get().energy.qmmm.zerocharge_bonds != 0)
   {
     std::vector<double> charge_vector = mmc_big.energyinterface()->charges();
+		if (charge_vector.size() == 0) throw std::runtime_error("no charges found in MM interface");
     auto all_indices = range(coords->size());
 
     charge_indices.clear();
