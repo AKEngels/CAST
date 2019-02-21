@@ -379,7 +379,7 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
         }
       }//end coordinater reading
      
-      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges
+      if (buffer.find("Mulliken charges:") != std::string::npos)  // read charges (restricted calculation)
       {
         double charge;
         atom_charges.clear();
@@ -392,6 +392,20 @@ void energy::interfaces::gaussian::sysCallInterfaceGauss::read_gaussianOutput(bo
           atom_charges.push_back(charge);
         }
       }
+
+			if (buffer.find("Mulliken charges and spin densities:") != std::string::npos)  // read charges (unrestricted calculation)
+			{
+				double charge;
+				atom_charges.clear();
+
+				std::getline(in_file, buffer); // discard next line
+				for (std::size_t i(0); i < coords->size(); ++i)
+				{
+					std::getline(in_file, buffer);
+					std::sscanf(buffer.c_str(), "%*s %*s %lf %s", &charge);
+					atom_charges.push_back(charge);
+				}
+			}
 
       if (buffer.find("Normal termination of Gaussian") != std::string::npos)
       {
