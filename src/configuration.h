@@ -460,14 +460,12 @@ namespace config
         umbrella_dist(void) :
           force(0.0), index() { }
       };
+
       std::vector<umbrella_tor> torsions;
       std::vector<umbrella_dist> distances;
-      std::size_t steps, snap_offset;
-      umbrellas(void) : steps(50), snap_offset(10) { }
-
     } umbrella;
-    /**biased potentials*/
 
+    /**biased potentials*/
     struct coord_bias
     {
       /**biased potentials on distances*/

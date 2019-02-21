@@ -2462,7 +2462,7 @@ std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
 
   if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
   {
-    strm << "Umbrella Sampling with " << " steps and snapshots every " << coords_in.umbrella.snap_offset << " steps.\n";
+    strm << "Umbrella Sampling with " << " steps.\n";
     if (!coords_in.umbrella.torsions.empty())
     {
       strm << "Umbrella torsions:\n";
