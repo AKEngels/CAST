@@ -806,6 +806,9 @@ void config::parse_option(std::string const option, std::string const value_stri
     else if (option.substr(4, 7) == "verbose") {
       Config::set().energy.orca.verbose = std::stoi(value_string);
     }
+    else if (option.substr(4, 4) == "cube") {
+      Config::set().energy.orca.cube_orbs = sorted_indices_from_cs_string(value_string);
+    }
 		else if (option.substr(4, 6) == "casscf") {
 			if (value_string == "1") Config::set().energy.orca.casscf = true;
 		}
@@ -844,6 +847,8 @@ void config::parse_option(std::string const option, std::string const value_stri
       Config::set().energy.gaussian.basisset = value_string;
     else if (option.substr(8, 14) == "specifications")
       Config::set().energy.gaussian.spec = value_string;
+    else if (option.substr(8, 3) == "chk")
+      Config::set().energy.gaussian.chk = value_string;
     else if (option.substr(8, 4) == "link")
       Config::set().energy.gaussian.link = value_string;
     else if (option.substr(8, 6) == "charge")
