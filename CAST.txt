@@ -1118,7 +1118,7 @@ USequil                1
 # definition of combination of strained distances
 
 #UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
-# for every distance: ( <index1> <index2> <factor> ) behind
+# for every distance: another ( <index1> <index2> <factor> ) 
 UScomb        2  50   -1.9  ( 1  2  +1 ) (  1  6  -1 )
 
 
