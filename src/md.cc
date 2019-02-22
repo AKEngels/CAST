@@ -188,10 +188,7 @@ void md::simulation::umbrella_run(bool const restart) {
     nht = nose_hoover();
     T = Config::get().md.T_init;
     init();
-    // use nvect3d function to eliminate translation and rotation
-    //V.eliminate_trans_rot(coordobj.xyz(), M);
-    // use built in md function (identical)
-    tune_momentum();
+    tune_momentum(); // eliminate translation and rotation
   }
   // Set kinetic Energy
   updateEkin();
@@ -1837,7 +1834,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         for (auto s{ 0u }; s < Config::get().md.usbuffer; ++s)      // for every step 
         {
           ofs << k- Config::get().md.usbuffer + s << "   ";            // stepnumber
-          auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
+          auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
           for (auto b{ 0u }; b < number_of_restraints; ++b) {
             ofs << udatacontainer[b+ number_of_restraints*s] << "  ";  // value(s)
           }
@@ -1968,7 +1965,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       for (auto s{ 0u }; s < (Config::get().md.num_steps-1)% Config::get().md.usbuffer +1 ; ++s)      // for remaining steps 
       {
         ofs << ((Config::get().md.num_steps - 1) / Config::get().md.usbuffer)*Config::get().md.usbuffer + s << "   ";   // stepnumber
-        auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size();
+        auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
         for (auto b{ 0u }; b < number_of_restraints; ++b) {
           ofs << udatacontainer[b + number_of_restraints * s] << "  ";            // value(s)
         }

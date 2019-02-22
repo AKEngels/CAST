@@ -445,24 +445,50 @@ namespace config
     /**stuff for umbrella sampling*/
     struct umbrellas
     {
+      /**struct for restrained torsional angle*/
       struct umbrella_tor
       {
-        double force, angle;
+        /**force constant*/
+        double force;
+        /**angle to which it is restrained*/
+        double angle;
+        /**array of atom indices*/
         std::size_t index[4U];
+        /**???*/
         bool fix_all_torsions;
+        /**constructor*/
         umbrella_tor(void) :
           force(0.0), index(), fix_all_torsions(false) { }
       };
+
+      /**struct for restrained distance*/
       struct umbrella_dist
       {
-        double force, dist;
+        /**force constant*/
+        double force;
+        /**distance to which it is restrained*/
+        double dist;
+        /**array of atom indices*/
         std::size_t index[2U];
+        /**constructor*/
         umbrella_dist(void) :
           force(0.0), index() { }
       };
 
-      std::vector<umbrella_tor> torsions;
-      std::vector<umbrella_dist> distances;
+      /**struct for a restrained reaction coordinate that consists of several distances*/
+      struct umbrella_comb
+      {
+        /**struct for one of these distances*/
+        struct uscoord {
+          int index1, index2, factor;
+        };
+        /**force constant*/
+        double force;
+        /**value (in Angstrom) to which it is restrained*/
+        double value;
+        /**vector of all dists that are included in reaction coordinate*/
+        std::vector<uscoord> dists;
+      };
     } umbrella;
 
     /**biased potentials*/
@@ -484,6 +510,8 @@ namespace config
       std::vector<config::coords::umbrellas::umbrella_tor> utors;
       /**biased pot on bonds for umbrella sampling*/
       std::vector<config::coords::umbrellas::umbrella_dist> udist;
+      /**biased pot on combinations of bonds for umbrella sampling*/
+      std::vector<config::coords::umbrellas::umbrella_comb> ucombs;
     } bias;
 
 

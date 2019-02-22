@@ -29,7 +29,7 @@ cores                  4
 
 # Input file name
 
-name                   pentan.arc
+name                   chloromethan.arc
 
 # Output file name
 
@@ -87,7 +87,7 @@ inputtype              TINKER
 # LAYER_DEPOSITION     Simulation of layerdeposition to construct a structure
 # SCAN2D
 
-task                  SP
+task                  UMBRELLA
 
 
 ####################################
@@ -112,14 +112,14 @@ task                  SP
 # ONIOM                (subtractive) QM/MM interface
 # THREE_LAYER          three-layer interface (analogous to ONIOM)
 
-interface              ORCA
+interface              OPLSAA
 
 # Interface for preoptimizations
 #preinterface           OPLSAA
 
 # PARAMETER FILE FOR FF
 # paramfile            amber.prm, amoeba.prm, oplsaa.prm, charmm22.prm
-paramfile              charmm22.prm
+paramfile              oplsaa_mod2.prm
 
 #Cutoff radius for non bonded interactions for forcefields energy interfaces
 #cutoff                 12.0
@@ -887,7 +887,7 @@ SAfixinit              0
 
 # Number of Steps
 
-MDsteps                500000
+MDsteps                5
 
 # Integrator
 #
@@ -1101,29 +1101,32 @@ DIMERmaxit             50 250
 
 
 # number of equilibration steps
-USequil                10000
+USequil                1
 
 # definition of strained torsion 
 
-#UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <dist>
-#[int] 1-4              atom indices
-#[float] force          potential force constant
-#[float] phi0           start angle
-
+#UStorsion              <index 1> <index 2> <index 3> <index 4> <force> <value>
 #UStorsion              1 2 6 9  0.05   0.0
 #UStorsion              2 6 9 12 0.05 150.0
 
-# definition of strained bond
+# definition of strained distance
 
-#USdist                 <index 1> <index 2> <force> <dist>
-#USdist                 1 2 155.0 1.09
+#USdist                 <index 1> <index 2> <force> <value>
+#USdist                 1 2 1000.0 1.09
+#USdist                 4 3 1000.0 3.0
+
+# definition of combination of strained distances
+
+#UScomb       <number of dists> <force> <value> ( <index1> <index2> <factor> ) 
+# for every distance: ( <index1> <index2> <factor> ) behind
+UScomb        2  50   -1.9  ( 1  2  +1 ) (  1  6  -1 )
 
 
 # Offset for taking snapshots
 USsnap                 1
 
 # Offset for writing stuff into 'umbrella.txt'
-USbuffer               1000
+USbuffer               6492
 
 
 ####################################

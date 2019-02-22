@@ -33,6 +33,9 @@ void coords::bias::Potentials::append_config()
   m_utors.insert(m_utors.end(),
     Config::get().coords.bias.utors.begin(),
     Config::get().coords.bias.utors.end());
+  m_ucombs.insert(m_ucombs.end(),
+    Config::get().coords.bias.ucombs.begin(),
+    Config::get().coords.bias.ucombs.end());
   m_thresh.insert(m_thresh.end(),
     Config::get().coords.bias.threshold.begin(),
     Config::get().coords.bias.threshold.end());
@@ -53,6 +56,7 @@ void coords::bias::Potentials::swap(Potentials & rhs)
   m_cubic.swap(rhs.m_cubic);
   m_utors.swap(rhs.m_utors);
   m_udist.swap(rhs.m_udist);
+  m_ucombs.swap(rhs.m_ucombs);
   m_thresh.swap(rhs.m_thresh);
 }
 
@@ -65,13 +69,14 @@ coords::bias::Potentials::Potentials()
   m_cubic{Config::get().coords.bias.cubic},
   m_thresh{Config::get().coords.bias.threshold},
   m_utors{Config::get().coords.bias.utors},
-  m_udist{Config::get().coords.bias.udist}
+  m_udist{Config::get().coords.bias.udist},
+  m_ucombs{ Config::get().coords.bias.ucombs }
 { }
 
 bool coords::bias::Potentials::empty() const
 {
   return scon::empty(m_dihedrals, m_angles, m_distances,
-    m_spherical, m_cubic, m_utors, m_udist, m_thresh);
+    m_spherical, m_cubic, m_utors, m_udist, m_ucombs, m_thresh);
 }
 
 double coords::bias::Potentials::apply(Representation_3D const & xyz,
@@ -92,13 +97,16 @@ double coords::bias::Potentials::apply(Representation_3D const & xyz,
   return b + a + d + s + c;
 }
 
+/**apply umbrella potentials and save data for 'umbrella.txt' into uout*/
 void coords::bias::Potentials::umbrellaapply(Representation_3D const & xyz,
   Gradients_3D & g_xyz, std::vector<double> &uout) 
 {
-  if (!m_utors.empty()) 
+  if (!m_utors.empty()) // torsion restraints
     umbrelladih(xyz, g_xyz, uout);
-  if (!m_udist.empty()) 
+  if (!m_udist.empty()) // distance restraints
     umbrelladist(xyz, g_xyz, uout);
+  if (!m_ucombs.empty()) // restraints of combined distances
+    umbrellacomb(xyz, g_xyz, uout);
 }
 
 double coords::bias::Potentials::dih(Representation_3D const &positions,
@@ -258,13 +266,21 @@ void coords::bias::Potentials::umbrelladist(Representation_3D const &positions,
   {
     coords::Cartesian_Point bv(positions[dist.index[0]] - positions[dist.index[1]]);
     float_type md = geometric_length(bv);
-    uout.push_back(md);
+    uout.push_back(md);                       // fill read value for restraint into uout
     float_type diff(md - dist.dist);
-    //apply half harmonic potential
     float_type dE = dist.force * diff / md;
     Cartesian_Point gv = bv*dE;
-    gradients[dist.index[0]] += gv;
+    gradients[dist.index[0]] += gv;           //apply half harmonic potential on gradients
     gradients[dist.index[1]] -= gv;
+  }
+}
+
+void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
+  Gradients_3D & gradients, std::vector<double> &uout) const
+{
+  for (auto const &comb : m_ucombs)   // for every restraint combination
+  {
+    std::cout << "here should be a bias for an umbrella combination!\n";
   }
 }
 

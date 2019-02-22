@@ -1542,6 +1542,23 @@ void config::parse_option(std::string const option, std::string const value_stri
         Config::set().coords.bias.udist.push_back(usdistBuffer);
       }
     }
+    if (option.substr(2, 4) == "comb")
+    {
+      config::coords::umbrellas::umbrella_comb uscombBuffer;
+      int number_of_dists;
+      std::string buffer;
+
+      cv >> number_of_dists >> uscombBuffer.force >> uscombBuffer.value;
+      for (auto i{ 0u }; i < number_of_dists; ++i)
+      {
+        config::coords::umbrellas::umbrella_comb::uscoord dist;
+        cv >> buffer >> dist.index1 >> dist.index2 >> dist.factor >> buffer;  // buffer is ( and )
+        dist.index1 -= 1;   // because user input starts with 1 and we need numbers starting form 0
+        dist.index2 -= 1;
+        uscombBuffer.dists.emplace_back(dist);
+      }
+      Config::set().coords.bias.ucombs.push_back(uscombBuffer);
+    }
   }
 
   //! Fixation excluding
@@ -2461,28 +2478,6 @@ std::ostream & config::operator<< (std::ostream &strm, coords const & coords_in)
         first = last;
       }
       strm << '\n';
-    }
-  }
-
-  if (Config::get().general.task == tasks::UMBRELLA && (!coords_in.umbrella.torsions.empty() || !coords_in.umbrella.distances.empty()))
-  {
-    strm << "Umbrella Sampling with " << " steps.\n";
-    if (!coords_in.umbrella.torsions.empty())
-    {
-      strm << "Umbrella torsions:\n";
-      for (auto const & torsion : coords_in.umbrella.torsions)
-      {
-        strm << "[UT] Indices: " << torsion.index[0] << ", " << torsion.index[1] << ", " << torsion.index[2] << ", " << torsion.index[3];
-        strm << ". Start: " << " - End: " << ". Step: " << ". \n";
-      }
-    }
-    if (!coords_in.umbrella.distances.empty())
-    {
-      strm << "Umbrella distances:\n";
-      for (auto const & dist : coords_in.umbrella.distances)
-      {
-        strm << "[UD] Indices: " << dist.index[0] << ", " << dist.index[1];
-      }
     }
   }
 
