@@ -511,6 +511,7 @@ int main(int argc, char **argv)
     {
       // Umbrella Sampling
       Config::set().md.umbrella = true;
+      if (Config::get().md.pre_optimize) coords.o();
       md::simulation mdObject(coords);
       mdObject.umbrella_run();
       break;
