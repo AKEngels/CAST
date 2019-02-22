@@ -289,18 +289,19 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
     }
     uout.push_back(reactioncoord);    // fill value for restraint into uout
 
+    std::cout << "ERROR: bias for combined reaction coordinates not implemented yet\n";
     // apply bias potential on gradients
-    float_type diff(reactioncoord - comb.value);    // difference to desired value (restraint)
-    for (auto &d : comb.dists)   // for every distance in combination
-    {
-      gradients[d.index1].x() += comb.force * diff * d.factor;
-      gradients[d.index1].y() += comb.force * diff * d.factor;
-      gradients[d.index1].z() += comb.force * diff * d.factor;
+    //float_type diff(reactioncoord - comb.value);        // difference to desired value (restraint)
+    //for (auto &d : comb.dists)   // for every distance in combination
+    //{
+    //  gradients[d.index1].x() += comb.force * diff * d.factor;
+    //  gradients[d.index1].y() += comb.force * diff * d.factor;
+    //  gradients[d.index1].z() += comb.force * diff * d.factor;
 
-      gradients[d.index2].x() -= comb.force * diff * d.factor;
-      gradients[d.index2].y() -= comb.force * diff * d.factor;
-      gradients[d.index2].z() -= comb.force * diff * d.factor;
-    }
+    //  gradients[d.index2].x() -= comb.force * diff * d.factor;
+    //  gradients[d.index2].y() -= comb.force * diff * d.factor;
+    //  gradients[d.index2].z() -= comb.force * diff * d.factor;
+    //}
   }
 }
 
