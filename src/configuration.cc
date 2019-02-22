@@ -1549,7 +1549,7 @@ void config::parse_option(std::string const option, std::string const value_stri
       std::string buffer;
 
       cv >> number_of_dists >> uscombBuffer.force >> uscombBuffer.value;
-      for (auto i{ 0u }; i < number_of_dists; ++i)
+      for (int i=0; i < number_of_dists; ++i)
       {
         config::coords::umbrellas::umbrella_comb::uscoord dist;
         cv >> buffer >> dist.index1 >> dist.index2 >> dist.factor >> buffer;  // buffer is ( and )
