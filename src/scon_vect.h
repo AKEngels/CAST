@@ -686,7 +686,23 @@ namespace scon
     T sc(dot(a, b));
     if (abs(norm) > T())
     {
-      sc /= norm;
+      sc /= norm;       // This should be between -1 and 1 because of arccos
+      if (sc > 1) {
+        if (Config::get().general.verbosity > 0)
+        {
+          std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc << "\n";
+          std::cout << "sc = 1 assumed\n";
+        }
+				return ang<T>::from_rad(acos(1));
+      }
+      if (sc < -1) {
+        if (Config::get().general.verbosity > 0)
+        {
+          std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc << "\n";
+          std::cout << "sc = -1 assumed\n";
+        }
+        return ang<T>::from_rad(acos(-1));
+      }
       return ang<T>::from_rad(acos(sc));
     }
     return ang<T>::from_rad(T());
