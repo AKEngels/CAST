@@ -10,8 +10,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include"configuration.h"  // verbosity
-
 #include "scon_traits.h"
 #include "scon_utility.h"
 
@@ -690,22 +688,14 @@ namespace scon
     {
       sc /= norm;       // This should be between -1 and 1 because of arccos
       if (sc > 1) {
-        if (Config::get().general.verbosity > 0)
-        {
-          std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc << "\n";
-          std::cout << "sc = 1 assumed\n";
-        }
+        std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc <<", sc = 1 assumed\n";
 				return ang<T>::from_rad(acos(1));
       }
-      if (sc < -1) {
-        if (Config::get().general.verbosity > 0)
-        {
-          std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc << "\n";
-          std::cout << "sc = -1 assumed\n";
-        }
+      else if (sc < -1) {
+        std::cout << "Warning! Bad value for (|a|*|b|*cos(ab)) / (|a|*|b|): " << sc << ", sc = -1 assumed\n";
         return ang<T>::from_rad(acos(-1));
       }
-      return ang<T>::from_rad(acos(sc));
+      else return ang<T>::from_rad(acos(sc));
     }
     return ang<T>::from_rad(T());
   }
