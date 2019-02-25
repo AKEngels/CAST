@@ -999,8 +999,6 @@ namespace config
     std::size_t usequil;
     /**offset for taking snapshots*/
     std::size_t usoffset;
-    /**offset for writing stuff into 'umbrella.txt'*/
-    std::size_t usbuffer;
 
     /**vector of heatsteps:
     each MDheat option is saved into one element of this vector*/
@@ -1043,7 +1041,7 @@ namespace config
       broken_restart{ 0 }, pcompress{0.000046}, pdelay{2.0}, ptarget{1.0},
       set_active_center{ 0 }, adjustment_by_step { 0 }, inner_cutoff{ 0.0 }, outer_cutoff{ 0.0 },
       active_center(), num_steps{10000}, num_snapShots{100}, max_snap_buffer{50},
-      refine_offset{0}, restart_offset{0}, trackoffset{1}, usequil{0}, usoffset{ 0 }, usbuffer{1},
+      refine_offset{0}, restart_offset{0}, trackoffset{1}, usequil{0}, usoffset{ 0 }, 
        heat_steps(), spherical{}, rattle{},
       integrator(md_conf::integrators::VERLET),
       hooverHeatBath{false}, veloScale{false},  fep{false}, track{true},

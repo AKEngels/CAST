@@ -1125,9 +1125,6 @@ UScomb        2  50   -1.9  ( 1  2  +1 ) (  1  6  -1 )
 # Offset for taking snapshots
 USsnap                 1
 
-# Offset for writing stuff into 'umbrella.txt'
-USbuffer               6492
-
 
 ####################################
 #                                  #

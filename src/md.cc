@@ -173,9 +173,6 @@ void md::simulation::run(bool const restart)
 
 // Perform Umbrella Sampling run if requested
 void md::simulation::umbrella_run(bool const restart) {
-
-  std::remove("umbrella.txt");
-
   std::size_t steps;
   steps = Config::get().md.num_steps;
 
@@ -195,10 +192,24 @@ void md::simulation::umbrella_run(bool const restart) {
   //run equilibration
   Config::set().md.num_steps = Config::get().md.usequil;
   integrate(false);
-  std::remove("umbrella.txt");
+  udatacontainer.clear();
   // run production
   Config::set().md.num_steps = steps;
   integrate(false);
+
+  // write data into file
+  std::ofstream ofs;
+  ofs.open("umbrella.txt");
+  auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
+  for (auto s{ 0u }; s < udatacontainer.size()/number_of_restraints; ++s)  // for every step 
+  {
+    ofs << s << "   ";                                              // stepnumber
+    for (auto b{ 0u }; b < number_of_restraints; ++b) {
+      ofs << udatacontainer[b + number_of_restraints * s] << "  ";  // value(s)
+    }
+    ofs << "\n";
+  }
+  ofs.close();
 }
 
 
@@ -1825,25 +1836,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
     {
       // apply biases and fill udatacontainer with values for restrained coordinates
       coordobj.ubias(udatacontainer);
-
-      if (k % Config::get().md.usbuffer == 0 && k > 0)   
-      {
-        // write data into umbrella.txt file
-        std::ofstream ofs;
-        ofs.open("umbrella.txt", std::ios::app);
-        for (auto s{ 0u }; s < Config::get().md.usbuffer; ++s)      // for every step 
-        {
-          ofs << k- Config::get().md.usbuffer + s << "   ";            // stepnumber
-          auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
-          for (auto b{ 0u }; b < number_of_restraints; ++b) {
-            ofs << udatacontainer[b+ number_of_restraints*s] << "  ";  // value(s)
-          }
-          ofs << "\n";
-        }
-
-        // clear udatacontainer
-        udatacontainer.clear();
-      }
     }
     // refine nonbondeds if refinement is required due to configuration
     if (CONFIG.refine_offset != 0 && (k + 1U) % CONFIG.refine_offset == 0)
@@ -1956,25 +1948,6 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
       }
     }
   }  // end loop for every MD step
-
-  // if still umbrella data remaining: write into file
-  if (CONFIG.umbrella == true && udatacontainer.size() != 0)   
-  {
-      std::ofstream ofs;
-      ofs.open("umbrella.txt", std::ios::app);
-      for (auto s{ 0u }; s < (Config::get().md.num_steps-1)% Config::get().md.usbuffer +1 ; ++s)      // for remaining steps 
-      {
-        ofs << ((Config::get().md.num_steps - 1) / Config::get().md.usbuffer)*Config::get().md.usbuffer + s << "   ";   // stepnumber
-        auto &&number_of_restraints = Config::get().coords.bias.udist.size() + Config::get().coords.bias.utors.size() + Config::get().coords.bias.ucombs.size();
-        for (auto b{ 0u }; b < number_of_restraints; ++b) {
-          ofs << udatacontainer[b + number_of_restraints * s] << "  ";            // value(s)
-        }
-        ofs << "\n";
-      }
-
-      // clear udatacontainer
-      udatacontainer.clear();
-  }
 
 #ifdef USE_PYTHON
   // plot distances from MD analyzing

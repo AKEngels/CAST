@@ -1513,10 +1513,6 @@ void config::parse_option(std::string const option, std::string const value_stri
     {
       cv >> Config::set().md.usoffset;
     }
-    if (option.substr(2, 6) == "buffer")
-    {
-      cv >> Config::set().md.usbuffer;
-    }
     if (option.substr(2, 7) == "torsion")
     {
       config::coords::umbrellas::umbrella_tor ustorBuffer;
