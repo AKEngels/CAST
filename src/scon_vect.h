@@ -10,6 +10,8 @@
 #include <iostream>
 #include <iomanip>
 
+#include"configuration.h"  // verbosity
+
 #include "scon_traits.h"
 #include "scon_utility.h"
 
