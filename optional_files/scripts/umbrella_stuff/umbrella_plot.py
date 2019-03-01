@@ -6,6 +6,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+import warnings
+warnings.filterwarnings("ignore")
+
 # read outputfile
 with open("out.txt") as outfile:
     lines = outfile.readlines()
@@ -53,7 +56,7 @@ for filename in glob.glob("umbrella_*.txt"):
     xi_lists.append(xi)
 
 plt.rcParams['figure.figsize'] = [11,8]  # 11x8 inches is next to DinA4
-number = int(math.sqrt(len(xi_lists[0])))
+number = int(math.sqrt(len(xi_lists[0])*len(xi_lists)))
 plt.xlim(MIN, MAX)
 n, bins, patches = plt.hist(xi_lists, number, histtype='step')
 plt.savefig("distribution.png", dpi=100)  
