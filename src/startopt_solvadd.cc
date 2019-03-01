@@ -336,6 +336,7 @@ void startopt::preoptimizers::Solvadd::build_site_group_16 (std::size_t atom)
 
 void startopt::preoptimizers::Solvadd::build_site_group_17 (std::size_t atom)
 {
+	if (m_solvated_atoms.atom(atom).bonds().size() == 0) return;  // Attention! This line was added without any idea what this function is doing!
   if(m_solvated_atoms.atom(atom).bonds().size() > 1) return;
   std::size_t b(m_solvated_atoms.atom(atom).bonds(0u));
   if(m_solvated_atoms.atom(b).bonds().size() < 2u) return;
