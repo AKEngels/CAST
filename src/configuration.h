@@ -487,7 +487,9 @@ namespace config
           int index1, index2, factor;
         };
         /**force constant*/
-        double force;
+        double force_final;
+        /**current force constant (raises during first half of equilibration)*/
+        double force_current{ 0.0 };
         /**value (in Angstrom) to which it is restrained*/
         double value;
         /**vector of all dists that are included in reaction coordinate*/

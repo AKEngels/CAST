@@ -156,6 +156,9 @@ namespace coords
       std::vector<config::biases::spherical> const & sphericals() const { return m_spherical; }
       std::vector<config::biases::cubic> const & cubic() const { return m_cubic; }
       std::vector<config::biases::thresholdstr> const & thresholds() const { return m_thresh; }
+			/**function to change umbrella combinations
+			necessary for raising force constant during equilibration*/
+			std::vector<config::coords::umbrellas::umbrella_comb> &set_ucombs() { return m_ucombs; }
 
       double apply(Representation_3D const & xyz, Representation_3D & g_xyz,
         Cartesian_Point maxPos, Cartesian_Point const & center = Cartesian_Point());
@@ -200,7 +203,7 @@ namespace coords
       @param xyz: coordinates of system
       @param g_xyz: cartesian gradients of system
       @param uout: vector with the real values for the restraint coordinate*/
-      void umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout)  const;
+      void umbrellacomb(Representation_3D const & xyz, Gradients_3D & g_xyz, std::vector<double> &uout);
       double thresh(Representation_3D const & xyz, Gradients_3D & g_xyz, Cartesian_Point maxPos);
     };
   }

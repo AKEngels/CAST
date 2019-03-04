@@ -276,10 +276,15 @@ void coords::bias::Potentials::umbrelladist(Representation_3D const &positions,
 }
 
 void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
-  Gradients_3D & gradients, std::vector<double> &uout) const
+  Gradients_3D & gradients, std::vector<double> &uout)
 {
-  for (auto const &comb : m_ucombs)   // for every restraint combination
+  for (auto &comb : set_ucombs())   // for every restraint combination
   {
+    // raise force constant in the first half of equilibration
+    if (comb.force_current < comb.force_final){
+      comb.force_current += (comb.force_final * 2) / Config::get().md.usequil;
+    }
+
     // calculate value for 'umbrella.txt' file and save it
     double reactioncoord{ 0.0 };     // total reaction coordinate
     for (auto &d : comb.dists)   // for every distance in combination
@@ -297,13 +302,13 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
       coords::Cartesian_Point vec(positions[d.index1] - positions[d.index2]); // vector between atoms (r1-r2)
       double distance = geometric_length(vec);                                // distance between atoms
 
-      gradients[d.index1].x() += comb.force * diff * distance*distance * vec.x() * d.factor;
-      gradients[d.index1].y() += comb.force * diff * distance*distance * vec.y() * d.factor;
-      gradients[d.index1].z() += comb.force * diff * distance*distance * vec.z() * d.factor;
+      gradients[d.index1].x() += comb.force_current * diff * distance*distance * vec.x() * d.factor;
+      gradients[d.index1].y() += comb.force_current * diff * distance*distance * vec.y() * d.factor;
+      gradients[d.index1].z() += comb.force_current * diff * distance*distance * vec.z() * d.factor;
 
-      gradients[d.index2].x() -= comb.force * diff * distance*distance * vec.x() * d.factor;
-      gradients[d.index2].y() -= comb.force * diff * distance*distance * vec.y() * d.factor;
-      gradients[d.index2].z() -= comb.force * diff * distance*distance * vec.z() * d.factor;
+      gradients[d.index2].x() -= comb.force_current * diff * distance*distance * vec.x() * d.factor;
+      gradients[d.index2].y() -= comb.force_current * diff * distance*distance * vec.y() * d.factor;
+      gradients[d.index2].z() -= comb.force_current * diff * distance*distance * vec.z() * d.factor;
     }
   }
 }
