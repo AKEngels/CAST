@@ -212,13 +212,16 @@ double energy::interfaces::orca::sysCallInterface::read_output(int t)
       mulliken_charges.clear(); // delete whatever is in there before
       std::getline(out, line);  // '---------------'
 
-      std::string buffer;
-      double charge;
-      for (int i = 0; i < N; ++i)
-      {
-        out >> buffer >> buffer >> buffer >> charge;
-        mulliken_charges.emplace_back(charge);
-      }
+			std::string buffer;
+			std::vector<std::string> buffervec;
+			double charge;
+			for (int i = 0; i < N; ++i)
+			{
+				std::getline(out, buffer);
+				buffervec = split(buffer, ' ', true);
+				charge = std::stod(buffervec[3]);
+				mulliken_charges.emplace_back(charge);
+			}
     }
 	}
   out.close();
