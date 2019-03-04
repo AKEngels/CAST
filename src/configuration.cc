@@ -523,6 +523,11 @@ void config::parse_option(std::string const option, std::string const value_stri
 #endif
   }
 
+  else if (option == "MOVEmode")
+  {
+    Config::set().stuff.moving_mode = std::stoi(value_string);
+  }
+
   //! Qmmm-Option
   else if (option.substr(0, 4u) == "QMMM")
   {
