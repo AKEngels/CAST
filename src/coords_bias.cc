@@ -295,6 +295,12 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
     }
     uout.push_back(reactioncoord);    // fill value for restraint into uout
 
+		// Console output
+		if (Config::get().general.verbosity > 3)
+		{
+			std::cout << "Force constant: " << comb.force_current << ", reaction coordinate: " << reactioncoord << "\n";
+		}
+    
     // apply bias potential on gradients
     float_type diff(reactioncoord - comb.value);        // difference to desired value (restraint)
     for (auto &d : comb.dists)   // for every distance in combination
