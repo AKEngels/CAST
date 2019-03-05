@@ -181,10 +181,10 @@ TEST(IcUtilityFreeFunctions, Rep3D_to_Mat) {
   EXPECT_EQ(cartesianMatrix, expectedValues);
 }
 
-TEST(IcUtilityFreeFunctions, mat_to_rep3D) {
+TEST(IcUtilityFreeFunctions, matToRep3D) {
   scon::mathmatrix<double> matrixToTransform{ {-0.321,}, {-0.087,}, {0.12733,} , {1.055,}, {0.144,}, {0.21133,}, {-0.53,}, {-0.921,}, {-0.57767,},
   {-0.85, }, {0.837,}, {-0.18867,}, {-0.699,}, {-0.376,}, {1.12933,}, {1.345,}, {0.403,}, {-0.70167,}};
-  auto evaluatedValues = ic_util::mat_to_rep3D(matrixToTransform);
+  auto evaluatedValues = ic_util::matToRep3D(matrixToTransform);
 
   coords::Representation_3D expectedValues{
     coords::r3{ -0.321, -0.087, 0.12733 },

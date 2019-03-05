@@ -559,7 +559,7 @@ namespace internals {
   }
 
   void InternalToCartesianConverter::takeCartesianStep(scon::mathmatrix <coords::float_type> && cartesianChange, InternalCoordinates::temporaryCartesian & cartesians) const {
-    cartesians.coordinates += ic_util::mat_to_rep3D(std::move(cartesianChange));
+    cartesians.coordinates += ic_util::matToRep3D(std::move(cartesianChange));
     cartesians.stolenNotify();
     internalCoordinates.requestNewBAndG();
   }

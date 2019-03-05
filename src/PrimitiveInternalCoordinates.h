@@ -324,7 +324,7 @@ namespace internals {
 
   template<typename Dcart>
   coords::Representation_3D& InternalToCartesianConverter::takeCartesianStep(Dcart&& d_cart) {
-    auto d_cart_rep3D = ic_util::mat_to_rep3D(std::forward<Dcart>(d_cart));
+    auto d_cart_rep3D = ic_util::matToRep3D(std::forward<Dcart>(d_cart));
     return set_xyz(cartesianCoordinates + d_cart_rep3D);
   }
 
