@@ -309,13 +309,13 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
       coords::Cartesian_Point vec(positions[d.index1] - positions[d.index2]); // vector between atoms (r1-r2)
       double distance = geometric_length(vec);                                // distance between atoms
 
-      gradients[d.index1].x() += comb.force_current * diff * distance*distance * vec.x() * d.factor;
-      gradients[d.index1].y() += comb.force_current * diff * distance*distance * vec.y() * d.factor;
-      gradients[d.index1].z() += comb.force_current * diff * distance*distance * vec.z() * d.factor;
+      gradients[d.index1].x() += comb.force_current * diff * d.factor * (1.0 / distance) * vec.x();
+      gradients[d.index1].y() += comb.force_current * diff * d.factor * (1.0 / distance) * vec.y();
+      gradients[d.index1].z() += comb.force_current * diff * d.factor * (1.0 / distance) * vec.z();
 
-      gradients[d.index2].x() -= comb.force_current * diff * distance*distance * vec.x() * d.factor;
-      gradients[d.index2].y() -= comb.force_current * diff * distance*distance * vec.y() * d.factor;
-      gradients[d.index2].z() -= comb.force_current * diff * distance*distance * vec.z() * d.factor;
+      gradients[d.index2].x() -= comb.force_current * diff * d.factor * (1.0 / distance) * vec.x();
+      gradients[d.index2].y() -= comb.force_current * diff * d.factor * (1.0 / distance) * vec.y();
+      gradients[d.index2].z() -= comb.force_current * diff * d.factor * (1.0 / distance) * vec.z();
     }
   }
 }
