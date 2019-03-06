@@ -1102,10 +1102,12 @@ void md::simulation::write_dists_into_file(std::vector<ana_pair>& pairs)
   for (auto i = 0u; i < Config::get().md.num_steps; ++i)   // for every MD step
   {
     distfile << i + 1;
-    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with temperatures
+    for (auto &p : pairs) distfile << "," << p.dists[i];  // write a line with distances
     distfile << "\n";
   }
   distfile.close();
+
+  for (auto &p : pairs) p.dists.clear();   // after writing: delete vector with distances
 }
 
 // perform FEP calculation if requested

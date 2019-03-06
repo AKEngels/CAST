@@ -1,5 +1,6 @@
 #include "coords.h"
 #include "scon_angle.h"
+#include"helperfunctions.h"
 
 
 #include <algorithm>
@@ -281,7 +282,7 @@ void coords::bias::Potentials::umbrellacomb(Representation_3D const &positions,
   for (auto &comb : set_ucombs())   // for every restraint combination
   {
     // raise force constant in the first half of equilibration
-    if (comb.force_current < comb.force_final){
+    if (is_smaller_than(comb.force_current, comb.force_final)){
       comb.force_current += (comb.force_final * 2) / Config::get().md.usequil;
     }
 
