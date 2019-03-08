@@ -1790,7 +1790,7 @@ void md::simulation::integrator(bool fep, std::size_t k_init, bool beeman)
         std::cout << "Warning! Broken bonds between atoms...\n";
         for (auto b : coordobj.broken_bonds)
         {
-          std::cout << b[0] << " and " << b[1] << ", distance: " << b[2] << "\n";
+          std::cout << b[0]+1 << " and " << b[1]+1 << ", distance: " << b[2] << "\n";
         }
       }
       if (Config::get().md.broken_restart == 1)
