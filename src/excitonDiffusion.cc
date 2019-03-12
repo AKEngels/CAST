@@ -321,7 +321,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             partnerConnections.push_back(tmpH);
           } //m
 
-          if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
+          if (excPos.state == 'c')//hole movement only of interesst if simulation of charges is done (steate=c)
           {
             for (std::size_t m = 0u; m < h_viablePartners.size(); m++)//loop over viable partners to find couplings between monomers in current posirtion and viable partners
             {
@@ -379,7 +379,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
             }
           }// n
 
-          if (excPos.state == 'c')//hole movement only of uinteresst if simulation of charges is done (steate=c
+          if (excPos.state == 'c')//hole movement only of interesst if simulation of charges is done (steate=c)
           {
             for (std::size_t n = 0u; n < h_partnerConnections.size(); n++)
             {
@@ -538,7 +538,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               break;
             }
 
-            //electron rates in pSC
+            //hole rates in pSC
             for (std::size_t p=0u; p < partnerConnections.size(); p++)
             {
               if (excCoup[partnerConnections[p].partnerIndex].monA < pscnumber && excCoup[partnerConnections[p].partnerIndex].monB < pscnumber)//movement on pSC
@@ -547,13 +547,13 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
                 coulombenergy = coulomb(excCoup[excPos.h_location].position, excCoup[partnerConnections[p].partnerIndex].position, 3.4088) - coulomb(excCoup[excPos.h_location].position, excCoup[excPos.location].position, 3.4088);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy , reorganisationsenergie_charge);
               }
-              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex == excPos.h_location)//movement to nSC --> recombination | only possible if electron presen on nSC dimer
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex == excPos.location)//movement to nSC --> recombination | only possible if electron present on nSC dimer
               {
                 random_normal = distributionN(engine);//generating normal distributed random number
                 coulombenergy = coulomb(excCoup[excPos.location].position, excCoup[partnerConnections[p].partnerIndex].position, 1);
                 rate_sum += marcus(partnerConnections[p].avgCoup, (random_normal - random_normal1) + coulombenergy, reorganisationsenergie_rek);
               }   
-              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.h_location)
+              else if (excCoup[partnerConnections[p].partnerIndex].monA > pscnumber && excCoup[partnerConnections[p].partnerIndex].monB > pscnumber && partnerConnections[p].partnerIndex != excPos.location)
               { //recombination only possible if electron is pressent on nSC dimer => no hopping to nSC if no electron present
                 raten[p] = 0.0;
               }
@@ -574,6 +574,7 @@ void exciD::dimexc(std::string masscenters, std::string couplings, int pscnumber
               std::cout << "Partner: " << partnerConnections[p].partnerIndex << " Rates: " << rate_sum << '\n';
             }//p
 
+            //electron rates in nSC
             for (std::size_t p = 0u; p < partnerConnections.size(); p++)
             {
 
